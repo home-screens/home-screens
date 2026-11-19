@@ -419,3 +419,27 @@ describe('TodayView bonus chores', () => {
     expect(screen.getByText('Noah did it Monday')).toBeTruthy();
   });
 });
+
+describe('"Show time of day" off', () => {
+  const at = (id: string, name: string, timeOfDay: 'morning' | 'afternoon' | 'evening') => ({
+    chore: { ...chore(1), id, name, timeOfDay }, memberId: 'kid-1', isCompleted: false, isSkipped: false, groupIds: [],
+  });
+  const assignments = [at('dog', 'Feed the dog', 'evening'), at('bed', 'Make your bed', 'morning'), at('homework', 'Homework', 'afternoon')];
+
+  it('draws the band headings while it is on', () => {
+    renderView({ assignments });
+    expect(screen.getByText('Morning')).toBeTruthy();
+    expect(screen.getByText('Evening')).toBeTruthy();
+  });
+
+  it('lists the day as one run with no headings, morning first', () => {
+    renderView({ assignments, cfg: { showTimeOfDay: false } });
+    expect(screen.queryByText('Morning')).toBeNull();
+    expect(screen.queryByText('Afternoon')).toBeNull();
+    expect(screen.queryByText('Evening')).toBeNull();
+    const names = screen.getAllByRole('button').map((dot) => dot.getAttribute('aria-label'));
+    expect(names).toEqual([
+      expect.stringContaining('Make your bed'), expect.stringContaining('Homework'), expect.stringContaining('Feed the dog'),
+    ]);
+  });
+});

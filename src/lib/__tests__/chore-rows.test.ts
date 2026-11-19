@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildChoreRows, getUniqueInitials } from '@/lib/chore-rows';
+import { buildChoreRows, getUniqueInitials, mergeChoreRows } from '@/lib/chore-rows';
 import type { ResolvedAssignment } from '@/lib/chore-assignments';
 import type { ChoreDefinition } from '@/types/config';
 
@@ -206,4 +206,22 @@ describe('buildChoreRows with a family group', () => {
     expect(row.assignees.every((a) => a.viaGroup)).toBe(true);
   });
 
+});
+
+describe('mergeChoreRows', () => {
+  it('lists every band as one run, morning first, whatever order the chores were saved in', () => {
+    const chores = [
+      makeChore({ id: 'tidy', name: 'Tidy', timeOfDay: 'anytime' }),
+      makeChore({ id: 'dog', name: 'Dog', timeOfDay: 'evening' }),
+      makeChore({ id: 'bed', name: 'Bed', timeOfDay: 'morning' }),
+      makeChore({ id: 'teeth', name: 'Teeth', timeOfDay: 'morning' }),
+      makeChore({ id: 'homework', name: 'Homework', timeOfDay: 'afternoon' }),
+    ];
+    const rows = mergeChoreRows(buildChoreRows(chores.map((c) => makeAssignment(c, 'ann'))));
+    expect(rows.map((row) => row.choreId)).toEqual(['bed', 'teeth', 'homework', 'dog', 'tidy']);
+  });
+
+  it('is empty for a day with no chores', () => {
+    expect(mergeChoreRows(new Map())).toEqual([]);
+  });
 });

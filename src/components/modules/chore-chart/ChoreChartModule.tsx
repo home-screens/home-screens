@@ -5,7 +5,7 @@ import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import {
-  balanceRows, boardColumns, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, resolveHistoryLimit, weekMembers,
+  allOwedDone, balanceRows, boardColumns, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, resolveHistoryLimit, weekMembers,
 } from './layout';
 
 /** Mirrors StarChartView's legend sizing, for the height estimate. */
@@ -16,6 +16,7 @@ import FamilyEmptyState from '../FamilyEmptyState';
 import { ModuleLoadingState } from '../ModuleStates';
 import { ChoreOverspentNotice } from './ChoreOverspentNotice';
 import { useChoreData } from './useChoreData';
+import { ChoreWriteNotice, useChoreWriteAlert } from './useChoreWriteAlert';
 import { BoardView } from './views/BoardView';
 import { StarChartView } from './views/StarChartView';
 import { TodayView } from './views/TodayView';
@@ -32,8 +33,19 @@ interface ChoreChartModuleProps {
 
 export default function ChoreChartModule({ config, style, timezone }: ChoreChartModuleProps) {
   const view = config.view ?? 'board';
-  const data = useChoreData(config, timezone);
+  const chores = useChoreData(config, timezone);
   const t = useTranslate('modules');
+  // A tick that did not save is put back on screen by the hook; the card says
+  // so at its foot. Every view ticks through this one door.
+  const { alert: writeAlert, report: reportWrite } = useChoreWriteAlert(chores.members);
+  const data = {
+    ...chores,
+    toggleComplete: async (choreId: string, memberId: string) => {
+      const outcome = await chores.toggleComplete(choreId, memberId);
+      reportWrite(outcome);
+      return outcome;
+    },
+  };
   const drawsFromRewards = view === 'reward-history' || view === 'rewards-store';
   // The per-member views (board columns, compact checkbox columns, progress
   // rings) lay themselves out from the box width and the module font size:
@@ -45,41 +57,47 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   // The board's columns, exactly as BoardView draws them: the fit has to make
   // room for every column on the board, day offs included.
   const columns = useMemo(
-    () => (view === 'board' ? boardColumns(data.members, data.memberStats, data.todayAssignments) : []),
-    [view, data.members, data.memberStats, data.todayAssignments],
+    () => (view === 'board' ? boardColumns(chores.members, chores.memberStats, chores.todayAssignments) : []),
+    [view, chores.members, chores.memberStats, chores.todayAssignments],
   );
 
   // What the chosen view actually has to stack down the box.
-  const { rows, sections } = useMemo(() => {
-    const assignments = data.todayAssignments;
+  const { rows, sections, blocks, extra } = useMemo<{ rows: number; sections: number; blocks?: number; extra?: { rows: number; sections: number } }>(() => {
+    const assignments = chores.todayAssignments;
     if (view === 'compact') {
-      return { rows: new Set(assignments.map((a) => a.chore.id)).size, sections: 0 };
+      // Bonus chores follow the grid under a heading of their own, fitted in
+      // only while the owed chores keep their place (see `extra`).
+      const bonus = chores.todayBonus.length;
+      return { rows: new Set(assignments.map((a) => a.chore.id)).size, sections: 0, extra: { rows: bonus, sections: bonus > 0 ? 1 : 0 } };
     }
     if (view === 'reward-history') {
-      return { rows: Math.min(data.allRedemptions.length, resolveHistoryLimit(config.historyLimit)), sections: 0 };
+      return { rows: Math.min(chores.allRedemptions.length, resolveHistoryLimit(config.historyLimit)), sections: 0 };
     }
     if (view === 'today') {
       // One row per chore, however many people share it: the view draws the
       // assignees as a run of dots on that single row.
       // Bonus chores follow under a section of their own.
       const times = new Set(assignments.map((a) => a.chore.timeOfDay));
-      const bonus = data.todayBonus.length;
+      const bonus = chores.todayBonus.length;
+      // With the headings off the day is one block of chores, not one per band.
+      const merged = config.showTimeOfDay === false;
       return {
         rows: new Set(assignments.map((a) => a.chore.id)).size + bonus,
-        sections: (config.showTimeOfDay === false ? 0 : times.size) + (bonus > 0 ? 1 : 0),
+        sections: (merged ? 0 : times.size) + (bonus > 0 ? 1 : 0),
+        blocks: (merged ? Math.min(1, times.size) : times.size) + (bonus > 0 ? 1 : 0),
       };
     }
     if (view === 'star-chart') {
       // A row per charted member, and the legend under it wraps the same
       // people into rows of its own.
-      const charted = weekMembers(data.members, data.memberStats);
+      const charted = weekMembers(chores.members, chores.memberStats);
       const legendRows = config.showPoints === false
         ? 0
         : balanceRows(charted, fitPerRow(box.width, STAR_LEGEND_ITEM_PX(style.fontSize), STAR_LEGEND_GAP, charted.length)).length;
       return { rows: charted.length, sections: legendRows };
     }
     return { rows: 0, sections: 0 };
-  }, [data, view, config.showTimeOfDay, config.showPoints, config.historyLimit, box.width, style.fontSize]);
+  }, [chores, view, config.showTimeOfDay, config.showPoints, config.historyLimit, box.width, style.fontSize]);
 
   // An empty roster only means a fresh install once the roster has actually
   // arrived. Until then (or when it could not be read) say so, rather than
@@ -123,7 +141,8 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       columns,
       showTitle: config.showTitle !== false,
       showBalance: !!config.showPoints && columns.some((c) => (data.memberStats.get(c.member.id)?.rewardBalance ?? 0) > 0),
-      allDone: data.todayAssignments.length > 0 && data.todayAssignments.every((a) => a.isCompleted),
+      allDone: allOwedDone(data.todayAssignments),
+      bonus: data.todayBonus.length,
     })
     : null;
   const fontSize = boardFit ? boardFit.fontSize : view === 'rewards-store'
@@ -141,7 +160,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       readOnly: config.allowDisplayComplete === false,
     })
     : fitChoreFontSize({
-      width: box.width, height: box.height, requested: style.fontSize, rows, sections, view,
+      width: box.width, height: box.height, requested: style.fontSize, rows, sections, blocks, extra, view,
     });
   const viewProps = { config, data, width: box.width, fontSize };
 
@@ -149,7 +168,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     <ModuleWrapper style={style}>
       <div ref={frameRef} className="w-full h-full min-h-0 flex flex-col" style={{ fontSize: `${fontSize}px` }}>
         <div className="flex-1 min-h-0">
-          {boardFit && <BoardView config={config} data={data} fontSize={fontSize} perRow={boardFit.perRow} />}
+          {boardFit && <BoardView config={config} data={data} fontSize={fontSize} perRow={boardFit.perRow} showBonus={boardFit.showBonus} />}
           {view === 'star-chart' && <StarChartView {...viewProps} />}
           {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
           {view === 'progress' && <ProgressView {...viewProps} />}
@@ -163,6 +182,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
         {data.overspentNotice && (
           <ChoreOverspentNotice notice={data.overspentNotice} accentColor={config.accentColor ?? '#f59e0b'} />
         )}
+        {writeAlert && <ChoreWriteNotice alert={writeAlert} accentColor={config.accentColor ?? '#f59e0b'} />}
       </div>
     </ModuleWrapper>
   );

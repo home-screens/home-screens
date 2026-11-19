@@ -975,7 +975,8 @@ test('meal-planner: toggling Show Pictures persists', async ({ page, request }) 
 });
 
 test('chore-chart: toggling Show Streaks persists', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('chore-chart'));
+  // Offered on the two views that draw a streak: Progress and Star chart.
+  await selectModule(page, request, buildModuleInstance('chore-chart', { view: 'progress' }));
 
   await autosaved(page, async () => {
     await page.getByRole('switch', { name: 'Show Streaks' }).click();

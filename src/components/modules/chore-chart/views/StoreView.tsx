@@ -5,7 +5,7 @@ import { ChevronRight, History, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
-import { canAffordReward, isRewardOfferedTo, ticketsAfterRedeeming, ticketsStillNeeded } from '@/lib/reward-rules';
+import { canAffordReward, isRewardOfferedTo, resolveSavingsGoal, ticketsAfterRedeeming, ticketsStillNeeded } from '@/lib/reward-rules';
 import { onAccentFor } from '@/lib/fullscreen-themes';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
@@ -34,6 +34,8 @@ interface StoreViewProps {
   data: {
     members: FamilyMember[];
     rewards: RewardDefinition[];
+    /** Each person's savings goal, by member id. */
+    goals?: Record<string, string>;
     memberStats: Map<string, MemberStats>;
     allRedemptions: RewardRedemption[];
     applyRedemption: (result: { balances?: Record<string, number>; redemptions?: RewardRedemption[] }) => void;
@@ -99,6 +101,21 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
       ? data.rewards.filter((r) => r.enabled)
       : data.rewards.filter((r) => isRewardOfferedTo(r, selected?.id ?? null))),
     [data.rewards, layout, selected],
+  );
+
+  // The reward the picked person is saving for, chosen on the phone. The
+  // price list has no picked person, so it marks nothing.
+  const goalId = layout !== 'price-list' && selected
+    ? resolveSavingsGoal({ rewards: data.rewards, goals: data.goals }, selected.id)?.id ?? null
+    : null;
+  const goalTag = (style?: CSSProperties) => (
+    <span
+      data-testid="store-goal-tag"
+      className="shrink-0 whitespace-nowrap uppercase"
+      style={{ fontSize: '0.5em', fontWeight: 800, letterSpacing: '0.08em', lineHeight: 1.2, padding: '0.25em 0.7em', borderRadius: 999, background: accent, color: onAccent, ...style }}
+    >
+      {t('fullscreen-chore-chart.goal.savingForThis')}
+    </span>
   );
 
   if (showHistory) {
@@ -248,9 +265,13 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
               key={reward.id}
               {...{ [CHORE_ROW_ATTR]: '' }}
               data-testid="store-reward"
-              className="flex flex-col items-center text-center"
-              style={{ gap: '0.18em', padding: '0.5em 0.4em 0.45em', borderRadius: '0.7em', background: ink(0.06), border: `1px solid ${ink(0.1)}`, opacity: ok ? 1 : 0.55 }}
+              className="relative flex flex-col items-center text-center"
+              style={{ gap: '0.18em', padding: '0.5em 0.4em 0.45em', borderRadius: '0.7em', background: ink(0.06), border: `1px solid ${reward.id === goalId ? accent : ink(0.1)}`, opacity: ok || reward.id === goalId ? 1 : 0.55 }}
             >
+              {/* A tab hanging from the tile's top edge, inside its own padding: out
+                  of the flow, so a marked tile is no taller than the fit
+                  budgeted, and inside the tile, so the list cannot clip it. */}
+              {reward.id === goalId && goalTag({ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', padding: '0 0.7em 0.05em', lineHeight: 1.1, borderRadius: '0 0 0.7em 0.7em' })}
               {icon(reward, 1.6)}
               <span className="flex items-center" style={{ fontSize: '0.78em', fontWeight: 600, lineHeight: 1.15, minHeight: '2.3em', overflow: 'hidden' }}>{reward.name}</span>
               {tickets(reward.cost, '0.62em', true)}
@@ -317,6 +338,8 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
                   {icon(reward, 1.2)}
                   <span className="min-w-0 flex-1 truncate" style={{ fontWeight: 500 }}>{reward.name}</span>
                 </span>
+                {/* Outside the dimmed name: the goal reads at full strength before it can be afforded. */}
+                {reward.id === goalId && goalTag()}
                 {tickets(reward.cost, '0.72em')}
                 {allowTouch && (ok ? pill(reward, STORE_TAP_PX) : stillNeeded(reward, { minWidth: '5.2em', textAlign: 'right' }))}
               </div>

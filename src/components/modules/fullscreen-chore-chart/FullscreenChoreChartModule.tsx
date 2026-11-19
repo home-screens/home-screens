@@ -23,7 +23,7 @@ import MemberBand, { memberHeaderHeight } from './MemberBand';
 import BonusBand, { BonusMoreSheet, GrabbedSheet, GrabPickerSheet } from './BonusBand';
 import { atGrabLimit, type BonusItem } from '@/lib/chore-bonus';
 import { parseISO } from '@/lib/chore-assignments';
-import type { ChoreWriteOutcome } from '@/components/modules/chore-chart/useChoreData';
+import { useChoreWriteAlert } from '@/components/modules/chore-chart/useChoreWriteAlert';
 import type { MemberStats } from '@/components/modules/chore-chart/types';
 import FitList from './FitList';
 import { Star } from 'lucide-react';
@@ -38,7 +38,7 @@ import { resolveSavingsGoal } from '@/lib/reward-rules';
 const EMPTY_GOALS: Record<string, string> = {};
 import type { RewardDefinition } from '@/lib/reward-data';
 import { RewardHistoryView, type RewardHistoryVariant } from './RewardHistoryView';
-import { type ChoreRow, buildChoreRows, getUniqueInitials } from '@/lib/chore-rows';
+import { type ChoreRow, buildChoreRows, getUniqueInitials, mergeChoreRows } from '@/lib/chore-rows';
 import { getOrientation } from '@/lib/orientation';
 import { getCurrentTimeOfDay } from '@/components/modules/chore-chart/types';
 import {
@@ -63,8 +63,6 @@ interface FullscreenChoreChartModuleProps {
   timezone?: string;
 }
 
-/** How long "Esme got it first" stays in the toast strip. */
-const BONUS_ALERT_MS = 5000;
 /**
  * After a tap opens or closes a sheet, a second tap near the same spot is
  * ignored for this long: it belongs to the same double tap, and what is under
@@ -167,12 +165,7 @@ export default function FullscreenChoreChartModule({
   const [bonusSheet, setBonusSheet] = useState<{ kind: 'pick' | 'grabbed'; choreId: string } | { kind: 'more'; choreIds: string[] } | null>(null);
   // "Esme got it first": a refused tick or grab, said in the toast strip for a
   // few seconds. The wall cannot tell who tapped, so it names who has it.
-  const [bonusAlert, setBonusAlert] = useState<{ text: string; bonus: boolean } | null>(null);
-  useEffect(() => {
-    if (!bonusAlert) return;
-    const id = setTimeout(() => setBonusAlert(null), BONUS_ALERT_MS);
-    return () => clearTimeout(id);
-  }, [bonusAlert]);
+  const { alert: bonusAlert, report: reportWrite } = useChoreWriteAlert(members);
   const closeBonusSheet = useCallback(() => setBonusSheet(null), []);
   const lastPointer = useRef<{ x: number; y: number; at: number } | null>(null);
   const nearTapGuard = useRef<{ x: number; y: number; until: number } | null>(null);
@@ -273,43 +266,23 @@ export default function FullscreenChoreChartModule({
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Words for a write the hub refused: who has it, when that is known. Only
-  // a bonus refusal gets bonus words; anything else (a regular chore, a lost
-  // connection) is a plain "didn't save".
-  const refusalText = useCallback((outcome: ChoreWriteOutcome) => {
-    if (outcome.ok) return null;
-    if (!outcome.refusal) return t('fullscreen-chore-chart.saveFailed');
-    const name = members.find((m) => m.id === outcome.memberId)?.name;
-    if (outcome.refusal === 'grabbed' && name) return t('chore-chart.bonus.refused.grabbed', { name });
-    if (outcome.refusal === 'taken' && name) return t('chore-chart.bonus.refused.taken', { name });
-    return t('chore-chart.bonus.refused.other');
-  }, [members, t]);
-
-  const refusalAlert = useCallback((outcome: ChoreWriteOutcome) => {
-    const text = refusalText(outcome);
-    return text ? { text, bonus: !outcome.ok && !!outcome.refusal } : null;
-  }, [refusalText]);
-
   // The toast (with its Undo) only goes up once the hub has taken the tick:
   // a refused tick says who has the chore instead.
   const handleToggle = useCallback(async ({ choreId, memberId, choreName, memberName, memberColor, wasCompleted }: ToggleParams) => {
     const outcome = await toggleComplete(choreId, memberId);
-    if (!outcome.ok) {
-      setBonusAlert(refusalAlert(outcome));
-      return;
-    }
     // A try that went through clears an earlier "didn't save".
-    setBonusAlert(null);
+    reportWrite(outcome);
+    if (!outcome.ok) return;
     // Nothing changed on the hub: no toast claiming it did.
     if (!outcome.changed) return;
     const id = String(++toastIdRef.current);
     setToasts((prev) => [...prev.slice(-2), { id, choreId, memberId, choreName, memberName, memberColor, wasCompleted: !wasCompleted }]);
-  }, [toggleComplete, refusalAlert]);
+  }, [toggleComplete, reportWrite]);
 
   const handleGrab = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go') => {
     const outcome = await grabChore(choreId, memberId, action);
-    if (!outcome.ok) setBonusAlert(refusalAlert(outcome));
-  }, [grabChore, refusalAlert]);
+    if (!outcome.ok) reportWrite(outcome);
+  }, [grabChore, reportWrite]);
 
   // An Undo that did not go through says so, as a tick does: a kid who
   // thinks it was undone would otherwise keep tickets nobody earned.
@@ -318,15 +291,12 @@ export default function FullscreenChoreChartModule({
     setToasts((prev) => prev.filter((t) => t.id !== toastId));
     if (!toast) return;
     const outcome = await toggleComplete(toast.choreId, toast.memberId);
-    if (outcome.ok) {
-      setBonusAlert(null);
-      return;
-    }
-    setBonusAlert(refusalAlert(outcome));
+    reportWrite(outcome);
+    if (outcome.ok) return;
     // The toast comes back with its Undo, so "try again" has something to tap:
     // a finished bonus tile cannot be tapped to undo.
     if (!outcome.refusal) setToasts((prev) => [...prev.slice(-2), { ...toast, id: String(++toastIdRef.current) }]);
-  }, [toggleComplete, refusalAlert]);
+  }, [toggleComplete, reportWrite]);
 
   // Build chore rows grouped by time-of-day; dots keep household order.
   const memberOrder = useMemo(() => new Map(members.map((m, i) => [m.id, i])), [members]);
@@ -424,11 +394,7 @@ export default function FullscreenChoreChartModule({
   // If showTimeOfDay is off, merge all groups into a single list
   const mergedGroups = useMemo(() => {
     if (config.showTimeOfDay) return choreGroups;
-    const all: ChoreRow[] = [];
-    for (const tod of TOD_ORDER) {
-      const rows = choreGroups.get(tod);
-      if (rows) all.push(...rows);
-    }
+    const all = mergeChoreRows(choreGroups);
     const merged = new Map<ChoreTimeOfDay, ChoreRow[]>();
     if (all.length > 0) merged.set('anytime', all);
     return merged;

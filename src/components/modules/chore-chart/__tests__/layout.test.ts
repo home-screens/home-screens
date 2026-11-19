@@ -1,7 +1,7 @@
 
 import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
-import { balanceRows, boardColumns, boardIconSize, boardMinColumnWidth, boardNameLines, boardNameRoom, choreDotGap, choreDotSize, choreTapSize, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, partitionMembers, resolveHistoryLimit, starIconSize, storeRailEm, storeRailShowsBalances, storeTileColumns, storeUsesRail, weekMembers, type StoreFitInput } from '../layout';
+import { allOwedDone, balanceRows, boardColumns, boardIconSize, boardMinColumnWidth, boardNameLines, boardNameRoom, choreDotGap, choreDotSize, choreTapSize, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, partitionMembers, resolveHistoryLimit, starIconSize, storeRailEm, storeRailShowsBalances, storeTileColumns, storeUsesRail, weekMembers, type StoreFitInput } from '../layout';
 import type { MemberStats, ResolvedAssignment } from '../types';
 
 
@@ -206,7 +206,7 @@ describe('board columns', () => {
         ...assign('x', ['Make Bed']),
         ...assign('y', ['Feed the Dog']),
       ]);
-      expect(fitBoard({ ...portrait, columns: light })).toEqual({ fontSize: 24, perRow: 2 });
+      expect(fitBoard({ ...portrait, columns: light })).toEqual({ fontSize: 24, perRow: 2, showBonus: false });
     });
 
     it('makes room for the "all done" line once everything is ticked', () => {
@@ -215,7 +215,7 @@ describe('board columns', () => {
     });
 
     it('keeps the authored size, one row across, until the box has been measured', () => {
-      expect(fitBoard({ ...portrait, width: 0, height: 0 })).toEqual({ fontSize: 24, perRow: 7 });
+      expect(fitBoard({ ...portrait, width: 0, height: 0 })).toEqual({ fontSize: 24, perRow: 7, showBonus: false });
     });
   });
 
@@ -464,5 +464,72 @@ describe('storeUsesRail', () => {
     expect(storeUsesRail(868, 328)).toBe(true);
     // Wide in shape but too narrow to give up 13em.
     expect(storeUsesRail(500, 250)).toBe(false);
+  });
+});
+
+describe('allOwedDone', () => {
+  const chore = { id: 'c', name: 'Chore', emoji: '', points: 1, frequency: 'daily' as const, daysOfWeek: [], timeOfDay: 'anytime' as const, assigneeIds: [], rotation: 'fixed' as const };
+  const mark = (isCompleted: boolean, isSkipped = false) => ({ chore, memberId: 'a', isCompleted, isSkipped, groupIds: [] });
+
+  it('is true once everything owed is done', () => {
+    expect(allOwedDone([mark(true), mark(true)])).toBe(true);
+    expect(allOwedDone([mark(true), mark(false)])).toBe(false);
+  });
+
+  it('leaves a chore marked not today out of it: the rest being done finishes the day', () => {
+    expect(allOwedDone([mark(true), mark(false, true)])).toBe(true);
+  });
+
+  it('is not a finished day when nothing is owed at all', () => {
+    expect(allOwedDone([])).toBe(false);
+    expect(allOwedDone([mark(false, true)])).toBe(false);
+  });
+});
+
+describe('room for bonus chores', () => {
+  const member = (id: string) => ({ id, name: id, emoji: '', color: '#888', createdAt: '', updatedAt: '' });
+  const chore = (id: string) => ({ id, name: 'Feed the dog', emoji: '', points: 1, frequency: 'daily' as const, daysOfWeek: [], timeOfDay: 'anytime' as const, assigneeIds: [], rotation: 'fixed' as const });
+  const columns = ['a', 'b', 'c'].map((id) => ({
+    member: member(id),
+    chores: Array.from({ length: 6 }, (_, i) => ({ chore: chore(`${id}-${i}`), memberId: id, isCompleted: false, isSkipped: false, groupIds: [] })),
+  }));
+  const box = { width: 966, height: 526, requested: 24, columns, showTitle: true, showBalance: false, allDone: false };
+
+  it('leaves a board with no bonus chores exactly as it was', () => {
+    expect(fitBoard({ ...box, bonus: 0 })).toEqual(fitBoard(box));
+  });
+
+  it('shrinks a full board to make room for the strip, more for each chore in it', () => {
+    const none = fitBoard(box).fontSize;
+    const one = fitBoard({ ...box, bonus: 1 });
+    const three = fitBoard({ ...box, bonus: 3 });
+    expect(one.showBonus).toBe(true);
+    expect(one.fontSize).toBeLessThan(none);
+    expect(three.fontSize).toBeLessThan(one.fontSize);
+  });
+
+  it('leaves the strip out, and the board as it was, when the two cannot both fit', () => {
+    const tight = { ...box, height: 300 };
+    const fit = fitBoard({ ...tight, bonus: 3 });
+    expect(fit.showBonus).toBe(false);
+    expect(fit).toEqual(fitBoard(tight));
+  });
+
+  it('fits bonus rows into a compact list only while the owed chores keep their place', () => {
+    const roomy = { width: 966, height: 526, requested: 16, rows: 7, sections: 0, view: 'compact' };
+    const extra = { rows: 3, sections: 1 };
+    // Room for all ten: the type gives a little.
+    expect(fitChoreFontSize({ ...roomy, extra })).toBeLessThanOrEqual(fitChoreFontSize(roomy));
+    expect(fitChoreFontSize({ ...roomy, extra })).toBeGreaterThan(11);
+    // No room: sized for the seven owed chores alone, and the bonus rows scroll.
+    const tight = { ...roomy, width: 586, height: 386 };
+    expect(fitChoreFontSize({ ...tight, extra })).toBe(fitChoreFontSize(tight));
+  });
+
+  it('counts the gap between a list with no headings and the bonus chores under it', () => {
+    const list = { width: 966, height: 400, requested: 24, rows: 9, sections: 1, view: 'today' };
+    expect(fitChoreFontSize({ ...list, blocks: 2 })).toBeLessThan(fitChoreFontSize({ ...list, blocks: 1 }));
+    // Unset, the blocks are the sections, as every other list has it.
+    expect(fitChoreFontSize(list)).toBe(fitChoreFontSize({ ...list, blocks: 1 }));
   });
 });

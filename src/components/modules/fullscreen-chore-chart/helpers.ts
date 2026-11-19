@@ -21,7 +21,7 @@ export const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   anytime: Clock,
 };
 
-export const TOD_ORDER: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
+export { CHORE_TIME_ORDER as TOD_ORDER } from '@/lib/chore-rows';
 
 /**
  * The by-person layout: one section per member with a single-dot row per

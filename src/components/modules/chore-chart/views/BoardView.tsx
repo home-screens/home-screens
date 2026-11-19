@@ -5,7 +5,9 @@ import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig} from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
-import { BOARD_COLUMN_GAP_PX, BOARD_NAME_LINES, balanceRows, boardColumns, boardIconSize, choreIconSize, choreTapSize } from '../layout';
+import type { BonusItem } from '@/lib/chore-bonus';
+import { BOARD_COLUMN_GAP_PX, BOARD_NAME_LINES, allOwedDone, balanceRows, boardColumns, boardIconSize, choreIconSize, choreTapSize } from '../layout';
+import { BonusRows } from '../BonusRows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -25,6 +27,10 @@ interface BoardViewProps {
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
     toggleComplete: (choreId: string, memberId: string) => Promise<unknown>;
+    /** Today's bonus chores; they follow the columns and never count. */
+    todayBonus?: BonusItem[];
+    /** The hub's calendar day. */
+    today: string;
   };
   /** The fitted font size in px. */
   fontSize: number;
@@ -34,6 +40,8 @@ interface BoardViewProps {
    * works out a wrap of its own.
    */
   perRow: number;
+  /** Whether the fit found room for the bonus strip under the columns. */
+  showBonus?: boolean;
 }
 
 interface MemberColumnProps {
@@ -74,8 +82,9 @@ function MemberColumn({ member, stats, showPoints, fontSize, children }: MemberC
   );
 }
 
-export function BoardView({ config, data, fontSize, perRow }: BoardViewProps) {
+export function BoardView({ config, data, fontSize, perRow, showBonus = true }: BoardViewProps) {
   const { todayAssignments, members, memberStats, toggleComplete } = data;
+  const bonus = showBonus ? data.todayBonus ?? [] : [];
   const allowTouch = config.allowDisplayComplete;
   const [pressedKey, press] = usePressedKey();
   // Ticking is one tap; un-ticking takes a press and hold, the same gesture
@@ -215,8 +224,15 @@ export function BoardView({ config, data, fontSize, perRow }: BoardViewProps) {
         ))}
       </div>
 
+      {/* Bonus chores are in nobody's column: one strip under them all. */}
+      {bonus.length > 0 && (
+        <div className="shrink-0" style={{ marginTop: BOARD_COLUMN_GAP_PX }}>
+          <BonusRows config={config} items={bonus} members={members} today={data.today} fontSize={fontSize} toggleComplete={toggleComplete} variant="strip" />
+        </div>
+      )}
+
       {/* All complete celebration */}
-      {members.length > 0 && todayAssignments.length > 0 && todayAssignments.every((a) => a.isCompleted) && (
+      {members.length > 0 && allOwedDone(todayAssignments) && (
         <div className="text-center mt-2" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
           {t('chore-chart.allDone')} &#127881;
         </div>

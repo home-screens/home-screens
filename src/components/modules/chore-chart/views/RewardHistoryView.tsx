@@ -9,6 +9,7 @@ import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
+import { useRealClock } from '@/hooks/useTZClock';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { resolveHistoryLimit } from '../layout';
 
@@ -38,6 +39,9 @@ export function RewardHistoryView({
 }: RewardHistoryViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
+  // The "how long ago" column goes stale on a quiet wall: nothing else
+  // re-renders this card until a chore or a reward changes.
+  const now = useRealClock();
 
   const historyLimit = resolveHistoryLimit(config.historyLimit);
 
@@ -155,7 +159,7 @@ export function RewardHistoryView({
                     opacity: TEXT_OPACITY.tertiary,
                   }}
                 >
-                  {formatTimeAgoLocalized(redemption.redeemedAt, tCore)}
+                  {formatTimeAgoLocalized(redemption.redeemedAt, tCore, now)}
                 </div>
               </div>
             );

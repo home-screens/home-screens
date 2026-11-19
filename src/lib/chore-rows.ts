@@ -82,6 +82,17 @@ export function buildChoreRows(
   return groups;
 }
 
+/** The bands of the day, in the order every chart lists them. */
+export const CHORE_TIME_ORDER: readonly ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
+
+/**
+ * Every band's rows as one list, morning first: what a chart draws when the
+ * household has turned "Show time of day" off.
+ */
+export function mergeChoreRows(groups: ReadonlyMap<ChoreTimeOfDay, ChoreRow[]>): ChoreRow[] {
+  return CHORE_TIME_ORDER.flatMap((time) => groups.get(time) ?? []);
+}
+
 /**
  * The shortest unique initials for each member: the one letter every member
  * dot shows when it is unique, extended to two or three characters only

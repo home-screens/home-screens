@@ -2,7 +2,7 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ArrowLeft, Ticket } from 'lucide-react';
 
 import type { RewardRedemption } from '@/lib/reward-data';
@@ -13,6 +13,7 @@ import { getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
 import FamilyEmptyState from '@/components/modules/FamilyEmptyState';
 import { useElementBox } from '@/hooks/useElementBox';
+import { useRealClock } from '@/hooks/useTZClock';
 import FitList from './FitList';
 import { splitGroupsAt } from './rewards/historyLayout';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
@@ -39,16 +40,6 @@ interface RewardHistoryViewProps {
   timezone?: string;
 }
 
-/** The "how long ago" column and the day groups both go stale on a quiet wall. */
-function useMinuteClock(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
-
 export function RewardHistoryView({
   variant,
   members,
@@ -64,7 +55,8 @@ export function RewardHistoryView({
 }: RewardHistoryViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
-  const now = useMinuteClock();
+  // The "how long ago" column and the day groups both go stale on a quiet wall.
+  const now = useRealClock();
 
   const tt = k * typoMul;
   const d = getDensityMultiplier(density);

@@ -398,6 +398,20 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
       expect(text.indexOf('Alpha Evening Chore')).toBeLessThan(text.indexOf('Zulu Morning Chore'));
     },
   },
+  {
+    // On the Today view the same switch drops the band headings and lists the
+    // day as one run, morning first.
+    type: 'chore-chart', name: 'today-time-of-day-off', kind: 'local-data', seed: 'chores', seedData: CHORES_TWO_TIMES,
+    config: { view: 'today', showTimeOfDay: false },
+    expect: async (mod) => {
+      await has('Zulu Morning Chore')(mod);
+      // Each word is left once, in its chore's own name: the headings are gone.
+      const text = (await mod.evaluate((el) => el.textContent)) || '';
+      expect(text.match(/Morning/g)).toHaveLength(1);
+      expect(text.match(/Evening/g)).toHaveLength(1);
+      expect(text.indexOf('Zulu Morning Chore')).toBeLessThan(text.indexOf('Alpha Evening Chore'));
+    },
+  },
 
   // ========================= TIMETABLE (local-data) =========================
   {

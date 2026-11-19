@@ -4801,9 +4801,12 @@ export interface ChoreChartConfig {
   weekStartDay: WeekStartDay;
   /** Show ticket values for chores */
   showPoints: boolean;
-  /** Show completion streaks */
+  /** Show completion streaks, on the Progress and Star chart views */
   showStreaks: boolean;
-  /** Show time-of-day labels (morning, afternoon, evening) */
+  /**
+   * Group the Today view by time of day (morning, afternoon, evening) and put the Board's chores in
+   * that order; off, Today is one list with no headings
+   */
   showTimeOfDay: boolean;
   /** Allow marking chores complete from the display view */
   allowDisplayComplete: boolean;

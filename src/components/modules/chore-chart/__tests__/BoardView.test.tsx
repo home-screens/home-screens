@@ -52,7 +52,7 @@ describe('BoardView row wrapping', () => {
     const { container } = render(wrap(
       <BoardView
         config={{ view: 'board', weekStartDay: 'monday', showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#8b5cf6' }}
-        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete: async () => {} }}
+        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete: async () => {}, today: '2026-09-23' }}
         fontSize={9}
         perRow={3}
       />,
@@ -80,7 +80,7 @@ describe('BoardView row wrapping', () => {
     const { container } = render(wrap(
       <BoardView
         config={{ view: 'board', weekStartDay: 'monday', showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#8b5cf6' }}
-        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete: async () => {} }}
+        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete: async () => {}, today: '2026-09-23' }}
         fontSize={24}
         perRow={3}
       />,
@@ -106,7 +106,7 @@ describe('BoardView un-ticking', () => {
     render(wrap(
       <BoardView
         config={{ view: 'board', weekStartDay: 'monday', showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#8b5cf6' }}
-        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete }}
+        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete, today: '2026-09-23' }}
         fontSize={24}
         perRow={1}
       />,
@@ -142,5 +142,67 @@ describe('BoardView un-ticking', () => {
     fireEvent.click(card, { detail: 1 });
 
     expect(toggleComplete).toHaveBeenCalledWith('solo', 'solo');
+  });
+});
+
+describe('BoardView on a day someone was let off a chore', () => {
+  afterEach(cleanup);
+
+  function board(marks: { isCompleted: boolean; isSkipped: boolean }[]) {
+    const members = [member('solo')];
+    const todayAssignments = marks.map((mark, i) => ({ chore: chore(`solo-${i}`), memberId: 'solo', groupIds: [], ...mark }));
+    const memberStats = new Map<string, MemberStats>([
+      ['solo', { total: 1, completed: 1, percentage: 100, streak: 0, weeklyPoints: 0, weeklyPointsTotal: 0, rewardBalance: 0, weekAssigned: 2 }],
+    ]);
+    render(wrap(
+      <BoardView
+        config={{ view: 'board', weekStartDay: 'monday', showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#8b5cf6' }}
+        data={{ members, todayAssignments, completionSet: new Set(), memberStats, toggleComplete: async () => {}, today: '2026-09-23' }}
+        fontSize={24}
+        perRow={1}
+      />,
+    ));
+  }
+
+  it('says "All done" once everything still owed is finished', () => {
+    board([{ isCompleted: true, isSkipped: false }, { isCompleted: false, isSkipped: true }]);
+    expect(screen.getByText(/All done/)).toBeTruthy();
+  });
+
+  it('does not while something owed is still open', () => {
+    board([{ isCompleted: false, isSkipped: false }, { isCompleted: false, isSkipped: true }]);
+    expect(screen.queryByText(/All done/)).toBeNull();
+  });
+});
+
+describe('BoardView bonus chores', () => {
+  afterEach(cleanup);
+
+  const car = { ...chore('car'), name: 'Wash the car', points: 5, bonus: { claim: 'first' as const, comesBack: 'weekly' as const } };
+
+  function board(todayBonus: React.ComponentProps<typeof BoardView>['data']['todayBonus']) {
+    const members = [member('solo')];
+    const memberStats = new Map<string, MemberStats>([
+      ['solo', { total: 1, completed: 0, percentage: 0, streak: 0, weeklyPoints: 0, weeklyPointsTotal: 0, rewardBalance: 0, weekAssigned: 1 }],
+    ]);
+    render(wrap(
+      <BoardView
+        config={{ view: 'board', weekStartDay: 'monday', showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#8b5cf6' }}
+        data={{ members, todayAssignments: heavyAssignments('solo', 1), completionSet: new Set(), memberStats, toggleComplete: async () => {}, today: '2026-09-23', todayBonus }}
+        fontSize={24}
+        perRow={1}
+      />,
+    ));
+  }
+
+  it('lists them in a strip of their own, since they sit in nobody\'s column', () => {
+    board([{ chore: car, eligibleIds: ['solo'], grab: { status: 'open' }, doneIds: [], doneOn: {}, roundIsToday: true, waiting: false }]);
+    expect(screen.getByTestId('chore-bonus-section').textContent).toContain('Wash the car');
+    expect(screen.getByText('Up for grabs')).toBeTruthy();
+  });
+
+  it('draws no strip for a household without any', () => {
+    board([]);
+    expect(screen.queryByTestId('chore-bonus-section')).toBeNull();
   });
 });

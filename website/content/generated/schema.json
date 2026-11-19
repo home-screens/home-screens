@@ -5448,7 +5448,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show completion streaks",
+          "description": "Show completion streaks, on the Progress and Star chart views",
           "default": true
         },
         {
@@ -5458,7 +5458,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show time-of-day labels (morning, afternoon, evening)",
+          "description": "Group the Today view by time of day (morning, afternoon, evening) and put the Board's chores in that order; off, Today is one list with no headings",
           "default": true
         },
         {

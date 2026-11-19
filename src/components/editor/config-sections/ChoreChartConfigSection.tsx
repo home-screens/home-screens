@@ -59,6 +59,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   ];
   // The two reward views have no chores on them, so the chore settings go.
   const isChoreView = c.view !== 'reward-history' && c.view !== 'rewards-store';
+  const view = c.view ?? 'board';
 
   const WEEK_START_OPTIONS = [
     { value: 'sunday' as const, label: tCore('days.sunday') },
@@ -120,19 +121,21 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
           onChange={(v) => set({ showPoints: v })}
         />
       )}
-      {isChoreView && (
-        <>
-          <Toggle
-            label={t('configSections.chore-chart.showStreaks')}
-            checked={c.showStreaks ?? true}
-            onChange={(v) => set({ showStreaks: v })}
-          />
-          <Toggle
-            label={t('configSections.chore-chart.showTimeOfDay')}
-            checked={c.showTimeOfDay ?? true}
-            onChange={(v) => set({ showTimeOfDay: v })}
-          />
-        </>
+      {/* Each switch is offered only on the views that read it. */}
+      {(view === 'progress' || view === 'star-chart') && (
+        <Toggle
+          label={t('configSections.chore-chart.showStreaks')}
+          checked={c.showStreaks ?? true}
+          onChange={(v) => set({ showStreaks: v })}
+        />
+      )}
+      {/* Today groups by it; the board only sorts by it. */}
+      {(view === 'board' || view === 'today') && (
+        <Toggle
+          label={t('configSections.chore-chart.showTimeOfDay')}
+          checked={c.showTimeOfDay ?? true}
+          onChange={(v) => set({ showTimeOfDay: v })}
+        />
       )}
       {c.view !== 'reward-history' && (
         <Toggle

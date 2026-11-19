@@ -4,6 +4,7 @@ import type { FamilyMember } from '@/types/family';
 
 
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { showsTicketValue } from '@/components/modules/chore-chart/ChoreRowExtras';
 import { useTranslate } from '@/i18n';
 import AssigneeDot from './AssigneeDot';
 import { dotGap, dotRunWidth, groupPillMetrics, groupPillPadY, TOD_ICONS, type ToggleParams } from './helpers';
@@ -86,7 +87,8 @@ export default function ChoreRowItem({
   onToggle,
 }: ChoreRowItemProps) {
   const t = useTranslate('modules');
-  const ticketLabel = showPoints && row.points > 1
+  // One rule with the card: a chore worth a single ticket says so too.
+  const ticketLabel = showPoints && showsTicketValue(showPoints, row.points)
     ? t(row.points === 1 ? 'fullscreen-chore-chart.ticketCount' : 'fullscreen-chore-chart.ticketsCount', { count: row.points })
     : '';
   // Everyone on the row is let off today: one "Not today" pill says so

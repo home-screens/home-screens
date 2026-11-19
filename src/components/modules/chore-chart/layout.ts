@@ -105,6 +105,17 @@ export function boardColumns(
   }));
 }
 
+/**
+ * Whether everything owed today is done. A chore marked "not today" is owed by
+ * nobody, so it neither holds the day open nor finishes it on its own. The
+ * board and its fit both read this: the "All done" line is budgeted for
+ * exactly when it is drawn.
+ */
+export function allOwedDone(todayAssignments: readonly ResolvedAssignment[]): boolean {
+  const owed = todayAssignments.filter((a) => !a.isSkipped);
+  return owed.length > 0 && owed.every((a) => a.isCompleted);
+}
+
 /** The narrowest a column gets, in em of the size it is drawn at, whatever its names. */
 const BOARD_COLUMN_EM = 6;
 export const BOARD_COLUMN_GAP_PX = 8;
@@ -218,6 +229,19 @@ interface ChoreFitInput {
    * rows for the star chart, none for the rest.
    */
   sections: number;
+  /**
+   * Blocks the view spaces apart with its fixed gap, when that is not one per
+   * section: a `today` list with its headings off is still one block of
+   * chores, and the bonus chores under it are a second.
+   */
+  blocks?: number;
+  /**
+   * Rows and bands that follow the rest and never count: the compact view's
+   * bonus chores. They are fitted in when the whole list still fits the box.
+   * When it does not, the type is sized for the owed chores alone and these
+   * scroll below them: a bonus chore must not cost a duty its place or its size.
+   */
+  extra?: { rows: number; sections: number };
   view: string;
 }
 
@@ -306,7 +330,7 @@ export const MORE_PILL_FLOOR_PX = CHORE_FONT_FLOOR;
  * The module font size is a ceiling, not a target, so a chart that already
  * fits is left exactly as it was and only an overfull one shrinks.
  */
-export function fitChoreFontSize({ width, height, requested, rows, sections, view }: ChoreFitInput): number {
+export function fitChoreFontSize({ width, height, requested, rows, sections, blocks = sections, extra, view }: ChoreFitInput): number {
   if (height <= 0 || width <= 0) return requested;
   if (view === 'star-chart') {
     // A table: a header row, one row per charted member, then the legend.
@@ -332,7 +356,7 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
 
   // Sections are spaced with a fixed 8px gap (Tailwind space-y-2), which does
   // not scale with the type at all.
-  const gapPx = Math.max(0, sections - 1) * SECTION_GAP_PX;
+  const gapPx = Math.max(0, blocks - 1) * SECTION_GAP_PX;
   const budget = height - gapPx;
 
   // Height the whole list needs at font `f`. A row is its tap target plus the
@@ -346,12 +370,18 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
     const target = view === 'today' ? choreDotSize(f) : choreTapSize(f);
     return target + ROW_PADDING_EM[view] * f;
   };
-  const tall = (f: number) =>
-    rows * rowTall(f)
-    + sections * SECTION_EM * f
+  const tall = (f: number, more = 0, bands = 0) =>
+    (rows + more) * rowTall(f)
+    + (sections + bands) * SECTION_EM * f
     + (CHROME_EM[view] + MORE_PILL_EM) * f;
 
-  return search(tall, budget, Math.min(requested, width / (LIST_WIDTH_EM_BY_VIEW[view] ?? LIST_WIDTH_EM)));
+  const hi = Math.min(requested, width / (LIST_WIDTH_EM_BY_VIEW[view] ?? LIST_WIDTH_EM));
+  if (extra && extra.rows > 0) {
+    const withExtra = (f: number) => tall(f, extra.rows, extra.sections);
+    const size = search(withExtra, budget, hi);
+    if (withExtra(size) <= budget) return size;
+  }
+  return search(tall, budget, hi);
 }
 
 // Board geometry, from what `BoardView` draws. The px parts are Tailwind
@@ -383,6 +413,17 @@ const BOARD_CARD_GAP_PX = 4;
 /** "All done" under the columns: a 0.75em line and its 8px margin. */
 const BOARD_ALL_DONE_EM = 1.125;
 const BOARD_ALL_DONE_PX = 8;
+/**
+ * The bonus strip's heading as `BonusRows` draws it outside the Today view: a
+ * 0.85em line at 1.5 and the em margins around it. Under the 1.9em the list
+ * fit gives a section, so the compact view's budget holds it too.
+ */
+export const BONUS_HEAD_EM = 1.7;
+/** A bonus row: its dots, 0.35em of padding either side, and the hairline between rows. */
+const bonusRowTall = (f: number) => choreDotSize(f) + 0.7 * f + 1;
+/** The strip under the board's columns, with the same gap the columns keep. */
+const boardBonusTall = (f: number, bonus: number) =>
+  (bonus > 0 ? BOARD_COLUMN_GAP_PX + BONUS_HEAD_EM * f + bonus * bonusRowTall(f) : 0);
 
 export interface BoardFitInput {
   /** Measured box, px. Zero on the first paint. */
@@ -397,6 +438,8 @@ export interface BoardFitInput {
   showBalance: boolean;
   /** Everything is done, so the board adds its "all done" line. */
   allDone: boolean;
+  /** Bonus chores listed in a strip under the columns. */
+  bonus?: number;
 }
 
 /** What the board draws at: its font size, and the columns across each row. */
@@ -404,6 +447,13 @@ export interface BoardFit {
   fontSize: number;
   /** BoardView draws exactly this many across: the height was budgeted for it. */
   perRow: number;
+  /**
+   * Whether the bonus strip is drawn. A board has nowhere to scroll it to, so
+   * it is there when the columns and the strip both fit, and left out (the
+   * board exactly as it is without bonus chores) when they do not: a bonus
+   * chore never pushes a chore somebody owes out of its column.
+   */
+  showBonus: boolean;
 }
 
 /**
@@ -429,9 +479,18 @@ export interface BoardFit {
  * that could not fit at all. When no wrap fits even at the floor, the one with
  * the fewest rows (the shortest) is drawn.
  */
-export function fitBoard({ width, height, requested, columns, showTitle, showBalance, allDone }: BoardFitInput): BoardFit {
+export function fitBoard(input: BoardFitInput): BoardFit {
+  const bonus = input.bonus ?? 0;
+  if (bonus > 0) {
+    const withStrip = fitBoardWith(input, bonus);
+    if (withStrip.fits) return { ...withStrip.fit, showBonus: true };
+  }
+  return { ...fitBoardWith(input, 0).fit, showBonus: false };
+}
+
+function fitBoardWith({ width, height, requested, columns, showTitle, showBalance, allDone }: BoardFitInput, bonus: number): { fit: Omit<BoardFit, 'showBonus'>; fits: boolean } {
   const count = Math.max(1, columns.length);
-  if (height <= 0 || width <= 0) return { fontSize: requested, perRow: count };
+  if (height <= 0 || width <= 0) return { fit: { fontSize: requested, perRow: count }, fits: true };
   const floor = Math.min(requested, CHORE_FONT_FLOOR);
   /** Height of the board at `f` in `groups` rows of columns `columnWidth` wide. */
   const tall = (f: number, groups: number, columnWidth: number) => {
@@ -452,10 +511,12 @@ export function fitBoard({ width, height, requested, columns, showTitle, showBal
       + BOARD_FOOTER_PX + BOARD_FOOTER_EM * f;
     return groups * column + (groups - 1) * BOARD_COLUMN_GAP_PX
       + (showTitle ? BOARD_TITLE_PX + BOARD_TITLE_EM * f : 0)
-      + (allDone ? BOARD_ALL_DONE_PX + BOARD_ALL_DONE_EM * f : 0);
+      + (allDone ? BOARD_ALL_DONE_PX + BOARD_ALL_DONE_EM * f : 0)
+      + boardBonusTall(f, bonus);
   };
-  let best: BoardFit | null = null;
-  let shortest: BoardFit | null = null;
+  type Fit = Omit<BoardFit, 'showBonus'>;
+  let best: Fit | null = null;
+  let shortest: Fit | null = null;
   // Fewest rows first, so a tie keeps the earlier arrangement.
   for (let groups = 1; groups <= count; groups++) {
     // The widest row `balanceRows` makes for this many rows; a row count that
@@ -478,7 +539,7 @@ export function fitBoard({ width, height, requested, columns, showTitle, showBal
       best = fit;
     }
   }
-  return best ?? shortest ?? { fontSize: CHORE_FONT_FLOOR, perRow: 1 };
+  return { fit: best ?? shortest ?? { fontSize: CHORE_FONT_FLOOR, perRow: 1 }, fits: best !== null };
 }
 
 /**

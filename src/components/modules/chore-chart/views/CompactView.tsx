@@ -4,6 +4,8 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
+import type { BonusItem } from '@/lib/chore-bonus';
+import { BonusRows } from '../BonusRows';
 import { completionKey, choreAppliesToday, isChoreSkipped, parseISO, resolveAssignee } from '../types';
 import { choreIconSize, choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
@@ -29,6 +31,8 @@ interface CompactViewProps {
     toggleComplete: (choreId: string, memberId: string) => Promise<unknown>;
     /** The hub's calendar day. */
     today: string;
+    /** Today's bonus chores; they follow the grid and never count. */
+    todayBonus?: BonusItem[];
   };
   /** Measured box width in px (0 until measured). */
   width: number;
@@ -188,6 +192,8 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
             </div>
           );
         })}
+        {/* Bonus chores have no column to sit in: they follow the grid. */}
+        <BonusRows config={config} items={data.todayBonus ?? []} members={members} today={today} fontSize={fontSize} toggleComplete={toggleComplete} variant="plain" />
       </FitRows>
 
       {/* Summary row */}

@@ -3,11 +3,11 @@
 import { useMemo } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 
-import type { ChoreChartConfig, ChoreTimeOfDay} from '@/types/config';
+import type { ChoreChartConfig } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
-import { bonusDisplayOrder, bonusDoneDay, type BonusItem } from '@/lib/chore-bonus';
+import type { BonusItem } from '@/lib/chore-bonus';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay, parseISO } from '../types';
-import { buildChoreRows, getUniqueInitials, type ChoreRow } from '@/lib/chore-rows';
+import { CHORE_TIME_ORDER, buildChoreRows, getUniqueInitials, mergeChoreRows, type ChoreRow } from '@/lib/chore-rows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -19,6 +19,7 @@ import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
+import { BonusRows } from '../BonusRows';
 import { memberInitials } from '@/lib/family-avatar';
 
 interface TodayViewProps {
@@ -40,11 +41,10 @@ interface TodayViewProps {
   fontSize: number;
 }
 
-const TIME_SECTIONS: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
-
 export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) {
   const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
+  const showTimeOfDay = config.showTimeOfDay !== false;
   const [pressedKey, press] = usePressedKey();
   // Ticking is one tap; un-ticking takes a press and hold, the same gesture
   // the kid tablet asks for.
@@ -72,12 +72,6 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
   const owed = todayAssignments.filter((a) => !a.isSkipped);
   const totalAssigned = owed.length;
   const totalDone = owed.filter((a) => a.isCompleted).length;
-  // Grabbed first, finished last: the order the wall's band uses.
-  const todayBonus = bonusDisplayOrder(data.todayBonus ?? []);
-  const didItOn = (name: string, date: string) => {
-    const { form, day } = bonusDoneDay(date, today, locale);
-    return t(form === 'weekday' ? 'chore-chart.bonus.didItOn' : 'chore-chart.bonus.didItOnDate', { name, day });
-  };
 
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const memberOrder = useMemo(() => new Map(members.map((m, i) => [m.id, i])), [members]);
@@ -92,29 +86,11 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
   const dotSize = choreDotSize(fontSize);
   const gap = choreDotGap(dotSize);
 
-  /**
-   * `touch` is off for a dot that is not undone from here. `doneEarlier`
-   * labels one done on another day this week, drawn fainter, as on the wall.
-   */
-  function renderDot(row: ChoreRow, assignee: ChoreRow['assignees'][number], touch = allowTouch, doneEarlier?: string) {
+  function renderDot(row: ChoreRow, assignee: ChoreRow['assignees'][number]) {
+    const touch = allowTouch;
     const member = memberMap.get(assignee.memberId);
     if (!member) return null;
     const key = `${row.choreId}:${assignee.memberId}`;
-    if (doneEarlier) {
-      return (
-        <MemberDot
-          key={key}
-          role="img"
-          aria-label={doneEarlier}
-          title={doneEarlier}
-          size={dotSize}
-          color={member.color}
-          initial={initials.get(member.id) ?? memberInitials(member.name)}
-          isCompleted
-          style={{ opacity: 0.72 }}
-        />
-      );
-    }
     // Marked "not today" on the phone: a dashed ring, nothing to tap.
     if (assignee.isSkipped) {
       return (
@@ -225,69 +201,6 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
     );
   }
 
-  // A bonus chore on the card: read-only for up-for-grabs (grabbing needs the
-  // picker the wall and the phone have), one dot per person for everyone-can.
-  function renderBonusRow(item: BonusItem, i: number) {
-    const { chore, grab } = item;
-    const holder = grab && grab.status !== 'open' ? memberMap.get(grab.memberId) : undefined;
-    const done = grab ? grab.status === 'done' : item.eligibleIds.every((id) => item.doneIds.includes(id));
-    return (
-      <div
-        key={chore.id}
-        {...{ [CHORE_ROW_ATTR]: '' }}
-        className="w-full flex items-center"
-        style={{ padding: '0.35em 0.6em', gap: '0.5em', borderTop: i > 0 ? `1px solid ${DIVIDER.subtle}` : 'none' }}
-      >
-        {chore.emoji && (
-          <span className="shrink-0"><ChoreIcon value={chore.emoji} size={Math.round(fontSize * 0.9)} color="currentColor" /></span>
-        )}
-        <span className="flex-1 truncate" style={{ opacity: done ? 0.45 : 1 }}>{chore.name}</span>
-        {showsTicketValue(config.showPoints, chore.points) && <TicketValue points={chore.points} />}
-        <span className="shrink-0 flex items-center" style={{ gap }}>
-          {grab ? (
-            holder ? (
-              <>
-                {/* A plain ring reads as "this is Cleo's chore"; a grab says so in words. */}
-                {/* Done on an earlier day this week: say which, or it reads as done today. */}
-                {(grab.status === 'grabbed' || (grab.status === 'done' && grab.date !== today)) && (
-                  <span className="shrink-0" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary }}>
-                    {grab.status === 'grabbed'
-                      ? t('chore-chart.bonus.onIt', { name: holder.name })
-                      : didItOn(holder.name, grab.status === 'done' ? grab.date : today)}
-                  </span>
-                )}
-                <MemberDot
-                  title={holder.name}
-                  size={dotSize}
-                  color={holder.color}
-                  initial={initials.get(holder.id) ?? memberInitials(holder.name)}
-                  isCompleted={grab.status === 'done'}
-                />
-              </>
-            ) : (
-              <span
-                className="shrink-0 uppercase"
-                style={{ fontSize: '0.5em', fontWeight: 700, letterSpacing: '0.08em', color: accentColor, padding: '0.3em 0.6em', borderRadius: 999, border: `1px dashed ${accentColor}` }}
-              >
-                {t('chore-chart.bonus.upForGrabs')}
-              </span>
-            )
-          ) : (
-            item.eligibleIds.map((id) => renderDot(
-              { choreId: chore.id, choreName: chore.name, choreEmoji: chore.emoji, timeOfDay: chore.timeOfDay, points: chore.points, assignees: [] },
-              { memberId: id, isCompleted: item.doneIds.includes(id) },
-              // Done on another day this week: theirs, and not undone from here.
-              allowTouch && (item.doneOn[id] === undefined || item.doneOn[id] === today),
-              item.doneOn[id] !== undefined && item.doneOn[id] !== today
-                ? didItOn(memberMap.get(id)?.name ?? '', item.doneOn[id])
-                : undefined,
-            ))
-          )}
-        </span>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
@@ -300,7 +213,14 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
 
       {/* Time sections */}
       <FitRows className="space-y-2">
-        {TIME_SECTIONS.map((section) => {
+        {/* "Show time of day" off: one list, morning's chores first, no headings.
+            The module's fit budgets no headings for it either. */}
+        {!showTimeOfDay && byTime.size > 0 && (
+          <div className="rounded-lg overflow-hidden" style={{ backgroundColor: ink(0.04) }}>
+            {mergeChoreRows(byTime).map(renderRow)}
+          </div>
+        )}
+        {showTimeOfDay && CHORE_TIME_ORDER.map((section) => {
           const rows = byTime.get(section) ?? [];
           if (rows.length === 0) return null;
 
@@ -337,17 +257,15 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
           );
         })}
 
-        {todayBonus.length > 0 && (
-          <div data-testid="chore-bonus-section">
-            <div className="flex items-center gap-1.5 mb-1" style={{ fontSize: '0.85em', fontWeight: 600, color: accentColor }}>
-              <span>✋</span>
-              <span>{t('chore-chart.bonus.heading')}</span>
-            </div>
-            <div className="rounded-lg overflow-hidden" style={{ backgroundColor: ink(0.04) }}>
-              {todayBonus.map((item, i) => renderBonusRow(item, i))}
-            </div>
-          </div>
-        )}
+        <BonusRows
+          config={config}
+          items={data.todayBonus ?? []}
+          members={members}
+          today={today}
+          fontSize={fontSize}
+          toggleComplete={toggleComplete}
+          variant="section"
+        />
       </FitRows>
 
       {/* Progress bar */}
