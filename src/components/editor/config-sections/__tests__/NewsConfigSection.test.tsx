@@ -233,16 +233,69 @@ describe('NewsConfigSection — local news', () => {
 });
 
 describe('NewsConfigSection — view options', () => {
-  it('keeps the Max Items slider for non-headline views and the rotate slider for headline', () => {
-    const view = renderSection();
-    expect(view.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
-    expect(view.queryByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeNull();
+  it('offers Max Items in every view, and the timer for the three views that page', () => {
+    const list = renderSection();
+    expect(list.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+    // List and Cards turn a page on the timer Headline moves a story on.
+    const turn = list.getByRole('slider', { name: /^Next page every \(seconds\)/ });
+    fireEvent.change(turn, { target: { value: '20' } });
+    expect(moduleState.set).toHaveBeenCalledWith({ rotateIntervalMs: 20_000 });
+    expect(list.queryByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeNull();
+    cleanup();
+
+    moduleState.config = { feeds: [BBC], view: 'cards' };
+    expect(renderSection().getByRole('slider', { name: /^Next page every \(seconds\)/ })).toBeTruthy();
     cleanup();
 
     moduleState.config = { feeds: [BBC], view: 'headline' };
     const headline = renderSection();
     expect(headline.getByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeTruthy();
-    expect(headline.queryByRole('slider', { name: /^Max Items/ })).toBeNull();
+    expect(headline.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+    cleanup();
+
+    for (const view of ['ticker', 'compact']) {
+      moduleState.config = { feeds: [BBC], view };
+      const still = renderSection();
+      expect(still.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+      expect(still.queryByRole('slider', { name: /\(seconds\)$/ })).toBeNull();
+      cleanup();
+    }
+  });
+
+  it('offers the colour wherever the view draws it', () => {
+    const shown = (config: Record<string, unknown>) => {
+      moduleState.config = { feeds: [BBC], ...config };
+      const view = renderSection();
+      const there = view.queryByText('Accent Color') !== null;
+      cleanup();
+      return there;
+    };
+    // The List bullet and the ticker separator.
+    expect(shown({ view: 'list' })).toBe(true);
+    expect(shown({ view: 'ticker' })).toBe(true);
+    // The block that stands in for a missing picture.
+    expect(shown({ view: 'headline' })).toBe(true);
+    expect(shown({ view: 'cards' })).toBe(true);
+    expect(shown({ view: 'headline', showImages: false })).toBe(false);
+    expect(shown({ view: 'cards', showImages: false })).toBe(false);
+    // Compact draws it only on the two story marks.
+    expect(shown({ view: 'compact' })).toBe(false);
+    expect(shown({ view: 'compact', highlightBreaking: true })).toBe(true);
+    expect(shown({ view: 'compact', showNewMarker: true })).toBe(true);
+    expect(shown({ view: 'cards', showImages: false, highlightBreaking: true })).toBe(true);
+  });
+
+  it('leaves Show how long ago out of the ticker, which draws no age', () => {
+    moduleState.config = { feeds: [BBC], view: 'ticker' };
+    const ticker = renderSection();
+    expect(ticker.queryByText('Show how long ago')).toBeNull();
+    expect(ticker.getByText('Show the source')).toBeTruthy();
+    cleanup();
+    for (const view of ['headline', 'list', 'compact', 'cards']) {
+      moduleState.config = { feeds: [BBC], view };
+      expect(renderSection().getByText('Show how long ago')).toBeTruthy();
+      cleanup();
+    }
   });
 
   it('writes filter changes through to the config', () => {

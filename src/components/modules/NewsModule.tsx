@@ -8,6 +8,7 @@ import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useNewsFeeds } from '@/hooks/useNewsFeeds';
 import { useModuleCommand } from '@/hooks/useModuleCommand';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useRealClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import { resolveNewsConfig, type ViewCommand } from './news/news-view-types';
@@ -35,6 +36,10 @@ export default function NewsModule({ config, style, timezone }: NewsModuleProps)
   const resolved = useMemo(() => resolveNewsConfig(config), [config]);
   const view = config.view ?? 'headline';
   const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.07);
+  // Ages and the "Just in" pill are read against this, so a tile that never
+  // turns a page (a short List, Compact) still counts the minutes between
+  // one feed refresh and the next.
+  const now = useRealClock(60_000).getTime();
 
   const [overlay, setOverlay] = useState<NewsDisplayItem | null>(null);
   const closeOverlay = useCallback(() => setOverlay(null), []);
@@ -62,9 +67,9 @@ export default function NewsModule({ config, style, timezone }: NewsModuleProps)
   if (gate) return gate;
 
   const unavailable = failed.map(({ feed }) => feedDisplayLabel(feed, t));
-  const viewProps = { items, config: resolved, t, locale, timezone, newKeys, onTap, command, unavailable, fontScaleKey: scaledFontSize };
+  const viewProps = { items, config: resolved, t, locale, timezone, now, newKeys, onTap, command, unavailable, fontScaleKey: scaledFontSize };
   const overlayMeta = overlay
-    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, { locale, timezone })).join(' · ')
+    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, { locale, timezone }, now)).join(' · ')
     : '';
 
   return (

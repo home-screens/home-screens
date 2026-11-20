@@ -3293,9 +3293,10 @@ export interface NewsConfig extends NewsSourceOptions {
   /** Seconds per story in the ticker view */
   tickerSpeed?: number;
   /**
-   * List bullet, "Just in" pill, and new-story dot colour (optional)
+   * Colour of the list bullet, the ticker separator, the "Just in" pill, the new-story dot and the
+   * block that stands in for a missing picture (optional)
    *
-   * List bullet color; default undefined (text-based bullet)
+   * A feed's own colour wins where a feed has one. Default undefined.
    */
   accentColor?: string;
   /**
@@ -3398,6 +3399,23 @@ export interface FullscreenNewsConfig extends NewsSourceOptions {
    * Unset = follow the theme accent.
    */
   accentColor: string;
+  /**
+   * Name across the top of the front page; unset shows the feed's name when there is one feed, and
+   * "News" in the display language when there are several
+   */
+  title?: string;
+  /**
+   * Mark stories under an hour old with a "Just in" pill (on unless switched off)
+   *
+   * Drawn beside the story in the Story view and the front page's lead story. Default true.
+   */
+  highlightBreaking?: boolean;
+  /**
+   * Dot stories that arrived since the display's last refresh
+   *
+   * Mark stories that arrived since the last refresh. Default false.
+   */
+  showNewMarker?: boolean;
   /**
    * One of the shared full-screen palettes (see [Themes](#full-screen) above); unset inherits the
    * display default

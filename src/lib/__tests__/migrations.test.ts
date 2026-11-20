@@ -60,7 +60,7 @@ describe('migrations', () => {
   });
 
   it('getLatestSchemaVersion returns 19', () => {
-    expect(getLatestSchemaVersion()).toBe(20);
+    expect(getLatestSchemaVersion()).toBe(21);
   });
 });
 
@@ -295,9 +295,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(20);
-    // v2 through v20 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(19);
+    expect(result.version).toBe(21);
+    // v2 through v21 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(20);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -325,9 +325,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(20);
-    // Only v4 through v20 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(17);
+    expect(result.version).toBe(21);
+    // Only v4 through v21 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(18);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -797,7 +797,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(20);
+    expect(result.version).toBe(21);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -838,9 +838,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(20);
+    expect(result.version).toBe(21);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v20: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v21: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -854,7 +854,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(20);
+    expect(migrated.version).toBe(21);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1398,7 +1398,7 @@ describe('migration v18: photo modules and background rotation name their source
   it('is part of the full chain from v1', () => {
     const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
     const { config: result, migrationsRun } = migrateUp(config);
-    expect(migrationsRun.at(-1)).toMatch(/^v20: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v21: /);
     expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
   });
 });
@@ -1473,8 +1473,67 @@ describe('migration v20: full-screen calendar week numbers and locations become 
   it("reaches a display's own screens", () => {
     const config = withCalendar(makeConfig(19), { view: 'month-grid', monthShowWeekNumbers: true, dayShowLocation: true });
     config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) }] as unknown as NonNullable<ScreenConfiguration['displays']>;
-    const { config: result, migrationsRun } = migrateUp(config);
+    const { config: result, migrationsRun } = migrateUp(config, 20);
     expect(migrationsRun).toEqual(['v20: Full-screen calendar week numbers and locations become one switch each for every view']);
     expect(result.displays![0].screens[0].modules[0].config).toEqual({ view: 'month-grid', showWeekNumbers: true, showLocation: true });
+  });
+});
+
+describe('migration v21: a full-screen news front page of several feeds keeps its heading', () => {
+  function withNews(config: ScreenConfiguration, cfg: unknown, type = 'fullscreen-news'): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'news-1', type, position: { x: 0, y: 0 }, size: { w: 1080, h: 1920 }, zIndex: 1, config: cfg, style: {},
+    } as unknown as ScreenConfiguration['screens'][number]['modules'][number]];
+    return config;
+  }
+  const migrated = (cfg: unknown, type?: string) => migrateUp(withNews(makeConfig(20), cfg, type), 21).config.screens[0].modules[0].config;
+  const BBC = { id: 'a', url: 'https://feeds.bbci.co.uk/news/rss.xml', label: 'BBC News' };
+  const NPR = { id: 'b', url: 'https://feeds.npr.org/1001/rss.xml', label: 'NPR' };
+
+  it("writes the first feed's label down as the title when the page follows several feeds", () => {
+    expect(migrated({ view: 'front-page', feeds: [BBC, NPR] })).toEqual({ view: 'front-page', feeds: [BBC, NPR], title: 'BBC News' });
+    // The Story view draws no masthead, but a later switch to the front page must head it as before.
+    expect(migrated({ view: 'story', feeds: [BBC, NPR] })).toEqual({ view: 'story', feeds: [BBC, NPR], title: 'BBC News' });
+  });
+
+  it('skips a feed with no link when finding the first one, as the masthead did', () => {
+    const blank = { id: 'x', url: '  ', label: 'Draft' };
+    expect(migrated({ feeds: [blank, NPR, BBC] })).toEqual({ feeds: [blank, NPR, BBC], title: 'NPR' });
+  });
+
+  it('leaves a page of one feed alone: its label is still the heading', () => {
+    const before = { view: 'front-page', feeds: [BBC] };
+    expect(migrated(structuredClone(before))).toEqual(before);
+    // One real feed plus an unfinished row is still one feed.
+    const draft = { feeds: [BBC, { id: 'x', url: '' }] };
+    expect(migrated(structuredClone(draft))).toEqual(draft);
+  });
+
+  it('leaves a page alone when its first feed has no label: it read "News" and still does', () => {
+    const before = { feeds: [{ id: 'a', url: 'https://example.com/feed.xml' }, NPR] };
+    expect(migrated(structuredClone(before))).toEqual(before);
+    const blankLabel = { feeds: [{ id: 'a', url: 'https://example.com/feed.xml', label: '  ' }, NPR] };
+    expect(migrated(structuredClone(blankLabel))).toEqual(blankLabel);
+  });
+
+  it('keeps a title that is already there', () => {
+    const before = { feeds: [BBC, NPR], title: 'The Miller Times' };
+    expect(migrated(structuredClone(before))).toEqual(before);
+  });
+
+  it('leaves the news tile and malformed configs alone', () => {
+    const tile = { view: 'list', feeds: [BBC, NPR] };
+    expect(migrated(structuredClone(tile), 'news')).toEqual(tile);
+    expect(migrated(null)).toBeNull();
+    expect(migrated({ feeds: 'nope' })).toEqual({ feeds: 'nope' });
+    expect(migrated({ feeds: [null, 7, BBC, NPR] })).toEqual({ feeds: [null, 7, BBC, NPR], title: 'BBC News' });
+  });
+
+  it("reaches a display's own screens", () => {
+    const config = withNews(makeConfig(20), { feeds: [BBC, NPR] });
+    config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) }] as unknown as NonNullable<ScreenConfiguration['displays']>;
+    const { config: result, migrationsRun } = migrateUp(config);
+    expect(migrationsRun).toEqual(['v21: Full-screen news front pages of several feeds keep their heading as a title']);
+    expect(result.displays![0].screens[0].modules[0].config).toEqual({ feeds: [BBC, NPR], title: 'BBC News' });
   });
 });

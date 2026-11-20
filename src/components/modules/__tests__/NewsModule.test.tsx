@@ -161,3 +161,42 @@ describe('NewsModule', () => {
     expect(screen.getByText('News is not available right now')).toBeTruthy();
   });
 });
+
+describe('NewsModule between refreshes', () => {
+  // A one-page List or a Compact tile redraws on nothing but the feed poll,
+  // so its ages and its "Just in" pill have to follow a clock of their own.
+  afterEach(() => { vi.useRealTimers(); });
+
+  function oneStory(ageMin: number): NewsResponse {
+    return {
+      feeds: [{
+        url: BBC, ok: true, title: 'BBC News', format: 'rss', fetchedAt: Date.now(),
+        items: [{ id: 'a', title: 'ALPHA STORY', link: null, description: '', timestamp: Date.now() - ageMin * 60_000, imageUrl: null }],
+      }],
+    };
+  }
+
+  it.each(['list', 'compact', 'cards', 'headline'] as const)('%s view counts the minutes on a story that stays up', (view) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-29T14:00:00Z'));
+    mockResponse = oneStory(12);
+    const { container } = renderNews({ view, feeds: [{ id: 'f1', url: BBC, label: 'Beeb' }], showTimestamp: true });
+    expect(container.textContent).toContain('12m ago');
+
+    // The clock ticks on the minute, so the reading is at most a minute behind.
+    act(() => { vi.advanceTimersByTime(5 * 60_000 + 1_000); });
+    expect(container.textContent).toContain('17m ago');
+    expect(container.textContent).not.toContain('12m ago');
+  });
+
+  it.each(['list', 'compact', 'ticker'] as const)('%s view takes the "Just in" mark down when the hour is up', (view) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-29T14:00:00Z'));
+    mockResponse = oneStory(57);
+    const { container } = renderNews({ view, feeds: [{ id: 'f1', url: BBC, label: 'Beeb' }], highlightBreaking: true });
+    expect(container.querySelector('[data-news-breaking]')).not.toBeNull();
+
+    act(() => { vi.advanceTimersByTime(4 * 60_000); });
+    expect(container.querySelector('[data-news-breaking]')).toBeNull();
+  });
+});

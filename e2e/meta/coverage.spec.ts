@@ -522,6 +522,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'news.showNewMarker': 'not-observable',
+  'fullscreen-news.showNewMarker': 'not-observable',
   'fullscreen-news.refreshIntervalMs': 'timing-only',
   'fullscreen-news.typographySize': 'style-only',
   // Pictures per refresh only rewrites the list URL; the stub answers the same list.

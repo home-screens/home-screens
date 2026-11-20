@@ -39,6 +39,10 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   const hasCounter = view === 'headline' || view === 'list' || view === 'cards';
   // Ticker and compact draw no heading, so the title controls would do nothing.
   const hasHeader = view === 'headline' || view === 'list' || view === 'cards';
+  // The colour is the List bullet, the ticker separator, the block that
+  // stands in for a missing picture, and both story marks.
+  const usesAccent = view === 'list' || view === 'ticker' || (hasImages && c.showImages !== false)
+    || c.highlightBreaking === true || c.showNewMarker === true;
 
   return (
     <>
@@ -46,16 +50,16 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <ViewSelect value={view} onChange={(v) => set({ view: v })} options={NEWS_VIEWS} />
 
-      {view === 'headline' && (
-        <>
-          <Slider
-            label={t('configSections.news.rotateHeadlines')}
-            value={(c.rotateIntervalMs ?? 10000) / 1000}
-            min={3}
-            max={30}
-            onChange={(v) => set({ rotateIntervalMs: v * 1000 })}
-          />
-        </>
+      {/* Headline moves on to the next story on this timer; List and Cards
+          turn the page on it when the stories do not all fit. */}
+      {hasCounter && (
+        <Slider
+          label={view === 'headline' ? t('configSections.news.rotateHeadlines') : t('configSections.sports.rotateSeconds')}
+          value={(c.rotateIntervalMs ?? 10000) / 1000}
+          min={3}
+          max={30}
+          onChange={(v) => set({ rotateIntervalMs: v * 1000 })}
+        />
       )}
 
       {hasCounter && (
@@ -66,15 +70,13 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       )}
 
-      {view !== 'headline' && (
-        <Slider
-          label={t('configSections.news.maxItems')}
-          value={c.maxItems ?? 10}
-          min={3}
-          max={24}
-          onChange={(v) => set({ maxItems: v })}
-        />
-      )}
+      <Slider
+        label={t('configSections.news.maxItems')}
+        value={c.maxItems ?? 10}
+        min={3}
+        max={24}
+        onChange={(v) => set({ maxItems: v })}
+      />
 
       {hasImages && (
         <>
@@ -105,9 +107,9 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         </>
       )}
 
-      {view === 'list' && (
+      {usesAccent && (
         <ColorPicker
-          label={t('configSections.news.bulletColor')}
+          label={t('configSections.fullscreen-news.accentColor')}
           value={c.accentColor ?? ''}
           onChange={(v) => set({ accentColor: v || undefined })}
         />
@@ -159,11 +161,14 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         checked={c.showSource !== false}
         onChange={(v) => set({ showSource: v })}
       />
-      <Toggle
-        label={t('configSections.news.showTimestamp')}
-        checked={c.showTimestamp ?? false}
-        onChange={(v) => set({ showTimestamp: v })}
-      />
+      {/* The ticker draws no age. */}
+      {view !== 'ticker' && (
+        <Toggle
+          label={t('configSections.news.showTimestamp')}
+          checked={c.showTimestamp ?? false}
+          onChange={(v) => set({ showTimestamp: v })}
+        />
+      )}
       <Toggle
         label={t('configSections.news.highlightBreaking')}
         checked={c.highlightBreaking === true}

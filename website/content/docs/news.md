@@ -41,7 +41,7 @@ If you run your own reader (FreshRSS, Miniflux, Tiny Tiny RSS), turn on **Home n
 - **Compact** is one line per story: source, headline, time.
 - **Cards** is a photo grid. Choose one to three columns; the module fits as many rows as the tile allows and pages through the rest.
 
-**Full-Screen News** has two views of its own: **Story** shows one story at a time with its photo filling the top of the screen and the same photo blurred behind everything, and **Front page** lays out a lead story plus the next five like a newspaper. Both follow the same feed list and filters as the tile.
+**Full-Screen News** has two views of its own: **Story** shows one story at a time with its photo filling the top of the screen and the same photo blurred behind everything, and **Front page** lays out a lead story plus the next five like a newspaper. Both follow the same feed list and filters as the tile. The front page is headed with its feed's name when it follows one feed and with "News" when it follows several; type your own under **Header text** ("The Miller Times"). Stories under an hour old carry a **Just in** mark, which **Highlight stories that just came in** turns off.
 
 ---
 

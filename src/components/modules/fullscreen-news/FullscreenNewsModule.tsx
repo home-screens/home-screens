@@ -49,7 +49,7 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
   const view = config.view ?? 'story';
   const rotateMs = Math.max(1000, config.rotateIntervalMs ?? 15_000);
 
-  const { items, data, error, failed, allFailed } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  const { items, data, error, failed, allFailed, newKeys } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   // One rotation drives both views: stories one at a time, or front pages
   // six stories at a time.
@@ -98,7 +98,7 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
 
   const scale = buildNewsScale(dims.w, dims.h, getTypoMultiplier(config.typographySize ?? 'medium'));
   const ctx: NewsViewContext = {
-    items, scale, theme, accent, options, t, locale, now, onTap, timezone,
+    items, scale, theme, accent, options, t, locale, now, newKeys, onTap, timezone,
     timeFormat: householdTimeFormat(timeFormat, locale),
     unavailable: failed.map(({ feed }) => feedDisplayLabel(feed, t)),
   };

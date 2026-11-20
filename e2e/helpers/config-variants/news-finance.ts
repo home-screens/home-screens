@@ -79,6 +79,9 @@ const newsStub = (items: StubItem[], url = BBC) => ({
   }],
 });
 
+/** One story a few minutes old, which is what the "Just in" pill marks. */
+const NEWS_JUST_IN = newsStub([{ id: 'fresh', title: 'E2E FRESH STORY', timestamp: Date.now() - 5 * 60_000 }]);
+
 /** Two headline items so the headline view has a second title to rotate to. */
 const NEWS_2_HEADLINES = newsStub([
   { id: 'alpha', title: 'HEADLINE ALPHA' },
@@ -454,6 +457,23 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-news', name: 'accent-color', kind: 'networked', stubKey: 'news',
     config: { view: 'story', accentColor: '#ff0000' },
     expect: redStyle('[data-news-progress] span', 'background-color'),
+  },
+  {
+    // On unless switched off: a story under an hour old carries the pill.
+    type: 'fullscreen-news', name: 'just-in-on', kind: 'networked', stubKey: 'news', stubBody: NEWS_JUST_IN,
+    config: { view: 'story', highlightBreaking: true },
+    expect: async (mod) => { await has('E2E FRESH STORY')(mod); await child('[data-news-breaking]')(mod); },
+  },
+  {
+    type: 'fullscreen-news', name: 'just-in-off', kind: 'networked', stubKey: 'news', stubBody: NEWS_JUST_IN,
+    config: { view: 'story', highlightBreaking: false },
+    expect: async (mod) => { await has('E2E FRESH STORY')(mod); await count('[data-news-breaking]', 0)(mod); },
+  },
+  {
+    // The family's own name heads the front page in place of the feed's.
+    type: 'fullscreen-news', name: 'front-page-title', kind: 'networked', stubKey: 'news',
+    config: { view: 'front-page', title: 'E2E Family Times' },
+    expect: async (mod) => { await expect(mod.locator('[data-news-masthead]')).toContainText('E2E Family Times'); },
   },
   {
     // Front page with one story shows the lead only and no grid.

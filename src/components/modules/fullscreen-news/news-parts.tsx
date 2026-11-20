@@ -1,12 +1,21 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { useBurnInProtection } from '@/components/display/burn-in-context';
+import { newsItemKey } from '@/hooks/useNewsFeeds';
+import { useWander } from '@/hooks/usePixelShift';
 import { useTZClock } from '@/hooks/useTZClock';
 import { formatEventTime } from '@/lib/calendar-utils';
 import type { NewsDisplayItem } from '@/lib/news/types';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
 import type { TimeFormat } from '@/types/config';
 import { formatNewsAge, isBreaking } from '../news/news-shared';
 import type { NewsViewContext } from './news-canvas';
+
+/** Whether a story gets the new-story dot: the switch is on and it arrived since the last refresh. */
+export function isNewStory(item: NewsDisplayItem, ctx: NewsViewContext): boolean {
+  return ctx.options.showNewMarker && ctx.newKeys.has(newsItemKey(item));
+}
 
 /**
  * "Source pill · age · Just in" row. Renders nothing when every part is
@@ -24,8 +33,10 @@ export function SourceMeta({
   const { options, theme, accent, t, locale, now, timezone } = ctx;
   const age = options.showTimestamp ? formatNewsAge(item.timestamp, t, { locale, timezone }, now) : '';
   const showSource = options.showSource && !!item.source;
-  const breaking = isBreaking(item, now);
-  if (!showSource && !age && !breaking) return null;
+  const breaking = options.highlightBreaking && isBreaking(item, now);
+  // As on the news tile, the pill already says a story is fresh.
+  const isNew = !breaking && isNewStory(item, ctx);
+  if (!showSource && !age && !breaking && !isNew) return null;
 
   const pill: CSSProperties = {
     display: 'inline-flex',
@@ -64,6 +75,15 @@ export function SourceMeta({
           {t('news.justIn')}
         </span>
       )}
+      {isNew && (
+        <span
+          data-news-new
+          title={t('news.newStory')}
+          aria-label={t('news.newStory')}
+          className="rounded-full shrink-0"
+          style={{ width: size * 0.55, height: size * 0.55, backgroundColor: accent }}
+        />
+      )}
     </div>
   );
 }
@@ -72,6 +92,10 @@ export function SourceMeta({
  * Corner clock, as on the full-screen photo viewer: wall-clock time in the
  * display's timezone plus a long date. Sits over the story image, so it
  * carries its own shadow rather than a theme colour.
+ *
+ * With burn-in protection on it drifts a pixel a minute, as that clock does:
+ * the whole-wall shift is too small to move bright digits off their own
+ * cores, and the hero has room on both axes.
  */
 export function ClockCorner({
   timezone, timeFormat, locale, size, light, style,
@@ -86,6 +110,7 @@ export function ClockCorner({
   style?: CSSProperties;
 }) {
   const now = useTZClock(timezone, 30_000);
+  const wander = useWander(useBurnInProtection(), WANDER_REACH_X_PX, WANDER_REACH_Y_PX);
   const time = formatEventTime(now, timeFormat, locale);
   // "9:41 AM" splits into the big digits and a small day-period suffix;
   // 24-hour locales have no suffix and render the digits alone.
@@ -98,7 +123,12 @@ export function ClockCorner({
     <div
       data-news-clock
       className="flex flex-col"
-      style={{ color: light, textShadow: '0 2px 14px rgba(0,0,0,0.55)', ...style }}
+      style={{
+        color: light,
+        textShadow: '0 2px 14px rgba(0,0,0,0.55)',
+        transform: wander ? `translate(${wander.x}px, ${wander.y}px)` : undefined,
+        ...style,
+      }}
     >
       <div className="flex items-baseline" style={{ gap: size * 0.12 }}>
         <span className="font-light leading-none tracking-tight" style={{ fontSize: size }}>{digits}</span>

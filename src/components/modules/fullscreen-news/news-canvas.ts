@@ -44,6 +44,8 @@ export interface NewsDisplayOptions {
   showTimestamp: boolean;
   showImages: boolean;
   showTime: boolean;
+  highlightBreaking: boolean;
+  showNewMarker: boolean;
   tapAction: NewsTapAction;
 }
 
@@ -54,6 +56,8 @@ export function resolveDisplayOptions(config: FullscreenNewsConfig): NewsDisplay
     showTimestamp: config.showTimestamp ?? true,
     showImages: config.showImages ?? true,
     showTime: config.showTime ?? true,
+    highlightBreaking: config.highlightBreaking ?? true,
+    showNewMarker: config.showNewMarker ?? false,
     tapAction: config.tapAction ?? 'qr',
   };
 }
@@ -69,6 +73,8 @@ export interface NewsViewContext {
   locale: string;
   /** The real current instant, ticking once a minute, for story ages. */
   now: number;
+  /** Stories that arrived since the last refresh (see `useNewsFeeds`). */
+  newKeys: ReadonlySet<string>;
   /** Present only when a tap does something. */
   onTap?: (item: NewsDisplayItem) => void;
   timezone?: string;
@@ -92,8 +98,14 @@ export function sourceTint(item: NewsDisplayItem, accent: string): string {
   return item.sourceColor ?? accent;
 }
 
-/** Masthead title: the first feed's label, else the translated "News". */
+/**
+ * Masthead title: the name the family gave the page, else the one feed's
+ * label, else the translated "News". A page of several feeds is not headed
+ * with whichever feed happens to be listed first.
+ */
 export function mastheadTitle(config: FullscreenNewsConfig, t: TranslateFn): string {
-  const first = Array.isArray(config.feeds) ? config.feeds.find((f) => f?.url?.trim()) : undefined;
-  return first?.label?.trim() || t('news.header');
+  const own = config.title?.trim();
+  if (own) return own;
+  const feeds = Array.isArray(config.feeds) ? config.feeds.filter((f) => f?.url?.trim()) : [];
+  return (feeds.length === 1 && feeds[0].label?.trim()) || t('news.header');
 }

@@ -163,8 +163,6 @@ test('formattingLocale overrides date formatting without changing the UI languag
 // these labels used to push the text box past the panel's edge.
 const LONG_COLOR_LABELS: Array<{ locale: string; label: string; mod: ModuleInstance }> = [
   { locale: 'de-DE', label: 'Verzierungsfarbe', mod: buildModuleInstance('text', { textDecoration: 'underline' }) },
-  { locale: 'de-DE', label: 'Aufzählungspunkt-Farbe', mod: buildModuleInstance('news', { view: 'list' }) },
-  { locale: 'nl-NL', label: 'Opsommingskleur', mod: buildModuleInstance('news', { view: 'list' }) },
   { locale: 'da-DK', label: 'Udsmykningens farve', mod: buildModuleInstance('text', { textDecoration: 'underline' }) },
 ];
 

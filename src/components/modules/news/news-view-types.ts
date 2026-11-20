@@ -58,6 +58,8 @@ export interface NewsViewProps {
   locale: string;
   /** Household zone, for the date a week-old story shows. */
   timezone: string | undefined;
+  /** The real current instant, ticking once a minute, for story ages and the "Just in" pill. */
+  now: number;
   newKeys: ReadonlySet<string>;
   /** Present only when a tap does something; views render plain rows otherwise. */
   onTap?: (item: NewsDisplayItem) => void;

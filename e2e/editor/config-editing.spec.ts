@@ -1535,6 +1535,34 @@ test('fullscreen-news: switching View persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'fullscreen-news')).view).toBe('front-page');
 });
 
+test('fullscreen-news: the front page takes a title, and the Just in switch persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-news', { view: 'front-page' }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Header text').fill('The Family Times');
+  });
+  expect((await moduleConfig(request, 'fullscreen-news')).title).toBe('The Family Times');
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Highlight stories that just came in' }).click();
+  });
+  expect((await moduleConfig(request, 'fullscreen-news')).highlightBreaking).toBe(false);
+});
+
+test('news: the page-turn time and Max Items are offered where the view uses them', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('news', { view: 'cards' }));
+  await expect(page.getByRole('slider', { name: /^Next page every \(seconds\)/ })).toBeVisible();
+  await expect(page.getByText('Accent Color', { exact: true })).toBeVisible();
+
+  await selectModule(page, request, buildModuleInstance('news', { view: 'headline' }));
+  await expect(page.getByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeVisible();
+  await expect(page.getByRole('slider', { name: /^Max Items/ })).toBeVisible();
+
+  await selectModule(page, request, buildModuleInstance('news', { view: 'ticker' }));
+  await expect(page.getByText('Show the source', { exact: true })).toBeVisible();
+  await expect(page.getByText('Show how long ago', { exact: true })).toHaveCount(0);
+});
+
 // ── Task 13: Deep per-module config — high-complexity modules ───────────────
 // The ratchet baseline above covers one field per module. These add breadth on
 // the six highest-surface-area modules (weather, text, chore-chart,

@@ -16,7 +16,7 @@ const SEPARATORS = { dot: '•', pipe: '|', slash: '/' } as const;
  * Horizontal marquee. A touch pauses the scroll for a moment so a headline
  * can actually be read (and tapped) on a touch display.
  */
-export default function TickerView({ items, config, t, newKeys, onTap, command }: NewsViewProps) {
+export default function TickerView({ items, config, t, now, newKeys, onTap, command }: NewsViewProps) {
   const [pausedUntil, setPausedUntil] = useState(0);
   const paused = pausedUntil > Date.now();
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function TickerView({ items, config, t, newKeys, onTap, command }
     >
       <TickerMarquee itemCount={items.length} speed={config.tickerSpeed} gap={8} paused={paused}>
         {items.map((item) => {
-          const breaking = config.highlightBreaking && isBreaking(item);
+          const breaking = config.highlightBreaking && isBreaking(item, now);
           const isNew = config.showNewMarker && newKeys.has(newsItemKey(item));
           return (
             <StoryButton

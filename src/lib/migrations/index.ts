@@ -15,6 +15,7 @@ import { v16ToV17 } from './v16-to-v17';
 import { v17ToV18 } from './v17-to-v18';
 import { v18ToV19 } from './v18-to-v19';
 import { v19ToV20 } from './v19-to-v20';
+import { v20ToV21 } from './v20-to-v21';
 
 interface Migration {
   version: number;
@@ -118,6 +119,9 @@ const migrations: Migration[] = [
   // Migration 020: the full-screen calendar's week numbers and location
   // switches stop belonging to one view each.
   v19ToV20,
+  // Migration 021: a full-screen news front page of several feeds keeps its
+  // heading as a title of its own.
+  v20ToV21,
 ];
 
 /** @internal Get all migrations sorted by version */

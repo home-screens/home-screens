@@ -4,9 +4,11 @@ import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from 'vitest
 import { render, cleanup, fireEvent, act } from '@testing-library/react';
 import { DEFAULT_MODULE_STYLE, type FullscreenNewsConfig, type ModuleStyle } from '@/types/config';
 import type { NewsDisplayItem } from '@/lib/news/types';
-import type { NewsFeedsState } from '@/hooks/useNewsFeeds';
+import { newsItemKey, type NewsFeedsState } from '@/hooks/useNewsFeeds';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
 import { installResizeObserverStub, I18nWrapper as Wrapper } from '@/components/modules/__tests__/helpers/harness';
+import { BurnInProtectionProvider } from '@/components/display/burn-in-context';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX, pixelShiftMinute, wanderOffset } from '@/lib/pixel-shift';
 
 installResizeObserverStub();
 
@@ -153,6 +155,82 @@ describe('FullscreenNewsModule story view', () => {
     expect(container.querySelector('button[data-news-story]')).toBeNull();
     expect(container.querySelector('[data-news-story]')).not.toBeNull();
   });
+
+  it('drops the "Just in" pill, and the row it was holding open, when the switch is off', () => {
+    mockState = loaded(THREE);
+    const off = renderNews(makeConfig({ view: 'story', highlightBreaking: false }));
+    expect(off.container.querySelector('[data-news-breaking]')).toBeNull();
+    // Source and age are untouched.
+    expect(off.container.querySelector('[data-news-source]')).not.toBeNull();
+    expect(off.container.querySelector('[data-news-age]')?.textContent).toBe('10m ago');
+    cleanup();
+
+    const bare = renderNews(makeConfig({ view: 'story', highlightBreaking: false, showSource: false, showTimestamp: false }));
+    const headline = bare.container.querySelector('[data-news-headline]')!;
+    expect(headline.previousElementSibling).toBeNull();
+    cleanup();
+
+    // With the switch on, the pill alone keeps the row.
+    const pillOnly = renderNews(makeConfig({ view: 'story', showSource: false, showTimestamp: false }));
+    expect(pillOnly.container.querySelector('[data-news-headline]')!.previousElementSibling?.textContent).toBe('Just in');
+  });
+
+  it('dots a story that arrived since the last refresh, only when asked, and never beside the pill', () => {
+    const fresh = new Set([THREE[0], THREE[1]].map(newsItemKey));
+    mockState = { ...loaded(THREE), newKeys: fresh };
+    const quiet = renderNews(makeConfig({ view: 'story' }));
+    expect(quiet.container.querySelector('[data-news-new]')).toBeNull();
+    cleanup();
+
+    // Story 0 is ten minutes old: it gets the pill, which already says fresh.
+    const { container } = renderNews(makeConfig({ view: 'story', showNewMarker: true, rotateIntervalMs: 5_000 }));
+    expect(container.querySelector('[data-news-breaking]')).not.toBeNull();
+    expect(container.querySelector('[data-news-new]')).toBeNull();
+    // Story 1 is an hour old: no pill, so the dot.
+    act(() => { vi.advanceTimersByTime(5_100); });
+    expect(container.querySelector('[data-news-breaking]')).toBeNull();
+    expect(container.querySelector('[data-news-new]')?.getAttribute('aria-label')).toBe('New story');
+    // Story 2 was there all along.
+    act(() => { vi.advanceTimersByTime(5_000); });
+    expect(container.querySelector('[data-news-new]')).toBeNull();
+    cleanup();
+
+    // With the pill switched off the dot stands in for it.
+    const noPill = renderNews(makeConfig({ view: 'story', showNewMarker: true, highlightBreaking: false }));
+    expect(noPill.container.querySelector('[data-news-new]')).not.toBeNull();
+  });
+});
+
+describe('FullscreenNewsModule corner clock and burn-in protection', () => {
+  const clock = (c: HTMLElement) => c.querySelector<HTMLElement>('[data-news-clock]')!;
+  const renderProtected = (protect: boolean) => render(
+    <BurnInProtectionProvider value={protect}>
+      <FullscreenNewsModule config={makeConfig({ view: 'story' })} style={style} fullscreenTheme="midnight" timeFormat="12h" />
+    </BurnInProtectionProvider>,
+    { wrapper: Wrapper },
+  );
+
+  it('holds still with no protection', () => {
+    mockState = loaded(THREE);
+    expect(clock(renderProtected(false).container).style.transform).toBe('');
+  });
+
+  it('drifts a pixel a minute with protection on, as the photo clock does', () => {
+    mockState = loaded(THREE);
+    const { container } = renderProtected(true);
+    act(() => { vi.advanceTimersByTime(0); });
+    const at = (minute: number) => {
+      const { x, y } = wanderOffset(minute, WANDER_REACH_X_PX, WANDER_REACH_Y_PX);
+      return `translate(${x}px, ${y}px)`;
+    };
+    const m0 = pixelShiftMinute(Date.now());
+    expect(clock(container).style.transform).toBe(at(m0));
+    act(() => { vi.advanceTimersByTime(60_000); });
+    expect(clock(container).style.transform).toBe(at(m0 + 1));
+    expect(at(m0 + 1)).not.toBe(at(m0));
+    // It stays where StoryView pinned it; the drift is a transform on top.
+    expect(clock(container).style.position).toBe('absolute');
+  });
 });
 
 describe('FullscreenNewsModule front page', () => {
@@ -182,6 +260,44 @@ describe('FullscreenNewsModule front page', () => {
 
     act(() => { vi.advanceTimersByTime(5_100); });
     expect(headlines()).toEqual(['Headline number 6', 'Headline number 7']);
+  });
+
+  it('heads the page with the title the family gave it', () => {
+    mockState = loaded(THREE);
+    const { container } = renderNews(makeConfig({ view: 'front-page', showTime: false, title: '  The Miller Times ' }));
+    expect(container.querySelector('[data-news-masthead]')?.textContent).toBe('The Miller Times');
+  });
+
+  it('does not head a page of several feeds with whichever is listed first', () => {
+    mockState = loaded(THREE);
+    const feeds = [
+      { id: 'f1', url: 'https://example.com/feed.xml', label: 'Example News' },
+      { id: 'f2', url: 'https://example.org/feed.xml', label: 'Other Paper' },
+    ];
+    const { container } = renderNews(makeConfig({ view: 'front-page', showTime: false, feeds }));
+    expect(container.querySelector('[data-news-masthead]')?.textContent).toBe('News');
+    cleanup();
+
+    // A second row with no link yet is not a second feed.
+    const draft = renderNews(makeConfig({ view: 'front-page', showTime: false, feeds: [feeds[0], { id: 'f3', url: ' ' }] }));
+    expect(draft.container.querySelector('[data-news-masthead]')?.textContent).toBe('Example News');
+  });
+
+  it('keeps the pill on the lead only, and dots new stories in the grid', () => {
+    mockState = { ...loaded(THREE.map((s, i) => (i === 1 ? { ...s, timestamp: NOW - 5 * 60_000 } : s))), newKeys: new Set([THREE[1], THREE[2]].map(newsItemKey)) };
+    const { container } = renderNews(makeConfig({ view: 'front-page', showNewMarker: true }));
+    expect(container.querySelectorAll('[data-news-breaking]')).toHaveLength(1);
+    expect(container.querySelector('[data-news-grid] [data-news-breaking]')).toBeNull();
+    expect(container.querySelectorAll('[data-news-grid] [data-news-new]')).toHaveLength(2);
+    cleanup();
+
+    // The dot keeps a grid card's meta row when source and age are both off.
+    const bare = renderNews(makeConfig({ view: 'front-page', showNewMarker: true, showSource: false, showTimestamp: false }));
+    expect(bare.container.querySelectorAll('[data-news-grid] [data-news-new]')).toHaveLength(2);
+    cleanup();
+
+    const off = renderNews(makeConfig({ view: 'front-page' }));
+    expect(off.container.querySelector('[data-news-new]')).toBeNull();
   });
 
   it('uses the translated title when the first feed has no label', () => {

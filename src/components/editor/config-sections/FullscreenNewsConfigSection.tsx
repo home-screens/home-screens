@@ -3,6 +3,7 @@
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
@@ -42,6 +43,16 @@ export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInst
         options={VIEWS}
       />
 
+      {/* Only the front page has a masthead. */}
+      {c.view === 'front-page' && (
+        <LabeledInput
+          label={t('configSections.news.headerText')}
+          value={c.title ?? ''}
+          onChange={(v) => set({ title: v || undefined })}
+          placeholder={t('configSections.news.headerTextPlaceholder')}
+        />
+      )}
+
       <Slider
         label={t('configSections.fullscreen-news.rotateSeconds')}
         value={(c.rotateIntervalMs ?? 15000) / 1000}
@@ -77,6 +88,16 @@ export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInst
         label={t('configSections.news.showTimestamp')}
         checked={c.showTimestamp !== false}
         onChange={(v) => set({ showTimestamp: v })}
+      />
+      <Toggle
+        label={t('configSections.news.highlightBreaking')}
+        checked={c.highlightBreaking !== false}
+        onChange={(v) => set({ highlightBreaking: v })}
+      />
+      <Toggle
+        label={t('configSections.news.showNewMarker')}
+        checked={c.showNewMarker === true}
+        onChange={(v) => set({ showNewMarker: v })}
       />
       <Toggle
         label={t('configSections.fullscreen-news.showTime')}

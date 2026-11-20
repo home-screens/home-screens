@@ -662,6 +662,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTime: true,
       typographySize: 'medium',
       accentColor: '',
+      highlightBreaking: true,
+      showNewMarker: false,
       maxAgeHours: 0,
       blockedWords: '',
       requiredWords: '',

@@ -20,7 +20,7 @@ const MAX_DOTS = 12;
  * rotating content on a wall display should not draw the eye every ten
  * seconds. Hub commands and taps move it by hand.
  */
-export default function HeadlineView({ items, config, t, locale, timezone, newKeys, onTap, command, unavailable }: NewsViewProps) {
+export default function HeadlineView({ items, config, t, locale, timezone, now, newKeys, onTap, command, unavailable }: NewsViewProps) {
   const { index, next, prev } = usePagedRotation(items.length, config.rotateIntervalMs);
   const item = items[index];
   useViewCommand(command, {
@@ -37,7 +37,7 @@ export default function HeadlineView({ items, config, t, locale, timezone, newKe
     Math.max(items.length - MAX_DOTS, 0),
   );
 
-  const age = formatNewsAge(item.timestamp, t, { locale, timezone });
+  const age = formatNewsAge(item.timestamp, t, { locale, timezone }, now);
   const parts = metaParts(item, config, age);
   const showImage = config.showImages && !!item.imageUrl;
 
@@ -79,7 +79,7 @@ export default function HeadlineView({ items, config, t, locale, timezone, newKe
         <SourceTag
           item={item}
           parts={parts}
-          breaking={config.highlightBreaking && isBreaking(item)}
+          breaking={config.highlightBreaking && isBreaking(item, now)}
           isNew={config.showNewMarker && newKeys.has(newsItemKey(item))}
           accentColor={config.accentColor}
           t={t}

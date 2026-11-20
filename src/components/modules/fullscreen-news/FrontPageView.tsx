@@ -7,7 +7,7 @@ import { StoryButton } from '../news/StoryButton';
 import { Thumbnail } from '../news/Thumbnail';
 import { UnavailableFooter } from '../news/UnavailableFooter';
 import { FRONT_PAGE_SIZE, type NewsViewContext } from './news-canvas';
-import { PageDots, SourceMeta } from './news-parts';
+import { PageDots, SourceMeta, isNewStory } from './news-parts';
 
 /** Share of the canvas height the lead picture takes. */
 const LEAD_IMAGE_SHARE = 0.36;
@@ -169,6 +169,7 @@ function GridCard({ item, ctx, wide, landscape }: { item: NewsDisplayItem; ctx: 
   const { scale, theme, accent, options, onTap, t, locale, now, timezone } = ctx;
   const { bu, s } = scale;
   const meta = metaParts(item, options, formatNewsAge(item.timestamp, t, { locale, timezone }, now)).join(' · ');
+  const isNew = isNewStory(item, ctx);
   const thumbSize = bu * 13.9;
 
   return (
@@ -196,12 +197,21 @@ function GridCard({ item, ctx, wide, landscape }: { item: NewsDisplayItem; ctx: 
         >
           {item.title}
         </h3>
-        {meta && (
+        {(meta || isNew) && (
           <div className="flex items-center min-w-0" style={{ gap: bu, marginTop: bu * 0.75, fontSize: s * 1.95, color: theme.textMuted }}>
-            {options.showSource && item.sourceColor && (
+            {meta && options.showSource && item.sourceColor && (
               <span aria-hidden="true" className="rounded-full shrink-0" style={{ width: bu, height: bu, backgroundColor: item.sourceColor }} />
             )}
-            <span className="truncate">{meta}</span>
+            {meta && <span className="truncate">{meta}</span>}
+            {isNew && (
+              <span
+                data-news-new
+                title={t('news.newStory')}
+                aria-label={t('news.newStory')}
+                className="rounded-full shrink-0"
+                style={{ width: bu, height: bu, backgroundColor: accent }}
+              />
+            )}
           </div>
         )}
       </div>

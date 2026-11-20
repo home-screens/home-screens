@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 20,
+  "schemaVersion": 21,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -1660,6 +1660,35 @@
           },
           "description": "Progress bar and pill colour; empty follows the theme",
           "default": ""
+        },
+        {
+          "name": "title",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Name across the top of the front page; unset shows the feed's name when there is one feed, and \"News\" in the display language when there are several"
+        },
+        {
+          "name": "highlightBreaking",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Mark stories under an hour old with a \"Just in\" pill (on unless switched off)",
+          "default": true
+        },
+        {
+          "name": "showNewMarker",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Dot stories that arrived since the display's last refresh",
+          "default": false
         },
         {
           "name": "theme",
@@ -3594,7 +3623,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "List bullet, \"Just in\" pill, and new-story dot colour (optional)"
+          "description": "Colour of the list bullet, the ticker separator, the \"Just in\" pill, the new-story dot and the block that stands in for a missing picture (optional)"
         },
         {
           "name": "title",
@@ -7341,7 +7370,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 20
+          "default": 21
         },
         {
           "name": "settings",

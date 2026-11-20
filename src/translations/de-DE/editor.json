@@ -4901,7 +4901,6 @@
       "showImages": "Bilder anzeigen",
       "descriptionLines": "Zeilen für die Zusammenfassung",
       "singleLineTitles": "Schlagzeilen auf eine Zeile begrenzen",
-      "bulletColor": "Aufzählungspunkt-Farbe",
       "tickerSpeed": "Tickergeschwindigkeit (Sek./Eintrag)",
       "tickerSeparator": "Trennzeichen im Ticker",
       "separatorDot": "Punkt",

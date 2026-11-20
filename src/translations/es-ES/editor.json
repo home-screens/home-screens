@@ -4901,7 +4901,6 @@
       "showImages": "Mostrar fotos",
       "descriptionLines": "Líneas del resumen",
       "singleLineTitles": "Titulares en una sola línea",
-      "bulletColor": "Color de la viñeta",
       "tickerSpeed": "Velocidad del ticker (s/elemento)",
       "tickerSeparator": "Separador del ticker",
       "separatorDot": "Punto",
