@@ -17,7 +17,7 @@
  * only: nothing is written until the first real save.
  */
 
-import { createHash } from 'node:crypto';
+import { contentRevision } from './content-revision';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import {
   DAY_KEYS,
@@ -88,7 +88,7 @@ function readFailure(error: unknown): unknown {
 }
 
 export function timetableRevision(data: TimetableData): string {
-  return createHash('sha256').update(JSON.stringify(withoutServerNotes(data))).digest('hex').slice(0, 24);
+  return contentRevision(withoutServerNotes(data));
 }
 
 /**
@@ -741,7 +741,7 @@ export function replaceTimetables(input: ReplaceTimetablesInput, now: Date = new
           throw new TimetableError(400, 'timetables.reopen', 'Reopen the timetables page and try saving again.');
         }
         if (input.revision !== timetableRevision(base)) {
-          throw new TimetableError(409, 'timetables.revision', 'Somebody else changed the timetables. Reopen the page and make your change again.', { extra: { ...snapshot(base) } });
+          throw new TimetableError(409, 'timetables.revision', 'Somebody else changed the timetables. Reopen the page and make your change again.', { extra: { ...snapshot(base), reason: 'revision' } });
         }
         const next = withoutPastNotes(withServerNotes(cleanTimetableData(input.data), base), now);
         const missing = await validateMemberReferences(next.timetables.map((timetable) => timetable.memberId));

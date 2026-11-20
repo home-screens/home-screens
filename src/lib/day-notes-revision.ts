@@ -1,6 +1,4 @@
-import { createHash } from 'crypto';
-import { readBuildId } from './build-id';
-import { fileSignature } from './file-signature';
+import { fileEtag } from './file-etag';
 import { DAY_NOTES_FILE } from './day-notes-data';
 
 /**
@@ -9,8 +7,6 @@ import { DAY_NOTES_FILE } from './day-notes-data';
  * the same value to every wall, so a calendar fetches day notes only when a
  * phone changed them.
  */
-export async function dayNotesEtag(): Promise<string> {
-  const [build, file] = await Promise.all([readBuildId(), fileSignature(DAY_NOTES_FILE)]);
-  const hash = createHash('sha256').update([build, file].join('|')).digest('hex').slice(0, 24);
-  return `"${hash}"`;
+export function dayNotesEtag(): Promise<string> {
+  return fileEtag([DAY_NOTES_FILE]);
 }

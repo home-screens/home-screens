@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
-import { addItem, type AddItemInput } from '@/lib/todo-data';
+import { addItem, type AddItemInput } from '@/lib/todo-actions';
 import { todoWrite, asObject } from '@/lib/todo-api';
 import type { TodoListItem } from '@/types/todos';
 

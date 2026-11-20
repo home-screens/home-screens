@@ -9,6 +9,7 @@ import type { TodoData, TodoList } from '@/types/todos';
 let tmpDir: string;
 let origCwd: () => string;
 let mod: typeof import('../todo-data');
+let actions: typeof import('../todo-actions');
 
 async function writeData(name: string, value: unknown): Promise<void> {
   const dataDir = path.join(tmpDir, 'data');
@@ -52,6 +53,7 @@ beforeEach(async () => {
   process.cwd = () => tmpDir;
   vi.resetModules();
   mod = await import('../todo-data');
+  actions = await import('../todo-actions');
 });
 
 afterEach(async () => {
@@ -90,6 +92,8 @@ describe('fold-in of pre-v2 inline items', () => {
   async function retryFold(): Promise<TodoData> {
     vi.resetModules();
     mod = await import('../todo-data');
+    actions = await import('../todo-actions');
+  actions = await import('../todo-actions');
     return mod.readTodoData();
   }
 
@@ -326,9 +330,9 @@ describe('repeat schedules', () => {
 
   it('does not record the saving device\'s zone on the list', () => {
     const base = migrated([list_()]);
-    const daily = mod.updateList(base, 'l1', { repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof mod.updateList>[2]);
+    const daily = actions.updateList(base, 'l1', { repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof actions.updateList>[2]);
     expect(daily.lists[0]).not.toHaveProperty('repeatTimezone');
-    const { list: created } = mod.createList(base, { name: 'Morning', repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof mod.createList>[1]);
+    const { list: created } = actions.createList(base, { name: 'Morning', repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof actions.createList>[1]);
     expect(created).not.toHaveProperty('repeatTimezone');
   });
 
@@ -427,33 +431,33 @@ describe('completed item expiry', () => {
     const onDisk = await readJson<TodoData>('todos.json');
     expect(onDisk.lists[0].items.map((i) => i.id)).toEqual(['a', 'b']);
 
-    await mod.updateTodoData((current) => mod.updateList(current, 'groceries', { itemOrder: ['b', 'a'] }));
+    await mod.updateTodoData((current) => actions.updateList(current, 'groceries', { itemOrder: ['b', 'a'] }));
     expect((await mod.readTodoData()).lists[0].items.map((i) => i.id)).toEqual(['b', 'a']);
   });
 });
 
 describe('list operations', () => {
   it('creates a list with a unique slug and validates the name', () => {
-    const { data, list: made } = mod.createList(migrated([list()]), { name: '  Groceries ' });
+    const { data, list: made } = actions.createList(migrated([list()]), { name: '  Groceries ' });
     expect(made.name).toBe('Groceries');
     expect(made.slug).toBe('groceries_2');
     expect(data.lists).toHaveLength(2);
-    expect(() => mod.createList(migrated([]), { name: '   ' })).toThrow(mod.TodoError);
-    expect(() => mod.createList(migrated([]), { name: 'x'.repeat(61) })).toThrow(/60/);
-    expect(() => mod.createList(migrated([]), { name: 'X', color: 'red' })).toThrow(mod.TodoError);
+    expect(() => actions.createList(migrated([]), { name: '   ' })).toThrow(actions.TodoError);
+    expect(() => actions.createList(migrated([]), { name: 'x'.repeat(61) })).toThrow(/60/);
+    expect(() => actions.createList(migrated([]), { name: 'X', color: 'red' })).toThrow(actions.TodoError);
   });
 
   it('caps the number of lists', () => {
     const many = migrated(Array.from({ length: 64 }, (_, i) => list({ id: `l${i}`, slug: `s${i}` })));
-    expect(() => mod.createList(many, { name: 'One more' })).toThrow(/64/);
+    expect(() => actions.createList(many, { name: 'One more' })).toThrow(/64/);
   });
 
   it('renames, recolours, sets a weekly repeat with a default day, and keeps the slug', () => {
-    const out = mod.updateList(migrated([list()]), 'l1', { name: 'Shopping', color: '#4ADE80', repeat: 'weekly' });
+    const out = actions.updateList(migrated([list()]), 'l1', { name: 'Shopping', color: '#4ADE80', repeat: 'weekly' });
     expect(out.lists[0]).toMatchObject({ name: 'Shopping', slug: 'groceries', color: '#4ade80', repeat: 'weekly', repeatDay: 0 });
-    expect(() => mod.updateList(migrated([list()]), 'nope', { name: 'X' })).toThrow(/gone/);
-    expect(() => mod.updateList(migrated([list()]), 'l1', { repeat: 'hourly' })).toThrow(mod.TodoError);
-    expect(() => mod.updateList(migrated([list()]), 'l1', { repeatDay: 7 })).toThrow(mod.TodoError);
+    expect(() => actions.updateList(migrated([list()]), 'nope', { name: 'X' })).toThrow(/gone/);
+    expect(() => actions.updateList(migrated([list()]), 'l1', { repeat: 'hourly' })).toThrow(actions.TodoError);
+    expect(() => actions.updateList(migrated([list()]), 'l1', { repeatDay: 7 })).toThrow(actions.TodoError);
   });
 
   it('turning on a repeat starts counting from now instead of the list\'s birthday', () => {
@@ -462,14 +466,14 @@ describe('list operations', () => {
       createdAt: '2020-01-01T00:00:00.000Z',
       items: [{ id: 'a', text: 'A', completed: true, createdAt: '2020-01-01T00:00:00.000Z' }],
     })]);
-    const daily = mod.updateList(old, 'l1', { repeat: 'daily' }, now);
+    const daily = actions.updateList(old, 'l1', { repeat: 'daily' }, now);
     expect(daily.lists[0].lastResetAt).toBe(now.toISOString());
     // The very next read must not uncheck what was ticked today.
     expect(mod.applyDueRepeats(daily, now)).toBe(daily);
     // Moving the weekday counts as a new schedule too; an unrelated edit does not.
-    const weekly = mod.updateList(daily, 'l1', { repeat: 'weekly', repeatDay: 1 }, new Date(now.getTime() + 1000));
+    const weekly = actions.updateList(daily, 'l1', { repeat: 'weekly', repeatDay: 1 }, new Date(now.getTime() + 1000));
     expect(weekly.lists[0].lastResetAt).not.toBe(daily.lists[0].lastResetAt);
-    const renamed = mod.updateList(weekly, 'l1', { name: 'Shop' }, new Date(now.getTime() + 2000));
+    const renamed = actions.updateList(weekly, 'l1', { name: 'Shop' }, new Date(now.getTime() + 2000));
     expect(renamed.lists[0].lastResetAt).toBe(weekly.lists[0].lastResetAt);
   });
 
@@ -478,10 +482,10 @@ describe('list operations', () => {
       { id: 'a', text: 'A', completed: false, createdAt: '2026-01-01T00:00:00.000Z' },
       { id: 'b', text: 'B', completed: false, createdAt: '2026-01-01T00:00:00.000Z' },
     ] })]);
-    expect(mod.updateList(data, 'l1', { itemOrder: ['b', 'a'] }).lists[0].items.map((i) => i.id)).toEqual(['b', 'a']);
-    expect(() => mod.updateList(data, 'l1', { itemOrder: ['a'] })).toThrow(/changed/);
-    expect(() => mod.updateList(data, 'l1', { itemOrder: ['a', 'a'] })).toThrow(/changed/);
-    expect(() => mod.updateList(data, 'l1', { itemOrder: ['a', 'zz'] })).toThrow(/changed/);
+    expect(actions.updateList(data, 'l1', { itemOrder: ['b', 'a'] }).lists[0].items.map((i) => i.id)).toEqual(['b', 'a']);
+    expect(() => actions.updateList(data, 'l1', { itemOrder: ['a'] })).toThrow(/changed/);
+    expect(() => actions.updateList(data, 'l1', { itemOrder: ['a', 'a'] })).toThrow(/changed/);
+    expect(() => actions.updateList(data, 'l1', { itemOrder: ['a', 'zz'] })).toThrow(/changed/);
   });
 
   it('tidy-up actions uncheck everything or drop the done items', () => {
@@ -489,76 +493,76 @@ describe('list operations', () => {
       { id: 'a', text: 'A', completed: true, completedAt: 'x', createdAt: '2026-01-01T00:00:00.000Z' },
       { id: 'b', text: 'B', completed: false, createdAt: '2026-01-01T00:00:00.000Z' },
     ] })]);
-    const unchecked = mod.updateList(data, 'l1', { action: 'uncheck-all' });
+    const unchecked = actions.updateList(data, 'l1', { action: 'uncheck-all' });
     expect(unchecked.lists[0].items.every((i) => !i.completed && !i.completedAt)).toBe(true);
     expect(unchecked.lists[0].lastResetAt).toBeDefined();
-    const cleared = mod.updateList(data, 'l1', { action: 'clear-completed' });
+    const cleared = actions.updateList(data, 'l1', { action: 'clear-completed' });
     expect(cleared.lists[0].items.map((i) => i.id)).toEqual(['b']);
-    expect(() => mod.updateList(data, 'l1', { action: 'explode' })).toThrow(/Unknown/);
+    expect(() => actions.updateList(data, 'l1', { action: 'explode' })).toThrow(/Unknown/);
   });
 
   it('returns the same reference when nothing changed', () => {
     const data = migrated([list()]);
-    expect(mod.updateList(data, 'l1', {})).toBe(data);
+    expect(actions.updateList(data, 'l1', {})).toBe(data);
   });
 
   it('deletes a list', () => {
-    expect(mod.deleteList(migrated([list()]), 'l1').lists).toEqual([]);
-    expect(() => mod.deleteList(migrated([]), 'l1')).toThrow(/gone/);
+    expect(actions.deleteList(migrated([list()]), 'l1').lists).toEqual([]);
+    expect(() => actions.deleteList(migrated([]), 'l1')).toThrow(/gone/);
   });
 });
 
 describe('item operations', () => {
   it('adds at the end (or the top), trimming and validating text', () => {
     const base = migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x' }] })]);
-    const { data, item } = mod.addItem(base, 'l1', { text: '  Oat milk ', dueDate: '2026-09-10' });
+    const { data, item } = actions.addItem(base, 'l1', { text: '  Oat milk ', dueDate: '2026-09-10' });
     expect(item).toMatchObject({ text: 'Oat milk', completed: false, dueDate: '2026-09-10' });
     expect(data.lists[0].items.map((i) => i.id)).toEqual(['a', item.id]);
-    const top = mod.addItem(base, 'l1', { text: 'First', position: 'top' });
+    const top = actions.addItem(base, 'l1', { text: 'First', position: 'top' });
     expect(top.data.lists[0].items[0].id).toBe(top.item.id);
-    expect(() => mod.addItem(base, 'l1', { text: '' })).toThrow(/Type something/);
-    expect(() => mod.addItem(base, 'l1', { text: 'x', dueDate: 'tomorrow' })).toThrow(mod.TodoError);
-    expect(() => mod.addItem(base, 'l1', { text: 'x', dueDate: '2026-02-30' })).toThrow(/day we recognise/);
-    expect(() => mod.addItem(base, 'zz', { text: 'x' })).toThrow(/list is gone/);
+    expect(() => actions.addItem(base, 'l1', { text: '' })).toThrow(/Type something/);
+    expect(() => actions.addItem(base, 'l1', { text: 'x', dueDate: 'tomorrow' })).toThrow(actions.TodoError);
+    expect(() => actions.addItem(base, 'l1', { text: 'x', dueDate: '2026-02-30' })).toThrow(/day we recognise/);
+    expect(() => actions.addItem(base, 'zz', { text: 'x' })).toThrow(/list is gone/);
   });
 
   it('caps items per list', () => {
     const full = migrated([list({ items: Array.from({ length: 500 }, (_, i) => ({ id: `i${i}`, text: 'x', completed: false, createdAt: 'x' })) })]);
-    expect(() => mod.addItem(full, 'l1', { text: 'one more' })).toThrow(/500/);
+    expect(() => actions.addItem(full, 'l1', { text: 'one more' })).toThrow(/500/);
   });
 
   it('checks off with a timestamp, unchecks clearing it, and edits fields', () => {
     const base = migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', dueDate: '2026-09-10' }] })]);
     const now = new Date('2026-09-09T12:00:00.000Z');
-    const done = mod.updateItem(base, 'l1', 'a', { completed: true }, now);
+    const done = actions.updateItem(base, 'l1', 'a', { completed: true }, now);
     expect(done.lists[0].items[0]).toMatchObject({ completed: true, completedAt: now.toISOString() });
-    const undone = mod.updateItem(done, 'l1', 'a', { completed: false });
+    const undone = actions.updateItem(done, 'l1', 'a', { completed: false });
     expect(undone.lists[0].items[0].completedAt).toBeUndefined();
-    const edited = mod.updateItem(base, 'l1', 'a', { text: 'Bananas', dueDate: '' });
+    const edited = actions.updateItem(base, 'l1', 'a', { text: 'Bananas', dueDate: '' });
     expect(edited.lists[0].items[0]).toMatchObject({ text: 'Bananas' });
     expect(edited.lists[0].items[0].dueDate).toBeUndefined();
-    expect(mod.updateItem(base, 'l1', 'a', { completed: false })).toBe(base);
-    expect(() => mod.updateItem(base, 'l1', 'zz', { completed: true })).toThrow(/item is gone/);
-    expect(() => mod.updateItem(base, 'l1', 'a', { completed: 'yes' })).toThrow(mod.TodoError);
+    expect(actions.updateItem(base, 'l1', 'a', { completed: false })).toBe(base);
+    expect(() => actions.updateItem(base, 'l1', 'zz', { completed: true })).toThrow(/item is gone/);
+    expect(() => actions.updateItem(base, 'l1', 'a', { completed: 'yes' })).toThrow(actions.TodoError);
   });
 
   it('deletes an item', () => {
     const base = migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x' }] })]);
-    expect(mod.deleteItem(base, 'l1', 'a').lists[0].items).toEqual([]);
-    expect(() => mod.deleteItem(base, 'l1', 'zz')).toThrow(/item is gone/);
+    expect(actions.deleteItem(base, 'l1', 'a').lists[0].items).toEqual([]);
+    expect(() => actions.deleteItem(base, 'l1', 'zz')).toThrow(/item is gone/);
   });
 
   it('keeps the people an item is for, deduped, and clears them on an empty list', () => {
     const base = migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x' }] })]);
-    const { item } = mod.addItem(base, 'l1', { text: 'Walk the dog', assigneeIds: ['m1', 'm2', 'm1'] });
+    const { item } = actions.addItem(base, 'l1', { text: 'Walk the dog', assigneeIds: ['m1', 'm2', 'm1'] });
     expect(item.assigneeIds).toEqual(['m1', 'm2']);
-    expect(mod.addItem(base, 'l1', { text: 'x' }).item.assigneeIds).toBeUndefined();
-    const assigned = mod.updateItem(base, 'l1', 'a', { assigneeIds: ['m2'] });
+    expect(actions.addItem(base, 'l1', { text: 'x' }).item.assigneeIds).toBeUndefined();
+    const assigned = actions.updateItem(base, 'l1', 'a', { assigneeIds: ['m2'] });
     expect(assigned.lists[0].items[0].assigneeIds).toEqual(['m2']);
-    const cleared = mod.updateItem(assigned, 'l1', 'a', { assigneeIds: [] });
+    const cleared = actions.updateItem(assigned, 'l1', 'a', { assigneeIds: [] });
     expect(cleared.lists[0].items[0].assigneeIds).toBeUndefined();
-    expect(() => mod.addItem(base, 'l1', { text: 'x', assigneeIds: 'm1' })).toThrow(/list of ids/);
-    expect(() => mod.updateItem(base, 'l1', 'a', { assigneeIds: [1] })).toThrow(mod.TodoError);
+    expect(() => actions.addItem(base, 'l1', { text: 'x', assigneeIds: 'm1' })).toThrow(/list of ids/);
+    expect(() => actions.updateItem(base, 'l1', 'a', { assigneeIds: [1] })).toThrow(actions.TodoError);
   });
 });
 
@@ -582,8 +586,8 @@ describe('updateTodoData', () => {
   it('serializes concurrent writes so neither is lost', async () => {
     await writeData('todos.json', migrated([list()]));
     await Promise.all([
-      mod.updateTodoData((d) => mod.addItem(d, 'l1', { text: 'One' }).data),
-      mod.updateTodoData((d) => mod.addItem(d, 'l1', { text: 'Two' }).data),
+      mod.updateTodoData((d) => actions.addItem(d, 'l1', { text: 'One' }).data),
+      mod.updateTodoData((d) => actions.addItem(d, 'l1', { text: 'Two' }).data),
     ]);
     const data = await mod.readTodoData();
     expect(data.lists[0].items.map((i) => i.text).sort()).toEqual(['One', 'Two']);
@@ -591,7 +595,7 @@ describe('updateTodoData', () => {
 
   it('propagates a TodoError without advancing the file', async () => {
     await writeData('todos.json', migrated([list()]));
-    await expect(mod.updateTodoData((d) => mod.addItem(d, 'l1', { text: '' }).data)).rejects.toThrow(mod.TodoError);
+    await expect(mod.updateTodoData((d) => actions.addItem(d, 'l1', { text: '' }).data)).rejects.toThrow(actions.TodoError);
     expect((await readJson<TodoData>('todos.json')).lists[0].items).toEqual([]);
   });
 });

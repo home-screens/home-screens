@@ -17,7 +17,7 @@ import { displayCache } from './display-cache';
 import { FETCH_KEY_REGISTRY, timetablesUrl } from './fetch-keys';
 import type { TimetableData } from '@/types/timetables';
 import type { TimetableImportCheckResult } from './timetable-api';
-import { readJson, refusalError } from './hub-request';
+import { readJson, refusalError, sendRevisionedSave } from './hub-request';
 import type { EditorFetchInit } from './editor-fetch';
 
 /** How long a loaded document stays fresh for everything else on the page. */
@@ -94,24 +94,17 @@ export async function saveTimetables(
   snapshot: TimetableSnapshot,
   fallbackMessage: string,
 ): Promise<TimetableSaveResult> {
-  const res = await fetcher(timetablesUrl(), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: snapshot.data, revision: snapshot.revision }),
-  });
-  const json = await readJson(res);
-  // A 409 is only a conflict when the store says it was about the revision. It
-  // also answers 409 for a person who has left the family and for a file it
-  // cannot read, and adopting the saved document for either of those discarded
-  // everything unsaved to explain a race that never happened. Those reject as
-  // the refusals they are, phrased by the window.
-  if (res.status === 409 && (json as { code?: unknown } | null)?.code === 'timetables.revision') {
-    return { kind: 'conflict', snapshot: asSnapshot(json) };
-  }
-  const saved = res.ok ? asSnapshot(json) : null;
-  if (!saved) throw refusalError(json, res.status, fallbackMessage);
-  primeTimetableCache(saved);
-  return { kind: 'saved', snapshot: saved };
+  // The store also answers 409 for a person who has left the family and for
+  // a file it cannot read. Those reject as the refusals they are, phrased by
+  // the window; only a revision conflict comes back as one.
+  const result = await sendRevisionedSave(
+    fetcher,
+    { url: timetablesUrl(), method: 'PUT', body: { data: snapshot.data, revision: snapshot.revision } },
+    asSnapshot,
+    fallbackMessage,
+  );
+  if (result.kind === 'saved') primeTimetableCache(result.snapshot);
+  return result;
 }
 
 /**

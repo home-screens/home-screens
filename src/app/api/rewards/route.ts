@@ -8,7 +8,8 @@ import { withFamilyWrite } from '@/lib/family-api';
 import { isRewardEligibleFor, canAffordReward } from '@/lib/reward-rules';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { householdToday } from '@/lib/household-day';
-import { holdsEtag, revalidatedHeaders, rewardsEtag } from '@/lib/chore-revisions';
+import { rewardsEtag } from '@/lib/chore-revisions';
+import { holdsEtag, revalidatedHeaders } from '@/lib/file-etag';
 
 export const dynamic = 'force-dynamic';
 

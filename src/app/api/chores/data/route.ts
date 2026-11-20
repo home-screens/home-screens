@@ -7,8 +7,12 @@ import { householdTimestamp } from '@/lib/household-day';
 import type { ChoreDefinition } from '@/types/config';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, parseJsonBody } from '@/lib/api-utils';
 import { withFamilyData, validateGroupReferences, validateMemberReferences } from '@/lib/family-api';
+import { requireRevision, revisionConflict } from '@/lib/revision-put';
 
 export const dynamic = 'force-dynamic';
+
+/** Room for a long chore list with steps, a schedule per person and an icon on every row. */
+const CHORE_LIST_BYTES = 1024 * 1024;
 
 export const GET = withDisplayAuth(async () => {
   return NextResponse.json(await readChoreSnapshot());
@@ -21,7 +25,7 @@ export const GET = withDisplayAuth(async () => {
  * surface can show what is there now instead of overwriting it.
  */
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ chores: ChoreDefinition[]; members?: unknown; force?: boolean; revision?: unknown }>(request);
+  const body = await parseJsonBody<{ chores: ChoreDefinition[]; members?: unknown; force?: boolean; revision?: unknown }>(request, { maxBytes: CHORE_LIST_BYTES });
   if (body instanceof NextResponse) return body;
   if (body && Object.hasOwn(body, 'members')) {
     return NextResponse.json({ error: 'Family has moved. Refresh this page before saving.', code: 'refresh_required' }, { status: 409 });
@@ -30,10 +34,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // accepts is one a restore accepts and the other way round.
   const invalid = validateChoreList(body?.chores);
   if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
-  const { chores, force, revision } = body;
-  if (typeof revision !== 'string' || !revision) {
-    return NextResponse.json({ error: 'Reload the page and try again.' }, { status: 400 });
-  }
+  const { chores, force } = body;
+  const revision = requireRevision(body.revision, 'chores');
   return withFamilyData(async () => {
     // A list that cannot be read has nothing to compare against; the write is
     // what repairs it, and the empty guard below keeps its own reading.
@@ -41,13 +43,11 @@ export const PUT = withAuth(async (request: NextRequest) => {
     let settings = DEFAULT_CHORE_SETTINGS;
     try { ({ chores: current, settings } = await readChoreData()); } catch { /* unreadable */ }
     if (current && revision !== contentRevision(current)) {
-      return NextResponse.json({
-        error: 'Somebody else changed the chores. Reload the page and make your change again.',
-        reason: 'revision',
+      throw revisionConflict('chores', 'Somebody else changed the chores. Reload the page and make your change again.', {
         chores: current,
         settings,
         revision: contentRevision(current),
-      }, { status: 409 });
+      });
     }
     // Both reference checks come after the revision check on purpose.
     // Removing a person or a group takes them off every chore in the same

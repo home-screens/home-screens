@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { contentRevision } from './content-revision';
 import { createJsonStore } from './json-store';
 import type { Routine, TimerSession } from '@/types/timers';
 
@@ -75,7 +75,7 @@ export async function readSessionRevision(): Promise<string> {
   const file = await readSessionCached();
   let revision = sessionRevisions.get(file);
   if (!revision) {
-    revision = createHash('sha256').update(JSON.stringify(file.session)).digest('hex').slice(0, 16);
+    revision = contentRevision(file.session);
     sessionRevisions.set(file, revision);
   }
   return revision;

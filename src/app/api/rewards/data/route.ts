@@ -9,6 +9,7 @@ import {
 } from '@/lib/reward-data';
 import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { contentRevision } from '@/lib/content-revision';
+import { requireRevision, revisionConflict } from '@/lib/revision-put';
 import type { RewardDefinition } from '@/lib/reward-data';
 
 export const dynamic = 'force-dynamic';
@@ -23,27 +24,23 @@ const REWARD_LIST_BYTES = 256 * 1024;
  * `reason: 'revision'` and the current list rather than overwriting it.
  */
 export const PUT = withAuth(async (request: NextRequest) => withFamilyWrite<{ rewards: RewardDefinition[]; force?: boolean; revision?: unknown }, Response>(request, { maxBytes: REWARD_LIST_BYTES }, async (body) => {
-  const { rewards, force, revision } = body;
+  const { rewards, force } = body;
 
   // The same rule a backup restore holds rewards.json to, so a list the save
   // accepts is one a restore accepts and the other way round.
   const invalid = validateRewardList(rewards);
   if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
-  if (typeof revision !== 'string' || !revision) {
-    return NextResponse.json({ error: 'Reload the page and try again.' }, { status: 400 });
-  }
+  const revision = requireRevision(body.revision, 'rewards');
 
   // A list that cannot be read has nothing to compare against; the write is
   // what repairs it, and the empty guard below keeps its own reading.
   let current: RewardDefinition[] | null = null;
   try { current = (await readRewardData()).rewards; } catch { /* unreadable */ }
   if (current && revision !== contentRevision(current)) {
-    return NextResponse.json({
-      error: 'Somebody else changed the rewards. Reload the page and make your change again.',
-      reason: 'revision',
+    throw revisionConflict('rewards', 'Somebody else changed the rewards. Reload the page and make your change again.', {
       rewards: current,
       revision: contentRevision(current),
-    }, { status: 409 });
+    });
   }
 
   // After the revision check on purpose. Removing a person takes them off

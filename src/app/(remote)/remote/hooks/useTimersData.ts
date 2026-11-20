@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { readJson, refusalText } from '@/lib/hub-request';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
+import { ROUTINES_URL, asRoutineSnapshot, saveRoutineList } from '@/lib/timer-client';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, Routine, TimerSession, TimerTargets, TimerView } from '@/types/timers';
 import { resolveTimerTargets, useDisplayTarget } from '../display-target';
@@ -69,14 +70,14 @@ export function useTimersData() {
     if (!quiet) setRoutinesError(false);
     const saves = savingRef.current;
     try {
-      const res = await editorFetch('/api/timers/routines');
-      if (!res.ok) {
+      const res = await editorFetch(ROUTINES_URL);
+      const snapshot = res.ok ? asRoutineSnapshot(await readJson(res)) : null;
+      if (!snapshot) {
         if (!quiet) setRoutinesError(true);
         return;
       }
-      const json = (await res.json()) as { routines: Routine[]; revision: string };
       if (saves !== savingRef.current) return;
-      adopt(json.routines, json.revision);
+      adopt(snapshot.routines, snapshot.revision);
       setRoutinesError(false);
     } catch (e) {
       if (!quiet && !isSessionExpired(e)) setRoutinesError(true);
@@ -169,23 +170,14 @@ export function useTimersData() {
     try {
       let list = routinesRef.current;
       for (let attempt = 0; attempt < SAVE_ATTEMPTS; attempt++) {
-        const res = await editorFetch('/api/timers/routines', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ routines: change(list), revision: revisionRef.current }),
-        });
-        const json = (await readJson(res)) as { reason?: unknown; routines?: Routine[]; revision?: unknown } | null;
-        if (res.status === 409 && json?.reason === 'revision' && Array.isArray(json.routines) && typeof json.revision === 'string') {
-          adopt(json.routines, json.revision);
-          list = json.routines;
-          continue;
+        const outcome = await saveRoutineList(editorFetch, change(list), revisionRef.current, '');
+        if (outcome.kind === 'saved') {
+          adopt(outcome.snapshot.routines, outcome.snapshot.revision);
+          return true;
         }
-        if (!res.ok || !json || !Array.isArray(json.routines) || typeof json.revision !== 'string') {
-          setError(refusalText(json, t, 'timers.failed'));
-          return false;
-        }
-        adopt(json.routines, json.revision);
-        return true;
+        if (!outcome.snapshot) break;
+        adopt(outcome.snapshot.routines, outcome.snapshot.revision);
+        list = outcome.snapshot.routines;
       }
       setError(t('refusals.timers.revision'));
       return false;

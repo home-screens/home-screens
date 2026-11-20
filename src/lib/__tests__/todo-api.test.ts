@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { todoWrite } from '../todo-api';
-import { addItem, updateItem } from '../todo-data';
+import { addItem, updateItem } from '../todo-actions';
 import type { TodoData, TodoList } from '@/types/todos';
 
 let root: string;

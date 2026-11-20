@@ -153,11 +153,14 @@ function relativeStyle(locale: string): 'narrow' | 'short' {
  * "2h ago" in English and the short relative form elsewhere, then the short
  * weekday inside the last week, then a short date. Built on the Intl formatters so no dictionary string is
  * needed per locale; `now` is the wall's clock and `timezone` the household's.
+ * A surface that passes `justNow` (the phone) shows it for a note under a
+ * minute old; without it the youngest age is one minute.
  */
-export function formatNoteAge(createdAt: string, now: Date, locale: string, timezone?: string): string {
+export function formatNoteAge(createdAt: string, now: Date, locale: string, timezone?: string, justNow?: string): string {
   const at = Date.parse(createdAt);
   if (Number.isNaN(at)) return '';
   const age = Math.max(0, now.getTime() - at);
+  if (justNow !== undefined && age < MINUTE_MS) return justNow;
   try {
     if (age < DAY_MS) {
       const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'always', style: relativeStyle(locale) });

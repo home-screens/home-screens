@@ -3,10 +3,14 @@ import type { NextRequest } from 'next/server';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { readRoutinesFile, updateRoutinesAtomic, validateRoutines } from '@/lib/timer-data';
 import { contentRevision } from '@/lib/content-revision';
+import { requireRevision, revisionConflict } from '@/lib/revision-put';
 import { TimerError } from '@/lib/timer-logic';
 import type { Routine } from '@/types/timers';
 
 export const dynamic = 'force-dynamic';
+
+/** Room for fifty routines of thirty steps each, many times over. */
+const ROUTINE_LIST_BYTES = 256 * 1024;
 
 /** GET /api/timers/routines — the saved routine list (managed from /remote), and the revision a save quotes. */
 export const GET = withDisplayAuth(async () => {
@@ -29,13 +33,12 @@ export const GET = withDisplayAuth(async () => {
  * list, rather than dropping the routine the other phone just made.
  */
 export const PUT = withAuth(async (req: NextRequest) => {
-  const body = await parseJsonBody<{ routines?: Routine[]; revision?: unknown }>(req);
+  const body = await parseJsonBody<{ routines?: Routine[]; revision?: unknown }>(req, { maxBytes: ROUTINE_LIST_BYTES });
   if (body instanceof NextResponse) return body;
 
   const problem = validateRoutines(body.routines);
   if (problem) throw new TimerError(400, 'timers.invalid', problem);
-  const { revision } = body;
-  if (typeof revision !== 'string' || !revision) throw new TimerError(400, 'timers.reload', 'Reload the page and try again.');
+  const revision = requireRevision(body.revision, 'timers');
 
   // Compared inside the store's queue, so nothing lands between the check
   // and the write.
@@ -49,8 +52,9 @@ export const PUT = withAuth(async (req: NextRequest) => {
   });
   const { theirs } = conflict;
   if (theirs) {
-    throw new TimerError(409, 'timers.revision', 'Somebody else changed the routines. Make your change again.', {
-      extra: { reason: 'revision', routines: theirs, revision: contentRevision(theirs) },
+    throw revisionConflict('timers', 'Somebody else changed the routines. Make your change again.', {
+      routines: theirs,
+      revision: contentRevision(theirs),
     });
   }
   return NextResponse.json({ routines: data.routines, revision: contentRevision(data.routines) });

@@ -16,6 +16,7 @@ import {
   type TodoListsPayload,
   type TodoWriteRequest,
 } from '@/lib/todo-client';
+import { TodoError, updateItem } from '@/lib/todo-actions';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useWriteSession } from '@/hooks/useWriteSession';
 import Button from '@/components/ui/Button';
@@ -148,6 +149,8 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     load: loadLists,
     send: async (request) => ({ data: (await sendTodoWrite(editorFetch, request, saveFailed)).lists }),
     holdMs: TODO_LISTS_TTL_MS,
+    // A tick replayed over a copy that no longer has the item is skipped.
+    tolerates: (e) => e instanceof TodoError,
     onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.lists.failed')),
     // A write that went through clears an earlier refusal; the read after
     // a refusal does not, or the message would vanish unread.
@@ -179,8 +182,9 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
 
   // ── Items ──
   const toggleItem = (itemId: string, completed: boolean) => {
+    const at = new Date();
     void write(
-      (ls) => ls.map((l) => (l.id === listId ? { ...l, items: l.items.map((i) => (i.id === itemId ? { ...i, completed } : i)) } : l)),
+      (ls) => updateItem({ lists: ls }, listId, itemId, { completed }, at).lists,
       updateItemRequest(listId, itemId, { completed }),
     );
   };

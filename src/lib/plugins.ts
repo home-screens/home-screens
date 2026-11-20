@@ -14,6 +14,7 @@ import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 import { isVersionCompatible, resolveChannel } from '@/lib/plugin-versions';
 import { getPackageVersion } from '@/lib/version';
 import { updateConfigAtomic, configRevision as configRevisionOf } from '@/lib/config';
+import { contentRevision } from '@/lib/content-revision';
 import { removePluginModules } from '@/lib/plugin-modules';
 
 const execFileAsync = promisify(execFile);
@@ -561,7 +562,7 @@ export async function getInstalledRevision(): Promise<string> {
   const installed = await getInstalledPlugins();
   let revision = installedRevisions.get(installed);
   if (!revision) {
-    revision = crypto.createHash('sha256').update(JSON.stringify(installed)).digest('hex').slice(0, 16);
+    revision = contentRevision(installed);
     installedRevisions.set(installed, revision);
   }
   return revision;

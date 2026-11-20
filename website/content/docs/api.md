@@ -961,7 +961,7 @@ Replaces the whole document. Requires a valid session. Send `{ "data": { ... }, 
 
 Every member ID is checked against the family roster inside the same locked section as the write, so somebody cannot be removed between the check and the file landing. Validation is all-or-nothing, and the store caps a household at 16 schools, 16 slots per school, 64 subjects, 64 timetables and 64 special days per school.
 
-**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it.
+**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with `"reason": "revision"` and the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it.
 
 ### GET /api/timetables/holidays
 

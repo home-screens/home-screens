@@ -1,5 +1,6 @@
 import { FAMILY_FILE_PATH } from './constants';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import { contentRevision } from './content-revision';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { ScreenConfiguration } from '@/types/config';
@@ -23,7 +24,7 @@ export function familyValidationError(value: unknown): string | null {
   return validateFamilyData(value) ? null : 'Invalid family data: check member identities, names, colors, timestamps and aliases.';
 }
 export function familyRevision(data: FamilyData): string {
-  return createHash('sha256').update(JSON.stringify(data)).digest('hex').slice(0, 24);
+  return contentRevision(data);
 }
 export function familyResponse(data: FamilyData): FamilyResponse {
   return { members: data.members, groups: data.groups ?? [], revision: familyRevision(data) };

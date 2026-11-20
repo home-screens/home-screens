@@ -363,6 +363,33 @@ describe('NotesBoardModal', () => {
     expect(screen.getAllByTestId('notes-modal-gone-row').map((r) => r.getAttribute('data-note-id'))).toEqual(['old']);
   });
 
+  it('shows a note taken down, posted again or deleted at once, before the hub answers', async () => {
+    const released: Array<() => void> = [];
+    state.request.mockImplementation((url: string, init?: RequestInit) => {
+      if ((init?.method ?? 'GET') === 'GET') return fakeHub(url, init);
+      return new Promise<Response>((resolve) => { released.push(() => { void fakeHub(url, init).then(resolve); }); });
+    });
+    render();
+    await settle();
+
+    fireEvent.click(within(rowFor('Dentist at four today')).getByTestId('notes-modal-take-down'));
+    await settle();
+    expect(writes).toEqual([]);
+    expect(rows()).toHaveLength(2);
+    expect(screen.getByText('2 on the wall · 2 gone')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('notes-modal-gone-toggle'));
+    const gone = () => screen.getAllByTestId('notes-modal-gone-row');
+    fireEvent.click(within(gone()[1]).getByTestId('notes-modal-repost'));
+    await settle();
+    expect(rows()).toHaveLength(3);
+    expect(gone().map((r) => r.getAttribute('data-note-id'))).toEqual(['important']);
+
+    while (released.length) { released.shift()?.(); await settle(); }
+    expect(writes.map((w) => w.body)).toEqual([{ action: 'take-down' }, { action: 'repost' }]);
+    expect(rows()).toHaveLength(3);
+  });
+
   it('deletes a gone note only after the confirm says yes', async () => {
     render();
     await settle();

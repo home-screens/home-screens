@@ -149,3 +149,48 @@ export async function sendJsonWrite(fetcher: HubFetch, request: JsonWriteRequest
   if (!res.ok) throw refusalError(json, res.status, fallback);
   return json;
 }
+
+/** What a whole-list save quoting a revision came to. */
+export type RevisionedSave<S> =
+  | { kind: 'saved'; snapshot: S }
+  /**
+   * Somebody else saved first. `snapshot` is the copy the hub holds now, for
+   * the surface to show or to make its change again on top of; null only
+   * when the refusal came back without one.
+   */
+  | { kind: 'conflict'; snapshot: S | null };
+
+/**
+ * Send one save of a whole list (chores, rewards, routines, the meal arrays,
+ * the timetables) and read the answer the way every one of those routes
+ * gives it (`revision-put.ts` is the hub's half).
+ *
+ * A save built from an older copy comes back as a conflict, not an error,
+ * because it is the one refusal a surface can do something about. Only a 409
+ * that says `reason: 'revision'` is one: the same routes answer 409 for a
+ * person who left the family and for an empty list, and taking the hub's copy
+ * for either would throw away the change to explain a race that never
+ * happened. Anything else rejects with `refusalError` (or what `refused`
+ * builds, for a client with an error class of its own); a hub out of reach
+ * and an expired session reject as themselves. What to do about a conflict
+ * (drop the change, make it again) stays with the caller.
+ */
+export async function sendRevisionedSave<S>(
+  fetcher: HubFetch,
+  request: JsonWriteRequest,
+  parse: (json: unknown) => S | null,
+  refused: string | ((json: unknown, status: number) => Error),
+): Promise<RevisionedSave<S>> {
+  const res = await fetcher(request.url, {
+    method: request.method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request.body),
+  });
+  const json = await readJson(res);
+  if (res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision') {
+    return { kind: 'conflict', snapshot: parse(json) };
+  }
+  const saved = res.ok ? parse(json) : null;
+  if (!saved) throw typeof refused === 'string' ? refusalError(json, res.status, refused) : refused(json, res.status);
+  return { kind: 'saved', snapshot: saved };
+}

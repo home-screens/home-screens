@@ -6,6 +6,7 @@ import { normalizeMealSettings } from '@/lib/meal-constants';
 import { validateMealPlan, validateSavedMeals } from '@/lib/meal-validation';
 import { isGroceryChecked, normalizeGroceryChecked, pruneGroceryChecked, rekeyGroceryChecked } from '@/lib/grocery-checks';
 import { mealRevision } from '@/lib/meal-revision';
+import { requireRevision, revisionConflict } from '@/lib/revision-put';
 import { normalizeStoredPlanEntry } from '@/lib/meal-courses';
 import { mealsAnswer, mealsWire } from '@/lib/meal-answer';
 import { MEALS_REVISION_HEADER, mealsRevision } from '@/lib/meals-revision';
@@ -120,12 +121,7 @@ export const PUT = withAuth(async (req: NextRequest) => {
   }
 
   const replacesArrays = hasSavedMeals || hasPlan;
-  if (replacesArrays && (typeof revision !== 'string' || !revision)) {
-    return NextResponse.json(
-      { error: 'Reopen the meal planner and try again.' },
-      { status: 400 },
-    );
-  }
+  if (replacesArrays) requireRevision(revision, 'meals', 'Reopen the meal planner and try again.');
 
   // Atomic read-modify-write — the mutator sees the most recent on-disk state
   // and no other writer can land between its read and its write. Throwing a
@@ -134,14 +130,7 @@ export const PUT = withAuth(async (req: NextRequest) => {
     // The revision check shares the queue with the write, so a save that lands
     // between this client's read and its write is seen rather than clobbered.
     if (replacesArrays && revision !== mealRevision(existing)) {
-      throw NextResponse.json(
-        {
-          error: 'Somebody else changed the meals. Your change was not saved; try it again.',
-          reason: 'revision',
-          ...mealsWire(existing),
-        },
-        { status: 409 },
-      );
+      throw revisionConflict('meals', 'Somebody else changed the meals. Your change was not saved; try it again.', { ...mealsWire(existing) });
     }
     // Empty-overwrite guard: fires whenever savedMeals OR plan is being
     // written as an empty array against non-empty existing data. We build

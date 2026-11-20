@@ -275,6 +275,13 @@ describe('formatNoteAge', () => {
   const shortDate = (locale: string, iso: string, timeZone?: string) =>
     new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone }).format(new Date(iso));
 
+  // The phone says "Just now"; the wall and the editor pass nothing and start at one minute.
+  it('says the surface\'s own words for a note under a minute old, when it has any', () => {
+    expect(formatNoteAge(at(-10_000), NOW, 'en-US', undefined, 'Just now')).toBe('Just now');
+    expect(formatNoteAge(at(-10_000), NOW, 'en-US')).toBe(rel('en-US', 1, 'minute'));
+    expect(formatNoteAge(at(-MINUTE), NOW, 'en-US', undefined, 'Just now')).toBe(rel('en-US', 1, 'minute'));
+  });
+
   it('never reads as a negative number in French', () => {
     const fr = formatNoteAge(at(-5 * MINUTE), NOW, 'fr-FR');
     expect(fr).not.toMatch(/^[-\u2212]/);

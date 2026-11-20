@@ -6,7 +6,7 @@ import { createNote, type CreateNoteInput } from '@/lib/notes-actions';
 import { notesWrite } from '@/lib/notes-api';
 import { asObject } from '@/lib/todo-api';
 import { notesEtag } from '@/lib/notes-revision';
-import { holdsEtag, revalidatedHeaders } from '@/lib/chore-revisions';
+import { holdsEtag, revalidatedHeaders } from '@/lib/file-etag';
 import { isLive } from '@/lib/notes-rules';
 import type { Note } from '@/types/notes';
 

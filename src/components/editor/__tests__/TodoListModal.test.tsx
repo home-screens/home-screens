@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render as renderUI, screen } from '@testing-li
 import core from '@/translations/en-US/core.json';
 import editor from '@/translations/en-US/editor.json';
 import { I18nProvider } from '@/i18n/provider';
-import { addItem, deleteItem, updateItem, updateList, TodoError } from '@/lib/todo-data';
+import { addItem, deleteItem, updateItem, updateList, TodoError } from '@/lib/todo-actions';
 import type { TodoData } from '@/types/todos';
 import { refusalBody } from '@/lib/refusal';
 

@@ -3,7 +3,7 @@
 import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { TodoList, TodoRepeat } from '@/types/todos';
-import type { TodoListAction } from '@/lib/todo-data';
+import type { TodoListAction } from '@/lib/todo-actions';
 import { sendJsonWrite } from '@/lib/hub-request';
 
 /**

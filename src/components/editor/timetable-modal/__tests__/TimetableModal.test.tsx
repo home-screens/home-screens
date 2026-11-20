@@ -143,7 +143,7 @@ describe('TimetableModal', () => {
     render('emma');
     await settle();
 
-    state.request.mockResolvedValueOnce(reply(409, { error: 'nope', code: 'timetables.revision', data: DATA, revision: 'r9' }));
+    state.request.mockResolvedValueOnce(reply(409, { error: 'nope', code: 'timetables.revision', reason: 'revision', data: DATA, revision: 'r9' }));
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Tuesday, period 1, Free' }));
     await act(async () => {
       vi.advanceTimersByTime(400);

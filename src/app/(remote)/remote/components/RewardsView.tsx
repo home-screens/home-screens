@@ -2,12 +2,14 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
+import { useState, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { HubUnreachableError } from '@/lib/hub-request';
+import { RewardSession, adjustTickets, setSavingsGoal, type TicketAdjustment } from '@/lib/reward-client';
 import { useTranslate } from '@/i18n';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
@@ -77,6 +79,9 @@ export default function RewardsView({
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [adjustSheetOpen, setAdjustSheetOpen] = useState(false);
   const timeZone = useHouseholdTimezone();
+  const [session] = useState(() => new RewardSession(editorFetch));
+  /** Saves of the reward list queued or out. */
+  const savesOut = useRef(0);
 
   // ── Derived ──
   const selectedMember = members.find((m) => m.id === selectedMemberId);
@@ -128,45 +133,47 @@ export default function RewardsView({
 
   /**
    * Persist a rewards list, rolling back to `snapshot` if the write fails.
+   * After a failure the real state is fetched back so the page never shows a
+   * phantom: these are surfaces children use.
    *
-   * `editorFetch` resolves for every status except 401, so omitting the
-   * `res.ok` check treated a 500 as success: a saved reward vanished on
-   * reload, and a deleted one came back. These are surfaces children use, so
-   * phantom state here is the worst place for it.
+   * Saves go out one at a time (`RewardSession`), each quoting the revision
+   * the one before it was answered with. Sent side by side, a second save
+   * made before the first came back quoted the same revision and was told
+   * somebody else had changed the list.
    *
-   * `force` is for deletes: the hub refuses an empty list (409) as a guard
-   * against a buggy client wiping the data, but deleting the only reward is
-   * exactly that list and the person just confirmed it. After a failure the
-   * real state is fetched back so the page never shows a phantom.
+   * `force` is for deletes: the hub refuses an empty list as a guard against
+   * a buggy client wiping the data, but deleting the only reward is exactly
+   * that list and the person just confirmed it.
    *
-   * The list quotes the revision it was built from. When somebody else saved
-   * first the hub answers 409 with `reason: 'revision'`; the change is rolled
-   * back, the current list fetched, and the person told to make it again.
+   * When somebody else did save first, the hub answers with its list: that
+   * list is shown and the person told to make the change again.
    */
   const persistRewards = async (updated: RewardDefinition[], snapshot: RewardsData | null, force = false) => {
     setSaveError(null);
+    // With nothing out, the list on screen is the hub's and so is its
+    // revision. While a save is out the session holds the newer one.
+    if (savesOut.current === 0 && snapshot) session.adopt(snapshot);
+    savesOut.current += 1;
     try {
-      const res = await editorFetch('/api/rewards/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewards: updated, ...(force ? { force: true } : {}), revision: snapshot?.revision }),
-      });
-      const json = await res.json().catch(() => null) as { rewards?: RewardDefinition[]; revision?: string; reason?: string } | null;
-      if (!res.ok) {
-        setData(snapshot);
-        setSaveError(res.status === 409 && json?.reason === 'revision' ? 'conflict' : 'failed');
+      const outcome = await session.save(updated, force, '');
+      if (outcome.kind === 'superseded') return;
+      const { rewards, revision } = outcome.snapshot;
+      // A later save still out has a newer list on screen than this answer.
+      const last = savesOut.current === 1;
+      if (outcome.kind === 'conflict') {
+        setData((prev) => (prev ? { ...prev, rewards, revision } : prev));
+        setSaveError('conflict');
         await refreshData();
-        return;
-      }
-      if (json?.revision) {
-        const revision = json.revision;
-        setData((prev) => prev ? { ...prev, rewards: json.rewards ?? prev.rewards, revision } : prev);
+      } else {
+        setData((prev) => (prev ? { ...prev, ...(last ? { rewards } : {}), revision } : prev));
       }
     } catch (err) {
       if (isSessionExpired(err)) return;
       setData(snapshot);
-      setSaveError('failed');
+      setSaveError(failureKey(err, 'failed'));
       await refreshData();
+    } finally {
+      savesOut.current -= 1;
     }
   };
 
@@ -190,11 +197,29 @@ export default function RewardsView({
     await persistRewards(updated, snapshot, true);
   };
 
+  /**
+   * Give or take tickets and show the hub's balances. A refusal or a hub out
+   * of reach says so, puts back what `rollback` holds and reads the real
+   * numbers, whichever control sent it.
+   */
+  const sendAdjustment = async (adjustment: TicketAdjustment, rollback?: RewardsData | null) => {
+    try {
+      const balances = await adjustTickets(editorFetch, adjustment, '');
+      setSaveError(null);
+      setData((prev) => (prev ? { ...prev, balances } : prev));
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      if (rollback !== undefined) setData(rollback);
+      setSaveError(failureKey(err, 'adjustFailed'));
+      await refreshData();
+    }
+  };
+
+  /** One person's plus or minus. Optimistic: the number moves at once. */
   const handleAdjust = async (memberId: string, amount: number) => {
     if (adjusting.has(memberId)) return;
     setAdjusting((prev) => new Set(prev).add(memberId));
     const snapshot = data;
-    // Optimistic
     setData((prev) => {
       if (!prev) return prev;
       return {
@@ -205,21 +230,7 @@ export default function RewardsView({
         },
       };
     });
-    try {
-      const res = await editorFetch('/api/rewards/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId, amount }),
-      });
-      if (res.ok) {
-        const result = await res.json();
-        setData((prev) => prev ? { ...prev, balances: result.balances } : prev);
-      } else {
-        setData(snapshot);
-      }
-    } catch {
-      setData(snapshot);
-    }
+    await sendAdjustment({ memberIds: [memberId], amount }, snapshot);
     setAdjusting((prev) => {
       const next = new Set(prev);
       next.delete(memberId);
@@ -241,47 +252,20 @@ export default function RewardsView({
       return { ...prev, goals };
     });
     try {
-      const res = await editorFetch('/api/rewards/goal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId: selectedMemberId, rewardId }),
-      });
-      if (res.ok) {
-        const result = await res.json() as { goals?: SavingsGoals };
-        setSaveError(null);
-        setData((prev) => (prev ? { ...prev, goals: result.goals ?? {} } : prev));
-      } else {
-        setData(snapshot);
-        setSaveError('goalFailed');
-        await refreshData();
-      }
+      const goals = await setSavingsGoal(editorFetch, selectedMemberId, rewardId, '');
+      setSaveError(null);
+      setData((prev) => (prev ? { ...prev, goals } : prev));
     } catch (err) {
       if (isSessionExpired(err)) return;
       setData(snapshot);
-      setSaveError('goalFailed');
+      setSaveError(failureKey(err, 'goalFailed'));
+      await refreshData();
     }
   };
 
   /** Several people, the same amount each, with a reason. Nothing optimistic: the sheet waits for the hub. */
-  const handleAdjustMany = async (memberIds: string[], amount: number, reason: string) => {
-    try {
-      const res = await editorFetch('/api/rewards/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberIds, amount, ...(reason ? { reason } : {}) }),
-      });
-      if (res.ok) {
-        const result = await res.json() as { balances: Record<string, number> };
-        setSaveError(null);
-        setData((prev) => (prev ? { ...prev, balances: result.balances } : prev));
-      } else {
-        setSaveError('adjustFailed');
-        await refreshData();
-      }
-    } catch (err) {
-      if (!isSessionExpired(err)) setSaveError('adjustFailed');
-    }
-  };
+  const handleAdjustMany = (memberIds: string[], amount: number, reason: string) =>
+    sendAdjustment({ memberIds, amount, reason });
 
   // ── Inner nav colors ──
   const viewColors: Record<InnerView, string> = {
@@ -471,8 +455,14 @@ export default function RewardsView({
   );
 }
 
+/** A hub out of reach says so in the words every phone tab uses; anything else is the action's own line. */
+function failureKey(err: unknown, fallback: keyof typeof REWARD_ERROR_KEYS): keyof typeof REWARD_ERROR_KEYS {
+  return err instanceof HubUnreachableError ? 'unreachable' : fallback;
+}
+
 const REWARD_ERROR_KEYS = {
   failed: 'rewardsView.saveFailed',
+  unreachable: 'hubRequest.saveFailed',
   conflict: 'rewardsView.changedElsewhere',
   redeemRefused: 'rewardsView.redeem.refused',
   redeemNotOffered: 'rewardsView.redeem.notOffered',

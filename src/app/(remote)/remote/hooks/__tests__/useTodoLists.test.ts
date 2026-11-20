@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
-import { addItem, createList, deleteItem, deleteList, updateItem, updateList, TodoError } from '@/lib/todo-data';
+import { addItem, createList, deleteItem, deleteList, updateItem, updateList, TodoError } from '@/lib/todo-actions';
 import type { TodoData } from '@/types/todos';
 import { refusalBody } from '@/lib/refusal';
 
@@ -166,6 +166,31 @@ describe('useTodoLists', () => {
     await waitFor(() => expect(view.result.current.lists[0].items.map((i) => i.id)).toEqual(['milk']));
     const reads = (fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([, init]) => !(init as RequestInit | undefined)?.method);
     expect(reads).toHaveLength(2);
+  });
+
+  // The phone runs the hub's own rules on what it shows, so the limit, the
+  // tick's time and a weekly list's day read the same before the answer as after.
+  it('refuses an item past the limit with the hub\'s code and never sends it', async () => {
+    store.lists[0].items = Array.from({ length: 500 }, (_, n) => ({ id: `i${n}`, text: `Item ${n}`, completed: false, createdAt: NOW }));
+    const { view } = await mounted();
+    let saved!: boolean;
+    await act(async () => { saved = await view.result.current.addItem('groceries', 'One more'); });
+    expect(saved).toBe(false);
+    expect(showToast).toHaveBeenCalledWith('Eine Liste fasst bis zu 500 Einträge', 'error');
+    expect(view.result.current.lists[0].items).toHaveLength(500);
+    expect(writes).toEqual([]);
+  });
+
+  it('stamps a tick made through an edit and gives a weekly list its day before the hub answers', async () => {
+    const { view } = await mounted();
+    held = [];
+    act(() => { view.result.current.updateItem('groceries', 'milk', { completed: true }); });
+    expect(view.result.current.lists[0].items[0].completedAt).toEqual(expect.any(String));
+    act(() => { void view.result.current.updateList('groceries', { repeat: 'weekly' }); });
+    expect(view.result.current.lists[0]).toMatchObject({ repeat: 'weekly', repeatDay: 0, lastResetAt: expect.any(String) });
+    act(() => { void view.result.current.listAction('groceries', 'uncheck-all'); });
+    expect(view.result.current.lists[0].items[0]).toMatchObject({ completed: false });
+    expect(view.result.current.lists[0].items[0].completedAt).toBeUndefined();
   });
 
   it('says so and offers a retry when the first load fails', async () => {

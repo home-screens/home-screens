@@ -1,6 +1,4 @@
-import { createHash } from 'crypto';
-import { readBuildId } from './build-id';
-import { fileSignature } from './file-signature';
+import { fileEtag } from './file-etag';
 import { NOTES_FILE } from './notes-data';
 
 /**
@@ -11,8 +9,6 @@ import { NOTES_FILE } from './notes-data';
  * every answer carries `expiresAt` and the wall retires notes on its own
  * clock.
  */
-export async function notesEtag(): Promise<string> {
-  const [build, file] = await Promise.all([readBuildId(), fileSignature(NOTES_FILE)]);
-  const hash = createHash('sha256').update([build, file].join('|')).digest('hex').slice(0, 24);
-  return `"${hash}"`;
+export function notesEtag(): Promise<string> {
+  return fileEtag([NOTES_FILE]);
 }

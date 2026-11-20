@@ -19,7 +19,6 @@ import DayNotesPage from './DayNotesPage';
 import TabNotSetUp from './TabNotSetUp';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
-const MINUTE_MS = 60_000;
 
 type SheetState = { mode: 'new'; text: string } | { mode: 'edit'; id: string };
 
@@ -205,11 +204,7 @@ function NotesBoard({ onOpenCalendar }: {
   const defaultAuthorId = rememberedAuthor && membersById.has(rememberedAuthor) ? rememberedAuthor : null;
 
   const nameOf = (note: Note) => membersById.get(note.authorId ?? '')?.name ?? t('notes.someone');
-  const ageOf = (note: Note) => {
-    const at = Date.parse(note.createdAt);
-    if (!Number.isNaN(at) && now.getTime() - at < MINUTE_MS) return t('notes.justNow');
-    return formatNoteAge(note.createdAt, now, locale, timezone);
-  };
+  const ageOf = (note: Note) => formatNoteAge(note.createdAt, now, locale, timezone, t('notes.justNow'));
 
   const editingNote = sheet?.mode === 'edit' ? api.findNote(sheet.id) : null;
   const deletingNote = deletingId ? api.findNote(deletingId) : null;

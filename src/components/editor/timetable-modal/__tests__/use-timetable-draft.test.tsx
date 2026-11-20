@@ -131,7 +131,7 @@ describe('useTimetableDraft', () => {
     await settle();
 
     const theirs = { ...SAVED, schools: [{ ...SCHOOL, name: 'Grundschule' }] };
-    state.request.mockResolvedValueOnce(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: theirs, revision: 'r9' }));
+    state.request.mockResolvedValueOnce(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', reason: 'revision', data: theirs, revision: 'r9' }));
 
     fireEvent.click(screen.getByText('edit'));
     await act(async () => { vi.advanceTimersByTime(400); });
@@ -201,7 +201,7 @@ describe('useTimetableDraft', () => {
     fireEvent.click(screen.getByText('done'));
     await settle();
     await act(async () => {
-      land(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: theirs, revision: 'r9' }));
+      land(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', reason: 'revision', data: theirs, revision: 'r9' }));
     });
     await settle();
 
@@ -253,7 +253,7 @@ describe('useTimetableDraft, against a store that refuses a stale revision', () 
       return new Promise<Response>((resolve) => {
         held.push(() => {
           if (sent.revision !== revision) {
-            resolve(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: saved, revision }));
+            resolve(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', reason: 'revision', data: saved, revision }));
             return;
           }
           saved = sent.data;

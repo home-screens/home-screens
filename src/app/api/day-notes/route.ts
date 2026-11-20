@@ -6,7 +6,7 @@ import { readDayNotesData } from '@/lib/day-notes-data';
 import { dayNotesEtag } from '@/lib/day-notes-revision';
 import { addDayNote } from '@/lib/day-notes';
 import { dayNotesWrite } from '@/lib/day-notes-api';
-import { holdsEtag, revalidatedHeaders } from '@/lib/chore-revisions';
+import { holdsEtag, revalidatedHeaders } from '@/lib/file-etag';
 import { asObject } from '@/lib/todo-api';
 import type { DayNote } from '@/types/day-notes';
 

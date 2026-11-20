@@ -40,7 +40,7 @@ describe('saveTimetables', () => {
 
   it('reports a 409 as a conflict carrying what is saved now', async () => {
     const saved = { schools: [], subjects: [], timetables: [] };
-    const fetcher = vi.fn().mockResolvedValue(reply(409, { code: 'timetables.revision', error: 'Somebody else changed them', data: saved, revision: 'r9' }));
+    const fetcher = vi.fn().mockResolvedValue(reply(409, { code: 'timetables.revision', reason: 'revision', error: 'Somebody else changed them', data: saved, revision: 'r9' }));
 
     await expect(saveTimetables(fetcher, { data: DATA, revision: 'r1' }, 'fallback')).resolves.toEqual({
       kind: 'conflict',

@@ -1,8 +1,9 @@
 import type { ChoreCompletion, ChoreDefinition, ChoreGrab, ChoreSettings, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
 import { readChoreSettings, type BonusRefusal } from './chore-bonus';
 import { choreGrabUrl, choreToggleUrl } from './fetch-keys';
-import { readJson, refusalMessage } from './hub-request';
+import { readJson } from './hub-request';
 import { choresDataUrl } from './fetch-keys';
+import { RevisionSession, type RevisionSaveOutcome } from './revision-session';
 
 /**
  * What `GET /api/chores/data` (and the server-rendered phone pages) hand out:
@@ -140,71 +141,15 @@ export function postChoreMarks(fetcher: ChoreFetch, write: ChoreMarksWrite): Pro
   return sendChoreWrite(fetcher, MARKS_URL[kind], body);
 }
 
-export type ChoreSaveOutcome =
-  | { kind: 'saved'; snapshot: ChoreSnapshot }
-  /** Somebody else saved first; `snapshot` is their list, already adopted. */
-  | { kind: 'conflict'; snapshot: ChoreSnapshot }
-  /** A conflict was adopted after this save was queued; its list is stale and was not sent. */
-  | { kind: 'superseded' };
+export type ChoreSaveOutcome = RevisionSaveOutcome<ChoreSnapshot>;
 
-/**
- * One surface's saves of the whole chore list, in order.
- *
- * The auto-save is debounced, not serialized: a second edit made while the
- * first save is still out would quote the same revision, conflict, and have
- * its newer list replaced by the first save's answer. Saves queue here, each
- * sent with the revision the previous one was answered with. A save queued
- * before a conflict was adopted carries a list built from the old copy, so it
- * is dropped rather than sent over the adopted one.
- */
-export class ChoreSession {
-  private revision: string | null;
-  private tail: Promise<unknown> = Promise.resolve();
-  private conflicts = 0;
-
-  constructor(private readonly fetcher: ChoreFetch, initial?: ChoreSnapshot) {
-    this.revision = initial?.revision ?? null;
-  }
-
-  /** The revision of the list this surface last received or saved. */
-  get currentRevision(): string | null {
-    return this.revision;
-  }
-
-  /** A list the hub handed over (a load, a reload, or a conflict's copy). */
-  adopt(snapshot: ChoreSnapshot): void {
-    this.revision = snapshot.revision;
-  }
-
-  /**
-   * Save the list. A refusal rejects with the hub's own sentence (someone in
-   * the list was removed, say), else `fallback`; a hub out of reach and an
-   * expired session reject as themselves.
-   */
-  save(chores: ChoreDefinition[], force: boolean, fallback: string): Promise<ChoreSaveOutcome> {
-    const conflictsBefore = this.conflicts;
-    const run = this.tail.then(async (): Promise<ChoreSaveOutcome> => {
-      if (this.conflicts !== conflictsBefore) return { kind: 'superseded' };
-      const res = await this.fetcher('/api/chores/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chores, force, revision: this.revision }),
-      });
-      const json = await readJson(res);
-      const theirs = res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision'
-        ? asChoreSnapshot(json)
-        : null;
-      if (theirs) {
-        this.conflicts += 1;
-        this.adopt(theirs);
-        return { kind: 'conflict', snapshot: theirs };
-      }
-      const saved = res.ok ? asChoreSnapshot(json) : null;
-      if (!saved) throw new Error(refusalMessage(json, fallback));
-      this.revision = saved.revision;
-      return { kind: 'saved', snapshot: saved };
-    });
-    this.tail = run.then(() => undefined, () => undefined);
-    return run;
+/** One surface's saves of the whole chore list, in order (see `RevisionSession`). */
+export class ChoreSession extends RevisionSession<ChoreDefinition[], ChoreSnapshot> {
+  constructor(fetcher: ChoreFetch, initial?: ChoreSnapshot) {
+    super(fetcher, {
+      url: choresDataUrl(),
+      body: (chores, revision, force) => ({ chores, force, revision }),
+      parse: asChoreSnapshot,
+    }, initial);
   }
 }

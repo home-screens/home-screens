@@ -20,7 +20,8 @@ import {
 } from '@/lib/notes-client';
 import { arrangeNotes, formatNoteAge, goneNotes, isLive, timeLeftParts } from '@/lib/notes-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
-import type { NotePatch } from '@/lib/notes-actions';
+import { deleteNote, repost as repostNote, takeDown as takeDownNote, updateNote, type NotePatch } from '@/lib/notes-actions';
+import { NotesError } from '@/lib/notes-errors';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useWriteSession } from '@/hooks/useWriteSession';
@@ -278,8 +279,10 @@ async function loadBoard(): Promise<Note[] | null> {
  * board is read once when the modal opens; every write answers with it,
  * and writes go out one at a time in the order they were asked for
  * (`useWriteSession`): a pin and an unpin a moment apart must land in that
- * order, or the board keeps the first one. A refused write is followed by
- * a fresh read, so whatever it changed locally does not stand. The canvas
+ * order, or the board keeps the first one. A row's flags, its author, taking
+ * it down, posting it again and deleting it show at once, as the store's own
+ * actions (`lib/notes-actions.ts`) applied to what is shown. A refused write
+ * is followed by a fresh read, so whatever it changed locally does not stand. The canvas
  * preview is handed every copy shown here, so it changes with the click.
  */
 export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
@@ -312,6 +315,9 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     load: loadBoard,
     send: async (request) => ({ data: (await sendNotesWrite(editorFetch, request, saveFailed)).notes }),
     holdMs: NOTES_TTL_MS,
+    // A change the board no longer allows (the note was deleted on a phone)
+    // is refused here with the hub's own code, and skipped when replayed.
+    tolerates: (e) => e instanceof NotesError,
     onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.notes.failed')),
     // A write that went through clears an earlier refusal; the read after
     // a refusal does not, or the message would vanish unread.
@@ -388,30 +394,25 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   };
 
   const patch = (id: string, change: NotePatch) => {
-    // Flags and the author show at once; a new life waits for the server,
-    // which works out the expiry from its own clock.
+    // Flags and the author show at once, through the store's own rule; a new
+    // life waits for the server, which works out the expiry from its own clock.
+    const shown: NotePatch = { ...change };
+    delete shown.life;
+    const at = new Date();
     void write(
-      (ns) => ns.map((n) => {
-        if (n.id !== id) return n;
-        const next: Note = { ...n };
-        if (change.pinned !== undefined) next.pinned = change.pinned;
-        if (change.important !== undefined) next.important = change.important;
-        if (change.authorId !== undefined) {
-          if (change.authorId) next.authorId = change.authorId;
-          else delete next.authorId;
-        }
-        return next;
-      }),
+      Object.keys(shown).length > 0 ? (ns) => updateNote({ notes: ns }, id, shown, at).notes : null,
       updateNoteRequest(id, change),
     );
   };
 
   const takeDown = (id: string) => {
-    void write(null, noteActionRequest(id, 'take-down'));
+    const at = new Date();
+    void write((ns) => takeDownNote({ notes: ns }, id, at).notes, noteActionRequest(id, 'take-down'));
   };
 
   const repost = (id: string) => {
-    void write(null, noteActionRequest(id, 'repost'));
+    const at = new Date();
+    void write((ns) => repostNote({ notes: ns }, id, at).notes, noteActionRequest(id, 'repost'));
   };
 
   const remove = async (id: string) => {
@@ -422,7 +423,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
       variant: 'danger',
     });
     if (!ok) return;
-    void write(null, deleteNoteRequest(id));
+    void write((ns) => deleteNote({ notes: ns }, id).notes, deleteNoteRequest(id));
   };
 
   const live = useMemo(() => arrangeNotes(notes, now).shown, [notes, now]);

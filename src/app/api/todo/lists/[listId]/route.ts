@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
-import { updateList, deleteList, type UpdateListInput } from '@/lib/todo-data';
+import { updateList, deleteList, type UpdateListInput } from '@/lib/todo-actions';
 import { todoWrite, asObject } from '@/lib/todo-api';
 
 export const dynamic = 'force-dynamic';

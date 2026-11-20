@@ -4,7 +4,7 @@ import { setMealPlanSource } from '@/lib/meal-settings';
 import { mealWriteBody, type MealDataWrite } from '@/lib/meal-write';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
-import { HubUnreachableError, readJson, refusalMessage } from '@/lib/hub-request';
+import { HubUnreachableError, readJson, refusalMessage, sendRevisionedSave } from '@/lib/hub-request';
 import { mealieProblem, mergeMealSources, planCellChanges, rangeCovers, unionRange, type MealieProblem, type MealieWireBlock } from '@/lib/meal-sources';
 import type { MealieCategory, MealieCookbook, MealieFailure, MealieRecipeFilter } from '@/lib/mealie';
 import { mealieRecipeUrl, type MealieRecipeDetail } from '@/lib/mealie-map';
@@ -258,24 +258,22 @@ export async function saveMealEdit(fetcher: MealFetch, base: MealSnapshot, edit:
   for (let attempt = 0; ; attempt++) {
     const changes = changedHalves(edit(current), current);
     if (!changes) return current;
-    const res = await fetcher(mealsDataUrl(), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...mealWriteBody(changes), revision: current.revision }),
-    });
-    const json = await readJson(res);
-    if (res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision') {
-      const theirs = asSnapshot(json, current.globalTimeFormat);
-      if (theirs && attempt < MAX_CONFLICT_RETRIES) {
-        current = theirs;
+    const timeFormat = current.globalTimeFormat;
+    const result = await sendRevisionedSave(
+      fetcher,
+      { url: mealsDataUrl(), method: 'PUT', body: { ...mealWriteBody(changes), revision: current.revision } },
+      (json) => asSnapshot(json, timeFormat),
+      (json) => new MealClientError('save', refusalMessage(json, 'The meals could not be saved.')),
+    );
+    if (result.kind === 'conflict') {
+      if (result.snapshot && attempt < MAX_CONFLICT_RETRIES) {
+        current = result.snapshot;
         continue;
       }
-      throw new MealClientError('conflict', refusalMessage(json, 'Somebody else changed the meals. Try again.'));
+      throw new MealClientError('conflict', 'Somebody else changed the meals. Try again.');
     }
-    const saved = res.ok ? asSnapshot(json, current.globalTimeFormat) : null;
-    if (!saved) throw new MealClientError('save', refusalMessage(json, 'The meals could not be saved.'));
-    displayCache.replace(mealsDataUrl(), saved, TTL_MS);
-    return saved;
+    displayCache.replace(mealsDataUrl(), result.snapshot, TTL_MS);
+    return result.snapshot;
   }
 }
 
@@ -337,24 +335,22 @@ async function saveMealieEdit(fetcher: MealFetch, base: MealSnapshot, edit: Meal
     if (changes.savedMeals) throw new MealClientError('save', 'Recipes live in Mealie. Change them there.');
     const cells = planCellChanges(current.plan, changes.plan!);
     if (cells.length === 0) return current;
-    const res = await fetcher(MEALIE_PLAN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(range ? { cells, range } : { cells }),
-    });
-    const json = await readJson(res);
-    if (res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision') {
-      const theirs = asSnapshot(json, current.globalTimeFormat);
-      if (theirs && attempt < MAX_CONFLICT_RETRIES) {
-        current = theirs;
+    const timeFormat = current.globalTimeFormat;
+    const result = await sendRevisionedSave(
+      fetcher,
+      { url: MEALIE_PLAN_URL, method: 'PUT', body: range ? { cells, range } : { cells } },
+      (json) => asSnapshot(json, timeFormat),
+      (json) => mealieRefusal('save', json, 'The meals could not be saved to Mealie.'),
+    );
+    if (result.kind === 'conflict') {
+      if (result.snapshot && attempt < MAX_CONFLICT_RETRIES) {
+        current = result.snapshot;
         continue;
       }
-      throw mealieRefusal('conflict', json, 'Somebody changed these meals in Mealie. Try again.');
+      throw new MealClientError('conflict', 'Somebody changed these meals in Mealie. Try again.');
     }
-    const saved = res.ok ? asSnapshot(json, current.globalTimeFormat) : null;
-    if (!saved) throw mealieRefusal('save', json, 'The meals could not be saved to Mealie.');
-    displayCache.replace(mealsDataUrl(), saved, TTL_MS);
-    return saved;
+    displayCache.replace(mealsDataUrl(), result.snapshot, TTL_MS);
+    return result.snapshot;
   }
 }
 
