@@ -3,7 +3,7 @@ import { findICloudItem, icloudMediaResource, icloudServeUrl, icloudVideoUrl, li
 import { mintMediaToken } from '@/lib/media-token';
 import { shuffleArray } from '@/lib/shuffle';
 import type { MediaListItem } from '@/types/config';
-import type { PhotoSourceAdapter } from './types';
+import { isShowingNow, type PhotoSourceAdapter } from './types';
 
 /**
  * A public iCloud shared album. Apple's asset URLs are signed and die within
@@ -34,17 +34,20 @@ export const icloudPhotoSource: PhotoSourceAdapter<'icloud'> = {
     }));
   },
 
-  async pickOne({ source }) {
+  async pickOne({ source, previous }) {
     // A background is a still picture; a video can't be one.
     const link = source.albumUrl;
     const images = (await listICloudAlbum(link)).filter((item) => item.type === 'image');
     if (images.length === 0) return null;
-    const pick = images[Math.floor(Math.random() * images.length)];
+    const idOf = (guid: string) => guid.replace(/[^A-Za-z0-9-]/g, '');
+    // A rotation that lands on the photo already showing doesn't rotate.
+    const others = images.length > 1 ? images.filter((item) => !isShowingNow(previous, 'icloud', idOf(item.guid))) : images;
+    const pick = others[Math.floor(Math.random() * others.length)];
     // Keyed by the photo's stable GUID: the served path must change between
     // rotations or the wall never swaps it.
     return {
       kind: 'download',
-      id: pick.guid.replace(/[^A-Za-z0-9-]/g, ''),
+      id: idOf(pick.guid),
       // The link is looked up when the download starts, so it is never an old one.
       open: async () => {
         const item = await findICloudItem(link, pick.guid);

@@ -94,6 +94,17 @@ export interface PickableSource {
 }
 
 /**
+ * Whether `previous` (the file name of the background showing now) is the
+ * download a source would save under `id`. The rotate route names a download
+ * `rotation-<kind>-<id>.<ext>`, with anything outside letters, digits, dot,
+ * dash and underscore in the id replaced by an underscore.
+ */
+export function isShowingNow(previous: string | undefined, kind: PhotoSourceKind, id: string): boolean {
+  if (!previous) return false;
+  return previous.replace(/\.[^.]+$/, '') === `rotation-${kind}-${id.replace(/[^A-Za-z0-9._-]/g, '_')}`;
+}
+
+/**
  * A failure the editor or the wall can explain: a key that can't see
  * something (Immich 403), a sign-in that lapsed, or something gone at the
  * source. Routes turn it into a status and a small JSON body.

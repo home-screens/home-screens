@@ -6,6 +6,8 @@ import { refusalFromBody, type RefusalParams } from '@/lib/refusal';
 import type { MediaUse } from '@/lib/media-usage';
 import { displayCache } from '@/lib/display-cache';
 import { PHOTO_SOURCE_MEDIA_PATH } from '@/lib/photo-source';
+import { isVideoUpload } from '@/lib/media-formats';
+import { isUnplayableVideo } from '@/lib/video-codec';
 
 /**
  * Client-side counterpart to `library-files.ts` (the server's filesystem
@@ -219,32 +221,50 @@ export function invalidateLibraryReads(): void {
 export interface UploadOutcome {
   /** Serve URLs of the files the hub took, in order. */
   uploaded: string[];
-  /** The last failure: the hub's own sentence, or null when the request never got an answer. */
-  error: { message: string | null; file: string } | null;
+  /** Videos held back because the wall cannot play them (see `isUnplayableVideo`), by name. */
+  unplayable: string[];
+  /** The last failure: the hub's own sentence and status, or nulls when the request never got an answer. */
+  error: { message: string | null; status: number | null; file: string } | null;
+}
+
+interface UploadOptions {
+  onProgress?: (index: number, total: number) => void;
+  /** Put the one file in place of this library file, keeping its name, instead of adding it. */
+  replacePath?: string;
 }
 
 /**
  * Upload files into one library folder, one request per file so a big video
- * never holds up the rest and each failure names its file. The one upload
- * path the editor's library grid and the Image module's Upload button share.
+ * never holds up the rest and each failure names its file. A video the wall
+ * cannot play would upload fine and then show as a black slide, so it stays
+ * behind and is named in `unplayable` while the rest go. The one upload path
+ * of the editor: Settings > Pictures & videos (adding and replacing), the
+ * picture picker, and the Image and Video modules' Upload buttons. An
+ * expired session rejects with the error `editorFetch` throws.
  */
 export async function uploadLibraryFiles(
   files: ArrayLike<File>,
   folder: string,
-  onProgress?: (index: number, total: number) => void,
+  { onProgress, replacePath }: UploadOptions = {},
 ): Promise<UploadOutcome> {
-  const outcome: UploadOutcome = { uploaded: [], error: null };
+  const outcome: UploadOutcome = { uploaded: [], unplayable: [], error: null };
   for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     onProgress?.(i, files.length);
+    if (isVideoUpload(file) && await isUnplayableVideo(file)) {
+      outcome.unplayable.push(file.name);
+      continue;
+    }
     const formData = new FormData();
-    formData.append('file', files[i]);
-    if (folder) formData.append('directory', folder);
+    if (replacePath) formData.append('replace', replacePath);
+    formData.append('file', file);
+    if (folder && !replacePath) formData.append('directory', folder);
     try {
       // A video can take longer than the usual limit to send.
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[]; error?: string } | null;
       if (!res.ok) {
-        outcome.error = { message: data?.error ?? null, file: files[i].name };
+        outcome.error = { message: data?.error ?? null, status: res.status, file: file.name };
       } else if (data?.path) {
         outcome.uploaded.push(data.path);
       } else if (data?.paths) {
@@ -252,10 +272,46 @@ export async function uploadLibraryFiles(
       }
     } catch (err) {
       if (isSessionExpiredError(err)) throw err;
-      outcome.error = { message: null, file: files[i].name };
+      outcome.error = { message: null, status: null, file: file.name };
     }
   }
   if (outcome.uploaded.length > 0) invalidateLibraryReads();
   return outcome;
 }
 
+/** What deleting a batch of library files came to. */
+export interface DeleteLibraryFilesResult {
+  deleted: string[];
+  /** Refused: a screen depends on it, or it is the last picture a slideshow still has. */
+  kept: { path: string; usage: MediaUse[] }[];
+  /** How many could not be deleted for any other reason. */
+  failed: number;
+}
+
+/**
+ * Delete library files one by one, so each refusal names its file. Cached
+ * reads of the library are forgotten when anything went. An expired session
+ * rejects with the error `editorFetch` throws.
+ */
+export async function deleteLibraryFiles(paths: string[]): Promise<DeleteLibraryFilesResult> {
+  const result: DeleteLibraryFilesResult = { deleted: [], kept: [], failed: 0 };
+  try {
+    for (const path of paths) {
+      let answer: DeleteLibraryResult;
+      try {
+        answer = await deleteLibraryFile(path);
+      } catch (err) {
+        if (isSessionExpiredError(err)) throw err;
+        result.failed += 1;
+        continue;
+      }
+      // 409: once the ones before it in this batch are gone, it may be the last one left.
+      if (answer.ok) result.deleted.push(path);
+      else if (answer.status === 409) result.kept.push({ path, usage: answer.usage });
+      else result.failed += 1;
+    }
+  } finally {
+    if (result.deleted.length > 0) invalidateLibraryReads();
+  }
+  return result;
+}

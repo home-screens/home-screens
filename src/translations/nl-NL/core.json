@@ -40,6 +40,19 @@
       "dataInvalid": "De gezinsgegevens hebben aandacht nodig. Open de instellingen om ze na te kijken of zet een back-up terug.",
       "dataWaiting": "De gezinsgegevens worden hersteld. Probeer het over een minuut opnieuw.",
       "restoreMissing": "Die back-up noemt mensen of groepen die niet op zijn gezinslijst staan, dus hij is niet teruggezet. Zet een back-up terug waar ze in staan."
+    },
+    "library": {
+      "badFolder": "Die map kan niet worden gebruikt.",
+      "folderGone": "Die map bestaat niet meer.",
+      "badPath": "Dat bestand kan niet worden gebruikt.",
+      "fileGone": "{name} bestaat niet meer.",
+      "fileExists": "{name} staat al in die map.",
+      "nameClash": "Twee van de bestanden heten {name}; er kan er maar één naartoe.",
+      "reservedName": "Namen die met \"rotation-\" beginnen zijn op het bovenste niveau gereserveerd voor wisselende achtergronden. Geef {name} eerst een andere naam.",
+      "badName": "Die mapnaam kan niet worden gebruikt. Probeer er een met letters en cijfers.",
+      "tooDeep": "Mappen kunnen maar {max} niveaus diep gaan.",
+      "folderExists": "Er is hier al een map met de naam {name}.",
+      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst."
     }
   },
   "today": "Vandaag",

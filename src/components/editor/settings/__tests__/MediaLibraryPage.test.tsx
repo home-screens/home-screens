@@ -89,6 +89,9 @@ const BLOB = {
         folderDeleted: 'deleted {name}',
       },
     },
+  },
+  // The hub's reasons live in the dictionary the phone reads too.
+  core: {
     refusals: {
       library: {
         fileExists: '{name} already in that folder',
@@ -883,7 +886,7 @@ describe('MediaLibraryPage folders', () => {
 });
 
 describe('MediaLibraryPage upload', () => {
-  it('posts every picked file and the chosen directory in one request, then refetches', async () => {
+  it('posts each picked file with the chosen directory, one request per file, then refetches', async () => {
     await renderLoaded();
 
     fireEvent.click(screen.getByTestId('media-upload-button'));
@@ -898,13 +901,12 @@ describe('MediaLibraryPage upload', () => {
 
     await waitFor(() => expect(inventoryCallCount()).toBe(2));
     const posts = editorFetch.mock.calls.filter(([, init]) => init?.method === 'POST');
-    expect(posts).toHaveLength(1);
-    const [url, init] = posts[0];
-    expect(url).toBe('/api/backgrounds');
-    expect(init!.body).toBeInstanceOf(FormData);
-    const body = init!.body as FormData;
-    expect(body.getAll('file').map((f) => (f as File).name)).toEqual(['a.jpg', 'b.png']);
-    expect(body.get('directory')).toBe('nature');
+    // One request per file, so a big video never holds up the rest and a
+    // failure names its file.
+    expect(posts.map(([url]) => url)).toEqual(['/api/backgrounds', '/api/backgrounds']);
+    const bodies = posts.map(([, init]) => init!.body as FormData);
+    expect(bodies.map((body) => body.getAll('file').map((f) => (f as File).name))).toEqual([['a.jpg'], ['b.png']]);
+    expect(bodies.map((body) => body.get('directory'))).toEqual(['nature', 'nature']);
     // The panel closes on success and the canvas cache is dropped.
     expect(screen.queryByTestId('media-upload-panel')).toBeNull();
     expect(invalidateByPrefix).toHaveBeenCalledWith('/api/backgrounds');

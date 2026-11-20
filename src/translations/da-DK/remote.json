@@ -908,7 +908,6 @@
       "one": "Flyttet til {folder}.",
       "other": "{count} flyttet til {folder}."
     },
-    "moveClash": "Der ligger allerede en fil med samme navn i den mappe.",
     "moveFailed": "Flytningen lykkedes ikke. Prøv igen.",
     "deletePhotoTitle": "Slet dette billede?",
     "deleteVideoTitle": "Slet denne video?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "Mappen kunne ikke oprettes. Prøv igen.",
     "renamed": "Omdøbt til {name}",
     "renameFailed": "Mappen kunne ikke omdøbes. Prøv igen.",
-    "folderExists": "Der er allerede en mappe med det navn her.",
     "deleteFolderTitle": "Slet mappen {folder}?",
     "deleteFolderBody": "Den er tom, så der ændrer sig ikke noget på væggen.",
     "deleteFolderButton": "Slet mappe",
     "folderDeleted": "Mappe blev slettet",
     "deleteFolderFailed": "Mappen kunne ikke slettes. Prøv igen.",
-    "folderNotEmpty": "Der er stadig noget i den mappe. Flyt eller slet det først.",
     "imports": {
       "googleTitle": "Tilføj fra Google Fotos",
       "googleIntro": "Vælg billeder i Google Fotos, og kom så tilbage hertil. De bliver lagt i {folder}.",

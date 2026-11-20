@@ -3,6 +3,7 @@
 import { useTranslate } from '@/i18n';
 import Slider from '@/components/ui/Slider';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import PhotoSourceFields from '@/components/editor/photo-source/PhotoSourceFields';
 import type { ModuleInstance, PhotoSlideshowConfig } from '@/types/config';
@@ -12,6 +13,8 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
 
   const TRANSITIONS = [
     { value: 'fade', label: t('configSections.photo-slideshow.transitionFade') },
+    { value: 'slide', label: t('configSections.fullscreen-photo.transitionSlide') },
+    { value: 'zoom', label: t('configSections.fullscreen-photo.transitionZoom') },
     { value: 'none', label: t('configSections.photo-slideshow.transitionNone') },
   ] as const;
 
@@ -52,6 +55,17 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
           fieldClassName="flex-1"
         />
       </div>
+
+      <Toggle
+        label={t('configSections.fullscreen-photo.shuffleOrder')}
+        checked={c.shuffle ?? false}
+        onChange={(v) => set({ shuffle: v })}
+      />
+      <Toggle
+        label={t('configSections.fullscreen-photo.kenBurnsEffect')}
+        checked={c.kenBurns ?? false}
+        onChange={(v) => set({ kenBurns: v })}
+      />
     </>
   );
 }

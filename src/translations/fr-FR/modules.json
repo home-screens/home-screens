@@ -1435,7 +1435,8 @@
   },
   "image": {
     "name": "Image",
-    "empty": "Choisis une image dans l'éditeur et elle s'affichera ici"
+    "empty": "Choisis une image dans l'éditeur et elle s'affichera ici",
+    "unavailable": "Cette image n'est plus disponible"
   },
   "qr-code": {
     "name": "Code QR",

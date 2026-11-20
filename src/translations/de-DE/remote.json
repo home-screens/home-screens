@@ -908,7 +908,6 @@
       "one": "In „{folder}“ verschoben.",
       "other": "{count} in „{folder}“ verschoben."
     },
-    "moveClash": "In dem Ordner liegt schon eine Datei mit demselben Namen.",
     "moveFailed": "Das Verschieben hat nicht geklappt. Versuch es noch einmal.",
     "deletePhotoTitle": "Dieses Foto löschen?",
     "deleteVideoTitle": "Dieses Video löschen?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "Der Ordner konnte nicht erstellt werden. Versuch es noch einmal.",
     "renamed": "Umbenannt in „{name}“",
     "renameFailed": "Der Ordner konnte nicht umbenannt werden. Versuch es noch einmal.",
-    "folderExists": "Hier gibt es schon einen Ordner mit diesem Namen.",
     "deleteFolderTitle": "Den Ordner „{folder}“ löschen?",
     "deleteFolderBody": "Er ist leer, an der Wand ändert sich also nichts.",
     "deleteFolderButton": "Ordner löschen",
     "folderDeleted": "Ordner gelöscht",
     "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden. Versuch es noch einmal.",
-    "folderNotEmpty": "In diesem Ordner ist noch etwas. Verschiebe oder lösche es zuerst.",
     "imports": {
       "googleTitle": "Aus Google Fotos hinzufügen",
       "googleIntro": "Wähle Fotos in Google Fotos aus und komm dann hierher zurück. Sie werden zu „{folder}“ hinzugefügt.",

@@ -909,7 +909,6 @@
       "one": "Movido para {folder}.",
       "other": "{count} movidos para {folder}."
     },
-    "moveClash": "Já tem um arquivo com o mesmo nome nessa pasta.",
     "moveFailed": "Não foi possível mover. Tente de novo.",
     "deletePhotoTitle": "Excluir esta foto?",
     "deleteVideoTitle": "Excluir este vídeo?",
@@ -979,13 +978,11 @@
     "failedCreateFolder": "Não foi possível criar a pasta. Tente de novo.",
     "renamed": "Pasta renomeada para {name}",
     "renameFailed": "Não foi possível renomear a pasta. Tente de novo.",
-    "folderExists": "Já tem uma pasta com esse nome aqui.",
     "deleteFolderTitle": "Excluir a pasta {folder}?",
     "deleteFolderBody": "Ela está vazia, então nada muda na parede.",
     "deleteFolderButton": "Excluir pasta",
     "folderDeleted": "Pasta excluída",
     "deleteFolderFailed": "Não foi possível excluir a pasta. Tente de novo.",
-    "folderNotEmpty": "Essa pasta ainda tem alguma coisa dentro. Mova ou exclua tudo primeiro.",
     "imports": {
       "googleTitle": "Adicionar do Google Fotos",
       "googleIntro": "Escolha as fotos no Google Fotos e depois volte para cá. Elas vão para {folder}.",

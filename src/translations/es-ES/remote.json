@@ -908,7 +908,6 @@
       "one": "Se ha movido a {folder}.",
       "other": "Se han movido {count} a {folder}."
     },
-    "moveClash": "Ya hay un archivo con el mismo nombre en esa carpeta.",
     "moveFailed": "No se pudo mover. Inténtalo de nuevo.",
     "deletePhotoTitle": "¿Eliminar esta foto?",
     "deleteVideoTitle": "¿Eliminar este vídeo?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "No se pudo crear la carpeta. Inténtalo de nuevo.",
     "renamed": "Ahora se llama {name}",
     "renameFailed": "No se pudo cambiar el nombre de la carpeta. Inténtalo de nuevo.",
-    "folderExists": "Ya hay una carpeta con ese nombre aquí.",
     "deleteFolderTitle": "¿Eliminar la carpeta {folder}?",
     "deleteFolderBody": "Está vacía, así que no cambia nada en la pared.",
     "deleteFolderButton": "Eliminar carpeta",
     "folderDeleted": "Carpeta eliminada",
     "deleteFolderFailed": "No se pudo eliminar la carpeta. Inténtalo de nuevo.",
-    "folderNotEmpty": "Esa carpeta todavía tiene algo dentro. Muévelo o elimínalo primero.",
     "imports": {
       "googleTitle": "Añadir desde Google Fotos",
       "googleIntro": "Elige fotos en Google Fotos y luego vuelve aquí. Se añadirán a {folder}.",

@@ -8,7 +8,8 @@ import type { PhotoSourceAdapter } from './types';
 
 /**
  * Every picture (and, when asked, video) directly inside one library folder,
- * in folder order, as the wall plays them. Videos carry a media token bound
+ * in name order (so "2" comes before "10"), as the wall plays them and as
+ * the editor lists them. Videos carry a media token bound
  * to their path, because a bare `<video src>` can't send the display's
  * bearer token. Top-level `rotation-` downloads belong to the background
  * rotation and are never listed. A missing folder holds nothing.
@@ -27,6 +28,9 @@ export async function listLibraryMedia(folder: string, media: SlideshowMediaType
   } catch {
     return [];
   }
+  // readdir answers in whatever order the disk keeps, which on a Pi's ext4
+  // is neither by name nor by date.
+  entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   const items: MediaListItem[] = [];
   for (const entry of entries) {
     if (!entry.isFile()) continue;

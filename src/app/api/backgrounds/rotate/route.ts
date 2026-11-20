@@ -172,7 +172,7 @@ function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
  * except a video: the background is an <img>.
  *
  * Response: { path: string, fresh: true } for a new picture (plus `credit`
- * for a caption, art only); otherwise
+ * for a caption, from the sources that ask for one: art and Unsplash); otherwise
  * { path: string | null, fresh: false } with `spaced: true` and
  * `retryAfterMs` when a forced ask came too soon after the last (a painting
  * the household has hidden since is never kept this way), `same: true` when

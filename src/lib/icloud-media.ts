@@ -1,7 +1,7 @@
 import { fetchSharedStreamsAlbumForImport, findSharedStreamsItem, listSharedStreamsAlbum } from './icloud-album';
 import { fetchCloudKitAlbumForImport, findCloudKitItem, listCloudKitAlbum } from './icloud-link';
 import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from './icloud-parse';
-import { createTTLCache } from './api-utils';
+import { createPictureBytesCache } from './picture-proxy';
 import type { ICloudAlbumEntry, ICloudAlbumItem } from './icloud-types';
 
 /**
@@ -87,4 +87,4 @@ export function icloudMediaResource(albumLink: string, guid: string): string {
  * Served pictures, kept a day like the Immich and OneDrive ones: the guid
  * names the same bytes for as long as the photo is in the album.
  */
-export const icloudPhotoBytesCache = createTTLCache<{ data: ArrayBuffer; contentType: string }>(24 * 60 * 60 * 1000);
+export const icloudPhotoBytesCache = createPictureBytesCache();

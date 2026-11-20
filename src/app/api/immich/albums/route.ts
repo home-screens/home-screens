@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createTTLCache, withAuth } from '@/lib/api-utils';
-import { immichFetch, type ImmichAlbum, type ImmichAlbumSummary } from '@/lib/immich';
+import { clearedWithImmich, immichFetch, type ImmichAlbum, type ImmichAlbumSummary } from '@/lib/immich';
 import { missingPermissionBody } from '@/lib/immich-permissions';
 
 export const dynamic = 'force-dynamic';
 
-const cache = createTTLCache<ImmichAlbumSummary[]>(60_000);
+const cache = clearedWithImmich(createTTLCache<ImmichAlbumSummary[]>(60_000));
 
 export const GET = withAuth(async () => {
   const cached = cache.get('albums');

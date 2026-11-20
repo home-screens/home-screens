@@ -221,7 +221,13 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
     const url = sized(photo, `fit=crop&w=${canvas.w}&h=${canvas.h}&q=80&fm=jpg`);
     if (!url || !photo.id) return null;
     track(photo, key);
-    return { kind: 'download', id: photo.id, open: () => fetchWithTimeout(url, { timeout: 60_000 }) };
+    return {
+      kind: 'download',
+      id: photo.id,
+      open: () => fetchWithTimeout(url, { timeout: 60_000 }),
+      // Unsplash asks for the photographer's name wherever a photo is shown.
+      ...(photo.user?.name ? { credit: { name: photo.user.name, source: 'Unsplash' } } : {}),
+    };
   },
 
   async browse({ collection, query, page, orientation, refs }): Promise<BrowsePage> {

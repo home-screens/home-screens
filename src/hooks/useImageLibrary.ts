@@ -61,6 +61,7 @@ interface UseImageLibraryReturn {
 
 export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): UseImageLibraryReturn {
   const t = useTranslate('core');
+  const tEditor = useTranslate('editor');
   const [directories, setDirectories] = useState<DirectoryInfo[]>([]);
   const [selectedDir, setSelectedDir] = useState(initialDirectory);
   const [items, setItems] = useState<MediaListItem[]>([]);
@@ -138,12 +139,15 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
 
     setUploading(true);
     setError(null);
-    const { uploaded, error } = await uploadLibraryFiles(fileList, selectedDir, (i, total) => {
-      setUploadProgress(t('status.uploadingCount', { current: i + 1, total }));
+    const { uploaded, unplayable, error } = await uploadLibraryFiles(fileList, selectedDir, {
+      onProgress: (i, total) => setUploadProgress(t('status.uploadingCount', { current: i + 1, total })),
     });
-    const hadError = error !== null;
+    const hadError = error !== null || unplayable.length > 0;
     const hadSuccess = uploaded.length > 0;
-    if (error) setError(error.message ?? t('errors.uploadFailed'));
+    // A video the wall cannot play stayed behind: say which, and why.
+    const notes = unplayable.map((name) => tEditor('settings.mediaPage.wontPlay', { name }));
+    if (error) notes.push(error.message ?? t('errors.uploadFailed'));
+    if (notes.length > 0) setError(notes.join(' '));
 
     setUploading(false);
     setUploadProgress('');
@@ -155,7 +159,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       fetchDirectories();
     }
     return uploaded;
-  }, [selectedDir, fetchImages, fetchDirectories, t]);
+  }, [selectedDir, fetchImages, fetchDirectories, t, tEditor]);
 
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
     setDeletingImage(imageUrl);

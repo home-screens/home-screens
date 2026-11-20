@@ -31,6 +31,15 @@ afterEach(async () => {
 const serve = (file: string) => `/api/backgrounds/serve?file=${encodeURIComponent(file)}`;
 const urls = (items: Array<{ url: string }>) => items.map((item) => item.url).sort();
 
+describe('listLibraryMedia order', () => {
+  it('lists a folder by name, numbers in counting order, whatever order the disk keeps', async () => {
+    await fs.mkdir(path.join(library, 'order'));
+    for (const name of ['img10.jpg', 'Zoo.jpg', 'img2.jpg', 'apple.jpg', 'img1.jpg']) await fs.writeFile(path.join(library, 'order', name), 'x');
+    expect((await listLibraryMedia('order', 'photos'))!.map((item) => item.url))
+      .toEqual(['apple.jpg', 'img1.jpg', 'img2.jpg', 'img10.jpg', 'Zoo.jpg'].map((name) => serve(`order/${name}`)));
+  });
+});
+
 describe('listLibraryMedia', () => {
   it('lists the pictures directly inside a folder, not deeper and not other files', async () => {
     expect(urls((await listLibraryMedia('trips', 'photos'))!)).toEqual([serve('trips/a.jpg'), serve('trips/b.png')].sort());

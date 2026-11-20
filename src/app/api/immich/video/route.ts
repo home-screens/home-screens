@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withMediaTokenAuth } from '@/lib/api-utils';
-import { immichFetch } from '@/lib/immich';
+import { immichFetch, isImmichAssetId } from '@/lib/immich';
 import { isPlayableUpstream, PLAYBACK_TIMEOUT_MS, videoPassthrough } from '@/lib/video-proxy';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export const GET = withMediaTokenAuth(async (request: NextRequest) => {
   const assetId = request.nextUrl.searchParams.get('assetId');
   if (!assetId) return NextResponse.json({ error: 'assetId required' }, { status: 400 });
-  if (!/^[a-f0-9-]+$/i.test(assetId)) return NextResponse.json({ error: 'Invalid assetId' }, { status: 400 });
+  if (!isImmichAssetId(assetId)) return NextResponse.json({ error: 'Invalid assetId' }, { status: 400 });
 
   const range = request.headers.get('range');
   const res = await immichFetch(`/api/assets/${assetId}/video/playback`, {

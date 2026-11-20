@@ -6,7 +6,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import {
   createLibraryFolder,
-  deleteLibraryFile,
+  deleteLibraryFiles,
   deleteLibraryFolder,
   moveLibraryFiles,
   renameLibraryFolder,
@@ -15,7 +15,8 @@ import { MEDIA_SORTERS, type MediaInventory, type MediaInventoryItem } from '@/l
 import { blockedRemovals, removalBlocksByFile, type MediaUse, type SlideshowFolder } from '@/lib/media-usage';
 import { photoFolders, wallName, wallsShowing, type PhotoFolder } from '@/lib/media-folders';
 import { folderOf } from '@/lib/media-paths';
-import { mediaKindOf } from '@/lib/media-formats';
+import { LIBRARY_PICKER_ACCEPT, mediaKindOf } from '@/lib/media-formats';
+import { refusalSentence } from '@/lib/hub-request';
 import { formatBytes } from '@/lib/format-bytes';
 import { useDisplayTarget } from '../display-target';
 import { showToast } from '../remote-toast';
@@ -34,10 +35,6 @@ import { HIT_TARGET } from './lists-styles';
 
 /** Free space on the hub below which the space line turns into a warning. */
 const LOW_SPACE_BYTES = 1024 ** 3;
-
-/** Every photo format the hub keeps, and the videos a wall plays. Listing
- *  types (not image/*) keeps iPhones sending their HEIC photos as JPEG. */
-const PICKER_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime';
 
 /** How long "Show on the wall" puts a photo up. The toast says "for a minute". */
 const SHOW_SECONDS = 60;
@@ -390,19 +387,15 @@ export default function PhotosTab({ directory }: { directory: string }) {
     const kinds = kindsOf(visible.filter((item) => paths.includes(item.path)));
     let deleted = 0;
     let failed = 0;
-    const kept: MediaUse[][] = [];
+    let kept: MediaUse[][] = [];
     try {
-      for (const path of paths) {
-        try {
-          const result = await deleteLibraryFile(path);
-          if (result.ok) deleted += 1;
-          else if (result.status === 409) kept.push(result.usage);
-          else failed += 1;
-        } catch (err) {
-          if (isSessionExpired(err)) return;
-          failed += 1;
-        }
-      }
+      const result = await deleteLibraryFiles(paths);
+      deleted = result.deleted.length;
+      failed = result.failed;
+      kept = result.kept.map((file) => file.usage);
+    } catch {
+      // An expired session is already on its way to the login page.
+      return;
     } finally {
       setBusy(false);
     }
@@ -436,8 +429,9 @@ export default function PhotosTab({ directory }: { directory: string }) {
     try {
       const result = await moveLibraryFiles(request.paths, to);
       if (!result.ok || !result.data) {
-        // A name already in that folder is the one refusal a move still has.
-        showToast(t(result.status === 409 ? 'photosTab.moveClash' : 'photosTab.moveFailed'), 'error');
+        // The hub's own reason where it gave one: trying again cannot fix a
+        // name that is already there or one kept for rotating backgrounds.
+        showToast(refusalSentence(result, tCore) ?? t('photosTab.moveFailed'), 'error');
         return;
       }
       const { moved, kept } = result.data;
@@ -473,7 +467,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
     try {
       const result = await renameLibraryFolder(currentPath, name);
       if (!result.ok || !result.data) {
-        showToast(t(result.status === 409 ? 'photosTab.folderExists' : 'photosTab.renameFailed'), 'error');
+        showToast(refusalSentence(result, tCore) ?? t('photosTab.renameFailed'), 'error');
         return;
       }
       setSheet(null);
@@ -493,7 +487,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
     try {
       const result = await createLibraryFolder(name, parent || undefined);
       if (!result.ok || !result.data) {
-        showToast(t(result.status === 409 ? 'photosTab.folderExists' : 'photosTab.failedCreateFolder'), 'error');
+        showToast(refusalSentence(result, tCore) ?? t('photosTab.failedCreateFolder'), 'error');
         return;
       }
       created = result.data.path;
@@ -519,7 +513,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
     try {
       const result = await deleteLibraryFolder(currentPath);
       if (!result.ok) {
-        showToast(t(result.status === 409 ? 'photosTab.folderNotEmpty' : 'photosTab.deleteFolderFailed'), 'error');
+        showToast(refusalSentence(result, tCore) ?? t('photosTab.deleteFolderFailed'), 'error');
         return;
       }
       // A folder inside another hands back to its parent; a top-level one to
@@ -853,7 +847,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
       <input
         ref={fileInputRef}
         type="file"
-        accept={PICKER_ACCEPT}
+        accept={LIBRARY_PICKER_ACCEPT.phone}
         multiple
         onChange={onPicked}
         className="hidden"

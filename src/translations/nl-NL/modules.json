@@ -1427,7 +1427,8 @@
   },
   "image": {
     "name": "Afbeelding",
-    "empty": "Kies in de editor een afbeelding, dan verschijnt die hier"
+    "empty": "Kies in de editor een afbeelding, dan verschijnt die hier",
+    "unavailable": "Deze afbeelding is niet meer beschikbaar"
   },
   "qr-code": {
     "name": "QR-code",

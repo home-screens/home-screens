@@ -72,15 +72,23 @@ export function refusalKey(code: string): string {
  */
 export function refusalText(source: unknown, t: TranslateFn, fallbackKey: string, unreachableKey = fallbackKey): string {
   if (source instanceof HubUnreachableError) return t(unreachableKey);
+  return refusalSentence(source, t) ?? t(fallbackKey);
+}
+
+/**
+ * The sentence for a refusal's code in the dictionary `t` reads, or null when
+ * `source` carries no code or the code has no sentence. For a surface whose
+ * refusal sentences are shared (`core`) while its fallback words are its own:
+ * `refusalSentence(result, tCore) ?? t('photosTab.moveFailed')`.
+ */
+export function refusalSentence(source: unknown, t: TranslateFn): string | null {
   const refusal = source instanceof RefusalError
     ? source
     : isRefusalBody(source) ? refusalFromBody(source, 0, '') : null;
-  if (refusal) {
-    const key = refusalKey(refusal.code);
-    const text = t(key, refusal.params);
-    if (text !== key) return text;
-  }
-  return t(fallbackKey);
+  if (!refusal) return null;
+  const key = refusalKey(refusal.code);
+  const text = t(key, refusal.params);
+  return text === key ? null : text;
 }
 
 /**

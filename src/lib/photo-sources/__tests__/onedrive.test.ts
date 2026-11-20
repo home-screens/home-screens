@@ -77,7 +77,8 @@ describe('onedrivePhotoSource.pickOne', () => {
 
     const picked = await onedrivePhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });
 
-    expect(mockList).toHaveBeenCalledWith('ABC!123', 1);
+    // Two, so a rotation never has to land on the photo already showing.
+    expect(mockList).toHaveBeenCalledWith('ABC!123', 2);
     expect(picked).toMatchObject({ kind: 'download', id: 'X_9' });
     const res = await (picked as { open: () => Promise<Response> }).open();
     expect(fetchThumbnail).toHaveBeenCalledWith('X!9', 'preview');
@@ -89,5 +90,18 @@ describe('onedrivePhotoSource.pickOne', () => {
     mockList.mockResolvedValue([]);
     expect(await onedrivePhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } })).toBeNull();
     expect(await onedrivePhotoSource.pickOne({ source: { kind: 'onedrive', folderId: '' }, canvas: { w: 1, h: 1 } })).toBeNull();
+  });
+});
+
+describe('onedrivePhotoSource.pickOne and the photo already showing', () => {
+  it('takes the other of the two photos it asked for', async () => {
+    mockList.mockResolvedValue([{ id: 'X!9', name: 'a.jpg' }, { id: 'Y!2', name: 'b.jpg' }]);
+    expect(await onedrivePhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'rotation-onedrive-X_9.jpg' })).toMatchObject({ id: 'Y_2' });
+    expect(await onedrivePhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'rotation-onedrive-Y_2.jpg' })).toMatchObject({ id: 'X_9' });
+  });
+
+  it('keeps the one photo a folder has', async () => {
+    mockList.mockResolvedValue([{ id: 'X!9', name: 'a.jpg' }]);
+    expect(await onedrivePhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'rotation-onedrive-X_9.jpg' })).toMatchObject({ id: 'X_9' });
   });
 });

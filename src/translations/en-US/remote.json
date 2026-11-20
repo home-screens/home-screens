@@ -908,7 +908,6 @@
       "one": "Moved to {folder}.",
       "other": "{count} moved to {folder}."
     },
-    "moveClash": "A file with the same name is already in that folder.",
     "moveFailed": "The move didn't work. Try again.",
     "deletePhotoTitle": "Delete this photo?",
     "deleteVideoTitle": "Delete this video?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "Couldn't create the folder. Try again.",
     "renamed": "Renamed to {name}",
     "renameFailed": "Couldn't rename the folder. Try again.",
-    "folderExists": "There's already a folder with that name here.",
     "deleteFolderTitle": "Delete the folder {folder}?",
     "deleteFolderBody": "It's empty, so nothing on the wall changes.",
     "deleteFolderButton": "Delete folder",
     "folderDeleted": "Folder deleted",
     "deleteFolderFailed": "Couldn't delete the folder. Try again.",
-    "folderNotEmpty": "That folder still has something in it. Move or delete it first.",
     "imports": {
       "googleTitle": "Add from Google Photos",
       "googleIntro": "Pick photos in Google Photos, then come back here. They'll be added to {folder}.",

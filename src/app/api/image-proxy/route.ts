@@ -1,22 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { createPictureBytesCache, servePicture } from '@/lib/picture-proxy';
 
 export const dynamic = 'force-dynamic';
 
 const ALLOWED_HOSTS = ['a.espncdn.com'];
 
 /** @internal */
-export const cache = createTTLCache<{ data: ArrayBuffer; contentType: string }>(24 * 60 * 60 * 1000); // 24 hours
-
-function imageResponse(data: ArrayBuffer, contentType: string) {
-  return new Response(data, {
-    headers: {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=604800, immutable',
-    },
-  });
-}
+export const cache = createPictureBytesCache();
 
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   const url = request.nextUrl.searchParams.get('url');
@@ -31,18 +23,9 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'Invalid url' }, { status: 400 });
   }
 
-  const cached = cache.get(url);
-  if (cached) {
-    return imageResponse(cached.data, cached.contentType);
-  }
-
-  const res = await fetchWithTimeout(url);
-  if (!res.ok) return NextResponse.json({ error: 'Upstream fetch failed' }, { status: 502 });
-
-  const data = await res.arrayBuffer();
-  const contentType = res.headers.get('Content-Type') || 'image/png';
-
-  cache.set(url, { data, contentType });
-
-  return imageResponse(data, contentType);
+  return servePicture(cache, url, 'image/png', async () => {
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return NextResponse.json({ error: 'Upstream fetch failed' }, { status: 502 });
+    return { data: await res.arrayBuffer(), declaredType: res.headers.get('Content-Type') };
+  });
 }, 'Failed to proxy image');

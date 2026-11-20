@@ -908,7 +908,6 @@
       "one": "Verplaatst naar {folder}.",
       "other": "{count} verplaatst naar {folder}."
     },
-    "moveClash": "Er staat al een bestand met dezelfde naam in die map.",
     "moveFailed": "Het verplaatsen is niet gelukt. Probeer het opnieuw.",
     "deletePhotoTitle": "Deze foto verwijderen?",
     "deleteVideoTitle": "Deze video verwijderen?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "De map kon niet worden gemaakt. Probeer het opnieuw.",
     "renamed": "Naam gewijzigd in {name}",
     "renameFailed": "De naam van de map kon niet worden gewijzigd. Probeer het opnieuw.",
-    "folderExists": "Er staat hier al een map met die naam.",
     "deleteFolderTitle": "De map {folder} verwijderen?",
     "deleteFolderBody": "Hij is leeg, dus op de muur verandert er niets.",
     "deleteFolderButton": "Map verwijderen",
     "folderDeleted": "Map verwijderd",
     "deleteFolderFailed": "De map kon niet worden verwijderd. Probeer het opnieuw.",
-    "folderNotEmpty": "Er staat nog iets in die map. Verplaats of verwijder dat eerst.",
     "imports": {
       "googleTitle": "Toevoegen uit Google Foto's",
       "googleIntro": "Kies foto's in Google Foto's en kom dan hier terug. Ze worden toegevoegd aan {folder}.",

@@ -782,6 +782,22 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod.locator('img').first()).toHaveCSS('object-fit', 'contain'); },
   },
   {
+    type: 'photo-slideshow', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
+    config: { transition: 'slide' },
+    expect: child('img[style*="transform 800ms"]'),
+  },
+  {
+    type: 'photo-slideshow', name: 'transition-zoom', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
+    config: { transition: 'zoom' },
+    expect: child('img[style*="transform 1000ms"]'),
+  },
+  {
+    // The slow pan: the picture showing carries one of the two keyframes.
+    type: 'photo-slideshow', name: 'ken-burns', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
+    config: { kenBurns: true },
+    expect: child('img[style*="kb-"]'),
+  },
+  {
     type: 'fullscreen-photo', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'slide' },
     expect: child('img[style*="transform 800ms"]'),

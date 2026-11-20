@@ -7,9 +7,10 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/immich', () => ({
-  immichFetch: vi.fn(),
-}));
+vi.mock('@/lib/immich', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/immich')>();
+  return { ...actual, immichFetch: vi.fn() };
+});
 
 // Disable the module-level TTL cache so each test starts fresh (the cache key
 // is a constant, so a real cache would let the first test's data leak forward).

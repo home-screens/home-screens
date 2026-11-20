@@ -40,6 +40,19 @@
       "dataInvalid": "Die Familiendaten brauchen Aufmerksamkeit. Öffne die Einstellungen, um sie zu prüfen, oder stelle ein Backup wieder her.",
       "dataWaiting": "Die Familiendaten werden gerade wiederhergestellt. Bitte versuche es in einer Minute noch einmal.",
       "restoreMissing": "Dieses Backup nennt Personen oder Gruppen, die nicht in seiner Familienliste stehen, deshalb wurde es nicht wiederhergestellt. Stelle ein Backup wieder her, das sie enthält."
+    },
+    "library": {
+      "badFolder": "Dieser Ordner kann nicht verwendet werden.",
+      "folderGone": "Diesen Ordner gibt es nicht mehr.",
+      "badPath": "Diese Datei kann nicht verwendet werden.",
+      "fileGone": "{name} gibt es nicht mehr.",
+      "fileExists": "{name} ist schon in diesem Ordner.",
+      "nameClash": "Zwei der Dateien heißen {name}; nur eine kann dorthin.",
+      "reservedName": "Namen, die mit „rotation-“ beginnen, sind auf der obersten Ebene für wechselnde Hintergründe reserviert. Benenne {name} zuerst um.",
+      "badName": "Dieser Ordnername kann nicht verwendet werden. Versuche einen aus Buchstaben und Zahlen.",
+      "tooDeep": "Ordner können nur {max} Ebenen tief sein.",
+      "folderExists": "Hier gibt es schon einen Ordner namens {name}.",
+      "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst."
     }
   },
   "today": "Heute",

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { deleteLibraryFile, deleteLibraryImage, uploadLibraryFile, usageNames } from '@/lib/library-client';
+import { deleteLibraryFile, deleteLibraryFiles, deleteLibraryImage, uploadLibraryFile, uploadLibraryFiles, usageNames } from '@/lib/library-client';
 import { isSessionExpired } from '@/lib/editor-fetch';
 
 /**
@@ -225,5 +225,67 @@ describe('uploadLibraryFile', () => {
     expect(error).toBeInstanceOf(Error);
     expect(isSessionExpired(error)).toBe(false);
     expect(place.href).toBe('http://localhost:3000/remote?tab=photos');
+  });
+});
+
+/** A file whose first bytes say what `videoCodecOfFile` should find. */
+function mp4(name: string, codec: 'avc1' | 'hvc1'): File {
+  const text = (s: string) => [...s].map((c) => c.charCodeAt(0));
+  const box = (type: string, body: number[]) => {
+    const size = 8 + body.length;
+    return [(size >>> 24) & 255, (size >>> 16) & 255, (size >>> 8) & 255, size & 255, ...text(type), ...body];
+  };
+  // moov > trak > mdia > minf > stbl > stsd > one sample entry.
+  const entry = box(codec, new Array(78).fill(0));
+  const stsd = box('stsd', [0, 0, 0, 0, 0, 0, 0, 1, ...entry]);
+  const moov = box('moov', box('trak', box('mdia', box('minf', box('stbl', stsd)))));
+  return new File([new Uint8Array([...box('ftyp', text('isom')), ...moov])], name, { type: 'video/mp4' });
+}
+
+describe('uploadLibraryFiles', () => {
+  const posts = () => mockFetch.mock.calls.filter(([, init]) => (init as RequestInit).method === 'POST').map(([, init]) => (init as RequestInit).body as FormData);
+
+  it('sends one request per file into the folder and gathers what the hub kept', async () => {
+    mockFetch.mockImplementation(async (_url, init) => {
+      const name = ((init as RequestInit).body as FormData).get('file') as File;
+      return new Response(JSON.stringify({ path: `/api/backgrounds/serve?file=trips%2F${name.name}` }), { status: 200 });
+    });
+    const outcome = await uploadLibraryFiles([new File(['a'], 'a.jpg', { type: 'image/jpeg' }), new File(['b'], 'b.png', { type: 'image/png' })], 'trips');
+    expect(outcome).toEqual({ uploaded: ['/api/backgrounds/serve?file=trips%2Fa.jpg', '/api/backgrounds/serve?file=trips%2Fb.png'], unplayable: [], error: null });
+    expect(posts().map((body) => [(body.get('file') as File).name, body.get('directory')])).toEqual([['a.jpg', 'trips'], ['b.png', 'trips']]);
+  });
+
+  it('holds back a video the wall cannot play and still sends the rest', async () => {
+    mockFetch.mockResolvedValue(new Response(JSON.stringify({ path: '/api/backgrounds/serve?file=ok.mp4' }), { status: 200 }));
+    const outcome = await uploadLibraryFiles([mp4('IMG_0042.mp4', 'hvc1'), mp4('ok.mp4', 'avc1')], '');
+    expect(outcome.unplayable).toEqual(['IMG_0042.mp4']);
+    expect(outcome.uploaded).toEqual(['/api/backgrounds/serve?file=ok.mp4']);
+    expect(posts().map((body) => (body.get('file') as File).name)).toEqual(['ok.mp4']);
+  });
+
+  it('puts one file in place of another, with no folder', async () => {
+    mockFetch.mockResolvedValue(new Response(JSON.stringify({ path: '/api/backgrounds/serve?file=nature%2Flake.jpg' }), { status: 200 }));
+    await uploadLibraryFiles([new File(['a'], 'new.jpg', { type: 'image/jpeg' })], 'ignored', { replacePath: 'nature/lake.jpg' });
+    const [body] = posts();
+    expect(body.get('replace')).toBe('nature/lake.jpg');
+    expect(body.get('directory')).toBeNull();
+  });
+
+  it('names the file the hub turned down, with its sentence and status', async () => {
+    mockFetch.mockResolvedValue(new Response(JSON.stringify({ error: 'Too big' }), { status: 413 }));
+    const outcome = await uploadLibraryFiles([new File(['a'], 'big.jpg', { type: 'image/jpeg' })], '');
+    expect(outcome).toEqual({ uploaded: [], unplayable: [], error: { message: 'Too big', status: 413, file: 'big.jpg' } });
+  });
+});
+
+describe('deleteLibraryFiles', () => {
+  it('sorts each file into deleted, kept with its uses, or failed', async () => {
+    const usage = [{ kind: 'screen', name: 'Hall', configPath: 'screens[0].backgroundImage' }];
+    mockFetch
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ usage }), { status: 409 }))
+      .mockResolvedValueOnce(new Response('nope', { status: 500 }))
+      .mockRejectedValueOnce(new Error('offline'));
+    expect(await deleteLibraryFiles(['a.jpg', 'b.jpg', 'c.jpg', 'd.jpg'])).toEqual({ deleted: ['a.jpg'], kept: [{ path: 'b.jpg', usage }], failed: 2 });
   });
 });

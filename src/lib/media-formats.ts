@@ -41,6 +41,26 @@ export const VIDEO_FILE_RE = extensionPattern(VIDEO_MIME_BY_EXT);
 export const IMAGE_MIME_TYPES: readonly string[] = [...new Set(Object.values(IMAGE_MIME_BY_EXT))];
 export const VIDEO_MIME_TYPES: readonly string[] = [...new Set(Object.values(VIDEO_MIME_BY_EXT))];
 
+const VIDEO_ACCEPT = VIDEO_MIME_TYPES.join(',');
+
+/**
+ * What a file picker that adds to the library offers. The editor's pickers
+ * take any picture (`image/*`). The phone lists its picture types one by
+ * one instead, which is what makes an iPhone hand over a HEIC photo as a
+ * JPEG; the two spellings are both on purpose.
+ */
+export const LIBRARY_PICKER_ACCEPT = {
+  image: 'image/*',
+  video: VIDEO_ACCEPT,
+  both: `image/*,${VIDEO_ACCEPT}`,
+  phone: `${IMAGE_MIME_TYPES.filter((type) => type !== 'image/svg+xml').join(',')},${VIDEO_ACCEPT}`,
+} as const;
+
+/** Whether a picked file is a video, by its declared type or, failing that, its name. */
+export function isVideoUpload(file: { type: string; name: string }): boolean {
+  return file.type.startsWith('video/') || mediaKindOf(file.name) === 'video';
+}
+
 /** Whether a library file is a picture or a video, by its name; null for anything else. */
 export function mediaKindOf(fileName: string): 'image' | 'video' | null {
   if (IMAGE_FILE_RE.test(fileName)) return 'image';

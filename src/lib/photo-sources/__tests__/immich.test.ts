@@ -117,12 +117,22 @@ describe('immichPhotoSource.list', () => {
   });
 });
 
+describe('immichPhotoSource.pickOne and the photo already showing', () => {
+  it('takes the other of two random photos, and the same one when it is all there is', async () => {
+    mockFetch.mockResolvedValueOnce(json([{ id: 'p9', type: 'IMAGE' }, { id: 'p7', type: 'IMAGE' }]));
+    expect(await immichPhotoSource.pickOne({ source: { kind: 'immich', personIds: ['b1'] }, canvas: { w: 1, h: 1 }, previous: 'rotation-immich-p9.jpg' })).toMatchObject({ id: 'p7' });
+    mockFetch.mockResolvedValueOnce(json([{ id: 'p9', type: 'IMAGE' }]));
+    expect(await immichPhotoSource.pickOne({ source: { kind: 'immich', personIds: ['b1'] }, canvas: { w: 1, h: 1 }, previous: 'rotation-immich-p9.jpg' })).toMatchObject({ id: 'p9' });
+  });
+});
+
 describe('immichPhotoSource.pickOne', () => {
   it('picks one random picture and downloads its display-sized preview', async () => {
     mockFetch.mockResolvedValueOnce(json([{ id: 'p9', type: 'IMAGE' }]));
     const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', personIds: ['b1'] }, canvas: { w: 1080, h: 1920 } });
 
-    expect(bodyOf(0)).toEqual({ personIds: ['b1'], type: 'IMAGE', size: 1 });
+    // Two, so a rotation never has to land on the photo already showing.
+    expect(bodyOf(0)).toEqual({ personIds: ['b1'], type: 'IMAGE', size: 2 });
     expect(picked).toMatchObject({ kind: 'download', id: 'p9' });
     mockFetch.mockResolvedValueOnce(new Response('img'));
     await (picked as { open: () => Promise<Response> }).open();

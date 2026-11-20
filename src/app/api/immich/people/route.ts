@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createTTLCache, withAuth } from '@/lib/api-utils';
-import { immichFetch, type ImmichPerson, type ImmichPersonSummary } from '@/lib/immich';
+import { clearedWithImmich, immichFetch, type ImmichPerson, type ImmichPersonSummary } from '@/lib/immich';
 import { missingPermissionBody } from '@/lib/immich-permissions';
 
 export const dynamic = 'force-dynamic';
 
-const cache = createTTLCache<ImmichPersonSummary[]>(60_000);
+const cache = clearedWithImmich(createTTLCache<ImmichPersonSummary[]>(60_000));
 
 export const GET = withAuth(async () => {
   const cached = cache.get('people');

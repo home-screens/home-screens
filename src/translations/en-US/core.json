@@ -40,6 +40,19 @@
       "dataInvalid": "Family data needs attention. Open Settings to review it or restore a backup.",
       "dataWaiting": "Family data is waiting to recover. Please try again in a minute.",
       "restoreMissing": "That backup names people or groups who aren't in its family list, so it wasn't restored. Restore a backup that includes them."
+    },
+    "library": {
+      "badFolder": "That folder can't be used.",
+      "folderGone": "That folder isn't there any more.",
+      "badPath": "That file can't be used.",
+      "fileGone": "{name} isn't there any more.",
+      "fileExists": "{name} is already in that folder.",
+      "nameClash": "Two of the files are called {name}; only one can go there.",
+      "reservedName": "Names starting with \"rotation-\" are kept for rotating backgrounds at the top level. Rename {name} first.",
+      "badName": "That folder name can't be used. Try one made of letters and numbers.",
+      "tooDeep": "Folders can only go {max} levels deep.",
+      "folderExists": "There's already a folder called {name} here.",
+      "folderNotEmpty": "That folder still has files in it. Move or delete them first."
     }
   },
   "today": "Today",

@@ -1,14 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
-import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle, TimeFormat } from '@/types/config';
-import { useFetchData } from '@/hooks/useFetchData';
-import { DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
-import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { useRef, useState } from 'react';
+import type { FullscreenPhotoConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
-import { useMediaRotation } from '@/hooks/useRotatingIndex';
-import { useModuleCommand } from '@/hooks/useModuleCommand';
-import { handleSlideshowCommand } from '../shared/slideshow-commands';
 import { useTZClock } from '@/hooks/useTZClock';
 import { photoThemeTokens, clockOverlayPaint, type ClockBackdropSettings } from '@/lib/fullscreen-photo-theme';
 import { useBurnInProtection } from '@/components/display/burn-in-context';
@@ -20,15 +14,15 @@ import { useOrigin } from '@/hooks/useOrigin';
 import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { QRCodeSVG } from 'qrcode.react';
-import VideoLayer from '../shared/VideoLayer';
-import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from '../shared/useCrossfadeLayers';
+import { usePhotoList } from '../shared/usePhotoList';
+import { SlideImage, SlideLayer, KEN_BURNS_CSS } from '../shared/SlideImage';
+import type { LayerIndex } from '../shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
 import PhotoCredit from '../shared/PhotoCredit';
-
-const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
-const NO_ITEMS: MediaListItem[] = [];
+import { useSetupSentence } from '../ModuleStates';
+import { useModuleSurface } from '../module-surface';
 
 /** The editor-side fix an empty source's wall names (`emptyStateFor`); an empty library folder shows the phone address instead. */
 const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> = {
@@ -40,116 +34,6 @@ const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> =
   checkArt: 'fullscreen-photo.noPhotosYetHintArt',
   tryLater: 'fullscreen-photo.noPhotosYetHintNasa',
 };
-
-// ── Ken Burns keyframes (injected once) ──────
-
-/** The largest scale either Ken Burns keyframe reaches. */
-const KEN_BURNS_MAX_SCALE = 1.18;
-
-const KEN_BURNS_CSS = `
-@keyframes kb-a {
-  0%   { transform: scale(1)    translate(0, 0); }
-  100% { transform: scale(1.15) translate(-2%, -1%); }
-}
-@keyframes kb-b {
-  0%   { transform: scale(1.05) translate(1%, 0); }
-  100% { transform: scale(1.18) translate(-1%, -2%); }
-}
-`;
-
-// ── Slide layer ──────────────────────────────
-
-function SlideLayer({
-  src,
-  box,
-  active,
-  objectFit,
-  transition,
-  kenBurns,
-  layerIndex,
-  onReady,
-  onFailed,
-}: {
-  src: string;
-  /** The screen's size in canvas pixels, for a library photo's sized copy. */
-  box?: PictureBox;
-  active: boolean;
-  objectFit?: React.CSSProperties['objectFit'];
-  transition: FullscreenPhotoConfig['transition'];
-  kenBurns: boolean;
-  layerIndex: LayerIndex;
-  /** The image for `src` is painted; the crossfade may bring this layer up. */
-  onReady?: () => void;
-  /** The image for `src` could not be fetched or decoded. */
-  onFailed?: () => void;
-}) {
-  // Never the previous slide's picture: the layer holds the next slide while
-  // it loads and stays hidden until its own image is ready. Ken Burns zooms
-  // in by up to 18%, so it asks for a copy that much larger to stay sharp at
-  // the end of the pan.
-  const sizedBox = box && kenBurns ? { w: box.w * KEN_BURNS_MAX_SCALE, h: box.h * KEN_BURNS_MAX_SCALE } : box;
-  const { url: authSrc, status } = useSlideImage(src, sizedBox);
-  const onFailedRef = useRef(onFailed);
-  onFailedRef.current = onFailed;
-  useEffect(() => {
-    if (status === 'failed') onFailedRef.current?.();
-  }, [status, src]);
-
-  const transitionStyle = useMemo((): React.CSSProperties => {
-    const base: React.CSSProperties = {
-      objectFit,
-      zIndex: active ? 1 : 0,
-      visibility: authSrc ? 'visible' : 'hidden',
-    };
-
-    switch (transition) {
-      case 'fade':
-        return {
-          ...base,
-          opacity: active && authSrc ? 1 : 0,
-          transition: 'opacity 1200ms ease-in-out',
-        };
-      case 'slide':
-        return {
-          ...base,
-          opacity: active && authSrc ? 1 : 0,
-          transform: active ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 800ms ease-in-out, opacity 800ms ease-in-out',
-        };
-      case 'zoom':
-        return {
-          ...base,
-          opacity: active && authSrc ? 1 : 0,
-          transform: active ? 'scale(1)' : 'scale(1.3)',
-          transition: 'transform 1000ms ease-out, opacity 600ms ease-in-out',
-        };
-      case 'none':
-      default:
-        return {
-          ...base,
-          opacity: active && authSrc ? 1 : 0,
-        };
-    }
-  }, [active, authSrc, objectFit, transition]);
-
-  const kenBurnsStyle = useMemo((): React.CSSProperties => {
-    if (!kenBurns || !active) return {};
-    return {
-      animation: `${layerIndex === 0 ? 'kb-a' : 'kb-b'} 20s ease-in-out alternate infinite`,
-    };
-  }, [kenBurns, active, layerIndex]);
-
-  return (
-    <img
-      src={authSrc || undefined}
-      alt=""
-      className="absolute inset-0 w-full h-full"
-      style={{ ...transitionStyle, ...kenBurnsStyle }}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
-      onError={onFailed}
-    />
-  );
-}
 
 // ── Empty state ──────────────────────────────
 
@@ -168,15 +52,18 @@ function PhotoFrameIcon({ color }: { color: string }) {
  * a QR code a phone can scan. Cloud sources get their own hint instead: their
  * fix is in the editor, not on a phone.
  */
-function NoPhotosYet({ theme, t, cloudHint }: { theme: FullscreenThemeTokens; t: TranslateFn; cloudHint: string | null }) {
+function NoPhotosYet({ theme, t, title, cloudHint, footer }: { theme: FullscreenThemeTokens; t: TranslateFn; title?: string; cloudHint: string | null; footer?: string }) {
   const origin = useOrigin();
   const url = phoneSurfaceUrl('remote', origin);
   return (
     <div className="flex flex-col items-center text-center" style={{ gap: 24, padding: '0 80px', color: theme.textMuted }}>
       <PhotoFrameIcon color={theme.textMuted} />
-      <p style={{ fontSize: 52, fontWeight: 600, lineHeight: 1.15, color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
+      <p style={{ fontSize: 52, fontWeight: 600, lineHeight: 1.15, color: theme.text }}>{title ?? t('fullscreen-photo.noPhotosYet')}</p>
       {cloudHint ? (
-        <p style={{ fontSize: 30, lineHeight: 1.35, maxWidth: 760 }}>{cloudHint}</p>
+        <>
+          <p style={{ fontSize: 30, lineHeight: 1.35, maxWidth: 760 }}>{cloudHint}</p>
+          {footer && <p style={{ fontSize: 24, marginTop: 8 }}>{footer}</p>}
+        </>
       ) : (
         <>
           <p style={{ fontSize: 30, lineHeight: 1.35 }}>{t('fullscreen-photo.noPhotosYetHint')}</p>
@@ -306,6 +193,10 @@ interface FullscreenPhotoModuleProps {
 export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, timeFormat, screenId, moduleId, boxSize }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
+  const setupSentence = useSetupSentence();
+  const surface = useModuleSurface();
+  // The single picture that could not be loaded, so a new choice gets its own try.
+  const [failedFile, setFailedFile] = useState<string | null>(null);
 
   const isSinglePhoto = isSinglePhotoMode(config);
   const playVideos = !!(screenId && moduleId);
@@ -314,24 +205,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   const showClock = config.showClock ?? true;
 
   // The photo list (the same media route as photo-slideshow); none for a single photo.
-  const listUrl = isSinglePhoto ? '' : photoSlideshowUrl(config);
-  // A cloud source the hub has not read yet can take most of a minute to list.
-  const [data, error] = useFetchData<MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000, { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS });
-  const items = data ?? NO_ITEMS;
-
-  const intervalMs = config.intervalMs ?? 30000;
-  // Per-item rotation: photos advance on the timer, videos on onEnded —
-  // an all-photo list degenerates to the plain fixed-interval rotation.
-  // The list URL keys the batch, so a periodic refresh is held until the
-  // current pass completes instead of re-dealing mid-slideshow. The module
-  // id carries the position across the screen rotating away and back.
-  const [files, photoIndex, advance, controls] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl, moduleId);
-  // Back, next, pause and play from the phone's Control tab.
-  useModuleCommand('fullscreen-photo', (action) => handleSlideshowCommand(controls, action));
-
-  // The swap waits for the incoming image: see useCrossfadeLayers.
-  const currentItem = isSinglePhoto || files.length === 0 ? null : files[photoIndex] ?? null;
-  const { sources, activeLayer, layerReady, layerFailed } = useCrossfadeLayers(currentItem, photoIndex, advance);
+  const { data, error, items, batch, advance, sources, activeLayer, layerReady, layerFailed } = usePhotoList('fullscreen-photo', config, { moduleId, playVideos, single: isSinglePhoto });
 
   // Midnight when nothing is set, unlike the other full-screen modules: see
   // photoThemeTokens.
@@ -362,17 +236,27 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
         </div>
       );
     }
+    if (failedFile === config.file) {
+      // The file was deleted or cannot be read: say so instead of a bare ground.
+      return (
+        <div ref={containerRef} className="w-full h-full flex items-center justify-center" style={{ ...themeGround, color: theme.textSecondary }}>
+          <NoPhotosYet theme={theme} t={t} title={t('image.unavailable')} cloudHint={t('fullscreen-photo.noPhotoSelectedHint')} />
+        </div>
+      );
+    }
+    const file = config.file;
     return (
       <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={themeGround}>
         {config.kenBurns && <style>{KEN_BURNS_CSS}</style>}
-        <SlideLayer
-          src={config.file}
+        <SlideImage
+          src={file}
           box={boxSize}
           active
           objectFit={config.objectFit}
           transition="none"
+          fadeMs={0}
           kenBurns={config.kenBurns ?? false}
-          layerIndex={0}
+          onFailed={() => setFailedFile(file)}
         />
         {showClock && (
           <ClockOverlay theme={theme} backdrop={config} timezone={timezone} timeFormat={timeFormat} />
@@ -382,21 +266,22 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   }
 
   // A source that needs setting up (a missing key, a lapsed sign-in) says so
-  // in the same place an empty one does, rather than spinning forever.
+  // in the same place an empty one does, in the household's own language:
+  // the error's own message is for developers and never goes on the wall.
   const needsSetup = data === null && error?.kind === 'setup';
   if ((data !== null && items.length === 0) || needsSetup) {
     // An empty library folder is filled from a phone; every other source's
     // fix is in the editor (a link, a folder, filters, search words or a
     // key), so it gets its own hint instead of phone-upload advice.
     const reason = emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'));
-    const cloudHint = needsSetup ? error!.message : reason === 'addPhotos' ? null : t(CLOUD_HINT[reason]);
+    const cloudHint = needsSetup ? setupSentence(error!) : reason === 'addPhotos' ? null : t(CLOUD_HINT[reason]);
     return (
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
         style={{ ...themeGround, color: theme.textSecondary }}
       >
-        <NoPhotosYet theme={theme} t={t} cloudHint={cloudHint} />
+        <NoPhotosYet theme={theme} t={t} cloudHint={cloudHint} footer={needsSetup && surface !== 'editor' ? t('common.setup.finishInEditor') : undefined} />
       </div>
     );
   }
@@ -408,7 +293,13 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
         className="w-full h-full flex items-center justify-center"
         style={themeGround}
       >
-        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: theme.border, borderTopColor: theme.text }} />
+        {error ? (
+          // The first read failed and is being tried again: say so, as the
+          // slideshow card does, rather than spin with no words.
+          <p data-testid="module-not-updating" style={{ fontSize: 30, color: theme.textMuted }}>{t('common.notUpdating')}</p>
+        ) : (
+          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: theme.border, borderTopColor: theme.text }} />
+        )}
       </div>
     );
   }
@@ -419,39 +310,24 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   const videoAdjacent = sources.some((s) => s?.type === 'video');
   const transition = videoAdjacent ? 'none' : config.transition;
 
-  const renderLayer = (layer: 0 | 1) => {
-    const item = sources[layer];
-    if (!item) return null;
-    const active = activeLayer === layer;
-    if (item.type === 'video') {
-      return (
-        <VideoLayer
-          src={item.url}
-          posterSrc={item.posterUrl}
-          active={active}
-          autoPlay={playVideos}
-          objectFit={config.objectFit}
-          muted
-          loop={files.length === 1}
-          maxDurationMs={config.maxVideoDurationMs ?? DEFAULT_MAX_VIDEO_DURATION_MS}
-          onEnded={advance}
-        />
-      );
-    }
-    return (
-      <SlideLayer
-        src={item.url}
-        box={boxSize}
-        active={active}
-        objectFit={config.objectFit}
-        transition={transition}
-        kenBurns={(config.kenBurns ?? false) && !videoAdjacent}
-        layerIndex={layer}
-        onReady={() => layerReady(layer)}
-        onFailed={() => layerFailed(layer)}
-      />
-    );
-  };
+  const renderLayer = (layer: LayerIndex) => (
+    <SlideLayer
+      item={sources[layer]}
+      box={boxSize}
+      active={activeLayer === layer}
+      objectFit={config.objectFit}
+      transition={transition}
+      fadeMs={1200}
+      kenBurns={(config.kenBurns ?? false) && !videoAdjacent}
+      layerIndex={layer}
+      playVideos={playVideos}
+      loopVideo={batch.length === 1}
+      maxVideoDurationMs={config.maxVideoDurationMs}
+      onEnded={advance}
+      onReady={() => layerReady(layer)}
+      onFailed={() => layerFailed(layer)}
+    />
+  );
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={themeGround}>

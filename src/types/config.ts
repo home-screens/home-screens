@@ -3589,10 +3589,23 @@ export interface PhotoSlideshowConfig {
   count?: number;
   /** Time between transitions (30 sec) */
   intervalMs: number;
-  /** Transition effect: `fade` or `none` */
-  transition: 'fade' | 'none';
+  /** Transition effect: `fade`, `slide`, `zoom`, or `none` */
+  transition: FullscreenPhotoTransition;
   /** Image fit mode */
   objectFit: 'cover' | 'contain' | 'fill';
+  /**
+   * Play the pictures in a random order
+   *
+   * Absent means off. Cloud albums are already dealt in a random order by the hub; this is what
+   * mixes a library folder or hand-picked pictures.
+   */
+  shuffle?: boolean;
+  /**
+   * Slow pan and zoom on each picture
+   *
+   * Absent means off.
+   */
+  kenBurns?: boolean;
   /** How often to load a fresh set of pictures (10 min) */
   refreshIntervalMs: number;
   /**
@@ -5177,6 +5190,12 @@ export interface FullscreenPhotoConfig {
   clockBackdropColor?: string;
   /** Enable Ken Burns (slow pan/zoom) effect */
   kenBurns: boolean;
+  /**
+   * How often to load a fresh set of pictures (10 min)
+   *
+   * Absent means ten minutes. No editor control; the Photo Slideshow reads the same field.
+   */
+  refreshIntervalMs?: number;
   /**
    * Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes
    * (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen,

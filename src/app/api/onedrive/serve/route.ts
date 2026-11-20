@@ -3,17 +3,9 @@ import type { NextRequest } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
 import { fetchThumbnail, onedrivePhotoBytesCache, OneDriveError } from '@/lib/onedrive';
 import { isOneDriveItemId } from '@/lib/onedrive-shared';
+import { servePicture } from '@/lib/picture-proxy';
 
 export const dynamic = 'force-dynamic';
-
-function imageResponse(data: ArrayBuffer, contentType: string) {
-  return new Response(data, {
-    headers: {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=604800, immutable',
-    },
-  });
-}
 
 /**
  * Byte proxy so the display never holds Graph's short-lived download URLs.
@@ -29,13 +21,11 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   }
   const size = params.get('size') === 'thumbnail' ? 'thumbnail' : 'preview';
 
-  const cached = onedrivePhotoBytesCache.get(`${itemId}-${size}`);
-  if (cached) return imageResponse(cached.data, cached.contentType);
-
   try {
-    const { data, contentType } = await fetchThumbnail(itemId, size);
-    onedrivePhotoBytesCache.set(`${itemId}-${size}`, { data, contentType });
-    return imageResponse(data, contentType);
+    return await servePicture(onedrivePhotoBytesCache, `${itemId}-${size}`, 'image/jpeg', async () => {
+      const { data, contentType } = await fetchThumbnail(itemId, size);
+      return { data, declaredType: contentType };
+    });
   } catch (error) {
     if (error instanceof OneDriveError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

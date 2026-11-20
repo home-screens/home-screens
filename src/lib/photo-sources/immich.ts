@@ -1,17 +1,17 @@
 import { createTTLCache } from '@/lib/api-utils';
-import { immichFetch, parseImmichDurationMs, type ImmichAsset } from '@/lib/immich';
+import { clearedWithImmich, immichFetch, parseImmichDurationMs, type ImmichAsset } from '@/lib/immich';
 import { sourceCacheKey } from '@/lib/photo-source';
 import { missingPermissionBody, type ImmichPermission } from '@/lib/immich-permissions';
 import { importPictureToLibrary } from '@/lib/library-import';
 import { mintMediaToken } from '@/lib/media-token';
 import { shuffleArray } from '@/lib/shuffle';
 import type { PhotoSource, MediaListItem } from '@/types/config';
-import { PhotoSourceError, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
+import { PhotoSourceError, isShowingNow, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
 
 type ImmichSource = Extract<PhotoSource, { kind: 'immich' }>;
 
 /** A stream's random pick, for five minutes, so walls refreshing together share one search. */
-const listCache = createTTLCache<MediaListItem[]>(5 * 60_000);
+const listCache = clearedWithImmich(createTTLCache<MediaListItem[]>(5 * 60_000));
 
 /** How many tiles the picker loads at a time. */
 export const IMMICH_BROWSE_PAGE_SIZE = 60;
@@ -137,9 +137,11 @@ export const immichPhotoSource: PhotoSourceAdapter<'immich'> & PickableSource = 
       const others = source.assetIds.length > 1 ? source.assetIds.filter((assetId) => !previous?.includes(assetId)) : source.assetIds;
       id = others[Math.floor(Math.random() * others.length)];
     } else {
-      // A handful of candidates, so an excluded person leaves something to show.
-      const candidates = await withoutExcluded(await searchRandom(source, 'IMAGE', source.excludePersonIds?.length ? 10 : 1), source);
-      id = candidates[0]?.id;
+      // A handful of candidates, so an excluded person leaves something to
+      // show, and never fewer than two, so a rotation that would land on the
+      // photo already showing has another to take.
+      const candidates = await withoutExcluded(await searchRandom(source, 'IMAGE', source.excludePersonIds?.length ? 10 : 2), source);
+      id = (candidates.find((asset) => !isShowingNow(previous, 'immich', asset.id)) ?? candidates[0])?.id;
     }
     if (!id) return null;
     const assetId = id;

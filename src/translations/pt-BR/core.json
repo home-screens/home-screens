@@ -40,6 +40,19 @@
       "dataInvalid": "Os dados da família precisam de atenção. Abra as configurações para conferir ou restaure um backup.",
       "dataWaiting": "Os dados da família estão sendo recuperados. Tente de novo em um minuto.",
       "restoreMissing": "Esse backup inclui pessoas ou grupos que não estão na lista de família dele, então não foi restaurado. Restaure um backup que os inclua."
+    },
+    "library": {
+      "badFolder": "Essa pasta não pode ser usada.",
+      "folderGone": "Essa pasta não existe mais.",
+      "badPath": "Esse arquivo não pode ser usado.",
+      "fileGone": "{name} não existe mais.",
+      "fileExists": "{name} já está nessa pasta.",
+      "nameClash": "Dois dos arquivos se chamam {name}; só um pode ir para lá.",
+      "reservedName": "Nomes que começam com \"rotation-\" são reservados para fundos rotativos no nível de cima. Renomeie {name} primeiro.",
+      "badName": "Esse nome de pasta não pode ser usado. Tente um com letras e números.",
+      "tooDeep": "As pastas só podem ter {max} níveis.",
+      "folderExists": "Já existe uma pasta chamada {name} aqui.",
+      "folderNotEmpty": "Essa pasta ainda tem arquivos. Mova ou exclua eles primeiro."
     }
   },
   "today": "Hoje",

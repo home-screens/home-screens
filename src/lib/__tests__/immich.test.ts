@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock secrets and api-utils before importing immich
 vi.mock('../secrets', () => ({
   getSecret: vi.fn(),
+  onSecretChange: vi.fn(),
 }));
 
 vi.mock('../api-utils', async (importOriginal) => ({
@@ -10,15 +11,38 @@ vi.mock('../api-utils', async (importOriginal) => ({
   fetchWithTimeout: vi.fn(),
 }));
 
-import { getSecret } from '../secrets';
+import { getSecret, onSecretChange } from '../secrets';
 import { fetchWithTimeout } from '../api-utils';
-import { getImmichConfig, immichFetch, validateImmichConnection, parseImmichDurationMs } from '../immich';
+import { getImmichConfig, immichFetch, validateImmichConnection, parseImmichDurationMs, clearedWithImmich, isImmichAssetId } from '../immich';
 
 const mockGetSecret = vi.mocked(getSecret);
 const mockFetch = vi.mocked(fetchWithTimeout);
 
+// What the module asked to hear about when it loaded, before any test clears the mock.
+const secretListeners = vi.mocked(onSecretChange).mock.calls.map(([key, listener]) => ({ key, listener }));
+
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('Immich caches', () => {
+  it('are emptied when the address or the key changes', () => {
+    expect(secretListeners.map(({ key }) => key).sort()).toEqual(['immich_api_key', 'immich_url']);
+    for (const { listener } of secretListeners) {
+      const cache = clearedWithImmich({ clear: vi.fn() });
+      listener('new value');
+      expect(cache.clear).toHaveBeenCalledTimes(1);
+    }
+  });
+});
+
+describe('isImmichAssetId', () => {
+  it('takes a UUID and nothing that could leave the path', () => {
+    expect(isImmichAssetId('3f2a9c1e-7b4d-4e2a-9c1e-7b4d4e2a9c1e')).toBe(true);
+    expect(isImmichAssetId('../people')).toBe(false);
+    expect(isImmichAssetId('abc?size=x')).toBe(false);
+    expect(isImmichAssetId('')).toBe(false);
+  });
 });
 
 // ── getImmichConfig ───────────────────────────────────────────

@@ -7,9 +7,10 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/immich', () => ({
-  immichFetch: vi.fn(),
-}));
+vi.mock('@/lib/immich', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/immich')>();
+  return { ...actual, immichFetch: vi.fn() };
+});
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();

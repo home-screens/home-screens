@@ -40,6 +40,19 @@
       "dataInvalid": "Les données de la famille ont besoin d'attention. Ouvrez les réglages pour les vérifier ou restaurez une sauvegarde.",
       "dataWaiting": "Les données de la famille sont en cours de récupération. Réessayez dans une minute.",
       "restoreMissing": "Cette sauvegarde nomme des personnes ou des groupes absents de sa liste de famille, donc elle n'a pas été restaurée. Restaurez une sauvegarde qui les contient."
+    },
+    "library": {
+      "badFolder": "Ce dossier ne peut pas être utilisé.",
+      "folderGone": "Ce dossier n'existe plus.",
+      "badPath": "Ce fichier ne peut pas être utilisé.",
+      "fileGone": "{name} n'existe plus.",
+      "fileExists": "{name} est déjà dans ce dossier.",
+      "nameClash": "Deux des fichiers s'appellent {name} ; un seul peut y aller.",
+      "reservedName": "Les noms commençant par « rotation- » sont réservés aux fonds tournants au premier niveau. Renommez {name} d'abord.",
+      "badName": "Ce nom de dossier ne peut pas être utilisé. Essayez avec des lettres et des chiffres.",
+      "tooDeep": "Les dossiers ne peuvent avoir que {max} niveaux.",
+      "folderExists": "Il y a déjà un dossier appelé {name} ici.",
+      "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord."
     }
   },
   "today": "Aujourd'hui",

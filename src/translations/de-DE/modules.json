@@ -1427,7 +1427,8 @@
   },
   "image": {
     "name": "Bild",
-    "empty": "Wähle im Editor ein Bild aus, dann erscheint es hier"
+    "empty": "Wähle im Editor ein Bild aus, dann erscheint es hier",
+    "unavailable": "Dieses Bild ist nicht mehr verfügbar"
   },
   "qr-code": {
     "name": "QR-Code",

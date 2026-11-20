@@ -5,19 +5,6 @@
       "corrupt": "De gemte skemaer kunne ikke læses. Gendan eller reparer filen, før du ændrer noget.",
       "reopen": "Åbn skemasiden igen, og prøv at gemme på ny.",
       "invalid": "Noget i skemaerne kunne ikke gemmes, som det er. Genindlæs siden, og lav ændringen igen."
-    },
-    "library": {
-      "badFolder": "Den mappe kan ikke bruges.",
-      "folderGone": "Den mappe findes ikke længere.",
-      "badPath": "Den fil kan ikke bruges.",
-      "fileGone": "{name} findes ikke længere.",
-      "fileExists": "{name} ligger allerede i den mappe.",
-      "nameClash": "To af filerne hedder {name}; kun én kan komme derhen.",
-      "reservedName": "Navne, der begynder med \"rotation-\", er reserveret til skiftende baggrunde på øverste niveau. Omdøb {name} først.",
-      "badName": "Det mappenavn kan ikke bruges. Prøv et med bogstaver og tal.",
-      "tooDeep": "Mapper kan kun gå {max} niveauer ned.",
-      "folderExists": "Der er allerede en mappe, der hedder {name}, her.",
-      "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først."
     }
   },
   "languageAndRegion": {

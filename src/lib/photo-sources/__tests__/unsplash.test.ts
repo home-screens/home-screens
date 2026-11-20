@@ -140,6 +140,15 @@ describe('unsplashPhotoSource.pickOne', () => {
     expect(mockFetch.mock.calls[1][0]).toBe(`https://images.unsplash.com/photo-p?ixid=1&fit=crop&w=${canvas.w}&h=${canvas.h}&q=80&fm=jpg`);
   });
 
+  it('carries the photographer for the caption, as a slideshow does', async () => {
+    mockFetch.mockResolvedValueOnce(json(photo('p')));
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'sea' }, canvas: { w: 1, h: 1 } }))
+      .toMatchObject({ id: 'p', credit: { name: 'Taylor p', source: 'Unsplash' } });
+    // No name, no caption.
+    mockFetch.mockResolvedValueOnce(json(photo('q', { user: {} })));
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'sea' }, canvas: { w: 1, h: 1 } })).not.toHaveProperty('credit');
+  });
+
   it('has nothing without search words or when Unsplash fails', async () => {
     expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '' }, canvas: { w: 1, h: 1 } })).toBeNull();
     mockFetch.mockResolvedValueOnce(json({}, 500));

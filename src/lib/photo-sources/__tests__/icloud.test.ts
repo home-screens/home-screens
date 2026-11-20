@@ -110,6 +110,16 @@ describe('icloudPhotoSource.pickOne', () => {
     expect(await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } })).toMatchObject({ id: 'Abc-1' });
   });
 
+  it('never lands on the photo already showing while the album has another', async () => {
+    mockAlbum.mockResolvedValue([ALBUM[0], ALBUM[1], ALBUM[2]]);
+    for (let i = 0; i < 12; i++) {
+      expect(await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'rotation-icloud-G1.jpg' })).toMatchObject({ id: 'G2' });
+    }
+    // The only photo there is still gets picked.
+    mockAlbum.mockResolvedValue([ALBUM[0]]);
+    expect(await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'rotation-icloud-G1.jpg' })).toMatchObject({ id: 'G1' });
+  });
+
   it('has nothing for an album of videos only', async () => {
     mockAlbum.mockResolvedValue([ALBUM[2]]);
     expect(await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } })).toBeNull();

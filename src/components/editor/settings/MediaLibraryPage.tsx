@@ -5,13 +5,16 @@ import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { FolderPlus, Monitor, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { refusalText } from '@/lib/hub-request';
+import { refusalSentence } from '@/lib/hub-request';
 import {
   createLibraryFolder,
-  deleteLibraryFile,
+  deleteLibraryFiles,
   deleteLibraryFolder,
+  invalidateLibraryReads,
   moveLibraryFiles,
-  renameLibraryFolder, invalidateLibraryReads } from '@/lib/library-client';
+  renameLibraryFolder,
+  uploadLibraryFiles,
+} from '@/lib/library-client';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -21,8 +24,7 @@ import { MEDIA_SORTERS, type MediaInventory, type MediaInventoryItem, type Media
 import { isRotatingBackgroundUse, removalBlocksByFile, rewriteMediaRefs, type MediaUse, type MediaUseKind } from '@/lib/media-usage';
 import { TILE_THUMBNAIL_WIDTH, extensionOf, fileNameOf, folderOf, serveUrlFor, typeTagOf } from '@/lib/media-paths';
 import { formatBytes } from '@/lib/format-bytes';
-import { mediaKindOf } from '@/lib/media-formats';
-import { isUnplayableVideo } from '@/lib/video-codec';
+import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import MediaViewer, { UsedByEntry, type UsedByLine } from './MediaViewer';
 import { GooglePhotosImportSheet, ICloudImportSheet } from './MediaImportPanels';
 import { logger } from '@/lib/logger';
@@ -98,6 +100,8 @@ interface Outcome {
 
 export default function MediaLibraryPage() {
   const t = useTranslate('editor');
+  // The hub's reasons for refusing a move or a folder change, shared with the phone.
+  const tCore = useTranslate('core');
   const router = useRouter();
   const [inventory, setInventory] = useState<MediaInventory | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -272,30 +276,17 @@ export default function MediaLibraryPage() {
     setUploadError(null);
     clearOutcome();
     try {
-      // A video the wall cannot play would upload fine and then show as a
-      // black slide, so it stays behind with the reason and the rest go.
-      const unplayable: string[] = [];
-      const sending: File[] = [];
-      for (const file of files) {
-        const video = file.type.startsWith('video/') || mediaKindOf(file.name) === 'video';
-        if (video && await isUnplayableVideo(file)) unplayable.push(file.name);
-        else sending.push(file);
-      }
+      // A video the wall cannot play stays behind with the reason and the rest go.
+      const { uploaded, unplayable, error } = await uploadLibraryFiles(files, uploadDir);
       setWontPlay(unplayable);
-      if (sending.length === 0) return;
-      const formData = new FormData();
-      for (const file of sending) formData.append('file', file);
-      if (uploadDir) formData.append('directory', uploadDir);
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setUploadError(
-          data.error ?? t('settings.mediaPage.uploadFailedWithStatus', { status: res.status }),
-        );
-        return;
+      if (error) {
+        setUploadError(error.message ?? (error.status
+          ? t('settings.mediaPage.uploadFailedWithStatus', { status: error.status })
+          : t('settings.mediaPage.uploadFailed')));
       }
-      // Kept open while it says why a video stayed behind.
-      if (unplayable.length === 0) setUploadOpen(false);
+      if (uploaded.length === 0) return;
+      // Kept open while it says why a file stayed behind.
+      if (unplayable.length === 0 && !error) setUploadOpen(false);
       // Back to the unfiltered view so freshly uploaded files are on screen
       // instead of hidden behind a filter that predates them.
       setFolder('all');
@@ -319,20 +310,15 @@ export default function MediaLibraryPage() {
     setBusy(true);
     clearOutcome();
     const name = fileNameOf(path);
-    const formData = new FormData();
-    formData.append('replace', path);
-    formData.append('file', file);
     try {
       // Same rule as an upload: a video the wall cannot play never replaces one it can.
-      const video = file.type.startsWith('video/') || mediaKindOf(file.name) === 'video';
-      if (video && await isUnplayableVideo(file)) {
+      const { uploaded, unplayable, error } = await uploadLibraryFiles([file], '', { replacePath: path });
+      if (unplayable.length > 0) {
         setOutcome({ ok: false, text: t('settings.mediaPage.wontPlay', { name: file.name }) });
         return;
       }
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setOutcome({ ok: false, text: data.error ?? t('settings.mediaPage.replaceFailed', { file: name }) });
+      if (uploaded.length === 0) {
+        setOutcome({ ok: false, text: error?.message ?? t('settings.mediaPage.replaceFailed', { file: name }) });
         return;
       }
       await finish({ ok: true, text: t('settings.mediaPage.replaced', { file: name }) });
@@ -351,7 +337,7 @@ export default function MediaLibraryPage() {
     replaceTargetRef.current = path;
     const input = replaceInputRef.current;
     if (!input) return;
-    input.accept = itemKind === 'video' ? 'video/mp4,video/webm,video/quicktime' : 'image/*';
+    input.accept = itemKind === 'video' ? LIBRARY_PICKER_ACCEPT.video : LIBRARY_PICKER_ACCEPT.image;
     input.click();
   };
 
@@ -368,23 +354,18 @@ export default function MediaLibraryPage() {
     if (!confirmed) return;
     setBusy(true);
     clearOutcome();
-    const refusedNow: KeptFile[] = [];
+    let refusedNow: KeptFile[] = [];
     let failedNow = 0;
-    let deletedAny = false;
-    for (const path of paths) {
-      try {
-        const result = await deleteLibraryFile(path);
-        // 409: a screen depends on it, or it is the last picture a slideshow
-        // still has once the ones before it in this batch are gone.
-        if (result.ok) deletedAny = true;
-        else if (result.status === 409) refusedNow.push(keptFile(t, path, result.usage));
-        else failedNow += 1;
-      } catch (err) {
-        log.debug('Failed to delete background:', err);
-        if (!isSessionExpired(err)) failedNow += 1;
-      }
+    try {
+      // A refusal: a screen depends on the file, or it is the last picture a
+      // slideshow still has once the ones before it in this batch are gone.
+      const result = await deleteLibraryFiles(paths);
+      refusedNow = result.kept.map((kept) => keptFile(t, kept.path, kept.usage));
+      failedNow = result.failed;
+    } catch (err) {
+      // An expired session is already on its way to the login page.
+      log.debug('Failed to delete background:', err);
     }
-    if (deletedAny) invalidateLibraryReads();
     setSelected(new Set());
     setRefused(refusedNow);
     setDeleteFailed(failedNow);
@@ -410,7 +391,7 @@ export default function MediaLibraryPage() {
     try {
       const result = await moveLibraryFiles(paths, directory);
       if (!result.ok || !result.data) {
-        setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.moveFailed') });
+        setOutcome({ ok: false, text: refusalSentence(result, tCore) ?? t('settings.mediaPage.moveFailed') });
         return;
       }
       setSelected(new Set());
@@ -442,7 +423,7 @@ export default function MediaLibraryPage() {
         // as a tree; at the top level (or All) it goes at the top level.
         const result = await createLibraryFolder(name, currentFolder ?? undefined);
         if (!result.ok || !result.data) {
-          setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.createFolderFailed') });
+          setOutcome({ ok: false, text: refusalSentence(result, tCore) ?? t('settings.mediaPage.createFolderFailed') });
           return;
         }
         setFolderForm(null);
@@ -451,7 +432,7 @@ export default function MediaLibraryPage() {
       } else if (currentFolder) {
         const result = await renameLibraryFolder(currentFolder, name);
         if (!result.ok || !result.data) {
-          setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.renameFolderFailed') });
+          setOutcome({ ok: false, text: refusalSentence(result, tCore) ?? t('settings.mediaPage.renameFolderFailed') });
           return;
         }
         setFolderForm(null);
@@ -491,7 +472,7 @@ export default function MediaLibraryPage() {
     try {
       const result = await deleteLibraryFolder(currentFolder);
       if (!result.ok) {
-        setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.deleteFolderFailed') });
+        setOutcome({ ok: false, text: refusalSentence(result, tCore) ?? t('settings.mediaPage.deleteFolderFailed') });
         return;
       }
       setFolder('all');
@@ -698,7 +679,7 @@ export default function MediaLibraryPage() {
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*,video/mp4,video/webm,video/quicktime"
+            accept={LIBRARY_PICKER_ACCEPT.both}
             onChange={(e) => void uploadFiles(e.target.files)}
             data-file-input=""
             className="hidden"

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { RefusalError, isRefusalBody, refusalBody, refusalFromBody } from '../refusal';
-import { refusalText, HubUnreachableError, refusalError } from '../hub-request';
+import { refusalText, refusalSentence, HubUnreachableError, refusalError } from '../hub-request';
 import type { TranslateFn } from '@/i18n/types';
 
 /** A dictionary in miniature: the phone's German for two refusal codes. */
@@ -74,5 +74,19 @@ describe('refusalText', () => {
   it('shows its own sentence for a hub out of reach, the fallback when none is given', () => {
     expect(refusalText(new HubUnreachableError(), t, 'refusals.lists.failed', 'hubRequest.saveFailed')).toBe('Home Screens war nicht erreichbar.');
     expect(refusalText(new HubUnreachableError(), t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
+  });
+});
+
+describe('refusalSentence', () => {
+  const words: Record<string, string> = { 'refusals.library.fileExists': '{name} is already in that folder.' };
+  const tCore = ((key: string, params?: Record<string, unknown>) =>
+    (words[key] ?? key).replace(/\{(\w+)\}/g, (_, name: string) => String(params?.[name] ?? ''))) as TranslateFn;
+
+  it('phrases a code the dictionary knows and leaves the fallback to the caller otherwise', () => {
+    // The shape the library client hands both the editor and the phone.
+    expect(refusalSentence({ ok: false, status: 409, error: 'HUB', code: 'library.fileExists', params: { name: 'lake.jpg' } }, tCore)).toBe('lake.jpg is already in that folder.');
+    expect(refusalSentence({ ok: false, status: 400, error: 'HUB', code: 'library.somethingNew' }, tCore)).toBeNull();
+    expect(refusalSentence({ ok: false, status: 500 }, tCore)).toBeNull();
+    expect(refusalSentence(new Error('offline'), tCore)).toBeNull();
   });
 });

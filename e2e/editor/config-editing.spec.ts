@@ -1105,12 +1105,27 @@ test('video: toggling Play on repeat persists', async ({ page, request }) => {
 test('photo-slideshow: switching Transition persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('photo-slideshow'));
 
-  // Transitions: fade (default) / none — index 1 is none.
   await autosaved(page, async () => {
-    await page.getByLabel('Transition').selectOption({ index: 1 });
+    await page.getByLabel('Transition').selectOption('none');
   });
 
   expect((await moduleConfig(request, 'photo-slideshow')).transition).toBe('none');
+});
+
+test('photo-slideshow: the options it shares with Full-Screen Photo persist', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('photo-slideshow'));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Transition').selectOption('zoom');
+  });
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Shuffle Order' }).click();
+  });
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Ken Burns Effect' }).click();
+  });
+
+  expect(await moduleConfig(request, 'photo-slideshow')).toMatchObject({ transition: 'zoom', shuffle: true, kenBurns: true });
 });
 
 test('photo-slideshow: the Google Photos import offers the sign-in in place', async ({ page, request }) => {

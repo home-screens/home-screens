@@ -40,6 +40,19 @@
       "dataInvalid": "Familiens data kræver opmærksomhed. Åbn indstillingerne for at gennemgå dem, eller gendan en sikkerhedskopi.",
       "dataWaiting": "Familiens data er ved at blive gendannet. Prøv igen om et minut.",
       "restoreMissing": "Den sikkerhedskopi nævner personer eller grupper, der ikke står på dens familieliste, så den blev ikke gendannet. Gendan en sikkerhedskopi, der har dem med."
+    },
+    "library": {
+      "badFolder": "Den mappe kan ikke bruges.",
+      "folderGone": "Den mappe findes ikke længere.",
+      "badPath": "Den fil kan ikke bruges.",
+      "fileGone": "{name} findes ikke længere.",
+      "fileExists": "{name} ligger allerede i den mappe.",
+      "nameClash": "To af filerne hedder {name}; kun én kan komme derhen.",
+      "reservedName": "Navne, der begynder med \"rotation-\", er reserveret til skiftende baggrunde på øverste niveau. Omdøb {name} først.",
+      "badName": "Det mappenavn kan ikke bruges. Prøv et med bogstaver og tal.",
+      "tooDeep": "Mapper kan kun gå {max} niveauer ned.",
+      "folderExists": "Der er allerede en mappe, der hedder {name}, her.",
+      "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først."
     }
   },
   "today": "I dag",

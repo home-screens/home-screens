@@ -40,6 +40,19 @@
       "dataInvalid": "Los datos de la familia necesitan atención. Abre los ajustes para revisarlos o restaura una copia de seguridad.",
       "dataWaiting": "Los datos de la familia se están recuperando. Inténtalo de nuevo en un minuto.",
       "restoreMissing": "Esa copia de seguridad incluye personas o grupos que no están en su lista de familia, así que no se restauró. Restaura una copia que los incluya."
+    },
+    "library": {
+      "badFolder": "Esa carpeta no se puede usar.",
+      "folderGone": "Esa carpeta ya no existe.",
+      "badPath": "Ese archivo no se puede usar.",
+      "fileGone": "{name} ya no existe.",
+      "fileExists": "{name} ya está en esa carpeta.",
+      "nameClash": "Dos de los archivos se llaman {name}; solo uno puede ir ahí.",
+      "reservedName": "Los nombres que empiezan por \"rotation-\" están reservados para los fondos rotativos del nivel superior. Cambia el nombre de {name} primero.",
+      "badName": "Ese nombre de carpeta no se puede usar. Prueba con letras y números.",
+      "tooDeep": "Las carpetas solo pueden tener {max} niveles.",
+      "folderExists": "Ya hay una carpeta llamada {name} aquí.",
+      "folderNotEmpty": "Esa carpeta todavía tiene archivos. Muévelos o elimínalos primero."
     }
   },
   "today": "Hoy",

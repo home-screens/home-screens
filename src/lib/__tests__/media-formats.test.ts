@@ -84,3 +84,23 @@ describe('pictureContentType', () => {
     expect(pictureContentType(null, new Uint8Array())).toBeNull();
   });
 });
+
+describe('LIBRARY_PICKER_ACCEPT', () => {
+  it('keeps the editor on image/* and the phone on listed picture types', async () => {
+    const { LIBRARY_PICKER_ACCEPT } = await import('../media-formats');
+    expect(LIBRARY_PICKER_ACCEPT).toEqual({
+      image: 'image/*',
+      video: 'video/mp4,video/webm,video/quicktime',
+      both: 'image/*,video/mp4,video/webm,video/quicktime',
+      // Listed one by one: this is what makes an iPhone send a HEIC photo as a JPEG.
+      phone: 'image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime',
+    });
+  });
+
+  it('tells a video by its type, or by its name when the picker left the type empty', async () => {
+    const { isVideoUpload } = await import('../media-formats');
+    expect(isVideoUpload({ type: 'video/quicktime', name: 'a' })).toBe(true);
+    expect(isVideoUpload({ type: '', name: 'clip.MOV' })).toBe(true);
+    expect(isVideoUpload({ type: 'image/jpeg', name: 'a.jpg' })).toBe(false);
+  });
+});

@@ -1427,7 +1427,8 @@
   },
   "image": {
     "name": "Billede",
-    "empty": "Vælg et billede i editoren, så vises det her"
+    "empty": "Vælg et billede i editoren, så vises det her",
+    "unavailable": "Dette billede er ikke længere tilgængeligt"
   },
   "qr-code": {
     "name": "QR-kode",

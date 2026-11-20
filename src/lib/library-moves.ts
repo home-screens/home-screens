@@ -27,8 +27,8 @@ export const MAX_FOLDER_DEPTH = 2;
 
 /**
  * Why a move, rename or folder change was turned down. Each one has a
- * sentence in the `editor` dictionary under `refusals.library`; the phone's
- * Photos tab phrases the same refusals from the status alone.
+ * sentence in the `core` dictionary under `refusals.library`, which the
+ * editor's media page and the phone's Photos tab both read.
  */
 export type LibraryRefusalCode =
   | 'library.badFolder'

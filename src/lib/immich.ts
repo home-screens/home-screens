@@ -1,4 +1,4 @@
-import { getSecret } from './secrets';
+import { getSecret, onSecretChange } from './secrets';
 import { fetchWithTimeout, SetupError, type FetchRetryOptions } from './api-utils';
 import { upstreamError } from './upstream-error';
 
@@ -66,6 +66,30 @@ export interface ImmichPerson {
 }
 
 // -- Config & fetch helpers --
+
+/** An Immich id (an asset, a person): a UUID, checked before it goes into a path. */
+export function isImmichAssetId(value: string): boolean {
+  return /^[a-f0-9-]+$/i.test(value);
+}
+
+const immichCaches = new Set<{ clear(): void }>();
+
+/**
+ * Mark a cache as holding something read from Immich. A new address or key
+ * empties every one of them: the lists and pictures kept for the old server
+ * would otherwise keep showing until they expire, a day for a picture.
+ */
+export function clearedWithImmich<C extends { clear(): void }>(cache: C): C {
+  immichCaches.add(cache);
+  return cache;
+}
+
+export function clearImmichCaches(): void {
+  for (const cache of immichCaches) cache.clear();
+}
+
+onSecretChange('immich_url', clearImmichCaches);
+onSecretChange('immich_api_key', clearImmichCaches);
 
 export async function getImmichConfig(): Promise<{ url: string; apiKey: string } | null> {
   const [url, apiKey] = await Promise.all([getSecret('immich_url'), getSecret('immich_api_key')]);

@@ -2,7 +2,7 @@ import { fetchThumbnail, listPhotos, onedrivePhotoListCache, OneDriveError } fro
 import { sourceCacheKey } from '@/lib/photo-source';
 import type { SetupErrorBody } from '@/lib/fetch-error';
 import type { MediaListItem } from '@/types/config';
-import { PhotoSourceError, type PhotoSourceAdapter } from './types';
+import { PhotoSourceError, isShowingNow, type PhotoSourceAdapter } from './types';
 
 /**
  * A OneDrive failure as the photo routes answer it. A lapsed grant keeps its
@@ -49,14 +49,17 @@ export const onedrivePhotoSource: PhotoSourceAdapter<'onedrive'> = {
     }
   },
 
-  async pickOne({ source }) {
+  async pickOne({ source, previous }) {
     if (!source.folderId) return null;
     try {
-      const [photo] = await listPhotos(source.folderId, 1);
+      // Two, so a rotation that would land on the photo already showing has another to take.
+      const idOf = (id: string) => id.replace(/[^A-Za-z0-9-]/g, '_');
+      const photos = await listPhotos(source.folderId, 2);
+      const photo = photos.find((candidate) => !isShowingNow(previous, 'onedrive', idOf(candidate.id))) ?? photos[0];
       if (!photo) return null;
       return {
         kind: 'download',
-        id: photo.id.replace(/[^A-Za-z0-9-]/g, '_'),
+        id: idOf(photo.id),
         open: async () => {
           // fetchThumbnail bounds what it buffers (no thumbnail falls back to an original under 20 MB).
           const { data, contentType } = await fetchThumbnail(photo.id, 'preview');

@@ -908,7 +908,6 @@
       "one": "Déplacée dans {folder}.",
       "other": "{count} déplacées dans {folder}."
     },
-    "moveClash": "Ce dossier contient déjà un fichier du même nom.",
     "moveFailed": "Le déplacement n'a pas marché. Réessaie.",
     "deletePhotoTitle": "Supprimer cette photo ?",
     "deleteVideoTitle": "Supprimer cette vidéo ?",
@@ -978,13 +977,11 @@
     "failedCreateFolder": "Impossible de créer le dossier. Réessaie.",
     "renamed": "Renommé en {name}",
     "renameFailed": "Impossible de renommer le dossier. Réessaie.",
-    "folderExists": "Il y a déjà un dossier de ce nom ici.",
     "deleteFolderTitle": "Supprimer le dossier {folder} ?",
     "deleteFolderBody": "Il est vide, donc rien ne changera sur le mur.",
     "deleteFolderButton": "Supprimer le dossier",
     "folderDeleted": "Dossier supprimé",
     "deleteFolderFailed": "Impossible de supprimer le dossier. Réessaie.",
-    "folderNotEmpty": "Ce dossier n'est pas vide. Déplace ou supprime d'abord ce qu'il contient.",
     "imports": {
       "googleTitle": "Ajouter depuis Google Photos",
       "googleIntro": "Choisis des photos dans Google Photos, puis reviens ici. Elles seront ajoutées dans {folder}.",

@@ -1502,6 +1502,15 @@
           "default": false
         },
         {
+          "name": "refreshIntervalMs",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "How often to load a fresh set of pictures (10 min)"
+        },
+        {
           "name": "theme",
           "optional": true,
           "type": {
@@ -6370,13 +6379,15 @@
           "optional": false,
           "type": {
             "kind": "string",
-            "text": "\"none\" | \"fade\"",
+            "text": "FullscreenPhotoTransition",
             "values": [
               "fade",
+              "slide",
+              "zoom",
               "none"
             ]
           },
-          "description": "Transition effect: `fade` or `none`",
+          "description": "Transition effect: `fade`, `slide`, `zoom`, or `none`",
           "default": "fade"
         },
         {
@@ -6393,6 +6404,24 @@
           },
           "description": "Image fit mode",
           "default": "cover"
+        },
+        {
+          "name": "shuffle",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Play the pictures in a random order"
+        },
+        {
+          "name": "kenBurns",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Slow pan and zoom on each picture"
         },
         {
           "name": "refreshIntervalMs",

@@ -511,6 +511,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-photo.count': 'fetch-only',
   'fullscreen-photo.intervalMs': 'timing-only',
   'fullscreen-photo.maxVideoDurationMs': 'timing-only',
+  'fullscreen-photo.refreshIntervalMs': 'timing-only',
   'fullscreen-photo.shuffle': 'not-observable',
   'history.refreshIntervalMs': 'timing-only',
   'history.rotationIntervalMs': 'timing-only',
@@ -527,6 +528,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'photo-slideshow.count': 'fetch-only',
   'photo-slideshow.maxVideoDurationMs': 'timing-only',
   'photo-slideshow.refreshIntervalMs': 'timing-only',
+  'photo-slideshow.shuffle': 'not-observable',
   'qr-code.hiddenNetwork': 'not-observable',
   // Force-advance cap; the timer behavior is covered by jsdom unit tests
   // (VideoLayer.test.tsx force-advance) — no stable E2E render marker exists.
@@ -626,6 +628,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'icon', key: 'animation', union: 'IconAnimation' },
   { type: 'icon', key: 'style', union: 'IconStyle' },
   { type: 'fullscreen-photo', key: 'transition', union: 'FullscreenPhotoTransition' },
+  { type: 'photo-slideshow', key: 'transition', union: 'FullscreenPhotoTransition' },
   { type: 'fullscreen-weather', key: 'skyLayer', union: 'FullscreenWeatherSky' },
   { type: 'qr-code', key: 'mode', union: 'QRCodeMode' },
   { type: 'news', key: 'tapAction', union: 'NewsTapAction' },

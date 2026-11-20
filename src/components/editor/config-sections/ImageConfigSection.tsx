@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { uploadLibraryFiles } from '@/lib/library-client';
+import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
@@ -81,7 +82,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             <Button size="sm" onClick={() => setShowBrowser(true)} className="flex-1">
               {t('configSections.image.browseLibrary')}
             </Button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleQuickUpload} className="hidden" />
+            <input ref={fileInputRef} type="file" accept={LIBRARY_PICKER_ACCEPT.image} onChange={handleQuickUpload} className="hidden" />
             <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex-1">
               {uploading ? t('configSections.image.uploading') : t('configSections.image.uploadImage')}
             </Button>

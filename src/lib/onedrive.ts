@@ -1,5 +1,6 @@
 import { getSecret } from './secrets';
 import { fetchWithTimeout, createTTLCache, type FetchRetryOptions } from './api-utils';
+import { createPictureBytesCache } from './picture-proxy';
 import { shuffleArray } from './shuffle';
 import { createOAuthTokenStore } from './oauth-token-store';
 import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from './oauth-device-flow';
@@ -86,7 +87,7 @@ export async function onedriveDisconnect(): Promise<void> {
  * five minutes for a photo list, a day for the decoded bytes.
  */
 export const onedrivePhotoListCache = createTTLCache<MediaListItem[]>(5 * 60_000);
-export const onedrivePhotoBytesCache = createTTLCache<{ data: ArrayBuffer; contentType: string }>(24 * 60 * 60 * 1000);
+export const onedrivePhotoBytesCache = createPictureBytesCache();
 
 export function clearOneDriveCaches(): void {
   onedrivePhotoListCache.clear();

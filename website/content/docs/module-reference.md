@@ -567,6 +567,8 @@ When using iCloud as the source, paste a public shared album link from the Photo
 
 When using OneDrive as the source, the module signs in to your Microsoft account once with a short code, and then you pick a folder. That folder's photos feed the slideshow, subfolders included. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
+A library folder plays in name order, so `2.jpg` comes before `10.jpg`. Turn on **Shuffle Order** to mix it. The slideshow has the same transitions as the Full-Screen Photo Viewer (fade, slide, zoom or none) and the same slow **Ken Burns Effect**.
+
 When using Unsplash as the source, type the search words. The slideshow shows Unsplash's own photos, up to 30 fresh ones an hour, with each photographer's name in a corner as Unsplash asks. When using NASA, it shows the newest Astronomy Pictures of the Day.
 
 **Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; library videos are any MP4/WebM/MOV files in the same folder.

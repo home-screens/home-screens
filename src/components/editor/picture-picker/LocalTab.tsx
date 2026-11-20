@@ -9,14 +9,15 @@ import { tileThumbnailUrl } from '@/lib/media-paths';
 import ICloudImportPanel from '@/components/editor/ICloudImportPanel';
 import { GooglePhotosAction, GooglePhotosProgress } from '@/components/editor/photo-source/GooglePhotosAdd';
 import { useTranslate } from '@/i18n';
+import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 
 export type PickerMode = 'pick-image' | 'pick-video' | 'manage-directory';
 
 /** Upload input `accept` per mode; the server checks the type again anyway. */
 const ACCEPT_BY_MODE = {
-  'pick-image': 'image/*',
-  'pick-video': 'video/mp4,video/webm,video/quicktime',
-  'manage-directory': 'image/*,video/mp4,video/webm,video/quicktime',
+  'pick-image': LIBRARY_PICKER_ACCEPT.image,
+  'pick-video': LIBRARY_PICKER_ACCEPT.video,
+  'manage-directory': LIBRARY_PICKER_ACCEPT.both,
 } as const;
 
 /**

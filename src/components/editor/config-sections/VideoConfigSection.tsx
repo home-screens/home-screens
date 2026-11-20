@@ -1,8 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
-import { invalidateLibraryReads } from '@/lib/library-client';
+import { isSessionExpired } from '@/lib/editor-fetch';
+import { uploadLibraryFiles } from '@/lib/library-client';
+import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
@@ -69,22 +70,22 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     if (!picked) return;
     setUploading(true);
     setUploadError(null);
-    const formData = new FormData();
-    formData.append('file', picked);
     try {
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
-      const data = await res.json();
-      if (res.ok && data.path) {
-        // The module preview's point lookup for this file may be cached as
-        // missing from before the upload — clear it so the poster shows now.
-        invalidateLibraryReads();
-        const uploaded = fileParamOf(data.path);
-        if (uploaded) set({ file: uploaded });
+      // The shared upload forgets the cached library reads, so the module
+      // preview's lookup for this file (cached as missing) is asked again.
+      const { uploaded, unplayable, error } = await uploadLibraryFiles([picked], '');
+      const file = uploaded[0] ? fileParamOf(uploaded[0]) : null;
+      if (file) {
+        set({ file });
+      } else if (unplayable.length > 0) {
+        // It would upload fine and then play as a black box on the wall.
+        setUploadError(t('settings.mediaPage.wontPlay', { name: picked.name }));
       } else {
-        setUploadError(data.error || t('configSections.video.uploadFailed'));
+        setUploadError(error?.message || t('configSections.video.uploadFailed'));
       }
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : t('configSections.video.uploadFailed'));
+      // An expired session is already on its way to the login page.
+      if (!isSessionExpired(err)) setUploadError(t('configSections.video.uploadFailed'));
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -155,7 +156,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             <input
               ref={fileInputRef}
               type="file"
-              accept="video/mp4,video/webm,video/quicktime"
+              accept={LIBRARY_PICKER_ACCEPT.video}
               onChange={handleUpload}
               className="hidden"
             />
