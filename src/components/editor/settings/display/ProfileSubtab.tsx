@@ -5,6 +5,7 @@ import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface ProfileSubtabProps {
   config: ScreenConfiguration;
@@ -50,7 +51,7 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
           <select
             value={activeProfileId}
             onChange={(e) => handleActiveProfileChange(e.target.value)}
-            className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+            className={`mt-1.5 block w-full ${SETTINGS_INPUT_CLASS}`}
           >
             <option value="">{t('settings.perDisplayPage.profile.noneOption')}</option>
             {profilePool.map((p) => (

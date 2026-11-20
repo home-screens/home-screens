@@ -18,6 +18,7 @@ import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import PhotoSourceFields from '@/components/editor/photo-source/PhotoSourceFields';
 import { pictureDisplayName, tileThumbnailUrl } from '@/lib/media-paths';
 import { libraryFileFromServeUrl } from '@/lib/library-client';
+import { useObjectFitOptions } from './option-hooks';
 
 type Config = Partial<FullscreenPhotoConfig>;
 
@@ -36,11 +37,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
     { value: 'none', label: t('configSections.fullscreen-photo.transitionNone') },
   ];
 
-  const OBJECT_FIT_OPTIONS: { value: 'cover' | 'contain' | 'fill'; label: string }[] = [
-    { value: 'cover', label: t('common.objectFitCover') },
-    { value: 'contain', label: t('common.objectFitContain') },
-    { value: 'fill', label: t('common.objectFitFill') },
-  ];
+  const OBJECT_FIT_OPTIONS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);

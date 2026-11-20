@@ -1,4 +1,4 @@
-import { KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 /**
@@ -17,4 +17,21 @@ export function useSortableSensors(activationDistance = 5) {
     useSensor(PointerSensor, { activationConstraint: { distance: activationDistance } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+}
+
+/**
+ * Where a finished drag moves a row: both positions in `ids`, or null when
+ * the row was dropped where it started, off the list, or either end is no
+ * longer in it. Every sortable list in the editor ends its drag this way and
+ * then either calls a store action or moves the array itself.
+ */
+export function dragEndIndices(
+  event: DragEndEvent,
+  ids: readonly (string | number)[],
+): { from: number; to: number } | null {
+  const { active, over } = event;
+  if (!over || active.id === over.id) return null;
+  const from = ids.indexOf(active.id);
+  const to = ids.indexOf(over.id);
+  return from === -1 || to === -1 ? null : { from, to };
 }

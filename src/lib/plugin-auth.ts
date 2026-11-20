@@ -23,7 +23,7 @@ import { createJsonStore } from '@/lib/json-store';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { readAuthState } from '@/lib/auth';
-import { fetchWithTimeout } from '@/lib/api-utils';
+import { postOAuthForm, requestDeviceCodeGrant } from '@/lib/oauth-form-post';
 import { audit } from '@/lib/audit';
 import { requestOrigin } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
@@ -328,35 +328,6 @@ function parseTokenResponse(
   };
 }
 
-/**
- * POST to a token endpoint and parse the response (JSON or form-urlencoded,
- * per Content-Type — some providers still answer urlencoded).
- */
-async function postTokenEndpoint(
-  url: string,
-  params: Record<string, string>,
-  headers: Record<string, string>,
-): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
-  const res = await fetchWithTimeout(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json', ...headers },
-    body: new URLSearchParams(params),
-  });
-  const text = await res.text();
-  let data: Record<string, unknown> = {};
-  const contentType = res.headers.get('content-type') ?? '';
-  try {
-    if (contentType.includes('json')) {
-      data = JSON.parse(text);
-    } else {
-      data = Object.fromEntries(new URLSearchParams(text));
-    }
-  } catch {
-    // leave data empty — callers treat missing fields as failure
-  }
-  return { ok: res.ok, status: res.status, data };
-}
-
 /** Apply the clientAuthentication setting to a token request. */
 function applyClientAuth(
   auth: OAuth2Auth,
@@ -438,7 +409,7 @@ export async function handleAuthorizationCodeCallback(code: string, state: strin
   const headers: Record<string, string> = {};
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
-  const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
+  const result = await postOAuthForm(auth.tokenUrl, params, headers);
   if (!result.ok) {
     const detail = typeof result.data.error_description === 'string'
       ? result.data.error_description
@@ -463,23 +434,18 @@ export async function startDeviceFlow(pluginId: string, auth: OAuth2Auth): Promi
   if (!auth.authorizationUrl) throw new Error('Plugin auth config is missing authorizationUrl');
   const { clientId } = await getOAuthClientCredentials(pluginId, auth);
 
-  const result = await postTokenEndpoint(auth.authorizationUrl, {
+  const start = await requestDeviceCodeGrant(auth.authorizationUrl, {
     client_id: clientId,
     scope: auth.scopes.join(auth.scopeSeparator ?? ' '),
     ...auth.extraAuthParams,
-  }, {});
-  const { data } = result;
-  const deviceCode = data.device_code;
-  const userCode = data.user_code;
-  // RFC 8628 names it verification_uri; Google says verification_url.
-  const verificationUrl = data.verification_uri ?? data.verification_url;
-  if (!result.ok || typeof deviceCode !== 'string' || typeof userCode !== 'string' || typeof verificationUrl !== 'string') {
-    const detail = typeof data.error_description === 'string' ? data.error_description
-      : typeof data.error === 'string' ? data.error : `HTTP ${result.status}`;
+  });
+  if (!start.ok || !start.grant.verificationUrl) {
+    const detail = start.ok ? 'HTTP 200' : start.detail ?? `HTTP ${start.status}`;
     throw new Error(`Could not start the sign-in: ${detail}`);
   }
-  const expiresIn = typeof data.expires_in === 'number' ? data.expires_in : 600;
-  const interval = typeof data.interval === 'number' ? data.interval : 5;
+  const { deviceCode, userCode, verificationUrl } = start.grant;
+  const expiresIn = start.grant.expiresIn ?? 600;
+  const interval = start.grant.interval ?? 5;
 
   // Honor the provider's own code lifetime rather than a fixed 10-min window
   // — device codes commonly live 15-30 min, and a short host TTL would expire
@@ -539,7 +505,7 @@ async function pollDeviceFlowInner(pluginId: string, auth: OAuth2Auth): Promise<
 
   let answer: DeviceTokenAnswer;
   try {
-    const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
+    const result = await postOAuthForm(auth.tokenUrl, params, headers);
     answer = classifyDeviceTokenAnswer(result.status, result.data);
   } catch (err) {
     // The provider did not answer at all. The code on screen is still good
@@ -598,7 +564,7 @@ async function mintClientCredentials(pluginId: string, auth: OAuth2Auth): Promis
   const headers: Record<string, string> = {};
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
-  const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
+  const result = await postOAuthForm(auth.tokenUrl, params, headers);
   if (!result.ok) throw tokenEndpointFailure(result, 'Could not connect');
   return parseTokenResponse(auth, result.data);
 }
@@ -684,7 +650,7 @@ async function renewPluginTokens(pluginId: string, auth: PluginAuth, tokens: Plu
   const headers: Record<string, string> = {};
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
-  const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
+  const result = await postOAuthForm(auth.tokenUrl, params, headers);
   if (!result.ok) throw tokenEndpointFailure(result, 'Token refresh failed');
   return parseTokenResponse(auth, result.data, tokens);
 }
@@ -739,7 +705,7 @@ export async function disconnectPluginAuth(pluginId: string): Promise<void> {
         const params: Record<string, string> = { token: tokenValue };
         const headers: Record<string, string> = {};
         applyClientAuth(auth, clientId, clientSecret, params, headers);
-        await postTokenEndpoint(auth.revokeUrl, params, headers);
+        await postOAuthForm(auth.revokeUrl, params, headers);
       }
     }
   } catch (err) {

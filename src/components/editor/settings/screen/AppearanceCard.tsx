@@ -9,9 +9,10 @@ import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import type { DisplayState } from '@/lib/settings-form';
 import type { TransitionEffect } from '@/types/config';
 import { useTranslate, tOrFallback } from '@/i18n';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS } from '@/lib/display-override-fields';
 
 /** Seeded when rotation is switched back on, so the slider has somewhere to start. */
-const DEFAULT_ROTATION_SECONDS = 30;
 
 interface AppearanceCardProps {
   values: DisplayState;
@@ -90,9 +91,9 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           <Slider
             label=""
             value={rotationInterval}
-            min={5}
-            max={Math.max(600, rotationInterval)}
-            step={5}
+            min={DISPLAY_FIELD_SLIDERS.rotationSeconds.min}
+            max={Math.max(DISPLAY_FIELD_SLIDERS.rotationSeconds.max, rotationInterval)}
+            step={DISPLAY_FIELD_SLIDERS.rotationSeconds.step}
             displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: rotationInterval })}
             onChange={(v) => onChange({ rotationInterval: v })}
           />
@@ -131,9 +132,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
                 <Slider
                   label={t('settings.defaultDisplayPage.fields.pauseTimeoutLabel')}
                   value={pauseTimeoutSeconds}
-                  min={0}
-                  max={600}
-                  step={30}
+                  {...DISPLAY_FIELD_SLIDERS.pauseTimeoutSeconds}
                   displayValue={
                     pauseTimeoutSeconds === 0
                       ? t('settings.defaultDisplayPage.fields.pauseTimeoutNever')
@@ -193,7 +192,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
         <select
           value={transitionEffect}
           onChange={(e) => onChange({ transitionEffect: e.target.value })}
-          className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+          className={`block w-full ${SETTINGS_INPUT_CLASS}`}
         >
           {transitionOptions.map((opt) => (
             <option key={opt.value} value={opt.value as TransitionEffect}>
@@ -212,9 +211,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           <Slider
             label=""
             value={transitionDuration}
-            min={0.3}
-            max={2}
-            step={0.1}
+            {...DISPLAY_FIELD_SLIDERS.transitionDuration}
             displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', {
               seconds: transitionDuration.toFixed(1),
             })}
@@ -229,9 +226,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
         <Slider
           label=""
           value={cursorHideSeconds}
-          min={1}
-          max={30}
-          step={1}
+          {...DISPLAY_FIELD_SLIDERS.cursorHideSeconds}
           displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', {
             seconds: cursorHideSeconds,
           })}

@@ -76,6 +76,61 @@ const anchoredFieldIds: Set<string> = (() => {
   return ids;
 })();
 
+/**
+ * The other direction, for the Settings pages only (module panels carry
+ * anchors too, and those belong in no settings index): an anchor on a
+ * Settings page with no index row is a field search can never find. Some
+ * are meant that way; each of those is named here with why, so a new anchor
+ * has to be either indexed or argued for.
+ */
+const SETTINGS_DIR = path.join(COMPONENTS_DIR, 'editor', 'settings');
+
+const UNINDEXED_SETTINGS_ANCHORS: Record<string, string> = {
+  'data.autoBackup': 'the whole Automatic backups card, which the backup reminder links to; search lands on data.autoBackupEnabled inside it',
+  'data.autoBackupEvery': 'only drawn once automatic backups are on; found through data.autoBackupEnabled',
+  'data.autoBackupTime': 'only drawn once automatic backups are on; found through data.autoBackupEnabled',
+  'data.autoBackupKeep': 'only drawn once automatic backups are on; found through data.autoBackupEnabled',
+  'data.autoBackupPictures': 'only drawn once automatic backups are on and the library holds pictures',
+  'data.autoBackupNow': 'only drawn once automatic backups are on; found through data.autoBackupEnabled',
+  'data.autoBackupKeys': 'a part of the Automatic backups card, anchored for the saved flash',
+  'data.autoBackupFolder': 'a part of the Automatic backups card, anchored for the saved flash',
+  'data.autoBackupLink': 'a part of the Automatic backups card, anchored for the saved flash',
+  'data.autoBackupCopies': 'a part of the Automatic backups card, anchored for the saved flash',
+  'system.autoUpdateTime': 'only drawn once automatic updates are on; found through system.autoUpdate',
+  'security.advancedNetwork': 'a fold around the address list, only drawn with a password set; its switches are indexed themselves',
+};
+
+const settingsAnchorIds: Set<string> = (() => {
+  const ids = new Set<string>();
+  for (const file of walk(SETTINGS_DIR)) {
+    const src = readFileSync(file, 'utf8');
+    for (const m of src.matchAll(/data-field-id="([^"]+)"/g)) ids.add(m[1]);
+    for (const m of src.matchAll(/\bfieldId="([^"]+)"/g)) ids.add(m[1]);
+  }
+  // The two hooks that look an anchor up build a selector around the same
+  // attribute; that is a lookup, not an anchor.
+  for (const id of ids) if (id.includes('${')) ids.delete(id);
+  return ids;
+})();
+
+describe('anchors on the Settings pages', () => {
+  const indexed = new Set(SETTINGS_FIELD_INDEX.map((f) => f.fieldId));
+
+  it('are each in the search index or exempt with a reason', () => {
+    const unaccounted = [...settingsAnchorIds].filter(
+      (id) => !indexed.has(id) && !(id in UNINDEXED_SETTINGS_ANCHORS),
+    );
+    expect(unaccounted).toEqual([]);
+  });
+
+  it('exempts nothing that is indexed or gone', () => {
+    const stale = Object.keys(UNINDEXED_SETTINGS_ANCHORS).filter(
+      (id) => indexed.has(id) || !settingsAnchorIds.has(id),
+    );
+    expect(stale).toEqual([]);
+  });
+});
+
 describe('SETTINGS_FIELD_INDEX anchors', () => {
   it('finds at least as many anchors in the components as the index declares', () => {
     // Guards the scan itself: a refactor that changed how the attribute is

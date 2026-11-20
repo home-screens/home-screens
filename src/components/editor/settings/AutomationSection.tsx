@@ -7,6 +7,7 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import ProfilesSection from './ProfilesSection';
 import RulesSection from './RulesSection';
 import SharedStateSection from './SharedStateSection';
+import SettingsTabBar from './shared/SettingsTabBar';
 
 /**
  * The "Defaults → Automation" page — merged from the former Profiles,
@@ -94,23 +95,13 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
       )}
 
       {/* Tab bar — same visual pattern as PerDisplayPage's subtab bar. */}
-      <div className="flex items-center border-b border-hs-border mb-5">
-        {AUTOMATION_PANELS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            data-testid={`automation-tab-${p}`}
-            onClick={() => navigateToPanel(p)}
-            className={`px-1 py-2.5 mr-6 text-sm transition-colors border-b-2 ${
-              panel === p
-                ? 'text-hs-text-primary border-hs-accent'
-                : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
-            }`}
-          >
-            {panelLabel(p, t)}
-          </button>
-        ))}
-      </div>
+      <SettingsTabBar
+        tabs={AUTOMATION_PANELS}
+        active={panel}
+        onPick={navigateToPanel}
+        label={(p) => panelLabel(p, t)}
+        testIdPrefix="automation-tab"
+      />
 
       {panel === 'profiles' && <ProfilesSection embedded />}
       {panel === 'rules' && <RulesSection embedded />}

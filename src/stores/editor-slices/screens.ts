@@ -1,11 +1,9 @@
 import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { ModuleInstance, Screen } from '@/types/config';
-import { addedModuleSize, getModuleDefinition } from '@/lib/module-registry';
-import { defaultPresetForLocale } from '@/lib/news-presets';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
+import { buildDefaultModule, getModuleDefinition } from '@/lib/module-registry';
 import { pruneDanglingScreenRefs, screensWithOpenButtonsMoved } from '@/lib/display-filter';
-import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
+import { getActiveDimensions, getActiveScreens, updateScreenInConfig, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
 import { pickedBackground, withRotationUpdate } from '@/lib/screen-background';
 import { withBackgroundEffects } from '@/lib/background-effects';
@@ -47,19 +45,15 @@ export function createScreenSlice(
       const def = getModuleDefinition(twin.type);
       if (!config || !def) return null;
       const dims = getActiveDimensions(config, selectedDisplayId);
-      const moduleConfig: Record<string, unknown> = { ...def.defaultConfig, ...(twin.config ?? {}) };
-      if (twin.type === 'fullscreen-news') {
-        const preset = defaultPresetForLocale(config.settings?.locale);
-        moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
-      }
       const twinModule: ModuleInstance = {
         id: uuid(),
-        type: twin.type,
-        position: { x: 0, y: 0 },
-        size: addedModuleSize(def, dims),
         zIndex: 1,
-        config: moduleConfig,
-        style: { ...DEFAULT_MODULE_STYLE, ...def.defaultStyle },
+        ...buildDefaultModule(def, twin.type, {
+          dims,
+          locale: config.settings?.locale,
+          position: { x: 0, y: 0 },
+          configOverrides: twin.config,
+        }),
       };
       const newScreen: Screen = { id: uuid(), name, backgroundImage: '', modules: [twinModule], rotation: 'opened' };
       mutateConfig((cfg) => ({
@@ -176,80 +170,54 @@ export function createScreenSlice(
 
     reorderScreens: (fromIndex: number, toIndex: number) => {
       const { selectedDisplayId } = get();
-      mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          arrayMove(getActiveScreens(config, selectedDisplayId), fromIndex, toIndex),
-        ),
-      }));
+      mutateConfig((config) => {
+        const screens = getActiveScreens(config, selectedDisplayId);
+        // Same guard as rules and profiles: arrayMove on a list with nothing
+        // to move splices `undefined` in.
+        return {
+          config: screens.length < 2
+            ? config
+            : withActiveScreens(config, selectedDisplayId, arrayMove(screens, fromIndex, toIndex)),
+        };
+      });
     },
 
     updateScreen: (id, updates) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, ...updates } : s,
-          ),
-        ),
+        config: updateScreenInConfig(config, selectedDisplayId, id, (s) => ({ ...s, ...updates })),
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });
     },
 
     pickScreenBackground: (id, backgroundImage) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, ...pickedBackground(s, backgroundImage) } : s,
-          ),
-        ),
+        config: updateScreenInConfig(config, selectedDisplayId, id, (s) => ({ ...s, ...pickedBackground(s, backgroundImage) })),
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });
     },
 
     updateScreenRotation: (id, update) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, backgroundRotation: withRotationUpdate(s.backgroundRotation, update) } : s,
-          ),
-        ),
+        config: updateScreenInConfig(config, selectedDisplayId, id, (s) => ({ ...s, backgroundRotation: withRotationUpdate(s.backgroundRotation, update) })),
       }), { coalesce: COALESCE_KEYS.screenRotation(id) });
     },
 
     updateScreenShade: (id, updates) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, shade: { ...s.shade, ...updates } as Screen['shade'] } : s,
-          ),
-        ),
+        config: updateScreenInConfig(config, selectedDisplayId, id, (s) => ({ ...s, shade: { ...s.shade, ...updates } as Screen['shade'] })),
       }), { coalesce: COALESCE_KEYS.screenShade(id) });
     },
 
     updateScreenEffects: (id, updates) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) => {
-            if (s.id !== id) return s;
-            const { effects: _effects, ...rest } = s;
-            const effects = withBackgroundEffects(s.effects, updates);
-            return effects ? { ...rest, effects } : rest;
-          }),
-        ),
+        config: updateScreenInConfig(config, selectedDisplayId, id, (s) => {
+          const { effects: _effects, ...rest } = s;
+          const effects = withBackgroundEffects(s.effects, updates);
+          return effects ? { ...rest, effects } : rest;
+        }),
       }), { coalesce: COALESCE_KEYS.screenEffects(id) });
     },
   };

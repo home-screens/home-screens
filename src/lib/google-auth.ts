@@ -1,8 +1,9 @@
 import type { auth as googleAuth } from '@googleapis/calendar';
-import { fetchWithTimeout, SetupError } from '@/lib/api-utils';
+import { SetupError } from '@/lib/api-utils';
 import { type GoogleClientMode, type StoredGoogleTokens } from '@/lib/google-token-store';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
+import { requestDeviceCodeGrant } from '@/lib/oauth-form-post';
 import { logger } from '@/lib/logger';
 import { bumpCalendarRevision } from '@/lib/calendar-revision';
 
@@ -34,21 +35,20 @@ export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
     throw new SetupError('Google Calendar Client ID is not configured. Add it in Settings → API keys.', 'key', 'Google Calendar', 'integrations');
   }
 
-  const res = await fetchWithTimeout(DEVICE_CODE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      scope: SCOPES.join(' '),
-    }),
+  const start = await requestDeviceCodeGrant(DEVICE_CODE_URL, {
+    client_id: clientId,
+    scope: SCOPES.join(' '),
   });
+  if (!start.ok) throw new Error(start.detail || 'Failed to request device code');
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error_description || err.error || 'Failed to request device code');
-  }
-
-  return res.json();
+  const { grant } = start;
+  return {
+    device_code: grant.deviceCode,
+    user_code: grant.userCode,
+    verification_url: grant.verificationUrl ?? 'https://www.google.com/device',
+    expires_in: grant.expiresIn ?? 1800,
+    interval: grant.interval ?? 5,
+  };
 }
 
 export type GoogleDevicePoll =

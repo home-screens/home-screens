@@ -14,6 +14,7 @@ import { useLocale, useTranslate, type TranslateFn } from '@/i18n';
 import Button from '@/components/ui/Button';
 import OverviewSubtab from './OverviewSubtab';
 import OverridesSubtab from './OverridesSubtab';
+import SettingsTabBar from '../shared/SettingsTabBar';
 
 /**
  * Top-level "drill-down" page for one display.
@@ -215,25 +216,13 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       </div>
 
       {/* Sub-tab bar */}
-      <div className="flex items-center border-b border-hs-border mb-5">
-        {PER_DISPLAY_SUBTABS.map((tab) => {
-          const isActive = subtab === tab;
-          return (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => navigateToSubtab(tab)}
-              className={`px-1 py-2.5 mr-6 text-sm capitalize transition-colors border-b-2 ${
-                isActive
-                  ? 'text-hs-text-primary border-hs-accent'
-                  : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
-              }`}
-            >
-              {subtabLabel(tab, t)}
-            </button>
-          );
-        })}
-      </div>
+      <SettingsTabBar
+        tabs={PER_DISPLAY_SUBTABS}
+        active={subtab}
+        onPick={navigateToSubtab}
+        label={(tab) => subtabLabel(tab, t)}
+        capitalize
+      />
 
       {/* Active sub-tab body */}
       {subtab === 'overview' && (

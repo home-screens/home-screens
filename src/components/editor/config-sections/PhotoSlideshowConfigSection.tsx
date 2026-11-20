@@ -7,6 +7,7 @@ import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import PhotoSourceFields from '@/components/editor/photo-source/PhotoSourceFields';
 import type { ModuleInstance, PhotoSlideshowConfig } from '@/types/config';
+import { useObjectFitOptions } from './option-hooks';
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -18,11 +19,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
     { value: 'none', label: t('configSections.photo-slideshow.transitionNone') },
   ] as const;
 
-  const OBJECT_FITS = [
-    { value: 'cover', label: t('common.objectFitCover') },
-    { value: 'contain', label: t('common.objectFitContain') },
-    { value: 'fill', label: t('common.objectFitFill') },
-  ] as const;
+  const OBJECT_FITS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<Partial<PhotoSlideshowConfig>>(mod, screenId);
 

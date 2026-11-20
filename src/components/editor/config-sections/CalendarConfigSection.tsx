@@ -13,10 +13,10 @@ import { useCalendarSources } from './CalendarSourceFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShowsGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarAllDayStyle, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
+import { useWeekStartOptions } from './option-hooks';
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<{
     viewMode?: string;
     daysToShow?: number;
@@ -72,10 +72,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'month', label: t('configSections.calendar.viewMonth') },
   ] as const;
 
-  const START_DAY_OPTIONS = [
-    { value: 'sunday', label: tCore('days.sunday') },
-    { value: 'monday', label: tCore('days.monday') },
-  ] as const;
+  const START_DAY_OPTIONS = useWeekStartOptions();
 
   const GRID_EVENT_STYLE_OPTIONS = [
     { value: 'classic', label: t('configSections.calendar.gridEventStyleClassic') },

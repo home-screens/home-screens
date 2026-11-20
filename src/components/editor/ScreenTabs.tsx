@@ -19,7 +19,7 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import { useTabRename } from '@/hooks/useTabRename';
 import { useTabScroll } from '@/hooks/useTabScroll';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
@@ -108,13 +108,8 @@ export default function ScreenTabs() {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fromIndex = screens.findIndex((s) => s.id === active.id);
-    const toIndex = screens.findIndex((s) => s.id === over.id);
-    if (fromIndex !== -1 && toIndex !== -1) {
-      reorderScreens(fromIndex, toIndex);
-    }
+    const move = dragEndIndices(event, screens.map((s) => s.id));
+    if (move) reorderScreens(move.from, move.to);
   };
 
   const handleMoveScreen = (screenId: string, direction: 'left' | 'right') => {

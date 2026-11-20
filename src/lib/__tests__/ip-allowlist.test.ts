@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeIp, validateCidr, isIpAllowed } from '../ip-allowlist';
+import { normalizeIp, isIpAllowed } from '../ip-allowlist';
 
 describe('normalizeIp', () => {
   it('returns IPv4 addresses unchanged', () => {
@@ -24,52 +24,6 @@ describe('normalizeIp', () => {
 
   it('strips mapped loopback', () => {
     expect(normalizeIp('::ffff:127.0.0.1')).toBe('127.0.0.1');
-  });
-});
-
-describe('validateCidr', () => {
-  it('accepts a plain IPv4 address', () => {
-    expect(validateCidr('192.168.1.1')).toBeNull();
-  });
-
-  it('accepts CIDR notation', () => {
-    expect(validateCidr('192.168.1.0/24')).toBeNull();
-  });
-
-  it('accepts /32 explicitly', () => {
-    expect(validateCidr('10.0.0.1/32')).toBeNull();
-  });
-
-  it('accepts /0 (all IPs)', () => {
-    expect(validateCidr('0.0.0.0/0')).toBeNull();
-  });
-
-  it('rejects invalid IP', () => {
-    expect(validateCidr('999.999.999.999')).toBe('Invalid IP address');
-  });
-
-  it('rejects non-numeric prefix', () => {
-    expect(validateCidr('192.168.1.0/abc')).toBe('Invalid prefix length');
-  });
-
-  it('rejects prefix > 32', () => {
-    expect(validateCidr('192.168.1.0/33')).toBe('Prefix length must be 0-32');
-  });
-
-  it('rejects negative prefix', () => {
-    expect(validateCidr('192.168.1.0/-1')).toBe('Invalid prefix length');
-  });
-
-  it('rejects empty string', () => {
-    expect(validateCidr('')).toBe('Invalid IP address');
-  });
-
-  it('rejects garbage', () => {
-    expect(validateCidr('not-an-ip')).toBe('Invalid IP address');
-  });
-
-  it('rejects double slash', () => {
-    expect(validateCidr('192.168.1.0/24/8')).toBe('Invalid CIDR format');
   });
 });
 

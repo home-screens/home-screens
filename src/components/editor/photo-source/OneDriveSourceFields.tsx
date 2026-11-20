@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
+import { DeviceCodeButton, DeviceCodeLink } from '../DeviceCodeParts';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
@@ -194,12 +195,20 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
       return (
         <div className="space-y-1.5 p-2 rounded bg-hs-card border border-hs-border-strong">
           <p className="text-[11px] text-hs-text-muted">{t('photoSources.onedrive.waiting')}</p>
-          <p className="text-lg font-semibold text-hs-text-primary tracking-widest">{signIn.code.userCode}</p>
+          <DeviceCodeButton
+            code={signIn.code.userCode}
+            testId="onedrive-device-code"
+            codeClassName="[font-family:inherit]"
+            className="group flex flex-wrap items-baseline gap-x-2 text-left text-lg font-semibold text-hs-text-primary tracking-widest cursor-pointer"
+            labelClassName="text-[10px] font-normal tracking-normal text-hs-text-faint group-hover:text-hs-accent"
+          />
           <p className="text-[11px] text-hs-text-muted">
             {t('photoSources.onedrive.enterCode')}{' '}
-            <a href={signIn.code.verificationUrl} target="_blank" rel="noreferrer" className="text-hs-accent hover:text-hs-accent-hover">
-              {signIn.code.verificationUrl.replace(/^https?:\/\//, '')}
-            </a>
+            <DeviceCodeLink
+              url={signIn.code.verificationUrl}
+              short
+              className="text-hs-accent hover:text-hs-accent-hover"
+            />
           </p>
           <button onClick={signIn.cancel} className="text-[10px] text-hs-text-faint hover:text-hs-text-muted">
             {t('photoSources.onedrive.cancel')}

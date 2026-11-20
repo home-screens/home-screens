@@ -17,10 +17,7 @@
 import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
-import ScheduleWeekStrip from '@/components/editor/ScheduleWeekStrip';
-import HomeTimeHint from '@/components/editor/HomeTimeHint';
-import { useScheduleWindow } from '@/hooks/useScheduleWindow';
-import { useEditorStore } from '@/stores/editor-store';
+import ScheduleWindowFields from '@/components/editor/ScheduleWindowFields';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
@@ -29,7 +26,6 @@ import { pluginPublishesOnDemand } from '@/lib/state-key-search';
 import { conditionVerdict, verdictStatesFor, type ConditionVerdict } from '@/lib/condition-verdicts';
 import type { ScheduleClock } from '@/lib/schedule';
 import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
-import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
 import { SHARED_STATE_KEY_RE, type ProvidedStateKey, type SharedStateEntry } from '@/lib/shared-state-types';
 import type { LoadedPlugin, StateKeyDescriptor } from '@/types/plugins';
@@ -678,10 +674,6 @@ function TimeConditionEditor({
   onChange: (next: VisibilityCondition) => void;
   t: TranslateFn;
 }) {
-  const formattingLocale = useFormattingLocale();
-  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
-  const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
-
   // A `time` condition is a ModuleSchedule minus `invert`, so it drives the
   // same strip and the same controls. Patches drop back onto the condition.
   const window: ModuleSchedule = {
@@ -702,82 +694,21 @@ function TimeConditionEditor({
       endDayOffset: merged.endDayOffset,
     });
   };
-  const { shape, spanDays, startDay, toggleDay, setShape } = useScheduleWindow(window, patch);
 
+  // Every field goes through `patch`, so each edit gets the same "a full
+  // week is stored as nothing" tidy-up.
   return (
     <div className="space-y-2">
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">{t('scheduleEditor.repeatTitle')}</span>
-        <select
-          data-testid="condition-time-shape"
-          value={shape}
-          title={t(shape === 'span' ? 'scheduleEditor.shapeSpan' : 'scheduleEditor.shapeRepeat')}
-          onChange={(e) => setShape(e.target.value as 'repeat' | 'span')}
-          className={INPUT_CLASS}
-        >
-          <option value="repeat">{t('scheduleEditor.shapeRepeat')}</option>
-          <option value="span">{t('scheduleEditor.shapeSpan')}</option>
-        </select>
-      </label>
-
-      {/* The same picture the module Schedule accordion draws. Without it this
-          panel was the last place an overnight window was described by two time
-          boxes and a row of chips, with nothing saying which day it ended on. */}
-      <ScheduleWeekStrip
-        schedule={window}
-        timeFormat={timeFormat}
-        shape={shape}
-        onToggleDay={toggleDay}
-        onDragEdge={patch}
+      <ScheduleWindowFields
+        window={window}
+        onPatch={patch}
+        skin="condition"
+        labels={{
+          from: t('visibilityConditions.time.fromLabel'),
+          until: t('visibilityConditions.time.untilLabel'),
+        }}
+        testIds={{ shape: 'condition-time-shape', endDay: 'condition-time-end-day' }}
       />
-
-      <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.fromLabel')}</span>
-          <input
-            type="time"
-            value={condition.startTime ?? ''}
-            aria-label={t('visibilityConditions.time.fromLabel')}
-            onChange={(e) => onChange({ ...condition, startTime: e.target.value || undefined })}
-            className={INPUT_CLASS}
-          />
-        </label>
-        {/* The select is a sibling of the label, not inside it: a label
-            wrapping two controls folds the selected option's text into the
-            time input's accessible name. */}
-        <div className="flex flex-col gap-0.5">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.untilLabel')}</span>
-            <input
-              type="time"
-              value={condition.endTime ?? ''}
-              aria-label={t('visibilityConditions.time.untilLabel')}
-              onChange={(e) => onChange({ ...condition, endTime: e.target.value || undefined })}
-              className={INPUT_CLASS}
-            />
-          </label>
-          {shape === 'span' && (
-            <select
-              aria-label={t('scheduleEditor.endsOnLabel')}
-              data-testid="condition-time-end-day"
-              value={String(spanDays)}
-              onChange={(e) => patch({ endDayOffset: Number(e.target.value) })}
-              className={`${INPUT_CLASS} mt-1`}
-            >
-              {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n}>
-                  {dayNames[(startDay + n) % 7]}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      </div>
-      <HomeTimeHint className="" />
-      {/* The old hint went on to explain that an end earlier than the start
-          crosses midnight. The strip draws that, so only the part it cannot
-          draw is left. */}
-      <p className="text-[10px] text-hs-text-dim">{t('scheduleEditor.allDayHint')}</p>
     </div>
   );
 }

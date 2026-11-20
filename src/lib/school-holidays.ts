@@ -2,6 +2,7 @@ import { createResolverCache, fetchWithTimeout, isValidISODate } from '@/lib/api
 import { addIsoDays } from '@/lib/iso-date';
 import { createJsonStore } from '@/lib/json-store';
 import { householdToday } from '@/lib/household-day';
+import { HOLIDAY_COUNTRY_CODE, HOLIDAY_SUBDIVISION_CODE } from './holiday-region-codes';
 
 /**
  * School and public holidays from openholidaysapi.org, per region.
@@ -38,9 +39,6 @@ const MAX_STORED_ENTRIES = 16;
 const MAX_PUBLIC_HOLIDAY_DAYS = 31;
 /** Used for the region labels and as the second choice for every name. */
 const FALLBACK_LANGUAGE = 'EN';
-
-const COUNTRY_CODE = /^[A-Z]{2}$/;
-const SUBDIVISION_CODE = /^[A-Z]{2}-[A-Z0-9]{1,3}$/;
 
 /** Served the saved copy because the fetch failed. */
 export const STALE_MESSAGE_KEY = 'schoolHolidaysStale';
@@ -227,8 +225,8 @@ interface RegionQuery {
  */
 function parseRegion(raw: string): RegionQuery {
   const region = String(raw ?? '').trim().toUpperCase();
-  if (COUNTRY_CODE.test(region)) return { region, countryIsoCode: region };
-  if (SUBDIVISION_CODE.test(region)) {
+  if (HOLIDAY_COUNTRY_CODE.test(region)) return { region, countryIsoCode: region };
+  if (HOLIDAY_SUBDIVISION_CODE.test(region)) {
     return { region, countryIsoCode: region.slice(0, 2), subdivisionCode: region };
   }
   throw new SchoolHolidaysError(400, 'That is not a region we know');
@@ -236,7 +234,7 @@ function parseRegion(raw: string): RegionQuery {
 
 function parseCountry(raw: string): string {
   const country = String(raw ?? '').trim().toUpperCase();
-  if (!COUNTRY_CODE.test(country)) throw new SchoolHolidaysError(400, 'That is not a country we know');
+  if (!HOLIDAY_COUNTRY_CODE.test(country)) throw new SchoolHolidaysError(400, 'That is not a country we know');
   return country;
 }
 
@@ -455,7 +453,7 @@ async function resolveRegions(country: string): Promise<HolidayRegionsResult | n
 
   // Children are municipalities and departments, whose longer codes are not
   // a school-holiday region, so only the top level is offered.
-  const regionRows = rows.filter((row) => SUBDIVISION_CODE.test(row.code ?? ''));
+  const regionRows = rows.filter((row) => HOLIDAY_SUBDIVISION_CODE.test(row.code ?? ''));
 
   const subdivisions: HolidayRegion[] = regionRows
     .map((row) => ({

@@ -38,6 +38,7 @@ import { readTransactionFile, withDataTransaction } from './data-transaction';
 import { validateMemberReferences, withFamilyData } from './family-api';
 import { createJsonStore } from './json-store';
 import { parseTimeToMinutes } from './clock-time';
+import { HOLIDAY_REGION_CODE } from './holiday-region-codes';
 import { RefusalError, type RefusalOptions } from './refusal';
 import { getDefaultSubjects } from './timetable-subjects';
 
@@ -146,14 +147,6 @@ const MAX_ID_LENGTH = 64;
 const MAX_LINK_LENGTH = 2048;
 /** Schools number their periods from 1; the ceiling is only a sanity bound. */
 const MAX_PERIOD_NUMBER = 99;
-/**
- * The two shapes the holiday lookup will turn into a request: a country on its
- * own, for the countries that publish one set of dates and no regions, and a
- * country with a subdivision. Checked here as well as there so a code that
- * could never answer is refused at the save rather than every hour on the wall.
- */
-const HOLIDAY_REGION = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
-
 function asRecord(raw: unknown, message: string): Record<string, unknown> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw as Record<string, unknown>;
@@ -265,7 +258,7 @@ function cleanHolidayRegion(raw: unknown, at: string): string | undefined {
   if (typeof raw !== 'string') throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   const region = raw.trim().toUpperCase();
   if (!region) return undefined;
-  if (!HOLIDAY_REGION.test(region)) throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
+  if (!HOLIDAY_REGION_CODE.test(region)) throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   return region;
 }
 

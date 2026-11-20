@@ -8,11 +8,11 @@ import {
   DISPLAY_OVERRIDE_FIELDS,
   SLEEP_OVERRIDE_FIELDS,
   ALERT_OVERRIDE_FIELDS,
+  resolveDisplayDefault,
 } from '@/lib/display-override-fields';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { resolvePanelPowerEnabled } from '@/lib/panel-power';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { showsPaginationDots } from '@/lib/pagination-dots';
 import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
@@ -311,18 +311,11 @@ function fieldLabel(field: string, t: TranslateFn): string {
  * overrides (sleep/screensaver/alerts) skip the comparison and return
  * just the label.
  *
- * The default-side read is guarded against `undefined` because almost
- * every override-able field is *optional* on `GlobalSettings` —
- * `transitionEffect`, `transitionDuration`, `pauseEnabled`,
- * `pauseTimeoutSeconds`, `swipeEnabled`, `setupHintEnabled`, `cursorHideSeconds`, and
- * `fullscreenTheme` are
- * all `T | undefined` per the type. Without the guard the chip would
- * render `"Theme: Charcoal (default: undefined)"` for any install whose
- * config never explicitly set a default. Only `rotationIntervalMs` is
- * required and therefore safe to read unguarded. The override side is
- * always present because `findDisplaysOverridingFields` uses an `in`
- * check to decide a field is overridden — if it's in the result set,
- * the key exists on `overrides`.
+ * The default side always has something to name: a field nobody saved a
+ * shared value for falls back as the wall does (`resolveDisplayDefault`).
+ * The override side is always present because
+ * `findDisplaysOverridingFields` uses an `in` check to decide a field is
+ * overridden.
  */
 function formatOverrideComparison(
   field: string,
@@ -341,91 +334,63 @@ function formatOverrideComparison(
   // `field: string` parameter type narrow at the boundary instead of
   // threading a key-of through three layers, since the override
   // discovery helper deliberately returns a flat string set.
-  const oRec = overrides as unknown as Record<string, unknown>;
-  const sRec = settings as unknown as Record<string, unknown>;
-  const overrideValue = oRec[field];
-  const defaultValue = sRec[field];
+  const overrideValue = (overrides as unknown as Record<string, unknown>)[field];
 
-  /**
-   * Wrap the comparison string in `Label: <override> (default: <default>)`
-   * format, dropping the parenthetical entirely when the default-side
-   * value is missing rather than rendering the literal `"undefined"`.
-   */
-  const compare = (overrideText: string, defaultText: string | null): string =>
-    defaultText != null
-      ? t('settings.perDisplayPage.overview.chipFieldWithDefault', {
-          label,
-          value: overrideText,
-          defaultValue: defaultText,
-        })
-      : t('settings.perDisplayPage.overview.chipFieldNoDefault', { label, value: overrideText });
+  const compare = (overrideText: string, defaultText: string): string =>
+    t('settings.perDisplayPage.overview.chipFieldWithDefault', {
+      label,
+      value: overrideText,
+      defaultValue: defaultText,
+    });
+
+  // The default side is what the wall would use: the shared value, or the
+  // field's own fallback when none was ever saved. Reading the saved value
+  // raw left the "(default: ...)" part off the chip for a hub that never
+  // saved its Screen page, while the override row beside it named one.
+  const defaultOf = <K extends (typeof DISPLAY_OVERRIDE_FIELDS)[number]>(key: K) =>
+    resolveDisplayDefault(settings, key);
 
   switch (field) {
     case 'rotationIntervalMs':
-      // The only required-on-GlobalSettings field, so the default is
-      // safe to read unguarded.
       return compare(
         formatRotationInterval(overrideValue as number, t),
-        formatRotationInterval(defaultValue as number, t),
+        formatRotationInterval(defaultOf('rotationIntervalMs'), t),
       );
     case 'transitionEffect':
       return compare(
         formatTransitionEffect(overrideValue as string, t),
-        defaultValue != null ? formatTransitionEffect(defaultValue as string, t) : null,
+        formatTransitionEffect(defaultOf('transitionEffect'), t),
       );
     case 'transitionDuration':
       return compare(
         formatTransitionDuration(overrideValue as number),
-        defaultValue != null ? formatTransitionDuration(defaultValue as number) : null,
-      );
-    case 'pauseEnabled':
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,
+        formatTransitionDuration(defaultOf('transitionDuration')),
       );
     case 'pauseTimeoutSeconds':
       return compare(
         formatPauseTimeout(overrideValue as number, t),
-        defaultValue != null ? formatPauseTimeout(defaultValue as number, t) : null,
+        formatPauseTimeout(defaultOf('pauseTimeoutSeconds'), t),
       );
+    case 'pauseEnabled':
     case 'swipeEnabled':
-      // Same generic On/Off chip values as pauseEnabled.
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,
-      );
     case 'showPaginationDots':
-      // Unset resolves to shown, so there is always a default to name.
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        formatPauseEnabled(showsPaginationDots(settings), t),
-      );
     case 'showRotationProgress':
-      // Unset resolves to shown, as on the display.
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        formatPauseEnabled(settings.showRotationProgress ?? true, t),
-      );
     case 'setupHintEnabled':
+    case 'pixelShift':
+      // One generic On/Off pair serves every switch.
       return compare(
         formatPauseEnabled(overrideValue as boolean, t),
-        defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,
+        formatPauseEnabled(defaultOf(field), t),
       );
     case 'cursorHideSeconds':
       return compare(
         formatCursorHide(overrideValue as number),
-        defaultValue != null ? formatCursorHide(defaultValue as number) : null,
-      );
-    case 'pixelShift':
-      // Unset resolves to off, so there is always a default to name.
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        formatPauseEnabled(settings.pixelShift ?? false, t),
+        formatCursorHide(defaultOf('cursorHideSeconds')),
       );
     case 'fullscreenTheme':
       return compare(
         formatFullscreenTheme(overrideValue as string),
-        defaultValue != null ? formatFullscreenTheme(defaultValue as string) : null,
+        formatFullscreenTheme(defaultOf('fullscreenTheme')),
       );
     default:
       return label;

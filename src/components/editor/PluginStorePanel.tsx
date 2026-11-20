@@ -9,8 +9,7 @@ import PluginReleaseNotesModal from '@/components/editor/PluginReleaseNotesModal
 import BetaBadge from '@/components/editor/PluginBetaBadge';
 import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
 import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
-import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
-import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
+import PluginTarballModal from '@/components/editor/PluginTarballModal';
 import { editorFetch } from '@/lib/editor-fetch';
 import { latestVersion, hasUpdate, resolveChannel, isBetaHiddenEntry, isBetaOnlyForNonOptedUser } from '@/lib/plugin-versions';
 import { compareSemver } from '@/lib/semver';
@@ -349,9 +348,9 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
       {/* Install from URL modal */}
       {installFromUrlOpen && (
-        <InstallFromUrlModal
+        <PluginTarballModal
           onClose={() => setInstallFromUrlOpen(false)}
-          onInstalled={() => {
+          onDone={() => {
             fetchData();
             usePluginStore.getState().loadPlugins('editor');
           }}
@@ -360,10 +359,10 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
       {/* External plugin update modal */}
       {updatingExternal && (
-        <ExternalUpdateModal
+        <PluginTarballModal
           plugin={updatingExternal}
           onClose={() => setUpdatingExternal(null)}
-          onUpdated={() => {
+          onDone={() => {
             fetchData();
             usePluginStore.getState().loadPlugins('editor');
           }}

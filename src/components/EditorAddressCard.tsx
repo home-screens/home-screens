@@ -1,30 +1,24 @@
 'use client';
 
-import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { useOrigin } from '@/hooks/useOrigin';
-import { copyText } from '@/lib/clipboard';
+import { useCopyFlash } from '@/hooks/useCopyFlash';
 import { useTranslate } from '@/i18n';
 
 /**
  * The hub's editor address with a copy button, for a phone visitor who needs
  * to carry it to a laptop. Rendered on the phone launcher at `/` and on the
- * editor's too-narrow screen. `copyText` carries the plain-http fallback;
+ * editor's too-narrow screen. The copy carries the plain-http fallback;
  * the address also stays in a selectable box so a long-press works when
  * even that is refused.
  */
 export default function EditorAddressCard({ className }: { className?: string }) {
   const t = useTranslate('core');
   const origin = useOrigin();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyFlash } = useCopyFlash();
   const address = origin ? `${origin}/editor` : '';
 
-  async function copy() {
-    if (await copyText(address)) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }
+  const copy = () => void copyFlash(address);
 
   return (
     <div className={className} data-testid="editor-address-card">

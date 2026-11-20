@@ -45,6 +45,7 @@ import {
 import MemberDot from './MemberDot';
 import { makeSubject, nextSubjectColor, periodsOf, shortCodeFor } from './use-timetable-draft';
 import { addIsoDays, mondayOf } from '@/lib/iso-date';
+import { sheetLabel } from './sheet-label';
 
 /**
  * An example week, kept as a file under `public/` so it can be opened in a
@@ -98,12 +99,6 @@ interface MappedTab {
    * all of them.
    */
   tab: string;
-}
-
-/** The pasted link, short enough to read back. */
-function sheetLabel(url: string): string {
-  const bare = url.replace(/^https?:\/\//, '').split(/[?#]/)[0];
-  return bare.length > 48 ? `${bare.slice(0, 47)}…` : bare;
 }
 
 /** How many numbered periods a tab holds. */

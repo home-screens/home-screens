@@ -1,4 +1,4 @@
-import type { SecretKey } from '@/components/editor/settings/shared/SecretField';
+import type { SecretKey } from '@/lib/secrets';
 import type { GoogleAppsStatus } from '@/lib/google-apps';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 

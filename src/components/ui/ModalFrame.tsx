@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import ModalPortal from './ModalPortal';
@@ -13,13 +13,28 @@ import ModalPortal from './ModalPortal';
  *
  * Pass `closable={false}` while a save or install is in flight so a stray
  * Escape can't orphan half-finished work.
+ *
+ * A frame opened from inside another one (the plugin store's install window,
+ * a picture picker over a settings window) is the only one that answers
+ * Escape while it is up: one Escape closes one window, and a window that is
+ * busy keeps the one underneath open too.
  */
+
+/**
+ * How a frame learns that another frame is open inside it. Counted through
+ * the tree, not by which opened last: a window that is redrawn while its
+ * inner window stays up (the plugin store after an install) must still
+ * count as the one underneath.
+ */
+const OuterFrame = createContext<{ opened: () => void; closed: () => void } | null>(null);
+
 export default function ModalFrame({
   label,
   labelledBy,
   onClose,
   closable = true,
   className,
+  backdropClassName = 'bg-black/60',
   children,
 }: {
   /** Fallback announcement when there is no visible heading to point at. */
@@ -29,9 +44,34 @@ export default function ModalFrame({
   onClose: () => void;
   closable?: boolean;
   className?: string;
+  /** How dark the page behind goes. A window over another window dims a little less. */
+  backdropClassName?: string;
   children: ReactNode;
 }) {
-  useEscapeKey(onClose, closable);
+  const outer = useContext(OuterFrame);
+  const innerOpen = useRef(0);
+  const self = useMemo(
+    () => ({
+      opened: () => { innerOpen.current += 1; },
+      closed: () => { innerOpen.current -= 1; },
+    }),
+    [],
+  );
+  useEffect(() => {
+    if (!outer) return;
+    outer.opened();
+    return outer.closed;
+  }, [outer]);
+  const closeIfOnTop = useCallback((event: KeyboardEvent) => {
+    if (innerOpen.current !== 0) return;
+    // Marked as handled: closing can finish between two listeners of one key
+    // press, and the window underneath would then find nothing inside it
+    // and close as well.
+    event.preventDefault();
+    onClose();
+  }, [onClose]);
+  // Every open frame hears the key; only the innermost one acts on it.
+  useEscapeKey(closeIfOnTop, closable);
 
   return (
     <ModalPortal>
@@ -43,11 +83,13 @@ export default function ModalFrame({
         aria-label={labelledBy ? undefined : label}
       >
         <div
-          className="absolute inset-0 bg-black/60"
+          className={`absolute inset-0 ${backdropClassName}`}
           onClick={closable ? onClose : undefined}
           data-testid="modal-backdrop"
         />
-        <TrapLayer className={className}>{children}</TrapLayer>
+        <OuterFrame.Provider value={self}>
+          <TrapLayer className={className}>{children}</TrapLayer>
+        </OuterFrame.Provider>
       </div>
     </ModalPortal>
   );

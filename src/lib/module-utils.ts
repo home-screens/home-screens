@@ -156,17 +156,14 @@ export function fitModuleToDisplay(
 
   let w = Math.max(MIN_SIZE, Math.round(m.size.w * scaleX));
   let h = Math.max(MIN_SIZE, Math.round(m.size.h * scaleY));
-  let x = Math.round(m.position.x * scaleX);
-  let y = Math.round(m.position.y * scaleY);
+  const x = Math.round(m.position.x * scaleX);
+  const y = Math.round(m.position.y * scaleY);
 
   // Clamp size to display bounds
   w = Math.min(w, to.width);
   h = Math.min(h, to.height);
-  // Clamp position so the module stays fully on-canvas
-  x = Math.max(0, Math.min(x, to.width - w));
-  y = Math.max(0, Math.min(y, to.height - h));
-
-  return { ...m, position: { x, y }, size: { w, h } };
+  // The module stays fully on-canvas.
+  return { ...m, position: clampToCanvas({ x, y }, { w, h }, to), size: { w, h } };
 }
 
 /**
@@ -189,8 +186,8 @@ export function scaleModulesToFit(
     modules: screen.modules.map((m) => {
       let w = snapToGrid(Math.max(MIN_SIZE, Math.round(m.size.w * scale)));
       let h = snapToGrid(Math.max(MIN_SIZE, Math.round(m.size.h * scale)));
-      let x = snapToGrid(Math.round(m.position.x * scale));
-      let y = snapToGrid(Math.round(m.position.y * scale));
+      const x = snapToGrid(Math.round(m.position.x * scale));
+      const y = snapToGrid(Math.round(m.position.y * scale));
 
       // Clamp size to display bounds (at least one grid cell)
       w = Math.min(w, newWidth);
@@ -200,11 +197,9 @@ export function scaleModulesToFit(
       if (w < MIN_SIZE) w = Math.min(Math.ceil(MIN_SIZE / GRID_SIZE) * GRID_SIZE, newWidth);
       if (h < MIN_SIZE) h = Math.min(Math.ceil(MIN_SIZE / GRID_SIZE) * GRID_SIZE, newHeight);
 
-      // Clamp position so module stays fully on-canvas
-      x = Math.max(0, Math.min(x, newWidth - w));
-      y = Math.max(0, Math.min(y, newHeight - h));
-
-      return { ...m, position: { x, y }, size: { w, h } };
+      // The module stays fully on-canvas.
+      const position = clampToCanvas({ x, y }, { w, h }, { width: newWidth, height: newHeight });
+      return { ...m, position, size: { w, h } };
     }),
   }));
 }
@@ -217,4 +212,20 @@ export function modulesOverlap(a: ModuleInstance, b: ModuleInstance): boolean {
     a.position.y < b.position.y + b.size.h &&
     b.position.y < a.position.y + a.size.h
   );
+}
+
+/**
+ * A position held inside the canvas for a box of `size`: never off the right
+ * or bottom edge, and never left of or above the origin (which wins when the
+ * box is bigger than the canvas).
+ */
+export function clampToCanvas(
+  position: { x: number; y: number },
+  size: { w: number; h: number },
+  dims: { width: number; height: number },
+): { x: number; y: number } {
+  return {
+    x: Math.max(0, Math.min(dims.width - size.w, position.x)),
+    y: Math.max(0, Math.min(dims.height - size.h, position.y)),
+  };
 }

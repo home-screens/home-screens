@@ -1,9 +1,7 @@
 'use client';
 
-import { resolveSpanDays, scheduleShape } from '@/lib/schedule';
+import { EVERY_DAY, resolveSpanDays, scheduleShape } from '@/lib/schedule';
 import type { ModuleSchedule } from '@/types/config';
-
-const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 
 export interface ScheduleWindowControls {
   /** 'repeat' gives every picked day its own window; 'span' is one stretch. */

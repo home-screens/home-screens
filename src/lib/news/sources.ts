@@ -63,10 +63,15 @@ export function youtubeChannelFeedUrl(channelId: string): string | null {
   return `https://www.youtube.com/feeds/videos.xml?channel_id=${id}`;
 }
 
+/** A subreddit's bare name from "r/name", "/r/name/" or "name"; null when it could not be one. */
+export function subredditName(raw: string): string | null {
+  const name = raw.trim().replace(/^\/?r\//i, '').replace(/\/+$/, '');
+  return /^[A-Za-z0-9_]{2,21}$/.test(name) ? name : null;
+}
+
 export function subredditFeedUrl(subreddit: string): string | null {
-  const name = subreddit.trim().replace(/^\/?r\//i, '').replace(/\/+$/, '');
-  if (!/^[A-Za-z0-9_]{2,21}$/.test(name)) return null;
-  return `https://www.reddit.com/r/${name}/new/.rss`;
+  const name = subredditName(subreddit);
+  return name ? `https://www.reddit.com/r/${name}/new/.rss` : null;
 }
 
 /**

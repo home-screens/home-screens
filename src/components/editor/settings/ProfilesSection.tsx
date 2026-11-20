@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import {
   DndContext,
@@ -14,11 +14,11 @@ import {
 import { useEditorStore } from '@/stores/editor-store';
 import { getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
 import Button from '@/components/ui/Button';
-import { useFormattingLocale, useTranslate } from '@/i18n';
-import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { useTranslate } from '@/i18n';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import SortableProfileCard from './SortableProfileCard';
 import { logger } from '@/lib/logger';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 const log = logger('profiles');
 
@@ -33,18 +33,6 @@ interface ProfilesSectionProps {
 
 export default function ProfilesSection({ embedded = false }: ProfilesSectionProps) {
   const t = useTranslate('editor');
-  const formattingLocale = useFormattingLocale();
-  // Day-of-week labels follow the formatting locale (date-fns conventions),
-  // not the UI language — ['Sun', 'Mon', …] for en-US, ['So.', 'Mo.', …]
-  // for de-DE. Matches MealsSection's day handling. Memoized because the
-  // parent re-renders on every dnd-kit drag tick — without this, each
-  // computation runs 7 `formatDateSync` invocations per frame and the
-  // fresh array reference defeats `React.memo` on children.
-  const dayLabels = useMemo(
-    () => getLocalizedDayNames(formattingLocale, 'short'),
-    [formattingLocale],
-  );
-
   const { config, selectedDisplayId, setSelectedDisplay, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   /** The profile whose name field should open on its next render. */
@@ -125,13 +113,8 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fromIndex = profiles.findIndex((p) => p.id === active.id);
-    const toIndex = profiles.findIndex((p) => p.id === over.id);
-    if (fromIndex !== -1 && toIndex !== -1) {
-      reorderProfiles(fromIndex, toIndex);
-    }
+    const move = dragEndIndices(event, profiles.map((p) => p.id));
+    if (move) reorderProfiles(move.from, move.to);
   };
 
   // Display picker for multi-display installs. Profiles are per-display
@@ -188,7 +171,7 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
           <select
             value={activeProfileId ?? ''}
             onChange={(e) => setActiveProfile(e.target.value || undefined)}
-            className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent mt-1"
+            className={`block w-full ${SETTINGS_INPUT_CLASS} mt-1`}
           >
             <option value="">{t('settings.profilesPage.active.noneOption')}</option>
             {profiles.map((p) => (
@@ -215,7 +198,6 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
                 startRenaming={pendingRenameId === profile.id}
                 onRenameHandled={() => setPendingRenameId(null)}
                 t={t}
-                dayLabels={dayLabels}
               />
             ))}
           </div>

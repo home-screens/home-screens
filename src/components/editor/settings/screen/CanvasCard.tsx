@@ -6,6 +6,7 @@ import { FieldHelp, FieldLabel, FieldRow } from '@/components/editor/settings/sc
 import TouchAlignmentControl from '@/components/editor/settings/shared/TouchAlignmentControl';
 import type { DisplayState } from '@/lib/settings-form';
 import { useTranslate } from '@/i18n';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface CanvasCardProps {
   values: Pick<DisplayState, 'displayWidth' | 'displayHeight' | 'displayTransform' | 'touchMatrix'>;
@@ -124,7 +125,7 @@ export default function CanvasCard({
               const p = RESOLUTION_PRESETS.find((r) => String(r.short) === e.target.value);
               if (p) applyPreset(p.short, p.long, orientation, flipped);
             }}
-            className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+            className={`block w-full ${SETTINGS_INPUT_CLASS}`}
           >
             {RESOLUTION_PRESETS.map((p) => {
               const w = orientation === 'portrait' ? p.short : p.long;
@@ -151,7 +152,7 @@ export default function CanvasCard({
                   const w = parseInt(e.target.value, 10);
                   if (w > 0) onChange({ displayWidth: w });
                 }}
-                className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
+                className={`block w-full ${SETTINGS_INPUT_CLASS} tabular-nums`}
                 placeholder={t('settings.defaultDisplayPage.canvas.resolutionWidthPlaceholder')}
               />
               <span className="text-hs-text-faint text-sm">×</span>
@@ -164,7 +165,7 @@ export default function CanvasCard({
                   const h = parseInt(e.target.value, 10);
                   if (h > 0) onChange({ displayHeight: h });
                 }}
-                className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
+                className={`block w-full ${SETTINGS_INPUT_CLASS} tabular-nums`}
                 placeholder={t('settings.defaultDisplayPage.canvas.resolutionHeightPlaceholder')}
               />
             </div>

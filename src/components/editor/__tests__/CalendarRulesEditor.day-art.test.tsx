@@ -92,10 +92,11 @@ describe('two day rules with picture backgrounds', () => {
       fireEvent.click(picker!.querySelector('[data-testid="day-art-choose"]')!);
     });
     await act(async () => {
-      fireEvent.click(card2.querySelector('[data-testid="starter-picture-birthday"]')!);
+      // The Image Library opens over the page, not inside the card.
+      fireEvent.click(document.querySelector('[data-testid="starter-picture-birthday"]')!);
     });
     await act(async () => {
-      fireEvent.click(card2.querySelector('[data-testid="picker-confirm"]')!);
+      fireEvent.click(document.querySelector('[data-testid="picker-confirm"]')!);
     });
 
     // Card 2 now holds birthday; card 1 is unchanged.

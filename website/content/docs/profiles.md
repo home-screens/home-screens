@@ -65,20 +65,24 @@ Each profile can have an optional schedule that activates it automatically based
 ### Enabling a schedule
 
 1. Expand a profile card in **Settings > Automation > Profiles**
-2. Toggle **Auto-activate on schedule**
-3. Select which **days** the profile should be active (click day buttons to toggle)
-4. Set the **From** and **Until** times to define the active window
+2. Toggle **Auto-activate on schedule**. It starts on every day, all day, and you narrow it from there
+3. Pick the **days** on the week strip (click a day to add or remove it)
+4. Set the **From** and **Until** times, or drag the ends of a bar on the strip
 
 When the schedule is enabled, the profile badge shows a green "Scheduled" label.
 
 ### Day-of-week selection
 
-Days are numbered 0 (Sunday) through 6 (Saturday). Click each day button to include or exclude it. At least one day must remain selected.
+The week strip is the same one a module's schedule uses. It draws each picked day's hours as a bar, so you can see what the profile will do before you leave the page. At least one day must remain selected.
 
 Common patterns:
 - **Weekdays**: Mon, Tue, Wed, Thu, Fri
 - **Weekends**: Sat, Sun
 - **Every day**: all seven days selected
+
+### One stretch across several days
+
+**How it repeats** chooses between the same hours on each picked day and one stretch that starts on one day and ends on a later one, such as Friday 18:00 to Monday 07:00. For a stretch, pick the start day on the strip and the day it ends on under **Until**.
 
 ### Time windows
 

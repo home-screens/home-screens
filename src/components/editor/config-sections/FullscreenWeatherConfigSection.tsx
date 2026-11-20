@@ -17,6 +17,7 @@ import { WeatherCardsList } from './WeatherCardsList';
 import { WeatherApiKeyMissingRow, WeatherSourceSelect, useModuleWeatherSource } from './WeatherSourceSelect';
 import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { ForecastDaysHint } from './ForecastDaysHint';
+import { useDensityOptions } from './option-hooks';
 
 type Config = Partial<FullscreenWeatherConfig>;
 
@@ -47,10 +48,7 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
   ] as const;
   const cardView = view === 'forecast' || view === 'conditions';
 
-  const DENSITY_OPTIONS = [
-    { value: 'cozy', label: t('configSections.fullscreen-weather.densityCozy') },
-    { value: 'snug', label: t('configSections.fullscreen-weather.densitySnug') },
-  ] as const;
+  const DENSITY_OPTIONS = useDensityOptions();
 
   const SKY_OPTIONS = [
     { value: 'living', label: t('configSections.fullscreen-weather.skyLiving') },

@@ -5,7 +5,7 @@ import { GripVertical, X } from 'lucide-react';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import Combobox from '@/components/ui/Combobox';
 import { useTranslate } from '@/i18n';
 import { useEditorData } from '@/hooks/useEditorData';
@@ -86,12 +86,8 @@ export function FavoriteTeamsPicker({ leagues, value, onChange, help }: Favorite
   const t = useTranslate('editor');
   const sensors = useSortableSensors();
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const from = value.indexOf(String(active.id));
-    const to = value.indexOf(String(over.id));
-    if (from < 0 || to < 0) return;
-    onChange(arrayMove(value, from, to));
+    const move = dragEndIndices(event, value);
+    if (move) onChange(arrayMove(value, move.from, move.to));
   };
   const enabled = useMemo(() => new Set(leagues.map((l) => l.toLowerCase())), [leagues]);
 

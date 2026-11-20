@@ -11,12 +11,14 @@ import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import { useTranslate, tOrFallback } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import { displayShowsPaginationDots, showsPaginationDots } from '@/lib/pagination-dots';
+import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS, resolveDisplayDefault } from '@/lib/display-override-fields';
 import type {
   DisplayNode,
   DisplayNodeSettings,
   ScreenConfiguration,
   TransitionEffect,
 } from '@/types/config';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface DisplayOverrideFieldsProps {
   config: ScreenConfiguration;
@@ -24,8 +26,6 @@ interface DisplayOverrideFieldsProps {
 }
 
 const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
-/** Seeded when a display's rotation is switched back on. */
-const DEFAULT_ROTATION_SECONDS = 30;
 
 /**
  * The inheritable half of the per-display Overrides subtab: rotation &
@@ -79,9 +79,9 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
   const effectivePauseEnabled =
     overrides.pauseEnabled !== undefined
       ? overrides.pauseEnabled
-      : settings.pauseEnabled ?? true;
+      : resolveDisplayDefault(settings, 'pauseEnabled');
   const effectiveTransitionEffect =
-    overrides.transitionEffect ?? settings.transitionEffect ?? 'fade';
+    overrides.transitionEffect ?? resolveDisplayDefault(settings, 'transitionEffect');
 
   return (
     <>
@@ -93,7 +93,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}
-            defaultValue={(settings.rotationIntervalMs ?? 30000) / 1000}
+            defaultValue={resolveDisplayDefault(settings, 'rotationIntervalMs') / 1000}
             override={overrides.rotationIntervalMs != null ? overrides.rotationIntervalMs / 1000 : undefined}
             onFork={(seed) => setOverride('rotationIntervalMs', seed * 1000)}
             onReset={() => setOverride('rotationIntervalMs', undefined)}
@@ -117,9 +117,9 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                   <Slider
                     label=""
                     value={value}
-                    min={5}
-                    max={Math.max(600, value)}
-                    step={5}
+                    min={DISPLAY_FIELD_SLIDERS.rotationSeconds.min}
+                    max={Math.max(DISPLAY_FIELD_SLIDERS.rotationSeconds.max, value)}
+                    step={DISPLAY_FIELD_SLIDERS.rotationSeconds.step}
                     displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
                     onChange={onChange}
                     disabled={disabled}
@@ -131,7 +131,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
           <OverrideRow<TransitionEffect>
             label={t('settings.defaultDisplayPage.fields.transitionEffectLabel')}
-            defaultValue={(settings.transitionEffect ?? 'fade') as TransitionEffect}
+            defaultValue={resolveDisplayDefault(settings, 'transitionEffect')}
             override={overrides.transitionEffect}
             onFork={(seed) => setOverride('transitionEffect', seed)}
             onReset={() => setOverride('transitionEffect', undefined)}
@@ -145,7 +145,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                 value={value}
                 disabled={disabled}
                 onChange={(e) => onChange(e.target.value as TransitionEffect)}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-50"
+                className={`w-full ${SETTINGS_INPUT_CLASS} disabled:opacity-50`}
               >
                 {TRANSITION_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -165,7 +165,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
           {(effectiveTransitionEffect !== 'none' || overrides.transitionDuration !== undefined) && (
             <OverrideRow
               label={t('settings.defaultDisplayPage.fields.transitionDurationLabel')}
-              defaultValue={settings.transitionDuration ?? 0.6}
+              defaultValue={resolveDisplayDefault(settings, 'transitionDuration')}
               override={overrides.transitionDuration}
               onFork={(seed) => setOverride('transitionDuration', seed)}
               onReset={() => setOverride('transitionDuration', undefined)}
@@ -178,9 +178,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                 <Slider
                   label=""
                   value={value}
-                  min={0.3}
-                  max={2}
-                  step={0.1}
+                  {...DISPLAY_FIELD_SLIDERS.transitionDuration}
                   displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: value.toFixed(1) })}
                   onChange={onChange}
                   disabled={disabled}
@@ -220,7 +218,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
           {(effectiveShowDots || overrides.pauseEnabled !== undefined) && (
             <OverrideRow
               label={t('settings.defaultDisplayPage.fields.pauseEnabledLabel')}
-              defaultValue={settings.pauseEnabled ?? true}
+              defaultValue={resolveDisplayDefault(settings, 'pauseEnabled')}
               override={overrides.pauseEnabled}
               onFork={(seed) => setOverride('pauseEnabled', seed)}
               onReset={() => setOverride('pauseEnabled', undefined)}
@@ -250,7 +248,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
           {((effectiveShowDots && effectivePauseEnabled) || overrides.pauseTimeoutSeconds !== undefined) && (
             <OverrideRow
               label={t('settings.defaultDisplayPage.fields.pauseTimeoutLabel')}
-              defaultValue={settings.pauseTimeoutSeconds ?? 300}
+              defaultValue={resolveDisplayDefault(settings, 'pauseTimeoutSeconds')}
               override={overrides.pauseTimeoutSeconds}
               onFork={(seed) => setOverride('pauseTimeoutSeconds', seed)}
               onReset={() => setOverride('pauseTimeoutSeconds', undefined)}
@@ -267,9 +265,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                 <Slider
                   label=""
                   value={value}
-                  min={0}
-                  max={600}
-                  step={30}
+                  {...DISPLAY_FIELD_SLIDERS.pauseTimeoutSeconds}
                   displayValue={
                     value === 0
                       ? t('settings.defaultDisplayPage.fields.pauseTimeoutNever')
@@ -284,7 +280,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.swipeEnabledLabel')}
-            defaultValue={settings.swipeEnabled ?? true}
+            defaultValue={resolveDisplayDefault(settings, 'swipeEnabled')}
             override={overrides.swipeEnabled}
             onFork={(seed) => setOverride('swipeEnabled', seed)}
             onReset={() => setOverride('swipeEnabled', undefined)}
@@ -309,7 +305,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.setupHintLabel')}
-            defaultValue={settings.setupHintEnabled ?? true}
+            defaultValue={resolveDisplayDefault(settings, 'setupHintEnabled')}
             override={overrides.setupHintEnabled}
             onFork={(seed) => setOverride('setupHintEnabled', seed)}
             onReset={() => setOverride('setupHintEnabled', undefined)}
@@ -335,7 +331,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
           {(effectiveShowDots || overrides.showRotationProgress !== undefined) && (
             <OverrideRow
               label={t('settings.defaultDisplayPage.fields.rotationProgressLabel')}
-              defaultValue={settings.showRotationProgress ?? true}
+              defaultValue={resolveDisplayDefault(settings, 'showRotationProgress')}
               override={overrides.showRotationProgress}
               onFork={(seed) => setOverride('showRotationProgress', seed)}
               onReset={() => setOverride('showRotationProgress', undefined)}
@@ -369,7 +365,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.cursorHideLabel')}
-            defaultValue={settings.cursorHideSeconds ?? 3}
+            defaultValue={resolveDisplayDefault(settings, 'cursorHideSeconds')}
             override={overrides.cursorHideSeconds}
             onFork={(seed) => setOverride('cursorHideSeconds', seed)}
             onReset={() => setOverride('cursorHideSeconds', undefined)}
@@ -382,9 +378,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               <Slider
                 label=""
                 value={value}
-                min={1}
-                max={30}
-                step={1}
+                {...DISPLAY_FIELD_SLIDERS.cursorHideSeconds}
                 displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
                 onChange={onChange}
                 disabled={disabled}
@@ -394,7 +388,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.pixelShiftLabel')}
-            defaultValue={settings.pixelShift ?? false}
+            defaultValue={resolveDisplayDefault(settings, 'pixelShift')}
             override={overrides.pixelShift}
             onFork={(seed) => setOverride('pixelShift', seed)}
             onReset={() => setOverride('pixelShift', undefined)}
@@ -419,7 +413,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}
-            defaultValue={settings.fullscreenTheme ?? 'linen'}
+            defaultValue={resolveDisplayDefault(settings, 'fullscreenTheme')}
             override={overrides.fullscreenTheme}
             onFork={(seed) => setOverride('fullscreenTheme', seed)}
             onReset={() => setOverride('fullscreenTheme', undefined)}

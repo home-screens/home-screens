@@ -14,6 +14,7 @@ import type {
   ModuleInstance,
   ChoreChartView,
 } from '@/types/config';
+import { useWeekStartOptions } from './option-hooks';
 
 type Config = {
   view?: ChoreChartView;
@@ -30,7 +31,6 @@ type Config = {
 
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
 
   const VIEWS: { value: ChoreChartView; label: string }[] = [
@@ -52,10 +52,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   const isChoreView = c.view !== 'reward-history' && c.view !== 'rewards-store';
   const view = c.view ?? 'board';
 
-  const WEEK_START_OPTIONS = [
-    { value: 'sunday' as const, label: tCore('days.sunday') },
-    { value: 'monday' as const, label: tCore('days.monday') },
-  ];
+  const WEEK_START_OPTIONS = useWeekStartOptions();
 
 
   return (

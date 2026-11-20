@@ -14,6 +14,7 @@ import { hasValidLocation } from '@/lib/location';
 import { formatDuration, type UnitValue } from '@/lib/duration-format';
 import { formatTimeInTZ, isKnownTimezone, isPlaceTimezone, sameTimezone, timezoneLabel } from '@/lib/timezone';
 import { suggestHouseholdZone, zoneGapMinutes, type ZoneSuggestion } from '@/lib/zone-suggestion';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 const log = logger('location');
 
@@ -410,7 +411,7 @@ export default function LocationSection({ values, onChange }: Props) {
               onChange={(e) => setLocationQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && lookupLocation()}
               placeholder={t('settings.locationPage.queryPlaceholder')}
-              className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`flex-1 ${SETTINGS_INPUT_CLASS}`}
             />
             <Button variant="secondary" size="sm" onClick={lookupLocation}>
               {t('settings.locationPage.lookUpButton')}
@@ -588,7 +589,7 @@ export default function LocationSection({ values, onChange }: Props) {
                 value={lat}
                 onChange={(e) => onChange({ lat: e.target.value })}
                 placeholder={t('settings.locationPage.latitudePlaceholder')}
-                className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
               />
             </label>
             <label className="block" data-field-id="location.longitude">
@@ -598,7 +599,7 @@ export default function LocationSection({ values, onChange }: Props) {
                 value={lon}
                 onChange={(e) => onChange({ lon: e.target.value })}
                 placeholder={t('settings.locationPage.longitudePlaceholder')}
-                className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
               />
             </label>
           </div>

@@ -1,15 +1,14 @@
 import type { ModuleSchedule, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
-import { resolveSpanDays } from '@/lib/schedule';
+import { EVERY_DAY, resolveSpanDays } from '@/lib/schedule';
 import type { TranslateFn } from '@/i18n/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { formatEventTime } from '@/lib/calendar-utils';
 
-const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const WEEKDAYS = [1, 2, 3, 4, 5];
 const WEEKEND = [0, 6];
 
-function sameSet(a: number[], b: number[]): boolean {
+function sameSet(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && b.every((d) => a.includes(d));
 }
 
@@ -25,8 +24,8 @@ export function formatScheduleDays(
   t: TranslateFn,
   formattingLocale: string,
 ): string {
-  const days = [...(schedule?.daysOfWeek ?? ALL_DAYS)].sort((a, b) => a - b);
-  if (sameSet(days, ALL_DAYS)) return t('scheduleEditor.summary.everyDay');
+  const days = [...(schedule?.daysOfWeek ?? EVERY_DAY)].sort((a, b) => a - b);
+  if (sameSet(days, EVERY_DAY)) return t('scheduleEditor.summary.everyDay');
   if (sameSet(days, WEEKDAYS)) return t('scheduleEditor.summary.weekdays');
   if (sameSet(days, WEEKEND)) return t('scheduleEditor.summary.weekends');
   const names = getLocalizedDayNames(formattingLocale, 'short');

@@ -68,7 +68,8 @@ export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Sched
 
 const MINUTES_PER_DAY = 24 * 60;
 const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
-const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+/** Sunday to Saturday: what a window with no days picked means. */
+export const EVERY_DAY: readonly number[] = [0, 1, 2, 3, 4, 5, 6];
 
 /**
  * Core day/time-window match shared by module schedules (`isModuleVisible`)
@@ -99,7 +100,7 @@ function matchesTimeWindow(
   const end = parseTime(endTime) ?? MINUTES_PER_DAY;
   const span = resolveSpan(start, end, endDayOffset);
 
-  const days = daysOfWeek && daysOfWeek.length > 0 ? daysOfWeek : ALL_DAYS;
+  const days = daysOfWeek && daysOfWeek.length > 0 ? daysOfWeek : EVERY_DAY;
   const { dayOfWeek, minuteOfDay } = readScheduleClock(now);
   const nowMinutes = minuteOfDay + dayOfWeek * MINUTES_PER_DAY;
 

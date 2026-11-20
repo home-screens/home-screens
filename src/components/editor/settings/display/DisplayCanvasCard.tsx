@@ -7,6 +7,7 @@ import OrientationChangeModal from '@/components/editor/settings/OrientationChan
 import { useTranslate } from '@/i18n';
 import { useCanvasDimensionDrafts } from './useCanvasDimensionDrafts';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface DisplayCanvasCardProps {
   config: ScreenConfiguration;
@@ -62,7 +63,7 @@ export default function DisplayCanvasCard({ config, display }: DisplayCanvasCard
               max={MAX_DISPLAY_DIMENSION}
               onChange={(e) => setWidthDraft(e.target.value)}
               onBlur={commitWidth}
-              className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
+              className={`w-full ${SETTINGS_INPUT_CLASS} tabular-nums`}
             />
             <input
               type="number"
@@ -71,7 +72,7 @@ export default function DisplayCanvasCard({ config, display }: DisplayCanvasCard
               max={MAX_DISPLAY_DIMENSION}
               onChange={(e) => setHeightDraft(e.target.value)}
               onBlur={commitHeight}
-              className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
+              className={`w-full ${SETTINGS_INPUT_CLASS} tabular-nums`}
             />
           </div>
           <p className="text-[11px] text-hs-text-faint mt-1.5">
@@ -90,7 +91,7 @@ export default function DisplayCanvasCard({ config, display }: DisplayCanvasCard
           <select
             value={display.displayTransform ?? 'normal'}
             onChange={(e) => handleTransform(e.target.value as 'normal' | '90' | '180' | '270')}
-            className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+            className={`w-full ${SETTINGS_INPUT_CLASS}`}
           >
             <option value="normal">{t('settings.perDisplayPage.display.rotationOptionNormal')}</option>
             <option value="90">{t('settings.perDisplayPage.display.rotationOption90')}</option>

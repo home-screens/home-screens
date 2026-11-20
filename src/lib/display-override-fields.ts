@@ -84,3 +84,50 @@ const OVERRIDE_UNITS: readonly (readonly (keyof DisplayNodeSettings)[])[] = [SLE
 export function overrideUnitOf(field: keyof DisplayNodeSettings): keyof DisplayNodeSettings {
   return OVERRIDE_UNITS.find((unit) => unit.includes(field))?.[0] ?? field;
 }
+
+type DisplayOverrideField = (typeof DISPLAY_OVERRIDE_FIELDS)[number];
+
+/**
+ * What each Defaults > Screen field is when nothing has been saved for it,
+ * which is what the wall does with a missing value. The Defaults page, the
+ * per-display override rows and the Overview chips all read it from here, so
+ * they cannot name three different defaults for one field. A field missing
+ * from this table fails to compile.
+ */
+export const DISPLAY_FIELD_FALLBACKS: { [K in DisplayOverrideField]: NonNullable<DisplayNodeSettings[K]> } = {
+  rotationIntervalMs: 30_000,
+  transitionEffect: 'fade',
+  transitionDuration: 0.6,
+  pauseEnabled: true,
+  pauseTimeoutSeconds: 300,
+  swipeEnabled: true,
+  setupHintEnabled: true,
+  showRotationProgress: true,
+  showPaginationDots: true,
+  cursorHideSeconds: 3,
+  pixelShift: false,
+  fullscreenTheme: 'linen',
+};
+
+/** The shared value for `key`, or its fallback when none was ever saved. */
+export function resolveDisplayDefault<K extends DisplayOverrideField>(
+  settings: Pick<DisplayNodeSettings, K>,
+  key: K,
+): NonNullable<DisplayNodeSettings[K]> {
+  return (settings[key] ?? DISPLAY_FIELD_FALLBACKS[key]) as NonNullable<DisplayNodeSettings[K]>;
+}
+
+/** Seconds a display rotates at when rotation is switched back on. */
+export const DEFAULT_ROTATION_SECONDS = DISPLAY_FIELD_FALLBACKS.rotationIntervalMs / 1000;
+
+/**
+ * Slider ranges for the fields edited with one, the same on the Defaults
+ * page and on a display's own page. Rotation is edited in seconds and may
+ * hold a longer saved value, so its slider stretches to fit what is saved.
+ */
+export const DISPLAY_FIELD_SLIDERS = {
+  rotationSeconds: { min: 5, max: 600, step: 5 },
+  pauseTimeoutSeconds: { min: 0, max: 600, step: 30 },
+  transitionDuration: { min: 0.3, max: 2, step: 0.1 },
+  cursorHideSeconds: { min: 1, max: 30, step: 1 },
+} as const;

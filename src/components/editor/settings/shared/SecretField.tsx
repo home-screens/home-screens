@@ -1,35 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+// Type only, so nothing of the server's store reaches the editor bundle.
+import type { SecretKey } from '@/lib/secrets';
 
 const log = logger('secret-field');
-
-export type SecretKey =
-  // Integration keys
-  | 'unsplash_access_key'
-  | 'todoist_token'
-  | 'google_maps_key'
-  | 'tomtom_key'
-  | 'google_client_id'
-  | 'google_client_secret'
-  | 'google_web_client_id'
-  | 'google_web_client_secret'
-  | 'immich_url'
-  | 'immich_api_key'
-  | 'mealie_url'
-  | 'mealie_api_key'
-  | 'microsoft_client_id'
-  // Weather provider keys
-  | 'weatherapi_key'
-  | 'openweathermap_key'
-  | 'pirateweather_key'
-  | 'metoffice_key';
 
 export type SecretStatus = Partial<Record<SecretKey, boolean>>;
 
@@ -46,12 +28,23 @@ export type SecretCheck =
       allowAnyway: boolean;
     };
 
-interface Props {
+/**
+ * Where the value is kept. The hub's own keys are a closed list; a plugin
+ * names its own, kept under that plugin's address.
+ */
+type Target =
+  | { endpoint?: undefined; secretKey: SecretKey }
+  | { endpoint: string; secretKey: string };
+
+type Props = Target & {
   label: string;
-  secretKey: SecretKey;
   placeholder: string;
+  /** Sits before the status dot, for a word such as "Required". */
+  badge?: ReactNode;
   /** The grey line under the box; leave out when the surrounding card already says it. */
   helpText?: string;
+  /** Space above the grey line; a narrow panel that stacks several boxes gives it a little more. */
+  helpTextClassName?: string;
   status: boolean;
   onSaved: () => void;
   /** Try the value against its service before saving; a failed check keeps the value in the form. */
@@ -71,13 +64,16 @@ interface Props {
    * may depend on how the key is being used right now); null to remove at once.
    */
   removeQuestion?: () => Promise<{ title: string; message: string; confirmLabel: string } | null>;
-}
+};
 
 export default function SecretField({
   label,
   secretKey,
+  endpoint = '/api/secrets',
   placeholder,
+  badge,
   helpText,
+  helpTextClassName = 'mt-1',
   status,
   onSaved,
   validate,
@@ -120,7 +116,7 @@ export default function SecretField({
     }
     setSaveStatus('saving');
     try {
-      const res = await editorFetch('/api/secrets', {
+      const res = await editorFetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: secretKey, value: value.trim() }),
@@ -147,7 +143,7 @@ export default function SecretField({
     const question = removeQuestion ? await removeQuestion().catch(() => null) : null;
     if (question && !(await useConfirmStore.getState().confirm({ ...question, variant: 'danger' }))) return;
     try {
-      const res = await editorFetch('/api/secrets', {
+      const res = await editorFetch(endpoint, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: secretKey }),
@@ -163,6 +159,7 @@ export default function SecretField({
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs text-hs-text-muted">{label}</span>
         <div className="flex items-center gap-2 shrink-0">
+          {badge}
           <StatusDot configured={status} />
           {status && (
             <button
@@ -182,7 +179,7 @@ export default function SecretField({
           value={value}
           onChange={(e) => { setValue(e.target.value); setEdited(true); setSaveStatus('idle'); setCheck(null); }}
           placeholder={placeholder}
-          className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+          className={`flex-1 min-w-0 ${SETTINGS_INPUT_CLASS}`}
         />
         <Button
           variant="secondary"
@@ -225,7 +222,7 @@ export default function SecretField({
       {saveStatus === 'error' && (
         <span className="text-xs text-hs-danger">{errorMsg}</span>
       )}
-      {helpText && <p className="text-xs text-hs-text-faint mt-1">{helpText}</p>}
+      {helpText && <p className={`text-xs text-hs-text-faint ${helpTextClassName}`}>{helpText}</p>}
     </div>
   );
 }

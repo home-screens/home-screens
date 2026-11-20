@@ -5,6 +5,7 @@ import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import SleepTimelinePreview from './SleepTimelinePreview';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 export interface SleepFormValues {
   sleepEnabled: boolean;
@@ -38,7 +39,7 @@ interface SleepFormFieldsProps {
 }
 
 const TIME_INPUT_CLASS =
-  'mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';
+  `mt-1 block w-full ${SETTINGS_INPUT_CLASS}`;
 
 /**
  * The shared form body for sleep / dim schedule / screensaver settings,
@@ -293,7 +294,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                 value={screensaverMode}
                 disabled={disabled}
                 onChange={(e) => onChange({ screensaverMode: e.target.value })}
-                className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-70"
+                className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS} disabled:opacity-70`}
               >
                 <option value="clock">{t('settings.sleepFormFields.screensaverClock')}</option>
                 <option value="blank">{t('settings.sleepFormFields.screensaverBlank')}</option>

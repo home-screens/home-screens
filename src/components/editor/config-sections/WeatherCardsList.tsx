@@ -4,7 +4,7 @@ import { GripVertical } from 'lucide-react';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import { Switch } from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import type { FullscreenWeatherCard, FullscreenWeatherView } from '@/types/config';
@@ -101,12 +101,8 @@ export function WeatherCardsList({ value, onChange, view }: WeatherCardsListProp
   const sensors = useSortableSensors();
   const off = offWeatherCards(value);
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const from = value.indexOf(active.id as FullscreenWeatherCard);
-    const to = value.indexOf(over.id as FullscreenWeatherCard);
-    if (from < 0 || to < 0) return;
-    onChange(arrayMove(value, from, to));
+    const move = dragEndIndices(event, value);
+    if (move) onChange(arrayMove(value, move.from, move.to));
   };
   const hint = view === 'forecast'
     ? t('configSections.fullscreen-weather.cardsHintForecast')

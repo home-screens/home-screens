@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import HostedCalendarSignIn from './HostedCalendarSignIn';
+import { DeviceCodeButton, DeviceCodeLink } from '../DeviceCodeParts';
 import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
 import CalendarPeopleManager from './CalendarPeopleManager';
@@ -103,37 +104,6 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     setAuthError(null);
   }, [disconnectGoogleCalendars, deviceFlow]);
 
-  // Click-to-copy for the device flow user code
-  const [codeCopied, setCodeCopied] = useState(false);
-
-  const copyUserCode = useCallback(async () => {
-    const code = deviceFlow.userCode;
-    if (!code) return;
-    const flash = () => {
-      setCodeCopied(true);
-      setTimeout(() => setCodeCopied(false), 2000);
-    };
-    try {
-      await navigator.clipboard.writeText(code);
-      flash();
-    } catch {
-      // Fallback for insecure contexts (kiosk over plain HTTP on the LAN)
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = code;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        if (ok) flash();
-      } catch {
-        // Copy unsupported; user can still read and type the code manually
-      }
-    }
-  }, [deviceFlow.userCode]);
-
   // Combine device flow errors from both sources
   const combinedError = deviceFlow.deviceFlowError || authError;
 
@@ -203,8 +173,6 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
       polling={deviceFlow.deviceFlowPolling}
       onStart={deviceFlow.startDeviceFlow}
       onCancel={deviceFlow.cancel}
-      onCopyCode={copyUserCode}
-      codeCopied={codeCopied}
       error={combinedError}
     />
   ) : !credentialsConfigured ? (
@@ -234,35 +202,32 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
             {t('settings.calendarPage.google.deviceCodeIntro')}
           </p>
           <div className="flex items-center gap-3">
-            <a
-              href={deviceFlow.verificationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <DeviceCodeLink
+              url={deviceFlow.verificationUrl}
               className="text-sm text-hs-accent hover:text-hs-accent-hover underline"
-            >
-              {deviceFlow.verificationUrl}
-            </a>
+            />
           </div>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={copyUserCode}
-              title={t('settings.calendarPage.google.copyCode')}
-              aria-label={t('settings.calendarPage.google.copyCode')}
+            <DeviceCodeButton
+              code={deviceFlow.userCode}
               className="group flex items-center gap-3 text-2xl font-bold tracking-widest text-hs-text-primary bg-hs-card border border-hs-border-strong rounded-lg px-4 py-2 hover:border-hs-accent transition-colors cursor-pointer"
-            >
-              <code>{deviceFlow.userCode}</code>
-              <span className="text-xs font-normal tracking-normal text-hs-text-faint group-hover:text-hs-accent">
-                {codeCopied
-                  ? t('settings.calendarPage.google.codeCopied')
-                  : t('settings.calendarPage.google.copyCode')}
-              </span>
-            </button>
+              labelClassName="text-xs font-normal tracking-normal text-hs-text-faint group-hover:text-hs-accent"
+            />
             {deviceFlow.deviceFlowPolling && (
               <span className="text-xs text-hs-text-faint animate-pulse">
                 {t('settings.calendarPage.google.waitingForAuthorization')}
               </span>
             )}
+            {/* The other three sign-ins could always be backed out of; this
+                one left the code up until it ran out. */}
+            <button
+              type="button"
+              onClick={deviceFlow.cancel}
+              data-testid="google-calendar-own-cancel"
+              className="text-xs text-hs-text-faint underline hover:text-hs-text-muted"
+            >
+              {t('settings.calendarPage.google.hosted.cancel')}
+            </button>
           </div>
         </div>
       ) : (

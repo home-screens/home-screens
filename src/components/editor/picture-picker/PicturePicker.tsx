@@ -5,7 +5,7 @@ import { Lock } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useImageLibrary } from '@/hooks/useImageLibrary';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { libraryFileFromServeUrl } from '@/lib/library-client';
 import { isReady, offeredFor, type PhotoSourceKind } from '@/lib/photo-source';
 import { useTranslate } from '@/i18n';
@@ -92,8 +92,6 @@ export default function PicturePicker({
     return 'library';
   });
 
-  useEscapeKey(onClose);
-
   // The library picture the spot holds now starts chosen, so opening the
   // window shows which one it is (Select Image then keeps it).
   const { setSelectedImage } = lib;
@@ -169,70 +167,70 @@ export default function PicturePicker({
       : t('imageBrowserModal.title');
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-3xl h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
-          <div className="flex items-center gap-3 min-w-0">
-            <h2 className="text-sm font-semibold text-hs-text-primary shrink-0">{title}</h2>
-            {showTabs && (
-              <div className="flex gap-0.5 bg-hs-card rounded-md p-0.5" role="tablist">
-                {tabs.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === id}
-                    onClick={() => switchTab(id)}
-                    data-testid={`picker-tab-${id}`}
-                    title={locked(id) ? t('photoSources.picker.notSetUp') : undefined}
-                    className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded ${
-                      tab === id ? 'bg-hs-hover text-hs-text-primary'
-                        : locked(id) ? 'text-hs-text-faint hover:text-hs-text-muted'
-                          : 'text-hs-text-muted hover:text-hs-text-secondary'
-                    }`}
-                  >
-                    {locked(id) && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
-                    {tabLabel(id)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
-            aria-label={t('modal.closeAriaLabel')}
-          >
-            &times;
-          </button>
+    <ModalFrame
+      label={title}
+      onClose={onClose}
+      className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-3xl h-[85vh] flex flex-col"
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
+        <div className="flex items-center gap-3 min-w-0">
+          <h2 className="text-sm font-semibold text-hs-text-primary shrink-0">{title}</h2>
+          {showTabs && (
+            <div className="flex gap-0.5 bg-hs-card rounded-md p-0.5" role="tablist">
+              {tabs.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === id}
+                  onClick={() => switchTab(id)}
+                  data-testid={`picker-tab-${id}`}
+                  title={locked(id) ? t('photoSources.picker.notSetUp') : undefined}
+                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded ${
+                    tab === id ? 'bg-hs-hover text-hs-text-primary'
+                      : locked(id) ? 'text-hs-text-faint hover:text-hs-text-muted'
+                        : 'text-hs-text-muted hover:text-hs-text-secondary'
+                  }`}
+                >
+                  {locked(id) && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
+                  {tabLabel(id)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-
-        <div className="flex flex-1 min-h-0">
-          {tab === 'library' && <LocalTab mode={mode} lib={lib} />}
-          {tab === 'builtin' && builtIn && <BuiltInTab {...tabProps} set={builtIn} currentValue={currentValue} orientation={orientation} />}
-          {tab === 'immich' && (locked('immich')
-            ? <div className="flex-1"><SetupHint text={t('photoSources.immich.needsSetup')} /></div>
-            : <ImmichTab {...tabProps} />)}
-          {tab === 'unsplash' && <UnsplashTab {...tabProps} ready={!locked('unsplash')} orientation={orientation} />}
-          {tab === 'nasa' && <NasaTab {...tabProps} />}
-          {tab === 'art' && <ArtTab {...tabProps} />}
-        </div>
-
-        <div className="flex items-center gap-2 px-4 py-3 border-t border-hs-border-strong">
-          <span className={`flex-1 line-clamp-2 text-[11px] leading-snug ${copyError ? 'text-hs-danger' : 'text-hs-text-faint'}`} data-testid="picker-hint" title={hint}>
-            {hint}
-          </span>
-          <Button size="sm" onClick={onClose}>{tCore('actions.cancel')}</Button>
-          <Button size="sm" variant="primary" onClick={() => void confirm()} disabled={confirmDisabled} data-testid="picker-confirm">
-            {copying ? t('photoSources.picker.copying')
-              : mode === 'pick-video' ? t('imageBrowserModal.confirmSelectVideo')
-                : mode === 'manage-directory' ? t('imageBrowserModal.confirmUseFolder')
-                  : t('imageBrowserModal.confirmSelectImage')}
-          </Button>
-        </div>
+        <button
+          onClick={onClose}
+          className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
+          aria-label={t('modal.closeAriaLabel')}
+        >
+          &times;
+        </button>
       </div>
-    </div>
+
+      <div className="flex flex-1 min-h-0">
+        {tab === 'library' && <LocalTab mode={mode} lib={lib} />}
+        {tab === 'builtin' && builtIn && <BuiltInTab {...tabProps} set={builtIn} currentValue={currentValue} orientation={orientation} />}
+        {tab === 'immich' && (locked('immich')
+          ? <div className="flex-1"><SetupHint text={t('photoSources.immich.needsSetup')} /></div>
+          : <ImmichTab {...tabProps} />)}
+        {tab === 'unsplash' && <UnsplashTab {...tabProps} ready={!locked('unsplash')} orientation={orientation} />}
+        {tab === 'nasa' && <NasaTab {...tabProps} />}
+        {tab === 'art' && <ArtTab {...tabProps} />}
+      </div>
+
+      <div className="flex items-center gap-2 px-4 py-3 border-t border-hs-border-strong">
+        <span className={`flex-1 line-clamp-2 text-[11px] leading-snug ${copyError ? 'text-hs-danger' : 'text-hs-text-faint'}`} data-testid="picker-hint" title={hint}>
+          {hint}
+        </span>
+        <Button size="sm" onClick={onClose}>{tCore('actions.cancel')}</Button>
+        <Button size="sm" variant="primary" onClick={() => void confirm()} disabled={confirmDisabled} data-testid="picker-confirm">
+          {copying ? t('photoSources.picker.copying')
+            : mode === 'pick-video' ? t('imageBrowserModal.confirmSelectVideo')
+              : mode === 'manage-directory' ? t('imageBrowserModal.confirmUseFolder')
+                : t('imageBrowserModal.confirmSelectImage')}
+        </Button>
+      </div>
+    </ModalFrame>
   );
 }

@@ -21,12 +21,12 @@ import type {
   FullscreenChoreChartLayout,
   FullscreenChoreCelebration,
 } from '@/types/config';
+import { useDensityOptions, useWeekStartOptions } from './option-hooks';
 
 type Config = Partial<FullscreenChoreChartConfig>;
 
 export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   // The accent the module paints while accentColor is empty (see the module).
   const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens('fullscreen-chore-chart', c.theme), DEFAULT_ACCENT_COLOR);
@@ -42,10 +42,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     { value: 'reward-spotlight', label: t('configSections.fullscreen-chore-chart.viewRewardSpotlight') },
   ];
 
-  const DENSITY_OPTIONS = [
-    { value: 'cozy', label: t('configSections.fullscreen-chore-chart.densityCozy') },
-    { value: 'snug', label: t('configSections.fullscreen-chore-chart.densitySnug') },
-  ] as const;
+  const DENSITY_OPTIONS = useDensityOptions();
 
   const WEEK_PROGRESS_OPTIONS: { value: FullscreenChoreChartWeekProgress; label: string }[] = [
     { value: 'chips', label: t('configSections.fullscreen-chore-chart.weekProgressChips') },
@@ -54,10 +51,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     { value: 'off', label: t('configSections.fullscreen-chore-chart.weekProgressOff') },
   ];
 
-  const WEEK_START_OPTIONS = [
-    { value: 'sunday', label: tCore('days.sunday') },
-    { value: 'monday', label: tCore('days.monday') },
-  ] as const;
+  const WEEK_START_OPTIONS = useWeekStartOptions();
 
   const LAYOUT_OPTIONS: { value: FullscreenChoreChartLayout; label: string }[] = [
     { value: 'by-time', label: t('configSections.fullscreen-chore-chart.layoutByTime') },

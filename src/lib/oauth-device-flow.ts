@@ -56,3 +56,55 @@ export function classifyDeviceTokenAnswer(status: number, body: unknown): Device
   if (status === 0 || status === 429 || status >= 500) return { kind: 'transient' };
   return { kind: 'denied', declined: false, detail: description ?? (error || undefined) };
 }
+
+/**
+ * A sign-in address as people would type it: "https://www.google.com/device"
+ * reads "google.com/device". For showing only; the link keeps the full
+ * address.
+ */
+export function shortSignInUrl(url: string): string {
+  return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+}
+
+/** What a provider hands back when a device-code sign-in starts (RFC 8628 section 3.2). */
+export interface DeviceCodeGrant {
+  deviceCode: string;
+  userCode: string;
+  /** RFC 8628 names it `verification_uri`; Google says `verification_url`. */
+  verificationUrl: string | null;
+  /** Seconds the code lives, when the provider said. */
+  expiresIn: number | null;
+  /** Seconds between polls, when the provider said. */
+  interval: number | null;
+}
+
+export type DeviceCodeStart =
+  | { ok: true; grant: DeviceCodeGrant }
+  /** `detail` is the provider's own reason, when it gave one. */
+  | { ok: false; status: number; detail: string | null };
+
+/**
+ * One start answer, by status and parsed body. A 2xx without both codes is a
+ * failure too: there is nothing to show and nothing to poll with. Defaults
+ * for a missing lifetime or interval are each provider's own, so they stay
+ * with the caller.
+ */
+export function parseDeviceCodeStart(ok: boolean, status: number, body: unknown): DeviceCodeStart {
+  const data: Record<string, unknown> = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+  const text = (value: unknown) => (typeof value === 'string' && value ? value : null);
+  const deviceCode = text(data.device_code);
+  const userCode = text(data.user_code);
+  if (!ok || !deviceCode || !userCode) {
+    return { ok: false, status, detail: text(data.error_description) ?? text(data.error) };
+  }
+  return {
+    ok: true,
+    grant: {
+      deviceCode,
+      userCode,
+      verificationUrl: text(data.verification_uri) ?? text(data.verification_url),
+      expiresIn: typeof data.expires_in === 'number' ? data.expires_in : null,
+      interval: typeof data.interval === 'number' ? data.interval : null,
+    },
+  };
+}

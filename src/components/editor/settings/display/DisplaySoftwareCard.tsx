@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Check, Copy } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import { useCopyFlash } from '@/hooks/useCopyFlash';
 import {
   buildDisplaySoftwareSetupCommand,
   buildDisplaySshCommand,
@@ -152,28 +153,10 @@ function CommandRow({
   testId: string;
   t: ReturnType<typeof useTranslate>;
 }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(command);
-    } catch {
-      // The hub is usually reached over plain HTTP on the LAN, where the
-      // async clipboard API is unavailable — fall back to the old selection
-      // trick rather than leaving the button dead.
-      const ta = document.createElement('textarea');
-      ta.value = command;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      const ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      if (!ok) return;
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  // The hub is usually reached over plain HTTP on the LAN, where the async
+  // clipboard API is missing; the shared copy carries the fallback.
+  const { copied, copy } = useCopyFlash();
+  const handleCopy = () => void copy(command);
 
   return (
     <div className="mb-3 last:mb-0">

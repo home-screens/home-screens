@@ -199,7 +199,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.networkPage.wifiScan.scanCooldownButton',
   'editor|settings.perDisplayPage.header.statusOffline',
   'editor|settings.perDisplayPage.header.statusOnline',
-  'editor|settings.perDisplayPage.overview.chipFieldNoDefault',
   'editor|settings.perDisplayPage.overview.transitionLabels.zoom',
   'editor|settings.pluginInstallPreview.sha256Heading',
   'editor|settings.pluginInstallPreview.versionPrefix',

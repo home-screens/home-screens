@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import ModalFrame from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import type { AuthStatus } from './types';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 // Status discriminants — kind drives styling/role explicitly so we never
 // sniff English prefixes from translated messages.
@@ -195,7 +196,7 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
               onChange={(e) => { setCurrentPassword(e.target.value); setModalStatus(null); }}
               placeholder={t('settings.securityPage.modal.currentPasswordPlaceholder')}
               autoFocus
-              className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`w-full ${SETTINGS_INPUT_CLASS}`}
             />
           )}
 
@@ -207,14 +208,14 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
                 onChange={(e) => { setNewPassword(e.target.value); setModalStatus(null); }}
                 placeholder={t('settings.securityPage.modal.newPasswordPlaceholder')}
                 autoFocus={mode === 'set'}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => { setConfirmPassword(e.target.value); setModalStatus(null); }}
                 placeholder={t('settings.securityPage.modal.confirmPasswordPlaceholder')}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
             </>
           )}

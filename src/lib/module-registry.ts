@@ -1,4 +1,5 @@
-import type { ModuleType } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance, type ModuleType } from '@/types/config';
+import { defaultPresetForLocale } from './news-presets';
 import type { LucideIcon } from 'lucide-react';
 import {
   Clock, CalendarDays, CloudSun, Hourglass, Laugh, Type, ImageIcon,
@@ -367,6 +368,42 @@ export function addedModuleSize(
 /** A new instance of this module goes to the canvas origin, not a drop point. */
 export function addsAtOrigin(def: Pick<ModuleDefinition, 'fillsCanvas' | 'fillsCanvasOnAdd'> | undefined): boolean {
   return Boolean(def?.fillsCanvas || def?.fillsCanvasOnAdd);
+}
+
+/**
+ * A new instance of a module, ready to be given an id and a place in the
+ * stack: its box, its registry config (plus any `configOverrides`) and its
+ * starting style. Every way of adding a module builds it here, so they
+ * cannot disagree about what a fresh one looks like.
+ */
+export function buildDefaultModule(
+  def: ModuleDefinition,
+  type: ModuleType,
+  opts: {
+    dims: { width: number; height: number };
+    /** The household's language, for defaults that are written in one. */
+    locale?: string;
+    position: { x: number; y: number };
+    configOverrides?: Record<string, unknown>;
+  },
+): Pick<ModuleInstance, 'type' | 'position' | 'size' | 'config' | 'style'> {
+  // Title fields only render inside ModuleWrapper's card, which plugins and
+  // cardless builtins never mount. Drop them from a manifest or registry
+  // defaultStyle so a placed instance never carries an invisible title the
+  // editor offers no way to see or clear.
+  const style = { ...DEFAULT_MODULE_STYLE, ...def.defaultStyle };
+  if (type.startsWith('plugin:') || def.cardless) {
+    delete style.title;
+    delete style.titleFontSize;
+  }
+  const config: Record<string, unknown> = { ...def.defaultConfig, ...(opts.configOverrides ?? {}) };
+  // The registry's default news feed is English; a household on another
+  // locale should start on a feed written in its own language.
+  if (type === 'news' || type === 'fullscreen-news') {
+    const preset = defaultPresetForLocale(opts.locale);
+    config.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
+  }
+  return { type, position: opts.position, size: addedModuleSize(def, opts.dims), config, style };
 }
 
 /**

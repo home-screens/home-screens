@@ -5,9 +5,11 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
+import { DeviceCodeButton, DeviceCodeLink } from './DeviceCodeParts';
 import type { PluginAuth } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 const log = logger('plugin-auth-ui');
 
@@ -319,7 +321,7 @@ export default function PluginAuthSection({
                 autoComplete="off"
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('settings.pluginAuth.garmin.emailPlaceholder')}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
               <input
                 type="password"
@@ -327,7 +329,7 @@ export default function PluginAuthSection({
                 autoComplete="new-password"
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('settings.pluginAuth.garmin.passwordPlaceholder')}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
               <Button
                 variant="primary"
@@ -347,7 +349,7 @@ export default function PluginAuthSection({
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value)}
                 placeholder={t('settings.pluginAuth.garmin.mfaPlaceholder')}
-                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+                className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
               <Button variant="primary" size="sm" onClick={submitMfa} disabled={busy || !mfaCode.trim()}>
                 {busy ? t('settings.pluginAuth.connecting') : t('settings.pluginAuth.garmin.mfaButton')}
@@ -360,17 +362,16 @@ export default function PluginAuthSection({
           <p className="text-xs text-hs-text-muted">
             {t('settings.pluginAuth.deviceCodeIntro')}
           </p>
-          <a
-            href={deviceSignIn.code.verificationUrl}
-            target="_blank"
-            rel="noreferrer"
+          <DeviceCodeLink
+            url={deviceSignIn.code.verificationUrl}
             className="block text-xs text-hs-accent underline break-all"
-          >
-            {deviceSignIn.code.verificationUrl}
-          </a>
-          <div className="text-center font-mono text-lg tracking-widest text-hs-text-body bg-hs-card border border-hs-border-strong rounded-md py-2">
-            {deviceSignIn.code.userCode}
-          </div>
+          />
+          <DeviceCodeButton
+            code={deviceSignIn.code.userCode}
+            testId="plugin-device-code"
+            className="group flex w-full items-center justify-center gap-3 font-mono text-lg tracking-widest text-hs-text-body bg-hs-card border border-hs-border-strong rounded-md py-2 hover:border-hs-accent transition-colors cursor-pointer"
+            labelClassName="font-sans text-xs tracking-normal text-hs-text-faint group-hover:text-hs-accent"
+          />
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.devicePolling')}</p>
             <Button variant="ghost" size="sm" onClick={deviceSignIn.cancel}>

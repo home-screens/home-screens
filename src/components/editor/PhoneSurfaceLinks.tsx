@@ -6,7 +6,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 import ModalFrame from '@/components/ui/ModalFrame';
-import { copyText } from '@/lib/clipboard';
+import { useCopyFlash } from '@/hooks/useCopyFlash';
 import {
   SURFACES_BY_CONTEXT,
   phoneSurfaceLabel,
@@ -184,14 +184,11 @@ function PhoneSurfaceDialogCard({ surface, context, origin }: { surface: PhoneSu
  */
 export function CopyLinkButton({ surface, context, origin }: { surface: PhoneSurface; context?: PhoneContext; origin: string }) {
   const t = useTranslate('editor');
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFlash();
 
-  const handleCopy = useCallback(async () => {
-    if (await copyText(phoneSurfaceUrl(surface, origin, context))) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }, [surface, context, origin]);
+  const handleCopy = useCallback(() => {
+    void copy(phoneSurfaceUrl(surface, origin, context));
+  }, [copy, surface, context, origin]);
 
   return (
     <button

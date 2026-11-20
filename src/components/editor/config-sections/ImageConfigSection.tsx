@@ -11,14 +11,11 @@ import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import { tileThumbnailUrl } from '@/lib/media-paths';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { useObjectFitOptions } from './option-hooks';
 
 export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const OBJECT_FIT_OPTIONS = [
-    { value: 'cover', label: t('common.objectFitCover') },
-    { value: 'contain', label: t('common.objectFitContain') },
-    { value: 'fill', label: t('common.objectFitFill') },
-  ] as const;
+  const OBJECT_FIT_OPTIONS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
   const [tab, setTab] = useState<'url' | 'library'>(() => {

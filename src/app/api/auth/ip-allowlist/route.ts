@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { getIpAllowlistConfig, setIpAllowlistConfig } from '@/lib/auth';
-import { validateCidr, isIpAllowed, normalizeIp } from '@/lib/ip-allowlist';
+import { isIpAllowed, normalizeIp } from '@/lib/ip-allowlist';
+import { cidrFault, type CidrFault } from '@/lib/cidr';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
+
+/** For the log and for API callers; the editor words the refusal itself from `code` and `entry`. */
+const FAULT_WORDS: Record<CidrFault, string> = {
+  format: 'Invalid CIDR format',
+  address: 'Invalid IP address',
+  prefix: 'Prefix length must be 0-32',
+};
 
 export const GET = withAuth(async (request: NextRequest) => {
   const config = await getIpAllowlistConfig();
@@ -40,9 +48,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
     if (typeof entry !== 'string') {
       return NextResponse.json({ error: 'Allowlist entries must be strings' }, { status: 400 });
     }
-    const err = validateCidr(entry);
-    if (err) {
-      return NextResponse.json({ error: `Invalid entry "${entry}": ${err}`, code: 'invalid_address', entry }, { status: 400 });
+    const fault = cidrFault(entry);
+    if (fault) {
+      return NextResponse.json({ error: `Invalid entry "${entry}": ${FAULT_WORDS[fault]}`, code: 'invalid_address', entry }, { status: 400 });
     }
   }
 
