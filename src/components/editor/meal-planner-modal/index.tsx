@@ -782,6 +782,7 @@ export default function MealPlannerModal({
           onSetSlotTime={setSlotTime}
           onSuggestRandom={suggestRandom}
           suggesting={suggesting}
+          canSuggest={onMealie || savedMeals.length > 0}
           loaded={loaded}
           onCopyLastWeek={copyLastWeek}
           hasPreviousWeek={hasPreviousWeekEntries}

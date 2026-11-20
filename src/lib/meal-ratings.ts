@@ -135,6 +135,30 @@ export function dinnerRatingDate(
   return toISODate(yesterday);
 }
 
+/**
+ * The days the phone's Rate Dinner lists, and the one it opens on. The list
+ * is the week the Meals tab is showing; it opens on the last dinner the
+ * family sat down to (`dinnerRatingDate`). On the week's first morning that
+ * dinner was the day before the week began, so that day is added in front:
+ * the sheet must not open on a dinner nobody has eaten yet while the wall
+ * offers last night's. A week that holds neither opens on today, or on its
+ * first day.
+ */
+export function dinnerRatingChoices(
+  weekDates: readonly string[],
+  todayISO: string,
+  nowMinutes: number,
+  plan: readonly PlannedMeal[],
+  defaults: Partial<Record<MealSlotType, string>>,
+): { days: string[]; date: string } {
+  const last = dinnerRatingDate(todayISO, nowMinutes, plan, defaults);
+  if (weekDates.includes(last)) return { days: [...weekDates], date: last };
+  const before = fromISODate(weekDates[0]);
+  before.setDate(before.getDate() - 1);
+  if (toISODate(before) === last) return { days: [last, ...weekDates], date: last };
+  return { days: [...weekDates], date: weekDates.includes(todayISO) ? todayISO : weekDates[0] };
+}
+
 export function dinnerRatingMeals(plan: readonly PlannedMeal[], meals: readonly SavedMeal[], date: string): SavedMeal[] {
   const ids = new Set<string>();
   for (const entry of plan) {

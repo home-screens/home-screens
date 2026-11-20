@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRefetchOnClose } from '@/hooks/useRefetchOnClose';
+import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -54,11 +55,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   // The modal writes to the store directly, so the picker's names and the
   // "which list is selected" lookup are refreshed once it closes. The hook
   // already loads on mount; skipping the first run keeps mount at one request.
-  const didMount = useRef(false);
-  useEffect(() => {
-    if (!didMount.current) { didMount.current = true; return; }
-    if (!showModal) refetch();
-  }, [showModal, refetch]);
+  useRefetchOnClose(showModal, refetch);
 
   const createList = async () => {
     const name = newName.trim();

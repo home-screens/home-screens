@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  applyMealVoteChanges, dinnerRatingDate, dinnerRatingGap, dinnerRatingMeals, dinnerTypedDishes, familyMealAverage, mealVoteChangeLanded,
+  applyMealVoteChanges, dinnerRatingChoices, dinnerRatingDate, dinnerRatingGap, dinnerRatingMeals, dinnerTypedDishes, familyMealAverage, mealVoteChangeLanded,
   normalizeFamilyMealRatings, pruneFamilyMealRatings, setFamilyMealRating, validateFamilyMealRatings,
 } from '../meal-ratings';
 
@@ -133,5 +133,37 @@ describe('which dinner Rate Dinner means', () => {
     expect(dinnerTypedDishes(typed, '2026-01-04')).toEqual(['Garlic bread', 'Ice cream']);
     expect(dinnerTypedDishes(typed, '2026-01-05')).toEqual(['Leftovers']);
     expect(dinnerTypedDishes(typed, '2026-01-06')).toEqual([]);
+  });
+});
+
+describe("the days the phone's Rate Dinner lists", () => {
+  // Monday 5 January 2026 starts the week.
+  const week = ['2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', '2026-01-10', '2026-01-11'];
+  const plan = [
+    { date: '2026-01-04', slot: 'dinner' as const, mealId: 'roast' },
+    { date: '2026-01-05', slot: 'dinner' as const, mealId: 'soup' },
+  ];
+  const defaults = { dinner: '18:00' };
+
+  it("puts last night in front on the week's first morning and opens on it", () => {
+    expect(dinnerRatingChoices(week, '2026-01-05', 8 * 60, plan, defaults)).toEqual({ days: ['2026-01-04', ...week], date: '2026-01-04' });
+  });
+
+  it("lists the week alone from the first day's dinner time on", () => {
+    expect(dinnerRatingChoices(week, '2026-01-05', 18 * 60, plan, defaults)).toEqual({ days: week, date: '2026-01-05' });
+    expect(dinnerRatingChoices(week, '2026-01-07', 8 * 60, plan, defaults)).toEqual({ days: week, date: '2026-01-06' });
+  });
+
+  it("offers tonight's dinner in front of next week once it is served", () => {
+    const next = ['2026-01-12', '2026-01-13', '2026-01-14', '2026-01-15', '2026-01-16', '2026-01-17', '2026-01-18'];
+    expect(dinnerRatingChoices(next, '2026-01-11', 20 * 60, plan, defaults)).toEqual({ days: ['2026-01-11', ...next], date: '2026-01-11' });
+  });
+
+  it('opens a week far from the last dinner on its first day, and last week on nothing it does not hold', () => {
+    const later = ['2026-02-02', '2026-02-03', '2026-02-04', '2026-02-05', '2026-02-06', '2026-02-07', '2026-02-08'];
+    expect(dinnerRatingChoices(later, '2026-01-07', 8 * 60, plan, defaults)).toEqual({ days: later, date: '2026-02-02' });
+    // Paged back a week on a Monday morning: last night is that week's last day.
+    const last = ['2025-12-29', '2025-12-30', '2025-12-31', '2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04'];
+    expect(dinnerRatingChoices(last, '2026-01-05', 8 * 60, plan, defaults)).toEqual({ days: last, date: '2026-01-04' });
   });
 });

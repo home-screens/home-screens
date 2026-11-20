@@ -1305,24 +1305,71 @@ test('fullscreen-meal-planner: toggling Show Pictures persists', async ({ page, 
   expect((await moduleConfig(request, 'fullscreen-meal-planner')).showEmoji).toBe(false);
 });
 
-test('fullscreen-meal-planner: the Recipe book hides Show Tags and the tap action, which it does not use', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner'));
+test('fullscreen-meal-planner: each view offers only the switches it draws, and keeps the ones it hides', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner', { view: 'today', showTags: false }));
+  const view = (value: string) => autosaved(page, async () => {
+    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption(value);
+  });
+  // Today draws everything.
   await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Difficulty' })).toBeVisible();
   await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
 
-  await autosaved(page, async () => {
-    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('recipes');
-  });
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  // The Recipe book: a tile always shows its picture and minutes, and a tap always opens the card.
+  await view('recipes');
+  for (const name of ['Show Tags', 'Show Pictures', 'Show Cooking Time', 'Show Difficulty']) {
+    await expect(page.getByRole('switch', { name })).toHaveCount(0);
+  }
   await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
-  // The settings it does use are still there.
-  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Family Ratings' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Title' })).toBeVisible();
 
-  await autosaved(page, async () => {
-    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('week');
+  // The grocery list draws no dishes at all; taps still tick it.
+  await view('grocery');
+  for (const name of ['Show Tags', 'Show Pictures', 'Show Cooking Time', 'Show Family Ratings', 'Show Difficulty']) {
+    await expect(page.getByRole('switch', { name })).toHaveCount(0);
+  }
+  await expect(page.getByRole('switch', { name: 'Show Title' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
+
+  // The Menu board and Next meal follow Tap on the Wall too, so the switch is there.
+  await view('menu-board');
+  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  await view('next-meal');
+  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+
+  // A switch hidden along the way kept its value.
+  await view('today');
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveAttribute('aria-checked', 'false');
+  expect((await moduleConfig(request, 'fullscreen-meal-planner')).showTags).toBe(false);
+});
+
+test('meal-planner: each view offers only the switches it draws, and Tap on the Wall in every one', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  const view = (value: string) => autosaved(page, async () => {
+    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption(value);
   });
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+  // The week grid has no room for minutes or tags.
+  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+
+  for (const value of ['today', 'next-meal', 'compact', 'list', 'grocery', 'recipes']) {
+    await view(value);
+    await expect(page.getByRole('switch', { name: 'Tap on the Wall' }), value).toBeVisible();
+  }
+  // Recipes: no heading of its own, so the title picker does not offer one.
+  await expect(page.getByRole('combobox', { name: 'Title', exact: true }).locator('option[value="own"]')).toHaveCount(0);
+
+  await view('grocery');
+  for (const name of ['Show Pictures', 'Show Cooking Time', 'Show Tags', 'Show Family Ratings']) {
+    await expect(page.getByRole('switch', { name })).toHaveCount(0);
+  }
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
+  // The list's name is its own title.
+  await expect(page.getByRole('combobox', { name: 'Title', exact: true }).locator('option[value="own"]')).toHaveCount(1);
 });
 
 test('fullscreen-weather: switching Sky persists', async ({ page, request }) => {
@@ -1789,7 +1836,8 @@ test('meal-planner: switching the View persists', async ({ page, request }) => {
 });
 
 test('meal-planner: toggling Show Cooking Time off persists', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  // The List view: the week grid has no room for minutes, so its panel does not offer the switch.
+  await selectModule(page, request, buildModuleInstance('meal-planner', { view: 'list' }));
 
   // showPrepTime defaults on (?? true) → one click flips it off.
   await autosaved(page, async () => {
@@ -1800,7 +1848,8 @@ test('meal-planner: toggling Show Cooking Time off persists', async ({ page, req
 });
 
 test('meal-planner: toggling Show Tags off persists', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  // The List view, for the same reason.
+  await selectModule(page, request, buildModuleInstance('meal-planner', { view: 'list' }));
 
   await autosaved(page, async () => {
     await page.getByRole('switch', { name: 'Show Tags' }).click();
@@ -1820,8 +1869,8 @@ test('meal-planner: switching the tap-to-open recipe action persists', async ({ 
   expect((await moduleConfig(request, 'meal-planner')).tapRecipeAction).toBe('qr');
 });
 
-test('meal-planner: the Recipes view hides Show Tags and the tap action, which it does not use', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('meal-planner'));
+test('meal-planner: the Recipes view hides Show Tags, Show Cooking Time and the tap action, which it does not use', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner', { view: 'list' }));
   await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
   await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
 
@@ -1830,7 +1879,10 @@ test('meal-planner: the Recipes view hides Show Tags and the tap action, which i
   });
   await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
   await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toBeVisible();
+  // A row always says how long the recipe takes; its picture and stars are the choices left.
+  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Family Ratings' })).toBeVisible();
 
   await autosaved(page, async () => {
     await viewSelect(page).selectOption('list');

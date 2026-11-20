@@ -10,6 +10,7 @@ import { weekGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks';
 import { saveGroceryCheck, tickMealieShoppingItem } from '@/lib/meal-client';
 import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
+import type { MealieProblem } from '@/lib/meal-sources';
 import { wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows, type WallGroceryItem, type WallGroceryRows } from '@/lib/grocery-wall';
 import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
 import { usePressedKey } from './usePressedKey';
@@ -32,6 +33,8 @@ export interface LocalGroceryData {
 
 export interface WallGrocery {
   state: 'loading' | 'ready' | 'failed';
+  /** Why Mealie's list could not be read, while `failed`. */
+  problem?: MealieProblem;
   /** Mealie's list name; null for this week's list. */
   listName: string | null;
   /** While the plan lives in Mealie but the household has no list there. */
@@ -53,8 +56,18 @@ const EMPTY_ROWS: WallGroceryRows = { groups: [], left: 0, got: 0 };
  * (`PATCH /api/mealie/shopping/items/<id>`, or `POST /api/meals/grocery` for
  * the week), drawn at once and kept until the list read back agrees.
  * `off` (a view that shows no list) reads nothing.
+ *
+ * `mealieProblem` is what the meal plan's own read of Mealie last said was
+ * wrong, if anything. The list is read from the same Mealie with the same
+ * token, so a list that cannot be read is named by it (a refused token, a
+ * wrong address); with the plan read fine, the list is just out of reach.
  */
-export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalGroceryData | null, todayISO: string): WallGrocery {
+export function useWallGrocery(
+  source: 'local' | 'mealie' | 'off',
+  local: LocalGroceryData | null,
+  todayISO: string,
+  mealieProblem: MealieProblem = 'unreachable',
+): WallGrocery {
   const [wire, wireError] = useFetchData<MealieShoppingAnswer>(source === 'mealie' ? '/api/mealie/shopping' : '', WALL_SHOPPING_TTL_MS);
 
   const week = useMemo(
@@ -133,7 +146,10 @@ export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalG
 
   if (source === 'mealie') {
     const state = wire ? 'ready' : wireError ? 'failed' : 'loading';
-    return { state, listName: wire?.list?.name ?? null, noMealieList: !!wire && !wire.list, rows: wire ? rows : EMPTY_ROWS, week: null, pressed, tick };
+    return {
+      state, ...(state === 'failed' ? { problem: mealieProblem } : {}),
+      listName: wire?.list?.name ?? null, noMealieList: !!wire && !wire.list, rows: wire ? rows : EMPTY_ROWS, week: null, pressed, tick,
+    };
   }
   return { state: local ? 'ready' : 'loading', listName: null, noMealieList: false, rows, week, pressed, tick };
 }

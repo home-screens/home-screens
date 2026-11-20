@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { SavedMeal } from '@/types/config';
-import { dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, pickerEnterChoice, pickerMealGroups, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
+import { buildSavedMeal, mealFormFields, dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, pickerEnterChoice, pickerMealGroups, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
 
 const meal = (id: string, extra: Partial<SavedMeal> = {}): SavedMeal => ({ id, name: id, ...extra });
 
@@ -266,3 +266,56 @@ describe('dinnerCategories', () => {
   });
 });
 
+describe('a saved meal in a form and out of it', () => {
+  const stored: SavedMeal = {
+    id: 'm1', name: 'Chili', prepTime: 10, cookTime: 40, servings: 6, difficulty: 'easy',
+    tags: ['Batch Cook', 'batch-cook', 'quick'], ingredients: [{ name: 'Beans', amount: '2 cans' }],
+    recipeUrl: 'https://example.com/chili', notes: 'Better the next day.', isFavorite: true,
+  };
+
+  it('starts a new meal with the plate and nothing else', () => {
+    expect(mealFormFields(null)).toEqual({
+      name: '', emoji: '🍽️', prepTime: undefined, cookTime: undefined, servings: undefined, difficulty: undefined,
+      kind: 'main', tags: [], ingredients: [], recipeUrl: '', notes: '', favorite: false,
+    });
+  });
+
+  it('opens a saved meal with no picture without one, and reads its tags in their stored form once each', () => {
+    const fields = mealFormFields(stored);
+    expect(fields.emoji).toBe('');
+    expect(fields.tags).toEqual(['batch-cook', 'quick']);
+    expect(fields.kind).toBe('main');
+    expect(fields.favorite).toBe(true);
+    // A copy: typing in the form does not change the meal on screen behind it.
+    expect(fields.ingredients).toEqual(stored.ingredients);
+    expect(fields.ingredients[0]).not.toBe(stored.ingredients![0]);
+  });
+
+  it('saves a meal opened and left alone as it was, apart from the tidied tags', () => {
+    expect(buildSavedMeal(mealFormFields(stored), stored, () => 'new')).toEqual({ ...stored, emoji: undefined, category: undefined, tags: ['batch-cook', 'quick'] });
+  });
+
+  it('refuses a meal with no name', () => {
+    expect(buildSavedMeal({ ...mealFormFields(stored), name: '   ' }, stored, () => 'new')).toBeNull();
+    expect(buildSavedMeal(mealFormFields(null), null, () => 'new')).toBeNull();
+  });
+
+  it('gives a new meal its id and trims what was typed', () => {
+    const built = buildSavedMeal({ ...mealFormFields(null), name: '  Tacos ', prepTime: '', cookTime: 20, notes: '  ', recipeUrl: ' https://example.com ' }, null, () => 'new-id');
+    expect(built).toEqual({
+      id: 'new-id', name: 'Tacos', emoji: '🍽️', prepTime: undefined, cookTime: 20, servings: undefined, difficulty: undefined,
+      category: undefined, tags: undefined, ingredients: undefined, recipeUrl: 'https://example.com', notes: undefined, isFavorite: undefined,
+    });
+  });
+
+  it('keeps the favourite of a meal whose form has no heart, and follows the heart of one that has', () => {
+    const { favorite: _heart, ...noHeart } = mealFormFields(stored);
+    expect(buildSavedMeal(noHeart, stored, () => 'new')?.isFavorite).toBe(true);
+    expect(buildSavedMeal({ ...noHeart, favorite: false }, stored, () => 'new')?.isFavorite).toBeUndefined();
+  });
+
+  it('keeps a side a side, and a meal with no kind left on main without one', () => {
+    expect(buildSavedMeal({ ...mealFormFields(stored), kind: 'side' }, stored, () => 'new')?.category).toBe('side');
+    expect(buildSavedMeal(mealFormFields({ ...stored, category: 'main' }), { ...stored, category: 'main' }, () => 'new')?.category).toBe('main');
+  });
+});

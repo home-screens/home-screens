@@ -1,5 +1,6 @@
 'use client';
 
+import { MEAL_PLANNER_VIEWS_WITHOUT_TITLE } from '@/lib/meal-view-options';
 import { useEffect, useRef, useState } from 'react';
 
 import { useEditorStore } from '@/stores/editor-store';
@@ -213,7 +214,8 @@ function deriveTitleMode(mod: ModuleInstance, hasOwnTitle: boolean): TitleMode {
 const VIEWS_WITHOUT_OWN_TITLE: Partial<Record<BuiltinModuleType, string[]>> = {
   weather: ['current', 'combined', 'compact', 'precipitation', 'alerts', 'sun'],
   news: ['ticker', 'compact'],
-  'meal-planner': ['week', 'next-meal', 'compact', 'list'],
+  // From the table the meal planner's own panel hides its switches by.
+  'meal-planner': MEAL_PLANNER_VIEWS_WITHOUT_TITLE,
 };
 
 function moduleHasOwnTitleForView(mod: ModuleInstance, hasOwnTitle: boolean): boolean {

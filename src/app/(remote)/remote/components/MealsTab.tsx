@@ -40,6 +40,7 @@ export default function MealsTab() {
     meals,
     familyRatings,
     nowMinutes,
+    plan,
     weekPlan,
     week,
     settings,
@@ -369,7 +370,7 @@ export default function MealsTab() {
           weekDates={weekDates}
           todayISO={todayISO}
           nowMinutes={nowMinutes}
-          plan={weekPlan}
+          plan={plan}
           meals={meals}
           defaultSlotTimes={settings.defaultSlotTimes}
           waiting={unreachable

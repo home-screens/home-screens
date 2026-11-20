@@ -1,6 +1,7 @@
-import type { MealCourseKind, MealSlotType, SavedMeal } from '@/types/config';
+import type { MealCourseKind, MealIngredient, MealSlotType, SavedMeal } from '@/types/config';
 import { parseMealieMealId } from './mealie-map';
-import { formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constants';
+import { DEFAULT_MEAL_EMOJI, formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constants';
+import { ingredientsToSave } from './meal-ingredients';
 import type { MealPickTarget } from './meal-courses';
 
 /**
@@ -62,6 +63,79 @@ export function mealKind(meal: Pick<SavedMeal, 'category'>): NonNullable<SavedMe
  */
 export function kindToSave(picked: NonNullable<SavedMeal['category']>, previous: SavedMeal['category']): SavedMeal['category'] {
   return picked === 'main' && previous === undefined ? undefined : picked;
+}
+
+/**
+ * A saved meal as a form holds it while the family edits it. The phone's form
+ * and the editor's Detail tab keep these in their own state and draw them
+ * their own way; what an absent value shows as, and what is saved, is decided
+ * here once.
+ */
+export interface MealFormFields {
+  name: string;
+  /** Empty for a meal with no picture of its own. */
+  emoji: string;
+  /** Minutes; a cleared number box holds `''` or nothing. */
+  prepTime: number | '' | undefined;
+  cookTime: number | '' | undefined;
+  servings: number | '' | undefined;
+  difficulty: SavedMeal['difficulty'];
+  kind: NonNullable<SavedMeal['category']>;
+  tags: string[];
+  ingredients: MealIngredient[];
+  recipeUrl: string;
+  notes: string;
+  /** The form's own heart. Left out by a form that has none, and the meal keeps the one it had. */
+  favorite?: boolean;
+}
+
+/**
+ * What a form opens with: a saved meal's values, or a new meal's (`null`).
+ * A new meal starts with the plate; a saved meal with no picture stays
+ * without one, so opening and saving it does not give it a picture on the
+ * wall. Tags are read in their stored form ("Batch Cook" is `batch-cook`),
+ * once each, so every form ticks the same chip and saves the same word.
+ */
+export function mealFormFields(meal: SavedMeal | null): Required<MealFormFields> {
+  return {
+    name: meal?.name ?? '',
+    emoji: meal ? meal.emoji ?? '' : DEFAULT_MEAL_EMOJI,
+    prepTime: meal?.prepTime,
+    cookTime: meal?.cookTime,
+    servings: meal?.servings,
+    difficulty: meal?.difficulty,
+    kind: meal ? mealKind(meal) : 'main',
+    tags: [...new Set((meal?.tags ?? []).map(normalizeTag))],
+    ingredients: (meal?.ingredients ?? []).map((row) => ({ ...row })),
+    recipeUrl: meal?.recipeUrl ?? '',
+    notes: meal?.notes ?? '',
+    favorite: meal?.isFavorite ?? false,
+  };
+}
+
+/**
+ * The meal a form saves, or null while it has no name: a meal without one is
+ * a blank row in every list and picker. `existing` is the meal being edited
+ * (null for a new one, which gets `newId()`).
+ */
+export function buildSavedMeal(fields: MealFormFields, existing: SavedMeal | null, newId: () => string): SavedMeal | null {
+  const name = fields.name.trim();
+  if (!name) return null;
+  return {
+    id: existing?.id ?? newId(),
+    name,
+    emoji: fields.emoji || undefined,
+    prepTime: Number(fields.prepTime) || undefined,
+    cookTime: Number(fields.cookTime) || undefined,
+    servings: Number(fields.servings) || undefined,
+    difficulty: fields.difficulty,
+    category: kindToSave(fields.kind, existing?.category),
+    tags: fields.tags.length > 0 ? fields.tags : undefined,
+    ingredients: ingredientsToSave(fields.ingredients),
+    recipeUrl: fields.recipeUrl.trim() || undefined,
+    notes: fields.notes.trim() || undefined,
+    isFavorite: fields.favorite === undefined ? existing?.isFavorite : fields.favorite || undefined,
+  };
 }
 
 /**

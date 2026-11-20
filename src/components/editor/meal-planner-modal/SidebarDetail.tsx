@@ -1,14 +1,14 @@
 'use client';
 
-import { ingredientsToSave } from '@/lib/meal-ingredients';
 import { useState, useEffect, useMemo } from 'react';
 import { MealRatingControl } from './MealRatingControl';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
-import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { MEAL_TAGS, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { searchFoodEmojis } from '@/lib/meal-emoji-words';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
-import { kindToSave, mealKind } from '@/lib/meal-dish-rules';
+import { buildSavedMeal, mealFormFields } from '@/lib/meal-dish-rules';
 import { useTranslate } from '@/i18n';
 import Glyph from '@/components/ui/Glyph';
 import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
@@ -17,58 +17,6 @@ import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconS
 const INGREDIENT_CATEGORIES: GroceryCategory[] = [
   'produce', 'dairy', 'meat', 'seafood', 'bakery', 'pantry', 'frozen', 'beverages', 'other',
 ];
-
-/** Searchable keywords for each food emoji */
-const EMOJI_KEYWORDS: Record<string, string[]> = {
-  '🍳': ['eggs', 'fried', 'breakfast'],
-  '🥞': ['pancakes', 'breakfast'],
-  '🧇': ['waffle', 'breakfast'],
-  '🥣': ['cereal', 'oatmeal', 'breakfast', 'bowl'],
-  '🥗': ['salad', 'healthy', 'vegetables'],
-  '🥪': ['sandwich', 'lunch'],
-  '🌮': ['taco', 'mexican'],
-  '🌯': ['burrito', 'wrap', 'mexican'],
-  '🍕': ['pizza', 'italian'],
-  '🍔': ['burger', 'hamburger'],
-  '🍝': ['pasta', 'spaghetti', 'italian'],
-  '🍜': ['noodles', 'ramen', 'soup', 'asian'],
-  '🍲': ['stew', 'soup', 'pot'],
-  '🥘': ['curry', 'casserole', 'pan'],
-  '🍛': ['curry', 'rice', 'indian'],
-  '🍣': ['sushi', 'japanese', 'fish'],
-  '🍱': ['bento', 'japanese', 'box'],
-  '🥩': ['steak', 'meat', 'beef'],
-  '🍗': ['chicken', 'poultry', 'drumstick'],
-  '🐟': ['fish', 'seafood'],
-  '🥦': ['broccoli', 'vegetable', 'green'],
-  '🥕': ['carrot', 'vegetable'],
-  '🌽': ['corn', 'vegetable'],
-  '🥑': ['avocado', 'guacamole'],
-  '🍅': ['tomato', 'vegetable'],
-  '🫑': ['pepper', 'vegetable', 'bell pepper'],
-  '🧀': ['cheese', 'dairy'],
-  '🥚': ['egg', 'breakfast'],
-  '🍞': ['bread', 'toast', 'bakery'],
-  '🥐': ['croissant', 'pastry', 'bakery', 'breakfast'],
-  '🍰': ['cake', 'dessert'],
-  '🧁': ['cupcake', 'dessert'],
-  '🍪': ['cookie', 'dessert', 'snack'],
-  '🍩': ['donut', 'doughnut', 'dessert'],
-  '🍫': ['chocolate', 'dessert', 'candy'],
-  '🥤': ['drink', 'soda', 'smoothie', 'beverage'],
-  '☕': ['coffee', 'drink', 'beverage', 'hot'],
-  '🍵': ['tea', 'drink', 'beverage', 'hot'],
-  '🧃': ['juice', 'drink', 'beverage'],
-  '🥛': ['milk', 'drink', 'dairy', 'beverage'],
-  '🥧': ['pie', 'dessert'],
-  '🍿': ['popcorn', 'snack'],
-  '🥜': ['peanuts', 'nuts', 'snack'],
-  '🫘': ['beans', 'legumes'],
-  '🍓': ['strawberry', 'fruit', 'berry'],
-  '🍌': ['banana', 'fruit'],
-  '🍎': ['apple', 'fruit'],
-  '🥝': ['kiwi', 'fruit'],
-};
 
 interface SidebarDetailProps {
   meal: SavedMeal | null;
@@ -97,28 +45,24 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
   const [notes, setNotes] = useState('');
   const [emojiSearch, setEmojiSearch] = useState('');
 
-  const filteredEmojis = useMemo(() => {
-    if (!emojiSearch) return FOOD_EMOJIS as readonly string[];
-    const q = emojiSearch.toLowerCase();
-    return (FOOD_EMOJIS as readonly string[]).filter(
-      (e) => EMOJI_KEYWORDS[e]?.some((kw) => kw.includes(q)),
-    );
-  }, [emojiSearch]);
+  // Words in every language Home Screens ships, so "kaas" finds the cheese in a Dutch editor.
+  const filteredEmojis = useMemo(() => searchFoodEmojis(emojiSearch), [emojiSearch]);
 
   // Reinitialize all local state when the meal changes
   useEffect(() => {
     if (!meal) return;
-    setName(meal.name);
-    setEmoji(meal.emoji ?? '');
-    setPrepTime(meal.prepTime);
-    setCookTime(meal.cookTime);
-    setServings(meal.servings);
-    setDifficulty(meal.difficulty);
-    setKind(mealKind(meal));
-    setTags((meal.tags ?? []).map(normalizeTag));
-    setIngredients(meal.ingredients ? meal.ingredients.map((i) => ({ ...i })) : []);
-    setRecipeUrl(meal.recipeUrl ?? '');
-    setNotes(meal.notes ?? '');
+    const fields = mealFormFields(meal);
+    setName(fields.name);
+    setEmoji(fields.emoji);
+    setPrepTime(fields.prepTime || undefined);
+    setCookTime(fields.cookTime || undefined);
+    setServings(fields.servings || undefined);
+    setDifficulty(fields.difficulty);
+    setKind(fields.kind);
+    setTags(fields.tags);
+    setIngredients(fields.ingredients);
+    setRecipeUrl(fields.recipeUrl);
+    setNotes(fields.notes);
     setEmojiSearch('');
   }, [meal?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -135,24 +79,17 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     );
   }
 
+  // The meal as it would be saved (the favourite is the heart above, saved
+  // on its own, so the meal keeps the one it has); null while it has no name,
+  // and Save is off: a meal without one is a blank row in every list.
+  const assembled = buildSavedMeal(
+    { name, emoji, prepTime, cookTime, servings, difficulty, kind, tags, ingredients, recipeUrl, notes },
+    meal,
+    () => meal.id,
+  );
+
   function handleSave() {
-    if (!meal) return;
-    const assembled: SavedMeal = {
-      id: meal.id,
-      name: name.trim(),
-      emoji: emoji || undefined,
-      prepTime: prepTime || undefined,
-      cookTime: cookTime || undefined,
-      servings: servings || undefined,
-      difficulty: difficulty,
-      category: kindToSave(kind, meal.category),
-      tags: tags.length > 0 ? tags : undefined,
-      ingredients: ingredientsToSave(ingredients),
-      recipeUrl: recipeUrl.trim() || undefined,
-      notes: notes.trim() || undefined,
-      isFavorite: meal.isFavorite,
-    };
-    onSave(assembled);
+    if (assembled) onSave(assembled);
   }
 
   function toggleTag(tag: string) {
@@ -449,7 +386,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
       {/* Pinned footer */}
       <div className="px-4 py-2.5 border-t border-hs-border-strong flex gap-2">
-        <Button variant="primary" className="flex-1" onClick={handleSave}>
+        <Button variant="primary" className="flex-1" onClick={handleSave} disabled={!assembled}>
           {t('mealPlannerModal.detail.saveChangesButton')}
         </Button>
         <Button variant="danger" onClick={() => onDelete(meal.id)}>

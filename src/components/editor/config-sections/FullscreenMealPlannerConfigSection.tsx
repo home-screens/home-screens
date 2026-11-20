@@ -4,15 +4,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
-import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import { mealHasRecipe } from '@/lib/meal-recipe';
-import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { mealSaveFailedKey } from '@/components/editor/meal-planner-modal/save-failed-words';
+import MealPlanLauncher from './MealPlanLauncher';
+import { mealViewOptions } from '@/lib/meal-view-options';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
@@ -31,9 +30,8 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
-  // The Recipe book lists recipes to open on the card: it shows no tags, and
-  // a tap there always opens the card, so neither setting does anything.
-  const plannedMeals = view !== 'recipes';
+  // Only the switches this view draws; a hidden one keeps its saved value.
+  const reads = mealViewOptions('fullscreen-meal-planner', view);
   // The accent the module paints while accentColor is empty (see the module).
   const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens('fullscreen-meal-planner', c.theme), DEFAULT_ACCENT_COLOR);
   const accentColor = c.accentColor || themeAccent;
@@ -56,11 +54,8 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   const typographySizeOptions = useTypographySizeOptions();
 
   const [showModal, setShowModal] = useState(false);
-  const { mealData, handleModalUpdate, toggleGroceryItem, saveError, reload, showMealieRange, mealieWeeks, suggestFromMealie } = useMealPlannerData<Config>({
-    mod,
-    set,
-    showModal,
-  });
+  const meals = useMealPlannerData<Config>({ mod, set, showModal });
+  const { mealData } = meals;
 
   return (
     <>
@@ -119,19 +114,27 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       />
 
       {/* Display Toggles */}
-      <Toggle label={t('configSections.fullscreen-meal-planner.showEmoji')} checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
-      <Toggle label={t('configSections.fullscreen-meal-planner.showPrepTime')} checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
-      {plannedMeals && (
+      {reads.pictures && (
+        <Toggle label={t('configSections.fullscreen-meal-planner.showEmoji')} checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
+      )}
+      {reads.cookingTime && (
+        <Toggle label={t('configSections.fullscreen-meal-planner.showPrepTime')} checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
+      )}
+      {reads.tags && (
         <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
       )}
-      <Toggle label={t('configSections.fullscreen-meal-planner.showFamilyRatings')} checked={c.showFamilyRatings !== false} onChange={(v) => set({ showFamilyRatings: v })} />
-      <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
-      {view !== 'next-meal' && (
+      {reads.ratings && (
+        <Toggle label={t('configSections.fullscreen-meal-planner.showFamilyRatings')} checked={c.showFamilyRatings !== false} onChange={(v) => set({ showFamilyRatings: v })} />
+      )}
+      {reads.difficulty && (
+        <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
+      )}
+      {reads.title && (
         <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       )}
 
       {/* Tap-to-open recipe */}
-      {plannedMeals && (
+      {reads.tapAction && (
         <>
           <LabeledSelect
             label={t('configSections.fullscreen-meal-planner.tapRecipeAction')}
@@ -162,19 +165,15 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         </>
       )}
 
-      {/* Ticking the grocery list, stepping through a recipe, searching the recipe book and scrolling on the wall */}
-      {(view === 'recipe' || view === 'grocery' || view === 'recipes' || view === 'week' || view === 'today') && (
-        <>
-          <Toggle
-            label={t('configSections.fullscreen-meal-planner.interactive')}
-            checked={c.interactive !== false}
-            onChange={(v) => set({ interactive: v })}
-          />
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">
-            {t('configSections.fullscreen-meal-planner.interactiveHint')}
-          </p>
-        </>
-      )}
+      {/* Every view follows it: ticking the grocery list, opening and stepping through recipes, rating dinner, searching the recipe book and scrolling on the wall */}
+      <Toggle
+        label={t('configSections.fullscreen-meal-planner.interactive')}
+        checked={c.interactive !== false}
+        onChange={(v) => set({ interactive: v })}
+      />
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
+        {t('configSections.fullscreen-meal-planner.interactiveHint')}
+      </p>
 
       {/* Accent Color */}
       <FullscreenAccentPicker
@@ -193,58 +192,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       </p>
       <PhoneSurfaceLinks context="meals" />
 
-      {/* Open Modal */}
-      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          {mealData.source === 'mealie' ? (
-            // Mealie's recipes are not a library kept here, and its plan here
-            // is only the weeks around today: say where the plan lives instead.
-            <span>{t('mealPlannerModal.mealie.fromMealie')}</span>
-          ) : (
-            <>
-              <span>{t('configSections.fullscreen-meal-planner.savedMealsCount', { count: mealData.savedMeals.length })}</span>
-              <span>&middot;</span>
-              <span>{t('configSections.fullscreen-meal-planner.plannedCount', { count: mealData.plan.length })}</span>
-            </>
-          )}
-        </div>
-
-        <Button
-          variant="primary"
-          className="w-full text-xs"
-          onClick={() => setShowModal(true)}
-        >
-          {t('configSections.meal-planner.editMealPlan')}
-        </Button>
-        {/* The meal change, not the layout: meals save on their own, so the
-            editor's Saved can be right while this is not. */}
-        {saveError && (
-          <p role="alert" className="text-xs text-hs-danger">{t(mealSaveFailedKey(saveError, mealData.source === 'mealie'))}</p>
-        )}
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <MealPlannerModal
-          savedMeals={mealData.savedMeals}
-          plan={mealData.plan}
-          settings={mealData.settings}
-          groceryChecked={mealData.groceryChecked}
-          familyRatings={mealData.familyRatings}
-          onToggleGroceryItem={toggleGroceryItem}
-          accentColor={accentColor}
-          onUpdate={handleModalUpdate}
-          onClose={() => setShowModal(false)}
-          source={mealData.source}
-          mealie={mealData.mealie}
-          onShowMealieRange={showMealieRange}
-          mealieWeeks={mealieWeeks}
-          onReload={reload}
-          onSuggestFromMealie={suggestFromMealie}
-          saveError={saveError}
-          loaded={mealData.loaded}
-        />
-      )}
+      <MealPlanLauncher meals={meals} accentColor={accentColor} countKeyPrefix="fullscreen-meal-planner" open={showModal} onOpenChange={setShowModal} />
     </>
   );
 }

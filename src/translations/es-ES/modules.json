@@ -564,7 +564,13 @@
       "localDone": "No queda nada por comprar",
       "localDoneHint": "Todo lo de la lista de esta semana está tachado.",
       "localEmpty": "Aún no hay nada que comprar",
-      "localEmptyHint": "Planifica comidas con ingredientes para llenar esta lista."
+      "localEmptyHint": "Planifica comidas con ingredientes para llenar esta lista.",
+      "problemHint": {
+        "mealieUnreachable": "La lista volverá a aparecer cuando Mealie responda.",
+        "mealieNotConnected": "Conéctalo en Ajustes en el ordenador para ver la lista.",
+        "mealieTokenRefused": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver la lista.",
+        "mealieSetup": "Revisa Mealie en Ajustes en el ordenador para ver la lista."
+      }
     }
   },
   "wallScroll": {

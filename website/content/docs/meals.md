@@ -46,7 +46,7 @@ A meal saved as a side, dessert or drink (its **Kind of dish**) says so in the l
 
 Everyone in the family can give a recipe one to five stars. Each person has one rating per recipe: rate it again to change your mind, or choose **Clear my rating** to take it back. Wherever the recipe shows, it carries the family's average and how many people voted.
 
-- **On the phone**, **Rate Dinner** at the top of the Meals tab opens the last dinner the family sat down to: tonight's from the time it is served, and last night's until then. Pick who is rating, then tap the stars for each dish. To rate any other recipe, use the star button on it in the **Library**, or open a planned meal.
+- **On the phone**, **Rate Dinner** at the top of the Meals tab opens the last dinner the family sat down to: tonight's from the time it is served, and last night's until then. On the first morning of a week that is the night before the week began, and the list of days starts with it. Pick who is rating, then tap the stars for each dish. To rate any other recipe, use the star button on it in the **Library**, or open a planned meal.
 - **On a touch wall**, a meal planner with touch switched on shows **Rate Dinner** too, and a recipe's card has a **Rate meal** button.
 - **In the editor**, the meal planner window shows each recipe's rating and lets you set one.
 

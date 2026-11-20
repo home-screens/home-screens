@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { seedMeals } from '../helpers/api';
+import { seedFamily, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import {
@@ -103,6 +103,31 @@ test("a saved meal's recipe opens from the family's library, and ids that are no
   // A tap on the dimmed screen around the card closes it too.
   await card.click({ position: { x: 5, y: 5 } });
   await expect(card).toHaveCount(0);
+});
+
+test('a recipe sent from a phone shows the family rating, and a star tapped on it fills in', async ({ page, request, sandboxDir }) => {
+  await seedMeals(request, { savedMeals: [SOUP], plan: [] });
+  seedFamily(sandboxDir, [{ id: 'm-a', name: 'Ada', emoji: '', color: '#f59e0b' }, { id: 'm-b', name: 'Ben', emoji: '', color: '#3b82f6' }]);
+  expect((await request.post('/api/meals/ratings', { data: { mealId: SOUP.id, memberId: 'm-a', rating: 5 } })).ok()).toBe(true);
+  await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'Hall', [textModule('E2E WALL')])] }));
+
+  expect((await request.post('/api/display/show-recipe', { data: { mealId: SOUP.id } })).ok()).toBe(true);
+  const card = page.getByTestId('recipe-card');
+  await expect(card.getByTestId('recipe-name')).toHaveText(SOUP.name, { timeout: 10_000 });
+  // The overlay sits outside every meal module, so it reads the votes itself.
+  await expect(card.getByTestId('meal-family-stars').first()).toHaveAccessibleName(/5[.,]0.*1/);
+
+  await card.getByTestId('meal-rate-recipe').click();
+  await page.getByTestId('meal-rating-member').filter({ hasText: 'Ben' }).click();
+  await expect(page.getByTestId('meal-rating-clear')).toHaveCount(0);
+  await page.getByTestId('meal-rating-star').nth(2).click();
+  // Ben's three stars show at once: the Clear button only exists for a vote the dialog can see.
+  await expect(page.getByTestId('meal-rating-clear')).toBeVisible();
+  await expect(card.getByTestId('meal-family-stars').first()).toHaveAccessibleName(/4[.,]0.*2/);
+  await expect.poll(async () => {
+    const data = await (await request.get('/api/meals/data')).json() as { familyRatings?: { memberId: string; rating: number }[] };
+    return data.familyRatings?.find((v) => v.memberId === 'm-b')?.rating;
+  }).toBe(3);
 });
 
 test('hide-recipe takes the recipe a phone sent down, and leaves one someone sent since', async ({ page, request }) => {

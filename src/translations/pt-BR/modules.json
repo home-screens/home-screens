@@ -564,7 +564,13 @@
       "localDone": "Nada mais para comprar",
       "localDoneHint": "Tudo da lista desta semana já foi marcado.",
       "localEmpty": "Nada para comprar ainda",
-      "localEmptyHint": "Planeje refeições com ingredientes e eles aparecem aqui."
+      "localEmptyHint": "Planeje refeições com ingredientes e eles aparecem aqui.",
+      "problemHint": {
+        "mealieUnreachable": "A lista volta sozinha assim que o Mealie responder.",
+        "mealieNotConnected": "Conecte-o em Configurações no computador para mostrar a lista.",
+        "mealieTokenRefused": "Salve um novo token do Mealie em Configurações no computador para mostrar a lista.",
+        "mealieSetup": "Confira o Mealie em Configurações no computador para mostrar a lista."
+      }
     }
   },
   "wallScroll": {

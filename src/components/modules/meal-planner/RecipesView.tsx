@@ -14,6 +14,9 @@ import { BookIcon, RecipeBookChips, WALL_TOUCH_MIN_PX } from '../shared/recipe-b
 import { RecipeBookSheet } from '../shared/recipe-book/RecipeBookSheet';
 import type { WallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
+import { FamilyMealStars } from '../shared/MealRatingWall';
+import { useMealRecipeContext } from '../shared/MealRecipeContext';
+import { useMealVotes } from '@/components/meals/meal-votes';
 
 const RecipeCard = lazy(() => import('../shared/RecipeCard').then((m) => ({ default: m.RecipeCard })));
 
@@ -39,6 +42,10 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
   const [sheet, setSheet] = useState<'search' | 'book' | null>(null);
   const [open, setOpen] = useState<SavedMeal | null>(null);
   const showPictures = config.showEmoji ?? true;
+  // Whether a row has stars to draw (`FamilyMealStars` draws nothing otherwise), so a recipe with no minutes still gets its line.
+  const votes = useMealVotes();
+  const ratingsOn = useMealRecipeContext()?.showFamilyRatings !== false;
+  const rated = (meal: SavedMeal) => ratingsOn && votes.some((v) => v.mealId === meal.id);
 
   // The shared chips are drawn on the full-screen palette; here it follows the card's own ink and accent.
   const palette = {
@@ -82,10 +89,16 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
             <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontWeight: 500, fontSize: '0.92em', lineHeight: 1.25 }}>
               {meal.name}
             </span>
-            {minutes && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3em', fontSize: '0.68em', opacity: 0.5, marginTop: '0.15em' }}>
-                <BookIcon name="clock" size={fontSize * 0.68} />
-                {minutes}
+            {/* The family's stars lead the line, and show for a recipe with no minutes too. */}
+            {(minutes || rated(meal)) && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.7em', fontSize: '0.68em', marginTop: '0.15em' }}>
+                <FamilyMealStars meal={meal} size="1em" compact />
+                {minutes && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.3em', opacity: 0.5 }}>
+                    <BookIcon name="clock" size={fontSize * 0.68} />
+                    {minutes}
+                  </span>
+                )}
               </span>
             )}
           </span>

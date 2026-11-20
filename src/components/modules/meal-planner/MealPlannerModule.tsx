@@ -129,18 +129,34 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
     );
   };
 
+  // Rate Dinner means the last dinner the family sat down to, which on the
+  // first morning of a week nobody has planned yet is last week's: the button
+  // stays under the empty state too, as the full-screen Week keeps it.
+  const rateDinner = interactive && config.showFamilyRatings !== false
+    && <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '0.4em' }}><WallRateDinnerButton size="0.65em" /></div>;
+
   if (!hasMeals) {
+    // Another week with nothing planned is just that, not a wall waiting
+    // to be set up: no "plan from a phone" hint with the hub's address.
+    const empty = (
+      <FamilyEmptyState
+        icon={<>&#127869;</>}
+        title={t(look.away ? 'meal-planner.nothingPlannedThatWeek' : 'meal-planner.noMealsPlannedYet')}
+        hint={look.away ? undefined : t('meal-planner.planFromPhoneHint')}
+      />
+    );
     return (
       <ModuleWrapper style={cardStyle}>
-        {withArrows(
-          // Another week with nothing planned is just that, not a wall waiting
-          // to be set up: no "plan from a phone" hint with the hub's address.
-          <FamilyEmptyState
-            icon={<>&#127869;</>}
-            title={t(look.away ? 'meal-planner.nothingPlannedThatWeek' : 'meal-planner.noMealsPlannedYet')}
-            hint={look.away ? undefined : t('meal-planner.planFromPhoneHint')}
-          />,
-        )}
+        {rateDinner ? (
+          <MealRecipeContext.Provider value={recipeContext}>
+            <MealVotesScope votes={familyRatings}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1, minHeight: 0 }}>{withArrows(empty)}</div>
+                {rateDinner}
+              </div>
+            </MealVotesScope>
+          </MealRecipeContext.Provider>
+        ) : withArrows(empty)}
       </ModuleWrapper>
     );
   }
@@ -158,7 +174,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
       {view === 'list' && withArrows(<ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} interactive={interactive} fontSize={style.fontSize} />)}
       </div>
-      {interactive && config.showFamilyRatings !== false && <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '0.4em' }}><WallRateDinnerButton size="0.65em" /></div>}
+      {rateDinner}
       </div>
       </MealVotesScope>
       </MealRecipeContext.Provider>

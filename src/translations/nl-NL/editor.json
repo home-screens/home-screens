@@ -3274,6 +3274,7 @@
       "todayChip": "Vandaag",
       "suggestButton": "Voorstel",
       "suggestBusy": "Avondmaaltijden kiezen…",
+      "suggestNeedsMeals": "Voeg eerst een maaltijd toe aan de bibliotheek.",
       "copyLastWeekButton": "Vorige week kopiëren",
       "clearButton": "Leegmaken",
       "previousWeekAriaLabel": "Vorige week",
@@ -4582,7 +4583,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, stap voor stap door een recept gaan, het avondeten beoordelen, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
       "recipeCountHint": {
         "one": "{count} van de {meals} maaltijden heeft een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon.",
         "other": "{count} van de {meals} maaltijden hebben een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon."
@@ -4791,7 +4792,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

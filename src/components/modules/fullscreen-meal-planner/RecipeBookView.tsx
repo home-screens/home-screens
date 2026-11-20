@@ -13,11 +13,11 @@ import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
  * by chip or search with the wall's keyboard, each opening on the recipe
  * card. It never pages or turns by itself; it waits to be touched.
  */
-export default function RecipeBookView({ s, headerFont, bodyFont, landscape, interactive, book }: MealPlannerViewProps & { book: WallRecipeBook }) {
+export default function RecipeBookView({ s, headerFont, bodyFont, landscape, interactive, showTitle, book }: MealPlannerViewProps & { book: WallRecipeBook }) {
   const P = useCallback((n: number) => px(s, n), [s]);
   return (
     <div data-testid="fmp-recipe-book" {...(interactive ? BROWSE_HOLD_ATTR : {})} style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: bodyFont }}>
-      <RecipeBookPanel book={book} P={P} landscape={landscape} interactive={interactive} headerFont={headerFont} mode="book" />
+      <RecipeBookPanel book={book} P={P} landscape={landscape} interactive={interactive} headerFont={headerFont} mode="book" showTitle={showTitle} />
     </div>
   );
 }

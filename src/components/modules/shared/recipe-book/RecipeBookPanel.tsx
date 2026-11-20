@@ -32,6 +32,8 @@ interface RecipeBookPanelProps {
    * the keyboard up from the start.
    */
   mode: 'book' | 'search';
+  /** The book's own "Recipes" title; the full-screen view's Show title switch. On unless told otherwise. */
+  showTitle?: boolean;
   /** The search sheet closes (a minute without a key, nothing typed). */
   onClose?: () => void;
   /** A recipe card opened or closed over the book. */
@@ -78,7 +80,7 @@ function problemWords(problem: MealieClientProblem): ReturnType<typeof mealieWor
  * Recipes view's search sheet. Sizes are authored at 1080 wide and go through
  * `P`, so the same layout serves a wall and a sheet.
  */
-export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, mode, onClose, onCardChange }: RecipeBookPanelProps) {
+export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, mode, showTitle = true, onClose, onCardChange }: RecipeBookPanelProps) {
   const t = useTranslate('modules');
   const chipLabel = useChipLabel();
   const [typing, setTyping] = useState(mode === 'search' && interactive);
@@ -139,7 +141,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       {t(narrowed ? 'meal-planner.recipeBook.countInBook' : 'meal-planner.recipeBook.count', { count: book.recipeCount })}
     </span>
   );
-  const title = <span style={{ fontFamily: headerFont, fontSize: P(landscape ? 72 : 78), lineHeight: 1, color: 'var(--fmp-text)', flexShrink: 0 }}>{t('meal-planner.recipeBook.title')}</span>;
+  const title = showTitle && <span data-testid="recipe-book-title" style={{ fontFamily: headerFont, fontSize: P(landscape ? 72 : 78), lineHeight: 1, color: 'var(--fmp-text)', flexShrink: 0 }}>{t('meal-planner.recipeBook.title')}</span>;
   // A book with almost nothing in it while the planner is full of meals
   // looks broken: say what gets a meal into the book. Gone once the book
   // has a few recipes, and never for Mealie's book.
@@ -179,9 +181,10 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
   } else {
     header = (
       <>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: P(24) }}>{title}{count}</div>
+        {/* With the title off and nothing to count, the search field starts the page. */}
+        {(title || count) && <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: title ? 'space-between' : 'flex-end', flexWrap: 'wrap', columnGap: P(24) }}>{title}{count}</div>}
         {fewRecipes}
-        <div style={{ marginTop: P(30) }}>{searchField}</div>
+        <div style={{ marginTop: title || count || fewRecipes ? P(30) : 0 }}>{searchField}</div>
         {chips}
       </>
     );

@@ -1,23 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
-import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import LabeledField from '@/components/ui/LabeledField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
-import { useFamilyData } from '@/hooks/useFamilyData';
-import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
-import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
+import ChoreChartLauncher from './ChoreChartLauncher';
 import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
@@ -76,22 +71,10 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   ];
   const celebration = c.celebration ?? 'simple';
 
-  const [showModal, setShowModal] = useState(false);
-  const { data: choreData, refetch: refetchCounts } = useEditorData<{ chores?: unknown[] }>('/api/chores/data');
-  const { members } = useFamilyData();
-  const counts = { members: members.length, chores: choreData?.chores?.length ?? 0 };
 
   const view = c.view ?? 'chores';
   const isChoreBoard = view === 'chores';
 
-  // Re-fetch member/chore counts when the modal closes (or opens). The hook
-  // already loads on mount, so skip this effect's initial run to keep mount
-  // at a single request.
-  const didMount = useRef(false);
-  useEffect(() => {
-    if (!didMount.current) { didMount.current = true; return; }
-    refetchCounts();
-  }, [showModal, refetchCounts]);
 
   return (
     <>
@@ -240,33 +223,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         )}
       </div>
 
-      {/* Open Modal */}
-      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{t('configSections.fullscreen-chore-chart.membersCount', { count: counts.members })}</span>
-          <span>&middot;</span>
-          <span>{t('configSections.fullscreen-chore-chart.choresCount', { count: counts.chores })}</span>
-        </div>
-        <Button
-          variant="primary"
-          className="w-full text-xs"
-          onClick={() => setShowModal(true)}
-        >
-          {t('configSections.fullscreen-chore-chart.editChoreChart')}
-        </Button>
-      </div>
-
-      {/* Kids check off on /chores; parents add and edit on /remote. Rewards are added there too. */}
-      <PhoneSurfaceLinks context="chores" />
-
-      {/* Modal */}
-      {showModal && (
-        <ChoreChartModal
-          weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={accentColor}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      <ChoreChartLauncher weekStartDay={c.weekStartDay ?? 'monday'} accentColor={accentColor} keyPrefix="fullscreen-chore-chart" />
     </>
   );
 }

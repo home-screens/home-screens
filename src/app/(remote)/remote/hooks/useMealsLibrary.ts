@@ -69,11 +69,12 @@ export function useMealsLibrary({
   };
 
   const saveMealForm = async () => {
-    if (!form.formName.trim() || saving) return;
+    // No meal without a name (`buildSavedMeal`); the form's Save is off until there is one.
+    const meal = form.buildMealData();
+    if (!meal || saving) return;
     setSaving(true);
     setSaveError(null);
 
-    const meal = form.buildMealData();
     // Not optimistic: the form stays open until the hub has the meal, and
     // `saveData` adopts the saved library on success.
     const ok = await saveData((c) => ({ savedMeals: upsertSavedMeal(c.savedMeals, meal) }));

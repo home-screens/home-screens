@@ -1,11 +1,9 @@
 'use client';
 
-import { ingredientsToSave } from '@/lib/meal-ingredients';
 import { useState, useRef } from 'react';
 import type { SavedMeal, MealIngredient } from '@/types/config';
 import { uuid } from '@/lib/uuid';
-import { kindToSave, mealKind } from '@/lib/meal-dish-rules';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { buildSavedMeal, mealFormFields } from '@/lib/meal-dish-rules';
 
 export function useMealForm() {
   const [editingMeal, setEditingMeal] = useState<SavedMeal | 'new' | null>(null);
@@ -24,57 +22,47 @@ export function useMealForm() {
   const [formCategory, setFormCategory] = useState<NonNullable<SavedMeal['category']>>('main');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  /** Fill the form from a saved meal, or with a new meal's values (`null`); the defaults are `mealFormFields`'. */
+  const fill = (meal: SavedMeal | null) => {
+    const fields = mealFormFields(meal);
+    setFormName(fields.name);
+    setFormEmoji(fields.emoji);
+    setFormPrepTime(fields.prepTime ?? '');
+    setFormCookTime(fields.cookTime ?? '');
+    setFormServings(fields.servings ?? '');
+    setFormDifficulty(fields.difficulty);
+    setFormTags(fields.tags);
+    setFormIngredients(fields.ingredients);
+    setFormRecipeUrl(fields.recipeUrl);
+    setFormNotes(fields.notes);
+    setFormFavorite(fields.favorite);
+    setFormCategory(fields.kind);
+  };
+
   const openNew = (clearError: () => void) => {
-    setFormName('');
-    setFormEmoji(DEFAULT_MEAL_EMOJI);
-    setFormPrepTime('');
-    setFormCookTime('');
-    setFormServings('');
-    setFormDifficulty(undefined);
-    setFormTags([]);
-    setFormIngredients([]);
-    setFormRecipeUrl('');
-    setFormNotes('');
-    setFormFavorite(false);
-    setFormCategory('main');
+    fill(null);
     clearError();
     setEditingMeal('new');
     setTimeout(() => nameInputRef.current?.focus(), 350);
   };
 
   const openEdit = (meal: SavedMeal, clearError: () => void) => {
-    setFormName(meal.name);
-    setFormEmoji(meal.emoji ?? DEFAULT_MEAL_EMOJI);
-    setFormPrepTime(meal.prepTime ?? '');
-    setFormCookTime(meal.cookTime ?? '');
-    setFormServings(meal.servings ?? '');
-    setFormDifficulty(meal.difficulty);
-    setFormTags(meal.tags ?? []);
-    setFormIngredients(meal.ingredients ?? []);
-    setFormRecipeUrl(meal.recipeUrl ?? '');
-    setFormNotes(meal.notes ?? '');
-    setFormFavorite(meal.isFavorite ?? false);
-    setFormCategory(mealKind(meal));
+    fill(meal);
     clearError();
     setEditingMeal(meal);
     setTimeout(() => nameInputRef.current?.focus(), 350);
   };
 
-  const buildMealData = (): SavedMeal => ({
-    id: editingMeal === 'new' ? uuid() : (editingMeal as SavedMeal).id,
-    name: formName.trim(),
-    emoji: formEmoji || undefined,
-    prepTime: formPrepTime ? Number(formPrepTime) : undefined,
-    cookTime: formCookTime ? Number(formCookTime) : undefined,
-    servings: formServings ? Number(formServings) : undefined,
-    difficulty: formDifficulty,
-    category: kindToSave(formCategory, editingMeal === 'new' ? undefined : (editingMeal as SavedMeal).category),
-    tags: formTags.length > 0 ? formTags : undefined,
-    ingredients: ingredientsToSave(formIngredients),
-    recipeUrl: formRecipeUrl.trim() || undefined,
-    notes: formNotes.trim() || undefined,
-    isFavorite: formFavorite || undefined,
-  });
+  /** The meal the form saves; null while it has no name. */
+  const buildMealData = (): SavedMeal | null => buildSavedMeal(
+    {
+      name: formName, emoji: formEmoji, prepTime: formPrepTime, cookTime: formCookTime, servings: formServings,
+      difficulty: formDifficulty, kind: formCategory, tags: formTags, ingredients: formIngredients,
+      recipeUrl: formRecipeUrl, notes: formNotes, favorite: formFavorite,
+    },
+    editingMeal === 'new' ? null : editingMeal,
+    uuid,
+  );
 
   return {
     editingMeal,

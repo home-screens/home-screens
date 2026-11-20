@@ -3274,6 +3274,7 @@
       "todayChip": "Aujourd'hui",
       "suggestButton": "Suggérer",
       "suggestBusy": "Choix des dîners…",
+      "suggestNeedsMeals": "Ajoute d'abord un repas à la bibliothèque.",
       "copyLastWeekButton": "Copier la semaine dernière",
       "clearButton": "Vider",
       "previousWeekAriaLabel": "Semaine précédente",
@@ -4582,7 +4583,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes, de faire défiler les longues vues et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de suivre une recette étape par étape, de noter le dîner, de chercher dans le livre de recettes, de faire défiler les longues vues et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
       "recipeCountHint": {
         "one": "{count} repas sur {meals} a une recette. Pas encore de recette : {missing}. Ajoutez des ingrédients ou des notes avec Modifier le plan de repas ci-dessous, ou depuis le téléphone.",
         "other": "{count} repas sur {meals} ont une recette. Pas encore de recette : {missing}. Ajoutez des ingrédients ou des notes avec Modifier le plan de repas ci-dessous, ou depuis le téléphone."
@@ -4791,7 +4792,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",

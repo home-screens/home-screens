@@ -561,7 +561,13 @@
       "localDone": "Nichts mehr zu kaufen",
       "localDoneHint": "Auf der Liste dieser Woche ist alles abgehakt.",
       "localEmpty": "Noch nichts zu kaufen",
-      "localEmptyHint": "Plane Mahlzeiten mit Zutaten, dann füllt sich die Liste hier."
+      "localEmptyHint": "Plane Mahlzeiten mit Zutaten, dann füllt sich die Liste hier.",
+      "problemHint": {
+        "mealieUnreachable": "Die Liste erscheint von selbst wieder, sobald Mealie antwortet.",
+        "mealieNotConnected": "Verbinde es in den Einstellungen am Computer, dann erscheint die Liste.",
+        "mealieTokenRefused": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheint die Liste.",
+        "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheint die Liste."
+      }
     }
   },
   "wallScroll": {

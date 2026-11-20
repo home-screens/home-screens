@@ -561,7 +561,13 @@
       "localDone": "Niets meer te halen",
       "localDoneHint": "Alles op de lijst van deze week is afgevinkt.",
       "localEmpty": "Nog niets te halen",
-      "localEmptyHint": "Plan maaltijden met ingrediënten om hier de boodschappen te zien."
+      "localEmptyHint": "Plan maaltijden met ingrediënten om hier de boodschappen te zien.",
+      "problemHint": {
+        "mealieUnreachable": "De lijst komt vanzelf terug zodra Mealie weer antwoordt.",
+        "mealieNotConnected": "Koppel het in Instellingen op de computer om de lijst te zien.",
+        "mealieTokenRefused": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de lijst te zien.",
+        "mealieSetup": "Controleer Mealie in Instellingen op de computer om de lijst te zien."
+      }
     }
   },
   "wallScroll": {

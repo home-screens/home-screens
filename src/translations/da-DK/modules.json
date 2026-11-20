@@ -561,7 +561,13 @@
       "localDone": "Intet mere at købe",
       "localDoneHint": "Alt på ugens liste er krydset af.",
       "localEmpty": "Intet at købe endnu",
-      "localEmptyHint": "Planlæg måltider med ingredienser, så dukker de op her."
+      "localEmptyHint": "Planlæg måltider med ingredienser, så dukker de op her.",
+      "problemHint": {
+        "mealieUnreachable": "Listen kommer tilbage af sig selv, så snart Mealie svarer igen.",
+        "mealieNotConnected": "Forbind den under Indstillinger på computeren for at vise listen.",
+        "mealieTokenRefused": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise listen.",
+        "mealieSetup": "Tjek Mealie under Indstillinger på computeren for at vise listen."
+      }
     }
   },
   "wallScroll": {

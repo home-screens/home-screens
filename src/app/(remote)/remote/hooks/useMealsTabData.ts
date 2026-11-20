@@ -217,6 +217,8 @@ export function useMealsTabData(keptWeek: string | null = null) {
     meals,
     familyRatings,
     nowMinutes: weekNav.nowMinutes,
+    /** The whole plan held, every week of it. */
+    plan,
     weekPlan: planActions.weekPlan,
     week: planActions.week,
     settings,

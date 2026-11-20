@@ -4229,15 +4229,17 @@ export interface MealPlannerConfig {
    */
   tapRecipeAction?: RecipeTapAction;
   /**
-   * Show the "Today's Meals" label in the today view
+   * Show the "Today's Meals" label in the today view and the list's name in the grocery view
    *
-   * Show the "Today's Meals" label in the today view. Omitted = shown.
+   * Omitted = shown. The other views have no title of their own
+   * (`mealViewOptions` in `src/lib/meal-view-options.ts`).
    */
   showTitle?: boolean;
   /**
-   * Let people use the wall on a touch screen: tick things off the grocery list, search and open
-   * recipes in the recipe view, and scroll a list or week that runs past the box (it goes back to
-   * today a minute later). A tick writes to the family's list, never to the layout
+   * Let people use the wall on a touch screen: tick things off the grocery list, open recipes,
+   * rate dinner, search the recipe view, and scroll a list or week that runs past the box (it goes
+   * back to today a minute later). Every view follows it. A tick writes to the family's list,
+   * never to the layout
    *
    * Omitted = on, the same as the registry default, so a module made before
    * the grocery view existed takes taps too.
@@ -4965,15 +4967,16 @@ export interface FullscreenMealPlannerConfig {
    */
   tapRecipeAction?: RecipeTapAction;
   /**
-   * Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu")
+   * Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu", the grocery list's
+   * name, "Recipe Book")
    *
-   * Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu"). Omitted = shown.
+   * Omitted = shown. Next meal and Recipe have no title.
    */
   showTitle?: boolean;
   /**
-   * Let people use the wall on a touch screen: tick things off the grocery list, step through a
-   * recipe, search and open recipes in the recipe book, and scroll a view that runs past the
-   * screen. A tick writes to the family's list, never to the layout
+   * Let people use the wall on a touch screen: tick things off the grocery list, open and step
+   * through recipes, rate dinner, search the recipe book, and scroll a view that runs past the
+   * screen. Every view follows it. A tick writes to the family's list, never to the layout
    *
    * Omitted = on, the same as the registry default.
    */

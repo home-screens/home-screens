@@ -42,6 +42,8 @@ interface WeekGridProps {
   onSuggestRandom: () => void;
   /** Suggest is waiting for Mealie: the button says so and takes no second click. */
   suggesting?: boolean;
+  /** There is something to suggest from: Mealie's recipes, or at least one saved meal. Off, the button says what is missing. */
+  canSuggest?: boolean;
   /**
    * The meals have loaded. Before then the week is only a guess (the
    * household's week start comes with them), so its dates are not shown and
@@ -91,6 +93,7 @@ export default function WeekGrid({
   onSetSlotTime,
   onSuggestRandom,
   suggesting = false,
+  canSuggest = true,
   loaded = true,
   onCopyLastWeek,
   hasPreviousWeek,
@@ -151,7 +154,14 @@ export default function WeekGrid({
           </button>
         )}
         <div className="flex-1" />
-        <button type="button" onClick={onSuggestRandom} disabled={!editable || suggesting} aria-busy={suggesting} className={ghostBtn}>
+        <button
+          type="button"
+          onClick={onSuggestRandom}
+          disabled={!editable || suggesting || !canSuggest}
+          aria-busy={suggesting}
+          title={editable && !canSuggest ? t('mealPlannerModal.weekGrid.suggestNeedsMeals') : undefined}
+          className={ghostBtn}
+        >
           <Shuffle className={`w-3.5 h-3.5 ${suggesting ? 'animate-spin' : ''}`} />
           {suggesting ? t('mealPlannerModal.weekGrid.suggestBusy') : t('mealPlannerModal.weekGrid.suggestButton')}
         </button>

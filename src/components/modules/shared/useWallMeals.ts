@@ -111,7 +111,10 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
     () => (data ? { plan: data.plan, savedMeals: data.savedMeals, groceryChecked: data.groceryChecked, settings: data.settings } : null),
     [data],
   );
-  const grocery = useWallGrocery(grocerySource, localGrocery, todayISO);
+  const grocery = useWallGrocery(
+    grocerySource, localGrocery, todayISO,
+    mealie.state === 'stale' || mealie.state === 'unreachable' ? mealie.problem : 'unreachable',
+  );
 
   // The ratings switch rides along so a recipe card, portalled out of the module, follows it too.
   const recipeContext = useMemo<MealRecipeContextValue>(

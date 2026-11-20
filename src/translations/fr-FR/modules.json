@@ -564,7 +564,13 @@
       "localDone": "Plus rien à acheter",
       "localDoneHint": "Tout est coché sur la liste de la semaine.",
       "localEmpty": "Rien à acheter pour l'instant",
-      "localEmptyHint": "Planifie des repas avec des ingrédients pour remplir cette liste."
+      "localEmptyHint": "Planifie des repas avec des ingrédients pour remplir cette liste.",
+      "problemHint": {
+        "mealieUnreachable": "La liste reviendra toute seule dès que Mealie répondra.",
+        "mealieNotConnected": "Connecte-le dans les Réglages sur l'ordinateur pour afficher la liste.",
+        "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher la liste.",
+        "mealieSetup": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher la liste."
+      }
     }
   },
   "wallScroll": {

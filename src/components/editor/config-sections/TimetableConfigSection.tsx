@@ -1,5 +1,6 @@
 'use client';
 
+import { useRefetchOnClose } from '@/hooks/useRefetchOnClose';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Pencil, Users } from 'lucide-react';
@@ -82,11 +83,7 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
   // A window session can add or remove a timetable, so the list of who has one
   // is read again once it closes. The hook already loads on mount, so skipping
   // this effect's first run keeps mount at a single request.
-  const didMount = useRef(false);
-  useEffect(() => {
-    if (!didMount.current) { didMount.current = true; return; }
-    if (!windowFor) refetch();
-  }, [windowFor, refetch]);
+  useRefetchOnClose(!!windowFor, refetch);
 
   // A timetable with no class name still counts as one, so membership is the
   // question here and the name is only what the row prints.

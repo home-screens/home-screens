@@ -3274,6 +3274,7 @@
       "todayChip": "Hoy",
       "suggestButton": "Sugerir",
       "suggestBusy": "Eligiendo cenas…",
+      "suggestNeedsMeals": "Añade primero una comida a la biblioteca.",
       "copyLastWeekButton": "Copiar la semana pasada",
       "clearButton": "Vaciar",
       "previousWeekAriaLabel": "Semana anterior",
@@ -4582,7 +4583,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario, desplazar las vistas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, seguir una receta paso a paso, valorar la cena, buscar en el recetario, desplazar las vistas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
       "recipeCountHint": {
         "one": "{count} de {meals} comidas tiene receta. Aún sin receta: {missing}. Añade ingredientes o notas con Editar plan de comidas abajo, o desde el teléfono.",
         "other": "{count} de {meals} comidas tienen receta. Aún sin receta: {missing}. Añade ingredientes o notas con Editar plan de comidas abajo, o desde el teléfono."
@@ -4791,7 +4792,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, valorar la cena, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",

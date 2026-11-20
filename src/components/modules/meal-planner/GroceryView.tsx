@@ -15,6 +15,7 @@ import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import { withAlpha } from '@/lib/hex-color';
+import { mealieWords } from '../shared/mealie-problem';
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -40,6 +41,7 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const heading = useGroceryHeading();
   const accent = hasAccentColor(config.accentColor) ? config.accentColor : TAP_CHECKBOX_ACCENT;
   const { rows, listName } = grocery;
+  const showTitle = config.showTitle !== false;
 
   const flat = wallGroceryFlatRows(rows.groups, heading);
   // A touch wall scrolls the whole list; the pages below are measured only
@@ -76,8 +78,8 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const title = listName ?? t('meal-planner.grocery.thisWeek');
   return (
     <div data-testid="meal-grocery" {...(tappable ? BROWSE_HOLD_ATTR : {})} className="flex flex-col h-full min-h-0">
-      <div className="flex items-baseline justify-between gap-2 shrink-0">
-        <span className="font-semibold truncate" style={{ fontSize: '0.98em' }}>{title}</span>
+      <div className={`flex items-baseline gap-2 shrink-0 ${showTitle ? 'justify-between' : 'justify-end'}`}>
+        {showTitle && <span data-testid="meal-grocery-title" className="font-semibold truncate" style={{ fontSize: '0.98em' }}>{title}</span>}
         <span
           data-testid="meal-grocery-left"
           className="rounded-full font-semibold tabular-nums whitespace-nowrap shrink-0"
@@ -160,7 +162,9 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
     return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.loading')} hint="" fontSize={fontSize} />;
   }
   if (grocery.state === 'failed') {
-    return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.mealieUnreachable')} hint={t('meal-planner.mealieUnreachableHint')} fontSize={fontSize} />;
+    // The real problem, as the plan views and the recipe book name it, with a hint about the list.
+    const word = mealieWords(grocery.problem ?? 'unreachable');
+    return <FamilyEmptyState icon={<>&#129530;</>} title={t(`meal-planner.${word}`)} hint={t(`meal-planner.grocery.problemHint.${word}`)} fontSize={fontSize} />;
   }
   if (grocery.noMealieList) {
     return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.grocery.noMealieList')} hint={t('meal-planner.grocery.noMealieListHint')} fontSize={fontSize} />;

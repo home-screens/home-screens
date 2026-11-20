@@ -8,7 +8,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { fromISODate, getMealSlotLabelKey } from '@/lib/meal-constants';
-import { dinnerRatingDate, dinnerRatingMeals } from '@/lib/meal-ratings';
+import { dinnerRatingChoices, dinnerRatingMeals } from '@/lib/meal-ratings';
 import { withAlpha } from '@/lib/hex-color';
 import { FamilyMealSummary, useDinnerRatingNote, useMealVoting } from '@/components/meals/meal-votes';
 import BottomSheet from './BottomSheet';
@@ -173,9 +173,11 @@ export default function MealRateButton({ meal, variant = 'icon', style }: { meal
 /**
  * "Rate Dinner", from the button in the Meals header: a day's dinner and its
  * board, in a sheet over whichever tab is open. It opens on the last dinner
- * the family sat down to (see `dinnerRatingDate`), and the list holds the
- * days of the week the tab is showing, since that is the week `plan` covers.
- * `waiting` stands in for the board while that week cannot be read.
+ * the family sat down to, and the list holds the days of the week the tab is
+ * showing, with last night in front on the week's first morning
+ * (`dinnerRatingChoices`). `plan` is the whole plan the tab holds, since that
+ * night is in the week before. `waiting` stands in for the board while the
+ * shown week cannot be read.
  */
 export function DinnerRatingSheet({ weekDates, todayISO, nowMinutes, plan, meals, defaultSlotTimes, waiting, onClose }: {
   weekDates: MealsWeekDay[];
@@ -192,9 +194,9 @@ export function DinnerRatingSheet({ weekDates, todayISO, nowMinutes, plan, meals
   const locale = useFormattingLocale();
   const [picked, setPicked] = useState<string | null>(null);
 
-  const inWeek = (day: string) => weekDates.some((d) => d.date === day);
-  const lastDinner = dinnerRatingDate(todayISO, nowMinutes, plan, defaultSlotTimes);
-  const date = picked ?? (inWeek(lastDinner) ? lastDinner : inWeek(todayISO) ? todayISO : weekDates[0].date);
+  // Settled when the sheet opens, as on the wall: one left open across dinner time keeps its list.
+  const [choices] = useState(() => dinnerRatingChoices(weekDates.map((d) => d.date), todayISO, nowMinutes, plan, defaultSlotTimes));
+  const date = picked ?? choices.date;
   const note = useDinnerRatingNote(plan, meals, date);
   const dishes = dinnerRatingMeals(plan, meals, date);
 
@@ -207,9 +209,9 @@ export function DinnerRatingSheet({ weekDates, todayISO, nowMinutes, plan, meals
           onChange={(e) => setPicked(e.target.value)}
           style={{ ...INPUT_STYLE, display: 'block', minHeight: 44, marginTop: 6, background: 'var(--hs-bg-body)' }}
         >
-          {weekDates.map((day) => (
-            <option key={day.date} value={day.date}>
-              {fromISODate(day.date).toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' })}
+          {choices.days.map((day) => (
+            <option key={day} value={day}>
+              {fromISODate(day).toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' })}
             </option>
           ))}
         </select>

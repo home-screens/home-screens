@@ -12,6 +12,7 @@ import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowse
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealFavorite } from '@/components/meals/useMealFavorite';
 import MealPicture from '@/components/meals/MealPicture';
+import { FamilyMealSummary, useFamilyMealAverage } from '@/components/meals/meal-votes';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
@@ -149,9 +150,7 @@ export function MealieLibrary({
               <DishPicture meal={meal} size={36} />
               <span className="flex-1 min-w-0">
                 <span className="block text-sm font-semibold text-hs-text-body truncate leading-[18px]">{meal.name}</span>
-                {meal.tags?.length ? (
-                  <span className="block text-[11px] text-hs-text-faint truncate leading-[15px]">{meal.tags.slice(0, 2).join(' · ')}</span>
-                ) : null}
+                <MealieRowMeta meal={meal} />
               </span>
               {time && <span className="text-xs text-hs-text-faint shrink-0">{time}</span>}
             </button>
@@ -159,6 +158,24 @@ export function MealieLibrary({
         })}
       </div>
     </div>
+  );
+}
+
+/**
+ * The line under a recipe's name: the family's rating, as the editor's own
+ * library and the phone's Mealie library show it on their rows, then its
+ * first two tags. One line, so a rated recipe's row is no taller.
+ */
+function MealieRowMeta({ meal }: { meal: SavedMeal }) {
+  const rated = useFamilyMealAverage(meal.id) !== null;
+  const tags = meal.tags?.slice(0, 2).join(' · ');
+  if (!rated && !tags) return null;
+  return (
+    <span className="block text-[11px] text-hs-text-faint truncate leading-[15px]">
+      <FamilyMealSummary meal={meal} short />
+      {rated && tags ? ' · ' : null}
+      {tags}
+    </span>
   );
 }
 

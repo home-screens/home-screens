@@ -561,7 +561,13 @@
       "localDone": "Nothing left to buy",
       "localDoneHint": "Everything on this week's list is ticked off.",
       "localEmpty": "Nothing to buy yet",
-      "localEmptyHint": "Plan meals that have ingredients and they land here."
+      "localEmptyHint": "Plan meals that have ingredients and they land here.",
+      "problemHint": {
+        "mealieUnreachable": "The list comes back by itself as soon as Mealie answers.",
+        "mealieNotConnected": "Connect it in Settings on the computer to show the list.",
+        "mealieTokenRefused": "Save a new Mealie token in Settings on the computer to show the list.",
+        "mealieSetup": "Check Mealie in Settings on the computer to show the list."
+      }
     }
   },
   "wallScroll": {
