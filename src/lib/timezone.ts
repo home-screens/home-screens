@@ -14,6 +14,7 @@
  * locale-independent integers.
  */
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { DAY_MS } from './iso-date';
 
 /**
  * Curated list of common IANA zones used as the shared source of truth for
@@ -487,9 +488,8 @@ function zoneOffsetMs(instantMs: number, timezone: string): number {
  * night is moved on by the size of the skip (02:30 in a skipped hour is 03:30).
  */
 function wallTimeToInstant(wallAsUtc: number, timezone: string): number {
-  const DAY = 86_400_000;
-  const before = zoneOffsetMs(wallAsUtc - DAY, timezone);
-  const after = zoneOffsetMs(wallAsUtc + DAY, timezone);
+  const before = zoneOffsetMs(wallAsUtc - DAY_MS, timezone);
+  const after = zoneOffsetMs(wallAsUtc + DAY_MS, timezone);
   const early = wallAsUtc - before;
   const late = wallAsUtc - after;
   const earlyHolds = zoneOffsetMs(early, timezone) === before;

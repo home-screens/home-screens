@@ -20,7 +20,7 @@
  */
 import type { AutoUpdateSettings } from '@/types/config';
 import type { VersionInfo } from './version';
-import { parseTimeToMinutes } from './sleep-timeline';
+import { parseTimeToMinutes } from './clock-time';
 import { versionOfTag } from './update-policy';
 
 export const DEFAULT_AUTO_UPDATE_TIME = '04:00';

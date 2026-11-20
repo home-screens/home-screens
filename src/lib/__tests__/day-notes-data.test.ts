@@ -3,9 +3,10 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { DAY_NOTES_FILE, readDayNotesData, updateDayNotesData } from '../day-notes-data';
-import { addDayNote, addIsoDays } from '../day-notes';
+import { addDayNote } from '../day-notes';
 import { isoDateInTZ } from '../timezone';
 import { DAY_NOTES_LIMITS } from '@/types/day-notes';
+import { addIsoDays } from '../iso-date';
 
 // data/day-notes.json resolves against process.cwd(): each test gets its own.
 let tmpDir: string;

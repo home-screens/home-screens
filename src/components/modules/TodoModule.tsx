@@ -18,7 +18,7 @@ import { smallWallScrollLook } from './shared/wallScrollLook';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
-import { classifyDue, formatDueLabel, localISODate, parseISODate } from '@/lib/todo-due-labels';
+import { classifyDue, formatDueLabel, localISODate } from '@/lib/todo-due-labels';
 import { useFetchData } from '@/hooks/useFetchData';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
@@ -26,6 +26,7 @@ import { displayFetch } from '@/lib/display-fetch';
 import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { parseIsoDate } from '@/lib/iso-date';
 
 /** Members change about never; one poll a minute keeps initials current. */
 const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
@@ -111,7 +112,7 @@ export function describeDue(
   locale: string,
   completed = false,
 ): { label: string; tone: DueTone } | null {
-  if (!parseISODate(dueDate)) return null;
+  if (!parseIsoDate(dueDate)) return null;
   const todayISO = localISODate(now);
   const kind = classifyDue(dueDate, todayISO, completed);
   const label = formatDueLabel(

@@ -4,6 +4,7 @@ import { planEntryMealIds } from '@/lib/meal-courses';
 import { sumGroceryAmounts } from '@/lib/grocery-amounts';
 import { SLOT_ORDER } from '@/lib/meal-constants';
 import { groceryItemKey } from '@/lib/grocery-checks';
+import { formatList } from '@/i18n/formatters';
 
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
 
@@ -69,11 +70,7 @@ export function plannedMealsWithoutIngredients(
  */
 export function shortNameList(names: readonly string[], locale: string, more: (count: number) => string): string {
   const shown = names.length > 4 ? [...names.slice(0, 3), more(names.length - 3)] : [...names];
-  try {
-    return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(shown);
-  } catch {
-    return shown.join(', ');
-  }
+  return formatList(shown, locale);
 }
 
 /**

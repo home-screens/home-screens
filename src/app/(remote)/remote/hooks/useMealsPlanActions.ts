@@ -6,7 +6,6 @@ import {
   filterPlanToWeek,
   resolveMealWithEntry,
   getLocalizedDayNames,
-  dateToDayIndex,
   getMealSlotLabelKey,
   formatDayList,
   previousWeekDates,
@@ -31,6 +30,7 @@ import { withoutSuggested, type MealEdit, type MealieSuggestedEntry } from '@/li
 import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealsConfirmAction, MealsWeekDay } from '../components/meals-shared';
+import { isoWeekday } from '@/lib/iso-date';
 
 interface MealsPlanActionsParams {
   savedMeals: SavedMeal[];
@@ -170,7 +170,7 @@ export function useMealsPlanActions({
       void clear();
       return;
     }
-    const day = getLocalizedDayNames(formattingLocale, 'full')[dateToDayIndex(date)];
+    const day = getLocalizedDayNames(formattingLocale, 'full')[isoWeekday(date)];
     setConfirmAction({
       title: t(`mealSheet.clearConfirm.title.${slot}`, { day }),
       description: t(savesToMealie ? 'mealSheet.clearConfirm.descriptionMealie' : 'mealSheet.clearConfirm.description', {

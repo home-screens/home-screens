@@ -11,7 +11,7 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, POST } from '../route';
 import { requireDisplayAuth, requireSession } from '@/lib/auth';
-import { addIsoDays } from '@/lib/day-notes';
+import { addIsoDays } from '@/lib/iso-date';
 import { isoDateInTZ } from '@/lib/timezone';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 

@@ -11,7 +11,7 @@ import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { isOnlineNow } from '@/lib/display-liveness';
 import { settingsPath } from '@/lib/settings-route';
-import { useTranslate } from '@/i18n';
+import { useLocale, useTranslate } from '@/i18n';
 
 /**
  * Display picker for the editor toolbar. Shows which display the editor is
@@ -29,6 +29,7 @@ import { useTranslate } from '@/i18n';
  */
 export default function DisplaySwitcher() {
   const t = useTranslate('editor');
+  const locale = useLocale();
   const router = useRouter();
   const { config, selectedDisplayId, setSelectedDisplay } = useEditorStore();
   // Position measured from the button and rendered `fixed`: the editor toolbar
@@ -184,7 +185,9 @@ export default function DisplaySwitcher() {
                     {dims ? `${dims} · ` : ''}
                     {online
                       ? t('displaySwitcher.onNow')
-                      : t('displaySwitcher.lastSeen', { time: formatLastSeen(lastSeen) })}
+                      : lastSeen
+                        ? t('displaySwitcher.lastSeen', { time: formatLastSeen(lastSeen, locale) })
+                        : t('settings.perDisplayPage.header.statusOffline')}
                   </span>
                 </span>
                 {d.id === active.id && <Check className="h-3.5 w-3.5 shrink-0 text-hs-accent-hover" />}

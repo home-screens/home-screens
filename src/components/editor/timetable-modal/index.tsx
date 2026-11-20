@@ -22,7 +22,7 @@ import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseho
 import { editorFetch } from '@/lib/editor-fetch';
 import { refusalText } from '@/lib/hub-request';
 import { checkSheetNow } from '@/lib/timetable-client';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { formatList, useFormattingLocale, useTranslate } from '@/i18n';
 import type { TimetableData, TimetableSchool, TimetableWeek, WeekLetter } from '@/types/timetables';
 import DatesTab, { upcomingNoteCount } from './DatesTab';
 import ImportView from './ImportView';
@@ -347,7 +347,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
       .filter((name): name is string => Boolean(name));
     if (names.length === 0) return '';
     return t('timetableModal.schools.sharedNote', {
-      names: new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names),
+      names: formatList(names, locale),
     });
   };
 
@@ -456,10 +456,11 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
         >
           <span className="flex-1">
             {t('timetableModal.weekCycle.turnedOff', {
-              names: new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(
+              names: formatList(
                 cycleTurnedOff.memberIds.map(
                   (id) => members.find((member) => member.id === id)?.name ?? '',
                 ),
+                locale,
               ),
             })}
           </span>

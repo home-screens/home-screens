@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Heart, History, Pencil, Search, Tag, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
-import { dateToDayIndex, getLocalizedDayNames, getMealSlotLabelKey } from '@/lib/meal-constants';
+import { getLocalizedDayNames, getMealSlotLabelKey } from '@/lib/meal-constants';
 import type { MealPickTarget } from '@/lib/meal-courses';
 import { pickerEnterChoice, pickerMealGroups, searchSavedMeals } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -14,6 +14,7 @@ import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 import { mealieRequestFailedKeys } from './mealie-problem-words';
+import { isoWeekday } from '@/lib/iso-date';
 
 interface MealPickerPopoverProps {
   /** The meal and what is being chosen for it: the main dish, a course to add, or a course to swap. */
@@ -150,7 +151,7 @@ export default function MealPickerPopover({
   }
 
   const slotLabel = tModules(getMealSlotLabelKey(target.slot));
-  const dayName = dayNamesFull[dateToDayIndex(target.date)] ?? '';
+  const dayName = dayNamesFull[isoWeekday(target.date)] ?? '';
   const title = target.pick === 'main'
     ? t('mealPlannerModal.picker.title')
     : target.pick === 'add'

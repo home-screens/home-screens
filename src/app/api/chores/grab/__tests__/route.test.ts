@@ -12,12 +12,13 @@ vi.mock('@/lib/auth', () => ({
 import { POST as grab } from '../route';
 import { GET as readMarks, POST as tick } from '../../route';
 import { POST as putBack } from '../../put-back/route';
-import { localDateStr, parseISO } from '@/lib/chore-assignments';
+import { localDateStr } from '@/lib/chore-assignments';
 import { isoDateInTZ } from '@/lib/timezone';
+import { localDateFromIso } from '@/lib/iso-date';
 
 /** A date `days` before today's Monday: last week's Monday is -7, its Tuesday -6. */
 function lastWeek(days: number): string {
-  const d = parseISO(isoDateInTZ());
+  const d = localDateFromIso(isoDateInTZ());
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + days);
   return localDateStr(d);
 }
@@ -205,7 +206,7 @@ describe('POST /api/chores/grab', () => {
   });
 
   it('an un-tick hands back the grab with its own date, so the week it lasts does not restart', async () => {
-    const d = parseISO(isoDateInTZ());
+    const d = localDateFromIso(isoDateInTZ());
     d.setDate(d.getDate() - 3);
     const threeDaysAgo = localDateStr(d);
     await put('chores.json', { chores: [chore('garage', { bonus: { claim: 'first', comesBack: 'manual' } })], settings: { grabLimit: 1, grabHold: 'until-back' } });
@@ -217,7 +218,7 @@ describe('POST /api/chores/grab', () => {
   });
 
   it('grabbing a chore already held keeps the grab\'s own date', async () => {
-    const d = parseISO(isoDateInTZ());
+    const d = localDateFromIso(isoDateInTZ());
     d.setDate(d.getDate() - 3);
     const threeDaysAgo = localDateStr(d);
     await put('chores.json', { chores: [chore('garage', { bonus: { claim: 'first', comesBack: 'manual' } })], settings: { grabLimit: 1, grabHold: 'until-back' } });
@@ -236,7 +237,7 @@ describe('POST /api/chores/grab', () => {
   });
 
   it('109/11: a bonus chore is not paid on a day it does not show up', async () => {
-    const other = (parseISO(isoDateInTZ()).getDay() + 1) % 7;
+    const other = (localDateFromIso(isoDateInTZ()).getDay() + 1) % 7;
     await put('chores.json', { chores: [chore('lawn', { daysOfWeek: [other] })] });
     const res = await tickIt('lawn', 'ada');
     expect(res.status).toBe(409);
@@ -252,7 +253,7 @@ describe('POST /api/chores/grab', () => {
   });
 
   it('a grab is always for the hub\'s day, whatever day the screen sends', async () => {
-    const d = parseISO(isoDateInTZ());
+    const d = localDateFromIso(isoDateInTZ());
     d.setDate(d.getDate() + 1);
     const tomorrow = localDateStr(d);
     await grabIt('porch', 'ada');

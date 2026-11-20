@@ -48,7 +48,8 @@ import type {
 } from '@/types/timetables';
 import { DAY_KEYS } from '@/types/timetables';
 import { memberInitials } from '@/lib/family-avatar';
-import { parseTimeToMinutes } from '@/lib/sleep-timeline';
+import { parseTimeToMinutes } from './clock-time';
+import { addIsoDays, isoWeekday, mondayOf } from './iso-date';
 import { isoDateInTZ, toTZWallTime } from '@/lib/timezone';
 
 // ---------------------------------------------------------------------------
@@ -487,48 +488,15 @@ const FIT_STEPS = 16;
 // Calendar arithmetic
 // ---------------------------------------------------------------------------
 
-/**
- * Dates move around as 'YYYY-MM-DD' strings and the arithmetic runs in UTC, so
- * no clock change in the host or the display zone can ever add or drop a day.
- * The one place a real instant is read is `toTZWallTime`, which shifts it to
- * the display's wall clock first.
- */
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-function utcOf(isoDate: string): number {
-  const [y, m, d] = isoDate.split('-').map(Number);
-  return Date.UTC(y, m - 1, d);
-}
-
-function isoOf(utcMs: number): string {
-  const d = new Date(utcMs);
-  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
-}
-
-const DAY_MS = 86_400_000;
-
-/** `isoDate` shifted by whole days. Negative counts move backwards. */
-export function addDays(isoDate: string, days: number): string {
-  return isoOf(utcOf(isoDate) + days * DAY_MS);
-}
-
-/** 0 = Sunday through 6 = Saturday. */
-function weekdayOf(isoDate: string): number {
-  return new Date(utcOf(isoDate)).getUTCDay();
-}
+// Dates move around as 'YYYY-MM-DD' strings and the arithmetic runs in UTC
+// (see `iso-date`), so no clock change in the host or the display zone can
+// ever add or drop a day. The one place a real instant is read is
+// `toTZWallTime`, which shifts it to the display's wall clock first.
 
 /** The day column this date belongs in, or null at the weekend. */
 export function dayKeyOf(isoDate: string): DayKey | null {
-  const index = weekdayOf(isoDate);
+  const index = isoWeekday(isoDate);
   return index >= 1 && index <= 5 ? DAY_KEYS[index - 1] : null;
-}
-
-/** The Monday of this date's week. Saturday and Sunday belong to the week that just ended. */
-export function mondayOf(isoDate: string): string {
-  const index = weekdayOf(isoDate);
-  return addDays(isoDate, index === 0 ? -6 : 1 - index);
 }
 
 /**
@@ -1064,12 +1032,12 @@ export function closureOn(date: string, ctx: FocusContext): string | undefined {
 
 /** The first weekday after `date` on which school is actually open. */
 function nextSchoolDay(date: string, ctx: FocusContext): string {
-  let probe = addDays(date, 1);
+  let probe = addIsoDays(date, 1);
   // A year of walking is far past any real holiday; the guard is only here so a
   // household that somehow marks every day off still gets a card.
   for (let i = 0; i < 370; i++) {
     if (dayKeyOf(probe) && !closureOn(probe, ctx)) return probe;
-    probe = addDays(probe, 1);
+    probe = addIsoDays(probe, 1);
   }
   return date;
 }
@@ -1082,7 +1050,7 @@ function lastSchoolDayOfWeek(
 ): { day: DayKey; date: string } | null {
   for (let i = DAY_KEYS.length - 1; i >= 0; i--) {
     const day = DAY_KEYS[i];
-    const date = addDays(weekStart, i);
+    const date = addIsoDays(weekStart, i);
     if (closureOn(date, ctx)) continue;
     const blocks = dayBlocks(ctx.timetable, ctx.school, ctx.subjects, day, week, endsAfterOn(date, ctx), notesOn(ctx.timetable, date).cancelled);
     if (daySpan(blocks)) return { day, date };
@@ -1116,7 +1084,7 @@ export function resolveFocus(now: Date, timeZone: string | undefined, ctx: Focus
     labelKind = 'date';
     holiday = { name: current.name, backOn: focusDate };
   } else if (!todayKey) {
-    focusDate = addDays(mondayOf(today), 7);
+    focusDate = addIsoDays(mondayOf(today), 7);
     labelKind = 'weekday';
   } else {
     const thisMonday = mondayOf(today);
@@ -1143,7 +1111,7 @@ export function resolveFocus(now: Date, timeZone: string | undefined, ctx: Focus
       minutesInZone(now, timeZone) >= overFor;
 
     if (rollOver) {
-      focusDate = addDays(thisMonday, 7);
+      focusDate = addIsoDays(thisMonday, 7);
       labelKind = 'weekday';
     } else {
       focusDate = today;
@@ -1165,7 +1133,7 @@ export function resolveFocus(now: Date, timeZone: string | undefined, ctx: Focus
   const shortDays: Partial<Record<DayKey, { label: string; endsAfterPeriod: number }>> = {};
   const notes: Partial<Record<DayKey, DayNotes>> = {};
   DAY_KEYS.forEach((day, i) => {
-    const date = addDays(weekStart, i);
+    const date = addIsoDays(weekStart, i);
     dayDates[day] = date;
     const closed = closureOn(date, ctx);
     if (closed) closedDays[day] = closed;
@@ -3273,7 +3241,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
     const today = focus.notes[focus.focusDay];
     const tests = today && today.tests.size ? [...today.tests.values()].map((name) => name ?? '') : undefined;
     if (focus.focusLabelKind !== 'today') return tests ? { tests } : {};
-    const next = notesOn(timetable, addDays(focus.focusDate, 1));
+    const next = notesOn(timetable, addIsoDays(focus.focusDate, 1));
     const cancelled = [...next.cancelled].sort((a, b) => a - b);
     const nextTests = [...next.tests.values()].map((name) => name ?? '');
     const tomorrow = nextTests.length || cancelled.length ? { tests: nextTests, cancelled } : undefined;

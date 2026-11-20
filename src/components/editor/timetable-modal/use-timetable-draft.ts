@@ -28,7 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { loadTimetables, saveTimetables } from '@/lib/timetable-client';
-import { addDays, dateInZone, weekLetterOn } from '@/lib/timetable-layout';
+import { dateInZone, weekLetterOn } from '@/lib/timetable-layout';
 import { uuid } from '@/lib/uuid';
 import {
   DAY_KEYS,
@@ -44,6 +44,7 @@ import {
   type TimetableWeek,
   type WeekLetter,
 } from '@/types/timetables';
+import { addIsoDays } from '@/lib/iso-date';
 
 // ---------------------------------------------------------------------------
 // Ids and starting values
@@ -197,7 +198,7 @@ export function weekCycleLetters(
   timezone: string | undefined,
 ): { thisLetter: WeekLetter; nextLetter: WeekLetter } {
   const today = dateInZone(now, timezone);
-  return { thisLetter: weekLetterOn(school, today), nextLetter: weekLetterOn(school, addDays(today, 7)) };
+  return { thisLetter: weekLetterOn(school, today), nextLetter: weekLetterOn(school, addIsoDays(today, 7)) };
 }
 
 // ---------------------------------------------------------------------------

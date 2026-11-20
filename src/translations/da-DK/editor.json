@@ -1902,12 +1902,7 @@
           "active": "Aktiv",
           "inactive": "Inaktiv",
           "lastRun": "Vagten kørte sidst: {time}",
-          "never": "Aldrig",
-          "secondsAgo": "for {count} sekunder siden",
-          "minuteAgoSingular": "for {count} minut siden",
-          "minutesAgoPlural": "for {count} minutter siden",
-          "hourAgoSingular": "for {count} time siden",
-          "hoursAgoPlural": "for {count} timer siden"
+          "never": "Aldrig"
         },
         "host": {
           "gatewayLabel": "Gateway",

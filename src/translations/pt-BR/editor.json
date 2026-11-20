@@ -1902,12 +1902,7 @@
           "active": "Ativo",
           "inactive": "Inativo",
           "lastRun": "Última execução do watchdog: {time}",
-          "never": "Nunca",
-          "secondsAgo": "há {count} segundos",
-          "minuteAgoSingular": "há {count} minuto",
-          "minutesAgoPlural": "há {count} minutos",
-          "hourAgoSingular": "há {count} hora",
-          "hoursAgoPlural": "há {count} horas"
+          "never": "Nunca"
         },
         "host": {
           "gatewayLabel": "Gateway",

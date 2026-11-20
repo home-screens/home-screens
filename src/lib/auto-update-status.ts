@@ -3,6 +3,7 @@
  * formats the times and looks the sentences up.
  */
 import type { AutoUpdateFailure, AutoUpdateInfo, AutoUpdateSkipReason } from './auto-update-policy';
+import { addIsoDays } from './iso-date';
 import type { VersionInfo } from './version';
 
 /** One sentence under `settings.systemPage.autoUpdate.status`. */
@@ -98,14 +99,10 @@ export function autoUpdateWillInstall(
   return !(last.tag === offeredTag && (last.reason === 'no-download' || last.reason === 'failed-before'));
 }
 
-function dayBefore(date: string): string {
-  return new Date(Date.parse(`${date}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
-}
-
 /** How to name the day a run happened, relative to today (both `YYYY-MM-DD`). */
 export function pastDayWord(date: string, today: string): 'today' | 'yesterday' | 'other' {
   if (date === today) return 'today';
-  if (date === dayBefore(today)) return 'yesterday';
+  if (date === addIsoDays(today, -1)) return 'yesterday';
   return 'other';
 }
 

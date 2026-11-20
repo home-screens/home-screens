@@ -1,6 +1,8 @@
+import { isoWeekday, weekDatesContaining } from './iso-date';
 import { localISODate } from './timezone';
 import { formatClockTime } from './clock-time';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, MealPlanSource, FullscreenTypographySize, TimeFormat, MealCourseKind } from '@/types/config';
+import { formatList } from '@/i18n/formatters';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { COURSE_KINDS, resolveCourses, type ResolvedCourse } from './meal-courses';
 
@@ -194,8 +196,8 @@ export function getLocalizedDayNames(
  */
 export function formatDayList(dates: readonly string[], locale: string = DEFAULT_LOCALE): string {
   const names = getLocalizedDayNames(locale, 'full');
-  const days = [...new Set(dates)].sort().map((date) => names[dateToDayIndex(date)]);
-  return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(days);
+  const days = [...new Set(dates)].sort().map((date) => names[isoWeekday(date)]);
+  return formatList(days, locale);
 }
 
 const MONTH_NAME_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
@@ -287,11 +289,6 @@ export function fromISODate(s: string): Date {
   return new Date(s + 'T12:00:00');
 }
 
-/** Get the day-of-week index (0=Sun) for an ISO date string */
-export function dateToDayIndex(date: string): number {
-  return new Date(date + 'T12:00:00').getDay();
-}
-
 /** Get the ISO date range (start, end) for the week containing `referenceDate` */
 export function getWeekRange(
   referenceDate: Date,
@@ -312,18 +309,8 @@ export function getWeekDatesForRange(
   start: string,
   weekStartDay: 'sunday' | 'monday' = 'sunday',
 ): string[] {
-  const d = fromISODate(start);
-  // If start isn't already aligned, align it
-  const dow = d.getDay();
-  const offset = weekStartDay === 'monday' ? ((dow + 6) % 7) : dow;
-  d.setDate(d.getDate() - offset);
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(d);
-    day.setDate(d.getDate() + i);
-    dates.push(toISODate(day));
-  }
-  return dates;
+  // A start that is not already aligned is moved back to its week's first day.
+  return weekDatesContaining(start, weekStartDay);
 }
 
 /**

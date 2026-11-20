@@ -16,7 +16,7 @@
  */
 import type { AutoBackupFrequency, AutoBackupSettings } from '@/types/config';
 import type { PictureBackupChoice } from './backup-pictures-types';
-import { parseTimeToMinutes } from './sleep-timeline';
+import { parseTimeToMinutes } from './clock-time';
 import { wallClockMinutes, wallDateKey } from './auto-update-policy';
 
 export const DEFAULT_AUTO_BACKUP_TIME = '03:00';

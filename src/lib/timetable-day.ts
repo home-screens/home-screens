@@ -15,7 +15,6 @@
 
 import type { WeekLetter } from '@/types/timetables';
 import {
-  addDays,
   bringFor,
   closureOn,
   dateInZone,
@@ -33,9 +32,10 @@ import {
   type OffReason,
   type TimetableBlock,
 } from '@/lib/timetable-layout';
-import { parseTimeToMinutes } from '@/lib/sleep-timeline';
-import { formatClockMinutes } from '@/lib/clock-time';
+
+import { formatClockMinutes, parseTimeToMinutes } from '@/lib/clock-time';
 import type { TimeFormat } from '@/types/config';
+import { addIsoDays } from './iso-date';
 
 /** When the Day view moves on to the next school day, unless the household says otherwise. */
 export const DEFAULT_TOMORROW_FROM = '16:00';
@@ -114,20 +114,20 @@ export function resolveFamilyDay(
   const minutes = minutesInZone(now, timeZone);
   const lookAhead = !dayKeyOf(today) || minutes >= tomorrowFromMinutes(tomorrowFrom);
 
-  let probe = lookAhead ? addDays(today, 1) : today;
+  let probe = lookAhead ? addIsoDays(today, 1) : today;
   for (let i = 0; i < MAX_WALK_DAYS; i++) {
     if (people.some((person) => hasSchoolOn(person, probe))) {
       return { date: probe, labelKind: labelKindFor(today, probe), weekNumber: isoWeekNumber(probe) };
     }
-    probe = addDays(probe, 1);
+    probe = addIsoDays(probe, 1);
   }
   return null;
 }
 
 function labelKindFor(today: string, date: string): FamilyDayLabelKind {
   if (date === today) return 'today';
-  if (date === addDays(today, 1)) return 'tomorrow';
-  for (let i = 2; i <= 6; i++) if (date === addDays(today, i)) return 'weekday';
+  if (date === addIsoDays(today, 1)) return 'tomorrow';
+  for (let i = 2; i <= 6; i++) if (date === addIsoDays(today, i)) return 'weekday';
   return 'date';
 }
 

@@ -48,7 +48,7 @@ import {
 } from '@/lib/timetable-layout';
 import { ink } from '@/lib/constants';
 import { formatClockTime, formatClockTimeBare } from '@/lib/clock-time';
-import { parseISODate } from '@/lib/todo-due-labels';
+import { parseIsoDate } from '@/lib/iso-date';
 import { pickGridTimeColor, pickPillTextColor } from '@/lib/calendar-color';
 import { dayMonthPattern, dayOfMonthPattern, formatDateSync, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import {
@@ -158,7 +158,7 @@ export default function WeekCard({
 
   const on = useCallback(
     (iso: string, pattern: string): string => {
-      const date = parseISODate(iso);
+      const date = parseIsoDate(iso);
       return date ? formatDateSync(date, pattern, { locale }) : '';
     },
     [locale],
@@ -188,7 +188,7 @@ export default function WeekCard({
   const holidaySentence = useCallback(
     (form: HolidayLineForm): string => {
       if (!focus.holiday) return '';
-      const backOn = parseISODate(focus.holiday.backOn);
+      const backOn = parseIsoDate(focus.holiday.backOn);
       const pattern = form === 'full' ? fullDate : dayWithMonth;
       return t(form === 'brief' ? 'timetable.holidayBrief' : 'timetable.holidayLine', {
         holiday: focus.holiday.name,

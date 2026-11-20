@@ -2,8 +2,9 @@ import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import type { TranslateFn } from '@/i18n/types';
 import { formatTimeInTZ, isoDateInTZ, parseDateInTZ } from '@/lib/timezone';
-import { daysBetween, parseISODate } from '@/lib/todo-due-labels';
+
 import { householdTimeFormat } from '@/lib/clock-time';
+import { parseIsoDate, isoDaysBetween } from '@/lib/iso-date';
 
 export interface TodoistTask {
   id: string;
@@ -149,7 +150,7 @@ export function dueDayKey(due: TodoistDue, timezone?: string): string {
  */
 export function dueDaysFromToday(due: TodoistTask['due'], now: Date, timezone?: string): number | null {
   if (!due) return null;
-  return daysBetween(isoDateInTZ(now, timezone), dueDayKey(due, timezone));
+  return isoDaysBetween(isoDateInTZ(now, timezone), dueDayKey(due, timezone));
 }
 
 export interface DueFormat {
@@ -204,7 +205,7 @@ export function formatDueDate(
   }
   // A calendar day, not an instant: local midnight of the day key, formatted
   // with no zone, names the same day on any machine.
-  const day = parseISODate(dueDayKey(due, timezone));
+  const day = parseIsoDate(dueDayKey(due, timezone));
   if (!day) return { text: '', color: '' };
   if (diff <= 7) {
     return { text: day.toLocaleDateString(locale, { weekday: 'short' }), color: '#6b7280' };

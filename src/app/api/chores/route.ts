@@ -13,15 +13,16 @@ import { holdsEtag, revalidatedHeaders } from '@/lib/file-etag';
 import { planPointsMove } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
 import { choreMarks, planCompletionsUpdate, updateCompletionsAtomic } from '@/lib/chore-completion-data';
-import { CHORE_HISTORY_DAYS, addDaysISO } from '@/components/modules/chore-chart/types';
+import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 import { householdToday } from '@/lib/household-day';
 import { contentRevision } from '@/lib/content-revision';
+import { addIsoDays } from '@/lib/iso-date';
 
 export const dynamic = 'force-dynamic';
 
 /** The first day of history kept: anything older than CHORE_HISTORY_DAYS days goes. */
 function historyCutoff(today: string): string {
-  return addDaysISO(today, -CHORE_HISTORY_DAYS);
+  return addIsoDays(today, -CHORE_HISTORY_DAYS);
 }
 
 /** `?days=`: how much history the caller wants, or null when it is not 1 to CHORE_HISTORY_DAYS. */
@@ -73,7 +74,7 @@ export const GET = async (request: NextRequest) => {
       // what holds a put-back chore closed and the grabs that still hold, so
       // today and this week draw exactly as they do from the whole history.
       const marks = saved && days < CHORE_HISTORY_DAYS
-        ? pruneChoreMarks(result, saved.chores, addDaysISO(today, -days), readChoreSettings(saved.settings).grabHold, today)
+        ? pruneChoreMarks(result, saved.chores, addIsoDays(today, -days), readChoreSettings(saved.settings).grabHold, today)
         : result;
       // `today` is the hub's calendar day: phones use it as theirs, so a phone
       // with a wrong clock still shows and ticks the household's day.
@@ -151,7 +152,7 @@ export const POST = async (request: NextRequest) => {
 
   // The household's day (Settings time zone), which every screen shows.
   const today = await householdToday();
-  const earliest = addDaysISO(today, -(CHORE_HISTORY_DAYS - 1));
+  const earliest = addIsoDays(today, -(CHORE_HISTORY_DAYS - 1));
   if (date > today || date < earliest) {
     return NextResponse.json(
       { error: `Date must be within the last ${CHORE_HISTORY_DAYS} days` },

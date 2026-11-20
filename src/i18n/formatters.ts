@@ -38,9 +38,10 @@ interface RelativeTimeOpts {
 
 // Intl.RelativeTimeFormat construction is expensive enough to matter on a
 // Pi when a label re-renders on an animation loop, so formatters are kept
-// per (locale, numeric, style).
+// per (locale, numeric, style). Throws for a language tag the browser
+// cannot use, like the constructor.
 const RTF_CACHE = new Map<string, Intl.RelativeTimeFormat>();
-function relativeTimeFormatter(locale: string, numeric: 'always' | 'auto', style: 'long' | 'short' | 'narrow'): Intl.RelativeTimeFormat {
+export function relativeTimeFormatter(locale: string, numeric: 'always' | 'auto', style: 'long' | 'short' | 'narrow'): Intl.RelativeTimeFormat {
   const key = `${locale}|${numeric}|${style}`;
   let rtf = RTF_CACHE.get(key);
   if (!rtf) {
@@ -48,6 +49,43 @@ function relativeTimeFormatter(locale: string, numeric: 'always' | 'auto', style
     RTF_CACHE.set(key, rtf);
   }
   return rtf;
+}
+
+/**
+ * The style for a compact age ("5m ago"). English's narrow relative form is
+ * that compact form. In the other shipped languages narrow is either a bare
+ * negative number ("-5 min" in French) or a bare letter ("vor 5 m" in German,
+ * which reads as metres), so they take the short form ("il y a 5 min",
+ * "vor 5 Min.").
+ */
+export function compactRelativeStyle(locale: string): 'narrow' | 'short' {
+  return locale.toLowerCase().startsWith('en') ? 'narrow' : 'short';
+}
+
+const LIST_CACHE = new Map<string, Intl.ListFormat>();
+
+/**
+ * Names joined the way the language writes a list: "Ada, Ben and Cy", or
+ * "Ada, Ben or Cy" for a `disjunction`. One or no item comes back as it is.
+ * A language tag the browser cannot use falls back to commas, so a list in
+ * the middle of a sentence never takes the page down.
+ */
+export function formatList(
+  items: readonly string[],
+  locale: string | undefined,
+  type: 'conjunction' | 'disjunction' = 'conjunction',
+): string {
+  try {
+    const key = `${locale}|${type}`;
+    let list = LIST_CACHE.get(key);
+    if (!list) {
+      list = new Intl.ListFormat(locale, { style: 'long', type });
+      LIST_CACHE.set(key, list);
+    }
+    return list.format(items);
+  } catch {
+    return items.join(', ');
+  }
 }
 
 /**

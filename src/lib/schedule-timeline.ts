@@ -13,7 +13,7 @@
  */
 
 import { isModuleVisible, resolveSpanDays } from '@/lib/schedule';
-import { parseTimeToMinutes } from '@/lib/sleep-timeline';
+import { parseTimeToMinutes } from './clock-time';
 import type { ModuleSchedule } from '@/types/config';
 
 export const MINUTES_PER_DAY = 1440;

@@ -22,12 +22,12 @@ import { ChevronRight, Table } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
-import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
+import { formatDateSync, useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { refusalText } from '@/lib/hub-request';
 import { settingsPath } from '@/lib/settings-route';
 import { checkSheetLink, checkTimetableFiles } from '@/lib/timetable-client';
-import { addDays, dateInZone, mondayOf } from '@/lib/timetable-layout';
+import { dateInZone } from '@/lib/timetable-layout';
 import type { TimetableImportCheckResult, TimetableImportTab } from '@/lib/timetable-api';
 import type { ImportedTimetable } from '@/lib/timetable-import';
 // The fold rule only, from its own module: the reader it belongs to resolves DNS
@@ -44,6 +44,7 @@ import {
 } from '@/types/timetables';
 import MemberDot from './MemberDot';
 import { makeSubject, nextSubjectColor, periodsOf, shortCodeFor } from './use-timetable-draft';
+import { addIsoDays, mondayOf } from '@/lib/iso-date';
 
 /**
  * An example week, kept as a file under `public/` so it can be opened in a
@@ -274,12 +275,12 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
 
   const monday = mondayOf(dateInZone(new Date()));
   const dayName = (day: DayKey) =>
-    formatDateSync(new Date(`${addDays(monday, DAY_KEYS.indexOf(day))}T12:00:00`), 'EEEE', { locale });
+    formatDateSync(new Date(`${addIsoDays(monday, DAY_KEYS.indexOf(day))}T12:00:00`), 'EEEE', { locale });
 
   const failure = (messageKey: string) => t(`timetableModal.import.errors.${messageKey}`);
 
   const listNames = (names: string[]) =>
-    new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names);
+    formatList(names, locale);
 
   /**
    * Read files the household picked, and land on the same screen a link does.

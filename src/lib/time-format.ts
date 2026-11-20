@@ -1,29 +1,34 @@
 /**
- * Relative-time / duration formatters shared across the editor, remote, and
- * settings surfaces. These helpers do simple integer arithmetic (no Intl,
- * no date-fns) and emit hard-coded English suffixes — "5s ago", "2h 30m",
- * "<1s". They survive the i18n cutover unchanged because every consumer
- * expects exactly these compact strings (heartbeat freshness chips, uptime
- * pills) and matches their layout against the fixed character widths.
+ * Compact time formatters for the editor's status chips and pills.
  *
- * If a future task needs localized relative-time output, prefer
- * `formatRelativeTime` from `@/i18n/formatters` (Intl.RelativeTimeFormat
- * under the hood) — do not localize these helpers in place; their shape
- * is part of the API.
+ * `formatLastSeen` reads in the editor's language. `formatUptime` and
+ * `formatAge` are plain integer arithmetic with fixed letters ("2h 30m",
+ * "<1s"): their callers lay a chip out against those widths and add their
+ * own words around them.
  */
+import { compactRelativeStyle, relativeTimeFormatter } from '@/i18n/formatters';
+
+function lastSeenWith(rtf: Intl.RelativeTimeFormat, diff: number): string {
+  if (diff < 60_000) return rtf.format(-Math.max(1, Math.round(diff / 1000)), 'second');
+  if (diff < 3_600_000) return rtf.format(-Math.round(diff / 60_000), 'minute');
+  if (diff < 86_400_000) return rtf.format(-Math.round(diff / 3_600_000), 'hour');
+  return rtf.format(-Math.round(diff / 86_400_000), 'day');
+}
 
 /**
- * "5s ago" / "3m ago" / "2h ago" / "4d ago" — used for heartbeat freshness.
- * Returns "—" when `lastSeen` is null/0 so callers can render the em-dash
- * placeholder without branching.
+ * How long ago a display was last heard from: "5s ago", "3m ago", "2h ago",
+ * "4d ago" in English and the language's own short form elsewhere ("vor 5
+ * Sek.", "il y a 3 min"). Never less than one second, and days are the
+ * largest unit. The caller decides what a display that has never been heard
+ * from says; this takes a real time.
  */
-export function formatLastSeen(lastSeen: number | null | undefined): string {
-  if (!lastSeen) return '—';
-  const diff = Date.now() - lastSeen;
-  if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s ago`;
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`;
-  return `${Math.round(diff / 86_400_000)}d ago`;
+export function formatLastSeen(lastSeen: number, locale: string, now: number = Date.now()): string {
+  const diff = now - lastSeen;
+  try {
+    return lastSeenWith(relativeTimeFormatter(locale, 'always', compactRelativeStyle(locale)), diff);
+  } catch {
+    return lastSeenWith(relativeTimeFormatter('en-US', 'always', 'narrow'), diff);
+  }
 }
 
 /** Compact uptime — "2d 3h 15m" / "5h 12m" / "42m". Input is seconds. */

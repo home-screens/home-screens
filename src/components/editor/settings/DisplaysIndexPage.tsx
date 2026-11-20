@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
-import { useTranslate } from '@/i18n';
+import { useLocale, useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import {
@@ -17,7 +17,7 @@ import {
   RESERVED_DISPLAY_IDS,
 } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
-import { heartbeatState } from '@/lib/display-liveness';
+import { heartbeatPill, type HeartbeatState } from '@/lib/display-liveness';
 import { settingsHref } from '@/lib/settings-route';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
@@ -434,6 +434,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
  */
 export default function DisplaysIndexPage() {
   const t = useTranslate('editor');
+  const locale = useLocale();
   const tCore = useTranslate('core');
   const router = useRouter();
   const { config, addDisplay, saveConfig } = useEditorStore();
@@ -673,7 +674,7 @@ export default function DisplaysIndexPage() {
                   <div className="flex-1 min-w-0">
                     <code className="text-xs font-mono text-hs-warning">{un.id}</code>
                     <div className="flex items-center gap-3 text-[11px] text-hs-text-faint mt-0.5 flex-wrap">
-                      <span>{t('settings.displaysIndex.lastSeenLabel', { time: formatLastSeen(un.lastSeen) })}</span>
+                      {un.lastSeen && <span>{t('settings.displaysIndex.lastSeenLabel', { time: formatLastSeen(un.lastSeen, locale) })}</span>}
                       {soleReporter && (
                         <>
                           <span className="tabular-nums">
@@ -707,7 +708,7 @@ export default function DisplaysIndexPage() {
                                 )}
                                 {addr && <span className="text-hs-text-faint"> · </span>}
                                 {v.width}×{v.height}
-                                <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen)}</span>
+                                <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen, locale)}</span>
                               </li>
                             );
                           })}
@@ -764,6 +765,12 @@ export default function DisplaysIndexPage() {
  * ring so the user can pick it out at a glance. Multi-reporter cards
  * get a warning strip below the metadata row.
  */
+const STATUS_LABEL_KEY: Record<HeartbeatState, string> = {
+  online: 'settings.displaysIndex.statusOnline',
+  idle: 'settings.displaysIndex.statusIdle',
+  offline: 'settings.displaysIndex.statusOffline',
+};
+
 function DisplayCard({
   display,
   heartbeat,
@@ -776,6 +783,7 @@ function DisplayCard({
   onOpen: () => void;
 }) {
   const t = useTranslate('editor');
+  const locale = useLocale();
   const lastSeen = heartbeat?.lastSeen ?? null;
   // Only the two states the user can or should act on get a chip here. A
   // display that is up to date, still settling in, or simply not running the
@@ -795,35 +803,15 @@ function DisplayCard({
   const reporterIp = formatClientAddress(primaryReporter?.clientAddress);
   const multipleReporters = reports.length > 1;
 
-  const status = (() => {
-    if (!lastSeen) {
-      return {
-        className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
-        dot: 'bg-hs-card',
-        label: '—',
-      };
-    }
-    switch (heartbeatState(lastSeen)) {
-      case 'online':
-        return {
-          className: 'bg-hs-success/10 border-hs-success/30 text-hs-success',
-          dot: 'bg-hs-success',
-          label: t('settings.displaysIndex.statusOnline', { time: formatLastSeen(lastSeen) }),
-        };
-      case 'idle':
-        return {
-          className: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning',
-          dot: 'bg-hs-warning',
-          label: t('settings.displaysIndex.statusIdle', { time: formatLastSeen(lastSeen) }),
-        };
-      case 'offline':
-        return {
-          className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
-          dot: 'bg-hs-card',
-          label: t('settings.displaysIndex.statusOffline', { time: formatLastSeen(lastSeen) }),
-        };
-    }
-  })();
+  const pill = heartbeatPill(lastSeen);
+  const status = {
+    className: pill.pillClass,
+    dot: pill.dotClass,
+    // Never heard from: the word alone, since there is no time to give.
+    label: pill.kind === 'never' || !lastSeen
+      ? t('settings.perDisplayPage.header.statusOffline')
+      : t(STATUS_LABEL_KEY[pill.kind], { time: formatLastSeen(lastSeen, locale) }),
+  };
 
   return (
     <button
@@ -896,7 +884,7 @@ function DisplayCard({
                   {addr && <span className="text-hs-text-faint"> · </span>}
                   {v.width}×{v.height}
                   {v.count > 1 && <span className="text-hs-text-faint"> · {t('settings.displaysIndex.tabsSuffix', { count: v.count })}</span>}
-                  <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen)}</span>
+                  <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen, locale)}</span>
                 </li>
               );
             })}

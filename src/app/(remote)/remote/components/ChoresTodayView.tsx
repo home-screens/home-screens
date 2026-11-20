@@ -9,7 +9,7 @@ import { canPutBack, type BonusItem } from '@/lib/chore-bonus';
 import { memberInitials } from '@/lib/family-avatar';
 import type { RewardDefinition } from '@/lib/reward-data';
 import type { GoalProgress } from '@/lib/reward-rules';
-import { addDaysISO, getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
+import { getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
@@ -19,6 +19,7 @@ import BonusChoreRow from './BonusChoreRow';
 import DayCompleteSheet from './DayCompleteSheet';
 import type { ChoreRowNotice } from '../hooks/useChoreMarks';
 import { REMOTE_ACCENT } from './chore-form-styles';
+import { addIsoDays } from '@/lib/iso-date';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -130,7 +131,7 @@ export default function ChoresTodayView({
   const balance = balances?.[selectedMemberId] ?? 0;
   // Someone with only bonus chores has nothing to count at all.
   const onlyBonus = assignments.length === 0 && bonusItems.length > 0;
-  const yesterday = addDaysISO(realToday, -1);
+  const yesterday = addIsoDays(realToday, -1);
   const noticeFor = (choreId: string) =>
     rowNotice && rowNotice.choreId === choreId && rowNotice.memberId === selectedMemberId && rowNotice.date === viewingDate ? rowNotice.text : null;
 

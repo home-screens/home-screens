@@ -11,7 +11,7 @@ vi.mock('@/lib/auth', () => ({
 
 import { DELETE, PATCH } from '../route';
 import { requireSession } from '@/lib/auth';
-import { addIsoDays } from '@/lib/day-notes';
+import { addIsoDays } from '@/lib/iso-date';
 import { isoDateInTZ } from '@/lib/timezone';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 

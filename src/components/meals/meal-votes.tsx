@@ -6,7 +6,7 @@ import type { FamilyMealRating } from '@/types/meal-ratings';
 import { saveMealVote, type MealFetch } from '@/lib/meal-client';
 import { applyMealVoteChanges, dinnerRatingGap, dinnerTypedDishes, familyMealAverage, mealVoteChangeLanded, type MealVoteChange } from '@/lib/meal-ratings';
 import { useFamilyData } from '@/hooks/useFamilyData';
-import { useFormattingLocale, useLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useLocale, useTranslate, formatList } from '@/i18n';
 
 /**
  * The family's votes as one surface draws them. The votes ride the meals
@@ -214,5 +214,5 @@ export function useDinnerRatingNote(plan: readonly PlannedMeal[], meals: readonl
   if (!gap) return null;
   if (gap !== 'typed') return t(`mealRatings.${gap}`);
   const dishes = dinnerTypedDishes(plan, date);
-  return t('mealRatings.typed', { count: dishes.length, dishes: new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(dishes) });
+  return t('mealRatings.typed', { count: dishes.length, dishes: formatList(dishes, locale) });
 }

@@ -1902,12 +1902,7 @@
           "active": "Actief",
           "inactive": "Inactief",
           "lastRun": "Laatste watchdog-run: {time}",
-          "never": "Nooit",
-          "secondsAgo": "{count} seconden geleden",
-          "minuteAgoSingular": "{count} minuut geleden",
-          "minutesAgoPlural": "{count} minuten geleden",
-          "hourAgoSingular": "{count} uur geleden",
-          "hoursAgoPlural": "{count} uur geleden"
+          "never": "Nooit"
         },
         "host": {
           "gatewayLabel": "Gateway",

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import BottomSheet from './BottomSheet';
 import { INPUT_STYLE } from './chore-form-styles';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
@@ -49,7 +49,7 @@ export default function AdjustTicketsSheet({
   const giving = amount > 0;
   const tickets = (n: number) => (n === 1 ? t('rewardsView.ticketCountSingular', { n }) : t('rewardsView.ticketCountPlural', { n }));
   const names = count <= NAMED_LIMIT
-    ? new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(pickedMembers.map((m) => m.name))
+    ? formatList(pickedMembers.map((m) => m.name), locale)
     : t('rewardsView.adjust.manyPeople', { count });
   // Taking more than someone has takes what they have: say so before the tap.
   // Someone with nothing has nothing to take, so with only such people picked
@@ -63,7 +63,7 @@ export default function AdjustTicketsSheet({
       ? null
       : short.length === 1
         ? t('rewardsView.adjust.shortOne', { name: short[0].name, n: balances[short[0].id] ?? 0 })
-        : t('rewardsView.adjust.shortMany', { names: new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(short.map((m) => m.name)) });
+        : t('rewardsView.adjust.shortMany', { names: formatList(short.map((m) => m.name), locale) });
   const canSubmit = count > 0 && amount !== 0 && !busy && !nothingToTake;
   const label = count === 0
     ? t('rewardsView.adjust.pickSomeone')

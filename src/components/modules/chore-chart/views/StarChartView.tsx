@@ -11,6 +11,7 @@ import ChoreIcon from '../ChoreIcon';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { withAlpha } from '@/lib/hex-color';
 import { memberInitials } from '@/lib/family-avatar';
+import { localDateFromIso } from '@/lib/iso-date';
 
 interface StarChartViewProps {
   config: ChoreChartConfig;
@@ -62,8 +63,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
             <tr>
               <th style={{ textAlign: 'left', padding: '0.3em', fontWeight: 500, opacity: TEXT_OPACITY.dim }} />
               {weekData.map((day) => {
-                const [y, m, d] = day.date.split('-').map(Number);
-                const dayDate = new Date(y, (m ?? 1) - 1, d ?? 1);
+                const dayDate = localDateFromIso(day.date);
                 return (
                   <th
                     key={day.date}

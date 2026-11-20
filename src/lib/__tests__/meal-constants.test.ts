@@ -16,7 +16,6 @@ import {
   normalizeTag,
   toISODate,
   fromISODate,
-  dateToDayIndex,
   getWeekRange,
   getWeekDatesForRange,
   weekStartAfterDayChange,
@@ -170,17 +169,6 @@ describe('fromISODate', () => {
     expect(d.getFullYear()).toBe(2026);
     expect(d.getMonth()).toBe(3); // 0-indexed
     expect(d.getDate()).toBe(4);
-  });
-});
-
-describe('dateToDayIndex', () => {
-  it('returns correct day-of-week for known dates', () => {
-    // 2026-04-04 is a Saturday
-    expect(dateToDayIndex('2026-04-04')).toBe(6);
-    // 2026-04-05 is a Sunday
-    expect(dateToDayIndex('2026-04-05')).toBe(0);
-    // 2026-04-06 is a Monday
-    expect(dateToDayIndex('2026-04-06')).toBe(1);
   });
 });
 

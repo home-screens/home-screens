@@ -6,7 +6,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
 import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import { useLocale, useTranslate } from '@/i18n';
+import { useLocale, useTranslate, formatList } from '@/i18n';
 import { getActiveScreens } from '@/lib/editor-multi-display';
 import { displayDescriptors } from '@/lib/display-filter';
 import { showsOnlyWhenOpened } from '@/lib/on-demand-screen';
@@ -146,7 +146,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
           <p className="text-[11px] text-hs-warning mt-0.5" data-testid="dock-missing-there">
             {t('configSections.display-control.dockMissingThere', {
               display: elsewhere.name.trim() || elsewhere.id,
-              names: new Intl.ListFormat(locale, { type: 'disjunction' }).format(missingThere),
+              names: formatList(missingThere, locale, 'disjunction'),
             })}
           </p>
         )}

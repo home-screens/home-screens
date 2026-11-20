@@ -6,8 +6,9 @@ import { readFamilyData } from '@/lib/family-data';
 import { withFamilyWrite } from '@/lib/family-api';
 import { choreMarks, updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { isAssignedOn } from '@/lib/chore-assignments';
-import { CHORE_HISTORY_DAYS, addDaysISO } from '@/components/modules/chore-chart/types';
+import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 import { householdToday } from '@/lib/household-day';
+import { addIsoDays } from '@/lib/iso-date';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ export const POST = withAuth(async (request: NextRequest) => withFamilyWrite<Ski
     return NextResponse.json({ error: 'Send a choreId, a list of memberIds, a date and skipped.' }, { status: 400 });
   }
   const today = await householdToday();
-  if (!isValidISODate(date) || date > today || date < addDaysISO(today, -(CHORE_HISTORY_DAYS - 1))) {
+  if (!isValidISODate(date) || date > today || date < addIsoDays(today, -(CHORE_HISTORY_DAYS - 1))) {
     return NextResponse.json({ error: `Date must be within the last ${CHORE_HISTORY_DAYS} days` }, { status: 400 });
   }
 

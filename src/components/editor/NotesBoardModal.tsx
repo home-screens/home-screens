@@ -8,6 +8,7 @@ import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import {
+  NOTES_CLOCK_TICK_MS,
   NOTES_TTL_MS,
   allNotesUrl,
   createNoteRequest,
@@ -18,6 +19,7 @@ import {
   type NotesPayload,
   type NotesWriteRequest,
 } from '@/lib/notes-client';
+import { useStampedClock } from '@/hooks/useStampedClock';
 import { arrangeNotes, formatNoteAge, goneNotes, isLive, timeLeftParts } from '@/lib/notes-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { deleteNote, repost as repostNote, takeDown as takeDownNote, updateNote, type NotePatch } from '@/lib/notes-actions';
@@ -38,9 +40,6 @@ import type { FamilyMember } from '@/types/family';
 
 /** The author this editor last posted as. An empty string is a deliberate Nobody; no key is no pick yet. */
 const AUTHOR_KEY = 'hs-editor-notes-author';
-
-/** Ages and time left move on their own; a write also restamps the clock. */
-const CLOCK_TICK_MS = 30_000;
 
 /** A row's text: quiet until focused, so the board reads as notes and not a form. */
 const ROW_TEXT_CLASS =
@@ -294,10 +293,6 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
   const [error, setError] = useState<string | null>(null);
-  // Stamped with every change as well as on the tick: a note taken down a
-  // moment ago carries an expiry of "now", and a clock read before it would
-  // still count it as on the wall.
-  const [now, setNow] = useState(() => new Date());
   const [goneOpen, setGoneOpen] = useState(false);
 
   // ── New note ──
@@ -330,17 +325,16 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const notesRef = useRef<Note[]>([]);
   notesRef.current = notes;
 
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
-    return () => clearInterval(id);
-  }, []);
+  // Read afresh with every change as well as on the tick: a note taken down
+  // a moment ago carries an expiry of "now", and a clock read before it would
+  // still count it as on the wall.
+  const now = useStampedClock(NOTES_CLOCK_TICK_MS, notes);
 
   // Every copy shown here is the truth for the canvas preview too, once the
   // hub has answered: the empty board before that is not a board.
   useEffect(() => {
     if (!loaded) return;
     const at = new Date();
-    setNow(at);
     displayCache.replace(notesUrl(), { notes: notes.filter((n) => isLive(n, at)) }, FETCH_KEY_REGISTRY.notes.ttlMs);
   }, [notes, loaded]);
 

@@ -2,12 +2,13 @@
 
 import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex, resolveMealWithEntry, formatShortDayMonth, formatMealTime, servingTimeView } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, formatShortDayMonth, formatMealTime, servingTimeView } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
+import { isoWeekday } from '@/lib/iso-date';
 
 interface WeekGridProps {
   plan: PlannedMeal[];
@@ -211,7 +212,7 @@ export default function WeekGrid({
           {/* Day rows */}
           {weekDates.map((date) => {
             const isToday = isCurrentWeek && date === todayISO;
-            const dayIdx = dateToDayIndex(date);
+            const dayIdx = isoWeekday(date);
             const shortDate = formatShortDayMonth(date, locale);
             const dayLabel = `${dayNamesFull[dayIdx]} ${shortDate}`;
 

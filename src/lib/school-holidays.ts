@@ -1,4 +1,5 @@
 import { createResolverCache, fetchWithTimeout, isValidISODate } from '@/lib/api-utils';
+import { addIsoDays } from '@/lib/iso-date';
 import { createJsonStore } from '@/lib/json-store';
 import { householdToday } from '@/lib/household-day';
 
@@ -183,12 +184,6 @@ interface OpenHolidaysSubdivision {
 // Dates
 // ---------------------------------------------------------------------------
 
-function addDays(date: string, days: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
 /** The school year a `YYYY-MM-DD` day falls in: 2026 means September 2026 to August 2027. */
 export function schoolYearOf(date: string): number {
   const [year, month] = date.split('-').map(Number);
@@ -350,7 +345,7 @@ function toPublicDays(rows: OpenHolidaysHoliday[], from: string, to: string): Pu
     const last = row.endDate > to ? to : row.endDate;
     for (let i = 0; date <= last && i < MAX_PUBLIC_HOLIDAY_DAYS; i++) {
       days.push({ id: i === 0 ? row.id : `${row.id}-${date}`, date, names: row.name ?? [] });
-      date = addDays(date, 1);
+      date = addIsoDays(date, 1);
     }
   }
   return days.sort((a, b) => a.date.localeCompare(b.date));

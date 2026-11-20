@@ -16,7 +16,7 @@ import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { formatClockTime } from '@/lib/clock-time';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
@@ -161,7 +161,7 @@ export default function SchoolsTab({
 
   /** Who goes to the selected school, which decides whether it can go. */
   const listNames = (names: string[]) =>
-    new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names);
+    formatList(names, locale);
 
   const attending = selected
     ? schoolMembers(data, selected.id)

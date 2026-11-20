@@ -1,10 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DayNotesError, NO_DAY_NOTES, LAST_DAY_NOTES_PAGE, addDayNote, addIsoDays, clampDayNoteText, dayNoteLength, dayNotesFor,
-  hasDayNoteInWindow, indexDayNotes, isIsoDate, normalizeDayNoteText, notesOnDay, removeDayNote, sweepDayNotes, updateDayNote,
-  upcomingDays, validateDayNotesData,
+  DayNotesError,
+  NO_DAY_NOTES,
+  LAST_DAY_NOTES_PAGE,
+  addDayNote,
+  clampDayNoteText,
+  dayNoteLength,
+  dayNotesFor,
+  hasDayNoteInWindow,
+  indexDayNotes,
+  normalizeDayNoteText,
+  notesOnDay,
+  removeDayNote,
+  sweepDayNotes,
+  updateDayNote,
+  upcomingDays,
+  validateDayNotesData,
 } from '../day-notes';
 import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-notes';
+import { addIsoDays } from '../iso-date';
 
 const TODAY = '2026-11-02';
 const note = (id: string, date: string, text = `Note ${id}`): DayNote => ({ id, date, text });
@@ -20,21 +34,6 @@ function refused(fn: () => unknown, status: number): string {
   }
   throw new Error('expected a refusal');
 }
-
-describe('dates', () => {
-  it('takes real calendar days only', () => {
-    expect(isIsoDate('2026-11-02')).toBe(true);
-    expect(isIsoDate('2028-02-29')).toBe(true);
-    expect(isIsoDate('2026-02-29')).toBe(false);
-    expect(isIsoDate('2026-11-2')).toBe(false);
-    expect(isIsoDate(20261102)).toBe(false);
-  });
-  it('counts calendar days across months, years and the daylight-saving change', () => {
-    expect(addIsoDays('2026-10-31', 1)).toBe('2026-11-01');
-    expect(addIsoDays('2026-12-31', 1)).toBe('2027-01-01');
-    expect(addIsoDays('2026-03-01', -1)).toBe('2026-02-28');
-  });
-});
 
 describe('words', () => {
   it('makes one tidy line', () => {

@@ -16,7 +16,6 @@ import {
   type ResolvedAssignment,
   type MemberStats,
   type WeekDayData,
-  parseISO,
   buildCompletionSet,
   getWeekDatesFor,
   resolveAssignmentsFor,
@@ -30,6 +29,7 @@ import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
 import { isoDateInTZ } from '@/lib/timezone';
 import { planChoreToggle, readOverspentNotice, type OverspentNotice } from '@/lib/chore-toggle';
+import { localDateFromIso } from '@/lib/iso-date';
 
 const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
 const EMPTY_GOALS: Record<string, string> = {};
@@ -193,7 +193,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   // Per-member stats (streaks computed client-side with config context)
   const memberStats = useMemo(() => {
     const stats = new Map<string, MemberStats>();
-    const weekDates = getWeekDatesFor(parseISO(today), config.weekStartDay);
+    const weekDates = getWeekDatesFor(localDateFromIso(today), config.weekStartDay);
 
     for (const member of members) {
       const myAssignments = todayAssignments.filter((a) => a.memberId === member.id && !a.isSkipped);
@@ -227,10 +227,10 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   // Week data for star chart, aligned to configured week start day
   const weekData = useMemo(() => {
     const days: WeekDayData[] = [];
-    const weekDates = getWeekDatesFor(parseISO(today), config.weekStartDay);
+    const weekDates = getWeekDatesFor(localDateFromIso(today), config.weekStartDay);
 
     for (const date of weekDates) {
-      const dayOfWeek = parseISO(date).getDay();
+      const dayOfWeek = localDateFromIso(date).getDay();
 
       const memberStars: Record<string, boolean> = {};
       const memberAssigned: Record<string, boolean> = {};

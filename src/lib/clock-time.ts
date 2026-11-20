@@ -22,14 +22,15 @@ const MINUTES_PER_DAY = 24 * 60;
 /**
  * Parse an 'HH:MM' 24-hour string to minutes from midnight, or null when it is
  * missing or malformed. Range-checks both parts, so '25:00' and '12:60' are
- * rejected rather than silently wrapping.
+ * rejected rather than silently wrapping. That includes the empty string a
+ * cleared `<input type="time">` can save, so callers treat a bad window as no
+ * window instead of letting NaN into a comparison.
  *
- * Internal: the exported entry points are the two formatters. Callers that
- * need the number for arithmetic (window membership, sorting a bell schedule)
- * use `parseTimeToMinutes` from `@/lib/sleep-timeline`, which accepts the same
- * strings.
+ * The one parser for a clock time: the formatters below use it, and so does
+ * anything that needs the number for arithmetic (window membership, sorting a
+ * bell schedule).
  */
-function toMinutes(time: string | undefined | null): number | null {
+export function parseTimeToMinutes(time: string | undefined | null): number | null {
   if (!time) return null;
   const match = /^(\d{1,2}):(\d{2})$/.exec(time);
   if (!match) return null;
@@ -80,7 +81,7 @@ export function formatClockTime(
   time: string | undefined | null,
   format: TimeFormat,
 ): string {
-  return formatClockMinutes(toMinutes(time), format);
+  return formatClockMinutes(parseTimeToMinutes(time), format);
 }
 
 /**

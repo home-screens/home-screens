@@ -4,7 +4,7 @@ import type {
   ChoreTimeOfDay,
 } from '@/types/config';
 import { uuid } from '@/lib/uuid';
-import { choresAssignedTo, choresOwedBy, isChoreComplete, localDateStr, parseISO, type ChoreGroup, type ResolvedAssignment } from '@/lib/chore-assignments';
+import { choresAssignedTo, choresOwedBy, isChoreComplete, localDateStr, type ChoreGroup, type ResolvedAssignment } from '@/lib/chore-assignments';
 
 // ── Assignment / completion core (re-exported from the lib layer) ──
 //
@@ -15,8 +15,9 @@ import { choresAssignedTo, choresOwedBy, isChoreComplete, localDateStr, parseISO
 
 export {
   buildCompletionSet, choreAppliesToday, choreAssigneeIds, choresAssignedTo, choresOwedBy, completionKey, isAssignedOn,
-  isChoreComplete, isChoreSkipped, localDateStr, parseISO, resolveAssignee, resolveAssignmentsFor,
+  isChoreComplete, isChoreSkipped, localDateStr, resolveAssignee, resolveAssignmentsFor,
 } from '@/lib/chore-assignments';
+import { addIsoDays, localDateFromIso, weekDatesContaining } from '@/lib/iso-date';
 export type { ChoreGroup, ResolvedAssignment } from '@/lib/chore-assignments';
 
 export interface MemberStats {
@@ -93,43 +94,13 @@ export { MEMBER_COLORS } from '@/types/family';
 
 // ── Utility functions ──────────────────────────────────────────────
 
-/** Add (or subtract) days from a YYYY-MM-DD string. Local-time calendar arithmetic. */
-export function addDaysISO(iso: string, n: number): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  // Parse as local midnight; setDate walks the local calendar correctly across month/year/DST.
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + n);
-  return localDateStr(date);
-}
-
 /** Return the 7 dates (YYYY-MM-DD) for the week containing `reference`,
  *  starting from the configured week start day. */
 export function getWeekDatesFor(
   reference: Date | string,
   weekStartDay: 'sunday' | 'monday',
 ): string[] {
-  const refDate =
-    typeof reference === 'string'
-      ? (() => {
-          const [y, m, d] = reference.split('-').map(Number);
-          return new Date(y, m - 1, d);
-        })()
-      : new Date(reference.getFullYear(), reference.getMonth(), reference.getDate());
-
-  const startDow = weekStartDay === 'monday' ? 1 : 0;
-  const refDow = refDate.getDay();
-  const daysBack = (refDow - startDow + 7) % 7;
-
-  const weekStart = new Date(refDate);
-  weekStart.setDate(weekStart.getDate() - daysBack);
-
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    dates.push(localDateStr(d));
-  }
-  return dates;
+  return weekDatesContaining(typeof reference === 'string' ? reference : localDateStr(reference), weekStartDay);
 }
 
 /** Sort chores by time of day order, then incomplete first */
@@ -187,7 +158,7 @@ export function computeDayEntries(
   const list: DayEntry[] = [];
   let cursor = earliestDate;
   while (cursor <= latestDate) {
-    const parsed = parseISO(cursor);
+    const parsed = localDateFromIso(cursor);
     const dow = parsed.getDay();
 
     let total = 0;
@@ -213,7 +184,7 @@ export function computeDayEntries(
       total,
       anyDone,
     });
-    cursor = addDaysISO(cursor, 1);
+    cursor = addIsoDays(cursor, 1);
   }
   return list;
 }
@@ -271,7 +242,7 @@ export function computeStreak(
   groups: readonly ChoreGroup[],
 ): number {
   let streak = 0;
-  const sd = parseISO(today);
+  const sd = localDateFromIso(today);
   sd.setDate(sd.getDate() - 1); // start from yesterday
   for (let i = 0; i < 30; i++) {
     const date = localDateStr(sd);

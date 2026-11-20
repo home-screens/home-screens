@@ -22,8 +22,8 @@ import { formatDateSync, fullDatePattern, useFormattingLocale, useTranslate } fr
 import { formatClockTime } from '@/lib/clock-time';
 import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
-import { addDays, closureOn, dayBlocks, dayKeyOf, daySpan, dateInZone, endsAfterOn, weekLetterOn, type LessonBlock } from '@/lib/timetable-layout';
-import { parseISODate } from '@/lib/todo-due-labels';
+import { closureOn, dayBlocks, dayKeyOf, daySpan, dateInZone, endsAfterOn, weekLetterOn, type LessonBlock } from '@/lib/timetable-layout';
+import { parseIsoDate, addIsoDays } from '@/lib/iso-date';
 import type { FamilyMember } from '@/types/family';
 import { TIMETABLE_LIMITS, type Timetable, type TimetableData, type TimetableNote, type TimetableSchool } from '@/types/timetables';
 import MemberDot from './MemberDot';
@@ -79,7 +79,7 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
   const [draft, setDraft] = useState<{ memberId: string | null; note: TimetableNote; isNew: boolean } | null>(null);
 
   const on = (iso: string, pattern: string): string => {
-    const date = parseISODate(iso);
+    const date = parseIsoDate(iso);
     return date ? formatDateSync(date, pattern, { locale }) : iso;
   };
   const clock = (time: string) => formatClockTime(time, timeFormat);
@@ -170,7 +170,7 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
   const groupLabel = (iso: string): string => {
     const date = on(iso, fullDatePattern(locale, 'long'));
     if (iso === today) return `${t('timetableModal.dates.today')} · ${date}`;
-    if (iso === addDays(today, 1)) return `${t('timetableModal.dates.tomorrow')} · ${date}`;
+    if (iso === addIsoDays(today, 1)) return `${t('timetableModal.dates.tomorrow')} · ${date}`;
     return date;
   };
 
@@ -477,7 +477,7 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
             {shown.map((entry, index) => {
               const first = index === 0 || shown[index - 1].note.date !== entry.note.date;
               const { what, small } = describe(entry);
-              const eve = on(addDays(entry.note.date, -1), 'EEEE');
+              const eve = on(addIsoDays(entry.note.date, -1), 'EEEE');
               return (
                 <div key={`${entry.member.id}-${entry.note.id}`}>
                   {first && (

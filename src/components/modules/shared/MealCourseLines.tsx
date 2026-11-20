@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react';
 import type { ResolvedCourse } from '@/lib/meal-courses';
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
-import { useLocale, useTranslate } from '@/i18n';
+import { useLocale, useTranslate, formatList } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealCourseLinesProps {
@@ -146,7 +146,7 @@ export function MealCourseNames({ courses, style }: { courses: ResolvedCourse[];
   const t = useTranslate('modules');
   const locale = useLocale();
   if (courses.length === 0) return null;
-  const dishes = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(courses.map((c) => c.name));
+  const dishes = formatList(courses.map((c) => c.name), locale);
   return (
     <span data-meal-course-names style={style}>
       {t('meal-planner.withCourses', { dishes })}

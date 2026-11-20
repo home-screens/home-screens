@@ -15,7 +15,7 @@ import { mealViewOptions } from '@/lib/meal-view-options';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { formatList, useFormattingLocale, useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
@@ -75,8 +75,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         const named = without.length > 2
           ? [...without.slice(0, 2), t('configSections.fullscreen-meal-planner.andMore', { count: without.length - 2 })]
           : without;
-        let missing = named.join(', ');
-        try { missing = new Intl.ListFormat(formattingLocale, { type: 'conjunction' }).format(named); } catch { /* older engine */ }
+        const missing = formatList(named, formattingLocale);
         return (
           <p className="text-[11px] text-hs-text-muted leading-relaxed -mt-2" data-testid="fullscreen-meal-planner-recipe-count">
             {without.length === 0

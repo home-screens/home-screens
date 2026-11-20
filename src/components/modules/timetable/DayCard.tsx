@@ -19,7 +19,7 @@ import { smallPrintPx, type TimetableShed } from '@/lib/timetable-layout';
 import { axisShare, tickLabel, type DayAxis, type FamilyDayBlock, type FamilyDayRow } from '@/lib/timetable-day';
 import { careLineForm, DAY_LINE, nameFitsLine, wordsFit, type ColumnsGeometry, type DayGeometry, type RowsGeometry } from '@/lib/timetable-day-fit';
 import { ink } from '@/lib/constants';
-import { formatClockMinutes, formatClockTime } from '@/lib/clock-time';
+import { formatClockMinutes, formatClockTime, parseTimeToMinutes } from '@/lib/clock-time';
 import { pickGridTimeColor } from '@/lib/calendar-color';
 import { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from '@/lib/timetable-subjects';
 import { useTranslate } from '@/i18n';
@@ -568,7 +568,7 @@ function Lane({
   const lines = axis.ticks.filter((tick) => tick > axis.startMin && tick < axis.endMin);
   const surviving = row.blocks.filter((b) => b.kind === 'lesson' && !b.off);
   const lastEnd = surviving.length ? share(surviving[surviving.length - 1].endMin) : null;
-  const cut = row.cutAt ? share(parseClock(row.cutAt)) : null;
+  const cut = row.cutAt ? share(parseTimeToMinutes(row.cutAt) ?? NaN) : null;
   // A dotted leader runs from the last lesson to the end of the clock on a day
   // that ends early, so an early finish reads as an early finish and not as a
   // row that ran out of lessons.
@@ -635,11 +635,6 @@ function Lane({
       )}
     </div>
   );
-}
-
-function parseClock(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
 }
 
 /** A day school is shut: the reason, across the whole lane. */

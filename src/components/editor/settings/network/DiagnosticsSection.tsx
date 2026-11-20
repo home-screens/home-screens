@@ -3,7 +3,8 @@
 import { useState, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useLocale, useTranslate, type TranslateFn } from '@/i18n';
+import { relativeTimeFormatter } from '@/i18n/formatters';
 import type { DiagnosticsResult } from '@/lib/network-types';
 
 /* ─── Helpers ──────────────────────────────── */
@@ -15,26 +16,18 @@ function formatLatency(ms: number | null, t: TranslateFn): string {
     : t('settings.networkPage.diagnostics.host.latencyMs', { ms: Math.round(ms) });
 }
 
-function formatLastRun(lastRun: string | null, t: TranslateFn): string {
+/** "45 seconds ago", "1 minute ago", "3 hours ago" in the editor's language, counting whole units. */
+function formatLastRun(lastRun: string | null, t: TranslateFn, locale: string): string {
   if (!lastRun) return t('settings.networkPage.diagnostics.watchdog.never');
+  const at = new Date(lastRun).getTime();
+  if (isNaN(at)) return lastRun;
   try {
-    const d = new Date(lastRun);
-    if (isNaN(d.getTime())) return lastRun;
-    const diffMs = Date.now() - d.getTime();
-    const diffS = Math.floor(diffMs / 1000);
-    if (diffS < 60) {
-      return t('settings.networkPage.diagnostics.watchdog.secondsAgo', { count: diffS });
-    }
-    const diffM = Math.floor(diffS / 60);
-    if (diffM < 60) {
-      return diffM === 1
-        ? t('settings.networkPage.diagnostics.watchdog.minuteAgoSingular', { count: diffM })
-        : t('settings.networkPage.diagnostics.watchdog.minutesAgoPlural', { count: diffM });
-    }
-    const diffH = Math.floor(diffM / 60);
-    return diffH === 1
-      ? t('settings.networkPage.diagnostics.watchdog.hourAgoSingular', { count: diffH })
-      : t('settings.networkPage.diagnostics.watchdog.hoursAgoPlural', { count: diffH });
+    const rtf = relativeTimeFormatter(locale, 'always', 'long');
+    const seconds = Math.max(0, Math.floor((Date.now() - at) / 1000));
+    if (seconds < 60) return rtf.format(-seconds, 'second');
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return rtf.format(-minutes, 'minute');
+    return rtf.format(-Math.floor(minutes / 60), 'hour');
   } catch {
     return lastRun;
   }
@@ -92,6 +85,7 @@ function HostRow({
 
 export default function DiagnosticsSection() {
   const t = useTranslate('editor');
+  const locale = useLocale();
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<DiagnosticsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -139,7 +133,7 @@ export default function DiagnosticsSection() {
               </span>
             </div>
             <p className="text-xs text-hs-text-muted pl-4">
-              {t('settings.networkPage.diagnostics.watchdog.lastRun', { time: formatLastRun(watchdog.lastRun, t) })}
+              {t('settings.networkPage.diagnostics.watchdog.lastRun', { time: formatLastRun(watchdog.lastRun, t, locale) })}
             </p>
           </div>
         )}

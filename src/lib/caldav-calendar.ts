@@ -4,7 +4,7 @@ import type { CalendarEvent, ICloudSource } from '@/types/config';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
 import { parseICSEvents } from '@/lib/ical-calendar';
 import { compareEventStarts, parseEventInstant } from '@/lib/calendar-utils';
-import { isoDateInTZ } from '@/lib/timezone';
+import { isoDateInTZ, localISODate } from '@/lib/timezone';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { logger } from '@/lib/logger';
 
@@ -302,7 +302,7 @@ export function clearICloudCaches(): void {
 }
 
 async function loadAccountBirthdays(account: ICloudAccount): Promise<AccountBirthday[]> {
-  const today = toDateOnly(new Date());
+  const today = localISODate(new Date());
   const cached = birthdayCache.get(account.id);
   if (cached?.day === today) return cached.birthdays;
 
@@ -424,9 +424,3 @@ function birthdayOccurrences(
   return occurrences;
 }
 
-function toDateOnly(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}

@@ -13,8 +13,8 @@ import { Trash2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
-import { parseTimeToMinutes } from '@/lib/sleep-timeline';
-import { addDays, dateInZone, mondayOf } from '@/lib/timetable-layout';
+import { parseTimeToMinutes } from '@/lib/clock-time';
+import { dateInZone } from '@/lib/timetable-layout';
 import {
   DAY_KEYS,
   TIMETABLE_LIMITS,
@@ -23,6 +23,7 @@ import {
 } from '@/types/timetables';
 import NameInput from './NameInput';
 import { PROSE_CLASS } from './prose';
+import { addIsoDays, mondayOf } from '@/lib/iso-date';
 
 interface BellTimesEditorProps {
   school: TimetableSchool;
@@ -114,7 +115,7 @@ export default function BellTimesEditor({ school, onChange }: BellTimesEditorPro
   // a number nobody counts in.
   const monday = mondayOf(dateInZone(new Date()));
   const dayNames = DAY_KEYS.map((_, index) =>
-    formatDateSync(new Date(`${addDays(monday, index)}T12:00:00`), 'EEEEEE', { locale }),
+    formatDateSync(new Date(`${addIsoDays(monday, index)}T12:00:00`), 'EEEEEE', { locale }),
   );
 
   // Care with no name goes the same way a nameless break does, and the times

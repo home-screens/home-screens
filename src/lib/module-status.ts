@@ -6,6 +6,7 @@ import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleInstance, Screen, TextLook, TimeFormat } from '@/types/config';
 import { resolveTextLooks } from '@/lib/text-looks';
 import type { TranslateFn } from '@/i18n/types';
+import { formatList } from '@/i18n/formatters';
 
 export type ModuleStatusTone = 'off' | 'waiting' | 'active' | 'background';
 
@@ -97,15 +98,6 @@ function firstSourceKey(node: unknown): string | undefined {
     }
   }
   return undefined;
-}
-
-/** "Mild and Warm" in the household's language; a plain comma list where the runtime has no list rules. */
-function formatList(items: string[], locale: string): string {
-  try {
-    return new Intl.ListFormat(locale, { type: 'conjunction' }).format(items);
-  } catch {
-    return items.join(', ');
-  }
 }
 
 /**

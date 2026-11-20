@@ -9,12 +9,10 @@ import {
   sortChores,
   getCurrentTimeOfDay,
   completionKey,
-  addDaysISO,
   getWeekDatesFor,
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
-  parseISO,
   computeDayEntries,
   isAssignedOn,
   choresAssignedTo,
@@ -76,48 +74,6 @@ describe('getOrderedDays', () => {
 
   it('returns Monday-first order for "monday"', () => {
     expect(getOrderedDays('monday')).toEqual([1, 2, 3, 4, 5, 6, 0]);
-  });
-});
-
-describe('addDaysISO', () => {
-  it('adds positive days within the same month', () => {
-    expect(addDaysISO('2026-03-15', 5)).toBe('2026-03-20');
-  });
-
-  it('subtracts days within the same month', () => {
-    expect(addDaysISO('2026-03-15', -5)).toBe('2026-03-10');
-  });
-
-  it('handles crossing into the next month', () => {
-    expect(addDaysISO('2026-03-30', 5)).toBe('2026-04-04');
-  });
-
-  it('handles crossing into the previous month', () => {
-    expect(addDaysISO('2026-03-02', -5)).toBe('2026-02-25');
-  });
-
-  it('handles crossing into the next year', () => {
-    expect(addDaysISO('2025-12-30', 5)).toBe('2026-01-04');
-  });
-
-  it('handles crossing into the previous year', () => {
-    expect(addDaysISO('2026-01-02', -5)).toBe('2025-12-28');
-  });
-
-  it('handles a full 90-day walk backward', () => {
-    // Round trip check — walking 90 days back then 90 days forward returns the same ISO.
-    const start = '2026-04-09';
-    const back = addDaysISO(start, -90);
-    expect(addDaysISO(back, 90)).toBe(start);
-  });
-
-  it('handles leap-year February', () => {
-    expect(addDaysISO('2024-02-28', 1)).toBe('2024-02-29');
-    expect(addDaysISO('2024-02-29', 1)).toBe('2024-03-01');
-  });
-
-  it('returns n=0 unchanged', () => {
-    expect(addDaysISO('2026-03-15', 0)).toBe('2026-03-15');
   });
 });
 
@@ -497,16 +453,6 @@ describe('removeChoreFromList', () => {
 describe('CHORE_HISTORY_DAYS', () => {
   it('is 90 days (single source of truth for client + server)', () => {
     expect(CHORE_HISTORY_DAYS).toBe(90);
-  });
-});
-
-describe('parseISO', () => {
-  it('returns a local-midnight Date for a YYYY-MM-DD string', () => {
-    const d = parseISO('2026-04-09');
-    expect(d.getFullYear()).toBe(2026);
-    expect(d.getMonth()).toBe(3); // April = 3
-    expect(d.getDate()).toBe(9);
-    expect(d.getHours()).toBe(0);
   });
 });
 

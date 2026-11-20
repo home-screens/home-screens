@@ -3,12 +3,13 @@
 import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseCount } from '../shared/MealCourseLines';
 import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
+import { isoWeekday } from '@/lib/iso-date';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -52,7 +53,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
               {label}
             </span>
             <span className="opacity-20" style={{ fontSize: '0.5em' }}>
-              {dayNames[dateToDayIndex(date)]}
+              {dayNames[isoWeekday(date)]}
             </span>
           </div>
 

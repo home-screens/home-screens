@@ -45,7 +45,7 @@ import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { formatClockTime } from '@/lib/clock-time';
 import { resolveFontStack } from '@/lib/font-registry';
 import { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from '@/lib/timetable-subjects';
-import { parseISODate } from '@/lib/todo-due-labels';
+import { parseIsoDate } from '@/lib/iso-date';
 import { pickPillTextColor } from '@/lib/calendar-color';
 import { dayMonthPattern, formatDateSync, fullDatePattern, useFormattingLocale, useLocale, useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
@@ -129,7 +129,7 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
   // "10:15 AM" and not "07:50".
   const dayTitle = useMemo(() => {
     if (!day) return '';
-    const date = parseISODate(day.date);
+    const date = parseIsoDate(day.date);
     if (!date) return day.date;
     // The pill already names the day when it is not today or tomorrow, so the
     // title carries the date alone rather than the weekday twice.
@@ -143,7 +143,7 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
     if (!day) return '';
     if (day.labelKind === 'today') return t('timetable.today');
     if (day.labelKind === 'tomorrow') return t('timetable.tomorrow');
-    const date = parseISODate(day.date);
+    const date = parseIsoDate(day.date);
     return date ? formatDateSync(date, 'EEEE', { locale: formatting }) : '';
   }, [day, t, formatting]);
 
@@ -151,13 +151,13 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
     if (!day) return '';
     if (day.labelKind === 'today') return t('timetable.packToday');
     if (day.labelKind === 'tomorrow') return t('timetable.packTonight');
-    const date = parseISODate(day.date);
+    const date = parseIsoDate(day.date);
     return t('timetable.packFor', { day: date ? formatDateSync(date, 'EEEE', { locale: formatting }) : '' });
   }, [day, t, formatting]);
 
   const packSub = useMemo(() => {
     if (!day) return '';
-    const date = parseISODate(day.date);
+    const date = parseIsoDate(day.date);
     return t('timetable.packSub', { date: date ? formatDateSync(date, fullDatePattern(formatting, 'long'), { locale: formatting }) : '' });
   }, [day, t, formatting]);
 

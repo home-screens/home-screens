@@ -7,13 +7,12 @@ import { ChevronLeft } from 'lucide-react';
 import type { ChoreDefinition } from '@/types/config';
 import {
   CHORE_HISTORY_DAYS,
-  addDaysISO,
   computeDayEntries,
-  parseISO,
   type DayEntry,
 } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
+import { localDateFromIso, addIsoDays } from '@/lib/iso-date';
 
 /** Days shown before anyone asks for more. Two weeks covers "did she do it last Tuesday". */
 export const DEFAULT_HISTORY_WINDOW_DAYS = 14;
@@ -89,7 +88,7 @@ export default function ChoreHistoryNav({
   // is older than the window (the parent can park on any day) pulls the
   // window out far enough to include it.
   const earliestDate = useMemo(() => {
-    const byWindow = addDaysISO(realToday, -(windowDays - 1));
+    const byWindow = addIsoDays(realToday, -(windowDays - 1));
     return viewingDate < byWindow ? viewingDate : byWindow;
   }, [realToday, windowDays, viewingDate]);
 
@@ -103,13 +102,13 @@ export default function ChoreHistoryNav({
   const dayLabels = useMemo(() => {
     const map = new Map<string, string>();
     for (const day of days) {
-      map.set(day.date, dateLong.format(parseISO(day.date)));
+      map.set(day.date, dateLong.format(localDateFromIso(day.date)));
     }
     return map;
   }, [days, dateLong]);
 
   // Month label derived from viewingDate (not realToday) so the header follows navigation.
-  const monthLabel = useMemo(() => monthLong.format(parseISO(viewingDate)), [viewingDate, monthLong]);
+  const monthLabel = useMemo(() => monthLong.format(localDateFromIso(viewingDate)), [viewingDate, monthLong]);
 
   const isViewingToday = viewingDate === realToday;
   const selected = useMemo(() => days.find((d) => d.date === viewingDate), [days, viewingDate]);
@@ -119,7 +118,7 @@ export default function ChoreHistoryNav({
     if (isViewingToday) {
       return t('choreHistoryNav.captionToday', { earned: selected.earned, total: selected.total });
     }
-    const date = dateShort.format(parseISO(selected.date));
+    const date = dateShort.format(localDateFromIso(selected.date));
     return selected.anyDone
       ? t('choreHistoryNav.captionPast', { date, earned: selected.earned, total: selected.total })
       : t('choreHistoryNav.captionPastNone', { date });

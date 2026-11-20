@@ -2,7 +2,7 @@ import type { RewardAdjustment, RewardRedemption } from './reward-data';
 import type { ChoreCompletion, ChoreDefinition } from '@/types/config';
 import { sortRedemptionsNewestFirst } from './reward-rules';
 import { isoDateInTZ } from './timezone';
-import { daysBetween } from './todo-due-labels';
+import { isoDaysBetween } from './iso-date';
 
 /**
  * How a family's redemptions are read back on the wall: split by how long ago
@@ -28,7 +28,7 @@ export interface RedemptionGroup {
 function daysAgo(redeemedAt: string, now: Date, timeZone?: string): number | null {
   const at = new Date(redeemedAt);
   if (Number.isNaN(at.getTime())) return null;
-  return daysBetween(isoDateInTZ(at, timeZone), isoDateInTZ(now, timeZone));
+  return isoDaysBetween(isoDateInTZ(at, timeZone), isoDateInTZ(now, timeZone));
 }
 
 function bucketFor(days: number | null): RedemptionBucket {
@@ -219,7 +219,7 @@ export function summarizeTicketLedger(
   const summary: TicketLedgerSummary = { earned: 0, spent: 0, adjusted: 0 };
   for (const row of rows) {
     if (row.delta === null) continue;
-    const ago = daysBetween(row.date, today);
+    const ago = isoDaysBetween(row.date, today);
     if (ago === null || ago < 0 || ago >= days) continue;
     if (row.kind === 'earned') summary.earned += row.delta;
     else if (row.kind === 'spent') summary.spent += -row.delta;
@@ -238,7 +238,7 @@ export function groupTicketLedgerByDay(rows: readonly TicketLedgerRow[], now: Da
   const today = isoDateInTZ(now, timeZone);
   const byBucket = new Map<RedemptionBucket, TicketLedgerRow[]>();
   for (const row of rows) {
-    const bucket = bucketFor(daysBetween(row.date, today));
+    const bucket = bucketFor(isoDaysBetween(row.date, today));
     const list = byBucket.get(bucket);
     if (list) list.push(row);
     else byBucket.set(bucket, [row]);

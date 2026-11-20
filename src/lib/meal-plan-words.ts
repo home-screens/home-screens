@@ -1,6 +1,7 @@
-import { formatDayRange } from '@/i18n/formatters';
-import { dateToDayIndex, fromISODate, getLocalizedDayNames, toISODate } from './meal-constants';
+import { formatDayRange, formatList } from '@/i18n/formatters';
+import { fromISODate, getLocalizedDayNames, toISODate } from './meal-constants';
 import { formatDateInTZ, formatTimeInTZ, isoDateInTZ } from './timezone';
+import { isoWeekday } from './iso-date';
 
 /**
  * How the meal planner's questions and notices name the days they act on.
@@ -67,10 +68,10 @@ export function formatPlannedDays(
     DAY_MONTH.set(locale, dayMonth);
   }
   const shown = upcoming.length > max ? upcoming.slice(0, max) : upcoming;
-  const names = shown.map((d) => (d < nextWeek ? weekdays[dateToDayIndex(d)] : dayMonth.format(fromISODate(d))));
+  const names = shown.map((d) => (d < nextWeek ? weekdays[isoWeekday(d)] : dayMonth.format(fromISODate(d))));
   const rest = upcoming.length - shown.length;
   if (rest > 0) names.push(more(rest));
-  return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names);
+  return formatList(names, locale);
 }
 
 /**

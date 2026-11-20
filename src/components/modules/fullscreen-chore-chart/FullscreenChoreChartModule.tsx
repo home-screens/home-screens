@@ -22,7 +22,7 @@ import MemberStrip from './MemberStrip';
 import MemberBand, { memberHeaderHeight } from './MemberBand';
 import BonusBand, { BonusMoreSheet, GrabbedSheet, GrabPickerSheet } from './BonusBand';
 import { atGrabLimit, type BonusItem } from '@/lib/chore-bonus';
-import { parseISO } from '@/lib/chore-assignments';
+import { localDateFromIso } from '@/lib/iso-date';
 import { CHORE_STORE_IDLE_MS } from '@/lib/chore-constants';
 import { useChoreWriteAlert } from '@/components/modules/chore-chart/useChoreWriteAlert';
 import type { MemberStats } from '@/components/modules/chore-chart/types';
@@ -320,7 +320,7 @@ export default function FullscreenChoreChartModule({
   // Wednesday's list.
   // Blank until the hub has said which day it is: the server's first paint
   // and a screen on another clock would otherwise name different days.
-  const headerDate = parseISO(today);
+  const headerDate = localDateFromIso(today);
   const dayName = todayKnown ? formatDateInTZ(headerDate, undefined, { weekday: 'long' }, locale) : '\u00a0';
   const dateStr = todayKnown ? formatDateInTZ(headerDate, undefined, { month: 'long', day: 'numeric', year: 'numeric' }, locale) : '\u00a0';
 

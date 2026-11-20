@@ -10,6 +10,9 @@ import { sendJsonWrite } from './hub-request';
 
 export const NOTES_TTL_MS = FETCH_KEY_REGISTRY['notes']?.ttlMs ?? 5_000;
 
+/** How often the phone's and the editor's ages and time left move on when nothing else changed. */
+export const NOTES_CLOCK_TICK_MS = 30_000;
+
 export interface NotesPayload {
   notes: Note[];
 }

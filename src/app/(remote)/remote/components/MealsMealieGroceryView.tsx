@@ -13,7 +13,7 @@ import {
   type MealieShoppingFailure,
   type ShoppingItem,
 } from '@/lib/shopping-list';
-import { useLocale, useTranslate } from '@/i18n';
+import { useLocale, useTranslate, formatList } from '@/i18n';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList';
 import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
@@ -93,7 +93,7 @@ export default function MealsMealieGroceryView({
   };
   const labelFor = (label: string | null) => label ?? t('mealie.grocery.noLabel');
   const forRecipes = (recipes: string[]) => t('mealie.grocery.forRecipes', {
-    recipes: new Intl.ListFormat(locale, { type: 'conjunction' }).format(recipes),
+    recipes: formatList(recipes, locale),
   });
 
   const share = async () => {

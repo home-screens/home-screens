@@ -4,21 +4,16 @@ import { Fragment, useMemo } from 'react';
 import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { groupByDay, sortByTime } from '@/lib/notes-rules';
+import { DAY_MS, isoDaysBetween } from '@/lib/iso-date';
 import { isoDateInTZ } from '@/lib/timezone';
 import { AuthorBubble } from './AuthorBubble';
 import { useFittedNotes } from './useFittedNotes';
 import { DANGER_INK, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
 
-const DAY_MS = 86_400_000;
-
-/** Whole days from one `YYYY-MM-DD` to another. Calendar arithmetic, so a DST day counts as one. */
-function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
-}
-
 /** A day heading: Today, Yesterday, the short weekday inside the last week, else a short date. */
 function dayLabel(day: string, today: string, ctx: NotesContext): string {
-  const ago = daysBetween(day, today);
+  // A day that cannot be read is NaN, which falls through to the plain date below.
+  const ago = isoDaysBetween(day, today) ?? NaN;
   if (ago <= 0) return ctx.t('notes.today');
   if (ago === 1) return ctx.t('notes.yesterday');
   // Noon UTC on that calendar day, formatted in UTC: the date as written,

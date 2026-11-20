@@ -1,5 +1,6 @@
 import { addDays } from 'date-fns';
 import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-notes';
+import { addIsoDays, isIsoDate } from './iso-date';
 import { localISODate } from './timezone';
 import { RefusalError, type RefusalParams } from './refusal';
 
@@ -36,23 +37,6 @@ export type DayNotes = Readonly<Record<string, readonly string[]>>;
 
 export const NO_DAY_NOTES: DayNotes = Object.freeze({});
 const NONE: readonly string[] = Object.freeze([]);
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** A real calendar day spelled `YYYY-MM-DD` (rejects 2026-02-30). */
-export function isIsoDate(value: unknown): value is string {
-  if (typeof value !== 'string' || !ISO_DATE.test(value)) return false;
-  const [y, m, d] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
-}
-
-/** `iso` moved by `days`, counted on the calendar (no clock, so no daylight-saving drift). */
-export function addIsoDays(iso: string, days: number): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d + days));
-  return date.toISOString().slice(0, 10);
-}
 
 /** One line of plain words: trimmed, every run of spaces and line breaks made one space. */
 export function normalizeDayNoteText(text: string): string {

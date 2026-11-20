@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useStampedClock } from '@/hooks/useStampedClock';
 import { editorFetch } from '@/lib/editor-fetch';
 import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { useTranslate } from '@/i18n';
@@ -17,6 +18,7 @@ import {
 } from '@/lib/notes-actions';
 import { NotesError } from '@/lib/notes-errors';
 import {
+  NOTES_CLOCK_TICK_MS,
   NOTES_TTL_MS,
   allNotesUrl,
   createNoteRequest,
@@ -30,8 +32,6 @@ import type { Note } from '@/types/notes';
 import { showToast } from '../remote-toast';
 
 const NOTES_POLL_MS = NOTES_TTL_MS;
-/** How often ages and time left move on when nothing else changed. */
-const CLOCK_TICK_MS = 30_000;
 
 const tolerated = (e: unknown) => e instanceof NotesError;
 
@@ -61,8 +61,6 @@ async function loadNotes(): Promise<Note[] | null> {
 export function useNotes() {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
-  const [now, setNow] = useState(() => new Date());
-
   const { data: notes, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<Note[], NotesWriteRequest, Note>({
     initial: [],
     load: loadNotes,
@@ -78,14 +76,7 @@ export function useNotes() {
     ),
   });
 
-  useEffect(() => {
-    setNow(new Date());
-  }, [notes]);
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
-    return () => clearInterval(id);
-  }, []);
+  const now = useStampedClock(NOTES_CLOCK_TICK_MS, notes);
 
   /**
    * Resolves to whether the note was saved, so the write bar can hand back

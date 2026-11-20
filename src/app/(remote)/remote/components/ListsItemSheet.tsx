@@ -5,7 +5,7 @@ import { useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoListItem } from '@/types/todos';
 import type { FamilyMember } from '@/types/family';
 import { classifyDue } from '@/lib/todo-due-labels';
-import { addDaysISO } from '@/components/modules/chore-chart/types';
+import { addIsoDays } from '@/lib/iso-date';
 import BottomSheet from './BottomSheet';
 import {
   DANGER_BUTTON,
@@ -55,7 +55,7 @@ export default function ListsItemSheet({ item, todayISO, members, onSave, onDele
     setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const resolvedDue =
-    mode === 'none' ? '' : mode === 'today' ? todayISO : mode === 'tomorrow' ? addDaysISO(todayISO, 1) : pickedDate;
+    mode === 'none' ? '' : mode === 'today' ? todayISO : mode === 'tomorrow' ? addIsoDays(todayISO, 1) : pickedDate;
 
   const save = () => {
     const clean = text.trim();

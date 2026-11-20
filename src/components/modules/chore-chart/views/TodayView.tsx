@@ -6,7 +6,7 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import type { BonusItem } from '@/lib/chore-bonus';
-import { TIME_OF_DAY_META, getCurrentTimeOfDay, parseISO } from '../types';
+import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
 import { CHORE_TIME_ORDER, buildChoreRows, getUniqueInitials, mergeChoreRows, type ChoreRow } from '@/lib/chore-rows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
@@ -21,6 +21,7 @@ import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
 import { BonusRows } from '../BonusRows';
 import { memberInitials } from '@/lib/family-avatar';
+import { localDateFromIso } from '@/lib/iso-date';
 
 interface TodayViewProps {
   config: ChoreChartConfig;
@@ -67,7 +68,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
   // until the hub has answered.
   const today = data.today ?? isoDateInTZ(new Date(), timezone);
   // Blank until the hub has said which day it is (see the wall's header).
-  const dayName = data.todayKnown === false ? '\u00a0' : formatDateInTZ(parseISO(today), undefined, { weekday: 'long' }, locale);
+  const dayName = data.todayKnown === false ? '\u00a0' : formatDateInTZ(localDateFromIso(today), undefined, { weekday: 'long' }, locale);
   // A "not today" is owed by nobody, so it is out of the progress sum.
   const owed = todayAssignments.filter((a) => !a.isSkipped);
   const totalAssigned = owed.length;

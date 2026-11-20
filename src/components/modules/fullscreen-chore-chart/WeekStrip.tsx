@@ -5,6 +5,7 @@ import type { FamilyMember } from '@/types/family';
 
 import type { WeekDayData } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { localDateFromIso } from '@/lib/iso-date';
 
 interface WeekStripProps {
   /** Canvas scale: 1 = the sizes authored for a 1080-wide panel. */
@@ -32,8 +33,7 @@ export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 10 * k }}>
         {weekData.map((day, i) => {
-          const [y, m, d] = day.date.split('-').map(Number);
-          const dayDate = new Date(y, (m ?? 1) - 1, d ?? 1);
+          const dayDate = localDateFromIso(day.date);
           const future = todayIndex >= 0 && i > todayIndex;
           const earned = members.reduce((n, member) => n + (day.memberStars[member.id] ? 1 : 0), 0);
           const assigned = members.reduce((n, member) => n + (day.memberAssigned[member.id] ? 1 : 0), 0);

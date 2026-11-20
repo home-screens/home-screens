@@ -1,4 +1,5 @@
 import { createTTLCache, fetchWithTimeout } from '@/lib/api-utils';
+import { addIsoDays } from '@/lib/iso-date';
 import { APOD_CATEGORY, NASA_IMAGE_API, NASA_SCIENCE_API } from '@/lib/nasa';
 import { importPictureToLibrary, UnsupportedImageFormatError } from '@/lib/library-import';
 import type { MediaListItem } from '@/types/config';
@@ -98,12 +99,6 @@ function thumbnail(url: string): string {
   return /\/dynamicimage\//.test(url) ? `${url}${url.includes('?') ? '&' : '?'}w=480&h=480&fit=crop` : url;
 }
 
-/** The day after `YYYY-MM-DD`. */
-function nextDay(day: string): string {
-  const [y, m, d] = day.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
-}
-
 /** The largest picture a NASA library entry has in a format the display can show. */
 async function libraryImageUrl(nasaId: string): Promise<string> {
   const res = await fetchWithTimeout(`${NASA_IMAGE_API}/asset/${encodeURIComponent(nasaId)}`);
@@ -176,7 +171,7 @@ export const nasaPhotoSource: PhotoSourceAdapter<'nasa'> & PickableSource = {
     let title: string | undefined;
     if (ref.startsWith('apod:')) {
       id = ref.slice('apod:'.length);
-      const { days } = await apodPage({ perPage: 1, after: `${id}T00:00:00`, before: `${nextDay(id)}T00:00:00` });
+      const { days } = await apodPage({ perPage: 1, after: `${id}T00:00:00`, before: `${addIsoDays(id, 1)}T00:00:00` });
       if (!days[0]) throw new PhotoSourceError('That day has no picture to save', 404);
       url = days[0].url;
       title = days[0].title;
@@ -194,4 +189,4 @@ export const nasaPhotoSource: PhotoSourceAdapter<'nasa'> & PickableSource = {
 };
 
 /** Test hook. */
-export const __test = { apodTitle, decodeEntities, nextDay };
+export const __test = { apodTitle, decodeEntities };

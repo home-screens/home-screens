@@ -12,7 +12,7 @@ import type {
   ChoreRotation,
 } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
-import { choreAssigneeIds, parseISO } from './types';
+import { choreAssigneeIds } from './types';
 import {
   canChoreRotate,
   defaultChoreDays,
@@ -24,6 +24,7 @@ import {
 } from './chore-form-presentation';
 import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 import { useFormDirty } from '@/hooks/useFormDirty';
+import { localDateFromIso } from '@/lib/iso-date';
 
 /**
  * Shared form state for chore forms.
@@ -248,7 +249,7 @@ export function useChoreForm(
   const setKind = (next: ChoreKind) => {
     setKindState(next);
     if (next !== 'bonus' || frequency !== 'once' || initial?.bonus) return;
-    if (daysOfWeek.length === 0) setDaysOfWeek([parseISO(specificDate).getDay()]);
+    if (daysOfWeek.length === 0) setDaysOfWeek([localDateFromIso(specificDate).getDay()]);
     setComesBack('manual');
   };
 

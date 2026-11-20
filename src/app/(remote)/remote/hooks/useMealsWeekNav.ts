@@ -6,7 +6,6 @@ import {
   toISODate,
   fromISODate,
   alignToWeekStart,
-  dateToDayIndex,
   getWeekDatesForRange,
   weekStartAfterDayChange,
   minutesOfDay,
@@ -14,6 +13,7 @@ import {
 import { createTZDate } from '@/lib/timezone';
 import type { MealsWeekDay } from '../components/meals-shared';
 import { useHouseholdNow, useHouseholdTimezone } from '../household-clock';
+import { isoWeekday } from '@/lib/iso-date';
 
 /**
  * Which week the Meals tab is showing, plus everything derived from the wall
@@ -68,7 +68,7 @@ export function useMealsWeekNav(settings: MealSettings, keptWeek: string | null 
 
   const weekDates = useMemo(
     (): MealsWeekDay[] => getWeekDatesForRange(toISODate(viewingWeekStart), settings.weekStartDay)
-      .map((date) => ({ date, dayIndex: dateToDayIndex(date) })),
+      .map((date) => ({ date, dayIndex: isoWeekday(date) })),
     [viewingWeekStart, settings.weekStartDay],
   );
   // Derive todayISO from the tick so a phone left open past midnight rolls

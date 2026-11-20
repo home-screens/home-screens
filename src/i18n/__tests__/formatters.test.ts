@@ -5,6 +5,7 @@ import {
   fullDatePattern,
   formatDateSync,
   formatDayRange,
+  formatList,
   formatNumber,
   fullDateHeading,
   formatRelativeTime,
@@ -137,6 +138,23 @@ describe('formatRelativeTime', () => {
     const from = to + 24 * 60 * 60 * 1000;
     const out = formatRelativeTime(from, to, { locale: 'en-US', numeric: 'always' });
     expect(out).toBe('1 day ago');
+  });
+});
+
+describe('formatList', () => {
+  it('joins names the way the language writes a list', () => {
+    expect(formatList(['Ada', 'Ben', 'Cy'], 'en-US')).toBe('Ada, Ben, and Cy');
+    expect(formatList(['Ada', 'Ben', 'Cy'], 'de-DE')).toBe('Ada, Ben und Cy');
+    expect(formatList(['Ada', 'Ben'], 'en-US', 'disjunction')).toBe('Ada or Ben');
+  });
+
+  it('hands one name back as it is, and nothing for nothing', () => {
+    expect(formatList(['Ada'], 'en-US')).toBe('Ada');
+    expect(formatList([], 'en-US')).toBe('');
+  });
+
+  it('falls back to commas for a language tag the browser cannot use', () => {
+    expect(formatList(['Ada', 'Ben'], 'not a tag')).toBe('Ada, Ben');
   });
 });
 

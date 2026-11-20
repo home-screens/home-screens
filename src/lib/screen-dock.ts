@@ -1,5 +1,6 @@
 import type { DockButton, ModuleType, Screen } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
+import { formatList } from '@/i18n/formatters';
 import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
 
@@ -167,9 +168,5 @@ export function describeScreenContents(screen: Pick<Screen, 'modules' | 'name'>,
   const shown = unique.slice(0, DESCRIBED_MODULES);
   const more = unique.length - shown.length;
   if (more > 0) shown.push(t('propertyPanel.openButton.andMore', { count: more }));
-  try {
-    return new Intl.ListFormat(locale, { type: 'conjunction' }).format(shown);
-  } catch {
-    return shown.join(', ');
-  }
+  return formatList(shown, locale);
 }

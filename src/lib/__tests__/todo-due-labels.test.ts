@@ -1,20 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { classifyDue, daysBetween, formatDueLabel, localISODate, parseISODate } from '../todo-due-labels';
+import { classifyDue, formatDueLabel, localISODate } from '../todo-due-labels';
 
 const WORDS = { today: 'Today', tomorrow: 'Tomorrow', overdue: 'Overdue' };
 
 describe('todo-due-labels', () => {
-  it('formats and parses local calendar dates', () => {
+  it('formats local calendar dates', () => {
     expect(localISODate(new Date(2026, 8, 9))).toBe('2026-09-09');
-    expect(parseISODate('2026-09-09')?.getDate()).toBe(9);
-    expect(parseISODate('nope')).toBeNull();
-    expect(parseISODate('2026-13-40')).not.toBeNull();
-  });
-
-  it('counts whole days across a month boundary', () => {
-    expect(daysBetween('2026-09-30', '2026-10-01')).toBe(1);
-    expect(daysBetween('2026-10-01', '2026-09-30')).toBe(-1);
-    expect(daysBetween('bad', '2026-09-30')).toBeNull();
   });
 
   it('classifies relative to today', () => {

@@ -1902,12 +1902,7 @@
           "active": "Actif",
           "inactive": "Inactif",
           "lastRun": "Dernière exécution du watchdog : {time}",
-          "never": "Jamais",
-          "secondsAgo": "il y a {count} secondes",
-          "minuteAgoSingular": "il y a {count} minute",
-          "minutesAgoPlural": "il y a {count} minutes",
-          "hourAgoSingular": "il y a {count} heure",
-          "hoursAgoPlural": "il y a {count} heures"
+          "never": "Jamais"
         },
         "host": {
           "gatewayLabel": "Passerelle",

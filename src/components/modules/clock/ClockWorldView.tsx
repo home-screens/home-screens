@@ -1,6 +1,7 @@
 'use client';
 
 import { clockTimeInTZ, parseClockTime } from '@/lib/date-info';
+import { isoDaysBetween } from '@/lib/iso-date';
 import { wallClockParts } from '@/lib/timezone';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
@@ -11,12 +12,6 @@ import type { ClockViewProps } from './types';
  * World clock — primary local time displayed large on top,
  * with compact timezone rows below showing up to 3 additional zones.
  */
-
-/** Whole days from one `YYYY-MM-DD` to another. */
-function daysBetween(from: string, to: string): number {
-  const utc = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
-  return Math.round((utc(to) - utc(from)) / 86_400_000);
-}
 
 export default function ClockWorldView({ config, format24h, instant, time, timezone, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
@@ -41,7 +36,7 @@ export default function ClockWorldView({ config, format24h, instant, time, timez
     const zoneTimeStr = `${zhStr}:${zmStr}`;
 
     // Day offset: the zone's calendar day against the clock's own.
-    const dayOffset = daysBetween(homeDay, wallClockParts(instant, zone.timezone).isoDate);
+    const dayOffset = isoDaysBetween(homeDay, wallClockParts(instant, zone.timezone).isoDate) ?? NaN;
 
     return {
       label: zone.label,

@@ -45,11 +45,6 @@ describe('APOD posts', () => {
     expect(__test.apodTitle('APOD: 2026 November 1 \u2013 Colors of the Moon')).toBe('Colors of the Moon');
     expect(__test.apodTitle('APOD: 2026 October 9 &#8211; Saturn&#8217;s Rings &amp; Moons')).toBe('Saturn\u2019s Rings & Moons');
   });
-
-  it('counts a day forward across months and years', () => {
-    expect(__test.nextDay('2026-10-31')).toBe('2026-11-01');
-    expect(__test.nextDay('2026-12-31')).toBe('2027-01-01');
-  });
 });
 
 describe('nasaPhotoSource.list', () => {

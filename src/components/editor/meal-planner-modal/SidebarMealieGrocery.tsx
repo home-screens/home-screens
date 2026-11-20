@@ -16,7 +16,7 @@ import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList';
 import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
-import { useLocale, useTranslate } from '@/i18n';
+import { formatList, useLocale, useTranslate } from '@/i18n';
 import { mealSaveFailedKey } from './save-failed-words';
 import { mealieProblemKey } from './mealie-problem-words';
 
@@ -113,7 +113,6 @@ export function MealieGrocery({
   const { total, got } = shopping.counts;
   const { groups, folded } = shopping.view;
   const headings = groups.length > 1;
-  const listFormatRecipes = new Intl.ListFormat(locale, { type: 'conjunction' });
   const added = shopping.justAdded;
   const notice = shopping.notice;
   const lineWords = ({ key, vars }: { key: string; vars: Record<string, string> }) => t(`mealPlannerModal.mealie.grocery.${key}`, vars);
@@ -121,7 +120,7 @@ export function MealieGrocery({
   const itemRow = (item: ShoppingItem) => {
     const detail = [
       item.note,
-      item.recipes.length ? t('mealPlannerModal.mealie.grocery.forRecipes', { recipes: listFormatRecipes.format(item.recipes) }) : '',
+      item.recipes.length ? t('mealPlannerModal.mealie.grocery.forRecipes', { recipes: formatList(item.recipes, locale) }) : '',
     ].filter(Boolean).join(' · ');
     const waiting = shopping.pending.has(item.id);
     return (

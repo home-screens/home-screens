@@ -1,3 +1,5 @@
+import { compactRelativeStyle, relativeTimeFormatter } from '@/i18n/formatters';
+import { DAY_MS } from './iso-date';
 import { NOTE_LIFE_MS, NOTES_GONE_KEEP_MS, type Note, type NoteLife } from '@/types/notes';
 
 /**
@@ -136,17 +138,7 @@ export function cardColumns(widthPx: number): number {
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
-const DAY_MS = 24 * HOUR_MS;
 
-/**
- * English's narrow relative form is the compact "5m ago" the wall wants. In
- * the other shipped languages narrow is either a bare negative number
- * ("-5 min" in French) or a bare letter ("vor 5 m" in German, which reads
- * as metres), so they take the short form ("il y a 5 min", "vor 5 Min.").
- */
-function relativeStyle(locale: string): 'narrow' | 'short' {
-  return locale.toLowerCase().startsWith('en') ? 'narrow' : 'short';
-}
 
 /**
  * How old a note reads on the wall, in the household's language: "25m ago",
@@ -163,7 +155,7 @@ export function formatNoteAge(createdAt: string, now: Date, locale: string, time
   if (justNow !== undefined && age < MINUTE_MS) return justNow;
   try {
     if (age < DAY_MS) {
-      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'always', style: relativeStyle(locale) });
+      const rtf = relativeTimeFormatter(locale, 'always', compactRelativeStyle(locale));
       if (age < HOUR_MS) return rtf.format(-Math.max(1, Math.floor(age / MINUTE_MS)), 'minute');
       return rtf.format(-Math.floor(age / HOUR_MS), 'hour');
     }

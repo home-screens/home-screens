@@ -8,7 +8,7 @@ import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { CONFETTI } from '@/components/display/timer-views/TimerCelebration';
 import { CELEBRATION_MS } from '@/lib/chore-celebration';
 import { playTimerSound } from '@/components/display/timer-views/timer-sounds';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 export interface DayCompleteEvent {
@@ -56,7 +56,7 @@ export default function DayCompleteOverlay({ event, kind, k, tc, sound, onDone }
   const locale = useFormattingLocale();
   const { members } = event;
   const lead = members[0];
-  const names = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(members.map((m) => m.name));
+  const names = formatList(members.map((m) => m.name), locale);
 
   useEffect(() => {
     const id = setTimeout(() => onDone(false), CELEBRATION_MS);

@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { REMOTE_ACCENT, INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
@@ -38,7 +38,7 @@ export default function RewardFormOverlay({
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
-  const saverNames = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(savers);
+  const saverNames = formatList(savers, locale);
   const saverLine = savers.length === 0 ? null : t(savers.length === 1 ? 'rewardForm.saverOne' : 'rewardForm.saverMany', { names: saverNames });
   const goalClearsLine = t('rewardForm.deleteConfirm.goalClears', { count: savers.length });
   const hiddenLine = savers.length === 0 ? null : t('rewardForm.hiddenWithSavers', { names: saverNames, count: savers.length });

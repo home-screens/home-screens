@@ -4,7 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'reac
 import { Star } from 'lucide-react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import { weekCellLayout, weekCellPieces, weekCellWords, weekRowFloorPx, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
@@ -18,6 +18,7 @@ import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
 import { familyMealAverage } from '@/lib/meal-ratings';
 import { useMealVotes } from '@/components/meals/meal-votes';
+import { isoWeekday } from '@/lib/iso-date';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -150,7 +151,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
       >
         {weekDates.map((date) => {
           const isToday = date === todayISO;
-          const dayIdx = dateToDayIndex(date);
+          const dayIdx = isoWeekday(date);
           return (
             <div
               key={date}

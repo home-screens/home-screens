@@ -25,7 +25,7 @@ import { Pencil, Plus } from 'lucide-react';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { formatClockTime } from '@/lib/clock-time';
 import { useEditorStore } from '@/stores/editor-store';
-import { addDays, dateInZone, mondayOf } from '@/lib/timetable-layout';
+import { dateInZone } from '@/lib/timetable-layout';
 import {
   DAY_KEYS,
   type DayKey,
@@ -39,6 +39,7 @@ import {
 import CellDetails, { type CellDetailsHandlers } from './CellDetails';
 import { SubjectIcon, subjectTint } from './SubjectPalette';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import { addIsoDays, mondayOf } from '@/lib/iso-date';
 
 interface PaintGridProps {
   school: TimetableSchool;
@@ -93,7 +94,7 @@ export default function PaintGrid({
   // the weekday is drawn, never the date, because a timetable is every week.
   const dayNames = useMemo(() => {
     const monday = mondayOf(dateInZone(new Date()));
-    return DAY_KEYS.map((_, index) => formatDateSync(new Date(`${addDays(monday, index)}T12:00:00`), 'EEEE', { locale }));
+    return DAY_KEYS.map((_, index) => formatDateSync(new Date(`${addIsoDays(monday, index)}T12:00:00`), 'EEEE', { locale }));
   }, [locale]);
 
   const [focus, setFocus] = useState({ day: 0, period: 0 });

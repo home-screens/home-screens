@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -17,6 +17,7 @@ import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
 import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
+import { isoWeekday } from '@/lib/iso-date';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
@@ -107,7 +108,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
       <div ref={listRef} className="flex flex-col">
       {weekDates.map((date) => {
         const isToday = date === todayISO;
-        const dayIdx = dateToDayIndex(date);
+        const dayIdx = isoWeekday(date);
         const meals = slots.map((slot) => {
           const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
           return {

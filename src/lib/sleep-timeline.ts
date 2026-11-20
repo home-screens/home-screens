@@ -13,6 +13,8 @@
  * drawn on a clock — the preview component notes it in the legend instead.
  */
 
+import { parseTimeToMinutes } from './clock-time';
+import { addIsoDays } from './iso-date';
 import { parseDateInTZ, wallClockParts } from './timezone';
 
 /**
@@ -40,21 +42,6 @@ export interface ScheduleWindow {
 }
 
 /**
- * Validating "HH:MM" → minutes-from-midnight parse. Returns null for anything
- * malformed — including the empty string a cleared `<input type="time">` can
- * persist — so callers treat an invalid window as no window instead of letting
- * NaN corrupt comparisons.
- */
-export function parseTimeToMinutes(hhmm: string): number | null {
-  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const min = Number(m[2]);
-  if (h > 23 || min > 59) return null;
-  return h * 60 + min;
-}
-
-/**
  * Same-day and overnight window membership: start inclusive, end exclusive,
  * start === end is a zero-length window that matches nothing, and an
  * unparseable time makes the window match nothing (fail-safe: never dim or
@@ -70,12 +57,6 @@ export function isMinuteInScheduleWindow(window: ScheduleWindow, minute: number)
   if (start === null || end === null) return false;
   if (start <= end) return minute >= start && minute < end;
   return minute >= start || minute < end;
-}
-
-/** `YYYY-MM-DD` shifted by whole days, on the calendar alone. */
-function shiftIsoDate(isoDate: string, days: number): string {
-  const [y, m, d] = isoDate.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
 
 function minutesToHHMM(minutes: number): string {
@@ -104,8 +85,8 @@ export function isInstantInScheduleWindow(window: ScheduleWindow, instant: Date,
   const today = wallClockParts(instant, timezone).isoDate;
   // A run lasts under a day, so only one that opened today or yesterday
   // (household calendar) can still be open.
-  for (const opensOn of [shiftIsoDate(today, -1), today]) {
-    const closesOn = end > start ? opensOn : shiftIsoDate(opensOn, 1);
+  for (const opensOn of [addIsoDays(today, -1), today]) {
+    const closesOn = end > start ? opensOn : addIsoDays(opensOn, 1);
     const opens = parseDateInTZ(`${opensOn}T${minutesToHHMM(start)}`, timezone).getTime();
     const closes = parseDateInTZ(`${closesOn}T${minutesToHHMM(end)}`, timezone).getTime();
     if (nowMs >= opens && nowMs < closes) return true;

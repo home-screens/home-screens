@@ -1,4 +1,5 @@
 import type { FamilyGroup, FamilyMember } from '@/types/family';
+import { DAY_MS, isoUtcMs, localDateFromIso } from './iso-date';
 import { localISODate } from './timezone';
 import type { ChoreCompletion, ChoreDefinition } from '@/types/config';
 
@@ -29,20 +30,7 @@ export interface ResolvedAssignment {
 /** Format a Date as YYYY-MM-DD in local time (avoids UTC drift from toISOString) */
 export const localDateStr = localISODate;
 
-/** Parse a YYYY-MM-DD string as a local-midnight Date. */
-export function parseISO(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-/** Parse YYYY-MM-DD to UTC millis (DST-safe for day arithmetic) */
-function dateToUTC(date: string): number {
-  const [y, m, d] = date.split('-').map(Number);
-  return Date.UTC(y, m - 1, d);
-}
-
 const EPOCH_UTC = Date.UTC(2024, 0, 1);
-const MS_PER_DAY = 86_400_000;
 
 /**
  * Whole weeks since the epoch, which is a Monday, so a week runs Monday to
@@ -50,7 +38,7 @@ const MS_PER_DAY = 86_400_000;
  * moved every weekly handover to Friday.
  */
 function weeksSinceEpoch(date: string): number {
-  return Math.floor((dateToUTC(date) - EPOCH_UTC) / (MS_PER_DAY * 7));
+  return Math.floor((isoUtcMs(date) - EPOCH_UTC) / (DAY_MS * 7));
 }
 
 // ── Assignment resolution ──────────────────────────────────────────
@@ -90,7 +78,7 @@ export function choreGroupIdsOn(
   date: string,
 ): string[] {
   if (chore.rotation !== 'schedule') return chore.assigneeGroupIds ?? [];
-  const dayOfWeek = parseISO(date).getDay();
+  const dayOfWeek = localDateFromIso(date).getDay();
   return Object.entries(chore.groupSchedule ?? {})
     .filter(([, days]) => days.includes(dayOfWeek))
     .map(([groupId]) => groupId);
@@ -111,7 +99,7 @@ export function resolveAssignee(
   if (chore.rotation === 'schedule') {
     // A person with a row of their own who is also in a scheduled group has
     // the chore on either set of days, once.
-    const dayOfWeek = parseISO(date).getDay();
+    const dayOfWeek = localDateFromIso(date).getDay();
     const assigneeIds = Object.entries(chore.schedule ?? {})
       .filter(([, days]) => days.includes(dayOfWeek))
       .map(([memberId]) => memberId);
@@ -123,10 +111,10 @@ export function resolveAssignee(
     return assigneeIds;
   }
 
-  const diffMs = dateToUTC(date) - EPOCH_UTC;
+  const diffMs = isoUtcMs(date) - EPOCH_UTC;
 
   if (chore.rotation === 'rotate-daily') {
-    const daysSinceEpoch = Math.round(diffMs / MS_PER_DAY);
+    const daysSinceEpoch = Math.round(diffMs / DAY_MS);
     const idx = daysSinceEpoch % assigneeIds.length;
     return [assigneeIds[idx]];
   }
@@ -203,7 +191,7 @@ export function isChoreComplete(
 /** Whether `chore` applies to `memberId` on `date` — combines the
  *  frequency/day-of-week gate with rotation resolution. */
 export function isAssignedOn(chore: ChoreDefinition, memberId: string, date: string, groups: readonly ChoreGroup[]): boolean {
-  const dayOfWeek = parseISO(date).getDay();
+  const dayOfWeek = localDateFromIso(date).getDay();
   return choreAppliesToday(chore, dayOfWeek, date) && resolveAssignee(chore, date, groups).includes(memberId);
 }
 
@@ -243,7 +231,7 @@ export function resolveAssignmentsFor(
   completionSet: Set<string>,
   groups: readonly ChoreGroup[],
 ): ResolvedAssignment[] {
-  const dayOfWeek = parseISO(date).getDay();
+  const dayOfWeek = localDateFromIso(date).getDay();
   const assignments: ResolvedAssignment[] = [];
   for (const chore of chores) {
     if (!choreAppliesToday(chore, dayOfWeek, date)) continue;

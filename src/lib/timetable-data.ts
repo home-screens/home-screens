@@ -37,7 +37,7 @@ import { readConfig } from './config';
 import { readTransactionFile, withDataTransaction } from './data-transaction';
 import { validateMemberReferences, withFamilyData } from './family-api';
 import { createJsonStore } from './json-store';
-import { parseTimeToMinutes } from './sleep-timeline';
+import { parseTimeToMinutes } from './clock-time';
 import { RefusalError, type RefusalOptions } from './refusal';
 import { getDefaultSubjects } from './timetable-subjects';
 

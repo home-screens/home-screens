@@ -40,7 +40,7 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useRealClock } from '@/hooks/useTZClock';
 import { resolveFontStack } from '@/lib/font-registry';
-import { parseISODate } from '@/lib/todo-due-labels';
+import { parseIsoDate } from '@/lib/iso-date';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { ModuleEmptyState, ModuleLoadingState } from '../ModuleStates';
@@ -196,7 +196,7 @@ export default function TimetableModule({ config, style, timezone, timeFormat: s
   const focusWordOf = useCallback(
     (card: PersonCard): string => {
       if (card.focus.focusLabelKind === 'today') return t('timetable.today');
-      const date = parseISODate(card.focus.focusDate);
+      const date = parseIsoDate(card.focus.focusDate);
       return date ? formatDateSync(date, 'EEEE', { locale: formatting }) : '';
     },
     [t, formatting],

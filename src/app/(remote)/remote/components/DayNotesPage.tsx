@@ -4,7 +4,7 @@ import { useState, type CSSProperties } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { formatDateSync, formatDayRange, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import { NoteGlyph } from '@/components/notes/NoteGlyph';
-import { LAST_DAY_NOTES_PAGE, addIsoDays, upcomingDays } from '@/lib/day-notes';
+import { LAST_DAY_NOTES_PAGE, upcomingDays } from '@/lib/day-notes';
 import { capitalize, formatShortDayMonth } from '@/lib/meal-constants';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 import { useDayNotesData } from '../hooks/useDayNotesData';
@@ -14,6 +14,7 @@ import DayNoteSheet, { dateOfIso, dayInWords } from './DayNoteSheet';
 import MealsWeekNav from './MealsWeekNav';
 import { REMOTE_ACCENT } from './chore-form-styles';
 import { withAlpha } from '@/lib/hex-color';
+import { addIsoDays } from '@/lib/iso-date';
 
 /** Yellow is the day note colour everywhere: the wall's line and these rows. */
 const NOTE_YELLOW = '#facc15';

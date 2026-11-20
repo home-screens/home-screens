@@ -6,11 +6,11 @@ import { ExternalLink, LayoutGrid } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
-import { heartbeatState, type HeartbeatState } from '@/lib/display-liveness';
+import { heartbeatPill, type HeartbeatState } from '@/lib/display-liveness';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, settingsHref, type PerDisplaySubtab } from '@/lib/settings-route';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useLocale, useTranslate, type TranslateFn } from '@/i18n';
 import Button from '@/components/ui/Button';
 import OverviewSubtab from './OverviewSubtab';
 import OverridesSubtab from './OverridesSubtab';
@@ -39,31 +39,7 @@ interface PerDisplayPageProps {
 
 // The status pill drives styling AND copy off `kind` rather than sniffing the
 // English label so de-DE / future locales never break the CSS branching.
-type StatusKind = HeartbeatState;
-interface StatusInfo {
-  bg: string;
-  text: string;
-  dot: string;
-  kind: StatusKind;
-}
-
-function statusColor(lastSeen: number | null): StatusInfo {
-  // Never heard from at all: same words as offline, but no border, so a
-  // display that has yet to check in does not read as one that went away.
-  if (!lastSeen) {
-    return { bg: 'bg-hs-card', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
-  }
-  switch (heartbeatState(lastSeen)) {
-    case 'online':
-      return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', kind: 'online' };
-    case 'idle':
-      return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', kind: 'idle' };
-    case 'offline':
-      return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
-  }
-}
-
-function statusLabel(kind: StatusKind, t: TranslateFn): string {
+function statusLabel(kind: HeartbeatState, t: TranslateFn): string {
   switch (kind) {
     case 'online':
       return t('settings.perDisplayPage.header.statusOnline');
@@ -82,6 +58,7 @@ function subtabLabel(tab: PerDisplaySubtab, t: TranslateFn): string {
 
 export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProps) {
   const t = useTranslate('editor');
+  const locale = useLocale();
   const router = useRouter();
   const { config, setSelectedDisplay } = useEditorStore();
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
@@ -158,7 +135,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
 
   const heartbeat = apiData?.displays.find((d) => d.id === displayId);
   const lastSeen = heartbeat?.lastSeen ?? null;
-  const status = statusColor(lastSeen);
+  const status = heartbeatPill(lastSeen);
   const reports = collapseReports(heartbeat?.viewportReports ?? []);
   const primaryReporter = reports[0];
   const reporterIp = formatClientAddress(primaryReporter?.clientAddress);
@@ -189,15 +166,13 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border ${status.bg} ${status.text}`}
+              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border ${status.pillClass}`}
             >
-              <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dot}`} />
-              {/*
-                `formatLastSeen` is intentionally English-only per the helper's
-                contract — see follow-up note in src/lib/time-format.ts. The
-                "Online" / "Idle" / "Offline" prefix IS localized via t().
-              */}
-              {statusLabel(status.kind, t)} · {formatLastSeen(lastSeen)}
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dotClass}`} />
+              {/* Never heard from: the word alone, since there is no time to give. */}
+              {status.kind === 'never' || !lastSeen
+                ? statusLabel('offline', t)
+                : <>{statusLabel(status.kind, t)} · {formatLastSeen(lastSeen, locale)}</>}
             </span>
             {dims && (
               <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full tabular-nums">

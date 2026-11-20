@@ -7,6 +7,7 @@ import { Star } from 'lucide-react';
 
 import type { WeekDayData } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { localDateFromIso } from '@/lib/iso-date';
 
 interface StarChartProps {
   /** Canvas scale: 1 = the sizes authored for a 1080-wide panel. */
@@ -38,8 +39,7 @@ export default function StarChart({ k, weekData, members }: StarChartProps) {
       <div style={{ display: 'grid', gridTemplateColumns: `${nameWidth}px repeat(7, 1fr)`, rowGap: 8 * k, alignItems: 'center' }}>
         <div />
         {weekData.map((day) => {
-          const [y, m, d] = day.date.split('-').map(Number);
-          const dayDate = new Date(y, (m ?? 1) - 1, d ?? 1);
+          const dayDate = localDateFromIso(day.date);
           return (
             <div key={day.date} style={{ fontSize: daySize, fontWeight: 700, letterSpacing: '0.06em', color: day.isToday ? 'var(--fcc-accent)' : 'var(--fcc-text-3)', textAlign: 'center' }}>
               {formatDateSync(dayDate, 'EEE', { locale })}

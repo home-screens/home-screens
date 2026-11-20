@@ -4,9 +4,9 @@ import { formatLastSeen, formatUptime, formatAge } from '../time-format';
 /**
  * These formatters render heartbeat freshness, uptime, and per-client age on
  * the Defaults/Displays index, the Stats section, and the /remote
- * SettingsSheet. The kiosk runs in a single language and every consumer
- * expects these exact compact strings — no locale, no Intl. Regressions
- * here show up as broken UI in several places at once, so pin the shape.
+ * SettingsSheet. English keeps these exact compact strings; `formatLastSeen`
+ * reads in the editor's language elsewhere. Regressions here show up as
+ * broken UI in several places at once, so pin the shape.
  */
 
 describe('formatLastSeen', () => {
@@ -23,54 +23,49 @@ describe('formatLastSeen', () => {
     vi.useRealTimers();
   });
 
-  it('returns em-dash for null', () => {
-    expect(formatLastSeen(null)).toBe('—');
-  });
-
-  it('returns em-dash for undefined', () => {
-    expect(formatLastSeen(undefined)).toBe('—');
-  });
-
-  it('returns em-dash for 0 (treated as "never")', () => {
-    // Callers pass `status?.lastSeen ?? null`, but some upstreams send a
-    // literal 0 for "not yet reported". Treating it as "never" matches the
-    // null/undefined branch and keeps the UI placeholder consistent.
-    expect(formatLastSeen(0)).toBe('—');
-  });
-
   it('formats sub-minute ages in seconds with a 1s floor', () => {
     // diff of 0 ms would round to 0s; the Math.max(1, ...) keeps the
     // label from flashing as "0s ago" between polls.
-    expect(formatLastSeen(FIXED_NOW)).toBe('1s ago');
-    expect(formatLastSeen(FIXED_NOW - 500)).toBe('1s ago');
-    expect(formatLastSeen(FIXED_NOW - 5_000)).toBe('5s ago');
-    expect(formatLastSeen(FIXED_NOW - 59_000)).toBe('59s ago');
+    expect(formatLastSeen(FIXED_NOW, 'en-US')).toBe('1s ago');
+    expect(formatLastSeen(FIXED_NOW - 500, 'en-US')).toBe('1s ago');
+    expect(formatLastSeen(FIXED_NOW - 5_000, 'en-US')).toBe('5s ago');
+    expect(formatLastSeen(FIXED_NOW - 59_000, 'en-US')).toBe('59s ago');
   });
 
   it('switches to minutes at 60s exactly', () => {
     // 60_000 ms is NOT < 60_000, so the <60_000 branch is skipped and the
     // minutes branch fires. This is the boundary that would flicker if
     // the comparison used `<=` by mistake.
-    expect(formatLastSeen(FIXED_NOW - 60_000)).toBe('1m ago');
-    expect(formatLastSeen(FIXED_NOW - 120_000)).toBe('2m ago');
-    expect(formatLastSeen(FIXED_NOW - 30 * 60_000)).toBe('30m ago');
+    expect(formatLastSeen(FIXED_NOW - 60_000, 'en-US')).toBe('1m ago');
+    expect(formatLastSeen(FIXED_NOW - 120_000, 'en-US')).toBe('2m ago');
+    expect(formatLastSeen(FIXED_NOW - 30 * 60_000, 'en-US')).toBe('30m ago');
   });
 
   it('switches to hours at 60m exactly', () => {
-    expect(formatLastSeen(FIXED_NOW - 3_600_000)).toBe('1h ago');
-    expect(formatLastSeen(FIXED_NOW - 2 * 3_600_000)).toBe('2h ago');
-    expect(formatLastSeen(FIXED_NOW - 23 * 3_600_000)).toBe('23h ago');
+    expect(formatLastSeen(FIXED_NOW - 3_600_000, 'en-US')).toBe('1h ago');
+    expect(formatLastSeen(FIXED_NOW - 2 * 3_600_000, 'en-US')).toBe('2h ago');
+    expect(formatLastSeen(FIXED_NOW - 23 * 3_600_000, 'en-US')).toBe('23h ago');
   });
 
   it('switches to days at 24h exactly', () => {
-    expect(formatLastSeen(FIXED_NOW - 86_400_000)).toBe('1d ago');
-    expect(formatLastSeen(FIXED_NOW - 3 * 86_400_000)).toBe('3d ago');
-    expect(formatLastSeen(FIXED_NOW - 30 * 86_400_000)).toBe('30d ago');
+    expect(formatLastSeen(FIXED_NOW - 86_400_000, 'en-US')).toBe('1d ago');
+    expect(formatLastSeen(FIXED_NOW - 3 * 86_400_000, 'en-US')).toBe('3d ago');
+    expect(formatLastSeen(FIXED_NOW - 30 * 86_400_000, 'en-US')).toBe('30d ago');
+  });
+
+  it('reads in the editor\'s language, in its short form', () => {
+    expect(formatLastSeen(FIXED_NOW - 5_000, 'de-DE')).toMatch(/^vor 5\sSek/);
+    expect(formatLastSeen(FIXED_NOW - 3 * 60_000, 'fr-FR')).toMatch(/^il y a 3\smin/);
+    expect(formatLastSeen(FIXED_NOW - 2 * 3_600_000, 'nl-NL')).toMatch(/^2\suur geleden$/);
+  });
+
+  it('falls back to English for a language tag the browser cannot use', () => {
+    expect(formatLastSeen(FIXED_NOW - 5_000, 'not a tag')).toBe('5s ago');
   });
 
   it('rounds minute values (30s → 30m boundary snapping)', () => {
     // 90s should round to "2m" because 90_000 / 60_000 = 1.5 rounds up.
-    expect(formatLastSeen(FIXED_NOW - 90_000)).toBe('2m ago');
+    expect(formatLastSeen(FIXED_NOW - 90_000, 'en-US')).toBe('2m ago');
   });
 });
 

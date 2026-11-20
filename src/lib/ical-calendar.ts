@@ -8,7 +8,7 @@ import { CALENDAR_MAX_WINDOW_MS } from '@/lib/constants';
 import { compareEventStarts, householdDayStart, parseEventInstant } from '@/lib/calendar-utils';
 import { eventOverlapsWindow, settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
-import { isoDateInTZ } from '@/lib/timezone';
+import { isoDateInTZ, localISODate } from '@/lib/timezone';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { logger } from '@/lib/logger';
 
@@ -23,14 +23,6 @@ function paramValue(v: unknown): string {
   if (typeof v === 'string') return v;
   if (v && typeof v === 'object' && 'val' in v) return String((v as { val: unknown }).val);
   return '';
-}
-
-/** Format a Date as YYYY-MM-DD (local, not UTC — avoids timezone shift for all-day events). */
-function toDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }
 
 /** The slice of a source the ICS parser needs to label events (shared with the CalDAV path). */
@@ -103,7 +95,7 @@ export function parseICSEvents(
       // all-day event otherwise ends at 7 pm and drops out of an evening
       // fetch while it is still today at home.
       const [overlapStart, overlapEnd] = isAllDay
-        ? [parseEventInstant(toDateString(evStart), timezone), parseEventInstant(toDateString(evEnd), timezone)]
+        ? [parseEventInstant(localISODate(evStart), timezone), parseEventInstant(localISODate(evEnd), timezone)]
         : [evStart, evEnd];
       if (overlapEnd > from && overlapStart < to) {
         const ev = instanceToCalendarEvent(vevent, evStart, evEnd, isAllDay, source);
@@ -519,13 +511,13 @@ function instanceToCalendarEvent(
   source: EventSourceMeta,
 ): CalendarEvent | null {
   const uid = vevent.uid ?? '';
-  const occurrenceKey = isAllDay ? toDateString(start) : start.toISOString();
+  const occurrenceKey = isAllDay ? localISODate(start) : start.toISOString();
 
   return {
     id: `${source.id}:${uid}:${occurrenceKey}`,
     title: paramValue(vevent.summary) || '(No title)',
-    start: isAllDay ? toDateString(start) : start.toISOString(),
-    end: isAllDay ? toDateString(end) : end.toISOString(),
+    start: isAllDay ? localISODate(start) : start.toISOString(),
+    end: isAllDay ? localISODate(end) : end.toISOString(),
     location: paramValue(vevent.location) || undefined,
     description: paramValue(vevent.description) || undefined,
     allDay: isAllDay,

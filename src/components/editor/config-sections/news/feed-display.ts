@@ -54,14 +54,18 @@ export function feedDisplayName(feed: Pick<NewsFeedSource, 'url' | 'label'>, t: 
   return label || feedKindName(feed, t);
 }
 
-/** "just now", "12m ago", "3h ago", "2d ago" for the check line and preview. */
+/**
+ * "just now", "12m ago", "3h ago", "2d ago" for the check line and preview.
+ * Counts whole minutes, hours and days as the wall's `formatNewsAge` does, so
+ * the preview and the wall give a story the same age.
+ */
 export function formatAgo(timestamp: number, now: number, t: TranslateFn): string {
-  const minutes = Math.max(0, Math.round((now - timestamp) / 60_000));
+  const minutes = Math.max(0, Math.floor((now - timestamp) / 60_000));
   if (minutes < 1) return t(`${NEWS_KEY}.timeAgo.justNow`);
   if (minutes < 60) return t(`${NEWS_KEY}.timeAgo.minutes`, { count: minutes });
-  const hours = Math.round(minutes / 60);
+  const hours = Math.floor(minutes / 60);
   if (hours < 24) return t(`${NEWS_KEY}.timeAgo.hours`, { count: hours });
-  return t(`${NEWS_KEY}.timeAgo.days`, { count: Math.round(hours / 24) });
+  return t(`${NEWS_KEY}.timeAgo.days`, { count: Math.floor(hours / 24) });
 }
 
 const KNOWN_ERRORS: ReadonlySet<string> = new Set<NewsFeedError>([

@@ -6,7 +6,7 @@ import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import type { BonusItem } from '@/lib/chore-bonus';
 import { BonusRows } from '../BonusRows';
-import { completionKey, choreAppliesToday, isChoreSkipped, parseISO, resolveAssignee } from '../types';
+import { completionKey, choreAppliesToday, isChoreSkipped, resolveAssignee } from '../types';
 import { choreIconSize, choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -18,6 +18,7 @@ import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
 import { memberInitials } from '@/lib/family-avatar';
+import { localDateFromIso } from '@/lib/iso-date';
 
 interface CompactViewProps {
   config: ChoreChartConfig;
@@ -51,7 +52,7 @@ const MAX_COLUMNS_SHARE = 0.45;
 
 export function CompactView({ config, data, width, fontSize }: CompactViewProps) {
   const { members, chores, completionSet, memberStats, toggleComplete, today } = data;
-  const dayOfWeek = parseISO(today).getDay();
+  const dayOfWeek = localDateFromIso(today).getDay();
   const allowTouch = config.allowDisplayComplete;
   const t = useTranslate('modules');
   const [pressedKey, press] = usePressedKey();

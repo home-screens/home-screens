@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import { getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex } from '@/lib/meal-constants';
+import { getLocalizedDayNames, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { pickTargetChosen, type MealPickTarget } from '@/lib/meal-courses';
 import { useMealsTabData } from '../hooks/useMealsTabData';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
@@ -25,6 +25,7 @@ import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMea
 import { MealVotesProvider } from '@/components/meals/meal-votes';
 import { DinnerRatingSheet } from './MealRatingSheet';
 import { REMOTE_ACCENT } from './chore-form-styles';
+import { isoWeekday } from '@/lib/iso-date';
 
 export default function MealsTab() {
   const locale = useFormattingLocale();
@@ -338,7 +339,7 @@ export default function MealsTab() {
           target={picker}
           subtitle={t('mealsPlan.picker.subtitle', {
             slot: tModules(getMealSlotLabelKey(picker.slot)),
-            day: dayNamesFull[dateToDayIndex(picker.date)],
+            day: dayNamesFull[isoWeekday(picker.date)],
           })}
           fromMealie={fromMealie}
           library={savedMeals}

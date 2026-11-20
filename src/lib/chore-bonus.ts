@@ -7,7 +7,8 @@ import type {
   ChoreGrabHold,
   ChoreSettings,
 } from '@/types/config';
-import { choreAssigneeIds, localDateStr, parseISO, type ChoreGroup } from './chore-assignments';
+import { choreAssigneeIds, localDateStr, type ChoreGroup } from './chore-assignments';
+import { addIsoDays, localDateFromIso, mondayOf } from './iso-date';
 
 /**
  * The rules for bonus chores: extras that only earn tickets.
@@ -73,7 +74,7 @@ export function isValidBonus(value: unknown): value is ChoreBonus {
  * switching it back to regular gets them back untouched.
  */
 export function bonusShowsOn(chore: ChoreDefinition, date: string): boolean {
-  return chore.daysOfWeek.length === 0 || chore.daysOfWeek.includes(parseISO(date).getDay());
+  return chore.daysOfWeek.length === 0 || chore.daysOfWeek.includes(localDateFromIso(date).getDay());
 }
 
 /**
@@ -84,13 +85,6 @@ export function bonusShowsOn(chore: ChoreDefinition, date: string): boolean {
  */
 function localDayOf(iso: string): string {
   return /[+-]\d\d:\d\d$/.test(iso) ? iso.slice(0, 10) : localDateStr(new Date(iso));
-}
-
-/** The Monday of the week holding `date`: weeks run Monday to Sunday, as they do for rotation. */
-function mondayOf(date: string): string {
-  const d = parseISO(date);
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return localDateStr(d);
 }
 
 /**
@@ -113,7 +107,7 @@ function bonusPeriodEnd(chore: BonusChore, date: string): string | null {
   switch (chore.bonus.comesBack) {
     case 'daily': return date;
     case 'weekly': {
-      const d = parseISO(mondayOf(date));
+      const d = localDateFromIso(mondayOf(date));
       d.setDate(d.getDate() + 6);
       return localDateStr(d);
     }
@@ -252,8 +246,8 @@ export function grabHolds(grab: ChoreGrab, chore: BonusChore, date: string, hold
   // A put-back chore never comes back by itself, so "until it comes back"
   // would hold forever; for those a grab lasts a week, and always through the
   // chore's next day, so a once-a-week chore's grab reaches its next showing.
-  if (grabDate >= addDays(date, -(MANUAL_GRAB_DAYS - 1))) return true;
-  for (let d = addDays(grabDate, 1); d < date; d = addDays(d, 1)) {
+  if (grabDate >= addIsoDays(date, -(MANUAL_GRAB_DAYS - 1))) return true;
+  for (let d = addIsoDays(grabDate, 1); d < date; d = addIsoDays(d, 1)) {
     if (bonusShowsOn(chore, d)) return false;
   }
   return true;
@@ -261,12 +255,6 @@ export function grabHolds(grab: ChoreGrab, chore: BonusChore, date: string, hold
 
 /** How long an unfinished grab of a put-back chore lasts under "when the chore comes back", at the least. */
 export const MANUAL_GRAB_DAYS = 7;
-
-function addDays(date: string, days: number): string {
-  const d = parseISO(date);
-  d.setDate(d.getDate() + days);
-  return localDateStr(d);
-}
 
 /** Where an up-for-grabs chore stands on a day. */
 export type GrabState =
@@ -599,8 +587,8 @@ export interface BonusDoneDay {
  * "le 18 sept."), so the caller picks its sentence by `form`.
  */
 export function bonusDoneDay(date: string, today: string, locale: string): BonusDoneDay {
-  const d = parseISO(date);
-  return date <= today && date >= addDays(today, -6)
+  const d = localDateFromIso(date);
+  return date <= today && date >= addIsoDays(today, -6)
     ? { form: 'weekday', day: d.toLocaleDateString(locale, { weekday: 'long' }) }
     : { form: 'date', day: d.toLocaleDateString(locale, { month: 'short', day: 'numeric' }) };
 }

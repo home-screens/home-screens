@@ -1,6 +1,6 @@
 import { addDays, differenceInMinutes, startOfDay } from 'date-fns';
 import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, ScheduleStartAnchor, TimeFormat, WeekStartDay } from '@/types/config';
-import { formatDateSync } from '@/i18n/formatters';
+import { formatDateSync, relativeTimeFormatter } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
 import { isoDateInTZ, parseDateInTZ, toTZWallTime } from '@/lib/timezone';
 
@@ -482,19 +482,11 @@ export function resolveScheduleStart(
   return today;
 }
 
-// One formatter per locale for the lifetime of the tab: list views call
-// formatCountdown per event row on every 60s clock tick, and constructing
-// Intl.RelativeTimeFormat is ~13× the cost of formatting with it (same
-// rationale as the formatter caches in src/lib/timezone.ts).
-const rtfCache = new Map<string, Intl.RelativeTimeFormat>();
-
+// List views call formatCountdown per event row on every 60s clock tick, so
+// the formatter comes from the shared cache: constructing
+// Intl.RelativeTimeFormat is ~13× the cost of formatting with it.
 function relativeFormatter(locale: string): Intl.RelativeTimeFormat {
-  let rtf = rtfCache.get(locale);
-  if (!rtf) {
-    rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-    rtfCache.set(locale, rtf);
-  }
-  return rtf;
+  return relativeTimeFormatter(locale, 'auto', 'long');
 }
 
 /**
