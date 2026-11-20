@@ -5,6 +5,7 @@ import type { Note } from '@/types/notes';
 import type { TranslateFn } from '@/i18n';
 import { INK, ink } from '@/lib/constants';
 import { formatNoteAge } from '@/lib/notes-rules';
+import { MoreLine as SharedMoreLine } from '../shared/MoreLine';
 
 /**
  * Pieces every Notes view shares: who wrote a note, how old it reads, the
@@ -146,14 +147,13 @@ export const MORE_LINE_EM = 1.45;
 
 /** "and N more" under a list that was capped or did not fit. */
 export function MoreLine({ n, t }: { n: number; t: TranslateFn }) {
-  if (n <= 0) return null;
   return (
-    <div
-      data-testid="notes-more"
+    <SharedMoreLine
+      n={n}
+      label={t('notes.andMore', { n })}
+      testId="notes-more"
       className="shrink-0"
-      style={{ fontSize: '0.66em', lineHeight: 1.4, paddingTop: '0.6em', color: ink(0.5) }}
-    >
-      {t('notes.andMore', { n })}
-    </div>
+      style={{ fontSize: '0.66em', lineHeight: 1.4, paddingTop: '0.6em' }}
+    />
   );
 }

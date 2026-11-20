@@ -1001,6 +1001,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       favoritesOnly: false,
       refreshIntervalMs: FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000,
       rotateIntervalMs: 10000,
+      tickerSpeed: 4,
     },
     defaultSize: { w: 480, h: 340 },
   },
@@ -1153,6 +1154,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: ListChecks,
     category: 'Personal',
     hasOwnTitle: true,
+    needsInstanceAddress: true,
     defaultConfig: {
       viewMode: 'list',
       groupBy: 'date',

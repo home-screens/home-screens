@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { sortByTime } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
-import { useFitCount } from './useFitCount';
-import { MORE_LINE_EM, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, dangerTint, fitKeyOf, type NotesContext } from './shared';
+import { useFittedNotes } from './useFittedNotes';
+import { MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, dangerTint, type NotesContext } from './shared';
 
 /**
  * Bubbles: the family group chat, read-only. Oldest at the top and newest at
@@ -15,15 +15,8 @@ import { MORE_LINE_EM, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, dangerTin
  * pushed off the top.
  */
 export function BubblesView({ ctx, shown, hidden }: { ctx: NotesContext; shown: Note[]; hidden: number }) {
-  const listRef = useRef<HTMLDivElement>(null);
   const priority = useMemo(() => shown.map((n) => n.id), [shown]);
-  const visible = useFitCount(
-    listRef,
-    fitKeyOf(shown, ctx.fontPx, ctx.showAuthor, ctx.showAge),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-    priority,
-  );
-  const kept = visible === null ? shown : shown.slice(0, visible);
+  const { ref: listRef, drawn: kept, more } = useFittedNotes<HTMLDivElement>(ctx, shown, hidden, { priority });
   const drawn = sortByTime(kept).reverse();
   return (
     <>
@@ -71,7 +64,7 @@ export function BubblesView({ ctx, shown, hidden }: { ctx: NotesContext; shown: 
           );
         })}
       </div>
-      <MoreLine n={hidden + shown.length - kept.length} t={ctx.t} />
+      <MoreLine n={more} t={ctx.t} />
     </>
   );
 }

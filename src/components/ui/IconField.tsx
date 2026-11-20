@@ -51,9 +51,9 @@ interface IconFieldProps {
 /**
  * Picker for the config fields that hold a single free-form icon string —
  * calendar event and day-badge icons, the text module's prefix. Offers a
- * curated emoji set and the full Font Awesome catalog in one dialog; the
- * Icon module keeps its own `IconPicker`, which stores name and style
- * separately and so has no use for the emoji half.
+ * curated emoji set and the full Font Awesome catalog in one dialog. The
+ * Icon module uses it too, and keeps a Font Awesome pick as a name and a
+ * style of its own.
  *
  * Opens on Emoji because that is what every one of these fields stored
  * before the picker existed.

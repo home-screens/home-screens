@@ -7,6 +7,7 @@ import { leagueWallCode } from '@/lib/espn';
 import { TeamLogo, GameStatus, RankTag, type KickoffFn } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
 import { withAlpha } from '@/lib/hex-color';
+import { inkLikeTailwind } from '@/lib/constants';
 
 /** Which side of a game the card's team is on; away when the abbreviations do not settle it. */
 function ourSide(game: Game, abbr: string): 'home' | 'away' {
@@ -74,7 +75,7 @@ export function TeamView({ cards, kickoff, rotateIntervalMs }: { cards: TeamCard
         </span>
       </div>
 
-      <div className="bg-white/5 rounded-lg px-3.5 py-2.5 flex items-stretch gap-3.5">
+      <div className="rounded-lg px-3.5 py-2.5 flex items-stretch gap-3.5" style={{ backgroundColor: inkLikeTailwind(0.05) }}>
         {game ? (
           <>
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
@@ -87,11 +88,10 @@ export function TeamView({ cards, kickoff, rotateIntervalMs }: { cards: TeamCard
                 score={showScores ? game.homeScore : null} bright={us === 'home'} rank={game.homeRank}
               />
             </div>
-            <div className="border-l border-white/10 pl-3.5 flex flex-col justify-center gap-1 shrink-0" style={{ minWidth: '7em' }}>
+            <div className="border-l pl-3.5 flex flex-col justify-center gap-1 shrink-0" style={{ minWidth: '7em', borderColor: inkLikeTailwind(0.1) }}>
               <GameStatus
-                state={game.state}
+                game={game}
                 kickoff={kickoff(game)}
-                status={game.status}
                 fontSize={game.state === 'pre' ? '0.8em' : '0.75em'}
                 gap="gap-1.5"
                 preColor="text-current font-semibold"

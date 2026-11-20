@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cachedProxyRoute, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
-import { LEAGUE_MAP, parseESPNEvent } from '@/lib/espn';
+import { ESPN_SITE_API, LEAGUE_MAP, parseESPNEvent } from '@/lib/espn';
 import type { Game, TeamCard } from '@/lib/espn';
 import { findRosterTeam } from '@/lib/espn-rosters';
 import { fetchScoreboard } from '@/lib/espn-scoreboard';
@@ -12,7 +12,7 @@ const log = logger('sports-team');
 
 export const dynamic = 'force-dynamic';
 
-const ESPN = 'https://site.api.espn.com/apis/site/v2/sports';
+const ESPN = `${ESPN_SITE_API}/site/v2/sports`;
 
 async function fetchJson(url: string): Promise<Record<string, unknown>> {
   const res = await fetchWithTimeout(url);

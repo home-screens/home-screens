@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+  NOTES_HEADING_VIEWS,
+  NOTES_TITLE_ROW_VIEWS,
   applyFilter,
   arrangeNotes,
   cardColumns,
@@ -407,5 +409,20 @@ describe('groupByDay', () => {
 
   it('gives no notes no groups', () => {
     expect(groupByDay([], dayOf)).toEqual([]);
+  });
+});
+
+describe('which views draw a heading', () => {
+  it('covers the title-row layouts and the materials that write one', () => {
+    for (const view of NOTES_TITLE_ROW_VIEWS) expect(NOTES_HEADING_VIEWS.has(view)).toBe(true);
+    for (const view of ['chalkboard', 'whiteboard', 'notebook', 'receipt', 'neon', 'headline']) {
+      expect(NOTES_HEADING_VIEWS.has(view)).toBe(true);
+    }
+  });
+
+  it('leaves out the views with no heading to name', () => {
+    for (const view of ['spotlight', 'strip', 'ticker', 'count', 'latest', 'letterboard', 'fridge']) {
+      expect(NOTES_HEADING_VIEWS.has(view)).toBe(false);
+    }
   });
 });

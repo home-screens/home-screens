@@ -37,7 +37,8 @@ vi.mock('@/lib/espn', async (importOriginal) => ({
   },
 }));
 
-const { GET, cache, colorCache } = await import('@/app/api/standings/route');
+const { GET, cache } = await import('@/app/api/standings/route');
+const { rosterCache } = await import('@/lib/espn-rosters');
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -143,7 +144,7 @@ function makeTeamsResponse(teams: Array<{ abbr: string; color: string }>) {
         leagues: [
           {
             teams: teams.map((t) => ({
-              team: { abbreviation: t.abbr, color: t.color },
+              team: { abbreviation: t.abbr, displayName: t.abbr, color: t.color },
             })),
           },
         ],
@@ -190,7 +191,7 @@ function mockFetchCalls(
 beforeEach(() => {
   vi.restoreAllMocks();
   cache.clear();
-  colorCache.clear();
+  rosterCache.clear();
 });
 
 describe('GET /api/standings', () => {
@@ -783,6 +784,18 @@ describe('GET /api/standings', () => {
   // =========================================================================
 
   describe('team colors', () => {
+    it('asks for the whole team list, not the first page of fifty', async () => {
+      const buf = makeTeamEntry('BUF', 'Buffalo Bills', { wins: 13, losses: 4, playoffSeed: 1, winPercent: 0.765 });
+      mockFetchCalls(makeESPNStandingsResponse('flat', [buf]), makeTeamsResponse([{ abbr: 'BUF', color: '00338D' }]));
+
+      await GET(makeRequest('nfl', 'league'));
+
+      const urls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((call) => String(call[0]));
+      expect(urls.filter((url) => url.includes('/teams'))).toEqual([
+        'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams?limit=1000',
+      ]);
+    });
+
     it('team colors from teams API are merged into entries', async () => {
       const buf = makeTeamEntry('BUF', 'Buffalo Bills', {
         wins: 13, losses: 4, playoffSeed: 1, winPercent: 0.765,

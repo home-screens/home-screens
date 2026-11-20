@@ -1182,7 +1182,9 @@
     "loss": "L",
     "tie": "T",
     "vs": "vs",
-    "at": "at"
+    "at": "at",
+    "final": "Final",
+    "inProgress": "In progress"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1204,7 +1206,21 @@
   },
   "standings": {
     "loading": "Loading standings…",
-    "noStandings": "No standings available"
+    "noStandings": "No standings available",
+    "columns": {
+      "overtime": "OT",
+      "pct": "PCT",
+      "pointsFor": "PF",
+      "pointsAgainst": "PA",
+      "diff": "DIFF",
+      "streak": "STRK",
+      "gamesPlayed": "GP",
+      "points": "PTS",
+      "goalDiff": "GD",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "D"
+    }
   },
   "todo": {
     "name": "To-Do List",
@@ -1345,6 +1361,9 @@
       "coin": "Coin",
       "price": "Price",
       "percent": "24h %"
+    },
+    "chartLabels": {
+      "week": "7D"
     }
   },
   "todoist": {
@@ -1392,6 +1411,10 @@
     "taskCountAtLeast": {
       "one": "{count}+ task",
       "other": "{count}+ tasks"
+    },
+    "moreGroups": {
+      "one": "and {count} more group",
+      "other": "and {count} more groups"
     }
   },
   "photo-slideshow": {

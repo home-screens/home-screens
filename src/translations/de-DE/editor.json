@@ -4397,7 +4397,8 @@
       "symbolLabel": "Symbol",
       "chartContentDay": "Nur heute",
       "chartContentWeek": "Nur letzte Woche",
-      "chartContentBoth": "Heute und letzte Woche"
+      "chartContentBoth": "Heute und letzte Woche",
+      "chartLabelsWeek": "Diagramm beschriften (7T)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Stundenplan (Spaltenraster)",
@@ -5282,7 +5283,6 @@
       "create": "Anlegen",
       "title": "Überschrift",
       "defaultTitle": "Aufgaben",
-      "showTitle": "Überschrift anzeigen",
       "completedPlacement": "Erledigte Einträge",
       "completedBottom": "Ganz unten",
       "completedInline": "An ihrem Platz",
@@ -5708,7 +5708,6 @@
       "viewLatest": "Neueste Notiz",
       "title": "Überschrift",
       "defaultTitle": "Notizen",
-      "showTitle": "Überschrift anzeigen",
       "maxNotes": "Angezeigte Notizen",
       "showAuthor": "Zeigen, von wem",
       "showAge": "Zeigen, wie lange her",

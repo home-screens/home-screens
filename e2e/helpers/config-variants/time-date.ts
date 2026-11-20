@@ -85,6 +85,23 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: matches(/\d{1,2}:\d{2}\s?[AP]M/),
   },
   {
+    // Digital, Flip and Dot matrix draw digits as segments, cards and dots,
+    // so their AM/PM is a small mark of its own beside them.
+    type: 'clock', name: 'digital-ampm', kind: 'network-free',
+    config: { view: 'digital', hourFormat: '12h', showAmPm: true },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="clock-ampm"]')).toHaveText(/^[AP]M$/); },
+  },
+  {
+    type: 'clock', name: 'flip-ampm', kind: 'network-free',
+    config: { view: 'flip', hourFormat: '12h', showAmPm: true },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="clock-ampm"]')).toHaveText(/^[AP]M$/); },
+  },
+  {
+    type: 'clock', name: 'dot-matrix-ampm', kind: 'network-free',
+    config: { view: 'dot-matrix', hourFormat: '12h', showAmPm: true },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="clock-ampm"]')).toHaveText(/^[AP]M$/); },
+  },
+  {
     // Analog face with hour numerals: 12 <text> glyphs render only when
     // showNumerals is on (otherwise the hour markers are <line>s).
     type: 'clock', name: 'analog-numerals', kind: 'network-free',
@@ -516,7 +533,10 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // on Next out-rendered scale 4 on All). Keep the expected value here
     // identical to the 'scale' row's — that equality IS the assertion.
     type: 'countdown', name: 'scale-view-independent', kind: 'network-free',
-    config: { view: 'next', scale: 1.5, events: [{ id: 'cd-next-scale', name: 'CD NEXT SCALE', date: '2099-06-01' }] },
+    // Days only, and a near date: the Next view shrinks an event wider than
+    // its box, and four flip groups at this size are wider than the fixture's
+    // card. One group fits, so the size read back is the scale's own.
+    config: { view: 'next', scale: 1.5, precision: 'days', events: [{ id: 'cd-next-scale', name: 'CD NEXT SCALE', date: `${localDate(40)}T00:00` }] },
     expect: async (mod) => {
       await has('CD NEXT SCALE')(mod);
       const block = mod.locator('.items-start.justify-center').first();

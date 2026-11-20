@@ -6,7 +6,7 @@ import type { Note } from '@/types/notes';
 import { DIVIDER, ink } from '@/lib/constants';
 import { sortByTime } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
-import { useFitCount } from './useFitCount';
+import { useFitCount } from './../shared/useFitCount';
 import { DANGER_INK, MORE_LINE_EM, MoreLine, WarnGlyph, authorOf, type NoteAuthor, type NotesContext } from './shared';
 
 interface PersonRow {

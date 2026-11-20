@@ -4397,7 +4397,8 @@
       "symbolLabel": "Symbol",
       "chartContentDay": "Today only",
       "chartContentWeek": "Past week only",
-      "chartContentBoth": "Today and past week"
+      "chartContentBoth": "Today and past week",
+      "chartLabelsWeek": "Label the chart (7D)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Schedule (Column Grid)",
@@ -5282,7 +5283,6 @@
       "create": "Create",
       "title": "Heading",
       "defaultTitle": "To Do",
-      "showTitle": "Show title",
       "completedPlacement": "Done items",
       "completedBottom": "At the bottom",
       "completedInline": "Where they are",
@@ -5708,7 +5708,6 @@
       "viewLatest": "Latest",
       "title": "Heading",
       "defaultTitle": "Notes",
-      "showTitle": "Show title",
       "maxNotes": "Notes to show",
       "showAuthor": "Show who",
       "showAge": "Show how long ago",

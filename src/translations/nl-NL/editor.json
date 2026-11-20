@@ -4397,7 +4397,8 @@
       "symbolLabel": "Symbool",
       "chartContentDay": "Alleen vandaag",
       "chartContentWeek": "Alleen afgelopen week",
-      "chartContentBoth": "Vandaag en afgelopen week"
+      "chartContentBoth": "Vandaag en afgelopen week",
+      "chartLabelsWeek": "Grafieklabel (7D)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Schema (kolomraster)",
@@ -5282,7 +5283,6 @@
       "create": "Aanmaken",
       "title": "Kop",
       "defaultTitle": "Te doen",
-      "showTitle": "Kop tonen",
       "completedPlacement": "Gedane items",
       "completedBottom": "Onderaan",
       "completedInline": "Op hun plek",
@@ -5708,7 +5708,6 @@
       "viewLatest": "Nieuwste",
       "title": "Kop",
       "defaultTitle": "Notities",
-      "showTitle": "Kop tonen",
       "maxNotes": "Aantal notities",
       "showAuthor": "Tonen wie het schreef",
       "showAge": "Tonen hoe lang geleden",

@@ -1618,8 +1618,10 @@ export interface ClockConfig {
    */
   sizeMode?: 'fit' | 'fixed';
   /**
-   * Minimal: append AM/PM in 12-hour mode. Absent = off, so a Minimal clock
-   * placed before this existed keeps its bare time.
+   * Minimal, Digital, Flip and Dot matrix: add AM/PM in 12-hour mode. The other views that
+   * print the hour always show it
+   *
+   * Absent = off, so a clock placed before this existed keeps its bare time.
    */
   showAmPm?: boolean;
   // View-specific
@@ -3135,7 +3137,8 @@ export interface NotesConfig {
   /**
    * Heading override. Empty shows "Notes"
    *
-   * Read by every view that draws a heading (not strip, ticker, count or latest).
+   * Read by every view that draws a heading (not spotlight, strip, ticker, count, latest,
+   * letterboard or fridge; the list is `NOTES_HEADING_VIEWS`).
    */
   title?: string;
   /**
@@ -3501,6 +3504,19 @@ export interface CryptoConfig {
    * Trend line on cards view; default true
    */
   showSparkline?: boolean;
+  /**
+   * Chart look: `classic` (plain line) or `shaded` (soft backdrop and tint). The line is always the
+   * past seven days, in green when the coin ended the week higher than it began and red when lower
+   *
+   * Omitted = classic.
+   */
+  sparklineTheme?: 'classic' | 'shaded';
+  /**
+   * Caption each chart with its range (`7D`), since the number beside it is the last 24 hours
+   *
+   * Omitted = off.
+   */
+  sparklineLabels?: boolean;
 }
 
 // Word of the day module config
@@ -3735,9 +3751,9 @@ export interface SportsConfig {
   /** Refresh interval (1 min) */
   refreshIntervalMs: number;
   /**
-   * Scroll speed for ticker view
+   * Scroll speed for ticker view: seconds per game
    *
-   * @default 5
+   * @default 4
    */
   tickerSpeed?: number;
   /**
@@ -3802,7 +3818,7 @@ export interface TodoistConfig {
 export interface AirQualityConfig {
   /** Show air quality index */
   showAQI: boolean;
-  /** Show individual pollutant levels (PM2.5, PM10, O3, NO2) */
+  /** Show individual pollutant levels (PM2.5, PM10, O3) */
   showPollutants: boolean;
   /** Refresh interval (5 min) */
   refreshIntervalMs: number;
@@ -4295,6 +4311,13 @@ export type IconFlip = 'none' | 'horizontal' | 'vertical' | 'both';
 export type IconRotation = 0 | 90 | 180 | 270;
 
 export interface IconConfig {
+  /**
+   * An emoji or one of the family's own icons to show in place of a Font Awesome icon
+   *
+   * A stored icon value (see `lib/icon-value.ts`): an emoji, or `custom:<id>`. Omitted = the
+   * Font Awesome icon named by `iconName` and `style`. A Font Awesome pick is never stored here.
+   */
+  icon?: string;
   /**
    * Icon name without the `fa-` prefix (e.g. `"house"`, `"cloud-sun"`, `"github"`). A full class
    * string with spaces is used verbatim and ignores `style`

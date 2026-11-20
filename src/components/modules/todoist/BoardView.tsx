@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
+import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import {
   PRIORITY_COLORS,
@@ -9,26 +9,28 @@ import {
   formatDueDate,
   groupTasks,
 } from './todoist-utils';
-import { TEXT_OPACITY, ink } from '@/lib/constants';
+import { TEXT_OPACITY, ink, inkLikeTailwind } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { wallRowPress } from '../shared/wallPress';
+import { MoreLine } from '../shared/MoreLine';
+import { TaskTapRing, type TodoistWallProps } from './ListView';
+
+/** Columns the board draws side by side. */
+const MAX_COLUMNS = 3;
 
 export default function BoardView({
   tasks,
   config,
   now,
   onComplete,
+  pressedId,
   timeFormat,
   timezone,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
-  onComplete?: (taskId: string) => void;
-  /** Household 12/24 choice; absent falls back to the locale's own cycle. */
-  timeFormat?: TimeFormat;
-  /** Household zone: which day counts as today, and the clock times read on. */
-  timezone?: string;
-}) {
+} & TodoistWallProps) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
   const groupBy = config.groupBy === 'none' ? 'project' : config.groupBy;
@@ -36,12 +38,15 @@ export default function BoardView({
     () => groupTasks(tasks, groupBy as TodoistGroupBy, now, tr, timezone),
     [tasks, groupBy, now, tr, timezone],
   );
-  // Cap at 3 columns to avoid broken multi-row layouts in a fixed-height module
-  const groups = allGroups.slice(0, 3);
+  // Cap at 3 columns to avoid broken multi-row layouts in a fixed-height
+  // module; the groups left out are counted under the board.
+  const groups = allGroups.slice(0, MAX_COLUMNS);
+  const moreGroups = allGroups.length - groups.length;
 
   return (
+    <>
     <div
-      className="grid gap-2 h-full overflow-hidden"
+      className="grid gap-2 flex-1 min-h-0 overflow-hidden"
       style={{
         gridTemplateColumns: `repeat(${groups.length}, 1fr)`,
       }}
@@ -53,7 +58,7 @@ export default function BoardView({
           style={{ backgroundColor: ink(0.03) }}
         >
           {/* Column header */}
-          <div className="flex items-center gap-1.5 px-2.5 py-2 border-b border-white/[0.06]">
+          <div className="flex items-center gap-1.5 px-2.5 py-2 border-b" style={{ borderColor: inkLikeTailwind(0.06) }}>
             {group.color && group.color !== 'transparent' && (
               <span
                 className="w-2 h-2 rounded-full shrink-0"
@@ -80,32 +85,11 @@ export default function BoardView({
               const dueInfo = formatDueDate(t.due, now, tr, { locale, timeFormat, timezone });
               const isOverdue = (dueDaysFromToday(t.due, now, timezone) ?? 0) < 0;
               const priorityColor = PRIORITY_COLORS[t.priority];
-              const visiblePriorityColor = priorityColor === 'transparent' ? ink(0.4) : priorityColor;
-              return (
-                <div
-                  key={t.id}
-                  className="flex items-start gap-1.5 rounded-md px-2 py-1.5"
-                  style={{
-                    backgroundColor: isOverdue
-                      ? 'rgba(239, 68, 68, 0.08)'
-                      : ink(0.05),
-                  }}
-                >
+              const background = isOverdue ? 'rgba(239, 68, 68, 0.08)' : ink(0.05);
+              const body = (
+                <>
                   {onComplete ? (
-                    <button
-                      type="button"
-                      onClick={() => onComplete(t.id)}
-                      className="rounded-full shrink-0 transition-colors hover:bg-white/10 active:bg-white/20"
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderWidth: 2,
-                        borderStyle: 'solid',
-                        borderColor: visiblePriorityColor,
-                        backgroundColor: 'transparent',
-                      }}
-                      aria-label={tr('todoist.completeAriaLabel', { content: t.content })}
-                    />
+                    <TaskTapRing priorityColor={priorityColor} pressed={pressedId === t.id} size={22} />
                   ) : (
                     <div
                       className="w-[3px] self-stretch rounded-full shrink-0"
@@ -135,6 +119,30 @@ export default function BoardView({
                       </span>
                     )}
                   </div>
+                </>
+              );
+              // With taps on, the whole card is the button.
+              return onComplete ? (
+                <button
+                  key={t.id}
+                  type="button"
+                  data-testid="todoist-task"
+                  data-pressed={pressedId === t.id ? '' : undefined}
+                  onClick={() => onComplete(t.id)}
+                  aria-label={tr('todoist.completeAriaLabel', { content: t.content })}
+                  {...wallRowPress('flex items-center gap-2 rounded-md px-2 py-1.5 text-left cursor-pointer select-none shrink-0')}
+                  style={{ backgroundColor: background, minHeight: 44, touchAction: 'pan-y' }}
+                >
+                  {body}
+                </button>
+              ) : (
+                <div
+                  key={t.id}
+                  data-testid="todoist-task"
+                  className="flex items-start gap-1.5 rounded-md px-2 py-1.5"
+                  style={{ backgroundColor: background }}
+                >
+                  {body}
                 </div>
               );
             })}
@@ -142,5 +150,13 @@ export default function BoardView({
         </div>
       ))}
     </div>
+    <MoreLine
+      n={moreGroups}
+      label={tr('todoist.moreGroups', { count: moreGroups })}
+      testId="todoist-more-groups"
+      className="shrink-0"
+      style={{ fontSize: '0.7em', paddingTop: '0.3em' }}
+    />
+    </>
   );
 }

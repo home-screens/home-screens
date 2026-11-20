@@ -4,7 +4,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import type { GreetingConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { hasAccentColor } from '@/lib/constants';
+import { hasAccentColor, INK } from '@/lib/constants';
 import { useEventBus } from '@/hooks/useEventBus';
 import type { WeatherCondition } from '@/lib/event-bus';
 import { useTranslate } from '@/i18n';
@@ -19,7 +19,9 @@ interface GreetingModuleProps {
 
 const TIME_ACCENTS: Record<DayPart, string> = {
   morning: '#fbbf24',
-  afternoon: '#f9fafb',
+  // Near the card's own ink (#f9fafb on white text), not a fixed near-white:
+  // an afternoon greeting on a light card has to stay readable.
+  afternoon: `color-mix(in srgb, ${INK} 96%, rgb(105 130 155))`,
   evening: '#f97316',
   night: '#93c5fd',
 };

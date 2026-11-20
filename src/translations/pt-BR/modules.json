@@ -1185,7 +1185,9 @@
     "loss": "D",
     "tie": "E",
     "vs": "contra",
-    "at": "fora com"
+    "at": "fora com",
+    "final": "Encerrado",
+    "inProgress": "Em andamento"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1207,7 +1209,21 @@
   },
   "standings": {
     "loading": "Carregando classificação…",
-    "noStandings": "Nenhuma classificação disponível"
+    "noStandings": "Nenhuma classificação disponível",
+    "columns": {
+      "overtime": "PR",
+      "pct": "PCT",
+      "pointsFor": "PF",
+      "pointsAgainst": "PC",
+      "diff": "SALDO",
+      "streak": "SEQ",
+      "gamesPlayed": "J",
+      "points": "PTS",
+      "goalDiff": "SG",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "E"
+    }
   },
   "todo": {
     "name": "Lista de tarefas",
@@ -1349,6 +1365,9 @@
       "coin": "Moeda",
       "price": "Preço",
       "percent": "24h %"
+    },
+    "chartLabels": {
+      "week": "7D"
     }
   },
   "todoist": {
@@ -1400,6 +1419,10 @@
       "one": "{count}+ tarefa",
       "other": "{count}+ tarefas",
       "many": "{count}+ tarefas"
+    },
+    "moreGroups": {
+      "one": "e mais {count} grupo",
+      "other": "e mais {count} grupos"
     }
   },
   "photo-slideshow": {

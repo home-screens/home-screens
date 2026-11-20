@@ -6,6 +6,8 @@ import type { IconConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
 import { buildIconClass } from '@/lib/font-awesome-icons';
+import { faIconValue, parseIconValue } from '@/lib/icon-value';
+import Glyph from '@/components/ui/Glyph';
 
 interface IconModuleProps {
   config: IconConfig;
@@ -34,9 +36,15 @@ const FLIP_CLASS: Record<IconConfig['flip'], string> = {
 
 export default function IconModule({ config, style }: IconModuleProps) {
   const t = useTranslate('modules');
-  const iconClass = buildIconClass(config.iconName ?? '', config.style ?? 'solid');
+  // `icon` holds an emoji or one of the family's own pictures, when one was
+  // picked; a Font Awesome icon stays in `iconName` and `style`.
+  const picked = parseIconValue(config.icon);
+  const own = picked && picked.type !== 'fa' ? picked : null;
+  const iconClass = picked?.type === 'fa'
+    ? buildIconClass(picked.name, picked.kind)
+    : buildIconClass(config.iconName ?? '', config.style ?? 'solid');
 
-  if (!iconClass) {
+  if (!own && !iconClass) {
     return <ModuleEmptyState style={style} type="icon" message={t('icon.empty')} />;
   }
 
@@ -50,9 +58,8 @@ export default function IconModule({ config, style }: IconModuleProps) {
   const flipClass = FLIP_CLASS[flip];
   const animationClass = ANIMATION_CLASS[animation];
 
-  const fullClass = [iconClass, rotationClass, flipClass, animationClass]
-    .filter(Boolean)
-    .join(' ');
+  const motionClass = [rotationClass, flipClass, animationClass].filter(Boolean).join(' ');
+  const fullClass = [iconClass, motionClass].filter(Boolean).join(' ');
 
   // Container queries let the icon scale fluidly with the module box without
   // any JS measurement. `cqmin` is the smaller of container width / height,
@@ -82,7 +89,26 @@ export default function IconModule({ config, style }: IconModuleProps) {
   return (
     <ModuleWrapper style={style}>
       <div style={wrapperStyle}>
-        <i className={fullClass} style={iconStyle} aria-hidden="true" />
+        {own ? (
+          // An emoji or a picture takes the same square the glyph would, and
+          // turns, flips and moves with the same classes.
+          <span
+            data-testid="icon-own"
+            className={motionClass || undefined}
+            style={{ ...iconStyle, display: 'inline-block' }}
+            aria-hidden="true"
+          >
+            <Glyph
+              value={config.icon}
+              style={{ verticalAlign: 'top' }}
+              // A picture that is gone (removed, or not in a restored backup)
+              // gives way to the Font Awesome icon the module still names.
+              fallback={config.iconName ? faIconValue(config.iconName, config.style ?? 'solid') : undefined}
+            />
+          </span>
+        ) : (
+          <i className={fullClass} style={iconStyle} aria-hidden="true" />
+        )}
       </div>
     </ModuleWrapper>
   );

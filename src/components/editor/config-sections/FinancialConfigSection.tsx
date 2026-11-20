@@ -23,11 +23,13 @@ interface FinancialConfigProps {
   symbolsPlaceholder: string;
   tickerUnitText: string;
   showChartRange?: boolean;
+  /** Offer the chart look and the range caption without the day or week choice (the source has one range). */
+  showChartLook?: boolean;
   /** Views this module offers, in menu order. */
   views: readonly FinancialView[];
 }
 
-function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange, views }: FinancialConfigProps) {
+function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange, showChartLook, views }: FinancialConfigProps) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<
     {
@@ -97,7 +99,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           onChange={(v) => set({ showSparkline: v })}
         />
       )}
-      {showChartRange && chartsShown && (
+      {(showChartRange || showChartLook) && chartsShown && (
         <>
           <ViewSelect
             label={t('configSections.financial.chartTheme')}
@@ -105,14 +107,16 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
             onChange={(v) => set({ sparklineTheme: v })}
             options={CHART_THEMES}
           />
-          <ViewSelect
-            label={t('configSections.financial.chartContent')}
-            value={c.sparklineMode ?? 'day'}
-            onChange={(v) => set({ sparklineMode: v })}
-            options={CHART_CONTENTS}
-          />
+          {showChartRange && (
+            <ViewSelect
+              label={t('configSections.financial.chartContent')}
+              value={c.sparklineMode ?? 'day'}
+              onChange={(v) => set({ sparklineMode: v })}
+              options={CHART_CONTENTS}
+            />
+          )}
           <Toggle
-            label={t('configSections.financial.chartLabels')}
+            label={t(showChartRange ? 'configSections.financial.chartLabels' : 'configSections.financial.chartLabelsWeek')}
             checked={c.sparklineLabels ?? false}
             onChange={(v) => set({ sparklineLabels: v })}
           />
@@ -168,6 +172,7 @@ export function CryptoConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       symbolsLabel={t('configSections.financial.cryptoIdsLabel')}
       symbolsPlaceholder="bitcoin,ethereum"
       tickerUnitText={t('configSections.financial.tickerUnitCoin')}
+      showChartLook
       views={CRYPTO_VIEWS}
     />
   );

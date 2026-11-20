@@ -1,9 +1,10 @@
 'use client';
 
-import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import type { StandingsGroup } from '@/lib/espn-standings';
 import { isFavoriteTeam } from '@/lib/sports-order';
 import { formatRecord, getPlayoffTeamCount, StandingsHeader, StandingsTeamRow } from './shared';
+import { standingsRowsKey, useStandingsPaging } from './paging';
+import { GamePagesFooter } from '../sports/shared';
 
 interface CompactViewProps {
   groups: StandingsGroup[];
@@ -13,10 +14,16 @@ interface CompactViewProps {
   grouping: 'division' | 'conference' | 'league';
   /** `<league>:<ABBR>` keys whose rows stand out. */
   favorites?: string[];
+  /** The card's type size; a change re-measures the pages. */
+  fontSize: number;
 }
 
-export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationIntervalMs, grouping, favorites = [] }: CompactViewProps) {
-  const index = useRotatingIndex(groups.length, rotationIntervalMs);
+export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationIntervalMs, grouping, favorites = [], fontSize }: CompactViewProps) {
+  const { ref, group: index, page, pages, visible } = useStandingsPaging(
+    groups.length,
+    (g) => standingsRowsKey(groups[g], teamsToShow, fontSize),
+    rotationIntervalMs,
+  );
   const group = groups[index];
 
   if (!group) return null;
@@ -29,8 +36,8 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
     <div className="flex flex-col h-full">
       <StandingsHeader league={group.league} groupName={group.name} total={groups.length} current={index} />
 
-      <div className="flex-1 overflow-hidden">
-        {entries.map((entry) => {
+      <div ref={ref} className="flex-1 min-h-0 overflow-hidden" data-standings-pages={pages?.length ?? 1}>
+        {entries.map((entry, i) => {
           const barWidth = maxWinPct > 0 ? (entry.winPct / maxWinPct) * 100 : 0;
 
           return (
@@ -39,6 +46,7 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
               entry={entry}
               showPlayoffCutoff={showPlayoffLine && entry.rank === playoffCount}
               highlight={isFavoriteTeam(group.league, entry.teamAbbr, favorites)}
+              hidden={visible !== null && !visible.has(i)}
               barWidth={barWidth}
               logoSize={16}
               rowClassName="relative flex items-center gap-2 py-0.5 px-2"
@@ -60,6 +68,7 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
           );
         })}
       </div>
+      <GamePagesFooter pages={pages} index={page} />
     </div>
   );
 }

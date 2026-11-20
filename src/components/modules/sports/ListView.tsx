@@ -6,6 +6,7 @@ import { favoriteSide } from '@/lib/sports-order';
 import { TeamLogo, isWinner, formatScore, GameStatus, FavoriteBar, RankTag, FAVORITE_GUTTER, GamePagesFooter, gamePagesKey, type KickoffFn } from './shared';
 import { usePagedFit } from '../shared/usePagedFit';
 import { usePagedRotation } from '@/hooks/usePagedRotation';
+import { inkLikeTailwind } from '@/lib/constants';
 
 /**
  * One row per game. Rows that do not fit are not clipped: the list is
@@ -43,8 +44,8 @@ export function ListView({ games, kickoff, favorites = [], rotateIntervalMs, fon
           <div
             key={game.id}
             data-game-row
-            className="relative flex items-center gap-2 py-1 border-b border-white/5 last:border-0"
-            style={{ display: hidden ? 'none' : undefined, paddingLeft: gutter ? FAVORITE_GUTTER : undefined }}
+            className="relative flex items-center gap-2 py-1 border-b last:border-0"
+            style={{ borderColor: inkLikeTailwind(0.05), display: hidden ? 'none' : undefined, paddingLeft: gutter ? FAVORITE_GUTTER : undefined }}
           >
             <FavoriteBar color={barColor} inset="18%" />
             <span
@@ -94,9 +95,8 @@ export function ListView({ games, kickoff, favorites = [], rotateIntervalMs, fon
 
             <div className="shrink-0 ml-auto">
               <GameStatus
-                state={game.state}
+                game={game}
                 kickoff={kickoff(game)}
-                status={game.status}
                 dotSize="w-1 h-1"
                 fontSize="0.55em"
                 postColor="text-current/35"

@@ -1,5 +1,6 @@
 export { TeamLogo } from '../shared/TeamLogo';
 import { PaginationDots } from '../shared/PaginationDots';
+import { useTranslate } from '@/i18n';
 
 /**
  * The favorite marker: a thin strip in the favorite team's own color along
@@ -46,15 +47,46 @@ export function formatScore(game: { state: string }, score: number | null): stri
   return game.state === 'pre' || score === null ? '–' : String(score);
 }
 
+/** The words a status label needs from the dictionary (`sports.final`, `sports.inProgress`). */
+export interface GameStatusWords {
+  final: string;
+  inProgress: string;
+}
+
 /**
- * Status slot of a game row. Scheduled games show the kickoff label the
- * module formatted in the display's timezone (see kickoff.ts); in-progress
- * and final games keep ESPN's status word (clock / "Final").
+ * What a game's status slot says. A scheduled game shows the kickoff the
+ * module formatted in the display's timezone (see kickoff.ts). A game in
+ * progress shows ESPN's detail line (the clock and period, "4:12 - 3rd"),
+ * which its status word ("In Progress") does not carry. A finished game says
+ * "Final" in the hub's language, keeping ESPN's suffix ("Final/OT"); any
+ * other ending (postponed, canceled) keeps ESPN's own word.
  */
+export function gameStatusLabel(
+  game: { state: string; status: string; detail?: string },
+  kickoff: string | null | undefined,
+  words: GameStatusWords,
+): string {
+  const detail = game.detail?.trim() ?? '';
+  if (game.state === 'pre') return kickoff || game.status;
+  if (game.state === 'in') {
+    if (detail) return detail;
+    return game.status && game.status !== 'In Progress' ? game.status : words.inProgress;
+  }
+  if (game.state === 'post' && game.status === 'Final') {
+    return detail.startsWith('Final') ? `${words.final}${detail.slice('Final'.length)}` : words.final;
+  }
+  return game.status;
+}
+
+export function useGameStatusWords(): GameStatusWords {
+  const t = useTranslate('modules');
+  return { final: t('sports.final'), inProgress: t('sports.inProgress') };
+}
+
+/** Status slot of a game row: a live dot while the game is on, then `gameStatusLabel`. */
 export function GameStatus({
-  state,
+  game,
   kickoff,
-  status,
   dotSize = 'w-1.5 h-1.5',
   fontSize,
   gap = 'gap-1',
@@ -62,9 +94,8 @@ export function GameStatus({
   postColor = 'text-current/40',
   preColor = 'text-current/60',
 }: {
-  state: string;
+  game: { state: string; status: string; detail?: string };
   kickoff?: string | null;
-  status: string;
   dotSize?: string;
   fontSize?: string;
   gap?: string;
@@ -72,6 +103,8 @@ export function GameStatus({
   postColor?: string;
   preColor?: string;
 }) {
+  const words = useGameStatusWords();
+  const { state } = game;
   return (
     <div className={`flex items-center ${gap}`} style={fontSize ? { fontSize } : undefined}>
       {state === 'in' && (
@@ -86,7 +119,7 @@ export function GameStatus({
               : preColor
         }
       >
-        {(state === 'pre' && kickoff) || status}
+        {gameStatusLabel(game, kickoff, words)}
       </span>
     </div>
   );

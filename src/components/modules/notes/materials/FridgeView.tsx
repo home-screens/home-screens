@@ -1,11 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
 import type { Note } from '@/types/notes';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { tiltFor } from '@/lib/notes-rules';
-import { useFitCount } from '../useFitCount';
-import { MORE_LINE_EM, ageOf, authorOf, fitKeyOf, type NoteAuthor } from '../shared';
+import { useFittedNotes } from '../useFittedNotes';
+import { ageOf, authorOf, type NoteAuthor } from '../shared';
 import type { MaterialViewProps } from './types';
 
 const PAPER = '#fffdf7';
@@ -64,14 +63,7 @@ function Magnet({ color, place, author }: {
 export function FridgeView({ ctx, shown, hidden, padding, width, height }: MaterialViewProps) {
   const frame = Math.round(Math.min(18, Math.max(6, Math.min(width, height) * FRAME_SHARE)));
   const columns = fridgeColumns(width - 2 * (frame + padding));
-  const gridRef = useRef<HTMLDivElement>(null);
-  const visible = useFitCount(
-    gridRef,
-    fitKeyOf(shown, ctx.fontPx, columns, ctx.showAuthor, ctx.showAge),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-  );
-  const drawn = visible === null ? shown : shown.slice(0, visible);
-  const more = hidden + shown.length - drawn.length;
+  const { ref: gridRef, drawn, more } = useFittedNotes<HTMLDivElement>(ctx, shown, hidden, { extraKey: [columns] });
   return (
     <div
       className="relative flex flex-col h-full min-h-0 overflow-hidden"

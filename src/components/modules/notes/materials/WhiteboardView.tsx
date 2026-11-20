@@ -1,11 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
 import { Star } from 'lucide-react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
-import { useFitCount } from '../useFitCount';
-import { ageOf, authorOf, fitKeyOf, type NoteAuthor } from '../shared';
+import { useFittedNotes } from '../useFittedNotes';
+import { ageOf, authorOf, type NoteAuthor } from '../shared';
 
 /** The board: a glare from the top left over a white that greys a touch to the bottom right. */
 const BOARD = [
@@ -49,14 +48,7 @@ function magnetFill(color: string): string {
  * fitted whole like Board.
  */
 export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padding }: MaterialViewProps) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(
-    listRef,
-    fitKeyOf(shown, ctx.fontPx, ctx.showAuthor, ctx.showAge, showTitle),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_EM,
-  );
-  const drawn = visible === null ? shown : shown.slice(0, visible);
-  const more = hidden + shown.length - drawn.length;
+  const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, shown, hidden, { extraKey: [showTitle], moreEm: MORE_EM });
   return (
     <div
       className="relative flex flex-col flex-1 min-h-0 overflow-hidden"

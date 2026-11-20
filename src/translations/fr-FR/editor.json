@@ -4397,7 +4397,8 @@
       "symbolLabel": "Symbole",
       "chartContentDay": "Aujourd'hui seulement",
       "chartContentWeek": "Semaine dernière seulement",
-      "chartContentBoth": "Aujourd'hui et semaine dernière"
+      "chartContentBoth": "Aujourd'hui et semaine dernière",
+      "chartLabelsWeek": "Étiqueter le graphique (7J)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Planning (grille en colonnes)",
@@ -5282,7 +5283,6 @@
       "create": "Créer",
       "title": "Titre",
       "defaultTitle": "À faire",
-      "showTitle": "Afficher le titre",
       "completedPlacement": "Éléments faits",
       "completedBottom": "En bas",
       "completedInline": "À leur place",
@@ -5708,7 +5708,6 @@
       "viewLatest": "La plus récente",
       "title": "Titre",
       "defaultTitle": "Notes",
-      "showTitle": "Afficher le titre",
       "maxNotes": "Notes affichées",
       "showAuthor": "Afficher qui l'a écrite",
       "showAge": "Afficher depuis combien de temps",

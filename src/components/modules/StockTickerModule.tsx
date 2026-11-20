@@ -3,12 +3,13 @@
 import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { StockTickerConfig, ModuleStyle } from '@/types/config';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import {
   formatUSD,
   formatPercent,
   formatChange,
   ChangeColor,
+  NO_CHANGE,
 } from './financial/shared';
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
 import FinancialDataModule from './financial/FinancialDataModule';
@@ -37,12 +38,22 @@ interface StockData {
 }
 
 /** Today's move as text; an en dash when the API had no prior close to measure from. */
-function formatChangeLabel(change: number | null, changePercent: number | null): string {
-  if (change == null || changePercent == null) return '\u2013';
-  return `${formatChange(change)} (${formatPercent(changePercent)})`;
+function formatChangeLabel(change: number | null, changePercent: number | null, locale: string): string {
+  if (change == null || changePercent == null) return NO_CHANGE;
+  return `${formatChange(change, locale)} (${formatPercent(changePercent, locale)})`;
 }
 
-function toFinancialItems(stocks: StockData[]): FinancialItem[] {
+/** A change cell: the signed number in green or red, or a plain dash when there is none. */
+function ChangeCell({ value, text, className }: { value: number | null | undefined; text: (value: number) => string; className?: string }) {
+  if (value == null) return <span className={className} style={{ opacity: TEXT_OPACITY.dim }}>{NO_CHANGE}</span>;
+  return (
+    <ChangeColor value={value}>
+      {className ? <span className={className}>{text(value)}</span> : text(value)}
+    </ChangeColor>
+  );
+}
+
+function toFinancialItems(stocks: StockData[], locale: string): FinancialItem[] {
   return stocks.map((stock, i) => {
     return {
       key: `${stock.symbol}-${i}`,
@@ -50,7 +61,7 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
       name: stock.name,
       price: stock.price ?? 0,
       changeValue: stock.change ?? 0,
-      changeLabel: formatChangeLabel(stock.change ?? null, stock.changePercent ?? null),
+      changeLabel: formatChangeLabel(stock.change ?? null, stock.changePercent ?? null, locale),
       sparkline: stock.sparkline,
       sparklineXs: stock.sparklineXs,
       sparklineHourMarks: stock.sparklineHourMarks,
@@ -62,24 +73,20 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
   });
 }
 
-function toCompactRows(stocks: StockData[]): CompactRow[] {
-  return stocks.map((stock, i) => {
-    const changePercent = stock.changePercent ?? 0;
-    return {
-      key: `${stock.symbol}-${i}`,
-      label: stock.symbol,
-      price: formatUSD(stock.price ?? 0),
-      change: (
-        <ChangeColor value={changePercent}>
-          <span className="tabular-nums w-20 text-right">{formatPercent(changePercent)}</span>
-        </ChangeColor>
-      ),
-    };
-  });
+function toCompactRows(stocks: StockData[], locale: string): CompactRow[] {
+  return stocks.map((stock, i) => ({
+    key: `${stock.symbol}-${i}`,
+    label: stock.symbol,
+    price: formatUSD(stock.price ?? 0, locale),
+    change: (
+      <ChangeCell value={stock.changePercent} text={(v) => formatPercent(v, locale)} className="tabular-nums w-20 text-right" />
+    ),
+  }));
 }
 
 export default function StockTickerModule({ config, style }: StockTickerModuleProps) {
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
 
   const stockTableColumns = useMemo<TableColumn<StockData>[]>(() => [
     {
@@ -91,27 +98,21 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       align: 'right',
       render: (stock) => (
         <span className="font-bold">
-          {formatUSD(stock.price ?? 0)}
+          {formatUSD(stock.price ?? 0, locale)}
         </span>
       ),
     },
     {
       header: t('stock-ticker.headers.change'),
       align: 'right',
-      render: (stock) => {
-        const change = stock.change ?? 0;
-        return <ChangeColor value={change}>{formatChange(change)}</ChangeColor>;
-      },
+      render: (stock) => <ChangeCell value={stock.change} text={(v) => formatChange(v, locale)} />,
     },
     {
       header: t('stock-ticker.headers.percent'),
       align: 'right',
-      render: (stock) => {
-        const changePercent = stock.changePercent ?? 0;
-        return <ChangeColor value={changePercent}>{formatPercent(changePercent)}</ChangeColor>;
-      },
+      render: (stock) => <ChangeCell value={stock.changePercent} text={(v) => formatPercent(v, locale)} />,
     },
-  ], [t]);
+  ], [t, locale]);
 
   const view = config.view ?? 'cards';
   // Cards caption with the terse 1D / 5D; the single tile has room for the

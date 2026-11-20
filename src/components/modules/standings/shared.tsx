@@ -4,6 +4,7 @@ import { isSoccerLeague, leagueWallCode } from '@/lib/espn';
 import { PaginationDots } from '../shared/PaginationDots';
 import { TeamLogo } from '../shared/TeamLogo';
 import { withAlpha } from '@/lib/hex-color';
+import { inkLikeTailwind } from '@/lib/constants';
 
 interface StandingsTeamRowProps {
   entry: StandingsEntry;
@@ -23,6 +24,8 @@ interface StandingsTeamRowProps {
   teamLabel?: string;
   /** One of the module's favorite teams: the row is tinted in the team's color and its name is bright. */
   highlight?: boolean;
+  /** Not on the page that is showing (see useStandingsPaging). */
+  hidden?: boolean;
   children?: ReactNode;
 }
 
@@ -43,6 +46,7 @@ export function StandingsTeamRow({
   clincherStyle = { fontSize: '0.6em' },
   teamLabel = entry.teamShort || entry.teamAbbr,
   highlight = false,
+  hidden = false,
   children,
 }: StandingsTeamRowProps) {
   const clincher = entry.clincher && (
@@ -77,10 +81,12 @@ export function StandingsTeamRow({
 
   return (
     <div
-      className={`${rowClassName} ${
-        showPlayoffCutoff ? 'border-b border-dashed border-white/20' : ''
-      }`}
+      data-standings-row
+      className={`${rowClassName} ${showPlayoffCutoff ? 'border-b border-dashed' : ''}`}
       style={{
+        display: hidden ? 'none' : undefined,
+        // The card's ink, so the cut-off line survives a light card.
+        ...(showPlayoffCutoff ? { borderBottomColor: inkLikeTailwind(0.2) } : {}),
         borderLeft: `${borderWidth}px solid #${entry.teamColor}`,
         // A favorite's row is washed in its own color, stronger at the edge
         // where the border already is, so it stands out at wall distance.
@@ -156,7 +162,7 @@ export function StandingsHeader({
   current: number;
 }) {
   return (
-    <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10">
+    <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b" style={{ borderColor: inkLikeTailwind(0.1) }}>
       <div className="flex items-center gap-2">
         <span
           className="font-semibold tracking-widest uppercase text-current/40"

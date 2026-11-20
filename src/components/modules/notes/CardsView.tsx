@@ -1,12 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
 import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { cardColumns } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
-import { useFitCount } from './useFitCount';
-import { MORE_LINE_EM, MoreLine, NoteMarks, ageOf, authorOf, dangerTint, fitKeyOf, type NotesContext } from './shared';
+import { useFittedNotes } from './useFittedNotes';
+import { MoreLine, NoteMarks, ageOf, authorOf, dangerTint, type NotesContext } from './shared';
 
 /**
  * Cards: a pinboard of plain cards, columns from the width (one under 400 px,
@@ -15,13 +14,7 @@ import { MORE_LINE_EM, MoreLine, NoteMarks, ageOf, authorOf, dangerTint, fitKeyO
  */
 export function CardsView({ ctx, shown, hidden, width }: { ctx: NotesContext; shown: Note[]; hidden: number; width: number }) {
   const columns = cardColumns(width);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const visible = useFitCount(
-    gridRef,
-    fitKeyOf(shown, ctx.fontPx, columns, ctx.showAuthor, ctx.showAge),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-  );
-  const drawn = visible === null ? shown : shown.slice(0, visible);
+  const { ref: gridRef, drawn, more } = useFittedNotes<HTMLDivElement>(ctx, shown, hidden, { extraKey: [columns] });
   return (
     <>
       <div
@@ -69,7 +62,7 @@ export function CardsView({ ctx, shown, hidden, width }: { ctx: NotesContext; sh
           );
         })}
       </div>
-      <MoreLine n={hidden + shown.length - drawn.length} t={ctx.t} />
+      <MoreLine n={more} t={ctx.t} />
     </>
   );
 }

@@ -1,10 +1,12 @@
 'use client';
 
-import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import type { StandingsGroup, StandingsEntry } from '@/lib/espn-standings';
 import { isFavoriteTeam } from '@/lib/sports-order';
 import { isSoccerLeague } from '@/lib/espn';
 import { formatRecord, getPlayoffTeamCount, StandingsHeader, StandingsTeamRow } from './shared';
+import { standingsRowsKey, useStandingsPaging } from './paging';
+import { GamePagesFooter } from '../sports/shared';
+import { useTranslate } from '@/i18n';
 
 interface TableViewProps {
   groups: StandingsGroup[];
@@ -14,48 +16,71 @@ interface TableViewProps {
   grouping: 'division' | 'conference' | 'league';
   /** `<league>:<ABBR>` keys whose rows stand out. */
   favorites?: string[];
+  /** The card's type size; a change re-measures the pages. */
+  fontSize: number;
 }
 
-function getColumns(league: string): { key: string; label: string; width: string }[] {
+type Translate = (key: string) => string;
+
+/**
+ * The columns a league's table carries, headed in the hub's language. The
+ * record heading is built from the same letters the Sports module prints
+ * for a win, a loss and a tie; soccer has its own letter for a draw.
+ */
+export function getColumns(league: string, t: Translate): { key: string; label: string; width: string }[] {
   const l = league.toLowerCase();
+  const col = (name: string) => t(`standings.columns.${name}`);
+  const win = t('sports.win');
+  const loss = t('sports.loss');
   if (l === 'nfl') {
     return [
-      { key: 'record', label: 'W-L', width: 'w-14' },
-      { key: 'pct', label: 'PCT', width: 'w-12' },
-      { key: 'pf', label: 'PF', width: 'w-10' },
-      { key: 'pa', label: 'PA', width: 'w-10' },
-      { key: 'diff', label: 'DIFF', width: 'w-12' },
-      { key: 'strk', label: 'STRK', width: 'w-12' },
+      { key: 'record', label: `${win}-${loss}`, width: 'w-14' },
+      { key: 'pct', label: col('pct'), width: 'w-12' },
+      { key: 'pf', label: col('pointsFor'), width: 'w-10' },
+      { key: 'pa', label: col('pointsAgainst'), width: 'w-10' },
+      { key: 'diff', label: col('diff'), width: 'w-12' },
+      { key: 'strk', label: col('streak'), width: 'w-12' },
     ];
   }
   if (l === 'nhl') {
     return [
-      { key: 'gp', label: 'GP', width: 'w-9' },
-      { key: 'record', label: 'W-L-OT', width: 'w-18' },
-      { key: 'pts', label: 'PTS', width: 'w-10' },
-      { key: 'diff', label: 'DIFF', width: 'w-12' },
-      { key: 'strk', label: 'STRK', width: 'w-12' },
+      { key: 'gp', label: col('gamesPlayed'), width: 'w-9' },
+      { key: 'record', label: `${win}-${loss}-${col('overtime')}`, width: 'w-18' },
+      { key: 'pts', label: col('points'), width: 'w-10' },
+      { key: 'diff', label: col('diff'), width: 'w-12' },
+      { key: 'strk', label: col('streak'), width: 'w-12' },
     ];
   }
   if (isSoccerLeague(l)) {
     return [
-      { key: 'gp', label: 'GP', width: 'w-9' },
-      { key: 'record', label: 'W-D-L', width: 'w-14' },
-      { key: 'pts', label: 'PTS', width: 'w-10' },
-      { key: 'gd', label: 'GD', width: 'w-12' },
+      { key: 'gp', label: col('gamesPlayed'), width: 'w-9' },
+      { key: 'record', label: `${win}-${col('draw')}-${loss}`, width: 'w-14' },
+      { key: 'pts', label: col('points'), width: 'w-10' },
+      { key: 'gd', label: col('goalDiff'), width: 'w-12' },
     ];
   }
   // NBA, MLB, WNBA
   return [
-    { key: 'record', label: 'W-L', width: 'w-12' },
-    { key: 'pct', label: 'PCT', width: 'w-12' },
-    { key: 'gb', label: 'GB', width: 'w-10' },
-    { key: 'strk', label: 'STRK', width: 'w-12' },
-    { key: 'l10', label: 'L10', width: 'w-12' },
+    { key: 'record', label: `${win}-${loss}`, width: 'w-12' },
+    { key: 'pct', label: col('pct'), width: 'w-12' },
+    { key: 'gb', label: col('gamesBack'), width: 'w-10' },
+    { key: 'strk', label: col('streak'), width: 'w-12' },
+    { key: 'l10', label: col('last10'), width: 'w-12' },
   ];
 }
 
-function CellValue({ entry, col, league }: { entry: StandingsEntry; col: string; league: string }) {
+/**
+ * A streak as the hub's language writes it. The source sends "W3" or "L1";
+ * the letter becomes the one the record column beside it uses for a win or
+ * a loss, so a German table reads S3 under S-N, not W3.
+ */
+export function streakLabel(streak: string, win: string, loss: string): string {
+  if (streak.startsWith('W')) return `${win}${streak.slice(1)}`;
+  if (streak.startsWith('L')) return `${loss}${streak.slice(1)}`;
+  return streak;
+}
+
+function CellValue({ entry, col, league, t }: { entry: StandingsEntry; col: string; league: string; t: Translate }) {
   switch (col) {
     case 'record':
       return <>{formatRecord(entry, league)}</>;
@@ -66,7 +91,7 @@ function CellValue({ entry, col, league }: { entry: StandingsEntry; col: string;
     case 'strk':
       return (
         <span className={entry.streak?.startsWith('W') ? 'text-emerald-400' : entry.streak?.startsWith('L') ? 'text-red-400' : ''}>
-          {entry.streak ?? '—'}
+          {entry.streak ? streakLabel(entry.streak, t('sports.win'), t('sports.loss')) : '—'}
         </span>
       );
     case 'l10':
@@ -100,13 +125,18 @@ function CellValue({ entry, col, league }: { entry: StandingsEntry; col: string;
   }
 }
 
-export function TableView({ groups, teamsToShow, showPlayoffLine, rotationIntervalMs, grouping, favorites = [] }: TableViewProps) {
-  const index = useRotatingIndex(groups.length, rotationIntervalMs);
+export function TableView({ groups, teamsToShow, showPlayoffLine, rotationIntervalMs, grouping, favorites = [], fontSize }: TableViewProps) {
+  const t = useTranslate('modules');
+  const { ref, group: index, page, pages, visible } = useStandingsPaging(
+    groups.length,
+    (g) => standingsRowsKey(groups[g], teamsToShow, fontSize),
+    rotationIntervalMs,
+  );
   const group = groups[index];
 
   if (!group) return null;
 
-  const columns = getColumns(group.league);
+  const columns = getColumns(group.league, t);
   const entries = teamsToShow > 0 ? group.entries.slice(0, teamsToShow) : group.entries;
   const playoffCount = getPlayoffTeamCount(group.league, grouping);
   const maxWinPct = Math.max(...entries.map((e) => e.winPct), 0.001);
@@ -130,8 +160,8 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
         ))}
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        {entries.map((entry) => {
+      <div ref={ref} className="flex-1 min-h-0 overflow-hidden" data-standings-pages={pages?.length ?? 1}>
+        {entries.map((entry, i) => {
           const barWidth = maxWinPct > 0 ? (entry.winPct / maxWinPct) * 100 : 0;
 
           return (
@@ -140,6 +170,7 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
               entry={entry}
               showPlayoffCutoff={showPlayoffLine && entry.rank === playoffCount}
               highlight={isFavoriteTeam(group.league, entry.teamAbbr, favorites)}
+              hidden={visible !== null && !visible.has(i)}
               barWidth={barWidth}
               nameWrapperClassName="flex-1 min-w-0 flex items-center gap-1 relative"
             >
@@ -149,13 +180,14 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
                   className={`${col.width} text-right text-current/60 tabular-nums shrink-0 relative`}
                   style={{ fontSize: '0.7em' }}
                 >
-                  <CellValue entry={entry} col={col.key} league={group.league} />
+                  <CellValue entry={entry} col={col.key} league={group.league} t={t} />
                 </span>
               ))}
             </StandingsTeamRow>
           );
         })}
       </div>
+      <GamePagesFooter pages={pages} index={page} />
     </div>
   );
 }

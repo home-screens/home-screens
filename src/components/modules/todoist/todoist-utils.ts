@@ -401,3 +401,20 @@ export function buildTaskTree(tasks: TodoistTask[]): TaskNode[] {
 
   return roots;
 }
+
+/** One drawn row of a task list: a task and how deep it sits under its parents. */
+export interface FlatTaskRow {
+  task: TodoistTask;
+  depth: number;
+}
+
+/**
+ * A task tree as the rows a list draws, parents before their children.
+ * Subtasks are left out when the module does not show them.
+ */
+export function flattenTaskTree(nodes: TaskNode[], withSubtasks: boolean, depth = 0): FlatTaskRow[] {
+  return nodes.flatMap((node) => [
+    { task: node.task, depth },
+    ...(withSubtasks ? flattenTaskTree(node.children, withSubtasks, depth + 1) : []),
+  ]);
+}

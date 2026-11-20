@@ -4397,7 +4397,8 @@
       "symbolLabel": "Símbolo",
       "chartContentDay": "Apenas hoje",
       "chartContentWeek": "Apenas a semana passada",
-      "chartContentBoth": "Hoje e a semana passada"
+      "chartContentBoth": "Hoje e a semana passada",
+      "chartLabelsWeek": "Rotular o gráfico (7D)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Agenda (grade de colunas)",
@@ -5282,7 +5283,6 @@
       "create": "Criar",
       "title": "Título",
       "defaultTitle": "A fazer",
-      "showTitle": "Mostrar título",
       "completedPlacement": "Itens feitos",
       "completedBottom": "No final",
       "completedInline": "Onde estão",
@@ -5708,7 +5708,6 @@
       "viewLatest": "Mais recente",
       "title": "Título",
       "defaultTitle": "Recados",
-      "showTitle": "Mostrar título",
       "maxNotes": "Recados exibidos",
       "showAuthor": "Mostrar quem escreveu",
       "showAge": "Mostrar quando foi escrito",

@@ -4,14 +4,14 @@ import { useMemo, useState, type ReactNode } from 'react';
 import type { ModuleStyle, NotesConfig, NotesFilter, NotesView } from '@/types/config';
 import type { Note } from '@/types/notes';
 import ModuleWrapper from '../ModuleWrapper';
-import { ModuleEmptyState } from '../ModuleStates';
+import { ModuleEmptyState, ModuleNotUpdatingState } from '../ModuleStates';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useFetchData } from '@/hooks/useFetchData';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
-import { arrangeNotes, isMaterialView } from '@/lib/notes-rules';
+import { arrangeNotes, isMaterialView, NOTES_TITLE_ROW_VIEWS } from '@/lib/notes-rules';
 import { NotesHeader, clampSetting, type NotesContext } from './shared';
 import { STEP_SECONDS } from './useStepper';
 import { BoardView } from './BoardView';
@@ -94,10 +94,6 @@ const FIT: Record<NotesView, { height: number; width: number }> = {
 
 /** Views that draw at most `maxNotes` in wall order. Timeline and Pinned and new cap in their own order. */
 const CAPPED_VIEWS: ReadonlySet<NotesView> = new Set(['board', 'cards', 'sticky', 'bubbles', 'compact', 'focus', 'chalkboard', 'whiteboard', 'fridge', 'notebook', 'receipt', 'headline']);
-/** Views with the title row. Spotlight, Strip, Ticker, Count and Latest have none. */
-const HEADED_VIEWS: ReadonlySet<NotesView> = new Set([
-  'board', 'cards', 'sticky', 'bubbles', 'compact', 'timeline', 'focus', 'by-person', 'pinned-new',
-]);
 /** Views that show the whole board whatever the filter says. */
 const WHOLE_BOARD_VIEWS: ReadonlySet<NotesView> = new Set(['timeline', 'by-person']);
 
@@ -142,8 +138,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     [payload, now, filter, max, capped],
   );
 
-  // First fetch still in flight: a plain card, never a crash. A failed fetch
-  // falls through to the empty state rather than a blank card forever.
+  // First fetch still in flight: a plain card, never a crash.
   if (!payload && !fetchError) {
     return (
       <ModuleWrapper style={style}>
@@ -151,6 +146,8 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
       </ModuleWrapper>
     );
   }
+  // The first read failed: say so, not "No notes", which would be a guess.
+  if (!payload) return <ModuleNotUpdatingState style={style} error={fetchError} />;
 
   const emptyMessage = filter === 'pinned'
     ? t('notes.emptyPinned')
@@ -234,7 +231,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
         // notes into "and N more" for nothing.
         style={{ fontSize: `${scaledFontSize}px`, lineHeight: 1.2 }}
       >
-        {HEADED_VIEWS.has(view) && (
+        {NOTES_TITLE_ROW_VIEWS.has(view) && (
           <NotesHeader
             title={config.title?.trim() || t('notes.defaultTitle')}
             showTitle={config.showTitle !== false}

@@ -36,13 +36,16 @@ export const SCOREBOARD_PARAMS: Record<string, string> = {
  */
 export const COLLEGE_LEAGUES = new Set(['ncaaf', 'ncaam', 'ncaaw']);
 
+/** ESPN's public site API, the root every sports and standings request starts from. */
+export const ESPN_SITE_API = 'https://site.api.espn.com/apis';
+
 /** The scoreboard URL for a league, with the per-league extras ESPN needs; null for an unknown league. */
 export function scoreboardUrl(league: string): string | null {
   const id = league.toLowerCase();
   const path = LEAGUE_MAP[id];
   if (!path) return null;
   const params = SCOREBOARD_PARAMS[id];
-  return `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard${params ? `?${params}` : ''}`;
+  return `${ESPN_SITE_API}/site/v2/sports/${path}/scoreboard${params ? `?${params}` : ''}`;
 }
 
 /** The sports ESPN files its leagues under; the first segment of a `LEAGUE_MAP` path. */

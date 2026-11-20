@@ -1185,7 +1185,9 @@
     "loss": "D",
     "tie": "N",
     "vs": "contre",
-    "at": "chez"
+    "at": "chez",
+    "final": "Terminé",
+    "inProgress": "En cours"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1207,7 +1209,21 @@
   },
   "standings": {
     "loading": "Chargement du classement…",
-    "noStandings": "Aucun classement disponible"
+    "noStandings": "Aucun classement disponible",
+    "columns": {
+      "overtime": "DP",
+      "pct": "PCT",
+      "pointsFor": "PP",
+      "pointsAgainst": "PC",
+      "diff": "DIFF",
+      "streak": "SÉRIE",
+      "gamesPlayed": "MJ",
+      "points": "PTS",
+      "goalDiff": "DIFF",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "N"
+    }
   },
   "todo": {
     "name": "Liste de tâches",
@@ -1349,6 +1365,9 @@
       "coin": "Monnaie",
       "price": "Cours",
       "percent": "% 24 h"
+    },
+    "chartLabels": {
+      "week": "7J"
     }
   },
   "todoist": {
@@ -1400,6 +1419,10 @@
       "one": "{count}+ tâche",
       "other": "{count}+ tâches",
       "many": "{count}+ tâches"
+    },
+    "moreGroups": {
+      "one": "et {count} groupe de plus",
+      "other": "et {count} groupes de plus"
     }
   },
   "photo-slideshow": {

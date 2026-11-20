@@ -223,6 +223,24 @@ export const NOTES_MATERIAL_VIEWS: ReadonlySet<string> = new Set([
   'chalkboard', 'letterboard', 'whiteboard', 'fridge', 'notebook', 'receipt', 'neon', 'headline',
 ]);
 
+/**
+ * The layouts that draw the shared title row above the notes. Spotlight,
+ * Strip, Ticker, Count and Latest have none.
+ */
+export const NOTES_TITLE_ROW_VIEWS: ReadonlySet<string> = new Set([
+  'board', 'cards', 'sticky', 'bubbles', 'compact', 'timeline', 'focus', 'by-person', 'pinned-new',
+]);
+
+/**
+ * Every view that draws a heading: the title-row layouts, and the materials
+ * that write one on their own surface. Letterboard and Fridge draw none. The
+ * wall, the editor's Title box and the title picker all read this one list,
+ * so a view cannot offer a heading it does not draw.
+ */
+export const NOTES_HEADING_VIEWS: ReadonlySet<string> = new Set([
+  ...NOTES_TITLE_ROW_VIEWS, 'chalkboard', 'whiteboard', 'notebook', 'receipt', 'neon', 'headline',
+]);
+
 export function isMaterialView(view: unknown): boolean {
   return typeof view === 'string' && NOTES_MATERIAL_VIEWS.has(view);
 }

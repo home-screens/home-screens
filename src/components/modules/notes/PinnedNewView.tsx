@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, type CSSProperties, type ReactNode } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import type { Note } from '@/types/notes';
 import { DIVIDER, ink } from '@/lib/constants';
 import { NoteRow, TINTED_LIST_STYLE } from './NoteRow';
-import { useFitCount } from './useFitCount';
-import { MORE_LINE_EM, MoreLine, PinGlyph, fitKeyOf, type NotesContext } from './shared';
+import { useFittedNotes } from './useFittedNotes';
+import { MoreLine, PinGlyph, type NotesContext } from './shared';
 
 function Column({ ctx, heading, notes, hidden, emptyText, pinnedColumn, style }: {
   ctx: NotesContext;
@@ -17,13 +17,7 @@ function Column({ ctx, heading, notes, hidden, emptyText, pinnedColumn, style }:
   pinnedColumn: boolean;
   style?: CSSProperties;
 }) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(
-    listRef,
-    fitKeyOf(notes, ctx.fontPx, ctx.showAuthor, ctx.showAge),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-  );
-  const drawn = visible === null ? notes : notes.slice(0, visible);
+  const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, notes, hidden);
   return (
     <div className="flex flex-col min-w-0 min-h-0" style={style}>
       <h3
@@ -40,7 +34,7 @@ function Column({ ctx, heading, notes, hidden, emptyText, pinnedColumn, style }:
           <NoteRow key={note.id} note={note} ctx={ctx} last={i === drawn.length - 1} showPin={!pinnedColumn} />
         ))}
       </ul>
-      <MoreLine n={hidden + notes.length - drawn.length} t={ctx.t} />
+      <MoreLine n={more} t={ctx.t} />
     </div>
   );
 }

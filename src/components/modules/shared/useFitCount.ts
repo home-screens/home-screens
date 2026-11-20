@@ -2,20 +2,34 @@
 
 import { useCallback, useEffect, useLayoutEffect, useState, type RefObject } from 'react';
 
+export interface FitCountOptions {
+  /** Cut by summed height in this order of `data-fit` values instead of by position. */
+  priority?: readonly string[];
+  /**
+   * False where a finger scrolls the whole list instead (a touch wall):
+   * every row stays, nothing is measured and the answer is always null.
+   */
+  active?: boolean;
+  /** Which of the box's descendants are the rows. Default: the ones marked `data-fit`. */
+  itemSelector?: string;
+}
+
 /**
- * How many of a list's notes fit its box whole, or null when they all do.
+ * How many of a list's rows fit its box whole, or null when they all do.
+ * Shared by the notes views, the to-do lists and the Todoist list.
  *
  * A wall card has no scrollbar, so a list taller than its card would clip
- * whichever note fell on the edge in half and still claim "and 1 more" for
- * the notes it hid. Instead the notes that do not fit are dropped and counted
- * into the "and N more" line, the way the to-do module fits its rows.
+ * whichever row fell on the edge in half and still claim "and 1 more" for
+ * the rows it hid. Instead the rows that do not fit are dropped and counted
+ * into the "and N more" line.
  *
- * Every new `key` (a poll that changed the notes, a font or setting change)
- * and every resize renders all the notes once, measures, then renders only
+ * Every new `key` (a poll that changed the rows, a font or setting change)
+ * and every resize renders all the rows once, measures, then renders only
  * the ones that fit; the layout effect runs before paint, so the full render
  * never shows.
  *
- * The measured items are the box's descendants marked `data-fit`:
+ * The measured items are the box's descendants marked `data-fit` (or
+ * matching `itemSelector`):
  * - Without `priority`, in document order: the first item whose bottom
  *   passes the box ends the run (rows, grids, timeline groups).
  * - With `priority` (each item's `data-fit` value is its note id), heights
@@ -30,7 +44,7 @@ export function useFitCount(
   boxRef: RefObject<HTMLElement | null>,
   key: string,
   reservePx: number,
-  priority?: readonly string[],
+  { priority, active = true, itemSelector = '[data-fit]' }: FitCountOptions = {},
 ): number | null {
   const [visible, setVisible] = useState<number | null>(null);
   // Bumped by a resize: when every row already fitted, `visible` is null and
@@ -43,12 +57,14 @@ export function useFitCount(
     setMeasuredKey(key);
     setVisible(null);
   }
+  // Switched off while a fit was held: measure afresh when it comes back.
+  if (!active && visible !== null) setVisible(null);
   const measure = useCallback(() => {
     const box = boxRef.current;
     if (!box) return;
     const rect = box.getBoundingClientRect();
     if (rect.height <= 0) return;
-    const items = Array.from(box.querySelectorAll<HTMLElement>('[data-fit]'));
+    const items = Array.from(box.querySelectorAll<HTMLElement>(itemSelector));
     if (items.length === 0) return;
     // Rects are on-screen pixels, `reservePx` and the box's own height are
     // layout pixels; the editor canvas zooms its previews, so convert.
@@ -57,21 +73,21 @@ export function useFitCount(
       ? fitByHeight(box, rect, items, priority, reservePx * zoom)
       : fitByPosition(rect, items, reservePx * zoom);
     setVisible((v) => (v === fit ? v : fit));
-  }, [boxRef, reservePx, priority]);
+  }, [boxRef, reservePx, priority, itemSelector]);
   useLayoutEffect(() => {
-    if (visible === null) measure();
-  }, [visible, measure, key, resizeTick]);
+    if (active && visible === null) measure();
+  }, [active, visible, measure, key, resizeTick]);
   useEffect(() => {
     const box = boxRef.current;
-    if (!box || typeof ResizeObserver === 'undefined') return;
+    if (!active || !box || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
       setVisible(null);
       setResizeTick((t) => t + 1);
     });
     ro.observe(box);
     return () => ro.disconnect();
-  }, [boxRef]);
-  return visible;
+  }, [boxRef, active]);
+  return active ? visible : null;
 }
 
 function fitByPosition(box: DOMRect, items: HTMLElement[], reservePx: number): number | null {

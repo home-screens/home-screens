@@ -8,6 +8,7 @@ import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
 import { CLOCK_INFO_LABELS, useClockDateLine, useDateInfoLine } from './use-date-info';
 import type { ClockViewProps } from './types';
+import { useTranslate } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
 
 const DotCharacter = memo(function DotCharacter({
@@ -55,7 +56,10 @@ const DotCharacter = memo(function DotCharacter({
 });
 
 export default function ClockDotMatrixView({ config, format24h, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
-  const { h, mStr, sStr } = parseClockTime(format24h, time);
+  const t = useTranslate('modules');
+  const { h, mStr, sStr, hours } = parseClockTime(format24h, time);
+  // Off unless asked for, so a clock placed before the switch keeps its bare dots.
+  const ampm = config.showAmPm && !format24h ? (hours >= 12 ? t('clock.pm') : t('clock.am')) : '';
   // Dot-matrix needs space-padded hours in 12h mode for consistent grid layout
   const hStr = format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
 
@@ -98,6 +102,15 @@ export default function ClockDotMatrixView({ config, format24h, now, time, scale
             />
           </div>
         ))}
+        {ampm && (
+          <span
+            data-testid="clock-ampm"
+            className="self-end font-semibold whitespace-nowrap"
+            style={{ fontSize: dotSize * 3.2, lineHeight: 1, letterSpacing: '0.05em', marginLeft: charGap * 1.5, color: accentColor, opacity: TEXT_OPACITY.secondary }}
+          >
+            {ampm}
+          </span>
+        )}
       </div>
 
       {dateStr && (

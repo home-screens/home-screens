@@ -329,6 +329,7 @@ function DefaultView({
   dark,
   locale,
   clock,
+  polar,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   showDayLength: boolean;
@@ -338,7 +339,27 @@ function DefaultView({
   locale: string;
   /** Zone, locale and 12/24 for every clock time this view prints. */
   clock: ClockFormat;
+  polar: PolarKind;
 }) {
+  // A day the sun never sets, or never rises: say so, as the Arc and Circle
+  // views do, where two dashes and a dash for the day's length said nothing.
+  if (polar) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center" style={{ gap: '0.3em' }} data-testid="sun-polar">
+        <span className="font-light" style={{ fontSize: '1.3em' }}>
+          {t(polar === 'day' ? 'sunrise-sunset.midnightSun' : 'sunrise-sunset.polarNight')}
+        </span>
+        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
+          {t(polar === 'day' ? 'sunrise-sunset.sunDoesNotSet' : 'sunrise-sunset.sunDoesNotRise')}
+        </span>
+        {dark && (
+          <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
+            {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, clock)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, clock)}
+          </span>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ gap: '0.6em' }}>
       <div className="flex items-center justify-center w-full" style={{ gap: '1.5em' }}>
@@ -795,6 +816,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           dark={dark}
           locale={locale}
           clock={clock}
+          polar={polar}
         />
       )}
     </ModuleWrapper>

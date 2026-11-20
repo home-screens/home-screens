@@ -1,7 +1,8 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
-import { fitBaseSize, digitalRowWidth, fitFactor } from './fit-width';
+import { fitBaseSize, digitalRowWidth, fitFactor, estimateTextWidth, DIGITAL_GAP_PX } from './fit-width';
+import { useTranslate } from '@/i18n';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
@@ -113,8 +114,15 @@ function Colon({ size, color }: { size: number; color: string }) {
   );
 }
 
+/** The AM/PM mark's size and the room before it, as shares of the digit height. */
+const AMPM_SCALE = 0.26;
+const AMPM_GAP = 0.1;
+
 export default function ClockDigitalView({ config, format24h, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
-  const { h, mStr, sStr } = parseClockTime(format24h, time);
+  const t = useTranslate('modules');
+  const { h, mStr, sStr, hours } = parseClockTime(format24h, time);
+  // Off unless asked for, so a clock placed before the switch keeps its bare digits.
+  const ampm = config.showAmPm && !format24h ? (hours >= 12 ? t('clock.pm') : t('clock.am')) : '';
   // Seven-segment display always needs 2-digit hours
   const hStr = String(h).padStart(2, '0');
 
@@ -129,7 +137,10 @@ export default function ClockDigitalView({ config, format24h, time, scaledFontSi
   const digitCount = config.showSeconds ? 6 : 4;
   const colonCount = config.showSeconds ? 2 : 1;
   const fitDigitSize = fitBaseSize(scaledFontSize, autoFontSize) * 3.2;
-  const digitSize = scaledFontSize * 3.2 * (fitToBox ? fitFactor(digitalRowWidth(fitDigitSize, digitCount, colonCount), boxWidth) : 1);
+  const ampmWidth = ampm
+    ? DIGITAL_GAP_PX + fitDigitSize * AMPM_GAP + estimateTextWidth(ampm, fitDigitSize * AMPM_SCALE, 0.05)
+    : 0;
+  const digitSize = scaledFontSize * 3.2 * (fitToBox ? fitFactor(digitalRowWidth(fitDigitSize, digitCount, colonCount) + ampmWidth, boxWidth) : 1);
 
   return (
     <div
@@ -155,6 +166,23 @@ export default function ClockDigitalView({ config, format24h, time, scaledFontSi
               <SevenSegmentDigit digit={char} size={digitSize} color={color} />
             </div>
           ),
+        )}
+        {ampm && (
+          <span
+            data-testid="clock-ampm"
+            className="self-end font-semibold whitespace-nowrap"
+            style={{
+              fontSize: digitSize * AMPM_SCALE,
+              lineHeight: 1,
+              letterSpacing: '0.05em',
+              marginLeft: digitSize * AMPM_GAP,
+              color,
+              textShadow: `0 0 8px ${withAlpha(color, 0.5)}`,
+            }}
+            suppressHydrationWarning
+          >
+            {ampm}
+          </span>
         )}
       </div>
     </div>

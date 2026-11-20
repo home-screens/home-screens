@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Star } from 'lucide-react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
-import { useFitCount } from '../useFitCount';
+import { useFitCount } from '../../shared/useFitCount';
 import { ageOf, authorOf, fitKeyOf, type NotesContext } from '../shared';
 import { memberInitials } from '@/lib/family-avatar';
 

@@ -1,10 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
 import type { Note } from '@/types/notes';
 import { tiltFor } from '@/lib/notes-rules';
-import { useFitCount } from './useFitCount';
-import { DANGER, MORE_LINE_EM, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, fitKeyOf, type NotesContext } from './shared';
+import { useFittedNotes } from './useFittedNotes';
+import { DANGER, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
 
 /** Paper for a note with no author: the Sticky Note module's yellow. */
 const PLAIN_PAPER = '#fef08a';
@@ -26,13 +25,7 @@ const TWO_COLUMNS_BELOW_PX = 500;
  */
 export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; shown: Note[]; hidden: number; width: number }) {
   const columns = width > 0 && width < TWO_COLUMNS_BELOW_PX ? 2 : 3;
-  const gridRef = useRef<HTMLDivElement>(null);
-  const visible = useFitCount(
-    gridRef,
-    fitKeyOf(shown, ctx.fontPx, columns, ctx.showAuthor, ctx.showAge),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-  );
-  const drawn = visible === null ? shown : shown.slice(0, visible);
+  const { ref: gridRef, drawn, more } = useFittedNotes<HTMLDivElement>(ctx, shown, hidden, { extraKey: [columns] });
   return (
     <>
       <div
@@ -84,7 +77,7 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
           );
         })}
       </div>
-      <MoreLine n={hidden + shown.length - drawn.length} t={ctx.t} />
+      <MoreLine n={more} t={ctx.t} />
     </>
   );
 }

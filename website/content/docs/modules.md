@@ -97,7 +97,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **Stock Ticker** ([reference](/docs/module-reference#stock-ticker)): prices for the symbols you list. Views: **Cards**, **Ticker**, **Table**, **Compact** and **Single**. Needs nothing.
 - **Crypto Price** ([reference](/docs/module-reference#crypto-price)): the same for coins. Views: **Cards**, **Ticker**, **Table** and **Compact**. Needs nothing.
 - **Sports Scores** ([reference](/docs/module-reference#sports-scores)): live and recent scores from {% $stats.standingsLeagueCount %} leagues, college football and basketball included, with AP rankings on college teams. Pick your teams and their games come first, or show only theirs. Views: **Scoreboard**, **Cards**, **List**, **Ticker** and **Team** (one team's record, next game and last result). Cards and List turn pages when the games do not all fit, so a sixty-game college Saturday comes around in full; Scoreboard, Team, Cards and List share one **Next page every** setting. Needs nothing.
-- **Sports Standings** ([reference](/docs/module-reference#sports-standings)): league tables for {% $stats.standingsLeagueCount %} leagues, with your teams highlighted. Views: **Table**, **Compact** and **Conference**. Needs nothing.
+- **Sports Standings** ([reference](/docs/module-reference#sports-standings)): league tables for {% $stats.standingsLeagueCount %} leagues, with your teams highlighted. Views: **Table**, **Compact** and **Conference**. A table too long for its box turns pages, so the teams at the bottom come around too. Needs nothing.
 
 ### Knowledge & Fun
 
@@ -127,7 +127,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **Photo Slideshow** ([reference](/docs/module-reference#photo-slideshow)): photos, videos or both from a folder in your library, Immich or an iCloud shared album, or photos from OneDrive, Unsplash, NASA or museum paintings. See [Photos and backgrounds](/docs/backgrounds).
 - **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your WiFi so guests can join by scanning. Needs nothing.
 - **Web Embed** ([reference](/docs/module-reference#web-embed-i-frame)): any web page in a tile: a Home Assistant dashboard, a Grafana chart, a Google Sheet. Needs a page that allows being embedded.
-- **Icon** ([reference](/docs/module-reference#icon)): a single Font Awesome icon with colour, rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
+- **Icon** ([reference](/docs/module-reference#icon)): a single icon, an emoji or one of your own pictures, with rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
 - **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Four layouts: **Bar**, **Pad**, **Panel** and **Arrows** (just Previous and Next, filling the whole module). For touchscreens.
 
 ### Travel
@@ -142,7 +142,7 @@ If your display is a touchscreen, a handful of modules do more than just show in
 
 - **Chore Chart** and **Full-Screen Chore Chart**: kids tap a chore to check it off, right on the wall. **On by default.** The Full-Screen version can also show a rewards store where they spend the tickets they've earned.
 - **To-Do List**: tap an item to tick it. **On by default** for new modules; *Tap to check off* in the module's settings turns it off. A tick goes to the shared list, so the phone and every display showing that list stay in step.
-- **Todoist**: tap a task to complete it in Todoist itself. **Off by default.**
+- **Todoist**: tap a task to complete it in Todoist itself; the whole row takes the tap, and a list longer than its box scrolls under a finger. **Off by default.**
 - **Meal Planner** and **Full-Screen Meal Planner**: tap a meal to see its recipe on a card on the wall, get a QR code you scan with your phone, or open the recipe page right on the display. The **Grocery List** view lets anyone tick things off, and the **Recipe** view has **Back** and **Next step** buttons to follow along while you cook. Both are **on by default**; *Tap on the Wall* in the module's settings turns them off.
 - **News Headlines** and **Full-Screen News**: tap a story to get a QR code that opens it on your phone, or the story's summary. **On by default**; change or turn it off under *When a story is tapped*.
 - **Display Control**: buttons for sleep, brightness, and moving between screens, aimed at this display or another one.

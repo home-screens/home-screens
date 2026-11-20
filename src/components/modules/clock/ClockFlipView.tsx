@@ -2,7 +2,9 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
-import { fitBaseSize, fitFactor, flipRowWidth } from './fit-width';
+import { fitBaseSize, fitFactor, flipRowWidth, estimateTextWidth } from './fit-width';
+import { useTranslate } from '@/i18n';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
@@ -157,8 +159,15 @@ function FlipColon({ size, accentColor }: { size: number; accentColor: string })
   );
 }
 
+/** The AM/PM mark's size and the room before it, as shares of the card height. */
+const AMPM_SCALE = 0.24;
+const AMPM_GAP = 0.08;
+
 export default function ClockFlipView({ config, format24h, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
-  const { h, mStr, sStr } = parseClockTime(format24h, time);
+  const t = useTranslate('modules');
+  const { h, mStr, sStr, hours } = parseClockTime(format24h, time);
+  // Off unless asked for, so a clock placed before the switch keeps its bare cards.
+  const ampm = config.showAmPm && !format24h ? (hours >= 12 ? t('clock.pm') : t('clock.am')) : '';
   // Flip cards always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
 
@@ -169,7 +178,10 @@ export default function ClockFlipView({ config, format24h, time, scaledFontSize,
   const cards = config.showSeconds ? 6 : 4;
   const colons = config.showSeconds ? 2 : 1;
   const fitCardSize = fitBaseSize(scaledFontSize, autoFontSize) * 3.5;
-  const cardSize = scaledFontSize * 3.5 * (fitToBox ? fitFactor(flipRowWidth(fitCardSize, cards, colons), boxWidth) : 1);
+  const ampmWidth = ampm
+    ? fitCardSize * AMPM_GAP + estimateTextWidth(ampm, fitCardSize * AMPM_SCALE, 0.05)
+    : 0;
+  const cardSize = scaledFontSize * 3.5 * (fitToBox ? fitFactor(flipRowWidth(fitCardSize, cards, colons) + ampmWidth, boxWidth) : 1);
   const gap = Math.max(cardSize * 0.04, 2);
   const animate = config.animateFlip !== false;
 
@@ -209,6 +221,23 @@ export default function ClockFlipView({ config, format24h, time, scaledFontSize,
             <FlipCard digit={sStr[0]} size={cardSize} accentColor={accent} animate={animate} />
             <FlipCard digit={sStr[1]} size={cardSize} accentColor={accent} animate={animate} />
           </>
+        )}
+        {ampm && (
+          // Beside the cards in the card's ink, not on a flap of its own.
+          <span
+            data-testid="clock-ampm"
+            className="self-end font-semibold whitespace-nowrap"
+            style={{
+              fontSize: cardSize * AMPM_SCALE,
+              lineHeight: 1,
+              letterSpacing: '0.05em',
+              marginLeft: cardSize * AMPM_GAP - gap,
+              opacity: TEXT_OPACITY.secondary,
+            }}
+            suppressHydrationWarning
+          >
+            {ampm}
+          </span>
         )}
       </div>
     </div>

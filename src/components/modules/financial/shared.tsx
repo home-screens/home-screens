@@ -12,25 +12,41 @@ import TickerMarquee from '../TickerMarquee';
  *
  * `locale` controls thousands-separator / decimal style only — the `$`
  * prefix is hard-coded because the rest of the financial module assumes
- * USD pricing. Defaults to `DEFAULT_LOCALE` so out-of-scope callers
- * (StockTickerModule / CryptoModule, migrated in Tasks 4–5) keep
- * working unchanged.
+ * USD pricing.
+ *
+ * Two decimals from one dollar up, so no stock price changes. Under a dollar
+ * up to four decimals are kept ($0.8512), and under a cent four significant
+ * digits ($0.00001234), since a coin worth a fraction of a cent would
+ * otherwise read $0.00.
  */
 export function formatUSD(price: number, locale: string = DEFAULT_LOCALE): string {
-  return `$${price.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const size = Math.abs(price);
+  const digits: Intl.NumberFormatOptions = size >= 1 || size === 0
+    ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    : size >= 0.01
+      ? { minimumFractionDigits: 2, maximumFractionDigits: 4 }
+      : { minimumSignificantDigits: 2, maximumSignificantDigits: 4 };
+  return `$${price.toLocaleString(locale, digits)}`;
+}
+
+/** A signed two-decimal number in the locale's own decimal mark: +1.23, -0.40, +0.00. */
+function formatSigned(val: number, locale: string): string {
+  const sign = val >= 0 ? '+' : '-';
+  return `${sign}${Math.abs(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /** Format a percentage value with sign prefix */
-export function formatPercent(val: number): string {
-  const sign = val >= 0 ? '+' : '';
-  return `${sign}${val.toFixed(2)}%`;
+export function formatPercent(val: number, locale: string = DEFAULT_LOCALE): string {
+  return `${formatSigned(val, locale)}%`;
 }
 
 /** Format a change value with sign prefix (no percent sign) */
-export function formatChange(val: number): string {
-  const sign = val >= 0 ? '+' : '';
-  return `${sign}${val.toFixed(2)}`;
+export function formatChange(val: number, locale: string = DEFAULT_LOCALE): string {
+  return formatSigned(val, locale);
 }
+
+/** What a change cell says when the source had no earlier price to measure from. */
+export const NO_CHANGE = '\u2013';
 
 /**
  * The gutter's max/min axis labels, formatted together so they share one

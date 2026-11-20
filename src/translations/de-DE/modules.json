@@ -1182,7 +1182,9 @@
     "loss": "N",
     "tie": "U",
     "vs": "gegen",
-    "at": "bei"
+    "at": "bei",
+    "final": "Endstand",
+    "inProgress": "Läuft"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1204,7 +1206,21 @@
   },
   "standings": {
     "loading": "Tabelle wird geladen…",
-    "noStandings": "Keine Tabelle verfügbar"
+    "noStandings": "Keine Tabelle verfügbar",
+    "columns": {
+      "overtime": "OT",
+      "pct": "PCT",
+      "pointsFor": "PF",
+      "pointsAgainst": "PA",
+      "diff": "DIFF",
+      "streak": "SERIE",
+      "gamesPlayed": "SP",
+      "points": "PKT",
+      "goalDiff": "DIFF",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "U"
+    }
   },
   "todo": {
     "name": "Aufgabenliste",
@@ -1345,6 +1361,9 @@
       "coin": "Münze",
       "price": "Kurs",
       "percent": "24 Std %"
+    },
+    "chartLabels": {
+      "week": "7T"
     }
   },
   "todoist": {
@@ -1392,6 +1411,10 @@
     "taskCountAtLeast": {
       "one": "{count}+ Aufgabe",
       "other": "{count}+ Aufgaben"
+    },
+    "moreGroups": {
+      "one": "und {count} weitere Gruppe",
+      "other": "und {count} weitere Gruppen"
     }
   },
   "photo-slideshow": {

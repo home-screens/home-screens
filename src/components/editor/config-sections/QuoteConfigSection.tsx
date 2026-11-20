@@ -15,10 +15,12 @@ export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         onChange={(ms) => set({ refreshIntervalMs: ms })}
         fetchKey="quote"
         fallbackMs={3_600_000}
-        unit="seconds"
-        min={30}
-        max={3600}
-        step={30}
+        // The hub keeps one quote for an hour, so a shorter wait would only
+        // ask for the same quote again.
+        unit="minutes"
+        min={60}
+        max={1440}
+        step={60}
       />
       <AccentColorPicker
         value={c.accentColor ?? '#000000'}

@@ -149,6 +149,17 @@ const STANDINGS_2_GROUPS = {
 };
 
 /**
+ * Two coins up on the day; Ethereum ends its seven-day line lower than it
+ * began. The coin's line is that week, so it is red beside a green number.
+ */
+const CRYPTO_WEEK_DOWN = {
+  prices: [
+    { id: 'bitcoin', name: 'Bitcoin', price: 43000.5, change24h: 2.5, sparkline: [42000, 42400, 43000.5] },
+    { id: 'ethereum', name: 'Ethereum', price: 2300.75, change24h: 1.1, sparkline: [2460, 2380, 2300.75] },
+  ],
+};
+
+/**
  * Week-flavored stub: both stocks up today, both down over the week, so the
  * week-only variant flips both charts from green to red.
  */
@@ -629,6 +640,30 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     config: { view: 'cards', showSparkline: false },
     expect: async (mod) => { await has('Bitcoin')(mod); await count('.financial-sparkline', 0)(mod); },
   },
+  {
+    // The Shaded look adds the backdrop rect under each coin's seven-day line.
+    type: 'crypto', name: 'sparkline-theme', kind: 'networked', stubKey: 'crypto',
+    config: { view: 'cards', sparklineTheme: 'shaded' },
+    expect: count('.financial-sparkline rect', 2),
+  },
+  {
+    // The caption says the line is seven days (the number beside it is 24 hours).
+    type: 'crypto', name: 'sparkline-labels', kind: 'networked', stubKey: 'crypto',
+    config: { view: 'cards', sparklineLabels: true },
+    expect: async (mod) => { await count('.financial-sparkline-label', 2)(mod); await has('7D')(mod); },
+  },
+  {
+    // The line takes its own week's color: this Ethereum ends the week lower
+    // than it began while it is up on the day, so a red line sits beside a
+    // green number. Colored by the day, both lines would be green.
+    type: 'crypto', name: 'week-line-color', kind: 'networked', stubKey: 'crypto',
+    stubBody: CRYPTO_WEEK_DOWN,
+    config: { view: 'cards' },
+    expect: async (mod) => {
+      await count('.financial-sparkline.text-green-400', 1)(mod);
+      await count('.financial-sparkline.text-red-400', 1)(mod);
+    },
+  },
 
   // -- sports --
   {
@@ -675,10 +710,11 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('1st in NFC North')(mod); await has('Last:')(mod); await has('W 23-16')(mod); },
   },
   {
-    // Team view mid-game: both scores and the clock.
+    // Team view mid-game: both scores and the clock, which is ESPN's detail
+    // line (the status word beside it carries no clock in a real answer).
     type: 'sports', name: 'team-live', kind: 'networked', stubKey: 'sports-team', stubBody: SPORTS_TEAM_LIVE,
     config: { view: 'team', favoriteTeams: ['nfl:MIN'] },
-    expect: async (mod) => { await has('24')(mod); await has('17')(mod); await has('Q3 4:12')(mod); },
+    expect: async (mod) => { await has('24')(mod); await has('17')(mod); await has('4:12 - 3rd')(mod); },
   },
   {
     // Team view mid-game with the score ESPN left out: no score is drawn,
@@ -686,7 +722,7 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     type: 'sports', name: 'team-live-no-score', kind: 'networked', stubKey: 'sports-team',
     stubBody: { cards: [{ ...SPORTS_TEAM_LIVE.cards[0], featured: { ...SPORTS_TEAM_LIVE.cards[0].featured, homeScore: null, awayScore: null } }] },
     config: { view: 'team', favoriteTeams: ['nfl:MIN'] },
-    expect: async (mod) => { await has('Q3 4:12')(mod); await count('.tabular-nums.leading-none', 0)(mod); },
+    expect: async (mod) => { await has('4:12 - 3rd')(mod); await count('.tabular-nums.leading-none', 0)(mod); },
   },
 
   {

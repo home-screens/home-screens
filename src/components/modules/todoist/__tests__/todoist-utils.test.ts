@@ -8,6 +8,7 @@ import {
   groupTasks,
   getDueDateGroup,
   buildTaskTree,
+  flattenTaskTree,
   PRIORITY_COLORS,
   PRIORITY_LABEL_KEYS,
   DATE_GROUP_LABEL_KEYS,
@@ -684,5 +685,24 @@ describe('buildTaskTree', () => {
     expect(tree).toHaveLength(2);
     expect(tree[0].children).toHaveLength(1);
     expect(tree[1].children).toHaveLength(1);
+  });
+});
+
+describe('flattenTaskTree', () => {
+  const tasks = [
+    makeTask({ id: 'p1' }),
+    makeTask({ id: 'c1', parentId: 'p1' }),
+    makeTask({ id: 'g1', parentId: 'c1' }),
+    makeTask({ id: 'p2' }),
+  ];
+
+  it('lists parents before their children, each with its depth', () => {
+    expect(flattenTaskTree(buildTaskTree(tasks), true).map((r) => [r.task.id, r.depth])).toEqual([
+      ['p1', 0], ['c1', 1], ['g1', 2], ['p2', 0],
+    ]);
+  });
+
+  it('leaves subtasks out when the module does not show them', () => {
+    expect(flattenTaskTree(buildTaskTree(tasks), false).map((r) => r.task.id)).toEqual(['p1', 'p2']);
   });
 });

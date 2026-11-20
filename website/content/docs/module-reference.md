@@ -260,7 +260,7 @@ Each chart is colored by its own period's move (the day chart by today's change,
 {% /module %}
 
 {% module type="crypto" %}
-Cryptocurrency prices from CoinGecko.
+Cryptocurrency prices from CoinGecko. The line on each card is the past seven days, green when the coin ended the week higher than it began and red when lower; the percentage beside it is the last 24 hours. A coin worth less than a cent shows its real price, not $0.00.
 {% /module %}
 
 {% module type="sports" %}
@@ -282,7 +282,7 @@ Live and recent scores from ESPN for the leagues you turn on. College teams in t
 {% /module %}
 
 {% module type="standings" %}
-League standings from the ESPN standings API with team logos and colors. Supports automatic rotation through division/conference groups. A team listed in `favoriteTeams` (same `league:abbreviation` form as Sports Scores, picked with the **My teams** search) gets its row tinted in the team's color, and college teams in the AP top 25 show their rank after the name.
+League standings from the ESPN standings API with team logos and colors. Supports automatic rotation through division/conference groups, and a group with more teams than fit turns pages before the next group comes up. Column headings follow the hub's language. A team listed in `favoriteTeams` (same `league:abbreviation` form as Sports Scores, picked with the **My teams** search) gets its row tinted in the team's color, and college teams in the AP top 25 show their rank after the name.
 
 {% fields /%}
 
@@ -591,7 +591,7 @@ Embeds any web page or dashboard. Acts as a universal adapter for Home Assistant
 {% /module %}
 
 {% module type="icon" %}
-A single Font Awesome 7 glyph rendered at any size with color, rotation, flip, and optional animation. Useful as a visual accent or status badge alongside other modules. Picker covers the full Free Font Awesome set (solid, regular, brands).
+A single icon rendered at any size with rotation, flip, and optional animation. Useful as a visual accent or status badge alongside other modules. The picker offers emoji, the full Free Font Awesome 7 set (solid, regular, brands) and your own pictures (see [Your icons](/docs/editor#your-icons)). Color and style apply to Font Awesome icons.
 
 {% fields /%}
 

@@ -581,7 +581,7 @@ const STYLE_CLASS_RE = /\b(fa-solid|fa-regular|fa-brands|fa-classic|fas|far|fab)
  * also serves as defense if a user pastes something exotic — at minimum the
  * font-family rule still matches.
  *
- * Used by both `IconModule` (runtime render) and `IconPicker` (preview
+ * Used by both `IconModule` (runtime render) and the icon pickers (preview
  * + grid) so what the user previews is exactly what renders on the display.
  */
 export function buildIconClass(rawName: string, kind: FaIconKind): string {

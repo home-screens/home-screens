@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import type { MaterialViewProps } from './types';
-import { useFitCount } from '../useFitCount';
+import { useFitCount } from '../../shared/useFitCount';
 import { ageOf, authorOf, fitKeyOf, type NotesContext } from '../shared';
 
 const PAPER = '#f7f4ea';

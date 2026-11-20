@@ -30,6 +30,11 @@ import { getAllModuleDefinitions } from '@/lib/module-registry';
 
 /** Correctly identical in every locale: brand names, tokens, units, pure interpolation. */
 const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
+  // Standings column headings that stay the US abbreviations everywhere:
+  // win percentage, games back and last ten are only drawn for US leagues.
+  'modules|standings.columns.pct',
+  'modules|standings.columns.gamesBack',
+  'modules|standings.columns.last10',
     // Rows main added while the photo-source branch was open.
     'editor|backgroundPicker.sourcesGroup',
   // The product name, rendered as the watermark's eyebrow on an empty display.
@@ -315,6 +320,13 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|crypto.chartLabels.week',
+    'modules|standings.columns.overtime',
+    'modules|standings.columns.pointsFor',
+    'modules|standings.columns.pointsAgainst',
+    'modules|standings.columns.diff',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.s',
@@ -366,6 +378,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|standings.columns.overtime',
+    'modules|standings.columns.pointsFor',
+    'modules|standings.columns.pointsAgainst',
+    'modules|standings.columns.diff',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.s',
@@ -473,6 +491,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'es-ES': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|sports.final',
+    'modules|crypto.chartLabels.week',
+    'modules|standings.columns.pointsFor',
+    'modules|standings.columns.points',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.e',
@@ -554,6 +578,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|standings.columns.diff',
+    'modules|standings.columns.points',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.e',
@@ -748,6 +776,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|crypto.chartLabels.week',
+    'modules|standings.columns.overtime',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.w',
@@ -926,6 +958,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'pt-BR': new Set([
+    // Standings column abbreviations, the 7D chart caption and "Final": the
+    // short form this language uses is the English one.
+    'modules|crypto.chartLabels.week',
+    'modules|standings.columns.pointsFor',
+    'modules|standings.columns.points',
     // Compass letters that are the same in this language (north is N everywhere).
     'modules|fullscreen-weather.compass.n',
     'modules|fullscreen-weather.compass.e',

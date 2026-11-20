@@ -1,5 +1,6 @@
 'use client';
 
+import { NOTES_HEADING_VIEWS } from '@/lib/notes-rules';
 import { MEAL_PLANNER_VIEWS_WITHOUT_TITLE } from '@/lib/meal-view-options';
 import { useEffect, useRef, useState } from 'react';
 
@@ -211,11 +212,15 @@ function deriveTitleMode(mod: ModuleInstance, hasOwnTitle: boolean): TitleMode {
 // per-section Toggles this control replaced each gated on exactly these
 // views, so the picker must too, or "The module's own title" becomes an
 // option that silently does nothing.
-const VIEWS_WITHOUT_OWN_TITLE: Partial<Record<BuiltinModuleType, string[]>> = {
+const VIEWS_WITHOUT_OWN_TITLE: Partial<Record<BuiltinModuleType, string[] | ((view: string) => boolean)>> = {
   weather: ['current', 'combined', 'compact', 'precipitation', 'alerts', 'sun'],
   news: ['ticker', 'compact'],
   // From the table the meal planner's own panel hides its switches by.
   'meal-planner': MEAL_PLANNER_VIEWS_WITHOUT_TITLE,
+  // The board is headed by its lists' names, not by a title.
+  todo: ['board'],
+  // From the list the wall draws its headings by.
+  notes: (view) => !NOTES_HEADING_VIEWS.has(view),
 };
 
 function moduleHasOwnTitleForView(mod: ModuleInstance, hasOwnTitle: boolean): boolean {
@@ -223,7 +228,8 @@ function moduleHasOwnTitleForView(mod: ModuleInstance, hasOwnTitle: boolean): bo
   const unsupportedViews = VIEWS_WITHOUT_OWN_TITLE[mod.type as BuiltinModuleType];
   if (!unsupportedViews) return true;
   const view = (mod.config as { view?: string }).view;
-  return view === undefined || !unsupportedViews.includes(view);
+  if (view === undefined) return true;
+  return typeof unsupportedViews === 'function' ? !unsupportedViews(view) : !unsupportedViews.includes(view);
 }
 
 function TitleControl({ mod, screenId, t }: { mod: ModuleInstance; screenId: string; t: TranslateFn }) {

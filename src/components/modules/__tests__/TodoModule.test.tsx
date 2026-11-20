@@ -244,18 +244,19 @@ describe('TodoModule other views', () => {
     expect(itemTexts(container)).toEqual(['Take out trash', 'Buy oat milk', 'Feed the cat']);
   });
 
-  it('board: every list as a column with its count and first five items, ignoring listId', () => {
+  it('board: every list as a column with its count and every item there is room for, ignoring listId', () => {
     mockLists = { lists: [
       groceries(),
       list('cabin', 'Cabin trip', ['Sleeping bags', 'Headlamps', 'Marshmallows', 'Board games', 'Bug spray', 'Cooler', 'Swimsuits'].map((t, i) => item(`c${i}`, t)), { color: '#a78bfa' }),
     ] };
-    const { getAllByTestId, getByText } = renderStatic({ view: 'board', listId: 'nope' });
+    const { getAllByTestId, queryByText } = renderStatic({ view: 'board', listId: 'nope' });
     const cols = getAllByTestId('todo-board-column');
     expect(cols).toHaveLength(2);
     expect(cols[0].textContent).toContain('Groceries');
     expect(cols[0].textContent).toContain('2 left');
-    expect(cols[1].querySelectorAll('[data-testid="todo-item"]')).toHaveLength(5);
-    getByText('and 2 more');
+    // No fixed five: a column lists what fits, and jsdom's box has no edge to cut at.
+    expect(cols[1].querySelectorAll('[data-testid="todo-item"]')).toHaveLength(7);
+    expect(queryByText(/and \d+ more/)).toBeNull();
     expect((cols[1].querySelector('span') as HTMLElement).style.backgroundColor).toBe('rgb(167, 139, 250)');
   });
 });

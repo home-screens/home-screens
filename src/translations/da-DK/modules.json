@@ -1178,11 +1178,13 @@
     "teamLeagueOff": "Slå dit holds liga til i modulets indstillinger",
     "unavailable": "Resultaterne holder en lille pause",
     "last": "Seneste:",
-    "win": "S",
-    "loss": "N",
+    "win": "V",
+    "loss": "T",
     "tie": "U",
     "vs": "mod",
-    "at": "ude mod"
+    "at": "ude mod",
+    "final": "Slut",
+    "inProgress": "I gang"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1204,7 +1206,21 @@
   },
   "standings": {
     "loading": "Indlæser stillingen…",
-    "noStandings": "Ingen stilling tilgængelig"
+    "noStandings": "Ingen stilling tilgængelig",
+    "columns": {
+      "overtime": "OT",
+      "pct": "PCT",
+      "pointsFor": "PF",
+      "pointsAgainst": "PA",
+      "diff": "DIFF",
+      "streak": "STIME",
+      "gamesPlayed": "K",
+      "points": "P",
+      "goalDiff": "+/-",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "U"
+    }
   },
   "todo": {
     "name": "Huskeliste",
@@ -1345,6 +1361,9 @@
       "coin": "Mønt",
       "price": "Kurs",
       "percent": "24h %"
+    },
+    "chartLabels": {
+      "week": "7D"
     }
   },
   "todoist": {
@@ -1392,6 +1411,10 @@
     "taskCountAtLeast": {
       "one": "{count}+ opgave",
       "other": "{count}+ opgaver"
+    },
+    "moreGroups": {
+      "one": "og {count} gruppe mere",
+      "other": "og {count} grupper mere"
     }
   },
   "photo-slideshow": {

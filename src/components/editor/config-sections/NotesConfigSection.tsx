@@ -10,13 +10,12 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import NotesBoardModal from '@/components/editor/NotesBoardModal';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { isMaterialView } from '@/lib/notes-rules';
+import { isMaterialView, NOTES_HEADING_VIEWS } from '@/lib/notes-rules';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, NotesConfig, NotesFilter, NotesView } from '@/types/config';
 
 // Which views read which field, from the NotesConfig JSDoc. The editor shows
 // only the controls the chosen view honours.
-const NO_HEADING: ReadonlySet<NotesView> = new Set(['strip', 'ticker', 'count', 'latest', 'letterboard', 'fridge', 'notebook', 'neon']);
 const READS_MAX_NOTES: ReadonlySet<NotesView> = new Set([
   'board', 'cards', 'sticky', 'bubbles', 'compact', 'timeline', 'focus', 'pinned-new',
   'chalkboard', 'whiteboard', 'fridge', 'notebook', 'receipt', 'headline',
@@ -78,20 +77,16 @@ export function NotesConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.notes.materialHelp')}</p>
       )}
 
-      {!NO_HEADING.has(view) && (
-        <>
-          <LabeledInput
-            label={t('configSections.notes.title')}
-            value={c.title ?? ''}
-            placeholder={view === 'headline' ? tModules('notes.masthead') : t('configSections.notes.defaultTitle')}
-            onChange={(v) => set({ title: v })}
-          />
-          <Toggle
-            label={t('configSections.notes.showTitle')}
-            checked={c.showTitle ?? true}
-            onChange={(v) => set({ showTitle: v })}
-          />
-        </>
+      {/* Whether the heading shows is the Title picker's choice at the top of
+          the panel; this box only names it, so it is offered while that
+          picker is on the module's own title. */}
+      {NOTES_HEADING_VIEWS.has(view) && c.showTitle !== false && !mod.style.title?.trim() && (
+        <LabeledInput
+          label={t('configSections.notes.title')}
+          value={c.title ?? ''}
+          placeholder={view === 'headline' ? tModules('notes.masthead') : t('configSections.notes.defaultTitle')}
+          onChange={(v) => set({ title: v })}
+        />
       )}
 
       {!NO_FILTER.has(view) && (

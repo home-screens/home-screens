@@ -47,10 +47,10 @@ const SAMPLE_ELAPSED_MS =
 /** Which config fields are relevant for each view */
 const VIEW_FIELDS: Record<ClockView, Set<string>> = {
   classic:     new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
-  digital:     new Set(['hourFormat', 'showSeconds', 'accentColor']),
+  digital:     new Set(['hourFormat', 'showAmPm', 'showSeconds', 'accentColor']),
   analog:      new Set(['showSeconds', 'showNumerals', 'accentColor']),
   minimal:     new Set(['hourFormat', 'showAmPm']),
-  flip:        new Set(['hourFormat', 'showSeconds', 'animateFlip', 'accentColor']),
+  flip:        new Set(['hourFormat', 'showAmPm', 'showSeconds', 'animateFlip', 'accentColor']),
   word:        new Set(['showDate', 'dateFormat']),
   binary:      new Set(['hourFormat', 'showSeconds', 'accentColor']),
   vertical:    new Set(['hourFormat', 'showSeconds']),
@@ -58,7 +58,7 @@ const VIEW_FIELDS: Record<ClockView, Set<string>> = {
   progress:    new Set(['hourFormat', 'showSeconds', 'accentColor']),
   fuzzy:       new Set(['showDate', 'dateFormat']),
   world:       new Set(['hourFormat', 'showSeconds', 'worldZones']),
-  'dot-matrix': new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
+  'dot-matrix': new Set(['hourFormat', 'showAmPm', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
   radial:      new Set(['hourFormat', 'showSeconds', 'accentColor']),
   arc:         new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'accentColor']),
   neon:        new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),

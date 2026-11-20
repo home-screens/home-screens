@@ -6,6 +6,7 @@ import { favoriteSide } from '@/lib/sports-order';
 import { TeamLogo, isWinner, formatScore, GameStatus, FavoriteBar, RankTag, FAVORITE_GUTTER, GamePagesFooter, gamePagesKey, type KickoffFn } from './shared';
 import { usePagedFit } from '../shared/usePagedFit';
 import { usePagedRotation } from '@/hooks/usePagedRotation';
+import { inkLikeTailwind } from '@/lib/constants';
 
 function GameCard({ game, kickoff, favorites, hidden }: { game: Game; kickoff: KickoffFn; favorites: string[]; hidden: boolean }) {
   const awayWins = isWinner(game, 'away');
@@ -16,8 +17,9 @@ function GameCard({ game, kickoff, favorites, hidden }: { game: Game; kickoff: K
   return (
     <div
       data-game-card
-      className="relative bg-white/5 rounded-lg p-2.5 flex flex-col gap-1.5"
+      className="relative rounded-lg p-2.5 flex flex-col gap-1.5"
       style={{
+        backgroundColor: inkLikeTailwind(0.05),
         display: hidden ? 'none' : undefined,
         paddingLeft: favorites.length > 0 ? `calc(0.625rem + ${FAVORITE_GUTTER})` : undefined,
       }}
@@ -28,9 +30,8 @@ function GameCard({ game, kickoff, favorites, hidden }: { game: Game; kickoff: K
           {leagueWallCode(game.league)}
         </span>
         <GameStatus
-          state={game.state}
+          game={game}
           kickoff={kickoff(game)}
-          status={game.status}
           dotSize="w-1 h-1"
           postColor="text-current/35"
           preColor="text-current/50"

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import type { TodoConfig, TodoCompletedPlacement, ModuleStyle } from '@/types/config';
 import type { TodoList, TodoListItem } from '@/types/todos';
 import type { FamilyMember } from '@/types/family';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleEmptyState } from './ModuleStates';
+import { ModuleEmptyState, ModuleNotUpdatingState } from './ModuleStates';
+import { useFitCount } from './shared/useFitCount';
+import { MoreLine as SharedMoreLine } from './shared/MoreLine';
 import { TEXT_OPACITY, DIVIDER, ink, hasAccentColor } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from './shared/TapCheckbox';
@@ -38,8 +40,6 @@ const OVERDUE_AMBER = '#f59e0b';
 
 /** How many open items the focus and progress views name before "and N more". */
 const FOCUS_ITEMS = 3;
-/** How many items a board column lists before "and N more". */
-const BOARD_ITEMS = 5;
 
 /** localStorage flag: the "tap a box" hint has been shown on this display. */
 const TAP_HINT_SEEN_KEY = 'hs:todo-tap-hint-seen';
@@ -270,68 +270,15 @@ function RepeatLine({ list, t, className = 'mt-auto' }: { list: TodoList; t: Tra
 }
 
 // ─── Fitting rows to the box ───
+//
+// A wall module has no scrollbar, so a list taller than its card would clip
+// whichever row fell on the edge in half. The rows that do not fit are
+// dropped and an "and N more" line takes the last slot (useFitCount, shared
+// with the notes views). On a touch wall a finger scrolls the whole list
+// instead, and nothing is fitted.
 
-/**
- * How many of a list's rows fit the box whole. A wall module has no
- * scrollbar, so a list taller than its card used to clip whichever row fell
- * on the edge in half. Instead the rows that do not fit are dropped and an
- * "and N more" line takes the last slot, the way the focus and progress
- * views already count what they leave out.
- *
- * Every change to the rows (a poll, a tap, a resize) renders them all once,
- * measures, and then renders only the ones that fit; the layout effect runs
- * before paint so the full render never shows.
- *
- * Not `active` (a touch wall, where a finger scrolls the whole list instead):
- * every row stays, nothing is measured, and the answer is always null.
- */
-function useFitRows(
-  ulRef: React.RefObject<HTMLUListElement | null>,
-  rowsKey: string,
-  reservePx: number,
-  active = true,
-): number | null {
-  const [visible, setVisible] = useState<number | null>(null);
-  const [measureKey, setMeasureKey] = useState(rowsKey);
-  if (measureKey !== rowsKey) {
-    // A new set of rows: show them all for one render so they can be measured.
-    setMeasureKey(rowsKey);
-    setVisible(null);
-  }
-  // Taps switched off while a fit was held: measure afresh when they come back.
-  if (!active && visible !== null) setVisible(null);
-  const measure = useCallback(() => {
-    const ul = ulRef.current;
-    if (!ul) return;
-    const rows = Array.from(ul.children) as HTMLElement[];
-    const box = ul.getBoundingClientRect();
-    if (box.height <= 0) return;
-    // Fractional rects, with a pixel of slack: rows are often n.5px tall,
-    // and rounded offsets put the last row a pixel past a rounded height
-    // that it fits in perfectly well.
-    const limit = box.bottom + 1;
-    const bottoms = rows.map((r) => r.getBoundingClientRect().bottom);
-    let fit = rows.length;
-    for (let i = 0; i < rows.length; i++) {
-      if (bottoms[i] > limit) { fit = i; break; }
-    }
-    if (fit >= rows.length) { setVisible((v) => (v === null ? v : null)); return; }
-    // Something has to go: leave room for the "and N more" line too.
-    while (fit > 0 && bottoms[fit - 1] > limit - reservePx) fit--;
-    setVisible((v) => (v === fit ? v : fit));
-  }, [ulRef, reservePx]);
-  useLayoutEffect(() => {
-    if (active && visible === null) measure();
-  }, [active, visible, measure, rowsKey]);
-  useEffect(() => {
-    const ul = ulRef.current;
-    if (!active || !ul || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => setVisible(null));
-    ro.observe(ul);
-    return () => ro.disconnect();
-  }, [ulRef, active]);
-  return active ? visible : null;
-}
+/** The rows of a to-do `<ul>`, for useFitCount. */
+const ROW_SELECTOR = ':scope > li';
 
 function rowsKeyOf(items: TodoListItem[]): string {
   return items.map((it) => `${it.id}:${it.completed ? 1 : 0}:${it.text.length}`).join('|');
@@ -339,11 +286,7 @@ function rowsKeyOf(items: TodoListItem[]): string {
 
 /** "and N more" under a list that did not fit. */
 function MoreLine({ n, t }: { n: number; t: TranslateFn }) {
-  return (
-    <div data-testid="todo-more" style={{ fontSize: '0.7em', color: ink(0.5), paddingTop: '0.3em' }}>
-      {t('todo.andMore', { n })}
-    </div>
-  );
+  return <SharedMoreLine n={n} label={t('todo.andMore', { n })} testId="todo-more" style={{ fontSize: '0.7em', paddingTop: '0.3em' }} />;
 }
 
 // ─── Rows ───
@@ -586,8 +529,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   const now = useTZClock(timezone);
   const ctx: RowContext = { accentColor, showDueDates, showAssignees, members, now, locale, t };
 
-  // First fetch still in flight: a plain card, never a crash. A failed fetch
-  // falls through to the empty states below rather than a blank card forever.
+  // First fetch still in flight: a plain card, never a crash.
   if (!fetched && !fetchError) {
     return (
       <ModuleWrapper style={style}>
@@ -595,6 +537,9 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
       </ModuleWrapper>
     );
   }
+  // The first read failed: say so. "Pick a list in the editor" would send
+  // someone to fix a setting that is fine.
+  if (!fetched) return <ModuleNotUpdatingState style={style} error={fetchError} />;
 
   const shell = (body: ReactNode) => (
     <ModuleWrapper style={style}>
@@ -635,7 +580,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
       return <ModuleEmptyState style={style} type="todo" message={t('todo.noListsYet')} />;
     }
     return shell(
-      <BoardView lists={lists} placement={placement} ctx={ctx} tappable={tappable} pressedId={pressedId} onToggle={toggle} />,
+      <BoardView lists={lists} placement={placement} ctx={ctx} tappable={tappable} pressedId={pressedId} onToggle={toggle} fontPx={scaledFontSize} />,
     );
   }
 
@@ -717,7 +662,7 @@ function ListView({ list, title, showTitle, placement, accentColor, ctx, tappabl
   const items = arrangeItems(list.items, placement);
   const allDone = total > 0 && done === total;
   const ulRef = useRef<HTMLUListElement>(null);
-  const visible = useFitRows(ulRef, rowsKeyOf(items), fontPx * 1.3, !scroll);
+  const visible = useFitCount(ulRef, rowsKeyOf(items), fontPx * 1.3, { active: !scroll, itemSelector: ROW_SELECTOR });
   const shown = visible === null ? items : items.slice(0, visible);
   const more = items.length - shown.length;
   return (
@@ -737,7 +682,7 @@ function ListView({ list, title, showTitle, placement, accentColor, ctx, tappabl
           />
         ))}
       </Rows>
-      {more > 0 && <MoreLine n={more} t={ctx.t} />}
+      <MoreLine n={more} t={ctx.t} />
       {allDone && <RepeatLine list={list} t={ctx.t} />}
     </>
   );
@@ -885,7 +830,7 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
   const allDone = total > 0 && done === total;
   const items = arrangeItems(list.items, placement);
   const ulRef = useRef<HTMLUListElement>(null);
-  const visible = useFitRows(ulRef, rowsKeyOf(items), fontPx * 1.1, !scroll);
+  const visible = useFitCount(ulRef, rowsKeyOf(items), fontPx * 1.1, { active: !scroll, itemSelector: ROW_SELECTOR });
   const shown = visible === null ? items : items.slice(0, visible);
   const more = items.length - shown.length;
   return (
@@ -913,69 +858,88 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
           </li>
         ))}
       </Rows>
-      {more > 0 && <MoreLine n={more} t={t} />}
+      <MoreLine n={more} t={t} />
       {allDone && <RepeatLine list={list} t={t} />}
     </>
   );
 }
 
-function BoardView({ lists, placement, ctx, tappable, pressedId, onToggle }: {
+/**
+ * One list of the board. Its rows are fitted to the column like the List
+ * view's: a tall board shows every item there is room for, and a short one
+ * drops the rows that would be cut in half and counts them.
+ */
+function BoardColumn({ list, placement, ctx, tappable, pressedId, onToggle, fontPx }: {
+  list: TodoList;
+  placement: TodoCompletedPlacement;
+  ctx: RowContext;
+  tappable: boolean;
+  pressedId: string | null;
+  onToggle: (listId: string, item: TodoListItem) => void;
+  fontPx: number;
+}) {
+  const { done, total } = countDone(list.items);
+  const allDone = total > 0 && done === total;
+  const items = arrangeItems(list.items, placement);
+  const ulRef = useRef<HTMLUListElement>(null);
+  // Room for the column's own "and N more": 0.62em type and its 0.24em gap.
+  const visible = useFitCount(ulRef, `${rowsKeyOf(items)}#${tappable}`, fontPx * 1.1, { itemSelector: ROW_SELECTOR });
+  const shown = visible === null ? items : items.slice(0, visible);
+  const more = items.length - shown.length;
+  return (
+    <div data-testid="todo-board-column" className="flex flex-col flex-1 min-w-0 min-h-0">
+      <div
+        className="flex items-center shrink-0"
+        style={{ gap: '0.4em', marginBottom: '0.4em', paddingBottom: '0.4em', borderBottom: `2px solid ${ink(0.14)}` }}
+      >
+        <span
+          className="rounded-full shrink-0"
+          style={{ width: '0.48em', height: '0.48em', backgroundColor: list.color || ctx.accentColor }}
+          aria-hidden="true"
+        />
+        <span className="font-bold truncate flex-1" style={{ fontSize: '0.95em' }}>{list.name}</span>
+        {allDone ? (
+          <AllDoneBadge label={ctx.t('todo.allDone')} size={0.78} />
+        ) : (
+          <span className="tabular-nums shrink-0" style={{ fontSize: '0.62em', color: ink(0.55) }}>
+            {ctx.t('todo.nLeft', { n: total - done })}
+          </span>
+        )}
+      </div>
+      <ul ref={ulRef} className="flex flex-col min-h-0 overflow-hidden" style={{ fontSize: '0.82em' }}>
+        {shown.map((item, i) => (
+          <Row
+            key={item.id}
+            item={item}
+            listId={list.id}
+            ctx={ctx}
+            tappable={tappable}
+            pressed={pressedId === item.id}
+            onToggle={onToggle}
+            last={i === shown.length - 1}
+            dense
+          />
+        ))}
+      </ul>
+      {more > 0 && (
+        <div className="shrink-0" data-testid="todo-board-more" style={{ fontSize: '0.62em', color: ink(0.45), marginTop: '0.24em' }}>{ctx.t('todo.andMore', { n: more })}</div>
+      )}
+    </div>
+  );
+}
+
+function BoardView({ lists, ...column }: {
   lists: TodoList[];
   placement: TodoCompletedPlacement;
   ctx: RowContext;
   tappable: boolean;
   pressedId: string | null;
   onToggle: (listId: string, item: TodoListItem) => void;
+  fontPx: number;
 }) {
   return (
     <div className="flex h-full min-h-0" style={{ gap: '0.96em' }}>
-      {lists.map((list) => {
-        const { done, total } = countDone(list.items);
-        const allDone = total > 0 && done === total;
-        const items = arrangeItems(list.items, placement);
-        const shown = items.slice(0, BOARD_ITEMS);
-        const more = items.length - shown.length;
-        return (
-          <div key={list.id} data-testid="todo-board-column" className="flex flex-col flex-1 min-w-0">
-            <div
-              className="flex items-center"
-              style={{ gap: '0.4em', marginBottom: '0.4em', paddingBottom: '0.4em', borderBottom: `2px solid ${ink(0.14)}` }}
-            >
-              <span
-                className="rounded-full shrink-0"
-                style={{ width: '0.48em', height: '0.48em', backgroundColor: list.color || ctx.accentColor }}
-                aria-hidden="true"
-              />
-              <span className="font-bold truncate flex-1" style={{ fontSize: '0.95em' }}>{list.name}</span>
-              {allDone ? (
-                <AllDoneBadge label={ctx.t('todo.allDone')} size={0.78} />
-              ) : (
-                <span className="tabular-nums shrink-0" style={{ fontSize: '0.62em', color: ink(0.55) }}>
-                  {ctx.t('todo.nLeft', { n: total - done })}
-                </span>
-              )}
-            </div>
-            <ul className="flex flex-col min-h-0 overflow-hidden" style={{ fontSize: '0.82em' }}>
-              {shown.map((item, i) => (
-                <Row
-                  key={item.id}
-                  item={item}
-                  listId={list.id}
-                  ctx={ctx}
-                  tappable={tappable}
-                  pressed={pressedId === item.id}
-                  onToggle={onToggle}
-                  last={i === shown.length - 1}
-                  dense
-                />
-              ))}
-            </ul>
-            {more > 0 && (
-              <div style={{ fontSize: '0.62em', color: ink(0.45), marginTop: '0.24em' }}>{ctx.t('todo.andMore', { n: more })}</div>
-            )}
-          </div>
-        );
-      })}
+      {lists.map((list) => <BoardColumn key={list.id} list={list} {...column} />)}
     </div>
   );
 }

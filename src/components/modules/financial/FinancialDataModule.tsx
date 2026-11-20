@@ -12,13 +12,15 @@ import {
 import SingleTile from './SingleTile';
 import type { FinancialItem, TableColumn, CompactRow, SparklineLabels, SparklineMode, SparklineTheme } from './shared';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useFormattingLocale } from '@/i18n';
 
 interface FinancialDataModuleProps<TItem> {
   url: string;
   refreshIntervalMs: number;
   dataKey: string;
-  toFinancialItems: (items: TItem[]) => FinancialItem[];
-  toCompactRows: (items: TItem[]) => CompactRow[];
+  /** Both take the number format (`useFormattingLocale`) every view prints in. */
+  toFinancialItems: (items: TItem[], locale: string) => FinancialItem[];
+  toCompactRows: (items: TItem[], locale: string) => CompactRow[];
   tableColumns: TableColumn<TItem>[];
   tableItemKey: (item: TItem, index: number) => string;
   view: string;
@@ -54,6 +56,7 @@ export default function FinancialDataModule<TItem>({
   emptyMessage,
   compactLabelWidth,
 }: FinancialDataModuleProps<TItem>) {
+  const locale = useFormattingLocale();
   const [data, error] = useFetchData<Record<string, TItem[]>>(url, refreshIntervalMs);
   const items = (data?.[dataKey] as TItem[] | undefined) ?? [];
 
@@ -67,18 +70,18 @@ export default function FinancialDataModule<TItem>({
   return (
     <ModuleWrapper style={style}>
       {view === 'single' && (
-        <SingleTile item={toFinancialItems(items)[0]}
+        <SingleTile item={toFinancialItems(items, locale)[0]}
           sparklineMode={sparklineMode ?? 'day'}
           sparklineTheme={sparklineTheme ?? 'classic'}
           labels={sparklineLabels} />
       )}
       {view === 'cards' && (
-        <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline}
+        <FinancialCardsView items={toFinancialItems(items, locale)} scale={cardScale} showSparkline={showSparkline}
           sparklineMode={sparklineMode}
           sparklineTheme={sparklineTheme}
           sparklineLabels={sparklineLabels} />
       )}
-      {view === 'ticker' && <FinancialTickerView items={toFinancialItems(items)} speed={tickerSpeed} />}
+      {view === 'ticker' && <FinancialTickerView items={toFinancialItems(items, locale)} speed={tickerSpeed} />}
       {view === 'table' && (
         <FinancialTableView
           items={items}
@@ -89,7 +92,7 @@ export default function FinancialDataModule<TItem>({
       )}
       {view === 'compact' && (
         <FinancialCompactView
-          rows={toCompactRows(items)}
+          rows={toCompactRows(items, locale)}
           scale={cardScale}
           labelWidth={compactLabelWidth}
         />

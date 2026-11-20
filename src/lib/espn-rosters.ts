@@ -5,10 +5,8 @@
  * (`soccer/eng.1/teams/ars` is a 400; `teams/359` is Arsenal).
  */
 import { createTTLCache, fetchWithTimeout } from './api-utils';
-import { COLLEGE_LEAGUES, LEAGUE_MAP } from './espn';
+import { COLLEGE_LEAGUES, ESPN_SITE_API as ESPN, LEAGUE_MAP } from './espn';
 import type { TeamOption } from './espn';
-
-const ESPN = 'https://site.api.espn.com/apis';
 
 /** Rosters change once a year; one entry per league so league combinations share upstream calls. */
 export const ROSTER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -80,6 +78,22 @@ export async function rosterFor(league: string): Promise<TeamOption[]> {
   teams.sort((a, b) => a.name.localeCompare(b.name));
   rosterCache.set(league, teams);
   return teams;
+}
+
+/**
+ * Each team's color by abbreviation, for the standings table, whose own
+ * ESPN payload carries none. Read from the roster, which asks for the whole
+ * team list (ESPN's default page is 50 teams, and college leagues have
+ * hundreds). An unknown league or a failed read answers an empty map, so
+ * the table still draws with its fallback color.
+ */
+export async function teamColorsFor(league: string): Promise<Map<string, string>> {
+  try {
+    const roster = await rosterFor(league.toLowerCase());
+    return new Map(roster.filter((t) => t.color).map((t) => [t.abbr, t.color]));
+  } catch {
+    return new Map();
+  }
 }
 
 /** The roster row for an abbreviation, or null when the roster has no such team or could not be read. */

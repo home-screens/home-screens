@@ -130,4 +130,16 @@ export const ICON_VARIANTS: ConfigVariant[] = [
       expect(await fontSize(mod)).toBe('85cqmin');
     },
   },
+
+  // -- icon (an emoji in place of the Font Awesome glyph, turned like one) --
+  {
+    type: 'icon', name: 'own-emoji', kind: 'network-free',
+    config: { ...star, icon: '🎸', rotation: 90 },
+    expect: async (mod) => {
+      const own = mod.locator('[data-testid="icon-own"]');
+      await expect(own).toHaveText('🎸');
+      await expect(own).toHaveClass(/fa-rotate-90/);
+      await expect(mod.locator('i')).toHaveCount(0);
+    },
+  },
 ];

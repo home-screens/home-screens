@@ -2,6 +2,7 @@
 
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
+import { useFitFontSize } from '@/hooks/useFitFontSize';
 import CountdownTimer from './CountdownTimer';
 import type { CountdownViewProps } from './types';
 
@@ -24,21 +25,32 @@ import type { CountdownViewProps } from './types';
  *
  * If you ever add another `scale` term here, it must be expressed in
  * post-migration units. Do not reintroduce a view-local multiplier.
+ *
+ * The event shrinks to fit its box, as the All view's list does: a long row
+ * of flip cards at a large scale used to be cut off at the card's edges. An
+ * event that already fits is drawn exactly as before.
  */
-export default function CountdownNextView({ events, config, scale, basePx }: CountdownViewProps) {
+/** Where the timer stops shrinking: flip labels are 0.3em, so below this they cannot be read. */
+const MIN_TIMER_PX = 20;
+
+export default function CountdownNextView({ events, config, scale, basePx, textPx }: CountdownViewProps) {
   const t = useTranslate('modules');
   const event = events[0];
+  // Everything that changes how wide or tall the event draws starts the fit again.
+  const fitKey = `${event?.id ?? ''}|${event?.name ?? ''}|${event?.stayingForToday ?? false}|${config.format ?? 'flip'}|${config.precision ?? 'auto'}|${scale}|${textPx}`;
+  const { boxRef, contentRef, fontSize } = useFitFontSize(basePx, fitKey, Math.min(basePx, MIN_TIMER_PX));
+  const fit = fontSize / basePx;
 
   if (!event) {
     return <p style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>{t('countdown.noUpcoming')}</p>;
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="flex flex-col items-center" style={{ gap: `${0.46 * scale}em` }}>
+    <div ref={boxRef} className="flex flex-col items-center justify-center h-full w-full">
+      <div ref={contentRef} className="flex flex-col items-center" style={{ gap: `${0.46 * scale * fit}em` }}>
         <p
           className="font-semibold text-center"
-          style={{ fontSize: `${Math.max(12, 14 * scale)}px`, opacity: TEXT_OPACITY.heading }}
+          style={{ fontSize: `${Math.max(12, 14 * scale * fit)}px`, opacity: TEXT_OPACITY.heading }}
         >
           {event.name}
           {event.time.past && !event.stayingForToday && <span className="ml-1 font-normal">{t('countdown.agoSuffix')}</span>}
@@ -46,12 +58,12 @@ export default function CountdownNextView({ events, config, scale, basePx }: Cou
         {event.stayingForToday ? (
           <p
             className="font-semibold text-center"
-            style={{ fontSize: `${basePx}px`, opacity: TEXT_OPACITY.heading }}
+            style={{ fontSize: `${fontSize}px`, opacity: TEXT_OPACITY.heading }}
           >
             {t('countdown.todayBang')}
           </p>
         ) : (
-          <CountdownTimer time={event.time} config={config} fontSizePx={basePx} />
+          <CountdownTimer time={event.time} config={config} fontSizePx={fontSize} />
         )}
       </div>
     </div>

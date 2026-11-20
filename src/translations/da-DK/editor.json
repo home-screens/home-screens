@@ -4393,11 +4393,12 @@
       "chartThemeClassic": "Klassisk",
       "chartThemeShaded": "Skygget",
       "chartContent": "Grafindhold",
-      "chartLabels": "Mærk grafer (1D / 5D)",
+      "chartLabels": "Vis etiketter på grafer (1D / 5D)",
       "symbolLabel": "Symbol",
       "chartContentDay": "Kun i dag",
       "chartContentWeek": "Kun den seneste uge",
-      "chartContentBoth": "I dag og den seneste uge"
+      "chartContentBoth": "I dag og den seneste uge",
+      "chartLabelsWeek": "Vis etiket på grafen (7D)"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Tidsplan (kolonnegitter)",
@@ -5282,7 +5283,6 @@
       "create": "Opret",
       "title": "Overskrift",
       "defaultTitle": "Huskeliste",
-      "showTitle": "Vis overskrift",
       "completedPlacement": "Færdige punkter",
       "completedBottom": "Nederst",
       "completedInline": "Hvor de er",
@@ -5708,7 +5708,6 @@
       "viewLatest": "Nyeste",
       "title": "Overskrift",
       "defaultTitle": "Noter",
-      "showTitle": "Vis overskrift",
       "maxNotes": "Maks. antal noter",
       "showAuthor": "Vis hvem",
       "showAge": "Vis, hvor længe siden",

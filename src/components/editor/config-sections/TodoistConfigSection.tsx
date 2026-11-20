@@ -71,6 +71,8 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   ] as const;
   const { config: c, set } = useModuleConfig<Partial<TodoistConfig>>(mod, screenId);
   const viewMode = c.viewMode ?? 'list';
+  // The board draws a task's name and due date only.
+  const board = viewMode === 'board';
 
   return (
     <div className="space-y-3">
@@ -89,9 +91,11 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       {viewMode !== 'focus' && (
         <LabeledSelect
           label={t('configSections.todoist.groupByLabel')}
-          value={c.groupBy ?? 'date'}
+          // A board is its groups, so it has no "None": one saved from the
+          // list is drawn by project, and the picker says so.
+          value={board && (c.groupBy ?? 'date') === 'none' ? 'project' : c.groupBy ?? 'date'}
           onChange={(v) => set({ groupBy: v })}
-          options={GROUP_BY}
+          options={board ? GROUP_BY.filter((o) => o.value !== 'none') : GROUP_BY}
         />
       )}
       <LabeledSelect
@@ -112,24 +116,31 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ labelFilter: v })}
         placeholder={t('configSections.todoist.filterLabelsPlaceholder')}
       />
-      <Toggle label={t('configSections.todoist.showSubtasks')} checked={c.showSubtasks !== false} onChange={(v) => set({ showSubtasks: v })} />
-      <Toggle label={t('configSections.todoist.showLabels')} checked={c.showLabels !== false} onChange={(v) => set({ showLabels: v })} />
-      <Toggle label={t('configSections.todoist.showProject')} checked={c.showProject !== false} onChange={(v) => set({ showProject: v })} />
-      <Toggle label={t('common.showDescription')} checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
+      {!board && (
+        <>
+          <Toggle label={t('configSections.todoist.showSubtasks')} checked={c.showSubtasks !== false} onChange={(v) => set({ showSubtasks: v })} />
+          <Toggle label={t('configSections.todoist.showLabels')} checked={c.showLabels !== false} onChange={(v) => set({ showLabels: v })} />
+          <Toggle label={t('configSections.todoist.showProject')} checked={c.showProject !== false} onChange={(v) => set({ showProject: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
+        </>
+      )}
       <Toggle label={t('configSections.todoist.showNoDueDate')} checked={c.showNoDueDate !== false} onChange={(v) => set({ showNoDueDate: v })} />
       <Toggle
         label={t('configSections.todoist.tapToComplete')}
         checked={!!c.allowComplete}
         onChange={(v) => set({ allowComplete: v })}
       />
-      <LabeledInput
-        label={t('configSections.todoist.maxTasks')}
-        type="number"
-        min={1}
-        max={100}
-        value={c.maxTasks ?? 30}
-        onChange={(v) => set({ maxTasks: Number(v) })}
-      />
+      {/* Focus shows everything due today or earlier, whatever the cap. */}
+      {viewMode !== 'focus' && (
+        <LabeledInput
+          label={t('configSections.todoist.maxTasks')}
+          type="number"
+          min={1}
+          max={100}
+          value={c.maxTasks ?? 30}
+          onChange={(v) => set({ maxTasks: Number(v) })}
+        />
+      )}
       <RefreshIntervalSlider
         value={c.refreshIntervalMs}
         onChange={(ms) => set({ refreshIntervalMs: ms })}

@@ -52,6 +52,7 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
           rotationIntervalMs={rotationIntervalMs}
           grouping={grouping}
           favorites={favorites}
+          fontSize={style.fontSize}
         />
       )}
       {view === 'compact' && (
@@ -62,6 +63,7 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
           rotationIntervalMs={rotationIntervalMs}
           grouping={grouping}
           favorites={favorites}
+          fontSize={style.fontSize}
         />
       )}
       {view === 'conference' && (
@@ -72,6 +74,7 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
           rotationIntervalMs={rotationIntervalMs}
           grouping={grouping}
           favorites={favorites}
+          fontSize={style.fontSize}
         />
       )}
     </ModuleWrapper>

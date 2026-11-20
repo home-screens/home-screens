@@ -98,7 +98,7 @@ export default function SportsModule({ config, style, timezone, timeFormat }: Sp
       {view === 'scoreboard' && <ScoreboardView games={games} kickoff={kickoff} favorites={favorites} rotateIntervalMs={rotateMs} />}
       {view === 'cards' && <CardsView games={games} kickoff={kickoff} favorites={favorites} rotateIntervalMs={rotateMs} fontSize={style.fontSize} />}
       {view === 'list' && <ListView games={games} kickoff={kickoff} favorites={favorites} rotateIntervalMs={rotateMs} fontSize={style.fontSize} />}
-      {view === 'ticker' && <TickerView games={games} speed={config.tickerSpeed ?? 4} />}
+      {view === 'ticker' && <TickerView games={games} speed={config.tickerSpeed ?? 4} kickoff={kickoff} favorites={favorites} />}
     </ModuleWrapper>
   );
 }

@@ -166,6 +166,18 @@ export function ink(alpha: number): string {
   return `color-mix(in srgb, ${INK} ${Math.round(alpha * 100)}%, transparent)`;
 }
 
+/**
+ * `ink()` for an element that used to carry a Tailwind `white/N` class
+ * (`bg-white/5`, `border-white/10`). Tailwind mixes those in oklab, and white
+ * taken through oklab lands a hair off pure white, so the srgb `ink()` in
+ * their place moved a handful of anti-aliased pixels by one level. Mixed the
+ * way the class was, the element is the same to the pixel at the default
+ * white text and still follows the card's ink on a light card.
+ */
+export function inkLikeTailwind(alpha: number): string {
+  return `color-mix(in oklab, ${INK} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
 // Divider/separator color tiers for consistent structural elements across modules.
 //   subtle  (0.05) — faint list grouping, barely-there separators
 //   default (0.08) — standard dividers and borders

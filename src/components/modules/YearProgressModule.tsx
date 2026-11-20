@@ -2,11 +2,12 @@
 
 import { useTZClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import type { YearProgressConfig, ModuleStyle } from '@/types/config';
+import type { YearProgressConfig, ModuleStyle, WeekStartDay } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY, resolveAccent, ink } from '@/lib/constants';
 import { formatProgressPercent } from '@/lib/progress-percent';
 import { withAlpha } from '@/lib/hex-color';
+import { localeWeekStart } from '@/lib/week-number';
 
 interface YearProgressModuleProps {
   config: YearProgressConfig;
@@ -14,7 +15,8 @@ interface YearProgressModuleProps {
   timezone?: string;
 }
 
-function getProgress(now: Date) {
+/** `weekStart` is the first day of the week where the hub's dates are formatted (see localeWeekStart). */
+export function getProgress(now: Date, weekStart: WeekStartDay = 'monday') {
   const year = now.getFullYear();
   const month = now.getMonth();
   const day = now.getDate();
@@ -32,7 +34,7 @@ function getProgress(now: Date) {
   const monthPercent = (((day - 1) + (hours * 60 + minutes) / 1440) / daysInMonth) * 100;
 
   const jsDay = now.getDay();
-  const weekDay = jsDay === 0 ? 6 : jsDay - 1;
+  const weekDay = weekStart === 'sunday' ? jsDay : (jsDay + 6) % 7;
   const minutesInDay = hours * 60 + minutes;
   const weekMinutesElapsed = weekDay * 1440 + minutesInDay;
   const weekPercent = (weekMinutesElapsed / (7 * 1440)) * 100;
@@ -111,7 +113,7 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
   const showPercentage = config.showPercentage ?? true;
   const { accentColor, hasAccent } = resolveAccent(config);
 
-  const { yearPercent, monthPercent, weekPercent, dayPercent, year } = getProgress(now);
+  const { yearPercent, monthPercent, weekPercent, dayPercent, year } = getProgress(now, localeWeekStart(locale));
 
   const monthName = formatDateSync(now, 'MMMM', { locale });
   const dayName = formatDateSync(now, 'EEEE', { locale });

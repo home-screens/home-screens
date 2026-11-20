@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
-import { Sparkline } from './financial/shared';
+import { Sparkline, formatUSD } from './financial/shared';
 import type { SparklineLabels, SparklineMode, SparklineTheme } from './financial/shared';
 
 interface FinancialCardProps {
@@ -165,7 +165,7 @@ export default function FinancialCard({
       }}
     >
       <span className="font-semibold tracking-wider" style={{ fontSize: `${0.75 * scale}em`, opacity: TEXT_OPACITY.secondary }}>{label}</span>
-      <span className="font-bold whitespace-nowrap tabular-nums" style={{ fontSize: `${1.25 * scale}em` }}>${price.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      <span className="font-bold whitespace-nowrap tabular-nums" style={{ fontSize: `${1.25 * scale}em` }}>{formatUSD(price, locale)}</span>
       <span className={`whitespace-nowrap tabular-nums ${dayPositive ? 'text-green-400' : 'text-red-400'}`} style={{ fontSize: `${0.75 * scale}em` }}>
         {changeLabel}
       </span>

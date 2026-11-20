@@ -1182,7 +1182,9 @@
     "loss": "V",
     "tie": "G",
     "vs": "tegen",
-    "at": "bij"
+    "at": "bij",
+    "final": "Afgelopen",
+    "inProgress": "Bezig"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -1204,7 +1206,21 @@
   },
   "standings": {
     "loading": "Stand laden…",
-    "noStandings": "Geen stand beschikbaar"
+    "noStandings": "Geen stand beschikbaar",
+    "columns": {
+      "overtime": "OT",
+      "pct": "PCT",
+      "pointsFor": "PV",
+      "pointsAgainst": "PT",
+      "diff": "SALDO",
+      "streak": "REEKS",
+      "gamesPlayed": "GS",
+      "points": "PNT",
+      "goalDiff": "DS",
+      "gamesBack": "GB",
+      "last10": "L10",
+      "draw": "G"
+    }
   },
   "todo": {
     "name": "Takenlijst",
@@ -1345,6 +1361,9 @@
       "coin": "Munt",
       "price": "Koers",
       "percent": "24u %"
+    },
+    "chartLabels": {
+      "week": "7D"
     }
   },
   "todoist": {
@@ -1392,6 +1411,10 @@
     "taskCountAtLeast": {
       "one": "{count}+ taak",
       "other": "{count}+ taken"
+    },
+    "moreGroups": {
+      "one": "en nog {count} groep",
+      "other": "en nog {count} groepen"
     }
   },
   "photo-slideshow": {

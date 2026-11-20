@@ -1,10 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
 import { Star } from 'lucide-react';
 import type { MaterialViewProps } from './types';
-import { useFitCount } from '../useFitCount';
-import { ageOf, authorOf, fitKeyOf } from '../shared';
+import { useFittedNotes } from '../useFittedNotes';
+import { ageOf, authorOf } from '../shared';
 
 /** The slate: two soft smudges of old chalk, a fine dust grain, and the green-black board. */
 const SLATE = [
@@ -33,14 +32,7 @@ const MORE_EM = 0.8 * 1.4 + 0.3;
  * behind a double bang. Rows, fitted whole like Board.
  */
 export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padding }: MaterialViewProps) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(
-    listRef,
-    fitKeyOf(shown, ctx.fontPx, ctx.showAuthor, ctx.showAge, showTitle),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_EM,
-  );
-  const drawn = visible === null ? shown : shown.slice(0, visible);
-  const more = hidden + shown.length - drawn.length;
+  const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, shown, hidden, { extraKey: [showTitle], moreEm: MORE_EM });
   return (
     <div
       className="relative flex flex-col flex-1 min-h-0 overflow-hidden"

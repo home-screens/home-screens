@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import ColorPicker from '@/components/ui/ColorPicker';
-import IconPicker from '@/components/ui/IconPicker';
+import IconField from '@/components/ui/IconField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { getFaIconKind, getFaIconStyles, pickStyleForIcon, type FaIconKind } from '@/lib/font-awesome-icons';
+import { faIconValue, parseIconValue } from '@/lib/icon-value';
 import { useTranslate } from '@/i18n';
 import type { IconConfig, ModuleInstance } from '@/types/config';
 
@@ -53,6 +54,10 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   const animation = c.animation ?? 'none';
   const showAnimationDuration = animation !== 'none';
   const currentStyle = c.style ?? 'solid';
+  // An emoji or one of the family's own pictures. It has no Font Awesome
+  // style and no color of its own to set, so those controls step aside.
+  const ownIcon = parseIconValue(c.icon);
+  const own = !!ownIcon && ownIcon.type !== 'fa';
 
   // Restrict the Style dropdown to options the currently-selected icon
   // actually ships in. Picking `house` (solid+regular) and then flipping
@@ -67,22 +72,26 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
   return (
     <>
-      <IconPicker
+      {/* The same picker the calendar, the text looks and the dock use: emoji,
+          Font Awesome, and the family's own pictures. */}
+      <IconField
         label={t('fields.icon')}
-        value={c.iconName ?? ''}
-        currentKind={currentStyle}
-        onPick={(name, kind, styles) => {
-          // Keep the user's current style only if the picked icon actually
-          // supports it (some icons ship in both solid + regular). Otherwise
-          // snap to the icon's primary kind so the rendered class matches a
-          // woff2 that has the glyph — without this we'd render
-          // `fa-regular fa-X` against a regular woff2 that doesn't carry X,
-          // and the codepoint shows as fallback text.
-          set({ iconName: name, style: pickStyleForIcon(currentStyle, styles, kind) });
+        value={own ? c.icon : c.iconName ? faIconValue(c.iconName, currentStyle) : undefined}
+        onChange={(value) => {
+          const next = parseIconValue(value);
+          if (!next) {
+            set({ icon: undefined, iconName: '' });
+          } else if (next.type === 'fa') {
+            // The picker hands back the style the icon was picked in, which
+            // is one its font file carries.
+            set({ icon: undefined, iconName: next.name, style: next.kind });
+          } else {
+            set({ icon: value });
+          }
         }}
       />
 
-      <LabeledSelect
+      {!own && <LabeledSelect
         label={t('configSections.icon.style')}
         value={currentStyle}
         onChange={(v) => {
@@ -95,13 +104,15 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           set({ style: pickStyleForIcon(next, supportedStyles ?? [next], primary) });
         }}
         options={styleOptions}
-      />
+      />}
 
-      <ColorPicker
-        label={t('configSections.icon.iconColor')}
-        value={c.color ?? '#fbbf24'}
-        onChange={(v) => set({ color: v })}
-      />
+      {!own && (
+        <ColorPicker
+          label={t('configSections.icon.iconColor')}
+          value={c.color ?? '#fbbf24'}
+          onChange={(v) => set({ color: v })}
+        />
+      )}
 
       <ColorPicker
         label={t('configSections.icon.iconBackground')}
@@ -160,14 +171,14 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       )}
 
-      <button
+      {!own && <button
         type="button"
         onClick={() => setShowAdvanced((s) => !s)}
         className="text-[11px] text-hs-text-faint hover:text-hs-text-muted transition-colors text-left"
       >
         {showAdvanced ? t('configSections.icon.hideAdvanced') : t('configSections.icon.showAdvanced')}
-      </button>
-      {showAdvanced && (
+      </button>}
+      {!own && showAdvanced && (
         <LabeledInput
           label={t('configSections.icon.customClass')}
           value={c.iconName ?? ''}

@@ -25,7 +25,7 @@ In the editor, drag **To-Do List** from the **Personal** group onto a screen. In
 - **List**: the classic checklist, with a due-day chip on anything that has a date and the initials of whoever it is for.
 - **Focus**: the next three things in big type, for a small box or a sidebar.
 - **Progress**: a ring with "3 of 8" in the middle and the rest in small print, easy to read from across the room.
-- **Board**: every list side by side, one column each, for a wide box.
+- **Board**: every list side by side, one column each, for a wide box. Each column shows as many items as fit.
 - **Compact**: a tight list with a dot per item, for busy dashboards.
 
 When everything on a list is done, the heading shows a green tick and **All done** in every view. Items stay visible, struck through, unless you set **Done items** to **Hidden**.

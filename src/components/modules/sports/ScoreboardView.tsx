@@ -7,6 +7,7 @@ import { favoriteSide } from '@/lib/sports-order';
 import { TeamLogo, isWinner, formatScore, GameStatus, FavoriteBar, RankTag, type KickoffFn } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
 import { withAlpha } from '@/lib/hex-color';
+import { inkLikeTailwind } from '@/lib/constants';
 
 function TeamRow({
   logo,
@@ -89,7 +90,7 @@ export function ScoreboardView({ games, kickoff, favorites = [], rotateIntervalM
         rank={game.awayRank}
       />
 
-      <div className="h-px bg-white/10" />
+      <div className="h-px" style={{ backgroundColor: inkLikeTailwind(0.1) }} />
 
       <TeamRow
         logo={game.homeTeamLogo}
@@ -103,9 +104,8 @@ export function ScoreboardView({ games, kickoff, favorites = [], rotateIntervalM
 
       <div className="flex items-center justify-between">
         <GameStatus
-          state={game.state}
+          game={game}
           kickoff={kickoff(game)}
-          status={game.status}
           fontSize="0.7em"
           gap="gap-1.5"
         />

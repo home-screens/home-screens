@@ -1,13 +1,13 @@
 'use client';
 
-import { Fragment, useMemo, useRef } from 'react';
+import { Fragment, useMemo } from 'react';
 import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { groupByDay, sortByTime } from '@/lib/notes-rules';
 import { isoDateInTZ } from '@/lib/timezone';
 import { AuthorBubble } from './AuthorBubble';
-import { useFitCount } from './useFitCount';
-import { DANGER_INK, MORE_LINE_EM, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, fitKeyOf, type NotesContext } from './shared';
+import { useFittedNotes } from './useFittedNotes';
+import { DANGER_INK, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
 
 const DAY_MS = 86_400_000;
 
@@ -41,13 +41,7 @@ function dayLabel(day: string, today: string, ctx: NotesContext): string {
 export function TimelineView({ ctx, all, max }: { ctx: NotesContext; all: Note[]; max: number }) {
   const timed = useMemo(() => sortByTime(all).slice(0, max), [all, max]);
   const hidden = all.length - timed.length;
-  const listRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(
-    listRef,
-    fitKeyOf(timed, ctx.fontPx, ctx.showAuthor, ctx.showAge, ctx.timezone ?? ''),
-    hidden > 0 ? 0 : ctx.fontPx * MORE_LINE_EM,
-  );
-  const drawn = visible === null ? timed : timed.slice(0, visible);
+  const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, timed, hidden, { extraKey: [ctx.timezone ?? ''] });
   const today = isoDateInTZ(ctx.now, ctx.timezone);
   const groups = groupByDay(drawn, (iso) => isoDateInTZ(new Date(iso), ctx.timezone));
   return (
@@ -101,7 +95,7 @@ export function TimelineView({ ctx, all, max }: { ctx: NotesContext; all: Note[]
           </Fragment>
         ))}
       </ul>
-      <MoreLine n={hidden + timed.length - drawn.length} t={ctx.t} />
+      <MoreLine n={more} t={ctx.t} />
     </>
   );
 }

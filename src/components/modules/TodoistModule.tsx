@@ -7,6 +7,8 @@ import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
+import { usePressedKey } from './shared/usePressedKey';
+import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { todoistUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -30,11 +32,14 @@ interface TodoistModuleProps {
   timeFormat?: TimeFormat;
   /** Household zone: which day counts as today, and the clock due times read on. */
   timezone?: string;
+  /** Instance address, threaded by ScreenRenderer. Present only on the display. */
+  screenId?: string;
+  moduleId?: string;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
-export default function TodoistModule({ config, style, timeFormat, timezone }: TodoistModuleProps) {
+export default function TodoistModule({ config, style, timeFormat, timezone, screenId, moduleId }: TodoistModuleProps) {
   const t = useTranslate('modules');
   const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
@@ -61,9 +66,11 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
   }, [data]);
 
   const { run: runComplete } = useOptimisticMutation();
+  // The tapped task's ring glows until Todoist answers.
+  const [pressedId, press] = usePressedKey();
 
   const handleComplete = useCallback((taskId: string) => {
-    void runComplete(taskId, {
+    void press(taskId, () => runComplete(taskId, {
       apply: () => setCompletedIds((prev) => {
         if (prev.has(taskId)) return prev;
         const next = new Set(prev);
@@ -91,8 +98,8 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
           return next;
         });
       },
-    });
-  }, [runComplete]);
+    }));
+  }, [runComplete, press]);
 
   const allowComplete = config.allowComplete === true;
   const onComplete = allowComplete ? handleComplete : undefined;
@@ -105,7 +112,8 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
     const filtered = filterTasks(visible, config);
     const sorted = sortTasks(filtered, config.sortBy, timezone);
     const limited = sorted.slice(0, config.maxTasks ?? 30);
-    return { tasks: limited, filteredAll: filtered, totalCount: filtered.length };
+    // Focus picks what is due from every task, so it gets them all, in the chosen order.
+    return { tasks: limited, filteredAll: sorted, totalCount: filtered.length };
   }, [data, config, completedIds, timezone]);
 
   const title = config.title || 'Todoist';
@@ -115,6 +123,10 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
   // hold, and a new one each minute, so Today turns into Yesterday at
   // midnight even when a poll brings the same tasks (and so the same object).
   const now = useRealClock();
+  // On a touch wall with taps on, a finger scrolls the List and Focus views
+  // past the rows that fit; anywhere else those rows are counted instead.
+  const scroll = wallScrollOn(allowComplete, screenId, moduleId);
+  const wall = { onComplete, pressedId, timeFormat, timezone };
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('todoist.loading') });
   if (gate) return gate;
@@ -159,11 +171,11 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
             </div>
           </div>
         ) : viewMode === 'board' ? (
-          <BoardView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
+          <BoardView tasks={tasks} config={config} now={now} {...wall} />
         ) : viewMode === 'focus' ? (
-          <FocusView allTasks={filteredAll} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
+          <FocusView allTasks={filteredAll} config={config} now={now} fontPx={style.fontSize} scroll={scroll} {...wall} />
         ) : (
-          <ListView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
+          <ListView tasks={tasks} config={config} now={now} fontPx={style.fontSize} scroll={scroll} {...wall} />
         )}
       </div>
     </ModuleWrapper>

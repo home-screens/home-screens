@@ -1964,7 +1964,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Minimal: append AM/PM in 12-hour mode. Absent = off, so a Minimal clock placed before this existed keeps its bare time.",
+          "description": "Minimal, Digital, Flip and Dot matrix: add AM/PM in 12-hour mode. The other views that print the hour always show it",
           "default": false
         },
         {
@@ -3373,7 +3373,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show individual pollutant levels (PM2.5, PM10, O3, NO2)",
+          "description": "Show individual pollutant levels (PM2.5, PM10, O3)",
           "default": false
         },
         {
@@ -4043,6 +4043,28 @@
           },
           "description": "Draw a small trend line on each card in the cards view",
           "default": true
+        },
+        {
+          "name": "sparklineTheme",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"classic\" | \"shaded\"",
+            "values": [
+              "classic",
+              "shaded"
+            ]
+          },
+          "description": "Chart look: `classic` (plain line) or `shaded` (soft backdrop and tint). The line is always the past seven days, in green when the coin ended the week higher than it began and red when lower"
+        },
+        {
+          "name": "sparklineLabels",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Caption each chart with its range (`7D`), since the number beside it is the last 24 hours"
         }
       ],
       "views": [
@@ -4133,8 +4155,9 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Scroll speed for ticker view",
-          "defaultText": "5"
+          "description": "Scroll speed for ticker view: seconds per game",
+          "defaultText": "4",
+          "default": 4
         },
         {
           "name": "rotateIntervalMs",
@@ -6708,6 +6731,15 @@
       },
       "fillsCanvas": false,
       "fields": [
+        {
+          "name": "icon",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "An emoji or one of the family's own icons to show in place of a Font Awesome icon"
+        },
         {
           "name": "iconName",
           "optional": false,

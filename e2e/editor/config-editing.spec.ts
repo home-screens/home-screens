@@ -861,6 +861,46 @@ test('history: toggling Show Dividers persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'history')).showDividers).toBe(false);
 });
 
+test('quote: the refresh slider is in minutes and starts at the hour the hub keeps a quote for', async ({ page, request }) => {
+  // A module saved with a five minute refresh, from when the slider went down to 30 seconds.
+  await selectModule(page, request, buildModuleInstance('quote', { refreshIntervalMs: 300_000 }));
+  const slider = page.getByRole('slider', { name: 'Refresh (minutes)' });
+  await expect(slider).toHaveAttribute('min', '60');
+  await expect(slider).toHaveAttribute('max', '1440');
+  await expect(page.getByRole('slider', { name: 'Refresh (seconds)' })).toHaveCount(0);
+});
+
+test('crypto: the chart look and its label persist, with no day or week choice', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('crypto'));
+  // The source has one range, seven days, so there is nothing to choose there.
+  await expect(page.getByRole('combobox', { name: 'Chart content', exact: true })).toHaveCount(0);
+
+  await autosaved(page, async () => {
+    await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption('shaded');
+  });
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Label the chart (7D)' }).click();
+  });
+  const config = await moduleConfig(request, 'crypto');
+  expect(config.sparklineTheme).toBe('shaded');
+  expect(config.sparklineLabels).toBe(true);
+});
+
+test('clock: Digital, Flip and Dot matrix offer Show AM/PM', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('clock', { view: 'digital' }));
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Show AM/PM' }).click();
+  });
+  expect((await moduleConfig(request, 'clock')).showAmPm).toBe(true);
+  for (const view of ['flip', 'dot-matrix']) {
+    await autosaved(page, async () => { await viewSelect(page).selectOption(view); });
+    await expect(page.getByRole('switch', { name: 'Show AM/PM' })).toBeVisible();
+  }
+  // Classic always prints it, so it has no switch.
+  await autosaved(page, async () => { await viewSelect(page).selectOption('classic'); });
+  await expect(page.getByRole('switch', { name: 'Show AM/PM' })).toHaveCount(0);
+});
+
 test('quote: picking an accent color preset persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('quote'));
 
@@ -938,6 +978,132 @@ test('todoist: switching View Mode persists', async ({ page, request }) => {
   });
 
   expect((await moduleConfig(request, 'todoist')).viewMode).toBe('board');
+});
+
+test('todo: the panel offers only what the chosen view reads', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('todo'));
+  const heading = page.getByLabel('Heading', { exact: true });
+  const dueDates = page.getByRole('switch', { name: 'Show due dates' });
+  const who = page.getByRole('switch', { name: 'Show who' });
+  const taps = page.getByRole('switch', { name: 'Tap to complete (touchscreen)' });
+  // List draws all of it. Whether the heading shows is the Title picker's
+  // choice now, so the section has no second switch for it.
+  await expect(heading).toBeVisible();
+  await expect(dueDates).toBeVisible();
+  await expect(taps).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+
+  // Focus names the next items and nothing else, and takes no taps.
+  await autosaved(page, async () => { await viewSelect(page).selectOption('focus'); });
+  await expect(heading).toBeVisible();
+  await expect(dueDates).toHaveCount(0);
+  await expect(who).toHaveCount(0);
+  await expect(taps).toHaveCount(0);
+
+  // Compact has no boxes to tick, but a finger scrolls it with taps on.
+  await autosaved(page, async () => { await viewSelect(page).selectOption('compact'); });
+  await expect(dueDates).toHaveCount(0);
+  await expect(taps).toBeVisible();
+
+  // The board is headed by its lists: no heading to name, and the Title
+  // picker stops offering one.
+  await autosaved(page, async () => { await viewSelect(page).selectOption('board'); });
+  await expect(heading).toHaveCount(0);
+  await expect(dueDates).toBeVisible();
+  await expect(who).toBeVisible();
+  await expect(taps).toBeVisible();
+  await expect(page.getByLabel('Title', { exact: true }).getByRole('option')).toHaveText(['My own words', 'No title']);
+  // Hidden switches keep what they held.
+  expect((await moduleConfig(request, 'todo')).showDueDates).not.toBe(false);
+});
+
+test('notes: the heading box follows the views that draw a heading', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('notes'));
+  const heading = page.getByLabel('Heading', { exact: true });
+  const titlePicker = page.getByLabel('Title', { exact: true });
+  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+
+  // Notebook and Neon write a heading on their own surface.
+  for (const view of ['notebook', 'neon']) {
+    await autosaved(page, async () => { await viewSelect(page).selectOption(view); });
+    await expect(heading).toBeVisible();
+    await expect(titlePicker.getByRole('option')).toHaveText(["The module's own title", 'My own words', 'No title']);
+  }
+  // Spotlight, Fridge and Letterboard draw none.
+  for (const view of ['spotlight', 'fridge', 'letterboard']) {
+    await autosaved(page, async () => { await viewSelect(page).selectOption(view); });
+    await expect(heading).toHaveCount(0);
+    await expect(titlePicker.getByRole('option')).toHaveText(['My own words', 'No title']);
+  }
+
+  // With the picker on "No title" there is no heading to name.
+  await autosaved(page, async () => { await viewSelect(page).selectOption('board'); });
+  await expect(heading).toBeVisible();
+  await autosaved(page, async () => { await titlePicker.selectOption('none'); });
+  await expect(heading).toHaveCount(0);
+});
+
+test('todoist: the panel offers only what the chosen view reads', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('todoist', { groupBy: 'none' }));
+  const groupBy = page.getByLabel('Group By');
+  const subtasks = page.getByRole('switch', { name: 'Show Subtasks' });
+  const maxTasks = page.getByLabel('Max Tasks');
+  await expect(groupBy).toHaveValue('none');
+  await expect(subtasks).toBeVisible();
+  await expect(maxTasks).toBeVisible();
+
+  // A board is its groups: no "None", and one saved from the list reads as
+  // Project, which is how the wall draws it. It shows a task's name and due
+  // date only, so the switches for the rest step aside.
+  await autosaved(page, async () => { await page.getByLabel('View Mode').selectOption('board'); });
+  await expect(groupBy).toHaveValue('project');
+  await expect(groupBy.getByRole('option', { name: 'None' })).toHaveCount(0);
+  await expect(subtasks).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show Description' })).toHaveCount(0);
+  await expect(maxTasks).toBeVisible();
+
+  // Focus is everything due, whatever the cap, and has no groups to pick.
+  await autosaved(page, async () => { await page.getByLabel('View Mode').selectOption('focus'); });
+  await expect(groupBy).toHaveCount(0);
+  await expect(maxTasks).toHaveCount(0);
+  await expect(subtasks).toBeVisible();
+  await expect(page.getByLabel('Sort By')).toBeVisible();
+  // The hidden choices are untouched.
+  expect((await moduleConfig(request, 'todoist')).groupBy).toBe('none');
+});
+
+test('icon: an emoji replaces the Font Awesome icon, and picking one again brings its controls back', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('icon'));
+  // The module palette has an Icon button too; the field is the last one on the page.
+  const field = page.getByRole('button', { name: 'Icon', exact: true }).last();
+  const picker = page.getByRole('dialog', { name: 'Choose an icon' });
+  await expect(page.getByRole('combobox', { name: 'Style', exact: true })).toBeVisible();
+
+  await field.click();
+  await picker.getByRole('tab', { name: /Emoji/ }).click();
+  await autosaved(page, async () => {
+    await picker.getByRole('button', { name: 'soccer ball', exact: true }).click();
+  });
+  let config = await moduleConfig(request, 'icon');
+  expect(config.icon).toBe('⚽');
+  // The Font Awesome icon it replaced is kept for a picture that goes missing.
+  expect(config.iconName).toBe('star');
+  await expect(page.locator('[data-module-id="icon-1"] [data-testid="icon-own"]')).toHaveText('⚽');
+  // An emoji has no style or color to set.
+  await expect(page.getByRole('combobox', { name: 'Style', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('combobox', { name: 'Rotation', exact: true })).toBeVisible();
+
+  await field.click();
+  await picker.getByRole('tab', { name: /Font Awesome/ }).click();
+  await picker.getByPlaceholder(/Search icons/).fill('futbol');
+  await autosaved(page, async () => {
+    await picker.getByTitle('futbol', { exact: true }).click();
+  });
+  config = await moduleConfig(request, 'icon');
+  expect(config.icon).toBeUndefined();
+  expect(config.iconName).toBe('futbol');
+  expect(config.style).toBe('solid');
+  await expect(page.getByRole('combobox', { name: 'Style', exact: true })).toBeVisible();
 });
 
 test('garbage-day: editing Custom Category Name persists', async ({ page, request }) => {

@@ -23,6 +23,11 @@ import type { ModuleInstance, TodoConfig, TodoView, TodoCompletedPlacement } fro
 
 const DEFAULT_ACCENT = '#3b82f6';
 
+// Which views read which switch (see TodoModule). The panel offers only the
+// controls the chosen view honours.
+const READS_ROW_DETAILS: ReadonlySet<TodoView> = new Set(['list', 'board']);
+const READS_INTERACTIVE: ReadonlySet<TodoView> = new Set(['list', 'board', 'compact']);
+
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Partial<TodoConfig>>(mod, screenId);
   const t = useTranslate('editor');
@@ -153,17 +158,16 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         </div>
       )}
 
-      <LabeledInput
-        label={t('configSections.todo.title')}
-        value={c.title ?? ''}
-        placeholder={selected?.name ?? t('configSections.todo.defaultTitle')}
-        onChange={(v) => set({ title: v })}
-      />
-      <Toggle
-        label={t('configSections.todo.showTitle')}
-        checked={c.showTitle ?? true}
-        onChange={(v) => set({ showTitle: v })}
-      />
+      {/* Whether the heading shows is the Title picker's choice at the top of
+          the panel; this box only names it. The board is headed by its lists. */}
+      {view !== 'board' && c.showTitle !== false && !mod.style.title?.trim() && (
+        <LabeledInput
+          label={t('configSections.todo.title')}
+          value={c.title ?? ''}
+          placeholder={selected?.name ?? t('configSections.todo.defaultTitle')}
+          onChange={(v) => set({ title: v })}
+        />
+      )}
       <AccentColorPicker
         value={c.accentColor ?? DEFAULT_ACCENT}
         onChange={(v) => set({ accentColor: v })}
@@ -174,21 +178,29 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ completedPlacement: v })}
         options={PLACEMENTS}
       />
-      <Toggle
-        label={t('configSections.todo.showDueDates')}
-        checked={c.showDueDates ?? true}
-        onChange={(v) => set({ showDueDates: v })}
-      />
-      <Toggle
-        label={t('configSections.todo.showAssignees')}
-        checked={c.showAssignees ?? true}
-        onChange={(v) => set({ showAssignees: v })}
-      />
-      <Toggle
-        label={t('configSections.todo.interactive')}
-        checked={!!c.interactive}
-        onChange={(v) => set({ interactive: v })}
-      />
+      {/* Only the views that draw rows with a box show a due date or who it is for. */}
+      {READS_ROW_DETAILS.has(view) && (
+        <>
+          <Toggle
+            label={t('configSections.todo.showDueDates')}
+            checked={c.showDueDates ?? true}
+            onChange={(v) => set({ showDueDates: v })}
+          />
+          <Toggle
+            label={t('configSections.todo.showAssignees')}
+            checked={c.showAssignees ?? true}
+            onChange={(v) => set({ showAssignees: v })}
+          />
+        </>
+      )}
+      {/* List and Board take ticks; Compact scrolls under a finger. */}
+      {READS_INTERACTIVE.has(view) && (
+        <Toggle
+          label={t('configSections.todo.interactive')}
+          checked={!!c.interactive}
+          onChange={(v) => set({ interactive: v })}
+        />
+      )}
 
       {/* Lists are family data: items get typed and ticked on /remote too. */}
       <PhoneSurfaceLinks context="lists" />
