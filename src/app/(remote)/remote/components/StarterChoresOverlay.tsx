@@ -10,7 +10,7 @@ import { groupMembers } from '@/lib/family-groups';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
-import { REMOTE_ACCENT, LABEL_STYLE } from './chore-form-styles';
+import { ACCENT_HEADING, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
@@ -119,7 +119,7 @@ export default function StarterChoresOverlay({
         {tModules('chore-chart.starter.intro')}
       </p>
 
-      <div style={LABEL_STYLE}>{tModules('chore-chart.starter.whoLabel')}</div>
+      <div style={FIELD_LABEL}>{tModules('chore-chart.starter.whoLabel')}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 6 }}>
         {groups.map((group) => {
           const on = assignment.assigneeGroupIds.includes(group.id);
@@ -179,7 +179,7 @@ export default function StarterChoresOverlay({
       {sections.map((view) => (
         <div key={view.section} data-testid={`starter-section-${view.section}`}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '14px 2px 8px' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: REMOTE_ACCENT }}>
+            <span style={ACCENT_HEADING}>
               {tModules(`chore-chart.starter.sections.${view.section}`)}
             </span>
             <span style={{ flex: 1, fontSize: 12, color: 'var(--hs-text-faint)' }}>

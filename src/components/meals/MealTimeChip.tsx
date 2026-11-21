@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslate } from '@/i18n';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
-import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/chore-form-styles';
+import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/remote-styles';
 
 /**
  * Inline time picker chip for a single planned meal.

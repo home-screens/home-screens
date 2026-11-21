@@ -1,38 +1,27 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
+import type { BackupReminderKind } from '@/lib/backup-reminder';
 
 interface BackupReminderBannerProps {
-  shouldShow: boolean;
+  /** Which message is up (`backupReminderKind`), or null for none. */
+  kind: BackupReminderKind | null;
   daysSinceBackup: number | null;
   busy: boolean;
-  /** The last backup went without the family's icons; ask for another. */
-  iconsLeftOut?: boolean;
-  /** The last backup went without the library pictures; ask for another. */
-  picturesLeftOut?: boolean;
-  /**
-   * Automatic backups stopped working. The phone cannot fix that (they are
-   * set up in the editor), so the banner says where to look and offers no
-   * button to a place it cannot go.
-   */
-  autoFailed?: 'backup' | 'offsite' | null;
   onBackup: () => void;
   onDismiss: () => void;
 }
 
 export default function BackupReminderBanner({
-  shouldShow,
+  kind,
   daysSinceBackup,
   busy,
-  iconsLeftOut = false,
-  picturesLeftOut = false,
-  autoFailed = null,
   onBackup,
   onDismiss,
 }: BackupReminderBannerProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
-  if (!shouldShow) return null;
+  if (!kind) return null;
 
   // Pluralize via discrete keys so each locale picks the form it needs
   // (English: 1 day / 2 days; German: 1 Tag / 2 Tagen). `daysSinceBackup`
@@ -40,14 +29,22 @@ export default function BackupReminderBanner({
   // the parent only renders when it has a real count, so default to 0
   // for the rare null case.
   const days = daysSinceBackup ?? 0;
-  const message = autoFailed === 'backup'
+  // Automatic backups that stopped working are fixed in the editor, where
+  // they are set up, so the banner says where to look and offers no button
+  // to a place the phone cannot go.
+  const autoFailed = kind === 'autoFailed' || kind === 'autoNotSent';
+  const message = kind === 'autoFailed'
     ? t('backupReminder.autoFailed')
-    : autoFailed === 'offsite'
+    : kind === 'autoNotSent'
     ? t('backupReminder.autoNotSent')
-    : iconsLeftOut
+    : kind === 'iconsLeftOut'
     ? tCore('customIcons.backup.leftOut')
-    : picturesLeftOut
+    : kind === 'picturesLeftOut'
     ? tCore('pictureBackup.leftOut')
+    // `overdue`, and `autoLocalOnly` too: with automatic backups on but no
+    // copy off the hub, the editor points at the storage folder to set up.
+    // The phone cannot do that, but its Back up button downloads a copy,
+    // which is a copy off the hub, so it keeps the plain "N days ago".
     : days === 1
     ? t('backupReminder.daysAgoSingular', { n: days })
     : t('backupReminder.daysAgoPlural', { n: days });

@@ -8,8 +8,8 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { useTranslate } from '@/i18n';
 import { useHouseholdNow } from '../household-clock';
-import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { memberInitials } from '@/lib/family-avatar';
+import MemberPills from './MemberPills';
+import { GROUP_HEADING } from './remote-styles';
 
 interface LedgerAnswer {
   rows: TicketLedgerRow[];
@@ -95,34 +95,7 @@ export default function TicketsFeed({
   return (
     <div data-testid="tickets-feed">
       {showMemberPicker && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '4px 0 12px' }}>
-          {members.map((m) => {
-            const isActive = m.id === memberId;
-            return (
-              <button
-                key={m.id}
-                className="press-scale"
-                onClick={() => onSelectMember(m.id)}
-                aria-pressed={isActive}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', minHeight: 44, borderRadius: 999,
-                  border: `2px solid ${isActive ? m.color : 'transparent'}`,
-                  background: isActive ? `color-mix(in srgb, ${m.color} 15%, transparent)` : 'var(--hs-bg-card)',
-                  color: isActive ? m.color : 'var(--hs-text-muted)', fontSize: 13, fontWeight: 500, cursor: 'pointer', flexShrink: 0, maxWidth: '100%',
-                }}
-              >
-                {m.emoji ? (
-                  <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                    <ChoreIcon value={m.emoji} size={18} color={isActive ? m.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{memberInitials(m.name)}</span>} />
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{memberInitials(m.name)}</span>
-                )}
-                <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        <MemberPills members={members} selectedId={memberId} onSelect={onSelectMember} padding="4px 0 12px" />
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 6 }}>
@@ -149,7 +122,7 @@ export default function TicketsFeed({
 
       {groups.map((group) => (
         <div key={group.bucket}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--hs-text-faint)', padding: '12px 0 6px' }}>
+          <div style={{ ...GROUP_HEADING, padding: '12px 0 6px' }}>
             {t(`rewardsView.tickets.bucket.${group.bucket}`)}
           </div>
           {group.rows.map((row) => {

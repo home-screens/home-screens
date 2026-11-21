@@ -7,7 +7,7 @@ import { formatQuickName, formatRemaining } from '@/components/display/timer-vie
 import type { Routine, TimerView } from '@/types/timers';
 import { useDisplayTarget } from '../display-target';
 import { useTimersData } from '../hooks/useTimersData';
-import { DEFAULT_TIMER_SOUND } from '@/lib/timer-logic';
+import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, secondsFromFields } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
 import RoutineFormOverlay from './RoutineFormOverlay';
 import TimerViewThumb from './TimerViewThumb';
@@ -49,15 +49,7 @@ export default function TimersTab() {
   const [customMinutes, setCustomMinutes] = useState('');
   const [customSeconds, setCustomSeconds] = useState('');
 
-  // Empty fields count as 0, mirroring the routine step editor.
-  const customTotalSec = (() => {
-    const minutes = customMinutes === '' ? 0 : Number(customMinutes);
-    const seconds = customSeconds === '' ? 0 : Number(customSeconds);
-    if (!Number.isInteger(minutes) || !Number.isInteger(seconds)) return null;
-    if (minutes < 0 || minutes > 240 || seconds < 0 || seconds > 59) return null;
-    const total = minutes * 60 + seconds;
-    return total >= 5 && total <= MAX_QUICK_SEC ? total : null;
-  })();
+  const customTotalSec = secondsFromFields(customMinutes, customSeconds, { min: MIN_STEP_SEC, max: MAX_QUICK_SEC });
   // Starting while another session runs replaces it (one global session) —
   // hold the start behind a confirm so a kitchen quick timer can't silently
   // kill a running bedroom routine.

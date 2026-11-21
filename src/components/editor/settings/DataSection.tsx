@@ -20,10 +20,11 @@ import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModa
 import AutoBackupSection, { type AutoCopyRestore } from '@/components/editor/settings/AutoBackupSection';
 import { SettingsPanel, SettingsPanelPart } from '@/components/editor/settings/shared/SettingsPanel';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
+import { BACKUP_REMINDER_DEFAULTS, resolveBackupReminder } from '@/lib/backup-reminder';
+import { lacksCustomIcons, summarizeBundle } from '@/lib/backup-summary';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
 import { attachCustomIcons, fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
-import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import { formatIconBytes } from '@/lib/custom-icons';
 import {
   fetchPictureBackupSummary,
   getPictureBackupChoice,
@@ -258,11 +259,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   }, [t]);
 
   const handleReminderChange = useCallback((updates: Partial<BackupReminderSettings>) => {
-    const current: BackupReminderSettings = {
-      enabled: reminder?.enabled ?? false,
-      intervalDays: reminder?.intervalDays ?? 7,
-      ...updates,
-    };
+    const current: BackupReminderSettings = { ...resolveBackupReminder(reminder), ...updates };
     updateSettings({ backupReminder: current });
     saveConfig();
   }, [reminder, updateSettings, saveConfig]);
@@ -474,7 +471,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       try {
         const staged = await stageZipBackup(file, editorFetch);
         bundle = { _archive: staged.id };
-        lacksIcons = staged.usesCustomIcons && !staged.hasCustomIcons;
+        lacksIcons = lacksCustomIcons(staged);
         hasCredentials = staged.hasCredentials;
         credentialsEncrypted = staged.credentialsEncrypted;
         if (staged.pictures.count > 0) {
@@ -505,9 +502,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
         return;
       }
-      lacksIcons = bundle.customIcons === undefined && collectCustomIconIds(bundle).size > 0;
-      hasCredentials = bundle.credentials !== undefined;
-      credentialsEncrypted = hasCredentials && isEncryptedEnvelope(bundle.credentials);
+      const summary = summarizeBundle(bundle, null);
+      lacksIcons = lacksCustomIcons(summary);
+      hasCredentials = summary.hasCredentials;
+      credentialsEncrypted = summary.credentialsEncrypted;
     }
 
     // A backup made with its pictures left out, from a household that used
@@ -797,7 +795,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                 <label className="flex items-center justify-between gap-2" data-field-id="data.backupReminderInterval">
                   <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
                   <select
-                    value={reminder.intervalDays ?? 7}
+                    value={reminder.intervalDays ?? BACKUP_REMINDER_DEFAULTS.intervalDays}
                     onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
                     className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
                   >

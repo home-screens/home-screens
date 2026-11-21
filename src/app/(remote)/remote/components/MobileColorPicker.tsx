@@ -3,7 +3,7 @@
 import { Plus } from 'lucide-react';
 import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
 import { useTranslate } from '@/i18n';
-import { LABEL_STYLE } from './chore-form-styles';
+import { FIELD_LABEL } from './remote-styles';
 
 export default function MobileColorPicker({
   value,
@@ -16,7 +16,7 @@ export default function MobileColorPicker({
   const isPreset = MEMBER_COLORS.some((color) => color === value);
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={LABEL_STYLE}>{t('mobileColorPicker.colorLabel')}</div>
+      <div style={FIELD_LABEL}>{t('mobileColorPicker.colorLabel')}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         {MEMBER_COLORS.map((c) => (
           <button

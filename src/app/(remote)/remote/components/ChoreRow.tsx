@@ -6,6 +6,7 @@ import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { useLongPress } from '@/hooks/useLongPress';
 import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useTranslate } from '@/i18n';
+import { ticketWords } from './ticket-words';
 
 /** Minimal shape the row renders from — the parent's assignment carries more fields. */
 export interface ChoreRowAssignment {
@@ -238,9 +239,7 @@ export default function ChoreRow({
             opacity: done ? 0.3 : 1,
           }}
         >
-          {assignment.points === 1
-            ? t('choresTab.ticketCountSingular', { n: assignment.points })
-            : t('choresTab.ticketCountPlural', { n: assignment.points })}
+          {ticketWords(t, assignment.points, 'choresTab')}
         </span>
       )}
     </>

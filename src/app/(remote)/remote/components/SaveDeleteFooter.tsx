@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { withAlpha } from '@/lib/hex-color';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 
 interface SaveDeleteFooterProps {
   saveLabel: string;

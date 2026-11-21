@@ -22,7 +22,7 @@ import { useCopyTime } from '@/components/meals/useCopyTime';
 import { mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
 import { openOutside } from './meals-shared';
 import { shareOrCopyText } from './share-text';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 
 /** The warning colour of the theme in use: amber in the dark theme, a darker amber that reads on the light one. */
 const WARN = 'var(--hs-warning)';

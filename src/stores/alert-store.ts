@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { AlertType } from '@/types/config';
+import { defaultAlertDurationMs } from '@/lib/alert-defaults';
 
 export interface DisplayAlert {
   id: string;
@@ -15,13 +16,6 @@ export interface DisplayAlert {
    */
   wake?: boolean;
 }
-
-/** Per-type default durations (ms). Urgent alerts are persistent by default. */
-const TYPE_DEFAULTS: Record<AlertType, number> = {
-  info: 10_000,
-  warning: 30_000,
-  urgent: 0, // 0 = persistent until dismissed
-};
 
 interface AlertState {
   alerts: DisplayAlert[];
@@ -84,8 +78,7 @@ export const useAlertStore = create<AlertState>((set, get) => ({
   showAlert: (alert) => {
     if (!get().enabled) return;
     const id = `alert-${Date.now()}-${++counter}`;
-    const configDefault = get().defaultDuration;
-    const duration = alert.duration ?? (configDefault > 0 ? configDefault : TYPE_DEFAULTS[alert.type]);
+    const duration = alert.duration ?? defaultAlertDurationMs(alert.type, get().defaultDuration);
     const newAlert: DisplayAlert = {
       ...alert,
       id,

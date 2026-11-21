@@ -24,7 +24,7 @@ import AtHomePill from './AtHomePill';
 import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMealieStatus';
 import { MealVotesProvider } from '@/components/meals/meal-votes';
 import { DinnerRatingSheet } from './MealRatingSheet';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { isoWeekday } from '@/lib/iso-date';
 
 export default function MealsTab() {

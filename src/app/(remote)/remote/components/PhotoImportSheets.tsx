@@ -7,7 +7,7 @@ import { useLibraryImportJob, type LibraryImportJobStatus } from '@/hooks/useLib
 import { useGooglePickerSession } from '@/hooks/useGooglePickerSession';
 import { useICloudImport } from '@/hooks/useICloudImport';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
+import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD } from './remote-styles';
 import type { PhotoKind } from './photo-words';
 
 /** The kinds a finished import brought in, for "They'll show on Kitchen". */

@@ -12,8 +12,8 @@ import { dinnerRatingChoices, dinnerRatingMeals } from '@/lib/meal-ratings';
 import { withAlpha } from '@/lib/hex-color';
 import { FamilyMealSummary, useDinnerRatingNote, useMealVoting } from '@/components/meals/meal-votes';
 import BottomSheet from './BottomSheet';
-import { REMOTE_ACCENT } from './chore-form-styles';
-import { INPUT_STYLE, type MealsWeekDay } from './meals-shared';
+import { COMPACT_FIELD, REMOTE_ACCENT } from './remote-styles';
+import { type MealsWeekDay } from './meals-shared';
 
 const STARS = [1, 2, 3, 4, 5] as const;
 const NOTE: CSSProperties = { fontSize: 14, lineHeight: 1.45, color: 'var(--hs-text-muted)', margin: 0 };
@@ -207,7 +207,7 @@ export function DinnerRatingSheet({ weekDates, todayISO, nowMinutes, plan, meals
         <select
           value={date}
           onChange={(e) => setPicked(e.target.value)}
-          style={{ ...INPUT_STYLE, display: 'block', minHeight: 44, marginTop: 6, background: 'var(--hs-bg-body)' }}
+          style={{ ...COMPACT_FIELD, display: 'block', minHeight: 44, marginTop: 6, background: 'var(--hs-bg-body)' }}
         >
           {choices.days.map((day) => (
             <option key={day} value={day}>

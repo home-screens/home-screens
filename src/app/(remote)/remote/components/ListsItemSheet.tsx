@@ -7,17 +7,7 @@ import type { FamilyMember } from '@/types/family';
 import { classifyDue } from '@/lib/todo-due-labels';
 import { addIsoDays } from '@/lib/iso-date';
 import BottomSheet from './BottomSheet';
-import {
-  DANGER_BUTTON,
-  GHOST_BUTTON,
-  HELPER_TEXT,
-  PRIMARY_BUTTON,
-  SEGMENT_ROW,
-  SHEET_FIELD,
-  SHEET_LABEL,
-  personChipStyle,
-  segmentStyle,
-} from './lists-styles';
+import { DANGER_BUTTON, GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, personChipStyle, segmentStyle } from './remote-styles';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 type DueMode = 'none' | 'today' | 'tomorrow' | 'pick';

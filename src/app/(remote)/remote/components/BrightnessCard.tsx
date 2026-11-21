@@ -6,15 +6,19 @@ import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
 import { usePendingCommand } from '../hooks';
 import { CONFIRM_TIMEOUT_MS } from '@/lib/display-liveness';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { displayCommandRequest } from '@/lib/display-dispatch';
+import { REMOTE_ACCENT } from './remote-styles';
 
 interface BrightnessCardProps {
   /**
-   * Brightness each online target display last reported. The slider seeds
-   * from these instead of assuming 100%: reopening the remote after setting
-   * 40% must show 40%, and a "little nudge" must not jump the wall to 95%.
+   * The brightness the target displays that are answering all report, or
+   * null when it is not known (`agreedBrightness`): in All mode two displays
+   * at different levels read as "--" rather than either number. The slider
+   * seeds from this instead of assuming 100%: reopening the remote after
+   * setting 40% must show 40%, and a "little nudge" must not jump the wall
+   * to 95%.
    */
-  reportedValues: number[];
+  reported: number | null;
   /** No online display to talk to. */
   disabled: boolean;
   /** Fires after a value is sent, so the parent can speed up its status polls. */
@@ -23,7 +27,7 @@ interface BrightnessCardProps {
   onNoConfirm: (value: number) => void;
 }
 
-export default function BrightnessCard({ reportedValues, disabled, onSent, onNoConfirm }: BrightnessCardProps) {
+export default function BrightnessCard({ reported, disabled, onSent, onNoConfirm }: BrightnessCardProps) {
   const t = useTranslate('remote');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { target } = useDisplayTarget();
@@ -31,18 +35,11 @@ export default function BrightnessCard({ reportedValues, disabled, onSent, onNoC
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
 
-  // One agreed value across the targets, or unknown. In All mode two
-  // displays at different levels read as "--" rather than either number.
-  const reported = reportedValues.length > 0 && reportedValues.every((v) => v === reportedValues[0])
-    ? reportedValues[0]
-    : null;
-
-  // Settle the pending value once every target reports it.
+  // Settle the pending value once every answering target reports it.
   const { expected, settle } = pending;
   useEffect(() => {
-    if (expected === null) return;
-    if (reportedValues.length > 0 && reportedValues.every((v) => v === expected)) settle();
-  }, [reportedValues, expected, settle]);
+    if (expected !== null && reported === expected) settle();
+  }, [reported, expected, settle]);
 
   const shown = expected ?? reported;
   const known = shown !== null;
@@ -54,11 +51,8 @@ export default function BrightnessCard({ reportedValues, disabled, onSent, onNoC
     pending.start(value);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      editorFetch('/api/display/brightness', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value, ...(target ? { displayId: target } : {}) }),
-      }).catch(() => {});
+      const { url, init } = displayCommandRequest('brightness', target, { value });
+      editorFetch(url, init).catch(() => {});
       onSent();
     }, 300);
   }, [target, pending, onSent]);

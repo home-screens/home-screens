@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { withDisplayId } from '@/lib/display-dispatch';
 import { useTranslate } from '@/i18n';
 import { useCommand, usePendingCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
@@ -47,14 +48,15 @@ export default function ProfileSwitcher({ profiles, activeProfile, scheduled, di
     // is the scheduled profile, not the saved pick, so every tap saves one:
     // tapping the scheduled chip keeps that profile once its schedule ends.
     if (profileId === selected && scheduledName === undefined) return;
-    // Profile switching doesn't broadcast — when targeting "all" we fall back
-    // to the global profile (no displayId) so every display follows it.
+    // Profile switching doesn't broadcast: with "all" picked the global
+    // profile is set (no displayId) and every display follows it. That is
+    // why this is not `displayCommandRequest`, which would send "all".
     const displayId = target && target !== 'all' ? target : undefined;
     const res = await execute(() =>
       editorFetch('/api/display/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile: profileId, ...(displayId ? { displayId } : {}) }),
+        body: JSON.stringify(withDisplayId({ profile: profileId }, displayId)),
       }),
     );
     if (!res) {

@@ -7,7 +7,7 @@ import type { MealieProblem, MealieStatus } from '@/lib/meal-sources';
 import { useCopyTime, type CopyClock } from '@/components/meals/useCopyTime';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-clock';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 /** The household's day, zone and clock, which the phone says a copy's time in (`useCopyTime`). */

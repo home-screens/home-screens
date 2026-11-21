@@ -6,9 +6,8 @@ import { mealieProblem } from '@/lib/meal-sources';
 import { canChooseMealiePlan } from '@/lib/meal-settings';
 import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
-import { SECTION_HEADING_STYLE } from './meals-shared';
 import { mealieProblemWords } from './MealsMealieStatus';
-import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
+import { REMOTE_ACCENT, SECTION_HEADING, selectedPillStyle } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsSettingsPlanSourceSectionProps {
@@ -102,7 +101,7 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
 
   return (
     <section style={{ marginBottom: 24 }} data-testid="meals-plan-source">
-      <h4 style={SECTION_HEADING_STYLE}>{t('mealsSettings.planSource.heading')}</h4>
+      <h4 style={SECTION_HEADING}>{t('mealsSettings.planSource.heading')}</h4>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <button type="button" onClick={() => onChange(undefined)} aria-pressed={!onMealie} style={option(!onMealie, false)}>
           {t('mealsSettings.planSource.homeScreens')}

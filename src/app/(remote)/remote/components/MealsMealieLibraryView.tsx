@@ -19,7 +19,8 @@ import MealThumb from './MealThumb';
 import RecipeWallButton from './RecipeWallButton';
 import { mealieSaveFailedWords, mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
-import { CARD_STYLE, formatShownMinutes, openOutside } from './meals-shared';
+import { formatShownMinutes, openOutside } from './meals-shared';
+import { CARD } from './remote-styles';
 
 /**
  * The Library while the plan lives in Mealie: a window onto Mealie's recipes,
@@ -111,7 +112,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
           key={meal.id}
           data-testid="mealie-library-card"
           style={{
-            ...CARD_STYLE,
+            ...CARD,
             position: 'relative',
             display: 'flex',
             alignItems: 'center',

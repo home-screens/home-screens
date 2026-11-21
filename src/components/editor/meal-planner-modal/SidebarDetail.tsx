@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { MealRatingControl } from './MealRatingControl';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
-import { MEAL_TAGS, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { MEAL_TAGS, MEAL_DIFFICULTIES, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { searchFoodEmojis } from '@/lib/meal-emoji-words';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
@@ -224,7 +224,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <div>
             <label className={labelClass}>{t('mealPlannerModal.detail.difficultyLabel')}</label>
             <div className="flex gap-1">
-              {(['easy', 'medium', 'hard'] as const).map((level) => {
+              {MEAL_DIFFICULTIES.map((level) => {
                 const isActive = difficulty === level;
                 const colorMap = {
                   easy: 'border-emerald-500 bg-emerald-500/8 text-emerald-500',

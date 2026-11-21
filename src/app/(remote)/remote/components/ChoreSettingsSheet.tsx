@@ -6,7 +6,7 @@ import { GRAB_HOLD_CHOICES, GRAB_LIMIT_CHOICES } from '@/lib/chore-bonus';
 import { useTranslate } from '@/i18n';
 import BottomSheet from './BottomSheet';
 import { ChoiceList } from './chore-choice-controls';
-import { REMOTE_ACCENT, LABEL_STYLE } from './chore-form-styles';
+import { ACCENT_HEADING, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
 
 /**
  * The household's chore settings, from the Manage tab. Works on a draft and
@@ -49,11 +49,11 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
 
   return (
     <BottomSheet title={t('choreSettings.title')} onClose={onClose} testId="chore-settings-sheet">
-      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: REMOTE_ACCENT, margin: '0 0 12px' }}>
+      <div style={{ ...ACCENT_HEADING, margin: '0 0 12px' }}>
         {t('choreSettings.grabbingHeading')}
       </div>
 
-      <div style={LABEL_STYLE}>{tModules('chore-chart.settings.grabLimitLabel')}</div>
+      <div style={FIELD_LABEL}>{tModules('chore-chart.settings.grabLimitLabel')}</div>
       <ChoiceList<string>
         testId="chore-settings-limit"
         label={tModules('chore-chart.settings.grabLimitLabel')}
@@ -66,7 +66,7 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
         }))}
       />
 
-      <div style={{ ...LABEL_STYLE, marginTop: 18 }}>{tModules('chore-chart.settings.grabHoldLabel')}</div>
+      <div style={{ ...FIELD_LABEL, marginTop: 18 }}>{tModules('chore-chart.settings.grabHoldLabel')}</div>
       <ChoiceList<ChoreGrabHold>
         testId="chore-settings-hold"
         label={tModules('chore-chart.settings.grabHoldLabel')}

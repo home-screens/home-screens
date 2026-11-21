@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCommandRequest } from '@/lib/display-dispatch';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
@@ -66,10 +67,8 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
     setClearing(true);
     setClearStatus(null);
     try {
-      const url = displayId
-        ? `/api/display/clear-alerts?display=${encodeURIComponent(displayId)}`
-        : '/api/display/clear-alerts';
-      const res = await editorFetch(url, { method: 'POST' });
+      const { url, init } = displayCommandRequest('clear-alerts', displayId, undefined, 'POST');
+      const res = await editorFetch(url, init);
       setClearStatus({ kind: res.ok ? 'success' : 'error' });
       setTimeout(() => setClearStatus(null), 2000);
     } catch (err) {

@@ -4,9 +4,8 @@ import { useState } from 'react';
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
 import type { MealFormState } from '../hooks/useMealForm';
-import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
 import MealRateButton from './MealRatingSheet';
-import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
+import { MEAL_TAGS, MEAL_DIFFICULTIES, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import { GROCERY_CATEGORY_ORDER, groceryAisle } from '@/lib/grocery-utils';
 import { emojiGridWithChosen } from '@/lib/icon-value';
 import { useTranslate } from '@/i18n';
@@ -16,7 +15,7 @@ import { useFormDirty } from '@/hooks/useFormDirty';
 import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
 import CustomIconsOverlay from './CustomIconsOverlay';
 import { withAlpha } from '@/lib/hex-color';
-import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
+import { COMPACT_FIELD, COMPACT_LABEL, REMOTE_ACCENT, selectedPillStyle } from './remote-styles';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -105,20 +104,20 @@ export default function MealFormOverlay({
       footer={footer}
     >
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.nameLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.nameLabel')}</div>
         <input
           ref={nameInputRef}
           type="text"
           value={formName}
           onChange={(e) => setFormName(e.target.value)}
           placeholder={t('mealForm.namePlaceholder')}
-          style={INPUT_STYLE}
+          style={COMPACT_FIELD}
           autoFocus
         />
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={{ ...LABEL_STYLE, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <div style={{ ...COMPACT_LABEL, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <span>{tCore('actions.icon')}</span>
           <button
             type="button"
@@ -158,42 +157,42 @@ export default function MealFormOverlay({
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
-          <div style={LABEL_STYLE}>{t('mealForm.prepTimeLabel')}</div>
+          <div style={COMPACT_LABEL}>{t('mealForm.prepTimeLabel')}</div>
           <input
             type="number"
             value={formPrepTime}
             onChange={(e) => setFormPrepTime(e.target.value ? Number(e.target.value) : '')}
             placeholder={t('mealForm.minPlaceholder')}
-            style={INPUT_STYLE}
+            style={COMPACT_FIELD}
           />
         </div>
         <div>
-          <div style={LABEL_STYLE}>{t('mealForm.cookTimeLabel')}</div>
+          <div style={COMPACT_LABEL}>{t('mealForm.cookTimeLabel')}</div>
           <input
             type="number"
             value={formCookTime}
             onChange={(e) => setFormCookTime(e.target.value ? Number(e.target.value) : '')}
             placeholder={t('mealForm.minPlaceholder')}
-            style={INPUT_STYLE}
+            style={COMPACT_FIELD}
           />
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
-          <div style={LABEL_STYLE}>{t('mealForm.servingsLabel')}</div>
+          <div style={COMPACT_LABEL}>{t('mealForm.servingsLabel')}</div>
           <input
             type="number"
             value={formServings}
             onChange={(e) => setFormServings(e.target.value ? Number(e.target.value) : '')}
             placeholder={t('mealForm.servingsPlaceholder')}
-            style={INPUT_STYLE}
+            style={COMPACT_FIELD}
           />
         </div>
         <div>
-          <div style={LABEL_STYLE}>{t('mealForm.difficultyLabel')}</div>
+          <div style={COMPACT_LABEL}>{t('mealForm.difficultyLabel')}</div>
           <div style={{ display: 'flex', gap: 4 }}>
-            {(['easy', 'medium', 'hard'] as const).map((d) => {
+            {MEAL_DIFFICULTIES.map((d) => {
               const hex = DIFFICULTY_COLORS[d];
               const isSelected = formDifficulty === d;
               return (
@@ -224,7 +223,7 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.kindLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.kindLabel')}</div>
         <div role="radiogroup" aria-label={t('mealForm.kindLabel')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {COURSE_KINDS.map((kind) => {
             const isSelected = formCategory === kind;
@@ -254,7 +253,7 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.tagsLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.tagsLabel')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {MEAL_TAGS.map((tag) => {
             const isActive = formTags.some((tt) => normalizeTag(tt) === tag);
@@ -285,7 +284,7 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.ingredientsLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.ingredientsLabel')}</div>
         {formIngredients.map((ing: MealIngredient, idx: number) => (
           <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
             <input
@@ -298,7 +297,7 @@ export default function MealFormOverlay({
                 next[idx] = { ...next[idx], name: e.target.value };
                 setFormIngredients(next);
               }}
-              style={{ ...INPUT_STYLE, flex: 2 }}
+              style={{ ...COMPACT_FIELD, flex: 2 }}
             />
             <input
               type="text"
@@ -309,7 +308,7 @@ export default function MealFormOverlay({
                 next[idx] = { ...next[idx], amount: e.target.value };
                 setFormIngredients(next);
               }}
-              style={{ ...INPUT_STYLE, flex: 1 }}
+              style={{ ...COMPACT_FIELD, flex: 1 }}
             />
             {/* The aisle the grocery list files it under: the one picked, else
                 the one its name suggests. "Other" on every row read as if the
@@ -322,7 +321,7 @@ export default function MealFormOverlay({
                 setFormIngredients(next);
               }}
               style={{
-                ...INPUT_STYLE,
+                ...COMPACT_FIELD,
                 flex: 1,
                 appearance: 'none' as const,
                 paddingRight: 8,
@@ -382,25 +381,25 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.recipeUrlLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.recipeUrlLabel')}</div>
         <input
           type="url"
           value={formRecipeUrl}
           onChange={(e) => setFormRecipeUrl(e.target.value)}
           placeholder={t('mealForm.recipeUrlPlaceholder')}
-          style={INPUT_STYLE}
+          style={COMPACT_FIELD}
         />
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.notesLabel')}</div>
+        <div style={COMPACT_LABEL}>{t('mealForm.notesLabel')}</div>
         <textarea
           value={formNotes}
           onChange={(e) => setFormNotes(e.target.value)}
           placeholder={t('mealForm.notesPlaceholder')}
           rows={3}
           style={{
-            ...INPUT_STYLE,
+            ...COMPACT_FIELD,
             resize: 'none' as const,
             minHeight: 80,
           }}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Images, Pause, Play } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCommandRequest } from '@/lib/display-dispatch';
 import type { SlideshowAction } from '@/components/modules/shared/slideshow-commands';
 import { useDisplayTarget } from '../display-target';
 
@@ -32,11 +33,8 @@ export default function SlideshowControls({ moduleTypes, screenKey, disabled }: 
 
   const send = (action: SlideshowAction) => {
     for (const moduleType of moduleTypes) {
-      editorFetch('/api/display/module-command', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ module: moduleType, action, ...(target ? { displayId: target } : {}) }),
-      }).catch(() => {});
+      const { url, init } = displayCommandRequest('module-command', target, { module: moduleType, action });
+      editorFetch(url, init).catch(() => {});
     }
   };
 

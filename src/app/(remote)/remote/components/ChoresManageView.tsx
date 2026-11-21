@@ -14,12 +14,12 @@ import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { buildChoreAssigneeLine, buildChoreSummaryLine, getChoreRotationSummaryKey, grabRulesSummary } from '@/components/modules/chore-chart/chore-form-presentation';
-import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
+import { DEFAULT_CHORE_ICON, regularBeforeBonus } from '@/lib/chore-constants';
 import { STARTER_CHORE_COUNT } from '@/lib/starter-chores';
 import FamilyManager from '@/components/family/FamilyManager';
 import ChoreFormOverlay from './ChoreFormOverlay';
 import StarterChoresOverlay from './StarterChoresOverlay';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { ACCENT_HEADING, REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 // ── Main Exported Component ───────────────────────────────────────
@@ -210,15 +210,15 @@ export default function ChoresManageView({
             </div>
           )}
 
-          {/* Bonus chores follow the regular ones under their own heading; the sort is stable. */}
-          {[...chores].sort((a, b) => Number(!!a.bonus) - Number(!!b.bonus)).map((chore, i, listed) => {
+          {/* Bonus chores follow the regular ones under their own heading. */}
+          {regularBeforeBonus(chores).map((chore, i, listed) => {
             const rotationKey = getChoreRotationSummaryKey(chore, groups);
             const rotationLabel = rotationKey ? tModules(rotationKey) : null;
             return (
               <Fragment key={chore.id}>
               {chore.bonus && !listed[i - 1]?.bonus && (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: REMOTE_ACCENT, margin: '16px 0 8px' }}>
+                  <div style={{ ...ACCENT_HEADING, display: 'flex', alignItems: 'center', gap: 6, margin: '16px 0 8px' }}>
                     <span aria-hidden>✋</span>{tModules('chore-chart.bonus.heading')}
                   </div>
                   {/* The household's grab rules, where the chores they govern are,

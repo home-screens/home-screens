@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { useTranslate } from '@/i18n';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsWeekNavProps {

@@ -13,7 +13,7 @@ import AddBar, { ADD_BAR_HEIGHT } from './AddBar';
 import ConfirmSheet from './ConfirmSheet';
 import NotesSheet from './NotesSheet';
 import { readRememberedAuthor, rememberAuthor } from './notes-author';
-import { DANGER_BUTTON, GHOST_BUTTON } from './lists-styles';
+import { DANGER_BUTTON, GHOST_BUTTON } from './remote-styles';
 import { NOTE_ICON_PATH, NoteGlyph } from '@/components/notes/NoteGlyph';
 import DayNotesPage from './DayNotesPage';
 import TabNotSetUp from './TabNotSetUp';

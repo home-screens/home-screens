@@ -16,15 +16,17 @@ import { ChevronDown, ChevronUp, ListTodo, Plus, Settings } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList } from '@/types/todos';
 import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
+import { readRememberedJson, rememberJson } from '@/lib/device-memory';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useTodoLists } from '../hooks/useTodoLists';
 import ListsItemRow from './ListsItemRow';
 import ListsItemSheet from './ListsItemSheet';
 import { FamilySettingsView } from './SettingsSheet';
 import { useFamilyData } from '@/hooks/useFamilyData';
-import ListsListSheet, { weekdayNames } from './ListsListSheet';
+import ListsListSheet from './ListsListSheet';
 import ListsNewListSheet from './ListsNewListSheet';
 import AddBar, { ADD_BAR_HEIGHT } from './AddBar';
-import { HIT_TARGET, PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
+import { HIT_TARGET, PRIMARY_BUTTON, SHEET_FIELD } from './remote-styles';
 import { useHouseholdToday } from '../household-clock';
 import AtHomePill from './AtHomePill';
 
@@ -37,22 +39,8 @@ function nextListColor(lists: TodoList[]): string {
 }
 
 function readCollapsed(): Record<string, boolean> {
-  if (typeof window === 'undefined') return {};
-  try {
-    const raw = window.localStorage.getItem(DONE_COLLAPSED_KEY);
-    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, boolean>) : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeCollapsed(next: Record<string, boolean>): void {
-  try {
-    window.localStorage.setItem(DONE_COLLAPSED_KEY, JSON.stringify(next));
-  } catch {
-    /* private mode: the fold just does not stick */
-  }
+  const parsed = readRememberedJson(DONE_COLLAPSED_KEY);
+  return parsed && typeof parsed === 'object' ? (parsed as Record<string, boolean>) : {};
 }
 
 interface ListsTabProps {
@@ -105,7 +93,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
     if (!selectedList) return;
     setCollapsed((prev) => {
       const next = { ...prev, [selectedList.id]: !(prev[selectedList.id] === true) };
-      writeCollapsed(next);
+      rememberJson(DONE_COLLAPSED_KEY, next);
       return next;
     });
   }, [selectedList]);
@@ -137,7 +125,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
 
   const repeatText = (list: TodoList): string | null => {
     if (list.repeat === 'daily') return t('lists.allDone.daily');
-    if (list.repeat === 'weekly') return t('lists.allDone.weekly', { day: weekdayNames(locale)[list.repeatDay ?? 0] });
+    if (list.repeat === 'weekly') return t('lists.allDone.weekly', { day: getLocalizedDayNames(locale)[list.repeatDay ?? 0] });
     return null;
   };
 

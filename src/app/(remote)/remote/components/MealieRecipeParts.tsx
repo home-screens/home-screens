@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Heart, History, Search, X } from 'lucide-react';
 import type { MealieRecipeFilter } from '@/lib/mealie';
 import { useTranslate } from '@/i18n';
-import { selectedPillStyle } from './chore-form-styles';
+import { selectedPillStyle } from './remote-styles';
 
 /**
  * The pieces the recipe picker and the Library share while the plan lives in

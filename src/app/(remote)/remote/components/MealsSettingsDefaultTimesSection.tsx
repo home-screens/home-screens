@@ -3,8 +3,8 @@
 import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
-import { SECTION_HEADING_STYLE } from './meals-shared';
 import { withAlpha } from '@/lib/hex-color';
+import { SECTION_HEADING } from './remote-styles';
 
 interface MealsSettingsDefaultTimesSectionProps {
   enabledSlots: MealSlotType[];
@@ -28,7 +28,7 @@ export default function MealsSettingsDefaultTimesSection({
 
   return (
     <section>
-      <h4 style={SECTION_HEADING_STYLE}>
+      <h4 style={SECTION_HEADING}>
         {t('mealsSettings.defaultTimes.heading')}
       </h4>
       <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>

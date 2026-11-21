@@ -4,21 +4,23 @@ import { useEffect, useState } from 'react';
 import { Sunrise, Sun, Sunset, Clock, Hand, ChevronRight, Flame, Star } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreDefinition, ChoreTimeOfDay } from '@/types/config';
+import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
 import { completionKey } from '@/lib/chore-assignments';
 import { canPutBack, type BonusItem } from '@/lib/chore-bonus';
-import { memberInitials } from '@/lib/family-avatar';
 import type { RewardDefinition } from '@/lib/reward-data';
 import type { GoalProgress } from '@/lib/reward-rules';
 import { getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
+import { ticketWords } from './ticket-words';
+import MemberPills from './MemberPills';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoreHistoryBanner from './ChoreHistoryBanner';
 import ChoreRow, { type ChoreRowAssignment } from './ChoreRow';
 import BonusChoreRow from './BonusChoreRow';
 import DayCompleteSheet from './DayCompleteSheet';
 import type { ChoreRowNotice } from '../hooks/useChoreMarks';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { addIsoDays } from '@/lib/iso-date';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
@@ -28,7 +30,6 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   anytime: Clock,
 };
 
-const SECTIONS: readonly ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 /** "Show time of day" off: every chore in one list, no headings. */
 const ONE_LIST: readonly null[] = [null];
 
@@ -173,6 +174,11 @@ export default function ChoresTodayView({
     );
   };
 
+  const allDoneFor = (memberId: string): boolean => {
+    const stats = memberTabStats[memberId];
+    return (stats?.total ?? 0) > 0 && stats?.done === stats?.total;
+  };
+
   return (
     <>
       {isAdmin ? (
@@ -244,72 +250,17 @@ export default function ChoresTodayView({
       {/* Phones stack the member pills above the list; from 768px up the
           members become a left column and the chores take the rest. */}
       <div className="md:flex md:items-start md:gap-6">
-        <div
+        <MemberPills
+          members={members}
+          selectedId={selectedMemberId}
+          onSelect={onSelectMember}
           className="md:w-56 md:shrink-0 md:flex-col md:sticky md:top-4"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '12px 0' }}
-        >
-          {members.map((member) => {
-            const isActive = member.id === selectedMemberId;
-            const tabStats = memberTabStats[member.id];
-            const allDone = (tabStats?.total ?? 0) > 0 && tabStats?.done === tabStats?.total;
-            const initial = memberInitials(member.name);
-
-            return (
-              <button
-                key={member.id}
-                className="press-scale md:w-full"
-                onClick={() => onSelectMember(member.id)}
-                aria-label={
-                  allDone
-                    ? t('choresTab.memberAriaLabelAllDone', { name: member.name })
-                    : t('choresTab.memberAriaLabel', { name: member.name })
-                }
-                aria-pressed={isActive}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  // A fixed height: the ✓ that appears when someone finishes
-                  // is taller than the name, and grew the chip, moving the
-                  // whole list under a finger.
-                  height: 44,
-                  maxWidth: '100%',
-                  borderRadius: 999,
-                  border: `2px solid ${isActive ? member.color : 'transparent'}`,
-                  background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'var(--hs-bg-card)',
-                  color: isActive ? member.color : 'var(--hs-text-muted)',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  transition: 'all 0.15s',
-                }}
-              >
-                {member.emoji ? (
-                  <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                    <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{initial}</span>} />
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{initial}</span>
-                )}
-                {/* A very long name gets an ellipsis instead of pushing
-                    every other member off the screen. */}
-                <span
-                  style={{
-                    maxWidth: 140,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap' as const,
-                  }}
-                >
-                  {member.name}
-                </span>
-                {allDone && <span style={{ fontSize: 12, lineHeight: 1, marginLeft: -2, flexShrink: 0 }}>&#10003;</span>}
-              </button>
-            );
-          })}
-        </div>
+          pillClassName="md:w-full"
+          ariaLabel={(member) => (allDoneFor(member.id)
+            ? t('choresTab.memberAriaLabelAllDone', { name: member.name })
+            : t('choresTab.memberAriaLabel', { name: member.name }))}
+          trailing={(member) => allDoneFor(member.id) && <span style={{ fontSize: 12, lineHeight: 1, marginLeft: -2, flexShrink: 0 }}>&#10003;</span>}
+        />
 
         <div className="md:flex-1 md:min-w-0">
           {celebration && selectedMember && selectedMember.id === celebration.memberId && (
@@ -355,9 +306,7 @@ export default function ChoresTodayView({
                 >
                   <span aria-hidden="true">🎟</span>
                   <span>
-                    {balance === 1
-                      ? t('choresTab.ticketCountSingular', { n: balance })
-                      : t('choresTab.ticketCountPlural', { n: balance })}
+                    {ticketWords(t, balance, 'choresTab')}
                   </span>
                 </span>
               )}
@@ -446,7 +395,7 @@ export default function ChoresTodayView({
               </div>
             )}
 
-            {(showTimeOfDay ? SECTIONS : ONE_LIST).map((section) => {
+            {(showTimeOfDay ? CHORE_TIME_ORDER : ONE_LIST).map((section) => {
               // One list keeps the order it arrived in: morning first.
               const items = section === null ? assignments : assignments.filter((a) => a.timeOfDay === section);
               if (!items.length) return null;

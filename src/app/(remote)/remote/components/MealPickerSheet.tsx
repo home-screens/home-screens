@@ -13,17 +13,16 @@ import {
   pickerMealGroups,
 } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import Glyph from '@/components/ui/Glyph';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
+import TallSheet from './TallSheet';
 import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
 import { formatShownMinutes } from './meals-shared';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT, SECTION_HEADING } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealPickerSheetProps {
@@ -64,75 +63,52 @@ export default function MealPickerSheet(props: MealPickerSheetProps) {
   const { fromMealie, library, onClose, subtitle, target } = props;
   const t = useTranslate('remote');
   const title = useTitle(target);
-  const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
-  // The tap that picks a dish closes the picker: a second tap of a double
-  // tap must not land on the meal sheet under it ("Change the drink").
-  useSheetTapGuard();
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
-        data-testid="meal-picker"
-        onKeyDown={(e) => {
-          if (e.key !== 'Escape') return;
-          e.stopPropagation();
-          onClose();
-        }}
-        style={{
-          outline: 'none',
-          position: 'relative',
-          background: 'var(--hs-bg-body)',
-          borderRadius: '16px 16px 0 0',
-          // Mealie's list fills in as it answers, and the family's meals
-          // narrow as words are typed: a fixed height keeps the sheet (and
-          // the box under the finger) from jumping while they do.
-          ...(fromMealie || library.length > 0 ? { height: '85vh' } : { maxHeight: '60vh' }),
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', flex: 'none' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
-        </div>
-        {fromMealie ? (
-          <>
-            <div style={{ padding: '4px 16px 12px', borderBottom: '1px solid var(--hs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flex: 'none' }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', lineHeight: '24px' }}>{title}</div>
-                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, lineHeight: '18px' }}>{subtitle}</div>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  minWidth: 44, minHeight: 44, padding: '4px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8,
-                  border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)',
-                  cursor: 'pointer', fontFamily: 'inherit', flex: 'none',
-                }}
-              >
-                {t('mealPicker.cancel')}
-              </button>
+    <TallSheet
+      label={title}
+      onClose={onClose}
+      zIndex={110}
+      testId="meal-picker"
+      // Mealie's list fills in as it answers, and the family's meals narrow
+      // as words are typed: a fixed height keeps the sheet (and the box
+      // under the finger) from jumping while they do.
+      size={fromMealie || library.length > 0 ? { height: '85vh' } : { maxHeight: '60vh' }}
+      // The tap that picks a dish closes the picker: a second tap of a
+      // double tap must not land on the meal sheet under it ("Change the drink").
+      guardTaps
+    >
+      {fromMealie ? (
+        <>
+          <div style={{ padding: '4px 16px 12px', borderBottom: '1px solid var(--hs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flex: 'none' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', lineHeight: '24px' }}>{title}</div>
+              <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, lineHeight: '18px' }}>{subtitle}</div>
             </div>
-            <MealieBody {...props} />
-          </>
-        ) : (
-          <>
-            <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)', flex: 'none' }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{title}</div>
-              <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>{subtitle}</div>
-            </div>
-            <LocalBody {...props} />
-          </>
-        )}
-      </div>
-    </div>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                minWidth: 44, minHeight: 44, padding: '4px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8,
+                border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)',
+                cursor: 'pointer', fontFamily: 'inherit', flex: 'none',
+              }}
+            >
+              {t('mealPicker.cancel')}
+            </button>
+          </div>
+          <MealieBody {...props} />
+        </>
+      ) : (
+        <>
+          <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)', flex: 'none' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{title}</div>
+            <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>{subtitle}</div>
+          </div>
+          <LocalBody {...props} />
+        </>
+      )}
+    </TallSheet>
   );
 }
 
@@ -397,7 +373,7 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
     );
   };
   const groupHeading = (text: string) => (
-    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--hs-text-faint)', padding: '12px 0 2px' }}>
+    <div style={{ ...SECTION_HEADING, margin: 0, padding: '12px 0 2px' }}>
       {text}
     </div>
   );

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useSheetDialog } from '@/hooks/useSheetDialog';
 import { useTranslate } from '@/i18n';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { CELEBRATION_MS } from '@/lib/chore-celebration';
@@ -46,7 +46,7 @@ export default function DayCompleteSheet({
 }) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
-  const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
+  const dialog = useSheetDialog<HTMLDivElement>({ onClose });
 
   useEffect(() => {
     const id = setTimeout(onClose, CELEBRATION_MS);
@@ -63,13 +63,9 @@ export default function DayCompleteSheet({
       onClick={modal ? onClose : undefined}
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
+        {...dialog}
         aria-label={t('choresTab.dayComplete.title', { name: member.name })}
-        tabIndex={-1}
         className="hs-pop-in"
-        onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative', overflow: 'hidden', outline: 'none', pointerEvents: 'auto',

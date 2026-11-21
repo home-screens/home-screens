@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
+import { ticketWords } from './ticket-words';
 import BottomSheet from './BottomSheet';
-import { INPUT_STYLE } from './chore-form-styles';
+import { FIELD } from './remote-styles';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** The most a reason may say; the hub cuts it here too. */
@@ -47,7 +48,7 @@ export default function AdjustTicketsSheet({
   const count = pickedMembers.length;
   const magnitude = Math.abs(amount);
   const giving = amount > 0;
-  const tickets = (n: number) => (n === 1 ? t('rewardsView.ticketCountSingular', { n }) : t('rewardsView.ticketCountPlural', { n }));
+  const tickets = (n: number) => (ticketWords(t, n, 'rewardsView'));
   const names = count <= NAMED_LIMIT
     ? formatList(pickedMembers.map((m) => m.name), locale)
     : t('rewardsView.adjust.manyPeople', { count });
@@ -150,7 +151,7 @@ export default function AdjustTicketsSheet({
         }}
         placeholder={t('rewardsView.adjust.reasonPlaceholder')}
         maxLength={REASON_MAX_CHARS}
-        style={INPUT_STYLE}
+        style={FIELD}
       />
       <p style={{ margin: '6px 2px 14px', fontSize: 12, color: 'var(--hs-text-faint)', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
         <span>{trimmed ? t('rewardsView.adjust.reasonTrimmed', { max: REASON_MAX_CHARS }) : t('rewardsView.adjust.reasonHint')}</span>

@@ -14,6 +14,7 @@ import {
   useCustomIcons,
 } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
+import SheetPanel from '@/components/ui/SheetPanel';
 import { isSessionExpired } from '@/lib/editor-fetch';
 import {
   ACCEPT_ATTRIBUTE,
@@ -26,7 +27,7 @@ import {
 import { customIconUseCount, customIconUseRows } from '@/lib/custom-icon-usage';
 import { formatDateInTZ } from '@/lib/timezone';
 import { useHouseholdTimezone } from '../household-clock';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
 
 /**
  * The phone's "Your icons" page: every picture the family added, how much
@@ -194,9 +195,8 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
   return (
     <ModalPortal>
       <div style={{ position: 'fixed', inset: 0, zIndex: 130, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
-        <div
-          role="dialog"
-          aria-modal="true"
+        <SheetPanel
+          onClose={busy ? undefined : onClose}
           aria-label={icon.name}
           onClick={(event) => event.stopPropagation()}
           style={{
@@ -225,7 +225,7 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
             </div>
           </div>
 
-          <label htmlFor="custom-icon-rename" style={SHEET_LABEL}>{t('customIcons.review.nameLabel')}</label>
+          <label htmlFor="custom-icon-rename" style={FIELD_LABEL}>{t('customIcons.review.nameLabel')}</label>
           <input
             id="custom-icon-rename"
             type="text"
@@ -240,7 +240,7 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
 
           {rows.length > 0 && (
             <>
-              <div style={SHEET_LABEL}>{t('customIcons.detail.usedBy')}</div>
+              <div style={FIELD_LABEL}>{t('customIcons.detail.usedBy')}</div>
               <ul style={{ listStyle: 'none', margin: '0 0 16px', padding: 0, border: '1px solid var(--hs-border)', borderRadius: 12, overflow: 'hidden' }}>
                 {rows.map((row, i) => (
                   <li
@@ -268,15 +268,11 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
           >
             {t('customIcons.detail.remove')}
           </button>
-        </div>
+        </SheetPanel>
       </div>
     </ModalPortal>
   );
 }
-
-const SHEET_LABEL: CSSProperties = {
-  display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8,
-};
 
 const SHEET_BUTTON: CSSProperties = {
   width: '100%', minHeight: 50, borderRadius: 12, border: 'none', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',

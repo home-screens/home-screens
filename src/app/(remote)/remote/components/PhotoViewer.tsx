@@ -8,7 +8,7 @@ import { displaySizedUrl, fitInside, serveUrlFor } from '@/lib/media-paths';
 import { formatBytes } from '@/lib/format-bytes';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { setToastFloor } from '../remote-toast';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 /** What the panel under the picture says about one file, worked out by the tab. */

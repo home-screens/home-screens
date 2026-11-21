@@ -5,7 +5,7 @@ import { FolderPlus, Monitor, Pencil, Trash2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './lists-styles';
+import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
 
 /** A tappable row in a phone sheet: icon, words, and an optional line under them. */
 export function SheetRow({

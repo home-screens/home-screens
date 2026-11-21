@@ -11,8 +11,11 @@ import FamilyManager from '@/components/family/FamilyManager';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { ChevronLeft, ImagePlus, Users } from 'lucide-react';
 import CustomIconsOverlay from './CustomIconsOverlay';
+import SlideUpSheet from './SlideUpSheet';
+import { useBackGesture } from '../hooks/useBackGesture';
 import { fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
-import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import { formatIconBytes } from '@/lib/custom-icons';
+import { lacksCustomIcons, summarizeBundle } from '@/lib/backup-summary';
 import {
   fetchPictureBackupSummary,
   getPictureBackupChoice,
@@ -53,7 +56,26 @@ export function FamilySettingsView({ onBack, zIndex = 120 }: { onBack: () => voi
   const t = useTranslate('core');
   const tRemote = useTranslate('remote');
   const ref = useFocusTrap<HTMLDivElement>();
-  return <div ref={ref} role="dialog" aria-modal="true" aria-label={t('family.title')} style={{ zIndex }} className="fixed inset-0 flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]">
+  // The Back gesture is this screen's Back button, as on every form: without
+  // it the gesture left the remote altogether (see `useBackGesture`).
+  useBackGesture(() => {
+    onBack();
+    return false;
+  });
+  return <div
+    ref={ref}
+    role="dialog"
+    aria-modal="true"
+    aria-label={t('family.title')}
+    onKeyDown={(e) => {
+      // Escape goes back, unless it came from a form or sheet opened on top.
+      if (e.key !== 'Escape' || (e.target as HTMLElement).closest('[role="dialog"]') !== e.currentTarget) return;
+      e.stopPropagation();
+      onBack();
+    }}
+    style={{ zIndex }}
+    className="fixed inset-0 flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]"
+  >
     <header className="flex w-full max-w-[640px] items-center gap-3 border-b border-hs-border p-4 pt-[max(16px,env(safe-area-inset-top))]">
       <button className="flex min-h-12 min-w-12 items-center gap-1 text-sm text-hs-text-muted" onClick={onBack}><ChevronLeft size={20} />{t('actions.back')}</button>
       <h2 className="flex-1 pr-16 text-center text-lg font-bold text-hs-text-primary">{t('family.title')}</h2>
@@ -215,7 +237,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       setRestoreState('busy');
       stageZipBackup(file, editorFetch).then((staged) => {
         credentialsSkippedRef.current = staged.hasCredentials;
-        restoreLacksIconsRef.current = staged.usesCustomIcons && !staged.hasCustomIcons;
+        restoreLacksIconsRef.current = lacksCustomIcons(staged);
         restorePicturesRef.current = staged.pictures.count > 0 ? staged.pictures : null;
         armRestore({ _archive: staged.id, ...(staged.hasCredentials ? { _withoutKeys: true } : {}) });
       }).catch(() => {
@@ -237,10 +259,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         // /remote manages data, the editor manages setup. Drop the section and
         // restore everything else, then say so, rather than dead-ending on a
         // `passphrase_required` the user can't act on from a phone.
-        credentialsSkippedRef.current = data.credentials !== undefined;
-        // A backup made with its pictures left out, from a household that
+        const summary = summarizeBundle(data, null);
+        credentialsSkippedRef.current = summary.hasCredentials;
+        // A backup made with its icons left out, from a household that
         // used some: say so before it replaces anything.
-        restoreLacksIconsRef.current = data.customIcons === undefined && collectCustomIconIds(data).size > 0;
+        restoreLacksIconsRef.current = lacksCustomIcons(summary);
         if (credentialsSkippedRef.current) delete data.credentials;
 
         armRestore(data);
@@ -293,41 +316,14 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
 
   return (
     <>
-      <div
-        className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 ${
-          open ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-[101] bg-hs-panel rounded-t-[20px] max-h-[70dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
-          open ? 'translate-y-0' : 'translate-y-full'
-        }`}
-        style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
-        // Slid off-screen is still "in the page" to assistive tech; take the
-        // closed sheet out of the tree so its controls can't be reached.
-        aria-hidden={!open || familyOpen || iconsOpen}
-        inert={!open || familyOpen || iconsOpen}
+      <SlideUpSheet
+        open={open}
+        onClose={onClose}
+        title={t('settingsSheet.title')}
+        closeLabel={t('settingsSheet.closeAriaLabel')}
+        maxHeight="70dvh"
+        covered={familyOpen || iconsOpen}
       >
-        <div className="flex justify-center pt-2.5">
-          <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
-        </div>
-
-        <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="text-lg font-bold text-hs-text-primary">{t('settingsSheet.title')}</h2>
-          <button
-            onClick={onClose}
-            className="w-11 h-11 rounded-full bg-hs-card flex items-center justify-center text-hs-text-muted"
-            aria-label={t('settingsSheet.closeAriaLabel')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
         <div className="px-5 pb-5">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
@@ -590,7 +586,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             />
           </div>
         </div>
-      </div>
+      </SlideUpSheet>
 
       {open && familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
       {open && iconsOpen && <CustomIconsOverlay onBack={() => setIconsOpen(false)} />}
