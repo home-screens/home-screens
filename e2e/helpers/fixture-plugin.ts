@@ -1,3 +1,6 @@
+import type { Page } from '@playwright/test';
+import { DEFAULT_MODULE_STYLE } from '@/types/config';
+import type { ModuleInstance } from '@/types/config';
 import { writeSandboxFile } from './sandbox';
 
 /**
@@ -359,4 +362,40 @@ export function seedFixturePlugin(sandboxDir: string, opts: SeedFixturePluginOpt
   writeSandboxFile(sandboxDir, 'plugins/installed.json', installedFile(opts.settings));
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, manifest);
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, bundle);
+}
+
+/**
+ * One instance of the fixture plugin's module. `config` is laid over the
+ * default label; `overrides` replaces whole fields of the instance (id,
+ * position, `backgroundProvider`, or `config` outright).
+ */
+export function pluginModule(config: Record<string, unknown> = {}, overrides: Partial<ModuleInstance> = {}): ModuleInstance {
+  return {
+    id: 'e2e-plugin-1',
+    type: FIXTURE_PLUGIN_TYPE,
+    position: { x: 0, y: 0 },
+    size: { w: 320, h: 200 },
+    zIndex: 1,
+    style: { ...DEFAULT_MODULE_STYLE },
+    config: { label: 'E2E PLUGIN', ...config },
+    ...overrides,
+  } as ModuleInstance;
+}
+
+/** Wait until the host SDK is on `window` (PluginGlobals has mounted). */
+export async function waitForSdk(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => typeof (window.__HS_SDK__ as { publishState?: unknown } | undefined)?.publishState === 'function',
+  );
+}
+
+/** Publish through the host SDK, as a plugin would. `subKey` is namespaced to `plugin:e2e-fixture:`. */
+export async function publishState(page: Page, subKey: string, value: string): Promise<void> {
+  await page.evaluate(
+    ([k, v]) => {
+      const sdk = window.__HS_SDK__ as unknown as { publishState(id: string, key: string, value: string): void };
+      sdk.publishState('e2e-fixture', k, v);
+    },
+    [subKey, value] as const,
+  );
 }

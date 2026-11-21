@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { createTTLCache, withDisplayAuth } from '@/lib/api-utils';
 import { hasEditorSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
 import { getAllScreens } from '@/lib/display-filter';
-import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
+import { fetchWithAllowedRedirects } from '@/lib/guarded-fetch';
 import { decodeFeedBody, parseFeed, FeedParseError } from '@/lib/news/parse-feed';
 import { resolveSource } from '@/lib/news/sources';
 import type { NewsFeedResult, NewsResponse } from '@/lib/news/types';
@@ -71,51 +71,42 @@ async function fetchFeed(requested: string, target: string, allowHomeNetwork: bo
   const fail = (error: NewsFeedResult['error'], status?: number): NewsFeedResult =>
     ({ url: requested, ok: false, error, status, items: [], fetchedAt });
 
-  const isSafe = (url: string) =>
-    allowHomeNetwork ? isSafeLocalOrExternalUrl(url) : isSafeExternalUrl(url);
+  // The address check runs on every miss, so cached entries were checked
+  // when stored. The shared fetch follows redirects by hand and re-checks
+  // every hop (letting fetch follow them would let an allowed public host 302
+  // to http://169.254.169.254/ or http://192.168.1.1/ and have us fetch it),
+  // and stops reading at the cap so a feed with no end cannot fill memory.
+  const result = await fetchWithAllowedRedirects(target, {
+    allowHosts: ['*'],
+    allowPrivateNetwork: allowHomeNetwork,
+    maxHops: MAX_REDIRECTS,
+    maxBytes: MAX_BODY_BYTES,
+    timeoutMs: FETCH_TIMEOUT_MS,
+    retries: 1,
+    headers: { 'user-agent': USER_AGENT, accept: ACCEPT },
+  });
 
-  // The SSRF guard runs on every miss, so cached entries were validated when
-  // stored. Redirects are followed manually so every hop is re-validated:
-  // letting fetch follow them would let an allowed public host 302 to
-  // http://169.254.169.254/ or http://192.168.1.1/ and have us fetch it.
-  if (!(await isSafe(target))) return fail('blocked-url');
-
-  let current = target;
-  let res!: Response;
-  try {
-    for (let hop = 0; ; hop++) {
-      res = await fetchWithTimeout(current, {
-        timeout: FETCH_TIMEOUT_MS,
-        retries: 1,
-        headers: { 'user-agent': USER_AGENT, accept: ACCEPT },
-        redirect: 'manual',
-      });
-      if (res.status < 300 || res.status >= 400) break;
-      const location = res.headers.get('location');
-      if (!location) break;
-      if (hop === MAX_REDIRECTS) return fail('unreachable');
-      let next: string;
-      try {
-        next = new URL(location, current).toString();
-      } catch {
-        return fail('blocked-url');
-      }
-      if (!(await isSafe(next))) return fail('blocked-url');
-      current = next;
+  if (!result.ok) {
+    // An error page that is also too big is still an error page.
+    if (result.status !== undefined && (result.status < 200 || result.status >= 300)) {
+      return fail('http-error', result.status);
     }
-  } catch (err) {
-    const name = err instanceof Error ? err.name : '';
-    return fail(name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'unreachable');
+    switch (result.reason) {
+      case 'too-large': return fail('not-a-feed');
+      case 'timeout': return fail('timeout');
+      case 'unreachable':
+      case 'too-many-redirects': return fail('unreachable');
+      default: return fail('blocked-url');
+    }
   }
-  if (!res.ok) return fail('http-error', res.status);
+  if (result.status < 200 || result.status >= 300) return fail('http-error', result.status);
 
-  const length = Number(res.headers.get('content-length') ?? 0);
-  if (length > MAX_BODY_BYTES) return fail('not-a-feed');
-  const bytes = await res.arrayBuffer();
-  if (bytes.byteLength > MAX_BODY_BYTES) return fail('not-a-feed');
+  // The helper hands back a view that fills its buffer, which is what the
+  // decoder takes.
+  const bytes = result.body.buffer;
 
   try {
-    const feed = parseFeed(decodeFeedBody(bytes, res.headers.get('content-type')));
+    const feed = parseFeed(decodeFeedBody(bytes, result.responseHeaders.get('content-type')));
     return {
       url: requested,
       ok: true,

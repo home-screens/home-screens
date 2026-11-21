@@ -140,6 +140,9 @@ if ssh_cmd "systemctl is-active --quiet home-screens"; then
   echo ""
   REMOTE_IP="${HOST#*@}"
   REMOTE_PORT=$(ssh_cmd "cat ${REMOTE_DIR}/data/port.conf 2>/dev/null || echo 3000" | tr -d '[:space:]')
+  # The file was read on the Pi, so the answer is checked here: anything but
+  # digits means the default port.
+  [[ "${REMOTE_PORT}" =~ ^[0-9]+$ ]] || REMOTE_PORT=3000
   info "Deploy complete!"
   echo -e "  ${DIM}Display:${NC}  http://${REMOTE_IP}:${REMOTE_PORT}/display"
   echo -e "  ${DIM}Editor:${NC}   http://${REMOTE_IP}:${REMOTE_PORT}/editor"

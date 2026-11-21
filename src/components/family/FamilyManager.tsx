@@ -239,7 +239,7 @@ export default function FamilyManager({ onChanged, onEditingChange, variant = 'd
         <div>
           <label className="mb-1 block text-sm text-hs-text-muted" htmlFor={`${formId}-group-name`}>{t('family.groups.name')}</label>
           <input id={`${formId}-group-name`} disabled={busy} autoFocus required maxLength={FAMILY_LIMITS.maxGroupNameLength} value={groupDraft.group.name} onChange={(event) => setGroupDraft({ ...groupDraft, group: { ...groupDraft.group, name: event.target.value } })} className="min-h-12 w-full rounded-lg border border-hs-border-strong bg-hs-panel px-3 text-hs-text-primary" aria-describedby={groupProblem === 'duplicate' ? `${formId}-group-name-problem` : undefined} />
-          {groupProblem === 'duplicate' && <p id={`${formId}-group-name-problem`} role="status" className="mt-1 text-sm text-hs-warning">{t('family.groups.duplicateName', { name: groupDraft.group.name.trim() })}</p>}
+          {groupProblem === 'duplicate' && <p id={`${formId}-group-name-problem`} role="status" className="mt-1 text-sm text-hs-warning">{t('refusals.family.groupNameTaken', { name: groupDraft.group.name.trim() })}</p>}
         </div>
         <fieldset disabled={busy} className="min-w-0">
           <legend className="mb-1 text-sm text-hs-text-muted">{t('family.groups.members')}</legend>

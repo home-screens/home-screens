@@ -8,6 +8,7 @@ import {
 } from '@dnd-kit/core';
 import {
   SortableContext,
+  arrayMove,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -17,15 +18,14 @@ import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
 import { getActiveProfileId } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle from '@/components/ui/Toggle';
-import HomeTimeHint from '@/components/editor/HomeTimeHint';
+import ScheduleWindowFields from '@/components/editor/ScheduleWindowFields';
 import { useFormattingLocale, type TranslateFn } from '@/i18n';
 import { describeSchedule } from '@/lib/schedule-summary';
+import { EVERY_DAY } from '@/lib/schedule';
+import { computeWeekSegments } from '@/lib/schedule-timeline';
 import type { ModuleSchedule, Profile } from '@/types/config';
-
-const TIME_CLASS =
-  'mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';
 
 /* ─── Sortable screen row (inside profile) ──── */
 
@@ -103,7 +103,6 @@ interface ProfileCardProps {
   /** Called once `startRenaming` has been acted on, so it fires only once. */
   onRenameHandled?: () => void;
   t: TranslateFn;
-  dayLabels: string[];
 }
 
 export default function SortableProfileCard({
@@ -114,7 +113,6 @@ export default function SortableProfileCard({
   startRenaming,
   onRenameHandled,
   t,
-  dayLabels,
 }: ProfileCardProps) {
   const { config, selectedDisplayId, updateProfile, removeProfile } = useEditorStore();
   const formattingLocale = useFormattingLocale();
@@ -201,15 +199,8 @@ export default function SortableProfileCard({
   const validScreenIds = includedScreens.map((s) => s.id);
 
   const handleScreenDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fromIndex = validScreenIds.indexOf(active.id as string);
-    const toIndex = validScreenIds.indexOf(over.id as string);
-    if (fromIndex === -1 || toIndex === -1) return;
-    const next = [...validScreenIds];
-    const [moved] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, moved);
-    updateProfile(profile.id, { screenIds: next });
+    const move = dragEndIndices(event, validScreenIds);
+    if (move) updateProfile(profile.id, { screenIds: arrayMove(validScreenIds, move.from, move.to) });
   };
 
   const setSchedule = (updates: Partial<ModuleSchedule>) => {
@@ -218,18 +209,18 @@ export default function SortableProfileCard({
 
   const toggleSchedule = (enabled: boolean) => {
     if (enabled) {
-      updateProfile(profile.id, { schedule: { daysOfWeek: [1, 2, 3, 4, 5] } });
+      // Every day, all day, which the person then narrows. This used to
+      // start on Monday to Friday, which quietly kept the profile off at
+      // weekends for anyone who only wanted a time window.
+      updateProfile(profile.id, { schedule: { daysOfWeek: [...EVERY_DAY] } });
     } else {
       updateProfile(profile.id, { schedule: undefined });
     }
   };
 
-  const toggleDay = (day: number) => {
-    const current = profile.schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
-    const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort();
-    if (next.length === 0) return;
-    setSchedule({ daysOfWeek: next });
-  };
+  // Hiding during the window with nothing narrowing the week leaves no time
+  // at all. The switch stays usable so it can be undone; this only says so.
+  const neverActive = !!profile.schedule && computeWeekSegments(profile.schedule).length === 0;
 
   return (
     <div
@@ -443,64 +434,27 @@ export default function SortableProfileCard({
 
             {profile.schedule && (
               <>
-                <div>
-                  <span className="text-xs text-hs-text-muted mb-1 block">
-                    {t('fields.days')}
-                  </span>
-                  <div className="flex gap-1">
-                    {dayLabels.map((label, i) => {
-                      const days = profile.schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
-                      const active = days.includes(i);
-                      return (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => toggleDay(i)}
-                          className={`flex-1 text-[10px] py-1 rounded transition-colors ${
-                            active
-                              ? 'bg-hs-accent text-white'
-                              : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="block">
-                    <span className="text-xs text-hs-text-muted">
-                      {t('settings.profilesPage.card.fromLabel')}
-                    </span>
-                    <input
-                      type="time"
-                      value={profile.schedule.startTime ?? ''}
-                      onChange={(e) => setSchedule({ startTime: e.target.value || undefined })}
-                      className={TIME_CLASS}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs text-hs-text-muted">
-                      {t('settings.profilesPage.card.untilLabel')}
-                    </span>
-                    <input
-                      type="time"
-                      value={profile.schedule.endTime ?? ''}
-                      onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
-                      className={TIME_CLASS}
-                    />
-                  </label>
-                </div>
-
-                <HomeTimeHint className="-mt-1.5" />
+                <ScheduleWindowFields
+                  window={profile.schedule}
+                  onPatch={setSchedule}
+                  skin="settings"
+                  labels={{
+                    from: t('settings.profilesPage.card.fromLabel'),
+                    until: t('settings.profilesPage.card.untilLabel'),
+                  }}
+                  testIds={{ shape: 'profile-schedule-shape', endDay: 'profile-schedule-end-day' }}
+                />
 
                 <Toggle
                   label={t('settings.profilesPage.card.invertLabel')}
                   checked={!!profile.schedule.invert}
                   onChange={(checked) => setSchedule({ invert: checked || undefined })}
                 />
+                {neverActive && (
+                  <p data-testid="profile-schedule-never" className="-mt-1.5 text-[11px] text-hs-warning">
+                    {t('scheduleEditor.neverShows')}
+                  </p>
+                )}
               </>
             )}
           </div>

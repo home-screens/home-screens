@@ -37,6 +37,7 @@ export function ICloudImportSheet({ initialFolder, directories, onImported }: {
   onImported: () => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [url, setUrl] = useState('');
   const [folder, setFolder] = useState(initialFolder);
   const { start, running, finished, job, errorKey } = useICloudImport(() => {
@@ -45,7 +46,7 @@ export function ICloudImportSheet({ initialFolder, directories, onImported }: {
   });
   return (
     <div className={PANEL_CLASS} data-testid="media-icloud-panel">
-      <p className="text-xs font-semibold text-hs-text-primary">{t('photoSources.import.icloudTitle')}</p>
+      <p className="text-xs font-semibold text-hs-text-primary">{tCore('imports.icloudTitle')}</p>
       <p className="text-[11px] leading-[1.45] text-hs-text-muted">{t('photoSources.import.icloudIntro')}</p>
       <div className="flex gap-1.5">
         <input
@@ -69,10 +70,10 @@ export function ICloudImportSheet({ initialFolder, directories, onImported }: {
       {finished && job && (
         <p className="text-[11px] text-hs-text-muted">
           {job.total === 0
-            ? t('icloudImport.empty')
+            ? tCore('imports.nothingFound')
             : [
                 job.done > 0 ? t('photoSources.google.added', { count: job.done }) : null,
-                job.skipped > 0 ? t('photoSources.google.alreadyHere', { count: job.skipped }) : null,
+                job.skipped > 0 ? tCore('imports.alreadyHere', { count: job.skipped }) : null,
                 job.failed > 0 ? t('photoSources.google.notSaved', { count: job.failed }) : null,
               ].filter(Boolean).join(' ')}
         </p>

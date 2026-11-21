@@ -1,28 +1,13 @@
 /**
- * What a backup holds, for the prompts a restore runs before it posts: the
- * password, the missing icons, the plaintext keys, the picture count. Shared
- * by a zip staged from a computer and a copy kept on the hub.
+ * A backup file on the hub's disk, read for what it holds (`summarizeBundle`
+ * in `backup-summary.ts` has the rule; this file is the part that needs the
+ * disk).
  */
 import { promises as fs } from 'fs';
-import { isEncryptedEnvelope } from './backup-credentials-types';
-import { collectCustomIconIds } from './custom-icons';
-import { inspectRestoreArchive, type InspectedArchive } from './backup-archive';
+import { inspectRestoreArchive } from './backup-archive';
+import { summarizeBundle } from './backup-summary';
 import { MAX_RESTORE_BYTES } from './backup-limits';
 import type { BackupContentsSummary } from './auto-backup-types';
-
-export function summarizeBundle(bundle: Record<string, unknown>, inspected: Pick<InspectedArchive, 'pictures' | 'skipped'> | null): BackupContentsSummary {
-  return {
-    hasCredentials: bundle.credentials !== undefined,
-    credentialsEncrypted: bundle.credentials !== undefined && isEncryptedEnvelope(bundle.credentials),
-    hasCustomIcons: bundle.customIcons !== undefined,
-    usesCustomIcons: collectCustomIconIds(bundle).size > 0,
-    pictures: {
-      count: inspected?.pictures.length ?? 0,
-      bytes: inspected?.pictures.reduce((sum, picture) => sum + picture.bytes, 0) ?? 0,
-      skipped: inspected?.skipped ?? 0,
-    },
-  };
-}
 
 function parseBundle(text: string): Record<string, unknown> | null {
   try {

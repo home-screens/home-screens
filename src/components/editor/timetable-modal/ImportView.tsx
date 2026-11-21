@@ -24,7 +24,7 @@ import Toggle from '@/components/ui/Toggle';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { refusalText } from '@/lib/hub-request';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 import { settingsPath } from '@/lib/settings-route';
 import { checkSheetLink, checkTimetableFiles } from '@/lib/timetable-client';
 import { dateInZone } from '@/lib/timetable-layout';
@@ -45,6 +45,7 @@ import {
 import MemberDot from './MemberDot';
 import { makeSubject, nextSubjectColor, periodsOf, shortCodeFor } from './use-timetable-draft';
 import { addIsoDays, mondayOf } from '@/lib/iso-date';
+import { sheetLabel } from './sheet-label';
 
 /**
  * An example week, kept as a file under `public/` so it can be opened in a
@@ -98,12 +99,6 @@ interface MappedTab {
    * all of them.
    */
   tab: string;
-}
-
-/** The pasted link, short enough to read back. */
-function sheetLabel(url: string): string {
-  const bare = url.replace(/^https?:\/\//, '').split(/[?#]/)[0];
-  return bare.length > 48 ? `${bare.slice(0, 47)}…` : bare;
 }
 
 /** How many numbered periods a tab holds. */
@@ -243,6 +238,7 @@ export function buildImport(
 
 export default function ImportView({ data, members, onApply, onCancel }: ImportViewProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
 
   const [link, setLink] = useState('');
@@ -308,7 +304,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(refusalText(cause, t, 'common.saveError', 'common.hubUnreachable'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
     } finally {
       setReading(false);
     }
@@ -342,7 +338,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(refusalText(cause, t, 'common.saveError', 'common.hubUnreachable'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
     } finally {
       setChecking(false);
       setOwnBusy(null);

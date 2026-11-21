@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, count, lacks, matches, notMatches, dayAt, localIso, localDate } from './shared';
+import { has, count, lacks, matches, notMatches, dayAt, localIso } from './shared';
+import { localDate } from '../dates';
 import { dayGridFontSize } from '@/lib/day-grid-type';
 
 /**

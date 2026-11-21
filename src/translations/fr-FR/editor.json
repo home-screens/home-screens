@@ -28,6 +28,10 @@
     "refresh": "Actualiser",
     "theme": "Thème",
     "density": "Espacement",
+    "densityOptions": {
+      "cozy": "Aéré (plus lisible de loin)",
+      "snug": "Serré (plus de contenu)"
+    },
     "objectFit": "Ajustement",
     "objectFitCover": "Couvrir",
     "objectFitContain": "Contenir",
@@ -41,15 +45,14 @@
     "saveError": "Échec de l’enregistrement",
     "networkError": "Erreur réseau",
     "serverUnreachable": "Impossible de joindre le serveur",
-    "hubUnreachable": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
     "typographySizes": {
       "small": "Petit",
       "medium": "Moyen",
       "large": "Grand",
-      "extra-large": "Très Grand",
-      "2x-large": "2X Grand",
-      "3x-large": "3X Grand",
-      "4x-large": "4X Grand"
+      "extra-large": "Très grand",
+      "2x-large": "2X grand",
+      "3x-large": "3X grand",
+      "4x-large": "4X grand"
     },
     "mediaTypes": "Afficher",
     "mediaTypesPhotos": "Photos uniquement",
@@ -62,7 +65,8 @@
     "livePhotosTwice": "Lire deux fois",
     "livePhotosLoop": "Lire en boucle",
     "livePhotosHint": "Lit la petite vidéo qui accompagne une Live Photo d'iPhone. Mettez-la dans le même dossier que sa photo, avec le nom de la photo suivi de .live, par exemple IMG_1234.live.mov pour IMG_1234.jpg.",
-    "resetToDefault": "Rétablir la valeur par défaut"
+    "resetToDefault": "Rétablir la valeur par défaut",
+    "signInWithGoogle": "Se connecter avec Google"
   },
   "fields": {
     "rotation": "Rotation",
@@ -651,7 +655,6 @@
         "credentialsRequired": "Connecter ton calendrier demande un identifiant Google que tu crées toi-même. Ajoute-le dans Clés API.",
         "deviceCodeIntro": "Ouvre le lien ci-dessous sur ton téléphone ou ton ordinateur, puis saisis le code :",
         "waitingForAuthorization": "En attente d'autorisation…",
-        "signIn": "Se connecter avec Google",
         "usingClientIdLabel": "Client ID utilisé :",
         "verifyCredentialsPart1": "Vérifie tes identifiants dans ",
         "verifyCredentialsPart2": ", ou consulte ta ",
@@ -672,10 +675,8 @@
           "codeIntroPart2": " et saisissez ce code :",
           "waiting": "En attente de votre connexion sur Google…",
           "cancel": "Annuler",
-          "help": "Montre vos agendas Google sur vos affichages. Vous terminerez la connexion sur votre téléphone ou votre ordinateur avec un code court.",
-          "signIn": "Se connecter avec Google"
-        },
-        "selectCalendars": "Sélectionne les calendriers à afficher"
+          "help": "Montre vos agendas Google sur vos affichages. Vous terminerez la connexion sur votre téléphone ou votre ordinateur avec un code court."
+        }
       },
       "icloud": {
         "heading": "Calendrier iCloud",
@@ -1261,7 +1262,6 @@
         "noOverridesPart2": " pour chaque réglage. Remplaces-en un depuis l'onglet Surcharges.",
         "chipBlockOverridden": "{label} remplacé",
         "chipFieldWithDefault": "{label} : {value} (par défaut : {defaultValue})",
-        "chipFieldNoDefault": "{label} : {value}",
         "fieldLabels": {
           "rotationIntervalMs": "Intervalle de rotation",
           "transitionEffect": "Transition",
@@ -2476,11 +2476,7 @@
     "pluginSecrets": {
       "loading": "Chargement de l'état des secrets…",
       "requiredBadge": "Requis",
-      "removeButton": "Supprimer",
-      "enterPlaceholder": "Saisis {label}",
-      "savingButton": "…",
-      "saveButton": "Enregistrer",
-      "savedSuccess": "Enregistré avec succès"
+      "enterPlaceholder": "Saisis {label}"
     },
     "pluginSettings": {
       "loading": "Chargement des réglages…",
@@ -2844,7 +2840,6 @@
         "description": "Comment les tâches bonus se prennent. Les Paramètres des tâches du téléphone changent ces deux mêmes réglages.",
         "grabLimitLabel": "Combien de tâches bonus une personne peut prendre à la fois",
         "grabHoldLabel": "Jusqu'à quand une tâche bonus prise reste réservée",
-        "saveFailed": "Ça n'a pas été enregistré. Réessayez.",
         "saved": "Enregistré"
       }
     },
@@ -2984,7 +2979,6 @@
     "uploadMediaButton": "Téléverser"
   },
   "icloudImport": {
-    "toggle": "Ajouter depuis un lien iCloud",
     "placeholder": "Collez un lien d'album ou de photos iCloud",
     "start": "Importer",
     "importing": "Importation…",
@@ -2993,15 +2987,10 @@
       "one": "{count} nouvel élément ajouté.",
       "other": "{count} nouveaux éléments ajoutés."
     },
-    "summarySkipped": {
-      "one": "{count} était déjà là.",
-      "other": "{count} étaient déjà là."
-    },
     "summaryFailed": {
       "one": "{count} n'a pas pu être téléchargé.",
       "other": "{count} n'ont pas pu être téléchargés."
     },
-    "empty": "Cet album ne contient rien à ajouter.",
     "help": "Fonctionne avec les liens d'albums partagés (icloud.com/sharedalbum/#…) et les liens « Copier le lien iCloud » (share.icloud.com). Tout le contenu du lien est enregistré dans le dossier actuel.",
     "albumTip": "Astuce : les albums partagés peuvent aussi être affichés en direct, sans téléchargement. Choisissez « Album partagé iCloud » comme source de photos dans les réglages d'un diaporama.",
     "errors": {
@@ -3015,7 +3004,6 @@
     }
   },
   "choreChartModal": {
-    "changedElsewhere": "Quelqu'un d'autre a modifié les tâches. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
     "title": "Tableau de tâches",
     "subtitleMembersChores": "{members} membres · {chores} tâches",
     "loadError": "Échec du chargement des données de tâches. Les modifications ne seront pas enregistrées.",
@@ -3041,7 +3029,6 @@
       "dateLabel": "Date",
       "assignToLabel": "Assigner à",
       "weeklyScheduleLabel": "Planning hebdomadaire",
-      "coverageLabel": "Couverture : {covered} jours sur 7",
       "addSubmit": "Ajouter la tâche",
       "saveSubmit": "Enregistrer",
       "grabRulesNote": "Le nombre de tâches qu'une personne peut prendre, et jusqu'à quand elles lui restent réservées, se règlent pour toute la famille, sous Bonus dans la liste des tâches."
@@ -3191,16 +3178,6 @@
       "courseRemoved": "Retiré de ce repas",
       "saveFailed": "Cette modification n'a pas été enregistrée. Réessaie.",
       "mealieSaveFailed": "Mealie n'a pas pris cette modification. Vérifie qu'il tourne, puis réessaie.",
-      "mealieAllPlanned": "Tous les dîners de la semaine sont déjà prévus.",
-      "mealieAllPlannedDates": "Tous les dîners de la semaine du {range} sont déjà prévus.",
-      "mealieNoDinners": "Suggérer remplit les dîners vides, et le dîner est désactivé dans les réglages des repas.",
-      "mealieSuggested": {
-        "one": "Un dîner prévu pour {days}.",
-        "other": "Des dîners prévus pour {days}."
-      },
-      "mealieSuggestedEveryNight": "Un dîner prévu pour chaque soir de la semaine.",
-      "mealieSuggestedEveryNightDates": "Un dîner prévu pour chaque soir de la semaine du {range}.",
-      "mealieNothingFits": "Mealie n'avait aucune recette à proposer pour ces repas. Vérifie les règles du planning dans Mealie.",
       "mealieTokenSaveFailed": "Mealie ne laisse pas entrer Home Screens, donc cette modification n'a pas été enregistrée. Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API.",
       "mealieSetupSaveFailed": "Home Screens ne peut pas utiliser ce Mealie, donc cette modification n'a pas été enregistrée. Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour.",
       "mealieNotConnectedSaveFailed": "Mealie n'est pas connecté, donc cette modification n'a pas été enregistrée. Ajoute son adresse et son jeton dans Réglages > Clés API."
@@ -3291,11 +3268,7 @@
         "drink": "Changer la boisson",
         "main": "Changer ce plat"
       },
-      "searchMealiePlaceholder": "Rechercher des recettes dans Mealie",
       "clearSearch": "Effacer la recherche",
-      "favorites": "Favoris",
-      "recentlyMade": "Préparées récemment",
-      "lookingInMealie": "Recherche dans Mealie…",
       "recipesInMealie": {
         "one": "{count} recette dans Mealie",
         "other": "{count} recettes dans Mealie"
@@ -3307,10 +3280,8 @@
       "recentlyMadeFirst": "Préparées récemment, les plus récentes d'abord",
       "keysHint": "↑ ↓ pour se déplacer, Entrée pour choisir",
       "typeInstead": "Écrire « {text} » à la place",
-      "typeInsteadMealie": "Pas de recette. Mealie le garde comme note.",
       "typeInsteadLocal": "Va dans le planning tel quel, sans être enregistré dans tes repas.",
       "noRecipesCalled": "Aucune recette « {text} » dans Mealie",
-      "noRecipesHint": "Vérifie l'orthographe, ou écris-le simplement. Il va dans le planning comme note, sans recette.",
       "mealieError": "Impossible de joindre Mealie.",
       "tryAgain": "Réessayer",
       "noFavorites": "Pas encore de favoris. Marque des recettes comme favorites dans Mealie, ou cherche ci-dessus.",
@@ -3322,32 +3293,19 @@
         "main": "Plats"
       },
       "everythingElse": "Tout le reste",
-      "categoryCount": {
-        "one": "{count} recette dans {category}",
-        "other": "{count} recettes dans {category}"
-      },
       "noneInCategory": "Aucune recette dans {category} pour le moment. Cherche plutôt en haut."
     },
     "openInMealie": "Ouvrir dans Mealie",
     "mealie": {
-      "fromMealie": "Depuis Mealie",
       "lastUpdated": "Mis à jour : {time}",
       "subtitle": "{planned} prévus cette semaine",
       "subtitleHousehold": "Foyer {household} · {planned} prévus cette semaine",
       "subtitleDates": "{planned} prévus la semaine du {range}",
       "subtitleHouseholdDates": "Foyer {household} · {planned} prévus la semaine du {range}",
-      "openMealie": "Ouvrir Mealie",
       "tryAgain": "Réessayer",
-      "unreachableTitle": "Impossible de joindre Mealie pour le moment",
-      "unreachableBody": "Tes repas sont dans Mealie, et Home Screens n'arrive pas à y accéder. Vérifie que Mealie tourne, puis réessaie.",
-      "notConnectedTitle": "Mealie n'est pas connecté",
       "notConnectedBody": "Le planning des repas doit venir de Mealie, mais l'adresse ou le jeton de Mealie n'est pas enregistré. Ajoute-les dans Réglages > Clés API, ou remets le planning sur Home Screens dans Réglages > Repas.",
-      "tokenRefusedTitle": "Mealie ne laisse plus entrer Home Screens",
       "tokenRefusedBody": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le dans Réglages > Clés API.",
-      "setupTitle": "Home Screens ne peut pas utiliser ce Mealie",
       "setupBody": "Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour.",
-      "paused": "La planification est en pause jusqu'au retour de Mealie.",
-      "pausedSince": "La planification est en pause jusqu'au retour de Mealie. Voici le planning de {time}.",
       "weekLoading": "Récupération de la semaine du {range} dans Mealie…",
       "weekFailed": "Impossible de récupérer la semaine du {range} dans Mealie.",
       "libraryNote": "Les recettes sont dans Mealie. Clique sur une recette pour la voir ici.",
@@ -3365,69 +3323,8 @@
           "one": "{list} · {count} à acheter",
           "other": "{list} · {count} à acheter"
         },
-        "add": "Ajouter",
         "openList": "Ouvrir la liste dans Mealie",
-        "addPlaceholder": "Ajouter à la liste {list}",
-        "added": "{item} est sur la liste {list}",
-        "addedUnder": "{item} est sur la liste {list}, dans {label}",
-        "already": "{item} est déjà sur la liste {list}",
-        "putBack": "{item} est de retour sur la liste {list}",
-        "undo": "Annuler",
-        "picked": "Tout le monde voit la liste {list} maintenant.",
-        "moved": "Voici la liste {list}, choisie sur un autre appareil.",
-        "gone": "La liste {from} n'existe plus dans Mealie. Voici la liste {list}.",
-        "forRecipes": "pour {recipes}",
-        "noLabel": "Aucune étiquette",
-        "toGet": {
-          "one": "{count} article à acheter",
-          "other": "{count} articles à acheter"
-        },
-        "allGot": "Tout est coché",
-        "openListAria": "Ouvrir la liste {list} dans Mealie (nouvelle page)",
-        "inCart": "Cochés ({count})",
-        "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
-        "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",
-        "staleSetup": "Home Screens ne peut pas utiliser ce Mealie. Voici la liste de {time}.",
-        "staleNotConnected": "Mealie n'est pas connecté. Voici la liste de {time}.",
-        "staleConnection": "Home Screens est injoignable. Voici la liste de {time}.",
-        "loading": "On récupère ta liste dans Mealie…",
-        "noListsTitle": "Mealie n'a pas encore de liste de courses",
-        "noListsBody": "Crée une liste de courses dans Mealie et elle apparaîtra ici.",
-        "emptyTitle": "Rien dans la liste {list} pour l'instant",
-        "emptyBody": "Ajoute quelque chose ci-dessus, ou envoie ici les ingrédients d'une recette depuis Mealie.",
-        "unreachableBody": "Ta liste est en sécurité dans Mealie. Vérifie que Mealie fonctionne, puis réessaie.",
-        "connectionTitle": "Home Screens est injoignable pour le moment",
-        "connectionBody": "Vérifie la connexion de cet ordinateur, puis réessaie.",
-        "noConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
-        "notSaved": {
-          "one": "{items} n'a pas été enregistré. Réessaie.",
-          "other": "{items} n'ont pas été enregistrés. Réessaie."
-        },
-        "notSavedUnreachable": {
-          "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
-          "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
-        },
-        "notSavedToken": {
-          "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
-          "other": "{items} n'ont pas été enregistrés. Mealie ne laisse plus entrer Home Screens."
-        },
-        "notSavedSetup": {
-          "one": "{items} n'a pas été enregistré. Home Screens ne peut pas utiliser ce Mealie.",
-          "other": "{items} n'ont pas été enregistrés. Home Screens ne peut pas utiliser ce Mealie."
-        },
-        "notSavedNotConnected": {
-          "one": "{items} n'a pas été enregistré. Mealie n'est pas connecté.",
-          "other": "{items} n'ont pas été enregistrés. Mealie n'est pas connecté."
-        },
-        "notSavedConnection": {
-          "one": "{items} n'a pas été enregistré. Home Screens est injoignable, vérifie la connexion et réessaie.",
-          "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
-        },
-        "moreItems": {
-          "one": "{count} autre",
-          "other": "{count} autres"
-        },
-        "listGone": "Cette liste n'existe plus dans Mealie."
+        "connectionBody": "Vérifie la connexion de cet ordinateur, puis réessaie."
       },
       "ingredientsFailed": "Mealie n'a pas envoyé les ingrédients. Ouvre la recette dans Mealie pour les voir.",
       "tokenFix": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API.",
@@ -4407,15 +4304,6 @@
       "viewMonthGrid": "Grille mensuelle",
       "viewDayTimeline": "Chronologie du jour",
       "viewAgenda": "Agenda",
-      "densityCozy": "Aéré (plus lisible de loin)",
-      "densitySnug": "Serré (plus de contenu)",
-      "typographySmall": "Petit",
-      "typographyMedium": "Moyen",
-      "typographyLarge": "Grand",
-      "typographyExtraLarge": "Très grand",
-      "typography2xLarge": "2X grand",
-      "typography3xLarge": "3X grand",
-      "typography4xLarge": "4X grand",
       "view": "Vue",
       "typographySize": "Taille du texte",
       "themeDefault": "Par défaut (depuis les paramètres)",
@@ -4509,8 +4397,6 @@
       "showRewardsButton": "Afficher le bouton Récompenses",
       "showRewardsButtonHelp": "Ajoute un bouton sur le tableau des tâches pour que les enfants puissent passer à la boutique de récompenses. Idéal pour les écrans tactiles.",
       "themeDefault": "Par défaut (depuis les paramètres)",
-      "densityCozy": "Aéré",
-      "densitySnug": "Serré",
       "typographySize": "Taille du texte",
       "accentColor": "Couleur d'accent",
       "weekStartsOn": "La semaine commence le",
@@ -4552,8 +4438,6 @@
       "viewRecipe": "Recette",
       "viewGrocery": "Liste de courses",
       "viewRecipeBook": "Livre de recettes",
-      "densityCozy": "Aéré",
-      "densitySnug": "Serré",
       "typographySize": "Taille du texte",
       "showEmoji": "Afficher les images",
       "showPrepTime": "Afficher le temps total",
@@ -4718,7 +4602,6 @@
       "checking": "Vérification…",
       "credentialsNeeded": "Pour importer depuis Google Photos, ajoutez un ID client et un secret client pour l'import Google Photos dans Paramètres → Clés API.",
       "signInIntro": "Connectez-vous avec Google, puis collez le code obtenu à la fin.",
-      "signIn": "Se connecter avec Google",
       "pastePlaceholder": "Collez le code ou le lien ici",
       "finishSignIn": "Terminer la connexion",
       "choosePhotos": "Choisir des photos",
@@ -4749,8 +4632,7 @@
         "comesBack": "Vous reviendrez ici automatiquement.",
         "pasteInstead": "Rien ne se passe ? Collez un code",
         "pasteIntro": "Si la page Google vous a montré un code, collez-le ici.",
-        "startOver": "Recommencer",
-        "signIn": "Se connecter avec Google"
+        "startOver": "Recommencer"
       }
     },
     "meal-planner": {
@@ -5564,8 +5446,6 @@
       "viewConditions": "Conditions",
       "themeDefault": "Par défaut (Réglages)",
       "typographySize": "Taille du texte",
-      "densityCozy": "Aéré",
-      "densitySnug": "Serré",
       "skyLayer": "Ciel",
       "skyLiving": "Vivant (nuages, pluie et étoiles bougent)",
       "skyStill": "Calme (une simple teinte)",
@@ -6424,7 +6304,6 @@
       "add": "Ajouter depuis Google Photos",
       "signInToAdd": "Connectez-vous pour ajouter depuis Google Photos",
       "needsSetup": "Google Photos doit être configuré dans Paramètres > Clés API",
-      "waiting": "En attente de votre sélection…",
       "openAgain": "Rouvrir Google Photos",
       "cancel": "Annuler",
       "adding": "Ajout de {done} sur {total} dans {folder}",
@@ -6432,17 +6311,12 @@
         "one": "{count} photo ajoutée.",
         "other": "{count} photos ajoutées."
       },
-      "alreadyHere": {
-        "one": "{count} était déjà là.",
-        "other": "{count} étaient déjà là."
-      },
       "notSaved": {
         "one": "{count} n'a pas pu être enregistrée.",
         "other": "{count} n'ont pas pu être enregistrées."
       }
     },
     "import": {
-      "icloudTitle": "Ajouter depuis un lien iCloud",
       "icloudIntro": "Collez un lien d'album partagé, ou un lien obtenu avec « Copier le lien iCloud » dans l'app Photos. Tout son contenu est ajouté au dossier ci-dessous.",
       "add": "Ajouter",
       "progress": "Ajout de {done} sur {total}",

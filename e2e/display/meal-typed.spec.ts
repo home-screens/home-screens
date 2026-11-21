@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
@@ -13,16 +14,10 @@ import type { MealPlannerView } from '@/types/config';
  * empty slot for the same day.
  */
 
-/** Local YYYY-MM-DD, matching how the meal planner keys plan entries. */
-function isoToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** A week with nothing in the library at all, the way it arrives from the phone. */
 const typedOnly = () => ({
   savedMeals: [],
-  plan: [{ slot: 'dinner', customText: 'Tacos', date: isoToday() }],
+  plan: [{ slot: 'dinner', customText: 'Tacos', date: localDate() }],
 });
 
 const VIEWS: MealPlannerView[] = ['today', 'week', 'list', 'compact', 'next-meal'];
@@ -59,8 +54,8 @@ test('a saved meal and a typed one sit side by side', async ({ page, request }) 
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝' }],
     plan: [
-      { slot: 'lunch', customText: 'Leftovers', date: isoToday() },
-      { slot: 'dinner', mealId: 'meal-1', date: isoToday() },
+      { slot: 'lunch', customText: 'Leftovers', date: localDate() },
+      { slot: 'dinner', mealId: 'meal-1', date: localDate() },
     ],
   });
   const meals = buildModuleInstance('meal-planner', { view: 'today' });

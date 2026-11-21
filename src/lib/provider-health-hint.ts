@@ -8,13 +8,11 @@
 
 import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 import type { LoadedPlugin } from '@/types/plugins';
-
-const PLUGIN_KEY_RE = /^plugin:([^:]+):/;
+import { parsePluginStateKey } from '@/lib/plugin-state-keys';
 
 /** Lowercased plugin id owning a `plugin:<id>:<rest>` bus key, or null. */
 export function pluginIdFromStateKey(key: string): string | null {
-  const match = PLUGIN_KEY_RE.exec(key);
-  return match ? match[1].toLowerCase() : null;
+  return parsePluginStateKey(key)?.pluginId.toLowerCase() ?? null;
 }
 
 /** Friendly plugin name for an id from the loaded-plugin manifests; falls

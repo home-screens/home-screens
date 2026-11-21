@@ -98,3 +98,9 @@ export async function dragPaletteToCanvas(
   await page.mouse.move(to.x + to.width * at.x, to.y + to.height * at.y, { steps: 15 });
   await page.mouse.up();
 }
+
+/** Open the layout editor and wait for its canvas. */
+export async function openEditor(page: Page): Promise<void> {
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+}

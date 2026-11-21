@@ -13,7 +13,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 const RENAMES: Record<string, string> = {
   multiWeekTheme: 'gridTheme',

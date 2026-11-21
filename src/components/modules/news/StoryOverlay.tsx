@@ -6,7 +6,7 @@ import type { TranslateFn } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import type { NewsTapAction } from '@/types/config';
-import { clampLines } from './news-shared';
+import { clampLines } from '@/components/modules/shared/clampLines';
 
 /** The overlay closes itself after this long so a wall display never sits on a QR code. */
 export const OVERLAY_AUTO_CLOSE_MS = 30_000;

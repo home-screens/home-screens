@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { themedWallScrollLook, type WallScrollLook } from '@/components/modules/shared/wallScrollLook';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import type { RecipeTapMode } from '../shared/MealTapTarget';
@@ -63,20 +63,15 @@ export function px(s: number, n: number): number {
  * (`WallScroller`), in the theme: the accent with its own ink, about a dish
  * name's size, and a bar in the theme's text colour.
  */
-export function wallScrollLook(s: number): { backStyle: CSSProperties; thumbColor: string; thumbWidth: number } {
-  return {
-    backStyle: {
-      top: px(s, 18),
-      fontSize: px(s, 30),
-      padding: '0.55em 1.2em',
-      gap: '0.45em',
-      background: 'var(--fmp-accent)',
-      color: 'var(--fmp-on-accent)',
-      boxShadow: '0 0.3em 0.9em color-mix(in srgb, var(--fmp-accent) 35%, transparent)',
-    },
-    thumbColor: 'color-mix(in srgb, var(--fmp-text) 28%, transparent)',
-    thumbWidth: Math.max(4, Math.round(px(s, 8))),
-  };
+export function wallScrollLook(s: number): WallScrollLook {
+  return themedWallScrollLook({
+    accent: 'var(--fmp-accent)',
+    onAccent: 'var(--fmp-on-accent)',
+    text: 'var(--fmp-text)',
+    top: px(s, 18),
+    fontSize: px(s, 30),
+    thumbWidth: px(s, 8),
+  });
 }
 
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {

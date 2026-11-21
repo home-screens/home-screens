@@ -12,6 +12,8 @@
  *   wrangler deploy
  */
 
+import type { BeaconBody } from './beacon';
+
 interface Env {
   DB: D1Database;
 }
@@ -53,7 +55,7 @@ const worker = {
         });
       }
 
-      const body = JSON.parse(text) as Record<string, unknown>;
+      const body = JSON.parse(text) as BeaconBody;
 
       // Validate required fields
       const installId = body.installId as string;
@@ -90,8 +92,7 @@ const worker = {
           sleep_enabled, alerts_enabled, auth_enabled,
           has_google_calendar, has_ical_sources, plugin_count,
           display_count, displays,
-          has_owned_screens, has_legacy_screen_ids, has_owned_profiles,
-          has_settings_override,
+          has_owned_profiles, has_settings_override,
           plugins,
           raw_payload
         ) VALUES (
@@ -104,10 +105,9 @@ const worker = {
           ?16, ?17, ?18,
           ?19, ?20, ?21,
           ?22, ?23,
-          ?24, ?25, ?26,
-          ?27,
-          ?28,
-          ?29
+          ?24, ?25,
+          ?26,
+          ?27
         )
         ON CONFLICT(install_id) DO UPDATE SET
           last_seen_at = datetime('now'),
@@ -133,8 +133,6 @@ const worker = {
           plugin_count = excluded.plugin_count,
           display_count = excluded.display_count,
           displays = excluded.displays,
-          has_owned_screens = excluded.has_owned_screens,
-          has_legacy_screen_ids = excluded.has_legacy_screen_ids,
           has_owned_profiles = excluded.has_owned_profiles,
           has_settings_override = excluded.has_settings_override,
           plugins = excluded.plugins,
@@ -165,8 +163,6 @@ const worker = {
           // Multi-display columns (NULL on v1 payloads)
           typeof body.displayCount === 'number' ? body.displayCount : null,
           Array.isArray(body.displays) ? JSON.stringify(body.displays) : null,
-          boolToSqlite(body.hasOwnedScreens),
-          boolToSqlite(body.hasLegacyScreenIds),
           boolToSqlite(body.hasOwnedProfiles),
           boolToSqlite(body.hasSettingsOverride),
           // Plugins column (NULL on pre-v4 payloads — "unknown", not "none")

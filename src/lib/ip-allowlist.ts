@@ -22,26 +22,6 @@ export function normalizeIp(ip: string): string {
   return trimmed;
 }
 
-/**
- * Validate a CIDR string. Returns null if valid, error message if not.
- * Accepts plain IPv4 ("192.168.1.1") or CIDR ("192.168.1.0/24").
- */
-export function validateCidr(entry: string): string | null {
-  const parts = entry.split('/');
-  if (parts.length > 2) return 'Invalid CIDR format';
-
-  const ip = parts[0];
-  if (!net.isIPv4(ip)) return 'Invalid IP address';
-
-  if (parts.length === 2) {
-    const prefix = Number(parts[1]);
-    if (!Number.isInteger(prefix) || parts[1] !== String(prefix) || prefix < 0) return 'Invalid prefix length';
-    if (prefix > 32) return 'Prefix length must be 0-32';
-  }
-
-  return null;
-}
-
 /** Convert an IPv4 address string to a 32-bit integer. */
 function ipToInt(ip: string): number {
   const parts = ip.split('.');

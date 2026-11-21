@@ -65,7 +65,9 @@ function mockFetchResponse(body: unknown, ok = true, status = 200) {
   return vi.fn().mockResolvedValueOnce({
     ok,
     status,
+    headers: new Headers({ 'Content-Type': 'application/json' }),
     json: () => Promise.resolve(body),
+    text: () => Promise.resolve(JSON.stringify(body)),
   });
 }
 
@@ -153,7 +155,7 @@ describe('requestDeviceCode', () => {
       'https://oauth2.googleapis.com/device/code',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
       }),
     );
 

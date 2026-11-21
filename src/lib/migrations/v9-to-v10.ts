@@ -8,7 +8,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** Frozen copy of the old route default, deliberately not imported from live code. */
 const LEGACY_DEFAULT_FEED_URL = 'https://feeds.bbci.co.uk/news/rss.xml';

@@ -41,14 +41,11 @@ beforeEach(() => {
 
 describe('device flow', () => {
   it('starts the flow with the configured client id and photo scopes', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        device_code: 'dev-1', user_code: 'ABC123',
-        verification_uri: 'https://microsoft.com/link',
-        interval: 5, expires_in: 900,
-      }),
-    });
+    mockFetch.mockResolvedValue(json({
+      device_code: 'dev-1', user_code: 'ABC123',
+      verification_uri: 'https://microsoft.com/link',
+      interval: 5, expires_in: 900,
+    }));
 
     const flow = await startDeviceFlow();
 

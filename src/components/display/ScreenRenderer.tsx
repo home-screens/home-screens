@@ -3,11 +3,9 @@
 import { useMemo, useEffect } from 'react';
 import type { Screen, ModuleInstance } from '@/types/config';
 import type { DisplayDescriptor } from '@/lib/display-filter';
-import { getModuleComponent } from '@/lib/module-components';
-import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
-import { OpenButtonSlot } from '@/components/modules/shared/OpenScreenButton';
 import OpenedScreenBackChip, { CHIP_CLEAR_PX } from './OpenedScreenBackChip';
-import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
+import { toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
+import ModuleMount from './ModuleMount';
 import { passesModuleGates, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
 import { DISPLAY_BACKGROUND } from '@/lib/constants';
 import { dayPartFor } from '@/lib/day-part';
@@ -15,7 +13,6 @@ import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { useWallClock } from '@/hooks/useTZClock';
 import type { DisplaySettings } from './useLiveConfig';
-import { useTranslate } from '@/i18n';
 
 /**
  * Single source of truth for the renderer's module-visibility predicate.
@@ -37,12 +34,9 @@ export const isModuleRenderable = (
   !mod.backgroundProvider &&
   !mod.showOnEveryScreen &&
   passesModuleGates(mod, now, states);
-import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { eventBus } from '@/lib/event-bus';
 import { getLocation } from '@/lib/location';
-import { getModuleDefinition } from '@/lib/module-registry';
-import { resolveModuleStyle } from '@/lib/module-style';
 import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
 import PhotoCredit from '@/components/modules/shared/PhotoCredit';
 import { useBackgroundCaption } from '@/lib/background-caption-store';
@@ -84,9 +78,6 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
 
 function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [], displayId, openedBack }: ScreenRendererProps) {
   const { overrideBackground } = usePageBackground();
-  // The `modules` namespace is preloaded by the display layout's I18nProvider,
-  // which wraps this component — same path PluginPlaceholder already uses.
-  const tModules = useTranslate('modules');
 
   // Minute-resolution wall clock for module scheduling. The zone is the one
   // the host settings hand plugins too, so the hour and the zone named in the
@@ -179,34 +170,6 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
       )}
 
       {visibleModules.map((mod) => {
-        const Component = getModuleComponent(mod.type);
-
-        if (!Component) {
-          if (mod.type.startsWith('plugin:')) {
-            return (
-              <div
-                key={mod.id}
-                data-module-id={mod.id}
-                data-module-type={mod.type}
-                style={{
-                  position: 'absolute',
-                  left: mod.position.x,
-                  top: mod.position.y,
-                  width: mod.size.w,
-                  height: mod.size.h,
-                  zIndex: mod.zIndex,
-                  overflow: 'hidden',
-                }}
-              >
-                <PluginPlaceholder moduleType={mod.type} />
-              </div>
-            );
-          }
-          return null;
-        }
-
-        const extraProps = buildModuleProps(mod, source);
-        const style = resolveModuleStyle(mod.style, getModuleDefinition(mod.type));
         // While the back chip is drawn, a module that reaches the frame's
         // bottom gives up the strip the chip sits on, so a full-screen book
         // ends above the chip instead of under it.
@@ -214,13 +177,12 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         const height = mod.position.y + mod.size.h > clearBottom
           ? Math.max(0, clearBottom - mod.position.y)
           : mod.size.h;
-
         return (
-          <div
+          <ModuleMount
             key={mod.id}
-            data-module-id={mod.id}
-            data-module-type={mod.type}
-            style={{
+            mod={mod}
+            source={source}
+            box={{
               position: 'absolute',
               left: mod.position.x,
               top: mod.position.y,
@@ -228,13 +190,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
               height,
               zIndex: mod.zIndex,
             }}
-          >
-            <OpenButtonSlot mod={mod} style={style}>
-              <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-                <Component config={mod.config} style={style} {...extraProps} />
-              </ModuleErrorBoundary>
-            </OpenButtonSlot>
-          </div>
+          />
         );
       })}
       {openedBack && (

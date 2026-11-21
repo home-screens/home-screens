@@ -8,7 +8,7 @@ import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useEditorStore } from '@/stores/editor-store';
 import { NEWS_CATEGORIES, NEWS_PRESETS, presetsForLocale, type NewsPreset } from '@/lib/news-presets';
-import { extractYoutubeChannelId, LOCAL_SOURCE, sourceKind } from '@/lib/news/sources';
+import { extractYoutubeChannelId, LOCAL_SOURCE, sourceKind, subredditName } from '@/lib/news/sources';
 import { useTranslate } from '@/i18n';
 import type { NewsFeedSource } from '@/types/config';
 import { NEWS_MAX_FEEDS, presetName } from './feed-display';
@@ -129,8 +129,8 @@ export function NewsAddFeedMenu({ feeds, onAdd }: NewsAddFeedMenuProps) {
         break;
       }
       case 'reddit': {
-        const name = value.replace(/^\/?r\//i, '').replace(/\/+$/, '');
-        if (!/^[A-Za-z0-9_]{2,21}$/.test(name)) {
+        const name = subredditName(value);
+        if (!name) {
           setError(t('configSections.news.addRedditInvalid'));
           return;
         }

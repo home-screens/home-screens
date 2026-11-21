@@ -31,7 +31,7 @@ import { PhotoFolderMenu, PhotoFolderNameSheet } from './PhotoFolderSheets';
 import PhotoUploadCard from './PhotoUploadCard';
 import { PhotoGoogleSheet, PhotoICloudSheet } from './PhotoImportSheets';
 import { usePhotoWords, type PhotoKind } from './photo-words';
-import { HIT_TARGET } from './lists-styles';
+import { HIT_TARGET } from './remote-styles';
 
 /** Free space on the hub below which the space line turns into a warning. */
 const LOW_SPACE_BYTES = 1024 ** 3;

@@ -202,7 +202,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.networkPage.wifiScan.scanCooldownButton',
   'editor|settings.perDisplayPage.header.statusOffline',
   'editor|settings.perDisplayPage.header.statusOnline',
-  'editor|settings.perDisplayPage.overview.chipFieldNoDefault',
   'editor|settings.perDisplayPage.overview.transitionLabels.zoom',
   'editor|settings.pluginInstallPreview.sha256Heading',
   'editor|settings.pluginInstallPreview.versionPrefix',
@@ -1163,4 +1162,65 @@ describe('registry module labels', () => {
       ).toEqual([]);
     });
   }
+});
+
+/**
+ * Repeated-sentence ratchet.
+ *
+ * The same English sentence stored under two keys gets translated twice, and
+ * the two translations drift: the phone, the editor and the wall then word one
+ * failure three ways in the same household language, and a wording fix has to
+ * be found in every copy. A sentence two surfaces say belongs in `core`, under
+ * one key, which every surface loads.
+ *
+ * This counts the en-US values of five or more words that sit under more than
+ * one entry, across all namespaces. The branches of one plural entry
+ * (`one` / `other`) are one entry, so a plural whose forms read the same in
+ * English never counts. The number may only go down: lower
+ * `REPEATED_SENTENCE_BASELINE` when a sentence is merged, and merge rather
+ * than raise it when a new copy appears.
+ */
+const REPEATED_SENTENCE_MIN_WORDS = 5;
+const REPEATED_SENTENCE_BASELINE = 62;
+
+function repeatedSentences(): Map<string, string[]> {
+  const entriesByText = new Map<string, Set<string>>();
+  for (const ns of BUILT_IN_NAMESPACES) {
+    const dict = loadDict(FALLBACK_LOCALE, ns);
+    if (!dict) continue;
+    for (const [key, value] of Object.entries(flatten(dict))) {
+      const texts = typeof value === 'string' ? [value] : Object.values(value as Record<string, unknown>);
+      for (const text of texts) {
+        if (typeof text !== 'string' || text.trim().split(/\s+/).length < REPEATED_SENTENCE_MIN_WORDS) continue;
+        const entries = entriesByText.get(text) ?? new Set<string>();
+        entries.add(`${ns}|${key}`);
+        entriesByText.set(text, entries);
+      }
+    }
+  }
+  const repeated = new Map<string, string[]>();
+  for (const [text, entries] of entriesByText) {
+    if (entries.size > 1) repeated.set(text, [...entries]);
+  }
+  return repeated;
+}
+
+describe('repeated sentences (one key per sentence ratchet)', () => {
+  const repeated = repeatedSentences();
+  const listing = [...repeated].map(([text, entries]) => `"${text}"\n    ${entries.join('\n    ')}`).join('\n  ');
+
+  it(`no more than ${REPEATED_SENTENCE_BASELINE} en-US sentences sit under more than one key`, () => {
+    expect(
+      repeated.size,
+      `${repeated.size} sentences of ${REPEATED_SENTENCE_MIN_WORDS} or more words are stored under more than one key ` +
+        `(baseline ${REPEATED_SENTENCE_BASELINE}). Use the existing key, or move the sentence to core and point every call site at it.\n  ${listing}`,
+    ).toBeLessThanOrEqual(REPEATED_SENTENCE_BASELINE);
+  });
+
+  it('baseline is not stale', () => {
+    expect(
+      repeated.size,
+      `Only ${repeated.size} repeated sentences are left: lower REPEATED_SENTENCE_BASELINE to ${repeated.size}.`,
+    ).toBeGreaterThanOrEqual(REPEATED_SENTENCE_BASELINE);
+  });
 });

@@ -3,6 +3,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/provider';
+import enUSCore from '@/translations/en-US/core.json';
 import enUSModules from '@/translations/en-US/modules.json';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
@@ -38,7 +39,7 @@ function renderCompact(opts: { done?: boolean; points?: number; showPoints?: boo
     showTimeOfDay: true, allowDisplayComplete: true, accentColor: '#f59e0b',
   };
   render(
-    <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
+    <I18nProvider locale="en-US" blob={{ core: enUSCore, modules: enUSModules }}>
       <CompactView
         config={config}
         data={{

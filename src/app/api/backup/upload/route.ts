@@ -12,7 +12,7 @@ import {
 } from '@/lib/backup-archive';
 import { MAX_RESTORE_BYTES } from '@/lib/backup-limits';
 import { RESTORE_FREE_SPACE_MARGIN } from '@/lib/backup-pictures';
-import { summarizeBundle } from '@/lib/backup-contents-summary';
+import { summarizeBundle } from '@/lib/backup-summary';
 
 export const dynamic = 'force-dynamic';
 

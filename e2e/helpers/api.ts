@@ -4,6 +4,8 @@ import { expect, type APIResponse, type APIRequestContext } from '@playwright/te
 import type { ScreenConfiguration } from '@/types/config';
 import type { TimetableData } from '@/types/timetables';
 import { NOTE_LIFE_MS, type Note, type NoteLife } from '@/types/notes';
+import type { TimerView } from '@/types/timers';
+import { localDate } from './dates';
 
 export async function getConfig(request: APIRequestContext): Promise<ScreenConfiguration> {
   const res = await request.get('/api/config');
@@ -113,13 +115,6 @@ export function seedRedemptions(sandboxDir: string, names: string[] = ['Movie ni
   }, null, 2));
 }
 
-/** Local YYYY-MM-DD for a date offset from today, matching how the meal planner keys plan entries. */
-function isoDate(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /**
  * One saved meal planned for today. The default week/today meal-planner views
  * filter the plan to the current week, so the plan date is stamped to "today"
@@ -129,7 +124,7 @@ function isoDate(offsetDays = 0): string {
 export function mealData() {
   return {
     savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝', prepTime: 25 }],
-    plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoDate(0) }],
+    plan: [{ slot: 'dinner', mealId: 'meal-1', date: localDate(0) }],
   };
 }
 
@@ -291,9 +286,7 @@ export const E2E_DAY_NOTES = { today: 'E2E DAY NOTE TODAY', tomorrow: 'E2E DAY N
 export function seedDayNotes(sandboxDir: string, byOffset: Record<number, string | string[]> = { 0: E2E_DAY_NOTES.today, 1: E2E_DAY_NOTES.tomorrow }): void {
   const notes: Array<{ id: string; date: string; text: string }> = [];
   for (const [offset, texts] of Object.entries(byOffset)) {
-    const d = new Date();
-    d.setDate(d.getDate() + Number(offset));
-    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const date = localDate(Number(offset));
     for (const text of [texts].flat()) notes.push({ id: `e2e-day-note-${notes.length + 1}`, date, text });
   }
   const dataDir = path.join(sandboxDir, 'data');
@@ -563,6 +556,36 @@ export async function seedDisplaySharedState(
       sharedState,
       ...(providerHealth ? { providerHealth } : {}),
     },
+  });
+  expect(res.ok()).toBe(true);
+}
+
+/** Whether the hub holds a completion of `choreId` by `memberId` on `date` (local `YYYY-MM-DD`). */
+export async function completionExists(
+  request: APIRequestContext,
+  choreId: string,
+  memberId: string,
+  date: string,
+): Promise<boolean> {
+  const res = await request.get('/api/chores');
+  const completions = (await res.json()).completions as Array<{ choreId: string; memberId: string; date: string }>;
+  return completions.some((c) => c.choreId === choreId && c.memberId === memberId && c.date === date);
+}
+
+/** Delete every one of the family's own icons. */
+export async function clearIcons(request: APIRequestContext): Promise<void> {
+  const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: Array<{ id: string }> };
+  for (const icon of icons) expect((await request.delete(`/api/custom-icons/${icon.id}`)).ok()).toBe(true);
+}
+
+/** Start a silent quick timer on the hub, without going through the start UI. */
+export async function startQuickTimer(
+  request: APIRequestContext,
+  opts: { durationSec: number; view: TimerView; targets?: 'all' | string[] },
+): Promise<void> {
+  const { durationSec, view, targets = 'all' } = opts;
+  const res = await request.post('/api/timers/session', {
+    data: { action: 'start', kind: 'quick', durationSec, targets, view, sound: false },
   });
   expect(res.ok()).toBe(true);
 }

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeTestModule, makeTestScreen } from '@/test-utils';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { Screen, ModuleInstance } from '@/types/config';
 import type { DisplaySettings } from '../useLiveConfig';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import ScreenRenderer from '../ScreenRenderer';
 import type { SharedDisplayData } from '@/lib/module-props';
@@ -26,21 +26,7 @@ import { emptyWeatherPayloads } from '@/lib/weather-providers';
 const GATED_TYPE = 'plugin:test-widget' as const;
 const KEY = 'plugin:test-widget:door';
 
-function makeModule(overrides: Partial<ModuleInstance> & { id: string }): ModuleInstance {
-  return {
-    type: GATED_TYPE,
-    position: { x: 0, y: 0 },
-    size: { w: 100, h: 100 },
-    zIndex: 0,
-    config: {},
-    style: { ...DEFAULT_MODULE_STYLE },
-    ...overrides,
-  };
-}
-
-function makeScreen(id: string, modules: ModuleInstance[]): Screen {
-  return { id, name: id, backgroundImage: '', modules };
-}
+const makeModule = (overrides: Partial<ModuleInstance> & { id: string }) => makeTestModule(GATED_TYPE, overrides);
 
 const settings = {
   timezone: 'UTC',
@@ -84,8 +70,8 @@ describe('ScreenRenderer shared-state reactivity', () => {
     id: 'gated-icon',
     visibility: { conditions: [{ kind: 'state', sourceKey: KEY, equals: 'alert' }] },
   });
-  const screenA = makeScreen('screen-a', [gated]);
-  const screenB = makeScreen('screen-b', []);
+  const screenA = makeTestScreen('screen-a', [gated]);
+  const screenB = makeTestScreen('screen-b', []);
 
   it('shows and hides the module reactively as state is published', () => {
     render(renderScreen(screenA));
@@ -125,7 +111,7 @@ describe('ScreenRenderer shared-state reactivity', () => {
 
   it('excludes a backgroundProvider instance from on-screen rendering even when conditions pass', () => {
     const provider = makeModule({ id: 'bg-provider', backgroundProvider: true });
-    render(renderScreen(makeScreen('screen-c', [provider])));
+    render(renderScreen(makeTestScreen('screen-c', [provider])));
     expect(dom.queryByText(/test-widget/)).toBeNull();
   });
 

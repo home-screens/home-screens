@@ -29,3 +29,13 @@ export function pluginStateKey(pluginId: string, key: string): string {
   const rest = key.toLowerCase().startsWith(prefix) ? key.slice(prefix.length) : key;
   return prefix + rest;
 }
+
+/**
+ * Split a `plugin:<id>:<rest>` key into the plugin id as written (callers
+ * that compare ids lowercase it) and what follows, which may be empty. Null
+ * for a key outside the plugin namespace.
+ */
+export function parsePluginStateKey(key: string): { pluginId: string; rest: string } | null {
+  const match = /^plugin:([^:]+):([\s\S]*)$/.exec(key);
+  return match ? { pluginId: match[1], rest: match[2] } : null;
+}

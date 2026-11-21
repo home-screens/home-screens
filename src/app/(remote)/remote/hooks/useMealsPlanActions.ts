@@ -79,6 +79,7 @@ export function useMealsPlanActions({
   keepEntry,
 }: MealsPlanActionsParams) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // "This week" in a message only while it is this week; any other is named by its dates.
@@ -236,11 +237,11 @@ export function useMealsPlanActions({
     if (savesToMealie) {
       const ask = mealieSuggestCells(weekPlan, weekDateStrs, settings.enabledSlots);
       if (ask.kind === 'no-dinners') {
-        showNotice(t('mealie.suggest.noDinners'));
+        showNotice(tCore('mealie.suggest.noDinners'));
         return;
       }
       if (ask.kind === 'all-planned') {
-        showNotice(thisWeek ? t('mealie.suggest.allPlanned') : t('mealie.suggest.allPlannedDates', { range }));
+        showNotice(thisWeek ? tCore('mealie.suggest.allPlanned') : tCore('mealie.suggest.allPlannedDates', { range }));
         return;
       }
       const empty = ask.cells;
@@ -258,14 +259,14 @@ export function useMealsPlanActions({
           if (!result) return;
           const outcome = mealieSuggestOutcome(result);
           if (outcome.kind === 'nothing') {
-            showNotice(t('mealie.suggest.nothingFits'));
+            showNotice(tCore('mealie.suggest.nothingFits'));
             return;
           }
           // Names the nights (the new dinners can be far down the week), or
           // says every night rather than listing all seven.
           const message = outcome.everyNight
-            ? (thisWeek ? t('mealie.suggest.doneEveryNight') : t('mealie.suggest.doneEveryNightDates', { range }))
-            : t('mealie.suggest.done', { count: outcome.count, days: formatDayList(outcome.nights, formattingLocale) });
+            ? (thisWeek ? tCore('mealie.suggest.doneEveryNight') : tCore('mealie.suggest.doneEveryNightDates', { range }))
+            : tCore('mealie.suggest.done', { count: outcome.count, days: formatDayList(outcome.nights, formattingLocale) });
           showNotice(message, () => { void applyToPlan((p) => withoutSuggested(p, outcome.added)); });
         },
       });
@@ -300,7 +301,7 @@ export function useMealsPlanActions({
         await suggest();
       },
     });
-  }, [savedMeals, weekDates, weekPlan, week, settings.enabledSlots, applyToPlan, setConfirmAction, t, savesToMealie, suggestFromMealie, showNotice, formattingLocale]);
+  }, [savedMeals, weekDates, weekPlan, week, settings.enabledSlots, applyToPlan, setConfirmAction, t, tCore, savesToMealie, suggestFromMealie, showNotice, formattingLocale]);
 
   const copyLastWeek = useCallback(async () => {
     const weekDateStrs = weekDates.map((d) => d.date);

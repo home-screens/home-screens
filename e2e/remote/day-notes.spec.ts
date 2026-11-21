@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, seedDayNotes, seedNotes } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
@@ -13,12 +14,6 @@ import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures'
  * household zone, so the hub's today is this machine's.
  */
 
-function isoIn(offset: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** What the hub holds, as day and words (ids are the hub's own). */
 async function stored(request: APIRequestContext): Promise<Array<{ date: string; text: string }>> {
   const res = await request.get('/api/day-notes');
@@ -32,7 +27,7 @@ async function openCalendarPage(page: Page) {
   await expect(page.getByTestId('day-notes-page')).toBeVisible();
 }
 
-const day = (page: Page, offset: number) => page.locator(`[data-testid="day-notes-day"][data-date="${isoIn(offset)}"]`);
+const day = (page: Page, offset: number) => page.locator(`[data-testid="day-notes-day"][data-date="${localDate(offset)}"]`);
 const sheet = (page: Page) => page.getByTestId('day-note-sheet');
 
 async function useScreens(request: APIRequestContext, modules: Parameters<typeof makeScreen>[2]) {
@@ -81,7 +76,7 @@ test('tapping an empty day opens the box ready to type, and writes a note for it
   await submit.click();
   await expect(sheet(page)).toHaveCount(0);
   await expect(day(page, 2).getByTestId('day-notes-note')).toHaveText('Picture day');
-  await expect.poll(() => stored(request)).toEqual([{ date: isoIn(2), text: 'Picture day' }]);
+  await expect.poll(() => stored(request)).toEqual([{ date: localDate(2), text: 'Picture day' }]);
 });
 
 test('the box wraps long words, counts an emoji as one and says when it is full', async ({ page }) => {
@@ -110,7 +105,7 @@ test('a day takes up to three notes, each its own row', async ({ page, request }
   await expect(day(page, 1).getByTestId('day-notes-note')).toHaveText(['Pajama day', 'Library books', 'Bring boots']);
   await expect(day(page, 1).getByTestId('day-notes-add')).toHaveCount(0);
   await expect.poll(() => stored(request)).toEqual(
-    ['Pajama day', 'Library books', 'Bring boots'].map((text) => ({ date: isoIn(1), text })),
+    ['Pajama day', 'Library books', 'Bring boots'].map((text) => ({ date: localDate(1), text })),
   );
 });
 
@@ -125,20 +120,20 @@ test('a note can be changed without touching the others, removed, and put back w
   await sheet(page).getByTestId('day-note-sheet-submit').click();
   await expect(notes).toHaveText(['Pajama day, wear red', 'Library books']);
   await expect.poll(() => stored(request)).toEqual([
-    { date: isoIn(1), text: 'Pajama day, wear red' },
-    { date: isoIn(1), text: 'Library books' },
+    { date: localDate(1), text: 'Pajama day, wear red' },
+    { date: localDate(1), text: 'Library books' },
   ]);
 
   await notes.first().click();
   await sheet(page).getByTestId('day-note-sheet-remove').click();
   await expect(notes).toHaveText(['Library books']);
-  await expect.poll(() => stored(request)).toEqual([{ date: isoIn(1), text: 'Library books' }]);
+  await expect.poll(() => stored(request)).toEqual([{ date: localDate(1), text: 'Library books' }]);
 
   await page.getByTestId('remote-toast-action').click();
   await expect(notes).toHaveText(['Library books', 'Pajama day, wear red']);
   await expect.poll(() => stored(request)).toEqual([
-    { date: isoIn(1), text: 'Library books' },
-    { date: isoIn(1), text: 'Pajama day, wear red' },
+    { date: localDate(1), text: 'Library books' },
+    { date: localDate(1), text: 'Pajama day, wear red' },
   ]);
 });
 

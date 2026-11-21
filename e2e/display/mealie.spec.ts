@@ -2,13 +2,13 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig } from '../helpers/api';
+import { localDate } from '../helpers/dates';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { dinnerTimeToday } from '../helpers/schedule-windows';
 import {
   connectFakeMealie,
   defaultFakeEntries,
   disconnectFakeMealie,
-  fakeMealieDay,
   FAKE_RECIPES,
   startFakeMealie,
   type FakeEntry,
@@ -99,7 +99,7 @@ test.describe('meal plan from Mealie on the wall', () => {
     const r = (slug: string) => FAKE_RECIPES.find((x) => x.slug === slug)!.id;
     const entries: FakeEntry[] = [
       ...defaultFakeEntries().filter((e) => e.entryType !== 'lunch'),
-      { id: 40, date: fakeMealieDay(0), entryType: 'lunch', title: '', text: '', recipeId: r('cheese-board') },
+      { id: 40, date: localDate(0), entryType: 'lunch', title: '', text: '', recipeId: r('cheese-board') },
     ];
     mealie = await startFakeMealie(entries);
     await connectFakeMealie(request, mealie);
@@ -112,7 +112,7 @@ test.describe('meal plan from Mealie on the wall', () => {
   test('a change sent to the hub lands in Mealie, and a stale copy is refused', async ({ request }) => {
     mealie = await startFakeMealie();
     await connectFakeMealie(request, mealie);
-    const tomorrow = fakeMealieDay(1);
+    const tomorrow = localDate(1);
     // Which entry tomorrow's dinner is, as the hub names it (number and fingerprint).
     const read = await (await request.get('/api/meals/data')).json();
     const entry: string = read.mealie.plan.find((p: { date: string; slot: string }) => p.date === tomorrow && p.slot === 'dinner').sourceId;

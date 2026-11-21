@@ -19,8 +19,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isValidDisplayId } from '@/lib/display-filter';
-import { requireAdoptedDisplay } from '@/lib/adopted-display-gate';
+import { adoptedDisplayFromQuery, adoptedDisplayRefusal } from '@/lib/adopted-display-gate';
 import { getKioskBundle } from '@/lib/kiosk-bundle';
 import { getDisplayStatus } from '@/lib/display-commands';
 import { computeRestartAdvised, resolveDisplayRestartInputs } from '@/lib/kiosk-restart-advice';
@@ -30,13 +29,9 @@ import { readConfig } from '@/lib/config';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const displayId = request.nextUrl.searchParams.get('display');
-  if (!displayId || !isValidDisplayId(displayId)) {
-    return NextResponse.json({ error: 'Invalid or missing display' }, { status: 400 });
-  }
-
-  const authErr = await requireAdoptedDisplay(displayId);
-  if (authErr) return authErr;
+  const asked = await adoptedDisplayFromQuery(request);
+  if (!asked.ok) return adoptedDisplayRefusal(asked);
+  const { displayId } = asked;
 
   let bundle;
   try {

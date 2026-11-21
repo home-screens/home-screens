@@ -9,7 +9,7 @@ import { rememberRecipeWall, type DisplayTargetValue } from '../display-target';
 import { useShowRecipeOnWall, type WallNotices } from '../hooks/useShowRecipeOnWall';
 import BottomSheet from './BottomSheet';
 import { SheetRow } from './PhotoFolderSheets';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 /** How long the button keeps its tick after the hub took the recipe. */

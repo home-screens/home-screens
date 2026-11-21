@@ -21,6 +21,7 @@ vi.mock('@/lib/editor-fetch', () => ({
 
 import MealsSettingsPlanSourceSection from '../MealsSettingsPlanSourceSection';
 import { I18nProvider } from '@/i18n/provider';
+import core from '@/translations/en-US/core.json';
 import remote from '@/translations/en-US/remote.json';
 
 beforeEach(() => {
@@ -34,7 +35,7 @@ function answer(json: unknown, ok = true) {
 
 function renderSection(planSource: MealPlanSource | undefined, savedPlanSource = planSource, mealieConnected = true) {
   return render(
-    <I18nProvider locale="en-US" blob={{ remote }}>
+    <I18nProvider locale="en-US" blob={{ core, remote }}>
       <MealsSettingsPlanSourceSection planSource={planSource} savedPlanSource={savedPlanSource} mealieConnected={mealieConnected} onChange={() => {}} />
     </I18nProvider>,
   );

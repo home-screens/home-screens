@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { postDisplayStatus } from '../helpers/display';
 
 /**
  * These specs drive the multi-display registry through its running route
@@ -65,42 +66,6 @@ async function readRegistry(request: APIRequestContext): Promise<DisplaysRegistr
   return res.json();
 }
 
-/** Post a full status heartbeat the way a display client does. */
-async function postStatus(
-  request: APIRequestContext,
-  display: string,
-  opts: { clientId?: string; viewport?: { width: number; height: number }; currentIndex?: number } = {},
-): Promise<void> {
-  const { clientId, viewport, currentIndex = 0 } = opts;
-  const res = await request.post(`/api/display/status?display=${display}`, {
-    data: {
-      displayId: display,
-      ...(clientId ? { clientId } : {}),
-      currentScreen: { index: currentIndex, id: `screen-${currentIndex}`, name: `Screen ${currentIndex}` },
-      screenCount: 2,
-      activeProfile: null,
-      displayState: 'active',
-      timestamp: Date.now(),
-      ...(viewport
-        ? {
-            browserStats: {
-              userAgent: 'e2e-kiosk',
-              chromiumVersion: '999',
-              viewportWidth: viewport.width,
-              viewportHeight: viewport.height,
-              devicePixelRatio: 1,
-              hardwareConcurrency: 4,
-              deviceMemory: null,
-              webglRenderer: null,
-              reportedAt: new Date().toISOString(),
-            },
-          }
-        : {}),
-    },
-  });
-  expect(res.ok()).toBe(true);
-}
-
 function validHwStats() {
   return {
     piModel: 'Raspberry Pi 4 Model B',
@@ -123,7 +88,7 @@ test('an unadopted display that heartbeats surfaces in the unadopted list', asyn
   await putConfig(request, lifecycleConfig());
   const slug = 'garage-un';
 
-  await postStatus(request, slug, { currentIndex: 0 });
+  await postDisplayStatus(request, slug, { currentIndex: 0 });
 
   const registry = await readRegistry(request);
   expect(registry.unadopted.map((d) => d.id)).toContain(slug);
@@ -138,7 +103,7 @@ test('adopting a display moves it from unadopted into the registered list', asyn
   const slug = 'porch-adopt';
 
   // Heartbeat while unadopted → shows up as a candidate.
-  await postStatus(request, slug, { currentIndex: 1 });
+  await postDisplayStatus(request, slug, { currentIndex: 1 });
   await expect
     .poll(async () => (await readRegistry(request)).unadopted.map((d) => d.id))
     .toContain(slug);
@@ -162,7 +127,7 @@ test('adopting a display moves it from unadopted into the registered list', asyn
 test('a heartbeat surfaces current screen index and display state on the registered display', async ({ request }) => {
   await putConfig(request, lifecycleConfig());
 
-  await postStatus(request, 'kitchen', { currentIndex: 1 });
+  await postDisplayStatus(request, 'kitchen', { currentIndex: 1 });
 
   await expect
     .poll(async () => {
@@ -182,8 +147,8 @@ test('two tabs under one displayId are tracked as distinct viewport reports with
   const slug = 'family-room';
   await putConfig(request, lifecycleConfig([slug]));
 
-  await postStatus(request, slug, { clientId: 'tab-a', viewport: { width: 1080, height: 1920 } });
-  await postStatus(request, slug, { clientId: 'tab-b', viewport: { width: 800, height: 600 } });
+  await postDisplayStatus(request, slug, { clientId: 'tab-a', viewport: { width: 1080, height: 1920 } });
+  await postDisplayStatus(request, slug, { clientId: 'tab-b', viewport: { width: 800, height: 600 } });
 
   await expect
     .poll(async () => {
@@ -207,8 +172,8 @@ test('repeat heartbeats from the same tab collapse into one viewport report', as
   const slug = 'solo-room';
   await putConfig(request, lifecycleConfig([slug]));
 
-  await postStatus(request, slug, { clientId: 'only-tab', viewport: { width: 1080, height: 1920 } });
-  await postStatus(request, slug, { clientId: 'only-tab', viewport: { width: 1080, height: 1920 } });
+  await postDisplayStatus(request, slug, { clientId: 'only-tab', viewport: { width: 1080, height: 1920 } });
+  await postDisplayStatus(request, slug, { clientId: 'only-tab', viewport: { width: 1080, height: 1920 } });
 
   await expect
     .poll(async () => (await readRegistry(request)).displays.find((d) => d.id === slug)?.id, { timeout: 5000 })

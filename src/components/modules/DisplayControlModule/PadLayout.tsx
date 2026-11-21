@@ -4,11 +4,8 @@ import { wallPress } from '@/components/modules/shared/wallPress';
 import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
-import { TargetPicker } from './TargetPicker';
-import { HoldConfirmButton } from './HoldConfirmButton';
-import { controlMetrics } from './metrics';
-import { useElementBox } from '@/hooks/useElementBox';
-import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
+import { useControlFrame } from './useControlFrame';
+import { BrightnessSlider, ControlButton, ControlGrid, PageAndPowerButtons } from './controls';
 
 /**
  * Buttons only: a grid plus a Brightness row that swaps the grid for a
@@ -16,16 +13,9 @@ import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon
  */
 export function PadLayout(props: LayoutProps) {
   const t = useTranslate('modules');
-  const {
-    allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
-    brightness, onPrev, onNext, onSleep, onWake, onBrightness,
-  } = props;
+  const { brightness, onPrev, onNext, onSleep, onWake, onBrightness } = props;
   const [brightnessOpen, setBrightnessOpen] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const showPicker = allowRetargeting && !isLegacyMode;
-  const dim = pickerOpen ? 'opacity-35' : '';
-  const [boxRef, box] = useElementBox('padding');
-  const m = controlMetrics({ w: box.width, h: box.height, layout: 'pad', compact, showPicker });
+  const { boxRef, m, picker, dim } = useControlFrame(props, 'pad');
 
   return (
     <div
@@ -34,16 +24,7 @@ export function PadLayout(props: LayoutProps) {
       style={{ padding: m.pad, gap: m.gap }}
       data-layout="pad"
     >
-      {showPicker && (
-        <TargetPicker
-          value={currentTarget}
-          onChange={(v) => setCurrentTarget(v)}
-          options={availableDisplays}
-          selfId={selfId}
-          onOpenChange={setPickerOpen}
-          m={m}
-        />
-      )}
+      {picker}
 
       {brightnessOpen ? (
         <div
@@ -67,30 +48,9 @@ export function PadLayout(props: LayoutProps) {
         </div>
       ) : (
         <div className={`flex-1 min-h-0 flex flex-col transition-opacity ${dim}`} style={{ gap: m.gap }}>
-          <div
-            className="grid flex-1 min-h-0"
-            style={{
-              gridTemplateColumns: `repeat(${m.cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${m.rows}, minmax(0, 1fr))`,
-              gap: m.gap,
-            }}
-          >
-            <ControlButton m={m} label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon="prev" onClick={onPrev} />
-            <ControlButton m={m} label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon="next" onClick={onNext} />
-            <HoldConfirmButton
-              ariaLabel={t('display-control.sleepHoldHint')}
-              hint={t('display-control.keepHolding')}
-              hintFontSize={Math.max(11, m.label || 13)}
-              onConfirm={onSleep}
-              className={BUTTON_CLASS}
-              style={buttonStyle(m)}
-              contentClassName="flex h-full w-full flex-col items-center justify-center"
-            >
-              <ControlIcon name="sleep" m={m} />
-              <ButtonWords m={m} label={t('display-control.sleep')} sub={t('display-control.holdSub')} />
-            </HoldConfirmButton>
-            <ControlButton m={m} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon="wake" onClick={onWake} />
-          </div>
+          <ControlGrid m={m}>
+            <PageAndPowerButtons m={m} onPrev={onPrev} onNext={onNext} onSleep={onSleep} onWake={onWake} />
+          </ControlGrid>
           <ControlButton
             m={m}
             row

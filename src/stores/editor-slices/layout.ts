@@ -1,11 +1,12 @@
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
 import { pruneDanglingScreenRefs, isScreenEmpty } from '@/lib/display-filter';
 import {
+  activeDisplayView,
   getActiveScreens,
-  getActiveDimensions,
   withActiveScreens,
   resolveProfileTarget,
 } from '@/lib/editor-multi-display';
+import { dashSlug } from '@/lib/slug';
 import {
   createLayoutExport,
   importLayout as importLayoutCore,
@@ -23,32 +24,10 @@ export function createLayoutSlice(
     exportLayout: (options = {}) => {
       const { config, selectedDisplayId } = get();
       if (!config) return;
-      // Export operates on the screens the editor is currently working on —
-      // a per-display export in multi-display mode, the global pool in legacy.
-      const activeScreens = getActiveScreens(config, selectedDisplayId);
-      const dims = getActiveDimensions(config, selectedDisplayId);
-      // A display that owns its profile list exports THOSE profiles, not the
-      // legacy root pool — the root pool can't reference this display's
-      // screen IDs, so createLayoutExport's overlap filter would drop
-      // everything and the export would ship profile-less.
-      const profileTarget = resolveProfileTarget(config, selectedDisplayId);
-      const tempConfig: ScreenConfiguration = {
-        ...config,
-        screens: activeScreens,
-        ...(profileTarget.kind === 'display'
-          ? { profiles: profileTarget.display.profiles }
-          : {}),
-        settings: {
-          ...config.settings,
-          displayWidth: dims.width,
-          displayHeight: dims.height,
-        },
-      };
+      // A per-display export in multi-display mode, the global pool in legacy.
+      const tempConfig = activeDisplayView(config, selectedDisplayId);
       const layout = createLayoutExport(tempConfig, options);
-      const slug = (options.name ?? 'my-layout')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+      const slug = dashSlug(options.name ?? 'my-layout');
       const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' });
       downloadBlob(blob, `home-screens-${slug}.json`);
     },
@@ -57,27 +36,9 @@ export function createLayoutSlice(
       const { selectedDisplayId } = get();
       let firstNewId: string | null = null;
       mutateConfig((config) => {
-        // Work against a temp single-display view of the active screens so
-        // importLayoutCore's existing logic can scale/clamp modules to the
-        // target canvas without knowing about displays. When the display owns
-        // its profile list, the temp view also swaps in those profiles so
-        // add-mode merges against the list this display actually reads,
-        // not the legacy root pool.
         const activeScreens = getActiveScreens(config, selectedDisplayId);
-        const dims = getActiveDimensions(config, selectedDisplayId);
         const profileTarget = resolveProfileTarget(config, selectedDisplayId);
-        const tempConfig: ScreenConfiguration = {
-          ...config,
-          screens: activeScreens,
-          ...(profileTarget.kind === 'display'
-            ? { profiles: profileTarget.display.profiles }
-            : {}),
-          settings: {
-            ...config.settings,
-            displayWidth: dims.width,
-            displayHeight: dims.height,
-          },
-        };
+        const tempConfig = activeDisplayView(config, selectedDisplayId);
         const imported = importLayoutCore(layout, tempConfig, options);
         // The empty screen the user chose "start from a template" on is
         // replaced by the imported screens rather than left blank beside

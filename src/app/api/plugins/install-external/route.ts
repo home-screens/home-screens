@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import crypto from 'crypto';
-import { installExternalPlugin } from '@/lib/plugins';
-import { fetchWithTimeout, withAuth, parseJsonBody } from '@/lib/api-utils';
+import { installExternalPlugin, MAX_PLUGIN_TARBALL_BYTES } from '@/lib/plugins';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { resolveTarballUrl, validateExternalUrl, urlForAudit } from '@/lib/external-plugins';
+import { fetchWithAllowedRedirects } from '@/lib/guarded-fetch';
 import { isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
@@ -12,23 +13,55 @@ export const dynamic = 'force-dynamic';
 const MAX_REDIRECT_HOPS = 5;
 const DOWNLOAD_TIMEOUT_MS = 60_000;
 
+const BLOCKED_ADDRESS = 'URL resolves to a blocked address (internal network, loopback, or cloud metadata).';
+
 /**
- * SSRF guard for a resolved tarball URL. `validateExternalUrl` only checks
+ * Address check for the URL a person typed. `validateExternalUrl` only checks
  * the URL scheme; this adds DNS-resolved IP filtering so `https://evil.com`
  * that resolves to `192.168.1.1` (or `169.254.169.254`, or a ULA IPv6) is
  * rejected before we reach fetch. `http://localhost` / `http://127.0.0.1`
- * are pinned to their literal form by the scheme check and don't need
- * further validation.
+ * are allowed for local testing and pinned to their literal form by the
+ * scheme check.
  */
-async function guardFetchUrl(url: string): Promise<string | null> {
+async function guardTypedUrl(url: string): Promise<string | null> {
   try {
     validateExternalUrl(url);
   } catch (err) {
     return err instanceof Error ? err.message : 'Invalid URL';
   }
-  if (url.startsWith('https://') && !(await isSafeExternalUrl(url))) {
-    return 'URL resolves to a blocked address (internal network, loopback, or cloud metadata).';
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return 'Invalid URL';
   }
+  if (parsed.protocol === 'https:') return (await isSafeExternalUrl(url)) ? null : BLOCKED_ADDRESS;
+  // The scheme check reads the start of the text, which
+  // `http://localhost:x@other-host/` also passes. The parsed host is what
+  // would be fetched, so that is what has to be this machine.
+  const local = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+  if (!local || parsed.username || parsed.password) {
+    return 'URLs must use HTTPS. http://localhost is allowed for local testing.';
+  }
+  return null;
+}
+
+/**
+ * Address check for a redirect target. The localhost allowance is for the
+ * address a person typed, never for where a download host sends the hub
+ * next: a public tarball host answering 302 to `http://127.0.0.1:<port>/`
+ * would otherwise have the hub fetch its own services. So a later hop must
+ * be https and must pass the full check.
+ */
+async function guardRedirectUrl(url: string): Promise<string | null> {
+  let protocol: string;
+  try {
+    protocol = new URL(url).protocol;
+  } catch {
+    return 'Invalid URL';
+  }
+  if (protocol !== 'https:') return 'URLs must use HTTPS.';
+  if (!(await isSafeExternalUrl(url))) return BLOCKED_ADDRESS;
   return null;
 }
 
@@ -62,67 +95,64 @@ export const POST = withAuth(async (request: NextRequest) => {
     );
   }
 
-  const initialGuardError = await guardFetchUrl(resolvedUrl);
-  if (initialGuardError) {
-    return NextResponse.json({ error: initialGuardError }, { status: 400 });
-  }
-
   const displayUrl = urlForAudit(resolvedUrl);
 
-  // Follow redirects manually so every hop is re-validated. Letting fetch
-  // follow redirects automatically would let an allowed public host 302 to
-  // http://169.254.169.254/ or https://10.0.0.5/, defeating the DNS check.
-  let currentUrl = resolvedUrl;
-  let res!: Response;
-  try {
-    for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
-      res = await fetchWithTimeout(currentUrl, {
-        timeout: DOWNLOAD_TIMEOUT_MS,
-        redirect: 'manual',
-        retries: 0,
-      });
-      if (res.status < 300 || res.status >= 400) break;
-      const location = res.headers.get('location');
-      if (!location) break;
-      if (hop === MAX_REDIRECT_HOPS) {
+  // The shared fetch follows redirects by hand so every hop is checked before
+  // it is fetched (letting fetch follow them would let an allowed public host
+  // 302 to http://169.254.169.254/ or https://10.0.0.5/), and stops reading
+  // at the cap so a link to something huge cannot fill the hub's memory.
+  // The first check is the typed address (hop 0); each later one a redirect.
+  let guardError: string | null = null;
+  let checkedHop = -1;
+  const result = await fetchWithAllowedRedirects(resolvedUrl, {
+    allowHosts: ['*'],
+    maxHops: MAX_REDIRECT_HOPS,
+    maxBytes: MAX_PLUGIN_TARBALL_BYTES,
+    timeoutMs: DOWNLOAD_TIMEOUT_MS,
+    retries: 0,
+    isSafe: async (url, hop) => {
+      checkedHop = hop;
+      guardError = hop === 0 ? await guardTypedUrl(url) : await guardRedirectUrl(url);
+      return guardError === null;
+    },
+  });
+
+  if (!result.ok) {
+    switch (result.reason) {
+      case 'blocked':
+      case 'not-allowed': {
+        const why = guardError ?? BLOCKED_ADDRESS;
+        return NextResponse.json({ error: checkedHop > 0 ? `Redirect blocked: ${why}` : why }, { status: 400 });
+      }
+      case 'too-many-redirects':
+        return NextResponse.json({ error: `${displayUrl} returned too many redirects.` }, { status: 502 });
+      case 'invalid-url':
+        // Before any check ran, it is the typed address that cannot be read.
+        if (checkedHop < 0) return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+        return NextResponse.json({ error: `${displayUrl} returned an invalid redirect Location.` }, { status: 502 });
+      case 'too-large':
         return NextResponse.json(
-          { error: `${displayUrl} returned too many redirects.` },
+          { error: `${displayUrl} is too big to be a plugin (over ${MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024)} MB). Check that the URL points at a tarball.` },
           { status: 502 },
         );
-      }
-      let nextUrl: string;
-      try {
-        nextUrl = new URL(location, currentUrl).toString();
-      } catch {
+      default:
         return NextResponse.json(
-          { error: `${displayUrl} returned an invalid redirect Location.` },
+          {
+            error: `Could not download from ${displayUrl}`,
+            detail: result.reason === 'timeout' ? 'it took too long to answer' : 'it could not be reached',
+          },
           { status: 502 },
         );
-      }
-      const redirectGuardError = await guardFetchUrl(nextUrl);
-      if (redirectGuardError) {
-        return NextResponse.json(
-          { error: `Redirect blocked: ${redirectGuardError}` },
-          { status: 400 },
-        );
-      }
-      currentUrl = nextUrl;
     }
-  } catch (err) {
-    const detail = err instanceof Error ? err.message : 'network error';
-    return NextResponse.json(
-      { error: `Could not download from ${displayUrl}`, detail },
-      { status: 502 },
-    );
   }
-  if (!res.ok) {
+  if (result.status < 200 || result.status >= 300) {
     return NextResponse.json(
-      { error: `${displayUrl} returned HTTP ${res.status}. Check that the URL points at a tarball.` },
+      { error: `${displayUrl} returned HTTP ${result.status}. Check that the URL points at a tarball.` },
       { status: 502 },
     );
   }
 
-  const buffer = Buffer.from(await res.arrayBuffer());
+  const buffer = Buffer.from(result.body.buffer, result.body.byteOffset, result.body.byteLength);
   const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
 
   try {

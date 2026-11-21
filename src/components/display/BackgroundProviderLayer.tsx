@@ -3,13 +3,11 @@
 import { memo, useMemo } from 'react';
 import type { Screen, ModuleInstance } from '@/types/config';
 import type { DisplaySettings } from './useLiveConfig';
-import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
 import { usePluginStore } from '@/stores/plugin-store';
 import { stableStringify } from '@/lib/stable-stringify';
-import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
-import { getModuleDefinition } from '@/lib/module-registry';
-import { resolveModuleStyle } from '@/lib/module-style';
+import { toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
+import ModuleMount from './ModuleMount';
 
 interface BackgroundProviderLayerProps {
   /** ALL configured screens (pre-profile-filter) — a producer must run even
@@ -34,7 +32,8 @@ interface BackgroundProviderLayerProps {
  * `pluginFetch` / `useFetchData` paths work unchanged; the layer is just
  * visually hidden. Duplicate producers (same type + config on several
  * screens) are deduped to a single mount — and the store's dedupe-on-equal
- * makes any residual double-publish harmless.
+ * makes any residual double-publish harmless. A provider that throws while
+ * drawing fails alone and quietly, and is mounted again a few seconds later.
  *
  * Memoized: ScreenRotator re-renders at least once a minute (clock tick), so
  * this layer must not churn its providers' fetch loops on every parent render.
@@ -81,19 +80,11 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
         overflow: 'hidden',
       }}
     >
-      {providers.map((mod) => {
-        const Component = getModuleComponent(mod.type);
-        // Plugin not yet loaded — nothing to run. The plugins.size subscription
-        // above re-renders this layer once the bundle registers, at which point
-        // getModuleComponent resolves and the provider mounts.
-        if (!Component) return null;
-        const extraProps = buildModuleProps(mod, source);
-        return (
-          <div key={mod.id} style={{ width: mod.size.w, height: mod.size.h }}>
-            <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
-          </div>
-        );
-      })}
+      {/* A plugin not yet loaded mounts nothing; the plugins.size subscription
+          above re-renders this layer once the bundle registers. */}
+      {providers.map((mod) => (
+        <ModuleMount key={mod.id} mod={mod} source={source} unseen box={{ width: mod.size.w, height: mod.size.h }} />
+      ))}
     </div>
   );
 }

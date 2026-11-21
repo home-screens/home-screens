@@ -3,7 +3,8 @@
 import type { CSSProperties } from 'react';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import { useStoryImage } from '../news/news-hooks';
-import { clampLines, sourceInitial } from '../news/news-shared';
+import { sourceInitial } from '../news/news-shared';
+import { clampLines } from '@/components/modules/shared/clampLines';
 import { StoryButton } from '../news/StoryButton';
 import { UnavailableFooter } from '../news/UnavailableFooter';
 import { sourceTint, themeBgAlpha, type NewsViewContext } from './news-canvas';

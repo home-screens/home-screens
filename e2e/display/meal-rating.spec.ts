@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedFamily, seedMeals } from '../helpers/api';
@@ -20,12 +21,6 @@ const DISHES = [
   { id: 'd-cake', name: 'Lemon Cake', category: 'dessert' },
 ];
 
-function isoDate(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** The same dinner last night and tonight, so the dialog opens on it whatever time the test runs. */
 function dinners(dishes: typeof DISHES) {
   const [main, ...rest] = dishes;
@@ -33,7 +28,7 @@ function dinners(dishes: typeof DISHES) {
     date, slot: 'dinner', mealId: main.id,
     courses: rest.map((dish) => ({ kind: dish.category ?? 'side', mealId: dish.id })),
   });
-  return { savedMeals: dishes, plan: [dinner(isoDate(-1)), dinner(isoDate(0))] };
+  return { savedMeals: dishes, plan: [dinner(localDate(-1)), dinner(localDate(0))] };
 }
 
 async function openRateDinner(page: Page, request: APIRequestContext, sandboxDir: string, dishes: typeof DISHES, landscape: boolean) {

@@ -15,6 +15,7 @@ import { GrabHoldChoice, GrabLimitChoice, useGrabRulesSave } from './GrabRuleCho
  */
 export default function ChoreSettingsSection() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { settings, setSettings, save, failed, setFailed, savedAt } = useGrabRulesSave(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function ChoreSettingsSection() {
         </div>
         <p className="text-xs text-hs-text-muted mt-0.5">{t('settings.familyPage.chores.description')}</p>
       </div>
-      {failed && <p role="alert" className="text-xs text-hs-danger">{t('settings.familyPage.chores.saveFailed')}</p>}
+      {failed && <p role="alert" className="text-xs text-hs-danger">{tCore('refusals.saveFailed')}</p>}
       {settings && (
         <>
           <section data-field-id="family.grabLimit"><GrabLimitChoice settings={settings} onPick={(next) => void save(next)} /></section>

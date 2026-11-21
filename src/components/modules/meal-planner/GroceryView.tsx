@@ -15,7 +15,7 @@ import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import { withAlpha } from '@/lib/hex-color';
-import { mealieWords } from '../shared/mealie-problem';
+import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -158,13 +158,14 @@ function GroceryRow({ item, accent, tappable, pressed, onTick }: {
 /** Loading, Mealie out of reach, no list, or nothing left to get. */
 export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; fontSize?: number }) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   if (grocery.state === 'loading') {
     return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.loading')} hint="" fontSize={fontSize} />;
   }
   if (grocery.state === 'failed') {
     // The real problem, as the plan views and the recipe book name it, with a hint about the list.
     const word = mealieWords(grocery.problem ?? 'unreachable');
-    return <FamilyEmptyState icon={<>&#129530;</>} title={t(`meal-planner.${word}`)} hint={t(`meal-planner.grocery.problemHint.${word}`)} fontSize={fontSize} />;
+    return <FamilyEmptyState icon={<>&#129530;</>} title={tCore(mealieTitleKey(word))} hint={t(`meal-planner.grocery.problemHint.${word}`)} fontSize={fontSize} />;
   }
   if (grocery.noMealieList) {
     return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.grocery.noMealieList')} hint={t('meal-planner.grocery.noMealieListHint')} fontSize={fontSize} />;
@@ -174,7 +175,7 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
     return (
       <FamilyEmptyState
         icon={done ? <>&#10003;</> : <>&#129530;</>}
-        title={t(done ? 'meal-planner.grocery.mealieDone' : 'meal-planner.grocery.mealieEmpty', { list: grocery.listName })}
+        title={done ? t('meal-planner.grocery.mealieDone', { list: grocery.listName }) : tCore('mealie.grocery.emptyTitle', { list: grocery.listName })}
         hint={t('meal-planner.grocery.mealieEmptyHint')}
         fontSize={fontSize}
       />

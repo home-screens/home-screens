@@ -65,6 +65,21 @@ export const MIN_STEP_SEC = 5;
 export const MAX_STEP_SEC = 4 * 60 * 60;
 
 /**
+ * The length typed into a minutes box and a seconds box, in seconds, or null
+ * when it is not a whole length between `min` and `max` seconds. An empty box
+ * counts as 0, so clearing one to type never fights the keyboard. Seconds are
+ * the stored unit, so the pair round-trips exactly.
+ */
+export function secondsFromFields(minText: string, secText: string, { min, max }: { min: number; max: number }): number | null {
+  const minutes = minText === '' ? 0 : Number(minText);
+  const seconds = secText === '' ? 0 : Number(secText);
+  if (!Number.isInteger(minutes) || !Number.isInteger(seconds)) return null;
+  if (minutes < 0 || minutes > 240 || seconds < 0 || seconds > 59) return null;
+  const total = minutes * 60 + seconds;
+  return total >= min && total <= max ? total : null;
+}
+
+/**
  * Whether a newly-created timer chimes when it finishes. Quick timers used to
  * default to silence while routines defaulted to sound, so the same "Sound"
  * chip started in opposite states on two screens of the same tab.

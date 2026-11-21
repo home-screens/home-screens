@@ -11,6 +11,8 @@
  * second — user input never touches a shell string.
  */
 
+import { isUuid } from './uuid';
+
 /* ─── Result type ─────────────────────────────── */
 
 export interface ValidationResult {
@@ -99,8 +101,6 @@ export function validateInterfaceRegex(iface: string): ValidationResult {
 
 /* ─── Connection UUID ─────────────────────────── */
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
  * Validate an nmcli connection UUID.
  */
@@ -108,7 +108,7 @@ export function validateUUID(uuid: string): ValidationResult {
   if (typeof uuid !== 'string' || uuid.length === 0) {
     return fail('UUID must not be empty');
   }
-  if (!UUID_REGEX.test(uuid)) {
+  if (!isUuid(uuid)) {
     return fail('UUID must be a valid v4-style UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)');
   }
   return ok;

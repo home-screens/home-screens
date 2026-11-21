@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readFileSync, statSync } from 'fs';
 import path from 'path';
+import { authPosture } from '@/lib/auth-posture';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { getDataRoot } from '@/lib/data-root';
 import { isIpAllowed } from '@/lib/ip-allowlist';
+import { statSignature } from '@/lib/stat-signature';
 import { isDisallowedCrossOriginWrite, MUTATING_METHODS, parseAllowedOrigins } from '@/lib/same-origin';
 
 /* ─── Cached auth config ─────────────────────── */
@@ -27,8 +29,7 @@ let unreadableStats = 0;
  */
 function authFileSignature(filePath: string): string {
   try {
-    const st = statSync(filePath, { throwIfNoEntry: false });
-    return st ? `${st.ino}:${st.size}:${st.mtimeMs}` : 'missing';
+    return statSignature(statSync(filePath, { throwIfNoEntry: false }));
   } catch {
     return `unreadable:${++unreadableStats}`;
   }
@@ -55,14 +56,9 @@ function getAuthConfig(): AuthConfig {
   let ipAllowlist: string[] = [];
   let ipRestrictAccess = false;
   try {
-    const data = JSON.parse(readFileSync(filePath, 'utf-8'));
-    enabled = data.passwordHash !== null && data.passwordHash !== undefined;
-    if (Array.isArray(data.ipAllowlist)) {
-      ipAllowlist = data.ipAllowlist.filter((e: unknown): e is string => typeof e === 'string');
-    }
-    if (typeof data.ipRestrictAccess === 'boolean') {
-      ipRestrictAccess = data.ipRestrictAccess;
-    }
+    // The one rule for "is a password set", shared with the guards in
+    // src/lib/auth.ts so the gate and the routes behind it always agree.
+    ({ enabled, ipAllowlist, ipRestrictAccess } = authPosture(JSON.parse(readFileSync(filePath, 'utf-8'))));
   } catch (e: unknown) {
     // ENOENT = file doesn't exist → auth disabled (default state)
     // Any other error (corrupt JSON, permission denied) → fail closed

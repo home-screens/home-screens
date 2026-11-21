@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import type { TranslateFn } from '@/i18n';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import { sourceKind } from '@/lib/news/sources';
@@ -9,16 +8,6 @@ export const BREAKING_WINDOW_MS = 60 * 60 * 1000;
 
 export function isBreaking(item: NewsDisplayItem, now: number = Date.now()): boolean {
   return item.timestamp !== null && now - item.timestamp >= 0 && now - item.timestamp < BREAKING_WINDOW_MS;
-}
-
-/** Multi-line ellipsis via -webkit-line-clamp (fine in the Chromium kiosk). */
-export function clampLines(lines: number): CSSProperties {
-  return {
-    display: '-webkit-box',
-    WebkitLineClamp: Math.max(1, Math.round(lines)),
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-  };
 }
 
 /**

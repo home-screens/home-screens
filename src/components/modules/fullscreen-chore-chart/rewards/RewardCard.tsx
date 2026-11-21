@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { clampLines } from '@/components/modules/shared/clampLines';
 import { Ticket } from 'lucide-react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -20,15 +21,10 @@ interface RewardCardProps {
   onAccent: string;
 }
 
-const clampLines = (lines: number): React.CSSProperties => ({
-  display: '-webkit-box',
-  WebkitLineClamp: lines,
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-  overflowWrap: 'anywhere',
-});
-const clampName = clampLines(NAME_MAX_LINES);
-const clampDesc = clampLines(DESC_MAX_LINES);
+/** A reward's name can be one long word with no place to break. */
+const clampAnywhere = (lines: number): React.CSSProperties => ({ ...clampLines(lines), overflowWrap: 'anywhere' });
+const clampName = clampAnywhere(NAME_MAX_LINES);
+const clampDesc = clampAnywhere(DESC_MAX_LINES);
 
 /**
  * One reward. The glyph is the hero, the name the headline; cost and the

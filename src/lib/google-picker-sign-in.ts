@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { trustedForwardedHost } from './client-ip';
+import { safeEqual } from './signed-payload';
 
 /**
  * Sending people straight back to the hub after a Google Photos sign-in.
@@ -59,12 +60,6 @@ export function beginSignIn(hubAddress: string | null): { state: string; codeCha
   return { state, codeChallenge };
 }
 
-function sameToken(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
 /**
  * Claim the waiting sign-in's PKCE verifier, once.
  *
@@ -83,7 +78,7 @@ export function takeSignIn(state?: string): { verifier: string } | null {
     signIn.pending = null;
     return null;
   }
-  if (state !== undefined && !sameToken(state.split('.')[0], pending.nonce)) return null;
+  if (state !== undefined && !safeEqual(state.split('.')[0], pending.nonce)) return null;
   signIn.pending = null;
   return { verifier: pending.verifier };
 }

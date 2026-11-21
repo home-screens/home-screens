@@ -13,20 +13,26 @@ interface FocusTrapOptions {
    * opened by a tap that already meant "write", where the keyboard is wanted.
    */
   focus?: 'first' | 'container' | 'field';
+  /**
+   * False while the element is not on show: a sheet that stays mounted and
+   * slides away when closed. The trap starts each time this turns true, and
+   * hands focus back when it turns false.
+   */
+  active?: boolean;
 }
 
 const FIELDS = 'input:not([disabled]):not([type="hidden"]), textarea:not([disabled])';
 
 /**
- * Traps keyboard focus inside the referenced element while mounted.
- * Restores focus to the previously-focused element on unmount.
+ * Traps keyboard focus inside the referenced element while mounted (and
+ * `active`). Restores focus to the previously-focused element afterwards.
  */
-export function useFocusTrap<T extends HTMLElement>({ focus = 'first' }: FocusTrapOptions = {}) {
+export function useFocusTrap<T extends HTMLElement>({ focus = 'first', active = true }: FocusTrapOptions = {}) {
   const ref = useRef<T>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !active) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
@@ -72,7 +78,7 @@ export function useFocusTrap<T extends HTMLElement>({ focus = 'first' }: FocusTr
       el.removeEventListener('keydown', handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [focus]);
+  }, [focus, active]);
 
   return ref;
 }

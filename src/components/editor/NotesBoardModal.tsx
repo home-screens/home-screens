@@ -4,7 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ChevronDown, ChevronRight, MessageSquareText, Pin, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { readRemembered, remember } from '@/lib/device-memory';
+import { refusalText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import {
@@ -49,22 +50,8 @@ const ROW_TEXT_CLASS =
 const ROW_SELECT_CLASS =
   'max-w-[9rem] truncate rounded-md border border-transparent bg-transparent px-1 py-0.5 text-xs text-hs-text-body hover:border-hs-border-strong focus:outline-none focus:border-hs-border-strong focus:bg-hs-input transition-colors';
 
-function readRememberedAuthor(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.localStorage.getItem(AUTHOR_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function rememberAuthor(authorId: string): void {
-  try {
-    window.localStorage.setItem(AUTHOR_KEY, authorId);
-  } catch {
-    /* private mode: the pick just does not stick */
-  }
-}
+const readRememberedAuthor = () => readRemembered(AUTHOR_KEY);
+const rememberAuthor = (authorId: string) => remember(AUTHOR_KEY, authorId);
 
 /** Grow a textarea to its text, so a long note is read whole rather than scrolled. */
 function useAutoHeight(value: string) {
@@ -313,7 +300,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     // A change the board no longer allows (the note was deleted on a phone)
     // is refused here with the hub's own code, and skipped when replayed.
     tolerates: (e) => e instanceof NotesError,
-    onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.notes.failed')),
+    onRefused: (e) => setError(refusalText(e, tCore, 'refusals.saveFailed', 'refusals.hubUnreachable')),
     // A write that went through clears an earlier refusal; the read after
     // a refusal does not, or the message would vanish unread.
     onSaved: () => setError(null),

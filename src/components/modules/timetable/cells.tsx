@@ -19,6 +19,7 @@
  *   `onInk` for its text, which is the legible opposite of that ink.
  */
 
+import { clampLines } from '@/components/modules/shared/clampLines';
 import type { CSSProperties, ReactNode } from 'react';
 import { Backpack, Pencil, Utensils } from 'lucide-react';
 import { subjectIcon } from '@/components/timetable/subject-icons';
@@ -76,16 +77,6 @@ export function atLeast(px: number, em: number, base: number): string {
 
 /** Text that gives up its end rather than its middle, or a leading digit. */
 const ELLIPSIS: CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' };
-
-/** A label held to the lines the card budgeted for it, losing its tail if longer. */
-export function clampLines(lines: number): CSSProperties {
-  return {
-    display: '-webkit-box',
-    WebkitBoxOrient: 'vertical',
-    WebkitLineClamp: Math.max(1, Math.round(lines)),
-    overflow: 'hidden',
-  } as CSSProperties;
-}
 
 /**
  * A line in a cell's stack that keeps its own height.

@@ -11,7 +11,7 @@ import { deleteKey, typeKey } from '@/lib/wall-keyboard';
 import { recipeBookChipId, recipeBookHeading } from '@/lib/meal-recipe-book';
 import { WallScroller } from '../WallScroller';
 import { WallKeyboard } from '../WallKeyboard';
-import { mealieWords } from '../mealie-problem';
+import { mealieTitleKey, mealieWords } from '../mealie-problem';
 import { WallRecipeHeart } from '../WallRecipeHeart';
 import type { WallRecipeBook } from './useWallRecipeBook';
 import { BookMessage, RecipeBookChips, RecipeSearchField, RecipeTile, RecipeTileSkeletons, SECTION_LABEL, useChipLabel, type Px } from './RecipeBookParts';
@@ -82,6 +82,7 @@ function problemWords(problem: MealieClientProblem): ReturnType<typeof mealieWor
  */
 export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, mode, showTitle = true, onClose, onCardChange }: RecipeBookPanelProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const chipLabel = useChipLabel();
   const [typing, setTyping] = useState(mode === 'search' && interactive);
   const [open, setOpen] = useState<SavedMeal | null>(null);
@@ -217,7 +218,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
         testId="recipe-book-problem"
         P={P}
         icon="cloudOff"
-        title={t(`meal-planner.${word}`)}
+        title={tCore(mealieTitleKey(word))}
         hint={t(`meal-planner.recipeBook.problemHint.${word}`)}
         action={interactive && tryAgain(retry)}
       />

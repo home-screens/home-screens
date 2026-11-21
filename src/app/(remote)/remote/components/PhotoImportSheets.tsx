@@ -7,7 +7,7 @@ import { useLibraryImportJob, type LibraryImportJobStatus } from '@/hooks/useLib
 import { useGooglePickerSession } from '@/hooks/useGooglePickerSession';
 import { useICloudImport } from '@/hooks/useICloudImport';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
+import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD } from './remote-styles';
 import type { PhotoKind } from './photo-words';
 
 /** The kinds a finished import brought in, for "They'll show on Kitchen". */
@@ -37,6 +37,7 @@ function Working({ label }: { label: string }) {
 /** What a finished import did: added, already there, and couldn't. */
 function ImportResult({ job, whereTheyShow }: { job: LibraryImportJobStatus; whereTheyShow: (kinds: PhotoKind[], count: number) => string }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const unsaved = Math.max(job.total - job.done - job.skipped, 0);
   return (
     <div data-testid="photo-import-result" style={{ fontSize: 14, color: 'var(--hs-text-primary)', lineHeight: 1.45 }}>
@@ -46,9 +47,9 @@ function ImportResult({ job, whereTheyShow }: { job: LibraryImportJobStatus; whe
           <span><b>{t('photosTab.upload.added', { count: job.done })}</b> {whereTheyShow(importedKinds(job), job.done)}</span>
         </div>
       )}
-      {job.skipped > 0 && <p style={{ ...TEXT, marginTop: 6 }}>{t('photosTab.imports.alreadyHere', { count: job.skipped })}</p>}
+      {job.skipped > 0 && <p style={{ ...TEXT, marginTop: 6 }}>{tCore('imports.alreadyHere', { count: job.skipped })}</p>}
       {unsaved > 0 && <p style={{ ...TEXT, marginTop: 6, color: 'var(--hs-warning)' }}>{t('photosTab.imports.couldNotAdd', { count: unsaved })}</p>}
-      {job.done === 0 && job.skipped === 0 && unsaved === 0 && <p style={TEXT}>{t('photosTab.imports.nothingFound')}</p>}
+      {job.done === 0 && job.skipped === 0 && unsaved === 0 && <p style={TEXT}>{tCore('imports.nothingFound')}</p>}
     </div>
   );
 }
@@ -143,7 +144,7 @@ export function PhotoGoogleSheet({
             {t('photosTab.imports.googleOpen')}
           </a>
           {opened && (
-            <p style={{ ...HELPER_TEXT, marginTop: 12 }} className="animate-pulse">{t('photosTab.imports.googleWaiting')}</p>
+            <p style={{ ...HELPER_TEXT, marginTop: 12 }} className="animate-pulse">{tCore('imports.googleWaiting')}</p>
           )}
         </>
       ) : (
@@ -182,7 +183,7 @@ export function PhotoICloudSheet({
   const canStart = url.trim() !== '' && !running;
 
   return (
-    <BottomSheet title={t('photosTab.imports.icloudTitle')} onClose={onClose} testId="photo-icloud-sheet">
+    <BottomSheet title={tCore('imports.icloudTitle')} onClose={onClose} testId="photo-icloud-sheet">
       {running ? (
         <Working label={t('photosTab.imports.progress', { done: (job?.done ?? 0) + (job?.skipped ?? 0), total: job?.total ?? 0 })} />
       ) : finished && job ? (

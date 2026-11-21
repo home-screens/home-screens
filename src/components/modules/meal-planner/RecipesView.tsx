@@ -9,7 +9,7 @@ import { useTranslate } from '@/i18n';
 import MealPicture from '@/components/meals/MealPicture';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import { WallScroller } from '../shared/WallScroller';
-import { mealieWords } from '../shared/mealie-problem';
+import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 import { BookIcon, RecipeBookChips, WALL_TOUCH_MIN_PX } from '../shared/recipe-book/RecipeBookParts';
 import { RecipeBookSheet } from '../shared/recipe-book/RecipeBookSheet';
 import type { WallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
@@ -38,6 +38,7 @@ interface RecipesViewProps {
  */
 export function RecipesView({ config, book, fontSize, interactive }: RecipesViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const mealMinutes = useMealMinutes();
   const [sheet, setSheet] = useState<'search' | 'book' | null>(null);
   const [open, setOpen] = useState<SavedMeal | null>(null);
@@ -67,7 +68,7 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
   let list;
   if (book.problem && book.items.length === 0) {
     const word = book.problem === 'connection' ? 'mealieUnreachable' : mealieWords(book.problem);
-    list = <Message title={t(`meal-planner.${word}`)} hint={t(`meal-planner.recipeBook.problemHint.${word}`)} testId="recipe-list-problem" />;
+    list = <Message title={tCore(mealieTitleKey(word))} hint={t(`meal-planner.recipeBook.problemHint.${word}`)} testId="recipe-list-problem" />;
   } else if (book.loading && book.items.length === 0) {
     list = <Message title={t('meal-planner.recipeBook.loading')} testId="recipe-list-loading" />;
   } else if (book.items.length === 0) {

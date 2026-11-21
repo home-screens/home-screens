@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/provider';
+import enUSCore from '@/translations/en-US/core.json';
+import deDECore from '@/translations/de-DE/core.json';
 import enUSModules from '@/translations/en-US/modules.json';
 import deDEModules from '@/translations/de-DE/modules.json';
 import type { FamilyMember } from '@/types/family';
@@ -32,7 +34,7 @@ const ada: FamilyMember = { id: 'kid-1', name: 'Ada', emoji: '', color: '#8b5cf6
 const movie = { id: 'r-1', name: 'Movie night', cost: 10, enabled: true, memberIds: [] } as unknown as RewardDefinition;
 
 function wrapper(locale: 'en-US' | 'de-DE') {
-  const blob = { modules: locale === 'de-DE' ? deDEModules : enUSModules };
+  const blob = locale === 'de-DE' ? { core: deDECore, modules: deDEModules } : { core: enUSCore, modules: enUSModules };
   return function Wrapper({ children }: { children: ReactNode }) {
     return <I18nProvider locale={locale} blob={blob}>{children}</I18nProvider>;
   };

@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { putConfig } from '../helpers/api';
+import { putConfig, startQuickTimer } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { TIMER_VIEWS, type TimerView } from '@/types/timers';
 
@@ -55,12 +55,8 @@ async function seedDisplay(page: Page, request: APIRequestContext, shape: Shape)
   }));
 }
 
-async function startQuick(request: APIRequestContext, view: TimerView, durationSec = 240) {
-  const res = await request.post('/api/timers/session', {
-    data: { action: 'start', kind: 'quick', durationSec, targets: 'all', view, sound: false },
-  });
-  expect(res.ok()).toBe(true);
-}
+const startQuick = (request: APIRequestContext, view: TimerView, durationSec = 240) =>
+  startQuickTimer(request, { durationSec, view });
 
 /** The dial must be circular, at the mockup-fit diameter, and fully on screen. */
 async function expectDialProper(page: Page, shape: Shape, view: string) {

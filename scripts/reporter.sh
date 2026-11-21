@@ -216,7 +216,9 @@ HTTP=$(curl -fsS --max-time 10 \
   -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d "${BODY}" \
-  "${HUB_URL}/api/display/hw-stats" || echo "000")
+  "${HUB_URL}/api/display/hw-stats") || true
+# curl prints the hub's status even when it refuses, and 000 when nothing
+# answered, so a failed request needs no status of its own.
 rm -f /tmp/home-screens-reporter-resp.$$
 
 if [ "${HTTP}" != "200" ]; then

@@ -37,13 +37,14 @@ interface UseRedeemRewardOptions {
  * The wall's words for each refusal. The hub's own sentence is never shown:
  * it is English on a wall set to any language, and written for developers.
  */
-const REFUSAL_KEYS: Record<Exclude<RedeemOutcome, 'redeemed'>, string> = {
-  alreadyGot: 'fullscreen-chore-chart.rewardsStore.errorAlreadyGot',
-  moved: 'fullscreen-chore-chart.rewardsStore.errorChanged',
-  notEnough: 'fullscreen-chore-chart.rewardsStore.errorNotEnough',
-  notOffered: 'fullscreen-chore-chart.rewardsStore.errorNotOffered',
-  removed: 'fullscreen-chore-chart.rewardsStore.errorRemoved',
-  failed: 'fullscreen-chore-chart.rewardsStore.errorGeneric',
+const REFUSAL_KEYS: Record<Exclude<RedeemOutcome, 'redeemed'>, readonly ['core' | 'modules', string]> = {
+  alreadyGot: ['modules', 'fullscreen-chore-chart.rewardsStore.errorAlreadyGot'],
+  moved: ['modules', 'fullscreen-chore-chart.rewardsStore.errorChanged'],
+  notEnough: ['modules', 'fullscreen-chore-chart.rewardsStore.errorNotEnough'],
+  // Said in the same words on the phone, so these two live in `core`.
+  notOffered: ['core', 'rewards.redeem.notOffered'],
+  removed: ['core', 'rewards.redeem.removed'],
+  failed: ['modules', 'fullscreen-chore-chart.rewardsStore.errorGeneric'],
 };
 
 /**
@@ -54,6 +55,7 @@ const REFUSAL_KEYS: Record<Exclude<RedeemOutcome, 'redeemed'>, string> = {
  */
 export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const [pending, setPending] = useState<RedeemPending | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,14 +108,15 @@ export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions)
         // When the tickets moved, the sheet quotes the hub's number from now
         // on, so a second Yes is judged on the real balance, not refused again.
         if (balance !== undefined && numbers?.balances) setPending({ reward, member, balance: numbers.balances[member.id] ?? 0 });
-        setError(t(REFUSAL_KEYS[outcome], { reward: reward.name }));
+        const [dictionary, key] = REFUSAL_KEYS[outcome];
+        setError((dictionary === 'core' ? tCore : t)(key, { reward: reward.name }));
       }
     } catch {
       setError(t('fullscreen-chore-chart.rewardsStore.errorOffline'));
     } finally {
       setBusy(false);
     }
-  }, [enabled, pending, busy, onRedeemed, t]);
+  }, [enabled, pending, busy, onRedeemed, t, tCore]);
 
   return { pending, busy, error, redeemed, ask, cancel, confirm, dismissRedeemed };
 }

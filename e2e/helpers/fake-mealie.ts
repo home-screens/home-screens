@@ -1,6 +1,7 @@
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { APIRequestContext } from '@playwright/test';
+import { localDate } from './dates';
 
 /**
  * A small Mealie for E2E: the hub calls Mealie from the server, so the
@@ -120,16 +121,9 @@ export const FAKE_COOKBOOKS: { name: string; slug: string; recipes: string[] }[]
   { name: 'Kids like it', slug: 'kids-like-it', recipes: ['mac-and-cheese', 'blueberry-pancakes'] },
 ];
 
-/** Local `YYYY-MM-DD`, `offset` days from today: the household zone is the hub's, the same machine. */
-export function fakeMealieDay(offset = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** Today: pancakes for breakfast, a school-lunch note, chili for dinner with cornbread, crumble and lemonade. */
 export function defaultFakeEntries(): FakeEntry[] {
-  const today = fakeMealieDay(0);
+  const today = localDate(0);
   const r = (slug: string) => FAKE_RECIPES.find((x) => x.slug === slug)!.id;
   return [
     { id: 11, date: today, entryType: 'breakfast', title: '', text: '', recipeId: r('blueberry-pancakes') },
@@ -138,7 +132,7 @@ export function defaultFakeEntries(): FakeEntry[] {
     { id: 14, date: today, entryType: 'side', title: '', text: '', recipeId: r('skillet-cornbread') },
     { id: 15, date: today, entryType: 'dessert', title: '', text: '', recipeId: r('apple-crumble') },
     { id: 16, date: today, entryType: 'drink', title: 'Lemonade', text: '', recipeId: null },
-    { id: 17, date: fakeMealieDay(1), entryType: 'dinner', title: '', text: '', recipeId: r('mac-and-cheese') },
+    { id: 17, date: localDate(1), entryType: 'dinner', title: '', text: '', recipeId: r('mac-and-cheese') },
   ];
 }
 

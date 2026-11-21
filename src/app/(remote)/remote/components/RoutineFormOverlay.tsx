@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { uuid } from '@/lib/uuid';
-import { DEFAULT_TIMER_SOUND, MAX_STEP_SEC, MAX_STEPS, MIN_STEP_SEC } from '@/lib/timer-logic';
+import { DEFAULT_TIMER_SOUND, MAX_STEP_SEC, MAX_STEPS, MIN_STEP_SEC, secondsFromFields } from '@/lib/timer-logic';
 import type { Routine, RoutineStep, TimerView } from '@/types/timers';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
@@ -28,21 +28,8 @@ function newStep(): RoutineStep {
   return { id: uuid(), label: '', icon: '⏱️', durationSec: 300 };
 }
 
-/**
- * Duration entry is two labeled fields (min / sec) — seconds are the stored
- * unit, so the pair round-trips exactly and short steps ("30 seconds of
- * tidying") don't need decimal-minute tricks. Empty fields count as 0 so
- * clearing one to type never fights the keyboard.
- */
-function stepSecondsFrom(minText: string, secText: string): number | null {
-  const minutes = minText === '' ? 0 : Number(minText);
-  const seconds = secText === '' ? 0 : Number(secText);
-  if (!Number.isInteger(minutes) || !Number.isInteger(seconds)) return null;
-  if (minutes < 0 || minutes > 240 || seconds < 0 || seconds > 59) return null;
-  const total = minutes * 60 + seconds;
-  if (total < MIN_STEP_SEC || total > MAX_STEP_SEC) return null;
-  return total;
-}
+/** A step's two boxes (min / sec) as seconds: short steps ("30 seconds of tidying") need no decimal minutes. */
+const stepSecondsFrom = (minText: string, secText: string) => secondsFromFields(minText, secText, { min: MIN_STEP_SEC, max: MAX_STEP_SEC });
 
 /**
  * Create/edit one routine. Steps are the heart of it: each has an emoji

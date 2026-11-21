@@ -24,6 +24,7 @@ import AlertFormFields, {
 } from '@/components/editor/settings/display/AlertFormFields';
 import type { DisplayState } from '@/lib/settings-form';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import SettingsTabBar from './shared/SettingsTabBar';
 
 /**
  * The Screen page's tab set, mirroring AutomationSection's URL-driven
@@ -57,6 +58,9 @@ function panelLabel(panel: ScreenPanel, t: TranslateFn): string {
  * `?panel=`, pick the tab from the highlight's field-id prefix instead of
  * always landing on `appearance` (where the highlight would silently
  * time out for sleep/alert fields).
+ *
+ * By prefix, not by looking the id up in the search index: a link can name
+ * an anchor the index has no row for, and it still has to open its tab.
  */
 function panelForHighlight(highlight: string | null): ScreenPanel {
   if (highlight?.startsWith('sleep.')) return 'sleep';
@@ -178,23 +182,13 @@ export default function ScreenSection({
       {/* Tab bar — same visual pattern as AutomationSection and
           PerDisplayPage. The backlink banner above follows the tab: it
           names the overrides of this tab's card and hides otherwise. */}
-      <div className="flex items-center border-b border-hs-border mb-5">
-        {SCREEN_PANELS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            data-testid={`screen-tab-${p}`}
-            onClick={() => navigateToPanel(p)}
-            className={`px-1 py-2.5 mr-6 text-sm transition-colors border-b-2 ${
-              panel === p
-                ? 'text-hs-text-primary border-hs-accent'
-                : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
-            }`}
-          >
-            {panelLabel(p, t)}
-          </button>
-        ))}
-      </div>
+      <SettingsTabBar
+        tabs={SCREEN_PANELS}
+        active={panel}
+        onPick={navigateToPanel}
+        label={(p) => panelLabel(p, t)}
+        testIdPrefix="screen-tab"
+      />
 
       {/* Canvas controls — single-display installs only. In multi-display
           mode the global dims are vestigial (every DisplayNode owns its

@@ -1,6 +1,7 @@
 import type { PluginManifest } from '@/types/plugins';
 import type { ScreenConfiguration } from '@/types/config';
 import { compareSemver } from '@/lib/semver';
+import { forEachConfigModule } from '@/lib/config-modules';
 
 /**
  * Pure plugin config-migration logic, deliberately free of client imports so
@@ -103,21 +104,15 @@ export function migrateConfigModules(
   const moduleType = `plugin:${manifest.moduleType}`;
   let changed = false;
 
-  const screenLists = [config.screens ?? [], ...(config.displays ?? []).map((d) => d.screens ?? [])];
-
-  for (const screens of screenLists) {
-    for (const screen of screens) {
-      for (const mod of screen.modules ?? []) {
-        if (mod.type !== moduleType) continue;
-        const originalJson = JSON.stringify(mod.config);
-        const migrated = applyMigrationToModule(mod.config, manifest, oldVersion);
-        if (JSON.stringify(migrated) !== originalJson) {
-          mod.config = migrated;
-          changed = true;
-        }
-      }
+  forEachConfigModule(config, (mod) => {
+    if (mod.type !== moduleType) return;
+    const originalJson = JSON.stringify(mod.config);
+    const migrated = applyMigrationToModule(mod.config, manifest, oldVersion);
+    if (JSON.stringify(migrated) !== originalJson) {
+      mod.config = migrated;
+      changed = true;
     }
-  }
+  });
 
   return changed;
 }

@@ -6,6 +6,7 @@ import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance } from '@/types/config';
 import {
   seedFixturePlugin,
+  pluginModule,
   FIXTURE_PLUGIN_ID,
   FIXTURE_PLUGIN_TYPE,
   FIXTURE_STATE_KEY,
@@ -13,18 +14,6 @@ import {
   FETCH_BUNDLE,
   I18N_BUNDLE,
 } from '../helpers/fixture-plugin';
-
-function pluginModule(config: Record<string, unknown> = {}): ModuleInstance {
-  return {
-    id: 'e2e-plugin-1',
-    type: FIXTURE_PLUGIN_TYPE,
-    position: { x: 0, y: 0 },
-    size: { w: 320, h: 200 },
-    zIndex: 1,
-    style: { ...DEFAULT_MODULE_STYLE },
-    config: { label: 'E2E PLUGIN', ...config },
-  } as ModuleInstance;
-}
 
 /** A module instance for an arbitrary plugin type (for the extra fixture plugins seeded below). */
 function customModule(id: string, type: string, config: Record<string, unknown>, extra: Partial<ModuleInstance> = {}): ModuleInstance {

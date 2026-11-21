@@ -1,124 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
-import Button from '@/components/ui/Button';
-import StatusDot from '@/components/ui/StatusDot';
+import SecretField from '@/components/editor/settings/shared/SecretField';
+import { useEditorData } from '@/hooks/useEditorData';
 import type { PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
-import { logger } from '@/lib/logger';
-
-const log = logger('plugin-secrets');
-
-function PluginSecretField({
-  decl,
-  pluginId,
-  configured,
-  onSaved,
-}: {
-  decl: PluginSecretDeclaration;
-  pluginId: string;
-  configured: boolean;
-  onSaved: () => void;
-}) {
-  const t = useTranslate('editor');
-  const [value, setValue] = useState('');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
-
-  async function handleSave() {
-    if (!value.trim()) return;
-    setSaveStatus('saving');
-    setErrorMsg('');
-    try {
-      const res = await editorFetch(`/api/plugins/secrets/${encodeURIComponent(pluginId)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: decl.key, value: value.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setSaveStatus('error');
-        setErrorMsg(data.error ?? t('common.saveError'));
-        return;
-      }
-      setSaveStatus('saved');
-      setValue('');
-      onSaved();
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch {
-      setSaveStatus('error');
-      setErrorMsg(t('common.networkError'));
-    }
-  }
-
-  async function handleDelete() {
-    try {
-      const res = await editorFetch(`/api/plugins/secrets/${encodeURIComponent(pluginId)}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: decl.key }),
-      });
-      if (res.ok) onSaved();
-    } catch (err) {
-      log.debug('Failed to delete plugin secret:', err);
-    }
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-hs-text-muted">{decl.label}</span>
-        <div className="flex items-center gap-2">
-          {decl.required && !configured && (
-            <span className="text-xs text-hs-warning">{t('settings.pluginSecrets.requiredBadge')}</span>
-          )}
-          <StatusDot configured={configured} />
-          {configured && (
-            <button
-              onClick={handleDelete}
-              className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
-            >
-              {t('settings.pluginSecrets.removeButton')}
-            </button>
-          )}
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <input
-          type="password"
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
-          placeholder={
-            decl.placeholder ??
-            t('settings.pluginSecrets.enterPlaceholder', { label: decl.label.toLowerCase() })
-          }
-          className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
-        />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleSave}
-          disabled={!value.trim() || saveStatus === 'saving'}
-          className="flex-shrink-0"
-        >
-          {saveStatus === 'saving'
-            ? t('settings.pluginSecrets.savingButton')
-            : t('settings.pluginSecrets.saveButton')}
-        </Button>
-      </div>
-      {saveStatus === 'saved' && (
-        <span className="text-xs text-hs-success">{t('settings.pluginSecrets.savedSuccess')}</span>
-      )}
-      {saveStatus === 'error' && (
-        <span className="text-xs text-hs-danger">{errorMsg}</span>
-      )}
-      {decl.description && (
-        <p className="text-xs text-hs-text-faint">{decl.description}</p>
-      )}
-    </div>
-  );
-}
 
 export default function PluginSecretsSection({
   pluginId,
@@ -133,31 +18,17 @@ export default function PluginSecretsSection({
   keyFilter?: string[];
 }) {
   const t = useTranslate('editor');
-  const [status, setStatus] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(true);
+  const endpoint = `/api/plugins/secrets/${encodeURIComponent(pluginId)}`;
+  const { data, error, refetch } = useEditorData<{ keys?: Record<string, boolean> }>(endpoint);
+  const status = data?.keys ?? {};
   const visibleSecrets = keyFilter
     ? secrets.filter((decl) => keyFilter.includes(decl.key))
     : secrets;
 
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await editorFetch(`/api/plugins/secrets/${encodeURIComponent(pluginId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setStatus(data.keys ?? {});
-      }
-    } catch (err) {
-      log.debug('Failed to fetch plugin secret status:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [pluginId]);
-
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
-
-  if (loading) {
+  // Only until the first answer: the status is read again after every save,
+  // and taking the boxes away for that would drop what is being typed in
+  // the next one. A read that fails shows the boxes as not set.
+  if (!data && !error) {
     return <p className="text-xs text-hs-text-faint">{t('settings.pluginSecrets.loading')}</p>;
   }
 
@@ -165,15 +36,28 @@ export default function PluginSecretsSection({
 
   return (
     <div className="space-y-4">
-      {visibleSecrets.map((decl) => (
-        <PluginSecretField
-          key={decl.key}
-          decl={decl}
-          pluginId={pluginId}
-          configured={!!status[decl.key]}
-          onSaved={fetchStatus}
-        />
-      ))}
+      {visibleSecrets.map((decl) => {
+        const configured = !!status[decl.key];
+        return (
+          <SecretField
+            key={decl.key}
+            endpoint={endpoint}
+            secretKey={decl.key}
+            label={decl.label}
+            placeholder={
+              decl.placeholder ??
+              t('settings.pluginSecrets.enterPlaceholder', { label: decl.label.toLowerCase() })
+            }
+            badge={decl.required && !configured ? (
+              <span className="text-xs text-hs-warning">{t('settings.pluginSecrets.requiredBadge')}</span>
+            ) : undefined}
+            helpText={decl.description}
+            helpTextClassName="mt-1.5"
+            status={configured}
+            onSaved={refetch}
+          />
+        );
+      })}
     </div>
   );
 }

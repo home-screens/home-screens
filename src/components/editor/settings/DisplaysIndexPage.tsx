@@ -28,6 +28,7 @@ import type {
 } from '@/lib/displays-api-types';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { resolveDisplaySoftwareState } from '@/lib/display-software-status';
+import { dashSlug } from '@/lib/slug';
 
 /**
  * Humanize the raw client address that `getClientIP` returned from the
@@ -170,14 +171,6 @@ export function displayFormProblem(input: {
   return null;
 }
 
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 /** Returns the screen count for a display. */
 function displayScreenCount(display: DisplayNode): number {
   return display.screens.length;
@@ -252,7 +245,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
   // Auto-derive ID from name until the user types into the ID field
   useEffect(() => {
     if (!idTouched && !initial) {
-      setId(slugify(name));
+      setId(dashSlug(name));
     }
   }, [name, idTouched, initial]);
 

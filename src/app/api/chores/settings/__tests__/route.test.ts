@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { jsonRequest } from '@/test-utils';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -15,9 +16,7 @@ import { GET as getChoreData } from '../../data/route';
 let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
 const read = async (file: string) => JSON.parse(await fs.readFile(path.join(root, 'data', file), 'utf8'));
-const request = (body: unknown) => new NextRequest('http://localhost/api/chores/settings', {
-  method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-});
+const request = (body: unknown) => jsonRequest('http://localhost/api/chores/settings', { method: 'PUT', body });
 
 beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-chore-settings-'));

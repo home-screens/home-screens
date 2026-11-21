@@ -1,4 +1,5 @@
-import type { Screen, ScreenConfiguration } from '@/types/config';
+import { rewriteConfigModules } from '@/lib/config-modules';
+import type { ScreenConfiguration } from '@/types/config';
 
 /**
  * The config with every module of a plugin taken off every screen: the
@@ -16,20 +17,5 @@ import type { Screen, ScreenConfiguration } from '@/types/config';
  */
 export function removePluginModules(config: ScreenConfiguration, moduleType: string): ScreenConfiguration {
   const type = `plugin:${moduleType}`;
-  let changed = false;
-  const strip = (screens: Screen[]): Screen[] => {
-    if (!screens.some((s) => s.modules.some((m) => m.type === type))) return screens;
-    changed = true;
-    return screens.map((s) => (s.modules.some((m) => m.type === type)
-      ? { ...s, modules: s.modules.filter((m) => m.type !== type) }
-      : s));
-  };
-
-  const screens = strip(config.screens);
-  const displays = config.displays?.map((d) => {
-    const next = strip(d.screens);
-    return next === d.screens ? d : { ...d, screens: next };
-  });
-  if (!changed) return config;
-  return { ...config, screens, ...(displays ? { displays } : {}) };
+  return rewriteConfigModules(config, (mod) => (mod.type === type ? null : mod));
 }

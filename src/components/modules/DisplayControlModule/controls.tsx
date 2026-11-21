@@ -1,9 +1,11 @@
 'use client';
 
 import { wallPress } from '@/components/modules/shared/wallPress';
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
+import type { LayoutProps } from './types';
+import { HoldConfirmButton } from './HoldConfirmButton';
 
 // Icons shared by every layout. `size` is the rendered box in px.
 const iconProps = (size: number) => ({
@@ -111,6 +113,70 @@ export function ControlButton({
       <ControlIcon name={icon} m={m} />
       <ButtonWords label={label} sub={sub} m={m} row={row} />
     </button>
+  );
+}
+
+/**
+ * Sleep, which has to be held: a wall that goes dark on a stray tap is a
+ * surprise nobody wants. `row` is the bar's form, words beside the icon and
+ * the short hint.
+ */
+export function SleepButton({
+  m,
+  onConfirm,
+  row = false,
+  className = '',
+}: {
+  m: ControlMetrics;
+  onConfirm: () => void;
+  row?: boolean;
+  className?: string;
+}) {
+  const t = useTranslate('modules');
+  return (
+    <HoldConfirmButton
+      ariaLabel={t('display-control.sleepHoldHint')}
+      hint={t('display-control.keepHolding')}
+      hintFontSize={Math.max(11, m.label || 13)}
+      onConfirm={onConfirm}
+      className={className ? `${BUTTON_CLASS} ${className}` : BUTTON_CLASS}
+      style={buttonStyle(m)}
+      contentClassName={row ? 'flex h-full w-full items-center justify-center' : 'flex h-full w-full flex-col items-center justify-center'}
+    >
+      <ControlIcon name="sleep" m={m} />
+      <ButtonWords row={row} m={m} label={t('display-control.sleep')} sub={t(row ? 'display-control.holdShort' : 'display-control.holdSub')} />
+    </HoldConfirmButton>
+  );
+}
+
+/** The grid the sizing model laid out: its columns, rows and gap. */
+export function ControlGrid({ m, className = '', children }: { m: ControlMetrics; className?: string; children: ReactNode }) {
+  return (
+    <div
+      className={`grid flex-1 min-h-0 ${className}`}
+      style={{
+        gridTemplateColumns: `repeat(${m.cols}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${m.rows}, minmax(0, 1fr))`,
+        gap: m.gap,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Previous, Next, Sleep and Wake, in the order the pad and the panel lay them out. */
+export function PageAndPowerButtons({
+  m, onPrev, onNext, onSleep, onWake,
+}: Pick<LayoutProps, 'onPrev' | 'onNext' | 'onSleep' | 'onWake'> & { m: ControlMetrics }) {
+  const t = useTranslate('modules');
+  return (
+    <>
+      <ControlButton m={m} label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon="prev" onClick={onPrev} />
+      <ControlButton m={m} label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon="next" onClick={onNext} />
+      <SleepButton m={m} onConfirm={onSleep} />
+      <ControlButton m={m} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon="wake" onClick={onWake} />
+    </>
   );
 }
 

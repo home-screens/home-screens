@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { TODO_LIMITS } from '@/types/todos';
-import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
 import BottomSheet from './BottomSheet';
-import { PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL, swatchStyle } from './lists-styles';
+import ColorSwatchRow from './ColorSwatchRow';
+import { PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
 
 interface ListsNewListSheetProps {
   /** Swatch to start on: the first one no other list is using. */
@@ -49,18 +49,7 @@ export default function ListsNewListSheet({ defaultColor, onCreate, onClose }: L
           style={SHEET_FIELD}
         />
         <span style={SHEET_LABEL} id="todo-new-colour-label">{t('lists.listSheet.colourLabel')}</span>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }} role="group" aria-labelledby="todo-new-colour-label">
-          {MEMBER_COLORS.map((c, i) => (
-            <button
-              key={c}
-              type="button"
-              aria-label={t('lists.colourSwatch', { number: i + 1 })}
-              aria-pressed={color === c}
-              onClick={() => setColor(c)}
-              style={swatchStyle(c, color === c)}
-            />
-          ))}
-        </div>
+        <ColorSwatchRow value={color} onChange={setColor} labelledBy="todo-new-colour-label" />
         <button type="submit" className="press-btn" style={{ ...PRIMARY_BUTTON, marginTop: 22 }} disabled={!name.trim() || busy}>
           {t('lists.newList.submit')}
         </button>

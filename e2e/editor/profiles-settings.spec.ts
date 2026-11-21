@@ -183,24 +183,20 @@ test('enabling a profile schedule for today auto-activates it at display runtime
   const card = profileCard(page, 'Evening');
   await card.getByRole('button', { name: 'Evening' }).click(); // expand
 
-  // Toggle "Auto-activate on schedule" — seeds schedule.daysOfWeek to weekdays.
+  // Toggle "Auto-activate on schedule". It starts on every day, all day (it
+  // used to start on Monday to Friday, which kept a new profile off at
+  // weekends), so today is in it whatever day the suite runs.
   await autosaved(page, async () => {
     await card.locator('label', { hasText: 'Auto-activate on schedule' }).getByRole('switch').click();
   });
-
-  // Ensure today is one of the active days (the weekday default already covers
-  // Mon–Fri; on a weekend we click today's chip to add it). Day chips render in
-  // Sun..Sat order, so nth(getDay()) is today's button.
-  const today = new Date().getDay();
-  const dayButtons = card.locator('div.flex.gap-1 > button');
-  await expect(dayButtons).toHaveCount(7);
-  const todayBtn = dayButtons.nth(today);
-  if (!(await todayBtn.getAttribute('class'))?.includes('bg-hs-accent')) {
-    await autosaved(page, async () => { await todayBtn.click(); });
-  }
   await expect
     .poll(async () => (await getConfig(request)).profiles?.[0]?.schedule?.daysOfWeek)
-    .toContain(today);
+    .toEqual([0, 1, 2, 3, 4, 5, 6]);
+
+  // The card draws the same week strip and "how it repeats" choice as a
+  // module's schedule.
+  await expect(card.getByTestId('profile-schedule-shape')).toHaveValue('repeat');
+  await expect(card.getByTestId('schedule-band')).toHaveCount(7);
 
   // The display auto-activates the scheduled profile: only its screen rotates,
   // and the default-set screen is filtered out of the DOM entirely.

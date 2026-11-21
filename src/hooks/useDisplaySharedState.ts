@@ -1,5 +1,6 @@
 'use client';
 
+import { createPollLoop, type PollLoop } from './usePolledFetch';
 import { useCallback, useSyncExternalStore } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { snapshotStates } from '@/lib/condition-verdicts';
@@ -69,7 +70,8 @@ interface Slot {
     providerHealth: Record<string, ProviderHealthEntry>;
   } | null;
   listeners: Set<() => void>;
-  timer: ReturnType<typeof setInterval>;
+  /** Stops while the editor's tab is hidden: the GET tells the hub an editor is watching, and a tab nobody is looking at is not. */
+  loop: PollLoop | null;
   inFlight: boolean;
 }
 
@@ -166,17 +168,17 @@ function acquireSlot(displayId: string | null, listener: () => void): () => void
       providerHealthJson: EMPTY_PROVIDER_HEALTH_JSON,
       lastPayload: null,
       listeners: new Set(),
-      timer: setInterval(() => void pollSlot(key), POLL_MS),
+      loop: null,
       inFlight: false,
     };
     slots.set(key, slot);
-    void pollSlot(key);
+    slot.loop = createPollLoop(() => void pollSlot(key), { intervalMs: POLL_MS, pauseWhenHidden: true });
   }
   slot.listeners.add(listener);
   return () => {
     slot.listeners.delete(listener);
     if (slot.listeners.size === 0) {
-      clearInterval(slot.timer);
+      slot.loop?.stop();
       slots.delete(key);
     }
   };

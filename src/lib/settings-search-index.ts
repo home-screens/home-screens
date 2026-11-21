@@ -187,6 +187,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'alerts.defaultDuration', labelKey: 'settings.alertFormFields.defaultDurationLabel', panel: 'alerts', keywordKeys: ['settings.alertFormFields.defaultDurationHelp'] },
   { pageId: 'screen', fieldId: 'alerts.scale', labelKey: 'settings.alertFormFields.alertSizeLabel', panel: 'alerts' },
 
+  { pageId: 'location', fieldId: 'location.query', labelKey: 'settings.locationPage.queryLabel' },
   { pageId: 'location', fieldId: 'location.timezone', labelKey: 'settings.locationPage.timezoneLabel', keywordKeys: ['settings.locationPage.timezoneHelp', 'settings.locationPage.timezoneSearchWords'] },
   { pageId: 'location', fieldId: 'location.latitude', labelKey: 'settings.locationPage.latitudeLabel' },
   { pageId: 'location', fieldId: 'location.longitude', labelKey: 'settings.locationPage.longitudeLabel' },
@@ -201,6 +202,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
     { pageId: 'weather', fieldId: `weather.provider.${id}`, label: weatherProviderName(id) }
   )),
 
+  { pageId: 'calendar', fieldId: 'calendar.personSources', labelKey: 'settings.calendarPage.people.heading', keywordKeys: ['settings.calendarPage.people.help'] },
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
   { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ListTodo } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import {
   TODO_LISTS_TTL_MS,
@@ -151,7 +151,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     holdMs: TODO_LISTS_TTL_MS,
     // A tick replayed over a copy that no longer has the item is skipped.
     tolerates: (e) => e instanceof TodoError,
-    onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.lists.failed')),
+    onRefused: (e) => setError(refusalText(e, tCore, 'refusals.failed', 'refusals.hubUnreachable')),
     // A write that went through clears an earlier refusal; the read after
     // a refusal does not, or the message would vanish unread.
     onSaved: () => setError(null),

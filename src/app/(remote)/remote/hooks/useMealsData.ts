@@ -16,6 +16,7 @@ import { mealieSaveFailedWords } from '../components/MealsMealieStatus';
 
 export function useMealsData() {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
   const [plan, setPlan] = useState<PlannedMeal[]>([]);
   const [groceryChecked, setGroceryChecked] = useState<GroceryChecked>({});
@@ -73,8 +74,11 @@ export function useMealsData() {
       // by trying again. Suggest says Mealie having trouble its own way.
       const problem = err instanceof MealClientError ? err.problem : undefined;
       if (what === 'suggest') setSaveError(t((problem !== 'unreachable' && mealieSaveFailedWords(problem)) || 'mealie.suggest.failed'));
-      else if (err instanceof HubUnreachableError) setSaveError(t('mealsTab.saveFailedConnection'));
-      else setSaveError(t(mealieSaveFailedWords(problem) ?? 'mealsTab.saveFailed'));
+      else if (err instanceof HubUnreachableError) setSaveError(tCore('refusals.hubUnreachable'));
+      else {
+        const mealieWords = mealieSaveFailedWords(problem);
+        setSaveError(mealieWords ? t(mealieWords) : tCore('refusals.saveFailed'));
+      }
     },
   }, { poll: true });
 
@@ -113,10 +117,10 @@ export function useMealsData() {
       return true;
     } catch (err) {
       if (isSessionExpired(err)) return false;
-      setSaveError(t(err instanceof HubUnreachableError ? 'mealsTab.saveFailedConnection' : 'mealsSettings.save.saveFailed'));
+      setSaveError(err instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : t('mealsSettings.save.saveFailed'));
       return false;
     }
-  }, [t]);
+  }, [t, tCore]);
 
   const groceryRef = useRef(groceryChecked);
   groceryRef.current = groceryChecked;
@@ -140,9 +144,9 @@ export function useMealsData() {
     } catch (err) {
       if (isSessionExpired(err)) return;
       setGroceryChecked((prev) => setGroceryCheck(prev, week, itemName, direction === 'check' ? 'uncheck' : 'check'));
-      setSaveError(t('mealsTab.saveFailed'));
+      setSaveError(tCore('refusals.saveFailed'));
     }
-  }, [session, adoptData, t]);
+  }, [session, adoptData, tCore]);
 
   return {
     savedMeals,

@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getDataRoot } from './data-transaction';
+import { statSignature } from './stat-signature';
 
 /**
  * A data file's identity without reading it: inode, size and mtime. Every
@@ -10,8 +11,7 @@ import { getDataRoot } from './data-transaction';
  */
 export async function fileSignature(relative: string): Promise<string> {
   try {
-    const stat = await fs.stat(path.join(getDataRoot(), relative));
-    return `${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    return statSignature(await fs.stat(path.join(getDataRoot(), relative)));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 'missing';
     throw error;

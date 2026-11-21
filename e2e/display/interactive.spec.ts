@@ -1,19 +1,13 @@
 import type { APIRequestContext, Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
-import { renderOnDisplay } from '../helpers/display';
+import { drainCommands, renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { seedHouseholdChores, seedMeals, seedTodos, E2E_TODO_LIST_ID, seedRewards } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
 import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
-
-/** Local YYYY-MM-DD for today, matching how the meal planner keys plan entries. */
-function isoToday(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 /** The seeded list, read back through the same route the wall polls. */
 async function todoItems(request: APIRequestContext): Promise<Record<string, boolean>> {
@@ -255,7 +249,7 @@ test.describe('meal-planner recipe tap', () => {
   const RECIPE_URL = 'https://recipes.example.com/carbonara';
 
   /** Dinner tonight and tomorrow night: late in the evening the Today view shows tomorrow. */
-  const bothNights = (mealId: string) => [0, 1].map((day) => ({ slot: 'dinner', mealId, date: isoToday(day) }));
+  const bothNights = (mealId: string) => [0, 1].map((day) => ({ slot: 'dinner', mealId, date: localDate(day) }));
 
   function seedRecipeMeal(request: Parameters<typeof seedMeals>[0]) {
     return seedMeals(request, {
@@ -346,8 +340,8 @@ test.describe('meal-planner recipe tap', () => {
           { id: 'meal-p', name: 'Pizza Night', emoji: '🍕' },
         ],
         plan: [0, 1].flatMap((day) => [
-          { slot: 'lunch', mealId: 'meal-p', date: isoToday(day) },
-          { slot: 'dinner', mealId: 'meal-w', date: isoToday(day) },
+          { slot: 'lunch', mealId: 'meal-p', date: localDate(day) },
+          { slot: 'dinner', mealId: 'meal-w', date: localDate(day) },
         ]),
       });
       const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: action });
@@ -433,7 +427,7 @@ test.describe('meal-planner recipe tap', () => {
 test.describe('fullscreen-calendar event tap', () => {
   /** Local naive ISO for today at a fixed hour, inside the 6-22 schedule window. */
   function isoAtHour(hour: number): string {
-    return `${isoToday()}T${String(hour).padStart(2, '0')}:00:00`;
+    return `${localDate()}T${String(hour).padStart(2, '0')}:00:00`;
   }
 
   const TAP_EVENTS = [{
@@ -548,12 +542,6 @@ test.describe('fullscreen-calendar event tap', () => {
    * the agenda view drops events that already ended, and the time-grid views
    * clamp it to their hour window instead of hiding it.
    */
-  function localDate(offsetDays: number): string {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   const VIEW_TAP_EVENTS = [
     {
       id: 'vt-timed',
@@ -620,12 +608,6 @@ test.describe('fullscreen-calendar event tap', () => {
  * event in every view mode to cover both.
  */
 test.describe('calendar module event tap', () => {
-  function localDate(offsetDays: number): string {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   // Timed event spans today 00:01 → tomorrow 23:59 so it stays visible at any
   // test-run wall-clock time (list views drop events that already ended).
   const CAL_TAP_EVENTS = [
@@ -876,12 +858,6 @@ test.describe('display-control command surface', () => {
     };
   }
 
-  /** Drain (and clear) a display's queue, returning the full command objects. */
-  async function drainCommands(request: APIRequestContext, display?: string) {
-    const url = display ? `/api/display/commands?display=${display}` : '/api/display/commands';
-    const res = await request.get(url);
-    return ((await res.json()).commands ?? []) as Array<{ type: string; payload?: Record<string, unknown> }>;
-  }
   async function drainTypes(request: APIRequestContext, display?: string): Promise<string[]> {
     return (await drainCommands(request, display)).map((c) => c.type);
   }
@@ -1317,8 +1293,8 @@ test.describe('fullscreen-meal-planner recipe tap', () => {
     await seedMeals(request, {
       savedMeals: [{ id: 'fmp-meal', name: 'Sheet Pan Salmon', emoji: '🐟', prepTime: 30, recipeUrl: RECIPE_URL }],
       plan: [
-        { slot: 'dinner', mealId: 'fmp-meal', date: isoToday() },
-        { slot: 'dinner', mealId: 'fmp-meal', date: isoToday(1) },
+        { slot: 'dinner', mealId: 'fmp-meal', date: localDate() },
+        { slot: 'dinner', mealId: 'fmp-meal', date: localDate(1) },
       ],
     });
     const meal = buildModuleInstance('fullscreen-meal-planner', { view: 'today', tapRecipeAction: 'qr' });

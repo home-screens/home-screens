@@ -2,13 +2,14 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
+import { localDate } from '../helpers/dates';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { dinnerTimeToday } from '../helpers/schedule-windows';
 import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 import { RECIPE_CARD_COOKING_CLOSE_MS, RECIPE_CARD_IDLE_CLOSE_MS, RECIPE_PAGE_TURN_MS } from '@/lib/meal-recipe';
 import {
-  connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, fakeMealieDay, LONG_STEP_RECIPE, MANY_STEPS_RECIPE, startFakeMealie,
+  connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, LONG_STEP_RECIPE, MANY_STEPS_RECIPE, startFakeMealie,
   type FakeMealie, type FakeRecipe,
 } from '../helpers/fake-mealie';
 
@@ -20,7 +21,7 @@ import {
 
 /** Local `YYYY-MM-DD`, `offset` days from today. */
 function day(offset = 0): string {
-  return fakeMealieDay(offset);
+  return localDate(offset);
 }
 
 const WAFFLES = {

@@ -4,6 +4,7 @@ import { createPictureBytesCache } from './picture-proxy';
 import { shuffleArray } from './shuffle';
 import { createOAuthTokenStore } from './oauth-token-store';
 import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from './oauth-device-flow';
+import { requestDeviceCodeGrant } from './oauth-form-post';
 import { ONEDRIVE_MAX_SAMPLE } from './onedrive-shared';
 import { logger } from './logger';
 import type { MediaListItem } from '@/types/config';
@@ -120,27 +121,23 @@ export async function startDeviceFlow(): Promise<DeviceFlowStart> {
   const clientId = await getMicrosoftClientId();
   if (!clientId) throw new OneDriveError('Add your Microsoft Application ID in Settings, API keys first', 400, 'credentials_missing');
 
-  const res = await fetchWithTimeout(DEVICE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: clientId, scope: ONEDRIVE_SCOPES }),
-    timeout: 15_000,
-  });
-  const data = await res.json();
-  if (!res.ok || !data.device_code || !data.user_code) {
-    log.error('Device flow failed to start:', data.error_description || data.error || res.status);
+  const start = await requestDeviceCodeGrant(DEVICE_URL, { client_id: clientId, scope: ONEDRIVE_SCOPES }, 15_000);
+  if (!start.ok) {
+    log.error('Device flow failed to start:', start.detail || start.status);
     throw new OneDriveError('Microsoft would not start sign-in. Check the Application ID.', 400, 'start_failed');
   }
+  const { grant } = start;
+  const expiresInSeconds = grant.expiresIn ?? 900;
   pendingDeviceFlow = {
-    deviceCode: data.device_code,
+    deviceCode: grant.deviceCode,
     clientId,
-    expiresAt: Date.now() + (data.expires_in ?? 900) * 1000,
+    expiresAt: Date.now() + expiresInSeconds * 1000,
   };
   return {
-    userCode: data.user_code,
-    verificationUri: data.verification_uri || 'https://microsoft.com/link',
-    intervalMs: Math.max((data.interval ?? 5) * 1000, 2000),
-    expiresInSeconds: data.expires_in ?? 900,
+    userCode: grant.userCode,
+    verificationUri: grant.verificationUrl || 'https://microsoft.com/link',
+    intervalMs: Math.max((grant.interval ?? 5) * 1000, 2000),
+    expiresInSeconds,
   };
 }
 

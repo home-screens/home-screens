@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createHash, timingSafeEqual } from 'crypto';
 import { createRateLimiter, getClientIP } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { readAutoBackupSecrets } from '@/lib/auto-backup-secrets';
 import { updateAutoBackupState } from '@/lib/auto-backup-state';
 import { autoBackupPath, listAutoBackups } from '@/lib/auto-backup-files';
 import { backupFileResponse } from '@/lib/backup-file-response';
+import { safeEqual } from '@/lib/signed-payload';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,13 +19,6 @@ function tokenFrom(request: NextRequest): string | null {
   const header = request.headers.get('authorization');
   if (header?.toLowerCase().startsWith('bearer ')) return header.slice(7).trim() || null;
   return request.nextUrl.searchParams.get('token');
-}
-
-/** Equal, in time that does not depend on where they differ. Hashing first makes the lengths equal. */
-function sameToken(given: string, saved: string): boolean {
-  const a = createHash('sha256').update(given).digest();
-  const b = createHash('sha256').update(saved).digest();
-  return timingSafeEqual(a, b);
 }
 
 /**
@@ -46,7 +39,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
   const given = tokenFrom(request);
   const { linkToken } = await readAutoBackupSecrets();
-  if (!given || !linkToken || !sameToken(given, linkToken)) {
+  if (!given || !linkToken || !safeEqual(given, linkToken)) {
     wrongTokens.recordFailure(ip);
     audit({ action: 'auto_backup_pull_denied', ip });
     return NOT_FOUND();

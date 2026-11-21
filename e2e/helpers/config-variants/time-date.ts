@@ -1,11 +1,12 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, matches, notMatches, child, count, redBackground, redStyle, localIso, localDate } from './shared';
+import { has, lacks, matches, notMatches, child, count, redBackground, redStyle, localIso } from './shared';
+import { localDate } from '../dates';
 import { parseDateInTZ } from '@/lib/timezone';
 
 /** Config-variant rows for the time and date modules. */
 
-// --- Date helpers: localIso / localDate come from ./shared -----------------
+// --- Date helpers: localIso comes from ./shared, localDate from ../dates ----
 
 /**
  * A timed calendar event that spans all of today (00:01 → tomorrow 23:59), so

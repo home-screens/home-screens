@@ -47,7 +47,8 @@ import { STARTER_CHORE_COUNT } from '@/lib/starter-chores';
 import { useEditorHouseholdToday } from './useEditorHouseholdClock';
 import { groupMembers } from '@/lib/family-groups';
 import { bonusShowsOn } from '@/lib/chore-bonus';
-import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
+import { CHORE_CLAIMS, CHORE_COMES_BACK, CHORE_FREQUENCIES, CHORE_KINDS, CHORE_ROTATIONS, regularBeforeBonus } from '@/lib/chore-constants';
+import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
 import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
@@ -60,9 +61,6 @@ interface ChoreChartModalProps {
 }
 
 // ── Chore Form ────────────────────────────────────────────────────
-
-const KINDS = ['regular', 'bonus'] as const;
-const CLAIMS = ['first', 'each'] as const;
 
 function ChoreForm({
   initial,
@@ -149,16 +147,16 @@ function ChoreForm({
         <div
           role="radiogroup"
           aria-label={tModules('chore-chart.choreForm.kindLabel')}
-          onKeyDown={radioGroupKeyDown(KINDS, kind, setKind)}
+          onKeyDown={radioGroupKeyDown(CHORE_KINDS, kind, setKind)}
           className="flex gap-1 rounded-md bg-hs-card p-0.5"
         >
-          {KINDS.map((value) => (
+          {CHORE_KINDS.map((value) => (
             <button
               key={value}
               type="button"
               role="radio"
               aria-checked={kind === value}
-              tabIndex={radioTabIndex(KINDS, kind, value)}
+              tabIndex={radioTabIndex(CHORE_KINDS, kind, value)}
               onClick={() => setKind(value)}
               className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
                 kind === value ? 'bg-hs-accent-soft text-hs-accent' : 'text-hs-text-faint hover:bg-hs-hover'
@@ -202,7 +200,7 @@ function ChoreForm({
               onChange={(e) => setComesBack(e.target.value as ChoreBonusComesBack)}
               className={MODAL_INPUT_CLASS}
             >
-              {(['daily', 'weekly', 'manual'] as const).map((value) => (
+              {CHORE_COMES_BACK.map((value) => (
                 <option key={value} value={value}>{tModules(`chore-chart.bonus.comesBack.${value}`)}</option>
               ))}
             </select>
@@ -229,7 +227,7 @@ function ChoreForm({
             onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
             className={MODAL_INPUT_CLASS}
           >
-            {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((tod) => (
+            {CHORE_TIME_ORDER.map((tod) => (
               <option key={tod} value={tod}>
                 {tModules(getTimeOfDayLabelKey(tod))}
               </option>
@@ -254,16 +252,16 @@ function ChoreForm({
           <div
             role="radiogroup"
             aria-label={tModules('chore-chart.choreForm.claimLabel')}
-            onKeyDown={radioGroupKeyDown(CLAIMS, bonusClaim, setBonusClaim)}
+            onKeyDown={radioGroupKeyDown(CHORE_CLAIMS, bonusClaim, setBonusClaim)}
             className="space-y-1"
           >
-            {CLAIMS.map((value) => (
+            {CHORE_CLAIMS.map((value) => (
               <button
                 key={value}
                 type="button"
                 role="radio"
                 aria-checked={bonusClaim === value}
-                tabIndex={radioTabIndex(CLAIMS, bonusClaim, value)}
+                tabIndex={radioTabIndex(CHORE_CLAIMS, bonusClaim, value)}
                 onClick={() => setBonusClaim(value)}
                 className={`w-full text-left rounded px-2 py-1.5 border transition-colors ${
                   bonusClaim === value ? 'border-hs-accent/60 bg-hs-accent-soft' : 'border-hs-border-strong/50 hover:bg-hs-hover'
@@ -512,7 +510,7 @@ function ChoreForm({
           )}
           {/* Coverage summary */}
           <div className="text-[11px] text-hs-text-faint flex items-center gap-1.5">
-            <span>{t('choreChartModal.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
+            <span>{tCore('chores.coverage', { covered: scheduleDays.length })}</span>
             {scheduleDays.length < 7 && (
               <>
                 {' · '}
@@ -828,10 +826,8 @@ function ChoreColumn({
           </div>
         )}
 
-        {chores
-          .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
-          // Bonus chores follow the regular ones under their own heading; the sort is stable.
-          .sort((a, b) => Number(!!a.bonus) - Number(!!b.bonus))
+        {/* Bonus chores follow the regular ones under their own heading. */}
+        {regularBeforeBonus(chores.filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase())))
           .map((chore, i, listed) => {
             const rotationKey = getChoreRotationSummaryKey(chore, groups);
             const rotationSuffix = rotationKey ? tModules(rotationKey) : null;
@@ -1047,7 +1043,7 @@ export default function ChoreChartModal({
     failed: setSaveError,
   }, {
     enabled: loaded,
-    words: { refused: t('common.saveError'), unreachable: t('common.hubUnreachable') },
+    words: { refused: t('common.saveError'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
@@ -1143,7 +1139,7 @@ export default function ChoreChartModal({
       )}
       {saveError && (
         <div role="alert" className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
-          {saveError === 'conflict' ? t('choreChartModal.changedElsewhere') : saveError}
+          {saveError === 'conflict' ? tCore('chores.changedElsewhere') : saveError}
         </div>
       )}
       {/* Nothing is editable until the store is in hand. The columns start

@@ -2,13 +2,7 @@ import { E2E_NOTE_TEXTS, E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { lacks, DINNER_TONIGHT_AND_TOMORROW } from './shared';
-
-/** Local YYYY-MM-DD `offsetDays` from today, as the meal planner keys its plan. */
-function localISODay(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+import { localDate } from '../dates';
 
 /**
  * `showTitle: false` rows — one per module that paints its own built-in
@@ -146,7 +140,7 @@ export const TITLE_VIEW_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-meal-planner', name: 'hide-title-today', kind: 'local-data', seed: 'meals',
     seedData: {
       savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝', prepTime: 25 }],
-      plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localISODay(day) })),
+      plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localDate(day) })),
     },
     config: { view: 'today', showTitle: false },
     expect: async (mod) => {

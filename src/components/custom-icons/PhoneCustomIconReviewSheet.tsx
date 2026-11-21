@@ -6,7 +6,8 @@ import { useTranslate } from '@/i18n';
 import ModalPortal from '@/components/ui/ModalPortal';
 import { iconShapeWarning } from '@/lib/custom-icons';
 import type { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
-import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/chore-form-styles';
+import SheetPanel from '@/components/ui/SheetPanel';
+import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/remote-styles';
 
 type Upload = ReturnType<typeof useCustomIconUpload>;
 
@@ -52,9 +53,10 @@ export default function PhoneCustomIconReviewSheet({ upload, zIndex = 130 }: { u
   return (
     <ModalPortal>
       <div style={{ position: 'fixed', inset: 0, zIndex, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end' }}>
-        <div
-          role="dialog"
-          aria-modal="true"
+        <SheetPanel
+          // Escape is Cancel, the one way out this sheet has; a tap on the
+          // dimmed page still does nothing. Not while the picture is being kept.
+          onClose={busy ? undefined : upload.cancel}
           aria-label={t('customIcons.review.title')}
           data-testid="custom-icon-review"
           style={{
@@ -192,7 +194,7 @@ export default function PhoneCustomIconReviewSheet({ upload, zIndex = 130 }: { u
           >
             {t('actions.cancel')}
           </button>
-        </div>
+        </SheetPanel>
       </div>
     </ModalPortal>
   );

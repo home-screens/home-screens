@@ -26,6 +26,7 @@ export interface ChoreWriteAlert {
  */
 export function useChoreWriteAlert(members: readonly FamilyMember[]) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const [alert, setAlert] = useState<ChoreWriteAlert | null>(null);
   useEffect(() => {
     if (!alert) return;
@@ -40,7 +41,7 @@ export function useChoreWriteAlert(members: readonly FamilyMember[]) {
       return;
     }
     if (!outcome.refusal) {
-      setAlert({ text: t('fullscreen-chore-chart.saveFailed'), bonus: false });
+      setAlert({ text: tCore('refusals.saveFailed'), bonus: false });
       return;
     }
     const name = members.find((m) => m.id === outcome.memberId)?.name;
@@ -48,7 +49,7 @@ export function useChoreWriteAlert(members: readonly FamilyMember[]) {
       : outcome.refusal === 'taken' && name ? t('chore-chart.bonus.refused.taken', { name })
       : t('chore-chart.bonus.refused.other');
     setAlert({ text, bonus: true });
-  }, [members, t]);
+  }, [members, t, tCore]);
 
   return { alert, report };
 }

@@ -9,10 +9,10 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import type { ModuleInstance, MultiMonthTodayStyle } from '@/types/config';
+import { useWeekStartOptions } from './option-hooks';
 
 export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean }>(mod, screenId);
 
   const TODAY_STYLE_OPTIONS: { value: MultiMonthTodayStyle; label: string }[] = [
@@ -24,10 +24,7 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
     { value: 'none', label: t('configSections.multi-month.todayNone') },
   ];
 
-  const START_DAY_OPTIONS = [
-    { value: 'sunday', label: tCore('days.sunday') },
-    { value: 'monday', label: tCore('days.monday') },
-  ] as const;
+  const START_DAY_OPTIONS = useWeekStartOptions();
 
   return (
     <>

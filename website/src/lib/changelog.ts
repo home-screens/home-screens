@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { compareSemver } from './semver';
 
 export type ChangelogSection = 'New' | 'Improved' | 'Fixed';
 
@@ -56,12 +57,6 @@ function getTagDate(tag: string): string | null {
   }
 }
 
-function compareVersions(a: string, b: string): number {
-  const [aMaj, aMin, aPatch] = a.split('.').map(Number);
-  const [bMaj, bMin, bPatch] = b.split('.').map(Number);
-  return bMaj - aMaj || bMin - aMin || bPatch - aPatch;
-}
-
 export function getChangelog(): ChangelogEntry[] {
   const files = fs.readdirSync(RELEASE_NOTES_DIR);
   const entries: ChangelogEntry[] = [];
@@ -82,7 +77,7 @@ export function getChangelog(): ChangelogEntry[] {
     entries.push({ version, tag, date, sections });
   }
 
-  entries.sort((a, b) => compareVersions(a.version, b.version));
+  entries.sort((a, b) => compareSemver(b.version, a.version));
   return entries;
 }
 

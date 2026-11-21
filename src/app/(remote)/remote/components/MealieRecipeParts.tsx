@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Heart, History, Search, X } from 'lucide-react';
 import type { MealieRecipeFilter } from '@/lib/mealie';
 import { useTranslate } from '@/i18n';
-import { selectedPillStyle } from './chore-form-styles';
+import { selectedPillStyle } from './remote-styles';
 
 /**
  * The pieces the recipe picker and the Library share while the plan lives in
@@ -150,14 +150,14 @@ export function RecipeShortcutChips({
   children?: ReactNode;
   style?: CSSProperties;
 }) {
-  const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   return (
     <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '10px 0 2px', ...style }}>
       <FilterChip active={!searching && filter === 'favorites'} onClick={() => onFilter('favorites')} icon={<Heart size={13} strokeWidth={2} aria-hidden />}>
-        {t('mealie.search.favorites')}
+        {tCore('mealie.search.favorites')}
       </FilterChip>
       <FilterChip active={!searching && filter === 'recent'} onClick={() => onFilter('recent')} icon={<History size={13} strokeWidth={2} aria-hidden />}>
-        {t('mealie.search.recent')}
+        {tCore('mealie.search.recent')}
       </FilterChip>
       {children}
     </div>
@@ -166,7 +166,7 @@ export function RecipeShortcutChips({
 
 /** "Looking in Mealie…" and grey rows that hold the place while the hub asks. */
 export function RecipeSkeletonRows({ count = 6, square = 48, radius = 8, card = false }: { count?: number; square?: number; radius?: number; card?: boolean }) {
-  const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const widths = ['72%', '55%', '80%', '62%', '48%', '70%'];
   return (
     <div data-testid="mealie-looking" aria-busy="true">
@@ -176,7 +176,7 @@ export function RecipeSkeletonRows({ count = 6, square = 48, radius = 8, card = 
           className="animate-spin"
           style={{ width: 14, height: 14, borderRadius: 99, border: '2px solid var(--hs-border-strong)', borderTopColor: 'var(--hs-text-muted)', flex: 'none' }}
         />
-        {t('mealie.search.looking')}
+        {tCore('mealie.search.looking')}
       </div>
       {Array.from({ length: count }, (_, i) => (
         <div

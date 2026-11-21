@@ -3,6 +3,7 @@ import type { APIRequestContext, Page, Route } from '@playwright/test';
 import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig } from '../helpers/config-fixtures';
 import { autosaved } from '../helpers/editor';
+import { removeFolder, seedImage } from '../helpers/library';
 import { stubModuleData } from '../helpers/stubs';
 
 /**
@@ -14,7 +15,6 @@ import { stubModuleData } from '../helpers/stubs';
 
 const TINY_PNG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-const TINY_PNG_BYTES = Buffer.from(TINY_PNG.split(',')[1], 'base64');
 const ALBUM_ID = 'a1b2c3d4';
 
 const json = (route: Route, body: unknown, status = 200) =>
@@ -29,13 +29,6 @@ async function seedSecrets(request: APIRequestContext) {
     const res = await request.put('/api/secrets', { data: { key, value } });
     expect(res.ok()).toBe(true);
   }
-}
-
-async function seedImage(request: APIRequestContext, directory: string, name: string): Promise<void> {
-  const res = await request.post('/api/backgrounds', {
-    multipart: { directory, file: { name, mimeType: 'image/png', buffer: TINY_PNG_BYTES } },
-  });
-  expect(res.ok()).toBe(true);
 }
 
 /** A reachable Immich with one album and one named person, and a browse page per collection. */
@@ -119,7 +112,7 @@ test.describe('rotation sources', () => {
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '' }]);
 
     await putConfig(request, baseConfig());
-    await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
+    await removeFolder(request, folder);
   });
 
   test('Paintings: filters are added one by one, counted, and taken away again', async ({ page, request }) => {

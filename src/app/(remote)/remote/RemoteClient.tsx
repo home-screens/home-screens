@@ -8,11 +8,11 @@ import { useTranslate } from '@/i18n';
 import { useRemoteStatus, useAllDisplayStatuses, usePendingCommand } from './hooks';
 import {
   DisplayTargetContext,
-  withDisplayTarget,
   type DisplayLiveEntry,
   type DisplayTargetValue,
 } from './display-target';
-import { CONFIRM_TIMEOUT_MS, isOfflineSince } from '@/lib/display-liveness';
+import { CONFIRM_TIMEOUT_MS, agreedBrightness, isOfflineSince } from '@/lib/display-liveness';
+import { displayCommandRequest } from '@/lib/display-dispatch';
 import { showToast } from './remote-toast';
 import StatusBar from './components/StatusBar';
 import ConnectionBanner from './components/ConnectionBanner';
@@ -69,6 +69,8 @@ interface RemoteInitialData {
   /** Screen ids with a photo slideshow, and the module types to address there. */
   slideshowScreens: Record<string, string[]>;
   backupReminder: { enabled: boolean; intervalDays: number; autoBackup: boolean };
+  /** The household's default alert length in ms (0 = each type its own), and the displays that set their own. */
+  alertDefaultMs: { shared: number; byDisplay: Record<string, number> };
   updateNotification: { enabled: boolean };
   updateChannel: UpdateChannel;
   /** Multi-display registry. Empty in single-display installs. */
@@ -263,8 +265,8 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     const next = isAsleep ? 'active' : 'asleep';
     sleepPending.start(next);
     nudgeAllPolls();
-    const url = withDisplayTarget(`/api/display/${next === 'active' ? 'wake' : 'sleep'}`, displayTarget);
-    editorFetch(url).catch(() => {});
+    const { url, init } = displayCommandRequest(next === 'active' ? 'wake' : 'sleep', displayTarget);
+    editorFetch(url, init).catch(() => {});
   }, [isAsleep, sleepPending, nudgeAllPolls, displayTarget]);
 
   // ---- Screen navigation (single display only): same confirm-or-revert
@@ -307,17 +309,14 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     // to show or confirm, the next heartbeat says where it went.
     if (cur >= 0) navPending.start(direction === 'next' ? (cur + 1) % count : (cur - 1 + count) % count);
     nudgeAllPolls();
-    const url = withDisplayTarget(
-      `/api/display/${direction === 'next' ? 'next-screen' : 'prev-screen'}`,
-      displayTarget,
-    );
-    editorFetch(url).catch(() => {});
+    const { url, init } = displayCommandRequest(direction === 'next' ? 'next-screen' : 'prev-screen', displayTarget);
+    editorFetch(url, init).catch(() => {});
   }, [status, navPending, nudgeAllPolls, displayTarget]);
 
   // ---- Brightness and alerts read the same online-target picture
   const reportedBrightness = useMemo(
-    () => onlineTargets.flatMap((e) => (typeof e.status?.brightness === 'number' ? [e.status.brightness] : [])),
-    [onlineTargets],
+    () => agreedBrightness(targetEntries.map((e) => ({ lastSeen: e.lastSeen, brightness: e.status?.brightness }))),
+    [targetEntries],
   );
   // The slideshows on the screens the targets are showing right now.
   const slideshowTypes = useMemo(() => {
@@ -397,12 +396,9 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 onDismiss={updateNotif.handleDismiss}
               />
               <BackupReminderBanner
-                shouldShow={backup.shouldShow}
+                kind={backup.kind}
                 daysSinceBackup={backup.daysSinceBackup}
                 busy={backup.busy}
-                iconsLeftOut={backup.iconsLeftOut}
-                picturesLeftOut={backup.picturesLeftOut}
-                autoFailed={backup.autoFailed}
                 onBackup={backup.handleBackup}
                 onDismiss={backup.handleDismiss}
               />
@@ -435,7 +431,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 />
               )}
               <BrightnessCard
-                reportedValues={reportedBrightness}
+                reported={reportedBrightness}
                 disabled={controlsDisabled}
                 onSent={nudgeAllPolls}
                 onNoConfirm={noConfirmToast}
@@ -462,6 +458,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 targetName={targetName}
                 targetUnnamed={targetUnnamed}
                 activeAlerts={activeAlerts}
+                defaultDurationMs={(displayTarget ? initialData.alertDefaultMs.byDisplay[displayTarget] : undefined) ?? initialData.alertDefaultMs.shared}
                 onSent={nudgeAllPolls}
               />
               <SettingsSheet

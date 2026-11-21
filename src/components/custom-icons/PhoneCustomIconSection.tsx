@@ -7,7 +7,7 @@ import { useCustomIcons } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
 import { ACCEPT_ATTRIBUTE, customIconValue, parseCustomIconValue, type CustomIconEntry } from '@/lib/custom-icons';
 import PhoneCustomIconReviewSheet from './PhoneCustomIconReviewSheet';
-import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/chore-form-styles';
+import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/remote-styles';
 
 /** Section heading inside a phone picker. The brighter of the two faint
  *  greys: the darker one measured 4.18:1 at this size, under the minimum. */

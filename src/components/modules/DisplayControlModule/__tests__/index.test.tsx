@@ -151,8 +151,8 @@ describe('DisplayControlModule integration', () => {
       if (url === '/api/displays') {
         return Promise.resolve(new Response(JSON.stringify({
           displays: [
-            { id: 'kitchen', name: 'Kitchen', status: { brightness: 40 } },
-            { id: 'hallway', name: 'Hallway', status: { brightness: 90 } },
+            { id: 'kitchen', name: 'Kitchen', lastSeen: 1_800_000_000_000, status: { brightness: 40 } },
+            { id: 'hallway', name: 'Hallway', lastSeen: 1_800_000_000_000 - 3_000, status: { brightness: 90 } },
           ],
           unadopted: [],
         }), { status: 200 }));

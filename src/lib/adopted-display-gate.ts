@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { MAIN_DISPLAY_ID } from '@/lib/display-filter';
+import { NextResponse, type NextRequest } from 'next/server';
+import { isValidDisplayId, MAIN_DISPLAY_ID } from '@/lib/display-filter';
 import { getAdoptedDisplayIds } from '@/lib/adopted-display-cache';
 
 /**
@@ -21,9 +21,40 @@ import { getAdoptedDisplayIds } from '@/lib/adopted-display-cache';
 export async function requireAdoptedDisplay(displayId: string): Promise<NextResponse | null> {
   const adopted = await getAdoptedDisplayIds();
   const permitted = adopted ? adopted.includes(displayId) : displayId === MAIN_DISPLAY_ID;
-  if (permitted) return null;
+  return permitted ? null : notAdopted(displayId);
+}
+
+/** What `?display=` on a request from a Pi's shell layer turned out to be. */
+export type AdoptedDisplayQuery =
+  | { ok: true; displayId: string }
+  /** No `?display`, or one that is not shaped like a display id. */
+  | { ok: false; reason: 'invalid' }
+  /** A well-formed id the hub has not adopted. */
+  | { ok: false; reason: 'not-adopted'; displayId: string };
+
+/**
+ * Read `?display=<id>` and run both checks on it: the id's shape, then
+ * `requireAdoptedDisplay`. Answers with a reason, not a response, because
+ * the callers do not all speak JSON: the bootstrap's answer is piped into
+ * bash and has to refuse in shell. `adoptedDisplayRefusal` is the JSON one.
+ */
+export async function adoptedDisplayFromQuery(request: NextRequest): Promise<AdoptedDisplayQuery> {
+  const displayId = request.nextUrl.searchParams.get('display');
+  if (!displayId || !isValidDisplayId(displayId)) return { ok: false, reason: 'invalid' };
+  const adopted = await getAdoptedDisplayIds();
+  const permitted = adopted ? adopted.includes(displayId) : displayId === MAIN_DISPLAY_ID;
+  return permitted ? { ok: true, displayId } : { ok: false, reason: 'not-adopted', displayId };
+}
+
+function notAdopted(displayId: string): NextResponse {
   return NextResponse.json(
     { error: `Display '${displayId}' is not adopted. Adopt it from the hub first.` },
     { status: 403 },
   );
+}
+
+/** The JSON answer for a query `adoptedDisplayFromQuery` turned down. */
+export function adoptedDisplayRefusal(refused: Exclude<AdoptedDisplayQuery, { ok: true }>): NextResponse {
+  if (refused.reason === 'invalid') return NextResponse.json({ error: 'Invalid or missing display' }, { status: 400 });
+  return notAdopted(refused.displayId);
 }

@@ -331,4 +331,25 @@ describe('useDisplaySharedState', () => {
     // One interval for the slot, not one per consumer.
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  // The GET tells the hub an editor is watching, which puts the wall on its
+  // fast reporting path. A tab nobody is looking at must not hold it there.
+  it('stops asking while the tab is hidden and asks at once when it is back', async () => {
+    let visibility: DocumentVisibilityState = 'visible';
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibility });
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({ entries: {}, reportedAt: 1 }));
+    renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    visibility = 'hidden';
+    document.dispatchEvent(new Event('visibilitychange'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    visibility = 'visible';
+    document.dispatchEvent(new Event('visibilitychange'));
+    await flushPoll();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

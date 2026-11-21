@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { installPlugin, uninstallPlugin, setPluginEnabled, clearPreviousVersion, fetchRegistry } from '@/lib/plugins';
+import { installPlugin, uninstallPlugin, setPluginEnabled, clearPreviousVersion, fetchRegistry, MAX_PLUGIN_TARBALL_BYTES } from '@/lib/plugins';
 import { fetchWithTimeout, withAuth, parseJsonBody } from '@/lib/api-utils';
 import { isVersionCompatible } from '@/lib/plugin-versions';
 import { getPackageVersion } from '@/lib/version';
 import { audit } from '@/lib/audit';
+import { readBoundedBody } from '@/lib/guarded-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +56,24 @@ export const POST = withAuth(async (request: NextRequest) => {
       { status: 502 },
     );
   }
-  const buffer = Buffer.from(await res.arrayBuffer());
+  // Read against a cap, so a wrong or swapped download cannot fill memory.
+  let bytes: Uint8Array<ArrayBuffer> | null;
+  try {
+    bytes = await readBoundedBody(res, MAX_PLUGIN_TARBALL_BYTES);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : 'network error';
+    return NextResponse.json(
+      { error: 'Failed to download plugin', detail: `Could not reach ${versionEntry.downloadUrl} — ${detail}` },
+      { status: 502 },
+    );
+  }
+  if (!bytes) {
+    return NextResponse.json(
+      { error: 'Failed to download plugin', detail: `${versionEntry.downloadUrl} is too big to be a plugin` },
+      { status: 502 },
+    );
+  }
+  const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
   await installPlugin(entry, version, buffer, versionEntry.sha256);
   audit({ action: 'plugin_install', pluginId, version });

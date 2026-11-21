@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCommandRequest } from '@/lib/display-dispatch';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 const log = logger('alerts');
 
@@ -65,10 +67,8 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
     setClearing(true);
     setClearStatus(null);
     try {
-      const url = displayId
-        ? `/api/display/clear-alerts?display=${encodeURIComponent(displayId)}`
-        : '/api/display/clear-alerts';
-      const res = await editorFetch(url, { method: 'POST' });
+      const { url, init } = displayCommandRequest('clear-alerts', displayId, undefined, 'POST');
+      const res = await editorFetch(url, init);
       setClearStatus({ kind: res.ok ? 'success' : 'error' });
       setTimeout(() => setClearStatus(null), 2000);
     } catch (err) {
@@ -98,7 +98,7 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
               value={alertsPosition}
               disabled={disabled}
               onChange={(e) => onChange({ alertsPosition: e.target.value })}
-              className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-70"
+              className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS} disabled:opacity-70`}
             >
               <option value="top">{t('settings.alertFormFields.positionTop')}</option>
               <option value="bottom">{t('settings.alertFormFields.positionBottom')}</option>

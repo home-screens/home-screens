@@ -15,12 +15,14 @@ import { useTranslate } from '@/i18n';
 import { useCalendarSources } from './CalendarSourceFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShowsGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, HourWindowMode } from '@/types/config';
+import type { FullscreenCalendarView, TodayHighlightStyle, EventOverlapMode, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, HourWindowMode } from '@/types/config';
 import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
 import { clampRollingWeeks } from '@/lib/calendar-utils';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
+import { useDensityOptions, useWeekStartOptions } from './option-hooks';
+import { useTypographySizeOptions } from './useTypographySizeOptions';
 
 const SHOW_DESCRIPTION_KEY = {
   'schedule': 'scheduleShowDescription',
@@ -33,7 +35,6 @@ const SHOW_DESCRIPTION_KEY = {
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
   // What the picker shows while accentColor is empty: the accent the module
@@ -58,20 +59,9 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'rolling', label: t('configSections.fullscreen-calendar.hourWindowRolling') },
   ];
 
-  const DENSITY_OPTIONS: { value: CalendarDensity; label: string }[] = [
-    { value: 'cozy', label: t('configSections.fullscreen-calendar.densityCozy') },
-    { value: 'snug', label: t('configSections.fullscreen-calendar.densitySnug') },
-  ];
+  const DENSITY_OPTIONS = useDensityOptions();
 
-  const TYPOGRAPHY_OPTIONS: { value: FullscreenTypographySize; label: string }[] = [
-    { value: 'small', label: t('configSections.fullscreen-calendar.typographySmall') },
-    { value: 'medium', label: t('configSections.fullscreen-calendar.typographyMedium') },
-    { value: 'large', label: t('configSections.fullscreen-calendar.typographyLarge') },
-    { value: 'extra-large', label: t('configSections.fullscreen-calendar.typographyExtraLarge') },
-    { value: '2x-large', label: t('configSections.fullscreen-calendar.typography2xLarge') },
-    { value: '3x-large', label: t('configSections.fullscreen-calendar.typography3xLarge') },
-    { value: '4x-large', label: t('configSections.fullscreen-calendar.typography4xLarge') },
-  ];
+  const TYPOGRAPHY_OPTIONS = useTypographySizeOptions();
 
   const TODAY_HIGHLIGHT_OPTIONS: { value: TodayHighlightStyle; label: string }[] = [
     { value: 'full', label: t('configSections.fullscreen-calendar.todayHighlightFull') },
@@ -85,10 +75,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'stacked', label: t('configSections.fullscreen-calendar.overlapStacked') },
   ];
 
-  const START_DAY_OPTIONS = [
-    { value: 'sunday', label: tCore('days.sunday') },
-    { value: 'monday', label: tCore('days.monday') },
-  ] as const;
+  const START_DAY_OPTIONS = useWeekStartOptions();
 
   const WEATHER_PLACEMENT_OPTIONS: { value: WeatherPlacement; label: string }[] = [
     { value: 'off', label: t('configSections.fullscreen-calendar.weatherOff') },

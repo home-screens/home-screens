@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import worker from './worker';
+import { BEACON_FIELDS } from './beacon';
 
 // The daily clean-up runs its real SQL against real SQLite (D1 is SQLite),
 // built from the real schema, and the dashboard's own queries are read from
@@ -145,5 +146,95 @@ describe('telemetry daily clean-up', () => {
 
     await expect(runCleanUp(db)).rejects.toThrow(/pruned_installs/);
     expect(installsIn(db)).toEqual(['quiet']);
+  });
+});
+
+describe('filing a beacon', () => {
+  const post = (db: DatabaseSync, body: unknown) =>
+    worker.fetch(
+      new Request('https://telemetry.example/beacon', { method: 'POST', body: JSON.stringify(body) }),
+      { DB: d1(db) } as never,
+    );
+
+  const beacon = {
+    installId: '0b0e6a52-3c7f-4f0e-9a51-2f6f0f3f9d11',
+    appVersion: '1.15.0',
+    beaconVersion: 4,
+    platform: 'linux',
+    arch: 'arm64',
+    nodeVersion: 'v22.0.0',
+    displayWidth: 1080,
+    displayHeight: 1920,
+    displayTransform: '90',
+    screenCount: 3,
+    moduleCount: 12,
+    moduleTypes: { clock: 2, weather: 1 },
+    profileCount: 1,
+    weatherProvider: 'openweathermap',
+    transitionEffect: 'fade',
+    sleepEnabled: true,
+    alertsEnabled: false,
+    authEnabled: true,
+    hasGoogleCalendar: false,
+    hasIcalSources: true,
+    pluginCount: 1,
+    displayCount: 2,
+    displays: [{ w: 1080, h: 1920, transform: '90', screenCount: 3, moduleCount: 12 }],
+    hasOwnedProfiles: true,
+    hasSettingsOverride: false,
+    plugins: [{ id: 'external', version: '1.0.0', enabled: true }],
+    sentAt: '2026-11-20T00:00:00.000Z',
+  };
+
+  const row = (db: DatabaseSync) =>
+    db.prepare('SELECT * FROM beacons WHERE install_id = ?').get(beacon.installId) as Record<string, unknown>;
+
+  it('puts every listed field in a column of its own', async () => {
+    const db = freshDb();
+
+    expect((await post(db, beacon)).status).toBe(204);
+
+    const filed = row(db);
+    expect(filed).toMatchObject({
+      app_version: '1.15.0',
+      beacon_version: 4,
+      platform: 'linux',
+      arch: 'arm64',
+      node_version: 'v22.0.0',
+      display_width: 1080,
+      display_height: 1920,
+      display_transform: '90',
+      screen_count: 3,
+      module_count: 12,
+      module_types: JSON.stringify(beacon.moduleTypes),
+      profile_count: 1,
+      weather_provider: 'openweathermap',
+      transition_effect: 'fade',
+      sleep_enabled: 1,
+      alerts_enabled: 0,
+      auth_enabled: 1,
+      has_google_calendar: 0,
+      has_ical_sources: 1,
+      plugin_count: 1,
+      display_count: 2,
+      displays: JSON.stringify(beacon.displays),
+      has_owned_profiles: 1,
+      has_settings_override: 0,
+      plugins: JSON.stringify(beacon.plugins),
+      raw_payload: JSON.stringify(beacon),
+    });
+    // Every listed field is in the beacon above, so none was left untested.
+    expect(Object.keys(beacon).filter((k) => k !== 'sentAt').sort()).toEqual([...BEACON_FIELDS].sort());
+  });
+
+  it('overwrites the install\'s one row and keeps when it was first seen', async () => {
+    const db = freshDb();
+    await post(db, beacon);
+    db.prepare("UPDATE beacons SET first_seen_at = '2026-01-01 00:00:00'").run();
+
+    expect((await post(db, { ...beacon, appVersion: '1.16.0', hasOwnedProfiles: false })).status).toBe(204);
+
+    expect(installsIn(db)).toEqual([beacon.installId]);
+    expect(row(db)).toMatchObject({ app_version: '1.16.0', has_owned_profiles: 0, first_seen_at: '2026-01-01 00:00:00' });
   });
 });

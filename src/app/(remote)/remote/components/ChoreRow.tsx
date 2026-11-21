@@ -6,6 +6,7 @@ import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { useLongPress } from '@/hooks/useLongPress';
 import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useTranslate } from '@/i18n';
+import { ticketWords } from './ticket-words';
 
 /** Minimal shape the row renders from — the parent's assignment carries more fields. */
 export interface ChoreRowAssignment {
@@ -74,6 +75,7 @@ export default function ChoreRow({
   onToggleSteps,
 }: ChoreRowProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const done = assignment.isCompleted;
   const skipped = !!assignment.isSkipped && !done;
   const holdMode = holdToUncheck && done && !readOnly && !isToggling;
@@ -215,7 +217,7 @@ export default function ChoreRow({
               fontSize: 13, color: checkedColor, fontWeight: 600, lineHeight: 1.25,
             }}
           >
-            {t('choresTab.holdToUncheckHint')}
+            {tCore('chores.holdToUncheck')}
           </span>
         )}
       </span>
@@ -238,9 +240,7 @@ export default function ChoreRow({
             opacity: done ? 0.3 : 1,
           }}
         >
-          {assignment.points === 1
-            ? t('choresTab.ticketCountSingular', { n: assignment.points })
-            : t('choresTab.ticketCountPlural', { n: assignment.points })}
+          {ticketWords(t, assignment.points, 'choresTab')}
         </span>
       )}
     </>

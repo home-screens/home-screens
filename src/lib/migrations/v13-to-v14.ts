@@ -17,7 +17,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** What every clock was placed with before the date line followed the language. */
 const OLD_CLOCK_DATE_DEFAULT = 'EEEE, MMMM d';

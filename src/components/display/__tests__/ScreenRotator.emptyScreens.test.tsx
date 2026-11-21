@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeTestSettings } from '@/test-utils';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { DisplayRule, GlobalSettings, Screen } from '@/types/config';
 
@@ -66,16 +67,7 @@ function screenOf(id: string): Screen {
 }
 
 function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
-  return {
-    timezone: 'UTC',
-    rotationIntervalMs: 1000,
-    displayWidth: 1080,
-    displayHeight: 1920,
-    latitude: 0,
-    longitude: 0,
-    weather: { provider: 'weatherapi', units: 'imperial' },
-    ...overrides,
-  } as unknown as GlobalSettings;
+  return makeTestSettings({ timezone: 'UTC', rotationIntervalMs: 1000, ...overrides });
 }
 
 const rendered = () => dom.queryByTestId('screen')?.textContent;

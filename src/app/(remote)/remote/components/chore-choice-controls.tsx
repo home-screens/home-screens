@@ -1,6 +1,6 @@
 'use client';
 
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 
 /**
  * The two pickers the chore screens on the phone share: a two-way switch and

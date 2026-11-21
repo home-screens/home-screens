@@ -6,6 +6,13 @@ import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import type { IpAllowlistData } from './types';
+import { cidrFault, type CidrFault } from '@/lib/cidr';
+
+const ENTRY_FAULT_KEY: Record<CidrFault, string> = {
+  format: 'invalidCidr',
+  address: 'invalidIp',
+  prefix: 'invalidPrefix',
+};
 
 type IpStatusKind = 'success' | 'error';
 interface IpStatus {
@@ -49,23 +56,11 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
     const entry = ipNewEntry.trim();
     if (!entry) return;
 
-    // Client-side validation: basic format check (full validation on server)
-    const parts = entry.split('/');
-    if (parts.length > 2) {
-      setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidCidr'));
+    // The hub's own rule, so nothing lands in the list that Save would refuse.
+    const fault = cidrFault(entry);
+    if (fault) {
+      setIpEntryError(t(`settings.securityPage.ipAllowlist.errors.${ENTRY_FAULT_KEY[fault]}`));
       return;
-    }
-    const ipPart = parts[0];
-    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ipPart)) {
-      setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidIp'));
-      return;
-    }
-    if (parts.length === 2) {
-      const prefix = Number(parts[1]);
-      if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) {
-        setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidPrefix'));
-        return;
-      }
     }
     if (ipAllowlist.includes(entry)) {
       setIpEntryError(t('settings.securityPage.ipAllowlist.errors.alreadyInList'));

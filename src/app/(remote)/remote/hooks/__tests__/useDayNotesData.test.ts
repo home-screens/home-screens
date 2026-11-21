@@ -105,7 +105,7 @@ describe('useDayNotesData', () => {
     expect(result.current.notes).toEqual([]);
     await act(async () => { expect(await removed).toBe(false); });
 
-    expect(showToast).toHaveBeenCalledWith('notes.dayNotes.saveError', 'error');
+    expect(showToast).toHaveBeenCalledWith('refusals.saveFailed', 'error');
     expect(showToast).not.toHaveBeenCalledWith('Disk full', 'error');
     await waitFor(() => expect(result.current.notes).toEqual([note]));
   });

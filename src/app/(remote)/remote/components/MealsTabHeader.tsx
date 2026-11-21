@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { fromISODate } from '@/lib/meal-constants';
 
 /** Between the heading, Rate Dinner and the gear. */
 const GAP = 8;
@@ -53,7 +54,7 @@ export default function MealsTabHeader({ todayISO, onOpenSettings, onRateDinner 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', whiteSpace: 'nowrap' }}>
           <span ref={day} style={{ display: 'inline-block' }}>
-            {new Date(todayISO + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long' })}
+            {fromISODate(todayISO).toLocaleDateString(locale, { weekday: 'long' })}
           </span>
         </div>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, whiteSpace: 'nowrap' }}>

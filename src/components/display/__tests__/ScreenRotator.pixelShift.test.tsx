@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeTestSettings } from '@/test-utils';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { DisplayRule, GlobalSettings, Screen } from '@/types/config';
 import { pixelShiftMinute, pixelShiftOffset, pixelShiftTransform } from '@/lib/pixel-shift';
@@ -59,16 +60,7 @@ const SCREENS: Screen[] = [{
 }];
 
 function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
-  return {
-    timezone: 'UTC',
-    rotationIntervalMs: 0,
-    displayWidth: 1080,
-    displayHeight: 1920,
-    latitude: 0,
-    longitude: 0,
-    weather: { provider: 'weatherapi', units: 'imperial' },
-    ...overrides,
-  } as unknown as GlobalSettings;
+  return makeTestSettings({ timezone: 'UTC', rotationIntervalMs: 0, ...overrides });
 }
 
 const root = () => dom.getByTestId('display-root');

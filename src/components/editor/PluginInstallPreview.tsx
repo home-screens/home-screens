@@ -3,6 +3,7 @@
 import { AlertTriangle, CheckCircle, ExternalLink, Shield } from 'lucide-react';
 import type { PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import { useCopyFlash } from '@/hooks/useCopyFlash';
 
 const PERMISSION_KEYS: Record<PluginPermission, string> = {
   network: 'settings.pluginInstallPreview.permissions.network',
@@ -69,6 +70,7 @@ export default function PluginInstallPreview({
 }: PluginInstallPreviewProps) {
   const t = useTranslate('editor');
   const repoUrl = resolveRepoUrl(repo);
+  const { copied, copy } = useCopyFlash();
   return (
     <div className="space-y-3">
       <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
@@ -188,11 +190,13 @@ export default function PluginInstallPreview({
             <code className="flex-1 text-[10px] text-hs-text-muted break-all font-mono">{sha256}</code>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(sha256)}
+              onClick={() => void copy(sha256)}
               className="text-[11px] text-hs-accent-hover hover:underline shrink-0"
               aria-label={t('settings.pluginInstallPreview.sha256CopyAriaLabel')}
             >
-              {t('settings.pluginInstallPreview.sha256CopyButton')}
+              {copied
+                ? t('phoneSurfaces.dialog.copied')
+                : t('settings.pluginInstallPreview.sha256CopyButton')}
             </button>
           </div>
         </div>

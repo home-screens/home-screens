@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, seedMeals } from '../helpers/api';
 import { confirmSheet } from '../helpers/remote';
@@ -13,13 +14,6 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
  * display reads them back.
  */
 
-/** Local YYYY-MM-DD offset from today — matches how the planner keys entries. */
-function isoDate(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 // A saved meal carrying ingredients, planned for today, so the auto-derived
 // grocery list has items to check off within the current viewing week.
 function mealWithIngredients() {
@@ -33,7 +27,7 @@ function mealWithIngredients() {
         { name: 'Ground Beef', amount: '1 lb', category: 'meat' },
       ],
     }],
-    plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoDate(0) }],
+    plan: [{ slot: 'dinner', mealId: 'meal-1', date: localDate(0) }],
   };
 }
 
@@ -165,8 +159,8 @@ test('a grocery tick stays on the week it was made on', async ({ page, request }
   await seedMeals(request, {
     savedMeals: mealWithIngredients().savedMeals,
     plan: [
-      { slot: 'dinner', mealId: 'meal-1', date: isoDate(0) },
-      { slot: 'dinner', mealId: 'meal-1', date: isoDate(7) },
+      { slot: 'dinner', mealId: 'meal-1', date: localDate(0) },
+      { slot: 'dinner', mealId: 'meal-1', date: localDate(7) },
     ],
     groceryChecked: {},
   });
@@ -251,7 +245,7 @@ test('deleting a saved meal removes it and clears its planned slots', async ({ p
       { id: 'meal-keep', name: 'Pancake Morning', emoji: '🥞' },
       { id: 'meal-del', name: 'Sloppy Joes', emoji: '🍔' },
     ],
-    plan: [{ slot: 'dinner', mealId: 'meal-del', date: isoDate(0) }],
+    plan: [{ slot: 'dinner', mealId: 'meal-del', date: localDate(0) }],
   });
   await page.goto('/remote');
   await openMeals(page);
@@ -283,7 +277,7 @@ test('deleting a saved meal removes it and clears its planned slots', async ({ p
 test('removing a planned meal from a slot round-trips', async ({ page, request }) => {
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝' }],
-    plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoDate(0) }],
+    plan: [{ slot: 'dinner', mealId: 'meal-1', date: localDate(0) }],
   });
   await page.goto('/remote');
   await openMeals(page);
@@ -318,8 +312,8 @@ test('week navigation shows the plan slice for the viewed week', async ({ page, 
       { id: 'm-next', name: 'Next Week Supper', emoji: '🥘' },
     ],
     plan: [
-      { slot: 'dinner', mealId: 'm-this', date: isoDate(0) },
-      { slot: 'dinner', mealId: 'm-next', date: isoDate(7) },
+      { slot: 'dinner', mealId: 'm-this', date: localDate(0) },
+      { slot: 'dinner', mealId: 'm-next', date: localDate(7) },
     ],
     settings: { weekStartDay: 'sunday' },
   });
@@ -398,7 +392,7 @@ test('a slot planned from an older copy lands next to what another phone planned
   await page.getByRole('button', { name: 'Plan', exact: true }).click();
 
   // The other phone saves first; its write moves the revision this page holds.
-  await seedMeals(request, { plan: [{ slot: 'lunch', mealId: 'meal-1', date: isoDate(0) }] });
+  await seedMeals(request, { plan: [{ slot: 'lunch', mealId: 'meal-1', date: localDate(0) }] });
 
   await page.getByRole('button', { name: /Plan Dinner for/ }).first().click();
   await page.getByRole('button', { name: /Spaghetti Night/ }).click();
@@ -425,7 +419,7 @@ test('a library edit leaves a meal planned elsewhere alone', async ({ page, requ
   // Another surface plans that meal for tonight while this page sits on the
   // Library tab holding an empty plan.
   await seedMeals(request, {
-    plan: [{ slot: 'dinner', mealId: 'meal-edit', date: isoDate(0) }],
+    plan: [{ slot: 'dinner', mealId: 'meal-edit', date: localDate(0) }],
   });
 
   await page.getByRole('button', { name: '🌮 Taco Tuesday', exact: true }).click();

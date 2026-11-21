@@ -28,6 +28,10 @@
     "refresh": "Opdatér",
     "theme": "Tema",
     "density": "Afstand",
+    "densityOptions": {
+      "cozy": "Luftig (nemmere at læse på afstand)",
+      "snug": "Kompakt (der er plads til mere)"
+    },
     "objectFit": "Tilpasning",
     "objectFitCover": "Udfyld",
     "objectFitContain": "Tilpas",
@@ -41,7 +45,6 @@
     "saveError": "Kunne ikke gemme",
     "networkError": "Netværksfejl",
     "serverUnreachable": "Kunne ikke få kontakt til serveren",
-    "hubUnreachable": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
     "typographySizes": {
       "small": "Lille",
       "medium": "Mellem",
@@ -62,7 +65,8 @@
     "livePhotosTwice": "Afspil to gange",
     "livePhotosLoop": "Gentag hele tiden",
     "livePhotosHint": "Afspiller bevægelsen i et Live Photo fra en iPhone. Læg klippet i samme mappe som billedet, og giv det billedets navn plus .live, for eksempel IMG_1234.live.mov til IMG_1234.jpg.",
-    "resetToDefault": "Nulstil til standard"
+    "resetToDefault": "Nulstil til standard",
+    "signInWithGoogle": "Log ind med Google"
   },
   "fields": {
     "rotation": "Rotation",
@@ -651,7 +655,6 @@
         "credentialsRequired": "For at forbinde din kalender skal du bruge et Google-login, du selv opretter. Tilføj det under API-nøgler.",
         "deviceCodeIntro": "Åbn linket herunder på din telefon eller computer, og indtast koden:",
         "waitingForAuthorization": "Venter på godkendelse…",
-        "signIn": "Log ind med Google",
         "usingClientIdLabel": "Bruger klient-id:",
         "verifyCredentialsPart1": "Tjek dine oplysninger i ",
         "verifyCredentialsPart2": ", eller tjek din ",
@@ -672,10 +675,8 @@
           "codeIntroPart2": " på din telefon eller computer, og skriv denne kode:",
           "waiting": "Venter på, at du bliver færdig hos Google…",
           "cancel": "Annullér",
-          "help": "Viser dine Google-kalendere på dine skærme. Du afslutter login på din telefon eller computer med en kort kode.",
-          "signIn": "Log ind med Google"
-        },
-        "selectCalendars": "Vælg kalendere, der skal vises"
+          "help": "Viser dine Google-kalendere på dine skærme. Du afslutter login på din telefon eller computer med en kort kode."
+        }
       },
       "icloud": {
         "heading": "iCloud-kalender",
@@ -1261,7 +1262,6 @@
         "noOverridesPart2": " til alle indstillinger. Tilsidesæt en indstilling under fanen Tilsidesættelser.",
         "chipBlockOverridden": "{label} tilsidesat",
         "chipFieldWithDefault": "{label}: {value} (standard: {defaultValue})",
-        "chipFieldNoDefault": "{label}: {value}",
         "fieldLabels": {
           "rotationIntervalMs": "Interval for skærmskift",
           "transitionEffect": "Overgang",
@@ -2476,11 +2476,7 @@
     "pluginSecrets": {
       "loading": "Indlæser status for nøgler…",
       "requiredBadge": "Påkrævet",
-      "removeButton": "Fjern",
-      "enterPlaceholder": "Indtast {label}",
-      "savingButton": "…",
-      "saveButton": "Gem",
-      "savedSuccess": "Gemt"
+      "enterPlaceholder": "Indtast {label}"
     },
     "pluginSettings": {
       "loading": "Indlæser indstillinger…",
@@ -2844,7 +2840,6 @@
         "description": "Sådan snuppes bonuspligter. Indstillinger for pligter på telefonen ændrer de samme to ting.",
         "grabLimitLabel": "Hvor mange bonuspligter én person kan snuppe ad gangen",
         "grabHoldLabel": "Hvor længe en snuppet bonuspligt er deres",
-        "saveFailed": "Kunne ikke gemme. Prøv igen.",
         "saved": "Gemt"
       }
     },
@@ -2984,7 +2979,6 @@
     "uploadMediaButton": "Upload"
   },
   "icloudImport": {
-    "toggle": "Tilføj fra et iCloud-link",
     "placeholder": "Indsæt et iCloud-album- eller fotolink",
     "start": "Importér",
     "importing": "Importerer…",
@@ -2993,15 +2987,10 @@
       "one": "1 ny fil tilføjet.",
       "other": "{count} nye filer tilføjet."
     },
-    "summarySkipped": {
-      "one": "1 var her allerede.",
-      "other": "{count} var her allerede."
-    },
     "summaryFailed": {
       "one": "1 kunne ikke hentes.",
       "other": "{count} kunne ikke hentes."
     },
-    "empty": "Der er intet at tilføje fra det album.",
     "help": "Virker med links til delte album (icloud.com/sharedalbum/#…) og 'Kopiér iCloud-link'-links (share.icloud.com). Alt i linket gemmes i den aktuelle mappe.",
     "albumTip": "Tip: Delte album kan også vises live uden at blive hentet. Vælg 'Delt iCloud-album' som fotokilde i et billedshows indstillinger.",
     "errors": {
@@ -3015,7 +3004,6 @@
     }
   },
   "choreChartModal": {
-    "changedElsewhere": "En anden har ændret pligterne. Din seneste ændring blev ikke gemt. Prøv igen.",
     "title": "Pligtskema",
     "subtitleMembersChores": "{members} medlemmer · {chores} pligter",
     "loadError": "Kunne ikke indlæse pligtdata. Ændringer bliver ikke gemt.",
@@ -3041,7 +3029,6 @@
       "dateLabel": "Dato",
       "assignToLabel": "Tildel",
       "weeklyScheduleLabel": "Ugeskema",
-      "coverageLabel": "Dækning: {covered} af 7 dage",
       "addSubmit": "Tilføj pligt",
       "saveSubmit": "Gem",
       "grabRulesNote": "Hvor mange én person kan snuppe, og hvor længe en snuppet pligt er deres, indstilles for hele familien under Bonus i listen over pligter."
@@ -3191,16 +3178,6 @@
       "courseRemoved": "Fjernet fra dette måltid",
       "saveFailed": "Ændringen blev ikke gemt. Prøv igen.",
       "mealieSaveFailed": "Mealie tog ikke imod ændringen. Tjek, at den kører, og prøv igen.",
-      "mealieAllPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
-      "mealieAllPlannedDates": "Alle aftensmåltider i ugen {range} er allerede planlagt.",
-      "mealieNoDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
-      "mealieSuggested": {
-        "one": "Aftensmad planlagt til {days}.",
-        "other": "Aftensmad planlagt til {days}."
-      },
-      "mealieSuggestedEveryNight": "Aftensmad planlagt til hver aften i denne uge.",
-      "mealieSuggestedEveryNightDates": "Aftensmad planlagt til hver aften i ugen {range}.",
-      "mealieNothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie.",
       "mealieTokenSaveFailed": "Mealie lukker ikke Home Screens ind, så ændringen blev ikke gemt. Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
       "mealieSetupSaveFailed": "Home Screens kan ikke bruge denne Mealie, så ændringen blev ikke gemt. Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres.",
       "mealieNotConnectedSaveFailed": "Mealie er ikke forbundet, så ændringen blev ikke gemt. Tilføj adressen og tokenet under Indstillinger > API-nøgler."
@@ -3291,11 +3268,7 @@
         "drink": "Skift drikken",
         "main": "Skift denne hovedret"
       },
-      "searchMealiePlaceholder": "Søg i opskrifter i Mealie",
       "clearSearch": "Ryd søgning",
-      "favorites": "Favoritter",
-      "recentlyMade": "Lavet for nylig",
-      "lookingInMealie": "Søger i Mealie…",
       "recipesInMealie": {
         "one": "{count} opskrift i Mealie",
         "other": "{count} opskrifter i Mealie"
@@ -3307,10 +3280,8 @@
       "recentlyMadeFirst": "Lavet for nylig, nyeste først",
       "keysHint": "↑ ↓ for at flytte, Enter for at vælge",
       "typeInstead": "Skriv \"{text}\" i stedet",
-      "typeInsteadMealie": "Ingen opskrift. Mealie gemmer det som en note.",
       "typeInsteadLocal": "Kommer på planen, som det er skrevet, uden at blive gemt blandt dine måltider.",
       "noRecipesCalled": "Ingen opskrifter med navnet \"{text}\" i Mealie",
-      "noRecipesHint": "Tjek stavningen, eller skriv det bare ind. Det kommer på planen som en note uden opskrift.",
       "mealieError": "Vi kunne ikke nå Mealie.",
       "tryAgain": "Prøv igen",
       "noFavorites": "Ingen favoritter endnu. Markér opskrifter som favoritter i Mealie, eller søg ovenfor.",
@@ -3322,32 +3293,19 @@
         "main": "Hovedretter"
       },
       "everythingElse": "Alt andet",
-      "categoryCount": {
-        "one": "1 opskrift i {category}",
-        "other": "{count} opskrifter i {category}"
-      },
       "noneInCategory": "Ingen opskrifter i {category} endnu. Søg ovenfor i stedet."
     },
     "openInMealie": "Åbn i Mealie",
     "mealie": {
-      "fromMealie": "Fra Mealie",
       "lastUpdated": "Sidst opdateret {time}",
       "subtitle": "{planned} planlagt denne uge",
       "subtitleHousehold": "Husstanden {household} · {planned} planlagt denne uge",
       "subtitleDates": "{planned} planlagt i ugen {range}",
       "subtitleHouseholdDates": "Husstanden {household} · {planned} planlagt i ugen {range}",
-      "openMealie": "Åbn Mealie",
       "tryAgain": "Prøv igen",
-      "unreachableTitle": "Kan ikke nå Mealie lige nu",
-      "unreachableBody": "Dine måltider ligger i Mealie, og Home Screens kan ikke komme til det. Tjek, at Mealie kører, og prøv så igen.",
-      "notConnectedTitle": "Mealie er ikke forbundet",
       "notConnectedBody": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens under Indstillinger > Måltider.",
-      "tokenRefusedTitle": "Mealie lukker ikke Home Screens ind længere",
       "tokenRefusedBody": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det under Indstillinger > API-nøgler.",
-      "setupTitle": "Home Screens kan ikke bruge denne Mealie",
       "setupBody": "Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres.",
-      "paused": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
-      "pausedSince": "Planlægningen er sat på pause, indtil Mealie er tilbage. Det her er planen fra {time}.",
       "weekLoading": "Henter ugen {range} fra Mealie…",
       "weekFailed": "Vi kunne ikke hente ugen {range} fra Mealie.",
       "libraryNote": "Opskrifterne ligger i Mealie. Klik på en for at se den her.",
@@ -3365,69 +3323,8 @@
           "one": "{list} · 1 at købe",
           "other": "{list} · {count} at købe"
         },
-        "add": "Tilføj",
         "openList": "Åbn listen i Mealie",
-        "addPlaceholder": "Tilføj til {list}",
-        "added": "{item} er på {list}",
-        "addedUnder": "{item} er på {list}, under {label}",
-        "already": "{item} er allerede på {list}",
-        "putBack": "{item} er tilbage på {list}",
-        "undo": "Fortryd",
-        "picked": "Alle ser nu {list}.",
-        "moved": "Viser {list}, valgt på en anden enhed.",
-        "gone": "{from} findes ikke længere i Mealie. Viser {list}.",
-        "forRecipes": "til {recipes}",
-        "noLabel": "Ingen etiket",
-        "toGet": {
-          "one": "1 ting at købe",
-          "other": "{count} ting at købe"
-        },
-        "allGot": "Alt er krydset af",
-        "openListAria": "Åbn {list} i Mealie (ny side)",
-        "inCart": "Afkrydset ({count})",
-        "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
-        "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
-        "staleSetup": "Home Screens kan ikke bruge denne Mealie. Dette er listen fra {time}.",
-        "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
-        "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
-        "loading": "Henter din liste fra Mealie…",
-        "noListsTitle": "Mealie har ingen indkøbslister endnu",
-        "noListsBody": "Lav en indkøbsliste i Mealie, så dukker den op her.",
-        "emptyTitle": "Intet på {list} endnu",
-        "emptyBody": "Tilføj noget ovenfor, eller send en opskrifts ingredienser hertil fra Mealie.",
-        "unreachableBody": "Din liste ligger sikkert i Mealie. Tjek, at Mealie kører, og prøv igen.",
-        "connectionTitle": "Kan ikke nå Home Screens lige nu",
-        "connectionBody": "Tjek computerens forbindelse, og prøv igen.",
-        "noConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
-        "notSaved": {
-          "one": "{items} blev ikke gemt. Prøv igen.",
-          "other": "{items} blev ikke gemt. Prøv igen."
-        },
-        "notSavedUnreachable": {
-          "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
-          "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
-        },
-        "notSavedToken": {
-          "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
-          "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
-        },
-        "notSavedSetup": {
-          "one": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie.",
-          "other": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie."
-        },
-        "notSavedNotConnected": {
-          "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",
-          "other": "{items} blev ikke gemt. Mealie er ikke forbundet."
-        },
-        "notSavedConnection": {
-          "one": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen.",
-          "other": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen."
-        },
-        "moreItems": {
-          "one": "1 mere",
-          "other": "{count} mere"
-        },
-        "listGone": "Den liste findes ikke længere i Mealie."
+        "connectionBody": "Tjek computerens forbindelse, og prøv igen."
       },
       "ingredientsFailed": "Mealie sendte ikke ingredienserne. Åbn opskriften i Mealie for at se dem.",
       "tokenFix": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
@@ -4407,15 +4304,6 @@
       "viewMonthGrid": "Månedsgitter",
       "viewDayTimeline": "Dagens tidslinje",
       "viewAgenda": "Agenda",
-      "densityCozy": "Luftig (nemmere at læse på afstand)",
-      "densitySnug": "Kompakt (der er plads til mere)",
-      "typographySmall": "Lille",
-      "typographyMedium": "Mellem",
-      "typographyLarge": "Stor",
-      "typographyExtraLarge": "Ekstra Stor",
-      "typography2xLarge": "2X Stor",
-      "typography3xLarge": "3X Stor",
-      "typography4xLarge": "4X Stor",
       "view": "Visning",
       "typographySize": "Tekststørrelse",
       "themeDefault": "Standard (fra Indstillinger)",
@@ -4509,8 +4397,6 @@
       "showRewardsButton": "Vis belønningsknap",
       "showRewardsButtonHelp": "Tilføjer en knap på pligttavlen, så børnene kan skifte til belønningsbutikken. Bedst på skærme med touch.",
       "themeDefault": "Standard (fra Indstillinger)",
-      "densityCozy": "Luftig",
-      "densitySnug": "Kompakt",
       "typographySize": "Tekststørrelse",
       "accentColor": "Accentfarve",
       "weekStartsOn": "Ugen starter",
@@ -4552,8 +4438,6 @@
       "viewRecipe": "Opskrift",
       "viewGrocery": "Indkøbsliste",
       "viewRecipeBook": "Opskriftsbog",
-      "densityCozy": "Luftig",
-      "densitySnug": "Kompakt",
       "typographySize": "Tekststørrelse",
       "showEmoji": "Vis billeder",
       "showPrepTime": "Vis samlet tid",
@@ -4718,7 +4602,6 @@
       "checking": "Tjekker…",
       "credentialsNeeded": "For at importere fra Google Fotos skal du tilføje et klient-id og en klienthemmelighed til Google Fotos-import under Indstillinger → API-nøgler.",
       "signInIntro": "Log ind med Google, og indsæt derefter den kode, du får til sidst.",
-      "signIn": "Log ind med Google",
       "pastePlaceholder": "Indsæt koden eller linket her",
       "finishSignIn": "Afslut login",
       "choosePhotos": "Vælg fotos",
@@ -4749,8 +4632,7 @@
         "comesBack": "Du kommer automatisk tilbage hertil bagefter.",
         "pasteInstead": "Kom du ikke tilbage? Indsæt en kode",
         "pasteIntro": "Hvis Google-siden viste dig en kode, så indsæt den her.",
-        "startOver": "Start forfra",
-        "signIn": "Log ind med Google"
+        "startOver": "Start forfra"
       }
     },
     "meal-planner": {
@@ -5564,8 +5446,6 @@
       "viewConditions": "Forhold",
       "themeDefault": "Standard (fra Indstillinger)",
       "typographySize": "Tekststørrelse",
-      "densityCozy": "Luftig",
-      "densitySnug": "Kompakt",
       "skyLayer": "Himmel",
       "skyLiving": "Levende (skyer, regn og stjerner bevæger sig)",
       "skyStill": "Stille (en enkel tone)",
@@ -6424,7 +6304,6 @@
       "add": "Tilføj fra Google Fotos",
       "signInToAdd": "Log ind for at tilføje fra Google Fotos",
       "needsSetup": "Google Fotos skal sættes op under Indstillinger > API-nøgler",
-      "waiting": "Venter på dine valg…",
       "openAgain": "Åbn Google Fotos igen",
       "cancel": "Annuller",
       "adding": "Tilføjer {done} af {total} til {folder}",
@@ -6432,17 +6311,12 @@
         "one": "1 tilføjet.",
         "other": "{count} tilføjet."
       },
-      "alreadyHere": {
-        "one": "1 var her allerede.",
-        "other": "{count} var her allerede."
-      },
       "notSaved": {
         "one": "1 kunne ikke gemmes.",
         "other": "{count} kunne ikke gemmes."
       }
     },
     "import": {
-      "icloudTitle": "Tilføj fra et iCloud-link",
       "icloudIntro": "Indsæt et link til et delt album eller et link fra 'Kopiér iCloud-link' i appen Fotos. Alt i det bliver tilføjet til mappen nedenfor.",
       "add": "Tilføj",
       "progress": "Tilføjer {done} af {total}",

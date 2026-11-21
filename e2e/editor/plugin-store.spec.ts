@@ -15,6 +15,7 @@ import {
   MANIFEST,
   BUNDLE,
   seedFixturePlugin,
+  pluginModule,
   FIXTURE_PLUGIN_ID,
   FIXTURE_PLUGIN_TYPE,
 } from '../helpers/fixture-plugin';
@@ -51,18 +52,6 @@ import type { PluginRegistry, RegistryPlugin } from '@/types/plugins';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function pluginModule(config: Record<string, unknown> = {}): ModuleInstance {
-  return {
-    id: 'e2e-plugin-1',
-    type: FIXTURE_PLUGIN_TYPE,
-    position: { x: 0, y: 0 },
-    size: { w: 320, h: 200 },
-    zIndex: 1,
-    style: { ...DEFAULT_MODULE_STYLE },
-    config: { label: 'E2E PLUGIN', ...config },
-  } as ModuleInstance;
-}
 
 /** Build a RegistryPlugin catalog entry with sensible defaults for one version. */
 function registryEntry(o: {

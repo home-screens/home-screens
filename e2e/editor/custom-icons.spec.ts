@@ -1,6 +1,6 @@
 import sharp from 'sharp';
-import type { APIRequestContext } from '@playwright/test';
 import { test, expect } from '../fixtures';
+import { clearIcons } from '../helpers/api';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 
@@ -8,11 +8,6 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
  * The family's own icons in the editor: the Your icons settings page, and the
  * "Your icons" tab of the shared icon picker.
  */
-
-async function clearIcons(request: APIRequestContext) {
-  const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: Array<{ id: string }> };
-  for (const icon of icons) expect((await request.delete(`/api/custom-icons/${icon.id}`)).ok()).toBe(true);
-}
 
 async function square(background: string): Promise<Buffer> {
   return sharp({ create: { width: 96, height: 96, channels: 3, background } }).png().toBuffer();

@@ -1,11 +1,13 @@
+import type { TranslateFn } from '@/i18n/types';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import type { MealieProblem } from '@/lib/meal-sources';
 
-const PROBLEM_WORDS: Record<MealieProblem, string> = {
+const PROBLEM_WORDS: Record<MealieClientProblem, string> = {
   'not-connected': 'notConnected',
   token: 'tokenRefused',
   setup: 'setup',
   unreachable: 'unreachable',
+  connection: 'connection',
 };
 
 /** How to fix what waiting will not, a key under `editor`. */
@@ -15,12 +17,21 @@ const FIX: Partial<Record<MealieProblem, string>> = {
 };
 
 /**
- * The editor's words for why Mealie gave no answer: the start of a key under
- * `editor`, finished with `Title` or `Body`. No reason reads as Mealie not
- * answering.
+ * The title for why Mealie gave no answer: a key under `core`, the sentence
+ * the phone and the wall say too. No reason reads as Mealie not answering.
  */
-export function mealieProblemKey(problem: MealieProblem | null | undefined): string {
-  return `mealPlannerModal.mealie.${PROBLEM_WORDS[problem ?? 'unreachable']}`;
+export function mealieProblemTitleKey(problem: MealieClientProblem | null | undefined): string {
+  return `mealie.${PROBLEM_WORDS[problem ?? 'unreachable']}.title`;
+}
+
+/**
+ * The line under that title. Mealie not answering is said in the words the
+ * phone uses (`core`); the rest say where to fix it on the computer and are
+ * the editor's own.
+ */
+export function mealieProblemBody(problem: MealieProblem | null | undefined, t: TranslateFn, tCore: TranslateFn): string {
+  if (!problem || problem === 'unreachable') return tCore('mealie.unreachable.description');
+  return t(`mealPlannerModal.mealie.${PROBLEM_WORDS[problem]}Body`);
 }
 
 /**
@@ -29,15 +40,18 @@ export function mealieProblemKey(problem: MealieProblem | null | undefined): str
  * connected, refuses the token or is not a Mealie Home Screens can use, with
  * how to fix the last two, since waiting will not; that Home Screens itself
  * did not answer when the request never reached it; otherwise `fallback`,
- * the request's own line, which a retry may cure. Keys under `editor`.
+ * the request's own line, which a retry may cure.
  */
-export function mealieRequestFailedKeys(
+export function mealieRequestFailedWords(
   problem: MealieClientProblem | null | undefined,
   fallback: string,
+  t: TranslateFn,
+  tCore: TranslateFn,
 ): { title: string; fix: string | null } {
-  if (problem === 'connection') return { title: 'mealPlannerModal.mealie.grocery.connectionTitle', fix: null };
+  if (problem === 'connection') return { title: tCore(mealieProblemTitleKey(problem)), fix: null };
   if (problem === 'not-connected' || problem === 'token' || problem === 'setup') {
-    return { title: `${mealieProblemKey(problem)}Title`, fix: FIX[problem] ?? null };
+    const fix = FIX[problem];
+    return { title: tCore(mealieProblemTitleKey(problem)), fix: fix ? t(fix) : null };
   }
   return { title: fallback, fix: null };
 }

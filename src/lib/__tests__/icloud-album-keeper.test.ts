@@ -258,6 +258,7 @@ describe('createAlbumKeeper', () => {
     it('ignores a file it cannot make sense of, and entries that are not its own', async () => {
       await fs.writeFile(FILE, 'not json');
       expect(await startHub(async () => album('a')).entries('T')).toEqual(album('a'));
+      await saved('test:T', ['a']);
 
       await fs.writeFile(FILE, JSON.stringify({
         'test:T': { entries: [{ guid: 'kept' }, null, { guid: 7 }, 'junk'], readAt: Date.now() },

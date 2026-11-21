@@ -88,7 +88,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
             {t('configSections.googlePhotosImport.signInIntro')}
           </p>
           <Button size="sm" variant="primary" onClick={signIn} disabled={busy}>
-            {t('configSections.googlePhotosImport.signIn')}
+            {t('common.signInWithGoogle')}
           </Button>
           <input
             type="text"

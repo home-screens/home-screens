@@ -120,3 +120,11 @@ export function withCssColorAlpha(color: string, alpha: number): string | null {
   }
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Number(clamped.toFixed(2))})`;
 }
+
+/**
+ * A colour as the stores keep one: `#` and six hex digits, nothing shorter
+ * and no alpha. Lists, timetables and the family roster all save this form.
+ */
+export function isFullHexColor(value: unknown): value is string {
+  return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+}

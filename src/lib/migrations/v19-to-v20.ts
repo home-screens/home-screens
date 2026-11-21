@@ -21,7 +21,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

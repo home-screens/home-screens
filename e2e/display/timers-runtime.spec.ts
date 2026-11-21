@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { putConfig } from '../helpers/api';
+import { putConfig, startQuickTimer } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -48,16 +48,8 @@ function timerConfig(displayIds?: string[]): ScreenConfiguration {
   });
 }
 
-async function startQuick(
-  request: APIRequestContext,
-  durationSec: number,
-  targets: 'all' | string[] = 'all',
-): Promise<void> {
-  const res = await request.post('/api/timers/session', {
-    data: { action: 'start', kind: 'quick', durationSec, targets, view: 'ring', sound: false },
-  });
-  expect(res.ok()).toBe(true);
-}
+const startQuick = (request: APIRequestContext, durationSec: number, targets: 'all' | string[] = 'all') =>
+  startQuickTimer(request, { durationSec, view: 'ring', targets });
 
 /**
  * A two-step routine whose FIRST step is a hold: 5s of countdown, then it

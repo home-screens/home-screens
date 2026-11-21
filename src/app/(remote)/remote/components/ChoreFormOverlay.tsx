@@ -15,14 +15,16 @@ import { getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { groupMembers } from '@/lib/family-groups';
 import FamilyManager from '@/components/family/FamilyManager';
-import ChoreIcon, { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
+import { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_STEPS_MAX_CHARS, comesBackHintKey, describeStepsCount } from '@/components/modules/chore-chart/chore-form-presentation';
-import { REMOTE_ACCENT, INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
-import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
+import { FIELD, FIELD_LABEL, FIELD_SELECT, REMOTE_ACCENT } from './remote-styles';
+import { CHORE_CLAIMS, CHORE_COMES_BACK, CHORE_FREQUENCIES, CHORE_KINDS, CHORE_ROTATIONS } from '@/lib/chore-constants';
+import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
+import { MemberFace } from './MemberPills';
 import SaveDeleteFooter from './SaveDeleteFooter';
 import ConfirmSheet from './ConfirmSheet';
 import { ChoiceList, Segmented } from './chore-choice-controls';
@@ -101,8 +103,6 @@ function ScheduleRow({ testId, name, color, days, dayNames, removeLabel, onToggl
   );
 }
 
-const COMES_BACK: ChoreBonusComesBack[] = ['daily', 'weekly', 'manual'];
-
 /** The people in a group as overlapping initials; a group has no color of its own. */
 function GroupAvatarStack({ members }: { members: FamilyMember[] }) {
   const shown = members.slice(0, STACK_LIMIT);
@@ -162,6 +162,7 @@ export default function ChoreFormOverlay({
 }) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale, not the UI language.
   // Memoize so re-renders during day toggles don't redo seven
@@ -219,20 +220,20 @@ export default function ChoreFormOverlay({
         }
       >
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{t('choresManage.choreForm.nameLabel')}</div>
+          <div style={FIELD_LABEL}>{t('choresManage.choreForm.nameLabel')}</div>
           <input
             type="text"
             placeholder={t('choresManage.choreForm.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            style={INPUT_STYLE}
+            style={FIELD}
             autoFocus
           />
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{tModules('chore-chart.choreForm.stepsLabel')}</div>
+          <div style={FIELD_LABEL}>{tModules('chore-chart.choreForm.stepsLabel')}</div>
           <textarea
             data-testid="chore-steps"
             placeholder={tModules('chore-chart.choreForm.stepsPlaceholder')}
@@ -240,7 +241,7 @@ export default function ChoreFormOverlay({
             onChange={(e) => setSteps(e.target.value)}
             rows={5}
             maxLength={CHORE_STEPS_MAX_CHARS}
-            style={{ ...INPUT_STYLE, minHeight: 120, resize: 'vertical', lineHeight: 1.4, fontFamily: 'inherit' }}
+            style={{ ...FIELD, minHeight: 120, resize: 'vertical', lineHeight: 1.4, fontFamily: 'inherit' }}
           />
           <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '6px 0 0' }}>
             {tModules('chore-chart.choreForm.stepsHint')}
@@ -250,16 +251,16 @@ export default function ChoreFormOverlay({
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{tModules('chore-chart.choreForm.kindLabel')}</div>
+          <div style={FIELD_LABEL}>{tModules('chore-chart.choreForm.kindLabel')}</div>
           <Segmented
             testId="chore-kind"
             label={tModules('chore-chart.choreForm.kindLabel')}
             value={kind}
             onChange={setKind}
-            options={[
-              { value: 'regular', label: tModules('chore-chart.choreForm.kindRegular') },
-              { value: 'bonus', label: tModules('chore-chart.choreForm.kindBonus') },
-            ]}
+            options={CHORE_KINDS.map((value) => ({
+              value,
+              label: tModules(value === 'regular' ? 'chore-chart.choreForm.kindRegular' : 'chore-chart.choreForm.kindBonus'),
+            }))}
           />
           {isBonus && (
             <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '6px 0 0' }}>
@@ -283,23 +284,23 @@ export default function ChoreFormOverlay({
             frequency next to it. */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 6 }}>
           <div>
-            <div style={LABEL_STYLE}>{t('choresManage.choreForm.ticketsLabel')}</div>
+            <div style={FIELD_LABEL}>{t('choresManage.choreForm.ticketsLabel')}</div>
             <input
               type="number"
               value={points}
               onChange={(e) => setPoints(e.target.value)}
               inputMode="numeric"
               min={0}
-              style={{ ...INPUT_STYLE, textAlign: 'center' }}
+              style={{ ...FIELD, textAlign: 'center' }}
             />
           </div>
           {isBonus ? null : (
             <div>
-              <div style={LABEL_STYLE}>{t('choresManage.choreForm.frequencyLabel')}</div>
+              <div style={FIELD_LABEL}>{t('choresManage.choreForm.frequencyLabel')}</div>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
-                style={SELECT_STYLE}
+                style={FIELD_SELECT}
               >
                 {CHORE_FREQUENCIES.map((opt) => (
                   <option key={opt.value} value={opt.value}>{frequencyLabelMap[opt.value]}</option>
@@ -315,14 +316,14 @@ export default function ChoreFormOverlay({
         {/* Full width: "When I put it back" does not fit half a phone in any language. */}
         {isBonus && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{tModules('chore-chart.choreForm.comesBackLabel')}</div>
+            <div style={FIELD_LABEL}>{tModules('chore-chart.choreForm.comesBackLabel')}</div>
             <select
               value={comesBack}
               onChange={(e) => setComesBack(e.target.value as ChoreBonusComesBack)}
-              style={SELECT_STYLE}
+              style={FIELD_SELECT}
               data-testid="chore-comes-back"
             >
-              {COMES_BACK.map((value) => (
+              {CHORE_COMES_BACK.map((value) => (
                 <option key={value} value={value}>{tModules(`chore-chart.bonus.comesBack.${value}`)}</option>
               ))}
             </select>
@@ -341,16 +342,15 @@ export default function ChoreFormOverlay({
 
         {isBonus && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{tModules('chore-chart.choreForm.claimLabel')}</div>
+            <div style={FIELD_LABEL}>{tModules('chore-chart.choreForm.claimLabel')}</div>
             <ChoiceList<ChoreBonusClaim>
               testId="chore-bonus-claim"
               label={tModules('chore-chart.choreForm.claimLabel')}
               value={bonusClaim}
               onChange={setBonusClaim}
-              options={[
-                { value: 'first', label: tModules('chore-chart.bonus.upForGrabs'), hint: tModules('chore-chart.choreForm.claimFirstHint') },
-                { value: 'each', label: tModules('chore-chart.bonus.everyoneCan'), hint: tModules('chore-chart.choreForm.claimEachHint') },
-              ]}
+              options={CHORE_CLAIMS.map((value) => (value === 'first'
+                ? { value, label: tModules('chore-chart.bonus.upForGrabs'), hint: tModules('chore-chart.choreForm.claimFirstHint') }
+                : { value, label: tModules('chore-chart.bonus.everyoneCan'), hint: tModules('chore-chart.choreForm.claimEachHint') }))}
             />
             {/* The grab limit and when a grab ends are household-wide, set elsewhere. */}
             {bonusClaim === 'first' && (
@@ -363,7 +363,7 @@ export default function ChoreFormOverlay({
 
         {!onSchedule && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{isBonus ? tModules('chore-chart.choreForm.whoCanLabel') : t('choresManage.choreForm.assignToLabel')}</div>
+            <div style={FIELD_LABEL}>{isBonus ? tModules('chore-chart.choreForm.whoCanLabel') : t('choresManage.choreForm.assignToLabel')}</div>
             {/* A household that never made a group sees the form it always had. */}
             {groups.length > 0 && (
               <>
@@ -474,11 +474,7 @@ export default function ChoreFormOverlay({
                         background: `color-mix(in srgb, ${m.color} 15%, transparent)`,
                       }}
                     >
-                      {m.emoji ? (
-                        <ChoreIcon value={m.emoji} size={18} color={m.color} fallback={<span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{memberInitials(m.name)}</span>} />
-                      ) : (
-                        <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{memberInitials(m.name)}</span>
-                      )}
+                      <MemberFace member={m} size={18} initialsSize={14} color={m.color} />
                     </div>
                     <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1 }}>
                       {m.name}
@@ -498,7 +494,7 @@ export default function ChoreFormOverlay({
 
         {onSchedule && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{t('choresManage.choreForm.weeklyScheduleLabel')}</div>
+            <div style={FIELD_LABEL}>{t('choresManage.choreForm.weeklyScheduleLabel')}</div>
             <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
               {/* A group's row is everyone in it, whoever that is on the day. */}
               {scheduleGroups.map((group) => (
@@ -537,11 +533,7 @@ export default function ChoreFormOverlay({
                           flexShrink: 0, background: `color-mix(in srgb, ${member.color} 15%, transparent)`,
                         }}
                       >
-                        {member.emoji ? (
-                          <ChoreIcon value={member.emoji} size={16} color={member.color} fallback={<span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{memberInitials(member.name)}</span>} />
-                        ) : (
-                          <span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{memberInitials(member.name)}</span>
-                        )}
+                        <MemberFace member={member} size={16} initialsSize={13} color={member.color} />
                       </div>
                     }
                   />
@@ -594,7 +586,7 @@ export default function ChoreFormOverlay({
               </div>
             )}
             <div style={{ marginTop: 10, fontSize: 12, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>{t('choresManage.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
+              <span>{tCore('chores.coverage', { covered: scheduleDays.length })}</span>
               {scheduleDays.length < 7 && (
                 <>
                   {' · '}
@@ -611,7 +603,7 @@ export default function ChoreFormOverlay({
 
         {frequency !== 'once' && canRotate && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{t('choresManage.choreForm.rotationLabel')}</div>
+            <div style={FIELD_LABEL}>{t('choresManage.choreForm.rotationLabel')}</div>
             <select
               value={rotation}
               onChange={(e) => {
@@ -620,7 +612,7 @@ export default function ChoreFormOverlay({
                 else if (rotation === 'schedule') switchFromSchedule(val);
                 else setRotation(val);
               }}
-              style={SELECT_STYLE}
+              style={FIELD_SELECT}
             >
               {CHORE_ROTATIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{rotationLabelMap[opt.value]}</option>
@@ -632,7 +624,7 @@ export default function ChoreFormOverlay({
         {/* Days — date picker for one-time, day-of-week toggles for recurring */}
         {!onSchedule && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>
+            <div style={FIELD_LABEL}>
               {frequency === 'once' && !isBonus
                 ? t('choresManage.choreForm.dateLabel')
                 : t('choresManage.choreForm.daysLabel')}
@@ -642,7 +634,7 @@ export default function ChoreFormOverlay({
                 type="date"
                 value={specificDate}
                 onChange={(e) => setSpecificDate(e.target.value)}
-                style={INPUT_STYLE}
+                style={FIELD}
               />
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
@@ -688,13 +680,13 @@ export default function ChoreFormOverlay({
         {/* A bonus chore sits in its own section on every screen, never in a time of day. */}
         {!isBonus && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>{t('choresManage.choreForm.timeOfDayLabel')}</div>
+            <div style={FIELD_LABEL}>{t('choresManage.choreForm.timeOfDayLabel')}</div>
             <select
               value={timeOfDay}
               onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
-              style={SELECT_STYLE}
+              style={FIELD_SELECT}
             >
-              {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((tod) => (
+              {CHORE_TIME_ORDER.map((tod) => (
                 <option key={tod} value={tod}>
                   {tModules(getTimeOfDayLabelKey(tod))}
                 </option>

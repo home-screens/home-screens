@@ -727,3 +727,40 @@ describe('getIpAllowlistConfig', () => {
     });
   });
 });
+
+describe('the password rule shared with the request gate', () => {
+  const write = (state: unknown) => fs.writeFile(path.join(tmpCwd, 'data', 'auth.json'), JSON.stringify(state));
+  const request = () => new Request('http://localhost/api/config');
+
+  // The same table as src/__tests__/proxy.test.ts: the gate and these guards
+  // used to answer differently for each of the first two rows.
+  it.each([
+    ['no passwordHash key', {}],
+    ['an empty-string hash', { passwordHash: '', salt: '' }],
+    ['a null hash', { passwordHash: null, salt: null, cookieSecret: null }],
+  ])('%s is no password, for the status check and both guards', async (_name, state) => {
+    await write(state);
+    expect(await isAuthEnabled()).toBe(false);
+    await expect(requireSession(request())).resolves.toBeUndefined();
+    await expect(requireDisplayAuth(request())).resolves.toBeUndefined();
+    expect(await getDisplayToken()).toBeNull();
+  });
+
+  it('a hash that is not text is locked: the guards ask for a session and no password opens it', async () => {
+    await write({ passwordHash: 5, salt: 's', cookieSecret: 'c', displayToken: 't' });
+    expect(await isAuthEnabled()).toBe(true);
+    await expect(requireSession(request())).rejects.toMatchObject({ status: 401 });
+    await expect(requireDisplayAuth(request())).rejects.toMatchObject({ status: 401 });
+    expect(await verifyPassword('anything')).toBe(false);
+  });
+
+  it('a stored hash of another length is a wrong password, not a crash', async () => {
+    await write({ passwordHash: 'abcd', salt: 'salt', cookieSecret: 'c' });
+    expect(await verifyPassword('anything')).toBe(false);
+  });
+
+  it('drops allowlist entries that are not text instead of failing on them', async () => {
+    await write({ passwordHash: null, ipAllowlist: ['10.0.0.0/8', 7], ipBypassAuth: true });
+    expect(await getIpAllowlistConfig()).toEqual({ allowlist: ['10.0.0.0/8'], bypassAuth: true, restrictAccess: false });
+  });
+});

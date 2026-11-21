@@ -1,4 +1,4 @@
-import type { ChoreResetFrequency, ChoreRotation } from '@/types/config';
+import type { ChoreBonusClaim, ChoreBonusComesBack, ChoreResetFrequency, ChoreRotation } from '@/types/config';
 import type { TranslateFn } from '@/i18n/types';
 
 // ── Chore frequency & rotation values (shared across editor + remote) ────
@@ -31,6 +31,24 @@ export const CHORE_ROTATIONS: { value: ChoreRotation }[] = [
   { value: 'rotate-weekly' },
   { value: 'schedule' },
 ];
+
+/** A chore's two kinds, in the order both forms offer them. */
+export const CHORE_KINDS = ['regular', 'bonus'] as const;
+
+/** Who a bonus chore goes to, in the order both forms offer them. */
+export const CHORE_CLAIMS: readonly ChoreBonusClaim[] = ['first', 'each'];
+
+/** When a bonus chore is on offer again, in the order both forms offer them. */
+export const CHORE_COMES_BACK: readonly ChoreBonusComesBack[] = ['daily', 'weekly', 'manual'];
+
+/**
+ * A copy of the list with the bonus chores after the regular ones, each group
+ * in the order it was written. Both Manage lists draw the bonus chores under
+ * their own heading.
+ */
+export function regularBeforeBonus<T extends { bonus?: unknown }>(chores: readonly T[]): T[] {
+  return [...chores].sort((a, b) => Number(!!a.bonus) - Number(!!b.bonus));
+}
 
 // ── Reward icon presets ────
 

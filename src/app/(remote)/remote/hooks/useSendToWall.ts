@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { withDisplayId } from '@/lib/display-dispatch';
 import { targetWallName, useDisplayTarget, type DisplayTargetValue } from '../display-target';
 
 /** The two phrases `where` is built from, in the calling tab's own words. */
@@ -44,7 +45,7 @@ export function useSendToWall(): SendToWall {
       const res = await editorFetch(route, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, ...(target ? { displayId: target } : {}) }),
+        body: JSON.stringify(withDisplayId(body, target)),
       });
       if (!res.ok) {
         const refusal = await res.json().catch(() => null) as Record<string, unknown> | null;

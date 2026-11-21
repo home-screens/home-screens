@@ -74,3 +74,30 @@ export function isOnlineNow(lastSeen: number | null | undefined, now = Date.now(
 export function isOfflineSince(lastSeen: number | null | undefined, now = Date.now()): boolean {
   return lastSeen != null && now - lastSeen > REMOTE_OFFLINE_AFTER_MS;
 }
+
+/** What one display last told the hub about its brightness, with when it was last heard from. */
+export interface BrightnessReport {
+  lastSeen: number | null | undefined;
+  brightness?: number | null;
+}
+
+/**
+ * The brightness a brightness control shows for the displays it is aimed at:
+ * the one number they all report, or null for "not known" (nothing reported,
+ * or two displays at different levels).
+ *
+ * Only displays that are answering count, by the remote's strict band
+ * (`REMOTE_OFFLINE_AFTER_MS`): one that is unplugged, or has never checked
+ * in, neither sets the number nor blocks it, because a command sent now
+ * would not reach it either. An answering display that has not reported a
+ * level yet is skipped the same way. The phone's brightness card and the
+ * wall's Display Control both read this, so "All displays" with one wall
+ * switched off shows the level of the walls that are on.
+ */
+export function agreedBrightness(reports: ReadonlyArray<BrightnessReport>, now = Date.now()): number | null {
+  const levels = reports.flatMap((report) => (
+    report.lastSeen && !isOfflineSince(report.lastSeen, now) && typeof report.brightness === 'number' ? [report.brightness] : []
+  ));
+  if (levels.length === 0) return null;
+  return levels.every((level) => level === levels[0]) ? levels[0] : null;
+}

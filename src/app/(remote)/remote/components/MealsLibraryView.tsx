@@ -3,7 +3,7 @@
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
-import { INPUT_STYLE, CARD_STYLE, formatShownMinutes } from './meals-shared';
+import { formatShownMinutes } from './meals-shared';
 import { FamilyMealSummary } from '@/components/meals/meal-votes';
 import MealRateButton from './MealRatingSheet';
 import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel, type LibraryFilter } from '@/lib/meal-constants';
@@ -13,7 +13,7 @@ import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 import RecipeWallButton from './RecipeWallButton';
 import Glyph from '@/components/ui/Glyph';
-import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
+import { CARD, COMPACT_FIELD, REMOTE_ACCENT, selectedPillStyle } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsLibraryViewProps {
@@ -70,7 +70,7 @@ export default function MealsLibraryView({
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
-          ...INPUT_STYLE,
+          ...COMPACT_FIELD,
           marginBottom: 12,
         }}
       />
@@ -134,7 +134,7 @@ export default function MealsLibraryView({
               display: 'flex',
               alignItems: 'center',
               gap: 12,
-              ...CARD_STYLE,
+              ...CARD,
               marginBottom: 8,
             }}
           >

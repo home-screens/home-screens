@@ -1,5 +1,6 @@
 import type { GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
+import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_FALLBACKS } from '@/lib/display-override-fields';
 
 /**
  * Form state ↔ GlobalSettings transforms for the Defaults settings page.
@@ -92,22 +93,22 @@ export interface SettingsState {
 
 export const FORM_DEFAULTS: SettingsState = {
   display: {
-    rotationInterval: 30,
+    rotationInterval: DEFAULT_ROTATION_SECONDS,
     displayWidth: 1080,
     displayHeight: 1920,
     displayTransform: '90',
     touchMatrix: null,
-    cursorHideSeconds: 3,
-    transitionEffect: 'fade',
-    transitionDuration: 0.6,
-    fullscreenTheme: 'linen',
-    pauseEnabled: true,
-    pauseTimeoutSeconds: 300,
-    swipeEnabled: true,
-    setupHintEnabled: true,
-    showRotationProgress: true,
-    showPaginationDots: true,
-    pixelShift: false,
+    cursorHideSeconds: DISPLAY_FIELD_FALLBACKS.cursorHideSeconds,
+    transitionEffect: DISPLAY_FIELD_FALLBACKS.transitionEffect,
+    transitionDuration: DISPLAY_FIELD_FALLBACKS.transitionDuration,
+    fullscreenTheme: DISPLAY_FIELD_FALLBACKS.fullscreenTheme,
+    pauseEnabled: DISPLAY_FIELD_FALLBACKS.pauseEnabled,
+    pauseTimeoutSeconds: DISPLAY_FIELD_FALLBACKS.pauseTimeoutSeconds,
+    swipeEnabled: DISPLAY_FIELD_FALLBACKS.swipeEnabled,
+    setupHintEnabled: DISPLAY_FIELD_FALLBACKS.setupHintEnabled,
+    showRotationProgress: DISPLAY_FIELD_FALLBACKS.showRotationProgress,
+    showPaginationDots: DISPLAY_FIELD_FALLBACKS.showPaginationDots,
+    pixelShift: DISPLAY_FIELD_FALLBACKS.pixelShift,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'open-meteo', units: 'imperial', radarServerUrl: '' },

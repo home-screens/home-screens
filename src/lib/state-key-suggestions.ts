@@ -9,6 +9,7 @@
 import type { TranslateFn } from '@/i18n';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import type { LoadedPlugin, StateKeyDescriptor } from '@/types/plugins';
+import { parsePluginStateKey } from '@/lib/plugin-state-keys';
 
 /** One row in the merged suggestion list. `section` renders as a group
  *  header ("Home Assistant · Kitchen") above the first row that carries it. */
@@ -76,13 +77,11 @@ export function buildSuggestions(
   return out;
 }
 
-const PLUGIN_KEY_RE = /^plugin:([^:]+):/;
-
 /** Friendly producer label from a key's namespace prefix. */
 export function producerLabel(key: string, plugins: Map<string, LoadedPlugin>, t: TranslateFn): string {
-  const match = PLUGIN_KEY_RE.exec(key);
-  if (!match) return t('settings.sharedStatePage.builtInProducer');
-  const pluginId = match[1];
+  const parsed = parsePluginStateKey(key);
+  if (!parsed) return t('settings.sharedStatePage.builtInProducer');
+  const { pluginId } = parsed;
   for (const plugin of plugins.values()) {
     if (plugin.manifest.id.toLowerCase() === pluginId) return plugin.manifest.name;
   }
@@ -142,7 +141,7 @@ export function buildAvailableGroups(
   // (this recomputes per keystroke over up to requestLimit rows per plugin).
   const labelCache = new Map<string, string>();
   const labelFor = (key: string): string => {
-    const ns = PLUGIN_KEY_RE.exec(key)?.[1] ?? '';
+    const ns = parsePluginStateKey(key)?.pluginId ?? '';
     let label = labelCache.get(ns);
     if (label === undefined) {
       label = producerLabel(key, plugins, t);

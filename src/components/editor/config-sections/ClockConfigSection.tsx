@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
@@ -8,6 +8,7 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
+import DateFormatField from './DateFormatField';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -23,19 +24,6 @@ import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
-/** Three patterns that cover the shapes people ask for, shown with today's
- *  date next to them so "EEEE" stops being a guess. */
-const CUSTOM_DATE_EXAMPLES = ['EEEE, MMMM d', 'EEE d MMM', 'd/M/yyyy'];
-
-/** The example in the household's language, so a French editor sees "lundi", not "Monday". */
-function safeFormat(pattern: string, now: Date, locale: string, t: (key: string) => string): string {
-  try {
-    return formatDateSync(now, pattern, { locale });
-  } catch {
-    return t('configSections.clock.invalidFormat');
-  }
-}
-
 const SAMPLE_ELAPSED_MS =
   50 * 24 * 60 * 60 * 1000 +
   20 * 60 * 60 * 1000 +
@@ -173,18 +161,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const view = c.view ?? 'classic';
   const fields = VIEW_FIELDS[view] ?? new Set<string>();
   const dateFormatVal = c.dateFormat ?? '';
-  const isCustomDateFormat = !DATE_PRESETS.some((p) => p.value === dateFormatVal);
-  const [showCustomDate, setShowCustomDate] = useState(isCustomDateFormat);
-
   const worldZones = useMemo(() => c.worldZones ?? [], [c.worldZones]);
-
-  // Live date format preview
-  let datePreview = '';
-  try {
-    datePreview = formatDateSync(previewNow, clockDatePattern(dateFormatVal, formattingLocale), { locale: formattingLocale });
-  } catch {
-    datePreview = t('configSections.clock.invalidFormat');
-  }
 
   const has = (field: string) => fields.has(field);
 
@@ -262,60 +239,21 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {/* Date Format (preset dropdown + custom input + live preview) */}
       {has('dateFormat') && (
-        <div className="flex flex-col gap-1">
-          <LabeledField label={t('configSections.clock.dateFormat')}>
-            <select
-              value={showCustomDate ? '__custom__' : dateFormatVal}
-              onChange={(e) => {
-                if (e.target.value === '__custom__') {
-                  setShowCustomDate(true);
-                } else {
-                  setShowCustomDate(false);
-                  set({ dateFormat: e.target.value });
-                }
-              }}
-              className={INPUT_CLASS}
-            >
-              {DATE_PRESETS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-              <option value="__custom__">{t('configSections.clock.customOption')}</option>
-            </select>
-          </LabeledField>
-          {showCustomDate && (
-            <input
-              type="text"
-              value={dateFormatVal}
-              onChange={(e) => set({ dateFormat: e.target.value })}
-              placeholder={t('configSections.clock.dateFormatPlaceholder')}
-              className={INPUT_CLASS}
-            />
-          )}
-          <span className="text-xs text-hs-text-faint">{datePreview}</span>
-          {/* A pattern language with no legend is a dead end. Three worked
-              examples, rendered against today's date, are enough to get from
-              "what do I type" to a format that works. */}
-          {showCustomDate && (
-            <div className="mt-1 border-t border-hs-border pt-2" data-testid="clock-format-examples">
-              <p className="text-[11px] text-hs-text-faint mb-1">
-                {t('configSections.clock.customExamplesHeading')}
-              </p>
-              {CUSTOM_DATE_EXAMPLES.map((pattern) => (
-                <button
-                  key={pattern}
-                  type="button"
-                  onClick={() => set({ dateFormat: pattern })}
-                  className="flex w-full items-baseline gap-1.5 rounded px-1 py-0.5 text-left hover:bg-hs-hover transition-colors"
-                >
-                  <code className="font-mono text-[11px] text-hs-text-secondary">{pattern}</code>
-                  <span className="text-[11px] text-hs-text-faint">
-                    {safeFormat(pattern, previewNow, formattingLocale, t)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <DateFormatField
+          label={t('configSections.clock.dateFormat')}
+          value={dateFormatVal}
+          presets={DATE_PRESETS}
+          onChange={(dateFormat) => set({ dateFormat })}
+          format={(pattern) =>
+            formatDateSync(previewNow, clockDatePattern(pattern, formattingLocale), { locale: formattingLocale })}
+          words={{
+            custom: t('configSections.clock.customOption'),
+            placeholder: t('configSections.clock.dateFormatPlaceholder'),
+            invalid: t('configSections.clock.invalidFormat'),
+            examplesHeading: t('configSections.clock.customExamplesHeading'),
+          }}
+          testIdPrefix="clock"
+        />
       )}
 
       {/* Week/Day info */}

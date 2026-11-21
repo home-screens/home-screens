@@ -7,7 +7,7 @@ import { useState } from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
-import { REMOTE_ACCENT, INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import { FIELD, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { DEFAULT_REWARD_ICON } from '@/lib/chore-constants';
@@ -99,9 +99,9 @@ export default function RewardFormOverlay({
         />
 
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{t('rewardForm.nameLabel')}</div>
+          <div style={FIELD_LABEL}>{t('rewardForm.nameLabel')}</div>
           <input
-            style={INPUT_STYLE}
+            style={FIELD}
             type="text"
             placeholder={t('rewardForm.namePlaceholder')}
             value={name}
@@ -118,9 +118,9 @@ export default function RewardFormOverlay({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
-            <div style={LABEL_STYLE}>{t('rewardForm.ticketCostLabel')}</div>
+            <div style={FIELD_LABEL}>{t('rewardForm.ticketCostLabel')}</div>
             <input
-              style={INPUT_STYLE}
+              style={FIELD}
               type="number"
               min={1}
               placeholder={t('rewardForm.ticketCostPlaceholder')}
@@ -129,11 +129,11 @@ export default function RewardFormOverlay({
             />
           </div>
           <div>
-            <div style={LABEL_STYLE}>{t('rewardForm.enabledLabel')}</div>
+            <div style={FIELD_LABEL}>{t('rewardForm.enabledLabel')}</div>
             <button
               onClick={() => setEnabled((v) => !v)}
               style={{
-                ...INPUT_STYLE,
+                ...FIELD,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
@@ -177,9 +177,9 @@ export default function RewardFormOverlay({
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{t('rewardForm.descriptionLabel')}</div>
+          <div style={FIELD_LABEL}>{t('rewardForm.descriptionLabel')}</div>
           <input
-            style={INPUT_STYLE}
+            style={FIELD}
             type="text"
             placeholder={t('rewardForm.descriptionPlaceholder')}
             value={description}
@@ -188,7 +188,7 @@ export default function RewardFormOverlay({
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>{t('rewardForm.availableToLabel')}</div>
+          <div style={FIELD_LABEL}>{t('rewardForm.availableToLabel')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button
               className="press-scale-xs"

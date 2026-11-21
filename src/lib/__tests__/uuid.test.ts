@@ -60,3 +60,18 @@ describe('uuid', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('isUuid', () => {
+  it('accepts a UUID in either case', async () => {
+    const { isUuid } = await import('../uuid');
+    expect(isUuid('3f2504e0-4f89-41d3-9a0c-0305e82c3301')).toBe(true);
+    expect(isUuid('3F2504E0-4F89-41D3-9A0C-0305E82C3301')).toBe(true);
+  });
+
+  it('refuses anything else', async () => {
+    const { isUuid } = await import('../uuid');
+    for (const value of ['', '3f2504e0', '3f2504e0-4f89-41d3-9a0c-0305e82c330', '../../etc/passwd', '3f2504e0-4f89-41d3-9a0c-0305e82c3301\n', null, 7]) {
+      expect(isUuid(value)).toBe(false);
+    }
+  });
+});

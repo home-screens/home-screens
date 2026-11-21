@@ -1,8 +1,6 @@
 import { uuid } from '@/lib/uuid';
 import type { ModuleInstance } from '@/types/config';
-import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
-import { addedModuleSize, addsAtOrigin, getModuleDefinition } from '@/lib/module-registry';
-import { defaultPresetForLocale } from '@/lib/news-presets';
+import { addedModuleSize, addsAtOrigin, buildDefaultModule, getModuleDefinition } from '@/lib/module-registry';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE } from '@/lib/constants';
 import {
   getActiveScreens,
@@ -11,7 +9,7 @@ import {
   updateModuleInConfig,
   updateScreenModulesInConfig,
 } from '@/lib/editor-multi-display';
-import { scaleModulesToFit, reorderModuleZ, appendOnTop, stackOrder, modulesOverlap } from '@/lib/module-utils';
+import { scaleModulesToFit, reorderModuleZ, appendOnTop, stackOrder, modulesOverlap, clampToCanvas } from '@/lib/module-utils';
 import { findFreePosition } from '@/lib/free-position';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import type { EditorGet, ModuleActions, MutateConfig } from './types';
@@ -54,22 +52,6 @@ export function createModuleSlice(
       const dims = cfg
         ? getActiveDimensions(cfg, state.selectedDisplayId)
         : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
-      // Title fields only render inside ModuleWrapper's card, which plugins
-      // and cardless builtins never mount — drop them from a manifest/registry
-      // defaultStyle so placed instances never carry an invisible title the
-      // editor offers no way to see or clear.
-      const moduleDefaultStyle = { ...def.defaultStyle };
-      if (type.startsWith('plugin:') || def.cardless) {
-        delete moduleDefaultStyle.title;
-        delete moduleDefaultStyle.titleFontSize;
-      }
-      // The registry's default news feed is English; a household on another
-      // locale should start on a feed written in its own language.
-      const moduleConfig = { ...def.defaultConfig };
-      if (type === 'news' || type === 'fullscreen-news') {
-        const preset = defaultPresetForLocale(cfg?.settings?.locale);
-        moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
-      }
       const size = addedModuleSize(def, dims);
       // No drop point (palette click / Enter) — take the next free spot on the
       // target screen so the new module never lands hidden under another one.
@@ -77,10 +59,7 @@ export function createModuleSlice(
       const resolvedPosition = addsAtOrigin(def)
         ? { x: 0, y: 0 }
         : position
-          ? {
-            x: Math.max(0, Math.min(dims.width - size.w, position.x)),
-            y: Math.max(0, Math.min(dims.height - size.h, position.y)),
-          }
+          ? clampToCanvas(position, size, dims)
           : findFreePosition(
             (cfg ? getActiveScreens(cfg, state.selectedDisplayId) : []).find((s) => s.id === screenId)?.modules ?? [],
             size,
@@ -90,11 +69,7 @@ export function createModuleSlice(
       // inside the mutation, so it is computed from the same list it lands in.
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
         id: uuid(),
-        type,
-        position: resolvedPosition,
-        size,
-        config: moduleConfig,
-        style: { ...defaultStyle, ...moduleDefaultStyle },
+        ...buildDefaultModule(def, type, { dims, locale: cfg?.settings?.locale, position: resolvedPosition }),
       };
       mutateConfig((config) => ({
         config: updateScreenModulesInConfig(config, get().selectedDisplayId, screenId, (modules) =>
@@ -133,10 +108,11 @@ export function createModuleSlice(
         // fillsCanvas modules stay pinned at the origin.
         position: fillsCanvas
           ? { ...src.position }
-          : {
-              x: Math.max(0, Math.min(dims.width - src.size.w, src.position.x + GRID_SIZE)),
-              y: Math.max(0, Math.min(dims.height - src.size.h, src.position.y + GRID_SIZE)),
-            },
+          : clampToCanvas(
+              { x: src.position.x + GRID_SIZE, y: src.position.y + GRID_SIZE },
+              src.size,
+              dims,
+            ),
       };
       mutateConfig((config) => ({
         config: updateScreenModulesInConfig(config, state.selectedDisplayId, screenId, (modules) =>
@@ -188,8 +164,7 @@ export function createModuleSlice(
         const next = updateScreenModulesInConfig(config, selectedDisplayId, screenId, (modules) => {
           const moved = modules.map((m) => {
             if (m.id !== moduleId) return m;
-            const x = Math.max(0, Math.min(dims.width - m.size.w, position.x));
-            const y = Math.max(0, Math.min(dims.height - m.size.h, position.y));
+            const { x, y } = clampToCanvas(position, m.size, dims);
             if (x === m.position.x && y === m.position.y) return m;
             changed = true;
             return { ...m, position: { x, y } };

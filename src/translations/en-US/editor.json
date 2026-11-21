@@ -28,6 +28,10 @@
     "refresh": "Refresh",
     "theme": "Theme",
     "density": "Spacing",
+    "densityOptions": {
+      "cozy": "Roomy (easier from across the room)",
+      "snug": "Compact (fits more)"
+    },
     "objectFit": "Object Fit",
     "objectFitCover": "Cover",
     "objectFitContain": "Contain",
@@ -41,7 +45,6 @@
     "saveError": "Failed to save",
     "networkError": "Network error",
     "serverUnreachable": "Failed to reach server",
-    "hubUnreachable": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
     "typographySizes": {
       "small": "Small",
       "medium": "Medium",
@@ -62,7 +65,8 @@
     "livePhotosTwice": "Play twice",
     "livePhotosLoop": "Play on repeat",
     "livePhotosHint": "Plays the short video that comes with an iPhone Live Photo. Put it in the same folder as its photo, named like the photo plus .live, for example IMG_1234.live.mov for IMG_1234.jpg.",
-    "resetToDefault": "Reset to default"
+    "resetToDefault": "Reset to default",
+    "signInWithGoogle": "Sign in with Google"
   },
   "fields": {
     "rotation": "Rotation",
@@ -651,7 +655,6 @@
         "credentialsRequired": "Connecting your calendar needs a Google sign-in you create yourself. Add it on the API keys page.",
         "deviceCodeIntro": "Open the link below on your phone or computer, then enter the code:",
         "waitingForAuthorization": "Waiting for authorization…",
-        "signIn": "Sign in with Google",
         "usingClientIdLabel": "Using Client ID:",
         "verifyCredentialsPart1": "Verify your credentials in ",
         "verifyCredentialsPart2": ", or check your ",
@@ -672,10 +675,8 @@
           "codeIntroPart2": " and type this code:",
           "waiting": "Waiting for you to finish on Google…",
           "cancel": "Cancel",
-          "help": "Shows your Google calendars on your screens. You'll finish signing in on your phone or computer with a short code.",
-          "signIn": "Sign in with Google"
-        },
-        "selectCalendars": "Select calendars to display"
+          "help": "Shows your Google calendars on your screens. You'll finish signing in on your phone or computer with a short code."
+        }
       },
       "icloud": {
         "heading": "iCloud Calendar",
@@ -1261,7 +1262,6 @@
         "noOverridesPart2": " for every setting. Override one from the Overrides subtab.",
         "chipBlockOverridden": "{label} overridden",
         "chipFieldWithDefault": "{label}: {value} (default: {defaultValue})",
-        "chipFieldNoDefault": "{label}: {value}",
         "fieldLabels": {
           "rotationIntervalMs": "Rotation interval",
           "transitionEffect": "Transition",
@@ -2476,11 +2476,7 @@
     "pluginSecrets": {
       "loading": "Loading secrets status…",
       "requiredBadge": "Required",
-      "removeButton": "Remove",
-      "enterPlaceholder": "Enter {label}",
-      "savingButton": "…",
-      "saveButton": "Save",
-      "savedSuccess": "Saved successfully"
+      "enterPlaceholder": "Enter {label}"
     },
     "pluginSettings": {
       "loading": "Loading settings…",
@@ -2844,7 +2840,6 @@
         "description": "How bonus chores are grabbed. The phone's Chore settings change the same two things.",
         "grabLimitLabel": "How many bonus chores one person can grab at once",
         "grabHoldLabel": "When a grab of a bonus chore ends",
-        "saveFailed": "That didn't save. Try again.",
         "saved": "Saved"
       }
     },
@@ -2984,7 +2979,6 @@
     "uploadMediaButton": "Upload"
   },
   "icloudImport": {
-    "toggle": "Add from an iCloud link",
     "placeholder": "Paste an iCloud album or photo link",
     "start": "Import",
     "importing": "Importing…",
@@ -2993,15 +2987,10 @@
       "one": "Added 1 new item.",
       "other": "Added {count} new items."
     },
-    "summarySkipped": {
-      "one": "1 was already here.",
-      "other": "{count} were already here."
-    },
     "summaryFailed": {
       "one": "1 couldn't be downloaded.",
       "other": "{count} couldn't be downloaded."
     },
-    "empty": "There's nothing in that album to add.",
     "help": "Works with Shared Album links (icloud.com/sharedalbum/#…) and \"Copy iCloud Link\" links (share.icloud.com). Everything in the link is saved into the current folder.",
     "albumTip": "Tip: Shared Albums can also play live without downloading. Pick \"iCloud Shared Album\" as the photo source in a slideshow's settings.",
     "errors": {
@@ -3015,7 +3004,6 @@
     }
   },
   "choreChartModal": {
-    "changedElsewhere": "Someone else changed the chores. Your last change wasn't saved. Please try it again.",
     "title": "Chore Chart",
     "subtitleMembersChores": "{members} members · {chores} chores",
     "loadError": "Couldn't load the chore data. Changes won't be saved.",
@@ -3041,7 +3029,6 @@
       "dateLabel": "Date",
       "assignToLabel": "Assign to",
       "weeklyScheduleLabel": "Weekly Schedule",
-      "coverageLabel": "Coverage: {covered} of 7 days",
       "addSubmit": "Add Chore",
       "saveSubmit": "Save",
       "grabRulesNote": "How many one person can grab, and when a grab ends, are set for the whole household, under Bonus in the chore list."
@@ -3191,16 +3178,6 @@
       "courseRemoved": "Removed from this meal",
       "saveFailed": "That change didn't save. Try again.",
       "mealieSaveFailed": "Mealie didn't take that change. Check that it's running, then try again.",
-      "mealieAllPlanned": "Every dinner this week is already planned.",
-      "mealieAllPlannedDates": "Every dinner for {range} is already planned.",
-      "mealieNoDinners": "Suggest fills empty dinners, and dinner is turned off in the meal settings.",
-      "mealieSuggested": {
-        "one": "Planned a dinner for {days}.",
-        "other": "Planned dinners for {days}."
-      },
-      "mealieSuggestedEveryNight": "Planned a dinner for every night this week.",
-      "mealieSuggestedEveryNightDates": "Planned a dinner for every night of {range}.",
-      "mealieNothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie.",
       "mealieTokenSaveFailed": "Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.",
       "mealieSetupSaveFailed": "Home Screens can't use this Mealie, so that change wasn't saved. Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
       "mealieNotConnectedSaveFailed": "Mealie isn't connected, so that change wasn't saved. Add its address and token in Settings > API keys."
@@ -3291,11 +3268,7 @@
         "drink": "Change the drink",
         "main": "Change this main dish"
       },
-      "searchMealiePlaceholder": "Search recipes in Mealie",
       "clearSearch": "Clear search",
-      "favorites": "Favorites",
-      "recentlyMade": "Recently made",
-      "lookingInMealie": "Looking in Mealie…",
       "recipesInMealie": {
         "one": "{count} recipe in Mealie",
         "other": "{count} recipes in Mealie"
@@ -3307,10 +3280,8 @@
       "recentlyMadeFirst": "Recently made, newest first",
       "keysHint": "↑ ↓ to move, Enter to pick",
       "typeInstead": "Type “{text}” instead",
-      "typeInsteadMealie": "No recipe. Mealie keeps it as a note.",
       "typeInsteadLocal": "Goes on the plan as typed, not saved to your meals.",
       "noRecipesCalled": "No recipes called “{text}” in Mealie",
-      "noRecipesHint": "Check the spelling, or type it in instead. It goes on the plan as a note, with no recipe.",
       "mealieError": "We couldn't reach Mealie.",
       "tryAgain": "Try again",
       "noFavorites": "No favorites yet. Mark recipes as favorites in Mealie, or search above.",
@@ -3322,32 +3293,19 @@
         "main": "Main dishes"
       },
       "everythingElse": "Everything else",
-      "categoryCount": {
-        "one": "1 recipe in {category}",
-        "other": "{count} recipes in {category}"
-      },
       "noneInCategory": "No recipes in {category} yet. Search above instead."
     },
     "openInMealie": "Open in Mealie",
     "mealie": {
-      "fromMealie": "From Mealie",
       "lastUpdated": "Last updated {time}",
       "subtitle": "{planned} planned this week",
       "subtitleHousehold": "{household} household · {planned} planned this week",
       "subtitleDates": "{planned} planned for {range}",
       "subtitleHouseholdDates": "{household} household · {planned} planned for {range}",
-      "openMealie": "Open Mealie",
       "tryAgain": "Try again",
-      "unreachableTitle": "Can't reach Mealie right now",
-      "unreachableBody": "Your meals are in Mealie, and Home Screens can't get to it. Check that Mealie is running, then try again.",
-      "notConnectedTitle": "Mealie isn't connected",
       "notConnectedBody": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them in Settings > API keys, or set the meal plan back to Home Screens in Settings > Meals.",
-      "tokenRefusedTitle": "Mealie isn't letting Home Screens in",
       "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in Settings > API keys.",
-      "setupTitle": "Home Screens can't use this Mealie",
       "setupBody": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
-      "paused": "Planning is paused until Mealie is back.",
-      "pausedSince": "Planning is paused until Mealie is back. This is the plan from {time}.",
       "weekLoading": "Getting {range} from Mealie…",
       "weekFailed": "We couldn't get {range} from Mealie.",
       "libraryNote": "Recipes live in Mealie. Click one to see it here.",
@@ -3365,69 +3323,8 @@
           "one": "{list} · 1 to get",
           "other": "{list} · {count} to get"
         },
-        "add": "Add",
         "openList": "Open list in Mealie",
-        "addPlaceholder": "Add to {list}",
-        "added": "{item} is on {list}",
-        "addedUnder": "{item} is on {list}, under {label}",
-        "already": "{item} is already on {list}",
-        "putBack": "{item} is back on {list}",
-        "undo": "Undo",
-        "picked": "Everyone sees {list} now.",
-        "moved": "Showing {list}, picked on another device.",
-        "gone": "{from} isn't in Mealie any more. Showing {list}.",
-        "forRecipes": "for {recipes}",
-        "noLabel": "No label",
-        "toGet": {
-          "one": "1 thing to get",
-          "other": "{count} things to get"
-        },
-        "allGot": "All checked off",
-        "openListAria": "Open {list} in Mealie (new page)",
-        "inCart": "Checked off ({count})",
-        "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
-        "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
-        "staleSetup": "Home Screens can't use this Mealie. This is the list from {time}.",
-        "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
-        "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
-        "loading": "Getting your list from Mealie…",
-        "noListsTitle": "Mealie has no shopping lists yet",
-        "noListsBody": "Make a shopping list in Mealie and it shows up here.",
-        "emptyTitle": "Nothing on {list} yet",
-        "emptyBody": "Add something above, or send a recipe's ingredients here from Mealie.",
-        "unreachableBody": "Your list is safe in Mealie. Check that Mealie is running, then try again.",
-        "connectionTitle": "Can't reach Home Screens right now",
-        "connectionBody": "Check this computer's connection, then try again.",
-        "noConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
-        "notSaved": {
-          "one": "{items} wasn't saved. Try again.",
-          "other": "{items} weren't saved. Try again."
-        },
-        "notSavedUnreachable": {
-          "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
-          "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
-        },
-        "notSavedToken": {
-          "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
-          "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
-        },
-        "notSavedSetup": {
-          "one": "{items} wasn't saved. Home Screens can't use this Mealie.",
-          "other": "{items} weren't saved. Home Screens can't use this Mealie."
-        },
-        "notSavedNotConnected": {
-          "one": "{items} wasn't saved. Mealie isn't connected.",
-          "other": "{items} weren't saved. Mealie isn't connected."
-        },
-        "notSavedConnection": {
-          "one": "{items} wasn't saved. Can't reach Home Screens, so check the connection and try again.",
-          "other": "{items} weren't saved. Can't reach Home Screens, so check the connection and try again."
-        },
-        "moreItems": {
-          "one": "1 more",
-          "other": "{count} more"
-        },
-        "listGone": "That list isn't in Mealie any more."
+        "connectionBody": "Check this computer's connection, then try again."
       },
       "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them.",
       "tokenFix": "Make a new token in Mealie and paste it in Settings > API keys.",
@@ -4407,15 +4304,6 @@
       "viewMonthGrid": "Month Grid",
       "viewDayTimeline": "Day Timeline",
       "viewAgenda": "Agenda",
-      "densityCozy": "Roomy (easier from across the room)",
-      "densitySnug": "Compact (fits more)",
-      "typographySmall": "Small",
-      "typographyMedium": "Medium",
-      "typographyLarge": "Large",
-      "typographyExtraLarge": "Extra Large",
-      "typography2xLarge": "2X Large",
-      "typography3xLarge": "3X Large",
-      "typography4xLarge": "4X Large",
       "view": "View",
       "typographySize": "Text size",
       "themeDefault": "Default (from Settings)",
@@ -4509,8 +4397,6 @@
       "showRewardsButton": "Show Rewards Button",
       "showRewardsButtonHelp": "Adds a button on the chore board so kids can switch to the rewards store. Best for touch-enabled displays.",
       "themeDefault": "Default (from Settings)",
-      "densityCozy": "Roomy",
-      "densitySnug": "Compact",
       "typographySize": "Text size",
       "accentColor": "Accent Color",
       "weekStartsOn": "Week Starts On",
@@ -4552,8 +4438,6 @@
       "viewRecipe": "Recipe",
       "viewGrocery": "Grocery List",
       "viewRecipeBook": "Recipe Book",
-      "densityCozy": "Roomy",
-      "densitySnug": "Compact",
       "typographySize": "Text size",
       "showEmoji": "Show Pictures",
       "showPrepTime": "Show Cooking Time",
@@ -4718,7 +4602,6 @@
       "checking": "Checking…",
       "credentialsNeeded": "To import from Google Photos, add a Google Photos import Client ID and Secret in Settings → API keys.",
       "signInIntro": "Sign in with Google, then paste the code you get at the end.",
-      "signIn": "Sign in with Google",
       "pastePlaceholder": "Paste the code or link here",
       "finishSignIn": "Finish sign-in",
       "choosePhotos": "Choose photos",
@@ -4749,8 +4632,7 @@
         "comesBack": "You'll come back here on your own.",
         "pasteInstead": "Didn't come back? Paste a code",
         "pasteIntro": "If the Google page showed you a code, paste it here.",
-        "startOver": "Start over",
-        "signIn": "Sign in with Google"
+        "startOver": "Start over"
       }
     },
     "meal-planner": {
@@ -5564,8 +5446,6 @@
       "viewConditions": "Conditions",
       "themeDefault": "Default (from Settings)",
       "typographySize": "Text size",
-      "densityCozy": "Roomy",
-      "densitySnug": "Compact",
       "skyLayer": "Sky",
       "skyLiving": "Living (clouds, rain and stars move)",
       "skyStill": "Still (a plain tint)",
@@ -6424,7 +6304,6 @@
       "add": "Add from Google Photos",
       "signInToAdd": "Sign in to add from Google Photos",
       "needsSetup": "Google Photos needs setting up in Settings > API keys",
-      "waiting": "Waiting for your picks...",
       "openAgain": "Open Google Photos again",
       "cancel": "Cancel",
       "adding": "Adding {done} of {total} to {folder}",
@@ -6432,17 +6311,12 @@
         "one": "Added 1.",
         "other": "Added {count}."
       },
-      "alreadyHere": {
-        "one": "1 was already here.",
-        "other": "{count} were already here."
-      },
       "notSaved": {
         "one": "1 couldn't be saved.",
         "other": "{count} couldn't be saved."
       }
     },
     "import": {
-      "icloudTitle": "Add from an iCloud link",
       "icloudIntro": "Paste a Shared Album link, or a link from Copy iCloud Link in the Photos app. Everything in it is added to the folder below.",
       "add": "Add",
       "progress": "Adding {done} of {total}",

@@ -1716,3 +1716,30 @@ describe('createRateLimiter retryAfterMs', () => {
     expect(limiter.retryAfterMs('stranger')).toBe(0);
   });
 });
+
+describe('createRateLimiter forgets addresses whose window ran out', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('drops every stale address when a new window starts, not only the one asking', () => {
+    vi.useFakeTimers();
+    const limiter = createRateLimiter(3, 60_000);
+    // A hundred addresses that each fail once and never come back.
+    for (let i = 0; i < 100; i++) limiter.recordFailure(`10.0.0.${i}`);
+    expect(limiter.size()).toBe(100);
+
+    vi.advanceTimersByTime(61_000);
+    limiter.recordFailure('192.168.1.5');
+    expect(limiter.size()).toBe(1);
+  });
+
+  it('keeps an address whose window is still running, with its count', () => {
+    vi.useFakeTimers();
+    const limiter = createRateLimiter(2, 60_000);
+    limiter.recordFailure('a');
+    limiter.recordFailure('a');
+    vi.advanceTimersByTime(30_000);
+    limiter.recordFailure('b');
+    expect(limiter.size()).toBe(2);
+    expect(limiter.isLimited('a')).toBe(true);
+  });
+});

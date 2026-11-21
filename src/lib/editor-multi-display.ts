@@ -378,3 +378,50 @@ export function buildNewDisplay(
     ...(display.settings ? { settings: display.settings } : {}),
   };
 }
+
+/**
+ * Apply a change to one screen of the active display and return a new config
+ * with it written back. The screen-level sibling of `updateModuleInConfig`.
+ */
+export function updateScreenInConfig(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  screenId: string,
+  updater: (screen: Screen) => Screen,
+): ScreenConfiguration {
+  return withActiveScreens(
+    config,
+    selectedDisplayId,
+    getActiveScreens(config, selectedDisplayId).map((s) => (s.id === screenId ? updater(s) : s)),
+  );
+}
+
+/**
+ * The active display as if it were the whole hub: its screens as
+ * `config.screens`, its own profiles when it owns a list, and its canvas as
+ * the global size. Layout export and import work against this, so their
+ * rules (scaling and clamping modules, which profiles a layout carries or
+ * merges into) need to know nothing about displays.
+ *
+ * A display that owns its profile list brings THOSE profiles, not the
+ * legacy root pool: the root pool cannot reference this display's screen
+ * ids, so an export would ship without profiles and an import in add mode
+ * would merge into a list the display never reads.
+ */
+export function activeDisplayView(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+): ScreenConfiguration {
+  const dims = getActiveDimensions(config, selectedDisplayId);
+  const profileTarget = resolveProfileTarget(config, selectedDisplayId);
+  return {
+    ...config,
+    screens: getActiveScreens(config, selectedDisplayId),
+    ...(profileTarget.kind === 'display' ? { profiles: profileTarget.display.profiles } : {}),
+    settings: {
+      ...config.settings,
+      displayWidth: dims.width,
+      displayHeight: dims.height,
+    },
+  };
+}

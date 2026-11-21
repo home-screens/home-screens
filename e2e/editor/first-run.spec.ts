@@ -3,8 +3,7 @@ import { clearSecrets, getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance, MATRIX_LOCATION } from '../helpers/module-fixtures';
 import { stubModuleData } from '../helpers/stubs';
-import { dragPaletteToCanvas } from '../helpers/editor';
-import type { Page } from '@playwright/test';
+import { dragPaletteToCanvas, openEditor } from '../helpers/editor';
 
 /**
  * The first ten minutes in the editor: an empty screen must explain itself,
@@ -13,11 +12,6 @@ import type { Page } from '@playwright/test';
  */
 
 const EMPTY_INSTALL = () => baseConfig({ screens: [makeScreen('default', 'Screen 1', [])] });
-
-async function openEditor(page: Page) {
-  await page.goto('/editor');
-  await expect(page.getByTestId('editor-canvas')).toBeVisible();
-}
 
 test.describe('empty screen', () => {
   test('shows a placeholder inside the frame and hides it once a module exists', async ({ page, request }) => {

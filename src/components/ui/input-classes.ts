@@ -19,3 +19,10 @@ export const NESTED_INPUT_CLASS =
 /** Larger input for CRUD modals (text-sm) with focus ring and transitions. */
 export const MODAL_INPUT_CLASS =
   'w-full px-2.5 py-1.5 text-sm bg-hs-input border border-hs-border-strong rounded-md text-hs-text-body placeholder:text-hs-text-faint focus:outline-none focus:border-hs-text-muted transition-colors';
+
+/**
+ * Text box on a Settings page (text-sm, roomier than the property panel's).
+ * Carries no width, so each field adds its own (`w-full`, `flex-1`, `w-24`).
+ */
+export const SETTINGS_INPUT_CLASS =
+  'rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';

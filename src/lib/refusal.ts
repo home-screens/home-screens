@@ -78,3 +78,16 @@ export function refusalFromBody(json: unknown, status: number, fallback: string)
   const message = typeof json.error === 'string' && json.error ? json.error : fallback;
   return new RefusalError(status, json.code, message, params ? { params } : {});
 }
+
+/**
+ * A required piece of text: trimmed, and no longer than `max`. Each store
+ * says what its own refusals are, so a list name, a note and a subject keep
+ * their own codes and sentences.
+ */
+export function requiredText(raw: unknown, max: number, missing: () => RefusalError, tooLong: () => RefusalError): string {
+  if (typeof raw !== 'string') throw missing();
+  const text = raw.trim();
+  if (!text) throw missing();
+  if (text.length > max) throw tooLong();
+  return text;
+}

@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useStampedClock } from '@/hooks/useStampedClock';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { refusalText } from '@/lib/hub-request';
 import { useTranslate } from '@/i18n';
 import { useWriteSession } from '@/hooks/useWriteSession';
 import { sameId, tempId } from '@/lib/write-session';
@@ -59,19 +59,18 @@ async function loadNotes(): Promise<Note[] | null> {
  * clock tick, and it ticks on its own so ages and time left keep moving.
  */
 export function useNotes() {
-  const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const { data: notes, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<Note[], NotesWriteRequest, Note>({
     initial: [],
     load: loadNotes,
     send: async (request) => {
-      const { notes, created } = await sendNotesWrite(editorFetch, request, t('notes.saveError'));
+      const { notes, created } = await sendNotesWrite(editorFetch, request, tCore('refusals.saveFailed'));
       return { data: notes, created };
     },
     pollMs: NOTES_POLL_MS,
     tolerates: tolerated,
     onRefused: (e) => showToast(
-      e instanceof HubUnreachableError ? t('hubRequest.saveFailed') : refusalText(e, tCore, 'refusals.notes.failed'),
+      refusalText(e, tCore, 'refusals.saveFailed', 'refusals.hubUnreachable'),
       'error',
     ),
   });

@@ -9,6 +9,7 @@ import {
   touchAlignmentMode,
   type TouchAlignmentMode,
 } from '@/lib/touch-matrix';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface TouchAlignmentControlProps {
   /** The saved `touchMatrix`; unset means touch follows the screen rotation. */
@@ -17,7 +18,7 @@ interface TouchAlignmentControlProps {
 }
 
 const INPUT_CLASS =
-  'w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';
+  `w-full ${SETTINGS_INPUT_CLASS}`;
 
 /**
  * How taps line up with the picture on a touchscreen plugged into the hub.

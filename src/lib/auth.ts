@@ -3,6 +3,9 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { createJsonStore } from './json-store';
 import { getDataRoot } from './data-root';
+import { authPosture, hasPassword } from './auth-posture';
+import { statSignature } from './stat-signature';
+import { safeEqual, signPayload, verifySignedPayload } from './signed-payload';
 
 /* ─── Types ──────────────────────────────────── */
 
@@ -70,8 +73,7 @@ let unreadableStats = 0;
  */
 async function authFileSignature(): Promise<string> {
   try {
-    const st = await fs.stat(path.join(getDataRoot(), AUTH_FILE));
-    return `${st.ino}:${st.size}:${st.mtimeMs}`;
+    return statSignature(await fs.stat(path.join(getDataRoot(), AUTH_FILE)));
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return 'missing';
     return `unreadable:${++unreadableStats}`;
@@ -105,47 +107,21 @@ function scryptHash(password: string, salt: string): Promise<string> {
 
 export async function verifyPassword(password: string): Promise<boolean> {
   const state = await readAuthState();
-  if (!state.passwordHash || !state.salt) return false;
+  if (!hasPassword(state) || typeof state.passwordHash !== 'string' || !state.salt) return false;
   const hash = await scryptHash(password, state.salt);
-  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(state.passwordHash));
+  return safeEqual(hash, state.passwordHash);
 }
 
 /* ─── Signed session cookies (HMAC-SHA256) ───── */
 
-function base64url(buf: Buffer): string {
-  return buf.toString('base64url');
-}
-
 /** @internal */
 export function signSession(payload: SessionPayload, cookieSecret: string): string {
-  const payloadStr = base64url(Buffer.from(JSON.stringify(payload)));
-  const sig = crypto.createHmac('sha256', cookieSecret).update(payloadStr).digest();
-  return `${payloadStr}.${base64url(sig)}`;
+  return signPayload(payload, cookieSecret);
 }
 
 export function verifySession(cookie: string, cookieSecret: string, sessionEpoch?: number): SessionPayload | null {
-  const parts = cookie.split('.');
-  if (parts.length !== 2) return null;
-  const [payloadStr, sigStr] = parts;
-
-  // Verify HMAC signature
-  const expected = crypto.createHmac('sha256', cookieSecret).update(payloadStr).digest();
-  let actual: Buffer;
-  try {
-    actual = Buffer.from(sigStr, 'base64url');
-  } catch {
-    return null;
-  }
-  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
-    return null;
-  }
-
-  let payload: SessionPayload;
-  try {
-    payload = JSON.parse(Buffer.from(payloadStr, 'base64url').toString());
-  } catch {
-    return null;
-  }
+  const payload = verifySignedPayload(cookie, cookieSecret) as SessionPayload | null;
+  if (!payload || typeof payload !== 'object') return null;
 
   if (!payload.exp || Date.now() > payload.exp * 1000) return null;
 
@@ -158,8 +134,7 @@ export function verifySession(cookie: string, cookieSecret: string, sessionEpoch
 /* ─── High-level helpers ─────────────────────── */
 
 export async function isAuthEnabled(): Promise<boolean> {
-  const state = await getCachedAuthState();
-  return state.passwordHash !== null;
+  return hasPassword(await getCachedAuthState());
 }
 
 /** Returns the IP allowlist configuration. Used by middleware and auth bypass. */
@@ -168,11 +143,11 @@ export async function getIpAllowlistConfig(): Promise<{
   bypassAuth: boolean;
   restrictAccess: boolean;
 }> {
-  const state = await getCachedAuthState();
+  const posture = authPosture(await getCachedAuthState());
   return {
-    allowlist: state.ipAllowlist ?? [],
-    bypassAuth: state.ipBypassAuth ?? false,
-    restrictAccess: state.ipRestrictAccess ?? false,
+    allowlist: posture.ipAllowlist,
+    bypassAuth: posture.ipBypassAuth,
+    restrictAccess: posture.ipRestrictAccess,
   };
 }
 
@@ -244,7 +219,7 @@ function generateDisplayToken(): string {
 
 export async function getDisplayToken(): Promise<string | null> {
   const state = await readAuthState();
-  if (!state.passwordHash) return null; // auth disabled
+  if (!hasPassword(state)) return null; // auth disabled
   if (state.displayToken) return state.displayToken;
   // Auto-generate for installations that enabled auth before the display token feature
   return regenerateDisplayToken();
@@ -277,7 +252,7 @@ export async function revokeAllSessions(): Promise<void> {
  */
 export async function hasEditorSession(request: Request): Promise<boolean> {
   const state = await getCachedAuthState();
-  if (!state.passwordHash) return true; // auth disabled: nothing to escalate
+  if (!hasPassword(state)) return true; // auth disabled: nothing to escalate
   if (!state.cookieSecret) return false;
   const cookieHeader = request.headers.get('cookie') ?? '';
   const token = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/)?.[1];
@@ -291,7 +266,7 @@ export async function hasEditorSession(request: Request): Promise<boolean> {
  */
 export async function requireSession(request: Request): Promise<void> {
   const state = await getCachedAuthState();
-  if (!state.passwordHash) return; // auth disabled
+  if (!hasPassword(state)) return; // auth disabled
 
   // passwordHash set but cookieSecret missing = corrupt state → fail closed
   if (!state.cookieSecret) {
@@ -320,12 +295,13 @@ export async function requireSession(request: Request): Promise<void> {
  */
 export async function requireDisplayAuth(request: Request, clientIp?: string): Promise<void> {
   let state = await getCachedAuthState();
-  if (!state.passwordHash) return; // auth disabled
+  const posture = authPosture(state);
+  if (!posture.enabled) return; // auth disabled
 
   // IP bypass: trusted IPs skip display auth entirely
-  if (clientIp && state.ipBypassAuth && state.ipAllowlist?.length) {
+  if (clientIp && posture.ipBypassAuth && posture.ipAllowlist.length) {
     const { isIpAllowed } = await import('./ip-allowlist');
-    if (isIpAllowed(clientIp, state.ipAllowlist)) return;
+    if (isIpAllowed(clientIp, posture.ipAllowlist)) return;
   }
 
   // Auto-migrate: generate display token for existing installations that
@@ -336,11 +312,7 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
   }
 
   function tokenMatches(candidate: string): boolean {
-    if (!state.displayToken) return false;
-    const a = Buffer.from(candidate);
-    const b = Buffer.from(state.displayToken);
-    if (a.length !== b.length) return false;
-    return crypto.timingSafeEqual(a, b);
+    return !!state.displayToken && safeEqual(candidate, state.displayToken);
   }
 
   // Try display token first (Authorization: Bearer <token>)
@@ -392,7 +364,7 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
  */
 export async function getMediaTokenSecret(): Promise<string | null> {
   const state = await getCachedAuthState();
-  if (!state.passwordHash || !state.cookieSecret) return null;
+  if (!hasPassword(state) || !state.cookieSecret) return null;
   return state.cookieSecret;
 }
 

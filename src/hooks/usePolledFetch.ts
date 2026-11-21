@@ -42,8 +42,87 @@ interface UsePolledFetchOptions {
 
 const DEFAULT_BURST = { intervalMs: 1_000, durationMs: 10_000 };
 
-interface Loop {
+/** A running poll loop: `createPollLoop` for code that is not a component. */
+export interface PollLoop {
+  /** Ends the loop and removes its listeners. */
+  stop: () => void;
+  /** Polls now, then in a burst, then back to the base interval. */
   nudge: () => void;
+}
+
+interface PollLoopOptions {
+  intervalMs?: number;
+  pauseWhenHidden?: boolean;
+  /** Read at each nudge, so a caller can change it without restarting the loop. */
+  burst?: () => { intervalMs: number; durationMs: number };
+}
+
+/**
+ * The loop itself, for a store that lives outside React (a hook cannot be
+ * called there): run now, then every `intervalMs`; with `pauseWhenHidden`,
+ * stop while the tab is hidden and run again the moment it is back; run
+ * again when the device comes back online. `usePolledFetch` is this loop
+ * tied to a component's life.
+ */
+export function createPollLoop(
+  run: (reason: PollReason) => void,
+  { intervalMs, pauseWhenHidden = false, burst = () => DEFAULT_BURST }: PollLoopOptions = {},
+): PollLoop {
+  let running = false;
+  let timer: ReturnType<typeof setInterval> | null = null;
+  let burstEnd: ReturnType<typeof setTimeout> | null = null;
+
+  const schedule = (ms: number | undefined) => {
+    if (timer !== null) clearInterval(timer);
+    timer = ms ? setInterval(() => run('interval'), ms) : null;
+  };
+  const endBurst = () => {
+    if (burstEnd !== null) clearTimeout(burstEnd);
+    burstEnd = null;
+  };
+  const start = (reason: PollReason) => {
+    if (running) return;
+    running = true;
+    run(reason);
+    schedule(intervalMs);
+  };
+  const pause = () => {
+    running = false;
+    schedule(undefined);
+    endBurst();
+  };
+  const visible = () => !pauseWhenHidden || document.visibilityState === 'visible';
+  const onVisibilityChange = () => {
+    if (visible()) start('visible');
+    else pause();
+  };
+  const onOnline = () => {
+    if (running) run('online');
+  };
+
+  if (visible()) start('setup');
+  if (pauseWhenHidden) document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('online', onOnline);
+
+  return {
+    stop: () => {
+      pause();
+      if (pauseWhenHidden) document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('online', onOnline);
+    },
+    nudge: () => {
+      // A one-shot has nothing to speed up; a paused loop polls when it resumes.
+      if (!running || !intervalMs) return;
+      const { intervalMs: burstMs, durationMs } = burst();
+      run('nudge');
+      schedule(burstMs);
+      endBurst();
+      burstEnd = setTimeout(() => {
+        burstEnd = null;
+        if (running) schedule(intervalMs);
+      }, durationMs);
+    },
+  };
 }
 
 /**
@@ -74,7 +153,7 @@ export function usePolledFetch(
   onSetupRef.current = onSetup;
   burstRef.current = burst;
   // The running loop, so `nudge` (stable) can reach the one the effect made.
-  const loopRef = useRef<Loop | null>(null);
+  const loopRef = useRef<PollLoop | null>(null);
 
   useEffect(() => {
     if (!enabled) {
@@ -87,65 +166,17 @@ export function usePolledFetch(
 
     onSetupRef.current?.();
 
-    const run = (reason: PollReason) => pollRef.current(isMounted, reason);
-
     // No `typeof document` guards: useEffect is client-only in a 'use client'
     // module, so `document` and `window` are always defined here.
-    let running = false;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    let burstEnd: ReturnType<typeof setTimeout> | null = null;
-
-    const schedule = (ms: number | undefined) => {
-      if (timer !== null) clearInterval(timer);
-      timer = ms ? setInterval(() => run('interval'), ms) : null;
-    };
-    const endBurst = () => {
-      if (burstEnd !== null) clearTimeout(burstEnd);
-      burstEnd = null;
-    };
-    const start = (reason: PollReason) => {
-      if (running) return;
-      running = true;
-      run(reason);
-      schedule(intervalMs);
-    };
-    const stop = () => {
-      running = false;
-      schedule(undefined);
-      endBurst();
-    };
-    const visible = () => !pauseWhenHidden || document.visibilityState === 'visible';
-    const onVisibilityChange = () => {
-      if (visible()) start('visible');
-      else stop();
-    };
-    const onOnline = () => {
-      if (running) run('online');
-    };
-
-    loopRef.current = {
-      nudge: () => {
-        // A one-shot has nothing to speed up; a paused loop polls when it resumes.
-        if (!running || !intervalMs) return;
-        run('nudge');
-        schedule(burstRef.current.intervalMs);
-        endBurst();
-        burstEnd = setTimeout(() => {
-          burstEnd = null;
-          if (running) schedule(intervalMs);
-        }, burstRef.current.durationMs);
-      },
-    };
-
-    if (visible()) start('setup');
-    if (pauseWhenHidden) document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('online', onOnline);
+    const loop = createPollLoop(
+      (reason) => void pollRef.current(isMounted, reason),
+      { intervalMs, pauseWhenHidden, burst: () => burstRef.current },
+    );
+    loopRef.current = loop;
     return () => {
       mounted = false;
-      stop();
+      loop.stop();
       loopRef.current = null;
-      if (pauseWhenHidden) document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('online', onOnline);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- callbacks are read via refs; only these values should retrigger the poll loop
   }, [...deps, enabled, intervalMs, pauseWhenHidden]);

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { loadAllPlugins } from '@/lib/plugin-loader';
 import { usePluginStore } from '@/stores/plugin-store';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -73,17 +74,6 @@ const BUNDLE_WITH_BAD_SEARCH =
   ' default: function Noop() { return null; },' +
   ' searchStateKeys: 42' +
   '};';
-
-/** jsdom's localStorage is non-functional under this setup; stub an in-memory one. */
-function makeLocalStorage() {
-  const store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, val: string) => { store[key] = val; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { for (const k of Object.keys(store)) delete store[k]; },
-  };
-}
 
 /**
  * Route /api/plugins/installed, /manifest/<id>, /bundle/<id>, and /api/config.

@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useDisplayTarget } from '../display-target';
@@ -45,11 +46,9 @@ export default function ArtNowCard() {
     }
   }, [display]);
 
-  useEffect(() => {
-    void load();
-    const timer = setInterval(() => void load(), POLL_MS);
-    return () => clearInterval(timer);
-  }, [load]);
+  // Only while the page is in view: a phone left on Photos in a pocket has
+  // nobody to show the picture to.
+  usePolledFetch(() => load(), [load], { intervalMs: POLL_MS, pauseWhenHidden: true });
 
   const painting = now?.painting ?? null;
   const screenId = now?.screenId;

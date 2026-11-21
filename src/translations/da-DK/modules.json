@@ -512,13 +512,9 @@
       "drink": "Drikke"
     },
     "withCourses": "med {dishes}",
-    "mealieUnreachable": "Kan ikke nå Mealie lige nu",
     "mealieUnreachableHint": "Madplanen kommer tilbage, når Mealie svarer igen.",
-    "mealieNotConnected": "Mealie er ikke forbundet",
     "mealieNotConnectedHint": "Forbind den under Indstillinger på computeren for at vise madplanen.",
-    "mealieTokenRefused": "Mealie lukker ikke Home Screens ind længere",
     "mealieTokenRefusedHint": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise madplanen.",
-    "mealieSetup": "Home Screens kan ikke bruge denne Mealie",
     "mealieSetupHint": "Tjek Mealie under Indstillinger på computeren for at vise madplanen.",
     "recipe": {
       "prep": "Forberedelse",
@@ -556,7 +552,6 @@
       "noMealieList": "Ingen indkøbsliste i Mealie endnu",
       "noMealieListHint": "Lav en i Mealie, så dukker den op her.",
       "mealieDone": "Alt på {list} er krydset af",
-      "mealieEmpty": "Intet på {list} endnu",
       "mealieEmptyHint": "Tilføj ting på telefonen eller i Mealie.",
       "localDone": "Intet mere at købe",
       "localDoneHint": "Alt på ugens liste er krydset af.",
@@ -700,7 +695,6 @@
     },
     "todaysCompletion": "Klaret i dag",
     "rewardBalances": "Billetsaldi",
-    "holdToUncheckHint": "Hold nede for at fjerne fluebenet",
     "overspent": {
       "one": "{name} har allerede brugt de billetter, så saldoen er nu {balance}. Der mangler 1 billet.",
       "other": "{name} har allerede brugt de billetter, så saldoen er nu {balance}. Der mangler {count} billetter."
@@ -1104,9 +1098,7 @@
       "history": "Historik",
       "errorChanged": "Billetterne har lige ændret sig. Kig igen.",
       "errorAlreadyGot": "Du fik allerede {reward} for et øjeblik siden!",
-      "errorNotEnough": "Der er ikke længere billetter nok til det.",
-      "errorNotOffered": "Den belønning findes ikke længere.",
-      "errorRemoved": "Den person er ikke længere med i familien."
+      "errorNotEnough": "Der er ikke længere billetter nok til det."
     },
     "rewardHistory": {
       "subtitle": "Det har familien brugt billetter på",
@@ -1140,7 +1132,6 @@
         "earlier": "Tidligere"
       }
     },
-    "saveFailed": "Det blev ikke gemt. Prøv igen.",
     "goal": {
       "toGo": {
         "one": "1 billet mere",

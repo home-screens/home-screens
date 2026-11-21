@@ -3,22 +3,12 @@
 import { useState } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList, type TodoRepeat } from '@/types/todos';
-import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
-import { SELECT_STYLE } from './chore-form-styles';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
+import { DANGER_BUTTON, FIELD_SELECT, GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
 import BottomSheet from './BottomSheet';
+import ColorSwatchRow from './ColorSwatchRow';
 import ConfirmSheet from './ConfirmSheet';
 import { shareOrCopyText } from './share-text';
-import {
-  DANGER_BUTTON,
-  GHOST_BUTTON,
-  HELPER_TEXT,
-  PRIMARY_BUTTON,
-  SEGMENT_ROW,
-  SHEET_FIELD,
-  SHEET_LABEL,
-  segmentStyle,
-  swatchStyle,
-} from './lists-styles';
 import type { ListPatch, TodoListAction } from '../hooks/useTodoLists';
 
 interface ListsListSheetProps {
@@ -27,12 +17,6 @@ interface ListsListSheetProps {
   onAction: (action: TodoListAction) => void;
   onDelete: () => Promise<unknown>;
   onClose: () => void;
-}
-
-/** Sunday-first weekday names in the household's formatting locale. */
-export function weekdayNames(locale: string): string[] {
-  // 7 Jan 2024 was a Sunday.
-  return Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 7 + i).toLocaleDateString(locale, { weekday: 'long' }));
 }
 
 /** The sheet behind the gear: rename, colour, repeat, tidy up, share, delete. */
@@ -47,7 +31,7 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const days = weekdayNames(locale);
+  const days = getLocalizedDayNames(locale);
 
   const save = async () => {
     const clean = name.trim();
@@ -95,18 +79,7 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
         />
 
         <span style={SHEET_LABEL} id="todo-colour-label">{t('lists.listSheet.colourLabel')}</span>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }} role="group" aria-labelledby="todo-colour-label">
-          {MEMBER_COLORS.map((c, i) => (
-            <button
-              key={c}
-              type="button"
-              aria-label={t('lists.colourSwatch', { number: i + 1 })}
-              aria-pressed={color === c}
-              onClick={() => setColor(c)}
-              style={swatchStyle(c, color === c)}
-            />
-          ))}
-        </div>
+        <ColorSwatchRow value={color} onChange={setColor} labelledBy="todo-colour-label" />
 
         <span style={SHEET_LABEL} id="todo-repeat-label">{t('lists.listSheet.repeatLabel')}</span>
         <div style={SEGMENT_ROW} role="group" aria-labelledby="todo-repeat-label">
@@ -127,7 +100,7 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
             value={repeatDay}
             onChange={(e) => setRepeatDay(Number(e.target.value))}
             aria-label={t('lists.listSheet.repeatDayLabel')}
-            style={{ ...SELECT_STYLE, marginTop: 8 }}
+            style={{ ...FIELD_SELECT, marginTop: 8 }}
           >
             {days.map((d, i) => (
               <option key={i} value={i}>{d}</option>

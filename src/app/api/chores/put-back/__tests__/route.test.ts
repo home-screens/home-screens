@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { jsonRequest } from '@/test-utils';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async () => {}),
@@ -17,9 +17,7 @@ const now = '2026-09-09T12:00:00.000Z';
 let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
 const read = async (file: string) => JSON.parse(await fs.readFile(path.join(root, 'data', file), 'utf8'));
-const request = (choreId: string) => new NextRequest('http://localhost/api/chores/put-back', {
-  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ choreId }),
-});
+const request = (choreId: string) => jsonRequest('http://localhost/api/chores/put-back', { method: 'POST', body: { choreId } });
 const garage = {
   id: 'garage', name: 'Clean out the garage', emoji: '', points: 20, frequency: 'daily', daysOfWeek: [], timeOfDay: 'anytime',
   assigneeIds: ['ada'], rotation: 'fixed', bonus: { claim: 'first', comesBack: 'manual' },

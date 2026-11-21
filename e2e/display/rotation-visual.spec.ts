@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { PNG_1X1 } from '../helpers/library';
 import type { TransitionEffect } from '@/types/config';
 
 /**
@@ -31,10 +32,7 @@ const ROTATED_A = '/e2e-rotated/photo-a.jpg';
 const ROTATED_B = '/e2e-rotated/photo-b.jpg';
 // 1x1 PNG served for the rotated paths: a background whose file is missing
 // hides itself (audit 39 item 75), so the paths must actually resolve.
-const ROTATED_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  'base64',
-);
+const ROTATED_PNG = PNG_1X1;
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/e2e-rotated/*', (route) => route.fulfill({ status: 200, contentType: 'image/png', body: ROTATED_PNG }));

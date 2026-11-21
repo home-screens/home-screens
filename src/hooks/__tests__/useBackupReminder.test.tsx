@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
@@ -27,16 +28,6 @@ function fetchFnWith(lastBackupDate: () => string) {
 }
 
 const fetchFn = fetchFnWith(staleBackupDate);
-
-/** Node's own localStorage shadows jsdom's here, so the choice gets a plain in-memory one. */
-function makeLocalStorage() {
-  const store = new Map<string, string>();
-  return {
-    getItem: (key: string) => store.get(key) ?? null,
-    setItem: (key: string, value: string) => { store.set(key, value); },
-    removeItem: (key: string) => { store.delete(key); },
-  };
-}
 
 beforeEach(() => {
   mocks.attachCustomIcons.mockReset();

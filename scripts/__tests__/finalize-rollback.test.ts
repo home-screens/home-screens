@@ -143,6 +143,25 @@ describe('finalize-deploy', () => {
     expect(script).toContain(`exec > '${current}/data/upgrade-finalize.log'`);
   });
 
+  it.each([
+    ['8080\n', '8080', 'the saved port'],
+    [' 8123 \n', '8123', 'the saved port, spaces trimmed'],
+    ['', '3000', 'an empty file'],
+    ['eighty\n', '3000', 'a word'],
+    ["80'; reboot; '\n", '3000', 'digits with something after them'],
+  ])('restart reads port.conf %j for the finalize job as %s (%s)', (content, port) => {
+    writeFileSync(path.join(bin, 'systemctl'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    writeFileSync(path.join(bin, 'systemd-run'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    writeFileSync(path.join(current, 'data/port.conf'), content);
+    const result = spawnSync('bash', [path.join(current, 'scripts/upgrade.sh'), 'restart'], {
+      cwd: directory, encoding: 'utf8', timeout: 20_000,
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+    });
+    expect(result.status, result.stderr).toBe(0);
+    const script = readFileSync(path.join(current, 'data/upgrade-finalize-job.sh'), 'utf8');
+    expect(script).toContain(`bash '${current}/scripts/upgrade.sh' finalize-deploy '${port}'\n`);
+  });
+
   it('the finalize job it writes runs finalize-deploy when the service crash-loops after the restart', () => {
     // MainPID moves from 111 to 0 (crashed), the health poll never answers:
     // the wrapper must reach finalize-deploy, which puts the old tree back.

@@ -19,7 +19,7 @@ import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatShownMinutes, type MealsViewProps } from './meals-shared';
 import MealThumb from './MealThumb';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsWeekViewProps extends MealsViewProps {

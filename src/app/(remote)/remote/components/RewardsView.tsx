@@ -11,6 +11,8 @@ import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { HubUnreachableError } from '@/lib/hub-request';
 import { RewardSession, adjustTickets, setSavingsGoal, type TicketAdjustment } from '@/lib/reward-client';
 import { useTranslate } from '@/i18n';
+import { ticketWords } from './ticket-words';
+import MemberPills from './MemberPills';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
 import { SavingsGoalCard, SavingsGoalSheet } from './SavingsGoalCard';
@@ -20,7 +22,7 @@ import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
 import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, redeemGoalEffect, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { GROUP_HEADING, REMOTE_ACCENT } from './remote-styles';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -71,6 +73,7 @@ export default function RewardsView({
   refreshData,
 }: RewardsViewProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [innerView, setInnerView] = useState<InnerView>('redeem');
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
@@ -298,7 +301,7 @@ export default function RewardsView({
             fontSize: 12,
           }}
         >
-          {t(REWARD_ERROR_KEYS[saveError])}
+          {REWARD_ERROR_KEYS[saveError][0] === 'core' ? tCore(REWARD_ERROR_KEYS[saveError][1]) : t(REWARD_ERROR_KEYS[saveError][1])}
         </div>
       )}
 
@@ -404,9 +407,7 @@ export default function RewardsView({
       {redeemTarget && (() => {
         const cost = redeemTarget.reward.cost;
         const remaining = ticketsAfterRedeeming(balance, redeemTarget.reward);
-        const remainingTickets = remaining === 1
-          ? t('rewardsView.ticketCountSingular', { n: remaining })
-          : t('rewardsView.ticketCountPlural', { n: remaining });
+        const remainingTickets = ticketWords(t, remaining, 'rewardsView');
         const memberName = selectedMember?.name ?? t('rewardsView.redeem.memberFallback');
         // What this does to the goal: clears it, or leaves it short. Nothing
         // is said when the goal stays affordable after the spend.
@@ -460,16 +461,17 @@ function failureKey(err: unknown, fallback: keyof typeof REWARD_ERROR_KEYS): key
   return err instanceof HubUnreachableError ? 'unreachable' : fallback;
 }
 
+/** Each line's dictionary and key: `core` holds the sentences the wall and the editor say too. */
 const REWARD_ERROR_KEYS = {
-  failed: 'rewardsView.saveFailed',
-  unreachable: 'hubRequest.saveFailed',
-  conflict: 'rewardsView.changedElsewhere',
-  redeemRefused: 'rewardsView.redeem.refused',
-  redeemNotOffered: 'rewardsView.redeem.notOffered',
-  redeemRemoved: 'rewardsView.redeem.removed',
-  redeemFailed: 'rewardsView.redeem.failed',
-  goalFailed: 'rewardsView.goal.failed',
-  adjustFailed: 'rewardsView.adjust.failed',
+  failed: ['remote', 'rewardsView.saveFailed'],
+  unreachable: ['core', 'refusals.hubUnreachable'],
+  conflict: ['remote', 'rewardsView.changedElsewhere'],
+  redeemRefused: ['remote', 'rewardsView.redeem.refused'],
+  redeemNotOffered: ['core', 'rewards.redeem.notOffered'],
+  redeemRemoved: ['core', 'rewards.redeem.removed'],
+  redeemFailed: ['remote', 'rewardsView.redeem.failed'],
+  goalFailed: ['core', 'refusals.saveFailed'],
+  adjustFailed: ['core', 'refusals.saveFailed'],
 } as const;
 
 /** The phone's line for each refusal the shared rule can name; the hub's own words are never shown. */
@@ -516,45 +518,7 @@ function RedeemSection({
   return (
     <>
       {showMemberPicker && (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '12px 0' }}>
-        {members.map((member) => {
-          const isActive = member.id === selectedMemberId;
-          return (
-            <button
-              key={member.id}
-              className="press-scale"
-              onClick={() => onSelectMember(member.id)}
-              aria-pressed={isActive}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 14px',
-                minHeight: 44,
-                borderRadius: 999,
-                border: `2px solid ${isActive ? member.color : 'transparent'}`,
-                background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'var(--hs-bg-card)',
-                color: isActive ? member.color : 'var(--hs-text-muted)',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                flexShrink: 0,
-                maxWidth: '100%',
-                transition: 'all 0.15s',
-              }}
-            >
-              {member.emoji ? (
-                <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{memberInitials(member.name)}</span>} />
-                </span>
-              ) : (
-                <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{memberInitials(member.name)}</span>
-              )}
-              <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.name}</span>
-            </button>
-          );
-        })}
-      </div>
+      <MemberPills members={members} selectedId={selectedMemberId} onSelect={onSelectMember} />
       )}
 
       <div
@@ -610,7 +574,7 @@ function RedeemSection({
 
       <SavingsGoalCard goal={goal} balance={balance} color={selectedColor} onOpen={onOpenGoal} onRedeem={goal && canAffordReward(balance, goal) ? () => onRedeem(goal) : undefined} memberName={selectedMember?.name ?? ''} forOther={forOther} />
 
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
         {t('rewardsView.redeem.availableHeading')}
       </div>
@@ -685,9 +649,7 @@ function RedeemSection({
                 color: canAfford ? selectedColor : 'var(--hs-text-muted)',
               }}
             >
-              {reward.cost === 1
-                ? t('rewardsView.ticketCountSingular', { n: reward.cost })
-                : t('rewardsView.ticketCountPlural', { n: reward.cost })}
+              {ticketWords(t, reward.cost, 'rewardsView')}
             </div>
           </button>
         );
@@ -711,7 +673,7 @@ function RewardsManageSection({
 
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+      <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
         {t('rewardsView.manage.heading')}
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-border-strong)', fontWeight: 500, textTransform: 'none' as const, letterSpacing: 0 }}>
@@ -760,9 +722,7 @@ function RewardsManageSection({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
             <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
-              {reward.cost === 1
-                ? t('rewardsView.ticketCountSingular', { n: reward.cost })
-                : t('rewardsView.ticketCountPlural', { n: reward.cost })}
+              {ticketWords(t, reward.cost, 'rewardsView')}
               {' · '}
               {reward.memberIds.length === 0
                 ? t('rewardsView.manage.everyone')
@@ -822,7 +782,7 @@ function BalancesSection({
 }) {
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+      <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
         {t('rewardsView.balances.heading')}
       </div>
@@ -863,9 +823,7 @@ function BalancesSection({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
             {(() => {
               const n = data?.balances[member.id] ?? 0;
-              return n === 1
-                ? t('rewardsView.ticketCountSingular', { n })
-                : t('rewardsView.ticketCountPlural', { n });
+              return ticketWords(t, n, 'rewardsView');
             })()}
           </div>
           {/* Minus and plus sit a finger-width apart: side by side at 32px they

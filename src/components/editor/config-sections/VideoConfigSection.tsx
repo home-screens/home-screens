@@ -15,6 +15,7 @@ import { parseYouTubeVideoId } from '@/lib/youtube';
 import { detectICloudSource } from '@/lib/icloud-parse';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { useObjectFitOptions } from './option-hooks';
 
 /** Pull the `file` param back out of a serve URL (upload responses return URLs). */
 function fileParamOf(url: string): string | null {
@@ -27,11 +28,7 @@ function fileParamOf(url: string): string | null {
 
 export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const OBJECT_FIT_OPTIONS = [
-    { value: 'cover', label: t('common.objectFitCover') },
-    { value: 'contain', label: t('common.objectFitContain') },
-    { value: 'fill', label: t('common.objectFitFill') },
-  ] as const;
+  const OBJECT_FIT_OPTIONS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<{
     source?: string; file?: string; url?: string; objectFit?: string;

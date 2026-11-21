@@ -3,8 +3,7 @@
 import type { MealSettings, TimeFormat } from '@/types/config';
 import { formatMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
-import { SECTION_HEADING_STYLE } from './meals-shared';
-import { selectedPillStyle } from './chore-form-styles';
+import { SECTION_HEADING, selectedPillStyle } from './remote-styles';
 
 interface MealsSettingsTimeFormatSectionProps {
   timeFormat: MealSettings['timeFormat'];
@@ -38,7 +37,7 @@ export default function MealsSettingsTimeFormatSection({
 
   return (
     <section style={{ marginBottom: 24 }}>
-      <h4 style={SECTION_HEADING_STYLE}>
+      <h4 style={SECTION_HEADING}>
         {t('mealsSettings.timeFormat.heading')}
       </h4>
       <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>

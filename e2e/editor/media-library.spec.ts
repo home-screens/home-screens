@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
-import type { APIRequestContext } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { PNG_1X1, removeFolder, seedImage, uniqueFolder as uniqueLibraryFolder } from '../helpers/library';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { mp4WithVideo } from '../helpers/video-samples';
 
@@ -16,30 +16,7 @@ import { mp4WithVideo } from '../helpers/video-samples';
  * each test works inside its own uniquely named folder.
  */
 
-/** 1×1 transparent PNG, the same bytes the radar tile stubs use. */
-const PNG_1X1 = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  'base64',
-);
-
-function uniqueFolder(): string {
-  return `e2e-media-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/** Seed one image into a folder the way the page would, via the real upload API. */
-async function seedImage(request: APIRequestContext, directory: string, name: string): Promise<void> {
-  const res = await request.post('/api/backgrounds', {
-    multipart: {
-      directory,
-      file: { name, mimeType: 'image/png', buffer: PNG_1X1 },
-    },
-  });
-  expect(res.ok()).toBe(true);
-}
-
-async function removeFolder(request: APIRequestContext, folder: string): Promise<void> {
-  await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
-}
+const uniqueFolder = () => uniqueLibraryFolder('e2e-media-');
 
 test.describe('Defaults › Pictures & videos', () => {
   test('the media page shows the library, locks used files, opens a viewer, and deletes unused ones', async ({ page, request }) => {

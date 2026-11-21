@@ -1,5 +1,6 @@
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
+import { rewriteConfigScreens } from '@/lib/config-modules';
+import type { ModuleInstance, ScreenConfiguration } from '@/types/config';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 
@@ -22,32 +23,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> => !!value &
  */
 export function repairConfigShape(config: ScreenConfiguration): ScreenConfiguration {
   if (!isRecord(config)) return config;
-  const screens = repairScreens(config.screens);
-  let displaysChanged = false;
-  const displays = Array.isArray(config.displays)
-    ? config.displays.map((display) => {
-        if (!isRecord(display)) return display;
-        const repaired = repairScreens(display.screens);
-        if (repaired === display.screens) return display;
-        displaysChanged = true;
-        return { ...display, screens: repaired };
-      })
-    : config.displays;
-  if (screens === config.screens && !displaysChanged) return config;
-  return { ...config, screens, ...(displaysChanged ? { displays } : {}) };
-}
-
-function repairScreens(screens: Screen[]): Screen[] {
-  if (!Array.isArray(screens)) return screens;
-  let changed = false;
-  const next = screens.map((screen, index) => {
+  return rewriteConfigScreens(config, (screen, _site, _display, index) => {
     if (!isRecord(screen) || !Array.isArray(screen.modules)) return screen;
     const modules = repairModules(screen.modules, typeof screen.id === 'string' && screen.id ? screen.id : String(index));
-    if (modules === screen.modules) return screen;
-    changed = true;
-    return { ...screen, modules };
+    return modules === screen.modules ? screen : { ...screen, modules };
   });
-  return changed ? next : screens;
 }
 
 const isPoint = (value: unknown, a: string, b: string): boolean =>

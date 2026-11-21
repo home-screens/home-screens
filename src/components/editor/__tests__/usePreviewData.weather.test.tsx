@@ -10,6 +10,7 @@ import type { ScreenConfiguration } from '@/types/config';
 import { usePreviewData } from '../usePreviewData';
 
 const mocks = vi.hoisted(() => ({
+  notes: null as { notes: unknown[] } | null,
   editorFetch: vi.fn(),
   secretStatus: {
     status: {},
@@ -20,6 +21,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch: mocks.editorFetch }));
+// The notes board read: the real hook needs the app's translation provider.
+vi.mock('@/hooks/useFetchData', () => ({ useFetchData: () => [mocks.notes, null, null] }));
 vi.mock('@/hooks/useSecretStatus', () => ({ useSecretStatus: () => mocks.secretStatus }));
 vi.mock('../useCalendarFetchQuery', () => ({ useCalendarFetchQuery: () => '' }));
 

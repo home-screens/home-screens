@@ -23,7 +23,7 @@ import { formatClockMinutes, formatClockTime, parseTimeToMinutes } from '@/lib/c
 import { pickGridTimeColor } from '@/lib/calendar-color';
 import { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from '@/lib/timetable-subjects';
 import { useTranslate } from '@/i18n';
-import { SubjectIcon } from './cells';
+import { SubjectIcon, atLeast } from './cells';
 import type { PersonEntry } from './useTimetablePeople';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
@@ -51,11 +51,6 @@ export interface DayPerson {
 }
 
 type CellStyle = CSSProperties & Record<`--${string}`, string | number>;
-
-/** A size in em with a pixel floor, capped at the day's own size. */
-function atLeast(px: number, em: number, base: number): string {
-  return `${smallPrintPx(base, { px, em }).toFixed(2)}px`;
-}
 
 const NOWRAP: CSSProperties = { whiteSpace: 'nowrap' };
 const ELLIPSIS: CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };

@@ -1,8 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
 import { floorEase, type WeatherViewProps } from './weather-view-utils';
-import { useBoxSize } from './useBoxSize';
+import { useElementBox } from '@/hooks/useElementBox';
 import { AlertBand } from './weather-parts';
 import {
   Hero, HourlyCard, DaysCard, MapCard, Instrument, availableCards,
@@ -36,10 +35,11 @@ function ForecastPortrait({ p }: { p: WeatherViewProps }) {
   // The bottom row takes whatever the cards above leave, so its cards learn
   // their cell from the row's measured box and size their instruments to it,
   // as the Conditions grid does; the row's height never follows its content.
-  const rowRef = useRef<HTMLDivElement>(null);
-  const row = useBoxSize(rowRef);
+  // The row is only drawn once a card can be filled, so it is measured
+  // through a callback ref: that finds a row that mounts after the first paint.
+  const [rowRef, row] = useElementBox('padding');
   const gap = u * 2.2;
-  const cell = row ? { width: (row.w - gap * (cards.length - 1)) / cards.length, height: row.h } : {};
+  const cell = row.width > 0 ? { width: (row.width - gap * (cards.length - 1)) / cards.length, height: row.height } : {};
   return (
     <>
       <Hero p={p} />
@@ -92,12 +92,11 @@ function ForecastLandscape({ p }: { p: WeatherViewProps }) {
   const gap = u * 2;
   // The grid's rows and columns come from the box it gets, so each card's
   // cell follows from the grid's measured size; the instruments size to it.
-  const gridRef = useRef<HTMLDivElement>(null);
-  const grid = useBoxSize(gridRef);
+  const [gridRef, grid] = useElementBox('padding');
   const cellSize = (cell: Cell) => {
-    if (!grid) return {};
-    const colW = (grid.w - gap * 11) / 12;
-    const rowsH = grid.h - gap * (LANDSCAPE_ROWS.length - 1);
+    if (grid.width === 0) return {};
+    const colW = (grid.width - gap * 11) / 12;
+    const rowsH = grid.height - gap * (LANDSCAPE_ROWS.length - 1);
     const total = LANDSCAPE_ROWS.reduce((a, b) => a + b, 0);
     const share = LANDSCAPE_ROWS.slice(cell.row - 1, cell.row - 1 + cell.rows).reduce((a, b) => a + b, 0);
     return { width: colW * cell.span + gap * (cell.span - 1), height: rowsH * share / total + gap * (cell.rows - 1) };

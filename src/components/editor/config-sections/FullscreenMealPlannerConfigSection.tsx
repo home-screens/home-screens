@@ -22,6 +22,7 @@ import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
 } from '@/types/config';
+import { useDensityOptions } from './option-hooks';
 
 type Config = Partial<FullscreenMealPlannerConfig>;
 
@@ -46,10 +47,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     { value: 'recipes', label: t('configSections.fullscreen-meal-planner.viewRecipeBook') },
   ] as const;
 
-  const DENSITY_OPTIONS = [
-    { value: 'cozy', label: t('configSections.fullscreen-meal-planner.densityCozy') },
-    { value: 'snug', label: t('configSections.fullscreen-meal-planner.densitySnug') },
-  ] as const;
+  const DENSITY_OPTIONS = useDensityOptions();
 
   const typographySizeOptions = useTypographySizeOptions();
 

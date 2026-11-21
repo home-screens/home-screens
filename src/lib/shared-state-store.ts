@@ -31,13 +31,13 @@
  * every module conditioned on it hidden, for hours.
  */
 
-import { SHARED_STATE_KEY_RE, type SharedStateEntry } from '@/lib/shared-state-types';
+import { MAX_SHARED_STATE_KEYS, MAX_SHARED_STATE_VALUE_LENGTH, SHARED_STATE_KEY_RE, type SharedStateEntry } from '@/lib/shared-state-types';
 import { logger } from '@/lib/logger';
 
 const log = logger('shared-state');
 
-const MAX_KEYS = 256;
-const MAX_VALUE_LENGTH = 1024;
+const MAX_KEYS = MAX_SHARED_STATE_KEYS;
+const MAX_VALUE_LENGTH = MAX_SHARED_STATE_VALUE_LENGTH;
 
 /**
  * Grace window for cleared keys. `clearKey` / `clearKeysByPrefix` tombstone

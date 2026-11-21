@@ -22,8 +22,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isValidDisplayId } from '@/lib/display-filter';
-import { requireAdoptedDisplay } from '@/lib/adopted-display-gate';
+import { adoptedDisplayFromQuery } from '@/lib/adopted-display-gate';
 import { getKioskBundle } from '@/lib/kiosk-bundle';
 import { getPackageVersion } from '@/lib/version';
 import { requestOrigin } from '@/lib/client-ip';
@@ -31,23 +30,22 @@ import { requestOrigin } from '@/lib/client-ip';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const displayId = request.nextUrl.searchParams.get('display');
-  if (!displayId || !isValidDisplayId(displayId)) {
+  // Both refusals answer in the caller's language: this response is piped
+  // into bash, so a JSON error body would just print as noise.
+  const asked = await adoptedDisplayFromQuery(request);
+  if (!asked.ok && asked.reason === 'invalid') {
     return new NextResponse('echo "Missing or invalid ?display=<id>" >&2; exit 1\n', {
       status: 400,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
   }
-
-  const authErr = await requireAdoptedDisplay(displayId);
-  if (authErr) {
-    // Answer in the caller's language: this response is piped into bash, so a
-    // JSON error body would just print as noise.
+  if (!asked.ok) {
     return new NextResponse(
-      `echo "This display is not adopted on the hub yet. Adopt '${displayId}' first, then run this again." >&2; exit 1\n`,
+      `echo "This display is not adopted on the hub yet. Adopt '${asked.displayId}' first, then run this again." >&2; exit 1\n`,
       { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } },
     );
   }
+  const { displayId } = asked;
 
   let bundle;
   try {

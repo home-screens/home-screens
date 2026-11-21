@@ -17,7 +17,7 @@ import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
-import { mealieRequestFailedKeys } from './mealie-problem-words';
+import { mealieRequestFailedWords } from './mealie-problem-words';
 import { mealSaveFailedKey } from './save-failed-words';
 
 /**
@@ -41,11 +41,12 @@ export function MealieLibrary({
   onSelectMeal: (meal: SavedMeal) => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const dishTime = useDishTime();
   // Favorites and Recently made, or the words typed; no cookbook chips here.
   const { query: search, setQuery: setSearch, shortcut, choose, search: results } = useMealieRecipeBrowser(editorFetch, { withCookbooks: false });
   const query = search.trim();
-  const failed = mealieRequestFailedKeys(results.problem, 'mealPlannerModal.picker.mealieError');
+  const failed = mealieRequestFailedWords(results.problem, t('mealPlannerModal.picker.mealieError'), t, tCore);
 
   function onScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -53,7 +54,7 @@ export function MealieLibrary({
   }
 
   const countLine = results.loading
-    ? t('mealPlannerModal.picker.lookingInMealie')
+    ? tCore('mealie.search.looking')
     : results.error
       ? null
       : shortcut.kind === 'search'
@@ -71,8 +72,8 @@ export function MealieLibrary({
           <input
             type="text"
             className={`${MODAL_INPUT_CLASS} pl-8 pr-8`}
-            placeholder={t('mealPlannerModal.picker.searchMealiePlaceholder')}
-            aria-label={t('mealPlannerModal.picker.searchMealiePlaceholder')}
+            placeholder={tCore('mealie.search.placeholder')}
+            aria-label={tCore('mealie.search.placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -104,7 +105,7 @@ export function MealieLibrary({
                 }`}
               >
                 <Icon className="w-3 h-3" aria-hidden />
-                {f === 'favorites' ? t('mealPlannerModal.picker.favorites') : t('mealPlannerModal.picker.recentlyMade')}
+                {f === 'favorites' ? tCore('mealie.search.favorites') : tCore('mealie.search.recent')}
               </button>
             );
           })}
@@ -115,8 +116,8 @@ export function MealieLibrary({
         {countLine && <div className="px-2 pb-1 text-[11px] text-hs-text-faint">{countLine}</div>}
         {results.error && !results.loading && (
           <div className="px-3 py-6 text-center">
-            <p className="text-sm font-semibold text-hs-text-body">{t(failed.title)}</p>
-            {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t(failed.fix)}</p>}
+            <p className="text-sm font-semibold text-hs-text-body">{failed.title}</p>
+            {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{failed.fix}</p>}
             <button
               type="button"
               onClick={results.retry}
@@ -294,10 +295,11 @@ function useMealieRecipeDetail(recipeId: string | null): LoadedRecipe | null {
 /** The recipe's ingredients from Mealie, two to a row, read only. */
 function MealieIngredients({ recipeId, current }: { recipeId: string | null; current: LoadedRecipe | null }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   if (!recipeId) return null;
   if (current?.detail && current.detail.ingredients.length === 0) return null;
   // Mealie refusing the token is not Mealie losing the ingredients.
-  const failed = mealieRequestFailedKeys(current?.problem, 'mealPlannerModal.mealie.ingredientsFailed');
+  const failed = mealieRequestFailedWords(current?.problem, t('mealPlannerModal.mealie.ingredientsFailed'), t, tCore);
   return (
     <section className="mt-4" aria-label={t('mealPlannerModal.detail.ingredientsLabel')}>
       <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-hs-text-faint mb-1.5">
@@ -310,11 +312,11 @@ function MealieIngredients({ recipeId, current }: { recipeId: string | null; cur
       ) : current.failed || !current.detail ? (
         failed.fix ? (
           <p className="text-xs text-hs-text-faint">
-            <span className="block font-semibold text-hs-text-muted">{t(failed.title)}</span>
-            {t(failed.fix)}
+            <span className="block font-semibold text-hs-text-muted">{failed.title}</span>
+            {failed.fix}
           </p>
         ) : (
-          <p className="text-xs text-hs-text-faint">{t(failed.title)}</p>
+          <p className="text-xs text-hs-text-faint">{failed.title}</p>
         )
       ) : (
         <ul className="grid grid-cols-2 gap-x-3">

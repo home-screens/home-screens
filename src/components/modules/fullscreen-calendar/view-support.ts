@@ -1,5 +1,6 @@
 'use client';
 
+import { themedWallScrollLook, type WallScrollLook } from '@/components/modules/shared/wallScrollLook';
 import type { EventOwner } from '@/lib/calendar-people';
 import { useMemo, type CSSProperties } from 'react';
 import { addDays, differenceInCalendarDays, startOfWeek } from 'date-fns';
@@ -157,25 +158,16 @@ export function clippedListFade(px: number): CSSProperties {
  * (`WallScroller`), in the theme: the accent with its own ink, sized a little
  * under an event title, and a bar in the theme's text colour.
  */
-export function wallScrollLook(scale: CalendarScale, fontSize: number): {
-  backStyle: CSSProperties;
-  thumbColor: string;
-  thumbWidth: number;
-} {
-  return {
-    backStyle: {
-      top: scale.bu * 2,
-      fontSize: fontSize * 1.4,
-      padding: '0.55em 1.2em',
-      gap: '0.45em',
-      background: 'var(--cal-accent)',
-      color: 'var(--cal-on-accent, #fff)',
-      boxShadow: '0 0.3em 0.9em color-mix(in srgb, var(--cal-accent) 35%, transparent)',
-      fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
-    },
-    thumbColor: 'color-mix(in srgb, var(--cal-text-primary) 28%, transparent)',
-    thumbWidth: Math.max(4, Math.round(scale.bu * 0.75)),
-  };
+export function wallScrollLook(scale: CalendarScale, fontSize: number): WallScrollLook {
+  return themedWallScrollLook({
+    accent: 'var(--cal-accent)',
+    onAccent: 'var(--cal-on-accent, #fff)',
+    text: 'var(--cal-text-primary)',
+    top: scale.bu * 2,
+    fontSize: fontSize * 1.4,
+    thumbWidth: scale.bu * 0.75,
+    fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
+  });
 }
 
 /** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */

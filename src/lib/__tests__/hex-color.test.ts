@@ -6,6 +6,7 @@ import {
   parseEditableColor,
   withCssColorAlpha,
   withAlpha,
+  isFullHexColor,
 } from '@/lib/hex-color';
 
 describe('parseHexToRgb', () => {
@@ -148,5 +149,15 @@ describe('withAlpha', () => {
     expect(withAlpha('#000000', 2)).toBe('rgba(0, 0, 0, 1)');
     expect(withAlpha('#000000', -1)).toBe('rgba(0, 0, 0, 0)');
     expect(withAlpha('#000000', 0.1 + 0.2)).toBe('rgba(0, 0, 0, 0.3)');
+  });
+});
+
+describe('isFullHexColor', () => {
+  it.each(['#aabbcc', '#AABBCC', '#012345'])('accepts %s', (value) => {
+    expect(isFullHexColor(value)).toBe(true);
+  });
+
+  it.each(['#abc', '#aabbccdd', 'aabbcc', '#gggggg', 'red', '', null, undefined, 0xaabbcc])('refuses %j', (value) => {
+    expect(isFullHexColor(value)).toBe(false);
   });
 });

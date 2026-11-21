@@ -4,6 +4,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
+import { resolveBackupReminder } from '@/lib/backup-reminder';
 import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import { X, Download } from 'lucide-react';
@@ -17,23 +18,22 @@ export default function BackupReminderToast() {
   const reminderSettings = useEditorStore((s) => s.config?.settings?.backupReminder);
   const autoBackupEnabled = useEditorStore((s) => s.config?.settings?.autoBackup?.enabled === true);
   const timezone = useEditorHouseholdTimezone();
-  const { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, autoFailed, autoLocalOnly, handleBackup, handleDismiss } = useBackupReminder({
-    enabled: reminderSettings?.enabled ?? false,
-    intervalDays: reminderSettings?.intervalDays ?? 7,
+  const { kind, daysSinceBackup, busy, handleBackup, handleDismiss } = useBackupReminder({
+    ...resolveBackupReminder(reminderSettings),
     fetchFn: editorFetch,
     pollIntervalMs: 3_600_000,
     timezone,
     autoBackupEnabled,
   });
 
-  if (!shouldShow) return null;
+  if (!kind) return null;
 
   // Automatic backups: the fix is in Settings, not a download.
-  const autoMessage = autoFailed === 'backup'
+  const autoMessage = kind === 'autoFailed'
     ? t('backupReminder.autoFailed')
-    : autoFailed === 'offsite'
+    : kind === 'autoNotSent'
     ? t('backupReminder.autoNotSent')
-    : autoLocalOnly
+    : kind === 'autoLocalOnly'
     ? t('backupReminder.autoOnlyHere')
     : null;
 
@@ -48,9 +48,9 @@ export default function BackupReminderToast() {
       <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-hs-panel/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
         <div className="text-hs-warning text-sm" data-testid="backup-reminder-message">
           {autoMessage
-            ?? (iconsLeftOut
+            ?? (kind === 'iconsLeftOut'
             ? tCore('customIcons.backup.leftOut')
-            : picturesLeftOut
+            : kind === 'picturesLeftOut'
             ? tCore('pictureBackup.leftOut')
             : t('backupReminder.message', { count: daysSinceBackup ?? 0 }))}
         </div>
@@ -60,7 +60,7 @@ export default function BackupReminderToast() {
             onClick={handleDismiss}
             className="rounded-md bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors"
           >
-            {autoLocalOnly ? t('backupReminder.setItUp') : t('backupReminder.seeWhy')}
+            {kind === 'autoLocalOnly' ? t('backupReminder.setItUp') : t('backupReminder.seeWhy')}
           </a>
         ) : (
           <button

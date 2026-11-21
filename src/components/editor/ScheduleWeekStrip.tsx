@@ -4,6 +4,8 @@ import { useCallback, useMemo, useRef, useState, type PointerEvent as ReactPoint
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { describeSchedule } from '@/lib/schedule-summary';
+import { EVERY_DAY } from '@/lib/schedule';
+import { parseTimeToMinutes } from '@/lib/clock-time';
 
 import {
   computeWeekSegments,
@@ -13,7 +15,6 @@ import {
 } from '@/lib/schedule-timeline';
 import type { ModuleSchedule, TimeFormat } from '@/types/config';
 
-const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 const HOUR_TICKS = [0, 6, 12, 18, 0];
 /** Row height plus its bottom margin, used to map a drag's Y to a day row. */
 const ROW_PITCH = 21;
@@ -196,7 +197,7 @@ export default function ScheduleWeekStrip({
 
       // Read through a ref: the listeners below outlive several renders.
       const live = scheduleRef.current;
-      const start = clockToMinutes(live.startTime ?? '') ?? 0;
+      const start = parseTimeToMinutes(live.startTime) ?? 0;
 
       // Drag the end as a length, not as a position, so it can never land
       // before its own start and the wrap past Saturday needs no special case.
@@ -380,13 +381,4 @@ export default function ScheduleWeekStrip({
       </div>
     </div>
   );
-}
-
-function clockToMinutes(hhmm: string): number | null {
-  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const min = Number(m[2]);
-  if (h > 23 || min > 59) return null;
-  return h * 60 + min;
 }

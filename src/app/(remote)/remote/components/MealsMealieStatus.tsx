@@ -3,11 +3,12 @@
 import { useState, type CSSProperties } from 'react';
 import { CloudOff, CookingPot, RotateCw } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n/types';
 import type { MealieProblem, MealieStatus } from '@/lib/meal-sources';
 import { useCopyTime, type CopyClock } from '@/components/meals/useCopyTime';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-clock';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 /** The household's day, zone and clock, which the phone says a copy's time in (`useCopyTime`). */
@@ -24,6 +25,7 @@ export function useHomeCopyClock(todayISO: string): CopyClock {
  */
 export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; todayISO: string }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const updatedAt = status.state === 'stale' ? status.updatedAt : null;
   const copyTime = useCopyTime(updatedAt, useHomeCopyClock(todayISO));
   if (status.state !== 'ok' && status.state !== 'stale') return null;
@@ -65,7 +67,7 @@ export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; to
       >
         <CookingPot size={12} strokeWidth={2.4} />
       </span>
-      <span style={{ whiteSpace: 'nowrap' }}>{t('mealie.pill.label')}</span>
+      <span style={{ whiteSpace: 'nowrap' }}>{tCore('mealie.pill.label')}</span>
       {stale && copyTime && (
         <span style={{ color: 'var(--hs-text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
           {t('mealie.pill.updated', { time: copyTime })}
@@ -137,6 +139,7 @@ export function MealiePausedNotice({
   style?: CSSProperties;
 }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const copyTime = useCopyTime(updatedAt, useHomeCopyClock(todayISO));
   const fix = problem === 'token' || problem === 'setup' ? problem : null;
   return (
@@ -154,26 +157,41 @@ export function MealiePausedNotice({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px' }}>
         <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
-        {t(`${mealieProblemWords(problem)}.title`)}
+        {tCore(`${mealieProblemWords(problem)}.title`)}
       </div>
       <p style={{ margin: '4px 0 10px 26px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>
         {copyTime
-          ? t(fix ? `mealie.paused.${fix}DescriptionWithTime` : 'mealie.paused.descriptionWithTime', { time: copyTime })
-          : t(fix ? `mealie.paused.${fix}Description` : 'mealie.paused.description')}
+          ? (fix ? t(`mealie.paused.${fix}DescriptionWithTime`, { time: copyTime }) : tCore('mealie.paused.descriptionWithTime', { time: copyTime }))
+          : (fix ? t(`mealie.paused.${fix}Description`) : tCore('mealie.paused.description'))}
       </p>
       <RetryButton onRetry={onRetry} style={{ marginLeft: 26, padding: '0 16px' }} />
     </div>
   );
 }
 
-/** The phone's words for why there is no answer from Mealie (`.title`, `.description` under it). */
+/**
+ * The phone's words for why there is no answer from Mealie: `.title` under it
+ * is a key in `core`, the sentence the editor and the wall say too, and
+ * `mealieProblemDescription` is the line that goes below.
+ */
 export function mealieProblemWords(problem: MealieClientProblem | null): string {
   return { 'not-connected': 'mealie.notConnected', token: 'mealie.tokenRefused', setup: 'mealie.setup', unreachable: 'mealie.unreachable', connection: 'mealie.connection' }[problem ?? 'unreachable'];
 }
 
 /**
- * The phone's words when a recipe search got no answer from Mealie (keys
- * under `remote`): the reason, and what to do about it. Plain silence asks
+ * The line under a problem's title. Mealie not answering is said in the words
+ * the editor uses (`core`); the rest say where to fix it from a phone and are
+ * the phone's own (`remote`).
+ */
+export function mealieProblemDescription(problem: MealieClientProblem | null, t: TranslateFn, tCore: TranslateFn): string {
+  const words = mealieProblemWords(problem);
+  return words === 'mealie.unreachable' ? tCore('mealie.unreachable.description') : t(`${words}.description`);
+}
+
+/**
+ * The phone's words when a recipe search got no answer from Mealie (the
+ * title a key under `core`, the description one under `remote`): the reason,
+ * and what to do about it. Plain silence asks
  * to check that Mealie is running and try again; a reason Mealie gave says
  * how to fix it.
  */
@@ -200,6 +218,7 @@ export function mealieSaveFailedWords(problem: MealieProblem | undefined): strin
  */
 export function MealieUnreachable({ problem, onRetry }: { problem: MealieProblem; onRetry: () => Promise<void> | void }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const words = mealieProblemWords(problem);
   return (
     <div data-testid="mealie-unreachable" style={{ padding: '48px 16px', textAlign: 'center' }}>
@@ -220,9 +239,9 @@ export function MealieUnreachable({ problem, onRetry }: { problem: MealieProblem
       >
         <CloudOff size={24} strokeWidth={2} />
       </div>
-      <p style={{ fontSize: 15, color: 'var(--hs-text-body)', fontWeight: 600, margin: '0 0 4px' }}>{t(`${words}.title`)}</p>
+      <p style={{ fontSize: 15, color: 'var(--hs-text-body)', fontWeight: 600, margin: '0 0 4px' }}>{tCore(`${words}.title`)}</p>
       <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 20px', lineHeight: '19.5px' }}>
-        {t(`${words}.description`)}
+        {mealieProblemDescription(problem, t, tCore)}
       </p>
       <RetryButton onRetry={onRetry} style={{ padding: '0 18px' }} />
     </div>

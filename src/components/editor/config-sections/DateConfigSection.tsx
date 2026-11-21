@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
+import DateFormatField from './DateFormatField';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -65,17 +64,6 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   const view = c.view ?? 'full';
   const fields = VIEW_FIELDS[view] ?? new Set<string>();
   const dateFormatVal = c.dateFormat ?? 'MMMM d';
-  const isCustomDateFormat = !DATE_PRESETS.some((p) => p.value === dateFormatVal);
-  const [showCustomDate, setShowCustomDate] = useState(isCustomDateFormat);
-
-  // Live date format preview
-  let datePreview = '';
-  try {
-    datePreview = formatDateSync(previewNow, dateModulePattern(dateFormatVal, locale), { locale });
-  } catch {
-    datePreview = t('configSections.date.invalidFormat');
-  }
-
   const has = (field: string) => fields.has(field);
 
   return (
@@ -101,37 +89,21 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       {/* Date Format (only for minimal view) */}
       {has('dateFormat') && (
-        <div className="flex flex-col gap-1">
-          <LabeledField label={t('configSections.date.dateFormat')}>
-            <select
-              value={showCustomDate ? '__custom__' : dateFormatVal}
-              onChange={(e) => {
-                if (e.target.value === '__custom__') {
-                  setShowCustomDate(true);
-                } else {
-                  setShowCustomDate(false);
-                  set({ dateFormat: e.target.value });
-                }
-              }}
-              className={INPUT_CLASS}
-            >
-              {DATE_PRESETS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-              <option value="__custom__">{t('configSections.date.customOption')}</option>
-            </select>
-          </LabeledField>
-          {showCustomDate && (
-            <input
-              type="text"
-              value={dateFormatVal}
-              onChange={(e) => set({ dateFormat: e.target.value })}
-              placeholder={t('configSections.date.dateFormatPlaceholder')}
-              className={INPUT_CLASS}
-            />
-          )}
-          <span className="text-xs text-hs-text-faint">{datePreview}</span>
-        </div>
+        <DateFormatField
+          label={t('configSections.date.dateFormat')}
+          value={dateFormatVal}
+          presets={DATE_PRESETS}
+          onChange={(dateFormat) => set({ dateFormat })}
+          format={(pattern) => formatDateSync(previewNow, dateModulePattern(pattern, locale), { locale })}
+          words={{
+            custom: t('configSections.date.customOption'),
+            placeholder: t('configSections.date.dateFormatPlaceholder'),
+            invalid: t('configSections.date.invalidFormat'),
+            // The same pattern language as the clock's, so the same legend.
+            examplesHeading: t('configSections.clock.customExamplesHeading'),
+          }}
+          testIdPrefix="date"
+        />
       )}
 
       {/* Show Day Name */}

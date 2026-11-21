@@ -18,7 +18,7 @@ import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
 import { withAlpha } from '@/lib/hex-color';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when

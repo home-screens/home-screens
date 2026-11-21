@@ -33,6 +33,7 @@ import {
   type ShoppingViewGroup,
 } from '@/lib/shopping-list';
 import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 
 /** How often an open Grocery tab asks again, so a tick made in Mealie's app shows up at the store. */
 export const SHOPPING_REFRESH_MS = 30_000;
@@ -228,28 +229,19 @@ export function useMealieShoppingList(
     refreshTimer.current = later(() => void load(), AFTER_WRITE_REFRESH_MS);
   }, [load, later]);
 
+  // Read now, on a timer while the page is in view, when it comes back into
+  // view and when the device is back online.
+  usePolledFetch(() => load(), [load], { intervalMs: SHOPPING_REFRESH_MS, pauseWhenHidden: true });
+
   useEffect(() => {
     mounted.current = true;
     const pendingTimers = timers.current;
-    void load();
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') void load();
-    }, SHOPPING_REFRESH_MS);
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void load();
-    };
-    const onOnline = () => void load();
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('online', onOnline);
     return () => {
       mounted.current = false;
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('online', onOnline);
       for (const timer of pendingTimers) clearTimeout(timer);
       pendingTimers.clear();
     };
-  }, [load]);
+  }, []);
 
   const list = useMemo(() => {
     if (!answer?.list) return null;

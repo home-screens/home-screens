@@ -8,17 +8,7 @@ import type { CreateNoteInput, NotePatch } from '@/lib/notes-actions';
 import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife } from '@/types/notes';
 import type { FamilyMember } from '@/types/family';
 import BottomSheet from './BottomSheet';
-import {
-  GHOST_BUTTON,
-  HELPER_TEXT,
-  HIT_TARGET,
-  PRIMARY_BUTTON,
-  SEGMENT_ROW,
-  SHEET_FIELD,
-  SHEET_LABEL,
-  personChipStyle,
-  segmentStyle,
-} from './lists-styles';
+import { GHOST_BUTTON, HELPER_TEXT, HIT_TARGET, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, personChipStyle, segmentStyle } from './remote-styles';
 
 type NotesSheetProps = {
   /** The family roster, in roster order. */

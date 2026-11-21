@@ -39,7 +39,7 @@
  */
 
 import type { ScreenConfiguration, PhotoSource } from '@/types/config';
-import { mapConfigModules, mapConfigScreens } from './module-walk';
+import { mapConfigModules, mapConfigScreens } from '@/lib/config-modules';
 
 const MODULE_FIELDS = [
   'source', 'directory', 'immichAlbumId', 'immichPersonId', 'immichFavoritesOnly', 'immichCount',

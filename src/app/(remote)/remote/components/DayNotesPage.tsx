@@ -12,7 +12,7 @@ import { useHouseholdToday } from '../household-clock';
 import { showToast } from '../remote-toast';
 import DayNoteSheet, { dateOfIso, dayInWords } from './DayNoteSheet';
 import MealsWeekNav from './MealsWeekNav';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 import { addIsoDays } from '@/lib/iso-date';
 

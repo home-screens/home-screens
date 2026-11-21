@@ -9,6 +9,7 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { isMainDisplay } from '@/lib/display-filter';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface IdentitySubtabProps {
   display: DisplayNode;
@@ -82,7 +83,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={handleNameBlur}
-              className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`mt-1.5 block w-full ${SETTINGS_INPUT_CLASS}`}
             />
             <p className="text-[11px] text-hs-text-faint mt-1.5">
               {t('settings.perDisplayPage.identity.displayNameHelp')}

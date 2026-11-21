@@ -1,7 +1,8 @@
 import sharp from 'sharp';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
-import { putConfig, seedMeals } from '../helpers/api';
+import { localDate } from '../helpers/dates';
+import { clearIcons, putConfig, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 
@@ -9,12 +10,6 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
  * The family's own icons from the phone: add a picture from the meal form,
  * keep it, and see it on the wall in place of the meal's emoji.
  */
-
-function isoDate(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 /** A 900 px sticker with a see-through margin: big enough to be shrunk. */
 function sticker(): Promise<Buffer> {
@@ -28,11 +23,6 @@ async function animatedGif(): Promise<Buffer> {
   const frames = await Promise.all(['#ef4444', '#22c55e', '#3b82f6'].map((background) =>
     sharp({ create: { width: 120, height: 120, channels: 3, background } }).png().toBuffer()));
   return sharp(frames, { join: { animated: true } }).gif().toBuffer();
-}
-
-async function clearIcons(request: APIRequestContext) {
-  const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: Array<{ id: string }> };
-  for (const icon of icons) expect((await request.delete(`/api/custom-icons/${icon.id}`)).ok()).toBe(true);
 }
 
 async function openMealForm(page: Page, name: string) {
@@ -55,7 +45,7 @@ test('a picture added from the meal form shows on the wall', async ({ page, requ
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Taco Tuesday', emoji: '🌮' }],
     // Tomorrow too: late in the evening the Today view moves on to tomorrow.
-    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: isoDate(day) })),
+    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localDate(day) })),
   });
   await openMealForm(page, 'Taco Tuesday');
 
@@ -86,7 +76,7 @@ test('a picture added from the meal form shows on the wall', async ({ page, requ
 test('a meal whose picture was removed shows the usual plate', async ({ page, request }) => {
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Mystery stew', emoji: 'custom:zzzzzzzzzzzz' }],
-    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: isoDate(day) })),
+    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localDate(day) })),
   });
   await page.goto('/display');
   await expect(page.getByText('Mystery stew').first()).toBeVisible();

@@ -97,3 +97,24 @@ describe('formatTimeAgoLocalized', () => {
     expect(formatTimeAgoLocalized(new Date(NOW_MS - 7 * 86_400_000), tEn, NOW)).toBe('1w ago');
   });
 });
+
+describe('the lists both chore forms offer', () => {
+  it('keeps each in the order the forms draw it', async () => {
+    const { CHORE_CLAIMS, CHORE_COMES_BACK, CHORE_KINDS } = await import('@/lib/chore-constants');
+    expect([...CHORE_KINDS]).toEqual(['regular', 'bonus']);
+    expect([...CHORE_CLAIMS]).toEqual(['first', 'each']);
+    expect([...CHORE_COMES_BACK]).toEqual(['daily', 'weekly', 'manual']);
+  });
+
+  it('puts bonus chores after regular ones, each group in the order written, without touching the list', async () => {
+    const { regularBeforeBonus } = await import('@/lib/chore-constants');
+    const chores = [
+      { id: 'a', bonus: { claim: 'first' } },
+      { id: 'b' },
+      { id: 'c', bonus: { claim: 'each' } },
+      { id: 'd' },
+    ];
+    expect(regularBeforeBonus(chores).map((c) => c.id)).toEqual(['b', 'd', 'a', 'c']);
+    expect(chores.map((c) => c.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+});

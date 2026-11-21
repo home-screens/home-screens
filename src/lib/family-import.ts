@@ -4,6 +4,7 @@ import type { FamilyData } from '@/types/family';
 import type { TodoData } from '@/types/todos';
 import { planFamilyMerge, type FamilyMergeResult } from './family-merge';
 import { readConfig } from './config';
+import { someConfigModule } from './config-modules';
 import { CONFIG_FILE_PATH, FAMILY_FILE_PATH } from './constants';
 import { CHORES_FILE } from './chore-data';
 import { foldConfigTodos, validateTodoData } from './todo-data';
@@ -26,8 +27,8 @@ const FOLDED_SECTIONS = new Set<string>(['config', 'family', 'chores']);
 const WHOLE_FILE_SECTIONS = BACKUP_SECTIONS.filter((section) => !FOLDED_SECTIONS.has(section.key));
 
 const json = (value: unknown) => JSON.stringify(value, null, 2);
-const hasLegacy = (config: ScreenConfiguration) => config.screens?.some((screen) => screen.modules?.some((mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items)))
-  || config.displays?.some((display) => display.screens?.some((screen) => screen.modules?.some((mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items))));
+const hasLegacy = (config: ScreenConfiguration) =>
+  someConfigModule(config, (mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items));
 
 /** Build every content image before touching disk. Caller holds the coordinator. */
 export async function planFamilyRestore(body: BackupContent): Promise<{ changes: TransactionChange[]; config: ScreenConfiguration; evidence?: { path: string; contents: string } }> {

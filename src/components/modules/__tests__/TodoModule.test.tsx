@@ -3,6 +3,7 @@ import type { FamilyMember } from '@/types/family';
 // @vitest-environment jsdom
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { render, cleanup, fireEvent, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { DEFAULT_MODULE_STYLE, type TodoConfig, type ModuleStyle} from '@/types/config';
@@ -398,19 +399,6 @@ describe('TodoModule tap to check off', () => {
 });
 
 // ─── Touch treatment: 38px tap checkbox, pressed state, one-time hint ───
-
-/** jsdom's localStorage is non-functional under this setup; stub an in-memory one. */
-function makeLocalStorage(): Storage {
-  const store = new Map<string, string>();
-  return {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => { store.set(k, String(v)); },
-    removeItem: (k: string) => { store.delete(k); },
-    clear: () => store.clear(),
-    key: (i: number) => [...store.keys()][i] ?? null,
-    get length() { return store.size; },
-  } as Storage;
-}
 
 describe('TodoModule assignees', () => {
   const roster = () => ({ members: [member('m1', 'ava', '#f472b6'), member('m2', 'Ben', '#60a5fa'), member('m3', 'Cy', '#4ade80')] });

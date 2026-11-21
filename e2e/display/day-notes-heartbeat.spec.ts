@@ -1,8 +1,10 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedDayNotes, todayCalendarEvents } from '../helpers/api';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
+import { waitForBeats } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 
 /**
@@ -11,11 +13,6 @@ import { stubModuleData } from '../helpers/stubs';
  * `GET /api/day-notes` answers with), and the wall reads again only when
  * that moves. A note written on a phone is on the wall a few beats later.
  */
-
-function isoToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 async function setUp(page: Page, request: APIRequestContext, sandboxDir: string, notes: Record<number, string | string[]>) {
   seedDayNotes(sandboxDir, notes);
@@ -35,12 +32,6 @@ function watchReads(page: Page): string[] {
   return reads;
 }
 
-async function beats(page: Page, count: number) {
-  for (let i = 0; i < count; i++) {
-    await page.waitForResponse((r) => new URL(r.url()).pathname === '/api/display/commands', { timeout: 10_000 });
-  }
-}
-
 test.describe('a calendar wall follows the day notes heartbeat', () => {
   test.describe.configure({ timeout: 60_000 });
   // Later specs in this worker draw calendars too; leave no note behind.
@@ -52,10 +43,10 @@ test.describe('a calendar wall follows the day notes heartbeat', () => {
     await page.goto('/display');
     const cal = page.locator('[data-module-id="cal"]');
     await expect(cal.locator('[data-day-note]')).toHaveText('Library books back');
-    await beats(page, 1);
+    await waitForBeats(page, 1);
     const settled = reads.length;
     expect(settled).toBeGreaterThan(0);
-    await beats(page, 4);
+    await waitForBeats(page, 4);
     expect(reads.slice(settled)).toEqual([]);
   });
 
@@ -67,9 +58,9 @@ test.describe('a calendar wall follows the day notes heartbeat', () => {
     const cal = page.locator('[data-module-id="cal"]');
     await expect(cal).toContainText('Dentist Appointment');
     await expect(cal.locator('[data-day-note]')).toHaveCount(0);
-    await beats(page, 1);
+    await waitForBeats(page, 1);
 
-    const saved = await request.post('/api/day-notes', { data: { date: isoToday(), text: 'Picture day' } });
+    const saved = await request.post('/api/day-notes', { data: { date: localDate(), text: 'Picture day' } });
     expect(saved.ok(), `POST answered ${saved.status()}`).toBe(true);
     const { created } = (await saved.json()) as { created: { id: string } };
     await expect(cal.locator('[data-day-note]')).toHaveText('Picture day', { timeout: 10_000 });

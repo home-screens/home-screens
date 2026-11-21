@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { act, cleanup, fireEvent, render as renderUI, screen, within } from '@testing-library/react';
 import core from '@/translations/en-US/core.json';
 import editor from '@/translations/en-US/editor.json';
@@ -98,19 +99,6 @@ function fakeHub(url: string, init?: RequestInit): Promise<Response> {
     const status = e instanceof NotesError ? e.status : 500;
     return Promise.resolve(reply(status, e instanceof NotesError ? refusalBody(e) : { error: (e as Error).message }));
   }
-}
-
-/** jsdom's localStorage is non-functional under this setup; stub an in-memory one. */
-function makeLocalStorage(): Storage {
-  const store = new Map<string, string>();
-  return {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => { store.set(k, String(v)); },
-    removeItem: (k: string) => { store.delete(k); },
-    clear: () => store.clear(),
-    key: (i: number) => [...store.keys()][i] ?? null,
-    get length() { return store.size; },
-  } as Storage;
 }
 
 function render() {

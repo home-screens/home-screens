@@ -57,7 +57,13 @@ function answerWith(body: Record<string, unknown>, status = 200) {
   const calls: Call[] = [];
   vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     calls.push({ url: String(input), body: new URLSearchParams(String(init?.body ?? '')) });
-    return { ok: status < 400, status, json: async () => body };
+    return {
+      ok: status < 400,
+      status,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      json: async () => body,
+      text: async () => JSON.stringify(body),
+    };
   }));
   return calls;
 }

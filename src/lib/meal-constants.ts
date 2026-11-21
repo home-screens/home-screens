@@ -46,6 +46,9 @@ export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string;
  */
 const DEFAULT_SLOTS: readonly MealSlotType[] = ['breakfast', 'lunch', 'dinner'];
 
+/** How hard a dish is to make, easiest first: the order both meal forms offer them. */
+export const MEAL_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+
 /** Difficulty level colors (hex) */
 export const DIFFICULTY_COLORS: Record<string, string> = {
   easy:   '#10b981',

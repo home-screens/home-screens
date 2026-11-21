@@ -1,5 +1,6 @@
 import { MEMBER_COLORS, type FamilyData, type FamilyMember } from '@/types/family';
 import { FamilyMergeError } from './family-errors';
+import { isFullHexColor } from './hex-color';
 export { FamilyMergeError } from './family-errors';
 
 export interface LegacyFamilyMember {
@@ -31,7 +32,6 @@ export interface FamilyMergeResult {
 const has = (value: object, key: string) => Object.prototype.hasOwnProperty.call(value, key);
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 export const normalizeFamilyName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
-export const validFamilyColor = (color: unknown): color is string => typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color);
 export const validFamilyId = (id: unknown): id is string => typeof id === 'string' && id.length > 0 && id.length <= 200 && !['__proto__', 'prototype', 'constructor'].includes(id);
 
 /** Preservation validator: authoring limits never invalidate an existing roster. */
@@ -39,7 +39,7 @@ export function validateFamilyData(value: unknown): value is FamilyData {
   if (!record(value) || !Array.isArray(value.members) || (value.migrated !== undefined && typeof value.migrated !== 'boolean')) return false;
   const ids = new Set<string>();
   for (const item of value.members) {
-    if (!record(item) || !validFamilyId(item.id) || ids.has(item.id) || typeof item.name !== 'string' || !item.name.trim() || !validFamilyColor(item.color)
+    if (!record(item) || !validFamilyId(item.id) || ids.has(item.id) || typeof item.name !== 'string' || !item.name.trim() || !isFullHexColor(item.color)
       || (item.emoji !== undefined && typeof item.emoji !== 'string')
       || typeof item.createdAt !== 'string' || !Number.isFinite(Date.parse(item.createdAt))
       || typeof item.updatedAt !== 'string' || !Number.isFinite(Date.parse(item.updatedAt))) return false;
@@ -105,7 +105,7 @@ export function planFamilyMerge(input: FamilyMergeInput): FamilyMergeResult {
       log('blank-name', source, item.id);
     }
     let color = item.color;
-    if (!validFamilyColor(color)) { color = MEMBER_COLORS[members.length % MEMBER_COLORS.length]; log('color-repaired', source, item.id); }
+    if (!isFullHexColor(color)) { color = MEMBER_COLORS[members.length % MEMBER_COLORS.length]; log('color-repaired', source, item.id); }
     const member: FamilyMember = { id: item.id, name, color, ...(item.emoji !== undefined ? { emoji: item.emoji } : {}), createdAt: now, updatedAt: now };
     members.push(member); byId.set(member.id, member); log('added', source, item.id);
     return member;

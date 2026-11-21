@@ -5,7 +5,9 @@ import type { RewardDefinition } from '@/lib/reward-data';
 import { goalProgress } from '@/lib/reward-rules';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
+import { ticketWords } from './ticket-words';
 import BottomSheet from './BottomSheet';
+import { GROUP_HEADING } from './remote-styles';
 
 /**
  * The "Saving for" card under the balance on the Rewards tab. With a goal it
@@ -70,7 +72,7 @@ export function SavingsGoalCard({
         color: 'inherit', cursor: 'pointer',
       }}
     >
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--hs-text-faint)', marginBottom: 8 }}>
+      <div style={{ ...GROUP_HEADING, marginBottom: 8 }}>
         {t(forOther ? 'rewardsView.goal.headingFor' : 'rewardsView.goal.heading', { name: memberName })}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -120,7 +122,7 @@ export function SavingsGoalSheet({
 }) {
   const t = useTranslate('remote');
   const sorted = [...rewards].sort((a, b) => a.cost - b.cost);
-  const cost = (n: number) => (n === 1 ? t('rewardsView.ticketCountSingular', { n }) : t('rewardsView.ticketCountPlural', { n }));
+  const cost = (n: number) => (ticketWords(t, n, 'rewardsView'));
   return (
     <BottomSheet title={t(forOther ? 'rewardsView.goal.sheetTitleFor' : 'rewardsView.goal.sheetTitle', { name: memberName })} onClose={onClose} testId="savings-goal-sheet">
       <p style={{ margin: '-6px 0 10px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.4 }}>

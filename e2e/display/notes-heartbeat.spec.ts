@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedNotes, notesSeed, E2E_NOTE_MEMBERS, E2E_NOTE_TEXTS, type NotesSeed } from '../helpers/api';
+import { waitForBeats } from '../helpers/display';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 
 /**
@@ -30,13 +31,6 @@ function watchNoteReads(page: Page): string[] {
   return reads;
 }
 
-/** Resolves after `count` more heartbeats have been answered. */
-async function beats(page: Page, count: number) {
-  for (let i = 0; i < count; i++) {
-    await page.waitForResponse((r) => new URL(r.url()).pathname === '/api/display/commands', { timeout: 10_000 });
-  }
-}
-
 test.describe('a notes wall follows the heartbeat', () => {
   // Each test watches several 3 s beats go by.
   test.describe.configure({ timeout: 60_000 });
@@ -47,14 +41,14 @@ test.describe('a notes wall follows the heartbeat', () => {
     await page.goto('/display');
     const board = page.locator('[data-module-id="board"]');
     await expect(board).toContainText(E2E_NOTE_TEXTS.pinned);
-    await beats(page, 1);
+    await waitForBeats(page, 1);
     const settled = reads.length;
     expect(settled, 'the wall should have read the board as it mounted').toBeGreaterThan(0);
     expect(reads.every((r) => r === '/api/notes?live=1'), `the wall reads live notes only: ${reads.join(', ')}`).toBe(true);
 
     // Four beats (12 s) with the board unchanged: the beats name the ETag the
     // wall already holds, so nothing is read again.
-    await beats(page, 4);
+    await waitForBeats(page, 4);
     expect(reads.slice(settled)).toEqual([]);
   });
 
@@ -65,7 +59,7 @@ test.describe('a notes wall follows the heartbeat', () => {
     await page.goto('/display');
     const board = page.locator('[data-module-id="board"]');
     await expect(board.getByTestId('notes-note')).toHaveCount(3);
-    await beats(page, 1);
+    await waitForBeats(page, 1);
 
     const reread = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/notes' && r.request().method() === 'GET' && r.status() === 200);
     const posted = await request.post('/api/notes', { data: { text: 'Soccer moved to five', authorId: E2E_NOTE_MEMBERS.riley.id } });

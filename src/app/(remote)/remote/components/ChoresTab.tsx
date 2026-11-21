@@ -17,6 +17,7 @@ import { TIME_OF_DAY_META, computeStreak, countWeekAssignments, getCurrentTimeOf
 import { atGrabLimit, readChoreSettings, resolveBonusFor, type BonusRefusal } from '@/lib/chore-bonus';
 import { choreDayMenu, choreDayMenuKey, type ChoreDayMenuAction } from '@/lib/chore-day-menu';
 import { editorFetch } from '@/lib/editor-fetch';
+import { readRemembered, remember } from '@/lib/device-memory';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreActionSheet, { type ChoreAction } from './ChoreActionSheet';
 import ChoreSettingsSheet from './ChoreSettingsSheet';
@@ -34,7 +35,7 @@ import { useChoreMarks } from '../hooks/useChoreMarks';
 import { useRewardsPoll } from '../hooks/useRewardsPoll';
 import { useHouseholdDayRollover } from '../hooks/useHouseholdDayRollover';
 import AtHomePill from './AtHomePill';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { REMOTE_ACCENT } from './remote-styles';
 
 const log = logger('chores');
 
@@ -44,21 +45,8 @@ const log = logger('chores');
  */
 const SELECTED_MEMBER_STORAGE_KEY = 'hs-chores-selected-member';
 
-function readRememberedMember(): string | null {
-  try {
-    return window.localStorage.getItem(SELECTED_MEMBER_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function rememberMember(id: string) {
-  try {
-    window.localStorage.setItem(SELECTED_MEMBER_STORAGE_KEY, id);
-  } catch {
-    /* private mode or storage disabled: the pick just isn't remembered */
-  }
-}
+const readRememberedMember = () => readRemembered(SELECTED_MEMBER_STORAGE_KEY);
+const rememberMember = (id: string) => remember(SELECTED_MEMBER_STORAGE_KEY, id);
 
 /** The first member who actually has something to do on `day`, else the first member. */
 function defaultMemberFor(members: FamilyMember[], groups: FamilyGroup[], chores: ChoreDefinition[], day: string): string {
@@ -92,6 +80,7 @@ interface ChoresTabProps {
 export default function ChoresTab({ config, choreData, isAdmin = false, family }: ChoresTabProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   // ── Lifted state (shared between Today + Manage views) ──
   const [roster, setRoster] = useState(family);
   const followsRoster = !!family;
@@ -116,7 +105,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       setChores(snapshot.chores);
       setChoreSettings(snapshot.settings);
     },
-    conflict: () => setLastWarning(t('choresTab.changedElsewhere')),
+    conflict: () => setLastWarning(tCore('chores.changedElsewhere')),
     saved: () => {
       const failed = saveFailureRef.current;
       setLastWarning((warning) => (warning === failed ? null : warning));
@@ -129,7 +118,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   }, {
     initial: choreData,
     flushOnUnmount: true,
-    words: { refused: t('choresTab.saveFailed'), unreachable: t('hubRequest.saveFailed') },
+    words: { refused: t('choresTab.saveFailed'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor || REMOTE_ACCENT;

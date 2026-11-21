@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { refusalText, type JsonWriteRequest } from '@/lib/hub-request';
+import { HubUnreachableError, refusalSentence, type JsonWriteRequest } from '@/lib/hub-request';
 import { useWriteSession } from '@/hooks/useWriteSession';
 import { tempId } from '@/lib/write-session';
 import {
@@ -34,17 +34,21 @@ async function load(): Promise<DayNotesData | null> {
  */
 export function useDayNotesData() {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
 
   const { data, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<DayNotesData, JsonWriteRequest, DayNote>({
     initial: EMPTY,
     load,
     send: async (request) => {
-      const { notes, created } = await sendDayNotesWrite(editorFetch, request, t('notes.dayNotes.saveError'));
+      const { notes, created } = await sendDayNotesWrite(editorFetch, request, tCore('refusals.saveFailed'));
       return { data: { notes }, created };
     },
     pollMs: POLL_MS,
     tolerates: tolerated,
-    onRefused: (e) => showToast(refusalText(e, t, 'notes.dayNotes.saveError', 'hubRequest.saveFailed'), 'error'),
+    onRefused: (e) => showToast(
+      e instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(e, t) ?? tCore('refusals.saveFailed'),
+      'error',
+    ),
   });
 
   /** Write a new note for `date` (`today` is the household's day). Resolves to whether it was saved. */

@@ -26,19 +26,10 @@ import type {
 import type { TimetableSchool } from '@/types/timetables';
 import { PROSE_CLASS } from './prose';
 import { hasValidLocation } from '@/lib/location';
+import { HOLIDAY_COUNTRY_CODE, HOLIDAY_REGION_CODE } from '@/lib/holiday-region-codes';
 
 /** The two messages the holiday lookup can attach to an answer. */
 const HOLIDAY_MESSAGE_KEYS = ['schoolHolidaysStale', 'schoolHolidaysUnavailable'] as const;
-
-/** Same rule the holiday API applies before it builds a URL. */
-const COUNTRY_CODE = /^[A-Z]{2}$/;
-
-/**
- * The two shapes the holiday API will turn into a request, a country on its
- * own and a country with a subdivision, so half a code on its way to being
- * typed is never looked up.
- */
-const REGION_CODE = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
 
 /**
  * The example the free-text box offers when the household's own region could
@@ -187,9 +178,9 @@ export default function SchoolHolidaysEditor({ school, onChange }: SchoolHoliday
     ? ''
     : [holidayCountry, place?.countryCode, locale.split('-')[1]]
       .map((value) => (typeof value === 'string' ? value.toUpperCase() : ''))
-      .find((value) => COUNTRY_CODE.test(value)) ?? '';
+      .find((value) => HOLIDAY_COUNTRY_CODE.test(value)) ?? '';
 
-  const regionsUrl = COUNTRY_CODE.test(country) ? `/api/timetables/holidays?country=${country}` : null;
+  const regionsUrl = HOLIDAY_COUNTRY_CODE.test(country) ? `/api/timetables/holidays?country=${country}` : null;
   const { data: regionData, error: regionsError } = useEditorData<HolidayRegionsResult>(regionsUrl);
   // The previous country's answer lingers in the hook for one render after the
   // URL changes, so it only counts while it is about the country being asked
@@ -229,7 +220,7 @@ export default function SchoolHolidaysEditor({ school, onChange }: SchoolHoliday
   // we saved earlier" comes from. The route answers a map whatever it is asked
   // for, so the school's own region is read out of it by name.
   const { data: regionHolidays } = useEditorData<SchoolHolidaysResponse>(
-    saved && REGION_CODE.test(saved)
+    saved && HOLIDAY_REGION_CODE.test(saved)
       ? `/api/timetables/holidays?region=${encodeURIComponent(saved)}`
       : null,
   );

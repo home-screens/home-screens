@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
+import { useCopyFlash } from '@/hooks/useCopyFlash';
 import { useEditorStore } from '@/stores/editor-store';
 import { findMainDisplay } from '@/lib/display-filter';
 import type { DisplayNode } from '@/types/config';
@@ -52,36 +53,14 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
   const exampleTarget = findMainDisplay(displays);
 
   const [tokenRevealed, setTokenRevealed] = useState(false);
-  const [tokenCopied, setTokenCopied] = useState(false);
+  const { copied: tokenCopied, copy } = useCopyFlash();
   const [tokenRegenerating, setTokenRegenerating] = useState(false);
   const [tokenConfirmRegen, setTokenConfirmRegen] = useState(false);
   const [tokenStatus, setTokenStatus] = useState<string | null>(null);
 
   async function handleCopyToken() {
-    try {
-      await navigator.clipboard.writeText(token);
-      setTokenCopied(true);
-      setTimeout(() => setTokenCopied(false), 2000);
-    } catch {
-      // Fallback for insecure contexts (HTTP)
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = token;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        if (!ok) {
-          setTokenStatus(t('settings.securityPage.displayToken.errorCopy'));
-          return;
-        }
-        setTokenCopied(true);
-        setTimeout(() => setTokenCopied(false), 2000);
-      } catch {
-        setTokenStatus(t('settings.securityPage.displayToken.errorCopy'));
-      }
+    if (!(await copy(token))) {
+      setTokenStatus(t('settings.securityPage.displayToken.errorCopy'));
     }
   }
 

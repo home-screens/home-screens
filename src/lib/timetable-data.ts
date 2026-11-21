@@ -38,7 +38,9 @@ import { readTransactionFile, withDataTransaction } from './data-transaction';
 import { validateMemberReferences, withFamilyData } from './family-api';
 import { createJsonStore } from './json-store';
 import { parseTimeToMinutes } from './clock-time';
-import { RefusalError, type RefusalOptions } from './refusal';
+import { HOLIDAY_REGION_CODE } from './holiday-region-codes';
+import { isFullHexColor } from './hex-color';
+import { RefusalError, requiredText, type RefusalOptions } from './refusal';
 import { getDefaultSubjects } from './timetable-subjects';
 
 export const TIMETABLES_FILE_PATH = 'data/timetables.json';
@@ -137,7 +139,6 @@ function withServerNotes(next: TimetableData, saved: TimetableData): TimetableDa
 
 // ── Field cleaning ──
 
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const CLOCK_TIME = /^\d{2}:\d{2}$/;
 const WEB_LINK = /^https?:\/\//i;
 /** Ids are minted by the editor (a uuid, or a short slug for the built-in subjects). */
@@ -146,14 +147,6 @@ const MAX_ID_LENGTH = 64;
 const MAX_LINK_LENGTH = 2048;
 /** Schools number their periods from 1; the ceiling is only a sanity bound. */
 const MAX_PERIOD_NUMBER = 99;
-/**
- * The two shapes the holiday lookup will turn into a request: a country on its
- * own, for the countries that publish one set of dates and no regions, and a
- * country with a subdivision. Checked here as well as there so a code that
- * could never answer is refused at the save rather than every hour on the wall.
- */
-const HOLIDAY_REGION = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
-
 function asRecord(raw: unknown, message: string): Record<string, unknown> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw as Record<string, unknown>;
@@ -171,10 +164,12 @@ function cleanId(raw: unknown, message: string): string {
 
 /** A required piece of short text, trimmed and capped. */
 function cleanText(raw: unknown, max: number, needed: string, tooLong: string): string {
-  if (typeof raw !== 'string' || !raw.trim()) throw new TimetableError(400, 'timetables.invalid', needed);
-  const text = raw.trim();
-  if (text.length > max) throw new TimetableError(400, 'timetables.invalid', tooLong);
-  return text;
+  return requiredText(
+    raw,
+    max,
+    () => new TimetableError(400, 'timetables.invalid', needed),
+    () => new TimetableError(400, 'timetables.invalid', tooLong),
+  );
 }
 
 /** Optional short text. Blank counts as "not set" and is dropped. */
@@ -194,7 +189,7 @@ function cleanFlag(raw: unknown, message: string): boolean | undefined {
 }
 
 function cleanColor(raw: unknown, message: string): string {
-  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TimetableError(400, 'timetables.invalid', message);
+  if (!isFullHexColor(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw.toLowerCase();
 }
 
@@ -265,7 +260,7 @@ function cleanHolidayRegion(raw: unknown, at: string): string | undefined {
   if (typeof raw !== 'string') throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   const region = raw.trim().toUpperCase();
   if (!region) return undefined;
-  if (!HOLIDAY_REGION.test(region)) throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
+  if (!HOLIDAY_REGION_CODE.test(region)) throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   return region;
 }
 

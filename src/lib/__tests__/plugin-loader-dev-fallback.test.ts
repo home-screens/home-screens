@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { loadAllPlugins } from '@/lib/plugin-loader';
 import { usePluginStore } from '@/stores/plugin-store';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -36,18 +37,6 @@ function makeManifest(id: string, version: string): PluginManifest {
 }
 
 const BUNDLE = 'window.__HS_PLUGIN__ = { default: function Noop() { return null; } };';
-
-/** jsdom's localStorage is non-functional under this setup (see theme.test.ts);
- *  stub a working in-memory one. */
-function makeLocalStorage() {
-  const store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, val: string) => { store[key] = val; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { for (const k of Object.keys(store)) delete store[k]; },
-  };
-}
 
 function seedDevPlugin(id: string, url = DEV_URL) {
   localStorage.setItem(

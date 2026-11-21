@@ -6,6 +6,7 @@ import { slideshowFolders } from '@/lib/media-usage';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
 import RemoteClient from './RemoteClient';
 import { parseUpdateChannel } from '@/lib/semver';
+import { resolveBackupReminder } from '@/lib/backup-reminder';
 
 const MEAL_MODULE_TYPES = ['meal-planner', 'fullscreen-meal-planner'];
 const PHOTO_MODULE_TYPES = ['fullscreen-photo', 'photo-slideshow'];
@@ -87,9 +88,18 @@ export default async function RemotePage() {
     if (types.length > 0) slideshowScreens[screen.id] = types;
   }
 
+  // What an alert lasts when nobody says, so the Send alert sheet can start
+  // on it. A display with its own alert settings replaces the shared ones
+  // whole, as `filterConfigForDisplay` does for the wall.
+  const alertDefaultMs = {
+    shared: config.settings.alerts?.defaultDuration ?? 0,
+    byDisplay: Object.fromEntries((config.displays ?? []).flatMap((d) => (
+      d.settings?.alerts ? [[d.id, d.settings.alerts.defaultDuration ?? 0] as const] : []
+    ))),
+  };
+
   const backupReminder = {
-    enabled: config.settings.backupReminder?.enabled ?? false,
-    intervalDays: config.settings.backupReminder?.intervalDays ?? 7,
+    ...resolveBackupReminder(config.settings.backupReminder),
     // Automatic backups tell the phone when they stop working, whether or
     // not the reminder itself is on.
     autoBackup: config.settings.autoBackup?.enabled === true,
@@ -101,7 +111,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasLists, hasNotes, hasDayNoteCalendar, hasMeals, hasPhotos, photoDirectory, slideshowScreens, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
+      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasLists, hasNotes, hasDayNoteCalendar, hasMeals, hasPhotos, photoDirectory, slideshowScreens, backupReminder, alertDefaultMs, displays, displayProfiles, updateNotification, updateChannel }}
     />
   );
 }

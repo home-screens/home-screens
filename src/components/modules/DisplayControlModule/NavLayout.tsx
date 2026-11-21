@@ -1,12 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
-import { TargetPicker } from './TargetPicker';
-import { controlMetrics } from './metrics';
-import { useElementBox } from '@/hooks/useElementBox';
-import { ControlButton } from './controls';
+import { useControlFrame } from './useControlFrame';
+import { ControlButton, ControlGrid } from './controls';
 
 /**
  * Previous and Next, nothing else: no sleep, no wake, no brightness.
@@ -15,15 +12,8 @@ import { ControlButton } from './controls';
  */
 export function NavLayout(props: LayoutProps) {
   const t = useTranslate('modules');
-  const {
-    allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
-    onPrev, onNext,
-  } = props;
-  const showPicker = allowRetargeting && !isLegacyMode;
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const dim = pickerOpen ? 'opacity-35' : '';
-  const [boxRef, box] = useElementBox('padding');
-  const m = controlMetrics({ w: box.width, h: box.height, layout: 'nav', compact, showPicker });
+  const { onPrev, onNext } = props;
+  const { boxRef, m, picker, dim } = useControlFrame(props, 'nav');
   const stacked = m.rows === 2;
 
   return (
@@ -33,25 +23,9 @@ export function NavLayout(props: LayoutProps) {
       style={{ padding: m.pad, gap: m.gap }}
       data-layout="nav"
     >
-      {showPicker && (
-        <TargetPicker
-          value={currentTarget}
-          onChange={(v) => setCurrentTarget(v)}
-          options={availableDisplays}
-          selfId={selfId}
-          onOpenChange={setPickerOpen}
-          m={m}
-        />
-      )}
+      {picker}
 
-      <div
-        className={`grid flex-1 min-h-0 transition-opacity ${dim}`}
-        style={{
-          gridTemplateColumns: `repeat(${m.cols}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${m.rows}, minmax(0, 1fr))`,
-          gap: m.gap,
-        }}
-      >
+      <ControlGrid m={m} className={`transition-opacity ${dim}`}>
         <ControlButton
           m={m}
           label={t('display-control.prev')}
@@ -66,7 +40,7 @@ export function NavLayout(props: LayoutProps) {
           icon={stacked ? 'down' : 'next'}
           onClick={onNext}
         />
-      </div>
+      </ControlGrid>
     </div>
   );
 }

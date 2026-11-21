@@ -2,9 +2,10 @@ import { E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import {
-  has, lacks, matches, notMatches, child, count, redBackground, localDate, localIso,
+  has, lacks, matches, notMatches, child, count, redBackground, localIso,
   TINY_GIF, WEATHER_WIND, WEATHER_NO_ALERTS, STANDINGS_8, TODOIST_2, DINNER_TONIGHT_AND_TOMORROW,
 } from './shared';
+import { localDate } from '../dates';
 
 /**
  * The original config-variant rows, from before the per-batch split. New rows land in the

@@ -16,7 +16,7 @@ import { getActiveRules } from '@/lib/editor-multi-display';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import SortableRuleCard from './SortableRuleCard';
 import { logger } from '@/lib/logger';
 
@@ -93,13 +93,8 @@ export default function RulesSection({ embedded = false }: RulesSectionProps) {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fromIndex = rules.findIndex((r) => r.id === active.id);
-    const toIndex = rules.findIndex((r) => r.id === over.id);
-    if (fromIndex !== -1 && toIndex !== -1) {
-      reorderRules(fromIndex, toIndex);
-    }
+    const move = dragEndIndices(event, rules.map((r) => r.id));
+    if (move) reorderRules(move.from, move.to);
   };
 
   const allDisplays = config.displays ?? [];

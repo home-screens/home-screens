@@ -3,6 +3,7 @@
 import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
 import type { TimerTargets } from '@/types/timers';
 import type { DisplayApiEntry } from '@/lib/displays-api-types';
+import { readRemembered, remember } from '@/lib/device-memory';
 
 /**
  * What the hub last heard from one display, shaped for the remote's cards.
@@ -103,31 +104,11 @@ export function recipeWallTarget(
 const RECIPE_WALL_KEY = 'hs-remote-recipe-wall';
 
 export function readRecipeWall(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.localStorage.getItem(RECIPE_WALL_KEY) || null;
-  } catch {
-    return null;
-  }
+  return readRemembered(RECIPE_WALL_KEY) || null;
 }
 
 export function rememberRecipeWall(displayId: string): void {
-  try {
-    window.localStorage.setItem(RECIPE_WALL_KEY, displayId);
-  } catch {
-    /* private mode: the pick just does not stick */
-  }
-}
-
-/**
- * Append `?display=<id>` (or `&display=<id>`) to a URL when targeting a
- * specific display or broadcasting. Single-display mode passes the URL
- * through unchanged so existing fetches work without modification.
- */
-export function withDisplayTarget(url: string, target: DisplayTargetValue): string {
-  if (!target) return url;
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}display=${encodeURIComponent(target)}`;
+  remember(RECIPE_WALL_KEY, displayId);
 }
 
 /**

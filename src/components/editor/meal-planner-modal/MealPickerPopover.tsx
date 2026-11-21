@@ -13,7 +13,7 @@ import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
-import { mealieRequestFailedKeys } from './mealie-problem-words';
+import { mealieRequestFailedWords } from './mealie-problem-words';
 import { isoWeekday } from '@/lib/iso-date';
 
 interface MealPickerPopoverProps {
@@ -43,6 +43,7 @@ export default function MealPickerPopover({
   onClose,
 }: MealPickerPopoverProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dishTime = useDishTime();
@@ -163,15 +164,15 @@ export default function MealPickerPopover({
 
   let countLine: string | null = null;
   if (onMealie) {
-    if (loadingFirstPage) countLine = t('mealPlannerModal.picker.lookingInMealie');
+    if (loadingFirstPage) countLine = tCore('mealie.search.looking');
     else if (mealie.error) countLine = null;
     else if (shortcut.kind === 'search') countLine = t('mealPlannerModal.picker.recipesInMealie', { count: mealie.total });
     else if (shortcut.kind === 'cookbook' || shortcut.kind === 'category') {
-      countLine = t('mealPlannerModal.picker.categoryCount', { count: mealie.total, category: shortcut.name ?? '' });
+      countLine = tCore('mealie.search.categoryCount', { count: mealie.total, category: shortcut.name ?? '' });
     } else if (shortcut.kind === 'favorites') countLine = t('mealPlannerModal.picker.favoritesAtoZ', { count: mealie.total });
     else countLine = t('mealPlannerModal.picker.recentlyMadeFirst');
   }
-  const failed = mealieRequestFailedKeys(mealie.problem, 'mealPlannerModal.picker.mealieError');
+  const failed = mealieRequestFailedWords(mealie.problem, t('mealPlannerModal.picker.mealieError'), t, tCore);
 
   const rowClass = (i: number) =>
     `flex items-center gap-3 w-full px-2 py-[7px] rounded-md text-left transition ${active === i ? 'bg-hs-card' : ''}`;
@@ -225,11 +226,11 @@ export default function MealPickerPopover({
               ref={inputRef}
               type="text"
               className={`${MODAL_INPUT_CLASS} pl-8 pr-8`}
-              placeholder={onMealie ? t('mealPlannerModal.picker.searchMealiePlaceholder') : t('mealPlannerModal.picker.searchPlaceholder')}
+              placeholder={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={onInputKeyDown}
-              aria-label={onMealie ? t('mealPlannerModal.picker.searchMealiePlaceholder') : t('mealPlannerModal.picker.searchPlaceholder')}
+              aria-label={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
             />
             {search && (
               <button
@@ -260,7 +261,7 @@ export default function MealPickerPopover({
                     }`}
                   >
                     <Icon className="w-3 h-3" aria-hidden />
-                    {f === 'favorites' ? t('mealPlannerModal.picker.favorites') : t('mealPlannerModal.picker.recentlyMade')}
+                    {f === 'favorites' ? tCore('mealie.search.favorites') : tCore('mealie.search.recent')}
                   </button>
                 );
               })}
@@ -329,7 +330,7 @@ export default function MealPickerPopover({
                   {t('mealPlannerModal.picker.typeInstead', { text: query })}
                 </span>
                 <span className="block text-[11px] text-hs-text-faint leading-[15px]">
-                  {onMealie ? t('mealPlannerModal.picker.typeInsteadMealie') : t('mealPlannerModal.picker.typeInsteadLocal')}
+                  {onMealie ? tCore('mealie.search.typeInsteadNote') : t('mealPlannerModal.picker.typeInsteadLocal')}
                 </span>
               </span>
             </button>
@@ -343,7 +344,7 @@ export default function MealPickerPopover({
                   : t('mealPlannerModal.picker.noMealsFound')}
               </p>
               {onMealie && (
-                <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.picker.noRecipesHint')}</p>
+                <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{tCore('mealie.search.noneDescription')}</p>
               )}
             </div>
           )}
@@ -364,8 +365,8 @@ export default function MealPickerPopover({
 
           {onMealie && mealie.error && !loadingFirstPage && (
             <div className="px-3 py-5 text-center">
-              <p className="text-sm font-semibold text-hs-text-body">{t(failed.title)}</p>
-              {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t(failed.fix)}</p>}
+              <p className="text-sm font-semibold text-hs-text-body">{failed.title}</p>
+              {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{failed.fix}</p>}
               <button
                 type="button"
                 onClick={mealie.retry}

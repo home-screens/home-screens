@@ -8,7 +8,8 @@ import {
   Camera,
   Cloud,
 } from 'lucide-react';
-import SecretField, { type SecretKey } from './shared/SecretField';
+import SecretField from './shared/SecretField';
+import type { SecretKey } from '@/lib/secrets';
 import IntegrationCard from './shared/IntegrationCard';
 import GoogleIntegrationCard from './GoogleIntegrationCard';
 import MealieIntegrationCard, { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';

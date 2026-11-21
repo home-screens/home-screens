@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, GripVertical, LayoutGrid } from 'lucide-reac
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useSortableSensors } from '@/hooks/useDndSensors';
+import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle, { Switch } from '@/components/ui/Toggle';
 import IconField from '@/components/ui/IconField';
 import Glyph from '@/components/ui/Glyph';
@@ -57,12 +57,8 @@ export function DockButtonsList({ value, onChange, screens, capacity, compact }:
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const from = chosen.findIndex((b) => b.screenId === active.id);
-    const to = chosen.findIndex((b) => b.screenId === over.id);
-    if (from < 0 || to < 0) return;
-    onChange(arrayMove(chosen, from, to));
+    const move = dragEndIndices(event, chosen.map((b) => b.screenId));
+    if (move) onChange(arrayMove(chosen, move.from, move.to));
   };
   const patch = (screenId: string, changes: Partial<DockButton>) => {
     onChange(chosen.map((b) => (b.screenId === screenId ? pruned({ ...b, ...changes }) : b)));

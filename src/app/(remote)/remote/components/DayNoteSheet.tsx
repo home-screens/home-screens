@@ -6,8 +6,7 @@ import { fullDateHeading, useFormattingLocale, useTranslate } from '@/i18n';
 import { clampDayNoteText, dayNoteLength, normalizeDayNoteText } from '@/lib/day-notes';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 import BottomSheet from './BottomSheet';
-import { DANGER_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './lists-styles';
-import { REMOTE_ACCENT } from './chore-form-styles';
+import { DANGER_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, REMOTE_ACCENT, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
 
 /** `YYYY-MM-DD` as a Date at noon, so formatting it never slips a day. */
 export function dateOfIso(iso: string): Date {

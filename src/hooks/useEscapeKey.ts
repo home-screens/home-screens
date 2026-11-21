@@ -5,16 +5,19 @@ import { useEffect } from 'react';
  * The standard close handler for modals and popovers (see useFocusTrap for
  * the matching focus behavior).
  *
+ * `onEscape` is handed the event, so a handler that acts on it can call
+ * `preventDefault()` and keep anything underneath from acting on it too.
+ *
  * Pass `enabled: false` to suspend the listener without unmounting the
  * component (e.g. while a save is in flight and closing must be blocked).
  */
-export function useEscapeKey(onEscape: () => void, enabled = true) {
+export function useEscapeKey(onEscape: (event: KeyboardEvent) => void, enabled = true) {
   useEffect(() => {
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
       // Already answered by something on top (a confirm, a panel inside the
       // modal): one Escape closes one thing.
-      if (e.key === 'Escape' && !e.defaultPrevented) onEscape();
+      if (e.key === 'Escape' && !e.defaultPrevented) onEscape(e);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);

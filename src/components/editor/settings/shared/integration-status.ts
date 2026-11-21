@@ -1,5 +1,6 @@
 import type { TranslateFn } from '@/i18n';
-import type { SecretKey, SecretStatus } from './SecretField';
+import type { SecretKey } from '@/lib/secrets';
+import type { SecretStatus } from './SecretField';
 
 /** A card's status pill from how many of its keys are saved: none, some, or all. */
 export function getStatusInfo(

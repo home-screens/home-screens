@@ -5,6 +5,7 @@ import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { auditProxyDenied } from '@/lib/audit';
+import { readBoundedBody } from '@/lib/guarded-fetch';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import {
   isAllowedDomain,
@@ -366,17 +367,10 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   if (!followed.ok) return followed.error;
   const upstreamRes = followed.response;
 
-  // Enforce response size limit
-  const contentLength = upstreamRes.headers.get('content-length');
-  if (contentLength && parseInt(contentLength, 10) > MAX_RESPONSE_SIZE) {
-    return NextResponse.json(
-      { error: 'Upstream response too large (max 5MB)' },
-      { status: 502 },
-    );
-  }
-
-  const rawBuffer = await upstreamRes.arrayBuffer();
-  if (rawBuffer.byteLength > MAX_RESPONSE_SIZE) {
+  // Enforce the response size limit while reading, so an answer with no
+  // declared length is dropped at the cap instead of being held whole.
+  const rawBuffer = await readBoundedBody(upstreamRes, MAX_RESPONSE_SIZE);
+  if (!rawBuffer) {
     return NextResponse.json(
       { error: 'Upstream response too large (max 5MB)' },
       { status: 502 },

@@ -1,5 +1,6 @@
 import { isIsoDate } from './iso-date';
-import { RefusalError, type RefusalParams } from './refusal';
+import { isFullHexColor } from './hex-color';
+import { RefusalError, requiredText, type RefusalParams } from './refusal';
 import { uuid } from './uuid';
 import { TODO_LIMITS, type TodoData, type TodoList, type TodoListItem, type TodoRepeat } from '@/types/todos';
 
@@ -42,8 +43,6 @@ export class TodoError extends RefusalError {
 
 export const REPEATS: ReadonlySet<TodoRepeat> = new Set(['never', 'daily', 'weekly']);
 
-export const HEX_COLOR = /^#[0-9a-f]{6}$/i;
-
 export function slugify(name: string): string {
   const base = name
     .toLowerCase()
@@ -64,23 +63,23 @@ export function uniqueSlug(name: string, taken: Set<string>): string {
 }
 
 function cleanName(raw: unknown): string {
-  if (typeof raw !== 'string') throw new TodoError(400, 'lists.nameRequired', 'Give the list a name');
-  const name = raw.trim();
-  if (!name) throw new TodoError(400, 'lists.nameRequired', 'Give the list a name');
-  if (name.length > TODO_LIMITS.maxListNameLength) {
-    throw new TodoError(400, 'lists.nameTooLong', `List names can be up to ${TODO_LIMITS.maxListNameLength} characters`, { max: TODO_LIMITS.maxListNameLength });
-  }
-  return name;
+  const max = TODO_LIMITS.maxListNameLength;
+  return requiredText(
+    raw,
+    max,
+    () => new TodoError(400, 'lists.nameRequired', 'Give the list a name'),
+    () => new TodoError(400, 'lists.nameTooLong', `List names can be up to ${max} characters`, { max }),
+  );
 }
 
 function cleanText(raw: unknown): string {
-  if (typeof raw !== 'string') throw new TodoError(400, 'lists.textRequired', 'Type something first');
-  const text = raw.trim();
-  if (!text) throw new TodoError(400, 'lists.textRequired', 'Type something first');
-  if (text.length > TODO_LIMITS.maxItemTextLength) {
-    throw new TodoError(400, 'lists.textTooLong', `Items can be up to ${TODO_LIMITS.maxItemTextLength} characters`, { max: TODO_LIMITS.maxItemTextLength });
-  }
-  return text;
+  const max = TODO_LIMITS.maxItemTextLength;
+  return requiredText(
+    raw,
+    max,
+    () => new TodoError(400, 'lists.textRequired', 'Type something first'),
+    () => new TodoError(400, 'lists.textTooLong', `Items can be up to ${max} characters`, { max }),
+  );
 }
 
 function cleanDueDate(raw: unknown): string | undefined {
@@ -106,7 +105,7 @@ function cleanAssignees(raw: unknown): string[] | undefined {
 
 function cleanColor(raw: unknown): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TodoError(400, 'lists.badColor', 'Pick a colour from the list');
+  if (!isFullHexColor(raw)) throw new TodoError(400, 'lists.badColor', 'Pick a colour from the list');
   return raw.toLowerCase();
 }
 

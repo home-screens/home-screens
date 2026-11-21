@@ -1,7 +1,6 @@
 import type { MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
 import { toISODate, fromISODate, type ResolvedPlanEntry } from '@/lib/meal-constants';
 import { splitMinutes } from '@/lib/meal-dish-rules';
-import { UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
  * One day of the week the Meals tab shows: its date and its `dayIndex`
@@ -11,47 +10,6 @@ export interface MealsWeekDay {
   date: string;
   dayIndex: number;
 }
-
-// Meal forms use slightly more compact inputs than chore forms
-export const LABEL_STYLE: React.CSSProperties = {
-  display: 'block',
-  fontSize: 12,
-  fontWeight: 700,
-  color: 'var(--hs-text-muted)',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.04em',
-  marginBottom: 6,
-};
-
-export const INPUT_STYLE: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 12px',
-  minHeight: 44,
-  fontSize: 14,
-  background: 'var(--hs-bg-panel)',
-  border: '1px solid var(--hs-border)',
-  borderRadius: 10,
-  color: 'var(--hs-text-primary)',
-  outline: 'none',
-  fontFamily: UI_SANS_STACK,
-};
-
-// Section heading shared by the meal-settings sheet's sections
-export const SECTION_HEADING_STYLE: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.06em',
-  color: 'var(--hs-text-faint)',
-  margin: '0 0 8px',
-};
-
-export const CARD_STYLE: React.CSSProperties = {
-  background: 'var(--hs-bg-card)',
-  border: '1px solid var(--hs-border)',
-  borderRadius: 12,
-  padding: 14,
-};
 
 /**
  * The sub-views the Meals tab switches between, in nav order. The array is the

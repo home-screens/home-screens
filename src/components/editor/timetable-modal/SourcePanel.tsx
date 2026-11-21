@@ -37,6 +37,7 @@ import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseho
 import type { TimetableData, TimetableSource } from '@/types/timetables';
 import { PROSE_CLASS } from './prose';
 import { withSheetSync, type SheetCheckOutcome } from './use-timetable-draft';
+import { sheetLabel } from './sheet-label';
 
 interface SourcePanelProps {
   /** Whose week this is. Every action here is about this one person's sheet. */
@@ -50,16 +51,6 @@ interface SourcePanelProps {
    */
   onCheck: (memberId: string) => Promise<SheetCheckOutcome>;
   update: (change: (data: TimetableData) => TimetableData) => void;
-}
-
-/**
- * The pasted link, short enough to read back on one line. A spreadsheet link is
- * mostly its document id, so the scheme and anything after the path are dropped
- * before the middle of it is.
- */
-function sheetLabel(url: string): string {
-  const bare = url.replace(/^https?:\/\//, '').split(/[?#]/)[0];
-  return bare.length > 48 ? `${bare.slice(0, 47)}…` : bare;
 }
 
 export default function SourcePanel({ memberId, source, onImportAgain, onCheck, update }: SourcePanelProps) {

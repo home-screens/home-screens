@@ -6,6 +6,7 @@ import { attachCustomIcons } from '@/lib/custom-icon-backup';
 import { saveBackupFile } from '@/lib/picture-backup';
 import type { BackupState } from '@/lib/backup-state';
 import type { AutoBackupReminder } from '@/lib/backup-reminder-auto';
+import { backupReminderKind } from '@/lib/backup-reminder';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
 
@@ -174,5 +175,8 @@ export function useBackupReminder({
     }).catch(() => {});
   }, [fetchFn]);
 
-  return { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, autoFailed, autoLocalOnly, handleBackup, handleDismiss };
+  /** Which message is up; each surface gives it its own words and buttons. */
+  const kind = backupReminderKind({ shouldShow, autoFailed, iconsLeftOut, picturesLeftOut, autoOn: !!auto });
+
+  return { shouldShow, kind, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, autoFailed, autoLocalOnly, handleBackup, handleDismiss };
 }

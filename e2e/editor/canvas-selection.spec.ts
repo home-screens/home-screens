@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { putConfig, getConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { openEditor } from '../helpers/editor';
 
 /**
  * Selection on the canvas and the controls around it:
@@ -21,11 +22,6 @@ function stackedScreen() {
     textModule('BACK', { id: 'back', size: { w: 800, h: 400 }, zIndex: 1 }),
     textModule('FRONT', { id: 'front', size: { w: 800, h: 200 }, zIndex: 2 }),
   ]);
-}
-
-async function openEditor(page: Page) {
-  await page.goto('/editor');
-  await expect(page.getByTestId('editor-canvas')).toBeVisible();
 }
 
 /** Height of the selection ring in canvas pixels (1080-wide display). */

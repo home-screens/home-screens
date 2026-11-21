@@ -40,9 +40,6 @@
     "restarting": "Home Screens redémarre. Reconnexion dans environ 20 secondes…",
     "rebooting": "L'appareil redémarre. Reconnexion dans environ une minute…"
   },
-  "hubRequest": {
-    "saveFailed": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie."
-  },
   "backupReminder": {
     "daysAgoSingular": "Tu n'as pas fait de sauvegarde depuis {n} jour.",
     "daysAgoPlural": "Tu n'as pas fait de sauvegarde depuis {n} jours.",
@@ -107,7 +104,6 @@
     "customColorTitle": "Couleur personnalisée"
   },
   "choresTab": {
-    "changedElsewhere": "Quelqu'un d'autre a modifié les tâches. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
     "header": "Tâches",
     "headerFor": "Tâches pour {name}",
     "switchHint": "Ce n’est pas {name} ? Touche ton nom pour changer.",
@@ -145,7 +141,6 @@
     "choreAriaLabelMarkComplete": "Cocher : {chore}",
     "choreAriaLabelCompleted": "Fait : {chore}",
     "saveFailed": "Échec de l'enregistrement. Réessaie.",
-    "holdToUncheckHint": "Appuie longuement pour décocher",
     "dayToggle": {
       "ariaLabel": "Jour à afficher",
       "yesterday": "Hier",
@@ -260,7 +255,6 @@
       "daysLabel": "Jours",
       "assignToLabel": "Assigner à",
       "weeklyScheduleLabel": "Planning hebdomadaire",
-      "coverageLabel": "Couverture : {covered} jours sur 7",
       "rotationLabel": "Qui s'en occupe ?",
       "addSubmit": "Ajouter la tâche",
       "saveSubmit": "Enregistrer la tâche",
@@ -375,8 +369,6 @@
     },
     "loadError": "Impossible de charger tes repas. Vérifie que le hub est allumé et réessaie.",
     "retry": "Réessayer",
-    "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
-    "saveFailedConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -639,9 +631,7 @@
       "noTicketsHint": "Fais tes tâches dans l'onglet Aujourd'hui pour gagner des tickets.",
       "alreadyGot": "{name} a déjà obtenu {reward} à l'instant.",
       "alreadyGotKid": "Tu as déjà obtenu {reward} à l'instant !",
-      "changed": "Les tickets de {name} viennent de changer. Regarde à nouveau.",
-      "notOffered": "Cette récompense n'est plus proposée.",
-      "removed": "Cette personne ne fait plus partie de la famille."
+      "changed": "Les tickets de {name} viennent de changer. Regarde à nouveau."
     },
     "manage": {
       "heading": "Récompenses",
@@ -672,7 +662,6 @@
       "sheetHint": "Les tickets de {name} comptent pour ça. Quand {name} l'a obtenu, choisis autre chose.",
       "sheetEmpty": "Pas encore de récompense pour laquelle économiser.",
       "stop": "Arrêter d'économiser",
-      "failed": "Ça n'a pas été enregistré. Réessaie.",
       "headingFor": "{name} économise pour",
       "pickFor": "Choisis un objectif pour {name}",
       "sheetTitleFor": "Un objectif pour {name}",
@@ -697,7 +686,6 @@
       "reasonPlaceholder": "Pourquoi ? (facultatif)",
       "reasonHint": "Apparaît dans leur historique de tickets.",
       "pickSomeone": "Choisis quelqu'un",
-      "failed": "Ça n'a pas été enregistré. Réessaie.",
       "chooseHowMany": "Choisis combien",
       "manyPeople": "{count} personnes",
       "give": "Donner {amount} à {names}",
@@ -987,10 +975,8 @@
       "googleIntro": "Choisis des photos dans Google Photos, puis reviens ici. Elles seront ajoutées dans {folder}.",
       "googleOpen": "Ouvrir Google Photos",
       "googlePreparing": "Préparation de Google Photos…",
-      "googleWaiting": "En attente de tes choix…",
       "googleExpired": "Google Photos a arrêté d'attendre. Réessaie.",
       "googleFailed": "Impossible de joindre Google Photos. Réessaie.",
-      "icloudTitle": "Ajouter depuis un lien iCloud",
       "icloudIntro": "Colle le lien d'un album partagé, ou un lien créé avec « Copier le lien iCloud » dans l'app Photos. Tout son contenu sera ajouté dans {folder}.",
       "icloudPlaceholder": "Colle le lien ici",
       "icloudAdd": "Ajouter",
@@ -1009,15 +995,10 @@
       "tooMany": "C'est trop d'un coup. Choisis-en moins et réessaie.",
       "lost": "Le hub a redémarré pendant l'ajout. Réessaie.",
       "tryAgain": "Réessayer",
-      "alreadyHere": {
-        "one": "{count} était déjà là.",
-        "other": "{count} étaient déjà là."
-      },
       "couldNotAdd": {
         "one": "{count} n'a pas pu être ajoutée.",
         "other": "{count} n'ont pas pu être ajoutées."
-      },
-      "nothingFound": "Cet album ne contient rien à ajouter."
+      }
     },
     "art": {
       "onWall": "Au mur en ce moment",
@@ -1106,7 +1087,6 @@
     "showingOnDisplay": "Affiché sur l'écran",
     "waitingForDisplay": "En attente qu'un écran le prenne…",
     "notShowing": "Aucun écran ne l'affiche encore. Vérifie qu'un écran est allumé.",
-    "failed": "Quelque chose n'a pas marché. Réessaie.",
     "whyNoSave": {
       "name": "Donne un nom à la routine pour l'enregistrer.",
       "stepName": "Donne un nom à chaque étape pour enregistrer.",
@@ -1193,9 +1173,6 @@
       "copied": "Copié !",
       "nothingOpen": "Tout est fait !"
     },
-    "errors": {
-      "generic": "Quelque chose n'a pas marché. Réessaie."
-    },
     "loadError": "Impossible de charger tes listes. Vérifie que le hub est allumé et réessaie.",
     "retry": "Réessayer"
   },
@@ -1255,7 +1232,6 @@
     "grabbingHeading": "Prendre des tâches bonus",
     "letGoHint": "Un adulte peut toujours libérer une tâche prise par quelqu'un : touche le bouton ••• à côté de la tâche dans l'onglet Aujourd'hui.",
     "save": "Enregistrer",
-    "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
     "changeAriaLabel": "Modifier la façon de prendre les tâches bonus"
   },
   "atHome": {
@@ -1323,7 +1299,6 @@
     },
     "loadError": "Impossible de charger les notes.",
     "retry": "Réessayer",
-    "saveError": "Ça n'a pas été enregistré. Réessaie.",
     "editAria": "Modifier la note de {name}",
     "dayNotes": {
       "sub": "Les notes du jour s'affichent sur les calendriers du mur",
@@ -1337,7 +1312,6 @@
       "put": "Mettre dans le calendrier",
       "remove": "Retirer",
       "loadError": "Impossible de charger les notes du jour.",
-      "saveError": "Ça n'a pas été enregistré. Réessaie.",
       "saved": "Note enregistrée pour {day}. Elle s'affiche sur le mur dès qu'un calendrier montre ce jour.",
       "removed": "Note retirée",
       "undo": "Annuler",
@@ -1426,33 +1400,21 @@
   },
   "mealie": {
     "pill": {
-      "label": "Depuis Mealie",
       "updated": "· Mis à jour : {time}"
     },
-    "openMealie": "Ouvrir Mealie",
-    "unreachable": {
-      "title": "Impossible de joindre Mealie pour le moment",
-      "description": "Tes repas sont dans Mealie, et Home Screens n'arrive pas à y accéder. Vérifie que Mealie fonctionne, puis réessaie."
-    },
     "notConnected": {
-      "title": "Mealie n'est pas connecté",
       "description": "Le planning des repas doit venir de Mealie, mais l'adresse ou le jeton de Mealie n'est pas enregistré. Ajoute-les sur l'ordinateur dans Réglages > Clés API, ou remets le planning sur Home Screens dans les réglages des repas."
     },
     "tokenRefused": {
-      "title": "Mealie ne laisse plus entrer Home Screens",
       "description": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le sur l'ordinateur dans Réglages > Clés API."
     },
     "setup": {
-      "title": "Home Screens ne peut pas utiliser ce Mealie",
       "description": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour."
     },
     "connection": {
-      "title": "Home Screens est injoignable pour le moment",
       "description": "Vérifie que ce téléphone est connecté, puis réessaie."
     },
     "paused": {
-      "description": "La planification est en pause jusqu'au retour de Mealie.",
-      "descriptionWithTime": "La planification est en pause jusqu'au retour de Mealie. Voici le planning de {time}.",
       "tokenDescription": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause.",
       "tokenDescriptionWithTime": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}.",
       "setupDescription": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause.",
@@ -1465,16 +1427,12 @@
       "unreachable": "Mealie ne répond pas, donc ça n'a pas été enregistré. Réessaie dans un instant."
     },
     "search": {
-      "placeholder": "Rechercher des recettes dans Mealie",
       "placeholderCount": {
         "one": "Rechercher parmi {count} recette dans Mealie",
         "other": "Rechercher parmi {count} recettes dans Mealie"
       },
       "ariaLabel": "Rechercher des recettes dans Mealie",
       "clear": "Effacer la recherche",
-      "favorites": "Favoris",
-      "recent": "Cuisinés récemment",
-      "looking": "Recherche dans Mealie…",
       "recipeCount": {
         "one": "{count} recette",
         "other": "{count} recettes"
@@ -1485,18 +1443,12 @@
       },
       "recentHeading": "Les plus récents d'abord",
       "noneTitle": "Aucune recette « {query} » dans Mealie",
-      "noneDescription": "Vérifie l'orthographe, ou tape-le directement. Il ira dans le planning comme une note, sans recette.",
       "noFavoritesTitle": "Pas encore de favoris",
       "noFavoritesDescription": "Touche le cœur d'une recette dans Mealie et elle apparaîtra ici.",
       "noRecentTitle": "Rien de cuisiné pour l'instant",
       "noRecentDescription": "Les recettes que tu marques comme cuisinées dans Mealie apparaissent ici, les plus récentes d'abord.",
       "errorDescription": "Mealie n'a pas répondu. Vérifie qu'il fonctionne, puis réessaie.",
       "typeInstead": "Taper « {query} » tel quel",
-      "typeInsteadNote": "Sans recette. Mealie le garde comme une note.",
-      "categoryCount": {
-        "one": "{count} recette dans {category}",
-        "other": "{count} recettes dans {category}"
-      },
       "noneInCategoryTitle": "Aucune recette dans {category} pour le moment",
       "noneInCategoryDescription": "Cherche une recette par son nom, ou choisis Favoris."
     },
@@ -1520,76 +1472,11 @@
         "one": "{list}, {count} article à acheter",
         "other": "{list}, {count} articles à acheter"
       },
-      "addPlaceholder": "Ajouter à la liste {list}",
-      "addButton": "Ajouter",
-      "added": "{item} est sur la liste {list}",
-      "addedUnder": "{item} est sur la liste {list}, dans {label}",
-      "already": "{item} est déjà sur la liste {list}",
-      "putBack": "{item} est de retour sur la liste {list}",
-      "undo": "Annuler",
-      "picked": "Tout le monde voit la liste {list} maintenant.",
-      "moved": "Voici la liste {list}, choisie sur un autre appareil.",
-      "gone": "La liste {from} n'existe plus dans Mealie. Voici la liste {list}.",
       "hint": "Ta liste Mealie. Ce que tu coches ici est aussi coché dans Mealie.",
-      "forRecipes": "pour {recipes}",
-      "noLabel": "Aucune étiquette",
-      "toGet": {
-        "one": "{count} article à acheter",
-        "other": "{count} articles à acheter"
-      },
-      "allGot": "Tout est coché",
-      "openListAria": "Ouvrir la liste {list} dans Mealie (nouvelle page)",
-      "inCart": "Cochés ({count})",
-      "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
-      "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",
-      "staleSetup": "Home Screens ne peut pas utiliser ce Mealie. Voici la liste de {time}.",
-      "staleNotConnected": "Mealie n'est pas connecté. Voici la liste de {time}.",
-      "staleConnection": "Home Screens est injoignable. Voici la liste de {time}.",
-      "loading": "On récupère ta liste dans Mealie…",
-      "noListsTitle": "Mealie n'a pas encore de liste de courses",
-      "noListsDescription": "Crée une liste de courses dans Mealie et elle apparaîtra ici.",
-      "emptyTitle": "Rien dans la liste {list} pour l'instant",
-      "emptyDescription": "Ajoute quelque chose ci-dessus, ou envoie ici les ingrédients d'une recette depuis Mealie.",
-      "unreachableDescription": "Ta liste est en sécurité dans Mealie. Vérifie que Mealie fonctionne, puis réessaie.",
-      "connectionTitle": "Home Screens est injoignable pour le moment",
-      "connectionDescription": "Vérifie que ce téléphone est connecté, puis réessaie.",
-      "noConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
-      "notSaved": {
-        "one": "{items} n'a pas été enregistré. Réessaie.",
-        "other": "{items} n'ont pas été enregistrés. Réessaie."
-      },
-      "notSavedUnreachable": {
-        "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
-        "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
-      },
-      "notSavedToken": {
-        "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
-        "other": "{items} n'ont pas été enregistrés. Mealie ne laisse plus entrer Home Screens."
-      },
-      "notSavedSetup": {
-        "one": "{items} n'a pas été enregistré. Home Screens ne peut pas utiliser ce Mealie.",
-        "other": "{items} n'ont pas été enregistrés. Home Screens ne peut pas utiliser ce Mealie."
-      },
-      "notSavedNotConnected": {
-        "one": "{items} n'a pas été enregistré. Mealie n'est pas connecté.",
-        "other": "{items} n'ont pas été enregistrés. Mealie n'est pas connecté."
-      },
-      "notSavedConnection": {
-        "one": "{items} n'a pas été enregistré. Home Screens est injoignable, vérifie la connexion et réessaie.",
-        "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
-      },
-      "moreItems": {
-        "one": "{count} autre",
-        "other": "{count} autres"
-      },
-      "listGone": "Cette liste n'existe plus dans Mealie."
+      "connectionDescription": "Vérifie que ce téléphone est connecté, puis réessaie."
     },
     "suggest": {
-      "allPlanned": "Tous les dîners de la semaine sont déjà prévus.",
-      "allPlannedDates": "Tous les dîners de la semaine du {range} sont déjà prévus.",
-      "nothingFits": "Mealie n'avait aucune recette à proposer pour ces repas. Vérifie les règles du planning dans Mealie.",
       "failed": "Mealie n'a pas pu proposer de repas pour le moment. Réessaie dans un instant.",
-      "noDinners": "Suggérer remplit les dîners vides, et le dîner est désactivé dans les réglages des repas.",
       "confirmTitle": {
         "one": "Remplir le dîner vide ?",
         "other": "Remplir les dîners vides ?"
@@ -1602,13 +1489,7 @@
         "one": "Home Screens choisit un dîner parmi tes recettes Mealie pour le soir vide de la semaine du {range} et l'enregistre dans Mealie. Un soir couvert par une règle du planning dans Mealie suit cette règle.",
         "other": "Home Screens choisit des dîners parmi tes recettes Mealie pour les {count} soirs vides de la semaine du {range} et les enregistre dans Mealie. Les soirs couverts par une règle du planning dans Mealie suivent cette règle."
       },
-      "confirmLabel": "Remplir les dîners",
-      "done": {
-        "one": "Un dîner prévu pour {days}.",
-        "other": "Des dîners prévus pour {days}."
-      },
-      "doneEveryNight": "Un dîner prévu pour chaque soir de la semaine.",
-      "doneEveryNightDates": "Un dîner prévu pour chaque soir de la semaine du {range}."
+      "confirmLabel": "Remplir les dîners"
     }
   }
 }

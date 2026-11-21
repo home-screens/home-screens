@@ -29,7 +29,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** The view-local multiplier removed from CountdownNextView. */
 const NEXT_VIEW_MULTIPLIER = 1.3;

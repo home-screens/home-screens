@@ -533,7 +533,7 @@ export default function MediaLibraryPage() {
           aria-pressed={importPanel === 'icloud'}
           data-testid="media-icloud-button"
         >
-          {t('photoSources.import.icloudTitle')}
+          {tCore('imports.icloudTitle')}
         </Button>
         <Button
           size="sm"

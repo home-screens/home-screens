@@ -2,14 +2,10 @@
 
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
-import ScheduleWeekStrip from './ScheduleWeekStrip';
-import HomeTimeHint from './HomeTimeHint';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import { useEditorStore } from '@/stores/editor-store';
+import ScheduleWindowFields from './ScheduleWindowFields';
 import { useMemo } from 'react';
-import { useFormattingLocale, useTranslate } from '@/i18n';
-import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { useScheduleWindow } from '@/hooks/useScheduleWindow';
+import { useTranslate } from '@/i18n';
+import { EVERY_DAY } from '@/lib/schedule';
 import { computeWeekSegments } from '@/lib/schedule-timeline';
 import type { ModuleSchedule } from '@/types/config';
 
@@ -26,17 +22,8 @@ interface ScheduleEditorProps {
   wording?: 'show' | 'opened';
 }
 
-const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
-
 export function ScheduleEditor({ schedule, onChange, statusTitle, wording = 'show' }: ScheduleEditorProps) {
   const t = useTranslate('editor');
-  const formattingLocale = useFormattingLocale();
-  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
-  const dayNames = useMemo(
-    () => getLocalizedDayNames(formattingLocale, 'full'),
-    [formattingLocale],
-  );
-
   const enabled = !!schedule;
 
   // Every field is kept as set. `invert` in particular is never rewritten on
@@ -58,11 +45,6 @@ export function ScheduleEditor({ schedule, onChange, statusTitle, wording = 'sho
     }
   };
 
-  const { shape, spanDays, startDay, toggleDay, setShape } = useScheduleWindow(
-    schedule,
-    setSchedule,
-  );
-
   // Invert with nothing narrowing the week hides the module always. The toggle
   // stays usable so the user can undo it; this only says what has happened.
   const neverShows = useMemo(
@@ -78,89 +60,14 @@ export function ScheduleEditor({ schedule, onChange, statusTitle, wording = 'sho
 
       {schedule && (
         <>
-          {/* The strip replaced a summary sentence and a separate row of day
-              chips. It shows the same facts and, unlike the sentence, shows
-              which day an overnight window ends on. */}
-          <PropertyGroup title={t('scheduleEditor.repeatTitle')} accent={1}>
-            <select
-              aria-label={t('scheduleEditor.repeatTitle')}
-              data-testid="schedule-shape"
-              value={shape}
-              /* The panel is narrow enough that a long option is cut off
-                 mid-word with no ellipsis, so the full wording is only
-                 recoverable on hover. `shape-options.test.ts` keeps the
-                 strings inside the width that fits. */
-              title={t(shape === 'span' ? 'scheduleEditor.shapeSpan' : 'scheduleEditor.shapeRepeat')}
-              onChange={(e) => setShape(e.target.value as 'repeat' | 'span')}
-              className={INPUT_CLASS}
-            >
-              <option value="repeat">{t('scheduleEditor.shapeRepeat')}</option>
-              <option value="span">{t('scheduleEditor.shapeSpan')}</option>
-            </select>
-          </PropertyGroup>
-
-          <PropertyGroup title={t('scheduleEditor.weekPreviewTitle')} accent={2}>
-            <ScheduleWeekStrip
-              wording={wording}
-              schedule={schedule}
-              timeFormat={timeFormat}
-              shape={shape}
-              onToggleDay={toggleDay}
-              onDragEdge={setSchedule}
-            />
-          </PropertyGroup>
-
-          <PropertyGroup title={t('scheduleEditor.timeWindowTitle')} accent={3}>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">{t('scheduleEditor.fromLabel')}</span>
-                <input
-                  type="time"
-                  value={schedule?.startTime ?? ''}
-                  onChange={(e) => setSchedule({ startTime: e.target.value || undefined })}
-                  className={INPUT_CLASS}
-                />
-              </label>
-              {/* The select is a sibling of the label, not inside it: a label
-                  wrapping two controls folds the selected option's text into
-                  the time input's accessible name. */}
-              <div className="flex flex-col gap-0.5">
-                <label className="flex flex-col gap-0.5">
-                  <span className="text-xs text-hs-text-muted">{t('scheduleEditor.untilLabel')}</span>
-                  <input
-                    type="time"
-                    value={schedule?.endTime ?? ''}
-                    onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
-                    className={INPUT_CLASS}
-                  />
-                </label>
-                {/* A span has one start day, so its end can be named outright
-                    rather than counted in days. The keyboard path to the same
-                    thing dragging the strip's end does. */}
-                {shape === 'span' && (
-                  <select
-                    aria-label={t('scheduleEditor.endsOnLabel')}
-                    data-testid="schedule-end-day-offset"
-                    value={String(spanDays)}
-                    onChange={(e) => setSchedule({ endDayOffset: Number(e.target.value) })}
-                    className={`${INPUT_CLASS} mt-1`}
-                  >
-                    {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-                      <option key={n} value={n}>
-                        {dayNames[(startDay + n) % 7]}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-            <HomeTimeHint />
-            {/* A native time input ignores `placeholder`, so an empty window
-                reads as "--:-- --" and nothing says that empty means all day. */}
-            <p className="mt-1.5 text-[10px] text-hs-text-faint leading-relaxed">
-              {t(wording === 'opened' ? 'scheduleEditor.opened.allDayHint' : 'scheduleEditor.allDayHint')}
-            </p>
-          </PropertyGroup>
+          <ScheduleWindowFields
+            window={schedule}
+            onPatch={setSchedule}
+            skin="groups"
+            wording={wording}
+            labels={{ from: t('scheduleEditor.fromLabel'), until: t('scheduleEditor.untilLabel') }}
+            testIds={{ shape: 'schedule-shape', endDay: 'schedule-end-day-offset' }}
+          />
 
           <PropertyGroup title={t('scheduleEditor.behaviorTitle')} accent={4}>
             <Toggle

@@ -1,4 +1,5 @@
-import type { CalendarSettings, Screen, ScreenConfiguration } from '@/types/config';
+import type { CalendarSettings, ScreenConfiguration } from '@/types/config';
+import { rewriteConfigModules } from '@/lib/config-modules';
 import { googleCalendarIdList } from '@/lib/calendar-sources';
 
 /**
@@ -101,34 +102,12 @@ export function pruneCalendarSourceRefs(config: ScreenConfiguration, removed: Re
     next = { ...next, settings: { ...next.settings, calendar: { ...calendar, personSources } } };
   }
 
-  const pruneScreens = (screens: Screen[]): Screen[] => {
-    let touched = false;
-    const out = screens.map((screen) => {
-      let screenTouched = false;
-      const modules = screen.modules.map((m) => {
-        const filter = m.config.sourceFilter;
-        if (!SOURCE_FILTER_MODULE_TYPES.has(m.type) || !Array.isArray(filter)) return m;
-        const kept = (filter as string[]).filter(keep);
-        if (kept.length === filter.length) return m;
-        screenTouched = true;
-        const { sourceFilter: _dropped, ...rest } = m.config;
-        return { ...m, config: kept.length > 0 ? { ...rest, sourceFilter: kept } : rest };
-      });
-      if (!screenTouched) return screen;
-      touched = true;
-      return { ...screen, modules };
-    });
-    return touched ? out : screens;
-  };
-
-  const screens = pruneScreens(next.screens);
-  if (screens !== next.screens) next = { ...next, screens };
-  if (next.displays) {
-    const displays = next.displays.map((d) => {
-      const pruned = pruneScreens(d.screens);
-      return pruned === d.screens ? d : { ...d, screens: pruned };
-    });
-    if (displays.some((d, i) => d !== next.displays![i])) next = { ...next, displays };
-  }
-  return next;
+  return rewriteConfigModules(next, (m) => {
+    const filter = m.config.sourceFilter;
+    if (!SOURCE_FILTER_MODULE_TYPES.has(m.type) || !Array.isArray(filter)) return m;
+    const kept = (filter as string[]).filter(keep);
+    if (kept.length === filter.length) return m;
+    const { sourceFilter: _dropped, ...rest } = m.config;
+    return { ...m, config: kept.length > 0 ? { ...rest, sourceFilter: kept } : rest };
+  });
 }
