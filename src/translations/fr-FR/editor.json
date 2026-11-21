@@ -59,6 +59,12 @@
     "mediaTypesVideos": "Vidéos uniquement",
     "mediaTypesBoth": "Photos + vidéos",
     "maxVideoDurationSeconds": "Durée maximale par vidéo (secondes)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Ne pas lire",
+    "livePhotosOnce": "Lire une fois",
+    "livePhotosTwice": "Lire deux fois",
+    "livePhotosLoop": "Lire en boucle",
+    "livePhotosHint": "Lit la petite vidéo qui accompagne une Live Photo d'iPhone. Mettez-la dans le même dossier que sa photo, avec le nom de la photo suivi de .live, par exemple IMG_1234.live.mov pour IMG_1234.jpg.",
     "resetToDefault": "Rétablir la valeur par défaut",
     "signInWithGoogle": "Se connecter avec Google"
   },

@@ -114,6 +114,25 @@ Folders are managed here too: **New folder** makes one (inside the folder you ar
 
 Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The Image Library's Local tab and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
 
+### Live Photos
+
+An iPhone Live Photo is a photo plus a short video, about three seconds, of the moment around it. A Photo Slideshow or Full-screen Photo showing a library folder can play that video over the photo, so the picture moves for a moment and then settles.
+
+Both halves have to be in the same folder, with the video named after its photo plus `.live`: `IMG_1234.jpg` pairs with `IMG_1234.live.mov` (or `.live.mp4`; capital letters don't matter). Uploading from the phone only sends the photo, so this takes a computer:
+
+1. On the iPhone, set **Settings > Camera > Formats** to **Most Compatible** before taking the photos. The photo is then a JPEG and the video is one the wall can play. Photos taken on **High Efficiency** (the iPhone's default) are HEIC with HEVC video, which the library can't take: convert them to JPEG and H.264 first, or the upload will turn the video away with a note saying it won't play.
+2. Copy both files to the computer. On a Mac, select them in Photos and choose **File > Export > Export Unmodified Original**; on Windows, copy them from the iPhone's DCIM folder. You get `IMG_1234.JPG` and `IMG_1234.MOV`.
+3. Rename the video by adding `.live` before `.MOV`: `IMG_1234.live.MOV`.
+4. Upload both into the same folder from **Settings > Pictures & videos**. If the folder already has an `IMG_1234.JPG`, the new photo is saved as `IMG_1234-2.JPG` and its video follows it to `IMG_1234-2.live.MOV`, so the pair stays together.
+
+The `.live` part is what makes a pair. A photo and a video that only share a name stay two separate files.
+
+The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and the Image Library, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone plays as the plain video it is.
+
+If two pictures in one folder share a name with different extensions, say `beach.jpg` and `beach.png`, there is no telling which of them `beach.live.mov` belongs to, so neither takes it and it plays on its own.
+
+What happens to the movement is set per module, under **Live Photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-screen Photo showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
+
 ---
 
 ## Unsplash integration

@@ -688,6 +688,7 @@ const DISCRIMINATOR_UNION_DECISIONS: Record<string, string> = {
   ShapeLineStyle: 'stroke dash pattern; field-level row (dashed) suffices',
   ShapeOrientation: 'axis transform of the same line renderer; field-level row (vertical) suffices',
   SlideshowMediaTypes: 'source-mix selection, not a render mode; the media-videos variant rows prove the video pipeline and photos is the default matrix render',
+  LivePhotoMotion: 'the live-photos-once-plays and live-photos-still-holds variant rows prove both ends of the union on both photo modules; twice and loop differ only in when the same element replays, which LivePhotoMotion.test.tsx drives with fake timers',
   StandingsGrouping: 'grouping strategies share the table renderer; field-level rows suffice',
   TextDecoration: 'CSS text-decoration values; field-level row suffices',
   TextRevealOnRotation: 'reveal animation flavors on the rotation feature; field-level row suffices',

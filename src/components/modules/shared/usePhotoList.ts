@@ -11,6 +11,9 @@ import { useCrossfadeLayers } from './useCrossfadeLayers';
 
 const NO_ITEMS: MediaListItem[] = [];
 
+/** How long a slide stays up when the module sets no interval. */
+export const DEFAULT_SLIDE_INTERVAL_MS = 30_000;
+
 interface PhotoListOptions {
   /** The module's id on a real display: it carries the position across the screen rotating away and back. */
   moduleId?: string;
@@ -40,7 +43,7 @@ export function usePhotoList(
   // an all-photo list degenerates to the plain fixed-interval rotation.
   // The list URL keys the batch, so a periodic refresh is held until the
   // current pass completes instead of re-dealing mid-slideshow.
-  const [batch, index, advance, controls] = useMediaRotation(items, config.intervalMs ?? 30000, config.shuffle ?? false, playVideos, listUrl, moduleId);
+  const [batch, index, advance, controls] = useMediaRotation(items, config.intervalMs ?? DEFAULT_SLIDE_INTERVAL_MS, config.shuffle ?? false, playVideos, listUrl, moduleId);
   // Back, next, pause and play from the phone's Control tab.
   useModuleCommand(moduleType, (action) => handleSlideshowCommand(controls, action));
 

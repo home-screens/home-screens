@@ -4,7 +4,7 @@ import { useTranslate } from '@/i18n';
 import type { PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
-import { usePhotoList } from './shared/usePhotoList';
+import { usePhotoList, DEFAULT_SLIDE_INTERVAL_MS } from './shared/usePhotoList';
 import { SlideLayer, KEN_BURNS_CSS } from './shared/SlideImage';
 import type { LayerIndex } from './shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
@@ -55,6 +55,9 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const videoAdjacent = sources.some((s) => s?.type === 'video');
   const kenBurns = (config.kenBurns ?? false) && !videoAdjacent;
 
+  // The slide's own length, the same default `usePhotoList` rotates on.
+  const live = { motion: config.livePhotos ?? 'once', slideMs: config.intervalMs ?? DEFAULT_SLIDE_INTERVAL_MS };
+
   const renderLayer = (layer: LayerIndex) => (
     <SlideLayer
       item={sources[layer]}
@@ -71,6 +74,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
       onEnded={advance}
       onReady={() => layerReady(layer)}
       onFailed={() => layerFailed(layer)}
+      live={live}
     />
   );
 

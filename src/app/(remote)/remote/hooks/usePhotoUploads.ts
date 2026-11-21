@@ -5,6 +5,8 @@ import { isSessionExpired } from '@/lib/editor-fetch';
 import { libraryFileFromServeUrl, uploadLibraryFile } from '@/lib/library-client';
 import { downscaleForUpload } from '@/lib/image-downscale';
 import {
+  companionsLast,
+  liveUploadPairing,
   IMAGE_MIME_BY_EXT,
   IMAGE_MIME_TYPES,
   MAX_IMAGE_BYTES,
@@ -12,7 +14,7 @@ import {
   VIDEO_MIME_TYPES,
   mediaKindOf,
 } from '@/lib/media-formats';
-import { extensionOf } from '@/lib/media-paths';
+import { extensionOf, fileNameOf } from '@/lib/media-paths';
 import { isUnplayableVideo } from '@/lib/video-codec';
 
 /**
@@ -96,9 +98,13 @@ export function usePhotoUploads(onAdded: () => void) {
   const onAddedRef = useRef(onAdded);
   onAddedRef.current = onAdded;
 
-  const start = useCallback(async (picked: File[], folder: string) => {
-    if (activeRef.current || picked.length === 0) return;
+  const start = useCallback(async (chosen: File[], folder: string) => {
+    if (activeRef.current || chosen.length === 0) return;
     activeRef.current = true;
+    // A Live Photo clip goes after its picture, and follows it to the name it
+    // was saved under.
+    const picked = companionsLast(chosen);
+    const pairing = liveUploadPairing();
     const total = picked.length;
     const prepared = picked.map(prepare);
     const refused = prepared.map(refusedUpFront);
@@ -153,6 +159,8 @@ export function usePhotoUploads(onAdded: () => void) {
             continue;
           }
         }
+        const pairedName = pairing.nameFor(file.name);
+        if (pairedName !== file.name) file = new File([file], pairedName, { type: file.type, lastModified: file.lastModified });
         sizes[i] = file.size;
         draw(i, 0);
         try {
@@ -164,6 +172,7 @@ export function usePhotoUploads(onAdded: () => void) {
           });
           const path = result.ok && result.path ? libraryFileFromServeUrl(result.path) : null;
           if (path) {
+            pairing.landed(file.name, fileNameOf(path));
             added.push({ path, kind });
             onAddedRef.current();
           } else {

@@ -117,3 +117,131 @@ describe('libraryPhotoSource', () => {
     expect(await libraryPhotoSource.pickOne({ source: { kind: 'library', folder: 'empty' }, canvas: { w: 1, h: 1 } })).toBeNull();
   });
 });
+
+/** What a slideshow reads: the folder with each Live Photo's clip hung on its still. */
+const slideshowList = (folder: string, media: 'photos' | 'videos' | 'both') => listLibraryMedia(folder, media, { pairLivePhotos: true });
+
+describe('Live Photos in a library folder', () => {
+  it('hangs the clip on its still', async () => {
+    await fs.writeFile(path.join(library, 'trips', 'live1.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'live1.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'photos');
+    const still = items!.find((i) => i.url.includes('live1.jpg'));
+    expect(still?.liveUrl).toContain('live1.live.mov');
+  });
+
+  it('plays a paired clip over its picture rather than as a slide of its own', async () => {
+    // The clip is a library video like any other, so a slideshow showing
+    // videos would otherwise reach it twice: once as the picture's movement
+    // and once as a three-second film between the photos.
+    await fs.writeFile(path.join(library, 'trips', 'both1.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'both1.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'both');
+
+    expect(items!.find((i) => i.url.includes('both1.jpg'))?.liveUrl).toContain('both1.live.mov');
+    expect(items!.some((i) => i.url.includes('both1.live.mov'))).toBe(false);
+  });
+
+  it('plays a clip whose picture is gone as the ordinary video it is', async () => {
+    // Delete the still and the clip is left behind. It is a video file and
+    // nothing claims it, so it is a slide like any other video rather than
+    // something invisible the household cannot find or remove.
+    await fs.writeFile(path.join(library, 'trips', 'orphan.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'both');
+
+    expect(items!.some((i) => i.url.includes('orphan.live.mov'))).toBe(true);
+  });
+
+  it('gives a clip two pictures could claim to neither, and plays it on its own', async () => {
+    // No way to tell whose moment it was, so neither picture takes it.
+    await fs.writeFile(path.join(library, 'trips', 'shared.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'shared.png'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'shared.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'both');
+
+    expect(items!.find((i) => i.url.includes('shared.jpg'))?.liveUrl).toBeUndefined();
+    expect(items!.find((i) => i.url.includes('shared.png'))?.liveUrl).toBeUndefined();
+    expect(items!.some((i) => i.url.includes('shared.live.mov'))).toBe(true);
+  });
+
+  it('pairs a clip a Mac wrote in upper case', async () => {
+    await fs.writeFile(path.join(library, 'trips', 'IMG_9.JPG'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'IMG_9.live.MOV'), 'x');
+
+    const items = await slideshowList('trips', 'photos');
+    const still = items!.find((i) => i.url.includes('IMG_9.JPG'));
+    expect(still?.liveUrl).toContain('IMG_9.live.MOV');
+  });
+
+  it('leaves a still alone when there is no clip beside it', async () => {
+    const items = await slideshowList('trips', 'photos');
+    expect(items!.find((i) => i.url.includes('a.jpg'))?.liveUrl).toBeUndefined();
+  });
+
+  it('does not mistake an ordinary movie for a clip', async () => {
+    // clip.mp4 sits beside nothing of the same name, and a camera dump's
+    // IMG.JPG + IMG.MOV pair must stay two separate things.
+    await fs.writeFile(path.join(library, 'trips', 'pair.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'pair.mov'), 'x');
+
+    const items = await slideshowList('trips', 'both');
+    expect(items!.find((i) => i.url.includes('pair.jpg'))?.liveUrl).toBeUndefined();
+    expect(items!.some((i) => i.url.includes('pair.mov'))).toBe(true);
+  });
+
+  it('mints the clip a token bound to the clip, not the still', async () => {
+    await fs.writeFile(path.join(library, 'trips', 'tok.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'tok.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'photos');
+    const still = items!.find((i) => i.url.includes('tok.jpg'));
+    // The serve route checks the token against the file it is asked for.
+    expect(still!.liveUrl).toContain(encodeURIComponent('tok-trips/tok.live.mov'));
+  });
+
+  it('lists every file in the library itself, the clip included', async () => {
+    // The Image Library is where a family sees, moves and deletes files, so a
+    // clip that belongs to a picture is still a file there.
+    await fs.writeFile(path.join(library, 'trips', 'lib1.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'lib1.live.mov'), 'x');
+
+    const items = await listLibraryMedia('trips', 'both');
+
+    expect(items!.find((i) => i.url.includes('lib1.jpg'))?.liveUrl).toBeUndefined();
+    expect(items!.some((i) => i.type === 'video' && i.url.includes('lib1.live.mov'))).toBe(true);
+  });
+
+  it('plays every clip as a video in a slideshow showing videos only', async () => {
+    // No still is listed, so nothing would play the clip as movement either.
+    await fs.writeFile(path.join(library, 'trips', 'vid1.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'vid1.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'videos');
+
+    expect(items!.some((i) => i.type === 'video' && i.url.includes('vid1.live.mov'))).toBe(true);
+  });
+
+  it('keeps a clip whose only namesake is another video', async () => {
+    await fs.writeFile(path.join(library, 'trips', 'IMG_7.MOV'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'IMG_7.live.mov'), 'x');
+
+    const items = await slideshowList('trips', 'both');
+
+    expect(items!.some((i) => i.url.includes('IMG_7.live.mov'))).toBe(true);
+    expect(items!.some((i) => i.url.includes('IMG_7.MOV'))).toBe(true);
+  });
+
+  it('is what a library slideshow plays', async () => {
+    await fs.writeFile(path.join(library, 'trips', 'src1.jpg'), 'x');
+    await fs.writeFile(path.join(library, 'trips', 'src1.live.mov'), 'x');
+
+    const items = await libraryPhotoSource.list({ source: { kind: 'library', folder: 'trips' }, count: 1, media: 'both' });
+
+    expect(items.find((i) => i.url.includes('src1.jpg'))?.liveUrl).toContain('src1.live.mov');
+    expect(items.some((i) => i.url.includes('src1.live.mov') && i.type === 'video')).toBe(false);
+  });
+});

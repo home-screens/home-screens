@@ -3602,6 +3602,13 @@ export interface MediaListItem {
   type: 'image' | 'video';
   /** Thumbnail for video entries (shown while the decoder spins up, and in the editor). */
   posterUrl?: string;
+  /**
+   * The moving half of a Live Photo, on an `image` entry whose still has a
+   * `.live.mov` (or `.live.mp4`) companion beside it. Deliberately not a
+   * `video` entry: a video ends the slide when it ends, and a second and a
+   * half is not a slide. The still owns the slide, this plays over it.
+   */
+  liveUrl?: string;
   /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
   durationMs?: number;
   /** Who took the photo, or which painting this is, when the source asks to be credited on screen (Unsplash, art). */
@@ -3610,6 +3617,9 @@ export interface MediaListItem {
 
 /** Which media kinds a slideshow should pull from its source. */
 export type SlideshowMediaTypes = 'photos' | 'videos' | 'both';
+
+/** What a slideshow does with the moving half of a Live Photo. */
+export type LivePhotoMotion = 'still' | 'once' | 'twice' | 'loop';
 
 export interface PhotoSlideshowConfig {
   /** Where the pictures come from (see PhotoSource) */
@@ -3648,6 +3658,19 @@ export interface PhotoSlideshowConfig {
    * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
+  /**
+   * What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide
+   *
+   * Only pictures in a library folder with a `<name>.live.mov` (or
+   * `.live.mp4`) clip beside them move; every other photo is unaffected.
+   * `once` is the default because the clip runs about three seconds, so
+   * looping it across a ten or thirty second slide repeats the same few
+   * seconds three or ten times and reads as a fault rather than as motion.
+   * A slide with movement skips Ken Burns.
+   *
+   * @default "once"
+   */
+  livePhotos?: LivePhotoMotion;
   /**
    * Longest a video slide can play before moving on (60 sec)
    *
@@ -5249,6 +5272,19 @@ export interface FullscreenPhotoConfig {
    * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
+  /**
+   * What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide
+   *
+   * Only pictures in a library folder with a `<name>.live.mov` (or
+   * `.live.mp4`) clip beside them move; every other photo is unaffected.
+   * `once` is the default because the clip runs about three seconds, so
+   * looping it across a ten or thirty second slide repeats the same few
+   * seconds three or ten times and reads as a fault rather than as motion.
+   * A slide with movement skips Ken Burns.
+   *
+   * @default "once"
+   */
+  livePhotos?: LivePhotoMotion;
   /**
    * Longest a video slide can play before moving on (60 sec)
    *

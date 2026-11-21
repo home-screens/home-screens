@@ -154,6 +154,44 @@ describe('scanMediaUsage', () => {
       expect([...scanMediaUsage(slideshow('videos'), mixed).keys()]).toEqual(['trip/clip.mp4']);
       expect([...scanMediaUsage(slideshow('both'), mixed).keys()].sort()).toEqual(['trip/a.jpg', 'trip/clip.mp4']);
     });
+
+    describe('Live Photos', () => {
+      const pairs = new Set(['trip/a.jpg', 'trip/a.live.mov', 'trip/b.jpg', 'trip/v.mp4']);
+      const slideshow = (config: Record<string, unknown> = {}) => ({ screens: [{ name: 'Hall', modules: [
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trip' }, ...config } },
+      ] }] });
+
+      it('counts a photo slideshow as using the clip it plays over a still', () => {
+        // Otherwise Settings lists the clip as unused and a tidy-up deletes the movement.
+        const usage = scanMediaUsage(slideshow(), pairs);
+        expect(usage.get('trip/a.live.mov')).toEqual([expect.objectContaining({ kind: 'slideshow', motion: true })]);
+        expect(usage.get('trip/a.jpg')![0].motion).toBeUndefined();
+      });
+
+      it('leaves the clip unused when the slideshow does not play the movement', () => {
+        expect(scanMediaUsage(slideshow({ livePhotos: 'still' }), pairs).has('trip/a.live.mov')).toBe(false);
+      });
+
+      it('never counts a paired clip as a slide of a slideshow showing photos and videos', () => {
+        const usage = scanMediaUsage(slideshow({ mediaTypes: 'both' }), pairs);
+        expect(usage.get('trip/a.live.mov')![0].motion).toBe(true);
+        expect(usage.get('trip/v.mp4')![0].motion).toBeUndefined();
+      });
+
+      it('counts every clip as a slide of a slideshow showing videos only', () => {
+        const usage = scanMediaUsage(slideshow({ mediaTypes: 'videos' }), pairs);
+        expect([...usage.keys()].sort()).toEqual(['trip/a.live.mov', 'trip/v.mp4']);
+        expect(usage.get('trip/a.live.mov')![0].motion).toBeUndefined();
+      });
+
+      it('keeps the last picture even with its clip still there', () => {
+        // The clip is movement, not a slide: deleting the last still would
+        // leave the slideshow with nothing to show.
+        const usage = scanMediaUsage(slideshow(), new Set(['trip/a.jpg', 'trip/a.live.mov']));
+        expect([...blockedRemovals(usage, ['trip/a.jpg'], 'delete').keys()]).toEqual(['trip/a.jpg']);
+        expect(blockedRemovals(usage, ['trip/a.live.mov'], 'delete').size).toBe(0);
+      });
+    });
   });
 
   it('carries the display, screen and module ids a use sits under', () => {

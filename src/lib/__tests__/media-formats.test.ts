@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extensionForContentType, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
+import { LIVE_COMPANION_RE, clipIndex, companionsLast, liveUploadPairing, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
 
 describe('extensionForContentType', () => {
   it.each([
@@ -102,5 +102,105 @@ describe('LIBRARY_PICKER_ACCEPT', () => {
     expect(isVideoUpload({ type: 'video/quicktime', name: 'a' })).toBe(true);
     expect(isVideoUpload({ type: '', name: 'clip.MOV' })).toBe(true);
     expect(isVideoUpload({ type: 'image/jpeg', name: 'a.jpg' })).toBe(false);
+  });
+});
+
+describe('Live Photo companions', () => {
+  it('names both containers, QuickTime first', () => {
+    // Apple hands these out as QuickTime: H.264 and AAC, which every browser
+    // plays, in a `qt  ` container rather than an MP4 one. Renaming it .mp4
+    // would make the serve route declare video/mp4 over QuickTime bytes.
+    expect(liveCompanionsFor('IMG_1234.JPG')).toEqual(['IMG_1234.live.mov', 'IMG_1234.live.mp4']);
+  });
+
+  it('replaces only the last extension', () => {
+    expect(liveCompanionsFor('holiday.2026.jpg')[0]).toBe('holiday.2026.live.mov');
+  });
+
+  it('pairs whatever case either half was written in', () => {
+    // A Mac writes IMG_1.live.MOV. Without the lowercased lookup the clip
+    // would sit in the folder, listed as an ordinary video, and never play
+    // over the picture it was taken with.
+    expect(clipIndex(['IMG_1.live.MOV'])('IMG_1.JPG')).toBe('IMG_1.live.MOV');
+    expect(clipIndex(['img_1.LIVE.mp4'])('IMG_1.jpg')).toBe('img_1.LIVE.mp4');
+  });
+
+  it('does not pair a clip with a different picture', () => {
+    expect(clipIndex(['IMG_2.live.mov'])('IMG_1.JPG')).toBeUndefined();
+  });
+
+  it('prefers the QuickTime half when a folder somehow holds both', () => {
+    expect(clipIndex(['a.live.mp4', 'a.live.mov'])('a.jpg')).toBe('a.live.mov');
+  });
+
+  it('builds the lookup once for a whole folder', () => {
+    const find = clipIndex(['a.jpg', 'a.live.mov', 'b.jpg', 'b.live.mp4', 'notes.txt']);
+    expect(find('a.jpg')).toBe('a.live.mov');
+    expect(find('b.jpg')).toBe('b.live.mp4');
+    expect(find('notes.txt')).toBeUndefined();
+  });
+
+  it('leaves an ordinary movie beside a photo alone', () => {
+    // A camera dump holds IMG_1234.JPG next to IMG_1234.MOV as two separate
+    // things a household wants shown separately. Pairing on a shared base
+    // name would silently swallow the video.
+    expect(LIVE_COMPANION_RE.test('IMG_1234.MOV')).toBe(false);
+    expect(clipIndex(['IMG_1234.MOV'])('IMG_1234.JPG')).toBeUndefined();
+  });
+});
+
+describe('a clip two pictures could claim', () => {
+  it('belongs to neither, rather than to whichever was asked first', () => {
+    // a.jpg and a.png both resolve to a.live.mov, and there is no telling
+    // whose moment it was. Pairing it with one would play that photo's
+    // movement over the other one every pass.
+    const find = clipIndex(['a.jpg', 'a.png', 'a.live.mov']);
+    expect(find('a.jpg')).toBeUndefined();
+    expect(find('a.png')).toBeUndefined();
+  });
+
+  it('still pairs when only one picture claims it', () => {
+    const find = clipIndex(['a.jpg', 'b.png', 'a.live.mov']);
+    expect(find('a.jpg')).toBe('a.live.mov');
+    expect(find('b.png')).toBeUndefined();
+  });
+});
+
+describe('uploading a Live Photo', () => {
+  it('sends the clips after everything else, otherwise in the order picked', () => {
+    const names = ['IMG_2.live.mov', 'IMG_1.jpg', 'clip.mp4', 'IMG_1.live.MOV', 'IMG_2.jpg'].map((name) => ({ name }));
+    expect(companionsLast(names).map((f) => f.name))
+      .toEqual(['IMG_1.jpg', 'clip.mp4', 'IMG_2.jpg', 'IMG_2.live.mov', 'IMG_1.live.MOV']);
+  });
+
+  it('sends a clip under the name its picture was saved as', () => {
+    // Two family iPhones both make an IMG_1234; the second one's picture
+    // lands as IMG_1234-2.jpg and its clip has to follow it.
+    const pairing = liveUploadPairing();
+    pairing.landed('IMG_1234.JPG', 'IMG_1234-2.JPG');
+    pairing.landed('beach.mov', 'beach-2.mov');
+    expect(pairing.nameFor('IMG_1234.live.mov')).toBe('IMG_1234-2.live.mov');
+    expect(pairing.nameFor('img_1234.live.MP4')).toBe('IMG_1234-2.live.MP4');
+    // A video never claims a clip, and a clip with no picture keeps its name.
+    expect(pairing.nameFor('beach.live.mov')).toBe('beach.live.mov');
+    expect(pairing.nameFor('IMG_9.live.mov')).toBe('IMG_9.live.mov');
+    expect(pairing.nameFor('IMG_1234.mov')).toBe('IMG_1234.mov');
+  });
+
+  it('keeps the name the server tidied a picture to', () => {
+    const pairing = liveUploadPairing();
+    pairing.landed('IMG 1234.jpg', 'IMG_1234.jpg');
+    expect(pairing.nameFor('IMG 1234.live.mov')).toBe('IMG_1234.live.mov');
+  });
+});
+
+describe('a clip whose picture has gone', () => {
+  it('is claimed by no other file of the same name', () => {
+    // An Apple export left as it came (IMG_1.MOV) beside the renamed copy,
+    // with the still deleted or never converted: nothing can show the clip
+    // as movement, so it must stay an ordinary video and not vanish.
+    const names = ['IMG_1.MOV', 'IMG_1.live.mov', 'IMG_1.HEIC', 'IMG_2.jpg'];
+    const find = clipIndex(names);
+    expect(names.map(find).filter(Boolean)).toEqual([]);
   });
 });

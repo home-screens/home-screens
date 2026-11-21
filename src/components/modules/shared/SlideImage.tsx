@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { FullscreenPhotoTransition, MediaListItem } from '@/types/config';
+import type { FullscreenPhotoTransition, LivePhotoMotion, MediaListItem } from '@/types/config';
 import type { PictureBox } from '@/lib/media-paths';
 import VideoLayer from './VideoLayer';
+import { LivePhotoMotionLayer } from './LivePhotoMotion';
 import { useSlideImage, readyWhenDecoded, type LayerIndex } from './useCrossfadeLayers';
 
 /** The longest a video slide plays before the slideshow moves on, when the module sets none. */
@@ -24,6 +25,10 @@ export const KEN_BURNS_CSS = `
 }
 `;
 
+/** How long a transition that moves the picture (rather than fading it) keeps it moving. */
+const SLIDE_MS = 800;
+const ZOOM_MS = 1000;
+
 function transitionStyle(transition: FullscreenPhotoTransition, active: boolean, fadeMs: number): React.CSSProperties {
   switch (transition) {
     case 'fade':
@@ -31,12 +36,12 @@ function transitionStyle(transition: FullscreenPhotoTransition, active: boolean,
     case 'slide':
       return {
         transform: active ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 800ms ease-in-out, opacity 800ms ease-in-out',
+        transition: `transform ${SLIDE_MS}ms ease-in-out, opacity ${SLIDE_MS}ms ease-in-out`,
       };
     case 'zoom':
       return {
         transform: active ? 'scale(1)' : 'scale(1.3)',
-        transition: 'transform 1000ms ease-out, opacity 600ms ease-in-out',
+        transition: `transform ${ZOOM_MS}ms ease-out, opacity 600ms ease-in-out`,
       };
     default:
       return {};
@@ -108,10 +113,15 @@ interface SlideLayerProps extends Omit<SlideImageProps, 'src'> {
   maxVideoDurationMs?: number;
   /** A video slide finished. */
   onEnded: () => void;
+  /**
+   * What to do with a Live Photo's movement (an image item with a
+   * `liveUrl`), and how long the slide stays up. Absent plays nothing.
+   */
+  live?: { motion: LivePhotoMotion; slideMs: number };
 }
 
 /** One of a slideshow's two layers: a picture, a muted video, or nothing yet. */
-export function SlideLayer({ item, playVideos, loopVideo, maxVideoDurationMs, onEnded, ...image }: SlideLayerProps) {
+export function SlideLayer({ item, playVideos, loopVideo, maxVideoDurationMs, onEnded, live, ...image }: SlideLayerProps) {
   if (!item) return null;
   if (item.type === 'video') {
     return (
@@ -128,5 +138,38 @@ export function SlideLayer({ item, playVideos, loopVideo, maxVideoDurationMs, on
       />
     );
   }
-  return <SlideImage src={item.url} {...image} />;
+  const motion = item.liveUrl && live && live.motion !== 'still' ? live.motion : null;
+  // A picture always renders as this same pair, with or without movement,
+  // so a Live Photo turning active or inactive never remounts the <img>:
+  // that would throw away the decoded picture and land it at its final
+  // opacity, a cut where the transition should be.
+  return (
+    <>
+      <SlideImage
+        src={item.url}
+        {...image}
+        // A photo that moves does not also pan. The clip is drawn as it was
+        // filmed, so a zoomed still under it jumps whenever it fades in or
+        // out, and a decoder on top of a running animation is the load the
+        // video slides avoid on a Pi.
+        kenBurns={image.kenBurns && !motion}
+      />
+      {motion && item.liveUrl && playVideos && image.active && (
+        <LivePhotoMotionLayer
+          // A fresh element per slide, so the played-once state cannot
+          // carry over to the next picture on this layer.
+          key={item.url}
+          src={item.liveUrl}
+          objectFit={image.objectFit}
+          motion={motion}
+          slideMs={live!.slideMs}
+          // The clip is drawn where the picture lands, so a picture that
+          // slides or zooms in is left to land first; one that fades in is
+          // kept pace with instead.
+          startAfterMs={image.transition === 'slide' ? SLIDE_MS : image.transition === 'zoom' ? ZOOM_MS : 0}
+          fadeInMs={image.transition === 'fade' ? image.fadeMs : undefined}
+        />
+      )}
+    </>
+  );
 }

@@ -59,6 +59,12 @@
     "mediaTypesVideos": "Videos only",
     "mediaTypesBoth": "Photos + videos",
     "maxVideoDurationSeconds": "Longest a video can play (seconds)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Don't play",
+    "livePhotosOnce": "Play once",
+    "livePhotosTwice": "Play twice",
+    "livePhotosLoop": "Play on repeat",
+    "livePhotosHint": "Plays the short video that comes with an iPhone Live Photo. Put it in the same folder as its photo, named like the photo plus .live, for example IMG_1234.live.mov for IMG_1234.jpg.",
     "resetToDefault": "Reset to default",
     "signInWithGoogle": "Sign in with Google"
   },

@@ -37,6 +37,130 @@ function extensionPattern(table: Readonly<Record<string, string>>): RegExp {
 export const IMAGE_FILE_RE = extensionPattern(IMAGE_MIME_BY_EXT);
 export const VIDEO_FILE_RE = extensionPattern(VIDEO_MIME_BY_EXT);
 
+/**
+ * The moving half of a Live Photo, written beside its still as
+ * `<same name>.live.mov`.
+ *
+ * It stays an ordinary library video in every other respect: it is listed,
+ * counted, backed up, moved and deleted like any other file, and the only
+ * thing this name buys is that a slideshow showing the still plays it over
+ * the top. Hiding it instead meant every count, size, move, delete and
+ * backup needed a special case, and the ones that were missed lost files.
+ *
+ * The suffix is explicit rather than matching on a shared base name,
+ * because a plain camera dump legitimately holds `IMG_1234.JPG` next to
+ * `IMG_1234.MOV` as two separate things a household wants shown
+ * separately. Pairing those by name would silently swallow the video.
+ */
+export const LIVE_COMPANION_RE = /\.live\.(mp4|mov)$/i;
+
+/**
+ * The companion names a still could have, in the order to look for them.
+ *
+ * Both containers, because Apple hands these out as QuickTime: a Live Photo
+ * clip is H.264 video and AAC audio, which every browser plays, wrapped in a
+ * `qt  ` container rather than an MP4 one. Renaming it `.mp4` would make the
+ * serve route declare `video/mp4` over QuickTime bytes, so it keeps `.mov`
+ * and the type that goes with it. `.mp4` is accepted for anything that does
+ * arrive in the other container.
+ *
+ * Never gate playback on `canPlayType`. Chromium answers `''` for
+ * `video/quicktime`, and for it with the codecs spelled out, yet plays the
+ * file anyway: it reads the container rather than trusting the declared
+ * type. Measured on a Raspberry Pi 5 (Chromium 156, Debian 13) against a
+ * real clip served as `video/quicktime` over HTTP, which reached
+ * `readyState` 4 at 720x960. A capability check added here later would
+ * turn every Live Photo back into a still and read as a pairing bug.
+ */
+export function liveCompanionsFor(stillName: string): string[] {
+  const base = stillName.replace(/\.[^.]+$/, '');
+  return [`${base}.live.mov`, `${base}.live.mp4`];
+}
+
+/**
+ * One pass over a folder's names, giving back a lookup from a still to the
+ * clip beside it.
+ *
+ * The one place the pairing rule lives, so a folder of 840 pictures costs
+ * one pass rather than a scan per picture.
+ *
+ * Keyed on the lowercased name so a clip a Mac wrote as `IMG_1.live.MOV` is
+ * found by the same single lookup.
+ */
+export function clipIndex(names: Iterable<string>): (stillName: string) => string | undefined {
+  const byLower = new Map<string, string>();
+  // How many stills in this folder would claim each clip. Two pictures can:
+  // `a.jpg` and `a.png` both resolve to `a.live.mov`, and on a case-sensitive
+  // disk so do `IMG_1.JPG` and `IMG_1.jpg`. There is no way to tell whose
+  // moment it was, so a contested clip moves nothing: playing it over both
+  // pictures would put one photo's movement over the other's.
+  const claims = new Map<string, number>();
+  const stills: string[] = [];
+  for (const name of names) {
+    if (LIVE_COMPANION_RE.test(name)) byLower.set(name.toLowerCase(), name);
+    // Only a picture owns a clip. A camera saves IMG_1.JPG beside IMG_1.MOV,
+    // and counting that video as a claimant would make the clip contested
+    // and leave the photograph without its motion.
+    else if (mediaKindOf(name) === 'image') stills.push(name);
+  }
+  for (const still of stills) {
+    for (const candidate of liveCompanionsFor(still)) {
+      const key = candidate.toLowerCase();
+      if (byLower.has(key)) { claims.set(key, (claims.get(key) ?? 0) + 1); break; }
+    }
+  }
+  return (stillName) => {
+    // Only a picture has a clip. A video called IMG_1.MOV would otherwise
+    // find IMG_1.live.mov and claim it for no still at all.
+    if (mediaKindOf(stillName) !== 'image') return undefined;
+    for (const candidate of liveCompanionsFor(stillName)) {
+      const key = candidate.toLowerCase();
+      const found = byLower.get(key);
+      if (found) return (claims.get(key) ?? 0) > 1 ? undefined : found;
+    }
+    return undefined;
+  };
+}
+
+/**
+ * Files to upload with each Live Photo clip after everything else, so the
+ * picture it belongs to has landed (and has its final name) before the clip
+ * is sent. Otherwise in the order given.
+ */
+export function companionsLast<T extends { name: string }>(files: readonly T[]): T[] {
+  return [
+    ...files.filter((file) => !LIVE_COMPANION_RE.test(file.name)),
+    ...files.filter((file) => LIVE_COMPANION_RE.test(file.name)),
+  ];
+}
+
+/**
+ * Keeps a Live Photo's two halves paired when they are uploaded one file at
+ * a time. A picture whose name is already taken in the folder is saved under
+ * the next free name (`IMG_1234-2.jpg`, two family iPhones both make an
+ * IMG_1234), and its clip has to follow it there, or it pairs with the
+ * other, unrelated picture or with nothing.
+ *
+ * Tell it where each picture `landed`; ask `nameFor` before sending a clip.
+ */
+export function liveUploadPairing() {
+  const stemOf = (name: string) => name.replace(/\.[^.]+$/, '');
+  // Keyed on the lowercased name the picture was sent as.
+  const savedStems = new Map<string, string>();
+  return {
+    landed(sentName: string, savedName: string): void {
+      if (mediaKindOf(sentName) !== 'image') return;
+      savedStems.set(stemOf(sentName).toLowerCase(), stemOf(savedName));
+    },
+    nameFor(fileName: string): string {
+      const live = LIVE_COMPANION_RE.exec(fileName);
+      if (!live) return fileName;
+      const saved = savedStems.get(fileName.slice(0, live.index).toLowerCase());
+      return saved ? `${saved}${live[0]}` : fileName;
+    },
+  };
+}
+
 /** MIME types uploads may declare, one per distinct format. */
 export const IMAGE_MIME_TYPES: readonly string[] = [...new Set(Object.values(IMAGE_MIME_BY_EXT))];
 export const VIDEO_MIME_TYPES: readonly string[] = [...new Set(Object.values(VIDEO_MIME_BY_EXT))];

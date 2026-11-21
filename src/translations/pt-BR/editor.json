@@ -59,6 +59,12 @@
     "mediaTypesVideos": "Somente vídeos",
     "mediaTypesBoth": "Fotos + vídeos",
     "maxVideoDurationSeconds": "Duração máxima por vídeo (segundos)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Não reproduzir",
+    "livePhotosOnce": "Reproduzir uma vez",
+    "livePhotosTwice": "Reproduzir duas vezes",
+    "livePhotosLoop": "Reproduzir sem parar",
+    "livePhotosHint": "Mostra o movimento de uma Live Photo do iPhone. Coloque o vídeo na mesma pasta da foto, com o nome dela seguido de .live, por exemplo IMG_1234.live.mov para IMG_1234.jpg.",
     "resetToDefault": "Redefinir para padrão",
     "signInWithGoogle": "Entrar com o Google"
   },
