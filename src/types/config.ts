@@ -3602,6 +3602,13 @@ export interface MediaListItem {
   type: 'image' | 'video';
   /** Thumbnail for video entries (shown while the decoder spins up, and in the editor). */
   posterUrl?: string;
+  /**
+   * The moving half of a Live Photo, on an `image` entry whose still has a
+   * `.live.mov` (or `.live.mp4`) companion beside it. Deliberately not a
+   * `video` entry: a video ends the slide when it ends, and a second and a
+   * half is not a slide. The still owns the slide, this plays over it.
+   */
+  liveUrl?: string;
   /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
   durationMs?: number;
   /** Who took the photo, or which painting this is, when the source asks to be credited on screen (Unsplash, art). */
@@ -3610,6 +3617,9 @@ export interface MediaListItem {
 
 /** Which media kinds a slideshow should pull from its source. */
 export type SlideshowMediaTypes = 'photos' | 'videos' | 'both';
+
+/** What a slideshow does with the moving half of a Live Photo. */
+export type LivePhotoMotion = 'still' | 'once' | 'twice' | 'loop';
 
 export interface PhotoSlideshowConfig {
   /** Where the pictures come from (see PhotoSource) */
@@ -3648,6 +3658,22 @@ export interface PhotoSlideshowConfig {
    * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
+  /**
+   * What to do with Live Photos: hold them `still`, play the movement
+   * `once` as the photo arrives, `twice` so it comes round again partway
+   * through, or `loop` it for the whole slide
+   *
+   * Only affects pictures that actually have a movie beside them; an
+   * ordinary photo is unaffected whatever this says. `once` is the default
+   * because the clip runs about three seconds, so looping it across a ten
+   * or thirty second slide repeats the same few seconds three or ten times
+   * and reads as a fault rather than as motion. `twice` is the middle
+   * ground for a long slide: the second play lands at the halfway mark, so
+   * a thirty second photo moves twice rather than once or ten times.
+   *
+   * @default "once"
+   */
+  livePhotos?: LivePhotoMotion;
   /**
    * Longest a video slide can play before moving on (60 sec)
    *

@@ -4933,7 +4933,12 @@
       "transitionFade": "Überblenden",
       "transitionNone": "Keiner",
       "slideInterval": "Bildwechsel (Sekunden)",
-      "transition": "Übergang"
+      "transition": "Übergang",
+      "livePhotos": "Live Photos",
+      "livePhotosStill": "Still halten",
+      "livePhotosOnce": "Einmal abspielen",
+      "livePhotosTwice": "Zweimal abspielen",
+      "livePhotosLoop": "Schleife"
     },
     "qr-code": {
       "modeCustom": "Benutzerdefiniert (URL / Text)",

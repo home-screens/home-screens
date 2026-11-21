@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extensionForContentType, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
+import { LIVE_COMPANION_RE, clipIndex, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
 
 describe('extensionForContentType', () => {
   it.each([
@@ -102,5 +102,66 @@ describe('LIBRARY_PICKER_ACCEPT', () => {
     expect(isVideoUpload({ type: 'video/quicktime', name: 'a' })).toBe(true);
     expect(isVideoUpload({ type: '', name: 'clip.MOV' })).toBe(true);
     expect(isVideoUpload({ type: 'image/jpeg', name: 'a.jpg' })).toBe(false);
+  });
+});
+
+describe('Live Photo companions', () => {
+  it('names both containers, QuickTime first', () => {
+    // Apple hands these out as QuickTime: H.264 and AAC, which every browser
+    // plays, in a `qt  ` container rather than an MP4 one. Renaming it .mp4
+    // would make the serve route declare video/mp4 over QuickTime bytes.
+    expect(liveCompanionsFor('IMG_1234.JPG')).toEqual(['IMG_1234.live.mov', 'IMG_1234.live.mp4']);
+  });
+
+  it('replaces only the last extension', () => {
+    expect(liveCompanionsFor('holiday.2026.jpg')[0]).toBe('holiday.2026.live.mov');
+  });
+
+  it('pairs whatever case either half was written in', () => {
+    // A Mac writes IMG_1.live.MOV. Without the lowercased lookup the clip
+    // would sit in the folder, listed as an ordinary video, and never play
+    // over the picture it was taken with.
+    expect(clipIndex(['IMG_1.live.MOV'])('IMG_1.JPG')).toBe('IMG_1.live.MOV');
+    expect(clipIndex(['img_1.LIVE.mp4'])('IMG_1.jpg')).toBe('img_1.LIVE.mp4');
+  });
+
+  it('does not pair a clip with a different picture', () => {
+    expect(clipIndex(['IMG_2.live.mov'])('IMG_1.JPG')).toBeUndefined();
+  });
+
+  it('prefers the QuickTime half when a folder somehow holds both', () => {
+    expect(clipIndex(['a.live.mp4', 'a.live.mov'])('a.jpg')).toBe('a.live.mov');
+  });
+
+  it('builds the lookup once for a whole folder', () => {
+    const find = clipIndex(['a.jpg', 'a.live.mov', 'b.jpg', 'b.live.mp4', 'notes.txt']);
+    expect(find('a.jpg')).toBe('a.live.mov');
+    expect(find('b.jpg')).toBe('b.live.mp4');
+    expect(find('notes.txt')).toBeUndefined();
+  });
+
+  it('leaves an ordinary movie beside a photo alone', () => {
+    // A camera dump holds IMG_1234.JPG next to IMG_1234.MOV as two separate
+    // things a household wants shown separately. Pairing on a shared base
+    // name would silently swallow the video.
+    expect(LIVE_COMPANION_RE.test('IMG_1234.MOV')).toBe(false);
+    expect(clipIndex(['IMG_1234.MOV'])('IMG_1234.JPG')).toBeUndefined();
+  });
+});
+
+describe('a clip two pictures could claim', () => {
+  it('belongs to neither, rather than to whichever was asked first', () => {
+    // a.jpg and a.png both resolve to a.live.mov, and there is no telling
+    // whose moment it was. Pairing it with one would play that photo's
+    // movement over the other one every pass.
+    const find = clipIndex(['a.jpg', 'a.png', 'a.live.mov']);
+    expect(find('a.jpg')).toBeUndefined();
+    expect(find('a.png')).toBeUndefined();
+  });
+
+  it('still pairs when only one picture claims it', () => {
+    const find = clipIndex(['a.jpg', 'b.png', 'a.live.mov']);
+    expect(find('a.jpg')).toBe('a.live.mov');
+    expect(find('b.png')).toBeUndefined();
   });
 });

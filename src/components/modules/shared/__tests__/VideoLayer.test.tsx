@@ -121,3 +121,45 @@ describe('VideoLayer activation states', () => {
     expect(video.muted).toBe(true);
   });
 });
+
+describe('replaying in place', () => {
+  it('reports the end of every run, not just the first', () => {
+    // The finished latch exists so one run cannot fire onEnded twice. A
+    // replay is a new run, so it has to clear it. Without that the caller
+    // never hears the second clip finish, and a Live Photo set to play twice
+    // leaves its last frame sitting over the still Apple chose.
+    const onEnded = vi.fn();
+    const { rerender } = render(
+      <VideoLayer src="/api/backgrounds/serve?file=clip.mp4" active autoPlay onEnded={onEnded} restartSignal={0} />,
+    );
+    const video = document.querySelector('video')!;
+    fireEvent(video, new Event('ended'));
+    expect(onEnded).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <VideoLayer src="/api/backgrounds/serve?file=clip.mp4" active autoPlay onEnded={onEnded} restartSignal={1} />,
+    );
+    fireEvent(video, new Event('ended'));
+    expect(onEnded).toHaveBeenCalledTimes(2);
+  });
+
+  it('seeks back to the top rather than remounting', () => {
+    // Remounting was the obvious way to replay and the expensive one: it
+    // destroys and rebuilds a compositing layer, which forces every element
+    // sampling a backdrop to re-sample. Seeking leaves the layer tree alone,
+    // so the same element must survive the replay.
+    const onEnded = vi.fn();
+    const { rerender } = render(
+      <VideoLayer src="/api/backgrounds/serve?file=clip.mp4" active autoPlay onEnded={onEnded} restartSignal={0} />,
+    );
+    const before = document.querySelector('video')!;
+    before.currentTime = 1.2;
+
+    rerender(
+      <VideoLayer src="/api/backgrounds/serve?file=clip.mp4" active autoPlay onEnded={onEnded} restartSignal={1} />,
+    );
+    const after = document.querySelector('video')!;
+    expect(after).toBe(before);
+    expect(after.currentTime).toBe(0);
+  });
+});

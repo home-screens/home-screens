@@ -1,36 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { PhotoSource } from '@/types/config';
-import {
-  MAX_PICKED_PICTURES,
-  PHOTO_SOURCE_KINDS,
-  candidateCount,
-  canPlayVideo,
-  canRotate,
-  clampPhotoCount,
-  cleanLibraryFolder,
-  cleanLibraryPath,
-  defaultPhotoSource,
-  emptyStateFor,
-  hasContent,
-  isMediaTypes,
-  isPhotoSourceKind,
-  isPickImportKind,
-  isReady,
-  isRotationActive,
-  isValidPickRef,
-  maxPhotoCount,
-  needs,
-  normalizePhotoSource,
-  offeredFor,
-  parsePhotoSourceParams,
-  photoSourceParams,
-  rotationBreadth,
-  rotationCacheKey,
-  rotationSources,
-  sourceCacheKey,
-  usesCount,
-  type PhotoSourceKind,
-} from '@/lib/photo-source';
+import { MAX_PICKED_PICTURES, PHOTO_SOURCE_KINDS, canPlayLivePhotos, canPlayVideo, canRotate, candidateCount, clampPhotoCount, cleanLibraryFolder, cleanLibraryPath, defaultPhotoSource, emptyStateFor, hasContent, isMediaTypes, isPhotoSourceKind, isPickImportKind, isReady, isRotationActive, isValidPickRef, maxPhotoCount, needs, normalizePhotoSource, offeredFor, parsePhotoSourceParams, photoSourceParams, rotationBreadth, rotationCacheKey, rotationSources, sourceCacheKey, type PhotoSourceKind, usesCount } from '@/lib/photo-source';
 
 /** Every secret saved. */
 const ALL_KEYS = {
@@ -423,5 +393,28 @@ describe('picking one picture', () => {
     ['art', '16568', false],
   ])('%s ref %j is valid: %s', (kind, ref, valid) => {
     expect(isValidPickRef(kind, ref)).toBe(valid);
+  });
+});
+
+describe('where Live Photos can come from', () => {
+  it('only a library folder hands back a clip', () => {
+    // The clip is a file beside its still. Nothing else the wall pulls from
+    // has one, so offering the setting there promises motion that cannot
+    // arrive.
+    expect(canPlayLivePhotos({ kind: 'library', folder: 'trips' })).toBe(true);
+    expect(canPlayLivePhotos({ kind: 'library', folder: '' })).toBe(true);
+  });
+
+  it('not hand-picked pictures, even before any are picked', () => {
+    // Picked pictures play in the order they were chosen and never go
+    // through the folder scan that does the pairing. An empty array still
+    // means picking mode.
+    expect(canPlayLivePhotos({ kind: 'library', folder: '', pictures: [] })).toBe(false);
+    expect(canPlayLivePhotos({ kind: 'library', folder: '', pictures: ['a.jpg'] })).toBe(false);
+  });
+
+  it('not the other sources', () => {
+    expect(canPlayLivePhotos({ kind: 'immich', albumIds: [] } as never)).toBe(false);
+    expect(canPlayLivePhotos({ kind: 'icloud', albumUrl: 'https://x' } as never)).toBe(false);
   });
 });

@@ -114,6 +114,18 @@ Folders are managed here too: **New folder** makes one (inside the folder you ar
 
 Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The Image Library's Local tab and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
 
+### Live Photos
+
+An iPhone saves a Live Photo as two files: the still you see, and a short clip of the moment around it. Home Screens plays that movement in a Photo Slideshow if both halves are in the same folder and the clip is named after its still with `.live.mov` (or `.live.mp4`) in place of the extension, so `IMG_1234.jpg` pairs with `IMG_1234.live.mov`. Put both files in the folder, the usual way you add anything to the library, and rename the clip to match.
+
+The `.live.` part has to be there. Plenty of cameras save a photo and a video of the same moment as `IMG_1234.JPG` and `IMG_1234.MOV`, and those are two separate things you may well want shown separately, so only the exact `.live.` name is treated as a pair.
+
+The clip stays an ordinary video in your library. It shows in the Image Library with everything else, counts towards its folder, and is backed up, moved and deleted like any other file. The only thing the name buys is that a slideshow showing the still plays the clip over the top of it: a slideshow set to show videos will not also play a paired clip as a slide of its own, and a clip whose picture has gone plays as the plain video it is, so you can always see it and remove it.
+
+If two pictures in one folder share a name with different extensions, say `beach.jpg` and `beach.png`, there is no telling which of them `beach.live.mov` belongs to, so neither takes it and it plays on its own.
+
+What the slideshow does with the movement is set per module, under **Live Photos**: hold it still, play it once as the photo arrives, twice so it comes round again partway through, or loop it for the whole slide. The setting only appears on a Photo Slideshow showing a library folder, since that is the only place a pair can be found; it is hidden for hand-picked pictures, for the other photo sources, and when the slideshow is set to videos only.
+
 ---
 
 ## Unsplash integration

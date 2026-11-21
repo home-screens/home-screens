@@ -1352,6 +1352,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       objectFit: 'cover',
       refreshIntervalMs: FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000,
       mediaTypes: 'photos',
+      livePhotos: 'once',
       maxVideoDurationMs: 60_000,
     },
     defaultSize: { w: 500, h: 400 },

@@ -415,4 +415,41 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     config: { mediaTypes: 'videos' },
     expect: child('video[src*="e2e-clip.mp4"]'),
   },
+
+  // ================= Live Photos =================
+  // The clip rides on an `image` entry, so the still is what the slideshow
+  // draws and the motion plays over it. These two prove the setting is what
+  // decides whether the second element appears at all.
+  {
+    type: 'photo-slideshow', name: 'live-photos-once-plays', kind: 'networked', stubKey: 'backgrounds',
+    stubBody: [{
+      url: TINY_GIF,
+      type: 'image',
+      liveUrl: '/api/backgrounds/serve?file=e2e-still.live.mov&mt=e2e-token',
+    }],
+    config: { livePhotos: 'once' },
+    expect: async (mod) => {
+      // The clip plays over its own still, which keeps the slide's timer.
+      // The still is a data URL so it really renders; a path to a file the
+      // sandbox does not serve would 404 and prove nothing.
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+      await child('video[src*="e2e-still.live.mov"]')(mod);
+    },
+  },
+  {
+    // `still` is the opt-out: the same slide, with nothing playing over it.
+    type: 'photo-slideshow', name: 'live-photos-still-holds', kind: 'networked', stubKey: 'backgrounds',
+    stubBody: [{
+      url: TINY_GIF,
+      type: 'image',
+      liveUrl: '/api/backgrounds/serve?file=e2e-still.live.mov&mt=e2e-token',
+    }],
+    config: { livePhotos: 'still' },
+    expect: async (mod) => {
+      // The same slide with the same clip beside it, and nothing playing:
+      // the setting is the only difference between this row and the one above.
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+      await count('video', 0)(mod);
+    },
+  },
 ];

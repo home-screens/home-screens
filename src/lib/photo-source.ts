@@ -67,6 +67,23 @@ export function canPlayVideo(kind: PhotoSourceKind): boolean {
 }
 
 /**
+ * Whether a source can hand back the moving half of a Live Photo.
+ *
+ * Only a library folder: the clip is a file sitting beside its still, and
+ * nothing else the wall pulls from has one. Hand-picked library pictures do
+ * not either, because they play in the order they were chosen and never go
+ * through the folder scan that does the pairing. Offering the setting
+ * anywhere else promises motion that cannot arrive.
+ */
+export function canPlayLivePhotos(source: PhotoSource): boolean {
+  // `list()` treats any `pictures` array as hand-picked mode, even an empty
+  // one, so the test is for the array and not for its length. With picking
+  // turned on and nothing picked yet, the setting would otherwise be offered
+  // where it can never apply.
+  return source.kind === 'library' && !source.pictures;
+}
+
+/**
  * Whether "pictures per refresh" means anything for a kind. A library folder
  * plays every picture in it, so it has no count.
  */

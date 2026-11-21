@@ -4933,7 +4933,12 @@
       "transitionFade": "Toning",
       "transitionNone": "Ingen",
       "slideInterval": "Tid pr. billede (sekunder)",
-      "transition": "Overgang"
+      "transition": "Overgang",
+      "livePhotos": "Live Photos",
+      "livePhotosStill": "Hold stille",
+      "livePhotosOnce": "Afspil én gang",
+      "livePhotosTwice": "Afspil to gange",
+      "livePhotosLoop": "Gentag"
     },
     "qr-code": {
       "modeCustom": "Egen (URL / tekst)",

@@ -4933,7 +4933,12 @@
       "transitionFade": "Fade",
       "transitionNone": "Nenhuma",
       "slideInterval": "Intervalo do slide (segundos)",
-      "transition": "Transição"
+      "transition": "Transição",
+      "livePhotos": "Live Photos",
+      "livePhotosStill": "Manter parada",
+      "livePhotosOnce": "Reproduzir uma vez",
+      "livePhotosTwice": "Reproduzir duas vezes",
+      "livePhotosLoop": "Em loop"
     },
     "qr-code": {
       "modeCustom": "Personalizado (URL / texto)",

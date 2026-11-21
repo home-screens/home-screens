@@ -4933,7 +4933,12 @@
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang"
+      "transition": "Overgang",
+      "livePhotos": "Live Photos",
+      "livePhotosStill": "Stil houden",
+      "livePhotosOnce": "Eén keer afspelen",
+      "livePhotosTwice": "Twee keer afspelen",
+      "livePhotosLoop": "Herhalen"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",

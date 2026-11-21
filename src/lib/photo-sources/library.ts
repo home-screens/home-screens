@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { libraryMediaKind, safeLibraryPath, libraryRoot } from '@/lib/library-files';
+import { clipIndex } from '@/lib/media-formats';
 import { mintMediaToken } from '@/lib/media-token';
 import { serveUrlFor } from '@/lib/media-paths';
 import { cleanLibraryFolder } from '@/lib/photo-source';
@@ -31,13 +32,33 @@ export async function listLibraryMedia(folder: string, media: SlideshowMediaType
   // readdir answers in whatever order the disk keeps, which on a Pi's ext4
   // is neither by name nor by date.
   entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  // The moving half of a Live Photo, matched to the still it belongs to.
+  const fileNames = entries.filter((e) => e.isFile()).map((e) => e.name);
+  const clipFor = clipIndex(fileNames);
+  const claimedClips = new Set(fileNames.map(clipFor).filter((name): name is string => !!name));
+
   const items: MediaListItem[] = [];
   for (const entry of entries) {
     if (!entry.isFile()) continue;
     const libraryPath = clean ? `${clean}/${entry.name}` : entry.name;
     const kind = libraryMediaKind(libraryPath);
+    // A clip belonging to a picture in this folder is that picture's
+    // movement, not a slide of its own, so a slideshow set to videos does
+    // not also play it as a three-second film. A clip belonging to no
+    // picture is an ordinary video and plays like one; it is a video file,
+    // and everywhere else in the app treats it as exactly that.
+    if (kind === 'video' && claimedClips.has(entry.name)) continue;
     if (kind === 'image' && media !== 'videos') {
-      items.push({ url: serveUrlFor(libraryPath), type: 'image' });
+      const item: MediaListItem = { url: serveUrlFor(libraryPath), type: 'image' };
+      const companion = clipFor(entry.name);
+      if (companion) {
+        // Same token dance as a video entry: the serve route will not hand a
+        // movie to a bare element request without one.
+        const token = await mintMediaToken(clean ? `${clean}/${companion}` : companion);
+        item.liveUrl = serveUrlFor(clean ? `${clean}/${companion}` : companion)
+          + (token ? `&mt=${encodeURIComponent(token)}` : '');
+      }
+      items.push(item);
     } else if (kind === 'video' && media !== 'photos') {
       // Bind the token to the same `file` value the serve route reads back.
       const token = await mintMediaToken(libraryPath);

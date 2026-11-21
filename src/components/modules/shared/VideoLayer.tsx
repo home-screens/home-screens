@@ -33,6 +33,18 @@ export interface VideoLayerProps {
   /** Default true — unmuted playback additionally needs the kiosk launcher flag. */
   muted?: boolean;
   loop?: boolean;
+  /**
+   * Bump to play the clip again from the top without remounting.
+   *
+   * Remounting is the obvious way to replay and the expensive one: tearing
+   * an element down and building another destroys and recreates a
+   * compositing layer, and every element sampling a backdrop has to
+   * re-sample when the layer tree changes. Seeking a mounted element leaves
+   * the tree alone.
+   */
+  restartSignal?: number;
+  /** The clip has started showing frames. Used to fade a layer in on first play. */
+  onPlaying?: () => void;
   /** Force-advance cap in ms; 0/undefined = uncapped. */
   maxDurationMs?: number;
   /**
@@ -51,6 +63,8 @@ export default function VideoLayer({
   objectFit,
   muted = true,
   loop = false,
+  restartSignal,
+  onPlaying,
   maxDurationMs,
   onEnded,
 }: VideoLayerProps) {
@@ -100,6 +114,35 @@ export default function VideoLayer({
     stallTimerRef.current = setTimeout(finish, STALL_GRACE_MS);
   }, [finish]);
 
+  // Replay in place. Skipped on the first render so this never fights the
+  // element's own autoplay.
+  //
+  // A replay is a fresh run, so it clears the finished latch and any armed
+  // stall timer. Without that, `finish` has already fired once and returns
+  // early for every later end: the caller never hears the second clip
+  // finish, and on a Live Photo that leaves the clip's last frame sitting
+  // over the still Apple chose. The stall and duration guards hang off the
+  // same latch, so they would be dead for the replay too.
+  // Compared against the last value rather than a once-only flag: under
+  // StrictMode the doubled effect would use the flag up and the second run
+  // would seek on mount, fighting the element's own autoplay.
+  const lastRestart = useRef(restartSignal);
+  useEffect(() => {
+    if (restartSignal === lastRestart.current) return;
+    lastRestart.current = restartSignal;
+    const video = videoRef.current;
+    if (!video || restartSignal === undefined) return;
+    clearStall();
+    finishedRef.current = false;
+    try {
+      video.currentTime = 0;
+      void video.play()?.catch(() => {});
+    } catch {
+      // A seek on an element that has lost its data is not worth a crash;
+      // the slide keeps its still either way.
+    }
+  }, [restartSignal, clearStall]);
+
   useEffect(() => {
     finishedRef.current = false;
     const video = videoRef.current;
@@ -146,7 +189,7 @@ export default function VideoLayer({
       onError={finish}
       onStalled={armStall}
       onWaiting={armStall}
-      onPlaying={clearStall}
+      onPlaying={() => { clearStall(); onPlaying?.(); }}
       onTimeUpdate={clearStall}
     />
   );
