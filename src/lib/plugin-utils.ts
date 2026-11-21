@@ -1,14 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { PluginManifest } from '@/types/plugins';
+import { PLUGIN_ID_PATTERN } from '@/lib/plugin-id';
 
 const PLUGINS_DIR = 'data/plugins';
 
 export function pluginsDir(): string {
   return path.join(process.cwd(), PLUGINS_DIR);
 }
-
-export const PLUGIN_ID_PATTERN = /^[a-z0-9_-]+$/i;
 
 /**
  * Validate a plugin ID. Throws on empty or unsafe input.

@@ -5,11 +5,11 @@ import { TIMETABLE_LIMITS, type TimetableSubject } from '@/types/timetables';
 
 // The fetch helper is replaced wholesale: the real one resolves DNS before it
 // goes anywhere, and no test here may reach the network, let alone Google.
-vi.mock('@/lib/url-safety', () => ({
+vi.mock('@/lib/guarded-fetch', () => ({
   fetchWithAllowedRedirects: vi.fn(),
 }));
 
-import { fetchWithAllowedRedirects } from '@/lib/url-safety';
+import { fetchWithAllowedRedirects } from '@/lib/guarded-fetch';
 import {
   buildExportUrl,
   buildTabListUrl,

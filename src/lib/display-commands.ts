@@ -29,7 +29,9 @@
 import type { CacheStats } from './display-cache';
 import { isValidDisplayId } from './display-filter';
 import { SHARED_STATE_INTEREST_TTL_MS } from './constants';
-import { SHARED_STATE_KEY_RE, type SharedStateEntry } from './shared-state-types';
+import { MAX_SHARED_STATE_KEYS, MAX_SHARED_STATE_VALUE_LENGTH, SHARED_STATE_KEY_RE, type SharedStateEntry } from './shared-state-types';
+import { PLUGIN_ID_PATTERN } from './plugin-id';
+import { PROVIDER_HEALTH_LIMITS } from './provider-health-limits';
 import type { ProviderHealthEntry } from './provider-health-store';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from './hardware-stats';
 
@@ -257,10 +259,6 @@ export interface SharedStateReport {
   /** Server clock when the report arrived — display clocks may be skewed. */
   reportedAt: number;
 }
-/** Mirror the client bus caps (shared-state-store.ts) so a malicious poster
- *  can't store more than a real display could ever publish. */
-const MAX_SHARED_STATE_KEYS = 256;
-const MAX_SHARED_STATE_VALUE_LENGTH = 1024;
 /** A report older than this is dropped on read — the display stopped posting. */
 const SHARED_STATE_REPORT_TTL_MS = 5 * 60 * 1000;
 const sharedStateReports = new Map<string, SharedStateReport>();
@@ -361,11 +359,6 @@ interface ProviderHealthReport {
   health: Record<string, ProviderHealthEntry>;
   reportedAt: number;
 }
-/** Mirror the client store's caps (provider-health-store.ts). */
-const MAX_PROVIDER_HEALTH_ENTRIES = 64;
-const MAX_PROVIDER_HEALTH_MESSAGE_LENGTH = 200;
-/** Same charset as the client store / PLUGIN_ID_PATTERN. */
-const PLUGIN_ID_RE = /^[a-z0-9_-]+$/i;
 const providerHealthReports = new Map<string, ProviderHealthReport>();
 
 /**
@@ -386,14 +379,14 @@ export function recordProviderHealthReport(displayId: string | undefined, raw: u
   }
   // A real display can never exceed the entry cap (its client store enforces
   // it), so an oversized payload is malicious/broken — reject outright.
-  if (Object.keys(raw).length > MAX_PROVIDER_HEALTH_ENTRIES) return;
+  if (Object.keys(raw).length > PROVIDER_HEALTH_LIMITS.maxEntries) return;
 
   const health: Record<string, ProviderHealthEntry> = {};
   for (const [pluginId, val] of Object.entries(raw)) {
-    if (!PLUGIN_ID_RE.test(pluginId)) continue;
+    if (!PLUGIN_ID_PATTERN.test(pluginId)) continue;
     if (!val || typeof val !== 'object') continue;
     const { message, since } = val as { message?: unknown; since?: unknown };
-    if (typeof message !== 'string' || message.length > MAX_PROVIDER_HEALTH_MESSAGE_LENGTH) continue;
+    if (typeof message !== 'string' || message.length > PROVIDER_HEALTH_LIMITS.maxMessageLength) continue;
     if (typeof since !== 'number' || !Number.isFinite(since)) continue;
     health[pluginId.toLowerCase()] = { message, since };
   }

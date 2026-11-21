@@ -6,10 +6,11 @@ import path from 'node:path';
 import type { ScreenConfiguration } from '@/types/config';
 import { FAMILY_LIMITS, type FamilyData, type FamilyGroup, type FamilyMember, type FamilyResponse } from '@/types/family';
 import { commitDataTransaction, getDataRoot, onDataTransactionCommit, readTransactionFile, withDataTransaction, type TransactionChange } from './data-transaction';
-import { planFamilyMerge, validateFamilyData, validFamilyColor, validFamilyId, type LegacyCalendarPerson, type LegacyFamilyMember } from './family-merge';
+import { planFamilyMerge, validateFamilyData, validFamilyId, type LegacyCalendarPerson, type LegacyFamilyMember } from './family-merge';
 import { migrateUp } from './migrations';
 import { planConfigMigrationBackup } from './config-migration-backup';
 import { FamilyError } from './family-errors';
+import { isFullHexColor } from './hex-color';
 import { MEMBER_REFERENCE_DOMAINS } from './member-references';
 import { removeChoreGroups } from './member-references/chores';
 import { pruneGroupMembers, sameGroupName } from './family-groups';
@@ -191,7 +192,7 @@ export async function replaceFamilyMembers(input: ReplaceFamilyInput): Promise<F
     let added = 0;
     const members: FamilyMember[] = input.members.map((item) => {
       if (!isRecord(item) || (item.id !== undefined && (!validFamilyId(item.id) || incomingIds.has(item.id)))
-        || typeof item.name !== 'string' || !item.name.trim() || !validFamilyColor(item.color)
+        || typeof item.name !== 'string' || !item.name.trim() || !isFullHexColor(item.color)
         || (item.emoji !== undefined && (typeof item.emoji !== 'string' || item.emoji.length > 32))) throw new FamilyError('family.badRequest', 'Each family member needs a unique identity, name and color.');
       if (item.id) incomingIds.add(item.id);
       const existing = item.id ? byId.get(item.id) : undefined;

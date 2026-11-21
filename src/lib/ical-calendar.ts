@@ -3,19 +3,20 @@ import ical from 'node-ical';
 import type { VEvent } from 'node-ical';
 import type { ICalSource } from '@/types/config';
 import type { CalendarEvent } from '@/types/config';
-import { fetchWithTimeout } from '@/lib/api-utils';
 import { CALENDAR_MAX_WINDOW_MS } from '@/lib/constants';
 import { compareEventStarts, householdDayStart, parseEventInstant } from '@/lib/calendar-utils';
 import { eventOverlapsWindow, settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
 import { isoDateInTZ, localISODate } from '@/lib/timezone';
-import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
+import { fetchWithAllowedRedirects } from '@/lib/guarded-fetch';
 import { logger } from '@/lib/logger';
 
 const log = logger('ical');
 
 const FETCH_TIMEOUT_MS = 15_000;
 const MAX_REDIRECTS = 5;
+/** Tries after the first, per hop, on a timeout or a 5xx. */
+const FETCH_RETRIES = 2;
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 
 /** Extract the string value from a node-ical ParameterValue (string | {val, params}). */
@@ -123,9 +124,8 @@ type FeedDownload =
 /**
  * Download one ICS feed. Never rejects on a bad feed: an unusable link, an
  * HTTP error, or a document that is not a calendar becomes a failing outcome
- * with plain-language wording (and an i18n `messageKey`). Network failures
- * inside `fetchWithTimeout` still reject; callers map those to
- * `linkUnreachable`. With `validators`, a host that still has the same
+ * with plain-language wording (and an i18n `messageKey`), and so does a host
+ * that cannot be reached. With `validators`, a host that still has the same
  * document answers 304 and nothing is downloaded.
  *
  * Links that point into the home network are refused unless the source has
@@ -157,62 +157,52 @@ async function downloadFeed(source: ICalSource, validators?: FeedValidators): Pr
   // at the router, the hub itself, or a cloud metadata address. Public links
   // go through the strict check; a household that runs its own calendar server
   // turns on "Home network" for that one feed to reach a private address.
-  // Redirects are followed by hand so every hop is checked the same way:
-  // letting fetch follow them would let an allowed public host send us to
-  // http://169.254.169.254/ or http://192.168.1.1/ and have us fetch it.
-  const isSafe = (url: string) =>
-    source.homeNetwork === true ? isSafeLocalOrExternalUrl(url) : isSafeExternalUrl(url);
-
-  const blocked = () => {
-    log.warn(`Refused to fetch the link for source "${source.name}" (${source.id})`);
-    return fail("That link can't be used. Check it and try again.", 'linkBlocked');
-  };
-
-  if (!(await isSafe(fetchUrl))) return blocked();
-
+  // The shared fetch follows redirects by hand so every hop is checked the
+  // same way, and stops reading at the cap so a link to something huge
+  // cannot fill the hub's memory.
   const headers: Record<string, string> = {};
   if (validators?.etag) headers['If-None-Match'] = validators.etag;
   if (validators?.lastModified) headers['If-Modified-Since'] = validators.lastModified;
 
-  let current = fetchUrl;
-  let res!: Response;
-  for (let hop = 0; ; hop++) {
-    res = await fetchWithTimeout(current, { timeout: FETCH_TIMEOUT_MS, redirect: 'manual', headers });
-    if (res.status === 304 && validators) return { kind: 'not-modified' };
-    if (res.status < 300 || res.status >= 400) break;
-    const location = res.headers.get('location');
-    if (!location) break;
-    if (hop === MAX_REDIRECTS) {
-      log.warn(`Too many redirects for source "${source.name}" (${source.id})`);
-      return fail('Could not reach the link', 'linkUnreachable');
+  const result = await fetchWithAllowedRedirects(fetchUrl, {
+    allowHosts: ['*'],
+    allowPrivateNetwork: source.homeNetwork === true,
+    maxHops: MAX_REDIRECTS,
+    maxBytes: MAX_BODY_BYTES,
+    timeoutMs: FETCH_TIMEOUT_MS,
+    retries: FETCH_RETRIES,
+    headers,
+  });
+
+  const httpError = (status: number) => {
+    log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${status}`);
+    return fail(`Could not reach the link (HTTP ${status})`, 'linkHttpError', { status });
+  };
+
+  if (!result.ok) {
+    // An error page that is also too big is still an error page.
+    if (result.status !== undefined && (result.status < 200 || result.status >= 300)) return httpError(result.status);
+    switch (result.reason) {
+      case 'too-large':
+        log.warn(`Source "${source.name}" (${source.id}) returned too much data`);
+        return fail("The link didn't return a readable calendar", 'linkUnreadable');
+      case 'too-many-redirects':
+        log.warn(`Too many redirects for source "${source.name}" (${source.id})`);
+        return fail('Could not reach the link', 'linkUnreachable');
+      case 'timeout':
+      case 'unreachable':
+        log.warn(`Could not reach the link for source "${source.name}" (${source.id}): ${result.reason}`);
+        return fail('Could not reach the link', 'linkUnreachable');
+      default:
+        log.warn(`Refused to fetch the link for source "${source.name}" (${source.id})`);
+        return fail("That link can't be used. Check it and try again.", 'linkBlocked');
     }
-    let next: string;
-    try {
-      next = new URL(location, current).toString();
-    } catch {
-      return blocked();
-    }
-    if (!(await isSafe(next))) return blocked();
-    current = next;
   }
 
-  if (!res.ok) {
-    log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
-    return fail(`Could not reach the link (HTTP ${res.status})`, 'linkHttpError', { status: res.status });
-  }
+  if (result.status === 304 && validators) return { kind: 'not-modified' };
+  if (result.status < 200 || result.status >= 300) return httpError(result.status);
 
-  // Cap the download so a link pointing at something huge cannot exhaust memory.
-  const declaredLength = Number(res.headers.get('content-length') ?? 0);
-  if (declaredLength > MAX_BODY_BYTES) {
-    log.warn(`Source "${source.name}" (${source.id}) returned too much data`);
-    return fail("The link didn't return a readable calendar", 'linkUnreadable');
-  }
-  const bytes = await res.arrayBuffer();
-  if (bytes.byteLength > MAX_BODY_BYTES) {
-    log.warn(`Source "${source.name}" (${source.id}) returned too much data`);
-    return fail("The link didn't return a readable calendar", 'linkUnreadable');
-  }
-  const icsText = new TextDecoder('utf-8').decode(bytes);
+  const icsText = new TextDecoder('utf-8').decode(result.body);
 
   // A login page or an HTML 200 from a portal is the usual wrong paste; the
   // parser would quietly find no components in it, so require the calendar
@@ -222,7 +212,7 @@ async function downloadFeed(source: ICalSource, validators?: FeedValidators): Pr
     return fail("The link didn't return a readable calendar", 'linkUnreadable');
   }
 
-  return { kind: 'body', text: icsText, etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified') };
+  return { kind: 'body', text: icsText, etag: result.responseHeaders.get('etag'), lastModified: result.responseHeaders.get('last-modified') };
 }
 
 function failedOutcome(

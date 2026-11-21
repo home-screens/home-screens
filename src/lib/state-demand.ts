@@ -11,6 +11,7 @@
  */
 
 import type { DisplayRule, ModuleInstance, Screen, TextLook } from '@/types/config';
+import { parsePluginStateKey } from '@/lib/plugin-state-keys';
 import { collectSourceKeys } from '@/lib/schedule';
 import { extractSharedStateKeys } from '@/lib/shared-state-template';
 import { collectTextLookKeys } from '@/lib/text-looks';
@@ -141,8 +142,6 @@ export function collectKeyReferences(
   return refs;
 }
 
-const PLUGIN_KEY_RE = /^plugin:([^:]+):(.+)$/;
-
 /**
  * Group a demand set by owning plugin id; strips the `plugin:<id>:` prefix
  * so entries match what the plugin passes to `publishState`. Keys not
@@ -159,16 +158,17 @@ export function demandByPlugin(
   const grouped = new Map<string, Set<string>>();
 
   for (const key of demanded) {
-    const match = PLUGIN_KEY_RE.exec(key);
-    if (!match) continue;
-    const pluginId = match[1].toLowerCase();
+    const parsed = parsePluginStateKey(key);
+    // A bare `plugin:<id>:` names no key the plugin could publish.
+    if (!parsed || !parsed.rest) continue;
+    const pluginId = parsed.pluginId.toLowerCase();
     if (!known.has(pluginId)) continue;
     let keys = grouped.get(pluginId);
     if (!keys) {
       keys = new Set();
       grouped.set(pluginId, keys);
     }
-    keys.add(match[2]);
+    keys.add(parsed.rest);
   }
 
   const out = new Map<string, string[]>();

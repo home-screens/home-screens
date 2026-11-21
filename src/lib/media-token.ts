@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { getMediaTokenSecret } from './auth';
+import { safeEqual } from './signed-payload';
 
 /**
  * Short-lived signed tokens that let a bare `<video src>` fetch a protected
@@ -41,9 +42,7 @@ export function verifyMediaToken(secret: string, resource: string, token: string
   if (dot <= 0) return false;
   const exp = Number(token.slice(0, dot));
   if (!Number.isFinite(exp) || Date.now() > exp) return false;
-  const actual = Buffer.from(token.slice(dot + 1), 'base64url');
-  const expected = hmac(secret, resource, exp);
-  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+  return safeEqual(Buffer.from(token.slice(dot + 1), 'base64url'), hmac(secret, resource, exp));
 }
 
 /**

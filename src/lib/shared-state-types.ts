@@ -24,6 +24,14 @@ export const SHARED_STATE_KEY_RE = /^[a-z0-9_:.-]{1,128}$/;
  *  validation can check that a key still fits after `plugin:<id>:` prefixing. */
 export const MAX_SHARED_STATE_KEY_LENGTH = 128;
 
+/**
+ * How much one wall's bus may hold. The wall's store keeps to these and the
+ * hub turns away a heartbeat snapshot that goes past them (a real display
+ * never can), so both read the numbers from here.
+ */
+export const MAX_SHARED_STATE_KEYS = 256;
+export const MAX_SHARED_STATE_VALUE_LENGTH = 1024;
+
 /** A shared-state key a producer module advertises for the editor's condition picker. */
 export interface ProvidedStateKey {
   key: string;

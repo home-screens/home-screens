@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { promises as dns } from 'dns';
-import { fetchWithAllowedRedirects } from '@/lib/url-safety';
+import { fetchWithAllowedRedirects, readBoundedBody } from '@/lib/guarded-fetch';
 
 // Hosts the tests pretend exist, and what they resolve to. Every address is
 // from a documentation range except the two that are meant to be refused.
@@ -366,4 +366,78 @@ it.each([
   }));
   await expect(fetchWithAllowedRedirects('https://sheets.example.com/export', { allowHosts: ALLOW }))
     .resolves.toMatchObject({ ok: false, reason });
+});
+
+/** A body that never ends, one chunk per read, counting what was asked of it. */
+function endlessBody(chunkBytes: number): { response: Response; pulls: () => number; cancelled: () => boolean } {
+  let pulls = 0;
+  let cancelled = false;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      pulls++;
+      controller.enqueue(new Uint8Array(chunkBytes));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  }, { highWaterMark: 0 });
+  return { response: new Response(stream, { status: 200 }), pulls: () => pulls, cancelled: () => cancelled };
+}
+
+describe('readBoundedBody', () => {
+  it('returns the whole body when it fits', async () => {
+    const body = await readBoundedBody(new Response('hello'), 100);
+    expect(body && decode(body)).toBe('hello');
+  });
+
+  it('stops reading a body with no declared length as soon as it passes the cap', async () => {
+    const endless = endlessBody(1024);
+    const body = await readBoundedBody(endless.response, 4096);
+    expect(body).toBeNull();
+    // Five chunks pass 4096 bytes; nothing after that is asked for.
+    expect(endless.pulls()).toBeLessThanOrEqual(6);
+    expect(endless.cancelled()).toBe(true);
+  });
+
+  it('refuses on a declared length past the cap without reading anything', async () => {
+    const endless = endlessBody(1024);
+    const response = new Response(endless.response.body, { headers: { 'content-length': '999999' } });
+    expect(await readBoundedBody(response, 4096)).toBeNull();
+    expect(endless.pulls()).toBe(0);
+  });
+});
+
+describe('fetchWithAllowedRedirects with its own address check', () => {
+  it('asks the check about every hop, counting from 0, and stops at the first refusal', async () => {
+    routes['http://localhost:5173/p.tar.gz'] = () => redirect('https://sheets.example.com/a');
+    routes['https://sheets.example.com/a'] = () => redirect('http://127.0.0.1:8080/admin');
+    const asked: Array<[string, number]> = [];
+
+    const result = await fetchWithAllowedRedirects('http://localhost:5173/p.tar.gz', {
+      allowHosts: ['*'],
+      isSafe: async (url, hop) => {
+        asked.push([url, hop]);
+        // The typed address may be this machine; nothing after it may.
+        return hop === 0 || url.startsWith('https://');
+      },
+    });
+
+    expect(asked).toEqual([
+      ['http://localhost:5173/p.tar.gz', 0],
+      ['https://sheets.example.com/a', 1],
+      ['http://127.0.0.1:8080/admin', 2],
+    ]);
+    expect(result).toMatchObject({ ok: false, reason: 'blocked', url: 'http://127.0.0.1:8080/admin' });
+    expect(fetched()).toEqual(['http://localhost:5173/p.tar.gz', 'https://sheets.example.com/a']);
+  });
+
+  it('still holds every hop to the host list', async () => {
+    routes['https://sheets.example.com/a'] = () => redirect('https://elsewhere.example.org/b');
+    const result = await fetchWithAllowedRedirects('https://sheets.example.com/a', {
+      allowHosts: ALLOW,
+      isSafe: async () => true,
+    });
+    expect(result).toMatchObject({ ok: false, reason: 'not-allowed', url: 'https://elsewhere.example.org/b' });
+    expect(fetched()).toEqual(['https://sheets.example.com/a']);
+  });
 });

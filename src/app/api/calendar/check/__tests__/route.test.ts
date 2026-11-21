@@ -14,7 +14,9 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 // would either flake or fail outright in network-isolated CI sandboxes. The
 // stub keeps the same shape (URL parse + protocol check + literal loopback /
 // private / metadata block) as the real guards.
-vi.mock('@/lib/url-safety', () => ({
+vi.mock('@/lib/url-safety', async () => ({
+  // The host-list matching is pure, so the real one runs.
+  ...(await vi.importActual<typeof import('@/lib/url-safety')>('@/lib/url-safety')),
   isSafeExternalUrl: vi.fn(async (url: string) => {
     try {
       const u = new URL(url);

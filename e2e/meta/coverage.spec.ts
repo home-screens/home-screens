@@ -1207,7 +1207,7 @@ const PUBLIC_ROUTES: Record<string, string> = {
 };
 
 /** Wrapper and guard identifiers that authenticate a handler. */
-const AUTH_GUARDS = ['withAuth', 'withDisplayAuth', 'withMediaTokenAuth', 'requireAdoptedDisplay', 'requireSession', 'requireDisplayAuth'];
+const AUTH_GUARDS = ['withAuth', 'withDisplayAuth', 'withMediaTokenAuth', 'requireAdoptedDisplay', 'adoptedDisplayFromQuery', 'requireSession', 'requireDisplayAuth'];
 
 const HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 

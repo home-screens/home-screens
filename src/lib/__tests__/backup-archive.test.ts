@@ -107,6 +107,10 @@ describe('stageRestoreArchive', () => {
   it('only names ids of its own shape', () => {
     expect(stagedArchivePath('../config.json')).toBeNull();
     expect(stagedArchivePath(42)).toBeNull();
+    // The hub mints lower-case ids and the id becomes a file name, so the
+    // same letters in upper case are not one of ours.
+    expect(stagedArchivePath('3F2504E0-4F89-41D3-9A0C-0305E82C3301')).toBeNull();
+    expect(stagedArchivePath('3f2504e0-4f89-41d3-9a0c-0305e82c3301')).toMatch(/3f2504e0-4f89-41d3-9a0c-0305e82c3301\.zip$/);
   });
   it('sweeps archives nobody restored after a quarter of an hour', async () => {
     const id = await stageRestoreArchive(new Blob([PNG]).stream(), PNG.length);

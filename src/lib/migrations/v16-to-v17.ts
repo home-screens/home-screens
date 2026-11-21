@@ -32,7 +32,7 @@
  */
 
 import type { ScreenConfiguration, GlobalSettings } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** What the boolean painted, and the palette each type now defaults to. */
 const DARK_MODE_THEME = (darkMode: unknown): string => (darkMode ? 'charcoal' : 'linen');

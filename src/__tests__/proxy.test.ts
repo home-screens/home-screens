@@ -1126,3 +1126,28 @@ describe('proxy — auth.json resolves from the data root, not the cwd', () => {
     expect(mockReadFileSync).toHaveBeenCalledWith(expected, 'utf-8');
   });
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// One rule for "is a password set", shared with the guards in lib/auth
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('proxy: the password rule it shares with the route guards', () => {
+  // Each of these used to get a different answer here than in src/lib/auth.ts
+  // (see auth.test.ts for the same table on that side).
+  it.each([
+    ['no passwordHash key', {}],
+    ['an empty-string hash', { passwordHash: '', salt: '' }],
+    ['a null hash', { passwordHash: null }],
+  ])('%s is no password: the editor opens without a login', async (_name, config) => {
+    const proxy = await loadProxyWithConfig(config);
+    expect(isPassThrough(proxy(makeRequest('/editor')))).toBe(true);
+  });
+
+  it.each([
+    ['a hash that is not text', { passwordHash: 5 }],
+    ['a file that is a list', [] as unknown as Record<string, unknown>],
+  ])('%s is locked: the editor asks for a login', async (_name, config) => {
+    const proxy = await loadProxyWithConfig(config);
+    expect(isRedirect(proxy(makeRequest('/editor')))?.pathname).toBe('/login');
+  });
+});

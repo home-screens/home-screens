@@ -32,7 +32,7 @@
 
 import { parseCsv } from '@/lib/csv';
 import { foldSheetCode } from '@/lib/timetable-codes';
-import { fetchWithAllowedRedirects, type FetchRedirectFailure } from '@/lib/url-safety';
+import { fetchWithAllowedRedirects, type FetchRedirectFailure } from '@/lib/guarded-fetch';
 import { TIMETABLE_LIMITS, type DayKey, type TimetableSubject } from '@/types/timetables';
 
 // ---------------------------------------------------------------------------

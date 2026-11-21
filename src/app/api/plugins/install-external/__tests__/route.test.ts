@@ -254,3 +254,59 @@ describe('POST /api/plugins/install-external — redirect re-validation', () => 
     expect(data.error).toMatch(/invalid redirect/i);
   });
 });
+
+describe('POST /api/plugins/install-external: where a download may send the hub', () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+    mockInstall.mockReset();
+    mockInstall.mockResolvedValue({ pluginId: 'stub', version: '1.0.0' });
+    mockIsSafe.mockReset();
+    mockIsSafe.mockResolvedValue(true);
+  });
+
+  // The localhost allowance is for the address a person typed. A public host
+  // answering 302 to the hub's own services used to be followed.
+  it.each([
+    'http://127.0.0.1:3000/api/config',
+    'http://localhost:8123/',
+  ])('refuses a redirect to %s and never fetches it', async (location) => {
+    mockFetch.mockResolvedValueOnce(new Response(null, { status: 302, headers: { location } }));
+    const res = await POST(makeRequest({ tarballUrl: 'https://x.io/p.tar.gz' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/^Redirect blocked: URLs must use HTTPS/);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockInstall).not.toHaveBeenCalled();
+  });
+
+  it('refuses a typed address that only starts like localhost', async () => {
+    const res = await POST(makeRequest({ tarballUrl: 'http://localhost:x@other-host.example/p.tar.gz' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/HTTPS/);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('drops a download past the size cap without holding it', async () => {
+    let pulls = 0;
+    mockFetch.mockResolvedValueOnce(new Response(new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls++;
+        controller.enqueue(new Uint8Array(8 * 1024 * 1024));
+      },
+    }, { highWaterMark: 0 }), { status: 200 }));
+
+    const res = await POST(makeRequest({ tarballUrl: 'https://x.io/disk-image.tar.gz' }));
+
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/too big to be a plugin \(over 50 MB\)/);
+    // 50 MB in 8 MB chunks: the seventh passes the cap and nothing more is read.
+    expect(pulls).toBeLessThanOrEqual(8);
+    expect(mockInstall).not.toHaveBeenCalled();
+  });
+
+  it('says so in plain words when the host does not answer', async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'));
+    const res = await POST(makeRequest({ tarballUrl: 'https://x.io/p.tar.gz' }));
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: 'Could not download from https://x.io/p.tar.gz', detail: 'it could not be reached' });
+  });
+});

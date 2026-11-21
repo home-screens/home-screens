@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { updateConfigAtomic, configRevision } from '@/lib/config';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
-import { getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
+import { getPluginManifest } from '@/lib/plugin-utils';
+import { PLUGIN_ID_PATTERN } from '@/lib/plugin-id';
 import { migrateConfigModules } from '@/lib/plugin-config-migration';
 
 /**

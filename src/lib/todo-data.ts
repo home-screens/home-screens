@@ -6,8 +6,9 @@ import { readConfig, updateConfigAtomic } from './config';
 import { householdTimezone } from './household-day';
 import { toTZWallTime } from './timezone';
 import { isValidISODate } from './api-utils';
-import { HEX_COLOR, REPEATS, uniqueSlug } from './todo-actions';
-import { mapConfigModules } from './migrations/module-walk';
+import { REPEATS, uniqueSlug } from './todo-actions';
+import { isFullHexColor } from './hex-color';
+import { mapConfigModules } from '@/lib/config-modules';
 import { uuid } from './uuid';
 import { logger } from './logger';
 import {
@@ -134,7 +135,7 @@ export function validateTodoData(raw: unknown): string | null {
     if (list.repeatDay !== undefined && (typeof list.repeatDay !== 'number' || !Number.isInteger(list.repeatDay) || list.repeatDay < 0 || list.repeatDay > 6)) {
       return `${where}: repeatDay must be 0 (Sunday) to 6 (Saturday)`;
     }
-    if (list.color !== undefined && (typeof list.color !== 'string' || !HEX_COLOR.test(list.color))) return `${where}: color must be a hex colour`;
+    if (list.color !== undefined && !isFullHexColor(list.color)) return `${where}: color must be a hex colour`;
     for (const key of ['createdAt', 'updatedAt'] as const) {
       if (typeof list[key] !== 'string') return `${where} is missing ${key}`;
     }

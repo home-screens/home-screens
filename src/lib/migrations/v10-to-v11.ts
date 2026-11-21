@@ -10,7 +10,7 @@
  */
 
 import type { ScreenConfiguration, Screen } from '@/types/config';
-import { mapConfigScreens } from './module-walk';
+import { mapConfigScreens } from '@/lib/config-modules';
 
 const OLD_PREFIX = '/backgrounds/themes/';
 /** Frozen copy of the new location, deliberately not imported from live code. */

@@ -7,7 +7,8 @@ import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlu
 import { deleteAllPluginSecrets } from '@/lib/plugin-secrets';
 import { deletePluginTokens, deletePendingAuth } from '@/lib/plugin-auth';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
+import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest } from '@/lib/plugin-utils';
+import { PLUGIN_ID_PATTERN } from '@/lib/plugin-id';
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
@@ -20,6 +21,13 @@ import { removePluginModules } from '@/lib/plugin-modules';
 const execFileAsync = promisify(execFile);
 
 const REGISTRY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * The most a plugin download may be. A real bundle is well under a megabyte;
+ * this is only so a wrong link (a disk image, a video) is dropped while it
+ * is still arriving instead of being held whole in the hub's memory.
+ */
+export const MAX_PLUGIN_TARBALL_BYTES = 50 * 1024 * 1024;
 
 // --- Installed plugins ---
 

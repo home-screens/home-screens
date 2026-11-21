@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RefusalError, isRefusalBody, refusalBody, refusalFromBody } from '../refusal';
+import { RefusalError, isRefusalBody, refusalBody, refusalFromBody, requiredText } from '../refusal';
 import { refusalText, refusalSentence, HubUnreachableError, refusalError } from '../hub-request';
 import type { TranslateFn } from '@/i18n/types';
 
@@ -88,5 +88,23 @@ describe('refusalSentence', () => {
     expect(refusalSentence({ ok: false, status: 400, error: 'HUB', code: 'library.somethingNew' }, tCore)).toBeNull();
     expect(refusalSentence({ ok: false, status: 500 }, tCore)).toBeNull();
     expect(refusalSentence(new Error('offline'), tCore)).toBeNull();
+  });
+});
+
+describe('requiredText', () => {
+  const missing = () => new RefusalError(400, 'x.required', 'Needed');
+  const tooLong = () => new RefusalError(400, 'x.tooLong', 'Too long');
+
+  it('trims and returns text that fits', () => {
+    expect(requiredText('  Groceries  ', 20, missing, tooLong)).toBe('Groceries');
+  });
+
+  it.each([undefined, null, 7, '', '   '])('refuses %j as missing', (raw) => {
+    expect(() => requiredText(raw, 20, missing, tooLong)).toThrow(expect.objectContaining({ code: 'x.required' }));
+  });
+
+  it('measures the length after trimming', () => {
+    expect(requiredText(' abcde ', 5, missing, tooLong)).toBe('abcde');
+    expect(() => requiredText('abcdef', 5, missing, tooLong)).toThrow(expect.objectContaining({ code: 'x.tooLong' }));
   });
 });

@@ -1,4 +1,5 @@
 import { NotesError } from './notes-errors';
+import { requiredText } from './refusal';
 import { expiryFor, isGone, isLive, isSweepable } from './notes-rules';
 import { uuid } from './uuid';
 import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife, type NotesData } from '@/types/notes';
@@ -33,11 +34,13 @@ export type NoteAction = 'take-down' | 'repost';
 const LIVES: ReadonlySet<NoteLife> = new Set(NOTE_LIVES);
 
 function cleanText(raw: unknown): string {
-  if (typeof raw !== 'string') throw new NotesError(400, 'notes.textRequired', 'Write something first.');
-  const text = raw.trim();
-  if (!text) throw new NotesError(400, 'notes.textRequired', 'Write something first.');
-  if (text.length > NOTES_LIMITS.maxTextLength) throw new NotesError(400, 'notes.textTooLong', `A note can be ${NOTES_LIMITS.maxTextLength} characters at most.`, { max: NOTES_LIMITS.maxTextLength });
-  return text;
+  const max = NOTES_LIMITS.maxTextLength;
+  return requiredText(
+    raw,
+    max,
+    () => new NotesError(400, 'notes.textRequired', 'Write something first.'),
+    () => new NotesError(400, 'notes.textTooLong', `A note can be ${max} characters at most.`, { max }),
+  );
 }
 
 function cleanAuthor(raw: unknown): string | undefined {

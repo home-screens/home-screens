@@ -25,6 +25,7 @@ import { getPluginSecret } from '@/lib/plugin-secrets';
 import { readAuthState } from '@/lib/auth';
 import { postOAuthForm, requestDeviceCodeGrant } from '@/lib/oauth-form-post';
 import { audit } from '@/lib/audit';
+import { signPayload, verifySignedPayload } from '@/lib/signed-payload';
 import { requestOrigin } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
 import { refreshGarminTokens, type GarminPendingMfa } from '@/lib/plugin-auth-garmin';
@@ -226,46 +227,21 @@ async function readOrCreateFileSecret(): Promise<string> {
   return secret;
 }
 
-function base64url(buf: Buffer): string {
-  return buf.toString('base64url');
-}
-
 /** @internal exported for tests */
 export async function signAuthFlowState(pluginId: string): Promise<string> {
-  const secret = await getStateSigningSecret();
-  const payload = base64url(Buffer.from(JSON.stringify({
-    p: pluginId,
-    n: crypto.randomBytes(8).toString('hex'),
-    iat: Date.now(),
-  })));
-  const sig = crypto.createHmac('sha256', secret).update(payload).digest();
-  return `${payload}.${base64url(sig)}`;
+  return signPayload(
+    { p: pluginId, n: crypto.randomBytes(8).toString('hex'), iat: Date.now() },
+    await getStateSigningSecret(),
+  );
 }
 
 /** @internal exported for tests. Returns the pluginId, or null on any mismatch. */
 export async function verifyAuthFlowState(state: string): Promise<string | null> {
-  const parts = state.split('.');
-  if (parts.length !== 2) return null;
-  const [payloadStr, sigStr] = parts;
-
-  const secret = await getStateSigningSecret();
-  const expected = crypto.createHmac('sha256', secret).update(payloadStr).digest();
-  let actual: Buffer;
-  try {
-    actual = Buffer.from(sigStr, 'base64url');
-  } catch {
-    return null;
-  }
-  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) return null;
-
-  try {
-    const payload = JSON.parse(Buffer.from(payloadStr, 'base64url').toString());
-    if (typeof payload.p !== 'string' || typeof payload.iat !== 'number') return null;
-    if (Date.now() - payload.iat > PENDING_TTL_MS) return null;
-    return payload.p;
-  } catch {
-    return null;
-  }
+  const payload = verifySignedPayload(state, await getStateSigningSecret()) as { p?: unknown; iat?: unknown } | null;
+  if (!payload || typeof payload !== 'object') return null;
+  if (typeof payload.p !== 'string' || typeof payload.iat !== 'number') return null;
+  if (Date.now() - payload.iat > PENDING_TTL_MS) return null;
+  return payload.p;
 }
 
 /* ─── OAuth2 helpers ─────────────────────────── */
@@ -366,8 +342,9 @@ export async function startAuthorizationCodeFlow(
   url.searchParams.set('scope', auth.scopes.join(auth.scopeSeparator ?? ' '));
   url.searchParams.set('state', state);
   if (usePkce) {
-    codeVerifier = base64url(crypto.randomBytes(32));
-    const challenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
+    const verifier = crypto.randomBytes(32).toString('base64url');
+    codeVerifier = verifier;
+    const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
     url.searchParams.set('code_challenge', challenge);
     url.searchParams.set('code_challenge_method', 'S256');
   }

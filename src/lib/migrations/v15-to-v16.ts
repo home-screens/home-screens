@@ -20,7 +20,7 @@
 
 import type { ScreenConfiguration, FullscreenWeatherCard } from '@/types/config';
 import { DEFAULT_FULLSCREEN_WEATHER_CARDS } from '@/lib/fullscreen-weather-cards';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** The Conditions page's order before the list: air quality on top, wind and sunrise last. */
 const CONDITIONS_ORDER: readonly FullscreenWeatherCard[] = [

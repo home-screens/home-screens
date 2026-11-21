@@ -22,6 +22,8 @@
  */
 
 import { logger } from '@/lib/logger';
+import { PLUGIN_ID_PATTERN } from '@/lib/plugin-id';
+import { PROVIDER_HEALTH_LIMITS } from '@/lib/provider-health-limits';
 
 const log = logger('provider-health');
 
@@ -37,16 +39,9 @@ export type ProviderHealthStatus =
   | { ok: true }
   | { ok: false; message: string; since: number };
 
-/**
- * Same charset as `PLUGIN_ID_PATTERN` in `plugin-utils.ts`, inlined so this
- * client store doesn't pull in that module's Node `fs`/`path` imports. Ids are
- * lowercased before keying so the `plugin:<id>:` namespace match lines up with
- * the shared-state bus (which lowercases the same way).
- */
-const PLUGIN_ID_RE = /^[a-z0-9_-]+$/i;
-const MAX_MESSAGE_LENGTH = 200;
-/** Bounds a hostile/looping reporter — far more than any real install has. */
-const MAX_ENTRIES = 64;
+// Ids are lowercased before keying so the `plugin:<id>:` namespace match
+// lines up with the shared-state bus (which lowercases the same way).
+const { maxEntries: MAX_ENTRIES, maxMessageLength: MAX_MESSAGE_LENGTH } = PROVIDER_HEALTH_LIMITS;
 
 class ProviderHealthStore {
   private state = new Map<string, ProviderHealthEntry>();
@@ -62,7 +57,7 @@ class ProviderHealthStore {
    * payloads are dropped without throwing (third-party input).
    */
   report = (pluginId: string, status: ProviderHealthStatus): void => {
-    if (typeof pluginId !== 'string' || !PLUGIN_ID_RE.test(pluginId)) {
+    if (typeof pluginId !== 'string' || !PLUGIN_ID_PATTERN.test(pluginId)) {
       log.warn(`rejected invalid pluginId ${JSON.stringify(pluginId)}`);
       return;
     }

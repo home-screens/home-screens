@@ -23,13 +23,13 @@ import yauzl from 'yauzl';
 import { BUNDLE_ENTRY, PICTURES_PREFIX, pictureEntryPath } from './backup-pictures';
 import { safeLibraryPath } from './library-files';
 import { logger } from './logger';
+import { isUuid } from './uuid';
 
 const log = logger('backup');
 
 export const RESTORE_STAGING_DIR = 'data/restore-staging';
 /** A staged archive nobody restored within this long is dropped. */
 const STAGED_ARCHIVE_TTL_MS = 15 * 60 * 1000;
-const STAGED_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function stagingRoot(): string {
   return path.join(process.cwd(), RESTORE_STAGING_DIR);
@@ -37,7 +37,8 @@ function stagingRoot(): string {
 
 /** The staged archive an id names, or null for an id that is not ours. */
 export function stagedArchivePath(id: unknown): string | null {
-  if (typeof id !== 'string' || !STAGED_ID_RE.test(id)) return null;
+  // Lower case only, as the hub mints them: the id becomes a file name.
+  if (!isUuid(id) || id !== id.toLowerCase()) return null;
   return path.join(stagingRoot(), `${id}.zip`);
 }
 

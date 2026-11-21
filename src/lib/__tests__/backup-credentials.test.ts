@@ -229,6 +229,9 @@ describe('planCredentialRestore', () => {
     ['an empty object', {}],
     ['an array', []],
     ['a string', 'nope'],
+    // The gate and the guards read a hash that is not text as a password
+    // nobody can enter, so restoring one would lock the household out.
+    ['a hash that is not text', { passwordHash: 5, salt: 's', cookieSecret: 'c' }],
   ])('refuses %s as an auth state', async (_label, value) => {
     await seedDataFile('data/auth.json', {
       passwordHash: 'existing',

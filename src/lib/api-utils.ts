@@ -496,15 +496,26 @@ export function createRateLimiter(maxAttempts: number, windowMs: number) {
       return entry.count >= maxAttempts;
     },
     recordFailure(ip: string): void {
+      const now = Date.now();
       const entry = attempts.get(ip);
-      if (!entry || Date.now() > entry.resetAt) {
-        attempts.set(ip, { count: 1, resetAt: Date.now() + windowMs });
+      if (!entry || now > entry.resetAt) {
+        // A new window for this address is the moment to drop every address
+        // whose window has run out. Without it an address that failed once
+        // and never came back stayed in the map for as long as the hub ran.
+        for (const [key, other] of attempts) {
+          if (now > other.resetAt) attempts.delete(key);
+        }
+        attempts.set(ip, { count: 1, resetAt: now + windowMs });
       } else {
         entry.count++;
       }
     },
     clear(ip: string): void {
       attempts.delete(ip);
+    },
+    /** @internal How many addresses are being tracked, for tests. */
+    size(): number {
+      return attempts.size;
     },
     /**
      * Milliseconds until `ip` may try again, or 0 when it isn't limited.

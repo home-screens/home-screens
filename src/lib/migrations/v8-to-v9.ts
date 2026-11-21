@@ -21,7 +21,7 @@
  */
 
 import type { ScreenConfiguration } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import { mapConfigModules } from '@/lib/config-modules';
 
 /** The values the registry used to ship as each module's default accent
  *  (lowercase; compared case-insensitively). Frozen history, deliberately

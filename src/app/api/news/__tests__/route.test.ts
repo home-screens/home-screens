@@ -22,7 +22,9 @@ vi.mock('@/lib/config', () => ({
 // sandboxes. The stub keeps the same shape (URL parse + protocol check
 // + literal loopback / private / metadata block) so the route's behavior
 // matches what callers see in production for the cases tested here.
-vi.mock('@/lib/url-safety', () => ({
+vi.mock('@/lib/url-safety', async () => ({
+  // The host-list matching is pure, so the real one runs.
+  ...(await vi.importActual<typeof import('@/lib/url-safety')>('@/lib/url-safety')),
   isSafeExternalUrl: vi.fn(async (url: string) => {
     try {
       const u = new URL(url);
@@ -232,6 +234,27 @@ describe('GET /api/news', () => {
     );
     const { json } = await call(['https://example.com/huge']);
     expect(json.feeds[0]).toMatchObject({ ok: false, error: 'not-a-feed' });
+  });
+
+  it('stops reading a feed that never ends and never declares a length', async () => {
+    let pulls = 0;
+    let cancelled = false;
+    fetchMock.mockImplementation(async () => new Response(new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls++;
+        controller.enqueue(new Uint8Array(1024 * 1024));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    }, { highWaterMark: 0 }), { status: 200, headers: { 'content-type': 'application/rss+xml' } }));
+
+    const { json } = await call(['https://example.com/endless']);
+
+    expect(json.feeds[0]).toMatchObject({ ok: false, error: 'not-a-feed' });
+    // The cap is 4 MB: five one-megabyte chunks pass it, and no more are asked for.
+    expect(pulls).toBeLessThanOrEqual(6);
+    expect(cancelled).toBe(true);
   });
 
   it('decodes a latin-1 body using the response charset', async () => {

@@ -392,7 +392,7 @@ const WRAPPER_ACCESS: Record<string, DocsAccess> = {
 function accessOfBody(body: string): DocsAccess {
   if (/\brequireSession\(/.test(body)) return 'session';
   if (/\brequireDisplayAuth\(/.test(body)) return 'display';
-  if (/\brequireAdoptedDisplay\(/.test(body)) return 'adopted';
+  if (/\b(requireAdoptedDisplay|adoptedDisplayFromQuery)\(/.test(body)) return 'adopted';
   return 'open';
 }
 

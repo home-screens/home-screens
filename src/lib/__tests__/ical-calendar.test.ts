@@ -14,7 +14,9 @@ vi.mock('@/lib/api-utils', () => ({
 // sandboxes. The stub keeps the same shape (URL parse + protocol check
 // + literal loopback / private / metadata block) so the fetcher's behavior
 // matches what callers see in production for the cases tested here.
-vi.mock('@/lib/url-safety', () => ({
+vi.mock('@/lib/url-safety', async () => ({
+  // The host-list matching is pure, so the real one runs.
+  ...(await vi.importActual<typeof import('@/lib/url-safety')>('@/lib/url-safety')),
   isSafeExternalUrl: vi.fn(async (url: string) => {
     try {
       const u = new URL(url);
@@ -448,6 +450,57 @@ describe('fetchICalEvents', () => {
 
       expect(events).toEqual([]);
       expect(results[0].messageKey).toBe('linkUnreadable');
+    });
+
+    it('stops reading a feed that never ends and never declares a length', async () => {
+      mockFetch.mockClear();
+      let pulls = 0;
+      let cancelled = false;
+      const endless = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          pulls++;
+          controller.enqueue(new Uint8Array(1024 * 1024));
+        },
+        cancel() {
+          cancelled = true;
+        },
+      }, { highWaterMark: 0 });
+      mockFetch.mockResolvedValueOnce(new Response(endless, { status: 200 }));
+
+      const { results } = await fetchICalEvents([makeSource()], '2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z');
+
+      expect(results[0].messageKey).toBe('linkUnreadable');
+      // The cap is 4 MB: five one-megabyte chunks pass it, and no more are asked for.
+      expect(pulls).toBeLessThanOrEqual(6);
+      expect(cancelled).toBe(true);
+    });
+
+    it('still names the HTTP error when an error page is the thing that is too big', async () => {
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(
+        new Response('gone', { status: 404, headers: { 'content-length': String(50 * 1024 * 1024) } }),
+      );
+      const { results } = await fetchICalEvents([makeSource()], '2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z');
+      expect(results[0]).toMatchObject({ ok: false, messageKey: 'linkHttpError', messageParams: { status: 404 } });
+    });
+  });
+
+  describe('a host that cannot be reached', () => {
+    it('answers "could not reach" for that feed instead of rejecting', async () => {
+      mockFetch.mockClear();
+      mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'));
+      const outcome = await checkICalUrl('https://example.com/down.ics');
+      expect(outcome).toMatchObject({ ok: false, messageKey: 'linkUnreachable' });
+    });
+
+    it('keeps the two retries per hop the calendar has always had', async () => {
+      mockFetch.mockClear();
+      mockFetchResponse(SIMPLE_ICS);
+      await fetchICalEvents([makeSource()], '2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ retries: 2, timeout: 15_000, redirect: 'manual' }),
+      );
     });
   });
 

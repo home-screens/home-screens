@@ -19,6 +19,7 @@ import { onedriveTokenStore } from './onedrive';
 import { readAllPluginSecrets, SECRETS_DIR } from './plugin-secrets';
 import { readPluginTokensRaw, TOKENS_DIR } from './plugin-auth';
 import { readAuthState, type AuthState } from './auth';
+import { hasPassword } from './auth-posture';
 import { isIpAllowed } from './ip-allowlist';
 import { sanitizePluginId } from './plugin-utils';
 import { AUTO_BACKUP_SECRETS_FILE, readAutoBackupSecrets, sanitizeAutoBackupSecrets } from './auto-backup-secrets';
@@ -225,7 +226,10 @@ const AUTH_STATE_KEYS: readonly (keyof AuthState)[] = [
 function authStateIsCoherent(auth: AuthState): boolean {
   if (!auth || typeof auth !== 'object' || Array.isArray(auth)) return false;
   if (!AUTH_STATE_KEYS.some((key) => key in auth)) return false;
-  const hasHash = typeof auth.passwordHash === 'string' && auth.passwordHash.length > 0;
+  // A hash that is not text is nothing the app writes, and the rule the gate
+  // and the guards share would read it as a password nobody can enter.
+  if (auth.passwordHash != null && typeof auth.passwordHash !== 'string') return false;
+  const hasHash = hasPassword(auth);
   const hasSalt = typeof auth.salt === 'string' && auth.salt.length > 0;
   if (hasHash !== hasSalt) return false;
   if (hasHash && !auth.cookieSecret) return false;
