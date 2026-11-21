@@ -64,6 +64,28 @@ export function isAllowedDomain(url: string, allowedDomains: string[], allowLan:
 }
 
 // ── IPv6 range checks ────────────────────────────────────────────────────
+
+/**
+ * The IPv4 address an IPv6 literal carries, in the mapped form (::ffff:) or
+ * the old compatible one (::), however it was written. `new URL()` rewrites
+ * `[::ffff:127.0.0.1]` to `[::ffff:7f00:1]`, so a check that only knew the
+ * dotted form never saw the address inside a URL. The literal is put through
+ * the same parser first, so every spelling (dotted, hex, zeros written out)
+ * arrives here as one.
+ */
+function embeddedIPv4(v: string): string | null {
+  let canonical: string;
+  try {
+    canonical = new URL(`http://[${v}]/`).hostname.slice(1, -1);
+  } catch {
+    return null;
+  }
+  const m = canonical.match(/^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (!m) return null;
+  const high = parseInt(m[1], 16);
+  const low = parseInt(m[2], 16);
+  return [high >> 8, high & 255, low >> 8, low & 255].join('.');
+}
 //
 // We can't blanket-block bracketed IPv6 because legitimate dual-stack APIs
 // and CDNs return AAAA records. Match the actual private/internal ranges
@@ -85,12 +107,9 @@ function isBlockedIPv6(addr: string): boolean {
   // Unique local fc00::/7 — first 7 bits are 1111 110
   // First two hex digits in [fc00, fdff].
   if (/^f[cd][0-9a-f]{2}:/.test(v)) return true;
-  // IPv4-mapped IPv6 ::ffff:a.b.c.d — validate the embedded IPv4
-  const v4Mapped = v.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-  if (v4Mapped) return isBlockedHost(v4Mapped[1]);
-  // Deprecated IPv4-compatible ::a.b.c.d
-  const v4Compat = v.match(/^::(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-  if (v4Compat) return isBlockedHost(v4Compat[1]);
+  // An IPv4 address inside an IPv6 one is judged as that IPv4 address.
+  const v4 = embeddedIPv4(v);
+  if (v4) return isBlockedHost(v4);
 
   return false;
 }
@@ -222,11 +241,9 @@ function isBlockedIPv6ForLan(addr: string): boolean {
   if (v === '::' || v === '0:0:0:0:0:0:0:0') return true;    // unspecified
   // AWS IPv6 metadata
   if (v === 'fd00:ec2::254' || v === 'fd00:ec2:0:0:0:0:0:254') return true;
-  // IPv4-mapped: check embedded IPv4 under the same LAN rules
-  const v4Mapped = v.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-  if (v4Mapped) return isBlockedHostForLan(v4Mapped[1]);
-  const v4Compat = v.match(/^::(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-  if (v4Compat) return isBlockedHostForLan(v4Compat[1]);
+  // An IPv4 address inside an IPv6 one, under the same LAN rules.
+  const v4 = embeddedIPv4(v);
+  if (v4) return isBlockedHostForLan(v4);
   return false;
 }
 

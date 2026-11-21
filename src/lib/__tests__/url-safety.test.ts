@@ -87,6 +87,45 @@ describe('isBlockedHost', () => {
   });
 });
 
+describe('an IPv4 address written inside an IPv6 one', () => {
+  // `new URL()` writes [::ffff:127.0.0.1] as [::ffff:7f00:1], so a URL's
+  // hostname never carries the dotted form. Every spelling must be judged as
+  // the IPv4 address it holds.
+  const spellings = (v4hex: string, dotted: string) => [
+    `[::ffff:${dotted}]`, `[::ffff:${v4hex}]`, `[0:0:0:0:0:ffff:${v4hex}]`, `[::${v4hex}]`, `[::${dotted}]`,
+  ];
+
+  it('blocks the hub itself, the home network and the metadata address, however written', () => {
+    for (const [hex, dotted] of [['7f00:1', '127.0.0.1'], ['c0a8:101', '192.168.1.1'], ['a00:1', '10.0.0.1'], ['a9fe:a9fe', '169.254.169.254']]) {
+      for (const host of spellings(hex, dotted)) expect(isBlockedHost(host), host).toBe(true);
+    }
+  });
+
+  it('allows a public IPv4 address carried the same way', () => {
+    for (const host of spellings('808:808', '8.8.8.8')) expect(isBlockedHost(host), host).toBe(false);
+  });
+
+  it('refuses such a URL before any lookup, in the strict check', async () => {
+    const lookup = vi.spyOn(dns, 'lookup');
+    for (const url of ['http://[::ffff:127.0.0.1]:3000/', 'http://[::ffff:c0a8:101]/', 'http://[::ffff:169.254.169.254]/']) {
+      expect(await isSafeExternalUrl(url), url).toBe(false);
+    }
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
+  it('still refuses the metadata address, and only it, on the home-network path', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://[::ffff:169.254.169.254]/')).toBe(false);
+    expect(await isSafeLocalOrExternalUrl('http://[::ffff:a9fe:a9fe]/')).toBe(false);
+    vi.spyOn(dns, 'lookup').mockResolvedValue([{ address: '::ffff:c0a8:101', family: 6 }] as never);
+    expect(await isSafeLocalOrExternalUrl('http://[::ffff:c0a8:101]/')).toBe(true);
+  });
+
+  it('judges a name that resolves to such an address by the address inside', async () => {
+    vi.spyOn(dns, 'lookup').mockResolvedValue([{ address: '::ffff:7f00:1', family: 6 }] as never);
+    expect(await isSafeExternalUrl('https://rebind.example.com/')).toBe(false);
+  });
+});
+
 describe('isSafeExternalUrl', () => {
   // Helper: stub dns.lookup to return the given addresses without hitting the network
   function mockResolve(addresses: string[]) {
