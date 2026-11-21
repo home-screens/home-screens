@@ -56,6 +56,12 @@
     "mediaTypesVideos": "Videos only",
     "mediaTypesBoth": "Photos + videos",
     "maxVideoDurationSeconds": "Longest a video can play (seconds)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Don't play",
+    "livePhotosOnce": "Play once",
+    "livePhotosTwice": "Play twice",
+    "livePhotosLoop": "Play on repeat",
+    "livePhotosHint": "Plays the short video that comes with an iPhone Live Photo. Put it in the same folder as its photo, named like the photo plus .live, for example IMG_1234.live.mov for IMG_1234.jpg.",
     "resetToDefault": "Reset to default"
   },
   "fields": {
@@ -4933,12 +4939,7 @@
       "transitionFade": "Fade",
       "transitionNone": "None",
       "slideInterval": "Slide Interval (seconds)",
-      "transition": "Transition",
-      "livePhotos": "Live Photos",
-      "livePhotosStill": "Hold still",
-      "livePhotosOnce": "Play once",
-      "livePhotosTwice": "Play twice",
-      "livePhotosLoop": "Loop"
+      "transition": "Transition"
     },
     "qr-code": {
       "modeCustom": "Custom (URL / Text)",

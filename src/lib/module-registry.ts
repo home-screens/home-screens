@@ -638,6 +638,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showClock: true,
       kenBurns: false,
       mediaTypes: 'photos',
+      livePhotos: 'once',
       maxVideoDurationMs: 60_000,
     },
     defaultSize: { w: 1080, h: 1920 },

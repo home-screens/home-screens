@@ -116,15 +116,22 @@ Deleting happens here, one file at a time from the trash button on its tile, or 
 
 ### Live Photos
 
-An iPhone saves a Live Photo as two files: the still you see, and a short clip of the moment around it. Home Screens plays that movement in a Photo Slideshow if both halves are in the same folder and the clip is named after its still with `.live.mov` (or `.live.mp4`) in place of the extension, so `IMG_1234.jpg` pairs with `IMG_1234.live.mov`. Put both files in the folder, the usual way you add anything to the library, and rename the clip to match.
+An iPhone Live Photo is a photo plus a short video, about three seconds, of the moment around it. A Photo Slideshow or Full-screen Photo showing a library folder can play that video over the photo, so the picture moves for a moment and then settles.
 
-The `.live.` part has to be there. Plenty of cameras save a photo and a video of the same moment as `IMG_1234.JPG` and `IMG_1234.MOV`, and those are two separate things you may well want shown separately, so only the exact `.live.` name is treated as a pair.
+Both halves have to be in the same folder, with the video named after its photo plus `.live`: `IMG_1234.jpg` pairs with `IMG_1234.live.mov` (or `.live.mp4`; capital letters don't matter). Uploading from the phone only sends the photo, so this takes a computer:
 
-The clip stays an ordinary video in your library. It shows in the Image Library with everything else, counts towards its folder, and is backed up, moved and deleted like any other file. The only thing the name buys is that a slideshow showing the still plays the clip over the top of it: a slideshow set to show videos will not also play a paired clip as a slide of its own, and a clip whose picture has gone plays as the plain video it is, so you can always see it and remove it.
+1. On the iPhone, set **Settings > Camera > Formats** to **Most Compatible** before taking the photos. The photo is then a JPEG and the video is one the wall can play. Photos taken on **High Efficiency** (the iPhone's default) are HEIC with HEVC video, which the library can't take: convert them to JPEG and H.264 first, or the upload will turn the video away with a note saying it won't play.
+2. Copy both files to the computer. On a Mac, select them in Photos and choose **File > Export > Export Unmodified Original**; on Windows, copy them from the iPhone's DCIM folder. You get `IMG_1234.JPG` and `IMG_1234.MOV`.
+3. Rename the video by adding `.live` before `.MOV`: `IMG_1234.live.MOV`.
+4. Upload both into the same folder from **Settings > Pictures & videos**. If the folder already has an `IMG_1234.JPG`, the new photo is saved as `IMG_1234-2.JPG` and its video follows it to `IMG_1234-2.live.MOV`, so the pair stays together.
+
+The `.live` part is what makes a pair. A photo and a video that only share a name stay two separate files.
+
+The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and the Image Library, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone plays as the plain video it is.
 
 If two pictures in one folder share a name with different extensions, say `beach.jpg` and `beach.png`, there is no telling which of them `beach.live.mov` belongs to, so neither takes it and it plays on its own.
 
-What the slideshow does with the movement is set per module, under **Live Photos**: hold it still, play it once as the photo arrives, twice so it comes round again partway through, or loop it for the whole slide. The setting only appears on a Photo Slideshow showing a library folder, since that is the only place a pair can be found; it is hidden for hand-picked pictures, for the other photo sources, and when the slideshow is set to videos only.
+What happens to the movement is set per module, under **Live Photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-screen Photo showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
 
 ---
 

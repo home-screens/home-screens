@@ -5,6 +5,7 @@ import Slider from '@/components/ui/Slider';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
 import {
+  canPlayLivePhotos,
   canPlayVideo,
   clampPhotoCount,
   defaultPhotoSource,
@@ -16,7 +17,7 @@ import {
   usesCount,
   type PhotoSourceKind,
 } from '@/lib/photo-source';
-import type { PhotoSource, SlideshowMediaTypes } from '@/types/config';
+import type { LivePhotoMotion, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import { MediaTypesFields } from '@/components/editor/config-sections/MediaTypesFields';
 import PhotoSourceEntryFields from './PhotoSourceEntryFields';
 
@@ -26,6 +27,7 @@ export interface PhotoSourcePatch {
   count?: number;
   mediaTypes?: SlideshowMediaTypes;
   maxVideoDurationMs?: number;
+  livePhotos?: LivePhotoMotion;
 }
 
 /**
@@ -42,7 +44,7 @@ export interface PhotoSourcePatch {
 export default function PhotoSourceFields({ use, value, onChange }: {
   /** `stream` for a slideshow; `background` never offers video or a count. */
   use: 'stream' | 'background';
-  value: { photoSource?: unknown; count?: number; mediaTypes?: SlideshowMediaTypes; maxVideoDurationMs?: number };
+  value: { photoSource?: unknown; count?: number; mediaTypes?: SlideshowMediaTypes; maxVideoDurationMs?: number; livePhotos?: LivePhotoMotion };
   onChange: (patch: PhotoSourcePatch) => void;
 }) {
   const t = useTranslate('editor');
@@ -79,6 +81,28 @@ export default function PhotoSourceFields({ use, value, onChange }: {
 
       {use === 'stream' && canPlayVideo(source.kind) && (
         <MediaTypesFields config={value as Record<string, unknown>} set={onChange} />
+      )}
+
+      {/* Only a library folder hands back a clip, and only while its stills
+          are shown, so the setting is only offered there. Anywhere else it
+          would promise motion that cannot arrive. */}
+      {use === 'stream' && canPlayLivePhotos(source) && value.mediaTypes !== 'videos' && (
+        <>
+          <LabeledSelect
+            label={t('common.livePhotos')}
+            value={value.livePhotos ?? 'once'}
+            onChange={(livePhotos) => onChange({ livePhotos })}
+            options={[
+              { value: 'still', label: t('common.livePhotosStill') },
+              { value: 'once', label: t('common.livePhotosOnce') },
+              { value: 'twice', label: t('common.livePhotosTwice') },
+              { value: 'loop', label: t('common.livePhotosLoop') },
+            ]}
+          />
+          <p className="-mt-1 text-[11px] leading-relaxed text-hs-text-faint" data-testid="live-photos-hint">
+            {t('common.livePhotosHint')}
+          </p>
+        </>
       )}
 
       {use === 'stream' && usesCount(source.kind) && (

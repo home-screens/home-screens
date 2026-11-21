@@ -56,6 +56,12 @@
     "mediaTypesVideos": "Alleen video's",
     "mediaTypesBoth": "Foto's + video's",
     "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Niet afspelen",
+    "livePhotosOnce": "Eén keer afspelen",
+    "livePhotosTwice": "Twee keer afspelen",
+    "livePhotosLoop": "Herhaald afspelen",
+    "livePhotosHint": "Speelt het filmpje af dat bij een Live Photo van een iPhone hoort. Zet het filmpje in dezelfde map als de foto, met de naam van de foto plus .live, bijvoorbeeld IMG_1234.live.mov bij IMG_1234.jpg.",
     "resetToDefault": "Terugzetten op standaard"
   },
   "fields": {
@@ -4933,12 +4939,7 @@
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang",
-      "livePhotos": "Live Photos",
-      "livePhotosStill": "Stil houden",
-      "livePhotosOnce": "Eén keer afspelen",
-      "livePhotosTwice": "Twee keer afspelen",
-      "livePhotosLoop": "Herhalen"
+      "transition": "Overgang"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",

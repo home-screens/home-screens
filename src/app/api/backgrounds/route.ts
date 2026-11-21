@@ -8,6 +8,7 @@ import { listLibraryFolder, safeLibraryPath, writeLibraryFile } from '@/lib/libr
 import {
   IMAGE_FILE_RE,
   IMAGE_MIME_TYPES,
+  LIVE_COMPANION_RE,
   MAX_IMAGE_BYTES,
   MAX_VIDEO_BYTES,
   VIDEO_FILE_RE,
@@ -75,7 +76,9 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // read so the list is at least that new.
   const listHeaders = { [LIBRARY_REVISION_HEADER]: libraryRevision() };
   // The same listing a library slideshow plays (photo-sources/library), so
-  // the editor's grid and the wall can never disagree about a folder.
+  // the editor's grid and the wall can never disagree about a folder. Live
+  // Photos stay unpaired here: the library shows every file it holds, the
+  // moving half of a Live Photo included, so it can be seen and deleted.
   const items = await listLibraryMedia(directory, isMediaTypes(media) ? media : 'photos');
   if (!items) return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
   return NextResponse.json(items, { headers: listHeaders });
@@ -243,9 +246,14 @@ export const POST = withAuth(async (request: NextRequest) => {
   return NextResponse.json({ paths: uploadedPaths }, { status: 201 });
 }, 'Failed to upload background');
 
-/** `name`, or `name-2`, `name-3`... before the extension, whichever is not taken in `dir`. */
+/**
+ * `name`, or `name-2`, `name-3`... before the extension, whichever is not
+ * taken in `dir`. A Live Photo clip counts `.live.mov` as its extension, so
+ * it becomes `IMG_1234-2.live.mov` and still pairs with `IMG_1234-2.jpg`;
+ * `IMG_1234.live-2.mov` would pair with nothing.
+ */
 async function freeName(dir: string, name: string): Promise<string> {
-  const ext = path.extname(name);
+  const ext = LIVE_COMPANION_RE.exec(name)?.[0] ?? path.extname(name);
   const stem = name.slice(0, name.length - ext.length);
   for (let n = 1; ; n++) {
     const candidate = n === 1 ? name : `${stem}-${n}${ext}`;

@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
-import { canPlayLivePhotos, defaultPhotoSource, normalizePhotoSource } from '@/lib/photo-source';
 import Slider from '@/components/ui/Slider';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Toggle from '@/components/ui/Toggle';
@@ -23,15 +22,6 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
     { value: 'cover', label: t('common.objectFitCover') },
     { value: 'contain', label: t('common.objectFitContain') },
     { value: 'fill', label: t('common.objectFitFill') },
-  ] as const;
-
-  // Only bites on pictures that have a movie beside them; an ordinary photo
-  // is unaffected whichever of these is chosen.
-  const LIVE_PHOTOS = [
-    { value: 'still', label: t('configSections.photo-slideshow.livePhotosStill') },
-    { value: 'once', label: t('configSections.photo-slideshow.livePhotosOnce') },
-    { value: 'twice', label: t('configSections.photo-slideshow.livePhotosTwice') },
-    { value: 'loop', label: t('configSections.photo-slideshow.livePhotosLoop') },
   ] as const;
 
   const { config: c, set } = useModuleConfig<Partial<PhotoSlideshowConfig>>(mod, screenId);
@@ -76,18 +66,6 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
         checked={c.kenBurns ?? false}
         onChange={(v) => set({ kenBurns: v })}
       />
-      {/* Only a library folder hands back a clip, so the setting is only
-          offered there. Anywhere else it would promise motion that cannot
-          arrive. */}
-      {c.mediaTypes !== 'videos'
-        && canPlayLivePhotos(normalizePhotoSource(c.photoSource) ?? defaultPhotoSource('library')) && (
-        <LabeledSelect
-          label={t('configSections.photo-slideshow.livePhotos')}
-          value={c.livePhotos ?? 'once'}
-          onChange={(v) => set({ livePhotos: v })}
-          options={LIVE_PHOTOS}
-        />
-      )}
     </>
   );
 }

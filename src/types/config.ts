@@ -3659,17 +3659,14 @@ export interface PhotoSlideshowConfig {
    */
   mediaTypes?: SlideshowMediaTypes;
   /**
-   * What to do with Live Photos: hold them `still`, play the movement
-   * `once` as the photo arrives, `twice` so it comes round again partway
-   * through, or `loop` it for the whole slide
+   * What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide
    *
-   * Only affects pictures that actually have a movie beside them; an
-   * ordinary photo is unaffected whatever this says. `once` is the default
-   * because the clip runs about three seconds, so looping it across a ten
-   * or thirty second slide repeats the same few seconds three or ten times
-   * and reads as a fault rather than as motion. `twice` is the middle
-   * ground for a long slide: the second play lands at the halfway mark, so
-   * a thirty second photo moves twice rather than once or ten times.
+   * Only pictures in a library folder with a `<name>.live.mov` (or
+   * `.live.mp4`) clip beside them move; every other photo is unaffected.
+   * `once` is the default because the clip runs about three seconds, so
+   * looping it across a ten or thirty second slide repeats the same few
+   * seconds three or ten times and reads as a fault rather than as motion.
+   * A slide with movement skips Ken Burns.
    *
    * @default "once"
    */
@@ -5275,6 +5272,19 @@ export interface FullscreenPhotoConfig {
    * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
+  /**
+   * What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide
+   *
+   * Only pictures in a library folder with a `<name>.live.mov` (or
+   * `.live.mp4`) clip beside them move; every other photo is unaffected.
+   * `once` is the default because the clip runs about three seconds, so
+   * looping it across a ten or thirty second slide repeats the same few
+   * seconds three or ten times and reads as a fault rather than as motion.
+   * A slide with movement skips Ken Burns.
+   *
+   * @default "once"
+   */
+  livePhotos?: LivePhotoMotion;
   /**
    * Longest a video slide can play before moving on (60 sec)
    *

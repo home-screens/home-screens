@@ -56,6 +56,12 @@
     "mediaTypesVideos": "Kun videoer",
     "mediaTypesBoth": "Fotos + videoer",
     "maxVideoDurationSeconds": "Maksimal afspilningstid pr. video (sekunder)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Afspil ikke",
+    "livePhotosOnce": "Afspil én gang",
+    "livePhotosTwice": "Afspil to gange",
+    "livePhotosLoop": "Gentag hele tiden",
+    "livePhotosHint": "Afspiller bevægelsen i et Live Photo fra en iPhone. Læg klippet i samme mappe som billedet, og giv det billedets navn plus .live, for eksempel IMG_1234.live.mov til IMG_1234.jpg.",
     "resetToDefault": "Nulstil til standard"
   },
   "fields": {
@@ -4933,12 +4939,7 @@
       "transitionFade": "Toning",
       "transitionNone": "Ingen",
       "slideInterval": "Tid pr. billede (sekunder)",
-      "transition": "Overgang",
-      "livePhotos": "Live Photos",
-      "livePhotosStill": "Hold stille",
-      "livePhotosOnce": "Afspil én gang",
-      "livePhotosTwice": "Afspil to gange",
-      "livePhotosLoop": "Gentag"
+      "transition": "Overgang"
     },
     "qr-code": {
       "modeCustom": "Egen (URL / tekst)",

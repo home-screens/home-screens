@@ -1535,6 +1535,23 @@
           "default": "photos"
         },
         {
+          "name": "livePhotos",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "LivePhotoMotion",
+            "values": [
+              "still",
+              "once",
+              "twice",
+              "loop"
+            ]
+          },
+          "description": "What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide",
+          "defaultText": "\"once\"",
+          "default": "once"
+        },
+        {
           "name": "maxVideoDurationMs",
           "optional": true,
           "type": {
@@ -6513,7 +6530,7 @@
               "loop"
             ]
           },
-          "description": "What to do with Live Photos: hold them `still`, play the movement `once` as the photo arrives, `twice` so it comes round again partway through, or `loop` it for the whole slide",
+          "description": "What to do with a Live Photo's movement: `still` shows only the photo, `once` plays it as the photo arrives, `twice` plays it again halfway through the slide, `loop` repeats it for the whole slide",
           "defaultText": "\"once\"",
           "default": "once"
         },

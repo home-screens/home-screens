@@ -1,5 +1,5 @@
-import { folderOf } from '@/lib/media-paths';
-import { mediaKindOf } from '@/lib/media-formats';
+import { fileNameOf, folderOf } from '@/lib/media-paths';
+import { clipIndex, mediaKindOf } from '@/lib/media-formats';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
 import { isRotationActive, normalizePhotoSource } from '@/lib/photo-source';
 import type { PhotoSource, SlideshowMediaTypes } from '@/types/config';
@@ -30,6 +30,13 @@ export interface MediaUse {
   displayId?: string;
   screenId?: string;
   moduleId?: string;
+  /**
+   * A slideshow plays this file as the moving half of a Live Photo, over
+   * its still, rather than as a slide of its own. It is in use, but it is
+   * never what keeps the slideshow from going blank, and losing it only
+   * stills the photo.
+   */
+  motion?: true;
 }
 
 /** A reference to something the library no longer holds. */
@@ -135,6 +142,12 @@ function slideshowShows(node: Record<string, unknown>): SlideshowMediaTypes {
   return media === 'videos' || media === 'both' ? media : 'photos';
 }
 
+/** Whether a slideshow module plays a Live Photo's movement, mirroring the
+ *  module's own `livePhotos ?? 'once'`. */
+function slideshowMoves(node: Record<string, unknown>): boolean {
+  return (node.config as Record<string, unknown>).livePhotos !== 'still';
+}
+
 /** Whether a slideshow that plays `shows` puts pictures (or videos) on screen. */
 export function slideshowPlays(shows: SlideshowMediaTypes, kind: 'image' | 'video'): boolean {
   return shows === 'both' || (shows === 'photos') === (kind === 'image');
@@ -158,6 +171,8 @@ interface Ancestry {
 interface FolderUse {
   folder: string;
   shows: SlideshowMediaTypes;
+  /** Plays the movement of the folder's Live Photos (a background rotation never does). */
+  moves: boolean;
   use: MediaUse;
   displayName?: string;
 }
@@ -197,6 +212,7 @@ function walkConfig(
         onFolder({
           folder,
           shows: slideshowShows(obj),
+          moves: slideshowMoves(obj),
           use: { kind: 'slideshow', name: next.name, configPath: `${path}.config.photoSource.folder`, ...ids(next) },
           ...(next.displayName ? { displayName: next.displayName } : {}),
         });
@@ -205,6 +221,7 @@ function walkConfig(
         onFolder({
           folder: rotating,
           shows: 'photos',
+          moves: false,
           use: { kind: 'slideshow', name: next.name, configPath: `${path}.backgroundRotation.sources.${index}.folder`, ...ids(next) },
           ...(next.displayName ? { displayName: next.displayName } : {}),
         });
@@ -249,9 +266,19 @@ export function scanMediaUsage(config: unknown, knownPaths: Set<string>): Map<st
   walkConfig(
     config,
     (ref, use) => { if (knownPaths.has(ref.path)) record(ref.path, use); },
-    ({ folder, shows, use }) => {
-      for (const p of pathsInFolder(folder)) {
-        if (slideshowCanShow(shows, p)) record(p, use);
+    ({ folder, shows, moves, use }) => {
+      const paths = pathsInFolder(folder);
+      // Pair Live Photos the way the slideshow's own list does
+      // (photo-sources/library): only while its stills are shown, and a
+      // paired clip is the still's movement, never a slide of its own.
+      const clipFor = shows !== 'videos' ? clipIndex(paths.map(fileNameOf)) : null;
+      const clips = new Set(clipFor ? paths.map((p) => clipFor(fileNameOf(p))).filter(Boolean) : []);
+      for (const p of paths) {
+        if (clips.has(fileNameOf(p))) {
+          if (moves) record(p, { ...use, motion: true });
+        } else if (slideshowCanShow(shows, p)) {
+          record(p, use);
+        }
       }
     },
   );
@@ -308,7 +335,9 @@ function slideshowMembers(usage: MediaUsageMap): Map<string, Set<string>> {
   const members = new Map<string, Set<string>>();
   for (const [libraryPath, uses] of usageEntries(usage)) {
     for (const use of uses) {
-      if (use.kind !== 'slideshow') continue;
+      // A Live Photo's movement is not a slide, so it never counts towards
+      // what keeps a slideshow showing something.
+      if (use.kind !== 'slideshow' || use.motion) continue;
       const set = members.get(use.configPath) ?? new Set<string>();
       set.add(libraryPath);
       members.set(use.configPath, set);
@@ -321,6 +350,8 @@ function slideshowMembers(usage: MediaUsageMap): Map<string, Set<string>> {
 function blockingUses(uses: readonly MediaUse[], members: Map<string, Set<string>>, libraryPath: string, mode: RemovalMode): MediaUse[] {
   const blocking: MediaUse[] = [];
   for (const use of uses) {
+    // Taking a Live Photo's movement away leaves its still showing.
+    if (use.motion) continue;
     if (use.kind === 'slideshow') {
       // A slideshow lets a picture go while it has another one to show, so
       // the wall never goes blank; only its last picture stays put.

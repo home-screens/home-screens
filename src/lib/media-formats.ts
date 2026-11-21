@@ -110,12 +110,54 @@ export function clipIndex(names: Iterable<string>): (stillName: string) => strin
     }
   }
   return (stillName) => {
+    // Only a picture has a clip. A video called IMG_1.MOV would otherwise
+    // find IMG_1.live.mov and claim it for no still at all.
+    if (mediaKindOf(stillName) !== 'image') return undefined;
     for (const candidate of liveCompanionsFor(stillName)) {
       const key = candidate.toLowerCase();
       const found = byLower.get(key);
       if (found) return (claims.get(key) ?? 0) > 1 ? undefined : found;
     }
     return undefined;
+  };
+}
+
+/**
+ * Files to upload with each Live Photo clip after everything else, so the
+ * picture it belongs to has landed (and has its final name) before the clip
+ * is sent. Otherwise in the order given.
+ */
+export function companionsLast<T extends { name: string }>(files: readonly T[]): T[] {
+  return [
+    ...files.filter((file) => !LIVE_COMPANION_RE.test(file.name)),
+    ...files.filter((file) => LIVE_COMPANION_RE.test(file.name)),
+  ];
+}
+
+/**
+ * Keeps a Live Photo's two halves paired when they are uploaded one file at
+ * a time. A picture whose name is already taken in the folder is saved under
+ * the next free name (`IMG_1234-2.jpg`, two family iPhones both make an
+ * IMG_1234), and its clip has to follow it there, or it pairs with the
+ * other, unrelated picture or with nothing.
+ *
+ * Tell it where each picture `landed`; ask `nameFor` before sending a clip.
+ */
+export function liveUploadPairing() {
+  const stemOf = (name: string) => name.replace(/\.[^.]+$/, '');
+  // Keyed on the lowercased name the picture was sent as.
+  const savedStems = new Map<string, string>();
+  return {
+    landed(sentName: string, savedName: string): void {
+      if (mediaKindOf(sentName) !== 'image') return;
+      savedStems.set(stemOf(sentName).toLowerCase(), stemOf(savedName));
+    },
+    nameFor(fileName: string): string {
+      const live = LIVE_COMPANION_RE.exec(fileName);
+      if (!live) return fileName;
+      const saved = savedStems.get(fileName.slice(0, live.index).toLowerCase());
+      return saved ? `${saved}${live[0]}` : fileName;
+    },
   };
 }
 

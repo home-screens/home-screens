@@ -37,7 +37,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|standings.columns.last10',
   // Apple's product name, which every shipped language keeps as-is (the
   // three choices beneath it are translated words).
-  'editor|configSections.photo-slideshow.livePhotos',
+  'editor|common.livePhotos',
     // Rows main added while the photo-source branch was open.
     'editor|backgroundPicker.sourcesGroup',
   // The product name, rendered as the watermark's eyebrow on an empty display.

@@ -56,6 +56,12 @@
     "mediaTypesVideos": "Somente vídeos",
     "mediaTypesBoth": "Fotos + vídeos",
     "maxVideoDurationSeconds": "Duração máxima por vídeo (segundos)",
+    "livePhotos": "Live Photos",
+    "livePhotosStill": "Não reproduzir",
+    "livePhotosOnce": "Reproduzir uma vez",
+    "livePhotosTwice": "Reproduzir duas vezes",
+    "livePhotosLoop": "Reproduzir sem parar",
+    "livePhotosHint": "Mostra o movimento de uma Live Photo do iPhone. Coloque o vídeo na mesma pasta da foto, com o nome dela seguido de .live, por exemplo IMG_1234.live.mov para IMG_1234.jpg.",
     "resetToDefault": "Redefinir para padrão"
   },
   "fields": {
@@ -4933,12 +4939,7 @@
       "transitionFade": "Fade",
       "transitionNone": "Nenhuma",
       "slideInterval": "Intervalo do slide (segundos)",
-      "transition": "Transição",
-      "livePhotos": "Live Photos",
-      "livePhotosStill": "Manter parada",
-      "livePhotosOnce": "Reproduzir uma vez",
-      "livePhotosTwice": "Reproduzir duas vezes",
-      "livePhotosLoop": "Em loop"
+      "transition": "Transição"
     },
     "qr-code": {
       "modeCustom": "Personalizado (URL / texto)",

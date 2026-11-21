@@ -14,7 +14,7 @@ import { useOrigin } from '@/hooks/useOrigin';
 import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { QRCodeSVG } from 'qrcode.react';
-import { usePhotoList } from '../shared/usePhotoList';
+import { usePhotoList, DEFAULT_SLIDE_INTERVAL_MS } from '../shared/usePhotoList';
 import { SlideImage, SlideLayer, KEN_BURNS_CSS } from '../shared/SlideImage';
 import type { LayerIndex } from '../shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
@@ -310,6 +310,8 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   const videoAdjacent = sources.some((s) => s?.type === 'video');
   const transition = videoAdjacent ? 'none' : config.transition;
 
+  const live = { motion: config.livePhotos ?? 'once', slideMs: config.intervalMs ?? DEFAULT_SLIDE_INTERVAL_MS };
+
   const renderLayer = (layer: LayerIndex) => (
     <SlideLayer
       item={sources[layer]}
@@ -326,6 +328,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       onEnded={advance}
       onReady={() => layerReady(layer)}
       onFailed={() => layerFailed(layer)}
+      live={live}
     />
   );
 

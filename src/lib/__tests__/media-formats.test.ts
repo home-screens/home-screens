@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LIVE_COMPANION_RE, clipIndex, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
+import { LIVE_COMPANION_RE, clipIndex, companionsLast, liveUploadPairing, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
 
 describe('extensionForContentType', () => {
   it.each([
@@ -163,5 +163,44 @@ describe('a clip two pictures could claim', () => {
     const find = clipIndex(['a.jpg', 'b.png', 'a.live.mov']);
     expect(find('a.jpg')).toBe('a.live.mov');
     expect(find('b.png')).toBeUndefined();
+  });
+});
+
+describe('uploading a Live Photo', () => {
+  it('sends the clips after everything else, otherwise in the order picked', () => {
+    const names = ['IMG_2.live.mov', 'IMG_1.jpg', 'clip.mp4', 'IMG_1.live.MOV', 'IMG_2.jpg'].map((name) => ({ name }));
+    expect(companionsLast(names).map((f) => f.name))
+      .toEqual(['IMG_1.jpg', 'clip.mp4', 'IMG_2.jpg', 'IMG_2.live.mov', 'IMG_1.live.MOV']);
+  });
+
+  it('sends a clip under the name its picture was saved as', () => {
+    // Two family iPhones both make an IMG_1234; the second one's picture
+    // lands as IMG_1234-2.jpg and its clip has to follow it.
+    const pairing = liveUploadPairing();
+    pairing.landed('IMG_1234.JPG', 'IMG_1234-2.JPG');
+    pairing.landed('beach.mov', 'beach-2.mov');
+    expect(pairing.nameFor('IMG_1234.live.mov')).toBe('IMG_1234-2.live.mov');
+    expect(pairing.nameFor('img_1234.live.MP4')).toBe('IMG_1234-2.live.MP4');
+    // A video never claims a clip, and a clip with no picture keeps its name.
+    expect(pairing.nameFor('beach.live.mov')).toBe('beach.live.mov');
+    expect(pairing.nameFor('IMG_9.live.mov')).toBe('IMG_9.live.mov');
+    expect(pairing.nameFor('IMG_1234.mov')).toBe('IMG_1234.mov');
+  });
+
+  it('keeps the name the server tidied a picture to', () => {
+    const pairing = liveUploadPairing();
+    pairing.landed('IMG 1234.jpg', 'IMG_1234.jpg');
+    expect(pairing.nameFor('IMG 1234.live.mov')).toBe('IMG_1234.live.mov');
+  });
+});
+
+describe('a clip whose picture has gone', () => {
+  it('is claimed by no other file of the same name', () => {
+    // An Apple export left as it came (IMG_1.MOV) beside the renamed copy,
+    // with the still deleted or never converted: nothing can show the clip
+    // as movement, so it must stay an ordinary video and not vanish.
+    const names = ['IMG_1.MOV', 'IMG_1.live.mov', 'IMG_1.HEIC', 'IMG_2.jpg'];
+    const find = clipIndex(names);
+    expect(names.map(find).filter(Boolean)).toEqual([]);
   });
 });

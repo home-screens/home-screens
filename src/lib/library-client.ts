@@ -6,7 +6,8 @@ import { refusalFromBody, type RefusalParams } from '@/lib/refusal';
 import type { MediaUse } from '@/lib/media-usage';
 import { displayCache } from '@/lib/display-cache';
 import { PHOTO_SOURCE_MEDIA_PATH } from '@/lib/photo-source';
-import { isVideoUpload } from '@/lib/media-formats';
+import { companionsLast, isVideoUpload, liveUploadPairing } from '@/lib/media-formats';
+import { fileNameOf } from '@/lib/media-paths';
 import { isUnplayableVideo } from '@/lib/video-codec';
 
 /**
@@ -248,11 +249,16 @@ export async function uploadLibraryFiles(
   { onProgress, replacePath }: UploadOptions = {},
 ): Promise<UploadOutcome> {
   const outcome: UploadOutcome = { uploaded: [], unplayable: [], error: null };
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    onProgress?.(i, files.length);
+  const ordered = replacePath ? Array.from(files) : companionsLast(Array.from(files));
+  const pairing = liveUploadPairing();
+  for (let i = 0; i < ordered.length; i++) {
+    const sent = ordered[i];
+    // A Live Photo clip follows its picture to the name it was saved under.
+    const pairedName = replacePath ? sent.name : pairing.nameFor(sent.name);
+    const file = pairedName === sent.name ? sent : new File([sent], pairedName, { type: sent.type, lastModified: sent.lastModified });
+    onProgress?.(i, ordered.length);
     if (isVideoUpload(file) && await isUnplayableVideo(file)) {
-      outcome.unplayable.push(file.name);
+      outcome.unplayable.push(sent.name);
       continue;
     }
     const formData = new FormData();
@@ -264,15 +270,17 @@ export async function uploadLibraryFiles(
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[]; error?: string } | null;
       if (!res.ok) {
-        outcome.error = { message: data?.error ?? null, status: res.status, file: file.name };
+        outcome.error = { message: data?.error ?? null, status: res.status, file: sent.name };
       } else if (data?.path) {
         outcome.uploaded.push(data.path);
+        const saved = libraryFileFromServeUrl(data.path);
+        if (saved) pairing.landed(sent.name, fileNameOf(saved));
       } else if (data?.paths) {
         outcome.uploaded.push(...data.paths);
       }
     } catch (err) {
       if (isSessionExpiredError(err)) throw err;
-      outcome.error = { message: null, status: null, file: file.name };
+      outcome.error = { message: null, status: null, file: sent.name };
     }
   }
   if (outcome.uploaded.length > 0) invalidateLibraryReads();

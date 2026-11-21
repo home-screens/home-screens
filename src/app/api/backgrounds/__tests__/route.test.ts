@@ -806,6 +806,18 @@ describe('POST /api/backgrounds same name', () => {
     expect(res.status).toBe(201);
     expect((await fs.readdir(path.join(bgsDir, 'batch'))).sort()).toEqual(['a-2.png', 'a.png']);
   });
+
+  it('numbers a Live Photo clip before its .live, so it still pairs', async () => {
+    // IMG_1234.live-2.mov would match no picture; IMG_1234-2.live.mov
+    // pairs with the IMG_1234-2.jpg its picture landed as.
+    const { POST } = await getHandlers();
+    for (let n = 0; n < 2; n++) {
+      await POST(makePostRequest([{ name: 'IMG_1234.jpg', type: 'image/jpeg', content: Buffer.from('still') }], 'live'));
+      await POST(makePostRequest([{ name: 'IMG_1234.live.mov', type: 'video/quicktime', content: Buffer.from('clip') }], 'live'));
+    }
+    expect((await fs.readdir(path.join(bgsDir, 'live'))).sort())
+      .toEqual(['IMG_1234-2.jpg', 'IMG_1234-2.live.mov', 'IMG_1234.jpg', 'IMG_1234.live.mov']);
+  });
 });
 
 describe('POST /api/backgrounds replace', () => {
