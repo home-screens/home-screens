@@ -45,7 +45,6 @@
     "saveError": "Opslaan mislukt",
     "networkError": "Netwerkfout",
     "serverUnreachable": "Server niet bereikbaar",
-    "hubUnreachable": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
     "typographySizes": {
       "small": "Klein",
       "medium": "Middel",
@@ -60,7 +59,8 @@
     "mediaTypesVideos": "Alleen video's",
     "mediaTypesBoth": "Foto's + video's",
     "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)",
-    "resetToDefault": "Terugzetten op standaard"
+    "resetToDefault": "Terugzetten op standaard",
+    "signInWithGoogle": "Aanmelden met Google"
   },
   "fields": {
     "rotation": "Rotatie",
@@ -649,7 +649,6 @@
         "credentialsRequired": "Je agenda verbinden vraagt om een Google-login die je zelf aanmaakt. Voeg die toe bij API-sleutels.",
         "deviceCodeIntro": "Open de onderstaande link op je telefoon of computer en voer dan de code in:",
         "waitingForAuthorization": "Wachten op autorisatie…",
-        "signIn": "Aanmelden met Google",
         "usingClientIdLabel": "Client ID in gebruik:",
         "verifyCredentialsPart1": "Controleer je inloggegevens onder ",
         "verifyCredentialsPart2": ", of bekijk je ",
@@ -670,10 +669,8 @@
           "codeIntroPart2": " en typ deze code:",
           "waiting": "Wachten tot je klaar bent bij Google…",
           "cancel": "Annuleren",
-          "help": "Toont je Google-agenda's op je displays. Je rondt het aanmelden af op je telefoon of computer met een korte code.",
-          "signIn": "Inloggen met Google"
-        },
-        "selectCalendars": "Selecteer kalenders om weer te geven"
+          "help": "Toont je Google-agenda's op je displays. Je rondt het aanmelden af op je telefoon of computer met een korte code."
+        }
       },
       "icloud": {
         "heading": "iCloud-agenda",
@@ -2837,7 +2834,6 @@
         "description": "Hoe bonusklusjes gepakt worden. De klusjesinstellingen op de telefoon passen dezelfde twee dingen aan.",
         "grabLimitLabel": "Hoeveel bonusklusjes één persoon tegelijk mag pakken",
         "grabHoldLabel": "Hoe lang een gepakt bonusklusje van iemand blijft",
-        "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
         "saved": "Opgeslagen"
       }
     },
@@ -2977,7 +2973,6 @@
     "uploadMediaButton": "Uploaden"
   },
   "icloudImport": {
-    "toggle": "Toevoegen via een iCloud-link",
     "placeholder": "Plak een iCloud-album- of fotolink",
     "start": "Importeren",
     "importing": "Bezig met importeren…",
@@ -2986,15 +2981,10 @@
       "one": "1 nieuw item toegevoegd.",
       "other": "{count} nieuwe items toegevoegd."
     },
-    "summarySkipped": {
-      "one": "1 stond er al.",
-      "other": "{count} stonden er al."
-    },
     "summaryFailed": {
       "one": "1 kon niet worden gedownload.",
       "other": "{count} konden niet worden gedownload."
     },
-    "empty": "Er staat niets in dat album om toe te voegen.",
     "help": "Werkt met links van gedeelde albums (icloud.com/sharedalbum/#…) en 'Kopieer iCloud-link'-links (share.icloud.com). Alles uit de link wordt opgeslagen in de huidige map.",
     "albumTip": "Tip: gedeelde albums kunnen ook live worden getoond, zonder downloaden. Kies 'Gedeeld iCloud-album' als fotobron in de instellingen van een diavoorstelling.",
     "errors": {
@@ -3008,7 +2998,6 @@
     }
   },
   "choreChartModal": {
-    "changedElsewhere": "Iemand anders heeft de klusjes gewijzigd. Je laatste wijziging is niet opgeslagen. Probeer het opnieuw.",
     "title": "Klusjeskaart",
     "subtitleMembersChores": "{members} gezinsleden · {chores} klusjes",
     "loadError": "Klusjesgegevens laden mislukt. Wijzigingen worden niet opgeslagen.",
@@ -3034,7 +3023,6 @@
       "dateLabel": "Datum",
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
-      "coverageLabel": "Dekking: {covered} van 7 dagen",
       "addSubmit": "Klusje toevoegen",
       "saveSubmit": "Opslaan",
       "grabRulesNote": "Hoeveel één persoon mag pakken en hoe lang een gepakt klusje van iemand blijft, stel je voor het hele gezin in onder Bonus in de klusjeslijst."
@@ -3184,16 +3172,6 @@
       "courseRemoved": "Verwijderd uit deze maaltijd",
       "saveFailed": "Die wijziging is niet opgeslagen. Probeer het opnieuw.",
       "mealieSaveFailed": "Mealie heeft die wijziging niet overgenomen. Controleer of het draait en probeer het opnieuw.",
-      "mealieAllPlanned": "Elk avondeten van deze week is al gepland.",
-      "mealieAllPlannedDates": "Elk avondeten van de week van {range} is al gepland.",
-      "mealieNoDinners": "Voorstellen vult lege avondmaaltijden, en avondeten staat uit in de maaltijdinstellingen.",
-      "mealieSuggested": {
-        "one": "Een avondmaaltijd gepland voor {days}.",
-        "other": "Avondmaaltijden gepland voor {days}."
-      },
-      "mealieSuggestedEveryNight": "Voor elke avond van deze week een avondmaaltijd gepland.",
-      "mealieSuggestedEveryNightDates": "Voor elke avond van de week van {range} een avondmaaltijd gepland.",
-      "mealieNothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie.",
       "mealieTokenSaveFailed": "Mealie laat Home Screens niet binnen, dus die wijziging is niet opgeslagen. Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
       "mealieSetupSaveFailed": "Home Screens kan deze Mealie niet gebruiken, dus die wijziging is niet opgeslagen. Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
       "mealieNotConnectedSaveFailed": "Mealie is niet gekoppeld, dus die wijziging is niet opgeslagen. Vul het adres en de token in bij Instellingen > API-sleutels."
@@ -3284,11 +3262,7 @@
         "drink": "Drankje wijzigen",
         "main": "Dit hoofdgerecht wijzigen"
       },
-      "searchMealiePlaceholder": "Recepten zoeken in Mealie",
       "clearSearch": "Zoekopdracht wissen",
-      "favorites": "Favorieten",
-      "recentlyMade": "Onlangs gemaakt",
-      "lookingInMealie": "Zoeken in Mealie…",
       "recipesInMealie": {
         "one": "{count} recept in Mealie",
         "other": "{count} recepten in Mealie"
@@ -3300,10 +3274,8 @@
       "recentlyMadeFirst": "Onlangs gemaakt, nieuwste eerst",
       "keysHint": "↑ ↓ om te bewegen, Enter om te kiezen",
       "typeInstead": "In plaats daarvan “{text}” typen",
-      "typeInsteadMealie": "Geen recept. Mealie bewaart het als notitie.",
       "typeInsteadLocal": "Komt zo in de planning, zonder bij je maaltijden te worden opgeslagen.",
       "noRecipesCalled": "Geen recepten met de naam “{text}” in Mealie",
-      "noRecipesHint": "Controleer de spelling, of typ het gewoon in. Het komt als notitie in de planning, zonder recept.",
       "mealieError": "We konden Mealie niet bereiken.",
       "tryAgain": "Opnieuw proberen",
       "noFavorites": "Nog geen favorieten. Markeer recepten als favoriet in Mealie, of zoek hierboven.",
@@ -3315,32 +3287,19 @@
         "main": "Hoofdgerechten"
       },
       "everythingElse": "Al het andere",
-      "categoryCount": {
-        "one": "1 recept in {category}",
-        "other": "{count} recepten in {category}"
-      },
       "noneInCategory": "Nog geen recepten in {category}. Zoek hierboven."
     },
     "openInMealie": "Openen in Mealie",
     "mealie": {
-      "fromMealie": "Uit Mealie",
       "lastUpdated": "Laatst bijgewerkt {time}",
       "subtitle": "{planned} gepland deze week",
       "subtitleHousehold": "Huishouden {household} · {planned} gepland deze week",
       "subtitleDates": "{planned} gepland in de week van {range}",
       "subtitleHouseholdDates": "Huishouden {household} · {planned} gepland in de week van {range}",
-      "openMealie": "Mealie openen",
       "tryAgain": "Opnieuw proberen",
-      "unreachableTitle": "Mealie is nu niet bereikbaar",
-      "unreachableBody": "Je maaltijden staan in Mealie en Home Screens kan er niet bij. Controleer of Mealie draait en probeer het dan opnieuw.",
-      "notConnectedTitle": "Mealie is niet gekoppeld",
       "notConnectedBody": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in bij Instellingen > API-sleutels, of zet de planning terug op Home Screens bij Instellingen > Maaltijden.",
-      "tokenRefusedTitle": "Mealie laat Home Screens niet meer binnen",
       "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij Instellingen > API-sleutels.",
-      "setupTitle": "Home Screens kan deze Mealie niet gebruiken",
       "setupBody": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
-      "paused": "Plannen staat stil tot Mealie terug is.",
-      "pausedSince": "Plannen staat stil tot Mealie terug is. Dit is de planning van {time}.",
       "weekLoading": "De week van {range} wordt uit Mealie gehaald…",
       "weekFailed": "We konden de week van {range} niet uit Mealie halen.",
       "libraryNote": "De recepten staan in Mealie. Klik op een recept om het hier te zien.",
@@ -3358,69 +3317,8 @@
           "one": "{list} · nog 1 te halen",
           "other": "{list} · nog {count} te halen"
         },
-        "add": "Toevoegen",
         "openList": "Lijst openen in Mealie",
-        "addPlaceholder": "Toevoegen aan {list}",
-        "added": "{item} staat op {list}",
-        "addedUnder": "{item} staat op {list}, onder {label}",
-        "already": "{item} staat al op {list}",
-        "putBack": "{item} staat weer op {list}",
-        "undo": "Ongedaan maken",
-        "picked": "Iedereen ziet nu {list}.",
-        "moved": "Je ziet nu {list}, gekozen op een ander apparaat.",
-        "gone": "{from} staat niet meer in Mealie. Je ziet nu {list}.",
-        "forRecipes": "voor {recipes}",
-        "noLabel": "Geen label",
-        "toGet": {
-          "one": "Nog 1 ding te halen",
-          "other": "Nog {count} dingen te halen"
-        },
-        "allGot": "Alles afgevinkt",
-        "openListAria": "{list} openen in Mealie (nieuwe pagina)",
-        "inCart": "Afgevinkt ({count})",
-        "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
-        "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
-        "staleSetup": "Home Screens kan deze Mealie niet gebruiken. Dit is de lijst van {time}.",
-        "staleNotConnected": "Mealie is niet gekoppeld. Dit is de lijst van {time}.",
-        "staleConnection": "Kan Home Screens niet bereiken. Dit is de lijst van {time}.",
-        "loading": "Je lijst wordt uit Mealie gehaald…",
-        "noListsTitle": "Mealie heeft nog geen boodschappenlijsten",
-        "noListsBody": "Maak een boodschappenlijst in Mealie, dan verschijnt die hier.",
-        "emptyTitle": "Nog niets op {list}",
-        "emptyBody": "Voeg hierboven iets toe, of stuur de ingrediënten van een recept vanuit Mealie hierheen.",
-        "unreachableBody": "Je lijst is veilig in Mealie. Kijk of Mealie aan staat en probeer het dan opnieuw.",
-        "connectionTitle": "Kan Home Screens nu niet bereiken",
-        "connectionBody": "Kijk of deze computer verbinding heeft en probeer het dan opnieuw.",
-        "noConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
-        "notSaved": {
-          "one": "{items} is niet opgeslagen. Probeer het opnieuw.",
-          "other": "{items} zijn niet opgeslagen. Probeer het opnieuw."
-        },
-        "notSavedUnreachable": {
-          "one": "{items} is niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens.",
-          "other": "{items} zijn niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens."
-        },
-        "notSavedToken": {
-          "one": "{items} is niet opgeslagen. Mealie laat Home Screens niet meer binnen.",
-          "other": "{items} zijn niet opgeslagen. Mealie laat Home Screens niet meer binnen."
-        },
-        "notSavedSetup": {
-          "one": "{items} is niet opgeslagen. Home Screens kan deze Mealie niet gebruiken.",
-          "other": "{items} zijn niet opgeslagen. Home Screens kan deze Mealie niet gebruiken."
-        },
-        "notSavedNotConnected": {
-          "one": "{items} is niet opgeslagen. Mealie is niet gekoppeld.",
-          "other": "{items} zijn niet opgeslagen. Mealie is niet gekoppeld."
-        },
-        "notSavedConnection": {
-          "one": "{items} is niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
-          "other": "{items} zijn niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw."
-        },
-        "moreItems": {
-          "one": "nog 1",
-          "other": "nog {count}"
-        },
-        "listGone": "Die lijst staat niet meer in Mealie."
+        "connectionBody": "Kijk of deze computer verbinding heeft en probeer het dan opnieuw."
       },
       "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien.",
       "tokenFix": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
@@ -4698,7 +4596,6 @@
       "checking": "Controleren…",
       "credentialsNeeded": "Om uit Google Foto's te importeren, voeg je bij Instellingen → API-sleutels een client-ID en clientgeheim voor de Google Foto's-import toe.",
       "signInIntro": "Meld je aan met Google en plak daarna de code die je aan het einde krijgt.",
-      "signIn": "Aanmelden met Google",
       "pastePlaceholder": "Plak de code of link hier",
       "finishSignIn": "Aanmelden afronden",
       "choosePhotos": "Foto's kiezen",
@@ -4729,8 +4626,7 @@
         "comesBack": "Daarna kom je vanzelf hier terug.",
         "pasteInstead": "Niet teruggekomen? Plak een code",
         "pasteIntro": "Als de Google-pagina je een code liet zien, plak die hier.",
-        "startOver": "Opnieuw beginnen",
-        "signIn": "Inloggen met Google"
+        "startOver": "Opnieuw beginnen"
       }
     },
     "meal-planner": {
@@ -6402,7 +6298,6 @@
       "add": "Toevoegen uit Google Foto's",
       "signInToAdd": "Log in om foto's uit Google Foto's toe te voegen",
       "needsSetup": "Google Foto's moet nog worden ingesteld bij Instellingen > API-sleutels",
-      "waiting": "Wachten op je keuze…",
       "openAgain": "Google Foto's opnieuw openen",
       "cancel": "Annuleren",
       "adding": "Toevoegen aan {folder}: {done} van {total}",
@@ -6410,17 +6305,12 @@
         "one": "1 toegevoegd.",
         "other": "{count} toegevoegd."
       },
-      "alreadyHere": {
-        "one": "1 stond er al.",
-        "other": "{count} stonden er al."
-      },
       "notSaved": {
         "one": "1 kon niet worden opgeslagen.",
         "other": "{count} konden niet worden opgeslagen."
       }
     },
     "import": {
-      "icloudTitle": "Toevoegen via een iCloud-link",
       "icloudIntro": "Plak de link van een gedeeld album, of een link die je in de Foto's-app maakt met 'Kopieer iCloud-link'. Alles wat erin staat, wordt toegevoegd aan de map hieronder.",
       "add": "Toevoegen",
       "progress": "Toevoegen: {done} van {total}",

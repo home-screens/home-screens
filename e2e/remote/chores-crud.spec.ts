@@ -1,7 +1,8 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import type { ChoreDefinition } from '@/types/config';
-import { putConfig, seedChores, seedHouseholdChores, seedRewards } from '../helpers/api';
+import { completionExists, putConfig, seedChores, seedHouseholdChores, seedRewards } from '../helpers/api';
 import { confirmSheet } from '../helpers/remote';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
 
@@ -670,17 +671,6 @@ function yesterdayInfo() {
   return { iso, label, bannerLabel };
 }
 
-async function completionExists(
-  request: APIRequestContext,
-  choreId: string,
-  memberId: string,
-  date: string,
-): Promise<boolean> {
-  const res = await request.get('/api/chores');
-  const completions = (await res.json()).completions as Array<{ choreId: string; memberId: string; date: string }>;
-  return completions.some((c) => c.choreId === choreId && c.memberId === memberId && c.date === date);
-}
-
 // A member + a fixed daily chore (applies on every calendar day, past or present).
 const BACKDATE_DATA = {
   members: [{ id: 'm-bd', name: 'Quinn', emoji: '🦊', color: '#f59e0b' }],
@@ -914,7 +904,7 @@ for (const [locale, tab, sentence] of [
     }));
     await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
     await seedRewards(request, [{ id: 'r1', name: 'Movie Night', emoji: '🎬', cost: 3, description: '', memberIds: [], enabled: true }]);
-    expect((await request.post('/api/chores', { data: { choreId: 'c1', memberId: 'm1', date: todayISO() } })).ok()).toBe(true);
+    expect((await request.post('/api/chores', { data: { choreId: 'c1', memberId: 'm1', date: localDate() } })).ok()).toBe(true);
     expect((await request.post('/api/rewards', { data: { rewardId: 'r1', memberId: 'm1' } })).ok()).toBe(true);
 
     await page.goto('/remote');
@@ -922,11 +912,6 @@ for (const [locale, tab, sentence] of [
     await page.getByRole('button', { name: /: Feed the dog$/ }).click();
     await expect(page.getByText(sentence, { exact: true })).toBeVisible();
   });
-}
-
-function todayISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // Own member/chore ids: chore-completions.json persists per worker, so unique
@@ -948,7 +933,7 @@ const ROLLBACK_DATA = {
 
 test('a failed chore toggle rolls the check back and the retry succeeds', async ({ page, request, sandboxDir }) => {
   await seedHouseholdChores(request, sandboxDir, ROLLBACK_DATA);
-  const today = todayISO();
+  const today = localDate();
   // Normalize to "not completed" — a CI retry could start with the completion
   // already present, and the toggle would then be an un-complete.
   if (await completionExists(request, 'c-rb', 'm-rb', today)) {

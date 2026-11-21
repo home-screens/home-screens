@@ -237,7 +237,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           onClick={deviceFlow.startDeviceFlow}
           disabled={deviceFlow.deviceFlowPolling}
         >
-          {t('settings.calendarPage.google.signIn')}
+          {t('common.signInWithGoogle')}
         </Button>
       )}
       {deviceFlow.deviceFlowError && (

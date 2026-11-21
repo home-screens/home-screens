@@ -7,7 +7,7 @@
  * unrelated config churn never restarts a provider's fetch effects.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import type { Screen, ModuleInstance } from '@/types/config';
@@ -210,5 +210,24 @@ describe('PluginServiceLayer', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('true');
     expect(wrapper.style.width).toBe('0px');
     expect(wrapper.style.height).toBe('0px');
+  });
+
+  // A state provider is always plugin code, with nothing else between it and
+  // the wall's own error page.
+  it('keeps the other providers running when one throws while drawing', () => {
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const calls: StateProviderProps[] = [];
+    registerPlugin('broken', {
+      provider: () => {
+        throw new Error('provider crashed while drawing');
+      },
+    });
+    registerPlugin('ha', { provider: makeProbe(calls) });
+    const { getAllByTestId } = render(
+      <PluginServiceLayer screens={[makeScreen('a', [conditionedModule('plugin:ha:door')])]} />,
+    );
+    expect(getAllByTestId('provider-probe')).toHaveLength(1);
+    expect(calls.at(-1)?.demandedKeys).toEqual(['door']);
+    quiet.mockRestore();
   });
 });

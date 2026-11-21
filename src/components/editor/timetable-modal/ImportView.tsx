@@ -24,7 +24,7 @@ import Toggle from '@/components/ui/Toggle';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { refusalText } from '@/lib/hub-request';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 import { settingsPath } from '@/lib/settings-route';
 import { checkSheetLink, checkTimetableFiles } from '@/lib/timetable-client';
 import { dateInZone } from '@/lib/timetable-layout';
@@ -238,6 +238,7 @@ export function buildImport(
 
 export default function ImportView({ data, members, onApply, onCancel }: ImportViewProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
 
   const [link, setLink] = useState('');
@@ -303,7 +304,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(refusalText(cause, t, 'common.saveError', 'common.hubUnreachable'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
     } finally {
       setReading(false);
     }
@@ -337,7 +338,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(refusalText(cause, t, 'common.saveError', 'common.hubUnreachable'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
     } finally {
       setChecking(false);
       setOwnBusy(null);

@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, child, count, localDate } from './shared';
+import { has, lacks, child, count } from './shared';
+import { localDate } from '../dates';
 import { getRadarTileUrls } from '../stubs';
 
 /**

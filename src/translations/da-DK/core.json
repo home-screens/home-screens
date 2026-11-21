@@ -1,8 +1,9 @@
 {
   "refusals": {
-    "hubUnreachable": "Home Screens kunne ikke nås, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+    "hubUnreachable": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+    "saveFailed": "Det blev ikke gemt. Prøv igen.",
+    "failed": "Noget gik galt. Prøv igen.",
     "lists": {
-      "failed": "Noget gik galt. Prøv igen.",
       "nameRequired": "Giv listen et navn",
       "nameTooLong": "Et listenavn må højst være {max} tegn",
       "textRequired": "Skriv noget først",
@@ -17,7 +18,6 @@
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen."
     },
     "notes": {
-      "failed": "Det blev ikke gemt. Prøv igen.",
       "textRequired": "Skriv noget først.",
       "textTooLong": "En seddel må højst være {max} tegn.",
       "badAuthor": "Afsenderen skal være en fra familien.",
@@ -324,7 +324,6 @@
       "noMembers": "Ingen endnu",
       "editName": "Rediger {name}",
       "remove": "Fjern gruppe",
-      "duplicateName": "Du har allerede en gruppe, der hedder {name}.",
       "removeTitle": "Fjern {name}?",
       "removeDescription": "Skærme, der kun viser {name}, viser alle igen. Ingen fjernes fra familien.",
       "removeChoreCount": {
@@ -509,5 +508,136 @@
       "other": "{dishes} er bare skrevet ind, så der er ingen opskrift at bedømme."
     },
     "unavailable": "Den gemte opskrift til aftensmaden er ikke tilgængelig."
+  },
+  "chores": {
+    "changedElsewhere": "En anden har ændret pligterne. Din seneste ændring blev ikke gemt. Prøv igen.",
+    "coverage": "Dækning: {covered} af 7 dage",
+    "holdToUncheck": "Hold nede for at fjerne fluebenet"
+  },
+  "rewards": {
+    "redeem": {
+      "removed": "Den person er ikke længere med i familien.",
+      "notOffered": "Den belønning findes ikke længere."
+    }
+  },
+  "imports": {
+    "icloudTitle": "Tilføj fra et iCloud-link",
+    "alreadyHere": {
+      "one": "1 var her allerede.",
+      "other": "{count} var her allerede."
+    },
+    "nothingFound": "Der er intet at tilføje fra det album.",
+    "googleWaiting": "Venter på dine valg…"
+  },
+  "mealie": {
+    "grocery": {
+      "addButton": "Tilføj",
+      "undo": "Fortryd",
+      "addPlaceholder": "Tilføj til {list}",
+      "added": "{item} er på {list}",
+      "addedUnder": "{item} er på {list}, under {label}",
+      "already": "{item} er allerede på {list}",
+      "putBack": "{item} er tilbage på {list}",
+      "picked": "Alle ser nu {list}.",
+      "moved": "Viser {list}, valgt på en anden enhed.",
+      "gone": "{from} findes ikke længere i Mealie. Viser {list}.",
+      "forRecipes": "til {recipes}",
+      "noLabel": "Ingen etiket",
+      "toGet": {
+        "one": "1 ting at købe",
+        "other": "{count} ting at købe"
+      },
+      "allGot": "Alt er krydset af",
+      "openListAria": "Åbn {list} i Mealie (ny side)",
+      "inCart": "Afkrydset ({count})",
+      "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
+      "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
+      "staleSetup": "Home Screens kan ikke bruge denne Mealie. Dette er listen fra {time}.",
+      "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
+      "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
+      "loading": "Henter din liste fra Mealie…",
+      "noListsTitle": "Mealie har ingen indkøbslister endnu",
+      "noListsDescription": "Lav en indkøbsliste i Mealie, så dukker den op her.",
+      "emptyTitle": "Intet på {list} endnu",
+      "emptyDescription": "Tilføj noget ovenfor, eller send en opskrifts ingredienser hertil fra Mealie.",
+      "unreachableDescription": "Din liste ligger sikkert i Mealie. Tjek, at Mealie kører, og prøv igen.",
+      "notSaved": {
+        "one": "{items} blev ikke gemt. Prøv igen.",
+        "other": "{items} blev ikke gemt. Prøv igen."
+      },
+      "notSavedUnreachable": {
+        "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
+        "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
+      },
+      "notSavedToken": {
+        "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
+        "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
+      },
+      "notSavedSetup": {
+        "one": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie.",
+        "other": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",
+        "other": "{items} blev ikke gemt. Mealie er ikke forbundet."
+      },
+      "notSavedConnection": {
+        "one": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen.",
+        "other": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen."
+      },
+      "moreItems": {
+        "one": "1 mere",
+        "other": "{count} mere"
+      },
+      "listGone": "Den liste findes ikke længere i Mealie."
+    },
+    "suggest": {
+      "allPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
+      "allPlannedDates": "Alle aftensmåltider i ugen {range} er allerede planlagt.",
+      "noDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
+      "done": {
+        "one": "Aftensmad planlagt til {days}.",
+        "other": "Aftensmad planlagt til {days}."
+      },
+      "doneEveryNight": "Aftensmad planlagt til hver aften i denne uge.",
+      "doneEveryNightDates": "Aftensmad planlagt til hver aften i ugen {range}.",
+      "nothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie."
+    },
+    "search": {
+      "placeholder": "Søg i opskrifter i Mealie",
+      "favorites": "Favoritter",
+      "recent": "Lavet for nylig",
+      "looking": "Søger i Mealie…",
+      "typeInsteadNote": "Ingen opskrift. Mealie gemmer det som en note.",
+      "noneDescription": "Tjek stavningen, eller skriv det ind i stedet. Så kommer det på madplanen som en note uden opskrift.",
+      "categoryCount": {
+        "one": "1 opskrift i {category}",
+        "other": "{count} opskrifter i {category}"
+      }
+    },
+    "pill": {
+      "label": "Fra Mealie"
+    },
+    "openMealie": "Åbn Mealie",
+    "unreachable": {
+      "title": "Kan ikke nå Mealie lige nu",
+      "description": "Jeres måltider ligger i Mealie, og Home Screens kan ikke nå dem. Tjek, at Mealie kører, og prøv igen."
+    },
+    "notConnected": {
+      "title": "Mealie er ikke forbundet"
+    },
+    "tokenRefused": {
+      "title": "Mealie lukker ikke Home Screens ind længere"
+    },
+    "setup": {
+      "title": "Home Screens kan ikke bruge denne Mealie"
+    },
+    "paused": {
+      "description": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
+      "descriptionWithTime": "Planlægningen er sat på pause, indtil Mealie er tilbage. Dette er madplanen fra {time}."
+    },
+    "connection": {
+      "title": "Kan ikke nå Home Screens lige nu"
+    }
   }
 }

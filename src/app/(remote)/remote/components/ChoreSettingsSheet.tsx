@@ -82,7 +82,7 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
 
       {failed && (
         <p role="alert" style={{ fontSize: 13, color: 'var(--hs-danger)', margin: '0 0 10px', textAlign: 'center' }}>
-          {t('choreSettings.saveFailed')}
+          {tCore('refusals.saveFailed')}
         </p>
       )}
       <button

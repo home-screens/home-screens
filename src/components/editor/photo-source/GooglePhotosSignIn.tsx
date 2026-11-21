@@ -82,7 +82,7 @@ export default function GooglePhotosSignIn({ google, intro = true }: {
       )}
       <GoogleSignInButton
         size="sm"
-        label={t('configSections.googlePhotosImport.hosted.signIn')}
+        label={t('common.signInWithGoogle')}
         onClick={signIn}
         disabled={busy}
       />

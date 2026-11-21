@@ -70,7 +70,7 @@ import type { MealSaveFailure } from '@/hooks/useMealPlannerData';
 import { MealVotesProvider } from '@/components/meals/meal-votes';
 import type { FamilyMealRating } from '@/types/meal-ratings';
 import { mealSaveFailedKey } from './save-failed-words';
-import { mealieProblemKey } from './mealie-problem-words';
+import { mealieProblemBody, mealieProblemTitleKey } from './mealie-problem-words';
 
 // ── Props ────────────────────────────────────────────────────
 
@@ -156,6 +156,7 @@ export default function MealPlannerModal({
   loaded,
 }: MealPlannerModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // Household GlobalSettings.timeFormat — resolves the effective format when
@@ -408,11 +409,11 @@ export default function MealPlannerModal({
       // takes back exactly what it added.
       const ask = mealieSuggestCells(plan, viewedWeekDates, slots);
       if (ask.kind === 'no-dinners') {
-        showToast(t('mealPlannerModal.toast.mealieNoDinners'));
+        showToast(tCore('mealie.suggest.noDinners'));
         return;
       }
       if (ask.kind === 'all-planned') {
-        showToast(week.thisWeek ? t('mealPlannerModal.toast.mealieAllPlanned') : t('mealPlannerModal.toast.mealieAllPlannedDates', { range: week.range }));
+        showToast(week.thisWeek ? tCore('mealie.suggest.allPlanned') : tCore('mealie.suggest.allPlannedDates', { range: week.range }));
         return;
       }
       if (!onSuggestFromMealie) return;
@@ -421,12 +422,12 @@ export default function MealPlannerModal({
         if (!result) return;
         const outcome = mealieSuggestOutcome(result);
         if (outcome.kind === 'nothing') {
-          showToast(t('mealPlannerModal.toast.mealieNothingFits'));
+          showToast(tCore('mealie.suggest.nothingFits'));
           return;
         }
         const message = outcome.everyNight
-          ? (week.thisWeek ? t('mealPlannerModal.toast.mealieSuggestedEveryNight') : t('mealPlannerModal.toast.mealieSuggestedEveryNightDates', { range: week.range }))
-          : t('mealPlannerModal.toast.mealieSuggested', { count: outcome.count, days: formatDayList(outcome.nights, formattingLocale) });
+          ? (week.thisWeek ? tCore('mealie.suggest.doneEveryNight') : tCore('mealie.suggest.doneEveryNightDates', { range: week.range }))
+          : tCore('mealie.suggest.done', { count: outcome.count, days: formatDayList(outcome.nights, formattingLocale) });
         showToast(message, () => {
           onUpdate((c) => ({ plan: withoutSuggested(c.plan, outcome.added) }));
         });
@@ -444,7 +445,7 @@ export default function MealPlannerModal({
     showToast(t('mealPlannerModal.toast.randomSuggested'), () => {
       onUpdate((c) => ({ plan: placePlanWeek(c.plan, viewedWeekDates, before) }));
     });
-  }, [onMealie, plan, weekPlan, week, onSuggestFromMealie, savedMeals, slots, viewedWeekDates, onUpdate, showToast, t, formattingLocale]);
+  }, [onMealie, plan, weekPlan, week, onSuggestFromMealie, savedMeals, slots, viewedWeekDates, onUpdate, showToast, t, tCore, formattingLocale]);
 
   const copyLastWeek = useCallback(() => {
     const prevWeekDates = previousWeekDates(viewedWeekDates, weekStartDay);
@@ -591,7 +592,7 @@ export default function MealPlannerModal({
 
   let gridNotice: React.ReactNode = null;
   let gridReplacement: React.ReactNode = null;
-  const problemWords = status.state === 'unreachable' ? mealieProblemKey(status.problem) : null;
+  const unreachableProblem = status.state === 'unreachable' ? status.problem : null;
   if (!loaded) {
     gridReplacement = loadingLine;
   } else if (onMealie && status.state === 'unreachable') {
@@ -600,8 +601,8 @@ export default function MealPlannerModal({
         <span className="w-11 h-11 rounded-full bg-hs-warning/10 text-hs-warning flex items-center justify-center">
           <TriangleAlert className="w-5 h-5" aria-hidden />
         </span>
-        <p className="text-sm font-semibold text-hs-text-body">{t(`${problemWords}Title`)}</p>
-        <p className="text-xs text-hs-text-faint max-w-sm leading-relaxed">{t(`${problemWords}Body`)}</p>
+        <p className="text-sm font-semibold text-hs-text-body">{tCore(mealieProblemTitleKey(unreachableProblem))}</p>
+        <p className="text-xs text-hs-text-faint max-w-sm leading-relaxed">{mealieProblemBody(unreachableProblem, t, tCore)}</p>
         {retryButton(onReload)}
       </div>
     );
@@ -614,11 +615,11 @@ export default function MealPlannerModal({
       <div className="mx-5 mt-3 flex items-start gap-2.5 rounded-lg border border-hs-warning/30 bg-hs-warning/10 px-3 py-2.5" role="status">
         <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0 text-hs-warning" aria-hidden />
         <div className="flex-1 min-w-0 text-xs leading-[17px]">
-          <p className="font-semibold text-hs-warning">{t(`${mealieProblemKey(fix ?? 'unreachable')}Title`)}</p>
+          <p className="font-semibold text-hs-warning">{tCore(mealieProblemTitleKey(fix ?? 'unreachable'))}</p>
           <p className="text-hs-text-muted">
             {lastUpdated
-              ? t(fix ? `mealPlannerModal.mealie.${fix}PausedSince` : 'mealPlannerModal.mealie.pausedSince', { time: lastUpdated })
-              : t(fix ? `mealPlannerModal.mealie.${fix}Paused` : 'mealPlannerModal.mealie.paused')}
+              ? (fix ? t(`mealPlannerModal.mealie.${fix}PausedSince`, { time: lastUpdated }) : tCore('mealie.paused.descriptionWithTime', { time: lastUpdated }))
+              : (fix ? t(`mealPlannerModal.mealie.${fix}Paused`) : tCore('mealie.paused.description'))}
           </p>
         </div>
         {retryButton(onReload)}
@@ -678,7 +679,7 @@ export default function MealPlannerModal({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card transition"
             >
-              {t('mealPlannerModal.mealie.openMealie')}
+              {tCore('mealie.openMealie')}
               <ExternalLink className="w-3 h-3" aria-hidden />
             </a>
           )}
@@ -714,10 +715,10 @@ export default function MealPlannerModal({
           </div>
 
           {/* Tab content */}
-          {sidebarTab === 'library' && (!loaded ? loadingLine : onMealie && problemWords ? (
+          {sidebarTab === 'library' && (!loaded ? loadingLine : onMealie && unreachableProblem ? (
             // The hub already knows Mealie cannot answer: say so at once.
             <div className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center" role="status">
-              <p className="text-sm font-semibold text-hs-text-body">{t(`${problemWords}Title`)}</p>
+              <p className="text-sm font-semibold text-hs-text-body">{tCore(mealieProblemTitleKey(unreachableProblem))}</p>
             </div>
           ) : onMealie ? (
             <MealieLibrary
@@ -871,12 +872,13 @@ export default function MealPlannerModal({
  */
 function MealieSourcePill({ href, lastUpdated }: { href?: string; lastUpdated: string | null }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const body = (
     <>
       <span className="w-4 h-4 rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center">
         <CookingPot className="w-2.5 h-2.5" strokeWidth={2.4} aria-hidden />
       </span>
-      {t('mealPlannerModal.mealie.fromMealie')}
+      {tCore('mealie.pill.label')}
       {lastUpdated && (
         <span className="text-hs-text-faint">&middot; {t('mealPlannerModal.mealie.lastUpdated', { time: lastUpdated })}</span>
       )}

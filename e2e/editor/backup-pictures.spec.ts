@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import yauzl from 'yauzl';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { PNG_1X1 as PNG, removeFolder, seedImage, uniqueFolder as uniqueLibraryFolder } from '../helpers/library';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 
 /**
@@ -16,25 +17,10 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
  * test keeps to its own uniquely named folder.
  */
 
-/** 1x1 transparent PNG. */
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
 /** The same picture with a trailing comment chunk, so it differs in size. */
 const PNG_BIGGER = Buffer.concat([PNG, Buffer.from('padding-that-changes-the-size')]);
 
-function uniqueFolder(): string {
-  return `e2e-bk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-async function seedImage(request: APIRequestContext, directory: string, name: string, bytes: Buffer = PNG): Promise<void> {
-  const res = await request.post('/api/backgrounds', {
-    multipart: { directory, file: { name, mimeType: 'image/png', buffer: bytes } },
-  });
-  expect(res.ok()).toBe(true);
-}
-
-async function removeFolder(request: APIRequestContext, folder: string): Promise<void> {
-  await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
-}
+const uniqueFolder = () => uniqueLibraryFolder('e2e-bk-');
 
 /** Entry names of a zip on disk, in order. */
 function zipEntries(file: string): Promise<string[]> {

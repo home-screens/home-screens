@@ -162,6 +162,7 @@ export default function ChoreFormOverlay({
 }) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale, not the UI language.
   // Memoize so re-renders during day toggles don't redo seven
@@ -585,7 +586,7 @@ export default function ChoreFormOverlay({
               </div>
             )}
             <div style={{ marginTop: 10, fontSize: 12, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>{t('choresManage.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
+              <span>{tCore('chores.coverage', { covered: scheduleDays.length })}</span>
               {scheduleDays.length < 7 && (
                 <>
                   {' · '}

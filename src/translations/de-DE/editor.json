@@ -45,7 +45,6 @@
     "saveError": "Speichern fehlgeschlagen",
     "networkError": "Netzwerkfehler",
     "serverUnreachable": "Server nicht erreichbar",
-    "hubUnreachable": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
     "typographySizes": {
       "small": "Klein",
       "medium": "Mittel",
@@ -60,7 +59,8 @@
     "mediaTypesVideos": "Nur Videos",
     "mediaTypesBoth": "Fotos + Videos",
     "maxVideoDurationSeconds": "Maximale Abspielzeit pro Video (Sekunden)",
-    "resetToDefault": "Auf Standard zurücksetzen"
+    "resetToDefault": "Auf Standard zurücksetzen",
+    "signInWithGoogle": "Mit Google anmelden"
   },
   "fields": {
     "rotation": "Rotation",
@@ -649,7 +649,6 @@
         "credentialsRequired": "Um deinen Kalender zu verbinden, brauchst du eine Google-Anmeldung, die du selbst anlegst. Trage sie unter API-Schlüssel ein.",
         "deviceCodeIntro": "Öffne den unten stehenden Link auf deinem Telefon oder Computer und gib dann den Code ein:",
         "waitingForAuthorization": "Warte auf Autorisierung …",
-        "signIn": "Mit Google anmelden",
         "usingClientIdLabel": "Verwendete Client-ID:",
         "verifyCredentialsPart1": "Überprüfe deine Anmeldedaten unter ",
         "verifyCredentialsPart2": " oder prüfe die ",
@@ -670,10 +669,8 @@
           "codeIntroPart2": " und gib diesen Code ein:",
           "waiting": "Warten, bis du bei Google fertig bist …",
           "cancel": "Abbrechen",
-          "help": "Zeigt deine Google-Kalender auf deinen Displays an. Du schließt die Anmeldung mit einem kurzen Code auf deinem Handy oder Computer ab.",
-          "signIn": "Über Google anmelden"
-        },
-        "selectCalendars": "Kalender zur Anzeige auswählen"
+          "help": "Zeigt deine Google-Kalender auf deinen Displays an. Du schließt die Anmeldung mit einem kurzen Code auf deinem Handy oder Computer ab."
+        }
       },
       "icloud": {
         "heading": "iCloud-Kalender",
@@ -2837,7 +2834,6 @@
         "description": "Wie Bonusaufgaben geschnappt werden. Die Aufgaben-Einstellungen am Handy ändern dieselben zwei Dinge.",
         "grabLimitLabel": "Wie viele Bonusaufgaben sich eine Person gleichzeitig schnappen darf",
         "grabHoldLabel": "Wie lange eine geschnappte Bonusaufgabe gilt",
-        "saveFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
         "saved": "Gespeichert"
       }
     },
@@ -2977,7 +2973,6 @@
     "uploadMediaButton": "Hochladen"
   },
   "icloudImport": {
-    "toggle": "Aus einem iCloud-Link hinzufügen",
     "placeholder": "iCloud-Album- oder Fotolink einfügen",
     "start": "Importieren",
     "importing": "Wird importiert…",
@@ -2986,15 +2981,10 @@
       "one": "1 neue Datei hinzugefügt.",
       "other": "{count} neue Dateien hinzugefügt."
     },
-    "summarySkipped": {
-      "one": "1 war schon da.",
-      "other": "{count} waren schon da."
-    },
     "summaryFailed": {
       "one": "1 konnte nicht heruntergeladen werden.",
       "other": "{count} konnten nicht heruntergeladen werden."
     },
-    "empty": "In diesem Album gibt es nichts hinzuzufügen.",
     "help": "Funktioniert mit Links zu geteilten Alben (icloud.com/sharedalbum/#…) und „iCloud-Link kopieren“-Links (share.icloud.com). Alles aus dem Link wird im aktuellen Ordner gespeichert.",
     "albumTip": "Tipp: Geteilte Alben können auch live abgespielt werden, ohne Download. Wähle in den Einstellungen einer Diashow „Geteiltes iCloud-Album“ als Fotoquelle.",
     "errors": {
@@ -3008,7 +2998,6 @@
     }
   },
   "choreChartModal": {
-    "changedElsewhere": "Jemand anderes hat die Aufgaben geändert. Deine letzte Änderung wurde nicht gespeichert. Bitte versuche es noch einmal.",
     "title": "Aufgabentafel",
     "subtitleMembersChores": "{members} Mitglieder · {chores} Aufgaben",
     "loadError": "Aufgaben konnten nicht geladen werden. Änderungen werden nicht gespeichert.",
@@ -3034,7 +3023,6 @@
       "dateLabel": "Datum",
       "assignToLabel": "Wer macht's?",
       "weeklyScheduleLabel": "Wochenplan",
-      "coverageLabel": "Abgedeckt: {covered} von 7 Tagen",
       "addSubmit": "Aufgabe hinzufügen",
       "saveSubmit": "Speichern",
       "grabRulesNote": "Wie viele Aufgaben sich eine Person schnappen darf und wie lange eine geschnappte Aufgabe gilt, legst du für die ganze Familie unter „Bonus“ in der Aufgabenliste fest."
@@ -3184,16 +3172,6 @@
       "courseRemoved": "Aus dieser Mahlzeit entfernt",
       "saveFailed": "Diese Änderung wurde nicht gespeichert. Versuch es noch einmal.",
       "mealieSaveFailed": "Mealie hat diese Änderung nicht übernommen. Prüfe, ob es läuft, und versuch es dann noch einmal.",
-      "mealieAllPlanned": "Jedes Abendessen dieser Woche ist schon geplant.",
-      "mealieAllPlannedDates": "Jedes Abendessen der Woche vom {range} ist schon geplant.",
-      "mealieNoDinners": "Vorschlagen füllt leere Abendessen, und Abendessen ist in den Mahlzeiten-Einstellungen ausgeschaltet.",
-      "mealieSuggested": {
-        "one": "Ein Abendessen für {days} geplant.",
-        "other": "Abendessen für {days} geplant."
-      },
-      "mealieSuggestedEveryNight": "Für jeden Abend dieser Woche ein Abendessen geplant.",
-      "mealieSuggestedEveryNightDates": "Für jeden Abend der Woche vom {range} ein Abendessen geplant.",
-      "mealieNothingFits": "Mealie hatte für diese Mahlzeiten keine passenden Rezepte. Schau dir die Essensplan-Regeln in Mealie an.",
       "mealieTokenSaveFailed": "Mealie lässt Home Screens nicht rein, deshalb wurde diese Änderung nicht gespeichert. Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
       "mealieSetupSaveFailed": "Home Screens kann dieses Mealie nicht nutzen, deshalb wurde diese Änderung nicht gespeichert. Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
       "mealieNotConnectedSaveFailed": "Mealie ist nicht verbunden, deshalb wurde diese Änderung nicht gespeichert. Trag Adresse und Token unter Einstellungen > API-Schlüssel ein."
@@ -3284,11 +3262,7 @@
         "drink": "Getränk ändern",
         "main": "Dieses Hauptgericht ändern"
       },
-      "searchMealiePlaceholder": "Rezepte in Mealie suchen",
       "clearSearch": "Suche leeren",
-      "favorites": "Favoriten",
-      "recentlyMade": "Zuletzt gekocht",
-      "lookingInMealie": "Suche in Mealie…",
       "recipesInMealie": {
         "one": "{count} Rezept in Mealie",
         "other": "{count} Rezepte in Mealie"
@@ -3300,10 +3274,8 @@
       "recentlyMadeFirst": "Zuletzt gekocht, neueste zuerst",
       "keysHint": "↑ ↓ zum Wechseln, Enter zum Wählen",
       "typeInstead": "Stattdessen „{text}“ eintragen",
-      "typeInsteadMealie": "Kein Rezept. Mealie speichert es als Notiz.",
       "typeInsteadLocal": "Kommt so in den Plan, ohne als Mahlzeit gespeichert zu werden.",
       "noRecipesCalled": "Keine Rezepte namens „{text}“ in Mealie",
-      "noRecipesHint": "Prüfe die Schreibweise oder trag es einfach ein. Es kommt als Notiz in den Plan, ohne Rezept.",
       "mealieError": "Wir konnten Mealie nicht erreichen.",
       "tryAgain": "Noch einmal versuchen",
       "noFavorites": "Noch keine Favoriten. Markiere Rezepte in Mealie als Favoriten oder such oben.",
@@ -3315,32 +3287,19 @@
         "main": "Hauptgerichte"
       },
       "everythingElse": "Alles andere",
-      "categoryCount": {
-        "one": "1 Rezept in {category}",
-        "other": "{count} Rezepte in {category}"
-      },
       "noneInCategory": "Noch keine Rezepte in {category}. Such stattdessen oben."
     },
     "openInMealie": "In Mealie öffnen",
     "mealie": {
-      "fromMealie": "Aus Mealie",
       "lastUpdated": "Zuletzt aktualisiert {time}",
       "subtitle": "Mahlzeiten diese Woche: {planned}",
       "subtitleHousehold": "Haushalt {household} · Mahlzeiten diese Woche: {planned}",
       "subtitleDates": "Mahlzeiten vom {range}: {planned}",
       "subtitleHouseholdDates": "Haushalt {household} · Mahlzeiten vom {range}: {planned}",
-      "openMealie": "Mealie öffnen",
       "tryAgain": "Noch einmal versuchen",
-      "unreachableTitle": "Mealie ist gerade nicht erreichbar",
-      "unreachableBody": "Deine Mahlzeiten liegen in Mealie, und Home Screens kommt gerade nicht dran. Prüfe, ob Mealie läuft, und versuch es dann noch einmal.",
-      "notConnectedTitle": "Mealie ist nicht verbunden",
       "notConnectedBody": "Der Essensplan soll aus Mealie kommen, aber Adresse oder Token von Mealie sind nicht gespeichert. Trag sie unter Einstellungen > API-Schlüssel ein oder stell den Essensplan unter Einstellungen > Mahlzeiten wieder auf Home Screens.",
-      "tokenRefusedTitle": "Mealie lässt Home Screens nicht mehr rein",
       "tokenRefusedBody": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es unter Einstellungen > API-Schlüssel.",
-      "setupTitle": "Home Screens kann dieses Mealie nicht nutzen",
       "setupBody": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
-      "paused": "Planen ist pausiert, bis Mealie wieder da ist.",
-      "pausedSince": "Planen ist pausiert, bis Mealie wieder da ist. Das ist der Plan von {time}.",
       "weekLoading": "Die Woche vom {range} wird aus Mealie geholt…",
       "weekFailed": "Wir konnten die Woche vom {range} nicht aus Mealie holen.",
       "libraryNote": "Die Rezepte liegen in Mealie. Klick eins an, um es hier zu sehen.",
@@ -3358,69 +3317,8 @@
           "one": "{list} · noch 1",
           "other": "{list} · noch {count}"
         },
-        "add": "Hinzufügen",
         "openList": "Liste in Mealie öffnen",
-        "addPlaceholder": "Zu {list} hinzufügen",
-        "added": "{item} steht auf {list}",
-        "addedUnder": "{item} steht auf {list}, unter {label}",
-        "already": "{item} steht schon auf {list}",
-        "putBack": "{item} steht wieder auf {list}",
-        "undo": "Rückgängig",
-        "picked": "Jetzt sehen alle {list}.",
-        "moved": "Hier steht jetzt {list}, auf einem anderen Gerät gewählt.",
-        "gone": "{from} gibt es in Mealie nicht mehr. Hier steht jetzt {list}.",
-        "forRecipes": "für {recipes}",
-        "noLabel": "Keine Kategorie",
-        "toGet": {
-          "one": "Noch 1 Sache zu holen",
-          "other": "Noch {count} Sachen zu holen"
-        },
-        "allGot": "Alles abgehakt",
-        "openListAria": "{list} in Mealie öffnen (neue Seite)",
-        "inCart": "Abgehakt ({count})",
-        "staleUnreachable": "Mealie antwortet nicht. Das ist die Liste von {time}.",
-        "staleToken": "Mealie lässt Home Screens nicht mehr rein. Das ist die Liste von {time}.",
-        "staleSetup": "Home Screens kann dieses Mealie nicht nutzen. Das ist die Liste von {time}.",
-        "staleNotConnected": "Mealie ist nicht verbunden. Das ist die Liste von {time}.",
-        "staleConnection": "Home Screens ist nicht erreichbar. Das ist die Liste von {time}.",
-        "loading": "Deine Liste wird aus Mealie geholt…",
-        "noListsTitle": "In Mealie gibt es noch keine Einkaufsliste",
-        "noListsBody": "Leg in Mealie eine Einkaufsliste an, dann erscheint sie hier.",
-        "emptyTitle": "Auf der Liste {list} steht noch nichts",
-        "emptyBody": "Füg oben etwas hinzu oder schick die Zutaten eines Rezepts aus Mealie hierher.",
-        "unreachableBody": "Deine Liste ist in Mealie sicher. Schau, ob Mealie läuft, und versuch es dann noch mal.",
-        "connectionTitle": "Home Screens ist gerade nicht erreichbar",
-        "connectionBody": "Prüf die Verbindung dieses Computers und versuch es dann noch einmal.",
-        "noConnection": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
-        "notSaved": {
-          "one": "{items} wurde nicht gespeichert. Versuch es noch einmal.",
-          "other": "{items} wurden nicht gespeichert. Versuch es noch einmal."
-        },
-        "notSavedUnreachable": {
-          "one": "{items} wurde nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal.",
-          "other": "{items} wurden nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal."
-        },
-        "notSavedToken": {
-          "one": "{items} wurde nicht gespeichert. Mealie lässt Home Screens nicht mehr rein.",
-          "other": "{items} wurden nicht gespeichert. Mealie lässt Home Screens nicht mehr rein."
-        },
-        "notSavedSetup": {
-          "one": "{items} wurde nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen.",
-          "other": "{items} wurden nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen."
-        },
-        "notSavedNotConnected": {
-          "one": "{items} wurde nicht gespeichert. Mealie ist nicht verbunden.",
-          "other": "{items} wurden nicht gespeichert. Mealie ist nicht verbunden."
-        },
-        "notSavedConnection": {
-          "one": "{items} wurde nicht gespeichert. Home Screens ist nicht erreichbar. Prüf die Verbindung und versuch es noch einmal.",
-          "other": "{items} wurden nicht gespeichert. Home Screens ist nicht erreichbar. Prüf die Verbindung und versuch es noch einmal."
-        },
-        "moreItems": {
-          "one": "1 weitere Sache",
-          "other": "{count} weitere Sachen"
-        },
-        "listGone": "Diese Liste gibt es in Mealie nicht mehr."
+        "connectionBody": "Prüf die Verbindung dieses Computers und versuch es dann noch einmal."
       },
       "ingredientsFailed": "Mealie hat die Zutaten nicht geschickt. Öffne das Rezept in Mealie, um sie zu sehen.",
       "tokenFix": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
@@ -4698,7 +4596,6 @@
       "checking": "Wird geprüft…",
       "credentialsNeeded": "Um aus Google Fotos zu importieren, füge unter Einstellungen → API-Schlüssel eine Client-ID und ein Client-Geheimnis für den Google-Fotos-Import hinzu.",
       "signInIntro": "Melde dich mit Google an und füge dann den Code ein, den du am Ende erhältst.",
-      "signIn": "Mit Google anmelden",
       "pastePlaceholder": "Code oder Link hier einfügen",
       "finishSignIn": "Anmeldung abschließen",
       "choosePhotos": "Fotos auswählen",
@@ -4729,8 +4626,7 @@
         "comesBack": "Danach kommst du automatisch hierher zurück.",
         "pasteInstead": "Nicht zurückgekommen? Code einfügen",
         "pasteIntro": "Wenn die Google-Seite dir einen Code gezeigt hat, füge ihn hier ein.",
-        "startOver": "Neu beginnen",
-        "signIn": "Über Google anmelden"
+        "startOver": "Neu beginnen"
       }
     },
     "meal-planner": {
@@ -6402,7 +6298,6 @@
       "add": "Aus Google Fotos hinzufügen",
       "signInToAdd": "Anmelden und aus Google Fotos hinzufügen",
       "needsSetup": "Google Fotos muss erst unter Einstellungen > API-Schlüssel eingerichtet werden",
-      "waiting": "Warte auf deine Auswahl…",
       "openAgain": "Google Fotos erneut öffnen",
       "cancel": "Abbrechen",
       "adding": "Wird zu „{folder}“ hinzugefügt: {done} von {total}",
@@ -6410,17 +6305,12 @@
         "one": "1 hinzugefügt.",
         "other": "{count} hinzugefügt."
       },
-      "alreadyHere": {
-        "one": "1 war schon da.",
-        "other": "{count} waren schon da."
-      },
       "notSaved": {
         "one": "1 konnte nicht gespeichert werden.",
         "other": "{count} konnten nicht gespeichert werden."
       }
     },
     "import": {
-      "icloudTitle": "Aus einem iCloud-Link hinzufügen",
       "icloudIntro": "Füge einen Link zu einem geteilten Album ein. Ein Link über „iCloud-Link kopieren“ in der Fotos-App geht auch. Alles darin kommt in den Ordner unten.",
       "add": "Hinzufügen",
       "progress": "Wird hinzugefügt: {done} von {total}",

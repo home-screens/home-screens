@@ -56,7 +56,8 @@ describe('every locale can say it', () => {
       const chart = dict['chore-chart'];
 
       expect(typeof chart.overspentSomeone).toBe('string');
-      expect(typeof chart.holdToUncheckHint).toBe('string');
+      const core = (await import(`../../../../translations/${locale}/core.json`)).default;
+      expect(typeof core.chores.holdToUncheck).toBe('string');
       // A plural form, so a locale is never left saying "1 more tickets".
       expect(typeof chart.overspent.one).toBe('string');
       expect(typeof chart.overspent.other).toBe('string');

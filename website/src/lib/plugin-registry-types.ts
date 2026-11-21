@@ -41,7 +41,6 @@ export type PluginChannel = 'stable' | 'beta'
 export interface RegistryPluginVersion {
   version: string
   minAppVersion: string
-  maxAppVersion?: string
   /** Per-version channel; absent means stable. */
   channel?: PluginChannel
   releaseDate?: string

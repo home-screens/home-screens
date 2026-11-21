@@ -14,15 +14,29 @@ DIM='\033[2m'
 NC='\033[0m'
 
 # --- Port ---
+# hs_read_port <app_dir>
+# Prints the port saved in <app_dir>/data/port.conf, or 3000 when the file is
+# missing, empty or holds anything but digits.
+#
+# The hub launcher and the power agent run with no lib/ beside them and carry
+# their own copy of this check. upgrade.sh's restart action and deploy.sh
+# check the value in place: the first may run without this file, the second
+# reads the file on another machine.
+hs_read_port() {
+  local app_dir="${1:-}" port=""
+  if [ -n "${app_dir}" ] && [ -f "${app_dir}/data/port.conf" ]; then
+    port=$(tr -d '[:space:]' < "${app_dir}/data/port.conf")
+  fi
+  if [[ "${port}" =~ ^[0-9]+$ ]]; then
+    printf '%s\n' "${port}"
+  else
+    printf '3000\n'
+  fi
+}
+
 # Precedence: PORT env var > data/port.conf > 3000
 if [ -z "${PORT:-}" ]; then
-  if [ -n "${APP_DIR:-}" ] && [ -f "${APP_DIR}/data/port.conf" ]; then
-    _conf_port=$(tr -d '[:space:]' < "${APP_DIR}/data/port.conf")
-    if [[ "${_conf_port}" =~ ^[0-9]+$ ]]; then
-      PORT="${_conf_port}"
-    fi
-  fi
-  PORT="${PORT:-3000}"
+  PORT="$(hs_read_port "${APP_DIR:-}")"
 fi
 
 # --- Logging ---
@@ -135,6 +149,108 @@ ensure_npm_floor() {
   info "Updating npm ${current:-not found} -> ${floor} (minimum required by package.json)..."
   sudo npm install -g "npm@${floor}"
   info "npm $(npm --version) installed."
+}
+
+# --- Release download ---
+
+# hs_download_release <repo> <tag> <dest_dir>
+# Downloads the release file for <tag> into <dest_dir> and checks it against
+# the checksum published beside it. Prints the path of the downloaded file on
+# stdout. On failure it prints exactly one plain sentence on stderr, removes
+# what it downloaded and returns 1; the sentence is ready to show to a person.
+#
+# A release from before checksums were published has nothing to check
+# against, and that is not a failure: the download is kept as it is.
+#
+# stdout carries only the path, so anything meant for a person to watch goes
+# to file descriptor 3 when the caller has opened it: curl's progress, and
+# the output of hs_download_release_note when the caller defines that
+# function. It is called with checksum-start, checksum-ok or no-checksum.
+#
+# HS_GITHUB_DOWNLOAD_BASE lets a test rig serve releases to a real device;
+# the app's version check honours HS_GITHUB_API_BASE the same way.
+#
+# The body runs in a subshell, so nothing here (the open descriptor, the
+# shell options) reaches the caller.
+hs_download_release() (
+  set +e
+  repo="$1" tag="$2" dest_dir="$3"
+  asset_name="home-screens-${tag}.tar.gz"
+  checksum_name="${asset_name}.sha256"
+  base="${HS_GITHUB_DOWNLOAD_BASE:-https://github.com}/${repo}/releases/download/${tag}"
+  # Nobody watching: progress goes nowhere.
+  { : >&3; } 2>/dev/null || exec 3>/dev/null
+
+  note() {
+    if type -t hs_download_release_note >/dev/null; then
+      hs_download_release_note "$1" >&3 2>&3
+    fi
+    return 0
+  }
+
+  # Check that the file is there before committing to the download. Only a
+  # 404 means it is missing. A device that cannot reach GitHub (no network,
+  # DNS, a clock too far off for TLS, the 10 s limit) used to be told "not
+  # found" too, which sent people looking for a release that was there all
+  # along, so curl's own reason goes along with that message.
+  head_err=$(mktemp)
+  head_exit=0
+  head_status=$(curl -sSL --head --max-time 10 -o /dev/null -w '%{http_code}' "${base}/${asset_name}" 2>"${head_err}") || head_exit=$?
+  head_reason=$(tr '\r\n' '  ' <"${head_err}" | sed -e 's/ *$//')
+  rm -f "${head_err}"
+  head_error=""
+  if [ "${head_exit}" -ne 0 ]; then
+    head_error="This device could not reach GitHub to download ${tag}. Check its internet connection and try again."
+    [ -z "${head_reason}" ] || head_error="${head_error} (${head_reason})"
+  elif [ "${head_status}" = "404" ]; then
+    head_error="GitHub does not have the download for ${tag} (${asset_name})."
+  elif [[ "${head_status}" != 2?? ]]; then
+    head_error="GitHub could not send the download for ${tag} right now (error ${head_status}). Try again in a few minutes."
+  fi
+  if [ -n "${head_error}" ]; then
+    printf '%s\n' "${head_error}" >&2
+    return 1
+  fi
+
+  # Download, giving up on a stall: under 1 KB/s for 60 seconds.
+  if ! curl -fSL --speed-limit 1024 --speed-time 60 -o "${dest_dir}/${asset_name}" "${base}/${asset_name}" 2>&3; then
+    rm -f "${dest_dir}/${asset_name}"
+    printf '%s\n' "Failed to download ${asset_name}" >&2
+    return 1
+  fi
+
+  if curl -fsSL --max-time 30 -o "${dest_dir}/${checksum_name}" "${base}/${checksum_name}" 2>/dev/null; then
+    note checksum-start
+    # The checksum file names the download by its bare filename, so the
+    # check runs from the folder that holds both.
+    if ! ( cd "${dest_dir}" && sha256sum -c "${checksum_name}" >/dev/null 2>&1 ); then
+      rm -f "${dest_dir}/${asset_name}" "${dest_dir}/${checksum_name}"
+      printf '%s\n' "Checksum verification failed for ${asset_name}" >&2
+      return 1
+    fi
+    rm -f "${dest_dir}/${checksum_name}"
+    note checksum-ok
+  else
+    rm -f "${dest_dir}/${checksum_name}"
+    note no-checksum
+  fi
+
+  printf '%s\n' "${dest_dir}/${asset_name}"
+)
+
+# hs_validate_release_tree <dir>
+# True when <dir> holds an unpacked release. Otherwise prints one sentence
+# naming the first missing file on stderr and returns 1. Catches a release
+# that was built wrong before it replaces a working install.
+hs_validate_release_tree() {
+  local dir="$1" required
+  for required in server.js package.json; do
+    if [ ! -f "${dir}/${required}" ]; then
+      printf '%s\n' "Tarball missing required file: ${required}" >&2
+      return 1
+    fi
+  done
+  return 0
 }
 
 # --- System files ---

@@ -15,7 +15,7 @@ import { CompactView } from './CompactView';
 import { ListView } from './ListView';
 import { GroceryView } from './GroceryView';
 import { RecipesView } from './RecipesView';
-import { mealieWords } from '../shared/mealie-problem';
+import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
 import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
 import { WallRateDinnerButton } from '../shared/MealRatingWall';
@@ -37,6 +37,7 @@ interface MealPlannerModuleProps {
 
 export default function MealPlannerModule({ config, style, timezone, fullscreenTheme, screenId, moduleId }: MealPlannerModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const view = config.view ?? 'week';
   const {
@@ -99,7 +100,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
       <ModuleWrapper style={style}>
         <FamilyEmptyState
           icon={<>&#127869;</>}
-          title={t(`meal-planner.${mealieWords(mealie.problem)}`)}
+          title={tCore(mealieTitleKey(mealieWords(mealie.problem)))}
           hint={t(`meal-planner.${mealieWords(mealie.problem)}Hint`)}
         />
       </ModuleWrapper>

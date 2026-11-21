@@ -42,6 +42,7 @@ export function GooglePhotosAction({ google, label }: { google: GooglePhotosImpo
  */
 export function GooglePhotosProgress({ google, folderLabel }: { google: GooglePhotosImport; folderLabel: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { job } = google;
   const lines: React.ReactNode[] = [];
   if (!google.connected && google.signInStep !== 'start') {
@@ -49,7 +50,7 @@ export function GooglePhotosProgress({ google, folderLabel }: { google: GooglePh
   } else if (google.session) {
     lines.push(
       <p key="waiting" className="text-[11px] text-hs-text-muted">
-        <span className="animate-pulse">{t('photoSources.google.waiting')}</span>{' '}
+        <span className="animate-pulse">{tCore('imports.googleWaiting')}</span>{' '}
         <a href={google.session.pickerUri} target="_blank" rel="noreferrer" className="text-hs-accent hover:text-hs-accent-hover">
           {t('photoSources.google.openAgain')}
         </a>
@@ -70,7 +71,7 @@ export function GooglePhotosProgress({ google, folderLabel }: { google: GooglePh
       <p key="done" className="text-[11px] text-hs-success">
         {[
           job.done > 0 ? t('photoSources.google.added', { count: job.done }) : null,
-          job.skipped > 0 ? t('photoSources.google.alreadyHere', { count: job.skipped }) : null,
+          job.skipped > 0 ? tCore('imports.alreadyHere', { count: job.skipped }) : null,
           google.unsavedCount > 0 ? t('photoSources.google.notSaved', { count: google.unsavedCount }) : null,
         ].filter(Boolean).join(' ')}
       </p>,

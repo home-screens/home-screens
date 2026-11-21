@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
+import { jsonRequest } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
@@ -53,13 +53,7 @@ SUMMARY:Practice
 END:VEVENT
 END:VCALENDAR`;
 
-function request(body: unknown): NextRequest {
-  return new NextRequest('http://localhost/api/calendar/check', {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
+const request = (body: unknown) => jsonRequest('http://localhost/api/calendar/check', { method: 'POST', body });
 
 beforeEach(() => {
   vi.clearAllMocks();

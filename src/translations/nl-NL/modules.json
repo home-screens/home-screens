@@ -512,13 +512,9 @@
       "drink": "Drankje"
     },
     "withCourses": "met {dishes}",
-    "mealieUnreachable": "Mealie is nu niet bereikbaar",
     "mealieUnreachableHint": "Het maaltijdplan komt terug zodra Mealie weer antwoordt.",
-    "mealieNotConnected": "Mealie is niet gekoppeld",
     "mealieNotConnectedHint": "Koppel het in Instellingen op de computer om de maaltijdplanning te zien.",
-    "mealieTokenRefused": "Mealie laat Home Screens niet meer binnen",
     "mealieTokenRefusedHint": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de maaltijdplanning te zien.",
-    "mealieSetup": "Home Screens kan deze Mealie niet gebruiken",
     "mealieSetupHint": "Controleer Mealie in Instellingen op de computer om de maaltijdplanning te zien.",
     "recipe": {
       "prep": "Voorbereiding",
@@ -556,7 +552,6 @@
       "noMealieList": "Nog geen boodschappenlijst in Mealie",
       "noMealieListHint": "Maak er een in Mealie, dan verschijnt die hier.",
       "mealieDone": "Alles op {list} is afgevinkt",
-      "mealieEmpty": "Nog niets op {list}",
       "mealieEmptyHint": "Voeg iets toe op de telefoon of in Mealie.",
       "localDone": "Niets meer te halen",
       "localDoneHint": "Alles op de lijst van deze week is afgevinkt.",
@@ -700,7 +695,6 @@
     },
     "todaysCompletion": "Vandaag gedaan",
     "rewardBalances": "Tickets over",
-    "holdToUncheckHint": "Houd ingedrukt om het vinkje weg te halen",
     "overspent": {
       "one": "{name} heeft die tickets al gebruikt, dus het saldo is nu {balance}. Nog 1 ticket verdienen.",
       "other": "{name} heeft die tickets al gebruikt, dus het saldo is nu {balance}. Nog {count} tickets verdienen."
@@ -1104,9 +1098,7 @@
       "history": "Geschiedenis",
       "errorChanged": "De tickets zijn net veranderd. Kijk nog eens.",
       "errorAlreadyGot": "Je hebt {reward} net al gekregen!",
-      "errorNotEnough": "Er zijn niet meer genoeg tickets voor.",
-      "errorNotOffered": "Die beloning is er niet meer.",
-      "errorRemoved": "Die persoon zit niet meer in het gezin."
+      "errorNotEnough": "Er zijn niet meer genoeg tickets voor."
     },
     "rewardHistory": {
       "subtitle": "Waar het gezin tickets aan heeft uitgegeven",
@@ -1140,7 +1132,6 @@
         "earlier": "Eerder"
       }
     },
-    "saveFailed": "Dat is niet opgeslagen. Probeer het nog eens.",
     "goal": {
       "toGo": {
         "one": "nog 1 ticket",

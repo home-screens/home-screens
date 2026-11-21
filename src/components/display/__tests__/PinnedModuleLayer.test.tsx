@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { makeTestScreen } from '@/test-utils';
 import { render, cleanup, act } from '@testing-library/react';
 import type { Screen, ModuleInstance } from '@/types/config';
 import type { DisplaySettings } from '../useLiveConfig';
@@ -64,10 +65,6 @@ function makeModule(overrides: Partial<ModuleInstance>): ModuleInstance {
   };
 }
 
-function makeScreen(id: string, modules: ModuleInstance[], extra: Partial<Screen> = {}): Screen {
-  return { id, name: id, backgroundImage: '', modules, ...extra };
-}
-
 function layer(screens: Screen[]) {
   return (
     <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
@@ -103,9 +100,9 @@ describe('collectPinnedModules', () => {
     const hiddenCopy = makeModule({ backgroundProvider: true });
     const offScreen = makeModule({});
     const picked = collectPinnedModules([
-      makeScreen('a', [high, plain]),
-      makeScreen('b', [low, hiddenCopy]),
-      makeScreen('c', [offScreen], { enabled: false }),
+      makeTestScreen('a', [high, plain]),
+      makeTestScreen('b', [low, hiddenCopy]),
+      makeTestScreen('c', [offScreen], { enabled: false }),
     ]);
     expect(picked.map((p) => p.mod.id)).toEqual([low.id, high.id]);
     expect(picked.map((p) => p.screenId)).toEqual(['b', 'a']);
@@ -114,13 +111,13 @@ describe('collectPinnedModules', () => {
 
 describe('PinnedModuleLayer', () => {
   it('renders nothing when no module is pinned', () => {
-    const { container } = render(layer([makeScreen('a', [makeModule({ showOnEveryScreen: undefined })])]));
+    const { container } = render(layer([makeTestScreen('a', [makeModule({ showOnEveryScreen: undefined })])]));
     expect(container.innerHTML).toBe('');
   });
 
   it('draws a pinned module at its home box with the canvas geometry', () => {
     const mod = makeModule({ position: { x: 180, y: 1700 }, size: { w: 720, h: 140 } });
-    const { getByTestId } = render(layer([makeScreen('a', [mod])]));
+    const { getByTestId } = render(layer([makeTestScreen('a', [mod])]));
     const outer = getByTestId('pinned-layer');
     expect(outer.style.pointerEvents).toBe('none');
     expect(outer.style.paddingTop).toBe('12px');
@@ -134,19 +131,19 @@ describe('PinnedModuleLayer', () => {
 
   it('keeps the module mounted when the screens prop changes under it', () => {
     const mod = makeModule({});
-    const screensA = [makeScreen('a', [mod]), makeScreen('b', [])];
+    const screensA = [makeTestScreen('a', [mod]), makeTestScreen('b', [])];
     const { rerender, getAllByTestId } = render(layer(screensA));
     expect(getAllByTestId('probe')).toHaveLength(1);
     expect(mounts).toBe(1);
     // A fresh array with the same module (what a config poll hands down).
-    rerender(layer([makeScreen('a', [mod]), makeScreen('b', [makeModule({ showOnEveryScreen: undefined })])]));
+    rerender(layer([makeTestScreen('a', [mod]), makeTestScreen('b', [makeModule({ showOnEveryScreen: undefined })])]));
     expect(getAllByTestId('probe')).toHaveLength(1);
     expect(mounts).toBe(1);
   });
 
   it('swaps a plugin placeholder for the module once the plugin registers', () => {
     const mod = makeModule({ type: 'plugin:late' as ModuleInstance['type'] });
-    const { queryAllByTestId, getByText } = render(layer([makeScreen('a', [mod])]));
+    const { queryAllByTestId, getByText } = render(layer([makeTestScreen('a', [mod])]));
     expect(queryAllByTestId('probe')).toHaveLength(0);
     expect(getByText(/not available/i)).toBeTruthy();
     lateLoaded = true;
@@ -158,7 +155,7 @@ describe('PinnedModuleLayer', () => {
   });
 
   it('honours the module gates: a switched-off module is not drawn', () => {
-    const { queryAllByTestId } = render(layer([makeScreen('a', [makeModule({ enabled: false })])]));
+    const { queryAllByTestId } = render(layer([makeTestScreen('a', [makeModule({ enabled: false })])]));
     expect(queryAllByTestId('probe')).toHaveLength(0);
   });
 
@@ -166,7 +163,7 @@ describe('PinnedModuleLayer', () => {
     const gated = makeModule({
       visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:ha:door', equals: 'open' }], whenUnknown: 'hide' },
     });
-    const { queryAllByTestId } = render(layer([makeScreen('a', [gated])]));
+    const { queryAllByTestId } = render(layer([makeTestScreen('a', [gated])]));
     expect(queryAllByTestId('probe')).toHaveLength(0);
   });
 });

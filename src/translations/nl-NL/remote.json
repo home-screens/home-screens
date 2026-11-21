@@ -40,9 +40,6 @@
     "restarting": "Home Screens start opnieuw op. Over ongeveer 20 seconden weer verbonden…",
     "rebooting": "Het apparaat start opnieuw op. Over ongeveer een minuut weer verbonden…"
   },
-  "hubRequest": {
-    "saveFailed": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw."
-  },
   "backupReminder": {
     "daysAgoSingular": "Je hebt al {n} dag geen back-up gemaakt.",
     "daysAgoPlural": "Je hebt al {n} dagen geen back-up gemaakt.",
@@ -107,7 +104,6 @@
     "customColorTitle": "Eigen kleur"
   },
   "choresTab": {
-    "changedElsewhere": "Iemand anders heeft de klusjes gewijzigd. Je laatste wijziging is niet opgeslagen. Probeer het opnieuw.",
     "header": "Klusjes",
     "headerFor": "Klusjes van {name}",
     "switchHint": "Ben jij niet {name}? Tik op je naam om te wisselen.",
@@ -145,7 +141,6 @@
     "choreAriaLabelMarkComplete": "Afvinken: {chore}",
     "choreAriaLabelCompleted": "Klaar: {chore}",
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
-    "holdToUncheckHint": "Houd ingedrukt om het vinkje weg te halen",
     "dayToggle": {
       "ariaLabel": "Welke dag wordt getoond",
       "yesterday": "Gisteren",
@@ -260,7 +255,6 @@
       "daysLabel": "Dagen",
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
-      "coverageLabel": "Dekking: {covered} van 7 dagen",
       "rotationLabel": "Wie doet het?",
       "addSubmit": "Klusje toevoegen",
       "saveSubmit": "Klusje opslaan",
@@ -375,8 +369,6 @@
     },
     "loadError": "Je maaltijden konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
-    "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
-    "saveFailedConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} u",
@@ -639,9 +631,7 @@
       "noTicketsHint": "Doe je klusjes op het tabblad Vandaag om tickets te verdienen.",
       "alreadyGot": "{name} heeft {reward} net al gekregen.",
       "alreadyGotKid": "Je hebt {reward} net al gekregen!",
-      "changed": "De tickets van {name} zijn net veranderd. Kijk nog eens.",
-      "notOffered": "Die beloning is er niet meer.",
-      "removed": "Die persoon zit niet meer in het gezin."
+      "changed": "De tickets van {name} zijn net veranderd. Kijk nog eens."
     },
     "manage": {
       "heading": "Beloningen",
@@ -672,7 +662,6 @@
       "sheetHint": "De tickets van {name} tellen hiervoor. Als {name} het heeft, kies dan iets nieuws.",
       "sheetEmpty": "Nog geen beloningen om voor te sparen.",
       "stop": "Stoppen met sparen",
-      "failed": "Dat is niet opgeslagen. Probeer het nog eens.",
       "headingFor": "{name} spaart voor",
       "pickFor": "Kies iets waar {name} voor spaart",
       "sheetTitleFor": "Een spaardoel voor {name}",
@@ -697,7 +686,6 @@
       "reasonPlaceholder": "Waarom? (niet verplicht)",
       "reasonHint": "Komt in hun ticketgeschiedenis te staan.",
       "pickSomeone": "Kies iemand",
-      "failed": "Dat is niet opgeslagen. Probeer het nog eens.",
       "chooseHowMany": "Kies hoeveel",
       "manyPeople": "{count} mensen",
       "give": "{names} {amount} geven",
@@ -987,10 +975,8 @@
       "googleIntro": "Kies foto's in Google Foto's en kom dan hier terug. Ze worden toegevoegd aan {folder}.",
       "googleOpen": "Google Foto's openen",
       "googlePreparing": "Google Foto's wordt klaargezet...",
-      "googleWaiting": "Wachten op je keuze...",
       "googleExpired": "Google Foto's is gestopt met wachten. Probeer het opnieuw.",
       "googleFailed": "Google Foto's is niet bereikbaar. Probeer het opnieuw.",
-      "icloudTitle": "Toevoegen via een iCloud-link",
       "icloudIntro": "Plak de link van een gedeeld album, of een link die je in de Foto's-app maakt met 'Kopieer iCloud-link'. Alles wat erin staat, wordt toegevoegd aan {folder}.",
       "icloudPlaceholder": "Plak de link hier",
       "icloudAdd": "Toevoegen",
@@ -1009,15 +995,10 @@
       "tooMany": "Dat zijn er te veel tegelijk. Kies er minder en probeer het opnieuw.",
       "lost": "De hub is herstart tijdens het toevoegen. Probeer het opnieuw.",
       "tryAgain": "Opnieuw proberen",
-      "alreadyHere": {
-        "one": "1 stond er al.",
-        "other": "{count} stonden er al."
-      },
       "couldNotAdd": {
         "one": "1 kon niet worden toegevoegd.",
         "other": "{count} konden niet worden toegevoegd."
-      },
-      "nothingFound": "Er staat niets in dat album om toe te voegen."
+      }
     },
     "art": {
       "onWall": "Nu aan de muur",
@@ -1106,7 +1087,6 @@
     "showingOnDisplay": "Te zien op het scherm",
     "waitingForDisplay": "Wachten tot een scherm hem oppakt…",
     "notShowing": "Nog geen scherm laat hem zien. Controleer of er een scherm aanstaat.",
-    "failed": "Er ging iets mis. Probeer het opnieuw.",
     "whyNoSave": {
       "name": "Geef de routine een naam om op te slaan.",
       "stepName": "Geef elke stap een naam om op te slaan.",
@@ -1193,9 +1173,6 @@
       "copied": "Gekopieerd!",
       "nothingOpen": "Alles gedaan!"
     },
-    "errors": {
-      "generic": "Er ging iets mis. Probeer het opnieuw."
-    },
     "loadError": "Je lijsten konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
     "retry": "Opnieuw"
   },
@@ -1255,7 +1232,6 @@
     "grabbingHeading": "Bonusklusjes pakken",
     "letGoHint": "Een volwassene kan een gepakt klusje altijd weer vrijgeven: tik op de ••• naast het klusje op het tabblad Vandaag.",
     "save": "Opslaan",
-    "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
     "changeAriaLabel": "Wijzigen hoe bonusklusjes gepakt worden"
   },
   "atHome": {
@@ -1323,7 +1299,6 @@
     },
     "loadError": "De notities konden niet worden geladen.",
     "retry": "Opnieuw proberen",
-    "saveError": "Dat is niet opgeslagen. Probeer het opnieuw.",
     "editAria": "Notitie van {name} bewerken",
     "dayNotes": {
       "sub": "Dagnotities komen in de kalenders aan de muur",
@@ -1337,7 +1312,6 @@
       "put": "In de kalender zetten",
       "remove": "Weghalen",
       "loadError": "De dagnotities konden niet worden geladen.",
-      "saveError": "Dat is niet opgeslagen. Probeer het opnieuw.",
       "saved": "Bewaard voor {day}. Je ziet het op de muur zodra een kalender die dag laat zien.",
       "removed": "Notitie weggehaald",
       "undo": "Ongedaan maken",
@@ -1426,33 +1400,21 @@
   },
   "mealie": {
     "pill": {
-      "label": "Uit Mealie",
       "updated": "· Bijgewerkt: {time}"
     },
-    "openMealie": "Mealie openen",
-    "unreachable": {
-      "title": "Mealie is nu niet bereikbaar",
-      "description": "Je maaltijden staan in Mealie en Home Screens kan er nu niet bij. Kijk of Mealie aanstaat en probeer het opnieuw."
-    },
     "notConnected": {
-      "title": "Mealie is niet gekoppeld",
       "description": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in op de computer bij Instellingen > API-sleutels, of zet de planning terug op Home Screens in de maaltijdinstellingen."
     },
     "tokenRefused": {
-      "title": "Mealie laat Home Screens niet meer binnen",
       "description": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op de computer op bij Instellingen > API-sleutels."
     },
     "setup": {
-      "title": "Home Screens kan deze Mealie niet gebruiken",
       "description": "Controleer het adres van Mealie op de computer bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig."
     },
     "connection": {
-      "title": "Kan Home Screens nu niet bereiken",
       "description": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw."
     },
     "paused": {
-      "description": "Plannen staat stil tot Mealie terug is.",
-      "descriptionWithTime": "Plannen staat stil tot Mealie terug is. Dit is het plan van {time}.",
       "tokenDescription": "Maak in Mealie een nieuwe token en sla die op de computer op bij Instellingen > API-sleutels. Tot dan staat plannen stil.",
       "tokenDescriptionWithTime": "Maak in Mealie een nieuwe token en sla die op de computer op bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is het plan van {time}.",
       "setupDescription": "Controleer het adres van Mealie op de computer bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil.",
@@ -1465,16 +1427,12 @@
       "unreachable": "Mealie reageert niet, dus dit is niet opgeslagen. Probeer het zo nog eens."
     },
     "search": {
-      "placeholder": "Recepten zoeken in Mealie",
       "placeholderCount": {
         "one": "Zoek in 1 recept in Mealie",
         "other": "Zoek in {count} recepten in Mealie"
       },
       "ariaLabel": "Recepten zoeken in Mealie",
       "clear": "Zoekopdracht wissen",
-      "favorites": "Favorieten",
-      "recent": "Laatst gemaakt",
-      "looking": "Zoeken in Mealie…",
       "recipeCount": {
         "one": "1 recept",
         "other": "{count} recepten"
@@ -1485,18 +1443,12 @@
       },
       "recentHeading": "Laatst gemaakte eerst",
       "noneTitle": "Geen recepten met de naam ‘{query}’ in Mealie",
-      "noneDescription": "Controleer de spelling, of tik het gewoon in. Het komt dan als notitie zonder recept op het plan.",
       "noFavoritesTitle": "Nog geen favorieten",
       "noFavoritesDescription": "Tik in Mealie op het hartje bij een recept, dan staat het hier.",
       "noRecentTitle": "Nog niets gemaakt",
       "noRecentDescription": "Recepten die je in Mealie als gemaakt markeert, staan hier, nieuwste eerst.",
       "errorDescription": "Mealie gaf geen antwoord. Kijk of het aanstaat en probeer het opnieuw.",
       "typeInstead": "‘{query}’ zo intikken",
-      "typeInsteadNote": "Geen recept. Mealie bewaart het als notitie.",
-      "categoryCount": {
-        "one": "1 recept in {category}",
-        "other": "{count} recepten in {category}"
-      },
       "noneInCategoryTitle": "Nog geen recepten in {category}",
       "noneInCategoryDescription": "Zoek een recept op naam, of kies Favorieten."
     },
@@ -1520,76 +1472,11 @@
         "one": "{list}, nog 1 ding te halen",
         "other": "{list}, nog {count} dingen te halen"
       },
-      "addPlaceholder": "Toevoegen aan {list}",
-      "addButton": "Toevoegen",
-      "added": "{item} staat op {list}",
-      "addedUnder": "{item} staat op {list}, onder {label}",
-      "already": "{item} staat al op {list}",
-      "putBack": "{item} staat weer op {list}",
-      "undo": "Ongedaan maken",
-      "picked": "Iedereen ziet nu {list}.",
-      "moved": "Je ziet nu {list}, gekozen op een ander apparaat.",
-      "gone": "{from} staat niet meer in Mealie. Je ziet nu {list}.",
       "hint": "Je Mealie-lijst. Wat je hier afvinkt, wordt ook in Mealie afgevinkt.",
-      "forRecipes": "voor {recipes}",
-      "noLabel": "Geen label",
-      "toGet": {
-        "one": "Nog 1 ding te halen",
-        "other": "Nog {count} dingen te halen"
-      },
-      "allGot": "Alles afgevinkt",
-      "openListAria": "{list} openen in Mealie (nieuwe pagina)",
-      "inCart": "Afgevinkt ({count})",
-      "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
-      "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
-      "staleSetup": "Home Screens kan deze Mealie niet gebruiken. Dit is de lijst van {time}.",
-      "staleNotConnected": "Mealie is niet gekoppeld. Dit is de lijst van {time}.",
-      "staleConnection": "Kan Home Screens niet bereiken. Dit is de lijst van {time}.",
-      "loading": "Je lijst wordt uit Mealie gehaald…",
-      "noListsTitle": "Mealie heeft nog geen boodschappenlijsten",
-      "noListsDescription": "Maak een boodschappenlijst in Mealie, dan verschijnt die hier.",
-      "emptyTitle": "Nog niets op {list}",
-      "emptyDescription": "Voeg hierboven iets toe, of stuur de ingrediënten van een recept vanuit Mealie hierheen.",
-      "unreachableDescription": "Je lijst is veilig in Mealie. Kijk of Mealie aan staat en probeer het dan opnieuw.",
-      "connectionTitle": "Kan Home Screens nu niet bereiken",
-      "connectionDescription": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw.",
-      "noConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
-      "notSaved": {
-        "one": "{items} is niet opgeslagen. Probeer het opnieuw.",
-        "other": "{items} zijn niet opgeslagen. Probeer het opnieuw."
-      },
-      "notSavedUnreachable": {
-        "one": "{items} is niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens.",
-        "other": "{items} zijn niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens."
-      },
-      "notSavedToken": {
-        "one": "{items} is niet opgeslagen. Mealie laat Home Screens niet meer binnen.",
-        "other": "{items} zijn niet opgeslagen. Mealie laat Home Screens niet meer binnen."
-      },
-      "notSavedSetup": {
-        "one": "{items} is niet opgeslagen. Home Screens kan deze Mealie niet gebruiken.",
-        "other": "{items} zijn niet opgeslagen. Home Screens kan deze Mealie niet gebruiken."
-      },
-      "notSavedNotConnected": {
-        "one": "{items} is niet opgeslagen. Mealie is niet gekoppeld.",
-        "other": "{items} zijn niet opgeslagen. Mealie is niet gekoppeld."
-      },
-      "notSavedConnection": {
-        "one": "{items} is niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
-        "other": "{items} zijn niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw."
-      },
-      "moreItems": {
-        "one": "nog 1",
-        "other": "nog {count}"
-      },
-      "listGone": "Die lijst staat niet meer in Mealie."
+      "connectionDescription": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw."
     },
     "suggest": {
-      "allPlanned": "Elk avondeten van deze week is al gepland.",
-      "allPlannedDates": "Elk avondeten van de week van {range} is al gepland.",
-      "nothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie.",
       "failed": "Mealie kon nu geen maaltijden voorstellen. Probeer het zo nog eens.",
-      "noDinners": "Voorstellen vult lege avondmaaltijden, en avondeten staat uit in de maaltijdinstellingen.",
       "confirmTitle": {
         "one": "De lege avondmaaltijd vullen?",
         "other": "Lege avondmaaltijden vullen?"
@@ -1602,13 +1489,7 @@
         "one": "Home Screens kiest een avondmaaltijd uit je Mealie-recepten voor de lege avond van de week van {range} en slaat die op in Mealie. Een avond met een regel voor het maaltijdplan in Mealie volgt die regel.",
         "other": "Home Screens kiest avondmaaltijden uit je Mealie-recepten voor de {count} lege avonden van de week van {range} en slaat ze op in Mealie. Avonden met een regel voor het maaltijdplan in Mealie volgen die regel."
       },
-      "confirmLabel": "Avondeten vullen",
-      "done": {
-        "one": "Een avondmaaltijd gepland voor {days}.",
-        "other": "Avondmaaltijden gepland voor {days}."
-      },
-      "doneEveryNight": "Voor elke avond van deze week een avondmaaltijd gepland.",
-      "doneEveryNightDates": "Voor elke avond van de week van {range} een avondmaaltijd gepland."
+      "confirmLabel": "Avondeten vullen"
     }
   }
 }

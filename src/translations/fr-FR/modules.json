@@ -512,13 +512,9 @@
       "drink": "Boisson"
     },
     "withCourses": "avec {dishes}",
-    "mealieUnreachable": "Impossible de joindre Mealie pour le moment",
     "mealieUnreachableHint": "Le planning des repas reviendra dès que Mealie répondra.",
-    "mealieNotConnected": "Mealie n'est pas connecté",
     "mealieNotConnectedHint": "Connecte-le dans les Réglages sur l'ordinateur pour afficher le planning.",
-    "mealieTokenRefused": "Mealie ne laisse plus entrer Home Screens",
     "mealieTokenRefusedHint": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher le planning.",
-    "mealieSetup": "Home Screens ne peut pas utiliser ce Mealie",
     "mealieSetupHint": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher le planning.",
     "recipe": {
       "prep": "Préparation",
@@ -559,7 +555,6 @@
       "noMealieList": "Mealie n'a pas encore de liste de courses",
       "noMealieListHint": "Crée-en une dans Mealie et elle apparaîtra ici.",
       "mealieDone": "Tout est coché sur la liste « {list} »",
-      "mealieEmpty": "Rien sur la liste « {list} » pour l'instant",
       "mealieEmptyHint": "Ajoute des articles sur le téléphone ou dans Mealie.",
       "localDone": "Plus rien à acheter",
       "localDoneHint": "Tout est coché sur la liste de la semaine.",
@@ -703,7 +698,6 @@
     },
     "todaysCompletion": "Fait aujourd'hui",
     "rewardBalances": "Tickets restants",
-    "holdToUncheckHint": "Appuie longuement pour décocher",
     "overspent": {
       "one": "{name} a déjà dépensé ces tickets, le solde est donc de {balance}. Encore {count} ticket à gagner.",
       "other": "{name} a déjà dépensé ces tickets, le solde est donc de {balance}. Encore {count} tickets à gagner."
@@ -1107,9 +1101,7 @@
       "history": "Historique",
       "errorChanged": "Les tickets viennent de changer. Regarde à nouveau.",
       "errorAlreadyGot": "Tu as déjà obtenu {reward} à l'instant !",
-      "errorNotEnough": "Il n'y a plus assez de tickets pour ça.",
-      "errorNotOffered": "Cette récompense n'est plus proposée.",
-      "errorRemoved": "Cette personne ne fait plus partie de la famille."
+      "errorNotEnough": "Il n'y a plus assez de tickets pour ça."
     },
     "rewardHistory": {
       "subtitle": "Ce que la famille a acheté avec ses tickets",
@@ -1143,7 +1135,6 @@
         "earlier": "Plus tôt"
       }
     },
-    "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
     "goal": {
       "toGo": {
         "one": "encore {count} ticket",

@@ -121,7 +121,7 @@ describe('useMealsData grocery ticks', () => {
     await act(async () => { await result.current.toggleGroceryItem(NEXT_WEEK, 'Lettuce'); });
 
     expect(result.current.groceryChecked).toEqual({ [THIS_WEEK]: ['tortillas'] });
-    expect(result.current.saveError).toBe('mealsTab.saveFailed');
+    expect(result.current.saveError).toBe('refusals.saveFailed');
   });
 
   it('takes a quick double tap on one item as one tap, and still ticks the next item', async () => {
@@ -314,7 +314,7 @@ describe('useMealsData when the hub is out of reach', () => {
     });
 
     expect(saved).toBe(false);
-    expect(result.current.saveError).toBe('mealsTab.saveFailedConnection');
+    expect(result.current.saveError).toBe('refusals.hubUnreachable');
     expect(result.current.plan).toEqual([]);
   });
 
@@ -328,7 +328,7 @@ describe('useMealsData when the hub is out of reach', () => {
     await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
     expect(result.current.saveError).toBe('mealsSettings.save.saveFailed');
     await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
-    expect(result.current.saveError).toBe('mealsTab.saveFailedConnection');
+    expect(result.current.saveError).toBe('refusals.hubUnreachable');
   });
 
   it('loads again when the phone is back online', async () => {

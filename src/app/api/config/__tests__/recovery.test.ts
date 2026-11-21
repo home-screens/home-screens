@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { jsonRequest } from '@/test-utils';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { NextRequest } from 'next/server';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 
 vi.mock('@/lib/auth', () => ({ requireSession: vi.fn(async () => {}), requireDisplayAuth: vi.fn(async () => {}) }));
@@ -14,8 +14,8 @@ const now = '2026-09-09T12:00:00.000Z';
 const member = { id: 'alex', name: 'Alex', color: '#60a5fa', createdAt: now, updatedAt: now };
 const file = (name: string) => path.join(process.cwd(), 'data', name);
 const read = async (name: string) => JSON.parse(await fs.readFile(file(name), 'utf8'));
-const request = (body: unknown) => new NextRequest('http://localhost/api/config', {
-  method: 'PUT', headers: { 'Content-Type': 'application/json', [CONFIG_REVISION_HEADER]: 'old-editor-revision' }, body: JSON.stringify(body),
+const request = (body: unknown) => jsonRequest('http://localhost/api/config', {
+  method: 'PUT', headers: { [CONFIG_REVISION_HEADER]: 'old-editor-revision' }, body,
 });
 
 beforeEach(async () => {

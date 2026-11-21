@@ -36,10 +36,12 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
   onSaveFailed: (message: string) => void;
 }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const heartFailed = useCallback((err: unknown) => {
     const problem = mealieClientProblem(err);
-    onSaveFailed(t(problem === 'connection' ? 'hubRequest.saveFailed' : mealieSaveFailedWords(problem) ?? 'mealsTab.saveFailed'));
-  }, [onSaveFailed, t]);
+    const mealieWords = problem === 'connection' ? undefined : mealieSaveFailedWords(problem);
+    onSaveFailed(mealieWords ? t(mealieWords) : tCore(problem === 'connection' ? 'refusals.hubUnreachable' : 'refusals.saveFailed'));
+  }, [onSaveFailed, t, tCore]);
   // Favorites, Recently made, All, or one of Mealie's own categories or
   // cookbooks, chosen from the chips after All.
   const { query, setQuery, shortcut, choose, cookbooks, search, refresh, refreshes } = useMealieRecipeBrowser(editorFetch);
@@ -90,7 +92,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
     body = <RecipeSkeletonRows count={4} square={64} radius={10} card />;
   } else if (search.error) {
     body = (
-      <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(failed.title)} description={t(failed.description)} padding="48px 16px">
+      <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={tCore(failed.title)} description={t(failed.description)} padding="48px 16px">
         <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
       </CenterMessage>
     );
@@ -173,7 +175,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
               fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flex: 'none',
             }}
           >
-            {t('mealie.openMealie')}
+            {tCore('mealie.openMealie')}
             <ExternalLink size={12} strokeWidth={2} aria-hidden />
           </button>
         )}

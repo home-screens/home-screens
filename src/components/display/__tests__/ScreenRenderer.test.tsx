@@ -1,20 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { makeTestModule } from '@/test-utils';
 import type { ModuleInstance } from '@/types/config';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { isModuleRenderable } from '../ScreenRenderer';
 import { passesModuleGates } from '@/lib/schedule';
 
-function makeModule(overrides: Partial<ModuleInstance> & { id: string }): ModuleInstance {
-  return {
-    type: 'clock',
-    position: { x: 0, y: 0 },
-    size: { w: 100, h: 100 },
-    zIndex: 0,
-    config: {},
-    style: { ...DEFAULT_MODULE_STYLE },
-    ...overrides,
-  };
-}
+const makeModule = (overrides: Partial<ModuleInstance> & { id: string }) => makeTestModule('clock', overrides);
 
 describe('isModuleRenderable', () => {
   it('excludes disabled modules even when schedule would be visible', () => {

@@ -3,25 +3,11 @@ import path from 'path';
 import { test, expect } from '../fixtures';
 import { putConfig, getConfig } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import type { ModuleInstance } from '@/types/config';
-import { seedFixturePlugin, FIXTURE_PLUGIN_ID, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
+import { pluginModule, seedFixturePlugin, FIXTURE_PLUGIN_ID } from '../helpers/fixture-plugin';
 
 const SECRET_KEY = 'apiKey';
 const SECRET_LABEL = 'API Key';
 const SECRET_VALUE = 'sk-e2e-test-value';
-
-function pluginModule(config: Record<string, unknown> = {}): ModuleInstance {
-  return {
-    id: 'e2e-plugin-1',
-    type: FIXTURE_PLUGIN_TYPE,
-    position: { x: 0, y: 0 },
-    size: { w: 320, h: 200 },
-    zIndex: 1,
-    style: { ...DEFAULT_MODULE_STYLE },
-    config: { label: 'E2E PLUGIN', ...config },
-  } as ModuleInstance;
-}
 
 // ---------------------------------------------------------------------------
 // Install-from-URL modal

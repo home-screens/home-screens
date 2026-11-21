@@ -80,6 +80,7 @@ interface ChoresTabProps {
 export default function ChoresTab({ config, choreData, isAdmin = false, family }: ChoresTabProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   // ── Lifted state (shared between Today + Manage views) ──
   const [roster, setRoster] = useState(family);
   const followsRoster = !!family;
@@ -104,7 +105,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       setChores(snapshot.chores);
       setChoreSettings(snapshot.settings);
     },
-    conflict: () => setLastWarning(t('choresTab.changedElsewhere')),
+    conflict: () => setLastWarning(tCore('chores.changedElsewhere')),
     saved: () => {
       const failed = saveFailureRef.current;
       setLastWarning((warning) => (warning === failed ? null : warning));
@@ -117,7 +118,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   }, {
     initial: choreData,
     flushOnUnmount: true,
-    words: { refused: t('choresTab.saveFailed'), unreachable: t('hubRequest.saveFailed') },
+    words: { refused: t('choresTab.saveFailed'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor || REMOTE_ACCENT;

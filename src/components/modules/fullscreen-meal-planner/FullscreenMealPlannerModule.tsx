@@ -29,7 +29,7 @@ import { recipeBookSource } from '@/lib/meal-recipe-book';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useTranslate } from '@/i18n';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
-import { mealieWords } from '../shared/mealie-problem';
+import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 
 // The now dot's blink, redrawn 12 times a second rather than on every refresh.
 const NOW_DOT_PULSE_KEYFRAMES = heldPulseKeyframes('fmpPulse', { rest: 1, peak: 0.3, periodMs: 2000 });
@@ -52,6 +52,7 @@ export default function FullscreenMealPlannerModule({
   moduleId,
 }: FullscreenMealPlannerModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const view = config.view ?? 'week';
   // ── Data fetching ──
   const {
@@ -243,7 +244,7 @@ export default function FullscreenMealPlannerModule({
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: s * 1.5, textAlign: 'center', padding: pad }}
         >
           <span style={{ fontSize: s * 10, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{t(`meal-planner.${mealieWords(mealie.problem)}`)}</span>
+          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{tCore(mealieTitleKey(mealieWords(mealie.problem)))}</span>
           <span style={{ fontSize: s * 2, color: 'var(--fmp-text-3)', maxWidth: '80%', lineHeight: 1.3 }}>{t(`meal-planner.${mealieWords(mealie.problem)}Hint`)}</span>
         </div>
       ) : data === null ? (

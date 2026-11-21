@@ -1,13 +1,14 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, seedMeals } from '../helpers/api';
+import { localDate } from '../helpers/dates';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { drainCommands } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import {
   connectFakeMealie,
   disconnectFakeMealie,
   FAKE_RECIPES,
-  fakeMealieDay,
   startFakeMealie,
   type FakeMealie,
 } from '../helpers/fake-mealie';
@@ -49,12 +50,6 @@ async function openLibrary(page: Page) {
 /** The Meals tab's own notice, which sits over its sheets and above the Library's add button. */
 function notice(page: Page, text: string) {
   return page.getByRole('status').filter({ hasText: text }).getByText(text, { exact: true });
-}
-
-/** Everything the hub queued for one display (or the single wall), drained so the next look starts empty. */
-async function drainCommands(request: APIRequestContext, display?: string): Promise<Array<{ type: string; payload?: Record<string, unknown> }>> {
-  const res = await request.get(display ? `/api/display/commands?display=${display}` : '/api/display/commands');
-  return (await res.json() as { commands: Array<{ type: string; payload?: Record<string, unknown> }> }).commands;
 }
 
 /** The recipes the hub queued for one display (or the single wall), drained so the next look starts empty. */
@@ -199,8 +194,8 @@ test("the planned meal's sheet sends its main dish's recipe", async ({ page, req
   await seedMeals(request, {
     savedMeals: [SOUP, TOAST],
     plan: [
-      { date: fakeMealieDay(0), slot: 'dinner', mealId: SOUP.id },
-      { date: fakeMealieDay(0), slot: 'breakfast', mealId: TOAST.id },
+      { date: localDate(0), slot: 'dinner', mealId: SOUP.id },
+      { date: localDate(0), slot: 'breakfast', mealId: TOAST.id },
     ],
   });
   await page.goto('/remote');

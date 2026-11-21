@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { readJson, refusalText } from '@/lib/hub-request';
+import { HubUnreachableError, readJson, refusalSentence } from '@/lib/hub-request';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { ROUTINES_URL, asRoutineSnapshot, saveRoutineList } from '@/lib/timer-client';
 import { materializeSession } from '@/lib/timer-logic';
@@ -26,6 +26,11 @@ export type TimerControlAction = 'pause' | 'resume' | 'skip' | 'add-minute' | 's
  */
 export function useTimersData() {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
+  /** The timers' own refusal when the hub named one, else the words every tab shares. */
+  const failureText = useCallback((source: unknown) => (
+    source instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(source, t) ?? tCore('refusals.failed')
+  ), [t, tCore]);
   const { displays, timerTargetIds: targetIds, setTimerTargetIds: setTargetIds } = useDisplayTarget();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routinesLoaded, setRoutinesLoaded] = useState(false);
@@ -125,17 +130,17 @@ export function useTimersData() {
         });
         const json = (await readJson(res)) as { session?: TimerSession | null } | null;
         if (!res.ok) {
-          setError(refusalText(json, t, 'timers.failed'));
+          setError(failureText(json));
           return;
         }
         holdUntilRef.current = Date.now() + SESSION_POLL_MS;
         setServerSession(json?.session ?? null);
         setNow(Date.now());
       } catch (e) {
-        if (!isSessionExpired(e)) setError(refusalText(e, t, 'timers.failed', 'hubRequest.saveFailed'));
+        if (!isSessionExpired(e)) setError(failureText(e));
       }
     },
-    [t],
+    [failureText],
   );
 
   const startRoutine = useCallback(
@@ -182,12 +187,12 @@ export function useTimersData() {
       setError(t('refusals.timers.revision'));
       return false;
     } catch (e) {
-      if (!isSessionExpired(e)) setError(refusalText(e, t, 'timers.failed', 'hubRequest.saveFailed'));
+      if (!isSessionExpired(e)) setError(failureText(e));
       return false;
     } finally {
       savingRef.current += 1;
     }
-  }, [routinesLoaded, adopt, t]);
+  }, [routinesLoaded, adopt, t, failureText]);
 
   return {
     routines,

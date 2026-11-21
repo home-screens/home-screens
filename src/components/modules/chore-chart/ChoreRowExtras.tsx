@@ -11,10 +11,10 @@ import { TEXT_OPACITY } from '@/lib/constants';
 
 /** Replaces the chore name for a moment after a tap that was not a hold. */
 export function HoldHint({ color }: { color: string }) {
-  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   return (
     <span role="status" style={{ color, fontWeight: 700 }}>
-      {t('chore-chart.holdToUncheckHint')}
+      {tCore('chores.holdToUncheck')}
     </span>
   );
 }

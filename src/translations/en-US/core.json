@@ -1,8 +1,9 @@
 {
   "refusals": {
     "hubUnreachable": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+    "saveFailed": "That didn't save. Try again.",
+    "failed": "Something went wrong. Try again.",
     "lists": {
-      "failed": "Something went wrong. Try again.",
       "nameRequired": "Give the list a name",
       "nameTooLong": "List names can be up to {max} characters",
       "textRequired": "Type something first",
@@ -17,7 +18,6 @@
       "badRequest": "That change couldn't be understood. Reload the page and try again."
     },
     "notes": {
-      "failed": "That didn't save. Try again.",
       "textRequired": "Write something first.",
       "textTooLong": "A note can be {max} characters at most.",
       "badAuthor": "The author must be a family member.",
@@ -324,7 +324,6 @@
       "noMembers": "No one yet",
       "editName": "Edit {name}",
       "remove": "Remove group",
-      "duplicateName": "You already have a group called {name}.",
       "removeTitle": "Remove {name}?",
       "removeDescription": "Screens that show only {name} go back to showing everyone. Nobody is removed from the family.",
       "removeChoreCount": {
@@ -509,5 +508,136 @@
       "other": "There are no recipes to rate for {dishes}, because they were only typed in."
     },
     "unavailable": "The saved dinner recipe is unavailable."
+  },
+  "chores": {
+    "changedElsewhere": "Someone else changed the chores. Your last change wasn't saved. Please try it again.",
+    "coverage": "Coverage: {covered} of 7 days",
+    "holdToUncheck": "Press and hold to un-check"
+  },
+  "rewards": {
+    "redeem": {
+      "removed": "That person isn't in the family any more.",
+      "notOffered": "That reward isn't on offer any more."
+    }
+  },
+  "imports": {
+    "icloudTitle": "Add from an iCloud link",
+    "alreadyHere": {
+      "one": "1 was already here.",
+      "other": "{count} were already here."
+    },
+    "nothingFound": "There's nothing in that album to add.",
+    "googleWaiting": "Waiting for your picks..."
+  },
+  "mealie": {
+    "grocery": {
+      "addButton": "Add",
+      "undo": "Undo",
+      "addPlaceholder": "Add to {list}",
+      "added": "{item} is on {list}",
+      "addedUnder": "{item} is on {list}, under {label}",
+      "already": "{item} is already on {list}",
+      "putBack": "{item} is back on {list}",
+      "picked": "Everyone sees {list} now.",
+      "moved": "Showing {list}, picked on another device.",
+      "gone": "{from} isn't in Mealie any more. Showing {list}.",
+      "forRecipes": "for {recipes}",
+      "noLabel": "No label",
+      "toGet": {
+        "one": "1 thing to get",
+        "other": "{count} things to get"
+      },
+      "allGot": "All checked off",
+      "openListAria": "Open {list} in Mealie (new page)",
+      "inCart": "Checked off ({count})",
+      "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
+      "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
+      "staleSetup": "Home Screens can't use this Mealie. This is the list from {time}.",
+      "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
+      "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
+      "loading": "Getting your list from Mealie…",
+      "noListsTitle": "Mealie has no shopping lists yet",
+      "noListsDescription": "Make a shopping list in Mealie and it shows up here.",
+      "emptyTitle": "Nothing on {list} yet",
+      "emptyDescription": "Add something above, or send a recipe's ingredients here from Mealie.",
+      "unreachableDescription": "Your list is safe in Mealie. Check that Mealie is running, then try again.",
+      "notSaved": {
+        "one": "{items} wasn't saved. Try again.",
+        "other": "{items} weren't saved. Try again."
+      },
+      "notSavedUnreachable": {
+        "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
+        "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
+      },
+      "notSavedToken": {
+        "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
+        "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
+      },
+      "notSavedSetup": {
+        "one": "{items} wasn't saved. Home Screens can't use this Mealie.",
+        "other": "{items} weren't saved. Home Screens can't use this Mealie."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} wasn't saved. Mealie isn't connected.",
+        "other": "{items} weren't saved. Mealie isn't connected."
+      },
+      "notSavedConnection": {
+        "one": "{items} wasn't saved. Can't reach Home Screens, so check the connection and try again.",
+        "other": "{items} weren't saved. Can't reach Home Screens, so check the connection and try again."
+      },
+      "moreItems": {
+        "one": "1 more",
+        "other": "{count} more"
+      },
+      "listGone": "That list isn't in Mealie any more."
+    },
+    "suggest": {
+      "allPlanned": "Every dinner this week is already planned.",
+      "allPlannedDates": "Every dinner for {range} is already planned.",
+      "noDinners": "Suggest fills empty dinners, and dinner is turned off in the meal settings.",
+      "done": {
+        "one": "Planned a dinner for {days}.",
+        "other": "Planned dinners for {days}."
+      },
+      "doneEveryNight": "Planned a dinner for every night this week.",
+      "doneEveryNightDates": "Planned a dinner for every night of {range}.",
+      "nothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie."
+    },
+    "search": {
+      "placeholder": "Search recipes in Mealie",
+      "favorites": "Favorites",
+      "recent": "Recently made",
+      "looking": "Looking in Mealie…",
+      "typeInsteadNote": "No recipe. Mealie keeps it as a note.",
+      "noneDescription": "Check the spelling, or type it in instead. It goes on the plan as a note, with no recipe.",
+      "categoryCount": {
+        "one": "1 recipe in {category}",
+        "other": "{count} recipes in {category}"
+      }
+    },
+    "pill": {
+      "label": "From Mealie"
+    },
+    "openMealie": "Open Mealie",
+    "unreachable": {
+      "title": "Can't reach Mealie right now",
+      "description": "Your meals are in Mealie, and Home Screens can't get to it. Check that Mealie is running, then try again."
+    },
+    "notConnected": {
+      "title": "Mealie isn't connected"
+    },
+    "tokenRefused": {
+      "title": "Mealie isn't letting Home Screens in"
+    },
+    "setup": {
+      "title": "Home Screens can't use this Mealie"
+    },
+    "paused": {
+      "description": "Planning is paused until Mealie is back.",
+      "descriptionWithTime": "Planning is paused until Mealie is back. This is the plan from {time}."
+    },
+    "connection": {
+      "title": "Can't reach Home Screens right now"
+    }
   }
 }

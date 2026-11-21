@@ -206,8 +206,9 @@ export function normalizeSha256(input: string): string {
   return input.trim().toLowerCase().replace(/^sha256[:\s]+/, '').split(/\s+/)[0] ?? ''
 }
 
-function versionOfTag(tag: string): string {
-  return tag.replace(/^v/i, '')
+/** "v1.2.3" and "1.2.3" both mean 1.2.3, the same rule as the app's `src/lib/update-policy.ts`. */
+export function versionOfTag(tag: string): string {
+  return tag.replace(/^v/, '')
 }
 
 export function formatBytes(bytes: number): string {

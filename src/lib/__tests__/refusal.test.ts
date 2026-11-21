@@ -6,8 +6,8 @@ import type { TranslateFn } from '@/i18n/types';
 /** A dictionary in miniature: the phone's German for two refusal codes. */
 const t: TranslateFn = (key, vars) => {
   if (key === 'refusals.lists.nameTooLong') return `Listennamen dürfen bis zu ${vars?.max} Zeichen lang sein`;
-  if (key === 'refusals.lists.failed') return 'Etwas ist schiefgelaufen.';
-  if (key === 'hubRequest.saveFailed') return 'Home Screens war nicht erreichbar.';
+  if (key === 'refusals.failed') return 'Etwas ist schiefgelaufen.';
+  if (key === 'refusals.hubUnreachable') return 'Home Screens war nicht erreichbar.';
   // `useTranslate` answers a miss with the key itself.
   return key;
 };
@@ -52,28 +52,28 @@ describe('RefusalError', () => {
 describe('refusalText', () => {
   it('shows the dictionary sentence for a known code, with its params filled in', () => {
     const thrown = new RefusalError(400, 'lists.nameTooLong', 'List names can be up to 60 characters', { params: { max: 60 } });
-    expect(refusalText(thrown, t, 'refusals.lists.failed')).toBe('Listennamen dürfen bis zu 60 Zeichen lang sein');
+    expect(refusalText(thrown, t, 'refusals.failed')).toBe('Listennamen dürfen bis zu 60 Zeichen lang sein');
     // The hub's answer body works the same way as the error a client threw.
-    expect(refusalText({ error: 'List names can be up to 60 characters', code: 'lists.nameTooLong', params: { max: 60 } }, t, 'refusals.lists.failed'))
+    expect(refusalText({ error: 'List names can be up to 60 characters', code: 'lists.nameTooLong', params: { max: 60 } }, t, 'refusals.failed'))
       .toBe('Listennamen dürfen bis zu 60 Zeichen lang sein');
   });
 
   it('falls back for a code the dictionary does not know, and never shows the hub sentence', () => {
     const unknown = new RefusalError(400, 'lists.somethingNew', 'A sentence only the hub knows');
-    expect(refusalText(unknown, t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
-    expect(refusalText({ error: 'A sentence only the hub knows', code: 'lists.somethingNew' }, t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText(unknown, t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText({ error: 'A sentence only the hub knows', code: 'lists.somethingNew' }, t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
   });
 
   it('falls back for a plain failure, an answer without a code, or nothing at all', () => {
-    expect(refusalText(new Error('Failed to fetch'), t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
-    expect(refusalText({ error: 'Expected an object' }, t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
-    expect(refusalText(null, t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
-    expect(refusalText(undefined, t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText(new Error('Failed to fetch'), t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText({ error: 'Expected an object' }, t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText(null, t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText(undefined, t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
   });
 
   it('shows its own sentence for a hub out of reach, the fallback when none is given', () => {
-    expect(refusalText(new HubUnreachableError(), t, 'refusals.lists.failed', 'hubRequest.saveFailed')).toBe('Home Screens war nicht erreichbar.');
-    expect(refusalText(new HubUnreachableError(), t, 'refusals.lists.failed')).toBe('Etwas ist schiefgelaufen.');
+    expect(refusalText(new HubUnreachableError(), t, 'refusals.failed', 'refusals.hubUnreachable')).toBe('Home Screens war nicht erreichbar.');
+    expect(refusalText(new HubUnreachableError(), t, 'refusals.failed')).toBe('Etwas ist schiefgelaufen.');
   });
 });
 

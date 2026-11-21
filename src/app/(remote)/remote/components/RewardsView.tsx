@@ -73,6 +73,7 @@ export default function RewardsView({
   refreshData,
 }: RewardsViewProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [innerView, setInnerView] = useState<InnerView>('redeem');
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
@@ -300,7 +301,7 @@ export default function RewardsView({
             fontSize: 12,
           }}
         >
-          {t(REWARD_ERROR_KEYS[saveError])}
+          {REWARD_ERROR_KEYS[saveError][0] === 'core' ? tCore(REWARD_ERROR_KEYS[saveError][1]) : t(REWARD_ERROR_KEYS[saveError][1])}
         </div>
       )}
 
@@ -460,16 +461,17 @@ function failureKey(err: unknown, fallback: keyof typeof REWARD_ERROR_KEYS): key
   return err instanceof HubUnreachableError ? 'unreachable' : fallback;
 }
 
+/** Each line's dictionary and key: `core` holds the sentences the wall and the editor say too. */
 const REWARD_ERROR_KEYS = {
-  failed: 'rewardsView.saveFailed',
-  unreachable: 'hubRequest.saveFailed',
-  conflict: 'rewardsView.changedElsewhere',
-  redeemRefused: 'rewardsView.redeem.refused',
-  redeemNotOffered: 'rewardsView.redeem.notOffered',
-  redeemRemoved: 'rewardsView.redeem.removed',
-  redeemFailed: 'rewardsView.redeem.failed',
-  goalFailed: 'rewardsView.goal.failed',
-  adjustFailed: 'rewardsView.adjust.failed',
+  failed: ['remote', 'rewardsView.saveFailed'],
+  unreachable: ['core', 'refusals.hubUnreachable'],
+  conflict: ['remote', 'rewardsView.changedElsewhere'],
+  redeemRefused: ['remote', 'rewardsView.redeem.refused'],
+  redeemNotOffered: ['core', 'rewards.redeem.notOffered'],
+  redeemRemoved: ['core', 'rewards.redeem.removed'],
+  redeemFailed: ['remote', 'rewardsView.redeem.failed'],
+  goalFailed: ['core', 'refusals.saveFailed'],
+  adjustFailed: ['core', 'refusals.saveFailed'],
 } as const;
 
 /** The phone's line for each refusal the shared rule can name; the hub's own words are never shown. */

@@ -3,18 +3,12 @@
 import { memo, useMemo, type CSSProperties } from 'react';
 import type { Screen } from '@/types/config';
 import type { DisplaySettings } from './useLiveConfig';
-import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
-import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
-import { getModuleDefinition } from '@/lib/module-registry';
-import { resolveModuleStyle } from '@/lib/module-style';
+import { toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
+import ModuleMount from './ModuleMount';
 import { collectConditionSourceKeys, passesModuleGates, type ScheduleClock } from '@/lib/schedule';
 import { collectPinnedModules } from '@/lib/pinned-modules';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
-import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
-import { OpenButtonSlot } from '@/components/modules/shared/OpenScreenButton';
-import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
-import { useTranslate } from '@/i18n';
 import { usePluginStore } from '@/stores/plugin-store';
 interface PinnedModuleLayerProps {
   /** The display's screens; the layer picks the flagged modules itself. */
@@ -54,7 +48,6 @@ interface PinnedModuleLayerProps {
 const PinnedModuleLayer = memo(function PinnedModuleLayer({
   screens, settings, sharedData, now, displayW, displayH, scale, offsetTop, offsetLeft, transform, hidden = false, availableDisplays = [], displayId,
 }: PinnedModuleLayerProps) {
-  const tModules = useTranslate('modules');
   // A pinned plugin module resolves through getModuleComponent, which only
   // knows a plugin once its bundle has registered. The memo would otherwise
   // leave the placeholder up until something else re-rendered the layer.
@@ -100,40 +93,26 @@ const PinnedModuleLayer = memo(function PinnedModuleLayer({
           viewTransitionName: 'pinned-modules',
         }}
       >
-        {showing.map(({ mod, screenId }) => {
-          const Component = getModuleComponent(mod.type);
-          const box: CSSProperties = {
-            position: 'absolute',
-            left: mod.position.x,
-            top: mod.position.y,
-            width: mod.size.w,
-            height: mod.size.h,
-            zIndex: mod.zIndex,
-            pointerEvents: 'auto',
-          };
-          if (!Component) {
-            if (!mod.type.startsWith('plugin:')) return null;
-            return (
-              <div key={mod.id} data-module-id={mod.id} data-module-type={mod.type} data-pinned="true" style={{ ...box, overflow: 'hidden' }}>
-                <PluginPlaceholder moduleType={mod.type} />
-              </div>
-            );
-          }
-          const source = toDisplaySource(settings, location, sharedData, availableDisplays, {
-            renderDisplayId: displayId,
-            screenId,
-          });
-          const extraProps = buildModuleProps(mod, source);
-          return (
-            <div key={mod.id} data-module-id={mod.id} data-module-type={mod.type} data-pinned="true" style={box}>
-              <OpenButtonSlot mod={mod} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))}>
-                <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-                  <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
-                </ModuleErrorBoundary>
-              </OpenButtonSlot>
-            </div>
-          );
-        })}
+        {showing.map(({ mod, screenId }) => (
+          <ModuleMount
+            key={mod.id}
+            mod={mod}
+            pinned
+            source={toDisplaySource(settings, location, sharedData, availableDisplays, {
+              renderDisplayId: displayId,
+              screenId,
+            })}
+            box={{
+              position: 'absolute',
+              left: mod.position.x,
+              top: mod.position.y,
+              width: mod.size.w,
+              height: mod.size.h,
+              zIndex: mod.zIndex,
+              pointerEvents: 'auto',
+            }}
+          />
+        ))}
       </div>
     </div>
   );

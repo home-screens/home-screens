@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { Page, Route } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig } from '../helpers/config-fixtures';
+import { removeFolder, seedImage } from '../helpers/library';
 
 /**
  * Coverage for the /remote Settings sheet (SettingsSheet.tsx): system stats,
@@ -139,10 +140,7 @@ test('the Pictures row cycles the remembered choice and shows its size', async (
   await stubStats(page);
   // A picture in the library is what makes the row appear at all.
   const folder = `e2e-sheet-${Date.now().toString(36)}`;
-  const seeded = await request.post('/api/backgrounds', {
-    multipart: { directory: folder, file: { name: 'a.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') } },
-  });
-  expect(seeded.ok()).toBe(true);
+  await seedImage(request, folder, 'a.png');
   try {
     await page.goto('/remote');
     await openSheet(page);
@@ -156,7 +154,7 @@ test('the Pictures row cycles the remembered choice and shows its size', async (
     await row.click();
     await expect(row).toContainText('Only the ones on screen');
   } finally {
-    await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
+    await removeFolder(request, folder);
   }
 });
 

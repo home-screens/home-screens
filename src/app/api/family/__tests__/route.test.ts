@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { jsonRequest } from '@/test-utils';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,9 +17,7 @@ const now = '2026-09-09T12:00:00.000Z';
 const member = (id: string, name = id) => ({ id, name, color: '#60a5fa', createdAt: now, updatedAt: now });
 let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
-const request = (body: unknown) => new NextRequest('http://localhost/api/family', {
-  method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-});
+const request = (body: unknown) => jsonRequest('http://localhost/api/family', { method: 'PUT', body });
 
 beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-family-route-'));

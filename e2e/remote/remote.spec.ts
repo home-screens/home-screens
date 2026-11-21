@@ -1,39 +1,7 @@
 import { test, expect } from '../fixtures';
-import type { APIRequestContext } from '@playwright/test';
 import { postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig, choreChartModule, makeScreen, textModule } from '../helpers/config-fixtures';
-
-/** Drain a display's command queue and return the full command objects (with payloads). */
-async function drainCommands(
-  request: APIRequestContext,
-  display?: string,
-): Promise<Array<{ type: string; payload?: Record<string, unknown> }>> {
-  const url = display ? `/api/display/commands?display=${display}` : '/api/display/commands';
-  const res = await request.get(url);
-  return (await res.json()).commands;
-}
-
-/**
- * Post an "asleep" heartbeat the way a dimmed kiosk does. `postHeartbeat`
- * hardcodes displayState:'active', and the wake button only appears once the
- * remote's status poll reports the display asleep, so this variant is needed
- * here. Always targets a named display (its own statusMap slot) rather than the
- * legacy `__default__` slot — that slot is shared with the pre-existing sleep
- * test, and a lingering "asleep" status there poisons it across the full suite.
- */
-async function postAsleepStatus(request: APIRequestContext, display: string): Promise<void> {
-  const res = await request.post(`/api/display/status?display=${display}`, {
-    data: {
-      displayId: display,
-      currentScreen: { index: 0, id: 'screen-0', name: 'Screen 0' },
-      screenCount: 2,
-      activeProfile: null,
-      displayState: 'asleep',
-      timestamp: Date.now(),
-    },
-  });
-  expect(res.ok()).toBe(true);
-}
+import { drainCommands, postDisplayStatus } from '../helpers/display';
 
 /** Two named displays with distinct screen sets, for per-display targeting tests. */
 function twoDisplays(
@@ -139,8 +107,10 @@ test('the wake button appears for an asleep display and dispatches a wake comman
   await putConfig(request, twoDisplays({ id: 'wakekit', name: 'Wake Kitchen' }, { id: 'wakemain', name: 'Wake Main' }));
   await drainCommands(request, 'wakekit');
   // Seed an asleep heartbeat so the status poll flips the quick-action button
-  // from "Sleep Display" to "Wake Display".
-  await postAsleepStatus(request, 'wakekit');
+  // from "Sleep Display" to "Wake Display". It goes to a named display's own
+  // slot: an asleep status left in the single wall's slot would reach the
+  // sleep test that shares this worker.
+  await postDisplayStatus(request, 'wakekit', { displayState: 'asleep' });
   await page.goto('/remote');
 
   // Target the asleep display so both the status poll and the wake dispatch

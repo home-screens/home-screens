@@ -5,6 +5,7 @@ import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore, type ProviderHealthEntry } from '@/lib/provider-health-store';
 import { useDisplaySharedState, type DisplaySharedState } from '@/hooks/useDisplaySharedState';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
+import { NOTES_STATE_KEYS } from '@/lib/notes-state';
 
 /** Where the live values came from — drives source-aware copy (the bus
  *  inspector's banner) and nothing else; verdict math is source-agnostic. */
@@ -33,7 +34,8 @@ export interface EditorSharedState extends DisplaySharedState {
  * still sees it for the 15s grace window. Consumers distinguish it by
  * `staleAt` and badge the value as no longer updating.
  *
- * An EMPTY local bus still never counts as a source — `states` stays null so
+ * An EMPTY local bus (or one holding only the notes board's counts, which
+ * every editor publishes) still never counts as a source — `states` stays null so
  * an offline display keeps rendering neutral verdicts, never a confident
  * "unmet" conjured from a bus nothing publishes to (a verdict is never
  * confident on state nobody is sending). A bus holding only tombstones is not that
@@ -90,7 +92,17 @@ export function useEditorSharedState(
       states.set(key, entry);
       if (reportedAt === null || entry.updatedAt > reportedAt) reportedAt = entry.updatedAt;
     }
-    return states.size > 0 ? { entries, reportedAt, states } : null;
+    // The notes board's counts are on every editor's bus, set up or not, so
+    // they say nothing about whether anything is sending state here. A bus
+    // holding only those is still no source: the verdicts stay neutral.
+    let sending = false;
+    for (const key of states.keys()) {
+      if (!ALWAYS_PUBLISHED_KEYS.has(key)) {
+        sending = true;
+        break;
+      }
+    }
+    return sending ? { entries, reportedAt, states } : null;
   }, [localRaw]);
 
   return useMemo<EditorSharedState>(() => {
@@ -103,6 +115,7 @@ export function useEditorSharedState(
   }, [display, local, localHealth]);
 }
 
+const ALWAYS_PUBLISHED_KEYS: ReadonlySet<string> = new Set(Object.values(NOTES_STATE_KEYS));
 const EMPTY_BUS: ReadonlyMap<string, SharedStateEntry> = new Map();
 const serverSnapshot = () => EMPTY_BUS;
 const EMPTY_HEALTH: ReadonlyMap<string, ProviderHealthEntry> = new Map();

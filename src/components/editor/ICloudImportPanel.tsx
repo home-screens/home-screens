@@ -25,6 +25,7 @@ interface Props {
  */
 export default function ICloudImportPanel({ selectedDir, onImported, trailing, below }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
   const { start, running, finished, job, errorKey } = useICloudImport(() => {
@@ -44,7 +45,7 @@ export default function ICloudImportPanel({ selectedDir, onImported, trailing, b
           className="flex-1 text-left text-xs px-3 py-1.5 text-hs-text-muted hover:text-hs-text-body flex items-center gap-1.5"
         >
           <span className="text-hs-text-faint">{open ? '▾' : '▸'}</span>
-          {t('icloudImport.toggle')}
+          {tCore('imports.icloudTitle')}
         </button>
         {trailing}
       </div>
@@ -81,10 +82,10 @@ export default function ICloudImportPanel({ selectedDir, onImported, trailing, b
           {finished && job && (
             <p className="text-[11px] text-hs-text-muted">
               {job.total === 0
-                ? t('icloudImport.empty')
+                ? tCore('imports.nothingFound')
                 : [
                     job.done > 0 ? t('icloudImport.summaryAdded', { count: job.done }) : null,
-                    job.skipped > 0 ? t('icloudImport.summarySkipped', { count: job.skipped }) : null,
+                    job.skipped > 0 ? tCore('imports.alreadyHere', { count: job.skipped }) : null,
                     job.failed > 0 ? t('icloudImport.summaryFailed', { count: job.failed }) : null,
                   ].filter(Boolean).join(' ')}
             </p>

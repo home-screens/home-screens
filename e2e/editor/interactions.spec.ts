@@ -4,12 +4,7 @@ import type { APIRequestContext, Page } from '@playwright/test';
 import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { dragPaletteToCanvas } from '../helpers/editor';
-
-async function openEditor(page: Page): Promise<void> {
-  await page.goto('/editor');
-  await expect(page.getByTestId('editor-canvas')).toBeVisible();
-}
+import { dragPaletteToCanvas, openEditor } from '../helpers/editor';
 
 /** Poll the persisted config until `read` satisfies the matcher. */
 async function pollConfig<T>(request: APIRequestContext, read: (c: Awaited<ReturnType<typeof getConfig>>) => T) {

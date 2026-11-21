@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeLocalStorage } from '@/test-utils';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 
@@ -55,19 +56,6 @@ async function renderSheet(onPowerAction = vi.fn()) {
   );
   await act(async () => { await Promise.resolve(); });
   return onPowerAction;
-}
-
-/** jsdom's own storage is not usable here; the sheet reads the theme and backup choices from it. */
-function makeLocalStorage(): Storage {
-  const store = new Map<string, string>();
-  return {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => { store.set(k, String(v)); },
-    removeItem: (k: string) => { store.delete(k); },
-    clear: () => store.clear(),
-    key: (i: number) => [...store.keys()][i] ?? null,
-    get length() { return store.size; },
-  } as Storage;
 }
 
 beforeEach(() => {

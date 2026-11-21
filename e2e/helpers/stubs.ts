@@ -1,6 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 import { readFileSync } from 'fs';
 import path from 'path';
+import { PNG_1X1 } from './library';
 
 /**
  * Network stubbing for display-module data. All module data is fetched
@@ -15,11 +16,8 @@ import path from 'path';
 
 const FIXTURE_DIR = path.resolve(__dirname, '..', 'fixtures', 'module-data');
 
-/** 1×1 transparent PNG for radar tile stubs. */
-const TILE_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  'base64',
-);
+/** The picture every radar tile stub answers with. */
+const TILE_PNG = PNG_1X1;
 
 function fixture(name: string): unknown {
   return JSON.parse(readFileSync(path.join(FIXTURE_DIR, `${name}.json`), 'utf8'));

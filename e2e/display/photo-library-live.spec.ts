@@ -5,6 +5,7 @@ import path from 'path';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { renderOnDisplay } from '../helpers/display';
+import { seedImage as seedLibraryImage, uniqueFolder as uniqueLibraryFolder } from '../helpers/library';
 
 /**
  * A wall following the photo library as it changes from a phone: a photo
@@ -16,21 +17,16 @@ import { renderOnDisplay } from '../helpers/display';
  * so each test works inside its own uniquely named folder and removes it.
  */
 
+/** This spec's own picture bytes, not the shared 1x1 PNG. */
 const TINY_PNG_BYTES = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
 );
 
-function uniqueFolder(): string {
-  return `e2e-wall-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
+const uniqueFolder = () => uniqueLibraryFolder('e2e-wall-');
 
-async function seedImage(request: APIRequestContext, directory: string, name: string): Promise<void> {
-  const res = await request.post('/api/backgrounds', {
-    multipart: { directory, file: { name, mimeType: 'image/png', buffer: TINY_PNG_BYTES } },
-  });
-  expect(res.ok()).toBe(true);
-}
+const seedImage = (request: APIRequestContext, directory: string, name: string) =>
+  seedLibraryImage(request, directory, name, TINY_PNG_BYTES);
 
 const created: string[] = [];
 test.afterEach(async ({ sandboxDir }) => {

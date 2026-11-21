@@ -40,9 +40,6 @@
     "restarting": "Home Screens genstarter. Forbinder igen om cirka 20 sekunder…",
     "rebooting": "Enheden genstarter. Forbinder igen om cirka et minut…"
   },
-  "hubRequest": {
-    "saveFailed": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen."
-  },
   "backupReminder": {
     "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
     "daysAgoPlural": "Du har ikke foretaget i {n} dage.",
@@ -107,7 +104,6 @@
     "customColorTitle": "Brugerdefineret farve"
   },
   "choresTab": {
-    "changedElsewhere": "En anden har ændret pligterne. Din seneste ændring blev ikke gemt. Prøv igen.",
     "header": "Pligter",
     "headerFor": "Pligter for {name}",
     "switchHint": "Er du ikke {name}? Tryk på dit navn for at skifte.",
@@ -145,7 +141,6 @@
     "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
     "choreAriaLabelCompleted": "Afsluttet: {chore}",
     "saveFailed": "Kunne ikke gemme. Prøv igen.",
-    "holdToUncheckHint": "Hold nede for at fjerne fluebenet",
     "dayToggle": {
       "ariaLabel": "Hvilken dag der vises",
       "yesterday": "I går",
@@ -260,7 +255,6 @@
       "daysLabel": "Dage",
       "assignToLabel": "Tildel",
       "weeklyScheduleLabel": "Ugeskema",
-      "coverageLabel": "Dækning: {covered} af 7 dage",
       "rotationLabel": "Rotation",
       "addSubmit": "Tilføj pligt",
       "saveSubmit": "Gem pligt",
@@ -375,8 +369,6 @@
     },
     "loadError": "Dine måltider kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
     "retry": "Prøv igen",
-    "saveFailed": "Kunne ikke gemme. Prøv igen.",
-    "saveFailedConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} t",
@@ -639,9 +631,7 @@
       "noTicketsHint": "Klar dine pligter under I dag for at tjene billetter.",
       "alreadyGot": "{name} fik allerede {reward} for et øjeblik siden.",
       "alreadyGotKid": "Du fik allerede {reward} for et øjeblik siden!",
-      "changed": "{name}s billetter har lige ændret sig. Kig igen.",
-      "notOffered": "Den belønning findes ikke længere.",
-      "removed": "Den person er ikke længere med i familien."
+      "changed": "{name}s billetter har lige ændret sig. Kig igen."
     },
     "manage": {
       "heading": "Belønninger",
@@ -672,7 +662,6 @@
       "sheetHint": "{name}s billetter tæller til det her. Når {name} har fået det, så vælg noget nyt.",
       "sheetEmpty": "Ingen belønninger at spare op til endnu.",
       "stop": "Stop med at spare",
-      "failed": "Det blev ikke gemt. Prøv igen.",
       "headingFor": "{name} sparer op til",
       "pickFor": "Vælg noget, {name} skal spare op til",
       "sheetTitleFor": "Et sparemål for {name}",
@@ -697,7 +686,6 @@
       "reasonPlaceholder": "Hvorfor? (valgfrit)",
       "reasonHint": "Vises i deres billethistorik.",
       "pickSomeone": "Vælg nogen",
-      "failed": "Det blev ikke gemt. Prøv igen.",
       "chooseHowMany": "Vælg hvor mange",
       "manyPeople": "{count} personer",
       "give": "Giv {names} {amount}",
@@ -987,10 +975,8 @@
       "googleIntro": "Vælg billeder i Google Fotos, og kom så tilbage hertil. De bliver lagt i {folder}.",
       "googleOpen": "Åbn Google Fotos",
       "googlePreparing": "Gør Google Fotos klar...",
-      "googleWaiting": "Venter på dine valg...",
       "googleExpired": "Google Fotos holdt op med at vente. Prøv igen.",
       "googleFailed": "Kunne ikke nå Google Fotos. Prøv igen.",
-      "icloudTitle": "Tilføj fra et iCloud-link",
       "icloudIntro": "Indsæt et link til et delt album eller et link, du har lavet med Kopier iCloud-link i appen Fotos. Alt i linket bliver lagt i {folder}.",
       "icloudPlaceholder": "Indsæt linket her",
       "icloudAdd": "Tilføj",
@@ -1009,15 +995,10 @@
       "tooMany": "Det er for mange på én gang. Vælg færre, og prøv igen.",
       "lost": "Hubben genstartede undervejs. Prøv igen.",
       "tryAgain": "Prøv igen",
-      "alreadyHere": {
-        "one": "1 var her allerede.",
-        "other": "{count} var her allerede."
-      },
       "couldNotAdd": {
         "one": "1 kunne ikke tilføjes.",
         "other": "{count} kunne ikke tilføjes."
-      },
-      "nothingFound": "Der er intet at tilføje fra det album."
+      }
     },
     "art": {
       "onWall": "På væggen nu",
@@ -1106,7 +1087,6 @@
     "showingOnDisplay": "Vises på skærmen",
     "waitingForDisplay": "Venter på, at en skærm tager den…",
     "notShowing": "Ingen skærm viser den endnu. Tjek, at en skærm er tændt.",
-    "failed": "Noget gik galt. Prøv igen.",
     "whyNoSave": {
       "name": "Giv rutinen et navn for at gemme.",
       "stepName": "Giv hvert trin et navn for at gemme.",
@@ -1193,9 +1173,6 @@
       "copied": "Kopieret!",
       "nothingOpen": "Alt er gjort!"
     },
-    "errors": {
-      "generic": "Noget gik galt. Prøv igen."
-    },
     "loadError": "Dine lister kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
     "retry": "Prøv igen"
   },
@@ -1255,7 +1232,6 @@
     "grabbingHeading": "Når bonuspligter snuppes",
     "letGoHint": "En voksen kan altid give en snuppet pligt fri: tryk på ••• ud for pligten på fanen I dag.",
     "save": "Gem",
-    "saveFailed": "Kunne ikke gemme. Prøv igen.",
     "changeAriaLabel": "Skift, hvordan bonuspligter snuppes"
   },
   "atHome": {
@@ -1323,7 +1299,6 @@
     },
     "loadError": "Noterne kunne ikke hentes.",
     "retry": "Prøv igen",
-    "saveError": "Det blev ikke gemt. Prøv igen.",
     "editAria": "Rediger note fra {name}",
     "dayNotes": {
       "sub": "Dagsnoter vises i kalenderne på væggen",
@@ -1337,7 +1312,6 @@
       "put": "Sæt den i kalenderen",
       "remove": "Fjern",
       "loadError": "Dagsnoterne kunne ikke hentes.",
-      "saveError": "Det blev ikke gemt. Prøv igen.",
       "saved": "Gemt til {day}. Noten vises på væggen, når en kalender viser den dag.",
       "removed": "Noten er fjernet",
       "undo": "Fortryd",
@@ -1426,33 +1400,21 @@
   },
   "mealie": {
     "pill": {
-      "label": "Fra Mealie",
       "updated": "· Sidst opdateret {time}"
     },
-    "openMealie": "Åbn Mealie",
-    "unreachable": {
-      "title": "Kan ikke nå Mealie lige nu",
-      "description": "Jeres måltider ligger i Mealie, og Home Screens kan ikke nå dem. Tjek, at Mealie kører, og prøv igen."
-    },
     "notConnected": {
-      "title": "Mealie er ikke forbundet",
       "description": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem på computeren under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens i måltidsindstillingerne."
     },
     "tokenRefused": {
-      "title": "Mealie lukker ikke Home Screens ind længere",
       "description": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det på computeren under Indstillinger > API-nøgler."
     },
     "setup": {
-      "title": "Home Screens kan ikke bruge denne Mealie",
       "description": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres."
     },
     "connection": {
-      "title": "Kan ikke nå Home Screens lige nu",
       "description": "Tjek, at telefonen er forbundet, og prøv igen."
     },
     "paused": {
-      "description": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
-      "descriptionWithTime": "Planlægningen er sat på pause, indtil Mealie er tilbage. Dette er madplanen fra {time}.",
       "tokenDescription": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause.",
       "tokenDescriptionWithTime": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}.",
       "setupDescription": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause.",
@@ -1465,16 +1427,12 @@
       "unreachable": "Mealie svarer ikke, så det blev ikke gemt. Prøv igen om lidt."
     },
     "search": {
-      "placeholder": "Søg i opskrifter i Mealie",
       "placeholderCount": {
         "one": "Søg i 1 opskrift i Mealie",
         "other": "Søg i {count} opskrifter i Mealie"
       },
       "ariaLabel": "Søg i opskrifter i Mealie",
       "clear": "Ryd søgningen",
-      "favorites": "Favoritter",
-      "recent": "Lavet for nylig",
-      "looking": "Leder i Mealie…",
       "recipeCount": {
         "one": "1 opskrift",
         "other": "{count} opskrifter"
@@ -1485,18 +1443,12 @@
       },
       "recentHeading": "Senest lavet først",
       "noneTitle": "Ingen opskrifter, der hedder “{query}”, i Mealie",
-      "noneDescription": "Tjek stavningen, eller skriv det ind i stedet. Så kommer det på madplanen som en note uden opskrift.",
       "noFavoritesTitle": "Ingen favoritter endnu",
       "noFavoritesDescription": "Tryk på hjertet ved en opskrift i Mealie, så dukker den op her.",
       "noRecentTitle": "Intet lavet endnu",
       "noRecentDescription": "Opskrifter, I markerer som lavet i Mealie, vises her, nyeste først.",
       "errorDescription": "Mealie svarede ikke. Tjek, at det kører, og prøv igen.",
       "typeInstead": "Skriv “{query}” i stedet",
-      "typeInsteadNote": "Ingen opskrift. Mealie gemmer det som en note.",
-      "categoryCount": {
-        "one": "1 opskrift i {category}",
-        "other": "{count} opskrifter i {category}"
-      },
       "noneInCategoryTitle": "Ingen opskrifter i {category} endnu",
       "noneInCategoryDescription": "Søg efter en opskrift ved navn, eller vælg Favoritter."
     },
@@ -1520,76 +1472,11 @@
         "one": "{list}, 1 ting at købe",
         "other": "{list}, {count} ting at købe"
       },
-      "addPlaceholder": "Tilføj til {list}",
-      "addButton": "Tilføj",
-      "added": "{item} er på {list}",
-      "addedUnder": "{item} er på {list}, under {label}",
-      "already": "{item} er allerede på {list}",
-      "putBack": "{item} er tilbage på {list}",
-      "undo": "Fortryd",
-      "picked": "Alle ser nu {list}.",
-      "moved": "Viser {list}, valgt på en anden enhed.",
-      "gone": "{from} findes ikke længere i Mealie. Viser {list}.",
       "hint": "Din Mealie-liste. Det, du krydser af her, bliver også krydset af i Mealie.",
-      "forRecipes": "til {recipes}",
-      "noLabel": "Ingen etiket",
-      "toGet": {
-        "one": "1 ting at købe",
-        "other": "{count} ting at købe"
-      },
-      "allGot": "Alt er krydset af",
-      "openListAria": "Åbn {list} i Mealie (ny side)",
-      "inCart": "Afkrydset ({count})",
-      "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
-      "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
-      "staleSetup": "Home Screens kan ikke bruge denne Mealie. Dette er listen fra {time}.",
-      "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
-      "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
-      "loading": "Henter din liste fra Mealie…",
-      "noListsTitle": "Mealie har ingen indkøbslister endnu",
-      "noListsDescription": "Lav en indkøbsliste i Mealie, så dukker den op her.",
-      "emptyTitle": "Intet på {list} endnu",
-      "emptyDescription": "Tilføj noget ovenfor, eller send en opskrifts ingredienser hertil fra Mealie.",
-      "unreachableDescription": "Din liste ligger sikkert i Mealie. Tjek, at Mealie kører, og prøv igen.",
-      "connectionTitle": "Kan ikke nå Home Screens lige nu",
-      "connectionDescription": "Tjek, at telefonen er forbundet, og prøv igen.",
-      "noConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
-      "notSaved": {
-        "one": "{items} blev ikke gemt. Prøv igen.",
-        "other": "{items} blev ikke gemt. Prøv igen."
-      },
-      "notSavedUnreachable": {
-        "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
-        "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
-      },
-      "notSavedToken": {
-        "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
-        "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
-      },
-      "notSavedSetup": {
-        "one": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie.",
-        "other": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie."
-      },
-      "notSavedNotConnected": {
-        "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",
-        "other": "{items} blev ikke gemt. Mealie er ikke forbundet."
-      },
-      "notSavedConnection": {
-        "one": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen.",
-        "other": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen."
-      },
-      "moreItems": {
-        "one": "1 mere",
-        "other": "{count} mere"
-      },
-      "listGone": "Den liste findes ikke længere i Mealie."
+      "connectionDescription": "Tjek, at telefonen er forbundet, og prøv igen."
     },
     "suggest": {
-      "allPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
-      "allPlannedDates": "Alle aftensmåltider i ugen {range} er allerede planlagt.",
-      "nothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie.",
       "failed": "Mealie kunne ikke foreslå måltider lige nu. Prøv igen om lidt.",
-      "noDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
       "confirmTitle": {
         "one": "Udfyld det tomme aftensmåltid?",
         "other": "Udfyld de tomme aftensmåltider?"
@@ -1602,13 +1489,7 @@
         "one": "Home Screens vælger en aftensmad blandt dine Mealie-opskrifter til den tomme aften i ugen {range} og gemmer den i Mealie. En aften med en madplansregel i Mealie følger reglen.",
         "other": "Home Screens vælger aftensmad blandt dine Mealie-opskrifter til de {count} tomme aftener i ugen {range} og gemmer dem i Mealie. Aftener med en madplansregel i Mealie følger reglen."
       },
-      "confirmLabel": "Udfyld aftensmad",
-      "done": {
-        "one": "Aftensmad planlagt til {days}.",
-        "other": "Aftensmad planlagt til {days}."
-      },
-      "doneEveryNight": "Aftensmad planlagt til hver aften i denne uge.",
-      "doneEveryNightDates": "Aftensmad planlagt til hver aften i ugen {range}."
+      "confirmLabel": "Udfyld aftensmad"
     }
   }
 }

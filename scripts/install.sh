@@ -75,6 +75,9 @@ APP_DIR="${INSTALL_BASE}/current"
 # library that can run to gigabytes is a rename on the same disk rather than
 # a copy into /tmp.
 PRESERVE_DIR="${APP_DIR}.preserve"
+# Where a downloaded release is unpacked and checked before it replaces the
+# app tree. Also a sibling of current/, so putting it in place is a rename.
+INCOMING_DIR="${APP_DIR}.incoming"
 
 # Put back whatever the install step moved aside. Safe to call when nothing
 # was staged, and safe to call twice.
@@ -103,6 +106,7 @@ restore_user_files() {
 # tree and extracting the new one still hands the user their files back.
 _hs_cleanup() {
   restore_user_files
+  rm -rf "${INCOMING_DIR}" 2>/dev/null || true
   if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
     rm -rf "${_HS_BOOTSTRAP_TMP}"
   fi
@@ -186,6 +190,102 @@ EOF
 
   sudo systemctl daemon-reload
   sudo systemctl enable --now home-screens-reporter.timer
+}
+
+# --- Display prompts (hub and display-only installs) ---
+# Asks which way up the screen hangs and at what resolution, and sets
+# WLR_TRANSFORM ("90", "270", "180", or empty for no rotation) and
+# DISPLAY_MODE (a resolution such as 1920x1080, or empty to leave the screen
+# at its own choice). With --non-interactive nothing is asked: portrait, and
+# the resolution the screen prefers when the kernel reports one.
+# HS_DRM_DIR is a test seam, never set on a device.
+prompt_display_config() {
+  local orient_choice display_res native_res
+  # The screen's preferred resolution: the first mode the kernel lists.
+  native_res=$(cat "${HS_DRM_DIR:-/sys/class/drm}"/card*-*/modes 2>/dev/null | head -1 || true)
+  DISPLAY_MODE=""
+
+  if [ "${NON_INTERACTIVE}" = "true" ]; then
+    WLR_TRANSFORM="90"
+    if [ -n "${native_res}" ]; then
+      DISPLAY_MODE="${native_res}"
+      info "Auto-detected display resolution: ${DISPLAY_MODE}"
+    else
+      info "Using default display config (portrait 90°, 1080×1920)."
+    fi
+    return 0
+  fi
+
+  echo ""
+  echo "  How is your display oriented?"
+  echo "  1) Portrait (default, rotated 90° clockwise)"
+  echo "  2) Portrait (rotated 90° counter-clockwise)"
+  echo "  3) Landscape (no rotation)"
+  echo "  4) Inverted (rotated 180°)"
+  echo ""
+  read -rp "  Display orientation [1]: " orient_choice
+  case "${orient_choice:-1}" in
+    2) WLR_TRANSFORM="270" ;;
+    3) WLR_TRANSFORM=""    ;;
+    4) WLR_TRANSFORM="180" ;;
+    *) WLR_TRANSFORM="90"  ;;
+  esac
+
+  echo ""
+  echo "  Enter display resolution (e.g. 1920x1080, 2560x1440)"
+  echo "  Leave blank to use the display's preferred resolution."
+  echo ""
+  read -rp "  Resolution [auto]: " display_res
+  if [ -n "${display_res}" ]; then
+    DISPLAY_MODE="${display_res}"
+    info "Display resolution set to ${DISPLAY_MODE}."
+  elif [ -n "${native_res}" ]; then
+    DISPLAY_MODE="${native_res}"
+    info "Auto-detected display resolution: ${DISPLAY_MODE}"
+  fi
+  return 0
+}
+
+# --- Release download (hub install) ---
+# What hs_download_release has to say while it works, in the installer's voice.
+hs_download_release_note() {
+  case "$1" in
+    checksum-start) info "Verifying checksum..." ;;
+    checksum-ok)    info "Checksum OK." ;;
+    no-checksum)    warn "No checksum sidecar published for ${LATEST_TAG}, skipping verification." ;;
+  esac
+}
+
+# download_release <download_dir>
+# Downloads ${LATEST_TAG} into <download_dir>, checks it, and leaves its path
+# in RELEASE_TARBALL. Stops the install with the reason when it cannot.
+download_release() {
+  local download_dir="$1" reason_file reason
+  info "Downloading ${LATEST_TAG}..."
+  reason_file="$(mktemp)"
+  # File descriptor 3 is where the helper shows its progress.
+  if ! { RELEASE_TARBALL="$(hs_download_release "${REPO}" "${LATEST_TAG}" "${download_dir}" 2>"${reason_file}")"; } 3>&1; then
+    reason="$(cat "${reason_file}")"
+    rm -f "${reason_file}"
+    error "${reason:-Failed to download ${LATEST_TAG}.}"
+  fi
+  rm -f "${reason_file}"
+}
+
+# unpack_release
+# Unpacks RELEASE_TARBALL into INCOMING_DIR and checks it is a whole release,
+# so a bad download stops the install while the old app is still in place.
+unpack_release() {
+  local reason
+  rm -rf "${INCOMING_DIR}"
+  mkdir -p "${INCOMING_DIR}"
+  info "Extracting..."
+  tar -xzf "${RELEASE_TARBALL}" -C "${INCOMING_DIR}"
+  rm -f "${RELEASE_TARBALL}"
+  if ! reason="$(hs_validate_release_tree "${INCOMING_DIR}" 2>&1)"; then
+    rm -rf "${INCOMING_DIR}"
+    error "${reason}"
+  fi
 }
 
 # --- Preflight ---
@@ -286,39 +386,7 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
   setup_font_aliases
 
   # 3. Display orientation prompts (same as full install)
-  if [ "${NON_INTERACTIVE}" = "true" ]; then
-    WLR_TRANSFORM="90"
-    DISPLAY_MODE=""
-    NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
-    if [ -n "${NATIVE_RES}" ]; then
-      DISPLAY_MODE="${NATIVE_RES}"
-    fi
-  else
-    echo ""
-    echo "  How is your display oriented?"
-    echo "  1) Portrait (default, rotated 90° clockwise)"
-    echo "  2) Portrait (rotated 90° counter-clockwise)"
-    echo "  3) Landscape (no rotation)"
-    echo "  4) Inverted (rotated 180°)"
-    echo ""
-    read -rp "  Display orientation [1]: " ORIENT_CHOICE
-    ORIENT_CHOICE="${ORIENT_CHOICE:-1}"
-    case "${ORIENT_CHOICE}" in
-      2) WLR_TRANSFORM="270" ;;
-      3) WLR_TRANSFORM=""    ;;
-      4) WLR_TRANSFORM="180" ;;
-      *) WLR_TRANSFORM="90"  ;;
-    esac
-    echo ""
-    read -rp "  Resolution [auto]: " DISPLAY_RES
-    DISPLAY_MODE=""
-    if [ -n "${DISPLAY_RES}" ]; then
-      DISPLAY_MODE="${DISPLAY_RES}"
-    else
-      NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
-      [ -n "${NATIVE_RES}" ] && DISPLAY_MODE="${NATIVE_RES}"
-    fi
-  fi
+  prompt_display_config
 
   # 4. Create app dir owned by the user. We do not download a tarball — the
   #    only files we need are the kiosk-launcher and a stub HTML page.
@@ -480,33 +548,9 @@ else
   fi
 fi
 
-info "Downloading ${LATEST_TAG}..."
-ASSET_NAME="home-screens-${LATEST_TAG}.tar.gz"
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${ASSET_NAME}"
-CHECKSUM_NAME="${ASSET_NAME}.sha256"
-CHECKSUM_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${CHECKSUM_NAME}"
-
-if ! curl -fSL --speed-limit 1024 --speed-time 60 -o "/tmp/${ASSET_NAME}" "${DOWNLOAD_URL}"; then
-  error "Failed to download release tarball."
-fi
-
-# Verify SHA-256 checksum if a sidecar is published. Releases prior to the
-# checksum rollout don't have one — warn but continue in that case so users
-# can still install older versions.
-if curl -fsSL --max-time 30 -o "/tmp/${CHECKSUM_NAME}" "${CHECKSUM_URL}" 2>/dev/null; then
-  info "Verifying checksum..."
-  # The sidecar was generated against the bare filename — run from /tmp so
-  # the relative path resolves correctly.
-  if ( cd /tmp && sha256sum -c "${CHECKSUM_NAME}" >/dev/null 2>&1 ); then
-    info "Checksum OK."
-  else
-    rm -f "/tmp/${ASSET_NAME}" "/tmp/${CHECKSUM_NAME}"
-    error "Checksum verification FAILED for ${ASSET_NAME}. Refusing to install."
-  fi
-  rm -f "/tmp/${CHECKSUM_NAME}"
-else
-  warn "No checksum sidecar published for ${LATEST_TAG} — skipping verification."
-fi
+# Into /tmp, where the installer has always put it. HS_GITHUB_DOWNLOAD_BASE
+# points this at a test rig instead of GitHub.
+download_release /tmp
 
 # Create the install base owned by the current user.
 # The app lives in current/, with staging/rollback siblings for atomic upgrades.
@@ -514,6 +558,10 @@ if [ ! -d "${INSTALL_BASE}" ]; then
   sudo mkdir -p "${INSTALL_BASE}"
   sudo chown "${USER}:${USER}" "${INSTALL_BASE}"
 fi
+
+# Unpack and check the new release beside the app before anything of the old
+# one is touched.
+unpack_release
 
 # Move the user's own files aside so they survive the rm -rf below. The
 # release tarball carries only the app, so anything they made (their
@@ -534,18 +582,9 @@ done
 shopt -u nullglob
 
 rm -rf "${APP_DIR}"
-mkdir -p "${APP_DIR}"
-
-info "Extracting..."
-tar -xzf "/tmp/${ASSET_NAME}" -C "${APP_DIR}"
-rm -f "/tmp/${ASSET_NAME}"
+mv "${INCOMING_DIR}" "${APP_DIR}"
 
 restore_user_files
-
-# Validate
-if [ ! -f "${APP_DIR}/server.js" ] || [ ! -f "${APP_DIR}/package.json" ]; then
-  error "Tarball is missing required files (server.js, package.json)."
-fi
 
 info "Installed ${LATEST_TAG} to ${APP_DIR}"
 
@@ -570,54 +609,7 @@ if [ -n "${REQUESTED_PORT}" ]; then
 fi
 
 # --- Step 5: Display configuration ---
-if [ "${NON_INTERACTIVE}" = "true" ]; then
-  # Defaults: portrait 90° rotation, auto-detect resolution
-  WLR_TRANSFORM="90"
-  DISPLAY_MODE=""
-  NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
-  if [ -n "${NATIVE_RES}" ]; then
-    DISPLAY_MODE="${NATIVE_RES}"
-    info "Auto-detected display resolution: ${DISPLAY_MODE}"
-  else
-    info "Using default display config (portrait 90°, 1080×1920)."
-  fi
-else
-  echo ""
-  echo "  How is your display oriented?"
-  echo "  1) Portrait (default, rotated 90° clockwise)"
-  echo "  2) Portrait (rotated 90° counter-clockwise)"
-  echo "  3) Landscape (no rotation)"
-  echo "  4) Inverted (rotated 180°)"
-  echo ""
-  read -rp "  Display orientation [1]: " ORIENT_CHOICE
-  ORIENT_CHOICE="${ORIENT_CHOICE:-1}"
-
-  case "${ORIENT_CHOICE}" in
-    2) WLR_TRANSFORM="270" ;;
-    3) WLR_TRANSFORM=""     ;;
-    4) WLR_TRANSFORM="180" ;;
-    *) WLR_TRANSFORM="90"  ;;
-  esac
-
-  echo ""
-  echo "  Enter display resolution (e.g. 1920x1080, 2560x1440)"
-  echo "  Leave blank to use the display's preferred resolution."
-  echo ""
-  read -rp "  Resolution [auto]: " DISPLAY_RES
-
-  DISPLAY_MODE=""
-  if [ -n "${DISPLAY_RES}" ]; then
-    DISPLAY_MODE="${DISPLAY_RES}"
-    info "Display resolution set to ${DISPLAY_MODE}."
-  else
-    # Auto-detect native resolution from kernel DRM/EDID (first mode = preferred)
-    NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
-    if [ -n "${NATIVE_RES}" ]; then
-      DISPLAY_MODE="${NATIVE_RES}"
-      info "Auto-detected display resolution: ${DISPLAY_MODE}"
-    fi
-  fi
-fi
+prompt_display_config
 
 # Save display config to kiosk.conf (consumed by labwc kiosk-launcher.sh)
 # Values are quoted to match the format upgrade.sh generates from config.json.

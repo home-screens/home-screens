@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedHouseholdChores } from '../helpers/api';
+import { waitForBeats } from '../helpers/display';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 
 /**
@@ -45,13 +46,6 @@ function watchReads(page: Page, paths = ['/api/chores', '/api/rewards']): string
   return reads;
 }
 
-/** Resolves after `count` more heartbeats have been answered. */
-async function beats(page: Page, count: number) {
-  for (let i = 0; i < count; i++) {
-    await page.waitForResponse((r) => new URL(r.url()).pathname === '/api/display/commands', { timeout: 10_000 });
-  }
-}
-
 test.describe('a chore wall follows the heartbeat', () => {
   // Each test watches a dozen 3 s beats go by.
   test.describe.configure({ timeout: 60_000 });
@@ -71,7 +65,7 @@ test.describe('a chore wall follows the heartbeat', () => {
     // the config is not fetched again either (a fetch would also have emptied
     // the data cache and cost another read of each list). The old wall read
     // both lists every 5 s.
-    await beats(page, 6);
+    await waitForBeats(page, 6);
     expect([...reads].sort()).toEqual(['/api/chores?days=31', '/api/rewards']);
     expect(configReads).toEqual([]);
   });
@@ -83,7 +77,7 @@ test.describe('a chore wall follows the heartbeat', () => {
     const chart = page.locator('[data-module-id="chart"]');
     const dishes = chart.getByRole('button', { name: /Load the dishwasher/ });
     await expect(dishes).toHaveAttribute('aria-pressed', 'false');
-    await beats(page, 1);
+    await waitForBeats(page, 1);
     const start = reads.length;
 
     const reread = page.waitForResponse((r) => r.url().includes('/api/chores?days=31') && r.request().method() === 'GET' && r.status() === 200);
@@ -93,7 +87,7 @@ test.describe('a chore wall follows the heartbeat', () => {
     await expect(dishes).toHaveAttribute('aria-pressed', 'true', { timeout: 8_000 });
     await expect(chart.getByRole('button', { name: /Make the bed/ })).toHaveAttribute('aria-pressed', 'false');
     // The tick moved points too, so both lists were read, once each.
-    await beats(page, 2);
+    await waitForBeats(page, 2);
     expect([...reads.slice(start)].sort()).toEqual(['/api/chores?days=31', '/api/rewards']);
   });
 
@@ -111,7 +105,7 @@ test.describe('a chore wall follows the heartbeat', () => {
 
     // The heartbeat names the new revisions and the wall reads both lists
     // again; the tick must survive them.
-    await beats(page, 3);
+    await waitForBeats(page, 3);
     await expect(dishes).toHaveAttribute('aria-pressed', 'true');
     const saved = await (await request.get('/api/chores')).json() as { completions: Array<{ choreId: string; date: string }> };
     expect(saved.completions).toContainEqual(expect.objectContaining({ choreId: DISHES, date: today }));
@@ -130,7 +124,7 @@ test.describe('a chore wall follows the heartbeat', () => {
     const dishes = chart.getByRole('button', { name: /Load the dishwasher/ });
     await expect(dishes).toHaveAttribute('aria-pressed', 'false');
     // A beat on, so the wall holds the bytes of its only read.
-    await beats(page, 1);
+    await waitForBeats(page, 1);
     expect(reads).toHaveLength(2);
     const before = await (await request.get('/api/chores?days=31')).text();
 

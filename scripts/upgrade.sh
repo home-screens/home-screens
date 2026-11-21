@@ -564,66 +564,98 @@ case "${action}" in
     # Clean up staging on any failure, signal, or cancellation
     trap 'rm -rf "${staging_dir}" 2>/dev/null; true' ERR INT TERM
 
-    # Check that the release asset exists before committing to download.
-    # Only a 404 means the file is missing. A device that cannot reach GitHub
-    # (no network, DNS, a clock too far off for TLS, the 10 s limit) was told
-    # "not found" too, which sent people looking for a release that was there
-    # all along, so curl's own reason goes along with that message.
-    head_err=$(mktemp)
-    head_exit=0
-    head_status=$(curl -sSL --head --max-time 10 -o /dev/null -w '%{http_code}' "${download_url}" 2>"${head_err}") || head_exit=$?
-    head_reason=$(tr '\r\n' '  ' <"${head_err}" | sed -e 's/ *$//' -e 's/\\/\\\\/g' -e 's/"/\\"/g')
-    rm -f "${head_err}"
-    head_error=""
-    if [ "${head_exit}" -ne 0 ]; then
-      head_error="This device could not reach GitHub to download ${tag}. Check its internet connection and try again."
-      [ -z "${head_reason}" ] || head_error="${head_error} (${head_reason})"
-    elif [ "${head_status}" = "404" ]; then
-      head_error="GitHub does not have the download for ${tag} (${asset_name})."
-    elif [[ "${head_status}" != 2?? ]]; then
-      head_error="GitHub could not send the download for ${tag} right now (error ${head_status}). Try again in a few minutes."
-    fi
-    if [ -n "${head_error}" ]; then
-      rm -rf "${staging_dir}"
-      echo "{\"ok\":false,\"error\":\"${head_error}\"}"
-      exit 1
-    fi
-
-    # Download (with stall detection: fail if <1KB/s for 60 seconds)
-    if ! curl -fSL --speed-limit 1024 --speed-time 60 -o "${staging_dir}/${asset_name}" "${download_url}" 2>&1; then
-      rm -rf "${staging_dir}"
-      echo "{\"ok\":false,\"error\":\"Failed to download ${asset_name}\"}"
-      exit 1
-    fi
-
-    # Verify SHA-256 checksum if a sidecar is published. Releases predating
-    # the checksum rollout lack a sidecar — warn but continue in that case
-    # to keep upgrades to older versions working.
-    checksum_name="${asset_name}.sha256"
-    checksum_url="${download_base}/${repo}/releases/download/${tag}/${checksum_name}"
-    if curl -fsSL --max-time 30 -o "${staging_dir}/${checksum_name}" "${checksum_url}" 2>/dev/null; then
-      if ! ( cd "${staging_dir}" && sha256sum -c "${checksum_name}" >/dev/null 2>&1 ); then
+    # The download and its checks live in lib/common.sh, shared with the
+    # installer. That file is sourced only when it is there (see the top of
+    # this script), and nothing promises that the lib/ beside this script is
+    # as new as the script, so the helpers are used when they are defined and
+    # the same steps stay written out below for when they are not. Both paths
+    # must answer with the same JSON: scripts/__tests__/upgrade-download.test.ts
+    # runs every case with and without lib/.
+    if type -t hs_download_release >/dev/null && type -t hs_validate_release_tree >/dev/null; then
+      download_err=$(mktemp)
+      # File descriptor 3 is where the helper sends curl's progress, which
+      # belongs on stdout here so the update window can show it.
+      if ! { downloaded=$(hs_download_release "${repo}" "${tag}" "${staging_dir}" 2>"${download_err}"); } 3>&1; then
+        download_reason=$(sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' <"${download_err}")
+        rm -f "${download_err}"
         rm -rf "${staging_dir}"
-        echo "{\"ok\":false,\"error\":\"Checksum verification failed for ${asset_name}\"}"
+        echo "{\"ok\":false,\"error\":\"${download_reason}\"}"
         exit 1
       fi
-      rm -f "${staging_dir}/${checksum_name}"
-    fi
-    # If the sidecar was missing we silently continue (backwards compatible
-    # with pre-checksum releases) — the bash trap still cleans staging on error.
+      rm -f "${download_err}"
 
-    # Extract
-    tar -xzf "${staging_dir}/${asset_name}" -C "${staging_dir}"
-    rm "${staging_dir}/${asset_name}"
+      # Extract
+      tar -xzf "${downloaded}" -C "${staging_dir}"
+      rm "${downloaded}"
 
-    # Validate tarball contents — catch CI misconfigurations before deploy
-    for required in server.js package.json; do
-      if [ ! -f "${staging_dir}/${required}" ]; then
+      # Catch a release that was built wrong before it is deployed
+      if ! tree_reason=$(hs_validate_release_tree "${staging_dir}" 2>&1); then
         rm -rf "${staging_dir}"
-        echo "{\"ok\":false,\"error\":\"Tarball missing required file: ${required}\"}"
+        echo "{\"ok\":false,\"error\":\"${tree_reason}\"}"
         exit 1
       fi
-    done
+    else
+      # Check that the release asset exists before committing to download.
+      # Only a 404 means the file is missing. A device that cannot reach GitHub
+      # (no network, DNS, a clock too far off for TLS, the 10 s limit) was told
+      # "not found" too, which sent people looking for a release that was there
+      # all along, so curl's own reason goes along with that message.
+      head_err=$(mktemp)
+      head_exit=0
+      head_status=$(curl -sSL --head --max-time 10 -o /dev/null -w '%{http_code}' "${download_url}" 2>"${head_err}") || head_exit=$?
+      head_reason=$(tr '\r\n' '  ' <"${head_err}" | sed -e 's/ *$//' -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+      rm -f "${head_err}"
+      head_error=""
+      if [ "${head_exit}" -ne 0 ]; then
+        head_error="This device could not reach GitHub to download ${tag}. Check its internet connection and try again."
+        [ -z "${head_reason}" ] || head_error="${head_error} (${head_reason})"
+      elif [ "${head_status}" = "404" ]; then
+        head_error="GitHub does not have the download for ${tag} (${asset_name})."
+      elif [[ "${head_status}" != 2?? ]]; then
+        head_error="GitHub could not send the download for ${tag} right now (error ${head_status}). Try again in a few minutes."
+      fi
+      if [ -n "${head_error}" ]; then
+        rm -rf "${staging_dir}"
+        echo "{\"ok\":false,\"error\":\"${head_error}\"}"
+        exit 1
+      fi
+
+      # Download (with stall detection: fail if <1KB/s for 60 seconds)
+      if ! curl -fSL --speed-limit 1024 --speed-time 60 -o "${staging_dir}/${asset_name}" "${download_url}" 2>&1; then
+        rm -rf "${staging_dir}"
+        echo "{\"ok\":false,\"error\":\"Failed to download ${asset_name}\"}"
+        exit 1
+      fi
+
+      # Verify SHA-256 checksum if a sidecar is published. Releases predating
+      # the checksum rollout lack a sidecar — warn but continue in that case
+      # to keep upgrades to older versions working.
+      checksum_name="${asset_name}.sha256"
+      checksum_url="${download_base}/${repo}/releases/download/${tag}/${checksum_name}"
+      if curl -fsSL --max-time 30 -o "${staging_dir}/${checksum_name}" "${checksum_url}" 2>/dev/null; then
+        if ! ( cd "${staging_dir}" && sha256sum -c "${checksum_name}" >/dev/null 2>&1 ); then
+          rm -rf "${staging_dir}"
+          echo "{\"ok\":false,\"error\":\"Checksum verification failed for ${asset_name}\"}"
+          exit 1
+        fi
+        rm -f "${staging_dir}/${checksum_name}"
+      fi
+      # If the sidecar was missing we silently continue (backwards compatible
+      # with pre-checksum releases) — the bash trap still cleans staging on error.
+
+      # Extract
+      tar -xzf "${staging_dir}/${asset_name}" -C "${staging_dir}"
+      rm "${staging_dir}/${asset_name}"
+
+      # Validate tarball contents — catch CI misconfigurations before deploy
+      for required in server.js package.json; do
+        if [ ! -f "${staging_dir}/${required}" ]; then
+          rm -rf "${staging_dir}"
+          echo "{\"ok\":false,\"error\":\"Tarball missing required file: ${required}\"}"
+          exit 1
+        fi
+      done
+    fi
 
     trap - ERR INT TERM
     echo "{\"ok\":true,\"staging\":\"${staging_dir}\"}"
@@ -883,6 +915,9 @@ case "${action}" in
       # process's environment after restart. Wrap cat||echo in braces so the
       # fallback applies to the whole subshell, not just the trailing tr.
       finalize_port=$( { cat "${APP_DIR}/data/port.conf" 2>/dev/null || echo 3000; } | tr -d '[:space:]' )
+      # Checked here rather than with hs_read_port: lib/common.sh may not be
+      # beside this script. Anything but digits means the default port.
+      [[ "${finalize_port}" =~ ^[0-9]+$ ]] || finalize_port=3000
       finalize_log="${APP_DIR}/data/upgrade-finalize.log"
       mkdir -p "$(dirname "${finalize_log}")" 2>/dev/null || true
       # A job that restarts the service, checks systemd really replaced the

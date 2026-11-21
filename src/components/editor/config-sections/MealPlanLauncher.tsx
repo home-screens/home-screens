@@ -23,6 +23,7 @@ export default function MealPlanLauncher({ meals, accentColor, countKeyPrefix, o
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { mealData, handleModalUpdate, toggleGroceryItem, saveError, reload, showMealieRange, mealieWeeks, suggestFromMealie } = meals;
   return (
     <>
@@ -31,7 +32,7 @@ export default function MealPlanLauncher({ meals, accentColor, countKeyPrefix, o
           {mealData.source === 'mealie' ? (
             // Mealie's recipes are not a library kept here, and its plan here
             // is only the weeks around today: say where the plan lives instead.
-            <span>{t('mealPlannerModal.mealie.fromMealie')}</span>
+            <span>{tCore('mealie.pill.label')}</span>
           ) : (
             <>
               <span>{t(`configSections.${countKeyPrefix}.savedMealsCount`, { count: mealData.savedMeals.length })}</span>

@@ -2,7 +2,8 @@
 
 import { useTZClock } from '@/hooks/useTZClock';
 import type { NewsDisplayItem } from '@/lib/news/types';
-import { clampLines, formatNewsAge, metaParts } from '../news/news-shared';
+import { formatNewsAge, metaParts } from '../news/news-shared';
+import { clampLines } from '@/components/modules/shared/clampLines';
 import { StoryButton } from '../news/StoryButton';
 import { Thumbnail } from '../news/Thumbnail';
 import { UnavailableFooter } from '../news/UnavailableFooter';

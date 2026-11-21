@@ -11,7 +11,7 @@
 
 import { Backpack } from 'lucide-react';
 import { ink } from '@/lib/constants';
-import { smallPrintPx } from '@/lib/timetable-layout';
+import { atLeast } from './cells';
 import type { RowsGeometry, DayGeometry } from '@/lib/timetable-day-fit';
 import { pickGridTimeColor } from '@/lib/calendar-color';
 import { BringPills, type DayPerson, type DayTokens } from './DayCard';
@@ -25,10 +25,6 @@ export interface PackingStripProps {
   persons: readonly DayPerson[];
   geometry: DayGeometry;
   tokens: DayTokens;
-}
-
-function atLeast(px: number, em: number, base: number): string {
-  return `${smallPrintPx(base, { px, em }).toFixed(2)}px`;
 }
 
 export default function PackingStrip({ title, subtitle, persons, geometry, tokens }: PackingStripProps) {

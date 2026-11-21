@@ -1,5 +1,6 @@
 'use client';
 
+import { airQualityLevel } from '@/lib/weather/condition-sentences';
 import { Wind } from 'lucide-react';
 import type { AirQualityConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -28,14 +29,6 @@ interface AirQualityData {
   o3: number;
   no2: number;
 }
-
-const AQI_LABEL_KEYS: Record<number, string> = {
-  1: 'good',
-  2: 'fair',
-  3: 'moderate',
-  4: 'poor',
-  5: 'veryPoor',
-};
 
 const AQI_COLORS: Record<number, string> = {
   1: '#22c55e',
@@ -96,7 +89,8 @@ export default function AirQualityModule({ config, style, latitude, longitude, l
   const gate = moduleGate({ style, data, error, loadingMessage: t('air-quality.loading') });
   if (gate || !data) return gate;
 
-  const labelKey = AQI_LABEL_KEYS[data.aqi];
+  // The same naming the weather Conditions card uses; a reading that is not a number has no name.
+  const labelKey = Number.isFinite(data.aqi) ? airQualityLevel(data.aqi) : undefined;
   const aqiLabel = labelKey ? t(`air-quality.labels.${labelKey}`) : t('air-quality.labels.unknown');
   const aqiColor = AQI_COLORS[data.aqi] ?? '#6b7280';
 

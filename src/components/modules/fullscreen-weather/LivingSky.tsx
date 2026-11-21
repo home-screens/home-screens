@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SKY_BASES, type SkyScene } from './sky-layer';
 import { useCloudSprites, CLOUD_TILE_W, CLOUD_TILE_H, DRIFT_LAYERS } from './cloud-sprites';
 import { MoonImage } from './moon';
-import { useBoxSize, type BoxSize } from './useBoxSize';
+import { useElementBox, type ElementBox } from '@/hooks/useElementBox';
 
 /**
  * The living sky: an animated background that matches the weather.
@@ -59,8 +59,9 @@ export default function LivingSky({ scene, moonPhase, moonPlace = 'header' }: { 
   // (A timer set in the effect above was cleared by its own cleanup as soon
   // as the new stack landed, and the old stacks piled up for good.)
   const settled = useCallback((id: number) => setStacks((prev) => prev.filter((s) => s.id >= id)), []);
-  const root = useRef<HTMLDivElement>(null);
-  const size = useBoxSize(root);
+  const [root, box] = useElementBox('padding');
+  // Zero is "not measured yet": the layers keep their first-paint fallback.
+  const size = box.width > 0 ? box : null;
 
   return (
     <div ref={root} data-testid="fsw-sky" className={`fsw-sky fsw-sky-moon-${moonPlace}`} data-scene={current.scene.key} aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', containerType: 'size' }}>
@@ -83,7 +84,7 @@ function tileSpan(canvas: number | undefined, tile: number): string {
 }
 
 function Stack({ id, scene, moonPhase, fadeIn, onSettled, size }: {
-  id: number; scene: SkyScene; moonPhase?: number; fadeIn: boolean; onSettled: (id: number) => void; size: BoxSize;
+  id: number; scene: SkyScene; moonPhase?: number; fadeIn: boolean; onSettled: (id: number) => void; size: ElementBox | null;
 }) {
   const sprites = useCloudSprites(Object.keys(scene.clouds).length || scene.mist ? scene.palette : null);
   // The fade is a CSS animation, not a state flip after a frame: animation
@@ -112,7 +113,7 @@ function Stack({ id, scene, moonPhase, fadeIn, onSettled, size }: {
         return (
           <div key={layer} style={{
             position: 'absolute', left: 0, top: 0, height: CLOUD_TILE_H,
-            width: tileSpan(size?.w, CLOUD_TILE_W),
+            width: tileSpan(size?.width, CLOUD_TILE_W),
             backgroundImage: sprites ? `url(${sprites[layer]})` : undefined,
             backgroundRepeat: 'repeat-x', backgroundSize: `${CLOUD_TILE_W}px ${CLOUD_TILE_H}px`,
             // The sprites arrive a beat after the base paints: ease them in.
@@ -122,9 +123,9 @@ function Stack({ id, scene, moonPhase, fadeIn, onSettled, size }: {
           }} />
         );
       })}
-      {scene.mist && <Mist night={scene.base === 'fog-night'} sheet={sprites?.fog ?? null} width={size?.w} />}
-      {scene.rain && <Rain height={size?.h} />}
-      {scene.snow && <Snow height={size?.h} />}
+      {scene.mist && <Mist night={scene.base === 'fog-night'} sheet={sprites?.fog ?? null} width={size?.width} />}
+      {scene.rain && <Rain height={size?.height} />}
+      {scene.snow && <Snow height={size?.height} />}
       <div style={{
         position: 'absolute', left: 0, top: 0, width: '100%', height: '40%',
         background: 'radial-gradient(55% 80% at 50% 30%, rgba(10,14,30,.26), rgba(10,14,30,0) 100%)',

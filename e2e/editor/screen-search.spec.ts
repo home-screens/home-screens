@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { openEditor } from '../helpers/editor';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance, ScreenConfiguration } from '@/types/config';
 
@@ -44,11 +45,6 @@ function twoDisplayConfig(): ScreenConfiguration {
       },
     ],
   });
-}
-
-async function openEditor(page: Page): Promise<void> {
-  await page.goto('/editor');
-  await expect(page.getByTestId('editor-canvas')).toBeVisible();
 }
 
 async function openSearch(page: Page): Promise<void> {

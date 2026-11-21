@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { usePolledFetch } from './usePolledFetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
@@ -23,44 +24,38 @@ export function useRemoteConfigWatch(): boolean {
   const [remoteChanged, setRemoteChanged] = useState(false);
   const configRevision = useEditorStore((s) => s.configRevision);
 
-  useEffect(() => {
-    let mounted = true;
-    let lastForeign: string | null = null;
+  const lastForeign = useRef<string | null>(null);
 
-    async function tick() {
-      if (document.visibilityState !== 'visible') return;
-      const before = useEditorStore.getState();
-      if (!before.configRevision || before.isSaving || before.isDirty || before.saveConflict) {
-        lastForeign = null;
+  usePolledFetch(async (isMounted, reason) => {
+    // Coming back online polls at once, perhaps a moment after another poll:
+    // two that close together are not the two separate sightings the rule
+    // above asks for, so that one is left to the next tick.
+    if (reason === 'online') return;
+    const before = useEditorStore.getState();
+    if (!before.configRevision || before.isSaving || before.isDirty || before.saveConflict) {
+      lastForeign.current = null;
+      return;
+    }
+    try {
+      const res = await editorFetch('/api/config', { method: 'HEAD' });
+      // Read the empty body so the request completes: Chromium cancels a
+      // response nobody reads, and every poll then logs as an aborted
+      // request in the network panel.
+      await res.text().catch(() => {});
+      if (!isMounted() || !res.ok) return;
+      const seen = res.headers.get(CONFIG_REVISION_HEADER);
+      const after = useEditorStore.getState();
+      if (!seen || seen === after.configRevision || after.isSaving || after.isDirty) {
+        lastForeign.current = null;
+        setRemoteChanged(false);
         return;
       }
-      try {
-        const res = await editorFetch('/api/config', { method: 'HEAD' });
-        // Read the empty body so the request completes: Chromium cancels a
-        // response nobody reads, and every poll then logs as an aborted
-        // request in the network panel.
-        await res.text().catch(() => {});
-        if (!mounted || !res.ok) return;
-        const seen = res.headers.get(CONFIG_REVISION_HEADER);
-        const after = useEditorStore.getState();
-        if (!seen || seen === after.configRevision || after.isSaving || after.isDirty) {
-          lastForeign = null;
-          setRemoteChanged(false);
-          return;
-        }
-        if (lastForeign === seen) setRemoteChanged(true);
-        else lastForeign = seen;
-      } catch {
-        // Offline: the save path reports that; nothing to flag here.
-      }
+      if (lastForeign.current === seen) setRemoteChanged(true);
+      else lastForeign.current = seen;
+    } catch {
+      // Offline: the save path reports that; nothing to flag here.
     }
-
-    const id = setInterval(tick, POLL_MS);
-    return () => {
-      mounted = false;
-      clearInterval(id);
-    };
-  }, []);
+  }, [], { intervalMs: POLL_MS, pauseWhenHidden: true });
 
   // A reload (or a resolved conflict) moves the store onto the new revision.
   useEffect(() => {

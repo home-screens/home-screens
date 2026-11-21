@@ -85,6 +85,7 @@ export default function BonusChoreRow({
 }) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const hold = useHoldToUncheck();
   const longPress = useLongPress();
@@ -133,7 +134,7 @@ export default function BonusChoreRow({
   let line: string | null = null;
   let lineColor = 'var(--hs-text-faint)';
   if (hinting) {
-    line = t('choresTab.holdToUncheckHint');
+    line = tCore('chores.holdToUncheck');
     lineColor = checkedColor;
   } else if (othersId) {
     const doneDate = grab?.status === 'done' ? grab.date : undefined;

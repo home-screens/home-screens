@@ -47,6 +47,25 @@ describe('useEditorSharedState', () => {
     expect(result.current.entries).toEqual({});
   });
 
+  // Every editor publishes the notes board's counts, set up or not. They must
+  // not turn "no display has reported" into a confident "Hidden now".
+  it('stays neutral while the local bus holds only the notes counts', () => {
+    const { result } = renderHook(() => useEditorSharedState('main'));
+    act(() => {
+      sharedStateStore.publish('notes.count', '0');
+      sharedStateStore.publish('notes.important', '0');
+      sharedStateStore.publish('notes.pinned', '0');
+    });
+    expect(result.current.source).toBeNull();
+    expect(result.current.states).toBeNull();
+
+    act(() => {
+      sharedStateStore.publish('plugin:ha:light.tv', 'on');
+    });
+    expect(result.current.source).toBe('editor');
+    expect(result.current.states?.get('notes.count')?.value).toBe('0');
+  });
+
   it('falls back to the editor bus when the display has not reported', () => {
     const { result } = renderHook(() => useEditorSharedState('main'));
     act(() => {

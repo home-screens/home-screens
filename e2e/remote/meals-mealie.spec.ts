@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { localDate } from '../helpers/dates';
 import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 import {
   connectFakeMealie,
@@ -11,7 +12,6 @@ import {
   FAKE_COSTCO_ID,
   FAKE_GROCERIES_ID,
   FAKE_RECIPES,
-  fakeMealieDay,
   startFakeMealie,
   type FakeMealie,
 } from '../helpers/fake-mealie';
@@ -58,7 +58,7 @@ test('the week from Mealie shows its courses, and a typed dessert lands in Meali
   await page.getByRole('button', { name: /Type .Ice cream sundae. instead/ }).click();
 
   await expect
-    .poll(() => mealie!.entries.filter((e) => e.date === fakeMealieDay(0) && e.entryType === 'dessert').map((e) => e.title))
+    .poll(() => mealie!.entries.filter((e) => e.date === localDate(0) && e.entryType === 'dessert').map((e) => e.title))
     .toContain('Ice cream sundae');
 });
 
@@ -195,7 +195,14 @@ test('something put back on the list elsewhere comes out of the fold, and a pick
 
   // Somebody says "we still need bread"; the tab reads again when it comes back into view.
   await request.post('/api/meals/grocery', { data: { item: 'bread', direction: 'uncheck' } });
-  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  // The phone is put away and picked up again: hidden, then visible.
+  await page.evaluate(() => {
+    let state: DocumentVisibilityState = 'hidden';
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+    document.dispatchEvent(new Event('visibilitychange'));
+    state = 'visible';
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
   await expect(groceryItem(page, 'Bread')).toHaveAttribute('data-checked', 'false');
   await expect(page.getByTestId('mealie-grocery-cart')).toHaveCount(0);
 
@@ -231,7 +238,7 @@ test.describe('on a touch phone', () => {
       await page.waitForTimeout(170);
       await page.touchscreen.tap(spot.x, spot.y);
 
-      const today = () => mealie!.entries.filter((e) => e.date === fakeMealieDay(0)).map((e) => e.entryType).sort();
+      const today = () => mealie!.entries.filter((e) => e.date === localDate(0)).map((e) => e.entryType).sort();
       await expect.poll(today).toEqual(['breakfast', 'dinner', 'drink', 'lunch', 'side']);
       await page.waitForTimeout(1500);
       expect(today()).toEqual(['breakfast', 'dinner', 'drink', 'lunch', 'side']);
@@ -298,7 +305,7 @@ test('a family without Mealie adds a side from its own meals', async ({ page, re
       { id: 'tacos', name: 'Tacos', emoji: '🌮', category: 'main' },
       { id: 'rice', name: 'Mexican Rice', emoji: '🍚', category: 'side' },
     ],
-    plan: [{ date: fakeMealieDay(0), slot: 'dinner', mealId: 'tacos' }],
+    plan: [{ date: localDate(0), slot: 'dinner', mealId: 'tacos' }],
   });
   await page.goto('/remote');
   await openMeals(page);

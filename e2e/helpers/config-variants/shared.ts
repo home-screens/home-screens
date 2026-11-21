@@ -1,4 +1,5 @@
 import { expect, type Locator } from '@playwright/test';
+import { localDate } from '../dates';
 
 // --- Shared assertion helpers ----------------------------------------------
 
@@ -151,12 +152,6 @@ export function localIso(offsetDays: number, hour: number, minute = 0): string {
   const d = dayAt(offsetDays);
   d.setHours(hour, minute, 0, 0);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:00`;
-}
-
-/** Local `YYYY-MM-DD` for `today + offsetDays` (date-only ⇒ all-day bounds). */
-export function localDate(offsetDays: number): string {
-  const d = dayAt(offsetDays);
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
 /**

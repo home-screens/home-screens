@@ -5,6 +5,7 @@ import path from 'path';
 import { getConfig, postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, choreChartModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { seedImage as seedLibraryImage, uniqueFolder as uniqueLibraryFolder } from '../helpers/library';
 import { mp4WithVideo } from '../helpers/video-samples';
 import type { ModuleInstance, ScreenConfiguration } from '@/types/config';
 
@@ -23,8 +24,8 @@ import type { ModuleInstance, ScreenConfiguration } from '@/types/config';
  * files are gitignored (`public/backgrounds/*`), so `git status` stays clean.
  */
 
-// 1x1 transparent PNG: a real, valid image the upload validator and the
-// serve route both accept.
+// A tiny picture the upload validator and the serve route both accept.
+// This spec's own bytes, not the shared 1x1 PNG.
 const TINY_PNG_BYTES = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
@@ -42,17 +43,11 @@ function photoConfig(directory = '', extraModules: ModuleInstance[] = [], screen
 }
 
 /** Slug that survives the folder-name sanitizer (only [A-Za-z0-9._-] kept). */
-function uniqueFolder(): string {
-  return `e2e-photos-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
+const uniqueFolder = () => uniqueLibraryFolder('e2e-photos-');
 
 /** Seed an image through the real upload API, the way the phone adds one. */
-async function seedImage(request: APIRequestContext, directory: string, name: string): Promise<void> {
-  const res = await request.post('/api/backgrounds', {
-    multipart: { directory, file: { name, mimeType: 'image/png', buffer: TINY_PNG_BYTES } },
-  });
-  expect(res.ok()).toBe(true);
-}
+const seedImage = (request: APIRequestContext, directory: string, name: string) =>
+  seedLibraryImage(request, directory, name, TINY_PNG_BYTES);
 
 // Folders (and loose files) created during a test; removed from the shared real directory after.
 const created: string[] = [];

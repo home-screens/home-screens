@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
-import type { APIRequestContext } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { postDisplayStatus } from '../helpers/display';
 
 /**
  * Coverage for the /remote DisplayHero panel (DisplayHero.tsx): it renders the
@@ -13,26 +13,6 @@ import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
  * `__default__` slot would poison other specs sharing the worker, so — like the
  * wake test in remote.spec.ts — these never post non-active states to it.
  */
-
-/** Post a status heartbeat with an explicit displayState into a named display's slot. */
-async function postStatus(
-  request: APIRequestContext,
-  display: string,
-  overrides: { displayState?: 'active' | 'dimmed' | 'asleep'; screenCount?: number; currentIndex?: number; name?: string } = {},
-): Promise<void> {
-  const { displayState = 'active', screenCount = 2, currentIndex = 0, name = `Screen ${currentIndex}` } = overrides;
-  const res = await request.post(`/api/display/status?display=${display}`, {
-    data: {
-      displayId: display,
-      currentScreen: { index: currentIndex, id: `screen-${currentIndex}`, name },
-      screenCount,
-      activeProfile: null,
-      displayState,
-      timestamp: Date.now(),
-    },
-  });
-  expect(res.ok()).toBe(true);
-}
 
 /** A single-entry display registry; the remote polls displays[0] under the default 'all' target. */
 function oneDisplay(id: string, name: string) {
@@ -48,7 +28,7 @@ function oneDisplay(id: string, name: string) {
 
 test('the hero shows the live screen index and Active state from a heartbeat', async ({ page, request }) => {
   await putConfig(request, oneDisplay('heroactive', 'Hero Active'));
-  await postStatus(request, 'heroactive', { displayState: 'active', screenCount: 2, currentIndex: 0 });
+  await postDisplayStatus(request, 'heroactive', { displayState: 'active', screenCount: 2, currentIndex: 0 });
   await page.goto('/remote');
 
   // currentIndex 0 of screenCount 2 renders as "Screen 1 of 2" (one-based).
@@ -59,7 +39,7 @@ test('the hero shows the live screen index and Active state from a heartbeat', a
 
 test('a screen that shows only when opened is named with no place in the rotation', async ({ page, request }) => {
   await putConfig(request, oneDisplay('heroopened', 'Hero Opened'));
-  await postStatus(request, 'heroopened', { screenCount: 2, currentIndex: -1, name: 'Recipe Book' });
+  await postDisplayStatus(request, 'heroopened', { screenCount: 2, currentIndex: -1, name: 'Recipe Book' });
   await page.goto('/remote');
 
   await expect(page.getByText('Recipe Book', { exact: true })).toBeVisible({ timeout: 10000 });
@@ -68,7 +48,7 @@ test('a screen that shows only when opened is named with no place in the rotatio
 
 test('the hero renders the Asleep state for an asleep heartbeat', async ({ page, request }) => {
   await putConfig(request, oneDisplay('heroasleep', 'Hero Asleep'));
-  await postStatus(request, 'heroasleep', { displayState: 'asleep' });
+  await postDisplayStatus(request, 'heroasleep', { displayState: 'asleep' });
   await page.goto('/remote');
 
   await expect(page.getByText('Asleep', { exact: true })).toBeVisible({ timeout: 10000 });
@@ -76,7 +56,7 @@ test('the hero renders the Asleep state for an asleep heartbeat', async ({ page,
 
 test('the hero renders the Dimmed state for a dimmed heartbeat', async ({ page, request }) => {
   await putConfig(request, oneDisplay('herodimmed', 'Hero Dimmed'));
-  await postStatus(request, 'herodimmed', { displayState: 'dimmed' });
+  await postDisplayStatus(request, 'herodimmed', { displayState: 'dimmed' });
   await page.goto('/remote');
 
   await expect(page.getByText('Dimmed', { exact: true })).toBeVisible({ timeout: 10000 });

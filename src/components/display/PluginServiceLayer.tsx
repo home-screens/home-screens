@@ -5,6 +5,7 @@ import type { ComponentType } from 'react';
 import type { DisplayRule, Screen } from '@/types/config';
 import type { StateProviderProps } from '@/types/plugins';
 import { usePluginStore } from '@/stores/plugin-store';
+import OverlayBoundary from './OverlayBoundary';
 import { collectDemandedKeys, demandByPlugin } from '@/lib/state-demand';
 
 interface PluginServiceLayerProps {
@@ -84,12 +85,15 @@ function PluginServiceLayer({ screens, rules }: PluginServiceLayerProps) {
       }}
     >
       {providers.map(({ id, Provider }) => (
-        <ProviderMount
-          key={id}
-          Provider={Provider}
-          demandString={demandStrings.get(id) ?? ''}
-          settings={pluginSettings.get(id) ?? EMPTY_SETTINGS}
-        />
+        // Plugin code with nothing between it and the wall's own error page
+        // otherwise: one provider that throws must not take the display down.
+        <OverlayBoundary key={id} name={id} what="plugin state provider">
+          <ProviderMount
+            Provider={Provider}
+            demandString={demandStrings.get(id) ?? ''}
+            settings={pluginSettings.get(id) ?? EMPTY_SETTINGS}
+          />
+        </OverlayBoundary>
       ))}
     </div>
   );

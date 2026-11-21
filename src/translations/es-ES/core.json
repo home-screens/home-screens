@@ -1,8 +1,9 @@
 {
   "refusals": {
     "hubUnreachable": "No se pudo conectar con Home Screens, así que eso no se guardó. Comprueba la conexión e inténtalo de nuevo.",
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "failed": "Algo salió mal. Inténtalo de nuevo.",
     "lists": {
-      "failed": "Algo salió mal. Inténtalo de nuevo.",
       "nameRequired": "Ponle un nombre a la lista",
       "nameTooLong": "El nombre de una lista puede tener hasta {max} caracteres",
       "textRequired": "Escribe algo primero",
@@ -17,7 +18,6 @@
       "badRequest": "No se pudo entender ese cambio. Recarga la página e inténtalo de nuevo."
     },
     "notes": {
-      "failed": "Eso no se guardó. Inténtalo de nuevo.",
       "textRequired": "Escribe algo primero.",
       "textTooLong": "Una nota puede tener {max} caracteres como máximo.",
       "badAuthor": "El autor tiene que ser alguien de la familia.",
@@ -324,7 +324,6 @@
       "noMembers": "Nadie todavía",
       "editName": "Editar {name}",
       "remove": "Quitar grupo",
-      "duplicateName": "Ya tienes un grupo que se llama {name}.",
       "removeTitle": "¿Quitar {name}?",
       "removeDescription": "Las pantallas que solo muestran {name} vuelven a mostrar a todos. No se quita a nadie de la familia.",
       "removeChoreCount": {
@@ -509,5 +508,136 @@
       "other": "Para {dishes} solo se escribieron los nombres, así que no hay recetas que valorar."
     },
     "unavailable": "La receta guardada para la cena no está disponible."
+  },
+  "chores": {
+    "changedElsewhere": "Otra persona ha cambiado las tareas. Tu último cambio no se guardó. Inténtalo de nuevo.",
+    "coverage": "Cobertura: {covered} de 7 días",
+    "holdToUncheck": "Mantén pulsado para desmarcar"
+  },
+  "rewards": {
+    "redeem": {
+      "removed": "Esa persona ya no está en la familia.",
+      "notOffered": "Esa recompensa ya no está disponible."
+    }
+  },
+  "imports": {
+    "icloudTitle": "Añadir desde un enlace de iCloud",
+    "alreadyHere": {
+      "one": "1 ya estaba aquí.",
+      "other": "{count} ya estaban aquí."
+    },
+    "nothingFound": "No hay nada que añadir de ese álbum.",
+    "googleWaiting": "Esperando a que elijas…"
+  },
+  "mealie": {
+    "grocery": {
+      "addButton": "Añadir",
+      "undo": "Deshacer",
+      "addPlaceholder": "Añadir a {list}",
+      "added": "{item} está en {list}",
+      "addedUnder": "{item} está en {list}, en {label}",
+      "already": "{item} ya está en {list}",
+      "putBack": "{item} vuelve a estar en {list}",
+      "picked": "Ahora todos ven {list}.",
+      "moved": "Se muestra {list}, elegida en otro dispositivo.",
+      "gone": "{from} ya no está en Mealie. Se muestra {list}.",
+      "forRecipes": "para {recipes}",
+      "noLabel": "Sin etiqueta",
+      "toGet": {
+        "one": "1 cosa por comprar",
+        "other": "{count} cosas por comprar"
+      },
+      "allGot": "Todo tachado",
+      "openListAria": "Abrir {list} en Mealie (página nueva)",
+      "inCart": "Tachados ({count})",
+      "staleUnreachable": "Mealie no responde. Última copia: {time}.",
+      "staleToken": "Mealie ya no deja entrar a Home Screens. Última copia: {time}.",
+      "staleSetup": "Home Screens no puede usar este Mealie. Última copia: {time}.",
+      "staleNotConnected": "Mealie no está conectado. Última copia: {time}.",
+      "staleConnection": "No se puede conectar con Home Screens. Última copia: {time}.",
+      "loading": "Cargando tu lista de Mealie…",
+      "noListsTitle": "Mealie aún no tiene listas de la compra",
+      "noListsDescription": "Crea una lista de la compra en Mealie y aparecerá aquí.",
+      "emptyTitle": "Todavía no hay nada en {list}",
+      "emptyDescription": "Añade algo arriba o envía aquí los ingredientes de una receta desde Mealie.",
+      "unreachableDescription": "Tu lista está a salvo en Mealie. Comprueba que Mealie esté funcionando y vuelve a intentarlo.",
+      "notSaved": {
+        "one": "{items} no se ha guardado. Inténtalo de nuevo.",
+        "other": "{items} no se han guardado. Inténtalo de nuevo."
+      },
+      "notSavedUnreachable": {
+        "one": "{items} no se ha guardado. Mealie no responde. Inténtalo de nuevo en un momento.",
+        "other": "{items} no se han guardado. Mealie no responde. Inténtalo de nuevo en un momento."
+      },
+      "notSavedToken": {
+        "one": "{items} no se ha guardado. Mealie ya no deja entrar a Home Screens.",
+        "other": "{items} no se han guardado. Mealie ya no deja entrar a Home Screens."
+      },
+      "notSavedSetup": {
+        "one": "{items} no se ha guardado. Home Screens no puede usar este Mealie.",
+        "other": "{items} no se han guardado. Home Screens no puede usar este Mealie."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} no se ha guardado. Mealie no está conectado.",
+        "other": "{items} no se han guardado. Mealie no está conectado."
+      },
+      "notSavedConnection": {
+        "one": "{items} no se ha guardado. No se puede conectar con Home Screens. Comprueba la conexión y vuelve a intentarlo.",
+        "other": "{items} no se han guardado. No se puede conectar con Home Screens. Comprueba la conexión y vuelve a intentarlo."
+      },
+      "moreItems": {
+        "one": "1 más",
+        "other": "{count} más"
+      },
+      "listGone": "Esa lista ya no está en Mealie."
+    },
+    "suggest": {
+      "allPlanned": "Todas las cenas de esta semana ya están planeadas.",
+      "allPlannedDates": "Todas las cenas de la semana del {range} ya están planeadas.",
+      "noDinners": "Sugerir rellena las cenas vacías, y la cena está desactivada en los ajustes de comidas.",
+      "done": {
+        "one": "Cena planeada para {days}.",
+        "other": "Cenas planeadas para {days}."
+      },
+      "doneEveryNight": "Cena planeada para cada noche de esta semana.",
+      "doneEveryNightDates": "Cena planeada para cada noche de la semana del {range}.",
+      "nothingFits": "Mealie no tenía recetas que sugerir para esas comidas. Revisa las reglas del plan de comidas en Mealie."
+    },
+    "search": {
+      "placeholder": "Buscar recetas en Mealie",
+      "favorites": "Favoritas",
+      "recent": "Hechas hace poco",
+      "looking": "Buscando en Mealie…",
+      "typeInsteadNote": "Sin receta. Mealie lo guarda como nota.",
+      "noneDescription": "Revisa cómo está escrito, o escríbelo tal cual. Irá al plan como una nota, sin receta.",
+      "categoryCount": {
+        "one": "1 receta en {category}",
+        "other": "{count} recetas en {category}"
+      }
+    },
+    "pill": {
+      "label": "De Mealie"
+    },
+    "openMealie": "Abrir Mealie",
+    "unreachable": {
+      "title": "Ahora mismo no se puede conectar con Mealie",
+      "description": "Tus comidas están en Mealie y Home Screens no puede llegar a ellas. Comprueba que Mealie está funcionando y vuelve a intentarlo."
+    },
+    "notConnected": {
+      "title": "Mealie no está conectado"
+    },
+    "tokenRefused": {
+      "title": "Mealie ya no deja entrar a Home Screens"
+    },
+    "setup": {
+      "title": "Home Screens no puede usar este Mealie"
+    },
+    "paused": {
+      "description": "La planificación está en pausa hasta que vuelva Mealie.",
+      "descriptionWithTime": "La planificación está en pausa hasta que vuelva Mealie. Última copia: {time}."
+    },
+    "connection": {
+      "title": "Ahora mismo no se puede conectar con Home Screens"
+    }
   }
 }

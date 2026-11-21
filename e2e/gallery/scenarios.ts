@@ -1,4 +1,6 @@
 import type { ModuleInstance, ModuleType } from '@/types/config';
+import { E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID } from '../helpers/api';
+import { localDate } from '../helpers/dates';
 import { matrixSettings } from '../helpers/module-fixtures';
 
 /**
@@ -123,10 +125,7 @@ export interface GalleryViewVariant {
 }
 
 /** Today, in the local zone, as YYYY-MM-DD — matches `galleryInstant()`'s date. */
-const TODAY_ISO = (() => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-})();
+const TODAY_ISO = localDate();
 
 export const VIEW_VARIANTS: GalleryViewVariant[] = [
   // User-unit SVG text, biased by Style > Font size.
@@ -167,6 +166,31 @@ export const VIEW_VARIANTS: GalleryViewVariant[] = [
   { type: 'todoist', name: 'board', config: { viewMode: 'board' } },
   { type: 'meal-planner', name: 'today', config: { view: 'today' } },
   { type: 'news', name: 'list', config: { view: 'list' } },
+  // The four Display Control layouts that share one frame, one Sleep button
+  // and one grid. `panel` is the registry default and is in the matrix.
+  { type: 'display-control', name: 'pad', config: { layout: 'pad' } },
+  { type: 'display-control', name: 'bar', config: { layout: 'bar' } },
+  { type: 'display-control', name: 'nav', config: { layout: 'nav' } },
+  { type: 'display-control', name: 'panel-icons', config: { layout: 'panel', compact: true } },
+  // Views that clamp their text through the one shared line clamp.
+  { type: 'news', name: 'cards', config: { view: 'cards' } },
+  { type: 'news', name: 'headline', config: { view: 'headline' } },
+  { type: 'fullscreen-news', name: 'front-page', config: { view: 'front-page' } },
+  { type: 'fullscreen-news', name: 'story', config: { view: 'story' } },
+  { type: 'timetable', name: 'day', config: { view: 'day', memberIds: E2E_TIMETABLE_SEED_MEMBER_IDS } },
+  { type: 'timetable', name: 'week', config: { view: 'week', memberIds: E2E_TIMETABLE_SEED_MEMBER_IDS } },
+  // Views that turn through their items on the one shared rotation.
+  { type: 'sports', name: 'scoreboard', config: { view: 'scoreboard' } },
+  { type: 'sports', name: 'team', config: { view: 'team', favoriteTeams: ['nfl:MIN'] } },
+  // Lists a finger scrolls, with the shared "Back to today" button and bar.
+  { type: 'calendar', name: 'daily', config: { viewMode: 'daily' } },
+  { type: 'fullscreen-calendar', name: 'agenda', config: { view: 'agenda' } },
+  { type: 'fullscreen-calendar', name: 'up-next', config: { view: 'up-next' } },
+  { type: 'meal-planner', name: 'list', config: { view: 'list' } },
+  { type: 'meal-planner', name: 'grocery', config: { view: 'grocery' } },
+  { type: 'fullscreen-meal-planner', name: 'today', config: { view: 'today' } },
+  { type: 'fullscreen-meal-planner', name: 'grocery', config: { view: 'grocery' } },
+  { type: 'todo', name: 'list', config: { view: 'list', listId: E2E_TODO_LIST_ID } },
   {
     type: 'todoist',
     name: 'timed-due',

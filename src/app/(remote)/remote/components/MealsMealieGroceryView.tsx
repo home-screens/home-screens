@@ -19,7 +19,7 @@ import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList'
 import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
 import { CenterMessage } from './MealieRecipeParts';
 import { useCopyTime } from '@/components/meals/useCopyTime';
-import { mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
+import { mealieProblemDescription, mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
 import { openOutside } from './meals-shared';
 import { shareOrCopyText } from './share-text';
 import { REMOTE_ACCENT } from './remote-styles';
@@ -53,6 +53,7 @@ export default function MealsMealieGroceryView({
   onErrorResolved?: (message: string) => void;
 }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const locale = useLocale();
   const mealieLink = useMealieLink();
   // The last "not saved" this tab raised, so a later save can take it down
@@ -66,15 +67,20 @@ export default function MealsMealieGroceryView({
     const words = mealieShoppingErrorWords(failure);
     if (!words) return;
     if (words.key === 'saveFailed') {
-      raise(t(mealieSaveFailedWords(words.reason) ?? 'mealsTab.saveFailed'));
+      const mealieWords = mealieSaveFailedWords(words.reason);
+      raise(mealieWords ? t(mealieWords) : tCore('refusals.saveFailed'));
+      return;
+    }
+    if (words.key === 'noConnection') {
+      raise(tCore('refusals.hubUnreachable'));
       return;
     }
     const items = failure.items ?? [];
-    raise(t(`mealie.grocery.${words.key}`, {
-      items: shortNameList(items, locale, (count) => t('mealie.grocery.moreItems', { count })),
+    raise(tCore(`mealie.grocery.${words.key}`, {
+      items: shortNameList(items, locale, (count) => tCore('mealie.grocery.moreItems', { count })),
       count: items.length,
     }));
-  }, [raise, t, locale]);
+  }, [raise, t, tCore, locale]);
   const handleSaved = useCallback(() => {
     if (!raised.current) return;
     onErrorResolved?.(raised.current);
@@ -91,8 +97,8 @@ export default function MealsMealieGroceryView({
   const openMealie = () => {
     if (shopping.mealieUrl) openOutside(mealieLink(shopping.mealieUrl));
   };
-  const labelFor = (label: string | null) => label ?? t('mealie.grocery.noLabel');
-  const forRecipes = (recipes: string[]) => t('mealie.grocery.forRecipes', {
+  const labelFor = (label: string | null) => label ?? tCore('mealie.grocery.noLabel');
+  const forRecipes = (recipes: string[]) => tCore('mealie.grocery.forRecipes', {
     recipes: formatList(recipes, locale),
   });
 
@@ -121,7 +127,7 @@ export default function MealsMealieGroceryView({
           : { border: '1px solid var(--hs-border)', background: 'var(--hs-bg-panel)', color: 'var(--hs-text-body)' }),
       }}
     >
-      {t('mealie.openMealie')}
+      {tCore('mealie.openMealie')}
       <ExternalLink size={15} strokeWidth={2} aria-hidden />
     </button>
   ) : null;
@@ -129,7 +135,7 @@ export default function MealsMealieGroceryView({
   if (shopping.state === 'loading') {
     return (
       <div data-testid="mealie-grocery" style={{ padding: '48px 0', textAlign: 'center', fontSize: 14, color: 'var(--hs-text-faint)' }}>
-        {t('mealie.grocery.loading')}
+        {tCore('mealie.grocery.loading')}
       </div>
     );
   }
@@ -141,10 +147,10 @@ export default function MealsMealieGroceryView({
       <div data-testid="mealie-grocery" data-state="failed" style={{ paddingBottom: 80 }}>
         <CenterMessage
           icon={<ShoppingCart size={24} strokeWidth={2} />}
-          title={connection ? t('mealie.grocery.connectionTitle') : t(`${words}.title`)}
+          title={connection ? tCore('mealie.connection.title') : tCore(`${words}.title`)}
           description={connection
             ? t('mealie.grocery.connectionDescription')
-            : t(shopping.problem === 'unreachable' ? 'mealie.grocery.unreachableDescription' : `${words}.description`)}
+            : shopping.problem === 'unreachable' ? tCore('mealie.grocery.unreachableDescription') : mealieProblemDescription(shopping.problem === 'connection' ? null : shopping.problem, t, tCore)}
           padding="56px 16px 48px"
         >
           {/* Trying again is what anyone can do; Open Mealie asks a grown-up to sign in. */}
@@ -162,8 +168,8 @@ export default function MealsMealieGroceryView({
       <div data-testid="mealie-grocery" data-state="no-lists" style={{ paddingBottom: 80 }}>
         <CenterMessage
           icon={<ShoppingCart size={24} strokeWidth={2} />}
-          title={t('mealie.grocery.noListsTitle')}
-          description={t('mealie.grocery.noListsDescription')}
+          title={tCore('mealie.grocery.noListsTitle')}
+          description={tCore('mealie.grocery.noListsDescription')}
           padding="56px 16px 48px"
         >
           {openButton(true)}
@@ -177,7 +183,7 @@ export default function MealsMealieGroceryView({
   const headings = groups.length > 1;
   const added = shopping.justAdded;
   const notice = shopping.notice;
-  const lineWords = ({ key, vars }: { key: string; vars: Record<string, string> }) => t(`mealie.grocery.${key}`, vars);
+  const lineWords = ({ key, vars }: { key: string; vars: Record<string, string> }) => tCore(`mealie.grocery.${key}`, vars);
 
   const itemRow = (item: ShoppingItem) => {
     const detail = [item.note, item.recipes.length ? forRecipes(item.recipes) : ''].filter(Boolean).join(' · ');
@@ -279,7 +285,7 @@ export default function MealsMealieGroceryView({
           <>
             <span style={{ minWidth: 0 }}>{lineWords(mealieShoppingNoticeWords(notice))}</span>
             {notice.kind === 'picked' && (
-              <button type="button" onClick={notice.undo} style={lineButton}>{t('mealie.grocery.undo')}</button>
+              <button type="button" onClick={notice.undo} style={lineButton}>{tCore('mealie.grocery.undo')}</button>
             )}
           </>
         )}
@@ -291,8 +297,8 @@ export default function MealsMealieGroceryView({
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={t('mealie.grocery.addPlaceholder', { list: list.name })}
-            aria-label={t('mealie.grocery.addPlaceholder', { list: list.name })}
+            placeholder={tCore('mealie.grocery.addPlaceholder', { list: list.name })}
+            aria-label={tCore('mealie.grocery.addPlaceholder', { list: list.name })}
             maxLength={200}
             enterKeyHint="done"
             disabled={busy}
@@ -306,7 +312,7 @@ export default function MealsMealieGroceryView({
             type="submit"
             className="press-btn"
             disabled={!canAdd}
-            aria-label={t('mealie.grocery.addButton')}
+            aria-label={tCore('mealie.grocery.addButton')}
             style={{
               width: 44, height: 44, flex: 'none', borderRadius: 10, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: draft.trim() ? REMOTE_ACCENT : 'var(--hs-bg-card)', color: draft.trim() ? '#000' : 'var(--hs-text-faint)',
@@ -322,7 +328,7 @@ export default function MealsMealieGroceryView({
               <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {lineWords(mealieShoppingAddedWords(added))}
               </span>
-              {added.undo && <button type="button" onClick={added.undo} style={lineButton}>{t('mealie.grocery.undo')}</button>}
+              {added.undo && <button type="button" onClick={added.undo} style={lineButton}>{tCore('mealie.grocery.undo')}</button>}
             </>
           )}
         </div>
@@ -330,8 +336,8 @@ export default function MealsMealieGroceryView({
         {total === 0 ? (
           <CenterMessage
             icon={<ShoppingCart size={24} strokeWidth={2} />}
-            title={t('mealie.grocery.emptyTitle', { list: list.name })}
-            description={t('mealie.grocery.emptyDescription')}
+            title={tCore('mealie.grocery.emptyTitle', { list: list.name })}
+            description={tCore('mealie.grocery.emptyDescription')}
             padding="40px 16px"
           />
         ) : (
@@ -340,7 +346,7 @@ export default function MealsMealieGroceryView({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 {/* What is left, like the list chips and the wall; the bar fills as things are checked off. */}
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-body)' }} data-testid="mealie-grocery-count">
-                  {total - got > 0 ? t('mealie.grocery.toGet', { count: total - got }) : t('mealie.grocery.allGot')}
+                  {total - got > 0 ? tCore('mealie.grocery.toGet', { count: total - got }) : tCore('mealie.grocery.allGot')}
                 </span>
                 <button
                   type="button"
@@ -363,13 +369,13 @@ export default function MealsMealieGroceryView({
                   <button
                     type="button"
                     onClick={openMealie}
-                    aria-label={t('mealie.grocery.openListAria', { list: list.name })}
+                    aria-label={tCore('mealie.grocery.openListAria', { list: list.name })}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, padding: 0, border: 'none', background: 'none',
                       color: 'var(--hs-text-muted)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    {t('mealie.openMealie')}
+                    {tCore('mealie.openMealie')}
                     <ExternalLink size={13} strokeWidth={2} aria-hidden />
                   </button>
                 )}
@@ -377,8 +383,8 @@ export default function MealsMealieGroceryView({
               {shopping.stale && (
                 <p role="status" data-testid="mealie-grocery-stale" style={{ margin: '6px 0 0', fontSize: 12, color: WARN }}>
                   {copyTime
-                    ? t(`mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: copyTime })
-                    : t(shopping.problem === 'connection' ? 'mealie.grocery.connectionTitle' : `${mealieProblemWords(shopping.problem)}.title`)}
+                    ? tCore(`mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: copyTime })
+                    : tCore(`${mealieProblemWords(shopping.problem)}.title`)}
                 </p>
               )}
             </div>
@@ -392,7 +398,7 @@ export default function MealsMealieGroceryView({
                     </span>
                     {/* What is left in this group, like the count above. */}
                     <span
-                      aria-label={t('mealie.grocery.toGet', { count: group.left })}
+                      aria-label={tCore('mealie.grocery.toGet', { count: group.left })}
                       style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'var(--hs-bg-panel)', color: 'var(--hs-text-faint)', fontWeight: 500 }}
                     >
                       {group.left}
@@ -416,7 +422,7 @@ export default function MealsMealieGroceryView({
                     color: 'var(--hs-text-muted)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  {t('mealie.grocery.inCart', { count: folded.length })}
+                  {tCore('mealie.grocery.inCart', { count: folded.length })}
                   <ChevronRight
                     size={16}
                     strokeWidth={2.2}

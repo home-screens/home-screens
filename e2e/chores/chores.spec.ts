@@ -1,26 +1,9 @@
-import { seedHouseholdChores, seedRewards } from '../helpers/api';
+import { completionExists, seedHouseholdChores, seedRewards } from '../helpers/api';
 import { test, expect } from '../fixtures';
-import type { APIRequestContext } from '@playwright/test';
+import { localDate } from '../helpers/dates';
 import { putConfig } from '../helpers/api';
 import { confirmSheet } from '../helpers/remote';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
-
-/** Local YYYY-MM-DD for today, matching how the chore store keys completions. */
-function todayISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-async function completionExists(
-  request: APIRequestContext,
-  choreId: string,
-  memberId: string,
-  date: string,
-): Promise<boolean> {
-  const res = await request.get('/api/chores');
-  const completions = (await res.json()).completions as Array<{ choreId: string; memberId: string; date: string }>;
-  return completions.some((c) => c.choreId === choreId && c.memberId === memberId && c.date === date);
-}
 
 const CHORE_DATA = {
   members: [{ id: 'm1', name: 'Avery', emoji: '🦊', color: '#f59e0b' }],
@@ -261,7 +244,7 @@ test('kid unchecks a completed chore and the completion is removed', async ({ pa
         assigneeIds: ['m-uc'], rotation: 'fixed',
       }],
     });
-  const today = todayISO();
+  const today = localDate();
   // Normalize to "not completed" (completions persist per-worker; a CI retry
   // could start already checked).
   if (await completionExists(request, 'c-uc', 'm-uc', today)) {
@@ -384,7 +367,7 @@ test('finishing the last chore celebrates and the ticket balance shows on Today'
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-cel'], rotation: 'fixed',
       }],
     });
-  const today = todayISO();
+  const today = localDate();
   if (await completionExists(request, 'c-cel', 'm-cel', today)) {
     await request.post('/api/chores', { data: { choreId: 'c-cel', memberId: 'm-cel', date: today } });
   }
@@ -418,7 +401,7 @@ test('the week line shows the stars, and a second finished day in a row is a str
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-run'], rotation: 'fixed',
       }],
     });
-  const today = todayISO();
+  const today = localDate();
   const [y, m, d] = today.split('-').map(Number);
   const before = new Date(y, m - 1, d - 1);
   const yesterday = `${before.getFullYear()}-${String(before.getMonth() + 1).padStart(2, '0')}-${String(before.getDate()).padStart(2, '0')}`;
@@ -459,7 +442,7 @@ test('the celebration stays off when the full-screen chart says Off', async ({ p
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-off'], rotation: 'fixed',
       }],
     });
-  const today = todayISO();
+  const today = localDate();
   if (await completionExists(request, 'c-off', 'm-off', today)) {
     await request.post('/api/chores', { data: { choreId: 'c-off', memberId: 'm-off', date: today } });
   }
@@ -571,8 +554,8 @@ test('a chore given to a group shows for everyone in it, and follows the group w
   // Each person ticks their own copy.
   await page.getByRole('button', { name: 'Bram', exact: true }).click();
   await page.getByText('Tidy the playroom').click();
-  await expect.poll(() => completionExists(request, 'gc1', 'k2', todayISO())).toBe(true);
-  expect(await completionExists(request, 'gc1', 'k1', todayISO())).toBe(false);
+  await expect.poll(() => completionExists(request, 'gc1', 'k2', localDate())).toBe(true);
+  expect(await completionExists(request, 'gc1', 'k1', localDate())).toBe(false);
 
   // Cleo joins Kids; nothing about the chore is edited.
   const family = await (await request.get('/api/family')).json();

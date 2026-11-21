@@ -71,18 +71,48 @@ describe('useRotatingIndex', () => {
     expect(result.current).toBe(1);
   });
 
-  it('resets to 0 and re-arms when intervalMs changes', () => {
+  it('keeps its place and re-arms when intervalMs changes', () => {
+    // A slider dragged in the editor must not throw the view back to its
+    // first item on every step.
     const { result, rerender } = renderHook(
       ({ interval }: { interval: number }) => useRotatingIndex(3, interval),
       { initialProps: { interval: 1000 } },
     );
-    act(() => { vi.advanceTimersByTime(2000); });
-    expect(result.current).toBe(2);
-
-    rerender({ interval: 100 });
-    expect(result.current).toBe(0);
-    act(() => { vi.advanceTimersByTime(100); });
+    act(() => { vi.advanceTimersByTime(1000); });
     expect(result.current).toBe(1);
+
+    rerender({ interval: 5000 });
+    expect(result.current).toBe(1);
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(result.current).toBe(1);
+    act(() => { vi.advanceTimersByTime(4000); });
+    expect(result.current).toBe(2);
+  });
+
+  it('never turns faster than twice a second, whatever the config holds', () => {
+    // A hand-edited 0 used to hand setInterval a zero delay and spin the module.
+    const { result } = renderHook(() => useRotatingIndex(3, 0));
+    act(() => { vi.advanceTimersByTime(499); });
+    expect(result.current).toBe(0);
+    act(() => { vi.advanceTimersByTime(1); });
+    expect(result.current).toBe(1);
+  });
+
+  it('is in range on the very render the list shrinks', () => {
+    // Callers read items[index] in that render, before any effect has run.
+    const seen: number[] = [];
+    const { rerender } = renderHook(
+      ({ count }: { count: number }) => {
+        const index = useRotatingIndex(count, 1000);
+        seen.push(index);
+        return index;
+      },
+      { initialProps: { count: 4 } },
+    );
+    act(() => { vi.advanceTimersByTime(3000); });
+    seen.length = 0;
+    rerender({ count: 2 });
+    expect(seen.every((index) => index < 2)).toBe(true);
   });
 
   it('clears the interval on unmount (no orphaned timer)', () => {
@@ -94,8 +124,8 @@ describe('useRotatingIndex', () => {
   });
 
   it('handles very large itemCount without arithmetic issues', () => {
-    const { result } = renderHook(() => useRotatingIndex(1000, 100));
-    act(() => { vi.advanceTimersByTime(250); });
+    const { result } = renderHook(() => useRotatingIndex(1000, 1000));
+    act(() => { vi.advanceTimersByTime(2500); });
     expect(result.current).toBe(2);
   });
 });

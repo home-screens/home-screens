@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import { useWriteSession } from '@/hooks/useWriteSession';
@@ -71,20 +71,19 @@ async function loadLists(): Promise<TodoList[] | null> {
  * the editor's list window).
  */
 export function useTodoLists({ selectedListId, onSelectList }: Options) {
-  const t = useTranslate('remote');
   const tCore = useTranslate('core');
 
   const { data: lists, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
     initial: [],
     load: loadLists,
     send: async (request) => {
-      const { lists, created } = await sendTodoWrite(editorFetch, request, t('lists.errors.generic'));
+      const { lists, created } = await sendTodoWrite(editorFetch, request, tCore('refusals.failed'));
       return { data: lists, created };
     },
     pollMs: LISTS_POLL_MS,
     tolerates: tolerated,
     onRefused: (e) => showToast(
-      e instanceof HubUnreachableError ? t('hubRequest.saveFailed') : refusalText(e, tCore, 'refusals.lists.failed'),
+      refusalText(e, tCore, 'refusals.failed', 'refusals.hubUnreachable'),
       'error',
     ),
   });

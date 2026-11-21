@@ -1,13 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has } from './shared';
-
-/** Local YYYY-MM-DD (matches how the meal planner keys plan entries). */
-const mealISO = (offsetDays = 0): string => {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+import { localDate } from '../dates';
 
 /**
  * A tagged meal with difficulty, planned into every default slot today and
@@ -18,7 +12,7 @@ const mealISO = (offsetDays = 0): string => {
  */
 const TAGGED_MEALS = {
   savedMeals: [{ id: 'meal-t', name: 'Tagged Feast', emoji: '🍲', prepTime: 15, tags: ['E2E-TAG'], difficulty: 'easy' }],
-  plan: [0, 1].flatMap((day) => (['breakfast', 'lunch', 'dinner'] as const).map((slot) => ({ slot, mealId: 'meal-t', date: mealISO(day) }))),
+  plan: [0, 1].flatMap((day) => (['breakfast', 'lunch', 'dinner'] as const).map((slot) => ({ slot, mealId: 'meal-t', date: localDate(day) }))),
 };
 
 /**

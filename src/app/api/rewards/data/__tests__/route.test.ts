@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NextRequest } from 'next/server';
+import { jsonRequest } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({ requireSession: vi.fn(), requireDisplayAuth: vi.fn(), isAuthEnabled: vi.fn().mockResolvedValue(false) }));
 vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
@@ -24,9 +24,7 @@ import { contentRevision } from '@/lib/content-revision';
 
 const reward = { id: 'r1', name: 'Movie', emoji: '', description: '', cost: 2, memberIds: ['m1'], enabled: true };
 const data = { rewards: [reward], balances: { m1: 5 }, redemptions: [] };
-const request = (method: string, body: unknown) => new NextRequest('http://localhost/api/rewards/data', {
-  method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-});
+const request = (method: string, body: unknown) => jsonRequest('http://localhost/api/rewards/data', { method, body });
 
 beforeEach(() => {
   vi.clearAllMocks();

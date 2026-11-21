@@ -14,7 +14,7 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorData } from '@/hooks/useEditorData';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { createListRequest, sendTodoWrite } from '@/lib/todo-client';
 import { useTranslate } from '@/i18n';
@@ -77,7 +77,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       setCreating(false);
     } catch (e) {
       if (isSessionExpired(e)) return;
-      setCreateError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.lists.failed'));
+      setCreateError(refusalText(e, tCore, 'refusals.failed', 'refusals.hubUnreachable'));
     } finally {
       setBusy(false);
     }

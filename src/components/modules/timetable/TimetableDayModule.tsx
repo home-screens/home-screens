@@ -210,19 +210,20 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
     return [...seen.values()];
   }, [rows, locale, usualCourses, shown]);
 
+  // The heading's band, worked out once: the fit below leaves room for it
+  // and the heading itself is drawn at its size.
+  const headingBand = useMemo(
+    () => (heading
+      ? resolveHeading({ width: moduleBox.width, height: moduleBox.height, cardCount: rows.length + 2, stacked: orientation === 'rows', inset }, detail, style.titleFontSize)
+      : { fontPx: 0, bandPx: 0 }),
+    [heading, moduleBox.width, moduleBox.height, rows.length, orientation, inset, detail, style.titleFontSize],
+  );
+
   const fitInput = useMemo<DayFitInput>(() => {
-    const box = {
-      width: moduleBox.width,
-      height: moduleBox.height,
-      cardCount: rows.length + 2,
-      stacked: orientation === 'rows',
-      inset,
-    };
-    const band = heading ? resolveHeading(box, detail, style.titleFontSize) : { fontPx: 0, bandPx: 0 };
     return {
       width: moduleBox.width,
       height: moduleBox.height,
-      bandPx: band.bandPx,
+      bandPx: headingBand.bandPx,
       inset,
       orientation,
       rowCount: rows.length,
@@ -238,11 +239,7 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
       hasCare: rows.some((row) => row.care !== undefined),
       hasWeekLetter: rows.some((row) => row.weekLetter !== undefined),
     };
-  }, [moduleBox.width, moduleBox.height, rows, orientation, inset, heading, detail, style.titleFontSize, axisTicks60, lessons, shown, words, timeFormat]);
-
-  const headingBand = heading
-    ? resolveHeading({ width: moduleBox.width, height: moduleBox.height, cardCount: rows.length + 2, stacked: orientation === 'rows', inset }, detail, style.titleFontSize)
-    : { fontPx: 0, bandPx: 0 };
+  }, [moduleBox.width, moduleBox.height, rows, orientation, inset, headingBand.bandPx, detail, axisTicks60, lessons, shown, words, timeFormat]);
 
   // One size for the whole day, then Text size and the pixel floor on top of
   // it, then whatever the rows have to give up to draw at that size.

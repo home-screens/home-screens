@@ -9,24 +9,18 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import { useFetchData } from '@/hooks/useFetchData';
 import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { pluginEventBus } from '@/lib/plugin-events';
-import { eventBus } from '@/lib/event-bus';
-import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import { getLocation } from '@/lib/location';
 import { isModuleEnabled } from '@/lib/schedule';
 import { getCalendarFetchWindow } from '@/lib/calendar-window';
 import { useLookAheadStore } from '@/stores/look-ahead-store';
 import { buildCalendarUrl, googleCalendarIdList, hasCalendarFeedSources } from '@/lib/calendar-sources';
-import { CALENDAR_STATE_KEY_LIST, deriveCalendarState } from '@/lib/calendar-state';
-import { WEATHER_STATE_KEY_LIST, deriveWeatherState, type WeatherStatePayload } from '@/lib/weather-state';
-import { deriveNotesState } from '@/lib/notes-state';
+import type { WeatherStatePayload } from '@/lib/weather-state';
+import { useHostStatePublisher } from '@/hooks/useHostStatePublisher';
 import { notesUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { Note } from '@/types/notes';
-import { sharedStateStore } from '@/lib/shared-state-store';
-import { HOST_STATE_REPUBLISH_MS } from '@/lib/constants';
 import { createTZDate } from '@/lib/timezone';
 import { useFormattingLocale } from '@/i18n';
 import type { CalendarEvent } from '@/types/config';
-import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import type { FetchError } from '@/lib/fetch-error';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { WEATHER_PROVIDER_IDS, isWeatherProviderId, type WeatherProviderId } from '@/lib/weather-providers';
@@ -137,63 +131,11 @@ export function useSharedDisplayData(
   // A source this build does not know has no payload, which clears the keys.
   const globalWeatherData = isWeatherProviderId(globalProvider) ? weatherByProvider[globalProvider] : null;
 
-  // Publish derived weather events to the bus
-  useEffect(() => {
-    if (!globalWeatherData) return;
-    const raw = globalWeatherData as Record<string, unknown>;
-    const units = settings.weather.units as 'imperial' | 'metric';
-
-    const conditions = deriveWeatherConditions(
-      (raw.hourly as HourlyWeather[] | undefined) ?? [],
-      units,
-    );
-    if (conditions) eventBus.publish('weather.conditions', conditions);
-
-    const alertsEvent = deriveWeatherAlerts(raw.alerts as WeatherAlert[] | undefined);
-    if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
-  }, [globalWeatherData, settings.weather.units]);
-
-  // Publish weather facts to the shared-state bus (see weather-state.ts).
-  // Same home and same reasons as the calendar facts below: the values must
-  // survive screen rotation and exist on displays that show no weather
-  // module. The interval moves "today" and "the next 6 hours" along between
-  // five-minute fetches without touching React state.
-  const timezone = settings.timezone;
-  useEffect(() => {
-    // No payload means nothing is being fetched: no location configured, or
-    // the first fetch hasn't landed. Release the keys rather than freezing the
-    // last reading on the bus; a failing fetch keeps its last-good payload
-    // and never takes this path.
-    if (!globalWeatherData) {
-      for (const key of WEATHER_STATE_KEY_LIST) sharedStateStore.clearKey(key);
-      return;
-    }
-    const payload = globalWeatherData as WeatherStatePayload;
-    const tick = () => {
-      const values = deriveWeatherState(payload, new Date(), { timezone });
-      for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
-    };
-    tick();
-    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
-    return () => clearInterval(timer);
-  }, [globalWeatherData, timezone]);
-
-  // Publish the notes board's counts (see notes-state.ts). The same read every
+  // The notes board, for its counts on the bus below. The same read every
   // Notes module makes, followed by the heartbeat's `notes` revision, so the
   // keys exist on a display that shows no Notes module and a layout can hide
-  // a board that has nothing on it. Counts only, re-derived on the interval
-  // so a note that expires leaves the count without a fetch.
+  // a board that has nothing on it.
   const [notesData] = useFetchData<{ notes: Note[] }>(notesUrl(), FETCH_KEY_REGISTRY.notes.ttlMs);
-  useEffect(() => {
-    const notes = notesData?.notes;
-    if (!Array.isArray(notes)) return;
-    const tick = () => {
-      for (const [key, value] of Object.entries(deriveNotesState(notes, new Date()))) sharedStateStore.publish(key, String(value));
-    };
-    tick();
-    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
-    return () => clearInterval(timer);
-  }, [notesData]);
 
   const calendarIdList = googleCalendarIdList(settings.calendar);
   const hasFeedSources = hasCalendarFeedSources(settings.calendar);
@@ -237,37 +179,25 @@ export function useSharedDisplayData(
     [calendarErrorMessage, calendarUpdatedAt],
   );
 
-  // Publish calendar facts to the shared-state bus (see calendar-state.ts).
-  // Deliberately here rather than in a calendar module: these values must
-  // survive screen rotation and exist on displays that show no calendar.
-  //
-  // The interval recomputes without touching React state — "in 12 minutes"
-  // and "busy now" go stale on the clock, not on new data, and a ticking
-  // `useState` in this hook would re-render the whole rotator every minute
-  // on a Pi. Only modules subscribed to these exact keys re-render.
+  // The host's own facts, published from here rather than from a module: the
+  // values must survive screen rotation and exist on displays that show no
+  // weather, calendar or notes module. `useFetchData` nulls its data the
+  // moment the URL empties, and config is live-polled, so deleting the last
+  // calendar reaches a running display within seconds and releases its keys.
   const locale = useFormattingLocale();
-  const timeFormat = householdTimeFormat(settings.timeFormat, locale);
-  useEffect(() => {
-    const events = extractCalendarEvents(calendarData) as CalendarEvent[] | null;
-    // No payload means nothing is being fetched: either no calendar source is
-    // configured, or the first fetch hasn't landed. The producer genuinely has
-    // no values, so release the keys instead of leaving the last ones frozen
-    // on the bus — `useFetchData` nulls its data the moment the URL empties,
-    // and config is live-polled, so deleting the last calendar reaches a
-    // running display within seconds. A failing fetch keeps its last-good
-    // payload, so an upstream outage never takes this path.
-    if (!events) {
-      for (const key of CALENDAR_STATE_KEY_LIST) sharedStateStore.clearKey(key);
-      return;
-    }
-    const tick = () => {
-      const values = deriveCalendarState(events, new Date(), { timezone, timeFormat, locale });
-      for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
-    };
-    tick();
-    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
-    return () => clearInterval(timer);
-  }, [calendarData, timezone, timeFormat, locale]);
+  const calendarEvents = useMemo(
+    () => extractCalendarEvents(calendarData) as CalendarEvent[] | null,
+    [calendarData],
+  );
+  useHostStatePublisher({
+    weather: (globalWeatherData as WeatherStatePayload | null | undefined) || null,
+    weatherUnits: settings.weather.units as 'imperial' | 'metric',
+    calendarEvents,
+    notes: Array.isArray(notesData?.notes) ? notesData.notes : null,
+    timezone: settings.timezone,
+    timeFormat: householdTimeFormat(settings.timeFormat, locale),
+    locale,
+  });
 
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.

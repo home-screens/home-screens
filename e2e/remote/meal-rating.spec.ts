@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedFamily, seedMeals } from '../helpers/api';
@@ -18,17 +19,11 @@ const DISHES = [
   { id: 'd-rice', name: 'Rice', category: 'side' },
 ];
 
-function isoDate(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** The same dinner last night and tonight, so the sheet opens on it whatever time and weekday the test runs. */
 async function openMeals(page: Page, request: APIRequestContext, sandboxDir: string, locale?: string) {
   seedFamily(sandboxDir, FAMILY);
   const dinner = (date: string) => ({ date, slot: 'dinner', mealId: 'd-pie', courses: [{ kind: 'side', mealId: 'd-rice' }] });
-  await seedMeals(request, { savedMeals: DISHES, plan: [dinner(isoDate(-1)), dinner(isoDate(0))] });
+  await seedMeals(request, { savedMeals: DISHES, plan: [dinner(localDate(-1)), dinner(localDate(0))] });
   await putConfig(request, baseConfig({
     settings: locale ? { locale } : {},
     screens: [makeScreen('s1', 'S1', [buildModuleInstance('meal-planner')])],
@@ -104,7 +99,7 @@ test('a day with no dinner says so in the sheet', async ({ page, request, sandbo
   await page.getByTestId('meals-rate-dinner').click();
   const sheet = page.getByRole('dialog', { name: 'Rate Dinner' });
   const days = sheet.getByRole('combobox');
-  const planned = new Set([isoDate(-1), isoDate(0)]);
+  const planned = new Set([localDate(-1), localDate(0)]);
   const empty = await days.locator('option').evaluateAll((options, taken) =>
     options.map((o) => (o as HTMLOptionElement).value).find((value) => !taken.includes(value)), [...planned]);
   await days.selectOption(empty!);
@@ -115,7 +110,7 @@ test('a day with no dinner says so in the sheet', async ({ page, request, sandbo
 test('a dish that was typed in is named as the reason it has no stars', async ({ page, request, sandboxDir }) => {
   await openMeals(page, request, sandboxDir);
   const dinner = (date: string) => ({ date, slot: 'dinner', mealId: 'd-pie', courses: [{ kind: 'side', customText: 'Garlic bread' }, { kind: 'dessert', customText: 'Ice cream' }] });
-  await seedMeals(request, { savedMeals: DISHES, plan: [dinner(isoDate(-1)), dinner(isoDate(0))] });
+  await seedMeals(request, { savedMeals: DISHES, plan: [dinner(localDate(-1)), dinner(localDate(0))] });
   await page.reload();
   await page.getByTestId('meals-rate-dinner').click();
   const sheet = page.getByRole('dialog', { name: 'Rate Dinner' });

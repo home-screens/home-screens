@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
+import { localDate } from '../helpers/dates';
 import { putConfig, seedFamily } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
@@ -14,13 +15,6 @@ import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
  * detail comes back to the sheet. A double tap leaves the sheet open. With the
  * setting off "+N more" stays plain text.
  */
-
-/** Local YYYY-MM-DD, `offsetDays` from today. */
-function localDate(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 const TODAY = localDate();
 /** The sheet's accessible name: the whole day, as en-US writes it. */

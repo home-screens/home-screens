@@ -18,6 +18,7 @@ export default function GrabRulesLine({ settings: initial, onSaved }: {
 }) {
   const t = useTranslate('editor');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const [open, setOpen] = useState(false);
   // Opening near the bottom of the list, the choices would start below the
   // window: bring them into view.
@@ -34,7 +35,7 @@ export default function GrabRulesLine({ settings: initial, onSaved }: {
           {'\u00a0· '}{grabRulesSummary(shown, tModules).hold}
           {/* On the same line, so nothing under the pointer moves when it comes or goes. */}
           {savedAt > 0 && <span role="status" className="ml-2 text-hs-success">{t('settings.familyPage.chores.saved')}</span>}
-          {failed && <span role="alert" className="ml-2 text-hs-danger">{t('settings.familyPage.chores.saveFailed')}</span>}
+          {failed && <span role="alert" className="ml-2 text-hs-danger">{tCore('refusals.saveFailed')}</span>}
         </span>
         <button
           type="button"

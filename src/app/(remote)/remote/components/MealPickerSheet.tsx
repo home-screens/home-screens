@@ -119,6 +119,7 @@ function Tick() {
 /** Mealie's recipes, searched live through the hub. */
 function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerSheetProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   // Starts on the shortcuts, not on a search for the note the slot holds;
   // "Add a side" opens on the household's own Side category when it has one.
   const { query, setQuery, shortcut, choose, courseCategory, cookbooks, search } = useMealieRecipeBrowser(editorFetch, {
@@ -139,7 +140,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
   let heading: string | null = null;
   if (!search.loading && !search.error && search.items.length > 0) {
     if (shortcut.kind === 'search') heading = t('mealie.search.recipeCount', { count: search.total });
-    else if (shortcut.kind === 'cookbook' || shortcut.kind === 'category') heading = t('mealie.search.categoryCount', { count: search.total, category: shortcut.name ?? '' });
+    else if (shortcut.kind === 'cookbook' || shortcut.kind === 'category') heading = tCore('mealie.search.categoryCount', { count: search.total, category: shortcut.name ?? '' });
     else if (shortcut.kind === 'favorites') heading = t('mealie.search.favoritesCount', { count: search.total });
     else heading = t('mealie.search.recentHeading');
   }
@@ -147,7 +148,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
   let empty: ReactNode = null;
   if (nothingFound) {
     empty = shortcut.kind === 'search' ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneTitle', { query: typed })} description={t('mealie.search.noneDescription')} />
+      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneTitle', { query: typed })} description={tCore('mealie.search.noneDescription')} />
     ) : shortcut.kind === 'cookbook' || shortcut.kind === 'category' ? (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: shortcut.name ?? '' })} description={t('mealie.search.noneInCategoryDescription')} />
     ) : shortcut.kind === 'favorites' ? (
@@ -163,7 +164,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         <RecipeSearchBox
           value={query}
           onChange={setQuery}
-          placeholder={count ? t('mealie.search.placeholderCount', { count }) : t('mealie.search.placeholder')}
+          placeholder={count ? t('mealie.search.placeholderCount', { count }) : tCore('mealie.search.placeholder')}
           ariaLabel={t('mealie.search.ariaLabel')}
         />
       </div>
@@ -203,7 +204,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         {search.loading ? (
           <RecipeSkeletonRows />
         ) : search.error ? (
-          <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(failed.title)} description={t(failed.description)}>
+          <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={tCore(failed.title)} description={t(failed.description)}>
             <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
           </CenterMessage>
         ) : (
@@ -248,7 +249,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         // saved there.
         <TypeInsteadRow
           title={t('mealie.search.typeInstead', { query: typed })}
-          note={t('mealie.search.typeInsteadNote')}
+          note={tCore('mealie.search.typeInsteadNote')}
           lit={nothingFound}
           onClick={() => onPickText(typed)}
           testId="mealie-type-instead"

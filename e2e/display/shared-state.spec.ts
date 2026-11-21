@@ -7,12 +7,14 @@ import { writeSandboxFile } from '../helpers/sandbox';
 import { stubModuleData } from '../helpers/stubs';
 import {
   seedFixturePlugin,
+  pluginModule,
+  publishState,
+  waitForSdk,
   FIXTURE_PLUGIN_ID,
   FIXTURE_PLUGIN_TYPE,
   FIXTURE_STATE_KEY,
 } from '../helpers/fixture-plugin';
 import { UNKNOWN_VALUE_PLACEHOLDER } from '@/lib/shared-state-template';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance, ModuleVisibility } from '@/types/config';
 
 /**
@@ -69,19 +71,6 @@ async function readHubSharedState(
   return body.entries?.[key]?.value ?? null;
 }
 
-function pluginModule(overrides: Partial<ModuleInstance> = {}): ModuleInstance {
-  return {
-    id: 'e2e-plugin-1',
-    type: FIXTURE_PLUGIN_TYPE,
-    position: { x: 0, y: 0 },
-    size: { w: 320, h: 200 },
-    zIndex: 1,
-    style: { ...DEFAULT_MODULE_STYLE },
-    config: { label: 'E2E PLUGIN' },
-    ...overrides,
-  } as ModuleInstance;
-}
-
 function conditioned(id: string, content: string, visibility: ModuleVisibility): ModuleInstance {
   return textModule(content, { id, visibility });
 }
@@ -92,24 +81,6 @@ function tokenText(id: string, content: string, templateVariables: boolean): Mod
     id,
     config: { content, templateVariables, alignment: 'center' },
   });
-}
-
-/** Wait until the host SDK is installed on `window` (PluginGlobals mount). */
-async function waitForSdk(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => typeof (window.__HS_SDK__ as { publishState?: unknown } | undefined)?.publishState === 'function',
-  );
-}
-
-/** Publish through the host SDK, exactly as a plugin would. `subKey` is namespaced to `plugin:e2e-fixture:`. */
-async function publishState(page: Page, subKey: string, value: string): Promise<void> {
-  await page.evaluate(
-    ([k, v]) => {
-      const sdk = window.__HS_SDK__ as unknown as { publishState(id: string, key: string, value: string): void };
-      sdk.publishState('e2e-fixture', k, v);
-    },
-    [subKey, value] as const,
-  );
 }
 
 /** Clear (tombstone) a key through the host SDK. */
@@ -261,7 +232,7 @@ test('a background-provider module publishes state and keeps running across scre
     conditions: [{ kind: 'state', sourceKey: FIXTURE_STATE_KEY, equals: 'on' }],
     whenUnknown: 'hide',
   };
-  const bgProvider = pluginModule({ id: 'bg-provider', backgroundProvider: true });
+  const bgProvider = pluginModule({}, { id: 'bg-provider', backgroundProvider: true });
 
   await putConfig(request, baseConfig({
     settings: { rotationIntervalMs: 2500 },
@@ -446,7 +417,7 @@ test('reloading with the plugin still installed preserves its shared-state keys 
  */
 test('the background-provider layer dedupes identical providers and skips disabled ones', async ({ page, request }) => {
   const bg = (id: string, label: string, extra: Partial<ModuleInstance> = {}) =>
-    pluginModule({ id, backgroundProvider: true, config: { label }, ...extra });
+    pluginModule({}, { id, backgroundProvider: true, config: { label }, ...extra });
 
   await renderOnDisplay(page, request, baseConfig({
     screens: [
@@ -628,9 +599,9 @@ test('a screen conditioned on a plugin key leaves and rejoins the rotation live,
   };
   await putConfig(request, baseConfig({
     screens: [
-      makeScreen('a', 'A', [pluginModule({ id: 'plug-a' }), textModule('ALWAYS A')]),
+      makeScreen('a', 'A', [pluginModule({}, { id: 'plug-a' }), textModule('ALWAYS A')]),
       makeScreen('gated', 'Gated', [textModule('GATED SCREEN')], { visibility: gate }),
-      makeScreen('c', 'C', [pluginModule({ id: 'plug-c' }), textModule('ALWAYS C')]),
+      makeScreen('c', 'C', [pluginModule({}, { id: 'plug-c' }), textModule('ALWAYS C')]),
     ],
     settings: { rotationIntervalMs: 1500 },
   }));

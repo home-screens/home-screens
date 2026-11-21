@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NextRequest } from 'next/server';
+import { jsonRequest } from '@/test-utils';
 
 vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/lib/data-transaction', () => ({
@@ -17,9 +17,7 @@ const lego = { id: 'lego', name: 'Lego set', emoji: '', description: '', cost: 1
 const hers = { id: 'hers', name: 'Not his', emoji: '', description: '', cost: 4, memberIds: ['m2'], enabled: true };
 const off = { id: 'off', name: 'Off', emoji: '', description: '', cost: 4, memberIds: [], enabled: false };
 const data = { rewards: [lego, hers, off], balances: { m1: 4 }, redemptions: [] };
-const request = (body: unknown) => new NextRequest('http://localhost/api/rewards/goal', {
-  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-});
+const request = (body: unknown) => jsonRequest('http://localhost/api/rewards/goal', { method: 'POST', body });
 
 beforeEach(() => {
   vi.clearAllMocks();

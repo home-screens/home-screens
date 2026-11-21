@@ -1,15 +1,15 @@
 import { test, expect } from '../fixtures';
-import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { windowAround } from '../helpers/schedule-windows';
 import {
   seedFixturePlugin,
-  FIXTURE_PLUGIN_TYPE,
+  pluginModule,
+  publishState,
+  waitForSdk,
   FIXTURE_STATE_KEY,
 } from '../helpers/fixture-plugin';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import type { DisplayRule, ModuleInstance, ScreenConfiguration } from '@/types/config';
+import type { DisplayRule, ScreenConfiguration } from '@/types/config';
 
 /**
  * Display rules end to end on a real display: a shared-state edge fires a
@@ -48,23 +48,6 @@ function rulesConfig(rules: DisplayRule[], extraScreens: ReturnType<typeof makeS
   });
   config.rules = rules;
   return config;
-}
-
-async function waitForSdk(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => typeof (window.__HS_SDK__ as { publishState?: unknown } | undefined)?.publishState === 'function',
-  );
-}
-
-/** Publish through the host SDK; `subKey` is namespaced to `plugin:e2e-fixture:`. */
-async function publishState(page: Page, subKey: string, value: string): Promise<void> {
-  await page.evaluate(
-    ([k, v]) => {
-      const sdk = window.__HS_SDK__ as unknown as { publishState(id: string, key: string, value: string): void };
-      sdk.publishState('e2e-fixture', k, v);
-    },
-    [subKey, value] as const,
-  );
 }
 
 test('a for-mode rule pins its screen on a fresh edge, then rotation resumes where it was', async ({ page, request }) => {
@@ -139,15 +122,7 @@ test('a rule whose condition is already true at boot does not fire (provider fir
   // the engine's perspective the key goes unknown→true right after boot,
   // which must NOT count as a firing edge.
   seedFixturePlugin(sandboxDir);
-  const plugin: ModuleInstance = {
-    id: 'e2e-plugin-1',
-    type: FIXTURE_PLUGIN_TYPE,
-    position: { x: 0, y: 400 },
-    size: { w: 320, h: 200 },
-    zIndex: 1,
-    style: { ...DEFAULT_MODULE_STYLE },
-    config: { label: 'E2E PLUGIN' },
-  } as ModuleInstance;
+  const plugin = pluginModule({}, { position: { x: 0, y: 400 } });
 
   const config = baseConfig({
     screens: [

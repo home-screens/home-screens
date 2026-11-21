@@ -15,6 +15,7 @@
  * hold it.
  */
 
+import { clampLines } from '@/components/modules/shared/clampLines';
 import { useCallback, useMemo } from 'react';
 import { Backpack, House, Pencil, Sun, X } from 'lucide-react';
 import type { ModuleStyle, TimeFormat, TimetableDetail } from '@/types/config';
@@ -53,7 +54,6 @@ import { pickGridTimeColor, pickPillTextColor } from '@/lib/calendar-color';
 import { dayMonthPattern, dayOfMonthPattern, formatDateSync, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import {
   atLeast,
-  clampLines,
   CareCell,
   ClosedCell,
   FoldedCell,

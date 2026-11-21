@@ -7,12 +7,15 @@ import { useEditorStore } from '@/stores/editor-store';
 import { usePreviewWeatherStore } from '@/stores/preview-weather-store';
 import { useCalendarFetchQuery } from './useCalendarFetchQuery';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
-import { eventBus } from '@/lib/event-bus';
-import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
-import { sharedStateStore } from '@/lib/shared-state-store';
-import { deriveWeatherState, WEATHER_STATE_KEY_LIST, type WeatherStatePayload } from '@/lib/weather-state';
-import { HOST_STATE_REPUBLISH_MS } from '@/lib/constants';
-import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
+import type { WeatherStatePayload } from '@/lib/weather-state';
+import { useHostStatePublisher } from '@/hooks/useHostStatePublisher';
+import { useFetchData } from '@/hooks/useFetchData';
+import { notesUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { householdTimeFormat } from '@/lib/clock-time';
+import { useFormattingLocale } from '@/i18n';
+import { selectHouseholdTimezone } from './useEditorHouseholdClock';
+import type { CalendarEvent } from '@/types/config';
+import type { Note } from '@/types/notes';
 import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
 import { readFetchError, setupError, type FetchError } from '@/lib/fetch-error';
@@ -181,46 +184,31 @@ export function usePreviewData(): PreviewData {
     };
   }, [calendarQuery, hasCalendar]);
 
-  // Publish weather events to the event bus so editor modules using
-  // useEventBus('weather.conditions') see the same data as the display.
+  // Publish the same host facts the wall puts on its buses (weather events,
+  // and the weather, calendar and notes keys) onto this tab's, from what the
+  // preview already fetched. The canvas Text module reads its tokens and
+  // looks from the tab's own bus, as plugin providers feed it through
+  // EditorStateProviderLayer; without this the wall showed a weather look
+  // while the canvas kept the plain text and "Outside it is – and –", and a
+  // "{calendar.next_title}" or "{notes.count}" token stayed blank. The editor
+  // never reports a heartbeat, so nothing here reaches the hub or a display,
+  // and a fresh display snapshot still wins for the verdict chips.
   const globalProvider = provider ?? DEFAULT_WEATHER_PROVIDER;
-  const globalWeather = previewData.weatherByProvider[globalProvider];
-  useEffect(() => {
-    if (!globalWeather) return;
-    const conditions = deriveWeatherConditions(
-      (globalWeather.hourly as HourlyWeather[] | undefined) ?? [],
-      (units as 'imperial' | 'metric') ?? 'imperial',
-    );
-    if (conditions) eventBus.publish('weather.conditions', conditions);
-
-    const alertsEvent = deriveWeatherAlerts(globalWeather.alerts as WeatherAlert[] | undefined);
-    if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
-  }, [globalWeather, units]);
-
-  // Publish the same weather facts the wall puts on its bus (weather-state.ts)
-  // onto this tab's bus, from the household source the preview already
-  // fetched. The canvas Text module reads its tokens and looks from the tab's
-  // own bus, as plugin providers feed it through EditorStateProviderLayer;
-  // without this the wall showed a weather look while the canvas kept the
-  // plain text and "Outside it is – and –", and on a fresh install, where the
-  // weather keys are the only keys, no look ever previewed. The editor never
-  // reports a heartbeat, so nothing here reaches the hub or a display, and a
-  // fresh display snapshot still wins for the verdict chips.
-  const timezone = useEditorStore((s) => s.config?.settings?.timezone);
-  useEffect(() => {
-    if (!globalWeather) {
-      for (const key of WEATHER_STATE_KEY_LIST) sharedStateStore.clearKey(key);
-      return;
-    }
-    const payload = globalWeather as WeatherStatePayload;
-    const tick = () => {
-      const values = deriveWeatherState(payload, new Date(), { timezone });
-      for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
-    };
-    tick();
-    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
-    return () => clearInterval(timer);
-  }, [globalWeather, timezone]);
+  // The household's zone, as the wall resolves it: never this laptop's own.
+  const timezone = useEditorStore(selectHouseholdTimezone);
+  const savedTimeFormat = useEditorStore((s) => s.config?.settings?.timeFormat);
+  const locale = useFormattingLocale();
+  // The notes board, read the way a Notes module on the canvas reads it.
+  const [notesData] = useFetchData<{ notes: Note[] }>(notesUrl(), FETCH_KEY_REGISTRY.notes.ttlMs);
+  useHostStatePublisher({
+    weather: (previewData.weatherByProvider[globalProvider] as WeatherStatePayload | undefined) ?? null,
+    weatherUnits: (units as 'imperial' | 'metric') ?? 'imperial',
+    calendarEvents: previewData.calendarEvents as CalendarEvent[] | null,
+    notes: Array.isArray(notesData?.notes) ? notesData.notes : null,
+    timezone,
+    timeFormat: householdTimeFormat(savedTimeFormat, locale),
+    locale,
+  });
 
   return previewData;
 }

@@ -510,7 +510,7 @@ function ChoreForm({
           )}
           {/* Coverage summary */}
           <div className="text-[11px] text-hs-text-faint flex items-center gap-1.5">
-            <span>{t('choreChartModal.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
+            <span>{tCore('chores.coverage', { covered: scheduleDays.length })}</span>
             {scheduleDays.length < 7 && (
               <>
                 {' · '}
@@ -1043,7 +1043,7 @@ export default function ChoreChartModal({
     failed: setSaveError,
   }, {
     enabled: loaded,
-    words: { refused: t('common.saveError'), unreachable: t('common.hubUnreachable') },
+    words: { refused: t('common.saveError'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
@@ -1139,7 +1139,7 @@ export default function ChoreChartModal({
       )}
       {saveError && (
         <div role="alert" className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
-          {saveError === 'conflict' ? t('choreChartModal.changedElsewhere') : saveError}
+          {saveError === 'conflict' ? tCore('chores.changedElsewhere') : saveError}
         </div>
       )}
       {/* Nothing is editable until the store is in hand. The columns start

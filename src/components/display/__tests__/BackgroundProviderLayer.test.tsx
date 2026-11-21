@@ -19,6 +19,11 @@ import { emptyWeatherPayloads } from '@/lib/weather-providers';
 vi.mock('@/lib/module-components', () => ({
   getModuleComponent: (type: string) => {
     if (type === 'plugin:unloaded') return undefined;
+    if (type === 'plugin:throws') {
+      return () => {
+        throw new Error('provider crashed while drawing');
+      };
+    }
     const Probe = ({ config }: { config: Record<string, unknown> }) => (
       <div data-testid="probe" data-config={JSON.stringify(config)} />
     );
@@ -135,5 +140,19 @@ describe('BackgroundProviderLayer', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('true');
     expect(wrapper.style.width).toBe('0px');
     expect(wrapper.style.height).toBe('0px');
+  });
+
+  // Nothing else sits between a background provider and the wall's own error
+  // page: one that throws while drawing must fail alone.
+  it('keeps the other providers running when one throws while drawing', () => {
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { getAllByTestId } = renderLayer([
+      makeScreen('a', [
+        makeModule({ type: 'plugin:throws' as ModuleInstance['type'] }),
+        makeModule({ config: { n: 1 } }),
+      ]),
+    ]);
+    expect(getAllByTestId('probe')).toHaveLength(1);
+    quiet.mockRestore();
   });
 });

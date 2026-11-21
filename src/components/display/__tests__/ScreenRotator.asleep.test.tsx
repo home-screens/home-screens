@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { makeTestSettings } from '@/test-utils';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { DisplayRule, GlobalSettings, Profile, Screen } from '@/types/config';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -92,17 +93,7 @@ const SLEEP_ALL_DAY = {
 };
 
 function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
-  return {
-    timezone: 'UTC',
-    rotationIntervalMs: 1000,
-    displayWidth: 1080,
-    displayHeight: 1920,
-    latitude: 0,
-    longitude: 0,
-    weather: { provider: 'weatherapi', units: 'imperial' },
-    activeProfile: 'day',
-    ...overrides,
-  } as unknown as GlobalSettings;
+  return makeTestSettings({ timezone: 'UTC', rotationIntervalMs: 1000, activeProfile: 'day', ...overrides });
 }
 
 const rotator = (rules: DisplayRule[], settings: GlobalSettings) => (

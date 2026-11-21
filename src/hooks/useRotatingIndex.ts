@@ -2,24 +2,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { shuffleArray } from '@/lib/shuffle';
 import { stripMediaToken } from '@/lib/media-url';
+import { usePagedRotation } from './usePagedRotation';
 
 /**
- * Cycles through indices 0..itemCount-1 on a timer.
- * Returns 0 and does not start a timer when itemCount <= 1.
+ * Cycles through indices 0..itemCount-1 on a timer, for a view nobody steps
+ * by hand. The same rotation as `usePagedRotation`: no timer for one item or
+ * none, never faster than twice a second, and an index that is in range on
+ * the very render a list shrinks.
  */
 export function useRotatingIndex(itemCount: number, intervalMs: number): number {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    setIndex(0);
-    if (itemCount <= 1) return;
-    const id = setInterval(() => {
-      setIndex((prev) => (prev + 1) % itemCount);
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, [itemCount, intervalMs]);
-
-  return index;
+  return usePagedRotation(itemCount, intervalMs).index;
 }
 
 type MediaItem = { url: string; type: 'image' | 'video' };

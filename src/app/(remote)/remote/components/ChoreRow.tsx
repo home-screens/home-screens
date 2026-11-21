@@ -75,6 +75,7 @@ export default function ChoreRow({
   onToggleSteps,
 }: ChoreRowProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const done = assignment.isCompleted;
   const skipped = !!assignment.isSkipped && !done;
   const holdMode = holdToUncheck && done && !readOnly && !isToggling;
@@ -216,7 +217,7 @@ export default function ChoreRow({
               fontSize: 13, color: checkedColor, fontWeight: 600, lineHeight: 1.25,
             }}
           >
-            {t('choresTab.holdToUncheckHint')}
+            {tCore('chores.holdToUncheck')}
           </span>
         )}
       </span>

@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
-import { postHeartbeat, putConfig } from '../helpers/api';
+import { postHeartbeat, putConfig, startQuickTimer } from '../helpers/api';
 import { confirmSheet } from '../helpers/remote';
 import { baseConfig } from '../helpers/config-fixtures';
 import type { MaterializedTimerSession, Routine } from '@/types/timers';
@@ -52,12 +52,8 @@ async function seedRoutines(request: APIRequestContext, routines: Routine[]): Pr
 }
 
 /** Start a session server-side so control specs don't depend on the start UI. */
-async function startQuick(request: APIRequestContext, durationSec = QUICK_LONG_SEC): Promise<void> {
-  const res = await request.post('/api/timers/session', {
-    data: { action: 'start', kind: 'quick', durationSec, targets: 'all', view: 'face', sound: false },
-  });
-  expect(res.ok()).toBe(true);
-}
+const startQuick = (request: APIRequestContext, durationSec = QUICK_LONG_SEC) =>
+  startQuickTimer(request, { durationSec, view: 'face' });
 
 async function startRoutine(request: APIRequestContext, routineId: string): Promise<void> {
   const res = await request.post('/api/timers/session', {

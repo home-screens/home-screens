@@ -73,7 +73,7 @@ export default function HostedCalendarSignIn({
   return (
     <div data-testid="google-calendar-hosted-sign-in">
       <GoogleSignInButton
-        label={t('settings.calendarPage.google.hosted.signIn')}
+        label={t('common.signInWithGoogle')}
         onClick={onStart}
         disabled={polling}
       />

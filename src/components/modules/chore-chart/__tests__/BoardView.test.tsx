@@ -6,13 +6,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { UNCHECK_HOLD_MS } from '@/hooks/useHoldToUncheck';
 import { I18nProvider } from '@/i18n/provider';
+import enUSCore from '@/translations/en-US/core.json';
 import enUSModules from '@/translations/en-US/modules.json';
 import { BoardView } from '../views/BoardView';
 import type { ChoreDefinition } from '@/types/config';
 import type { MemberStats } from '../types';
 
 function wrap(children: React.ReactNode) {
-  return <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>{children}</I18nProvider>;
+  return <I18nProvider locale="en-US" blob={{ core: enUSCore, modules: enUSModules }}>{children}</I18nProvider>;
 }
 
 function member(id: string): FamilyMember {

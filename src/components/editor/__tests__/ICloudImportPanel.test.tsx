@@ -5,6 +5,7 @@ import { render, cleanup, fireEvent, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import { displayCache } from '@/lib/display-cache';
+import enUSCore from '@/translations/en-US/core.json';
 import enUSEditor from '@/translations/en-US/editor.json';
 
 const editorFetch = vi.fn();
@@ -19,7 +20,7 @@ const ALBUM_LINK = 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC';
 const PHOTO_LINK = 'https://share.icloud.com/photos/0f0a3hdUxHZ0-C8uQ7Dq1JxLw';
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>{children}</I18nProvider>;
+  return <I18nProvider locale="en-US" blob={{ core: enUSCore, editor: enUSEditor }}>{children}</I18nProvider>;
 }
 
 function jsonResponse(body: unknown, status = 200) {

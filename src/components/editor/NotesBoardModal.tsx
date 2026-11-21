@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { ChevronDown, ChevronRight, MessageSquareText, Pin, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { readRemembered, remember } from '@/lib/device-memory';
-import { HubUnreachableError, refusalText } from '@/lib/hub-request';
+import { refusalText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import {
@@ -300,7 +300,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     // A change the board no longer allows (the note was deleted on a phone)
     // is refused here with the hub's own code, and skipped when replayed.
     tolerates: (e) => e instanceof NotesError,
-    onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.notes.failed')),
+    onRefused: (e) => setError(refusalText(e, tCore, 'refusals.saveFailed', 'refusals.hubUnreachable')),
     // A write that went through clears an earlier refusal; the read after
     // a refusal does not, or the message would vanish unread.
     onSaved: () => setError(null),

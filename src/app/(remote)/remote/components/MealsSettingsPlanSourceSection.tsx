@@ -6,7 +6,7 @@ import { mealieProblem } from '@/lib/meal-sources';
 import { canChooseMealiePlan } from '@/lib/meal-settings';
 import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
-import { mealieProblemWords } from './MealsMealieStatus';
+import { mealieProblemDescription, mealieProblemWords } from './MealsMealieStatus';
 import { REMOTE_ACCENT, SECTION_HEADING, selectedPillStyle } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
@@ -28,6 +28,7 @@ interface MealsSettingsPlanSourceSectionProps {
  */
 export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSource, mealieConnected, onChange }: MealsSettingsPlanSourceSectionProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   // Asked once as the sheet opens: whose household's plan Mealie would show
   // ("connected to the Family household"), or that Mealie refuses the saved
   // token or is not a Mealie Home Screens can use. The line reads without a
@@ -75,9 +76,9 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '19px' }}>
           <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
-          {t(`${words}.title`)}
+          {tCore(`${words}.title`)}
         </div>
-        <p style={{ margin: '4px 0 0 24px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>{t(`${words}.description`)}</p>
+        <p style={{ margin: '4px 0 0 24px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>{mealieProblemDescription(fixInSettings, t, tCore)}</p>
       </div>
     );
   } else if (switching) {
