@@ -64,6 +64,25 @@ async function settle() {
 }
 
 describe('useGoogleCalendars', () => {
+  it('reads Google once, however often the page hands it new callbacks', async () => {
+    // The Settings form makes new callbacks on every staged edit, so typing a
+    // calendar's name used to ask Google again on each key.
+    const view = renderHook(
+      ({ edit }: { edit: number }) => useGoogleCalendars({
+        values: { selectedCalendarIds: ['fam'], icalSources: [], daysAhead: edit } as never,
+        onChange: () => onChange({ selectedCalendarIds: [] }),
+        onAuthError: (m) => onAuthError(m),
+      }),
+      { wrapper, initialProps: { edit: 0 } },
+    );
+    await settle();
+    for (let edit = 1; edit <= 10; edit++) view.rerender({ edit });
+    await settle();
+    const reads = state.request.mock.calls.map(([url]) => url);
+    expect(reads.filter((url) => url === '/api/calendars')).toHaveLength(1);
+    expect(reads.filter((url) => url === '/api/auth/google/status')).toHaveLength(1);
+  });
+
   it('keeps the chosen calendars when the hub refuses to disconnect, and says so', async () => {
     deleteAnswer = () => reply(500, { error: 'token store not writable' });
     const { result } = mount();

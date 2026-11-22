@@ -8324,6 +8324,15 @@
           "default": []
         },
         {
+          "name": "calendarOverrides",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "Record<string, CalendarOverride>"
+          },
+          "description": "Your own name and color for a Google or iCloud calendar, shown instead of the ones it comes with"
+        },
+        {
           "name": "icalSources",
           "optional": false,
           "type": {

@@ -762,6 +762,14 @@ export interface CalendarEvent {
   description?: string;
   allDay: boolean;
   calendarColor?: string;
+  /**
+   * The calendar's colour, set only when `calendarColor` is the event's own
+   * (Google lets one event be coloured apart from its calendar). Legends and
+   * per-calendar rows read `sourceColor ?? calendarColor`, so a few coloured
+   * events never repaint their calendar. The household's colour for the
+   * calendar (`calendarOverrides`) replaces this and leaves `calendarColor`.
+   */
+  sourceColor?: string;
   sourceId?: string;
   sourceName?: string;
   /** Set by the birthday/holiday sources; absent means a plain event. */
@@ -796,6 +804,17 @@ export interface CalendarEvent {
   etag?: string;
   /** The phone and the wall may offer Change and Remove for this event. */
   canEdit?: boolean;
+}
+
+/**
+ * What a household has changed about one calendar source: the name it is
+ * shown under and the colour it is drawn in.
+ */
+export interface CalendarOverride {
+  /** Shown instead of the source's name. Empty or absent keeps the original. */
+  name?: string;
+  /** Shown instead of the source's colour, as `#rrggbb`. Absent keeps the original. */
+  color?: string;
 }
 
 export interface ICalSource {
@@ -867,6 +886,22 @@ export interface CalendarPerson {
 export interface CalendarSettings {
   /** Google calendars to show */
   googleCalendarIds: string[];
+  /**
+   * Your own name and color for a Google or iCloud calendar, shown instead of the ones it comes
+   * with
+   *
+   * Keyed by source id: a Google calendar id or an iCloud source id. Calendar
+   * links have their own `name` and `color` and need none. An absent entry,
+   * or an absent field within one, keeps the provider's value. Every place
+   * that names a calendar reads it through `calendarLook`
+   * (`src/lib/calendar-overrides.ts`), and the calendar route applies it to
+   * events, so a change reaches the wall, the pickers and the add-event
+   * forms alike. A change bumps the calendar revision (`updateConfigAtomic`,
+   * and any journal that rewrites config.json, such as a restore). An entry
+   * stays when its calendar is unticked or signed out of; only Reset removes
+   * it.
+   */
+  calendarOverrides?: Record<string, CalendarOverride>;
   /** iCal (ICS) feeds (see ICalSource) */
   icalSources: ICalSource[];
   /** iCloud calendars picked from connected accounts (see ICloudSource) */

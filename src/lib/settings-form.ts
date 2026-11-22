@@ -1,4 +1,4 @@
-import type { CalendarEventEntry, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
+import type { CalendarEventEntry, CalendarOverride, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
 import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_FALLBACKS } from '@/lib/display-override-fields';
 
@@ -59,6 +59,11 @@ export interface CalendarState {
   eventEntry: CalendarEventEntry | null;
   /** `settings.calendarWallEntry`: the walls may add too. */
   wallEntry: boolean;
+  /**
+   * Per-calendar name/colour overrides. Must appear in BOTH mappings below:
+   * read out of settings into the form, and written back when it saves.
+   */
+  calendarOverrides?: Record<string, CalendarOverride>;
 }
 
 export interface SleepState {
@@ -231,6 +236,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       hideDeclined: s.calendar.hideDeclined ?? false,
       eventEntry: s.calendar.eventEntry ?? null,
       wallEntry: s.calendarWallEntry ?? true,
+      calendarOverrides: s.calendar.calendarOverrides,
     },
     sleep: sleepConfigToForm(s.sleep, s.screensaver),
     alerts: {
@@ -287,6 +293,9 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       // Left out until adding is first turned on, so a household that never
       // does keeps exactly the settings it had.
       ...(calendar.eventEntry ? { eventEntry: calendar.eventEntry } : {}),
+      ...(calendar.calendarOverrides && Object.keys(calendar.calendarOverrides).length
+        ? { calendarOverrides: calendar.calendarOverrides }
+        : {}),
     },
     // On unless turned off; written only when off, for the same reason.
     ...(calendar.wallEntry ? {} : { calendarWallEntry: false }),

@@ -316,6 +316,9 @@ describe('what the search text covers', () => {
     ['timezone', 'location.timezone'],
     ['Time Zone', 'location.timezone'],
     ['clock', 'location.timezone'],
+    ['calendar color', 'calendar.calendarOverrides'],
+    ['calendar colour', 'calendar.calendarOverrides'],
+    ['rename calendar', 'calendar.calendarOverrides'],
   ])('finds %s', (query, fieldId) => {
     expect(find(query)).toContain(fieldId);
   });

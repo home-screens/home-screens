@@ -17,7 +17,7 @@ Three ways to get events onto the wall. Pasting a calendar link is the quickest 
 | Works with | Google, Apple, Outlook, Fastmail, school and sports calendars, anything that offers an iCal or ICS link | Google Calendar | Apple calendars, plus birthdays from your contacts |
 | Setup time | About 2 minutes | About 3 minutes | About 3 minutes |
 | Picking calendars | One link per calendar | A pick-list of every calendar on the account | A pick-list of every calendar on the account |
-| Colours | You choose one per feed | Google's own colours | Apple's own colours |
+| Colours | You choose one per feed | Google's own colours, or [your own](#names-and-colours) | Apple's own colours, or [your own](#names-and-colours) |
 | How fresh | Google caches its links for a few hours; others vary | Near real time | Near real time |
 | Shared family calendars | Yes, when the owner shares the link | Yes | Yes |
 
@@ -71,6 +71,12 @@ Apple lets you make a password just for Home Screens, so your real Apple ID pass
 2. In the editor, open **Settings > Calendar**, click **Add iCloud account**, and enter your Apple ID email and that new password. You can add more than one account.
 3. Tick the calendars to show. Apple's colours carry over.
 4. Turn on **Birthdays** if you would like a calendar built from the birthdays saved in your contacts.
+
+## Your own names and colours {% #names-and-colours %}
+
+A Google or iCloud calendar arrives with the name and colour it has there, which can be an email address in a blue that clashes with the rest of the wall. To change them for your screens only, click the pencil next to a ticked calendar in **Settings > Calendar**, type a name and pick a colour. Every screen, every calendar picker in the editor and the add-event form use them, and Google and Apple keep their own.
+
+Leave the name empty to go back to the calendar's own name, or click **Reset** to put back both. An event you gave its own colour in Google keeps that colour, and the calendar's colour key still shows the colour you picked. Unticking a calendar, or signing out, keeps the name and colour you gave it, so ticking it again brings them back. Calendar links don't need this: you name them and pick their colour when you add them.
 
 ## Who is who
 

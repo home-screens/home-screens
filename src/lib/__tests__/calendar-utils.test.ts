@@ -400,6 +400,15 @@ describe('legendSources', () => {
     { sourceName: 'Orphan color, no id' },
   ];
 
+  it('takes the calendar\'s colour, not the colour two events were given on their own', () => {
+    const work = [
+      { sourceId: 'work', sourceName: 'Work', calendarColor: '#d50000', sourceColor: '#10b981' },
+      { sourceId: 'work', sourceName: 'Work', calendarColor: '#d50000', sourceColor: '#10b981' },
+      { sourceId: 'work', sourceName: 'Work', calendarColor: '#10b981' },
+    ];
+    expect(legendSources(work)).toEqual([{ sourceId: 'work', sourceName: 'Work', calendarColor: '#10b981' }]);
+  });
+
   it('dedupes by sourceId in first-seen order and defaults the color', () => {
     expect(legendSources(evs)).toEqual([
       { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },

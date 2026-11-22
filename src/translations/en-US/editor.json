@@ -678,6 +678,14 @@
           "help": "Shows your Google calendars on your screens. You'll finish signing in on your phone or computer with a short code."
         }
       },
+      "appearance": {
+        "colorFor": "Color for {name}",
+        "reset": "Reset",
+        "edit": "Change the name or color of {name}",
+        "done": "Done",
+        "nameFor": "Name for {name}",
+        "searchLabel": "Calendar names and colors"
+      },
       "icloud": {
         "heading": "iCloud Calendar",
         "checkingAccounts": "Checking accounts…",

@@ -1,5 +1,6 @@
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { rewriteConfigScreens } from '@/lib/config-modules';
+import { cleanCalendarOverrides } from '@/lib/calendar-overrides';
 import type { ModuleInstance, ScreenConfiguration } from '@/types/config';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -9,7 +10,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> => !!value &
  * left a module half-written.
  *
  * Every save through the app is validated, so this only ever matters for a
- * file changed outside it. There, one module with `"config": null` or no
+ * file changed outside it. The household's calendar names and colours are
+ * cleaned the same way (`cleanCalendarOverrides`), so a name that is not
+ * text never reaches a reader that trims it. There, one module with `"config": null` or no
  * `position` used to take the whole wall and the whole editor down, from any
  * screen: the code that places a module and gathers its data reads those
  * fields before the module's own error boundary is in play. An entry that
@@ -23,11 +26,20 @@ const isRecord = (value: unknown): value is Record<string, unknown> => !!value &
  */
 export function repairConfigShape(config: ScreenConfiguration): ScreenConfiguration {
   if (!isRecord(config)) return config;
-  return rewriteConfigScreens(config, (screen, _site, _display, index) => {
+  return repairCalendarOverrides(rewriteConfigScreens(config, (screen, _site, _display, index) => {
     if (!isRecord(screen) || !Array.isArray(screen.modules)) return screen;
     const modules = repairModules(screen.modules, typeof screen.id === 'string' && screen.id ? screen.id : String(index));
     return modules === screen.modules ? screen : { ...screen, modules };
-  });
+  }));
+}
+
+function repairCalendarOverrides(config: ScreenConfiguration): ScreenConfiguration {
+  const calendar = isRecord(config.settings) ? config.settings.calendar : undefined;
+  if (!isRecord(calendar) || !('calendarOverrides' in calendar)) return config;
+  const cleaned = cleanCalendarOverrides(calendar.calendarOverrides);
+  if (cleaned === calendar.calendarOverrides) return config;
+  const { calendarOverrides: _broken, ...rest } = calendar;
+  return { ...config, settings: { ...config.settings, calendar: { ...rest, ...(cleaned ? { calendarOverrides: cleaned } : {}) } } };
 }
 
 const isPoint = (value: unknown, a: string, b: string): boolean =>

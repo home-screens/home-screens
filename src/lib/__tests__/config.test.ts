@@ -5,8 +5,10 @@ import path from 'path';
 import os from 'os';
 import { readConfig, writeConfig, updateConfigAtomic } from '../config';
 import { calendarRevision } from '../calendar-revision';
+import { commitDataTransaction, withDataTransaction } from '../data-transaction';
 import { getLatestSchemaVersion } from '../migrations';
 import { createWeatherProvider } from '../weather';
+import type { ScreenConfiguration } from '@/types/config';
 
 // Override process.cwd to use a temp directory for tests
 let tmpDir: string;
@@ -749,6 +751,45 @@ describe('v12 to v13 keeps the legacy family inputs for the coordinated fold', (
 // ---------------------------------------------------------------------------
 // updateConfigAtomic — the Google app switch is a calendar sign-in change
 // ---------------------------------------------------------------------------
+
+describe('updateConfigAtomic: the household\'s calendar names and colours', () => {
+  it('starts a new calendar revision when they change, so walls re-read in seconds', async () => {
+    await writeConfig({ ...(await readConfig()) });
+    const withLooks = (looks: Record<string, { name?: string; color?: string }> | undefined) => (c: ScreenConfiguration) => {
+      const { calendarOverrides: _old, ...calendar } = c.settings.calendar;
+      void _old;
+      return { ...c, settings: { ...c.settings, calendar: { ...calendar, ...(looks ? { calendarOverrides: looks } : {}) } } };
+    };
+    const before = calendarRevision();
+
+    await updateConfigAtomic(withLooks({ work: { name: 'Work' } }));
+    const renamed = calendarRevision();
+    expect(renamed).not.toBe(before);
+
+    // Saving the same names again is not a change.
+    await updateConfigAtomic(withLooks({ work: { name: 'Work' } }));
+    expect(calendarRevision()).toBe(renamed);
+
+    await updateConfigAtomic(withLooks(undefined));
+    expect(calendarRevision()).not.toBe(renamed);
+  });
+});
+
+describe('a restore that rewrites config.json', () => {
+  it('starts a new calendar revision, so walls and the calendar cache read the restored names', async () => {
+    await writeConfig({ ...(await readConfig()) });
+    const raw = await fs.readFile(path.join(tmpDir, 'data', 'config.json'), 'utf8');
+    const restored = JSON.parse(raw);
+    restored.settings.calendar = { ...restored.settings.calendar, calendarOverrides: { work: { name: 'Work' } } };
+    const before = calendarRevision();
+    await withDataTransaction(() => commitDataTransaction({
+      kind: 'backup-restore',
+      changes: [{ path: 'data/config.json', before: raw, after: JSON.stringify(restored, null, 2) }],
+    }));
+    expect(calendarRevision()).not.toBe(before);
+    expect((await readConfig()).settings.calendar.calendarOverrides).toEqual({ work: { name: 'Work' } });
+  });
+});
 
 describe('updateConfigAtomic — the Google app choice', () => {
   it('starts a new calendar revision once a changed choice is saved, and only then', async () => {

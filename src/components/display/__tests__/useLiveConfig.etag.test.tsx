@@ -128,7 +128,7 @@ describe('useLiveConfig config ETag', () => {
       const initial = makeConfig('First');
       configBody = JSON.stringify(initial);
       configEtag = '"a.UTC"';
-      const clear = vi.spyOn(displayCache, 'clear');
+      const clear = vi.spyOn(displayCache, 'forgetAnswers');
       const { result } = rendered(initial, '"a.UTC"');
 
       await beat();

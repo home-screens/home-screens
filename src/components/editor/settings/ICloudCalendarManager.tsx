@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { uuid } from '@/lib/uuid';
+import { icloudSourceId } from '@/lib/icloud-source-id';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { ICloudSource } from '@/types/config';
+import type { CalendarOverride, ICloudSource } from '@/types/config';
 import type { ICloudCalendarListing } from '@/lib/caldav-calendar';
+import { calendarLook, storedOverride } from '@/lib/calendar-overrides';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
+import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import { logger } from '@/lib/logger';
 
 const log = logger('ICloudCalendarManager');
@@ -32,9 +34,19 @@ interface ICloudCalendarManagerProps {
   onChange: (updates: { icloudSources: ICloudSource[] }) => void;
   /** Per-source health keyed by ICloudSource id, for the badge on each picked calendar. */
   health?: SourceHealthMap;
+  /** The household's own names and colours, keyed by ICloudSource id. */
+  calendarOverrides?: Record<string, CalendarOverride>;
+  /** Which calendar's name and colour strip is open, shared with the Google rows. */
+  editingLookId?: string | null;
+  /** The first account's list carries the "names and colours" search anchor while no strip is open. */
+  searchAnchor?: boolean;
+  onEditLook?: (id: string | null) => void;
+  onLookChange?: (id: string, patch: CalendarOverride) => void;
 }
 
-export default function ICloudCalendarManager({ icloudSources, onChange, health }: ICloudCalendarManagerProps) {
+export default function ICloudCalendarManager({
+  icloudSources, onChange, health, calendarOverrides, editingLookId = null, searchAnchor = false, onEditLook, onLookChange,
+}: ICloudCalendarManagerProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const [accounts, setAccounts] = useState<ICloudAccountInfo[]>([]);
@@ -48,6 +60,13 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
   const [disconnectFailedId, setDisconnectFailedId] = useState<string | null>(null);
   const sourcesRef = useRef(icloudSources);
   sourcesRef.current = icloudSources;
+  const accountsRef = useRef(accounts);
+  accountsRef.current = accounts;
+  /** A calendar's id, the same each time it is ticked (`icloudSourceId`). */
+  const idFor = useCallback((accountId: string, kind: ICloudSource['kind'], url: string) => {
+    const appleId = accountsRef.current.find((a) => a.id === accountId)?.appleId ?? accountId;
+    return icloudSourceId(appleId, kind, url);
+  }, []);
 
   const fetchAccountCalendars = useCallback(async (accountId: string) => {
     setCalendarsByAccount((prev) => ({ ...prev, [accountId]: { status: 'loading' } }));
@@ -154,7 +173,7 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
       onChange({ icloudSources: sources.filter((s) => s.id !== existing.id) });
     } else {
       const source: ICloudSource = {
-        id: uuid(),
+        id: idFor(accountId, 'calendar', cal.url),
         accountId,
         kind: 'calendar',
         url: cal.url,
@@ -164,7 +183,7 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
       };
       onChange({ icloudSources: [...sources, source] });
     }
-  }, [onChange, nextColor]);
+  }, [onChange, nextColor, idFor]);
 
   const toggleBirthdays = useCallback((accountId: string) => {
     const sources = sourcesRef.current;
@@ -173,7 +192,7 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
       onChange({ icloudSources: sources.filter((s) => s.id !== existing.id) });
     } else {
       const source: ICloudSource = {
-        id: uuid(),
+        id: idFor(accountId, 'birthdays', ''),
         accountId,
         kind: 'birthdays',
         url: '',
@@ -183,18 +202,65 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
       };
       onChange({ icloudSources: [...sources, source] });
     }
-  }, [onChange, nextColor, t]);
-
-  const isSelected = (accountId: string, url: string) =>
-    icloudSources.some((s) => s.accountId === accountId && s.kind === 'calendar' && s.url === url);
-  const birthdaysSelected = (accountId: string) =>
-    icloudSources.some((s) => s.accountId === accountId && s.kind === 'birthdays');
-  const sourceColor = (accountId: string, cal: ICloudCalendarListing) =>
-    icloudSources.find((s) => s.accountId === accountId && s.kind === 'calendar' && s.url === cal.url)?.color
-      ?? cal.color ?? '#3b82f6';
+  }, [onChange, nextColor, idFor, t]);
 
   const sourceFor = (accountId: string, kind: ICloudSource['kind'], url: string) =>
     icloudSources.find((s) => s.accountId === accountId && s.kind === kind && (kind === 'birthdays' || s.url === url));
+
+  /**
+   * One calendar in an account's list: the checkbox, dot and name in one
+   * label, then, once it is ticked (`source`), its health and the pencil for
+   * its name and colour. The pencil sits outside the label so a click on it
+   * never unticks the calendar.
+   */
+  const pickRow = (opts: {
+    key: string;
+    onToggle: () => void;
+    name: string;
+    color: string | undefined;
+    source: ICloudSource | undefined;
+  }) => {
+    const { source } = opts;
+    const editing = source !== undefined && editingLookId === source.id;
+    return (
+      <div key={opts.key} data-testid="icloud-calendar-row">
+        <div className="flex items-center gap-3 px-3 py-2 hover:bg-hs-hover">
+          <label className="flex flex-1 min-w-0 items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={source !== undefined}
+              onChange={opts.onToggle}
+              className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+            />
+            <span
+              className={`w-2.5 h-2.5 rounded-full shrink-0${opts.color ? '' : ' bg-hs-text-faint'}`}
+              style={opts.color ? { backgroundColor: opts.color } : undefined}
+            />
+            <span className="text-sm text-hs-text-body flex-1 min-w-0">
+              <span className="block truncate">{opts.name}</span>
+              {source && <SourceHealthError status={health?.get(source.id)} />}
+            </span>
+          </label>
+          {source && <SourceHealthBadge status={health?.get(source.id)} />}
+          {source && onEditLook && (
+            <CalendarLookButton
+              name={opts.name}
+              open={editing}
+              onToggle={() => onEditLook(editing ? null : source.id)}
+            />
+          )}
+        </div>
+        {editing && onEditLook && onLookChange && (
+          <CalendarLookStrip
+            own={{ name: source.name, color: source.color }}
+            override={storedOverride(calendarOverrides, source.id)}
+            onChange={(patch) => onLookChange(source.id, patch)}
+            onDone={() => onEditLook(null)}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <SourceBlock title={t('settings.calendarPage.icloud.heading')} testId="icloud-calendar-block">
@@ -202,7 +268,7 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
         {accountsLoading ? (
           <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.checkingAccounts')}</p>
         ) : (
-          accounts.map((account) => {
+          accounts.map((account, accountIndex) => {
             const cals = calendarsByAccount[account.id];
             const accountSources = icloudSources.filter((s) => s.accountId === account.id);
             return (
@@ -233,16 +299,19 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
                     <p className="text-xs text-hs-warning">{t('settings.calendarPage.icloud.calendarsError')}</p>
                     {accountSources.length > 0 && (
                       <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
-                        {accountSources.map((s) => (
+                        {accountSources.map((s) => {
+                          const look = calendarLook(s.id, { name: s.name, color: s.color }, calendarOverrides);
+                          return (
                           <div key={s.id} className="flex items-center gap-3 px-3 py-2">
-                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: look.color }} />
                             <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                              <span className="block truncate">{s.name}</span>
+                              <span className="block truncate">{look.name}</span>
                               <SourceHealthError status={health?.get(s.id)} />
                             </span>
                             <SourceHealthBadge status={health?.get(s.id)} />
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -251,53 +320,37 @@ export default function ICloudCalendarManager({ icloudSources, onChange, health 
                 ) : (
                   <div className="space-y-1">
                     <span className="text-xs text-hs-text-muted">{t('settings.calendarPage.icloud.selectCalendars')}</span>
-                    <div className="max-h-40 overflow-y-auto rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
-                      {cals.calendars.map((cal) => (
-                        <label
-                          key={cal.url}
-                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-hs-hover"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected(account.id, cal.url)}
-                            onChange={() => toggleCalendar(account.id, cal)}
-                            className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-                          />
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: sourceColor(account.id, cal) }}
-                          />
-                          <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                            <span className="block truncate">{cal.name}</span>
-                            {isSelected(account.id, cal.url) && (
-                              <SourceHealthError status={health?.get(sourceFor(account.id, 'calendar', cal.url)?.id ?? '')} />
-                            )}
-                          </span>
-                          {isSelected(account.id, cal.url) && (
-                            <SourceHealthBadge status={health?.get(sourceFor(account.id, 'calendar', cal.url)?.id ?? '')} />
-                          )}
-                        </label>
-                      ))}
-                      {cals.birthdaysAvailable && (
-                        <label className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-hs-hover">
-                          <input
-                            type="checkbox"
-                            checked={birthdaysSelected(account.id)}
-                            onChange={() => toggleBirthdays(account.id)}
-                            className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-                          />
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-hs-text-faint" />
-                          <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                            <span className="block truncate">{t('settings.calendarPage.icloud.birthdays')}</span>
-                            {birthdaysSelected(account.id) && (
-                              <SourceHealthError status={health?.get(sourceFor(account.id, 'birthdays', '')?.id ?? '')} />
-                            )}
-                          </span>
-                          {birthdaysSelected(account.id) && (
-                            <SourceHealthBadge status={health?.get(sourceFor(account.id, 'birthdays', '')?.id ?? '')} />
-                          )}
-                        </label>
-                      )}
+                    <div
+                      className="max-h-40 overflow-y-auto rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong"
+                      data-field-id={searchAnchor && accountIndex === 0 && editingLookId === null ? 'calendar.calendarOverrides' : undefined}
+                    >
+                      {cals.calendars.map((cal) => {
+                        const source = sourceFor(account.id, 'calendar', cal.url);
+                        // Ticked, the saved name, which is what the wall, the
+                        // pickers and Reset use; unticked, Apple's current one.
+                        const look = source
+                          ? calendarLook(source.id, { name: source.name, color: source.color }, calendarOverrides)
+                          : { name: cal.name, color: cal.color ?? '#3b82f6' };
+                        return pickRow({
+                          key: cal.url,
+                          onToggle: () => toggleCalendar(account.id, cal),
+                          name: look.name,
+                          color: look.color,
+                          source,
+                        });
+                      })}
+                      {cals.birthdaysAvailable && (() => {
+                        const source = sourceFor(account.id, 'birthdays', '');
+                        const look = source ? calendarLook(source.id, { name: source.name, color: source.color }, calendarOverrides) : null;
+                        return pickRow({
+                          key: 'birthdays',
+                          onToggle: () => toggleBirthdays(account.id),
+                          name: look?.name ?? t('settings.calendarPage.icloud.birthdays'),
+                          // Unticked, the dot stays plain: the colour is only picked on ticking.
+                          color: look?.color,
+                          source,
+                        });
+                      })()}
                     </div>
                   </div>
                 )}

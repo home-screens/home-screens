@@ -19,6 +19,16 @@ export const INVALID_CONFIGS: { name: string; config: unknown; error: RegExp }[]
     error: /Calendar ownership/,
   },
   {
+    name: 'a calendar\'s own name that is not text',
+    config: { ...base, settings: { ...base.settings, calendar: { calendarOverrides: { work: { name: 42 } } } } },
+    error: /calendar's own name/,
+  },
+  {
+    name: 'a calendar\'s own colour that is not #rrggbb',
+    config: { ...base, settings: { ...base.settings, calendar: { calendarOverrides: { work: { color: 'url(x)' } } } } },
+    error: /calendar's own name/,
+  },
+  {
     name: 'two displays with the same id',
     config: { ...base, displays: [{ id: 'kitchen', screens: [] }, { id: 'kitchen', screens: [] }] },
     error: /Duplicate display id/,

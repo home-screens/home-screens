@@ -678,6 +678,14 @@
           "help": "Zeigt deine Google-Kalender auf deinen Displays an. Du schließt die Anmeldung mit einem kurzen Code auf deinem Handy oder Computer ab."
         }
       },
+      "appearance": {
+        "colorFor": "Farbe für {name}",
+        "reset": "Zurücksetzen",
+        "edit": "Name oder Farbe von {name} ändern",
+        "done": "Fertig",
+        "nameFor": "Name für {name}",
+        "searchLabel": "Namen und Farben der Kalender"
+      },
       "icloud": {
         "heading": "iCloud-Kalender",
         "checkingAccounts": "Konten werden geprüft…",

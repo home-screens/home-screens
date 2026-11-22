@@ -4,8 +4,8 @@
  * Scoped cache invalidation in useLiveConfig: a config change that cannot
  * affect fetched data (position, size, zIndex, style, schedule, visibility,
  * enabled) must NOT clear the display cache, while data-affecting changes
- * (module config, settings) still must. Observes the real seam — a spy on
- * displayCache.clear — with each config change announced by a beat.
+ * (module config, settings) still must. Observes the real seam, a spy on
+ * displayCache.forgetAnswers, with each config change announced by a beat.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -71,7 +71,7 @@ describe('useLiveConfig scoped cache invalidation', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    clearSpy = vi.spyOn(displayCache, 'clear');
+    clearSpy = vi.spyOn(displayCache, 'forgetAnswers');
   });
 
   afterEach(() => {

@@ -80,7 +80,8 @@ export function buildPersonRows(
   for (const ev of events) {
     if (!ev.sourceId || ev.kind === 'holiday') { unclaimed = true; continue; }
     if (!sources.has(ev.sourceId)) {
-      sources.set(ev.sourceId, { name: ev.sourceName ?? ev.sourceId, color: ev.calendarColor ?? DEFAULT_EVENT_COLOR });
+      // The calendar's colour, not one an event was given on its own.
+      sources.set(ev.sourceId, { name: ev.sourceName ?? ev.sourceId, color: ev.sourceColor ?? ev.calendarColor ?? DEFAULT_EVENT_COLOR });
     }
   }
   if (opts.includeEveryone && unclaimed) rows.push(everyone);

@@ -177,6 +177,36 @@ describe('useCalendarRefresh', () => {
     expect(asked.sort()).toEqual([WEEK, MONTH].sort());
   });
 
+  it('still re-reads a calendar on screen when the settings change that moved its revision also dropped its answer', () => {
+    // A rename saves the config and moves the calendar revision together; the
+    // wall's config read drops every answer between the two beats.
+    calendarReadAt(WEEK, 'c1');
+    showing.add(WEEK);
+    renderHook(() => useCalendarRefresh());
+    publishRevisions({ calendar: 'c2' });
+    displayCache.forgetAnswers();
+    publishRevisions({ calendar: 'c2' });
+    expect(asked).toEqual([WEEK]);
+
+    // Once its re-read lands at the new revision, nothing more is asked.
+    calendarReadAt(WEEK, 'c2');
+    publishRevisions({ calendar: 'c2' });
+    publishRevisions({ calendar: 'c2' });
+    expect(asked).toEqual([WEEK]);
+  });
+
+  it('forgets a dropped calendar answer no card took a re-read of', () => {
+    calendarReadAt(WEEK, 'c1');
+    renderHook(() => useCalendarRefresh());
+    displayCache.forgetAnswers();
+    publishRevisions({ calendar: 'c2' });
+    publishRevisions({ calendar: 'c2' });
+    expect(asked).toEqual([WEEK]);
+    publishRevisions({ calendar: 'c3' });
+    publishRevisions({ calendar: 'c3' });
+    expect(asked).toEqual([WEEK]);
+  });
+
   it('leaves the calendar alone while the library moves, and the library alone while the calendar moves', () => {
     calendarReadAt(WEEK, 'c1');
     listReadAt(FAVORITES, 'r1');

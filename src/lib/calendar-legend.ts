@@ -97,18 +97,19 @@ export type LegendRow =
  * The sources to show in a calendar legend: unique per sourceId, in
  * first-seen event order. Callers pass the events they actually render (after
  * their own source filtering), so a configured source with nothing in the
- * window never appears. The dot takes each source's most common event color,
- * not the first seen — Google applies per-event colorId overrides, and a lone
- * recolored event must not repaint the whole source's dot.
+ * window never appears. The dot takes each source's most common calendar
+ * color (`sourceColor` where an event was given a color of its own), not the
+ * first seen, so a lone recolored event never repaints the whole source's dot.
  */
 export function legendSources(
-  events: { sourceId?: string; sourceName?: string; calendarColor?: string }[],
+  events: { sourceId?: string; sourceName?: string; calendarColor?: string; sourceColor?: string }[],
 ): LegendSource[] {
   const seen = new Map<string, { sourceName: string; colorCounts: Map<string, number> }>();
   for (const ev of events) {
     if (!ev.sourceId || !ev.sourceName) continue;
     const entry = seen.get(ev.sourceId) ?? { sourceName: ev.sourceName, colorCounts: new Map<string, number>() };
-    const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+    // The calendar's colour where an event carries one of its own.
+    const color = ev.sourceColor ?? ev.calendarColor ?? DEFAULT_EVENT_COLOR;
     entry.colorCounts.set(color, (entry.colorCounts.get(color) ?? 0) + 1);
     seen.set(ev.sourceId, entry);
   }
@@ -180,7 +181,7 @@ export function peopleLegendRows(
  * back to the classic source rows rather than an empty strip.
  */
 export function buildLegendRows(
-  events: { start: string; end: string; sourceId?: string; sourceName?: string; calendarColor?: string; kind?: string }[],
+  events: { start: string; end: string; sourceId?: string; sourceName?: string; calendarColor?: string; sourceColor?: string; kind?: string }[],
   window: { start: Date; end: Date } | null,
   timezone: string | undefined,
   labels: { holidays: string; everyone: string },

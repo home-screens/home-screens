@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
+import { applyCalendarOverrides, renameSourceStatus } from '@/lib/calendar-overrides';
 import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
 import { CALENDAR_FETCH_MAX_EVENTS, CALENDAR_MAX_WINDOW_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
@@ -47,6 +48,8 @@ interface CalendarParams {
   revision: string;
   /** Which calendars take new events; a change to it bumps the revision. */
   eventEntry: CalendarSettings['eventEntry'];
+  /** The household's own names and colours; a change to them bumps the revision. */
+  calendarOverrides: CalendarSettings['calendarOverrides'];
 }
 
 const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
@@ -77,6 +80,7 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     const holidayCountry = config.settings.calendar.holidayCountry;
     const hideDeclined = config.settings.calendar.hideDeclined ?? false;
     const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
+    const calendarOverrides = config.settings.calendar.calendarOverrides;
 
     const timezone = config.settings.timezone;
 
@@ -117,11 +121,11 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     const revision = calendarRevision();
 
     const eventEntry = config.settings.calendar.eventEntry;
-    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision, eventEntry };
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision, eventEntry, calendarOverrides };
   },
   cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, timezone, revision }) =>
     `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax};tz:${timezone ?? ''};r:${revision}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, eventEntry }) => {
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, eventEntry, calendarOverrides }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -227,11 +231,17 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
       }
     }
 
-    const sourceStatus = mergeSourceStatus(sourceResults, Date.now());
+    const sourceStatus = renameSourceStatus(mergeSourceStatus(sourceResults, Date.now()), calendarOverrides);
     recordSourceStatus(sourceStatus);
 
-    const merged = [...google.events, ...ical.events, ...icloud.events, ...holidays.events]
-      .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
+    // The household's own names and colours, applied once over the merged
+    // list rather than inside each source's fetch, which keeps the provider
+    // clients free of settings they have no other reason to know about. Not
+    // part of the cache key: a change bumps the calendar revision, which is.
+    const merged = applyCalendarOverrides(
+      [...google.events, ...ical.events, ...icloud.events, ...holidays.events],
+      calendarOverrides,
+    ).sort((a, b) => compareEventStarts(a.start, b.start, timezone));
     // The safety cap is deliberately not a user setting: a small "max
     // events" once scaled into the grid fetch and silently truncated month
     // grids to the nearest few days. Upcoming-first budgeting only when the

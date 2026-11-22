@@ -64,16 +64,23 @@ const configStore = createJsonStore<ScreenConfiguration>({
 });
 
 // Journal writes bypass this store's public methods, so invalidate on recovery too.
-onDataTransactionCommit(invalidateConfigReadCache);
+// They also bypass `updateConfigAtomic`'s check of what changed for the
+// calendar: a backup restore can bring back other calendar names, colours or
+// adding settings, so a journal that rewrote config.json starts a new calendar
+// revision, and walls and the calendar route's cache read again.
+onDataTransactionCommit((paths) => {
+  invalidateConfigReadCache();
+  if (paths.some((p) => path.basename(p) === 'config.json')) bumpCalendarRevision();
+});
 
 export function readConfig(): Promise<ScreenConfiguration> {
   return withDataTransaction(async () => drawable(await readSavedConfig()));
 }
 
-/** The saved config, with a module a hand edit left half-written made safe to draw. */
+/** The saved config, with what a hand edit left half-written made safe to draw. */
 function drawable(config: ScreenConfiguration): ScreenConfiguration {
   const repaired = repairConfigShape(config);
-  if (repaired !== config) log.warn('The saved layout holds a module with missing pieces; showing it with plain stand-ins.');
+  if (repaired !== config) log.warn('The saved layout holds pieces a hand edit left half-written; showing them with plain stand-ins.');
   return repaired;
 }
 
@@ -153,7 +160,10 @@ export function updateConfigAtomic(
       calendarAnswerChanged = googleAppPreference(migrated.settings) !== googleAppPreference(result.settings)
         // Which events may be changed is stamped into the calendar answer,
         // which is cached per calendar revision.
-        || JSON.stringify(migrated.settings?.calendar?.eventEntry ?? null) !== JSON.stringify(result.settings?.calendar?.eventEntry ?? null);
+        || JSON.stringify(migrated.settings?.calendar?.eventEntry ?? null) !== JSON.stringify(result.settings?.calendar?.eventEntry ?? null)
+        // So are the household's names and colours, and the walls' add-event
+        // forms name the calendars with them: a rename shows in seconds.
+        || JSON.stringify(migrated.settings?.calendar?.calendarOverrides ?? null) !== JSON.stringify(result.settings?.calendar?.calendarOverrides ?? null);
       if (wasMigrated) {
         // A source/manual upgrade may reach this path without the updater's
         // snapshot step. Keep the exact original bytes before publishing any

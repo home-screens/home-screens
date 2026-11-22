@@ -51,6 +51,12 @@ describe('buildPersonRows fallback (no people)', () => {
     expect(eventsForRow(events, rows[0], rows).map((e) => e.id)).toEqual(['h']);
   });
 
+  it('colours a calendar\'s row with the calendar\'s colour even when its first event has its own', () => {
+    const events = [ev('a', 'work', { calendarColor: '#d50000', sourceColor: '#10b981' }), ev('b', 'work', { calendarColor: '#10b981' })];
+    const rows = buildPersonRows(events, undefined, opts);
+    expect(rows.find((r) => r.id === 'work')?.color).toBe('#10b981');
+  });
+
   it('returns no rows for an empty feed', () => {
     expect(buildPersonRows([], undefined, opts)).toEqual([]);
     expect(buildPersonRows([], [], opts)).toEqual([]);

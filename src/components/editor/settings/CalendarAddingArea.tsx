@@ -5,7 +5,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
-import type { CalendarEventEntry, ICloudSource } from '@/types/config';
+import type { CalendarEventEntry, CalendarOverride, ICloudSource } from '@/types/config';
+import { calendarLook } from '@/lib/calendar-overrides';
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
 import type { GoogleEntryState } from '@/lib/calendar-write';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
@@ -34,7 +35,7 @@ function GoogleMark() {
  * Google calendars only appear while Home Screens may offer adding for them;
  * on Home Screens' own app before Google's review they are not mentioned.
  */
-export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, shownGoogleIds, icloudSources, onChange }: {
+export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, shownGoogleIds, icloudSources, calendarOverrides, onChange }: {
   eventEntry: CalendarEventEntry | null;
   wallEntry: boolean;
   /** Google's own list, with which calendars this account may write. */
@@ -42,6 +43,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   /** The Google calendars ticked to show, whether or not Google is connected right now. */
   shownGoogleIds: string[];
   icloudSources: ICloudSource[];
+  /** The household's own names and colours, so this list names calendars as the rest of the page does. */
+  calendarOverrides?: Record<string, CalendarOverride>;
   onChange: (updates: { eventEntry?: CalendarEventEntry | null; wallEntry?: boolean }) => void;
 }) {
   const t = useTranslate('editor');
@@ -112,10 +115,14 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
       // there is no name or write access to show, and the sign-in step is up.
       ? shownGoogleIds.flatMap((id) => {
         const cal = googleCalendars.find((c) => c.id === id);
-        return cal ? [{ id, name: cal.summary ?? id, color: cal.backgroundColor ?? '#888', group: 'google' as const, writable: cal.writable !== false }] : [];
+        if (!cal) return [];
+        const look = calendarLook(id, { name: cal.summary ?? id, color: cal.backgroundColor ?? '#888' }, calendarOverrides);
+        return [{ id, ...look, group: 'google' as const, writable: cal.writable !== false }];
       })
       : []),
-    ...icloudCalendars.map((s) => ({ id: s.id, name: s.name, color: s.color, group: 'icloud' as const, writable: s.kind !== 'birthdays' })),
+    ...icloudCalendars.map((s) => ({
+      id: s.id, ...calendarLook(s.id, { name: s.name, color: s.color }, calendarOverrides), group: 'icloud' as const, writable: s.kind !== 'birthdays',
+    })),
   ];
   const pickable = tickable.filter((c) => c.writable && ticked.has(c.id));
 

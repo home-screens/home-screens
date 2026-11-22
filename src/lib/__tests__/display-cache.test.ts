@@ -246,6 +246,26 @@ describe('displayCache', () => {
     });
   });
 
+  describe('forgetAnswers', () => {
+    it('drops the answers but keeps which revision each read was at', () => {
+      displayCache.storeBody('/api/calendar?w=1', '{}', 60_000, 'c1');
+      displayCache.forgetAnswers();
+      expect(displayCache.get('/api/calendar?w=1')).toBeNull();
+      expect(displayCache.revisionsWhere(() => true)).toEqual([{ url: '/api/calendar?w=1', revision: 'c1' }]);
+    });
+
+    it('keeps no more revisions than the cache keeps answers, newest first', () => {
+      // Three days of a wall moving its calendar window, each dropped by a settings change.
+      for (let round = 0; round < 3; round++) {
+        for (let i = 0; i < 100; i++) displayCache.storeBody(`/api/calendar?d=${round}-${i}`, '{}', 60_000, `c${round}`);
+        displayCache.forgetAnswers();
+      }
+      const kept = displayCache.revisionsWhere(() => true);
+      expect(kept).toHaveLength(100);
+      expect(kept.every((r) => r.url.startsWith('/api/calendar?d=2-'))).toBe(true);
+    });
+  });
+
   // ── prefetch ─────────────────────────────────────────────────────
 
   describe('prefetch', () => {

@@ -6,6 +6,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import type { ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
+import { calendarLook } from '@/lib/calendar-overrides';
 
 // Stable fallbacks for the store selectors below. A literal `?? []` inside a
 // zustand selector mints a new array per snapshot when the key is absent,
@@ -38,6 +39,7 @@ export function useCalendarSources(keyPrefix: string): {
   const icalSources = useEditorStore((s) => s.config?.settings?.calendar?.icalSources ?? EMPTY_ICAL);
   const icloudSources = useEditorStore((s) => s.config?.settings?.calendar?.icloudSources ?? EMPTY_ICLOUD);
   const holidayCountry = useEditorStore((s) => s.config?.settings?.calendar?.holidayCountry);
+  const calendarOverrides = useEditorStore((s) => s.config?.settings?.calendar?.calendarOverrides);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleAuthError, setGoogleAuthError] = useState(false);
 
@@ -73,13 +75,15 @@ export function useCalendarSources(keyPrefix: string): {
         name = local;
       }
     }
-    availableSources.push({ id: gid, name, color: cal?.backgroundColor ?? '#3b82f6' });
+    // The household's own name and colour where it gave one, so a picker
+    // names a calendar the way the wall does.
+    availableSources.push({ id: gid, ...calendarLook(gid, { name, color: cal?.backgroundColor ?? '#3b82f6' }, calendarOverrides) });
   }
   for (const src of icalSources) {
     if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
   }
   for (const src of icloudSources) {
-    if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
+    if (src.enabled) availableSources.push({ id: src.id, ...calendarLook(src.id, { name: src.name, color: src.color }, calendarOverrides) });
   }
   if (holidayCountry) {
     availableSources.push({ id: 'holidays', name: t(`${keyPrefix}.publicHolidays`), color: '#10b981' });

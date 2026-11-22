@@ -48,6 +48,7 @@ import { HUB_TIMEZONE_HEADER } from '@/lib/timezone';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { applyDisplaySettings, applyLabwcRc, syncKioskConf } from '@/lib/kiosk';
 import { INVALID_CONFIGS } from '@/lib/__tests__/invalid-config-matrix';
+import { repairConfigShape } from '@/lib/config-repair';
 
 const dummyConfig = {
   screens: [{ id: 's1', name: 'Main', modules: [] }],
@@ -335,6 +336,24 @@ describe('PUT /api/config', () => {
     expect(res.status).toBe(200);
     expect(writeConfig).toHaveBeenCalledWith(edited);
     expect(res.headers.get(CONFIG_REVISION_HEADER)).toBe(configRevision(edited as never));
+  });
+
+  it('saves over a hand-edited file the editor was handed repaired, instead of calling it changed elsewhere', async () => {
+    // On disk: a module a hand edit left without its zIndex. Reads hand it out
+    // repaired, so the revision the editor holds is the repaired one.
+    const onDisk = { ...dummyConfig, screens: [{ id: 's1', name: 'Main', modules: [{ id: 'm1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 100, h: 100 }, config: {}, style: {} }] }] };
+    const drawn = repairConfigShape(onDisk as never);
+    expect(drawn).not.toBe(onDisk);
+    vi.mocked(readConfig).mockResolvedValue(drawn as never);
+    vi.mocked(updateConfigAtomic).mockImplementation(async (mutator) => {
+      const result = await mutator(onDisk as never);
+      if (result !== (onDisk as never)) await writeConfig(result);
+      return result;
+    });
+    const edited = { ...drawn, screens: [...drawn.screens, { id: 's2', name: 'Two', modules: [] }] };
+    const res = await PUT(makePutRequest(edited, configRevision(drawn)));
+    expect(res.status).toBe(200);
+    expect(writeConfig).toHaveBeenCalledWith(edited);
   });
 
   it('returns 409 with the newer config when the sent revision is stale', async () => {

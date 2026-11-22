@@ -175,6 +175,8 @@ describe('fetchCalendarEvents', () => {
 
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#dc2626');
+    // The event's own colour; the calendar's rides along for legends.
+    expect(events[0].sourceColor).toBe('#4285f4');
   });
 
   it('falls back to calendar color when event colorId is not in color map', async () => {
@@ -193,6 +195,8 @@ describe('fetchCalendarEvents', () => {
 
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#4285f4');
+    // The calendar's colour after all, which a household colour may replace.
+    expect(events[0].sourceColor).toBeUndefined();
   });
 
   // Google's 24-color picker (June 2026) marks every color beyond the original
@@ -215,6 +219,7 @@ describe('fetchCalendarEvents', () => {
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(mockCalendarsGet).toHaveBeenCalledWith({ calendarId: 'cal1' });
     expect(events[0].calendarColor).toBe('#ad1457');
+    expect(events[0].sourceColor).toBe('#b39ddb');
   });
 
   it('prefers the label color over the legacy colorId palette', async () => {
