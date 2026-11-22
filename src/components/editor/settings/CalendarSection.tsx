@@ -88,6 +88,11 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     values,
     onChange,
     onAuthError,
+    onSignedInElsewhere: () => {
+      setAuthError(null);
+      // The badges still show the status from before the sign-in.
+      recheckSourceHealth();
+    },
   });
 
   const deviceFlow = useGoogleDeviceFlow({
@@ -407,7 +412,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         eventEntry={values.eventEntry}
         wallEntry={values.wallEntry}
         googleCalendars={googleCalendars}
-        shownGoogleIds={googleConnected ? selectedCalendarIds : []}
+        shownGoogleIds={selectedCalendarIds}
         icloudSources={icloudSources}
         onChange={onChange}
       />
@@ -419,7 +424,12 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         testId="calendar-area-people"
       >
         <div data-field-id="calendar.personSources">
-          <CalendarPeopleManager personSources={personSources} onChange={(next) => onChange({ personSources: next })} />
+          {/* Read again when Google signs in or out: it names Google's calendars from its own listing. */}
+          <CalendarPeopleManager
+            key={googleConnected ? 'google' : 'no-google'}
+            personSources={personSources}
+            onChange={(next) => onChange({ personSources: next })}
+          />
         </div>
       </SettingsArea>
 

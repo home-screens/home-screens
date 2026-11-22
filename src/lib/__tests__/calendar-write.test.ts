@@ -5,6 +5,7 @@ import {
   GOOGLE_EVENTS_SCOPE,
   checkChangeScope,
   draftMinutes,
+  endKeepingLength,
   endsNextDay,
   googleEntryState,
   grantedScopes,
@@ -207,6 +208,18 @@ describe('form helpers', () => {
     expect(draftMinutes('9', '10:00')).toBeNull();
     expect(endsNextDay('18:00', '10:00')).toBe(true);
     expect(endsNextDay('09:00', '10:00')).toBe(false);
+  });
+
+  it('keeps the length when Starts moves', () => {
+    // An hour and a half, moved half an hour earlier, still ends an hour and a half later.
+    expect(endKeepingLength('23:00', '00:30', '22:30', 60)).toBe('00:00');
+    expect(endKeepingLength('10:00', '11:00', '15:15', 60)).toBe('16:15');
+    // Moving late enough carries Ends past midnight, which the form shows as the next day.
+    expect(endKeepingLength('21:00', '23:00', '23:00', 60)).toBe('01:00');
+    // No length yet (Ends equal to Starts): the usual length stands in.
+    expect(endKeepingLength('09:00', '09:00', '10:00', 90)).toBe('11:30');
+    // A half-typed start leaves Ends alone.
+    expect(endKeepingLength('09:00', '10:00', '1', 60)).toBe('10:00');
   });
 
   it('lets only every time change how an event repeats', () => {

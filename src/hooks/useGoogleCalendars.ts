@@ -29,6 +29,8 @@ interface UseGoogleCalendarsOptions {
   values: CalendarValues;
   onChange: (updates: { selectedCalendarIds: string[] }) => void;
   onAuthError: (message: string) => void;
+  /** Google was signed in from another tab, and the calendars are listed again. */
+  onSignedInElsewhere?: () => void;
 }
 
 interface UseGoogleCalendarsReturn {
@@ -44,7 +46,7 @@ interface UseGoogleCalendarsReturn {
   disconnectGoogle: () => Promise<boolean>;
 }
 
-export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleCalendarsOptions): UseGoogleCalendarsReturn {
+export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInElsewhere }: UseGoogleCalendarsOptions): UseGoogleCalendarsReturn {
   const t = useTranslate('core');
   const [credentialsConfigured, setCredentialsConfigured] = useState(false);
   const [mode, setMode] = useState<GoogleClientMode | null>(null);
@@ -53,6 +55,10 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
   const [googleLoading, setGoogleLoading] = useState(true);
   const valuesRef = useRef(values);
   valuesRef.current = values;
+  const connectedRef = useRef(googleConnected);
+  connectedRef.current = googleConnected;
+  const signedInElsewhereRef = useRef(onSignedInElsewhere);
+  signedInElsewhereRef.current = onSignedInElsewhere;
 
   const fetchCalendars = useCallback(async (autoSelectPrimary = false) => {
     try {
@@ -84,27 +90,42 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
     }
   }, [onChange, onAuthError, t]);
 
+  /** Whether Google is signed in, with the calendars listed when it is. */
+  const readStatus = useCallback(async (autoSelectPrimary = false): Promise<boolean> => {
+    const res = await editorFetch('/api/auth/google/status');
+    // A hub that could not answer has not said the grant is gone: read as
+    // "disconnected", a 500 showed "Connect Google" for a grant still on disk.
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setCredentialsConfigured(!!data.credentialsConfigured);
+    setMode(data.mode === 'own' || data.mode === 'hosted' ? data.mode : null);
+    setGoogleConnected(!!data.connected);
+    if (data.connected) await fetchCalendars(autoSelectPrimary);
+    return !!data.connected;
+  }, [fetchCalendars]);
+
   useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await editorFetch('/api/auth/google/status');
-        // A hub that could not answer has not said the grant is gone: read as
-        // "disconnected", a 500 showed "Connect Google" for a grant still on disk.
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setCredentialsConfigured(!!data.credentialsConfigured);
-        setMode(data.mode === 'own' || data.mode === 'hosted' ? data.mode : null);
-        setGoogleConnected(!!data.connected);
-        if (data.connected) await fetchCalendars();
-      } catch (err) {
+    readStatus()
+      .catch((err) => {
         log.debug('checkAuth failed:', err);
         onAuthError(t('errors.googleStatusFailed'));
-      } finally {
-        setGoogleLoading(false);
-      }
-    }
-    checkAuth();
-  }, [fetchCalendars, onAuthError, t]);
+      })
+      .finally(() => setGoogleLoading(false));
+  }, [readStatus, onAuthError, t]);
+
+  // Google's web sign-in, the one that lets Home Screens add events, finishes
+  // in a tab of its own and signs in for showing calendars too: look again
+  // when the editor comes back to the front.
+  useEffect(() => {
+    const onFocus = () => {
+      if (connectedRef.current) return;
+      readStatus(true)
+        .then((connected) => { if (connected) signedInElsewhereRef.current?.(); })
+        .catch((err) => log.debug('recheck on focus failed:', err));
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [readStatus]);
 
   const toggleCalendar = useCallback((id: string) => {
     const current = valuesRef.current.selectedCalendarIds;

@@ -221,6 +221,17 @@ export function draftMinutes(startTime: string, endTime: string): number | null 
   return end > start ? end - start : end + 24 * 60 - start;
 }
 
+/**
+ * Ends once Starts moves to `nextStart`: the event keeps its length, the way
+ * Google Calendar moves an event. `fallbackMinutes` (the household's usual
+ * length) stands in while the draft has no length, Ends equal to Starts.
+ */
+export function endKeepingLength(startTime: string, endTime: string, nextStart: string, fallbackMinutes: number): string {
+  if (!TIME.test(nextStart)) return endTime;
+  const total = (minutesOf(nextStart) + (draftMinutes(startTime, endTime) ?? fallbackMinutes)) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 /** Whether a timed draft ends on the next day, for the "next day" mark beside Ends. */
 export function endsNextDay(startTime: string, endTime: string): boolean {
   return TIME.test(startTime) && TIME.test(endTime) && minutesOf(endTime) < minutesOf(startTime);

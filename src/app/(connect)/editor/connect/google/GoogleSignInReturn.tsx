@@ -9,14 +9,20 @@ import { useTranslate } from '@/i18n';
 
 type Outcome =
   | { kind: 'working' }
-  /** `calendar`: a Calendar sign-in to add events; `canAddEvents` is false when Google's box was left empty. */
-  | { kind: 'connected'; purpose?: 'photos' | 'calendar'; canAddEvents?: boolean }
+  /**
+   * `calendar`: a Calendar sign-in to add events; `canAddEvents` is false when
+   * Google's box was left empty. `justFinished`: this visit redeemed the code,
+   * rather than being opened again afterwards.
+   */
+  | { kind: 'connected'; purpose?: 'photos' | 'calendar'; canAddEvents?: boolean; justFinished?: boolean }
   | { kind: 'expired' }
   | { kind: 'cancelled' }
   | { kind: 'failed'; message: string | null };
 
 /** How long a refused window.close() gets before the page says so. */
 const CLOSE_CHECK_MS = 300;
+/** How long the tick shows before a finished sign-in closes its own tab. */
+const AUTO_CLOSE_MS = 1500;
 
 /**
  * The end of a Google web sign-in on the hub itself: Google Photos import, or
@@ -55,7 +61,7 @@ async function finishSignIn(search: string): Promise<Outcome> {
     }
     if (res.ok) {
       const done = await res.json().catch(() => ({})) as { purpose?: 'photos' | 'calendar'; canAddEvents?: boolean };
-      return { kind: 'connected', purpose: done.purpose, canAddEvents: done.canAddEvents };
+      return { kind: 'connected', purpose: done.purpose, canAddEvents: done.canAddEvents, justFinished: true };
     }
     const data = await res.json().catch(() => ({})) as { error?: string; expired?: boolean };
     return data.expired ? { kind: 'expired' } : { kind: 'failed', message: data.error ?? null };
@@ -89,6 +95,17 @@ export default function GoogleSignInReturn() {
       if (search && result.kind !== 'working') router.replace(window.location.pathname, { scroll: false });
     });
   }, [router]);
+
+  // A sign-in that just finished goes back to the editor tab that started
+  // it, which catches up when it comes to the front. Browsers only let a page
+  // close a tab a script opened; any other tab keeps the button. A Calendar
+  // sign-in with Google's box left empty stays open to say so.
+  const finished = outcome.kind === 'connected' && outcome.justFinished === true && outcome.canAddEvents !== false;
+  useEffect(() => {
+    if (!finished) return;
+    const timer = setTimeout(() => window.close(), AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [finished]);
 
   // Browsers only let a page close a tab that a script opened, so check.
   const closeTab = () => {

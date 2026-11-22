@@ -12,6 +12,7 @@ import {
   CALENDAR_WRITE_LIMITS,
   CalendarWriteError,
   draftMinutes,
+  endKeepingLength,
   endsNextDay,
   normalizeEventDraft,
   type EventDraft,
@@ -126,7 +127,6 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   }, [initial, date, today, entry.defaultMinutes]);
 
   const [draft, setDraft] = useState<EventDraft>({ ...start, lastDate: start.lastDate ?? start.date });
-  const [endTouched, setEndTouched] = useState(mode === 'change');
   const [calendarId, setCalendarId] = useState(() => {
     const remembered = lastCalendar();
     return entry.calendars.some((c) => c.id === remembered) ? remembered! : entry.defaultCalendarId ?? '';
@@ -276,8 +276,8 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
                   onChange={(e) => {
                     const next = e.target.value;
                     if (!next) return;
-                    // Ends follows Starts by the usual length until someone sets Ends.
-                    set(endTouched ? { startTime: next } : { startTime: next, endTime: fromMinutes(toMinutes(next) + entry.defaultMinutes) });
+                    // Ends moves with Starts, so the event keeps its length.
+                    setDraft((d) => ({ ...d, startTime: next, endTime: endKeepingLength(d.startTime ?? '', d.endTime ?? '', next, entry.defaultMinutes) }));
                   }}
                   style={FIELD}
                 />
@@ -293,7 +293,6 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
                   value={draft.endTime}
                   onChange={(e) => {
                     if (!e.target.value) return;
-                    setEndTouched(true);
                     set({ endTime: e.target.value });
                   }}
                   style={{ ...FIELD, ...(problem?.code === 'calendarWrite.endsWhenItStarts' ? { borderColor: '#f87171' } : {}) }}

@@ -118,6 +118,41 @@ describe('GoogleSignInReturn', () => {
     expect(await outcomeOf(notConnected)).toBe('expired');
   });
 
+  it('closes its own tab once a fresh sign-in has finished, but not when opened again or left read-only', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    const close = vi.spyOn(window, 'close').mockImplementation(() => {});
+    const settle = async (view: ReturnType<typeof render>) => {
+      await vi.waitFor(() => expect(view.getByTestId('google-sign-in-return').dataset.outcome).not.toBe('working'));
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+    };
+    try {
+      fetchMock.mockResolvedValue(jsonResponse({ purpose: 'calendar', canAddEvents: true }));
+      arriveAt('?code=4%2F0AdLIrY&state=nonce');
+      const fresh = render(<GoogleSignInReturn />, { wrapper: Wrapper });
+      await vi.waitFor(() => expect(fresh.getByText('Home Screens can add events')).toBeTruthy());
+      expect(close).not.toHaveBeenCalled();
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(close).toHaveBeenCalledTimes(1);
+      cleanup();
+      close.mockClear();
+
+      // Google's "View and edit events" box left empty: the page has to say so.
+      fetchMock.mockResolvedValue(jsonResponse({ purpose: 'calendar', canAddEvents: false }));
+      arriveAt('?code=4%2F0AdLIrY&state=nonce');
+      await settle(render(<GoogleSignInReturn />, { wrapper: Wrapper }));
+      expect(close).not.toHaveBeenCalled();
+      cleanup();
+
+      // A reload after the code was used: nothing just finished.
+      fetchMock.mockResolvedValue(jsonResponse({ connected: true }));
+      arriveAt('');
+      await settle(render(<GoogleSignInReturn />, { wrapper: Wrapper }));
+      expect(close).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("says so when the browser won't let the page close its own tab", async () => {
     vi.useFakeTimers({ toFake: ['setTimeout'] });
     try {

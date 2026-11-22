@@ -14,6 +14,7 @@ import { repeatChoiceWords, repeatShortWords } from '@/lib/calendar-repeat-words
 import {
   CALENDAR_WRITE_LIMITS,
   CalendarWriteError,
+  endKeepingLength,
   normalizeEventDraft,
   repeatFrequenciesFor,
   type ChangeScope,
@@ -129,6 +130,8 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   const [length, setLength] = useState<number>(entry.defaultMinutes);
   const [other, setOther] = useState(!LENGTHS.includes(entry.defaultMinutes as (typeof LENGTHS)[number]));
   const [end, setEnd] = useState(() => start + entry.defaultMinutes);
+  /** With Other picked, which time has its grid open; the other folds to one line. */
+  const [otherOpen, setOtherOpen] = useState<'start' | 'end'>('end');
   const [repeat, setRepeat] = useState<RepeatRule | null>(null);
   const [calendarId, setCalendarId] = useState(() => {
     const last = remembered();
@@ -159,6 +162,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       setEnd(e);
       setLength(len);
       setOther(!LENGTHS.includes(len as (typeof LENGTHS)[number]));
+      setOtherOpen('end');
       setRepeat(loaded.repeat.kind === 'known' ? loaded.repeat.rule : null);
       setNotice(changed ? { tone: 'warning', text: t('calendar.eventForm.changedElsewhere') } : null);
     } catch {
@@ -304,6 +308,19 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       })}
     </div>
   );
+  // With Other picked, moving Starts carries Ends along, so the event keeps its length.
+  const moveStart = (next: number) => {
+    setEnd(toMinutes(endKeepingLength(clock(start), clock(end), clock(next), entry.defaultMinutes)));
+    setStart(next);
+  };
+  /** A time folded to one line while the other one's grid is open; pressing it opens this one. */
+  const foldedTime = (minutes: number, onOpen: () => void, testId: string) => (
+    <button type="button" {...wallPressProps} onClick={onOpen}
+      style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'transparent', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
+      <WallTextField P={P} text={timeWords(minutes)} placeholder="" typing={false} fontSize={40} minHeight={92} testId={testId}
+        trailing={<span style={{ display: 'inline-flex', alignItems: 'center', gap: P(10), fontSize: P(26), fontWeight: 600, color: 'var(--wt-accent)' }}><Pencil size={P(28)} aria-hidden="true" />{t('event-detail.change')}</span>} />
+    </button>
+  );
   const minuteRow = (selected: number, onPick: (minutes: number) => void) => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: P(12), marginTop: P(12) }} role="radiogroup">
       {MINUTES.map((m) => (
@@ -446,17 +463,23 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             <div style={label}>{t('calendar.eventForm.howLong')}<span style={labelValue}>{t('calendar.eventForm.endsAt', { time: timeWords(start + length) })}</span></div>
           </>
         )}
-        {!allDay && other && (
+        {!allDay && other && otherOpen === 'end' && (
           <>
             <div style={label}>{t('calendar.eventForm.starts')}</div>
-            <button type="button" {...wallPressProps} onClick={() => { setOther(false); setLength(LENGTHS.includes(length as (typeof LENGTHS)[number]) ? length : entry.defaultMinutes); }}
-              style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'transparent', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
-              <WallTextField P={P} text={timeWords(start)} placeholder="" typing={false} fontSize={40} minHeight={92} testId="wall-event-start-folded"
-                trailing={<span style={{ display: 'inline-flex', alignItems: 'center', gap: P(10), fontSize: P(26), fontWeight: 600, color: 'var(--wt-accent)' }}><Pencil size={P(28)} aria-hidden="true" />{t('event-detail.change')}</span>} />
-            </button>
+            {foldedTime(start, () => setOtherOpen('start'), 'wall-event-start-folded')}
             <div style={label}>{t('calendar.eventForm.ends')}<span style={labelValue}>{t('calendar.eventForm.endsLength', { time: timeWords(end), length: lengthWords((((end - start) % 1440) + 1440) % 1440) })}</span></div>
             {hourGrid(end, setEnd, start)}
             {minuteRow(end, setEnd)}
+            <div style={label}>{t('calendar.eventForm.howLong')}</div>
+          </>
+        )}
+        {!allDay && other && otherOpen === 'start' && (
+          <>
+            <div style={label}>{t('calendar.eventForm.starts')}<span style={labelValue}>{timeWords(start)}</span></div>
+            {hourGrid(start, moveStart)}
+            {minuteRow(start, moveStart)}
+            <div style={label}>{t('calendar.eventForm.ends')}<span style={labelValue}>{lengthWords((((end - start) % 1440) + 1440) % 1440)}</span></div>
+            {foldedTime(end, () => setOtherOpen('end'), 'wall-event-end-folded')}
             <div style={label}>{t('calendar.eventForm.howLong')}</div>
           </>
         )}
@@ -475,6 +498,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
               if (v === 'other') {
                 setEnd(start + length);
                 setOther(true);
+                setOtherOpen('end');
               } else {
                 setOther(false);
                 setLength(Number(v));

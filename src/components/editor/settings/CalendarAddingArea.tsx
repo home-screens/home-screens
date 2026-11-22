@@ -39,7 +39,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   wallEntry: boolean;
   /** Google's own list, with which calendars this account may write. */
   googleCalendars: GoogleCalendar[];
-  /** The Google calendars ticked to show. */
+  /** The Google calendars ticked to show, whether or not Google is connected right now. */
   shownGoogleIds: string[];
   icloudSources: ICloudSource[];
   onChange: (updates: { eventEntry?: CalendarEventEntry | null; wallEntry?: boolean }) => void;
@@ -108,9 +108,11 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
 
   const tickable = [
     ...(googleOffered
-      ? shownGoogleIds.map((id) => {
+      // Only calendars Google lists right now: while it needs signing in again
+      // there is no name or write access to show, and the sign-in step is up.
+      ? shownGoogleIds.flatMap((id) => {
         const cal = googleCalendars.find((c) => c.id === id);
-        return { id, name: cal?.summary ?? id, color: cal?.backgroundColor ?? '#888', group: 'google' as const, writable: cal?.writable !== false };
+        return cal ? [{ id, name: cal.summary ?? id, color: cal.backgroundColor ?? '#888', group: 'google' as const, writable: cal.writable !== false }] : [];
       })
       : []),
     ...icloudCalendars.map((s) => ({ id: s.id, name: s.name, color: s.color, group: 'icloud' as const, writable: s.kind !== 'birthdays' })),

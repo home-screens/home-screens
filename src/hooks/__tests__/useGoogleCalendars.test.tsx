@@ -47,12 +47,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function mount() {
+function mount(onSignedInElsewhere?: () => void) {
   return renderHook(
     () => useGoogleCalendars({
       values: { selectedCalendarIds: ['fam'], icalSources: [] },
       onChange,
       onAuthError,
+      onSignedInElsewhere,
     }),
     { wrapper },
   );
@@ -90,6 +91,29 @@ describe('useGoogleCalendars', () => {
     expect(result.current.googleConnected).toBe(false);
     expect(result.current.googleCalendars).toEqual([]);
     expect(onAuthError).not.toHaveBeenCalled();
+  });
+
+  it('catches up with a sign-in finished in another tab when the editor comes back to the front', async () => {
+    statusAnswer = () => reply(200, { credentialsConfigured: true, mode: 'own', connected: false });
+    const signedIn = vi.fn();
+    const { result } = mount(signedIn);
+    await settle();
+    expect(result.current.googleConnected).toBe(false);
+    expect(result.current.googleCalendars).toEqual([]);
+
+    // Google's sign-in tab closes and the editor is in front again.
+    statusAnswer = () => reply(200, { credentialsConfigured: true, mode: 'own', connected: true });
+    await act(async () => { window.dispatchEvent(new Event('focus')); });
+    await settle();
+    expect(result.current.googleConnected).toBe(true);
+    expect(result.current.googleCalendars).toEqual(CALENDARS);
+    expect(signedIn).toHaveBeenCalledTimes(1);
+
+    // Already signed in: coming back to the front asks nothing more.
+    const asked = state.request.mock.calls.length;
+    await act(async () => { window.dispatchEvent(new Event('focus')); });
+    await settle();
+    expect(state.request.mock.calls.length).toBe(asked);
   });
 
   it('does not read a failed status answer as "disconnected"', async () => {

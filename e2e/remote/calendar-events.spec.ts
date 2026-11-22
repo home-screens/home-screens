@@ -153,6 +153,29 @@ test('the wall adds an event on an empty day with its own keyboard, then removes
   expect(writes(google, 'DELETE').at(-1)!.path).toMatch(new RegExp(`^/calendar/v3/calendars/${FAMILY}/events/ev\\d+$`));
 });
 
+test('on the wall, a length picked with Other stays the same when the start moves', async ({ page, google }) => {
+  const day = localDate(3);
+  await page.goto('/display?screen=wall');
+  const cell = page.locator(`[data-open-day="${day}"]`).first();
+  await expect(cell).toBeVisible({ timeout: 30_000 });
+  await cell.click();
+  await page.getByTestId('day-sheet-add-event').click();
+  const form = page.getByTestId('wall-event-form');
+  for (const key of ['A', 'r', 't']) await form.locator(`[data-key="${key}"]`).click();
+  await form.locator('[data-key="action"]').click();
+  await form.locator('[data-hour="10"]').click();
+  await page.getByTestId('wall-event-length').locator('[data-choice="other"]').click();
+  // Ends at 2 PM: four hours, which no length button offers.
+  await form.locator('[data-hour="14"]').click();
+  await page.getByTestId('wall-event-start-folded').click();
+  await form.locator('[data-hour="12"]').click();
+  await expect(page.getByTestId('wall-event-end-folded')).toContainText('4:00');
+  await page.getByTestId('wall-event-save').click();
+  await expect(form).toHaveCount(0);
+  const posted = writes(google, 'POST').at(-1)!;
+  expect(posted.body).toMatchObject({ summary: 'Art', start: { dateTime: `${day}T12:00:00` }, end: { dateTime: `${day}T16:00:00` } });
+});
+
 test('with adding off, the phone says so and neither the phone nor the wall offers it', async ({ page, request }) => {
   await request.put('/api/config', { data: config(false) });
   await openCalendarTab(page);
