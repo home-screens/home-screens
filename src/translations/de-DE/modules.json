@@ -386,9 +386,6 @@
       },
       "searchAria": "Rezepte durchsuchen",
       "clearSearch": "Suche löschen",
-      "spaceKey": "Leerzeichen",
-      "doneKey": "Fertig",
-      "deleteKey": "Buchstaben löschen",
       "moreChips": {
         "one": "+ {count} weitere",
         "other": "+ {count} weitere"
@@ -569,6 +566,21 @@
     "backToToday": "Zurück zu heute",
     "backToNow": "Zurück zum Jetzt",
     "backToTop": "Zurück nach oben"
+  },
+  "wallKeyboard": {
+    "spaceKey": "Leerzeichen",
+    "doneKey": "Fertig",
+    "deleteKey": "Buchstaben löschen",
+    "shiftKey": "Großbuchstabe",
+    "numbersKey": "123",
+    "numbersAria": "Zahlen und Zeichen",
+    "lettersKey": "abc",
+    "lettersAria": "Buchstaben",
+    "left": {
+      "one": "noch {count}",
+      "other": "noch {count}"
+    },
+    "close": "Schließen"
   },
   "openButton": {
     "open": "{name} öffnen",

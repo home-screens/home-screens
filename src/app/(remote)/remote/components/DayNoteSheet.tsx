@@ -3,7 +3,7 @@
 import { useId, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { fullDateHeading, useFormattingLocale, useTranslate } from '@/i18n';
-import { clampDayNoteText, dayNoteLength, normalizeDayNoteText } from '@/lib/day-notes';
+import { clampText, oneLineText, textLength } from '@/lib/text-length';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 import BottomSheet from './BottomSheet';
 import { DANGER_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, REMOTE_ACCENT, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
@@ -45,8 +45,8 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
   const inputId = useId();
   const limitId = useId();
   const [text, setText] = useState(initialText);
-  const clean = normalizeDayNoteText(text);
-  const used = dayNoteLength(clean);
+  const clean = oneLineText(text);
+  const used = textLength(clean);
   const max = DAY_NOTES_LIMITS.maxTextLength;
   const canSubmit = note === null ? clean.length > 0 : clean !== note.text;
 
@@ -84,7 +84,7 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
           rows={2}
           // One line of words: runs of spaces and line breaks become one
           // space as they are typed, and the cap counts an emoji as one.
-          onChange={(e) => setText(clampDayNoteText(e.target.value.replace(/\s+/g, ' ')))}
+          onChange={(e) => setText(clampText(e.target.value.replace(/\s+/g, ' '), max))}
           onKeyDown={(e) => {
             if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;
             e.preventDefault();

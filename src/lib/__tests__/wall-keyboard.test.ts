@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deleteKey, typeKey, wallKeyboardColumns, wallKeyboardLayout } from '../wall-keyboard';
+import { WALL_KEYBOARD_NUMBER_ROWS, deleteKey, shiftLetter, startsSentence, typeKey, wallKeyboardColumns, wallKeyboardLayout } from '../wall-keyboard';
 import { LOCALES } from '@/i18n';
 
 describe('wallKeyboardLayout', () => {
@@ -32,6 +32,19 @@ describe('wallKeyboardColumns', () => {
     expect(wallKeyboardColumns(wallKeyboardLayout('de-DE'))).toBe(11);
     expect(wallKeyboardColumns(wallKeyboardLayout('fr-FR'))).toBe(12);
   });
+
+  it('makes room for Shift and delete either side of the last row on a text keyboard', () => {
+    expect(wallKeyboardColumns(wallKeyboardLayout('en-US'), 'text')).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('de-DE'), 'text')).toBe(11);
+    expect(wallKeyboardColumns(wallKeyboardLayout('fr-FR'), 'text')).toBe(13);
+  });
+
+  it('fits the 123 page inside the letters, so a key keeps its size between pages', () => {
+    for (const tag of Object.keys(LOCALES)) {
+      const columns = wallKeyboardColumns(wallKeyboardLayout(tag), 'text');
+      expect(Math.max(...WALL_KEYBOARD_NUMBER_ROWS.slice(0, -1).map((r) => r.length))).toBeLessThanOrEqual(columns);
+    }
+  });
 });
 
 describe('typeKey and deleteKey', () => {
@@ -48,5 +61,49 @@ describe('typeKey and deleteKey', () => {
 
   it('stops at a sensible length', () => {
     expect(typeKey('a'.repeat(60), 'b')).toHaveLength(60);
+  });
+
+  it('stops at the cap it is given, counting as people count', () => {
+    expect(typeKey('a'.repeat(79), 'b', 80)).toHaveLength(80);
+    expect(typeKey('a'.repeat(80), 'b', 80)).toHaveLength(80);
+    expect(typeKey('a'.repeat(80), ' ', 80)).toHaveLength(80);
+    const emoji = '\u{1F383}'.repeat(79);
+    expect(typeKey(emoji, 'x', 80)).toBe(`${emoji}x`);
+  });
+
+  it('keeps marks and digits as typed', () => {
+    let words = '';
+    for (const key of [...'Batteries (AA)']) words = typeKey(words, key, 80);
+    expect(words).toBe('Batteries (AA)');
+  });
+});
+
+describe('startsSentence', () => {
+  it('is true with nothing typed and after the end of a sentence', () => {
+    expect(startsSentence('')).toBe(true);
+    expect(startsSentence('   ')).toBe(true);
+    expect(startsSentence('Milk. ')).toBe(true);
+    expect(startsSentence('Done! ')).toBe(true);
+    expect(startsSentence('Really? ')).toBe(true);
+  });
+
+  it('is false inside a sentence, and right after a mark before its space', () => {
+    expect(startsSentence('Paper')).toBe(false);
+    expect(startsSentence('Paper ')).toBe(false);
+    expect(startsSentence('Milk.')).toBe(false);
+    expect(startsSentence('Dr. Lee 3:30 ')).toBe(false);
+  });
+});
+
+describe('shiftLetter', () => {
+  it('gives the capital in the hub language', () => {
+    expect(shiftLetter('a', 'en-US')).toBe('A');
+    expect(shiftLetter('ü', 'de-DE')).toBe('Ü');
+    expect(shiftLetter('ç', 'fr-FR')).toBe('Ç');
+    expect(shiftLetter('æ', 'da-DK')).toBe('Æ');
+  });
+
+  it('keeps a letter whose capital is two letters', () => {
+    expect(shiftLetter('ß', 'de-DE')).toBe('ß');
   });
 });

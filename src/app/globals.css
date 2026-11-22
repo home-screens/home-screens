@@ -236,6 +236,8 @@ body {
 @keyframes wall-scrim-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wall-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes wall-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+/* Where the next letter typed on the wall's keyboard goes (`WallCaret`). */
+@keyframes wall-caret { 50% { opacity: 0; } }
 .wall-sheet-panel::-webkit-scrollbar { display: none; }
 /* The bar of big buttons a tap brings up (`WallControlBar`) rises a little as
    its shade fades in. `translate`, not `transform`, which centres the bar. */

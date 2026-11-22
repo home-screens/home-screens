@@ -16,6 +16,15 @@ import { WallRecipeHeart } from '../WallRecipeHeart';
 import type { WallRecipeBook } from './useWallRecipeBook';
 import { BookMessage, RecipeBookChips, RecipeSearchField, RecipeTile, RecipeTileSkeletons, SECTION_LABEL, useChipLabel, type Px } from './RecipeBookParts';
 
+/**
+ * The keyboard and the search field's caret read the wall's typing colours
+ * (`--wt-*`, see `wallTypingVars`); the recipe book gives them its own
+ * full-screen colours.
+ */
+const FMP_TYPING_VARS = Object.fromEntries(
+  ['bg', 'surface', 'text', 'text-2', 'text-3', 'border', 'border-sub', 'accent', 'on-accent'].map((name) => [`--wt-${name}`, `var(--fmp-${name})`]),
+) as CSSProperties;
+
 const RecipeCard = lazy(() => import('../RecipeCard').then((m) => ({ default: m.RecipeCard })));
 
 interface RecipeBookPanelProps {
@@ -292,7 +301,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       ref={attachRoot}
       data-testid="recipe-book"
       data-source={book.source}
-      style={{ position: 'relative', flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
+      style={{ ...FMP_TYPING_VARS, position: 'relative', flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       <div style={{ padding: `${P(mode === 'search' ? 26 : landscape ? 44 : 56)}px ${side}px 0`, flexShrink: 0 }}>{header}</div>
       {showHeading && (
@@ -327,7 +336,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
             keyHeight={landscape ? 78 : 104}
             onKey={(key) => edit((current) => typeKey(current, key))}
             onDelete={() => edit(deleteKey)}
-            onDone={closeKeyboard}
+            onAction={closeKeyboard}
             onIdle={closeKeyboard}
             // An empty search sheet closes with its keyboard, and would take
             // a recipe opened from it (before typing anything) along with it.

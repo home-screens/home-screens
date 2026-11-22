@@ -386,9 +386,6 @@
       },
       "searchAria": "Search the recipes",
       "clearSearch": "Clear the search",
-      "spaceKey": "space",
-      "doneKey": "Done",
-      "deleteKey": "Delete a letter",
       "moreChips": {
         "one": "+ {count} more",
         "other": "+ {count} more"
@@ -569,6 +566,21 @@
     "backToToday": "Back to today",
     "backToNow": "Back to now",
     "backToTop": "Back to the top"
+  },
+  "wallKeyboard": {
+    "spaceKey": "space",
+    "doneKey": "Done",
+    "deleteKey": "Delete a letter",
+    "shiftKey": "Capital letter",
+    "numbersKey": "123",
+    "numbersAria": "Numbers and marks",
+    "lettersKey": "abc",
+    "lettersAria": "Letters",
+    "left": {
+      "one": "{count} left",
+      "other": "{count} left"
+    },
+    "close": "Close"
   },
   "openButton": {
     "open": "Open {name}",

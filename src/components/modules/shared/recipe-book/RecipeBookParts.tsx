@@ -1,6 +1,7 @@
 'use client';
 
 import { wallPressProps } from '../wallPress';
+import { WallCaret } from '../WallTextField';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { SavedMeal } from '@/types/config';
@@ -161,12 +162,7 @@ export function RecipeSearchField({ P, words, placeholder, typing, onOpen, onCle
         <BookIcon name="search" size={P(font * 1.1)} strokeWidth={2.4} style={{ color: 'var(--fmp-text-3)' }} />
         <span data-testid="recipe-book-words" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: words ? 'var(--fmp-text)' : 'var(--fmp-text-3)' }}>
           {words || (typing ? '' : placeholder)}
-          {typing && (
-            <span aria-hidden="true" style={{
-              display: 'inline-block', width: P(3), height: P(font * 1.15), background: 'var(--fmp-accent)', marginLeft: P(3),
-              verticalAlign: 'middle', borderRadius: P(2), animation: 'recipeBookCaret 1s steps(1) infinite',
-            }} />
-          )}
+          {typing && <WallCaret P={P} />}
         </span>
         {/* Room for the clear button drawn over the field. */}
         {words && <span aria-hidden="true" style={{ width: P(height * 0.62), flexShrink: 0 }} />}
@@ -187,7 +183,6 @@ export function RecipeSearchField({ P, words, placeholder, typing, onOpen, onCle
           <BookIcon name="x" size={P(font * 0.9)} strokeWidth={2.6} />
         </button>
       )}
-      <style>{'@keyframes recipeBookCaret { 50% { opacity: 0; } }'}</style>
     </div>
   );
 }

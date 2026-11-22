@@ -386,9 +386,6 @@
       },
       "searchAria": "Rechercher dans les recettes",
       "clearSearch": "Effacer la recherche",
-      "spaceKey": "espace",
-      "doneKey": "OK",
-      "deleteKey": "Effacer une lettre",
       "moreChips": {
         "one": "+ {count} autre",
         "other": "+ {count} autres"
@@ -572,6 +569,21 @@
     "backToToday": "Retour à aujourd'hui",
     "backToNow": "Retour au présent",
     "backToTop": "Retour en haut"
+  },
+  "wallKeyboard": {
+    "spaceKey": "espace",
+    "doneKey": "OK",
+    "deleteKey": "Effacer une lettre",
+    "shiftKey": "Majuscule",
+    "numbersKey": "123",
+    "numbersAria": "Chiffres et signes",
+    "lettersKey": "abc",
+    "lettersAria": "Lettres",
+    "left": {
+      "one": "{count} restant",
+      "other": "{count} restants"
+    },
+    "close": "Fermer"
   },
   "openButton": {
     "open": "Ouvrir {name}",

@@ -35,6 +35,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|standings.columns.pct',
   'modules|standings.columns.gamesBack',
   'modules|standings.columns.last10',
+  // The wall keyboard's key back to the letters reads "abc" on phone
+  // keyboards in every shipped language.
+  'modules|wallKeyboard.lettersKey',
   // Apple's product name, which every shipped language keeps as-is (the
   // three choices beneath it are translated words).
   'editor|common.livePhotos',
@@ -787,6 +790,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
+    // "Letters" is the Dutch word too: what the wall keyboard's abc key goes back to.
+    'modules|wallKeyboard.lettersAria',
     // Standings column abbreviations, the 7D chart caption and "Final": the
     // short form this language uses is the English one.
     'modules|crypto.chartLabels.week',

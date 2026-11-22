@@ -386,9 +386,6 @@
       },
       "searchAria": "In de recepten zoeken",
       "clearSearch": "Zoekopdracht wissen",
-      "spaceKey": "spatie",
-      "doneKey": "Klaar",
-      "deleteKey": "Letter wissen",
       "moreChips": {
         "one": "+ nog {count}",
         "other": "+ nog {count}"
@@ -569,6 +566,21 @@
     "backToToday": "Terug naar vandaag",
     "backToNow": "Terug naar nu",
     "backToTop": "Terug naar boven"
+  },
+  "wallKeyboard": {
+    "spaceKey": "spatie",
+    "doneKey": "Klaar",
+    "deleteKey": "Letter wissen",
+    "shiftKey": "Hoofdletter",
+    "numbersKey": "123",
+    "numbersAria": "Cijfers en tekens",
+    "lettersKey": "abc",
+    "lettersAria": "Letters",
+    "left": {
+      "one": "nog {count}",
+      "other": "nog {count}"
+    },
+    "close": "Sluiten"
   },
   "openButton": {
     "open": "{name} openen",

@@ -386,9 +386,6 @@
       },
       "searchAria": "Søg i opskrifterne",
       "clearSearch": "Ryd søgningen",
-      "spaceKey": "mellemrum",
-      "doneKey": "Færdig",
-      "deleteKey": "Slet et bogstav",
       "moreChips": {
         "one": "+ {count} mere",
         "other": "+ {count} mere"
@@ -569,6 +566,21 @@
     "backToToday": "Tilbage til i dag",
     "backToNow": "Tilbage til nu",
     "backToTop": "Tilbage til toppen"
+  },
+  "wallKeyboard": {
+    "spaceKey": "mellemrum",
+    "doneKey": "Færdig",
+    "deleteKey": "Slet et bogstav",
+    "shiftKey": "Stort bogstav",
+    "numbersKey": "123",
+    "numbersAria": "Tal og tegn",
+    "lettersKey": "abc",
+    "lettersAria": "Bogstaver",
+    "left": {
+      "one": "{count} tilbage",
+      "other": "{count} tilbage"
+    },
+    "close": "Luk"
   },
   "openButton": {
     "open": "Åbn {name}",

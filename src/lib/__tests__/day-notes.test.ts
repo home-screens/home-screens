@@ -4,12 +4,9 @@ import {
   NO_DAY_NOTES,
   LAST_DAY_NOTES_PAGE,
   addDayNote,
-  clampDayNoteText,
-  dayNoteLength,
   dayNotesFor,
   hasDayNoteInWindow,
   indexDayNotes,
-  normalizeDayNoteText,
   notesOnDay,
   removeDayNote,
   sweepDayNotes,
@@ -34,21 +31,6 @@ function refused(fn: () => unknown, status: number): string {
   }
   throw new Error('expected a refusal');
 }
-
-describe('words', () => {
-  it('makes one tidy line', () => {
-    expect(normalizeDayNoteText('  Picture   day\n bring\tboots  ')).toBe('Picture day bring boots');
-  });
-  it('counts characters as people see them: an emoji is one', () => {
-    expect(dayNoteLength('Costume party \u{1F383}')).toBe(15);
-    expect('Costume party \u{1F383}'.length).toBe(16);
-  });
-  it('cuts to the cap by that count, never through an emoji', () => {
-    const long = '\u{1F383}'.repeat(DAY_NOTES_LIMITS.maxTextLength + 5);
-    expect(dayNoteLength(clampDayNoteText(long))).toBe(DAY_NOTES_LIMITS.maxTextLength);
-    expect(clampDayNoteText('short')).toBe('short');
-  });
-});
 
 describe('addDayNote', () => {
   it('writes a tidied note for today or a later day, after the ones already there', () => {
