@@ -13,8 +13,13 @@ import { useContainerHeight } from './shared-time-grid';
 import { GridDayCell, GridWeekdayHeader, autoMaxEvents, gridNotesHeight } from './grid-view-bits';
 import { dayNotesFor } from '@/lib/day-notes';
 import { dayGridFontSize } from '@/lib/day-grid-type';
+import { byCalendarThenTime } from '@/lib/calendar-order';
 
-export function MonthGridView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners, dayNotes }: CalendarViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, calendarOrder, owners, dayNotes }: CalendarViewProps) {
+  // The household put its calendars in an order, so that order decides the
+  // rows in a cell and what falls past the cap, whatever kind each event is.
+  const prioritised = !!calendarOrder?.length;
+  const rankThenTime = useMemo(() => byCalendarThenTime(calendarOrder, timezone), [calendarOrder, timezone]);
   const locale = useFormattingLocale();
   const showWeekNumbers = config.showWeekNumbers === true;
   const wrapTitles = config.wrapEventTitles === true;
@@ -83,6 +88,9 @@ export function MonthGridView({ events, timezone, config, scale, today, anchor =
           const isPastDay = !stepped && isCurrentMonth && day < today;
           const showWeekNum = showWeekNumbers && dow === 0;
           const notes = dayNotesFor(dayNotes, day);
+          const onThisDay = events.filter(ev => isEventOnDay(ev, day, timezone));
+          // The household's order decides the rows where it set one.
+          const dayEvents = prioritised ? [...onThisDay].sort(rankThenTime) : onThisDay;
 
           return (
             <div key={day.toISOString()} style={{ display: 'contents' }}>
@@ -111,7 +119,7 @@ export function MonthGridView({ events, timezone, config, scale, today, anchor =
                   : isPastDay && config.dimPastEvents ? 'var(--cal-past-opacity)'
                   : 1}
                 notes={notes}
-                dayEvents={events.filter(ev => isEventOnDay(ev, day, timezone))}
+                dayEvents={dayEvents}
                 // The family's own number, or as many as the measured row fits.
                 maxEvents={config.monthMaxEventsPerCell > 0
                   ? config.monthMaxEventsPerCell
@@ -123,6 +131,7 @@ export function MonthGridView({ events, timezone, config, scale, today, anchor =
                 now={now}
                 timezone={timezone}
                 timeFormat={timeFormat}
+                prioritised={prioritised}
                 owners={owners}
               />
             </div>

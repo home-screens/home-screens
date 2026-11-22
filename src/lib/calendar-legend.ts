@@ -3,6 +3,7 @@ import { parseEventWallTime } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { EVERYONE_COLOR, type EventOwner } from '@/lib/calendar-people';
 import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
+import { calendarRanker } from '@/lib/calendar-order';
 import type { CalendarLegendMode, CalendarPerson } from '@/types/config';
 import type { FamilyGroup } from '@/types/family';
 
@@ -191,10 +192,25 @@ export function buildLegendRows(
   mode: CalendarLegendMode | undefined,
   people: readonly CalendarPerson[] | undefined,
   groups: readonly Pick<FamilyGroup, 'id' | 'name' | 'memberIds'>[] | undefined,
+  /**
+   * The household's calendar order. The key reads top to bottom in the same
+   * order the cells do, so the legend doubles as a reminder of which calendar
+   * wins a crowded day. Only the source rows can honour it: a person or group
+   * row stands for a roster entry, not a calendar.
+   */
+  order?: readonly string[],
 ): LegendRow[] {
   const scoped = window ? eventsInWindow(events, window.start, window.end, timezone) : events;
   if ((mode === 'people' || mode === 'groups') && people && people.length > 0) {
     return peopleLegendRows(scoped, mode, people, groups ?? [], labels.everyone);
   }
-  return sourceLegendRows(legendSources(scoped).map((s) => (s.sourceId === 'holidays' ? { ...s, sourceName: labels.holidays } : s)));
+  const rows = sourceLegendRows(legendSources(scoped).map((s) => (s.sourceId === 'holidays' ? { ...s, sourceName: labels.holidays } : s)));
+  if (!order?.length) return rows;
+  const rank = calendarRanker(order);
+  // A row can stand for more than one calendar, so it takes the best rank it
+  // holds. Sort is stable, so unranked rows keep first-seen order behind the
+  // ranked ones, exactly as the cells treat them.
+  const best = (row: LegendRow) =>
+    row.sourceIds.length ? Math.min(...row.sourceIds.map(rank)) : Number.MAX_SAFE_INTEGER;
+  return [...rows].sort((a, b) => best(a) - best(b));
 }

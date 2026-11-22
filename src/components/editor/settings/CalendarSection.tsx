@@ -10,7 +10,7 @@ import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
 import StatusPill from '@/components/ui/StatusPill';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
-import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
+import { useGoogleCalendars, type GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import HostedCalendarSignIn from './HostedCalendarSignIn';
 import { DeviceCodeButton, DeviceCodeLink } from '../DeviceCodeParts';
 import ICalFeedManager from './ICalFeedManager';
@@ -18,6 +18,8 @@ import ICloudCalendarManager from './ICloudCalendarManager';
 import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
 import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
+import CalendarSwatchesManager from './CalendarSwatchesManager';
+import CalendarOrderManager from './CalendarOrderManager';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
 import { localizedHolidayCountries, type HolidayCountry } from '@/lib/holiday-countries';
@@ -41,6 +43,8 @@ interface CalendarSettings {
   eventEntry: CalendarEventEntry | null;
   wallEntry: boolean;
   calendarOverrides?: Record<string, CalendarOverride>;
+  calendarOrder?: string[];
+  swatches?: string[];
 }
 
 interface Props {
@@ -48,8 +52,9 @@ interface Props {
   onChange: (updates: Partial<CalendarSettings>) => void;
 }
 
+
 export default function CalendarSection({ values, onChange: stageChange }: Props) {
-  const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides, calendarOrder, swatches } = values;
 
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
@@ -150,6 +155,67 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     fetchCountries();
   }, []);
 
+
+
+  /**
+   * One Google calendar's row. `handle` is the drag grip for a calendar that
+   * is on a wall, and null for one that is not: order is only about what a
+   * full day has room for, so an unticked calendar has nothing to order.
+   */
+  const renderGoogleRow = (cal: GoogleCalendar) => {
+    const shown = selectedCalendarIds.includes(cal.id);
+    const own = { name: cal.summary, color: cal.backgroundColor ?? '#3b82f6' };
+    const look = calendarLook(cal.id, own, calendarOverrides);
+    const editing = shown && editingLookId === cal.id;
+    return (
+      <div data-testid="google-calendar-row">
+        <div className="flex items-center gap-3 px-3 py-2 hover:bg-hs-hover">
+          {/* The pencil sits outside the label, so a click on it opens
+              the strip instead of unticking the calendar. */}
+          <label className="flex flex-1 min-w-0 items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={shown}
+              onChange={() => toggleCalendar(cal.id)}
+              className={CHECKBOX_CLASS}
+            />
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: look.color }}
+            />
+            <span className="text-sm text-hs-text-body flex-1 min-w-0">
+              <span className="block truncate">
+                {look.name}
+                {cal.primary && (
+                  <span className="text-hs-text-faint ml-1 text-xs">{t('settings.calendarPage.google.primaryBadge')}</span>
+                )}
+              </span>
+              {shown && <SourceHealthError status={health.get(cal.id)} />}
+            </span>
+          </label>
+          {shown && <SourceHealthBadge status={health.get(cal.id)} />}
+          {/* Only on calendars that are on the wall: a name for one
+              that is not shown has nowhere to appear. */}
+          {shown && (
+            <CalendarLookButton
+              name={look.name}
+              open={editing}
+              onToggle={() => setEditingLookId(editing ? null : cal.id)}
+            />
+          )}
+        </div>
+        {editing && (
+          <CalendarLookStrip
+            own={own}
+            override={storedOverride(calendarOverrides, cal.id)}
+            onChange={(patch) => setLook(cal.id, patch)}
+            onDone={() => setEditingLookId(null)}
+          />
+        )}
+      </div>
+    );
+  };
+
   const googleBlock = googleLoading ? (
     <FieldHint>{t('settings.calendarPage.google.checkingConnection')}</FieldHint>
   ) : googleConnected ? (
@@ -161,59 +227,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           // is open; an open strip carries the anchor itself.
           data-field-id={editingLookId === null ? 'calendar.calendarOverrides' : undefined}
         >
-          {googleCalendars.map((cal) => {
-            const shown = selectedCalendarIds.includes(cal.id);
-            const own = { name: cal.summary, color: cal.backgroundColor ?? '#3b82f6' };
-            const look = calendarLook(cal.id, own, calendarOverrides);
-            const editing = shown && editingLookId === cal.id;
-            return (
-              <div key={cal.id} data-testid="google-calendar-row">
-                <div className="flex items-center gap-3 px-3 py-2 hover:bg-hs-hover">
-                  {/* The pencil sits outside the label, so a click on it opens
-                      the strip instead of unticking the calendar. */}
-                  <label className="flex flex-1 min-w-0 items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={shown}
-                      onChange={() => toggleCalendar(cal.id)}
-                      className={CHECKBOX_CLASS}
-                    />
-                    <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: look.color }}
-                    />
-                    <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                      <span className="block truncate">
-                        {look.name}
-                        {cal.primary && (
-                          <span className="text-hs-text-faint ml-1 text-xs">{t('settings.calendarPage.google.primaryBadge')}</span>
-                        )}
-                      </span>
-                      {shown && <SourceHealthError status={health.get(cal.id)} />}
-                    </span>
-                  </label>
-                  {shown && <SourceHealthBadge status={health.get(cal.id)} />}
-                  {/* Only on calendars that are on the wall: a name for one
-                      that is not shown has nowhere to appear. */}
-                  {shown && (
-                    <CalendarLookButton
-                      name={look.name}
-                      open={editing}
-                      onToggle={() => setEditingLookId(editing ? null : cal.id)}
-                    />
-                  )}
-                </div>
-                {editing && (
-                  <CalendarLookStrip
-                    own={own}
-                    override={storedOverride(calendarOverrides, cal.id)}
-                    onChange={(patch) => setLook(cal.id, patch)}
-                    onDone={() => setEditingLookId(null)}
-                  />
-                )}
-              </div>
-            );
-          })}
+          {googleCalendars.map((cal) => <div key={cal.id}>{renderGoogleRow(cal)}</div>)}
         </div>
       ) : (
         <FieldHint>{t('settings.calendarPage.google.noCalendars')}</FieldHint>
@@ -481,7 +495,42 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         onChange={onChange}
       />
 
-      {/* 4. People: who the calendars belong to */}
+      {/* 4. The order a day draws its calendars in, across every source:
+             a day mixes them, so one flat list is the only place that can
+             say which calendar outranks which. */}
+      <SettingsArea
+        title={t('settings.calendarPage.ordering.heading')}
+        description={t('settings.calendarPage.ordering.description')}
+        testId="calendar-area-ordering"
+      >
+        <div data-field-id="calendar.calendarOrder">
+          <CalendarOrderManager
+            googleCalendars={googleCalendars}
+            selectedIds={selectedCalendarIds}
+            icalSources={icalSources}
+            icloudSources={icloudSources}
+            overrides={calendarOverrides}
+            order={calendarOrder}
+            onChange={(next) => onChange({ calendarOrder: next })}
+          />
+        </div>
+      </SettingsArea>
+
+      {/* 5. The colours the wall's own picker can reach. Beside the names and
+             colours it feeds, not in a display section: it is about calendars,
+             and it is the only way to change what that sheet offers. */}
+      <SettingsArea
+        title={t('settings.calendarPage.swatches.heading')}
+        description={t('settings.calendarPage.swatches.help')}
+        testId="calendar-area-swatches"
+      >
+        <CalendarSwatchesManager
+          swatches={swatches}
+          onChange={(next) => onChange({ swatches: next })}
+        />
+      </SettingsArea>
+
+      {/* 6. People: who the calendars belong to */}
       <SettingsArea
         title={t('settings.calendarPage.people.heading')}
         description={t('settings.calendarPage.people.help')}

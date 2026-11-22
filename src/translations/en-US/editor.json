@@ -658,7 +658,8 @@
         "searchLabel": "Calendar names and colors",
         "ownColor": "The color it comes with",
         "customColor": "Pick another color",
-        "changeInSettings": "Change calendar names and colors in Settings"
+        "changeInSettings": "Change calendar names and colors in Settings",
+        "reorder": "Move {name}"
       },
       "icloud": {
         "heading": "iCloud Calendar",
@@ -760,6 +761,18 @@
         "length120": "2 hours",
         "wallSwitch": "Let the wall add, change and remove events",
         "wallHelp": "Only on the calendars ticked above. Removing asks first. Each display can turn this off on its own page."
+      },
+      "ordering": {
+        "heading": "Calendar ordering",
+        "description": "Which calendars keep their place on a busy day.",
+        "help": "Drag to set the order. On a day with more events than fit, the calendars at the top keep their rows and the ones at the bottom are first to drop off.",
+        "empty": "Turn a calendar on first."
+      },
+      "swatches": {
+        "heading": "Colours to choose from",
+        "help": "The colours offered when you tap a calendar’s dot on the wall. The wall cannot mix a new colour, so put the ones you actually use within reach here.",
+        "slot": "Colour {number}",
+        "reset": "Put the original colours back"
       }
     },
     "dataPage": {

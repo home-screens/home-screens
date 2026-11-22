@@ -215,7 +215,8 @@
         "other": "{count} personnes"
       },
       "showEveryone": "Afficher tout le monde"
-    }
+    },
+    "colourFor": "Couleur de {name}"
   },
   "fullscreen-calendar": {
     "noEvents": "Aucun événement",

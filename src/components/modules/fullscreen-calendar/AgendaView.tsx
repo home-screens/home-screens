@@ -25,6 +25,7 @@ import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, EVENT_T
 import Glyph from '@/components/ui/Glyph';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { calendarRanker } from '@/lib/calendar-order';
 import { WallScroller } from '../shared/WallScroller';
 
 interface DayGroupEvent {
@@ -38,7 +39,10 @@ interface DayGroupEvent {
 // finished rows.
 const FINISHED_TODAY_MAX = 3;
 
-export function AgendaView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, calendarOrder, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
+  // The household's calendar priority, built once: it decides which events
+  // keep the rows on a day with more than fits.
+  const rank = useMemo(() => calendarRanker(calendarOrder), [calendarOrder]);
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -59,7 +63,7 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
       const date = addDays(anchor, i);
       // All-day rows first — including middle days of split multi-day
       // events, which promote to all-day rendering.
-      let dayEvents: DayGroupEvent[] = bucketEventsForDay(events, date, timezone);
+      let dayEvents: DayGroupEvent[] = bucketEventsForDay(events, date, timezone, rank);
       if (isSameDay(date, today) && config.agendaShowFinishedToday === true) {
         const finished = dayEvents.filter(({ ev, segment }) =>
           ev.allDay !== true && segment !== 'middle' && parseEventWallTime(ev.end, timezone) <= now);

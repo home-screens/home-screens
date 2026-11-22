@@ -71,6 +71,11 @@ export interface CalendarViewProps {
   now: Date;
   /** The household's 12/24-hour clock, resolved by the module. */
   timeFormat: TimeFormat;
+  /**
+   * Calendar priority order, most wanted first. Decides which events keep the
+   * rows when a day has more than fits. Absent leaves plain time order.
+   */
+  calendarOrder?: string[];
   weather?: CalendarWeather;
   /** Sources whose feed is failing; list-view rows add a "saved" time suffix. */
   failingSourceIds?: ReadonlySet<string>;

@@ -215,7 +215,8 @@
         "other": "{count} personer"
       },
       "showEveryone": "Vis alle"
-    }
+    },
+    "colourFor": "Farve til {name}"
   },
   "fullscreen-calendar": {
     "noEvents": "Ingen begivenheder",
