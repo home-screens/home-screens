@@ -681,8 +681,13 @@ export default function FullscreenCalendarModule({
         ) : (
           <DaySheetContext.Provider value={daySheet.opener}>
             <AnimatePresence mode="wait">
+              {/* Keyed on the saved view: a view picked in the editor fades in,
+                  while one borrowed from the wall's buttons (and the way back)
+                  changes at once, like the look-ahead arrows. On a Pi 4 the
+                  full-screen fade dropped frames on every tap and held the new
+                  view back by its exit. */}
               <motion.div
-                key={config.view}
+                key={savedConfig.view}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}

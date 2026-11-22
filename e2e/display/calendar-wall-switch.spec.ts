@@ -97,12 +97,12 @@ test.describe('the full-screen calendar', () => {
     await page.clock.fastForward(WALL_SCROLL_IDLE_MS - 10_000);
     await expect(mod.locator('[data-wall-view="month-grid"]')).toHaveAttribute('aria-pressed', 'true');
     await page.clock.fastForward(11_000);
-    // The heading and the buttons say where the calendar went. (The views fade
-    // into each other over animation frames, which a jump of the test clock
-    // does not run; the next test watches the events come back.)
     await expect(mod.locator('[data-wall-view="week-list"]')).toHaveAttribute('aria-pressed', 'true');
     await expect(mod.locator('.fsc-header-title')).not.toHaveText(monthTitle());
     await expect(mod.getByTestId('calendar-person-button')).not.toHaveAttribute('data-picked', /./);
+    // The view changes at once, with no fade waiting on animation frames.
+    await expect(mod.locator('.fsc-content [role="grid"]')).toHaveCount(0);
+    await expect(mod.getByText('ANN EVENT').first()).toBeVisible();
   });
 
   test('shows everyone again a minute after a person was picked', async ({ page, request, sandboxDir }) => {
