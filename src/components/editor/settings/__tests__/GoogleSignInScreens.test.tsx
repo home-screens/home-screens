@@ -103,7 +103,7 @@ describe('Google card on the API keys page', () => {
     fireEvent.click(view.getByTestId('google-own-app-toggle'));
     expect(view.getByText(/anyone already signed in with Google will need to sign in again/)).toBeTruthy();
     expect(view.getByText('Calendar Client ID')).toBeTruthy();
-    expect(view.getByText('Photos Import Client ID')).toBeTruthy();
+    expect(view.getByText('Web sign-in Client ID')).toBeTruthy();
   });
 
   it('opens on the household\'s own app, and says Photos alone is ready when only Photos uses Home Screens\' app', () => {
@@ -194,6 +194,8 @@ describe('Google Calendar on the Calendar page', () => {
     personSources: {},
     daysAhead: 14,
     hideDeclined: false,
+    eventEntry: null,
+    wallEntry: true,
   };
 
   async function calendarPage(status: Record<string, unknown>) {

@@ -50,6 +50,18 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|photo-slideshow.photoCredit',
   // Unit abbreviations on the paused pill's countdown ("4 min", "45 s").
   'core|pagination.minutes',
+  // The same abbreviations on the calendar's add and change forms ("30 min",
+  // "1 h 30 min"), and a line that is only its two slots ("4:00 PM · 2 hours").
+  'modules|calendar.eventForm.minutes',
+  'modules|calendar.eventForm.hoursMinutes',
+  'modules|calendar.eventForm.length30',
+  'modules|calendar.eventForm.endsLength',
+  'remote|calendarTab.form.minutes',
+  'remote|calendarTab.form.hoursMinutes',
+  'editor|settings.calendarPage.adding.length30',
+  // Product names over the two groups of calendars in Settings > Calendar.
+  'editor|settings.calendarPage.adding.groupGoogle',
+  'editor|settings.calendarPage.adding.groupICloud',
   'core|pagination.seconds',
   'core|meal.tags.snack',
   'editor|accentColorPicker.presets.cyan',
@@ -389,6 +401,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
+    // The calendar apps by their own names, as this language already writes them.
+    'remote|calendarTab.appleCalendar',
     // Standings column abbreviations, the 7D chart caption and "Final": the
     // short form this language uses is the English one.
     'modules|standings.columns.overtime',
@@ -502,6 +516,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'es-ES': new Set([
+    // The calendar apps by their own names, as this language already writes them.
+    'remote|calendarTab.googleCalendar',
+    'remote|calendarTab.appleCalendar',
     // Standings column abbreviations, the 7D chart caption and "Final": the
     // short form this language uses is the English one.
     'modules|sports.final',

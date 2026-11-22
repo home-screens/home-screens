@@ -740,7 +740,42 @@
         "show": "Wat er wordt getoond",
         "showDescription": "Grenzen waar elke agendamodule mee begint. Een module kan met eigen filters verder inperken."
       },
-      "description": "Koppel je agenda's, geef aan van wie ze zijn en stel in hoeveel elke agendamodule toont."
+      "description": "Koppel je agenda's, geef aan van wie ze zijn en stel in hoeveel elke agendamodule toont.",
+      "adding": {
+        "heading": "Afspraken toevoegen",
+        "description": "Voeg afspraken toe, wijzig ze of verwijder ze vanaf je telefoon en het wandscherm.",
+        "switch": "Laat Home Screens afspraken toevoegen en wijzigen",
+        "switchHelpBoth": "Voor Google-agenda's meld je je nog één keer aan bij Google. Voor iCloud-agenda's hoef je niets meer te doen. Het tonen van je agenda's blijft gewoon hetzelfde.",
+        "switchHelpGoogle": "Om dit toe te staan, meld je je nog één keer aan bij Google. Het tonen van je agenda's blijft gewoon hetzelfde.",
+        "switchHelpICloud": "Voor je iCloud-agenda's hoef je niets meer te doen. Ze worden gewoon op dezelfde manier getoond.",
+        "ready": "Aangemeld, je kunt afspraken toevoegen",
+        "signInTitle": "Nog één stap: meld je opnieuw aan bij Google",
+        "signInBody": "Google vraagt of Home Screens “Afspraken in al je agenda's bekijken en bewerken” mag. Er gaat een Google-tabblad open en daarna kom je vanzelf hier terug.",
+        "signInButton": "Aanmelden met Google",
+        "signInAgain": "Opnieuw aanmelden",
+        "signInFailed": "Aanmelden is niet gelukt. Probeer het opnieuw.",
+        "pastePlaceholder": "Plak de code van de aanmeldpagina",
+        "pasteButton": "Afronden",
+        "scopeMissingTitle": "Google gaf alleen toestemming om afspraken te tonen",
+        "scopeMissingBody": "Op de pagina van Google is het vakje bij “Afspraken in al je agenda's bekijken en bewerken” leeg gebleven, dus Home Screens kan je agenda's nog steeds alleen tonen. Meld je opnieuw aan en vink dat vakje aan.",
+        "webClientTitle": "Voeg eerst een Google-webaanmelding toe",
+        "webClientBody": "Afspraken toevoegen gebruikt dezelfde Google-webaanmelding als de import uit Google Foto's. Vul de Client-ID en het clientgeheim in bij API-sleutels en kom dan hier terug.",
+        "webClientLink": "API-sleutels openen",
+        "calendarsLabel": "Agenda's waar afspraken in kunnen komen",
+        "calendarsHelp": "Alleen agenda's die op de schermen te zien zijn, staan in de lijst. Zo komt een nieuwe afspraak nooit ergens terecht waar niemand hem ziet.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "In Google alleen te bekijken",
+        "fromContacts": "Komt uit Contacten",
+        "defaultLabel": "Nieuwe afspraken komen in",
+        "lengthLabel": "Normale duur",
+        "length30": "30 min",
+        "length60": "1 uur",
+        "length90": "1½ uur",
+        "length120": "2 uur",
+        "wallSwitch": "Laat het wandscherm afspraken toevoegen, wijzigen en verwijderen",
+        "wallHelp": "Alleen in de agenda's die je hierboven hebt aangevinkt. Verwijderen vraagt eerst of je het zeker weet. Op de eigen pagina van elk display kun je dit apart uitzetten."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Inbrandbescherming",
           "fullscreenTheme": "Thema",
           "sleep": "Slapen & dimmen",
-          "alerts": "Meldingsoverlay"
+          "alerts": "Meldingsoverlay",
+          "calendarWallEntry": "Afspraken toevoegen op dit scherm"
         },
         "chipValues": {
           "pauseOn": "Aan",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Maak er verbinding mee",
         "runLabel": "Voer dit dan uit",
         "connectUnknown": "Maak vanaf een terminal verbinding met de Pi van dit scherm (de gebruikersnaam is {user}) en voer dan uit:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Afspraken toevoegen, wijzigen en verwijderen op dit scherm",
+        "wallEntryToggle": "Toestaan op dit scherm",
+        "defaultsLabel": "Kalender"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Clientgeheim voor agenda",
         "clientSecretPlaceholder": "bijv. GOCSPX-…",
         "clientSecretHelp": "Het client secret van dezelfde OAuth-credential hierboven.",
-        "webClientIdLabel": "Client-ID voor foto-import",
-        "webClientIdHelp": "Voeg https://homescreens.dev/connect/google toe als toegestane redirect-URI.",
-        "webClientSecretLabel": "Clientgeheim voor foto-import",
+        "webClientIdLabel": "Client-ID voor webaanmelding",
+        "webClientIdHelp": "Nodig voor de import uit Google Foto's en voor het toevoegen van afspraken. Voeg https://homescreens.dev/connect/google toe als toegestane redirect-URI.",
+        "webClientSecretLabel": "Clientgeheim voor webaanmelding",
         "webClientSecretHelp": "Het clientgeheim van de webtoepassing-referentie hierboven.",
         "mapsKeyLabel": "Maps API-sleutel",
         "mapsKeyPlaceholder": "Plak je Google Maps API-sleutel",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Maak in de Google Cloud Console een OAuth-inlog van het type “TVs and Limited Input devices” en plak hier beide helften."
         },
         "photosBand": {
-          "title": "Voor het importeren van Google Foto’s",
-          "help": "Een aparte login, los van die voor de agenda, van het type “Web application”. Alleen nodig als je foto’s wilt ophalen. Zo niet, sla dit over.",
-          "helpOwnApp": "Een aparte login, los van die voor de agenda, van het type “Web application”."
+          "title": "Voor Google Foto’s en het toevoegen van afspraken",
+          "help": "Een aparte login, los van die voor de agenda, van het type “Web application”. Alleen nodig als je foto’s wilt ophalen of afspraken wilt toevoegen. Zo niet, sla dit over.",
+          "helpOwnApp": "Een aparte login, los van die voor de agenda, van het type “Web application”. Wordt gebruikt voor de import uit Google Foto’s en voor het toevoegen van afspraken."
         },
         "mapsBand": {
           "title": "Voor reistijden",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Een Todoist-taak afronden",
             "hint": "Een afgeronde taak kun je vanaf het wandscherm niet terugzetten."
+          },
+          "calendar-remove": {
+            "label": "Een afspraak uit de agenda verwijderen",
+            "hint": "Op het wandscherm, en op telefoons als Home Screens geen wachtwoord heeft."
+          },
+          "calendar-change-series": {
+            "label": "Alle keren van een terugkerende afspraak wijzigen",
+            "hint": "Als een wijziging voor elke keer geldt, niet alleen voor één dag."
           }
         },
         "unlockLabel": "Hoe lang het wandscherm ontgrendeld blijft",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Geavanceerd uiterlijk",
       "ruleCountNone": "geen",
       "ruleCountOne": "1 regel",
-      "ruleCountOther": "{count} regels"
+      "ruleCountOther": "{count} regels",
+      "addEvents": "Afspraken toevoegen bij een dag",
+      "addEventsHelp": "Toont \"Afspraak toevoegen\" als je op een dag tikt, en Wijzigen en Verwijderen bij een afspraak. Afspraken toevoegen moet aanstaan bij Instellingen > Kalender."
     },
     "fullscreen-weather": {
       "view": "Weergave",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Aanmelden geannuleerd",
     "cancelledBody": "Geen probleem. Begin opnieuw vanuit de editor wanneer je wilt.",
     "failedTitle": "Aanmelden kon niet worden afgerond",
-    "backToEditor": "Terug naar de editor"
+    "backToEditor": "Terug naar de editor",
+    "calendarConnectedTitle": "Home Screens kan afspraken toevoegen",
+    "calendarConnectedBody": "Ga terug naar Instellingen > Kalender om te kiezen in welke agenda's afspraken komen.",
+    "calendarReadOnlyBody": "Het vakje bij “Afspraken in al je agenda's bekijken en bewerken” is leeg gebleven. Meld je opnieuw aan via Instellingen > Kalender en vink het aan."
   },
   "conditionSummary": {
     "always": "altijd",

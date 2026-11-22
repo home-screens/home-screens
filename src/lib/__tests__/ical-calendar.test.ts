@@ -40,7 +40,7 @@ vi.mock('@/lib/url-safety', async () => ({
 }));
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { checkICalUrl, clearICalFeedCache, fetchICalEvents } from '@/lib/ical-calendar';
+import { checkICalUrl, clearICalFeedCache, fetchICalEvents, parseICSEvents } from '@/lib/ical-calendar';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
 
@@ -1104,5 +1104,43 @@ END:VCALENDAR`;
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(events.every((e) => e.calendarColor === '#22c55e')).toBe(true);
     });
+  });
+});
+
+// A changed day of a series can be all day while the series is timed, or the
+// other way round (Apple Calendar and Home Screens both write them).
+// node-ical times every changed day the series' way.
+describe('parseICSEvents: a changed day that is all day or timed unlike its series', () => {
+  const source = { id: 'src', name: 'Home', color: '#000' };
+  const doc = (master: string[], changed: string[]) => [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//t//EN',
+    'BEGIN:VEVENT', 'UID:soccer', 'DTSTAMP:20260101T000000Z', ...master, 'RRULE:FREQ=WEEKLY', 'SUMMARY:Soccer', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:soccer', 'DTSTAMP:20260101T000000Z', ...changed, 'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const window = [new Date('2026-11-13T00:00:00Z'), new Date('2026-11-30T00:00:00Z')] as const;
+
+  it('shows an all-day day of a timed series as all day', () => {
+    const text = doc(
+      ['DTSTART;TZID=America/Chicago:20261107T090000', 'DTEND;TZID=America/Chicago:20261107T100000'],
+      ['RECURRENCE-ID;TZID=America/Chicago:20261121T090000', 'DTSTART;VALUE=DATE:20261121', 'DTEND;VALUE=DATE:20261122', 'SUMMARY:Tournament'],
+    );
+    const events = parseICSEvents(text, source, ...window, 'America/Chicago');
+    expect(events.map((e) => [e.title, e.allDay, e.start, e.end])).toEqual([
+      ['Soccer', false, '2026-11-14T15:00:00.000Z', '2026-11-14T16:00:00.000Z'],
+      ['Tournament', true, '2026-11-21', '2026-11-22'],
+      ['Soccer', false, '2026-11-28T15:00:00.000Z', '2026-11-28T16:00:00.000Z'],
+    ]);
+    expect(events[1].id).toBe('src:soccer:2026-11-21');
+  });
+
+  it('keeps the times of a timed day of an all-day series', () => {
+    const text = doc(
+      ['DTSTART;VALUE=DATE:20261107', 'DTEND;VALUE=DATE:20261108'],
+      ['RECURRENCE-ID;VALUE=DATE:20261121', 'DTSTART;TZID=America/Chicago:20261121T130000', 'DTEND;TZID=America/Chicago:20261121T150000', 'SUMMARY:Final'],
+    );
+    const events = parseICSEvents(text, source, ...window, 'America/Chicago');
+    expect(events.find((e) => e.title === 'Final')).toMatchObject({ allDay: false, start: '2026-11-21T19:00:00.000Z', end: '2026-11-21T21:00:00.000Z' });
+    expect(events.filter((e) => e.title === 'Soccer').map((e) => e.start)).toEqual(['2026-11-14', '2026-11-28']);
   });
 });

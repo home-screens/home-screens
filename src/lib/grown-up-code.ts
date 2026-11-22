@@ -12,7 +12,7 @@
  */
 
 /** The jobs that can ask for the code, in the order Settings lists them. */
-export const GROWN_UP_ACTIONS = ['redeem', 'untick', 'todoist-close'] as const;
+export const GROWN_UP_ACTIONS = ['redeem', 'untick', 'todoist-close', 'calendar-remove', 'calendar-change-series'] as const;
 export type GrownUpAction = typeof GROWN_UP_ACTIONS[number];
 
 /** What a newly set code asks for: spending tickets, the one a kid most wants to do alone. */

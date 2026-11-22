@@ -139,7 +139,7 @@ export function updateConfigAtomic(
   // The Google app choice decides which grant the calendar reads with, so a
   // change is a sign-in change as far as the calendar route's cache and the
   // walls' heartbeat are concerned. Noted here, bumped once the write landed.
-  let googleAppChanged = false;
+  let calendarAnswerChanged = false;
   return configStore
     .updateAtomic(async (current) => {
       // Migrate-on-read inside the queue so the mutator always sees the
@@ -150,7 +150,10 @@ export function updateConfigAtomic(
       if (result === migrated && !wasMigrated) {
         return current;
       }
-      googleAppChanged = googleAppPreference(migrated.settings) !== googleAppPreference(result.settings);
+      calendarAnswerChanged = googleAppPreference(migrated.settings) !== googleAppPreference(result.settings)
+        // Which events may be changed is stamped into the calendar answer,
+        // which is cached per calendar revision.
+        || JSON.stringify(migrated.settings?.calendar?.eventEntry ?? null) !== JSON.stringify(result.settings?.calendar?.eventEntry ?? null);
       if (wasMigrated) {
         // A source/manual upgrade may reach this path without the updater's
         // snapshot step. Keep the exact original bytes before publishing any
@@ -167,7 +170,7 @@ export function updateConfigAtomic(
       // Invalidate the read cache even on the no-op path — cheaper
       // than detecting it, and a spurious re-read costs one disk hit.
       invalidateConfigReadCache();
-      if (googleAppChanged) bumpCalendarRevision();
+      if (calendarAnswerChanged) bumpCalendarRevision();
       return result;
     });
 }

@@ -71,6 +71,8 @@ describe('settings-form transforms', () => {
         daysAhead: 14,
         holidayCountry: 'US',
         hideDeclined: true,
+        eventEntry: { enabled: true, calendarIds: ['cal-a'], defaultCalendarId: 'cal-a', defaultMinutes: 90 },
+        wallEntry: false,
       },
       sleep: {
         sleepEnabled: true,

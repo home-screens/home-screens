@@ -740,7 +740,42 @@
         "show": "Quoi afficher",
         "showDescription": "Limites de départ pour chaque module calendrier. Un module peut affiner avec ses propres filtres."
       },
-      "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche."
+      "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche.",
+      "adding": {
+        "heading": "Ajouter des événements",
+        "description": "Ajoutez, modifiez et retirez des événements depuis votre téléphone et le mur.",
+        "switch": "Permettre à Home Screens d'ajouter et de modifier des événements",
+        "switchHelpBoth": "Pour les agendas Google, Google vous demande de vous reconnecter une fois. Les calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpGoogle": "Google vous demande de vous reconnecter une fois pour l'autoriser. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpICloud": "Vos calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, ils s'affichent comme avant.",
+        "ready": "Connecté, prêt à ajouter des événements",
+        "signInTitle": "Encore une étape : reconnectez-vous à Google",
+        "signInBody": "Google vous demandera d'autoriser Home Screens à « Afficher et modifier les événements de tous vos agendas ». Un onglet Google s'ouvre, puis vous revenez ici automatiquement.",
+        "signInButton": "Se connecter avec Google",
+        "signInAgain": "Se reconnecter",
+        "signInFailed": "Cette connexion n'a pas marché. Réessayez.",
+        "pastePlaceholder": "Collez le code de la page de connexion",
+        "pasteButton": "Terminer",
+        "scopeMissingTitle": "Google a seulement permis d'afficher les événements",
+        "scopeMissingBody": "Sur la page de Google, la case « Afficher et modifier les événements » n'a pas été cochée, donc Home Screens peut seulement afficher vos calendriers. Reconnectez-vous et cochez cette case.",
+        "webClientTitle": "D'abord, ajoutez une connexion Web Google",
+        "webClientBody": "L'ajout d'événements utilise la même connexion Web Google que l'import Google Photos. Ajoutez son ID client et son secret client, puis revenez ici.",
+        "webClientLink": "Ouvrir les clés API",
+        "calendarsLabel": "Calendriers qui peuvent recevoir des événements",
+        "calendarsHelp": "Seuls les calendriers affichés sur les écrans sont proposés, pour qu'un nouvel événement n'arrive jamais là où personne ne le voit.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Lecture seule dans Google",
+        "fromContacts": "Vient des Contacts",
+        "defaultLabel": "Les nouveaux événements vont dans",
+        "lengthLabel": "Durée habituelle",
+        "length30": "30 min",
+        "length60": "1 heure",
+        "length90": "1 h 30",
+        "length120": "2 heures",
+        "wallSwitch": "Permettre au mur d'ajouter, de modifier et de retirer des événements",
+        "wallHelp": "Seulement dans les calendriers cochés ci-dessus. Le mur demande toujours avant de retirer. Chaque affichage peut le désactiver sur sa propre page."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Protection contre le marquage",
           "fullscreenTheme": "Thème",
           "sleep": "Veille et atténuation",
-          "alerts": "Superposition d'alerte"
+          "alerts": "Superposition d'alerte",
+          "calendarWallEntry": "Ajout d'événements sur ce mur"
         },
         "chipValues": {
           "pauseOn": "Activé",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Connecte-toi dessus",
         "runLabel": "Puis lance ceci",
         "connectUnknown": "Connecte-toi au Pi de cet écran depuis un terminal (le nom d'utilisateur est {user}), puis lance :"
+      },
+      "calendar": {
+        "wallEntryLabel": "Ajouter, modifier et retirer des événements sur ce mur",
+        "wallEntryToggle": "Autoriser sur ce mur",
+        "defaultsLabel": "Calendrier"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Secret client pour l'agenda",
         "clientSecretPlaceholder": "ex. GOCSPX-…",
         "clientSecretHelp": "Le client secret du même identifiant OAuth ci-dessus.",
-        "webClientIdLabel": "ID client pour l'import de photos",
-        "webClientIdHelp": "Ajoutez https://homescreens.dev/connect/google comme URI de redirection autorisée.",
-        "webClientSecretLabel": "Secret client pour l'import de photos",
+        "webClientIdLabel": "ID client pour la connexion Web",
+        "webClientIdHelp": "L'import Google Photos et l'ajout d'événements au calendrier se connectent tous les deux avec cet identifiant. Ajoutez https://homescreens.dev/connect/google comme URI de redirection autorisée.",
+        "webClientSecretLabel": "Secret client pour la connexion Web",
         "webClientSecretHelp": "Le secret client de l'identifiant d'application Web ci-dessus.",
         "mapsKeyLabel": "Clé API Maps",
         "mapsKeyPlaceholder": "Colle ta clé API Google Maps",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Créez des identifiants OAuth de type « TVs and Limited Input devices » dans la Google Cloud Console, puis collez les deux moitiés ici."
         },
         "photosBand": {
-          "title": "Pour importer Google Photos",
-          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement si vous voulez importer des photos. Sinon, passez.",
-          "helpOwnApp": "Un identifiant distinct de celui de l'agenda, de type « Web application »."
+          "title": "Pour Google Photos et l'ajout d'événements",
+          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement pour importer des photos ou ajouter des événements au calendrier. Sinon, passez.",
+          "helpOwnApp": "Un identifiant distinct de celui de l'agenda, de type « Web application ». L'import Google Photos et l'ajout d'événements au calendrier s'en servent."
         },
         "mapsBand": {
           "title": "Pour les temps de trajet",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Terminer une tâche Todoist",
             "hint": "Une tâche terminée ne peut pas être rouverte depuis le mur."
+          },
+          "calendar-remove": {
+            "label": "Retirer un événement du calendrier",
+            "hint": "Sur le mur, et sur les téléphones quand Home Screens n'a pas de mot de passe."
+          },
+          "calendar-change-series": {
+            "label": "Modifier tous les jours d'un événement qui se répète",
+            "hint": "Quand la modification vaut pour toutes les fois, pas pour un seul jour."
           }
         },
         "unlockLabel": "Rester déverrouillé pendant",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Apparence avancée",
       "ruleCountNone": "aucune",
       "ruleCountOne": "1 règle",
-      "ruleCountOther": "{count} règles"
+      "ruleCountOther": "{count} règles",
+      "addEvents": "Ajouter des événements depuis un jour",
+      "addEventsHelp": "Affiche « Ajouter un événement » quand on touche un jour, ainsi que Modifier et Retirer sur un événement. L'ajout doit être activé dans Réglages > Calendrier."
     },
     "fullscreen-weather": {
       "view": "Vue",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Connexion annulée",
     "cancelledBody": "Pas de souci. Recommencez depuis l'éditeur quand vous voulez.",
     "failedTitle": "Impossible de terminer la connexion",
-    "backToEditor": "Retour à l'éditeur"
+    "backToEditor": "Retour à l'éditeur",
+    "calendarConnectedTitle": "Home Screens peut ajouter des événements",
+    "calendarConnectedBody": "Retournez dans Réglages > Calendrier pour choisir les calendriers qui reçoivent les événements.",
+    "calendarReadOnlyBody": "La case « Afficher et modifier les événements » n'a pas été cochée. Reconnectez-vous depuis Réglages > Calendrier et cochez-la."
   },
   "conditionSummary": {
     "always": "toujours",

@@ -18,7 +18,15 @@ const GOOGLE_EVENTS_PAGE_SIZE = 2500;
 
 /** Only the event fields read below, so Google sends nothing else. */
 const EVENT_FIELDS =
-  'items(id,summary,start,end,location,description,colorId,eventLabelId,attendees(self,responseStatus)),nextPageToken';
+  'items(id,etag,recurringEventId,summary,start,end,location,description,colorId,eventLabelId,attendees(self,responseStatus)),nextPageToken';
+
+/** The calendar access roles that may add, change and remove events. */
+const WRITABLE_ROLES = new Set(['owner', 'writer']);
+
+/** Whether a Google access role lets the account write events on that calendar. */
+export function isWritableRole(role: string | null | undefined): boolean {
+  return WRITABLE_ROLES.has(role ?? '');
+}
 
 // Calendar names and colors, the event color palette and each calendar's
 // label colors change rarely, and asking for them costs two calls plus one
@@ -30,6 +38,8 @@ const METADATA_TTL_MS = 60 * 60 * 1000;
 interface CalendarMetadata {
   colors: Map<string, string>;
   names: Map<string, string>;
+  /** Calendars this account may write events on (access role owner or writer). */
+  writable: Set<string>;
   /** Legacy event `colorId` values to their hex colors. */
   eventColors: Map<string, string>;
 }
@@ -52,6 +62,16 @@ export function clearGoogleCalendarCache(): void {
 }
 
 type GoogleAuthClient = NonNullable<Awaited<ReturnType<typeof getAuthenticatedClient>>>;
+
+/**
+ * The Calendar API client. `HS_GOOGLE_CALENDAR_API_URL` points it at a
+ * stand-in Google for E2E and sandbox hubs (e2e/helpers/fake-google-calendar.ts),
+ * the way `HS_GOOGLE_*_TOKEN_URL` points sign-ins at a local helper.
+ */
+export function calendarApi(auth: GoogleAuthClient): calendar_v3.Calendar {
+  const rootUrl = process.env.HS_GOOGLE_CALENDAR_API_URL?.trim();
+  return googleCalendar({ version: 'v3', auth, ...(rootUrl ? { rootUrl } : {}) });
+}
 
 function accountKey(auth: GoogleAuthClient): string {
   return createHash('sha256').update(auth.credentials.access_token ?? '').digest('hex');
@@ -84,10 +104,12 @@ function refreshMetadata(calendar: calendar_v3.Calendar, account: string, calend
     ]);
     const colors = new Map<string, string>();
     const names = new Map<string, string>();
+    const writable = new Set<string>();
     for (const cal of calListRes.data.items ?? []) {
       if (cal.id) {
         colors.set(cal.id, cal.backgroundColor ?? DEFAULT_EVENT_COLOR);
         names.set(cal.id, cal.summary ?? cal.id);
+        if (isWritableRole(cal.accessRole)) writable.add(cal.id);
       }
     }
     // Only the original 11 colors still carry a colorId; see
@@ -96,7 +118,7 @@ function refreshMetadata(calendar: calendar_v3.Calendar, account: string, calend
     for (const [id, color] of Object.entries(colorsRes.data.event ?? {})) {
       eventColors.set(id, color.background ?? DEFAULT_EVENT_COLOR);
     }
-    return { colors, names, eventColors };
+    return { colors, names, writable, eventColors };
   })();
   const entry: MetadataEntry = { account, at: Date.now(), asked: new Set(calendarIds), value };
   metadataCache = entry;
@@ -121,9 +143,9 @@ export async function fetchCalendarEvents(
     throw new SetupError('Not authenticated with Google. Sign in from the editor settings.', 'connection', 'Google Calendar');
   }
 
-  const calendar = googleCalendar({ version: 'v3', auth });
+  const calendar = calendarApi(auth);
   const account = accountKey(auth);
-  const { colors: calendarColorMap, names: calendarNameMap, eventColors: eventColorMap } =
+  const { colors: calendarColorMap, names: calendarNameMap, writable: writableCalendars, eventColors: eventColorMap } =
     await calendarMetadata(calendar, account, calendarIds);
 
   // Fetch events from all selected calendars in parallel; one broken
@@ -160,6 +182,8 @@ export async function fetchCalendarEvents(
       const labelColors = await labelColorsPromise;
       const calColor = calendarColorMap.get(calendarId) ?? DEFAULT_EVENT_COLOR;
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
+      // Birthdays come from Contacts and can never be changed here.
+      const writable = writableCalendars.has(calendarId) && calendarId !== GOOGLE_BIRTHDAYS_CALENDAR_ID;
       const items = hideDeclined
         ? raw.filter((event) => event.attendees?.find((a) => a.self)?.responseStatus !== 'declined')
         : raw;
@@ -183,6 +207,10 @@ export async function fetchCalendarEvents(
         sourceId: calendarId,
         sourceName: calName,
         ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
+        // Only a real event id can be written back; the made-up fallback id above cannot.
+        ...(writable && event.id ? { writable: true } : {}),
+        ...(event.recurringEventId ? { repeats: true, seriesId: event.recurringEventId } : {}),
+        ...(event.etag ? { etag: event.etag } : {}),
       }));
       return { events: calEvents, results: [{ id: calendarId, name: calName, ok: true }] };
     },
@@ -226,4 +254,23 @@ async function fetchEventLabelColors(
   }
   labelColorCache.set(calendarId, { account, at: Date.now(), colors });
   return colors;
+}
+
+/**
+ * Names, colors and whether this account may write, for the given calendars,
+ * from the same hourly cache the event fetch uses. Empty when Google is not
+ * signed in.
+ */
+export async function googleCalendarLabels(
+  calendarIds: string[],
+): Promise<Map<string, { name: string; color: string; writable: boolean }>> {
+  const auth = await getAuthenticatedClient();
+  if (!auth || calendarIds.length === 0) return new Map();
+  const calendar = calendarApi(auth);
+  const meta = await calendarMetadata(calendar, accountKey(auth), calendarIds);
+  return new Map(calendarIds.map((id) => [id, {
+    name: meta.names.get(id) ?? id,
+    color: meta.colors.get(id) ?? DEFAULT_EVENT_COLOR,
+    writable: meta.writable.has(id),
+  }]));
 }

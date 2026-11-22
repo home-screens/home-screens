@@ -54,6 +54,30 @@
       "tooDeep": "Les dossiers ne peuvent avoir que {max} niveaux.",
       "folderExists": "Il y a déjà un dossier appelé {name} ici.",
       "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord."
+    },
+    "calendarWrite": {
+      "titleRequired": "Donne un nom à l'événement.",
+      "titleTooLong": "Le nom d'un événement peut avoir {max} caractères au maximum.",
+      "placeTooLong": "Un lieu peut avoir {max} caractères au maximum.",
+      "badDate": "Ce jour ne semble pas correct.",
+      "dayTooFar": "Un événement doit commencer à moins de {years} ans d'aujourd'hui.",
+      "badTime": "Cette heure ne semble pas correcte.",
+      "endsWhenItStarts": "Il se termine au moment où il commence. Choisis une fin après le début.",
+      "lastDayBeforeFirst": "Le dernier jour est avant le premier.",
+      "tooManyDays": "Un événement sur toute la journée peut durer {max} jours au maximum.",
+      "badRepeat": "Home Screens ne sait pas régler cette répétition.",
+      "weekdaysOnWeekend": "Pour se répéter en semaine, l'événement doit commencer un jour de semaine.",
+      "repeatEndsBeforeStart": "Il s'arrête avant de commencer.",
+      "repeatTooLong": "Une répétition peut durer {years} ans au maximum.",
+      "repeatNeedsEveryTime": "Un changement de répétition vaut pour toutes les fois.",
+      "notOffered": "L'ajout d'événements n'est pas activé pour le moment.",
+      "calendarNotTicked": "Les événements ne peuvent pas aller dans ce calendrier.",
+      "notEditable": "Cet événement ne peut pas être modifié ici.",
+      "changedElsewhere": "Quelqu'un vient de modifier cet événement.",
+      "gone": "Cet événement a déjà été retiré.",
+      "notAllowed": "Ce calendrier ne peut pas être modifié depuis Home Screens.",
+      "signInNeeded": "Il faut se reconnecter au calendrier. C'est dans Réglages > Calendrier.",
+      "unreachable": "Impossible de joindre le calendrier, donc rien n'a encore changé. Réessaie dans une minute."
     }
   },
   "today": "Aujourd'hui",
@@ -667,7 +691,9 @@
         "other": "Pour dépenser {count} tickets de {member} pour {reward}"
       },
       "untick": "Pour décocher {chore} pour {member}",
-      "todoistClose": "Pour terminer {task}"
+      "todoistClose": "Pour terminer {task}",
+      "calendarRemove": "Pour retirer {title}",
+      "calendarChangeSeries": "Pour modifier tous les jours de {title}"
     },
     "wrong": "Ce n'est pas le bon code. Réessaie.",
     "tooMany": {
@@ -680,5 +706,31 @@
       "other": "Déverrouillé encore {count} minutes"
     },
     "lockNow": "Verrouiller maintenant"
+  },
+  "calendarRepeat": {
+    "none": "Ne se répète pas",
+    "daily": "Tous les jours",
+    "weekdays": "Tous les jours de semaine",
+    "weekdaysHint": "Du lundi au vendredi",
+    "weekly": "Toutes les semaines le {weekday}",
+    "biweekly": "Toutes les 2 semaines le {weekday}",
+    "monthly": "Tous les mois le {day}",
+    "yearly": "Tous les ans le {date}",
+    "until": "{rule}, jusqu'au {date}",
+    "other": "Se répète d'une façon réglée ailleurs",
+    "short": {
+      "daily": "Tous les jours",
+      "weekdays": "En semaine",
+      "weekly": "Toutes les semaines",
+      "biweekly": "Toutes les 2 semaines",
+      "monthly": "Tous les mois",
+      "yearly": "Tous les ans"
+    }
+  },
+  "calendarChange": {
+    "thisDayStays": "{day}. Les autres jours restent.",
+    "everyTimePastFuture": "Toutes les fois, passées et à venir",
+    "askBody": "Modifier seulement ce jour-là, ou toutes les fois ?",
+    "everyTimeFromFirst": "Toutes les fois, depuis la première"
   }
 }

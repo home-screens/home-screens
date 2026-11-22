@@ -206,6 +206,9 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
   { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },
+  // The rows under it (which calendars, where new events go, usual length,
+  // the walls' switch) only show while it is on, so searches for them land here.
+  { pageId: 'calendar', fieldId: 'calendar.eventEntry', labelKey: 'settings.calendarPage.adding.switch', keywordKeys: ['settings.calendarPage.adding.heading', 'settings.calendarPage.adding.wallSwitch', 'settings.calendarPage.adding.defaultLabel', 'settings.calendarPage.adding.lengthLabel'], keywords: ['add event', 'new event', 'edit event', 'change event', 'remove event', 'write', 'wall', 'repeat'] },
 
   { pageId: 'family', fieldId: 'family.grabLimit', labelKey: 'settings.familyPage.chores.grabLimitLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'grab limit', 'up for grabs', 'chores', 'chore settings', 'extra tickets', 'at once'] },
   { pageId: 'family', fieldId: 'family.grabHold', labelKey: 'settings.familyPage.chores.grabHoldLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'up for grabs', 'chores', 'chore settings', 'bedtime', 'extra tickets', 'comes back'] },

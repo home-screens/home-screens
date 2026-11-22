@@ -740,7 +740,42 @@
         "show": "Qué mostrar",
         "showDescription": "Límites de los que parte cada módulo de calendario. Un módulo puede acotar más con sus propios filtros."
       },
-      "description": "Conecta tus calendarios, indica a quién pertenece cada uno y ajusta cuánto muestra cada módulo de calendario."
+      "description": "Conecta tus calendarios, indica a quién pertenece cada uno y ajusta cuánto muestra cada módulo de calendario.",
+      "adding": {
+        "heading": "Añadir eventos",
+        "description": "Añade, cambia y quita eventos desde el teléfono y la pared.",
+        "switch": "Dejar que Home Screens añada y cambie eventos",
+        "switchHelpBoth": "Para los calendarios de Google, Google te pedirá que inicies sesión una vez más. Los de iCloud no necesitan nada más. Tus calendarios se ven igual que siempre, lo actives o no.",
+        "switchHelpGoogle": "Google te pedirá que inicies sesión una vez más para permitirlo. Tus calendarios se ven igual que siempre, lo actives o no.",
+        "switchHelpICloud": "Tus calendarios de iCloud no necesitan nada más. Se ven igual que siempre, lo actives o no.",
+        "ready": "Sesión iniciada: ya se pueden añadir eventos",
+        "signInTitle": "Un paso más: vuelve a iniciar sesión en Google",
+        "signInBody": "Google te preguntará si Home Screens puede «Ver y editar eventos de todos tus calendarios». Se abrirá una pestaña de Google y después volverás aquí automáticamente.",
+        "signInButton": "Iniciar sesión con Google",
+        "signInAgain": "Volver a iniciar sesión",
+        "signInFailed": "Ese inicio de sesión no ha funcionado. Inténtalo de nuevo.",
+        "pastePlaceholder": "Pega el código de la página de inicio de sesión",
+        "pasteButton": "Terminar",
+        "scopeMissingTitle": "Google solo ha dejado mostrar los eventos",
+        "scopeMissingBody": "En la página de Google, la casilla de «Ver y editar eventos» se quedó sin marcar, así que Home Screens todavía solo puede mostrar tus calendarios. Vuelve a iniciar sesión y marca esa casilla.",
+        "webClientTitle": "Primero, añade un acceso web de Google",
+        "webClientBody": "Para añadir eventos se inicia sesión con el mismo acceso web de Google que usa la importación de Google Fotos. Añade su ID de cliente y su secreto, y luego vuelve aquí.",
+        "webClientLink": "Abrir Claves de API",
+        "calendarsLabel": "Calendarios en los que se pueden poner eventos",
+        "calendarsHelp": "Solo salen los calendarios que muestran las pantallas, para que un evento nuevo nunca acabe donde nadie lo ve.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "En Google solo se puede ver",
+        "fromContacts": "Viene de Contactos",
+        "defaultLabel": "Los eventos nuevos van a",
+        "lengthLabel": "Duración habitual",
+        "length30": "30 min",
+        "length60": "1 hora",
+        "length90": "1 hora y media",
+        "length120": "2 horas",
+        "wallSwitch": "Dejar que la pared añada, cambie y quite eventos",
+        "wallHelp": "Solo en los calendarios marcados arriba. Antes de quitar un evento, siempre pregunta. Cada display puede desactivarlo en su propia página."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Protección contra el quemado",
           "fullscreenTheme": "Tema",
           "sleep": "Suspensión y atenuación",
-          "alerts": "Superposición de avisos"
+          "alerts": "Superposición de avisos",
+          "calendarWallEntry": "Añadir eventos en esta pared"
         },
         "chipValues": {
           "pauseOn": "Sí",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Conéctate a ella",
         "runLabel": "Luego ejecuta esto",
         "connectUnknown": "Conéctate a la Pi de esta pantalla desde un terminal (el usuario es {user}) y luego ejecuta:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Añadir, cambiar y quitar eventos en esta pared",
+        "wallEntryToggle": "Permitirlo en esta pared",
+        "defaultsLabel": "Calendario"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Secreto de cliente para el calendario",
         "clientSecretPlaceholder": "p. ej. GOCSPX-...",
         "clientSecretHelp": "El client secret de la misma credencial OAuth de arriba.",
-        "webClientIdLabel": "ID de cliente para importar fotos",
-        "webClientIdHelp": "Añade https://homescreens.dev/connect/google como URI de redirección autorizada.",
-        "webClientSecretLabel": "Secreto de cliente para importar fotos",
+        "webClientIdLabel": "ID de cliente del acceso web",
+        "webClientIdHelp": "Se usa para iniciar sesión al importar de Google Fotos y al añadir eventos al calendario. Añade https://homescreens.dev/connect/google como URI de redirección autorizada.",
+        "webClientSecretLabel": "Secreto de cliente del acceso web",
         "webClientSecretHelp": "El secreto de cliente de la credencial de aplicación web de arriba.",
         "mapsKeyLabel": "Clave de API de Maps",
         "mapsKeyPlaceholder": "Pega tu clave de API de Google Maps",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Crea una credencial OAuth del tipo «TVs and Limited Input devices» en la Google Cloud Console y pega aquí las dos mitades."
         },
         "photosBand": {
-          "title": "Para importar Google Fotos",
-          "help": "Un acceso distinto al del calendario, del tipo «Web application». Solo hace falta si quieres traer fotos. Si no, sáltatelo.",
-          "helpOwnApp": "Un acceso distinto al del calendario, del tipo «Web application»."
+          "title": "Para Google Fotos y para añadir eventos",
+          "help": "Un acceso distinto al del calendario, del tipo «Web application». Solo hace falta si quieres traer fotos o añadir eventos al calendario. Si no, sáltatelo.",
+          "helpOwnApp": "Un acceso distinto al del calendario, del tipo «Web application». Se usa al importar de Google Fotos y al añadir eventos al calendario."
         },
         "mapsBand": {
           "title": "Para los tiempos de trayecto",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Completar una tarea de Todoist",
             "hint": "Una tarea completada no se puede volver a abrir desde la pared."
+          },
+          "calendar-remove": {
+            "label": "Quitar un evento del calendario",
+            "hint": "En la pared, y en los teléfonos cuando Home Screens no tiene contraseña."
+          },
+          "calendar-change-series": {
+            "label": "Cambiar todos los días de un evento que se repite",
+            "hint": "Cuando el cambio vale para todas las veces, no solo para un día."
           }
         },
         "unlockLabel": "Desbloqueado durante",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Aspecto avanzado",
       "ruleCountNone": "ninguna",
       "ruleCountOne": "1 regla",
-      "ruleCountOther": "{count} reglas"
+      "ruleCountOther": "{count} reglas",
+      "addEvents": "Añadir eventos al tocar un día",
+      "addEventsHelp": "Muestra «Añadir evento» al tocar un día, y «Cambiar» y «Quitar» en cada evento. Antes hay que activarlo en Ajustes > Calendario."
     },
     "fullscreen-weather": {
       "view": "Vista",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Se ha cancelado el inicio de sesión",
     "cancelledBody": "No pasa nada. Vuelve a empezar desde el editor cuando quieras.",
     "failedTitle": "No se pudo terminar de iniciar sesión",
-    "backToEditor": "Volver al editor"
+    "backToEditor": "Volver al editor",
+    "calendarConnectedTitle": "Home Screens ya puede añadir eventos",
+    "calendarConnectedBody": "Vuelve a Ajustes > Calendario para elegir en qué calendarios van los eventos.",
+    "calendarReadOnlyBody": "La casilla de «Ver y editar eventos» se quedó sin marcar. Vuelve a iniciar sesión desde Ajustes > Calendario y márcala."
   },
   "conditionSummary": {
     "always": "siempre",

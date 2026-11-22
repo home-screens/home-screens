@@ -6,13 +6,17 @@ import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from '@/lib/oauth-d
 import { requestDeviceCodeGrant } from '@/lib/oauth-form-post';
 import { logger } from '@/lib/logger';
 import { bumpCalendarRevision } from '@/lib/calendar-revision';
+import { hostedEventsEnabled } from '@/lib/google-hosted';
+import { GOOGLE_EVENTS_SCOPE, googleEntryState, grantedScopes, type GoogleEntryState } from '@/lib/calendar-write';
+import { redeemWebSignIn, webSignInLink, type WebSignInLink, type WebSignInResult } from '@/lib/google-web-sign-in';
 
 const log = logger('google-auth');
 
 /** Google Calendar auth: the OAuth device-code flow lives here; holding the
  *  grant (persistence, proactive refresh, revocation) lives in the shared
  *  google-token-store, which the Google Photos importer also uses. */
-const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
+const READ_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+const SCOPES = [READ_SCOPE];
 
 // ── Device Flow ──────────────────────────────────────────────────────
 // Google's device authorization endpoint (no redirect URI needed)
@@ -150,4 +154,51 @@ export async function hasGoogleCredentials(): Promise<boolean> {
 /** Which app Calendar signs in with; the editor shows its new sign-in screens only for Home Screens' app. */
 export async function getCalendarSignInMode(): Promise<GoogleClientMode | null> {
   return store.getMode();
+}
+
+// ── Web sign-in, for adding events ────────────────────────────────────
+
+/**
+ * The Google sign-in link that lets Home Screens add and change events: the
+ * web sign-in Google Photos import uses, asking to read calendars and to
+ * "View and edit events". The short code cannot ask for that.
+ */
+export async function getCalendarWebAuthUrl(hubAddress: string | null = null): Promise<WebSignInLink> {
+  return webSignInLink({ store, kind: 'web', scopes: [READ_SCOPE, GOOGLE_EVENTS_SCOPE], hubAddress, purpose: 'calendar' });
+}
+
+export type CalendarWebSignInResult =
+  /** `canAddEvents` is false when Google's "View and edit events" box was left empty. */
+  | { ok: true; canAddEvents: boolean }
+  | Extract<WebSignInResult, { ok: false }>;
+
+/** Redeem a Calendar web sign-in code. It replaces the short-code sign-in; showing calendars carries on with it. */
+export async function exchangeCalendarWebCode(pasted: string, state?: string): Promise<CalendarWebSignInResult> {
+  const result = await redeemWebSignIn({ store, kind: 'web', pasted, state, purpose: 'calendar' });
+  if (!result.ok) return result;
+  bumpCalendarRevision();
+  return { ok: true, canAddEvents: grantedScopes(result.scope).includes(GOOGLE_EVENTS_SCOPE) };
+}
+
+/**
+ * Where adding Google events stands on this hub (`googleEntryState`). A
+ * sign-in from the other app counts as none, the way showing calendars
+ * treats it.
+ */
+export async function getGoogleEntryState(settingOn: boolean): Promise<GoogleEntryState> {
+  const [clientMode, webClientSaved, connected, tokens] = await Promise.all([
+    store.getMode(),
+    store.hasCredentials('web'),
+    store.isConnected(),
+    store.loadTokens(),
+  ]);
+  return googleEntryState({
+    settingOn,
+    clientMode,
+    hostedEventsEnabled: hostedEventsEnabled(),
+    webClientSaved,
+    grant: connected && tokens
+      ? { kind: tokens.client_kind === 'web' ? 'web' : 'device', scopes: grantedScopes(tokens.scope) }
+      : null,
+  });
 }

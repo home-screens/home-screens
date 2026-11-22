@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { confirmHubAddress, type HubRequestHost } from '../google-picker-sign-in';
+import { confirmHubAddress, type HubRequestHost } from '../google-web-sign-in';
 
 const direct = (host: string | null, forwardedHost: string | null = null): HubRequestHost => ({
   host,

@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
-import { Clock, MapPin, CalendarDays } from 'lucide-react';
+import { Clock, MapPin, CalendarDays, Pencil, Repeat, Trash2 } from 'lucide-react';
 import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDayRange, formatRelativeTime, fullDateHeading } from '@/i18n';
@@ -10,6 +11,7 @@ import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { WallOverlay, WallSheetPanel } from './WallOverlay';
 import { wallPressProps } from './wallPress';
+import { WallAskInSheet } from './WallAskInSheet';
 
 // A kiosk nobody is standing at must not show an event detail forever.
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
@@ -77,6 +79,15 @@ interface EventDetailOverlayProps {
   /** Display timezone; event times are read on the same wall clock as `now`. */
   timezone?: string;
   now: Date;
+  /**
+   * Change and Remove, shown only for an event this wall may change.
+   * Remove asks inside the sheet first; `onRemove` answers whether
+   * it went through, so the sheet can stay open with its words when it did not.
+   */
+  actions?: {
+    onChange: () => void;
+    onRemove: (scope: 'instance' | 'series') => Promise<boolean>;
+  };
   onClose: () => void;
 }
 
@@ -88,10 +99,12 @@ interface EventDetailOverlayProps {
  * with the actual viewport. The scrim keeps the tapped view visible
  * underneath for context.
  */
-export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, timezone, now, onClose }: EventDetailOverlayProps) {
+export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, timezone, now, actions, onClose }: EventDetailOverlayProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const description = sanitizeEventDescription(event.description);
   const start = parseEventWallTime(event.start, timezone);
@@ -198,14 +211,70 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
         </div>
       )}
 
-      <button
+      {event.repeats && infoRow(<Repeat strokeWidth={2.2} style={iconStyle} aria-hidden="true" />, t('event-detail.repeats'))}
+
+      {actions && asking && (
+        <WallAskInSheet
+          testId="event-detail-remove-ask"
+          theme={theme}
+          accentColor={accentColor}
+          busy={busy}
+          title={t('event-detail.removeTitle', { title: event.title })}
+          body={t('event-detail.removeBody', { calendar: event.sourceName ?? '' })}
+          cancelLabel={t('event-detail.keepIt')}
+          choices={event.repeats
+            ? [
+              { id: 'instance', label: t('event-detail.justThisDay'), detail: tCore('calendarChange.thisDayStays', { day: fullDateHeading(start, locale) }), tone: 'danger' },
+              { id: 'series', label: t('event-detail.everyTime'), detail: tCore('calendarChange.everyTimePastFuture'), tone: 'dangerFill' },
+            ]
+            : [{ id: 'instance', label: t('event-detail.remove'), tone: 'dangerFill' }]}
+          onPick={async (id) => {
+            setBusy(true);
+            const removed = await actions.onRemove(id === 'series' ? 'series' : 'instance');
+            setBusy(false);
+            if (removed) onClose();
+          }}
+          onCancel={() => setAsking(false)}
+        />
+      )}
+
+      {actions && !asking && (
+        <div style={{ display: 'flex', gap: 16, marginTop: 'clamp(24px, 4vmin, 44px)' }}>
+          {[
+            { id: 'change', label: t('event-detail.change'), icon: <Pencil strokeWidth={2.4} aria-hidden="true" style={{ width: 'clamp(18px, 3vmin, 32px)', height: 'clamp(18px, 3vmin, 32px)' }} />, onClick: actions.onChange, danger: false },
+            { id: 'remove', label: t('event-detail.remove'), icon: <Trash2 strokeWidth={2.4} aria-hidden="true" style={{ width: 'clamp(18px, 3vmin, 32px)', height: 'clamp(18px, 3vmin, 32px)' }} />, onClick: () => setAsking(true), danger: true },
+          ].map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              {...wallPressProps}
+              data-testid={`event-detail-${b.id}`}
+              onClick={b.onClick}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(8px, 1.3vmin, 14px)',
+                minHeight: 'max(44px, clamp(56px, 8.2vmin, 88px))', borderRadius: 18, fontFamily: 'inherit', cursor: 'pointer',
+                fontSize: 'clamp(16px, 2.8vmin, 30px)', fontWeight: 600,
+                background: b.danger ? 'transparent' : theme.surfaceAlt,
+                border: b.danger ? `2px solid color-mix(in srgb, ${theme.isDark ? '#f87171' : '#b91c1c'} 40%, transparent)` : `1px solid ${theme.border}`,
+                color: b.danger ? (theme.isDark ? '#f87171' : '#b91c1c') : theme.text,
+              }}
+            >
+              {b.icon}{b.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Close keeps its own row under Change and Remove, so a tap meant for
+          Close can never land on Remove. */}
+      {!asking && <button
         type="button"
         {...wallPressProps}
         onClick={onClose}
         style={{
           display: 'block',
           width: '100%',
-          marginTop: 'clamp(24px, 4vmin, 44px)',
+          marginTop: actions ? 16 : 'clamp(24px, 4vmin, 44px)',
           background: theme.surfaceAlt,
           border: `1px solid ${theme.border}`,
           color: theme.text,
@@ -220,7 +289,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
         }}
       >
         {t('event-detail.close')}
-      </button>
+      </button>}
     </div>
   );
 

@@ -212,6 +212,15 @@
           "default": true
         },
         {
+          "name": "addEvents",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show \"Add event\" when a day is tapped, and Change and Remove on an event, once adding events is on in the Calendar settings. Absent means on"
+        },
+        {
           "name": "eventTapStyle",
           "optional": true,
           "type": {
@@ -2378,6 +2387,15 @@
           },
           "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
           "default": true
+        },
+        {
+          "name": "addEvents",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show \"Add event\" when a day is tapped, and Change and Remove on an event, once adding events is on in the Calendar settings. Absent means on"
         },
         {
           "name": "eventTapStyle",
@@ -7948,6 +7966,16 @@
           "defaultText": "false"
         },
         {
+          "name": "calendarWallEntry",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Let the walls add, change and remove calendar events too, once adding events is on in the Calendar settings. Each display can turn this off for itself",
+          "defaultText": "true"
+        },
+        {
           "name": "backupReminder",
           "optional": true,
           "type": {
@@ -8359,6 +8387,15 @@
             "text": "boolean"
           },
           "description": "Google only: skip events the signed-in account declined"
+        },
+        {
+          "name": "eventEntry",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "CalendarEventEntry"
+          },
+          "description": "Adding, changing and removing events from the phone and the wall (see CalendarEventEntry). Absent means off"
         }
       ]
     },
@@ -10002,6 +10039,15 @@
             "text": "AlertSettings"
           },
           "description": "Alert overlay, replacing the shared object as a whole"
+        },
+        {
+          "name": "calendarWallEntry",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Add, change and remove calendar events on this wall"
         }
       ]
     },
@@ -11113,6 +11159,15 @@
       ]
     },
     {
+      "path": "/api/auth/google/return",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/auth/google/status",
       "methods": [
         {
@@ -11121,6 +11176,19 @@
         },
         {
           "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/google/web",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        },
+        {
+          "method": "POST",
           "access": "session"
         }
       ]
@@ -11413,6 +11481,41 @@
         {
           "method": "POST",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/entry",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/events",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/events/{id}",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "PATCH",
+          "access": "display"
+        },
+        {
+          "method": "DELETE",
+          "access": "display"
         }
       ]
     },

@@ -740,7 +740,42 @@
         "show": "Hvad der vises",
         "showDescription": "Grænser som alle kalendermoduler starter fra. Et modul kan indsnævre yderligere med egne filtre."
       },
-      "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser."
+      "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser.",
+      "adding": {
+        "heading": "Tilføj begivenheder",
+        "description": "Tilføj, ændr og fjern begivenheder fra din telefon og fra væggen.",
+        "switch": "Lad Home Screens tilføje og ændre begivenheder",
+        "switchHelpBoth": "Til Google-kalendere beder Google dig om at logge ind én gang til. For iCloud-kalendere skal du ikke gøre mere. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpGoogle": "Google beder dig om at logge ind én gang til for at give lov. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpICloud": "For dine iCloud-kalendere skal du ikke gøre mere. De vises på samme måde, uanset om det er slået til eller ej.",
+        "ready": "Logget ind og klar til at tilføje begivenheder",
+        "signInTitle": "Et trin mere: log ind med Google igen",
+        "signInBody": "Google beder dig om at give Home Screens lov til at “Se og redigere begivenheder i alle dine kalendere”. Der åbnes en Google-fane, og bagefter kommer du automatisk tilbage hertil.",
+        "signInButton": "Log ind med Google",
+        "signInAgain": "Log ind igen",
+        "signInFailed": "Det login virkede ikke. Prøv igen.",
+        "pastePlaceholder": "Indsæt koden fra login-siden",
+        "pasteButton": "Afslut",
+        "scopeMissingTitle": "Google gav kun lov til at vise begivenheder",
+        "scopeMissingBody": "På Googles side blev der ikke sat kryds ved “Se og redigere begivenheder”, så Home Screens kan stadig kun vise dine kalendere. Log ind igen, og sæt kryds der.",
+        "webClientTitle": "Tilføj først et Google-weblogin",
+        "webClientBody": "Når du tilføjer begivenheder, logger Home Screens ind med det samme Google-weblogin, som import fra Google Fotos bruger. Tilføj dets klient-id og klienthemmelighed, og kom så tilbage hertil.",
+        "webClientLink": "Åbn API-nøgler",
+        "calendarsLabel": "Kalendere, som begivenheder kan lægges i",
+        "calendarsHelp": "Kun kalendere, som skærmene viser, er med på listen, så en ny begivenhed aldrig havner et sted, hvor ingen ser den.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Kan ikke ændres i Google",
+        "fromContacts": "Kommer fra Kontakter",
+        "defaultLabel": "Nye begivenheder kommer i",
+        "lengthLabel": "Normal længde",
+        "length30": "30 min",
+        "length60": "1 time",
+        "length90": "1½ time",
+        "length120": "2 timer",
+        "wallSwitch": "Lad væggen tilføje, ændre og fjerne begivenheder",
+        "wallHelp": "Kun i de kalendere, der er sat kryds ved ovenfor. Væggen spørger, før noget bliver fjernet. Hver skærm kan slå det fra på sin egen side."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Beskyttelse mod indbrænding",
           "fullscreenTheme": "Tema",
           "sleep": "Slumring & dæmpning",
-          "alerts": "Beskeder på skærmen"
+          "alerts": "Beskeder på skærmen",
+          "calendarWallEntry": "Tilføj begivenheder på denne væg"
         },
         "chipValues": {
           "pauseOn": "Til",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Forbind til den",
         "runLabel": "Kør så dette",
         "connectUnknown": "Forbind til skærmens Pi fra en terminal (brugernavnet er {user}), og kør så:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Tilføj, ændr og fjern begivenheder på denne væg",
+        "wallEntryToggle": "Tillad det på denne væg",
+        "defaultsLabel": "Kalender"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Klienthemmelighed til kalender",
         "clientSecretPlaceholder": "f.eks. GOCSPX-…",
         "clientSecretHelp": "Klienthemmeligheden fra det samme OAuth-id ovenfor.",
-        "webClientIdLabel": "Klient-id til foto-import",
-        "webClientIdHelp": "Tilføj https://homescreens.dev/connect/google som godkendt redirect-URI.",
-        "webClientSecretLabel": "Klienthemmelighed til foto-import",
+        "webClientIdLabel": "Klient-id til weblogin",
+        "webClientIdHelp": "Bruges både til import fra Google Fotos og til at tilføje begivenheder i kalenderen. Tilføj https://homescreens.dev/connect/google som godkendt redirect-URI.",
+        "webClientSecretLabel": "Klienthemmelighed til weblogin",
         "webClientSecretHelp": "Klienthemmeligheden fra webapplikations-id’et ovenfor.",
         "mapsKeyLabel": "Maps-API-nøgle",
         "mapsKeyPlaceholder": "Indsæt din Google Maps-API-nøgle",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Opret en OAuth-adgang af typen “TVs and Limited Input devices” i Google Cloud Console, og indsæt så begge dele her."
         },
         "photosBand": {
-          "title": "Til import fra Google Fotos",
-          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind. Ellers spring det over.",
-          "helpOwnApp": "Et separat login fra kalenderens, af typen “Web application”."
+          "title": "Til Google Fotos og til at tilføje begivenheder",
+          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind eller tilføje begivenheder i kalenderen. Ellers spring det over.",
+          "helpOwnApp": "Et separat login fra kalenderens, af typen “Web application”. Det bruges til import fra Google Fotos og til at tilføje begivenheder i kalenderen."
         },
         "mapsBand": {
           "title": "Til køretider",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Markere en Todoist-opgave som klaret",
             "hint": "Det kan ikke fortrydes fra væggen."
+          },
+          "calendar-remove": {
+            "label": "Fjerne en begivenhed fra kalenderen",
+            "hint": "På væggen og på telefoner, når Home Screens ikke har en adgangskode."
+          },
+          "calendar-change-series": {
+            "label": "Ændre alle dagene for en begivenhed, der gentages",
+            "hint": "Når en ændring gælder alle gange, ikke kun én dag."
           }
         },
         "unlockLabel": "Hold væggen låst op i",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Avanceret udseende",
       "ruleCountNone": "ingen",
       "ruleCountOne": "1 regel",
-      "ruleCountOther": "{count} regler"
+      "ruleCountOther": "{count} regler",
+      "addEvents": "Tilføj begivenheder fra en dag",
+      "addEventsHelp": "Viser \"Tilføj begivenhed\", når man trykker på en dag, og Ændr og Fjern på en begivenhed. Det skal først slås til under Indstillinger > Kalender."
     },
     "fullscreen-weather": {
       "view": "Visning",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Login blev annulleret",
     "cancelledBody": "Det gør ikke noget. Du kan starte forfra i editoren, når du har lyst.",
     "failedTitle": "Login kunne ikke afsluttes",
-    "backToEditor": "Tilbage til editoren"
+    "backToEditor": "Tilbage til editoren",
+    "calendarConnectedTitle": "Home Screens kan nu tilføje begivenheder",
+    "calendarConnectedBody": "Gå tilbage til Indstillinger > Kalender for at vælge, hvilke kalendere nye begivenheder skal lægges i.",
+    "calendarReadOnlyBody": "Der blev ikke sat kryds ved “Se og redigere begivenheder”. Log ind igen under Indstillinger > Kalender, og sæt kryds der."
   },
   "conditionSummary": {
     "always": "altid",

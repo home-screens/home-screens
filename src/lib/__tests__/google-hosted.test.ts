@@ -39,10 +39,9 @@ const {
   exchangePickerCode,
   isPickerConnected,
   hasPickerCredentials,
-  REDIRECT_URI,
 } = await import('@/lib/google-picker');
 const { googleCalendarTokenStore, googlePickerTokenStore } = await import('@/lib/google-token-stores');
-const { clearPendingSignIn } = await import('@/lib/google-picker-sign-in');
+const { clearPendingSignIn, REDIRECT_URI } = await import('@/lib/google-web-sign-in');
 
 const CALENDAR_TOKENS = 'data/google-tokens.json';
 const PICKER_TOKENS = 'data/google-picker-tokens.json';
@@ -132,7 +131,7 @@ describe('switched off with HS_GOOGLE_HOSTED=0', () => {
 
     expect(await hasPickerCredentials()).toBe(false);
     expect(await hasGoogleCredentials()).toBe(false);
-    await expect(getPickerAuthUrl()).rejects.toThrow('Photos Import Client ID and Secret');
+    await expect(getPickerAuthUrl()).rejects.toThrow('Web sign-in Client ID and Secret');
     await expect(requestDeviceCode()).rejects.toThrow('Client ID is not configured');
     expect(calls).toHaveLength(0);
   });
@@ -182,7 +181,7 @@ describe("the household's own Google app always wins", () => {
     secrets.set('google_client_id', 'own-tv-id');
     const calls = answerWith({ device_code: 'dc', user_code: 'ABCD-EFGH' });
 
-    await expect(getPickerAuthUrl()).rejects.toThrow('Photos Import Client ID and Secret');
+    await expect(getPickerAuthUrl()).rejects.toThrow('Web sign-in Client ID and Secret');
     expect(await hasPickerCredentials()).toBe(false);
     // Starting a device flow needs only the id, exactly as before.
     await requestDeviceCode();

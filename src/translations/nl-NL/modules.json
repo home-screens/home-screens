@@ -152,7 +152,49 @@
         "other": "{count} afspraken"
       },
       "toTime": "tot {time}",
-      "openDay": "Alles van {date} bekijken"
+      "openDay": "Alles van {date} bekijken",
+      "empty": "Nog niets op deze dag.",
+      "addEvent": "Afspraak toevoegen"
+    },
+    "eventForm": {
+      "newKicker": "Nieuwe afspraak · {weekday}",
+      "changeKicker": "Afspraak wijzigen · {weekday}",
+      "what": "Wat is het?",
+      "namePlaceholder": "Typ een naam",
+      "typeOnPhone": "Typ op je telefoon",
+      "handoffBody": "Richt de camera van je telefoon hierop. Dan gaat een nieuwe afspraak voor {day} open.",
+      "backToKeyboard": "Terug naar het toetsenbord op het scherm",
+      "allDay": "Hele dag",
+      "repeats": "Herhalen",
+      "howOften": "Hoe vaak?",
+      "repeatNote": "De afspraak blijft terugkomen tot hij wordt gewijzigd of verwijderd. Moet hij op een bepaalde datum stoppen? Stel dat in op je telefoon.",
+      "starts": "Begint",
+      "ends": "Eindigt",
+      "howLong": "Hoe lang",
+      "endsAt": "Eindigt om {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} uur",
+        "other": "{count} uur"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} u {minutes} min",
+      "length30": "30 min",
+      "length60": "1 uur",
+      "length90": "1½ uur",
+      "length120": "2 uur",
+      "length180": "3 uur",
+      "lengthOther": "Anders",
+      "calendar": "Agenda",
+      "staysOn": "Blijft in dezelfde agenda",
+      "add": "In de agenda zetten",
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "tryAgain": "Opnieuw proberen",
+      "done": "Klaar",
+      "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd. Hier zie je de nieuwste versie. Doe je wijziging nog een keer.",
+      "changeTitle": "{title} wijzigen",
+      "backToForm": "Terug naar het formulier"
     }
   },
   "fullscreen-calendar": {
@@ -1580,7 +1622,15 @@
     "allDay": "Hele dag",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
-    "birthdayWithAge": "Verjaardag · wordt {age}"
+    "birthdayWithAge": "Verjaardag · wordt {age}",
+    "repeats": "Terugkerend",
+    "change": "Wijzigen",
+    "remove": "Verwijderen",
+    "keepIt": "Laten staan",
+    "removeTitle": "{title} verwijderen?",
+    "removeBody": "De afspraak verdwijnt voor iedereen uit de agenda {calendar}: op de muur, op telefoons en in de agenda-app.",
+    "justThisDay": "Alleen deze dag",
+    "everyTime": "Elke keer"
   },
   "fullscreen-weather": {
     "loading": "Weersverwachting laden…",

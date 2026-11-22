@@ -740,7 +740,42 @@
         "show": "What to show",
         "showDescription": "Limits every calendar module starts from. A module can narrow further with its own filters."
       },
-      "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows."
+      "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows.",
+      "adding": {
+        "heading": "Adding events",
+        "description": "Add, change and remove events from your phone and the wall.",
+        "switch": "Let Home Screens add and change events",
+        "switchHelpBoth": "For Google calendars, Google asks you to sign in once more. iCloud calendars need nothing more. Showing your calendars works the same either way.",
+        "switchHelpGoogle": "Google asks you to sign in once more to allow it. Showing your calendars works the same either way.",
+        "switchHelpICloud": "Your iCloud calendars need nothing more. Showing them works the same either way.",
+        "ready": "Signed in, can add events",
+        "signInTitle": "One more step: sign in to Google again",
+        "signInBody": "Google will ask you to let Home Screens “View and edit events on all your calendars”. A Google tab opens, and you'll come back here on your own.",
+        "signInButton": "Sign in with Google",
+        "signInAgain": "Sign in again",
+        "signInFailed": "That sign-in didn't work. Try again.",
+        "pastePlaceholder": "Paste the code from the sign-in page",
+        "pasteButton": "Finish",
+        "scopeMissingTitle": "Google only allowed showing events",
+        "scopeMissingBody": "On Google’s page, the box for “View and edit events” was left empty, so Home Screens can still only show your calendars. Sign in again and tick that box.",
+        "webClientTitle": "First, add a Google web sign-in",
+        "webClientBody": "Adding events signs in with the same Google web sign-in that Google Photos import uses. Add its Client ID and Secret, then come back here.",
+        "webClientLink": "Open API keys",
+        "calendarsLabel": "Calendars that events can go on",
+        "calendarsHelp": "Only calendars the screens show are listed, so a new event never lands somewhere nobody sees it.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Read only in Google",
+        "fromContacts": "Comes from Contacts",
+        "defaultLabel": "New events go on",
+        "lengthLabel": "Usual length",
+        "length30": "30 min",
+        "length60": "1 hour",
+        "length90": "1½ hours",
+        "length120": "2 hours",
+        "wallSwitch": "Let the wall add, change and remove events",
+        "wallHelp": "Only on the calendars ticked above. Removing asks first. Each display can turn this off on its own page."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Burn-in protection",
           "fullscreenTheme": "Theme",
           "sleep": "Sleep & dimming",
-          "alerts": "Alert overlay"
+          "alerts": "Alert overlay",
+          "calendarWallEntry": "Add events on this wall"
         },
         "chipValues": {
           "pauseOn": "On",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Connect to it",
         "runLabel": "Then run this",
         "connectUnknown": "Connect to this display's Pi from a terminal (the username is {user}), then run:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Add, change and remove events on this wall",
+        "wallEntryToggle": "Allow it on this wall",
+        "defaultsLabel": "Calendar"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Calendar Client Secret",
         "clientSecretPlaceholder": "e.g. GOCSPX-...",
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
-        "webClientIdLabel": "Photos Import Client ID",
-        "webClientIdHelp": "Add https://homescreens.dev/connect/google as an authorized redirect URI.",
-        "webClientSecretLabel": "Photos Import Client Secret",
+        "webClientIdLabel": "Web sign-in Client ID",
+        "webClientIdHelp": "Google Photos import and adding calendar events both sign in with this. Add https://homescreens.dev/connect/google as an authorized redirect URI.",
+        "webClientSecretLabel": "Web sign-in Client Secret",
         "webClientSecretHelp": "The client secret from the web application credential above.",
         "mapsKeyLabel": "Maps API Key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Make an OAuth credential of type “TVs and Limited Input devices” in the Google Cloud Console, then paste both halves here."
         },
         "photosBand": {
-          "title": "For importing Google Photos",
-          "help": "A separate login from the calendar one, of type “Web application”. Only needed if you want to pull photos in. Skip this if you don't.",
-          "helpOwnApp": "A separate login from the calendar one, of type “Web application”."
+          "title": "For Google Photos and adding events",
+          "help": "A separate login from the calendar one, of type “Web application”. Only needed to pull photos in or to add calendar events. Skip this if you don’t.",
+          "helpOwnApp": "A separate login from the calendar one, of type “Web application”. Google Photos import and adding calendar events use it."
         },
         "mapsBand": {
           "title": "For drive times",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Closing a Todoist task",
             "hint": "A closed task can't be opened again from the wall."
+          },
+          "calendar-remove": {
+            "label": "Removing a calendar event",
+            "hint": "On the wall, and on phones when Home Screens has no password."
+          },
+          "calendar-change-series": {
+            "label": "Changing every day of a repeating event",
+            "hint": "When a change covers every time it happens, not just one day."
           }
         },
         "unlockLabel": "Stay unlocked for",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Advanced looks",
       "ruleCountNone": "none",
       "ruleCountOne": "1 rule",
-      "ruleCountOther": "{count} rules"
+      "ruleCountOther": "{count} rules",
+      "addEvents": "Add events from a day",
+      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in Settings > Calendar."
     },
     "fullscreen-weather": {
       "view": "View",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Sign-in was cancelled",
     "cancelledBody": "No problem. Start again from the editor whenever you like.",
     "failedTitle": "Couldn't finish signing in",
-    "backToEditor": "Back to the editor"
+    "backToEditor": "Back to the editor",
+    "calendarConnectedTitle": "Home Screens can add events",
+    "calendarConnectedBody": "Go back to Settings > Calendar to pick which calendars events go on.",
+    "calendarReadOnlyBody": "The box for “View and edit events” was left empty. Sign in again from Settings > Calendar and tick it."
   },
   "conditionSummary": {
     "always": "always",

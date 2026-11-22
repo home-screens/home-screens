@@ -33,6 +33,11 @@ const LISTS_TAB: Tab = {
   svgPath: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
 };
 
+const CALENDAR_TAB: Tab = {
+  id: 'calendar',
+  labelKey: 'tabs.calendar',
+  svgPath: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
+};
 
 const NOTES_TAB: Tab = {
   id: 'notes',
@@ -60,9 +65,9 @@ interface BottomTabBarProps {
 // Every tab, always. Chores/Lists/Notes/Meals/Photos used to be hidden until
 // the matching module existed, which made a fresh install look like those
 // features were not included; each one now opens on a TabNotSetUp panel
-// explaining the gap. Lists, Notes and Meals sit together: the things the
-// family types.
-const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, LISTS_TAB, NOTES_TAB, MEALS_TAB, PHOTOS_TAB];
+// explaining the gap. Lists, Calendar, Notes and Meals sit together: the
+// things the family types.
+const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, LISTS_TAB, CALENDAR_TAB, NOTES_TAB, MEALS_TAB, PHOTOS_TAB];
 
 /** Room each tab keeps beside its word, for its padding and the gap to the next word. */
 const TAB_ROOM_PX = 18;

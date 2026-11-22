@@ -740,7 +740,42 @@
         "show": "Was angezeigt wird",
         "showDescription": "Grenzen, von denen jedes Kalendermodul ausgeht. Ein Modul kann mit eigenen Filtern weiter eingrenzen."
       },
-      "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt."
+      "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt.",
+      "adding": {
+        "heading": "Termine hinzufügen",
+        "description": "Termine vom Handy und von der Wand aus hinzufügen, ändern und entfernen.",
+        "switch": "Home Screens darf Termine hinzufügen und ändern",
+        "switchHelpBoth": "Bei Google-Kalendern meldest du dich dafür noch einmal bei Google an. iCloud-Kalender brauchen nichts weiter. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpGoogle": "Damit Google das erlaubt, meldest du dich noch einmal an. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpICloud": "Deine iCloud-Kalender brauchen nichts weiter. Sie werden so oder so genauso angezeigt wie bisher.",
+        "ready": "Angemeldet und bereit für neue Termine",
+        "signInTitle": "Noch ein Schritt: noch einmal bei Google anmelden",
+        "signInBody": "Google fragt dich, ob Home Screens „Termine in allen Ihren Kalendern ansehen und bearbeiten“ darf. Ein Google-Tab öffnet sich, und danach kommst du von selbst hierher zurück.",
+        "signInButton": "Mit Google anmelden",
+        "signInAgain": "Noch einmal anmelden",
+        "signInFailed": "Diese Anmeldung hat nicht geklappt. Versuch es noch einmal.",
+        "pastePlaceholder": "Code von der Anmeldeseite hier einfügen",
+        "pasteButton": "Fertig",
+        "scopeMissingTitle": "Google hat nur das Anzeigen von Terminen erlaubt",
+        "scopeMissingBody": "Auf der Seite von Google war das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ nicht angehakt, deshalb kann Home Screens deine Kalender weiterhin nur anzeigen. Melde dich noch einmal an und setz dort den Haken.",
+        "webClientTitle": "Zuerst eine Google-Web-Anmeldung hinzufügen",
+        "webClientBody": "Für neue Termine nutzt Home Screens dieselbe Google-Web-Anmeldung wie der Google-Fotos-Import. Trag ihre Client-ID und ihr Client-Geheimnis ein und komm dann hierher zurück.",
+        "webClientLink": "API-Schlüssel öffnen",
+        "calendarsLabel": "Kalender, in die Termine eingetragen werden können",
+        "calendarsHelp": "Hier stehen nur Kalender, die auf den Bildschirmen zu sehen sind. So landet ein neuer Termin nie dort, wo ihn niemand sieht.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Bei Google nur zum Ansehen",
+        "fromContacts": "Kommt aus den Kontakten",
+        "defaultLabel": "Neue Termine landen in",
+        "lengthLabel": "Übliche Dauer",
+        "length30": "30 Min.",
+        "length60": "1 Stunde",
+        "length90": "1½ Stunden",
+        "length120": "2 Stunden",
+        "wallSwitch": "Die Wand darf Termine hinzufügen, ändern und entfernen",
+        "wallHelp": "Nur in den Kalendern, die oben angehakt sind. Vor dem Entfernen wird nachgefragt. Jedes Display kann das auf seiner eigenen Seite ausschalten."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1276,7 +1311,8 @@
           "pixelShift": "Einbrennschutz",
           "fullscreenTheme": "Design",
           "sleep": "Schlafen & Dimmen",
-          "alerts": "Hinweis-Overlay"
+          "alerts": "Hinweis-Overlay",
+          "calendarWallEntry": "Termine an dieser Wand hinzufügen"
         },
         "chipValues": {
           "pauseOn": "An",
@@ -1387,6 +1423,11 @@
         "connectLabel": "Verbinde dich damit",
         "runLabel": "Dann führe das aus",
         "connectUnknown": "Verbinde dich von einem Terminal aus mit dem Pi dieses Displays (der Benutzername ist {user}) und führe dann aus:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Termine an dieser Wand hinzufügen, ändern und entfernen",
+        "wallEntryToggle": "An dieser Wand erlauben",
+        "defaultsLabel": "Kalender"
       }
     },
     "alertFormFields": {
@@ -1598,9 +1639,9 @@
         "clientSecretLabel": "Client-Geheimnis für Kalender",
         "clientSecretPlaceholder": "z. B. GOCSPX-…",
         "clientSecretHelp": "Das Client-Secret derselben OAuth-Anmeldedaten von oben.",
-        "webClientIdLabel": "Client-ID für Foto-Import",
-        "webClientIdHelp": "Füge https://homescreens.dev/connect/google als autorisierte Weiterleitungs-URI hinzu.",
-        "webClientSecretLabel": "Client-Geheimnis für Foto-Import",
+        "webClientIdLabel": "Client-ID für die Web-Anmeldung",
+        "webClientIdHelp": "Damit melden sich der Google-Fotos-Import und das Hinzufügen von Terminen an. Füge https://homescreens.dev/connect/google als autorisierte Weiterleitungs-URI hinzu.",
+        "webClientSecretLabel": "Client-Geheimnis für die Web-Anmeldung",
         "webClientSecretHelp": "Das Client-Geheimnis aus dem Webanwendungs-Zugangsdatenpaar oben.",
         "mapsKeyLabel": "Maps-API-Schlüssel",
         "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
@@ -1612,9 +1653,9 @@
           "helpOwnApp": "Erstelle in der Google Cloud Console eine OAuth-Anmeldung vom Typ „TVs and Limited Input devices“ und füge dann beide Hälften hier ein."
         },
         "photosBand": {
-          "title": "Zum Importieren von Google Fotos",
-          "help": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Nur nötig, wenn du Fotos holen willst. Sonst überspringen.",
-          "helpOwnApp": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“."
+          "title": "Für Google Fotos und neue Termine",
+          "help": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Nur nötig, wenn du Fotos holen oder Termine hinzufügen willst. Sonst überspringen.",
+          "helpOwnApp": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Der Google-Fotos-Import und das Hinzufügen von Terminen nutzen sie."
         },
         "mapsBand": {
           "title": "Für Fahrzeiten",
@@ -2877,6 +2918,14 @@
           "todoist-close": {
             "label": "Todoist-Aufgabe erledigen",
             "hint": "Eine erledigte Aufgabe lässt sich an der Wand nicht zurückholen."
+          },
+          "calendar-remove": {
+            "label": "Kalendertermin entfernen",
+            "hint": "An der Wand und auf Handys, wenn Home Screens kein Passwort hat."
+          },
+          "calendar-change-series": {
+            "label": "Alle Tage eines Termins ändern, der sich wiederholt",
+            "hint": "Wenn eine Änderung für alle Tage gilt, nicht nur für einen."
           }
         },
         "unlockLabel": "Entsperrt bleiben für",
@@ -5500,7 +5549,9 @@
       "advancedLooks": "Erweitertes Aussehen",
       "ruleCountNone": "keine",
       "ruleCountOne": "1 Regel",
-      "ruleCountOther": "{count} Regeln"
+      "ruleCountOther": "{count} Regeln",
+      "addEvents": "Beim Tippen auf einen Tag Termine hinzufügen",
+      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter Einstellungen > Kalender eingeschaltet sein."
     },
     "fullscreen-weather": {
       "view": "Ansicht",
@@ -6010,7 +6061,10 @@
     "cancelledTitle": "Anmeldung abgebrochen",
     "cancelledBody": "Kein Problem. Du kannst es im Editor jederzeit noch einmal versuchen.",
     "failedTitle": "Anmeldung konnte nicht abgeschlossen werden",
-    "backToEditor": "Zurück zum Editor"
+    "backToEditor": "Zurück zum Editor",
+    "calendarConnectedTitle": "Home Screens kann jetzt Termine hinzufügen",
+    "calendarConnectedBody": "Geh zurück zu Einstellungen > Kalender und wähle aus, in welche Kalender Termine kommen.",
+    "calendarReadOnlyBody": "Das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ war nicht angehakt. Melde dich unter Einstellungen > Kalender noch einmal an und setz den Haken."
   },
   "conditionSummary": {
     "always": "immer",

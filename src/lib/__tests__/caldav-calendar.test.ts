@@ -12,9 +12,12 @@ import {
   normalizeAppleColor,
   parseVCardBirthday,
   clearICloudCaches,
+  objectRepeats,
+  privilegesAllowWrite,
 } from '@/lib/caldav-calendar';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
 import type { ICloudSource } from '@/types/config';
+import { silenceConsole } from '@/test-utils';
 
 const mockCreateClient = vi.mocked(createDAVClient);
 
@@ -57,6 +60,7 @@ type MockClient = {
   fetchCalendarObjects: ReturnType<typeof vi.fn>;
   fetchAddressBooks: ReturnType<typeof vi.fn>;
   fetchVCards: ReturnType<typeof vi.fn>;
+  propfind: ReturnType<typeof vi.fn>;
 };
 
 function mockClient(overrides: Partial<MockClient> = {}): MockClient {
@@ -65,8 +69,20 @@ function mockClient(overrides: Partial<MockClient> = {}): MockClient {
     fetchCalendarObjects: vi.fn().mockResolvedValue([]),
     fetchAddressBooks: vi.fn().mockResolvedValue([]),
     fetchVCards: vi.fn().mockResolvedValue([]),
+    propfind: vi.fn().mockResolvedValue([]),
     ...overrides,
   };
+}
+
+/** A PROPFIND answer for `current-user-privilege-set`, the way tsdav parses it. */
+function privileges(...names: string[]) {
+  return [{
+    href: '/123/calendars/home/',
+    ok: true,
+    status: 207,
+    statusText: 'Multi-Status',
+    props: { currentUserPrivilegeSet: { privilege: names.map((name) => ({ [name]: {} })) } },
+  }];
 }
 
 function installClients(caldav: MockClient, carddav: MockClient = mockClient()) {
@@ -532,5 +548,158 @@ describe('signed-in iCloud client', () => {
     expect(failed.results[0]).toMatchObject({ ok: false, messageKey: 'icloudUnreachable' });
     expect(recovered.results[0].ok).toBe(true);
     expect(caldavLogins()).toHaveLength(2);
+  });
+});
+
+describe('privilegesAllowWrite', () => {
+  it.each([
+    ['write', [{ read: {} }, { write: {} }], true],
+    ['write-content alone', [{ read: {} }, { writeContent: {} }], true],
+    ['all', { all: {} }, true],
+    ['read only, as a shared calendar answers', [{ read: {} }, { readFreeBusy: {} }, { readCurrentUserPrivilegeSet: {} }], false],
+    ['writing properties only', [{ read: {} }, { writeProperties: {} }], false],
+    ['nothing', [], false],
+  ])('%s', (_, privilege, expected) => {
+    expect(privilegesAllowWrite({ privilege })).toBe(expected);
+  });
+
+  it('is false for an answer with no privilege set', () => {
+    expect(privilegesAllowWrite(undefined)).toBe(false);
+    expect(privilegesAllowWrite('')).toBe(false);
+  });
+});
+
+describe('objectRepeats', () => {
+  const doc = (event: string[], extra: string[] = []) =>
+    ['BEGIN:VCALENDAR', ...extra, 'BEGIN:VEVENT', 'UID:a', ...event, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+
+  it('is true for a rule or a changed day of a series', () => {
+    expect(objectRepeats(doc(['DTSTART:20260704T170000Z', 'RRULE:FREQ=WEEKLY']))).toBe(true);
+    expect(objectRepeats(doc(['RECURRENCE-ID;TZID=America/Chicago:20260704T120000', 'DTSTART:20260704T190000Z']))).toBe(true);
+  });
+
+  it("is false for a one-off, even beside a time zone's own yearly rules", () => {
+    const vtimezone = ['BEGIN:VTIMEZONE', 'TZID:America/Chicago', 'BEGIN:DAYLIGHT', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU', 'END:DAYLIGHT', 'END:VTIMEZONE'];
+    expect(objectRepeats(doc(['DTSTART:20260704T170000Z', 'DESCRIPTION:RRULE:not really'], vtimezone))).toBe(false);
+  });
+});
+
+describe('writable iCloud calendars', () => {
+  const OBJECT_URL = 'https://caldav.icloud.com/123/calendars/home/e1.ics';
+  const dentist = () => ({ url: OBJECT_URL, etag: '"C=7@U=1"', data: icsEvent('evt-1', '20260715T170000Z', '20260715T180000Z', 'Dentist') });
+
+  silenceConsole(['warn']);
+
+  it('stamps writable, the object version and its address on events from a calendar the account can write', async () => {
+    const caldav = mockClient({
+      fetchCalendarObjects: vi.fn().mockResolvedValue([dentist()]),
+      propfind: vi.fn().mockResolvedValue(privileges('read', 'write')),
+    });
+    installClients(caldav);
+
+    const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(caldav.propfind).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://caldav.icloud.com/123/calendars/home/',
+      depth: '0',
+      props: { 'd:current-user-privilege-set': {} },
+    }));
+    expect(events[0]).toMatchObject({ title: 'Dentist', writable: true, etag: '"C=7@U=1"', sourceRef: OBJECT_URL });
+    expect(events[0]).not.toHaveProperty('repeats');
+  });
+
+  it('leaves a read-only shared calendar view-only', async () => {
+    installClients(mockClient({
+      fetchCalendarObjects: vi.fn().mockResolvedValue([dentist()]),
+      propfind: vi.fn().mockResolvedValue(privileges('read', 'readFreeBusy', 'readCurrentUserPrivilegeSet')),
+    }));
+
+    const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(events[0].title).toBe('Dentist');
+    for (const key of ['writable', 'etag', 'sourceRef']) expect(events[0]).not.toHaveProperty(key);
+  });
+
+  it('marks every day of a repeating event as repeating, writable or not', async () => {
+    const weekly = icsEvent('evt-w', '20260706T170000Z', '20260706T180000Z', 'Swim').replace('SUMMARY:Swim', 'SUMMARY:Swim\r\nRRULE:FREQ=WEEKLY');
+    for (const privilege of ['write', 'read']) {
+      clearICloudCaches();
+      installClients(mockClient({
+        fetchCalendarObjects: vi.fn().mockResolvedValue([{ url: OBJECT_URL, etag: '"1"', data: weekly }]),
+        propfind: vi.fn().mockResolvedValue(privileges(privilege)),
+      }));
+      const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+      expect(events.length).toBeGreaterThan(3);
+      expect(events.every((e) => e.repeats === true)).toBe(true);
+      expect(events.every((e) => e.writable === (privilege === 'write' ? true : undefined))).toBe(true);
+    }
+  });
+
+  it('needs both the address and the version of an object to write it', async () => {
+    installClients(mockClient({
+      fetchCalendarObjects: vi.fn().mockResolvedValue([{ ...dentist(), etag: undefined }]),
+      propfind: vi.fn().mockResolvedValue(privileges('write')),
+    }));
+
+    const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    expect(events[0]).not.toHaveProperty('writable');
+  });
+
+  it('reads as view-only when the access lookup fails, still shows the events, and asks again next time', async () => {
+    const caldav = mockClient({
+      fetchCalendarObjects: vi.fn().mockResolvedValue([dentist()]),
+      propfind: vi.fn().mockRejectedValueOnce(new Error('timeout')).mockResolvedValue(privileges('write')),
+    });
+    installClients(caldav);
+
+    const first = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const second = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(first.results[0].ok).toBe(true);
+    expect(first.events[0]).not.toHaveProperty('writable');
+    expect(second.events[0]).toMatchObject({ writable: true });
+    expect(caldav.propfind).toHaveBeenCalledTimes(2);
+  });
+
+  it('asks each calendar once an hour', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-07-10T12:00:00Z'));
+      const caldav = mockClient({ propfind: vi.fn().mockResolvedValue(privileges('write')) });
+      installClients(caldav);
+
+      await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+      await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+      expect(caldav.propfind).toHaveBeenCalledTimes(1);
+
+      vi.setSystemTime(new Date('2026-07-10T13:00:01Z'));
+      await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+      expect(caldav.propfind).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('never makes birthdays writable', async () => {
+    installClients(
+      mockClient({ propfind: vi.fn().mockResolvedValue(privileges('all')) }),
+      mockClient({
+        fetchAddressBooks: vi.fn().mockResolvedValue([{ url: 'book-1' }]),
+        fetchVCards: vi.fn().mockResolvedValue([
+          { url: 'alice.vcf', etag: '"1"', data: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice\r\nBDAY:1985-07-10\r\nEND:VCARD' },
+        ]),
+      }),
+    );
+
+    const { events } = await fetchICloudEvents(
+      [calendarSource(), calendarSource({ id: 'src-b', kind: 'birthdays', url: '', name: 'Birthdays' })],
+      [ACCOUNT],
+      TIME_MIN,
+      TIME_MAX,
+    );
+
+    const birthday = events.find((e) => e.kind === 'birthday');
+    expect(birthday?.title).toBe('Alice');
+    for (const key of ['writable', 'etag', 'sourceRef']) expect(birthday).not.toHaveProperty(key);
   });
 });

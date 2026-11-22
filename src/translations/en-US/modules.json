@@ -152,7 +152,49 @@
         "other": "{count} events"
       },
       "toTime": "to {time}",
-      "openDay": "See everything on {date}"
+      "openDay": "See everything on {date}",
+      "empty": "Nothing on this day yet.",
+      "addEvent": "Add event"
+    },
+    "eventForm": {
+      "newKicker": "New event · {weekday}",
+      "changeKicker": "Change event · {weekday}",
+      "what": "What is it?",
+      "namePlaceholder": "Type a name",
+      "typeOnPhone": "Type on your phone",
+      "handoffBody": "Point your phone's camera here. The new event form opens for {day}.",
+      "backToKeyboard": "Back to the wall keyboard",
+      "allDay": "All day",
+      "repeats": "Repeats",
+      "howOften": "How often?",
+      "repeatNote": "It keeps going until it's changed or removed. To stop it on a date, set that on your phone.",
+      "starts": "Starts",
+      "ends": "Ends",
+      "howLong": "How long",
+      "endsAt": "Ends {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} hour",
+        "other": "{count} hours"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "length30": "30 min",
+      "length60": "1 hour",
+      "length90": "1½ hours",
+      "length120": "2 hours",
+      "length180": "3 hours",
+      "lengthOther": "Other",
+      "calendar": "Calendar",
+      "staysOn": "Stays on its calendar",
+      "add": "Add to calendar",
+      "save": "Save",
+      "cancel": "Cancel",
+      "tryAgain": "Try again",
+      "done": "Done",
+      "changedElsewhere": "Someone changed this event a moment ago. This is the newest version; make your change again.",
+      "changeTitle": "Change {title}",
+      "backToForm": "Back to the form"
     }
   },
   "fullscreen-calendar": {
@@ -1580,7 +1622,15 @@
     "allDay": "All Day",
     "holiday": "Holiday",
     "birthday": "Birthday",
-    "birthdayWithAge": "Birthday · turns {age}"
+    "birthdayWithAge": "Birthday · turns {age}",
+    "repeats": "Repeats",
+    "change": "Change",
+    "remove": "Remove",
+    "keepIt": "Keep it",
+    "removeTitle": "Remove {title}?",
+    "removeBody": "It comes off the {calendar} calendar for everyone: on the wall, on phones and in the calendar app.",
+    "justThisDay": "Just this day",
+    "everyTime": "Every time"
   },
   "fullscreen-weather": {
     "loading": "Getting the forecast…",

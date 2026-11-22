@@ -485,6 +485,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'affirmations.timeAware': 'not-observable',
   'affirmations.weatherAware': 'not-observable',
   'air-quality.refreshIntervalMs': 'timing-only',
+  'calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'chore-chart.allowDisplayComplete': 'covered-elsewhere',
@@ -496,6 +497,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'display-control.allowRetargeting': 'covered-elsewhere',
   'display-control.defaultTarget': 'covered-elsewhere',
   'fullscreen-calendar.dimPastEvents': 'timing-only',
+  'fullscreen-calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'fullscreen-calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.weekCollapsePastDays': 'timing-only',

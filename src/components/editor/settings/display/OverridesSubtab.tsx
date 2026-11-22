@@ -5,6 +5,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import {
   ALERT_OVERRIDE_FIELDS,
+  CALENDAR_OVERRIDE_FIELDS,
   DISPLAY_OVERRIDE_FIELDS,
   SLEEP_OVERRIDE_FIELDS,
 } from '@/lib/display-override-fields';
@@ -43,6 +44,7 @@ export default function OverridesSubtab({ config, display }: OverridesSubtabProp
     ...DISPLAY_OVERRIDE_FIELDS,
     ...SLEEP_OVERRIDE_FIELDS,
     ...ALERT_OVERRIDE_FIELDS,
+    ...CALENDAR_OVERRIDE_FIELDS,
   ];
   // Reuse `findDisplaysOverridingFields` so the count comes from the same
   // source as the Defaults page banner and the Overview chips.

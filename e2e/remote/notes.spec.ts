@@ -52,10 +52,10 @@ test.beforeEach(async ({ request, sandboxDir }) => {
   seedNotes(sandboxDir, { members: [SAM, RILEY], notes: [] });
 });
 
-test('Notes is the fifth of seven tabs, between Lists and Meals', async ({ page }) => {
+test('Notes is the sixth of eight tabs, between Calendar and Meals', async ({ page }) => {
   await page.goto('/remote');
   const bar = page.locator('nav').filter({ has: page.getByRole('button', { name: 'Notes', exact: true }) });
-  await expect(bar.getByRole('button')).toHaveText(['Control', 'Timers', 'Chores', 'Lists', 'Notes', 'Meals', 'Photos']);
+  await expect(bar.getByRole('button')).toHaveText(['Control', 'Timers', 'Chores', 'Lists', 'Calendar', 'Notes', 'Meals', 'Photos']);
 
   await bar.getByRole('button', { name: 'Notes', exact: true }).click();
   await expect(bar.getByRole('button', { name: 'Notes', exact: true })).toHaveAttribute('aria-current', 'page');

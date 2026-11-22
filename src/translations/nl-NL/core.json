@@ -54,6 +54,30 @@
       "tooDeep": "Mappen kunnen maar {max} niveaus diep gaan.",
       "folderExists": "Er is hier al een map met de naam {name}.",
       "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst."
+    },
+    "calendarWrite": {
+      "titleRequired": "Geef de afspraak een naam.",
+      "titleTooLong": "De naam van een afspraak mag maximaal {max} tekens lang zijn.",
+      "placeTooLong": "Een plek mag maximaal {max} tekens lang zijn.",
+      "badDate": "Die dag lijkt niet te kloppen.",
+      "dayTooFar": "Een afspraak moet binnen {years} jaar vanaf vandaag beginnen.",
+      "badTime": "Die tijd lijkt niet te kloppen.",
+      "endsWhenItStarts": "Het einde is gelijk aan het begin. Kies een latere eindtijd.",
+      "lastDayBeforeFirst": "De laatste dag ligt vóór de eerste.",
+      "tooManyDays": "Een afspraak voor de hele dag kan maximaal {max} dagen duren.",
+      "badRepeat": "Zo'n herhaling kan Home Screens niet instellen.",
+      "weekdaysOnWeekend": "Elke werkdag herhalen kan alleen als de afspraak op een werkdag begint.",
+      "repeatEndsBeforeStart": "Het stopt al voordat het begint.",
+      "repeatTooLong": "Een herhaling kan maximaal {years} jaar doorgaan.",
+      "repeatNeedsEveryTime": "Als je de herhaling verandert, geldt dat voor elke keer.",
+      "notOffered": "Afspraken toevoegen staat nu niet aan.",
+      "calendarNotTicked": "In die agenda kun je geen afspraken zetten.",
+      "notEditable": "Die afspraak kan hier niet worden gewijzigd.",
+      "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd.",
+      "gone": "Die afspraak was al verwijderd.",
+      "notAllowed": "Deze agenda kan niet vanuit Home Screens worden gewijzigd.",
+      "signInNeeded": "Je moet je opnieuw aanmelden bij de agenda. Dat doe je bij Instellingen > Kalender.",
+      "unreachable": "De agenda was niet bereikbaar, dus er is nog niets veranderd. Probeer het over een minuut opnieuw."
     }
   },
   "today": "Vandaag",
@@ -667,7 +691,9 @@
         "other": "Om {count} tickets van {member} uit te geven aan {reward}"
       },
       "untick": "Om {chore} voor {member} uit te vinken",
-      "todoistClose": "Om {task} af te ronden"
+      "todoistClose": "Om {task} af te ronden",
+      "calendarRemove": "Om {title} te verwijderen",
+      "calendarChangeSeries": "Om alle keren van {title} te wijzigen"
     },
     "wrong": "Dat klopt niet. Probeer het opnieuw.",
     "tooMany": {
@@ -680,5 +706,31 @@
       "other": "Nog {count} minuten ontgrendeld"
     },
     "lockNow": "Nu vergrendelen"
+  },
+  "calendarRepeat": {
+    "none": "Wordt niet herhaald",
+    "daily": "Elke dag",
+    "weekdays": "Elke werkdag",
+    "weekdaysHint": "Maandag tot en met vrijdag",
+    "weekly": "Elke week op {weekday}",
+    "biweekly": "Om de 2 weken op {weekday}",
+    "monthly": "Elke maand op de {day}e",
+    "yearly": "Elk jaar op {date}",
+    "until": "{rule}, tot en met {date}",
+    "other": "Herhaling is ergens anders ingesteld",
+    "short": {
+      "daily": "Elke dag",
+      "weekdays": "Werkdagen",
+      "weekly": "Elke week",
+      "biweekly": "Om de 2 weken",
+      "monthly": "Elke maand",
+      "yearly": "Elk jaar"
+    }
+  },
+  "calendarChange": {
+    "thisDayStays": "{day}. De andere dagen blijven staan.",
+    "everyTimePastFuture": "Alle keren, ook die al geweest zijn",
+    "askBody": "Alleen deze dag wijzigen, of elke keer?",
+    "everyTimeFromFirst": "Alle keren, vanaf de eerste"
   }
 }

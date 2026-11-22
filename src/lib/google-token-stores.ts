@@ -15,7 +15,14 @@ import type { GoogleAppsStatus } from './google-apps';
  * import path of callers that only need to read or write the tokens file.
  */
 
-/** Google Calendar: device-code flow, "TVs and Limited Input devices" client. */
+/**
+ * Google Calendar: device-code flow on a "TVs and Limited Input devices"
+ * client for showing calendars. Adding events signs in on the web instead,
+ * through the same web client Google Photos import uses, because Google gives
+ * the short-code sign-in only read-only or full calendar access, never the
+ * narrow "View and edit events". One grant at a time; `client_kind` says
+ * which client issued it.
+ */
 export const googleCalendarTokenStore = createGoogleTokenStore({
   tokensPath: 'data/google-tokens.json',
   clientIdKey: 'google_client_id',
@@ -25,6 +32,13 @@ export const googleCalendarTokenStore = createGoogleTokenStore({
   service: 'Google Calendar',
   missingCredentialsMessage:
     'Google Calendar needs both a Client ID and a Client Secret. Add them in Settings → API keys.',
+  web: {
+    clientIdKey: 'google_web_client_id',
+    clientSecretKey: 'google_web_client_secret',
+    hosted: hostedPhotosClient,
+    missingCredentialsMessage:
+      'Adding events needs the Web sign-in Client ID and Secret. Add them in Settings → API keys.',
+  },
   logName: 'google-auth',
 });
 
@@ -37,7 +51,7 @@ export const googlePickerTokenStore = createGoogleTokenStore({
   preference: readGoogleAppPreference,
   service: 'Google Photos',
   missingCredentialsMessage:
-    'Google Photos import needs both a Photos Import Client ID and Secret. Add them in Settings → API keys.',
+    'Google Photos import needs both a Web sign-in Client ID and Secret. Add them in Settings → API keys.',
   logName: 'google-picker',
 });
 

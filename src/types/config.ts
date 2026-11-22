@@ -775,6 +775,27 @@ export interface CalendarEvent {
    */
   icon?: string;
   opacity?: number;
+  /**
+   * Set by a source that can be written (Google today): this account may
+   * change events on the event's calendar. The household's own switches
+   * decide `canEdit` on top of it.
+   */
+  writable?: boolean;
+  /** Part of a repeating series; `seriesId` names the series where the source has one (Google). */
+  repeats?: boolean;
+  seriesId?: string;
+  /**
+   * The source's own address for the event, sent back with a change: the
+   * iCloud calendar object's path. Only on events with `canEdit`.
+   */
+  sourceRef?: string;
+  /**
+   * The source's version of the event, sent back with a change so a newer
+   * edit made elsewhere is never overwritten. Only on events with `canEdit`.
+   */
+  etag?: string;
+  /** The phone and the wall may offer Change and Remove for this event. */
+  canEdit?: boolean;
 }
 
 export interface ICalSource {
@@ -878,6 +899,32 @@ export interface CalendarSettings {
    * Google only: skip events the signed-in account declined
    */
   hideDeclined?: boolean;
+  /**
+   * Adding, changing and removing events from the phone and the wall (see CalendarEventEntry).
+   * Absent means off
+   */
+  eventEntry?: CalendarEventEntry;
+}
+
+/** Adding, changing and removing calendar events from Home Screens */
+export interface CalendarEventEntry {
+  /**
+   * Let Home Screens add and change events. Google calendars need one more Google sign-in to allow
+   * it; iCloud calendars need nothing more
+   */
+  enabled: boolean;
+  /**
+   * The calendars events can go on: Google calendar IDs and iCloud calendar IDs. Only calendars the
+   * screens show, and that this account may change, are used
+   */
+  calendarIds: string[];
+  /** The calendar a new event starts on. Absent means the first one listed */
+  defaultCalendarId?: string;
+  /**
+   * How long a new event lasts until someone changes it, in minutes: 30, 60, 90 or 120. Absent
+   * means 60
+   */
+  defaultMinutes?: number;
 }
 
 export interface SleepSettings {
@@ -1225,6 +1272,16 @@ export interface GlobalSettings {
    * @default false
    */
   pixelShift?: boolean;
+  /**
+   * Let the walls add, change and remove calendar events too, once adding events is on in the
+   * Calendar settings. Each display can turn this off for itself
+   *
+   * Absent means on. The per-display override is enforced on the wall only: the display token is
+   * shared by every kiosk, so the hub cannot tell which display sent a write.
+   *
+   * @default true
+   */
+  calendarWallEntry?: boolean;
   /** Backup reminder (see BackupReminderSettings) */
   backupReminder?: BackupReminderSettings;
   /** New-release banner (see UpdateNotificationSettings) */
@@ -1413,6 +1470,8 @@ export interface DisplayNodeSettings {
   pixelShift?: boolean;
   /** Alert overlay, replacing the shared object as a whole */
   alerts?: AlertSettings;
+  /** Add, change and remove calendar events on this wall */
+  calendarWallEntry?: boolean;
 
   // NOTE: per-display location overrides (latitude/longitude/locationName/
   // timezone) were intentionally NOT added. The server-side API routes
@@ -1941,6 +2000,11 @@ export interface FullscreenCalendarConfig {
    */
   eventTapDetails?: boolean;
   /**
+   * Show "Add event" when a day is tapped, and Change and Remove on an event, once adding events
+   * is on in the Calendar settings. Absent means on
+   */
+  addEvents?: boolean;
+  /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *
    * default 'sheet' (bottom sheet); 'card' = centered card
@@ -2367,6 +2431,11 @@ export interface CalendarConfig {
    * event to open a detail overlay, "+N more" or a day to open the day sheet
    */
   eventTapDetails?: boolean;
+  /**
+   * Show "Add event" when a day is tapped, and Change and Remove on an event, once adding events
+   * is on in the Calendar settings. Absent means on
+   */
+  addEvents?: boolean;
   /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *

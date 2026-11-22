@@ -152,7 +152,49 @@
         "other": "{count} begivenheder"
       },
       "toTime": "til {time}",
-      "openDay": "Se alt, der sker {date}"
+      "openDay": "Se alt, der sker {date}",
+      "empty": "Der er ikke noget på denne dag endnu.",
+      "addEvent": "Tilføj begivenhed"
+    },
+    "eventForm": {
+      "newKicker": "Ny begivenhed · {weekday}",
+      "changeKicker": "Ændr begivenhed · {weekday}",
+      "what": "Hvad skal der ske?",
+      "namePlaceholder": "Skriv et navn",
+      "typeOnPhone": "Skriv på din telefon",
+      "handoffBody": "Scan koden med telefonens kamera. Så åbner telefonen en ny begivenhed til {day}.",
+      "backToKeyboard": "Tilbage til tastaturet på væggen",
+      "allDay": "Hele dagen",
+      "repeats": "Gentages",
+      "howOften": "Hvor tit?",
+      "repeatNote": "Den fortsætter, indtil den bliver ændret eller fjernet. Skal den stoppe på en bestemt dato, så vælg det på din telefon.",
+      "starts": "Starter",
+      "ends": "Slutter",
+      "howLong": "Hvor længe",
+      "endsAt": "Slutter kl. {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} time",
+        "other": "{count} timer"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} t. {minutes} min",
+      "length30": "30 min",
+      "length60": "1 time",
+      "length90": "1½ time",
+      "length120": "2 timer",
+      "length180": "3 timer",
+      "lengthOther": "Andet",
+      "calendar": "Kalender",
+      "staysOn": "Bliver i sin kalender",
+      "add": "Sæt i kalenderen",
+      "save": "Gem",
+      "cancel": "Annullér",
+      "tryAgain": "Prøv igen",
+      "done": "Færdig",
+      "changedElsewhere": "En anden har lige ændret denne begivenhed. Her er den nyeste udgave, så lav din ændring igen.",
+      "changeTitle": "Ændr {title}",
+      "backToForm": "Tilbage til formularen"
     }
   },
   "fullscreen-calendar": {
@@ -1580,7 +1622,15 @@
     "allDay": "Hele dagen",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
-    "birthdayWithAge": "Fødselsdag · fylder {age}"
+    "birthdayWithAge": "Fødselsdag · fylder {age}",
+    "repeats": "Gentages",
+    "change": "Ændr",
+    "remove": "Fjern",
+    "keepIt": "Behold den",
+    "removeTitle": "Fjern {title}?",
+    "removeBody": "Den bliver fjernet fra kalenderen {calendar} for alle: på væggen, på telefonerne og i kalenderappen.",
+    "justThisDay": "Kun denne dag",
+    "everyTime": "Alle gange"
   },
   "fullscreen-weather": {
     "loading": "Henter vejrudsigten…",

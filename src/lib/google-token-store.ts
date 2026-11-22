@@ -35,6 +35,13 @@ export interface StoredGoogleTokens extends StoredOAuthTokens {
    * Screens had an app of its own. Kept through refreshes and backups.
    */
   client_mode?: 'hosted';
+  /**
+   * Set only on a grant from the integration's second, web client (Calendar
+   * signed in on the web to add events); absent means its main client, which
+   * is every grant saved before there was a second one. Renewals go to the
+   * client that issued the grant. Kept through refreshes and backups.
+   */
+  client_kind?: 'web';
 }
 
 /** Home Screens' own Google app for one integration. */
@@ -46,8 +53,17 @@ export interface HostedGoogleClient {
 
 export type GoogleClientMode = 'own' | 'hosted';
 
+/**
+ * Which of an integration's clients: its `main` one, or its second `web` one
+ * where it has one. Calendar reads through a "TVs and Limited Input devices"
+ * client, whose short-code sign-in Google will not give the narrow
+ * "View and edit events" permission, so adding events signs in on the web.
+ */
+export type GoogleClientKind = 'main' | 'web';
+
 export interface GoogleClient {
   mode: GoogleClientMode;
+  kind: GoogleClientKind;
   clientId: string;
   clientSecret?: string;
   tokenUrl: string;
@@ -74,6 +90,18 @@ export interface GoogleTokenStoreOptions {
   service: string;
   /** The sentence of that answer: what to add and where. */
   missingCredentialsMessage: string;
+  /**
+   * A second, web client for the same integration: the household's saved web
+   * pair on its own app, `hosted` on Home Screens' app. Which app is in use is
+   * still decided by the main client's keys and the household's switch.
+   */
+  web?: {
+    clientIdKey: SecretKey;
+    clientSecretKey: SecretKey;
+    hosted: () => HostedGoogleClient | null;
+    /** What to add and where, when the web client is missing. */
+    missingCredentialsMessage: string;
+  };
   /** Logger namespace. */
   logName: string;
 }
@@ -82,14 +110,14 @@ export interface GoogleTokenStore {
   readonly filePath: string;
   loadTokens(): Promise<StoredGoogleTokens | null>;
   saveTokens(tokens: StoredGoogleTokens): Promise<void>;
-  /** The client to sign in and refresh with. Throws a `SetupError` carrying `missingCredentialsMessage` when there is none. */
-  getClient(): Promise<GoogleClient>;
+  /** The client to sign in and refresh with. Throws a `SetupError` carrying the missing-credentials message when there is none. */
+  getClient(kind?: GoogleClientKind): Promise<GoogleClient>;
   /**
    * The client id alone, for steps that need nothing else (starting a device
    * flow). A household's own id counts even before its secret is saved.
    */
   getClientId(): Promise<string | null>;
-  hasCredentials(): Promise<boolean>;
+  hasCredentials(kind?: GoogleClientKind): Promise<boolean>;
   /** Which app sign-ins and refreshes currently use, or null when neither is usable. */
   getMode(): Promise<GoogleClientMode | null>;
   /**
@@ -105,9 +133,9 @@ export interface GoogleTokenStore {
    */
   requestToken(
     grant: Record<string, string>,
-    init?: { retries?: number },
+    init?: { retries?: number; kind?: GoogleClientKind },
   ): Promise<{ ok: boolean; status: number; data: Record<string, unknown>; client: GoogleClient }>;
-  /** Save a fresh grant, recording which app issued it. */
+  /** Save a fresh grant, recording which app and which of its clients issued it. */
   saveGrant(tokens: StoredGoogleTokens, client: GoogleClient): Promise<void>;
   /**
    * A currently valid access token, refreshing proactively (60s before
@@ -130,8 +158,13 @@ export interface GoogleTokenStore {
 }
 
 type ResolvedClient =
-  | { mode: 'own'; clientId?: string; clientSecret?: string; tokenUrl: string }
-  | ({ mode: 'hosted' } & HostedGoogleClient);
+  | { mode: 'own'; kind: GoogleClientKind; clientId?: string; clientSecret?: string; tokenUrl: string }
+  | ({ mode: 'hosted'; kind: GoogleClientKind } & HostedGoogleClient);
+
+/** Which client issued a saved grant. */
+function grantKind(tokens: StoredGoogleTokens | null | undefined): GoogleClientKind {
+  return tokens?.client_kind === 'web' ? 'web' : 'main';
+}
 
 function clientParams(client: GoogleClient): Record<string, string> {
   return client.clientSecret
@@ -149,15 +182,31 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
    * switch on the API keys page can still send it to Home Screens' app with
    * its details kept (chooseGoogleApp has the whole rule).
    */
-  async function resolveClient(): Promise<ResolvedClient | null> {
+  async function resolveClient(kind: GoogleClientKind = 'main'): Promise<ResolvedClient | null> {
     const clientId = (await getSecret(opts.clientIdKey))?.trim() || undefined;
     const clientSecret = (await getSecret(opts.clientSecretKey))?.trim() || undefined;
     const ownSaved = Boolean(clientId || clientSecret);
     const hosted = opts.hosted();
     const preference = ownSaved && hosted ? await opts.preference() : 'own';
     const mode = chooseGoogleApp({ ownSaved, preference, hostedAvailable: hosted !== null });
-    if (mode === 'own') return { mode: 'own', clientId, clientSecret, tokenUrl: GOOGLE_TOKEN_URL };
-    if (mode === 'hosted' && hosted) return { mode: 'hosted', ...hosted };
+    if (kind === 'web') {
+      // The same app as the main client, through its web client.
+      const web = opts.web;
+      if (!web || mode === null) return null;
+      if (mode === 'own') {
+        return {
+          mode: 'own',
+          kind: 'web',
+          clientId: (await getSecret(web.clientIdKey))?.trim() || undefined,
+          clientSecret: (await getSecret(web.clientSecretKey))?.trim() || undefined,
+          tokenUrl: GOOGLE_TOKEN_URL,
+        };
+      }
+      const hostedWeb = web.hosted();
+      return hostedWeb ? { mode: 'hosted', kind: 'web', ...hostedWeb } : null;
+    }
+    if (mode === 'own') return { mode: 'own', kind: 'main', clientId, clientSecret, tokenUrl: GOOGLE_TOKEN_URL };
+    if (mode === 'hosted' && hosted) return { mode: 'hosted', kind: 'main', ...hosted };
     return null;
   }
 
@@ -166,9 +215,12 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     return client.mode === 'hosted' || Boolean(client.clientSecret);
   }
 
-  async function getClient(): Promise<GoogleClient> {
-    const client = await resolveClient();
-    if (!isUsable(client)) throw new SetupError(opts.missingCredentialsMessage, 'key', opts.service, 'integrations');
+  async function getClient(kind: GoogleClientKind = 'main'): Promise<GoogleClient> {
+    const client = await resolveClient(kind);
+    if (!isUsable(client)) {
+      const message = kind === 'web' && opts.web ? opts.web.missingCredentialsMessage : opts.missingCredentialsMessage;
+      throw new SetupError(message, 'key', opts.service, 'integrations');
+    }
     return client;
   }
 
@@ -176,8 +228,8 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     return (await resolveClient())?.clientId ?? null;
   }
 
-  async function hasCredentials(): Promise<boolean> {
-    return isUsable(await resolveClient());
+  async function hasCredentials(kind: GoogleClientKind = 'main'): Promise<boolean> {
+    return isUsable(await resolveClient(kind));
   }
 
   async function getMode(): Promise<GoogleClientMode | null> {
@@ -189,11 +241,11 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     tokensPath: opts.tokensPath,
     revokeUrl: REVOKE_URL,
     logName: opts.logName,
-    getTokenClient: async () => {
-      const client = await getClient();
+    getTokenClient: async (tokens) => {
+      const client = await getClient(grantKind(tokens));
       return { tokenUrl: client.tokenUrl, params: clientParams(client) };
     },
-    hasCredentials,
+    hasCredentials: () => hasCredentials(),
   });
 
   async function loadTokens(): Promise<StoredGoogleTokens | null> {
@@ -202,9 +254,9 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
 
   async function requestToken(
     grant: Record<string, string>,
-    init: { retries?: number } = {},
+    { kind = 'main', ...init }: { retries?: number; kind?: GoogleClientKind } = {},
   ): Promise<{ ok: boolean; status: number; data: Record<string, unknown>; client: GoogleClient }> {
-    const client = await getClient();
+    const client = await getClient(kind);
     let res: Response;
     try {
       res = await fetchWithTimeout(client.tokenUrl, {
@@ -226,7 +278,9 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     // tokens file keeps exactly the shape it always had.
     const grant: StoredGoogleTokens = { ...tokens };
     delete grant.client_mode;
+    delete grant.client_kind;
     if (client.mode === 'hosted') grant.client_mode = 'hosted';
+    if (client.kind === 'web' && opts.web) grant.client_kind = 'web';
     await store.saveTokens(grant);
   }
 
@@ -240,7 +294,8 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
    * the underlying store then answers as it always has.
    */
   async function grantMatchesClient(): Promise<boolean> {
-    const [tokens, client] = await Promise.all([loadTokens(), resolveClient()]);
+    const tokens = await loadTokens();
+    const client = await resolveClient(grantKind(tokens));
     if (!tokens || !isUsable(client)) return true;
     const issuedBy: GoogleClientMode = tokens.client_mode === 'hosted' ? 'hosted' : 'own';
     if (issuedBy === client.mode) return true;

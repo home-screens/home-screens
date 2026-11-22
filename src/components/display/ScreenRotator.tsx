@@ -57,6 +57,7 @@ import { setDisplayToken } from '@/lib/display-fetch';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
 import { BurnInProtectionProvider } from '@/components/display/burn-in-context';
+import { WallCalendarEntryProvider } from '@/components/display/wall-calendar-entry-context';
 import { toDockScreen } from '@/lib/screen-dock';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 import { showsPaginationDots } from '@/lib/pagination-dots';
@@ -149,6 +150,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Burn-in protection: the whole root box steps along a small lattice once
   // a minute. Never in the editor's preview, which must stay pixel-exact.
   const burnInProtection = !preview && settings.pixelShift === true;
+  const wallCalendarEntry = !preview && settings.calendarWallEntry !== false;
   const pixelShift = usePixelShift(burnInProtection);
 
   // A Preview window shows the plugin builds the editor is developing against.
@@ -941,6 +943,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           from commanding the real kiosk this window is standing in for. */}
       <ModuleSurfaceProvider value={preview ? 'preview' : 'display'}>
         <BurnInProtectionProvider value={burnInProtection}>
+        <WallCalendarEntryProvider value={wallCalendarEntry}>
         <RotationProvider value={rotationState}>
           {showHint || !renderedScreen ? (
             settings.setupHintEnabled === false
@@ -992,6 +995,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             displayId={displayId}
           />
         </RotationProvider>
+        </WallCalendarEntryProvider>
         </BurnInProtectionProvider>
       </ModuleSurfaceProvider>
 

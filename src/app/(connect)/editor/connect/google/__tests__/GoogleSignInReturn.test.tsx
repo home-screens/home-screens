@@ -57,7 +57,7 @@ describe('GoogleSignInReturn', () => {
 
     expect(await outcomeOf(view)).toBe('connected');
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith('/api/google-picker/auth', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/google/return', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ code: '4/0AdLIrY', state: 'nonce.aHR0cDovLzE5Mi4xNjguMS41MDozMDAw' }),
     }));

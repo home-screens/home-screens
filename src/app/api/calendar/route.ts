@@ -5,7 +5,8 @@ import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
 import { CALENDAR_FETCH_MAX_EVENTS, CALENDAR_MAX_WINDOW_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { budgetEvents, mergeSourceStatus, recordSourceStatus, withSavedEvents, type SourceFetchResult } from '@/lib/calendar-source-status';
-import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
+import type { CalendarEvent, CalendarSettings, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
+import { entryCalendarIds, stampEditable } from '@/lib/calendar-write';
 import { logger } from '@/lib/logger';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { CALENDAR_REVISION_HEADER, calendarRevision } from '@/lib/calendar-revision';
@@ -44,6 +45,8 @@ interface CalendarParams {
   icloudKey: string;
   /** `calendarRevision()` when the request came in: a sign-in or disconnect starts a new cache entry. */
   revision: string;
+  /** Which calendars take new events; a change to it bumps the revision. */
+  eventEntry: CalendarSettings['eventEntry'];
 }
 
 const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
@@ -113,11 +116,12 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     // before a sign-in kept being handed out for the rest of its TTL.
     const revision = calendarRevision();
 
-    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision };
+    const eventEntry = config.settings.calendar.eventEntry;
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision, eventEntry };
   },
   cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, timezone, revision }) =>
     `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax};tz:${timezone ?? ''};r:${revision}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone }) => {
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, eventEntry }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -233,14 +237,32 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     // grids to the nearest few days. Upcoming-first budgeting only when the
     // cap is exceeded — see budgetEvents for the three-bucket policy.
     const pauseWhileAsleep = calendarIds.length > 0 && (await googleCalendarTokenStore.getMode()) === 'hosted';
+    const editable = await editableCalendars(eventEntry, calendarIds, icloudSources.map((s) => s.id));
     return {
-      events: budgetEvents(merged, CALENDAR_FETCH_MAX_EVENTS, timezone),
+      events: stampEditable(budgetEvents(merged, CALENDAR_FETCH_MAX_EVENTS, timezone), editable),
       sourceStatus,
       ...(pauseWhileAsleep ? { pauseWhileAsleep: true as const } : {}),
     };
   },
   errorMessage: 'Failed to fetch calendar events',
 });
+
+/**
+ * Which calendars take changes from the phone and the wall right now: ticked
+ * for adding, shown, and for Google, signed in with the right to write.
+ */
+async function editableCalendars(
+  eventEntry: CalendarSettings['eventEntry'],
+  googleIds: readonly string[],
+  icloudIds: readonly string[],
+): Promise<(sourceId: string) => boolean> {
+  const ids = new Set(entryCalendarIds(eventEntry, [...googleIds, ...icloudIds]));
+  if (ids.size === 0) return () => false;
+  const google = new Set(googleIds);
+  const googleReady = [...ids].some((id) => google.has(id))
+    && (await (await import('@/lib/google-auth')).getGoogleEntryState(true)) === 'ready';
+  return (sourceId) => ids.has(sourceId) && (!google.has(sourceId) || googleReady);
+}
 
 /**
  * Every answer says which calendar revision it was read at, so a wall whose

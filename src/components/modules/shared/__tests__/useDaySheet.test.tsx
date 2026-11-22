@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { CalendarEvent } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
-import { openDayProps, useDaySheet } from '../useDaySheet';
+import { openDayCellProps, openDayProps, useDaySheet } from '../useDaySheet';
 
 // @vitest-environment jsdom
 
@@ -75,6 +75,26 @@ describe('useDaySheet', () => {
     act(() => result.current.opener?.(FRIDAY, [DENTIST]));
     act(() => result.current.close());
     expect(result.current.day).toBeNull();
+  });
+});
+
+describe('while events can be added here', () => {
+  const t = ((key: string, vars?: Record<string, unknown>) => `${key}:${vars?.date}`) as TranslateFn;
+
+  it('opens a day with nothing on it, and keeps the sheet open', () => {
+    const { result } = renderHook(() => useDaySheet([DENTIST], true, undefined, true));
+    const opener = result.current.opener!;
+    expect(opener.everyDay).toBe(true);
+    expect(openDayProps(opener, FRIDAY, [], t, 'en-US')?.['data-open-day']).toBe('2026-11-06');
+    expect(openDayCellProps(opener, FRIDAY, [])?.['data-day-cell']).toBe('2026-11-06');
+    act(() => opener(FRIDAY, []));
+    expect(result.current.day).toEqual({ date: FRIDAY, events: [], notes: [] });
+  });
+
+  it('changes nothing with adding off: an empty day stays plain text', () => {
+    const { result } = renderHook(() => useDaySheet([DENTIST], true));
+    expect(result.current.opener?.everyDay).toBeUndefined();
+    expect(openDayProps(result.current.opener, FRIDAY, [], t, 'en-US')).toBeUndefined();
   });
 });
 

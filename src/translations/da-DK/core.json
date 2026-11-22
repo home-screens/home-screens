@@ -54,6 +54,30 @@
       "tooDeep": "Mapper kan kun gå {max} niveauer ned.",
       "folderExists": "Der er allerede en mappe, der hedder {name}, her.",
       "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først."
+    },
+    "calendarWrite": {
+      "titleRequired": "Giv begivenheden et navn.",
+      "titleTooLong": "Navnet kan højst have {max} tegn.",
+      "placeTooLong": "Stedet kan højst have {max} tegn.",
+      "badDate": "Den dag ser forkert ud.",
+      "dayTooFar": "En begivenhed skal starte inden for {years} år fra i dag.",
+      "badTime": "Det tidspunkt ser forkert ud.",
+      "endsWhenItStarts": "Den slutter samtidig med, at den starter. Vælg en senere sluttid.",
+      "lastDayBeforeFirst": "Den sidste dag ligger før den første.",
+      "tooManyDays": "En heldagsbegivenhed kan højst vare {max} dage.",
+      "badRepeat": "Den gentagelse kan Home Screens ikke lave.",
+      "weekdaysOnWeekend": "For at gentage alle hverdage skal begivenheden starte på en hverdag.",
+      "repeatEndsBeforeStart": "Den stopper, før den starter.",
+      "repeatTooLong": "En gentagelse kan højst vare {years} år.",
+      "repeatNeedsEveryTime": "Ændrer du, hvordan den gentages, ændres den alle gange.",
+      "notOffered": "Det er slået fra at tilføje begivenheder lige nu.",
+      "calendarNotTicked": "Der kan ikke lægges begivenheder i den kalender.",
+      "notEditable": "Den begivenhed kan ikke ændres herfra.",
+      "changedElsewhere": "En anden har lige ændret denne begivenhed.",
+      "gone": "Den begivenhed er allerede fjernet.",
+      "notAllowed": "Denne kalender kan ikke ændres fra Home Screens.",
+      "signInNeeded": "Du skal logge ind igen for at bruge kalenderen. Det gør du under Indstillinger > Kalender.",
+      "unreachable": "Kunne ikke nå kalenderen, så intet er ændret endnu. Prøv igen om et minut."
     }
   },
   "today": "I dag",
@@ -667,7 +691,9 @@
         "other": "For at bruge {count} af {member}s billetter på {reward}"
       },
       "untick": "For at fjerne {member}s flueben ved {chore}",
-      "todoistClose": "For at markere {task} som klaret"
+      "todoistClose": "For at markere {task} som klaret",
+      "calendarRemove": "For at fjerne {title}",
+      "calendarChangeSeries": "For at ændre {title} alle gange"
     },
     "wrong": "Det var ikke den. Prøv igen.",
     "tooMany": {
@@ -680,5 +706,31 @@
       "other": "Låst op i {count} minutter mere"
     },
     "lockNow": "Lås nu"
+  },
+  "calendarRepeat": {
+    "none": "Gentages ikke",
+    "daily": "Hver dag",
+    "weekdays": "Alle hverdage",
+    "weekdaysHint": "Mandag til fredag",
+    "weekly": "Hver {weekday}",
+    "biweekly": "Hver anden {weekday}",
+    "monthly": "Hver måned den {day}.",
+    "yearly": "Hvert år den {date}",
+    "until": "{rule}, indtil {date}",
+    "other": "Gentages på en måde, der er valgt et andet sted",
+    "short": {
+      "daily": "Hver dag",
+      "weekdays": "Hverdage",
+      "weekly": "Hver uge",
+      "biweekly": "Hver anden uge",
+      "monthly": "Hver måned",
+      "yearly": "Hvert år"
+    }
+  },
+  "calendarChange": {
+    "thisDayStays": "{day}. De andre dage bliver, som de er.",
+    "everyTimePastFuture": "Alle gange, både de tidligere og de kommende",
+    "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",
+    "everyTimeFromFirst": "Alle gange, helt fra den første"
   }
 }

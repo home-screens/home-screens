@@ -24,6 +24,7 @@
     "control": "Controle",
     "chores": "Tarefas",
     "lists": "Listas",
+    "calendar": "Calendário",
     "meals": "Refeições",
     "photos": "Fotos",
     "timers": "Timers",
@@ -1488,6 +1489,75 @@
         "other": "O Home Screens escolhe jantares entre suas receitas do Mealie para as {count} noites vazias da semana de {range} e os salva no Mealie. Noites com uma regra do plano de refeições no Mealie seguem essa regra."
       },
       "confirmLabel": "Preencher jantares"
+    }
+  },
+  "calendarTab": {
+    "title": "Calendário",
+    "sub": "O que tem em cada dia e recados para a parede",
+    "addEvent": "Adicionar evento",
+    "addNote": "Adicionar recado",
+    "addEventAria": "Adicionar um evento para {day}",
+    "allDay": "Dia inteiro",
+    "repeats": "Se repete",
+    "changeAria": "Mudar {title}",
+    "googleCalendar": "Google Agenda",
+    "appleCalendar": "Calendário da Apple",
+    "unreachable": "Não foi possível conectar ao Home Screens, então nada mudou ainda. Tudo o que você digitou continua aqui.",
+    "added": "Adicionado ao calendário {calendar}. Aparece na parede em alguns segundos.",
+    "changed": "Mudança salva. A parede mostra em alguns segundos.",
+    "removed": "Removido do calendário {calendar}.",
+    "offTitle": "Adicionar eventos está desligado",
+    "offBody": "Dá para ligar em Configurações > Calendário. Os recados do dia funcionam como sempre.",
+    "signInTitle": "Falta um passo para adicionar eventos",
+    "signInBody": "Para adicionar eventos, é preciso entrar no Google mais uma vez. Isso fica em Configurações > Calendário.",
+    "justThisDay": "Só este dia",
+    "everyTime": "Todas as vezes",
+    "keepIt": "Manter",
+    "backToForm": "Voltar ao formulário",
+    "saveAsk": {
+      "title": "Mudar {title}"
+    },
+    "removeAsk": {
+      "title": "Remover {title}?",
+      "body": "Ele sai do calendário {calendar} para todos: aqui, na parede e no {app}."
+    },
+    "form": {
+      "newTitle": "Novo evento",
+      "changeTitle": "Mudar evento",
+      "what": "O que é?",
+      "whatPlaceholder": "Treino de futebol, dentista…",
+      "day": "Dia",
+      "firstDay": "Primeiro dia",
+      "lastDay": "Último dia",
+      "allDay": "Dia inteiro",
+      "starts": "Começa",
+      "ends": "Termina",
+      "nextDay": "no dia seguinte",
+      "endsOn": "Termina {day}, às {time} · {length}",
+      "hours": {
+        "one": "{count} hora",
+        "other": "{count} horas"
+      },
+      "minutes": "{count}min",
+      "hoursMinutes": "{hours}h{minutes}min",
+      "repeats": "Repetição",
+      "stops": "Para de repetir",
+      "stopsNever": "Nunca",
+      "stopsOnDate": "Em uma data",
+      "done": "Pronto",
+      "calendar": "Calendário",
+      "staysOnGoogle": "Um evento fica no calendário em que está. Para mudar de calendário, faça isso no Google Agenda.",
+      "staysOnICloud": "Um evento fica no calendário em que está. Para mudar de calendário, faça isso no Calendário da Apple.",
+      "place": "Local",
+      "placeOptional": "(se quiser)",
+      "placePlaceholder": "Adicionar um local",
+      "add": "Adicionar ao calendário",
+      "save": "Salvar",
+      "remove": "Remover",
+      "fromWall": "Veio da parede {wall}, para {day}.",
+      "changedElsewhere": "Alguém mudou este evento agora há pouco, então esta é a versão mais nova. Faça sua mudança de novo e salve.",
+      "repeatsNote": "{title} se repete. Ao salvar, você escolhe só este dia ou todas as vezes.",
+      "noCalendars": "Nenhum calendário recebe eventos novos ainda. Escolha alguns em Configurações > Calendário."
     }
   }
 }

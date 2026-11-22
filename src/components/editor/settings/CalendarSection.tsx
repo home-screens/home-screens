@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { ICalSource, ICloudSource } from '@/types/config';
+import type { CalendarEventEntry, ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,7 @@ import HostedCalendarSignIn from './HostedCalendarSignIn';
 import { DeviceCodeButton, DeviceCodeLink } from '../DeviceCodeParts';
 import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
+import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
@@ -30,6 +31,8 @@ interface CalendarSettings {
   daysAhead: number;
   holidayCountry?: string;
   hideDeclined: boolean;
+  eventEntry: CalendarEventEntry | null;
+  wallEntry: boolean;
 }
 
 interface Props {
@@ -399,7 +402,17 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         </SourceBlock>
       </SettingsArea>
 
-      {/* 3. People: who the calendars belong to */}
+      {/* 3. Adding events from the phone and the wall */}
+      <CalendarAddingArea
+        eventEntry={values.eventEntry}
+        wallEntry={values.wallEntry}
+        googleCalendars={googleCalendars}
+        shownGoogleIds={googleConnected ? selectedCalendarIds : []}
+        icloudSources={icloudSources}
+        onChange={onChange}
+      />
+
+      {/* 4. People: who the calendars belong to */}
       <SettingsArea
         title={t('settings.calendarPage.people.heading')}
         description={t('settings.calendarPage.people.help')}

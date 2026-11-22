@@ -17,6 +17,7 @@ import type { DisplayNodeSettings } from '@/types/config';
  *   - `DISPLAY_OVERRIDE_FIELDS` → Defaults → Display
  *   - `SLEEP_OVERRIDE_FIELDS`   → Defaults → Sleep
  *   - `ALERT_OVERRIDE_FIELDS`   → Defaults → Alerts
+ *   - `CALENDAR_OVERRIDE_FIELDS` → Defaults → Calendar
  *
  * Adding a new override field is a two-step change: add it to
  * `DisplayNodeSettings` in `src/types/config.ts`, then add it to the
@@ -44,6 +45,8 @@ export const SLEEP_OVERRIDE_FIELDS = ['sleep', 'screensaver'] as const satisfies
 
 export const ALERT_OVERRIDE_FIELDS = ['alerts'] as const satisfies readonly (keyof DisplayNodeSettings)[];
 
+export const CALENDAR_OVERRIDE_FIELDS = ['calendarWallEntry'] as const satisfies readonly (keyof DisplayNodeSettings)[];
+
 /**
  * Every key a display's `settings` may override, and so the only keys
  * `filterConfigForDisplay` lays over the shared settings. A key the type does
@@ -62,6 +65,7 @@ export const DISPLAY_NODE_SETTINGS_KEYS = [
   ...DISPLAY_OVERRIDE_FIELDS,
   ...SLEEP_OVERRIDE_FIELDS,
   ...ALERT_OVERRIDE_FIELDS,
+  ...CALENDAR_OVERRIDE_FIELDS,
 ] as const satisfies readonly (keyof DisplayNodeSettings)[];
 
 // A `DisplayNodeSettings` key missing from the list above fails to compile

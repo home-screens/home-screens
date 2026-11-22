@@ -14,6 +14,8 @@ export interface GoogleCalendar {
   summary: string;
   backgroundColor: string;
   primary: boolean;
+  /** This account may add events on it (owner or writer). */
+  writable?: boolean;
 }
 
 interface CalendarValues {

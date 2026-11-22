@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getPickerAuthUrl, exchangePickerCode } from '@/lib/google-picker';
-import { confirmHubAddress } from '@/lib/google-picker-sign-in';
+import { confirmHubAddress } from '@/lib/google-web-sign-in';
 import { VIA_TRUSTED_PROXY_HEADER } from '@/lib/client-ip';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
 

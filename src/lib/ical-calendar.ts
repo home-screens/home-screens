@@ -81,7 +81,8 @@ export function parseICSEvents(
 
       for (const instance of instances) {
         if (onlyMonth && !instance.isOverride && wallDate(instance.start, vevent).slice(5, 7) !== onlyMonth) continue;
-        const ev = instanceToCalendarEvent(instance.event, instance.start, instance.end, instance.isFullDay, source);
+        const [start, end, isAllDay] = changedDayOwnBounds(instance) ?? [instance.start, instance.end, instance.isFullDay];
+        const ev = instanceToCalendarEvent(instance.event, start, end, isAllDay, source);
         if (ev) events.push(ev);
       }
     } else {
@@ -480,6 +481,21 @@ export async function checkICalUrl(
     log.warn('Feed check failed', err);
     return { ok: false, error: 'Could not reach the link', messageKey: 'linkUnreachable' };
   }
+}
+
+/**
+ * The bounds of a changed day (RECURRENCE-ID) that is all day while its
+ * series is timed, or timed while the series is all day. node-ical times
+ * every changed day the series' way, which showed an all-day day as a
+ * midnight-to-midnight timed event and dropped the times of a timed one.
+ * Such a day keeps its own start and end; null for every other instance.
+ */
+function changedDayOwnBounds(instance: { isOverride?: boolean; isFullDay: boolean; event: VEvent }): [Date, Date, boolean] | null {
+  if (!instance.isOverride) return null;
+  const own = instance.event;
+  const ownAllDay = own.datetype === 'date';
+  if (ownAllDay === instance.isFullDay || !own.start) return null;
+  return [own.start, own.end ?? computeFallbackEnd(own.start, ownAllDay), ownAllDay];
 }
 
 /** Compute a fallback end date when DTEND is missing. */

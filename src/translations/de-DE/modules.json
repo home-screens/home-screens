@@ -152,7 +152,49 @@
         "other": "{count} Termine"
       },
       "toTime": "bis {time}",
-      "openDay": "Alles am {date} ansehen"
+      "openDay": "Alles am {date} ansehen",
+      "empty": "An diesem Tag steht noch nichts an.",
+      "addEvent": "Termin hinzufügen"
+    },
+    "eventForm": {
+      "newKicker": "Neuer Termin · {weekday}",
+      "changeKicker": "Termin ändern · {weekday}",
+      "what": "Was steht an?",
+      "namePlaceholder": "Namen eintippen",
+      "typeOnPhone": "Am Handy tippen",
+      "handoffBody": "Halte die Kamera deines Handys auf den Code. Dann öffnet sich dort ein neuer Termin für {day}.",
+      "backToKeyboard": "Zurück zur Tastatur an der Wand",
+      "allDay": "Ganztägig",
+      "repeats": "Wiederholung",
+      "howOften": "Wie oft?",
+      "repeatNote": "Das geht so weiter, bis der Termin geändert oder entfernt wird. Soll er an einem bestimmten Tag aufhören, stell das am Handy ein.",
+      "starts": "Beginn",
+      "ends": "Ende",
+      "howLong": "Dauer",
+      "endsAt": "Endet um {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} Stunde",
+        "other": "{count} Stunden"
+      },
+      "minutes": "{count} Min.",
+      "hoursMinutes": "{hours} Std. {minutes} Min.",
+      "length30": "30 Min.",
+      "length60": "1 Stunde",
+      "length90": "1½ Stunden",
+      "length120": "2 Stunden",
+      "length180": "3 Stunden",
+      "lengthOther": "Andere",
+      "calendar": "Kalender",
+      "staysOn": "Bleibt in seinem Kalender",
+      "add": "In den Kalender eintragen",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "tryAgain": "Noch einmal versuchen",
+      "done": "Fertig",
+      "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert. Das hier ist der neueste Stand. Mach deine Änderung noch einmal.",
+      "changeTitle": "„{title}“ ändern",
+      "backToForm": "Zurück zum Formular"
     }
   },
   "fullscreen-calendar": {
@@ -1580,7 +1622,15 @@
     "allDay": "Ganztägig",
     "holiday": "Feiertag",
     "birthday": "Geburtstag",
-    "birthdayWithAge": "Geburtstag · wird {age}"
+    "birthdayWithAge": "Geburtstag · wird {age}",
+    "repeats": "Wiederholt sich",
+    "change": "Ändern",
+    "remove": "Entfernen",
+    "keepIt": "Behalten",
+    "removeTitle": "„{title}“ entfernen?",
+    "removeBody": "Der Termin verschwindet für alle aus dem Kalender „{calendar}“: an der Wand, auf den Handys und in der Kalender-App.",
+    "justThisDay": "Nur an diesem Tag",
+    "everyTime": "An allen Tagen"
   },
   "fullscreen-weather": {
     "loading": "Wettervorhersage wird geladen…",

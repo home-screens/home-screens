@@ -308,7 +308,7 @@ Photos are saved as high-quality display-sized copies (up to 4096 pixels on the 
 
 ### Use your own Google app
 
-If you would rather run your own Google Cloud project, open **Settings > API keys**, expand **Use your own Google app** on the Google card, and fill in the **Photos Import** fields with a credential made like this. It is a different type from the Google Calendar one, so you need both if you use your own app for both:
+If you would rather run your own Google Cloud project, open **Settings > API keys**, expand **Use your own Google app** on the Google card, and fill in the **Web sign-in** fields with a credential made like this. It is a different type from the Google Calendar one, so you need both if you use your own app for both:
 
 1. In [Google Cloud console](https://console.cloud.google.com/apis/credentials) (the same project you may already use for Google Calendar), go to **APIs & Services > Credentials** and create an **OAuth client ID** with the type **Web application**
 2. Under **Authorized redirect URIs**, add exactly `https://homescreens.dev/connect/google` (leave **Authorized JavaScript origins** empty)

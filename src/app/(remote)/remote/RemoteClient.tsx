@@ -37,6 +37,7 @@ import type { PhoneChoreConfig } from '@/lib/chore-module-config';
 import TimersTab from './components/TimersTab';
 import ListsTab from './components/ListsTab';
 import NotesTab, { type NotesPage } from './components/NotesTab';
+import CalendarTab from './components/CalendarTab';
 import { ADD_BAR_HEIGHT } from './components/AddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
@@ -88,7 +89,7 @@ interface RemoteInitialData {
 }
 
 /** Tabs `?tab=` may name, mirroring the bottom bar. */
-const TABS = ['control', 'timers', 'chores', 'lists', 'notes', 'meals', 'photos'];
+const TABS = ['control', 'timers', 'chores', 'lists', 'calendar', 'notes', 'meals', 'photos'];
 
 /** How long the reconnecting banner may stand after a hub restart / reboot before giving up. */
 const RECONNECT_WINDOW_MS: Record<PowerAction, number> = {
@@ -144,9 +145,29 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   // Control makes the reader hunt. Applied after mount (not during render) so
   // the server and client agree on the first paint, and mirrored back into
   // the URL so a reload or a shared link keeps the tab.
+  // A wall's "Type on your phone" code: `?tab=calendar&add=<day>&wall=<id>` opens a new event for that day.
+  const displays = initialData.displays;
+  const [calendarAdd, setCalendarAdd] = useState<{ date: string; wall?: string } | null>(null);
   useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get('tab');
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get('tab');
     if (wanted && wanted !== 'control' && TABS.includes(wanted)) setActiveTab(wanted);
+    const add = params.get('add');
+    if (wanted === 'calendar' && add && /^\d{4}-\d{2}-\d{2}$/.test(add)) {
+      // The wall sends its id; say its name, as the rest of the phone does.
+      const wallId = params.get('wall')?.slice(0, 60);
+      const wall = wallId ? displays.find((d) => d.id === wallId)?.name ?? wallId : undefined;
+      setCalendarAdd({ date: add, ...(wall ? { wall } : {}) });
+    }
+    // The page's own address, once: `displays` is the server's answer and never changes.
+  }, [displays]);
+  const openedCalendarAdd = useCallback(() => {
+    setCalendarAdd(null);
+    // The code is used once: a reload must not open another new event.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('add');
+    url.searchParams.delete('wall');
+    window.history.replaceState(null, '', url);
   }, []);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -488,6 +509,13 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 {hasLists
                   ? <ListsTab selectedListId={selectedListId} onSelectList={setSelectedListId} />
                   : <TabNotSetUp kind="lists" />}
+              </div>
+              <div className="h-20" />
+            </>
+          ) : activeTab === 'calendar' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                <CalendarTab openAdd={calendarAdd} onOpenedAdd={openedCalendarAdd} />
               </div>
               <div className="h-20" />
             </>

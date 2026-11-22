@@ -152,7 +152,49 @@
         "other": "{count} événements"
       },
       "toTime": "jusqu'à {time}",
-      "openDay": "Voir tous les événements du {date}"
+      "openDay": "Voir tous les événements du {date}",
+      "empty": "Rien de prévu ce jour-là pour l'instant.",
+      "addEvent": "Ajouter un événement"
+    },
+    "eventForm": {
+      "newKicker": "Nouvel événement · {weekday}",
+      "changeKicker": "Modifier l'événement · {weekday}",
+      "what": "C'est quoi ?",
+      "namePlaceholder": "Écris un nom",
+      "typeOnPhone": "Écrire sur ton téléphone",
+      "handoffBody": "Vise ce code avec l'appareil photo de ton téléphone : il ouvre un nouvel événement pour le {day}.",
+      "backToKeyboard": "Retour au clavier du mur",
+      "allDay": "Toute la journée",
+      "repeats": "Répétition",
+      "howOften": "À quelle fréquence ?",
+      "repeatNote": "L'événement revient jusqu'à ce qu'on le modifie ou le retire. Pour l'arrêter à une date, fais-le sur ton téléphone.",
+      "starts": "Début",
+      "ends": "Fin",
+      "howLong": "Durée",
+      "endsAt": "Fin à {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} heure",
+        "other": "{count} heures"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "length30": "30 min",
+      "length60": "1 heure",
+      "length90": "1 h 30",
+      "length120": "2 heures",
+      "length180": "3 heures",
+      "lengthOther": "Autre",
+      "calendar": "Calendrier",
+      "staysOn": "Reste dans son calendrier",
+      "add": "Ajouter au calendrier",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "tryAgain": "Réessayer",
+      "done": "Terminé",
+      "changedElsewhere": "Quelqu'un vient de modifier cet événement. Voici la dernière version : refais ta modification.",
+      "changeTitle": "Modifier {title}",
+      "backToForm": "Retour au formulaire"
     }
   },
   "fullscreen-calendar": {
@@ -1588,7 +1630,15 @@
     "allDay": "Toute la journée",
     "holiday": "Jour férié",
     "birthday": "Anniversaire",
-    "birthdayWithAge": "Anniversaire · {age} ans"
+    "birthdayWithAge": "Anniversaire · {age} ans",
+    "repeats": "Se répète",
+    "change": "Modifier",
+    "remove": "Retirer",
+    "keepIt": "Le garder",
+    "removeTitle": "Retirer {title} ?",
+    "removeBody": "L'événement disparaît du calendrier {calendar} pour tout le monde : sur le mur, sur les téléphones et dans l'app de calendrier.",
+    "justThisDay": "Ce jour-là seulement",
+    "everyTime": "Toutes les fois"
   },
   "fullscreen-weather": {
     "loading": "Chargement des prévisions…",

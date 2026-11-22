@@ -152,7 +152,49 @@
         "other": "{count} eventos"
       },
       "toTime": "hasta {time}",
-      "openDay": "Ver todo lo que hay el {date}"
+      "openDay": "Ver todo lo que hay el {date}",
+      "empty": "Todavía no hay nada este día.",
+      "addEvent": "Añadir evento"
+    },
+    "eventForm": {
+      "newKicker": "Nuevo evento · {weekday}",
+      "changeKicker": "Cambiar evento · {weekday}",
+      "what": "¿Qué es?",
+      "namePlaceholder": "Escribe un nombre",
+      "typeOnPhone": "Escribir en el teléfono",
+      "handoffBody": "Apunta aquí con la cámara del teléfono. Se abrirá allí un evento nuevo para el {day}.",
+      "backToKeyboard": "Volver al teclado de la pared",
+      "allDay": "Todo el día",
+      "repeats": "Se repite",
+      "howOften": "¿Cada cuánto?",
+      "repeatNote": "Se sigue repitiendo hasta que alguien lo cambie o lo quite. Para que termine en una fecha, ponlo desde el teléfono.",
+      "starts": "Empieza",
+      "ends": "Termina",
+      "howLong": "Cuánto dura",
+      "endsAt": "Termina a las {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} hora",
+        "other": "{count} horas"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "length30": "30 min",
+      "length60": "1 hora",
+      "length90": "1 hora y media",
+      "length120": "2 horas",
+      "length180": "3 horas",
+      "lengthOther": "Otra",
+      "calendar": "Calendario",
+      "staysOn": "Se queda en su calendario",
+      "add": "Añadir al calendario",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "tryAgain": "Intentar de nuevo",
+      "done": "Hecho",
+      "changedElsewhere": "Alguien acaba de cambiar este evento. Esta es la versión más reciente: vuelve a hacer tu cambio.",
+      "changeTitle": "Cambiar {title}",
+      "backToForm": "Volver al formulario"
     }
   },
   "fullscreen-calendar": {
@@ -1588,7 +1630,15 @@
     "allDay": "Todo el día",
     "holiday": "Festivo",
     "birthday": "Cumpleaños",
-    "birthdayWithAge": "Cumpleaños · cumple {age}"
+    "birthdayWithAge": "Cumpleaños · cumple {age}",
+    "repeats": "Se repite",
+    "change": "Cambiar",
+    "remove": "Quitar",
+    "keepIt": "Mejor no",
+    "removeTitle": "¿Quitar {title}?",
+    "removeBody": "Se quita del calendario {calendar} para todos: en la pared, en los teléfonos y en la app de calendario.",
+    "justThisDay": "Solo este día",
+    "everyTime": "Todas las veces"
   },
   "fullscreen-weather": {
     "loading": "Cargando la previsión…",
