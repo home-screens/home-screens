@@ -112,6 +112,21 @@ describe('useGoogleCalendars', () => {
     expect(onAuthError).not.toHaveBeenCalled();
   });
 
+  it('says why the sign-in stays in the Google account when Google Photos import still uses it', async () => {
+    deleteAnswer = () => reply(200, { connected: false, stillUsedBy: 'photos' });
+    const { result } = mount();
+    await settle();
+    expect(result.current.stillUsedBy).toBeNull();
+
+    await act(async () => { await result.current.disconnectGoogle(); });
+    expect(result.current.googleConnected).toBe(false);
+    expect(result.current.stillUsedBy).toBe('photos');
+
+    // Signing in again clears it.
+    act(() => result.current.setGoogleConnected(true));
+    expect(result.current.stillUsedBy).toBeNull();
+  });
+
   it('catches up with a sign-in finished in another tab when the editor comes back to the front', async () => {
     statusAnswer = () => reply(200, { credentialsConfigured: true, mode: 'own', connected: false });
     const signedIn = vi.fn();

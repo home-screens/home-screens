@@ -388,6 +388,16 @@ export function googleEntryState(input: {
   return input.grant.scopes.includes(GOOGLE_EVENTS_SCOPE) ? 'ready' : 'scopeMissing';
 }
 
+/**
+ * `googleEntryState` for a given switch, from where Google would stand with
+ * adding on (the state with `settingOn: true`). Settings applies the switch as
+ * it is on the page, so the sign-in step shows the moment the switch flips
+ * rather than after the change is saved.
+ */
+export function googleEntryStateWithSetting(ifOn: GoogleEntryState, settingOn: boolean): GoogleEntryState {
+  return settingOn || ifOn === 'notOffered' ? ifOn : 'off';
+}
+
 /** The scope string Google saved with a grant, as a list. */
 export function grantedScopes(scope: string | null | undefined): string[] {
   return (scope ?? '').split(/\s+/).filter(Boolean);

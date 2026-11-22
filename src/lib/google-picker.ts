@@ -1,5 +1,5 @@
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { googlePickerTokenStore } from '@/lib/google-token-stores';
+import { disconnectGoogleService, googlePickerTokenStore, type GoogleDisconnect } from '@/lib/google-token-stores';
 import { redeemWebSignIn, webSignInLink, type WebSignInLink } from '@/lib/google-web-sign-in';
 import {
   reserveLibraryImport,
@@ -70,8 +70,9 @@ export async function isPickerConnected(): Promise<boolean> {
   return store.verifyConnected();
 }
 
-export async function disconnectPicker(): Promise<void> {
-  await store.disconnect();
+/** Disconnect Google Photos import; Google Calendar keeps working (`disconnectGoogleService`). */
+export async function disconnectPicker(): Promise<GoogleDisconnect> {
+  return disconnectGoogleService('photos');
 }
 
 // ── Picker sessions ──────────────────────────────────────────────────

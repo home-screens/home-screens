@@ -243,3 +243,27 @@ describe('GooglePhotosImportSection with Home Screens\' own Google app', () => {
     expect(view.getByText('Choose photos')).toBeTruthy();
   });
 });
+
+describe('GooglePhotosImportSection disconnecting while Google Calendar still uses the sign-in', () => {
+  it('says why Home Screens stays listed in the Google account', async () => {
+    let connected = true;
+    editorFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url === '/api/auth/google/apps') return jsonResponse(HOSTED);
+      if (url === '/api/google-picker/status' && init?.method === 'DELETE') {
+        connected = false;
+        return jsonResponse({ connected: false, stillUsedBy: 'calendar' });
+      }
+      if (url === '/api/google-picker/status') return jsonResponse({ connected, credentialsConfigured: true });
+      if (url.startsWith('/api/google-picker/auth?')) return jsonResponse({ url: 'https://accounts.google.com/o/oauth2/v2/auth?x=1', returnsToHub: true });
+      throw new Error(`unexpected request ${url}`);
+    });
+    const view = await renderSection();
+    expect(view.queryByTestId('google-still-used')).toBeNull();
+
+    fireEvent.click(view.getByText('Disconnect Google Photos'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+
+    expect(view.getByTestId('google-still-used').textContent).toBe(enUSEditor.configSections.googlePhotosImport.stillUsedByCalendar);
+  });
+});

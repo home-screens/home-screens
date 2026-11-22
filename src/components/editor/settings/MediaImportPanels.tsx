@@ -105,6 +105,9 @@ export function GooglePhotosImportSheet({ initialFolder, directories, onImported
       {google.connected && <SaveInto value={folder} onChange={setFolder} directories={directories} />}
       <div><GooglePhotosAction google={google} label={t('photoSources.import.openGoogle')} /></div>
       <GooglePhotosProgress google={google} folderLabel={folder || t('settings.mediaPage.topLevel')} />
+      {google.disconnectNote && (
+        <p className="text-[11px] leading-relaxed text-hs-text-faint" data-testid="google-still-used">{google.disconnectNote}</p>
+      )}
       {google.connected && (
         <button type="button" onClick={google.disconnect} className="self-start text-[10px] text-hs-text-faint hover:text-hs-text-muted">
           {t('configSections.googlePhotosImport.disconnect')}

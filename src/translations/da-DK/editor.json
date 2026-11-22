@@ -665,6 +665,7 @@
         "codeCopied": "Kopieret!",
         "googleOnly": "Kun Google",
         "pausedExplanation": "Google er ikke forbundet lige nu, så disse kalendere opdateres ikke længere. Log ind igen ovenfor for at få dem tilbage.",
+        "stillUsedByPhotos": "Forbindelsen er afbrudt på denne hub. Google Fotos-import bruger stadig det samme Google-login, så din Google-konto bliver ved med at vise Home Screens, indtil du også afbryder Google Fotos.",
         "pausedBadge": "Sat på pause",
         "removeTitle": "Fjern {name}",
         "credentialsSetupPrefix": "Tilføj dit Google-login på siden ",
@@ -4739,6 +4740,7 @@
       "allFailed": "Fotoene kunne ikke gemmes. Tjek forbindelsen, og prøv igen.",
       "failedNote": "{failed} kunne ikke gemmes.",
       "disconnect": "Afbryd Google Fotos",
+      "stillUsedByCalendar": "Forbindelsen er afbrudt på denne hub. Google Kalender bruger stadig det samme Google-login, så din Google-konto bliver ved med at vise Home Screens, indtil du også afbryder Google Kalender.",
       "genericError": "Noget gik galt. Prøv igen.",
       "hosted": {
         "intro": "Vælg billeder i Google Fotos, så bliver de gemt her i Home Screens.",

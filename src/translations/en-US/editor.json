@@ -665,6 +665,7 @@
         "codeCopied": "Copied!",
         "googleOnly": "Google only",
         "pausedExplanation": "Google isn't connected right now, so these calendars have stopped updating. Sign in again above to bring them back.",
+        "stillUsedByPhotos": "Disconnected on this hub. Google Photos import still uses the same Google sign-in, so your Google account keeps listing Home Screens until you disconnect Google Photos too.",
         "pausedBadge": "Paused",
         "removeTitle": "Remove {name}",
         "credentialsSetupPrefix": "Add your Google login on the ",
@@ -4739,6 +4740,7 @@
       "allFailed": "The photos couldn't be saved. Check the connection and try again.",
       "failedNote": "{failed} couldn't be saved.",
       "disconnect": "Disconnect Google Photos",
+      "stillUsedByCalendar": "Disconnected on this hub. Google Calendar still uses the same Google sign-in, so your Google account keeps listing Home Screens until you disconnect Google Calendar too.",
       "genericError": "Something went wrong. Please try again.",
       "hosted": {
         "intro": "Pick photos in Google Photos and they're saved to this Home Screens.",

@@ -8,7 +8,7 @@ import { settingsPath } from '@/lib/settings-route';
 import type { CalendarEventEntry, CalendarOverride, ICloudSource } from '@/types/config';
 import { calendarLook } from '@/lib/calendar-overrides';
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
-import type { GoogleEntryState } from '@/lib/calendar-write';
+import { googleEntryStateWithSetting, type GoogleEntryState } from '@/lib/calendar-write';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import Button from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Toggle';
@@ -48,7 +48,10 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   onChange: (updates: { eventEntry?: CalendarEventEntry | null; wallEntry?: boolean }) => void;
 }) {
   const t = useTranslate('editor');
-  const [google, setGoogle] = useState<GoogleEntryState | null>(null);
+  // Where Google would stand with adding on. The switch below is applied as it
+  // is on this page, so the sign-in step shows the moment it flips; the saved
+  // setting reaches the hub half a second later.
+  const [googleIfOn, setGoogleIfOn] = useState<GoogleEntryState | null>(null);
   const [link, setLink] = useState<{ url: string; returnsToHub: boolean } | null>(null);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -57,7 +60,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   const readState = useCallback(async () => {
     try {
       const res = await editorFetch('/api/calendar/entry');
-      if (res.ok) setGoogle(((await res.json()) as CalendarEntryInfo).google);
+      if (res.ok) setGoogleIfOn(((await res.json()) as CalendarEntryInfo).googleIfOn);
     } catch { /* the next look tries again */ }
   }, []);
 
@@ -68,8 +71,9 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
     const onFocus = () => void readState();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [readState, enabled]);
+  }, [readState]);
 
+  const google = googleIfOn === null ? null : googleEntryStateWithSetting(googleIfOn, enabled);
   const icloudCalendars = icloudSources.filter((s) => s.enabled);
   const googleOffered = google !== null && google !== 'notOffered' && shownGoogleIds.length > 0;
   // Nothing to add events to yet: Home Screens' own Google app before

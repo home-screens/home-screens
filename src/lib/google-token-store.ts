@@ -4,6 +4,7 @@ import { fetchWithTimeout, SetupError } from './api-utils';
 import { chooseGoogleApp } from './google-app-choice';
 import { createOAuthTokenStore, type StoredOAuthTokens } from './oauth-token-store';
 import { logger } from './logger';
+import { googleProjectOf } from './google-grant-project';
 
 /**
  * Shared OAuth token store for the two Google integrations. Each grant lives
@@ -153,8 +154,13 @@ export interface GoogleTokenStore {
    * the sign-in UI) instead of a dead "connected" state.
    */
   verifyConnected(): Promise<boolean>;
-  /** Best-effort revoke, then clear the tokens file. */
-  disconnect(): Promise<void>;
+  /**
+   * The Google Cloud project the saved grant came from (google-grant-project.ts):
+   * undefined when nothing is saved, null when it can't be told.
+   */
+  savedGrantProject(): Promise<string | null | undefined>;
+  /** Best-effort revoke, then clear the tokens file; `revoke: false` only clears it. */
+  disconnect(options?: { revoke?: boolean }): Promise<void>;
 }
 
 type ResolvedClient =
@@ -306,6 +312,19 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     return false;
   }
 
+  async function savedGrantProject(): Promise<string | null | undefined> {
+    const tokens = await loadTokens();
+    if (!tokens?.refresh_token && !tokens?.access_token) return undefined;
+    const kind = grantKind(tokens);
+    // By the app that issued the grant, not the one in use now: a grant from
+    // the other app is still alive at Google until it is cancelled.
+    if (tokens.client_mode === 'hosted') {
+      return googleProjectOf((kind === 'web' ? opts.web?.hosted() : opts.hosted())?.clientId);
+    }
+    const idKey = kind === 'web' ? opts.web?.clientIdKey : opts.clientIdKey;
+    return idKey ? googleProjectOf(await getSecret(idKey)) : null;
+  }
+
   async function getAccessToken(): Promise<string | null> {
     if (!(await grantMatchesClient())) return null;
     return store.getAccessToken();
@@ -335,6 +354,7 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     getAccessToken,
     isConnected,
     verifyConnected,
+    savedGrantProject,
     disconnect: store.disconnect,
   };
 }

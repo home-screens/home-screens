@@ -96,6 +96,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     fetchCalendars,
     toggleCalendar,
     disconnectGoogle: disconnectGoogleCalendars,
+    stillUsedBy,
   } = useGoogleCalendars({
     values,
     onChange,
@@ -382,6 +383,11 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           ) : undefined}
         >
           {googleBlock}
+          {stillUsedBy === 'photos' && (
+            <p className="mt-2 text-[11px] leading-relaxed text-hs-text-faint" data-testid="google-still-used">
+              {t('settings.calendarPage.google.stillUsedByPhotos')}
+            </p>
+          )}
           {missingGoogleIds.length > 0 && (
             <>
               {/* One explanation above the group, rather than the same three

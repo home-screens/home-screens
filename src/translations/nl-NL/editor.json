@@ -665,6 +665,7 @@
         "codeCopied": "Gekopieerd!",
         "googleOnly": "Alleen Google",
         "pausedExplanation": "Google is nu niet verbonden, dus deze agenda’s worden niet meer bijgewerkt. Log hierboven opnieuw in om ze terug te halen.",
+        "stillUsedByPhotos": "Op deze hub is de verbinding verbroken. De import uit Google Foto's gebruikt nog dezelfde Google-aanmelding, dus blijft Home Screens in je Google-account staan tot je ook Google Foto's loskoppelt.",
         "pausedBadge": "Gepauzeerd",
         "removeTitle": "{name} verwijderen",
         "credentialsSetupPrefix": "Voeg je Google-login eerst toe op de pagina ",
@@ -4739,6 +4740,7 @@
       "allFailed": "De foto's konden niet worden opgeslagen. Controleer de verbinding en probeer het opnieuw.",
       "failedNote": "{failed} konden niet worden opgeslagen.",
       "disconnect": "Google Foto's loskoppelen",
+      "stillUsedByCalendar": "Google Foto's is op deze hub losgekoppeld. Google Agenda gebruikt nog dezelfde Google-aanmelding, dus blijft Home Screens in je Google-account staan tot je ook de verbinding met Google Agenda verbreekt.",
       "genericError": "Er ging iets mis. Probeer het opnieuw.",
       "hosted": {
         "intro": "Kies foto's in Google Foto's en ze worden op deze Home Screens bewaard.",

@@ -163,6 +163,13 @@ describe('changing and removing', () => {
 });
 
 describe('what the forms offer', () => {
+  it('says where Google would stand with adding on, while the saved switch is still off', async () => {
+    config.settings.calendar.eventEntry = { enabled: false, calendarIds: [] };
+    entryState = 'needsSignIn';
+    const info = await calendarEntryInfo();
+    expect(info).toMatchObject({ enabled: false, google: 'off', googleIfOn: 'needsSignIn', calendars: [] });
+  });
+
   it('names and colours each calendar as the household set it, the way the wall draws its events', async () => {
     const calendar = config.settings.calendar;
     calendar.icloudSources = [{ id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true }];

@@ -233,8 +233,12 @@ export interface OAuthTokenStore {
    * help.
    */
   verifyConnected(): Promise<boolean>;
-  /** Best-effort revoke (when revokeUrl is set), then clear the tokens file. */
-  disconnect(): Promise<void>;
+  /**
+   * Best-effort revoke (when revokeUrl is set), then clear the tokens file.
+   * `revoke: false` only clears the file, for a grant the provider shares
+   * with another sign-in still in use (see google-grant-project.ts).
+   */
+  disconnect(options?: { revoke?: boolean }): Promise<void>;
 }
 
 export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenStore {
@@ -342,8 +346,8 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
     }
   }
 
-  async function disconnect(): Promise<void> {
-    if (opts.revokeUrl) {
+  async function disconnect({ revoke = true }: { revoke?: boolean } = {}): Promise<void> {
+    if (opts.revokeUrl && revoke) {
       try {
         const tokens = await loadTokens();
         if (tokens?.access_token) {

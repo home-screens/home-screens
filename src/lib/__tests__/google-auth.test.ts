@@ -485,7 +485,7 @@ describe('disconnect', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
     mockWriteFile.mockResolvedValue(undefined);
 
-    await expect(disconnect()).resolves.toBeUndefined();
+    await expect(disconnect()).resolves.toEqual({ stillUsedBy: null });
 
     // Still clears tokens file even when revocation fails
     expect(mockWriteFile).toHaveBeenCalledWith(

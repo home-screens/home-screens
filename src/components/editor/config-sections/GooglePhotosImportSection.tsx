@@ -44,8 +44,11 @@ export function GooglePhotosImportSection({ onImported }: Props) {
   const {
     appsLoading, hosted, returnsToHub, status, connected, pasted, setPasted, busy, error,
     signIn, finishSignIn, session, choosePhotos, cancelPicking, importing, job,
-    unsavedCount, jobFailed, jobSucceeded, startErrorText, disconnect,
+    unsavedCount, jobFailed, jobSucceeded, startErrorText, disconnect, disconnectNote,
   } = google;
+  const note = disconnectNote && (
+    <p className="text-[11px] leading-relaxed text-hs-text-faint" data-testid="google-still-used">{disconnectNote}</p>
+  );
 
   // Which app signs in decides which panel this is; show neither until it's known.
   if (appsLoading) return null;
@@ -59,6 +62,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
         {!status ? (
           <p className="mt-1 text-[11px] text-hs-text-muted">{t('configSections.googlePhotosImport.checking')}</p>
         ) : <GooglePhotosSignIn google={google} />}
+        {note && <div className="mt-2">{note}</div>}
         {error && <p className="mt-2 text-[11px] text-hs-warning leading-relaxed">{error}</p>}
       </div>
     );
@@ -152,6 +156,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
           </button>
         </>
       )}
+      {note}
       {startErrorText && <p className="text-[11px] text-hs-warning leading-relaxed">{startErrorText}</p>}
       {error && <p className="text-[11px] text-hs-warning leading-relaxed">{error}</p>}
     </div>

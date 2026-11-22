@@ -665,6 +665,7 @@
         "codeCopied": "Kopiert!",
         "googleOnly": "Nur Google",
         "pausedExplanation": "Google ist gerade nicht verbunden, deshalb aktualisieren sich diese Kalender nicht mehr. Melde dich oben erneut an, um sie zurückzuholen.",
+        "stillUsedByPhotos": "Auf diesem Hub getrennt. Der Google-Fotos-Import nutzt noch dieselbe Google-Anmeldung, deshalb zeigt dein Google-Konto Home Screens weiter als verbundene App an, bis du auch Google Fotos trennst.",
         "pausedBadge": "Pausiert",
         "removeTitle": "{name} entfernen",
         "credentialsSetupPrefix": "Füge deine Google-Anmeldung auf der Seite ",
@@ -4739,6 +4740,7 @@
       "allFailed": "Die Fotos konnten nicht gespeichert werden. Prüfe die Verbindung und versuche es erneut.",
       "failedNote": "{failed} konnten nicht gespeichert werden.",
       "disconnect": "Google Fotos trennen",
+      "stillUsedByCalendar": "Auf diesem Hub getrennt. Google Kalender nutzt noch dieselbe Google-Anmeldung, deshalb zeigt dein Google-Konto Home Screens weiter als verbundene App an, bis du auch die Verbindung zu Google Kalender trennst.",
       "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
       "hosted": {
         "intro": "Wähle Fotos in Google Fotos aus, dann speichert Home Screens sie hier.",

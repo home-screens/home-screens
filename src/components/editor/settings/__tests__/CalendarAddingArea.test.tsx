@@ -30,15 +30,18 @@ import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 const copy = enUSEditor.settings.calendarPage.adding;
 const FAMILY = 'family@group.calendar.google.com';
 
-function answer(google: GoogleEntryState) {
-  mocks.editorFetch.mockResolvedValue(new Response(JSON.stringify({ enabled: true, google, calendars: [], defaultMinutes: 60, timezone: 'America/Chicago', wallDefault: true })));
+/** The hub's answer: `googleIfOn` is where Google would stand with adding on; `saved` is the switch it has saved. */
+function answer(googleIfOn: GoogleEntryState, saved = true) {
+  mocks.editorFetch.mockImplementation(async () => new Response(JSON.stringify({
+    enabled: saved, google: saved ? googleIfOn : 'off', googleIfOn, calendars: [], defaultMinutes: 60, timezone: 'America/Chicago', wallDefault: true,
+  })));
 }
 
-function renderArea(googleCalendars: GoogleCalendar[]) {
+function renderArea(googleCalendars: GoogleCalendar[], enabled = true) {
   return render(
     <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>
       <CalendarAddingArea
-        eventEntry={{ enabled: true, calendarIds: [FAMILY], defaultCalendarId: FAMILY }}
+        eventEntry={{ enabled, calendarIds: [FAMILY], defaultCalendarId: FAMILY }}
         wallEntry
         googleCalendars={googleCalendars}
         shownGoogleIds={[FAMILY]}
@@ -59,6 +62,21 @@ describe('CalendarAddingArea', () => {
     await waitFor(() => expect(screen.getByTestId('calendar-adding-sign-in')).toBeTruthy());
     expect(screen.getByText(copy.signInTitle)).toBeTruthy();
     expect(screen.queryByText(FAMILY)).toBeNull();
+  });
+
+  it('shows the sign-in step as soon as the switch is turned on, before the hub has the change saved', async () => {
+    // The page has the switch on; the hub still has it off for half a second.
+    answer('needsSignIn', false);
+    renderArea([]);
+    await waitFor(() => expect(screen.getByTestId('calendar-adding-sign-in')).toBeTruthy());
+  });
+
+  it('shows no sign-in step while the switch is off', async () => {
+    answer('needsSignIn', false);
+    renderArea([], false);
+    await waitFor(() => expect(mocks.editorFetch).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText(copy.switch)).toBeTruthy());
+    expect(screen.queryByTestId('calendar-adding-sign-in')).toBeNull();
   });
 
   it('lists the calendar by name once Google lists it', async () => {

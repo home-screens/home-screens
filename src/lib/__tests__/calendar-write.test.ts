@@ -8,6 +8,7 @@ import {
   endKeepingLength,
   endsNextDay,
   googleEntryState,
+  googleEntryStateWithSetting,
   grantedScopes,
   normalizeEventDraft,
   repeatFrequenciesFor,
@@ -279,6 +280,24 @@ describe('googleEntryState', () => {
     expect(googleEntryState({ ...ready, grant: { kind: 'web', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] } })).toBe(
       'scopeMissing',
     );
+  });
+
+  it('gives the same answer from the with-adding-on state and the switch as from the full inputs', () => {
+    const variants = [
+      ready,
+      { ...ready, clientMode: 'hosted' as const },
+      { ...ready, clientMode: 'hosted' as const, hostedEventsEnabled: true },
+      { ...ready, clientMode: null },
+      { ...ready, webClientSaved: false },
+      { ...ready, grant: null },
+      { ...ready, grant: { kind: 'web' as const, scopes: ['https://www.googleapis.com/auth/calendar.readonly'] } },
+    ];
+    for (const input of variants) {
+      const ifOn = googleEntryState({ ...input, settingOn: true });
+      for (const settingOn of [true, false]) {
+        expect(googleEntryStateWithSetting(ifOn, settingOn)).toBe(googleEntryState({ ...input, settingOn }));
+      }
+    }
   });
 
   it('reads Google\'s scope string', () => {

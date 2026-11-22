@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/auth', () => ({ requireDisplayAuth: vi.fn(), requireSession: vi.fn() }));
 vi.mock('@/lib/calendar-event-writes', () => ({
-  calendarEntryInfo: vi.fn(async () => ({ enabled: true, google: 'ready', calendars: [{ id: 'family', name: 'Family', color: '#4073ff', source: 'google' }], defaultCalendarId: 'family', defaultMinutes: 60, timezone: 'America/Chicago', wallDefault: true })),
+  calendarEntryInfo: vi.fn(async () => ({ enabled: true, google: 'ready', googleIfOn: 'ready', calendars: [{ id: 'family', name: 'Family', color: '#4073ff', source: 'google' }], defaultCalendarId: 'family', defaultMinutes: 60, timezone: 'America/Chicago', wallDefault: true })),
 }));
 
 describe('GET /api/calendar/entry', () => {

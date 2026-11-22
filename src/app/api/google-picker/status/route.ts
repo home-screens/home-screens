@@ -13,6 +13,6 @@ export const GET = withAuth(async () => {
 }, 'Failed to check Google Photos status');
 
 export const DELETE = withAuth(async () => {
-  await disconnectPicker();
-  return NextResponse.json({ connected: false });
+  const { stillUsedBy } = await disconnectPicker();
+  return NextResponse.json({ connected: false, stillUsedBy });
 }, 'Failed to disconnect Google Photos');

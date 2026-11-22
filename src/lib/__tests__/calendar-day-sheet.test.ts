@@ -64,6 +64,22 @@ describe('daySheetRows', () => {
     expect(rows[0].allDay).toBe(true);
   });
 
+  it('works from the day itself whatever time of the day it is handed', () => {
+    // The phone passes noon. Thanksgiving is Thursday only, Black Friday Friday only.
+    const events = [
+      ev('thanksgiving', 'Thanksgiving Day', '2026-11-26', '2026-11-27', true),
+      ev('friday', 'Black Friday', '2026-11-27', '2026-11-28', true),
+      ev('breakfast', 'Breakfast', '2026-11-27T08:00:00', '2026-11-27T09:00:00'),
+    ];
+    const at = (day: number) => daySheetRows(events, new Date(2026, 10, day, 12), 'America/Chicago');
+    expect(at(25)).toEqual([]);
+    expect(at(26).map((r) => r.event.id)).toEqual(['thanksgiving']);
+    const friday = at(27);
+    expect(friday.map((r) => r.event.id)).toEqual(['friday', 'breakfast']);
+    // A morning event on the day did not start on an earlier one.
+    expect(friday[1]).toMatchObject({ allDay: false, startsEarlier: false, endsLater: false });
+  });
+
   it('reads timed events in the display time zone', () => {
     // 03:30 UTC on Friday is 21:30 on Thursday in Chicago; 03:30 UTC on
     // Saturday is 21:30 on Friday there.

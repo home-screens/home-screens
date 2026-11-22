@@ -665,6 +665,7 @@
         "codeCopied": "Copiado!",
         "googleOnly": "Somente Google",
         "pausedExplanation": "O Google não está conectado agora, então estes calendários pararam de atualizar. Entre novamente acima para trazê-los de volta.",
+        "stillUsedByPhotos": "Desconectado neste hub. A importação do Google Fotos ainda usa o mesmo login do Google, então sua conta do Google continua mostrando o Home Screens até você desconectar o Google Fotos também.",
         "pausedBadge": "Pausado",
         "removeTitle": "Remover {name}",
         "credentialsSetupPrefix": "Adicione o seu acesso do Google na página ",
@@ -4739,6 +4740,7 @@
       "allFailed": "Não foi possível salvar as fotos. Verifique a conexão e tente de novo.",
       "failedNote": "{failed} não puderam ser salvas.",
       "disconnect": "Desconectar Google Fotos",
+      "stillUsedByCalendar": "Desconectado neste hub. O Google Agenda ainda usa o mesmo login do Google, então sua conta do Google continua mostrando o Home Screens até você desconectar o Google Agenda também.",
       "genericError": "Algo deu errado. Tente de novo.",
       "hosted": {
         "intro": "Escolha fotos no Google Fotos e elas serão salvas neste Home Screens.",

@@ -50,6 +50,8 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
   const [pasted, setPasted] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // After a Disconnect, when Google Calendar still uses the same Google sign-in.
+  const [stillUsedBy, setStillUsedBy] = useState<'calendar' | null>(null);
   // With the switch on, signing in is a step of its own, not a paste box.
   const [signInStep, setSignInStep] = useState<'start' | 'waiting' | 'paste'>('start');
 
@@ -155,7 +157,9 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
   };
 
   const disconnect = async () => {
-    await editorFetch('/api/google-picker/status', { method: 'DELETE' });
+    const res = await editorFetch('/api/google-picker/status', { method: 'DELETE' });
+    const body = (await res.json().catch(() => ({}))) as { stillUsedBy?: string | null };
+    setStillUsedBy(res.ok && body.stillUsedBy === 'calendar' ? 'calendar' : null);
     setSignInStep('start');
     await refreshStatus();
   };
@@ -190,6 +194,8 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
     session, choosePhotos, cancelPicking,
     importing, job, savedCount, unsavedCount, jobFailed, jobSucceeded, startErrorText,
     disconnect,
+    /** Shown after a Disconnect that left the Google sign-in in place for Google Calendar. */
+    disconnectNote: stillUsedBy && !connected ? t('configSections.googlePhotosImport.stillUsedByCalendar') : null,
   };
 }
 

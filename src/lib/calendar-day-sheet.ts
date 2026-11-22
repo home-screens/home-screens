@@ -1,4 +1,4 @@
-import { addDays } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import { compareEventStarts, isAllDayEvent, isEventOnDay, parseEventWallTime } from '@/lib/calendar-utils';
 import { dayMonthPattern, formatDateSync, fullDatePattern } from '@/i18n';
 
@@ -33,8 +33,13 @@ export interface DaySheetRow<T extends SheetEvent> {
  * rule filters); an event listed twice (a day header that gathers several
  * rows of a family grid) is kept once, and one that no longer falls on the day
  * after a refresh is left out.
+ *
+ * `day` may be any moment of the day: the rows are worked out from its local
+ * midnight. The phone hands it noon (the time it formats days with), and
+ * comparing from noon put an all-day event on the day before as well.
  */
-export function daySheetRows<T extends SheetEvent>(events: readonly T[], day: Date, timezone?: string): DaySheetRow<T>[] {
+export function daySheetRows<T extends SheetEvent>(events: readonly T[], moment: Date, timezone?: string): DaySheetRow<T>[] {
+  const day = startOfDay(moment);
   const dayEnd = addDays(day, 1);
   const seen = new Set<string>();
   const rows: DaySheetRow<T>[] = [];

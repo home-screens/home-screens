@@ -41,10 +41,17 @@ describe('/api/google-picker/status', () => {
   });
 
   it('DELETE disconnects', async () => {
-    mockDisconnect.mockResolvedValue(undefined);
+    mockDisconnect.mockResolvedValue({ stillUsedBy: null });
     const { DELETE } = await importRoute();
     const json = await (await DELETE(request())).json();
     expect(mockDisconnect).toHaveBeenCalledOnce();
-    expect(json).toEqual({ connected: false });
+    expect(json).toEqual({ connected: false, stillUsedBy: null });
+  });
+
+  it('DELETE says when Google Calendar still uses the same Google sign-in', async () => {
+    mockDisconnect.mockResolvedValue({ stillUsedBy: 'calendar' });
+    const { DELETE } = await importRoute();
+    const json = await (await DELETE(request())).json();
+    expect(json).toEqual({ connected: false, stillUsedBy: 'calendar' });
   });
 });

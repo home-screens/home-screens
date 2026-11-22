@@ -11,6 +11,7 @@ import {
   anyWallMayWrite,
   checkChangeScope,
   entryCalendarIds,
+  googleEntryStateWithSetting,
   normalizeEventDraft,
   splitGoogleEventId,
   type ChangeScope,
@@ -250,8 +251,14 @@ export interface EntryCalendar {
 export interface CalendarEntryInfo {
   /** The household turned adding on. */
   enabled: boolean;
-  /** Where Google stands, for Settings and the phone's card; null on a hub with no Google calendars. */
+  /** Where Google stands, for the phone's card and the wall; null on a hub with no Google calendars. */
   google: GoogleEntryState | null;
+  /**
+   * Where Google would stand with adding on, whatever is saved now. Settings
+   * goes by this and the switch as it is on the page, so its sign-in step
+   * shows the moment the switch flips, before the change is saved.
+   */
+  googleIfOn: GoogleEntryState;
   /** Calendars a new event can go on now, in the household's order. Empty means no "Add event". */
   calendars: EntryCalendar[];
   defaultCalendarId: string | null;
@@ -271,10 +278,9 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   const entry = calendar.eventEntry;
   const wallDefault = ctx.config.settings.calendarWallEntry !== false;
   const base = { enabled: Boolean(entry?.enabled), defaultMinutes: entry?.defaultMinutes ?? DEFAULT_MINUTES, timezone: ctx.timezone, wallDefault };
-  const google = ctx.googleIds.length > 0
-    ? await (await import('@/lib/google-auth')).getGoogleEntryState(base.enabled)
-    : null;
-  if (!base.enabled) return { ...base, google, calendars: [], defaultCalendarId: null };
+  const googleIfOn = await (await import('@/lib/google-auth')).getGoogleEntryState(true);
+  const google = ctx.googleIds.length > 0 ? googleEntryStateWithSetting(googleIfOn, base.enabled) : null;
+  if (!base.enabled) return { ...base, google, googleIfOn, calendars: [], defaultCalendarId: null };
 
   const googleEntry = ctx.entryIds.filter((id) => ctx.googleIds.includes(id));
   const labels = google === 'ready' && googleEntry.length > 0
@@ -292,5 +298,5 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   }
   const preferred = entry?.defaultCalendarId;
   const defaultCalendarId = calendars.find((c) => c.id === preferred)?.id ?? calendars[0]?.id ?? null;
-  return { ...base, google, calendars, defaultCalendarId };
+  return { ...base, google, googleIfOn, calendars, defaultCalendarId };
 }

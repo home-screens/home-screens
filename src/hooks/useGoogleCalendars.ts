@@ -45,6 +45,11 @@ interface UseGoogleCalendarsReturn {
   fetchCalendars: (autoSelectPrimary?: boolean) => Promise<void>;
   toggleCalendar: (id: string) => void;
   disconnectGoogle: () => Promise<boolean>;
+  /**
+   * After a Disconnect: the other Google service on the hub still uses the
+   * same Google sign-in, so Google was not asked to cancel it. Null otherwise.
+   */
+  stillUsedBy: 'photos' | null;
 }
 
 export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInElsewhere }: UseGoogleCalendarsOptions): UseGoogleCalendarsReturn {
@@ -54,6 +59,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleLoading, setGoogleLoading] = useState(true);
+  const [stillUsedBy, setStillUsedBy] = useState<'photos' | null>(null);
   const valuesRef = useRef(values);
   valuesRef.current = values;
   const connectedRef = useRef(googleConnected);
@@ -155,6 +161,8 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
     try {
       const res = await editorFetch('/api/auth/google/status', { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json().catch(() => ({}))) as { stillUsedBy?: string | null };
+      setStillUsedBy(body.stillUsedBy === 'photos' ? 'photos' : null);
     } catch (err) {
       log.debug('disconnectGoogle failed:', err);
       onAuthError(t('errors.googleDisconnectFailed'));
@@ -176,5 +184,6 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
     fetchCalendars,
     toggleCalendar,
     disconnectGoogle,
+    stillUsedBy: googleConnected ? null : stillUsedBy,
   };
 }

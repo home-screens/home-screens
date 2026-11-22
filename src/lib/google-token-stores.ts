@@ -1,6 +1,7 @@
 import { createGoogleTokenStore } from './google-token-store';
 import { hostedCalendarClient, hostedPhotosClient } from './google-hosted';
 import { readGoogleAppPreference } from './google-app-preference';
+import { mayCancelAtGoogle } from './google-grant-project';
 import type { GoogleAppsStatus } from './google-apps';
 
 /**
@@ -67,4 +68,32 @@ export async function getGoogleAppsStatus(): Promise<GoogleAppsStatus> {
     photos: { mode: photosMode, hostedAvailable: googlePickerTokenStore.hostedAvailable() },
     preference,
   };
+}
+
+export type GoogleService = 'calendar' | 'photos';
+
+export interface GoogleDisconnect {
+  /**
+   * The other Google service on this hub still signs in through the same
+   * Google project, so Google was not asked to cancel the sign-in: that
+   * would have signed the other one out too. Null when it was cancelled, or
+   * there was nothing to cancel.
+   */
+  stillUsedBy: GoogleService | null;
+}
+
+/**
+ * Disconnect Google Calendar or Google Photos import on this hub. The grant
+ * is always cleared here; Google is asked to cancel it only when the other
+ * service's saved grant cannot share its project (google-grant-project.ts).
+ */
+export async function disconnectGoogleService(service: GoogleService): Promise<GoogleDisconnect> {
+  const [mine, other, otherService] = service === 'calendar'
+    ? [googleCalendarTokenStore, googlePickerTokenStore, 'photos' as const]
+    : [googlePickerTokenStore, googleCalendarTokenStore, 'calendar' as const];
+  const [mineProject, otherProject] = await Promise.all([mine.savedGrantProject(), other.savedGrantProject()]);
+  const cancel = mineProject === undefined
+    || mayCancelAtGoogle(mineProject, otherProject === undefined ? [] : [otherProject]);
+  await mine.disconnect({ revoke: cancel });
+  return { stillUsedBy: cancel ? null : otherService };
 }

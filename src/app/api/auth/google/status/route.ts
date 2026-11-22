@@ -14,6 +14,6 @@ export const GET = withAuth(async () => {
 }, 'Failed to check Google auth status');
 
 export const DELETE = withAuth(async () => {
-  await disconnect();
-  return NextResponse.json({ connected: false });
+  const { stillUsedBy } = await disconnect();
+  return NextResponse.json({ connected: false, stillUsedBy });
 }, 'Failed to disconnect Google account');

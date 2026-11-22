@@ -1,7 +1,7 @@
 import type { auth as googleAuth } from '@googleapis/calendar';
 import { SetupError } from '@/lib/api-utils';
 import { type GoogleClientMode, type StoredGoogleTokens } from '@/lib/google-token-store';
-import { googleCalendarTokenStore } from '@/lib/google-token-stores';
+import { disconnectGoogleService, googleCalendarTokenStore, type GoogleDisconnect } from '@/lib/google-token-stores';
 import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
 import { requestDeviceCodeGrant } from '@/lib/oauth-form-post';
 import { logger } from '@/lib/logger';
@@ -142,9 +142,11 @@ export async function isAuthenticated(): Promise<boolean> {
   return store.isConnected();
 }
 
-export async function disconnect(): Promise<void> {
-  await store.disconnect();
+/** Disconnect Google Calendar; Google Photos import keeps working (`disconnectGoogleService`). */
+export async function disconnect(): Promise<GoogleDisconnect> {
+  const result = await disconnectGoogleService('calendar');
   bumpCalendarRevision();
+  return result;
 }
 
 export async function hasGoogleCredentials(): Promise<boolean> {
