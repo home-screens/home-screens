@@ -1951,6 +1951,11 @@
         "onMealie": "Toutes les vues de repas, le téléphone et cet éditeur utilisent maintenant ton planning Mealie, et ce que tu planifies ici est enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
         "mealieSettingsLink": "Réglages Mealie"
       },
+      "groceryExtras": {
+        "heading": "Autres achats",
+        "description": "Choisis une de vos listes pour ce dont aucun repas n'a besoin, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses sur le téléphone et sur le mur, et une carte de courses avec « Ajouter sur le mur » y ajoute.",
+        "none": "Aucune"
+      },
       "status": {
         "loadFailed": "Échec du chargement des paramètres des repas.",
         "networkLoad": "Erreur réseau lors du chargement des paramètres des repas.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
+      "wallAdd": "Ajouter sur le mur",
+      "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
+      "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
+      "extrasList": "Les autres achats vont sur",
+      "extrasListNone": "Aucune (pas de ligne Ajouter)",
+      "extrasListHelp": "Une de vos listes. Ce qui reste dessus apparaît à la fin de la liste de courses, ici et sur le téléphone. Toutes les cartes de courses la partagent."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Masqués",
       "showDueDates": "Afficher les échéances",
       "showAssignees": "Afficher pour qui",
-      "interactive": "Toucher pour valider (écran tactile)"
+      "interactive": "Toucher pour valider (écran tactile)",
+      "wallAdd": "Ajouter depuis le mur (écran tactile)",
+      "wallAddHelp": "Une ligne Ajouter sous la liste. Tout le monde peut ajouter depuis le mur ; modifier et supprimer restent sur le téléphone."
     },
     "todoist": {
       "apiToken": "Jeton API",

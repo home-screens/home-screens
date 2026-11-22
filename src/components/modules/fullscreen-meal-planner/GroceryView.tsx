@@ -16,6 +16,13 @@ import type { WallGrocery } from '../shared/useWallGrocery';
 import { GroceryEmpty, useGroceryHeading } from '../meal-planner/GroceryView';
 import { WallScroller } from '../shared/WallScroller';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
+import { Plus } from 'lucide-react';
+import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { groceryCardAdds } from '@/lib/todo-wall';
+import { WallAddSheet } from '../shared/WallAddSheet';
+import { addToMealieFromWall, addToTodoListFromWall } from '../shared/wallListAdd';
+import { WALL_SHOPPING_TTL_MS } from '../shared/useWallGrocery';
+import { wallPressProps } from '../shared/wallPress';
 
 interface FullscreenGroceryViewProps extends MealPlannerViewProps {
   grocery: WallGrocery;
@@ -23,6 +30,8 @@ interface FullscreenGroceryViewProps extends MealPlannerViewProps {
   tappable: boolean;
   /** The module's accent as a color the tick box can tint (not a CSS variable). */
   accent: string;
+  /** The module's full-screen theme, which its add sheet wears too. */
+  theme: FullscreenThemeTokens;
 }
 
 /** A long list's type steps down to this share of its size before it pages instead. */
@@ -43,7 +52,7 @@ const SECTION_LABEL: CSSProperties = {
  * module's own fit loop is left out of it (this view never overflows the
  * stack).
  */
-export default function GroceryView({ grocery, tappable, accent, s, headerFont, bodyFont, showTitle, landscape, pad }: FullscreenGroceryViewProps) {
+export default function GroceryView({ grocery, tappable, accent, theme, config, s, headerFont, bodyFont, showTitle, landscape, pad }: FullscreenGroceryViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const heading = useGroceryHeading();
@@ -95,10 +104,48 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
   const P = (n: number) => px(s, n);
   const R = (n: number) => px(s, n) * scale;
 
+  // An Add button by the list's name, on a touch wall with adding on and
+  // somewhere to add to: the small card's Add row, laid out for a full screen.
+  const target = tappable && groceryCardAdds(config) ? grocery.addTo : null;
+  const [adding, setAdding] = useState(false);
+  const addButton = target && (
+    <button
+      type="button"
+      {...wallPressProps}
+      data-testid="fmp-grocery-add"
+      onClick={() => setAdding(true)}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: P(14), flexShrink: 0, minHeight: P(88), padding: `0 ${P(36)}px`,
+        borderRadius: 999, border: 0, background: 'var(--fmp-accent)', color: 'var(--fmp-on-accent, #fff)',
+        font: 'inherit', fontSize: P(30), fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+      }}
+    >
+      <Plus style={{ width: P(34), height: P(34) }} strokeWidth={3} aria-hidden="true" />
+      {t('wallAdd.rowLabel', { list: target.name })}
+    </button>
+  );
+  const sheet = target && adding && (
+    <WallAddSheet
+      listName={target.name}
+      aside={t('meal-planner.grocery.toGet', { count: target.kind === 'todo' ? target.left : list.left })}
+      source={target.kind === 'mealie' ? 'Mealie' : undefined}
+      accent={accent}
+      theme={theme}
+      failedText={target.kind === 'mealie' ? t('wallAdd.mealieFailed') : undefined}
+      onAdd={async (text) => target.kind === 'mealie'
+        ? addToMealieFromWall(target.listId, text, WALL_SHOPPING_TTL_MS)
+        : addToTodoListFromWall(target.listId, text, t('wallAdd.failed'))}
+      onClose={() => setAdding(false)}
+    />
+  );
+
   if (grocery.state !== 'ready' || rows.length === 0) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: pad, fontFamily: bodyFont, color: 'var(--fmp-text)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: P(36), height: '100%', padding: pad, fontFamily: bodyFont, color: 'var(--fmp-text)' }}>
         <GroceryEmpty grocery={grocery} fontSize={P(40)} />
+        {/* Nothing left to get, and the wall can add the first thing. */}
+        {grocery.state === 'ready' && addButton}
+        {sheet}
       </div>
     );
   }
@@ -187,6 +234,7 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
             {t('meal-planner.grocery.page', { page: index + 1, pages: pageCount })}
           </span>
         )}
+        {addButton}
       </div>
       <div ref={areaRef} style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
         {scroll ? (
@@ -232,6 +280,7 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
           {rows.map((r) => rowView(r, true))}
         </div>
       </div>
+      {sheet}
     </div>
   );
 }

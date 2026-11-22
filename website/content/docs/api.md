@@ -807,7 +807,7 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 
 ### POST /api/mealie/shopping/items
 
-Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. Requires a valid session.
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the Wall** on, and at most 80 characters; otherwise `403`.
 
 ### PATCH /api/mealie/shopping/items/:itemId
 
@@ -815,7 +815,7 @@ Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can chan
 
 ### DELETE /api/mealie/shopping/items/:itemId
 
-Takes an item off its list, for Undo right after adding it. Answers `{ "ok": true }`, also when the item was already gone. Requires a valid session.
+Takes an item off its list, for Undo right after adding it. Answers `{ "ok": true }`, also when the item was already gone. Requires a valid session, except for an item the hub added for a display in the last five minutes, which that display's token may take off (the wall's Undo).
 
 ### GET /api/mealie/image/:recipeId
 

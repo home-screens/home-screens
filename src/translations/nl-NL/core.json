@@ -15,6 +15,7 @@
       "tooManyLists": "Je kunt maximaal {max} lijsten hebben",
       "tooManyItems": "Een lijst kan maximaal {max} items bevatten",
       "orderChanged": "De lijst is veranderd terwijl je dingen verplaatste. Probeer het opnieuw.",
+      "wallAddOff": "Toevoegen vanaf het display staat uit voor deze lijst",
       "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens."
     },
     "notes": {

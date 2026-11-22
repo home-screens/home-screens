@@ -520,6 +520,9 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'iframe.refreshIntervalMs': 'timing-only',
   'meal-planner.interactive': 'covered-elsewhere', // meal-recipe-grocery.spec.ts (boxes on, and no boxes when off)
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
+  'meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (adds to the picked list; no row without one)
+  'fullscreen-meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (the full-screen grocery view's Add button)
+  'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'news.showNewMarker': 'not-observable',
   'fullscreen-news.showNewMarker': 'not-observable',

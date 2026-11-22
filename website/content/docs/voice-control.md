@@ -115,7 +115,7 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 | "who hasn't done their chores [today]" | Names anyone with nothing checked off yet |
 | "how many tickets does Alice have" | Their reward-point balance |
 | "what can Alice get with her tickets" | Rewards they can afford right now, or how far the closest one is |
-| "what's on the grocery list" | Everything still to buy from this week's planned meals, or from your Mealie shopping list while your meal plan is in Mealie |
+| "what's on the grocery list" | Everything still to buy from this week's planned meals and the list you picked for other things to buy, or from your Mealie shopping list while your meal plan is in Mealie |
 | "what's showing on the kitchen display" | The current screen's name, or that it's asleep |
 
 ### Checking things off

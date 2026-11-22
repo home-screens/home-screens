@@ -1088,6 +1088,16 @@
           },
           "description": "Let people use the wall on a touch screen: tick things off the grocery list, open and step through recipes, rate dinner, search the recipe book, and scroll a view that runs past the screen. Every view follows it. A tick writes to the family's list, never to the layout",
           "default": true
+        },
+        {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "In the grocery view on a touch wall, an Add button by the list's name, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
+          "default": true
         }
       ],
       "views": [
@@ -4630,6 +4640,16 @@
           "default": true
         },
         {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "An Add row under the list on a touch wall, so anyone at the wall can put something on it with the wall's keyboard. Changing and removing stay on the phone. Needs taps on",
+          "default": true
+        },
+        {
           "name": "completedPlacement",
           "optional": true,
           "type": {
@@ -5500,6 +5520,16 @@
             "text": "boolean"
           },
           "description": "Let people use the wall on a touch screen: tick things off the grocery list, open recipes, rate dinner, search the recipe view, and scroll a list or week that runs past the box (it goes back to today a minute later). Every view follows it. A tick writes to the family's list, never to the layout",
+          "default": true
+        },
+        {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "In the grocery view on a touch wall, an Add row under the list, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
           "default": true
         }
       ],
@@ -10516,6 +10546,15 @@
             ]
           },
           "description": "Where the meal plan lives: unset for Home Screens, `mealie` for a connected Mealie"
+        },
+        {
+          "name": "groceryExtrasListId",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "A to-do list for the other things to buy (paper towels, dog food). Its open items show at the end of the grocery list on the phone and the wall, and the wall's grocery card adds to it. Unset = none"
         }
       ]
     },
@@ -11979,7 +12018,7 @@
       "methods": [
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11992,7 +12031,7 @@
         },
         {
           "method": "DELETE",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12803,7 +12842,7 @@
       "methods": [
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12816,7 +12855,7 @@
         },
         {
           "method": "DELETE",
-          "access": "session"
+          "access": "display"
         }
       ]
     },

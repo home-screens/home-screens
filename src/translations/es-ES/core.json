@@ -15,6 +15,7 @@
       "tooManyLists": "Puedes tener hasta {max} listas",
       "tooManyItems": "Una lista puede tener hasta {max} elementos",
       "orderChanged": "La lista cambió mientras movías cosas. Inténtalo de nuevo.",
+      "wallAddOff": "Añadir desde la pared está desactivado para esta lista",
       "badRequest": "No se pudo entender ese cambio. Recarga la página e inténtalo de nuevo."
     },
     "notes": {

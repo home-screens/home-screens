@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
   requireSession: vi.fn(),
+  hasEditorSession: vi.fn().mockResolvedValue(false),
   isAuthEnabled: vi.fn().mockResolvedValue(true),
 }));
 
@@ -14,7 +15,8 @@ vi.mock('@/lib/todo-api', async (importActual) => ({
 }));
 
 import { requireSession } from '@/lib/auth';
-const { PATCH } = await import('../route');
+import { noteWallAdded, resetWallAdded, wallMayUndo } from '@/lib/wall-added';
+const { DELETE, PATCH } = await import('../route');
 
 const ctx = { params: Promise.resolve({ listId: 'l1', itemId: 'i1' }) };
 
@@ -30,6 +32,7 @@ const unauthorized = () => new Response(JSON.stringify({ error: 'Authentication 
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetWallAdded();
 });
 
 /**
@@ -70,5 +73,29 @@ describe('PATCH /api/todo/lists/[listId]/items/[itemId] auth', () => {
     expect(res.status).toBe(200);
     expect(requireSession).toHaveBeenCalledTimes(1);
     expect(todoWrite).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The display token may remove only what the hub added for a wall moments
+ * ago (the wall's Undo). Everything else needs the phone's session.
+ */
+describe('DELETE /api/todo/lists/[listId]/items/[itemId] auth', () => {
+  const del = () => DELETE(new NextRequest('http://localhost/api/todo/lists/l1/items/i1', { method: 'DELETE' }), ctx);
+
+  it('lets a wall undo an item the hub just added for it, once', async () => {
+    noteWallAdded('i1');
+    const res = await del();
+    expect(res.status).toBe(200);
+    expect(requireSession).not.toHaveBeenCalled();
+    expect(todoWrite).toHaveBeenCalledTimes(1);
+    expect(wallMayUndo('i1')).toBe(false);
+  });
+
+  it('refuses any other remove from the display token', async () => {
+    vi.mocked(requireSession).mockRejectedValueOnce(unauthorized());
+    const res = await del();
+    expect(res.status).toBe(401);
+    expect(todoWrite).not.toHaveBeenCalled();
   });
 });

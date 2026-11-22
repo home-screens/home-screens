@@ -11,6 +11,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import { mealHasRecipe } from '@/lib/meal-recipe';
 import MealPlanLauncher from './MealPlanLauncher';
+import { GroceryAddFields } from './GroceryAddFields';
 import { mealViewOptions } from '@/lib/meal-view-options';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
@@ -171,6 +172,10 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.fullscreen-meal-planner.interactiveHint')}
       </p>
+      {/* The grocery view's Add button needs taps (groceryCardAdds), the same as the small card's row. */}
+      {view === 'grocery' && c.interactive !== false && (
+        <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
+      )}
 
       {/* Accent Color */}
       <FullscreenAccentPicker

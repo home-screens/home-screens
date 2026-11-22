@@ -488,7 +488,9 @@
     "empty": {
       "title": "Aucun article",
       "description": "Planifie des repas avec des ingrédients pour voir ta liste de courses."
-    }
+    },
+    "alsoOn": "Aussi sur {list}",
+    "openInLists": "Ouvrir dans Listes"
   },
   "mealsSettings": {
     "ariaLabel": "Paramètres des repas",
@@ -1167,7 +1169,9 @@
       "nothingOpen": "Tout est fait !"
     },
     "loadError": "Impossible de charger tes listes. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "alreadyOnList": "{item} est déjà sur la liste",
+    "putBack": "{item} est de retour sur la liste"
   },
   "formOverlay": {
     "discard": {

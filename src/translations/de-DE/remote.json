@@ -488,7 +488,9 @@
     "empty": {
       "title": "Keine Einträge",
       "description": "Plane Mahlzeiten mit Zutaten, um deine Einkaufsliste zu sehen."
-    }
+    },
+    "alsoOn": "Außerdem auf {list}",
+    "openInLists": "In Listen öffnen"
   },
   "mealsSettings": {
     "ariaLabel": "Mahlzeiten-Einstellungen",
@@ -1167,7 +1169,9 @@
       "nothingOpen": "Alles erledigt!"
     },
     "loadError": "Deine Listen konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
-    "retry": "Noch einmal"
+    "retry": "Noch einmal",
+    "alreadyOnList": "{item} steht schon auf der Liste",
+    "putBack": "{item} steht wieder auf der Liste"
   },
   "formOverlay": {
     "discard": {

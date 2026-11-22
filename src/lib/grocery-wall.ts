@@ -1,4 +1,5 @@
 import type { ShoppingList } from './shopping-list';
+import type { TodoList, TodoListItem } from '@/types/todos';
 import { GROCERY_CATEGORY_ICONS, groceryListNeedsHeadings, type GroceryList } from './grocery-utils';
 import { groceryItemKey } from './grocery-checks';
 
@@ -27,6 +28,10 @@ export interface WallGroceryGroup {
   label: string | null;
   /** The local list's aisle (`produce`, ...), named and drawn with its icon by the view. */
   aisle?: string;
+  /** The to-do list the other things to buy go on: its name for the heading ("Also on Shopping"). */
+  extrasList?: string;
+  /** That list's colour, as a dot by the heading. */
+  color?: string;
   items: WallGroceryItem[];
 }
 
@@ -57,6 +62,36 @@ export function wallGroceryFromLocal(list: GroceryList): WallGroceryGroup[] {
       checked: i.checked,
     })),
   }));
+}
+
+/** What a tick on a row from the other-things list names: the to-do item's id behind this. */
+export const TODO_GROCERY_PREFIX = 'todo:';
+
+/** The to-do item a grocery row stands for, or null for a meal ingredient or a Mealie item. */
+export function todoItemOfGroceryRow(id: string): string | null {
+  return id.startsWith(TODO_GROCERY_PREFIX) ? id.slice(TODO_GROCERY_PREFIX.length) : null;
+}
+
+/**
+ * What of the family's list for the other things to buy belongs on this
+ * week's grocery list: what is still on it, and what was ticked off since
+ * `since` (the week's first day, `YYYY-MM-DD`), so the "got" count is this
+ * week's and an item ticked a month ago is not counted. The wall and the
+ * phone's Grocery tab both read it.
+ */
+export function groceryExtrasItems(list: TodoList, since: string): TodoListItem[] {
+  return list.items.filter((it) => !it.completed || (it.completedAt ?? '') >= since);
+}
+
+/** That list as the grocery list's last group on the wall ("Also on Shopping"). */
+export function wallGroceryFromTodoList(list: TodoList, since: string): WallGroceryGroup {
+  return {
+    key: `todo-${list.id}`,
+    label: null,
+    extrasList: list.name,
+    ...(list.color ? { color: list.color } : {}),
+    items: groceryExtrasItems(list, since).map((it) => ({ id: `${TODO_GROCERY_PREFIX}${it.id}`, text: it.text, checked: it.completed })),
+  };
 }
 
 /** A Mealie list in its own label order, unlabelled items first with no heading, as Mealie lists them. */
@@ -111,6 +146,8 @@ export interface WallGroceryFlatRow {
   heading: string | null;
   /** The local aisle's icon, on its first item. */
   icon?: string;
+  /** The other-things list's colour, as a dot on its first item. */
+  dot?: string;
   /** What is still to get in the item's group. */
   left: number;
 }
@@ -127,6 +164,7 @@ export function wallGroceryFlatRows(
       item,
       heading: i === 0 ? h : null,
       ...(i === 0 && icon ? { icon } : {}),
+      ...(i === 0 && group.color ? { dot: group.color } : {}),
       left: group.left,
     }));
   });

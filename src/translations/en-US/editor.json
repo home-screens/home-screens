@@ -1951,6 +1951,11 @@
         "onMealie": "Every meal view, the phone and this editor now use your Mealie plan, and planning here saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
         "mealieSettingsLink": "Mealie settings"
       },
+      "groceryExtras": {
+        "heading": "Other things to buy",
+        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall, and a grocery card with Add on the Wall adds to it.",
+        "none": "None"
+      },
       "status": {
         "loadFailed": "Failed to load meal settings.",
         "networkLoad": "Network error loading meal settings.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, open recipes, rate dinner, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too."
+      "interactiveHint": "Lets people tick things off the grocery list, open recipes, rate dinner, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too.",
+      "wallAdd": "Add on the Wall",
+      "wallAddHelpMealie": "Anyone at the wall can add to the grocery list. It goes on the Mealie list the family shops from.",
+      "wallAddHelpLocal": "Anyone at the wall can add to the grocery list. It goes on the list picked below.",
+      "extrasList": "Other things to buy go on",
+      "extrasListNone": "None (no Add row)",
+      "extrasListHelp": "One of your lists. What is still on it shows at the end of the grocery list here and on the phone. Every grocery card shares it."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
       "showAssignees": "Show who",
-      "interactive": "Tap to complete (touchscreen)"
+      "interactive": "Tap to complete (touchscreen)",
+      "wallAdd": "Add from the wall (touchscreen)",
+      "wallAddHelp": "An Add row under the list. Anyone at the wall can add; changing and removing stay on the phone."
     },
     "todoist": {
       "apiToken": "API Token",

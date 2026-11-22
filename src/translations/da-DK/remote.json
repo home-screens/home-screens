@@ -488,7 +488,9 @@
     "empty": {
       "title": "Ingen varer på listen",
       "description": "Planlæg måltider med ingredienser for at se din indkøbsliste."
-    }
+    },
+    "alsoOn": "Også på {list}",
+    "openInLists": "Åbn i Lister"
   },
   "mealsSettings": {
     "ariaLabel": "Indstillinger for måltider",
@@ -1167,7 +1169,9 @@
       "nothingOpen": "Alt er gjort!"
     },
     "loadError": "Dine lister kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen"
+    "retry": "Prøv igen",
+    "alreadyOnList": "{item} står allerede på listen",
+    "putBack": "{item} står på listen igen"
   },
   "formOverlay": {
     "discard": {

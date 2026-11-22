@@ -15,6 +15,7 @@
       "tooManyLists": "Du kan have op til {max} lister",
       "tooManyItems": "En liste kan rumme op til {max} punkter",
       "orderChanged": "Listen ændrede sig, mens du flyttede rundt på ting. Prøv igen.",
+      "wallAddOff": "Tilføjelse fra væggen er slået fra for denne liste",
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen."
     },
     "notes": {

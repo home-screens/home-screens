@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { MealPlannerConfig } from '@/types/config';
 import { DIVIDER, TEXT_OPACITY, hasAccentColor, ink } from '@/lib/constants';
 import { wallGroceryFlatRows, type WallGroceryGroup, type WallGroceryItem } from '@/lib/grocery-wall';
@@ -16,6 +16,11 @@ import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import { withAlpha } from '@/lib/hex-color';
 import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
+import { groceryCardAdds } from '@/lib/todo-wall';
+import { WallAddRow } from '../shared/WallAddRow';
+import { WallAddSheet } from '../shared/WallAddSheet';
+import { addToMealieFromWall, addToTodoListFromWall } from '../shared/wallListAdd';
+import { WALL_SHOPPING_TTL_MS } from '../shared/useWallGrocery';
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -24,10 +29,18 @@ interface GroceryViewProps {
   tappable: boolean;
 }
 
-/** The heading a group starts with, or null for Mealie's unlabelled items and a one-aisle list. */
+/**
+ * The heading a group starts with, or null for Mealie's unlabelled items and a
+ * one-aisle list. The family's list for other things to buy is "Also on
+ * Shopping".
+ */
 export function useGroceryHeading(): (group: WallGroceryGroup) => string | null {
+  const t = useTranslate('modules');
   const tCore = useTranslate('core');
-  return (group) => group.label ?? (group.aisle ? tCore(`meal.grocery.categoryLabels.${group.aisle}`) : null);
+  return (group) => {
+    if (group.extrasList) return t('meal-planner.grocery.alsoOn', { list: group.extrasList });
+    return group.label ?? (group.aisle ? tCore(`meal.grocery.categoryLabels.${group.aisle}`) : null);
+  };
 }
 
 /**
@@ -54,14 +67,47 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const { index, noteTick } = useGroceryPaging(pageCount);
   const visible = pages ? new Set(pages[index] ?? []) : null;
 
+  // An Add row under the list, on a touch wall with adding on and somewhere
+  // to add to (`groceryCardAdds`, the rule the hub holds the wall to).
+  const target = tappable && groceryCardAdds(config) ? grocery.addTo : null;
+  const [adding, setAdding] = useState(false);
+  const addRow = target && (
+    <div className="shrink-0">
+      <WallAddRow label={t('wallAdd.rowLabel', { list: target.name })} accent={accent} testId="meal-grocery-add" onPress={() => setAdding(true)} />
+    </div>
+  );
+  const sheet = target && adding && (
+    <WallAddSheet
+      listName={target.name}
+      // The heading names the list the words go on, so the count is that list's.
+      aside={t('meal-planner.grocery.toGet', { count: target.kind === 'todo' ? target.left : grocery.rows.left })}
+      source={target.kind === 'mealie' ? 'Mealie' : undefined}
+      accent={accent}
+      failedText={target.kind === 'mealie' ? t('wallAdd.mealieFailed') : undefined}
+      onAdd={async (text) => target.kind === 'mealie'
+        ? addToMealieFromWall(target.listId, text, WALL_SHOPPING_TTL_MS)
+        : addToTodoListFromWall(target.listId, text, t('wallAdd.failed'))}
+      onClose={() => setAdding(false)}
+    />
+  );
+
   if (grocery.state !== 'ready' || flat.length === 0) {
-    return <GroceryEmpty grocery={grocery} />;
+    if (!addRow || grocery.state !== 'ready') return <GroceryEmpty grocery={grocery} />;
+    // Nothing left to get, and the wall can add the first thing.
+    return (
+      <div data-testid="meal-grocery" className="flex flex-col h-full min-h-0">
+        <div className="flex-1 min-h-0"><GroceryEmpty grocery={grocery} /></div>
+        {addRow}
+        {sheet}
+      </div>
+    );
   }
 
-  const rowViews = flat.map(({ item, heading: h }, i) => (
+  const rowViews = flat.map(({ item, heading: h, dot }, i) => (
     <div key={item.id} data-grocery-row style={{ display: visible !== null && !visible.has(i) ? 'none' : undefined }}>
       {h && (
-        <div style={{ fontSize: '0.56em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: ink(TEXT_OPACITY.dim), margin: '0.75em 0 0.15em' }}>
+        <div className="flex items-center" style={{ gap: '0.5em', fontSize: '0.56em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: ink(TEXT_OPACITY.dim), margin: '0.75em 0 0.15em' }}>
+          {dot && <span aria-hidden="true" className="rounded-full shrink-0" style={{ width: '0.8em', height: '0.8em', backgroundColor: dot }} />}
           {h}
         </div>
       )}
@@ -108,6 +154,8 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
         <span>{rows.got > 0 ? t('meal-planner.grocery.got', { count: rows.got }) : ''}</span>
         {pageCount > 1 && <span data-testid="meal-grocery-page">{t('meal-planner.grocery.page', { page: index + 1, pages: pageCount })}</span>}
       </div>
+      {addRow}
+      {sheet}
     </div>
   );
 }

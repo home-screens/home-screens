@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
-import { addItem, createList, deleteItem, deleteList, updateItem, updateList, TodoError } from '@/lib/todo-actions';
+import { addItem, addItemIfNew, createList, deleteItem, deleteList, updateItem, updateList, TodoError } from '@/lib/todo-actions';
 import type { TodoData } from '@/types/todos';
 import { refusalBody } from '@/lib/refusal';
 
@@ -43,9 +43,9 @@ function answer(url: string, method: string, body: Record<string, unknown> | und
     if (items === 'items' && itemId) {
       store = method === 'DELETE' ? deleteItem(store, listId, itemId) : updateItem(store, listId, itemId, body as never);
     } else if (items === 'items') {
-      const made = addItem(store, listId, body as never);
+      const made = body?.ifNew ? addItemIfNew(store, listId, body as never) : { ...addItem(store, listId, body as never), outcome: 'added' };
       store = made.data;
-      return reply(200, { lists: store.lists, created: { id: made.item.id } });
+      return reply(200, { lists: store.lists, created: { id: made.item.id }, outcome: made.outcome });
     } else if (method === 'DELETE') {
       store = deleteList(store, listId);
     } else {
@@ -113,7 +113,7 @@ describe('useTodoLists', () => {
     act(() => { view.result.current.toggleItem('groceries', temp!.id); });
     expect(view.result.current.lists[0].items.find((i) => i.text === 'Eggs')?.completed).toBe(true);
     await act(async () => {});
-    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'Eggs' } }]);
+    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'Eggs', ifNew: true } }]);
 
     await act(async () => { held!.shift()?.(); });
     await act(async () => { expect(await added).toBe(true); });
@@ -123,6 +123,28 @@ describe('useTodoLists', () => {
     await act(async () => { held!.shift()?.(); });
     await waitFor(() => expect(store.lists[0].items.find((i) => i.id === real.id)?.completed).toBe(true));
     expect(view.result.current.lists[0].items.map((i) => i.id)).toEqual(['milk', real.id]);
+  });
+
+  it('says something still to do is already on the list, and sends nothing', async () => {
+    const { view } = await mounted();
+    let added!: Promise<boolean>;
+    act(() => { added = view.result.current.addItem('groceries', ' milk '); });
+    expect(await added).toBe(true);
+    expect(showToast).toHaveBeenCalledWith('lists.alreadyOnList', 'info');
+    expect(writes).toEqual([]);
+    expect(view.result.current.lists[0].items).toHaveLength(1);
+  });
+
+  it('puts a ticked item back rather than adding a second one', async () => {
+    store.lists[0].items[0] = { ...store.lists[0].items[0], completed: true, completedAt: NOW };
+    const { view } = await mounted();
+    let added!: Promise<boolean>;
+    act(() => { added = view.result.current.addItem('groceries', 'MILK'); });
+    expect(view.result.current.lists[0].items).toEqual([expect.objectContaining({ id: 'milk', completed: false })]);
+    await act(async () => { expect(await added).toBe(true); });
+    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'MILK', ifNew: true } }]);
+    expect(store.lists[0].items).toEqual([expect.objectContaining({ id: 'milk', completed: false })]);
+    expect(showToast).toHaveBeenCalledWith('lists.putBack', 'info');
   });
 
   it('sends a tick and an untick in the order they were tapped, even when the hub is slow', async () => {

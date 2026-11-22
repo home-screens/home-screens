@@ -488,7 +488,9 @@
     "empty": {
       "title": "No grocery items",
       "description": "Plan meals with ingredients to see your shopping list."
-    }
+    },
+    "alsoOn": "Also on {list}",
+    "openInLists": "Open in Lists"
   },
   "mealsSettings": {
     "ariaLabel": "Meal settings",
@@ -1167,7 +1169,9 @@
       "nothingOpen": "All done!"
     },
     "loadError": "Couldn't load your lists. Check the hub is on and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "alreadyOnList": "{item} is already on the list",
+    "putBack": "{item} is back on the list"
   },
   "formOverlay": {
     "discard": {

@@ -58,9 +58,9 @@ Ratings use the people under **Settings > Family**, so add your family there fir
 
 **Grocery** builds a shopping list from the ingredients of every meal in the week you are looking at, grouped by aisle. Tap an item to tick it off; ticks show up on every phone and stay with that week's list, so next week's list starts fresh. **Share** sends the unticked items to your phone's share sheet, or copies them if sharing is not available.
 
-You cannot type straight into the list. To add something, add it as an ingredient to a meal in the library.
+Meal ingredients come from the meals: to change one, change the meal in the library. For the things no meal needs (paper towels, dog food), pick one of your lists under **Other things to buy** in **Settings > Meals**. What is still on that list shows at the end of the grocery list, as **Also on Shopping**, on the phone and on the wall, and **Open in Lists** takes you to it.
 
-Put the list on the wall with the **Grocery List** view of either Meal Planner module. On a touchscreen anyone can tick things off right there, and the ticks are the same ones the phone shows.
+Put the list on the wall with the **Grocery List** view of either Meal Planner module. On a touchscreen anyone can tick things off right there, and the ticks are the same ones the phone shows. With **Add on the Wall** switched on in either Meal Planner's settings, an **Add** row under the list (a button by the list's name on the full-screen one) opens the wall's keyboard: what you type goes on the list you picked for other things to buy (you can pick it right there too).
 
 ## Settings
 
@@ -88,7 +88,7 @@ From then on:
 - Each recipe shows its whole time from Mealie, prep plus cooking.
 - Changes made in Mealie reach the wall within about two minutes.
 - The **Grocery** tab on the phone and in the editor's meal planner shows your Mealie shopping list, sorted by the labels you set up in Mealie. Check things off as you shop and they are checked off in Mealie too; changes made in the Mealie app show up within about half a minute. Things checked off before you opened the tab fold away at the bottom, and anything put back on the list comes back up to its aisle.
-- The **Grocery List** view on the wall shows that same Mealie list, and ticks made on a touchscreen go to Mealie too.
+- The **Grocery List** view on the wall shows that same Mealie list, and ticks made on a touchscreen go to Mealie too. With **Add on the Wall** on, its **Add** puts what you type on that Mealie list, with **Undo** while the sheet is open.
 - Type something in the box at the top of the Grocery tab ("milk") and it goes on the list in Mealie, with **Undo** for a few seconds in case it went on the wrong list. Something already on the list isn't added twice, and something checked off is put back instead.
 - If you keep more than one list in Mealie, pick the one you shop from at the top of the Grocery tab. It is one choice for the whole family: the phone, the editor and voice ("what's on the grocery list?") all use that list, and the tab says so with an **Undo**. Until anyone picks, it is the list you made first.
 

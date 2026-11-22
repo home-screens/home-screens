@@ -1951,6 +1951,11 @@
         "onMealie": "Todas as telas de refeições, o celular e este editor agora usam seu plano do Mealie, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
         "mealieSettingsLink": "Ajustes do Mealie"
       },
+      "groceryExtras": {
+        "heading": "Outras compras",
+        "description": "Escolha uma das suas listas para o que nenhuma refeição precisa, como papel-toalha ou ração do cachorro. O que ainda está nela aparece no fim da lista de compras no celular e na parede, e um cartão de compras com Adicionar na parede adiciona nela.",
+        "none": "Nenhuma"
+      },
       "status": {
         "loadFailed": "Falha ao carregar as configurações de refeições.",
         "networkLoad": "Erro de rede ao carregar as configurações de refeições.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
       "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas, avaliar o jantar, rolar listas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque. O botão de abrir também precisa disso."
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas, avaliar o jantar, rolar listas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque. O botão de abrir também precisa disso.",
+      "wallAdd": "Adicionar na parede",
+      "wallAddHelpMealie": "Qualquer pessoa na parede pode adicionar à lista de compras. Vai para a lista do Mealie que a família usa nas compras.",
+      "wallAddHelpLocal": "Qualquer pessoa na parede pode adicionar à lista de compras. Vai para a lista escolhida abaixo.",
+      "extrasList": "Outras compras vão para",
+      "extrasListNone": "Nenhuma (sem linha Adicionar)",
+      "extrasListHelp": "Uma das suas listas. O que ainda está nela aparece no fim da lista de compras, aqui e no celular. Todos os cartões de compras usam a mesma."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminação",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar prazos",
       "showAssignees": "Mostrar para quem",
-      "interactive": "Tocar para concluir (tela sensível ao toque)"
+      "interactive": "Tocar para concluir (tela sensível ao toque)",
+      "wallAdd": "Adicionar pela parede (tela sensível ao toque)",
+      "wallAddHelp": "Uma linha Adicionar embaixo da lista. Qualquer pessoa na parede pode adicionar; mudar e tirar continua no celular."
     },
     "todoist": {
       "apiToken": "Token de API",

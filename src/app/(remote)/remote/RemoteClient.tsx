@@ -503,7 +503,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           ) : activeTab === 'meals' ? (
             <>
               <div className="px-4 pb-8 pt-4">
-                {hasMeals ? <MealsTab /> : <TabNotSetUp kind="meals" />}
+                {hasMeals ? <MealsTab onOpenList={(id) => { setSelectedListId(id); setActiveTab('lists'); }} /> : <TabNotSetUp kind="meals" />}
               </div>
               <div className="h-20" />
             </>

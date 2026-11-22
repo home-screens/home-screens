@@ -1951,6 +1951,11 @@
         "onMealie": "Todas las vistas de comidas, el móvil y este editor usan ahora tu plan de Mealie, y lo que planifiques aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
         "mealieSettingsLink": "Ajustes de Mealie"
       },
+      "groceryExtras": {
+        "heading": "Otras compras",
+        "description": "Elige una de vuestras listas para lo que ninguna comida necesita, como papel de cocina o comida para el perro. Lo que queda en ella sale al final de la lista de la compra en el móvil y en la pared, y una tarjeta de compra con «Añadir en la pared» añade ahí.",
+        "none": "Ninguna"
+      },
       "status": {
         "loadFailed": "No se pudieron cargar los ajustes de comidas.",
         "networkLoad": "Error de red al cargar los ajustes de comidas.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, valorar la cena, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, valorar la cena, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
+      "wallAdd": "Añadir en la pared",
+      "wallAddHelpMealie": "Cualquiera puede añadir a la lista de la compra desde la pared. Va a la lista de Mealie con la que compra la familia.",
+      "wallAddHelpLocal": "Cualquiera puede añadir a la lista de la compra desde la pared. Va a la lista elegida abajo.",
+      "extrasList": "Las demás compras van a",
+      "extrasListNone": "Ninguna (sin fila Añadir)",
+      "extrasListHelp": "Una de vuestras listas. Lo que queda en ella sale al final de la lista de la compra, aquí y en el móvil. Todas las tarjetas de compra la comparten."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar fechas",
       "showAssignees": "Mostrar para quién",
-      "interactive": "Tocar para completar (pantalla táctil)"
+      "interactive": "Tocar para completar (pantalla táctil)",
+      "wallAdd": "Añadir desde la pared (pantalla táctil)",
+      "wallAddHelp": "Una fila Añadir bajo la lista. Cualquiera puede añadir desde la pared; cambiar y quitar sigue siendo cosa del móvil."
     },
     "todoist": {
       "apiToken": "Token de API",

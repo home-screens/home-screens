@@ -15,6 +15,7 @@
       "tooManyLists": "Du kannst bis zu {max} Listen haben",
       "tooManyItems": "Eine Liste fasst bis zu {max} Einträge",
       "orderChanged": "Die Liste hat sich geändert, während du etwas verschoben hast. Versuche es noch einmal.",
+      "wallAddOff": "Hinzufügen an der Wand ist für diese Liste ausgeschaltet",
       "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal."
     },
     "notes": {

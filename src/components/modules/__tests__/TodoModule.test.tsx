@@ -517,3 +517,98 @@ describe('TodoModule touch treatment', () => {
     expect(queryByTestId('todo-tap-hint')).toBeNull();
   });
 });
+
+describe('TodoModule add from the wall', () => {
+  const answer = (items: TodoListItem[], created: string, outcome: 'added' | 'already' | 'putBack') => ({
+    ok: true,
+    json: async () => ({ lists: [list('groceries', 'Groceries', items)], created: { id: created }, outcome }),
+  });
+  const sheet = () => document.body.querySelector<HTMLElement>('[data-testid="wall-add-sheet"]');
+  const key = (k: string) => {
+    const el = document.body.querySelector<HTMLElement>(`[data-testid="wall-keyboard"] [data-key="${k}"]`);
+    if (!el) throw new Error(`no key ${k}`);
+    fireEvent.click(el);
+  };
+  const type = (word: string) => { for (const ch of word) key(ch === ' ' ? 'space' : ch); };
+
+  it('draws an Add row only on a touch wall with adding on', () => {
+    const on = renderInteractive({ wallAdd: true });
+    expect(on.container.querySelector('[data-testid="todo-add-groceries"]')?.textContent).toContain('Add to Groceries');
+    cleanup();
+    expect(renderInteractive().container.querySelector('[data-testid="todo-add-groceries"]')).toBeNull();
+    cleanup();
+    // The editor preview: no instance address, so no taps and no row.
+    expect(renderStatic({ interactive: true, wallAdd: true }).container.querySelector('[data-testid="todo-add-groceries"]')).toBeNull();
+    cleanup();
+    expect(renderInteractive({ wallAdd: true, view: 'focus' }).container.querySelector('[data-testid="todo-add-groceries"]')).toBeNull();
+  });
+
+  it('adds the words keeping to one copy, shows a chip, and Undo takes it off again', async () => {
+    displayFetch.mockResolvedValueOnce(answer([...groceries().items, item('i4', 'Bread')], 'i4', 'added'));
+    const { container } = renderInteractive({ wallAdd: true });
+    fireEvent.click(container.querySelector('[data-testid="todo-add-groceries"]')!);
+    expect(sheet()).not.toBeNull();
+    type('Bread');
+    key('action');
+    await waitFor(() => expect(document.body.querySelector('[data-testid="wall-add-chip"]')?.textContent).toContain('Bread'));
+    expect(displayFetch).toHaveBeenCalledWith('/api/todo/lists/groceries/items', expect.objectContaining({ method: 'POST' }));
+    expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ text: 'Bread', ifNew: true });
+    // The box is empty for the next one.
+    expect(document.body.querySelector('[data-testid="wall-text-field-words"]')?.textContent).not.toContain('Bread');
+
+    displayFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ lists: [groceries()] }) });
+    fireEvent.click(document.body.querySelector('[data-testid="wall-add-undo"]')!);
+    await waitFor(() => expect(document.body.querySelector('[data-testid="wall-add-chip"]')).toBeNull());
+    expect(displayFetch).toHaveBeenLastCalledWith('/api/todo/lists/groceries/items/i4', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('says something is already there, with nothing to undo', async () => {
+    displayFetch.mockResolvedValueOnce(answer(groceries().items, 'i3', 'already'));
+    const { container } = renderInteractive({ wallAdd: true });
+    fireEvent.click(container.querySelector('[data-testid="todo-add-groceries"]')!);
+    type('Buy oat milk');
+    key('action');
+    await waitFor(() => expect(document.body.querySelector('[data-testid="wall-add-chip"]')).not.toBeNull());
+    const chip = document.body.querySelector<HTMLElement>('[data-testid="wall-add-chip"]')!;
+    expect(chip.dataset.outcome).toBe('already');
+    expect(chip.querySelector('[data-testid="wall-add-undo"]')).toBeNull();
+  });
+
+  it('keeps the words and says what happened when the add fails', async () => {
+    displayFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const { container } = renderInteractive({ wallAdd: true });
+    fireEvent.click(container.querySelector('[data-testid="todo-add-groceries"]')!);
+    type('Bread');
+    key('action');
+    await waitFor(() => expect(document.body.querySelector('[data-testid="wall-add-problem"]')?.textContent).toContain('answering'));
+    expect(document.body.querySelector('[data-testid="wall-text-field-words"]')?.textContent).toContain('Bread');
+    // Changing the words takes the line away; it was about the last try.
+    key('s');
+    expect(document.body.querySelector('[data-testid="wall-add-problem"]')).toBeNull();
+  });
+
+  it('board: each column adds to its own list', () => {
+    mockLists = { lists: [groceries(), list('chores', 'Chores', [item('c1', 'Sweep')])] };
+    const { container } = renderInteractive({ wallAdd: true, view: 'board' });
+    expect(container.querySelector('[data-testid="todo-add-groceries"]')?.textContent).toBe('Add');
+    fireEvent.click(container.querySelector('[data-testid="todo-add-chores"]')!);
+    expect(sheet()?.textContent).toContain('Chores');
+  });
+
+  it('names the list the way the card does: its heading override, or just Add with the heading hidden', () => {
+    const titled = renderInteractive({ wallAdd: true, title: 'Things we need' });
+    expect(titled.container.querySelector('[data-testid="todo-add-groceries"]')?.textContent).toBe('Add to Things we need');
+    expect(titled.container.textContent).not.toContain('Groceries');
+    cleanup();
+    const hidden = renderInteractive({ wallAdd: true, showTitle: false });
+    expect(hidden.container.querySelector('[data-testid="todo-add-groceries"]')?.textContent).toBe('Add');
+    expect(hidden.container.textContent).not.toContain('Groceries');
+  });
+
+  it('an empty list says so and offers Add, rather than sending everyone to the phone', () => {
+    mockLists = { lists: [list('groceries', 'Groceries', [])] };
+    const { container } = renderInteractive({ wallAdd: true });
+    expect(container.querySelector('[data-testid="todo-empty-add"]')?.textContent).toContain('Nothing on Groceries yet');
+    expect(container.querySelector('[data-testid="todo-add-groceries"]')).not.toBeNull();
+  });
+});

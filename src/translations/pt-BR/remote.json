@@ -488,7 +488,9 @@
     "empty": {
       "title": "Nenhum item de compras",
       "description": "Planeje refeições com ingredientes para ver sua lista de compras."
-    }
+    },
+    "alsoOn": "Também em {list}",
+    "openInLists": "Abrir em Listas"
   },
   "mealsSettings": {
     "ariaLabel": "Configurações de refeições",
@@ -1168,7 +1170,9 @@
       "nothingOpen": "Tudo feito!"
     },
     "loadError": "Não foi possível carregar suas listas. Veja se o hub está ligado e tente de novo.",
-    "retry": "Tentar de novo"
+    "retry": "Tentar de novo",
+    "alreadyOnList": "{item} já está na lista",
+    "putBack": "{item} voltou para a lista"
   },
   "formOverlay": {
     "discard": {

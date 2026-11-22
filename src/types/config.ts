@@ -3046,6 +3046,16 @@ export interface TodoConfig {
    * whatever they had.
    */
   interactive?: boolean;
+  /**
+   * An Add row under the list on a touch wall, so anyone at the wall can put something on it with
+   * the wall's keyboard. Changing and removing stay on the phone. Needs taps on
+   *
+   * Omitted = off, so a card made before this keeps its look; the registry
+   * default turns it on for new cards. Drawn by the List, Compact and Board
+   * views. The hub takes the wall's add only for a list some card shows with
+   * this on (`wallMayAddToList` in `src/lib/todo-wall.ts`).
+   */
+  wallAdd?: boolean;
   /** Where done items go: `bottom` (sink under the open ones), `inline` (stay put) or `hidden` */
   completedPlacement?: TodoCompletedPlacement;
   /**
@@ -4312,6 +4322,15 @@ export interface MealSettings {
    * comes back when this is cleared.
    */
   planSource?: MealPlanSource;
+  /**
+   * A to-do list for the other things to buy (paper towels, dog food). Its open items show at the
+   * end of the grocery list on the phone and the wall, and the wall's grocery card adds to it.
+   * Unset = none
+   *
+   * Read only while the plan is kept in Home Screens; a Mealie plan shops from
+   * Mealie's own list. A list that has been removed reads as unset.
+   */
+  groceryExtrasListId?: string;
 }
 
 /**
@@ -4370,6 +4389,16 @@ export interface MealPlannerConfig {
    * the grocery view existed takes taps too.
    */
   interactive?: boolean;
+  /**
+   * In the grocery view on a touch wall, an Add row under the list, so anyone at the wall can put
+   * something on the family's shopping list with the wall's keyboard. Needs taps on
+   *
+   * Omitted = off, so a card made before this keeps its look; the registry
+   * default turns it on for new cards. It adds to the Mealie list the family
+   * shops from while the plan lives in Mealie, otherwise to the to-do list
+   * picked as `MealSettings.groceryExtrasListId` (no Add row without one).
+   */
+  wallAdd?: boolean;
 }
 
 // Icon module config (Font Awesome)
@@ -5123,6 +5152,15 @@ export interface FullscreenMealPlannerConfig {
    * Omitted = on, the same as the registry default.
    */
   interactive?: boolean;
+  /**
+   * In the grocery view on a touch wall, an Add button by the list's name, so anyone at the wall can
+   * put something on the family's shopping list with the wall's keyboard. Needs taps on
+   *
+   * The same as `MealPlannerConfig.wallAdd`: omitted = off, on for new cards
+   * through the registry default, and it adds to the Mealie list the family
+   * shops from or to `MealSettings.groceryExtrasListId`.
+   */
+  wallAdd?: boolean;
 }
 
 // Fullscreen weather module config

@@ -3,7 +3,7 @@ title: Lists
 nextjs:
   metadata:
     title: Shared to-do lists
-    description: Keep the family's to-do lists on the wall. Add things from your phone, tick them off on a touchscreen or a phone, and give each list its own look on the display.
+    description: Keep the family's to-do lists on the wall. Add things from your phone or a touchscreen, tick them off on either, and give each list its own look on the display.
     alternates:
       canonical: /docs/lists
 ---
@@ -12,7 +12,7 @@ Groceries, a packing list, a before-school checklist. Type it on your phone, see
 
 ## How the pieces fit
 
-- **The wall** shows a **To-Do List** module. Pick which list it shows and how it looks. On a touchscreen, tap an item to tick it off right there (in the List and Board views).
+- **The wall** shows a **To-Do List** module. Pick which list it shows and how it looks. On a touchscreen, tap an item to tick it off right there (in the List and Board views), or tap **Add** under the list to put something on it.
 - **The family remote** at `/remote` has a **Lists** tab. That is where things get added, ticked, edited, moved and removed, and where lists themselves are made.
 - **The editor** picks the list for each module and can type a first list in from the laptop, so you do not need a phone to get started.
 
@@ -55,6 +55,16 @@ The gear next to the count opens the list: rename it, give it a colour, or tidy 
 **Tap to complete (touchscreen)** is on for new To-Do modules. On a touchscreen a tap ticks the item in the **List** and **Board** views; the other views and any display without touch just show the list. Turn it off in the module's settings if you would rather the wall be read-only.
 
 With it on, a **List** or **Compact** view that holds more than fits scrolls with a finger too. A **Back to the top** button shows while the list is away, and a minute after the last touch it slides back to the top on its own. With it off, the list shows what fits and says how many more there are.
+
+## 5. Adding on the wall
+
+**Add from the wall (touchscreen)** is on for new To-Do modules (it sits under **Tap to complete** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
+
+Tap it and a sheet rises with the wall's own keyboard. Type one thing, tap **Add**, and the box empties for the next one; each thing added shows as a chip with **Undo** until you close the sheet. The first letter is a capital by itself, and **123** has numbers and the marks a list needs, for "Batteries (AA)".
+
+A list keeps one of each thing, on the wall and on the phone alike. Typing something that is already on the list adds nothing and says so; typing something that was ticked off puts it back.
+
+The wall only adds words. Due days, who it is for, editing and removing stay on the phone. A wall can only add to a list that one of the walls shows with this switched on.
 
 ## Where the data lives
 

@@ -1951,6 +1951,11 @@
         "onMealie": "Alle Essensansichten, das Handy und dieser Editor nutzen jetzt deinen Mealie-Plan, und was du hier planst, wird in Mealie gespeichert. Dein Home-Screens-Plan bleibt erhalten und kommt zurück, wenn du zurückwechselst.",
         "mealieSettingsLink": "Mealie-Einstellungen"
       },
+      "groceryExtras": {
+        "heading": "Andere Einkäufe",
+        "description": "Wähle eine eurer Listen für Dinge, die kein Essen braucht, wie Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand, und eine Einkaufskarte mit „An der Wand hinzufügen“ fügt dort hinzu.",
+        "none": "Keine"
+      },
       "status": {
         "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
         "networkLoad": "Netzwerkfehler beim Laden der Mahlzeiten-Einstellungen.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, das Abendessen bewerten, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, das Abendessen bewerten, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es.",
+      "wallAdd": "An der Wand hinzufügen",
+      "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
+      "wallAddHelpLocal": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die unten gewählte Liste.",
+      "extrasList": "Andere Einkäufe kommen auf",
+      "extrasListNone": "Keine (keine Zeile zum Hinzufügen)",
+      "extrasListHelp": "Eine eurer Listen. Was noch darauf steht, erscheint am Ende der Einkaufsliste, hier und auf dem Handy. Alle Einkaufskarten teilen sie."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Ausgeblendet",
       "showDueDates": "Fälligkeit anzeigen",
       "showAssignees": "Zeigen, für wen",
-      "interactive": "Tippen zum Abhaken (Touchscreen)"
+      "interactive": "Tippen zum Abhaken (Touchscreen)",
+      "wallAdd": "An der Wand hinzufügen (Touchscreen)",
+      "wallAddHelp": "Eine Zeile zum Hinzufügen unter der Liste. Alle an der Wand können etwas hinzufügen; ändern und löschen geht weiter auf dem Handy."
     },
     "todoist": {
       "apiToken": "API-Token",

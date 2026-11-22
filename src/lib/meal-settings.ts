@@ -96,6 +96,19 @@ export function setMealPlanSource(
 }
 
 /**
+ * Pick the to-do list the other things to buy go on (paper towels, dog food),
+ * or none (`undefined`). Its open items show at the end of the grocery list,
+ * and a wall's grocery card adds to it while the plan is kept here.
+ */
+export function setGroceryExtrasList(settings: MealSettings, listId: string | undefined): MealSettings {
+  if (settings.groceryExtrasListId === listId) return settings;
+  const next = { ...settings };
+  if (listId) next.groceryExtrasListId = listId;
+  else delete next.groceryExtrasListId;
+  return next;
+}
+
+/**
  * Whether Mealie can be picked as the plan's home: once its address and key
  * are saved. A plan already in Mealie keeps the choice open, so a family
  * whose Mealie was disconnected since can still see where the plan is and
@@ -123,5 +136,7 @@ export function resetMealSettings(current?: MealSettings): MealSettings {
     enabledSlots: [...DEFAULT_MEAL_SETTINGS.enabledSlots],
     defaultSlotTimes: {},
     ...(current?.planSource ? { planSource: current.planSource } : {}),
+    // Which list holds the other things to buy is a choice about the family's lists, not a planning preference.
+    ...(current?.groceryExtrasListId ? { groceryExtrasListId: current.groceryExtrasListId } : {}),
   };
 }

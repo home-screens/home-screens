@@ -562,7 +562,8 @@
         "mealieNotConnected": "Conéctalo en Ajustes en el ordenador para ver la lista.",
         "mealieTokenRefused": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver la lista.",
         "mealieSetup": "Revisa Mealie en Ajustes en el ordenador para ver la lista."
-      }
+      },
+      "alsoOn": "También en {list}"
     }
   },
   "wallScroll": {
@@ -584,6 +585,25 @@
       "other": "quedan {count}"
     },
     "close": "Cerrar"
+  },
+  "wallAdd": {
+    "rowLabel": "Añadir a {list}",
+    "rowShort": "Añadir",
+    "kicker": "Añadir a",
+    "placeholder": "Escribe aquí",
+    "hint": "Escribe una cosa y toca Añadir. Todas las que quieras.",
+    "action": "Añadir",
+    "justAdded": "Recién añadido",
+    "already": "ya está en la lista",
+    "putBack": "de vuelta en la lista",
+    "merged": "sumado al que ya estaba",
+    "undo": "Deshacer",
+    "unreachable": "No se pudo añadir. Home Screens no responde, vuelve a tocar Añadir en un momento.",
+    "failed": "No se pudo añadir. Inténtalo de nuevo en un momento.",
+    "undoFailed": "No se pudo deshacer. Arréglalo en Listas desde tu móvil.",
+    "emptyTitle": "Todavía no hay nada en {list}",
+    "emptyHint": "Toca Añadir o añade cosas desde tu móvil.",
+    "mealieFailed": "No se pudo añadir. Mealie no responde, inténtalo de nuevo en un momento."
   },
   "openButton": {
     "open": "Abrir {name}",

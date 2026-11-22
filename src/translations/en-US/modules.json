@@ -559,7 +559,8 @@
         "mealieNotConnected": "Connect it in Settings on the computer to show the list.",
         "mealieTokenRefused": "Save a new Mealie token in Settings on the computer to show the list.",
         "mealieSetup": "Check Mealie in Settings on the computer to show the list."
-      }
+      },
+      "alsoOn": "Also on {list}"
     }
   },
   "wallScroll": {
@@ -581,6 +582,25 @@
       "other": "{count} left"
     },
     "close": "Close"
+  },
+  "wallAdd": {
+    "rowLabel": "Add to {list}",
+    "rowShort": "Add",
+    "kicker": "Add to",
+    "placeholder": "Type it here",
+    "hint": "Type one thing, then tap Add. Add as many as you like.",
+    "action": "Add",
+    "justAdded": "Just added",
+    "already": "already there",
+    "putBack": "put back",
+    "merged": "joined the one there",
+    "undo": "Undo",
+    "unreachable": "Couldn't add that. Home Screens isn't answering, so tap Add again in a moment.",
+    "failed": "Couldn't add that. Try again in a moment.",
+    "undoFailed": "Couldn't undo that. Fix it in Lists on your phone.",
+    "emptyTitle": "Nothing on {list} yet",
+    "emptyHint": "Tap Add, or add things on your phone.",
+    "mealieFailed": "Couldn't add that. Mealie isn't answering, so try again in a moment."
   },
   "openButton": {
     "open": "Open {name}",

@@ -562,7 +562,8 @@
         "mealieNotConnected": "Connecte-le dans les Réglages sur l'ordinateur pour afficher la liste.",
         "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher la liste.",
         "mealieSetup": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher la liste."
-      }
+      },
+      "alsoOn": "Aussi sur {list}"
     }
   },
   "wallScroll": {
@@ -584,6 +585,25 @@
       "other": "{count} restants"
     },
     "close": "Fermer"
+  },
+  "wallAdd": {
+    "rowLabel": "Ajouter à {list}",
+    "rowShort": "Ajouter",
+    "kicker": "Ajouter à",
+    "placeholder": "Écris ici",
+    "hint": "Écris une chose, puis touche Ajouter. Autant que tu veux.",
+    "action": "Ajouter",
+    "justAdded": "Ajouté à l'instant",
+    "already": "déjà sur la liste",
+    "putBack": "remis sur la liste",
+    "merged": "ajouté à celui déjà là",
+    "undo": "Annuler",
+    "unreachable": "Impossible d'ajouter. Home Screens ne répond pas, touche Ajouter à nouveau dans un instant.",
+    "failed": "Impossible d'ajouter. Réessaie dans un instant.",
+    "undoFailed": "Impossible d'annuler. Corrige-le dans Listes sur ton téléphone.",
+    "emptyTitle": "Rien sur {list} pour l'instant",
+    "emptyHint": "Touche Ajouter, ou ajoute des choses sur ton téléphone.",
+    "mealieFailed": "Impossible d'ajouter. Mealie ne répond pas, réessaie dans un instant."
   },
   "openButton": {
     "open": "Ouvrir {name}",

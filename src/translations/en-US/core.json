@@ -15,6 +15,7 @@
       "tooManyLists": "You can have up to {max} lists",
       "tooManyItems": "A list can hold up to {max} items",
       "orderChanged": "The list changed while you were moving things. Try again.",
+      "wallAddOff": "Adding from the wall is turned off for this list",
       "badRequest": "That change couldn't be understood. Reload the page and try again."
     },
     "notes": {

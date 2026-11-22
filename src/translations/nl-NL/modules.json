@@ -559,7 +559,8 @@
         "mealieNotConnected": "Koppel het in Instellingen op de computer om de lijst te zien.",
         "mealieTokenRefused": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de lijst te zien.",
         "mealieSetup": "Controleer Mealie in Instellingen op de computer om de lijst te zien."
-      }
+      },
+      "alsoOn": "Ook op {list}"
     }
   },
   "wallScroll": {
@@ -581,6 +582,25 @@
       "other": "nog {count}"
     },
     "close": "Sluiten"
+  },
+  "wallAdd": {
+    "rowLabel": "Toevoegen aan {list}",
+    "rowShort": "Toevoegen",
+    "kicker": "Toevoegen aan",
+    "placeholder": "Typ het hier",
+    "hint": "Typ één ding en tik op Toevoegen. Zo veel als je wilt.",
+    "action": "Toevoegen",
+    "justAdded": "Net toegevoegd",
+    "already": "staat er al op",
+    "putBack": "weer op de lijst",
+    "merged": "bij de bestaande gezet",
+    "undo": "Ongedaan maken",
+    "unreachable": "Toevoegen lukte niet. Home Screens reageert niet, tik zo meteen nog eens op Toevoegen.",
+    "failed": "Toevoegen lukte niet. Probeer het zo meteen opnieuw.",
+    "undoFailed": "Ongedaan maken lukte niet. Pas het aan bij Lijsten op je telefoon.",
+    "emptyTitle": "Nog niets op {list}",
+    "emptyHint": "Tik op Toevoegen, of voeg dingen toe op je telefoon.",
+    "mealieFailed": "Toevoegen lukte niet. Mealie reageert niet, probeer het zo meteen opnieuw."
   },
   "openButton": {
     "open": "{name} openen",

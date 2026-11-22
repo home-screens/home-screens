@@ -637,6 +637,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       tapRecipeAction: 'card',
       showTitle: true,
       interactive: true,
+      // An Add button on the grocery view for new cards; an older card stays without one (FullscreenMealPlannerConfig.wallAdd).
+      wallAdd: true,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -1157,6 +1159,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTitle: true,
       accentColor: '#3b82f6',
       interactive: true,
+      // An Add row for new cards; a card made before it stays without one (TodoConfig.wallAdd).
+      wallAdd: true,
       completedPlacement: 'bottom',
       showDueDates: true,
       showAssignees: true,
@@ -1303,6 +1307,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       tapRecipeAction: 'card',
       showTitle: true,
       interactive: true,
+      // An Add row on the grocery view for new cards; an older card stays without one (MealPlannerConfig.wallAdd).
+      wallAdd: true,
     },
     defaultSize: { w: 500, h: 600 },
   },

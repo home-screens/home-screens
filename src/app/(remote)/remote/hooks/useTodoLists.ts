@@ -10,10 +10,11 @@ import { sameId, tempId } from '@/lib/write-session';
 import type { TodoList } from '@/types/todos';
 import {
   TodoError,
-  addItem as addItemTo,
+  addItemIfNew,
   createList as createListIn,
   deleteItem as deleteItemFrom,
   deleteList as deleteListFrom,
+  sameItemText,
   updateItem as updateItemIn,
   updateList as updateListIn,
   type TodoListAction,
@@ -72,6 +73,7 @@ async function loadLists(): Promise<TodoList[] | null> {
  */
 export function useTodoLists({ selectedListId, onSelectList }: Options) {
   const tCore = useTranslate('core');
+  const tRemote = useTranslate('remote');
 
   const { data: lists, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
     initial: [],
@@ -107,29 +109,43 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
 
   /**
    * Resolves to whether the item was saved, so the add bar can hand back text
-   * that was not. The optimistic row is the store's own `addItem` result
-   * under a temp id, pointed at the hub's id when the answer names it.
+   * that was not. A list keeps one of each thing, as on the wall
+   * (`addItemIfNew`): the same words as an item still to do add nothing and
+   * say so, and the same words as a ticked one put it back. The optimistic
+   * row is the store's own result, a new item under a temp id, pointed at the
+   * hub's id when the answer names it.
    */
   const addItem = useCallback(
     (listId: string, text: string): Promise<boolean> => {
       const clean = text.trim();
       if (!clean) return Promise.resolve(true);
+      const items = lists.find((l) => sameId(l.id, listId, resolveId))?.items ?? [];
+      const open = items.find((it) => !it.completed && sameItemText(it.text, clean));
+      if (open) {
+        showToast(tRemote('lists.alreadyOnList', { item: open.text }), 'info');
+        return Promise.resolve(true);
+      }
+      const ticked = items.find((it) => it.completed && sameItemText(it.text, clean));
       const temp = tempId();
       const at = new Date();
       return write(
         (ls, r) => {
-          const { data, item } = addItemTo({ lists: ls }, r(listId), { text: clean }, at);
+          const { data, item, outcome } = addItemIfNew({ lists: ls }, r(listId), { text: clean }, at);
+          if (outcome !== 'added') return data.lists;
           return data.lists.map((l) => (l.items.includes(item) ? { ...l, items: l.items.map((it) => (it === item ? { ...item, id: temp } : it)) } : l));
         },
-        (r) => addItemRequest(r(listId), clean),
+        (r) => addItemRequest(r(listId), clean, { ifNew: true }),
         (created) => {
           // The route names the item it made, so the optimistic row's temp
           // id can be pointed at the real one before anything taps it.
-          if (created) mapId(temp, created.id);
+          if (created && !ticked) mapId(temp, created.id);
         },
-      ).then((saved) => saved !== null);
+      ).then((saved) => {
+        if (saved !== null && ticked) showToast(tRemote('lists.putBack', { item: ticked.text }), 'info');
+        return saved !== null;
+      });
     },
-    [write, mapId],
+    [lists, resolveId, write, mapId, tRemote],
   );
 
   const updateItem = useCallback(

@@ -17,11 +17,15 @@ import {
   setMealSlotDefaultTime,
   setMealWeekStart,
   setMealTimeFormat,
+  setGroceryExtrasList,
   setMealPlanSource,
   resetMealSettings,
   canChooseMealiePlan,
 } from '@/lib/meal-settings';
 import { loadMealSettings, saveMealSettings } from '@/lib/meal-client';
+import { todoListsUrl } from '@/lib/fetch-keys';
+import { useEditorData } from '@/hooks/useEditorData';
+import type { TodoList } from '@/types/todos';
 import { HubUnreachableError } from '@/lib/hub-request';
 import { mealieProblem } from '@/lib/meal-sources';
 import { settingsPath } from '@/lib/settings-route';
@@ -208,6 +212,10 @@ export default function MealsSection() {
     apply((current) => setMealPlanSource(current, source));
   }, [apply]);
 
+  const setExtrasList = useCallback((listId: string | undefined) => {
+    apply((current) => setGroceryExtrasList(current, listId));
+  }, [apply]);
+
   // Asked first: the default serving times it clears have no Undo. The
   // question says what changes in the words shown under the button.
   const resetToDefaults = useCallback(async () => {
@@ -270,6 +278,11 @@ export default function MealsSection() {
         saving={saving}
         onChange={setPlanSource}
       />
+
+      {/* ── Other things to buy (a Mealie plan shops from Mealie's own list) ── */}
+      {settings.planSource !== 'mealie' && (
+        <GroceryExtrasChoice value={settings.groceryExtrasListId} saving={saving} onChange={setExtrasList} />
+      )}
 
       {/* ── Meal Slots ── */}
       <section data-field-id="meals.enabledSlots">
@@ -598,6 +611,41 @@ function PlanSourceChoice({
           t('settings.mealsPage.planSource.connectedOffer')
         )}
       </p>
+    </section>
+  );
+}
+
+/**
+ * The to-do list the other things to buy go on (paper towels, dog food): its
+ * open items show at the end of the grocery list on the phone and the wall,
+ * and a grocery card with Add on the Wall adds to it. Shared with the grocery
+ * card's own picker in the module settings.
+ */
+function GroceryExtrasChoice({ value, saving, onChange }: {
+  value: string | undefined;
+  saving: boolean;
+  onChange: (listId: string | undefined) => void;
+}) {
+  const t = useTranslate('editor');
+  const { data } = useEditorData<{ lists: TodoList[] }>(todoListsUrl());
+  const lists = data?.lists ?? [];
+  const picked = value && lists.some((l) => l.id === value) ? value : '';
+  return (
+    <section data-field-id="meals.groceryExtrasList">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        {t('settings.mealsPage.groceryExtras.heading')}
+      </h3>
+      <p className="text-xs text-hs-text-faint mb-3">{t('settings.mealsPage.groceryExtras.description')}</p>
+      <select
+        aria-label={t('settings.mealsPage.groceryExtras.heading')}
+        value={picked}
+        disabled={saving}
+        onChange={(e) => onChange(e.target.value || undefined)}
+        className="w-full max-w-xs bg-hs-card border border-hs-border-strong rounded-md text-sm text-hs-text-body px-2 py-1.5"
+      >
+        <option value="">{t('settings.mealsPage.groceryExtras.none')}</option>
+        {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+      </select>
     </section>
   );
 }

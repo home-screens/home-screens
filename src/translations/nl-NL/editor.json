@@ -1951,6 +1951,11 @@
         "onMealie": "Alle maaltijdweergaven, de telefoon en deze editor gebruiken nu je Mealie-planning, en wat je hier plant wordt in Mealie opgeslagen. Je Home Screens-planning blijft bewaard en komt terug als je terugschakelt.",
         "mealieSettingsLink": "Mealie-instellingen"
       },
+      "groceryExtras": {
+        "heading": "Andere boodschappen",
+        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en het display, en een boodschappenkaart met Toevoegen op het display voegt daaraan toe.",
+        "none": "Geen"
+      },
       "status": {
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
         "networkLoad": "Netwerkfout bij het laden van maaltijdinstellingen.",
@@ -4712,7 +4717,13 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
+      "wallAdd": "Toevoegen op het display",
+      "wallAddHelpMealie": "Iedereen bij het display kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
+      "wallAddHelpLocal": "Iedereen bij het display kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
+      "extrasList": "Andere boodschappen gaan op",
+      "extrasListNone": "Geen (geen regel Toevoegen)",
+      "extrasListHelp": "Een van jullie lijsten. Wat er nog op staat, komt onderaan de boodschappenlijst, hier en op de telefoon. Alle boodschappenkaarten delen hem."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",
@@ -5227,7 +5238,9 @@
       "completedHidden": "Verborgen",
       "showDueDates": "Deadlines tonen",
       "showAssignees": "Tonen voor wie",
-      "interactive": "Tik om af te ronden (touchscreen)"
+      "interactive": "Tik om af te ronden (touchscreen)",
+      "wallAdd": "Toevoegen vanaf het display (touchscreen)",
+      "wallAddHelp": "Een regel Toevoegen onder de lijst. Iedereen bij het display kan toevoegen; wijzigen en verwijderen blijft op de telefoon."
     },
     "todoist": {
       "apiToken": "API-token",

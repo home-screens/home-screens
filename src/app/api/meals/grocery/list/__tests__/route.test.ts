@@ -24,6 +24,10 @@ vi.mock('@/lib/mealie-shopping', () => ({
   readMealieShopping: vi.fn(),
 }));
 
+vi.mock('@/lib/todo-data', () => ({
+  readTodoData: vi.fn(async () => ({ lists: [] })),
+}));
+
 let householdZone: string | undefined;
 vi.mock('@/lib/config-cache', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/config-cache')>()),
@@ -35,6 +39,7 @@ import { GET } from '../route';
 import { readMealData } from '@/lib/meal-data';
 import { getWeekRange } from '@/lib/meal-constants';
 import { readMealieShopping } from '@/lib/mealie-shopping';
+import { readTodoData } from '@/lib/todo-data';
 
 const mockRead = vi.mocked(readMealData);
 
@@ -129,6 +134,35 @@ describe('GET /api/meals/grocery/list', () => {
     expect(body.checked).toBe(1);
     const bakery = body.categories.find((c) => c.category === 'bakery')!;
     expect(bakery.items).toEqual([{ name: 'Tortillas', amount: '12', checked: true }]);
+  });
+
+  it('ends with the list picked for the other things to buy, counted in the totals', async () => {
+    const { start } = getWeekRange(new Date(), 'sunday');
+    mockRead.mockResolvedValue({
+      savedMeals: [meal],
+      plan: [{ date: start, slot: 'dinner', mealId: 'meal-1' }],
+      groceryChecked: {},
+      settings: { enabledSlots: ['dinner'], weekStartDay: 'sunday', defaultTimes: {}, groceryExtrasListId: 'shop' },
+    } as never);
+    const now = new Date().toISOString();
+    vi.mocked(readTodoData).mockResolvedValue({
+      lists: [{
+        id: 'shop', name: 'Shopping', slug: 'shopping', repeat: 'never', createdAt: now, updatedAt: now,
+        items: [
+          { id: 'a', text: 'Paper towels', completed: false, createdAt: now },
+          { id: 'b', text: 'Dog food', completed: true, createdAt: now, completedAt: now },
+          { id: 'c', text: 'Batteries', completed: true, createdAt: now, completedAt: '2020-01-01T00:00:00.000Z' },
+        ],
+      }],
+    });
+
+    const body = (await (await GET(request())).json()) as ListResponse;
+    expect(body.categories.at(-1)).toEqual({
+      category: 'Shopping',
+      items: [{ name: 'Paper towels', amount: '', checked: false }, { name: 'Dog food', amount: '', checked: true }],
+    });
+    expect(body.total).toBe(4);
+    expect(body.checked).toBe(1);
   });
 
   it('reads this week\'s ticks only, never another week\'s', async () => {

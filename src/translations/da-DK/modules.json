@@ -559,7 +559,8 @@
         "mealieNotConnected": "Forbind den under Indstillinger på computeren for at vise listen.",
         "mealieTokenRefused": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise listen.",
         "mealieSetup": "Tjek Mealie under Indstillinger på computeren for at vise listen."
-      }
+      },
+      "alsoOn": "Også på {list}"
     }
   },
   "wallScroll": {
@@ -581,6 +582,25 @@
       "other": "{count} tilbage"
     },
     "close": "Luk"
+  },
+  "wallAdd": {
+    "rowLabel": "Tilføj til {list}",
+    "rowShort": "Tilføj",
+    "kicker": "Tilføj til",
+    "placeholder": "Skriv her",
+    "hint": "Skriv én ting, og tryk på Tilføj. Lige så mange, du vil.",
+    "action": "Tilføj",
+    "justAdded": "Lige tilføjet",
+    "already": "står der allerede",
+    "putBack": "tilbage på listen",
+    "merged": "lagt til den, der står der",
+    "undo": "Fortryd",
+    "unreachable": "Det kunne ikke tilføjes. Home Screens svarer ikke, så tryk på Tilføj igen om lidt.",
+    "failed": "Det kunne ikke tilføjes. Prøv igen om lidt.",
+    "undoFailed": "Det kunne ikke fortrydes. Ret det under Lister på din telefon.",
+    "emptyTitle": "Intet på {list} endnu",
+    "emptyHint": "Tryk på Tilføj, eller tilføj ting på din telefon.",
+    "mealieFailed": "Det kunne ikke tilføjes. Mealie svarer ikke, så prøv igen om lidt."
   },
   "openButton": {
     "open": "Åbn {name}",

@@ -559,7 +559,8 @@
         "mealieNotConnected": "Verbinde es in den Einstellungen am Computer, dann erscheint die Liste.",
         "mealieTokenRefused": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheint die Liste.",
         "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheint die Liste."
-      }
+      },
+      "alsoOn": "Außerdem auf {list}"
     }
   },
   "wallScroll": {
@@ -581,6 +582,25 @@
       "other": "noch {count}"
     },
     "close": "Schließen"
+  },
+  "wallAdd": {
+    "rowLabel": "Zu {list} hinzufügen",
+    "rowShort": "Hinzufügen",
+    "kicker": "Hinzufügen zu",
+    "placeholder": "Hier tippen",
+    "hint": "Tippe eine Sache, dann auf Hinzufügen. So viele, wie du willst.",
+    "action": "Hinzufügen",
+    "justAdded": "Gerade hinzugefügt",
+    "already": "steht schon drauf",
+    "putBack": "wieder drauf",
+    "merged": "zum vorhandenen dazu",
+    "undo": "Rückgängig",
+    "unreachable": "Das hat nicht geklappt. Home Screens antwortet nicht, tippe gleich noch einmal auf Hinzufügen.",
+    "failed": "Das hat nicht geklappt. Versuch es gleich noch einmal.",
+    "undoFailed": "Rückgängig hat nicht geklappt. Ändere es auf dem Handy unter Listen.",
+    "emptyTitle": "Noch nichts auf {list}",
+    "emptyHint": "Tippe auf Hinzufügen oder füge auf dem Handy etwas hinzu.",
+    "mealieFailed": "Das hat nicht geklappt. Mealie antwortet nicht, versuch es gleich noch einmal."
   },
   "openButton": {
     "open": "{name} öffnen",

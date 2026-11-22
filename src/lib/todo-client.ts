@@ -3,7 +3,7 @@
 import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { TodoList, TodoRepeat } from '@/types/todos';
-import type { TodoListAction } from '@/lib/todo-actions';
+import type { AddOutcome, TodoListAction } from '@/lib/todo-actions';
 import { sendJsonWrite } from '@/lib/hub-request';
 
 /**
@@ -84,8 +84,13 @@ export function deleteListRequest(listId: string): TodoWriteRequest {
   return { url: listUrl(listId), method: 'DELETE' };
 }
 
-export function addItemRequest(listId: string, text: string): TodoWriteRequest {
-  return { url: itemsUrl(listId), method: 'POST', body: { text } };
+/**
+ * `ifNew` keeps to one copy: the hub answers `already` for the same words on
+ * an item still to do and puts a ticked one back (`addItemIfNew`). The wall
+ * always gets that; the phone asks for it.
+ */
+export function addItemRequest(listId: string, text: string, { ifNew = false }: { ifNew?: boolean } = {}): TodoWriteRequest {
+  return { url: itemsUrl(listId), method: 'POST', body: ifNew ? { text, ifNew: true } : { text } };
 }
 
 export function updateItemRequest(listId: string, itemId: string, patch: TodoItemPatch): TodoWriteRequest {
@@ -106,8 +111,10 @@ export function deleteItemRequest(listId: string, itemId: string): TodoWriteRequ
 export type TodoFetch = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface TodoWriteResult extends TodoListsPayload {
-  /** Set by the create routes, naming what they made. */
+  /** Set by the create routes, naming what they made (for an item add, the item it landed on). */
   created?: { id: string };
+  /** Set by the item add: what it did (`addItemIfNew`). */
+  outcome?: AddOutcome;
 }
 
 /**
@@ -143,5 +150,6 @@ export async function sendTodoWrite(
   if (!Array.isArray(json?.lists)) throw new Error(fallbackMessage);
   primeTodoCache(json.lists);
   const created = json.created && typeof json.created.id === 'string' ? json.created : undefined;
-  return { lists: json.lists, created };
+  const outcome = json.outcome === 'added' || json.outcome === 'already' || json.outcome === 'putBack' ? json.outcome : undefined;
+  return { lists: json.lists, created, ...(outcome ? { outcome } : {}) };
 }

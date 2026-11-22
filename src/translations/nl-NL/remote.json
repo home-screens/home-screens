@@ -488,7 +488,9 @@
     "empty": {
       "title": "Geen boodschappen",
       "description": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien."
-    }
+    },
+    "alsoOn": "Ook op {list}",
+    "openInLists": "Openen in Lijsten"
   },
   "mealsSettings": {
     "ariaLabel": "Maaltijdinstellingen",
@@ -1167,7 +1169,9 @@
       "nothingOpen": "Alles gedaan!"
     },
     "loadError": "Je lijsten konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
-    "retry": "Opnieuw"
+    "retry": "Opnieuw",
+    "alreadyOnList": "{item} staat al op de lijst",
+    "putBack": "{item} staat weer op de lijst"
   },
   "formOverlay": {
     "discard": {

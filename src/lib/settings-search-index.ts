@@ -214,6 +214,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'family', fieldId: 'family.grownUpUnlock', labelKey: 'settings.familyPage.grownUp.unlockLabel', keywordKeys: ['settings.familyPage.grownUp.heading'], keywords: ['pin', 'unlocked', 'minutes'] },
 
   { pageId: 'meals', fieldId: 'meals.planSource', labelKey: 'settings.mealsPage.planSource.heading', keywordKeys: ['settings.mealsPage.planSource.description'], keywords: ['mealie', 'recipes', 'meal plan'] },
+  { pageId: 'meals', fieldId: 'meals.groceryExtrasList', labelKey: 'settings.mealsPage.groceryExtras.heading', keywordKeys: ['settings.mealsPage.groceryExtras.description'], keywords: ['grocery', 'shopping', 'shopping list', 'groceries', 'add on the wall'] },
   { pageId: 'meals', fieldId: 'meals.enabledSlots', labelKey: 'settings.mealsPage.slots.heading' },
   { pageId: 'meals', fieldId: 'meals.weekStartDay', labelKey: 'settings.mealsPage.weekStart.heading', keywordKeys: ['settings.mealsPage.weekStart.heading'] },
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading', keywordKeys: ['settings.mealsPage.timeFormat.description', 'settings.mealsPage.timeFormat.twelveHourLabel', 'settings.mealsPage.timeFormat.twentyFourHourLabel'], keywords: ['clock'] },
