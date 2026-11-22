@@ -348,7 +348,7 @@ test('the dock\'s Timers button starts a routine or a quick timer on this displa
   const dock = {
     id: 'dock', type: 'display-control', position: { x: 60, y: 1600 }, size: { w: 960, h: 200 }, zIndex: 2,
     style: { ...DEFAULT_MODULE_STYLE },
-    config: { layout: 'dock', dockTimers: true, defaultTarget: 'self', allowRetargeting: false, compact: false },
+    config: { layout: 'dock', showTimers: true, defaultTarget: 'self', allowRetargeting: false, compact: false },
   } as ModuleInstance;
   await putConfig(request, baseConfig({ screens: [makeScreen('s', 'S', [textModule(ROTATION_TEXT), dock])] }));
   const { revision } = await (await request.get('/api/timers/routines')).json();
@@ -381,4 +381,22 @@ test('the dock\'s Timers button starts a routine or a quick timer on this displa
   await page.getByTestId('timers-sheet').getByText('Tap routine').click();
   await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'ring');
   await expect(page.getByText('Step 1 of 2')).toBeVisible();
+});
+
+test('the panel\'s Timers button opens the sheet in an editor preview, which starts nothing', async ({ page, request }) => {
+  const panel = {
+    id: 'panel', type: 'display-control', position: { x: 60, y: 1400 }, size: { w: 960, h: 420 }, zIndex: 2,
+    style: { ...DEFAULT_MODULE_STYLE },
+    config: { layout: 'panel', showTimers: true, defaultTarget: 'self', allowRetargeting: false, compact: false },
+  } as ModuleInstance;
+  await putConfig(request, baseConfig({ screens: [makeScreen('s', 'S', [textModule(ROTATION_TEXT), panel])] }));
+  await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
+  await page.goto('/display?preview=1');
+
+  await page.getByRole('button', { name: 'Timers' }).click();
+  const sheet = page.getByTestId('timers-sheet');
+  await expect(sheet.getByTestId('timers-sheet-preview-note')).toBeVisible();
+  await sheet.getByText('5 min', { exact: true }).click();
+  await expect(sheet).toHaveCount(0);
+  expect(await hubSession(request)).toBeNull();
 });

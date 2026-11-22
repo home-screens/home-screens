@@ -2,7 +2,7 @@
 
 import { wallPress } from '@/components/modules/shared/wallPress';
 import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { LayoutGrid, Timer } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { dockTileColor, type DockScreen } from '@/lib/screen-dock';
@@ -16,8 +16,7 @@ import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
 import { controlMetrics, dockExtraTiles, dockMetrics, type DockMetrics } from './metrics';
-import { SleepIcon, BrightnessIcon } from './controls';
-import { TimersSheet } from './TimersSheet';
+import { SleepIcon, BrightnessIcon, TimerIcon } from './controls';
 
 export interface DockLayoutProps extends LayoutProps {
   /** This display's rotation, in order; empty when nothing rotates here. */
@@ -27,10 +26,6 @@ export interface DockLayoutProps extends LayoutProps {
   onGoto: (index: number) => void;
   /** Sleep and Brightness after a divider. */
   extras: boolean;
-  /** A Timers button after the divider (and after Sleep and Brightness). */
-  timers: boolean;
-  /** A tap on Timers opens the sheet: on the wall itself, not in an editor preview. */
-  timersLive: boolean;
 }
 
 /**
@@ -39,18 +34,18 @@ export interface DockLayoutProps extends LayoutProps {
  * colour with a light ring and a dot under it, the others are dimmed. A tall
  * box lays it down the side with the names to the right. With `extras`,
  * Sleep and Brightness follow a divider at the end, the way the macOS dock
- * keeps the trash apart. With `timers`, a Timers button comes last and opens
- * the sheet that starts a routine or a quick timer on this display.
+ * keeps the trash apart. With `onTimers`, a Timers button comes last and
+ * opens the sheet that starts a routine or a quick timer on this display.
  */
 export function DockLayout(props: DockLayoutProps) {
   const t = useTranslate('modules');
   const {
     allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
-    brightness, onSleep, onBrightness, screens, activeIndex, onGoto, extras, timers, timersLive,
+    brightness, onSleep, onBrightness, onTimers, screens, activeIndex, onGoto, extras,
   } = props;
+  const timers = onTimers !== undefined;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [brightnessOpen, setBrightnessOpen] = useState(false);
-  const [timersOpen, setTimersOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
   const [boxRef, box] = useElementBox('padding');
   // The picker row borrows the bar layout's model so it matches the other
@@ -60,7 +55,7 @@ export function DockLayout(props: DockLayoutProps) {
     w: box.width,
     h: box.height,
     count: screens.length,
-    extras: dockExtraTiles({ dockExtras: extras, dockTimers: timers }),
+    extras: dockExtraTiles({ dockExtras: extras, showTimers: timers }),
     compact,
     pickerH: showPicker ? pm.pickerH + pm.gap : 0,
   });
@@ -228,10 +223,10 @@ export function DockLayout(props: DockLayoutProps) {
                 {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row' : 'flex-col'}`)}
                 aria-label={t('display-control.timers')}
                 aria-haspopup="dialog"
-                onClick={() => { if (timersLive) setTimersOpen(true); }}
+                onClick={onTimers}
                 style={itemStyle(m)}
               >
-                <ExtraTile m={m}><Timer size={m.icon} strokeWidth={1.75} aria-hidden="true" /></ExtraTile>
+                <ExtraTile m={m}><TimerIcon size={m.icon} /></ExtraTile>
                 <TileName m={m} name={t('display-control.timers')} />
               </button>
             )}
@@ -241,9 +236,6 @@ export function DockLayout(props: DockLayoutProps) {
             popover inside it was cut off with its slider out of reach. It
             floats over the dock's own area instead, above a bottom dock and
             beside a side dock. */}
-        {timersOpen && (
-          <TimersSheet displayId={selfId} hasDisplayList={!isLegacyMode} onClose={() => setTimersOpen(false)} />
-        )}
         {brightnessOpen && (
           <div
             data-testid="display-control-dock-popover"

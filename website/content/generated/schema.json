@@ -7396,13 +7396,13 @@
           "defaultText": "false"
         },
         {
-          "name": "dockTimers",
+          "name": "showTimers",
           "optional": true,
           "type": {
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "With the `dock` layout: also show a Timers button at the end of the dock, which opens a sheet that starts one of the family's routines or a quick timer on this display",
+          "description": "With the `dock` or `panel` layout: also show a Timers button, which opens a sheet that starts one of the family's routines or a quick timer on this display. The dock puts it last, after the divider; the panel puts it in a row under the four buttons",
           "defaultText": "false"
         },
         {

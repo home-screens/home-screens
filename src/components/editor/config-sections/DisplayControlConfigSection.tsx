@@ -63,9 +63,23 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
     const w = Math.max(0, mod.size.w - inset * 2);
     const h = Math.max(0, mod.size.h - inset * 2);
     const pm = controlMetrics({ w, h, layout: 'bar', compact: c.compact === true, showPicker });
-    const extras = dockExtraTiles({ dockExtras: c.dockExtras, dockTimers: c.dockTimers });
+    const extras = dockExtraTiles({ dockExtras: c.dockExtras, showTimers: c.showTimers });
     return dockCapacity({ w, h, extras, pickerH: showPicker ? pm.pickerH + pm.gap : 0 });
-  }, [mod.type, mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, c.dockTimers, showPicker]);
+  }, [mod.type, mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, c.showTimers, showPicker]);
+
+  // The dock and the panel both carry a Timers button.
+  const timersToggle = (
+    <>
+      <Toggle
+        label={t('configSections.display-control.showTimers')}
+        checked={c.showTimers === true}
+        onChange={(v) => set({ showTimers: v })}
+      />
+      <p className="text-[11px] text-hs-text-faint">
+        {t('configSections.display-control.showTimersHint')}
+      </p>
+    </>
+  );
 
   const LAYOUT_LABELS: Record<DisplayControlConfig['layout'], string> = {
     bar: t('configSections.display-control.layoutBar'),
@@ -107,14 +121,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
             checked={c.dockExtras === true}
             onChange={(v) => set({ dockExtras: v })}
           />
-          <Toggle
-            label={t('configSections.display-control.dockTimers')}
-            checked={c.dockTimers === true}
-            onChange={(v) => set({ dockTimers: v })}
-          />
-          <p className="text-[11px] text-hs-text-faint">
-            {t('configSections.display-control.dockTimersHint')}
-          </p>
+          {timersToggle}
           <DockButtonsList
             value={c.dockButtons}
             onChange={(dockButtons) => set({ dockButtons })}
@@ -124,6 +131,8 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
           />
         </>
       )}
+
+      {c.layout === 'panel' && timersToggle}
 
       <Toggle
         label={t('configSections.display-control.compact')}

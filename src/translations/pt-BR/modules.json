@@ -1487,7 +1487,8 @@
     "quickTimer": "Timer rápido",
     "noRoutines": "Crie rotinas no celular, em Timers.",
     "start": "Começar",
-    "timerStartFailed": "O timer não começou. Tente de novo."
+    "timerStartFailed": "O timer não começou. Tente de novo.",
+    "timersPreview": "Isto é só uma prévia, então tocar aqui não começa nenhum timer."
   },
   "timetable": {
     "name": "Horário escolar",

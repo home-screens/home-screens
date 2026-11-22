@@ -1479,7 +1479,8 @@
     "quickTimer": "Schnell-Timer",
     "noRoutines": "Routinen legst du am Handy unter „Timer“ an.",
     "start": "Start",
-    "timerStartFailed": "Der Timer ist nicht gestartet. Versuch es noch einmal."
+    "timerStartFailed": "Der Timer ist nicht gestartet. Versuch es noch einmal.",
+    "timersPreview": "Das ist eine Vorschau, hier startet ein Tippen keinen Timer."
   },
   "timetable": {
     "name": "Stundenplan",

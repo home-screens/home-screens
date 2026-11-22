@@ -43,18 +43,23 @@ export interface TimersSheetProps {
   displayId: string | undefined;
   /** The hub has a list of displays (else one display, which every timer covers). */
   hasDisplayList: boolean;
+  /**
+   * False in an editor preview window: the sheet shows and a pick closes it,
+   * but nothing starts, since a preview must never act on the real wall.
+   */
+  live: boolean;
   onClose: () => void;
 }
 
 /**
- * What the dock's Timers button opens: the family's routines (made on the
- * phone) and the phone's quick lengths, each started by one tap on the
+ * What the Timers button (dock or panel) opens: the family's routines (made
+ * on the phone) and the phone's quick lengths, each started by one tap on the
  * display the sheet is on. The house has one running timer, so when one is
  * already going on another display the sheet asks first, as the phone does.
  * Drawn at 1080 across the window's short side, in the timer screens' own
  * colours, since it portals over the whole wall.
  */
-export function TimersSheet({ displayId, hasDisplayList, onClose }: TimersSheetProps) {
+export function TimersSheet({ displayId, hasDisplayList, live, onClose }: TimersSheetProps) {
   const t = useTranslate('modules');
   const tc = useTranslate('core');
   const { P, landscape } = useWallOverlayScale();
@@ -83,6 +88,10 @@ export function TimersSheet({ displayId, hasDisplayList, onClose }: TimersSheetP
   }, []);
 
   const start = useCallback(async (choice: Choice) => {
+    if (!live) {
+      onClose();
+      return;
+    }
     setBusy(true);
     setStartFailed(false);
     const targets = wallTimerTargets(displayId, hasDisplayList);
@@ -108,7 +117,7 @@ export function TimersSheet({ displayId, hasDisplayList, onClose }: TimersSheetP
     setBusy(false);
     setConfirm(null);
     setStartFailed(true);
-  }, [displayId, hasDisplayList, onClose]);
+  }, [displayId, hasDisplayList, live, onClose]);
 
   const choose = useCallback(async (choice: Choice) => {
     if (busy) return;
@@ -175,6 +184,7 @@ export function TimersSheet({ displayId, hasDisplayList, onClose }: TimersSheetP
           <div style={{ marginTop: P(6), fontSize: P(84), fontWeight: 750, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
             {t('display-control.timers')}
           </div>
+          {!live && <p data-testid="timers-sheet-preview-note" style={note}>{t('display-control.timersPreview')}</p>}
         </div>
 
         <div

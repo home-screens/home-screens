@@ -1479,7 +1479,8 @@
     "quickTimer": "Quick timer",
     "noRoutines": "Make routines on the phone, under Timers.",
     "start": "Start",
-    "timerStartFailed": "That timer didn't start. Try again."
+    "timerStartFailed": "That timer didn't start. Try again.",
+    "timersPreview": "This is a preview, so a tap here won't start a timer."
   },
   "timetable": {
     "name": "School Timetable",

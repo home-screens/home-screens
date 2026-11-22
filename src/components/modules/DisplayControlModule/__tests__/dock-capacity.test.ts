@@ -53,8 +53,8 @@ describe('dockCapacity', () => {
   it('counts the control tiles after the divider from the settings', () => {
     expect(dockExtraTiles({})).toBe(0);
     expect(dockExtraTiles({ dockExtras: true })).toBe(2);
-    expect(dockExtraTiles({ dockTimers: true })).toBe(1);
-    expect(dockExtraTiles({ dockExtras: true, dockTimers: true })).toBe(3);
+    expect(dockExtraTiles({ showTimers: true })).toBe(1);
+    expect(dockExtraTiles({ dockExtras: true, showTimers: true })).toBe(3);
   });
   it('says when the box is too short for names', () => {
     expect(dockCapacity({ ...box, h: 60 }).names).toBe(false);

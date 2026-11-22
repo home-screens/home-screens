@@ -39,8 +39,11 @@ export interface ControlMetrics {
   pickerH: number;
   /** Height reserved for the always-visible slider (panel layout only). */
   sliderH: number;
-  /** Height reserved for the Brightness row that opens the slider (pad only). */
-  brightRowH: number;
+  /**
+   * Height reserved for the full-width button under the grid: the pad's
+   * Brightness, or the panel's Timers when it has one. 0 when there is none.
+   */
+  rowH: number;
   /** The box one command button ends up with. */
   bw: number;
   bh: number;
@@ -62,6 +65,8 @@ export interface ControlBox {
   compact: boolean;
   /** Whether the target picker row takes space. */
   showPicker: boolean;
+  /** The panel's Timers row under the grid. Ignored by the other layouts. */
+  timers?: boolean;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -89,11 +94,11 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
 
   const pickerH = showPicker ? clamp(h * 0.1, 22, 40) : 0;
   const sliderH = layout === 'panel' ? clamp(h * 0.13, 22, 56) : 0;
-  const brightRowH = layout === 'pad' ? clamp(h * 0.13, 24, 58) : 0;
+  const rowH = layout === 'pad' || (layout === 'panel' && box.timers === true) ? clamp(h * 0.13, 24, 58) : 0;
   const showCaption = sliderH >= 40;
   if (pickerH) innerH -= pickerH + gap;
   if (sliderH) innerH -= sliderH + gap;
-  if (brightRowH) innerH -= brightRowH + gap;
+  if (rowH) innerH -= rowH + gap;
   innerH = Math.max(0, innerH);
 
   const picker = clamp(pickerH * 0.36, 10, 18);
@@ -114,7 +119,7 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
       sub: showSubs ? clamp(label * 0.85, 10, 18) : 0,
       showWords, showSubs, showCaption: false,
       showPickerPrefix: innerW >= 620,
-      pickerH, sliderH: 0, brightRowH: 0, bw, bh,
+      pickerH, sliderH: 0, rowH: 0, bw, bh,
       thumb: 0, track: 0, caption: 0, picker,
     };
   }
@@ -139,7 +144,7 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
       sub: 0,
       showWords, showSubs: false, showCaption: false,
       showPickerPrefix: innerW >= 380,
-      pickerH, sliderH: 0, brightRowH: 0, bw, bh,
+      pickerH, sliderH: 0, rowH: 0, bw, bh,
       thumb: 0, track: 0, caption: 0, picker,
     };
   }
@@ -169,12 +174,27 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
     sub,
     showWords, showSubs, showCaption,
     showPickerPrefix: innerW >= 380,
-    pickerH, sliderH, brightRowH, bw, bh,
+    pickerH, sliderH, rowH, bw, bh,
     thumb: clamp(sliderH * 0.42, 12, 24),
     track: clamp(sliderH * 0.16, 4, 8),
     caption: clamp(sliderH * 0.26, 10, 15),
     picker,
   };
+}
+
+/**
+ * What the full-width button under the grid (the pad's Brightness, the
+ * panel's Timers) draws with: its icon and words sized from the row's own
+ * height, not from the grid buttons above it, which are several times taller
+ * (their icon used to overflow the row and be cut off top and bottom). The
+ * words follow the grid's: an icons-only grid has an icons-only row.
+ */
+export function rowButtonMetrics(m: ControlMetrics): ControlMetrics {
+  const h = m.rowH;
+  const label = m.showWords ? clamp(h * 0.4, 11, 22) : 0;
+  const sub = clamp(label * 0.85, 10, 18);
+  const subFits = label > 0 && (label + sub) * 1.2 <= h;
+  return { ...m, icon: clamp(h * 0.6, 12, 34), label, sub: subFits ? sub : 0, showSubs: subFits };
 }
 
 /**
@@ -331,8 +351,8 @@ export function dockMetrics(box: DockBox): DockMetrics {
  * then Timers. The wall lays them out and the editor counts them with this
  * one rule, so the "fits" line never disagrees with the wall.
  */
-export function dockExtraTiles(config: { dockExtras?: boolean; dockTimers?: boolean }): number {
-  return (config.dockExtras === true ? 2 : 0) + (config.dockTimers === true ? 1 : 0);
+export function dockExtraTiles(config: { dockExtras?: boolean; showTimers?: boolean }): number {
+  return (config.dockExtras === true ? 2 : 0) + (config.showTimers === true ? 1 : 0);
 }
 
 export interface DockCapacity {

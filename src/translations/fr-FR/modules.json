@@ -1487,7 +1487,8 @@
     "quickTimer": "Minuteur rapide",
     "noRoutines": "Créez des routines sur le téléphone, dans Minuteurs.",
     "start": "Démarrer",
-    "timerStartFailed": "Le minuteur n'a pas démarré. Réessayez."
+    "timerStartFailed": "Le minuteur n'a pas démarré. Réessayez.",
+    "timersPreview": "Ceci n'est qu'un aperçu, un appui ici ne lance aucun minuteur."
   },
   "timetable": {
     "name": "Emploi du temps",

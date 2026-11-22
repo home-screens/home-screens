@@ -1479,7 +1479,8 @@
     "quickTimer": "Hurtig timer",
     "noRoutines": "Lav rutiner på telefonen under Timere.",
     "start": "Start",
-    "timerStartFailed": "Timeren startede ikke. Prøv igen."
+    "timerStartFailed": "Timeren startede ikke. Prøv igen.",
+    "timersPreview": "Dette er en forhåndsvisning, så et tryk her starter ingen timer."
   },
   "timetable": {
     "name": "Skema",

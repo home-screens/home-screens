@@ -112,7 +112,7 @@ Each module type has its own configuration options. For example:
 - **Notes**: **Manage notes** opens the **Family notes** window to post notes, change them, take them down and post them again, the same things the phone's Notes tab does (see [Notes](/docs/notes#4-write-notes-from-the-editor))
 - **News**: pick the feeds it shows, from the built-in list or your own links (see [News](/docs/news))
 - **Stock Ticker**: enter comma-separated stock symbols
-- **Display Control**: pick layout (Bar / Pad / Panel / Arrows / Dock), default target (self / all / specific display), allow runtime retargeting; the Dock layout adds **Also show Sleep and Brightness** and **Also show Timers**
+- **Display Control**: pick layout (Bar / Pad / Panel / Arrows / Dock), default target (self / all / specific display), allow runtime retargeting; the Dock layout adds **Also show Sleep and Brightness** and **Also show Timers**, and the Panel layout adds **Also show Timers**
 
 See the [Module Reference](/docs/module-reference) for all available options.
 

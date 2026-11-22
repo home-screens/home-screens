@@ -1479,7 +1479,8 @@
     "quickTimer": "Snelle timer",
     "noRoutines": "Maak routines bij Timers op je telefoon.",
     "start": "Start",
-    "timerStartFailed": "De timer is niet gestart. Probeer het opnieuw."
+    "timerStartFailed": "De timer is niet gestart. Probeer het opnieuw.",
+    "timersPreview": "Dit is een voorbeeldweergave, dus tikken start hier geen timer."
   },
   "timetable": {
     "name": "Rooster",

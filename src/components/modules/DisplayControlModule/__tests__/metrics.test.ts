@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { controlMetrics, dockMetrics, popoverMetrics } from '../metrics';
+import { controlMetrics, dockMetrics, popoverMetrics, rowButtonMetrics } from '../metrics';
 
 const panel = (w: number, h: number, over: Partial<Parameters<typeof controlMetrics>[0]> = {}) =>
   controlMetrics({ w, h, layout: 'panel', compact: false, showPicker: false, ...over });
@@ -62,9 +62,31 @@ describe('controlMetrics', () => {
   it('reserves the Brightness row for the pad layout and the slider for the panel', () => {
     const pad = controlMetrics({ w: 440, h: 320, layout: 'pad', compact: false, showPicker: false });
     expect(pad.sliderH).toBe(0);
-    expect(pad.brightRowH).toBeGreaterThan(0);
+    expect(pad.rowH).toBeGreaterThan(0);
     expect(panel(440, 320).sliderH).toBeGreaterThan(0);
-    expect(panel(440, 320).brightRowH).toBe(0);
+    expect(panel(440, 320).rowH).toBe(0);
+  });
+
+  it('gives the panel a Timers row under the grid, taken from the buttons, and keeps the slider', () => {
+    const plain = panel(440, 320);
+    const withTimers = panel(440, 320, { timers: true });
+    expect(withTimers.rowH).toBeGreaterThan(0);
+    expect(withTimers.sliderH).toBe(plain.sliderH);
+    expect(withTimers.bh).toBeLessThan(plain.bh);
+    // Only the panel has the row; the pad's Brightness row is the same size either way.
+    const pad = (timers: boolean) => controlMetrics({ w: 440, h: 320, layout: 'pad', compact: false, showPicker: false, timers });
+    expect(pad(true).bh).toBe(pad(false).bh);
+  });
+
+  it('sizes the row button from the row, so its icon and words fit inside it', () => {
+    for (const [w, h] of [[960, 560], [1000, 260], [440, 320], [300, 200]] as const) {
+      const m = panel(w, h, { timers: true });
+      const r = rowButtonMetrics(m);
+      expect(r.icon).toBeLessThan(m.rowH);
+      expect(r.icon).toBeLessThan(m.icon);
+      if (r.sub > 0) expect((r.label + r.sub) * 1.2).toBeLessThanOrEqual(m.rowH);
+    }
+    expect(rowButtonMetrics(panel(960, 560, { timers: true, compact: true })).label).toBe(0);
   });
 
   it('gives the bar layout five columns and drops words on a narrow strip', () => {
@@ -86,7 +108,7 @@ describe('controlMetrics', () => {
   it('carries no brightness or sub-label furniture in the nav layout', () => {
     const m = controlMetrics({ w: 520, h: 200, layout: 'nav', compact: false, showPicker: false });
     expect(m.sliderH).toBe(0);
-    expect(m.brightRowH).toBe(0);
+    expect(m.rowH).toBe(0);
     expect(m.sub).toBe(0);
     expect(m.showSubs).toBe(false);
   });
