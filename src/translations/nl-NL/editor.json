@@ -680,9 +680,11 @@
       },
       "appearance": {
         "colorFor": "Kleur voor {name}",
-        "reset": "Herstellen",
-        "edit": "{name} hernoemen of verkleuren",
-        "done": "Klaar"
+        "reset": "Terugzetten",
+        "edit": "Naam of kleur van {name} wijzigen",
+        "done": "Klaar",
+        "nameFor": "Naam voor {name}",
+        "searchLabel": "Namen en kleuren van agenda's"
       },
       "icloud": {
         "heading": "iCloud-agenda",

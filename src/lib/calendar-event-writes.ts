@@ -4,6 +4,7 @@ import { readConfig } from '@/lib/config';
 import { householdTimezone } from '@/lib/household-day';
 import { googleCalendarIdList } from '@/lib/calendar-sources';
 import { bumpCalendarRevision } from '@/lib/calendar-revision';
+import { calendarLook } from '@/lib/calendar-overrides';
 import { createRateLimiter, getClientIP } from '@/lib/api-utils';
 import {
   CalendarWriteError,
@@ -280,12 +281,14 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
     ? await (await import('@/lib/google-calendar')).googleCalendarLabels(googleEntry)
     : new Map<string, { name: string; color: string; writable: boolean }>();
   const icloud = new Map((calendar.icloudSources ?? []).map((s) => [s.id, s]));
+  const looks = calendar.calendarOverrides;
   const calendars: EntryCalendar[] = [];
   for (const id of ctx.entryIds) {
     const label = labels.get(id);
-    if (label?.writable) calendars.push({ id, name: label.name, color: label.color, source: 'google' });
+    // Named and coloured as the household set them, the way the wall draws the events.
+    if (label?.writable) calendars.push({ id, ...calendarLook(id, { name: label.name, color: label.color }, looks), source: 'google' });
     const source = icloud.get(id);
-    if (source) calendars.push({ id, name: source.name, color: source.color, source: 'icloud' });
+    if (source) calendars.push({ id, ...calendarLook(id, { name: source.name, color: source.color }, looks), source: 'icloud' });
   }
   const preferred = entry?.defaultCalendarId;
   const defaultCalendarId = calendars.find((c) => c.id === preferred)?.id ?? calendars[0]?.id ?? null;

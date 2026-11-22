@@ -32,6 +32,8 @@ interface Stored {
   end: { date?: string; dateTime?: string; timeZone?: string };
   recurrence?: string[];
   extendedProperties?: unknown;
+  /** A colour of its own from Google's legacy palette (see `eventColors`). */
+  colorId?: string;
   /** One day of a series changed on its own: original day to the event as changed. */
   overrides: Record<string, Stored>;
   /** Days of a series removed on their own. */
@@ -91,7 +93,14 @@ function publicEvent(e: Stored, extra: Record<string, unknown> = {}) {
   return { ...rest, ...extra };
 }
 
-export async function startFakeGoogleCalendar(calendars: FakeCalendar[]): Promise<FakeGoogleCalendar> {
+/**
+ * `eventColors` is Google's legacy event palette (`colorId` to colour), for
+ * events seeded with a `colorId` of their own.
+ */
+export async function startFakeGoogleCalendar(
+  calendars: FakeCalendar[],
+  { eventColors = {} }: { eventColors?: Record<string, string> } = {},
+): Promise<FakeGoogleCalendar> {
   let counter = 0;
   const events = new Map<string, Map<string, Stored>>();
   const calls: FakeGoogleCalendar['calls'] = [];
@@ -154,7 +163,9 @@ export async function startFakeGoogleCalendar(calendars: FakeCalendar[]): Promis
     const ifMatch = req.headers['if-match'];
 
     if (path === '/calendar/v3/users/me/calendarList') return send(res, 200, { items: calendars });
-    if (path === '/calendar/v3/colors') return send(res, 200, { event: {} });
+    if (path === '/calendar/v3/colors') {
+      return send(res, 200, { event: Object.fromEntries(Object.entries(eventColors).map(([id, background]) => [id, { background }])) });
+    }
     let m = /^\/calendar\/v3\/calendars\/([^/]+)$/.exec(path);
     if (m) return send(res, 200, { id: m[1], labelProperties: {} });
 

@@ -16,6 +16,7 @@ import { syncKioskConf, applyDisplaySettings, applyLabwcRc, resolveHubPanel } fr
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateConfigForWrite } from '@/lib/config-validation';
+import { repairConfigShape } from '@/lib/config-repair';
 import type { ScreenConfiguration } from '@/types/config';
 import { logger } from '@/lib/logger';
 
@@ -124,8 +125,13 @@ async function saveConfig(request: NextRequest, config: ScreenConfiguration): Pr
       if (references) return references;
       await updateConfigAtomic((latest) => {
         seen.prev = latest;
-        if (expected && configRevision(latest) !== expected) {
-          seen.conflict = latest;
+        // The editor was handed the file as `readConfig` draws it, with what a
+        // hand edit left half-written repaired, so its revision is the
+        // repaired one. Comparing with the file as stored refused every save
+        // from a hand-edited file as "changed somewhere else".
+        const drawn = repairConfigShape(latest);
+        if (expected && configRevision(drawn) !== expected) {
+          seen.conflict = drawn;
           return latest;
         }
         return saved;

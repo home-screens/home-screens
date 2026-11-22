@@ -88,7 +88,8 @@ export function hasCalendarOwners(calendar: SourceSettings | undefined): boolean
  *
  * Event and day rules are left alone: a removed id there can no longer match
  * anything, while taking it out of a rule that named only that calendar would
- * widen the rule to every event on the wall. Returns `config` itself when
+ * widen the rule to every event on the wall. So are the household's names and
+ * colours (`calendarOverrides`): ticking the calendar again brings them back. Returns `config` itself when
  * nothing named a removed source.
  */
 export function pruneCalendarSourceRefs(config: ScreenConfiguration, removed: ReadonlySet<string>): ScreenConfiguration {

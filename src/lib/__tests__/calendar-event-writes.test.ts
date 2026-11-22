@@ -21,10 +21,13 @@ const updateGoogleEvent = vi.fn(async () => {});
 const deleteGoogleEvent = vi.fn(async () => {});
 vi.mock('@/lib/google-calendar-write', () => ({ createGoogleEvent, updateGoogleEvent, deleteGoogleEvent, getGoogleEventForEdit: vi.fn() }));
 
+const googleCalendarLabels = vi.fn(async (ids: string[]) => new Map(ids.map((id) => [id, { name: id.split('@')[0], color: '#4073ff', writable: true }])));
+vi.mock('@/lib/google-calendar', () => ({ googleCalendarLabels }));
+
 const bump = vi.fn();
 vi.mock('@/lib/calendar-revision', () => ({ bumpCalendarRevision: () => bump() }));
 
-const { addEvent, changeEvent, removeEvent, clearWriteLimits } = await import('../calendar-event-writes');
+const { addEvent, changeEvent, removeEvent, clearWriteLimits, calendarEntryInfo } = await import('../calendar-event-writes');
 const { CalendarWriteError } = await import('../calendar-write');
 
 const draft = { title: 'Playdate with Sam', date: '2026-11-23', allDay: false, startTime: '15:30', endTime: '17:00' };
@@ -156,5 +159,24 @@ describe('changing and removing', () => {
       scope: 'series',
       seriesId: 'soccer',
     });
+  });
+});
+
+describe('what the forms offer', () => {
+  it('names and colours each calendar as the household set it, the way the wall draws its events', async () => {
+    const calendar = config.settings.calendar;
+    calendar.icloudSources = [{ id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true }];
+    calendar.eventEntry = { enabled: true, calendarIds: ['family@group.calendar.google.com', 'ic-home'] };
+    calendar.calendarOverrides = {
+      'family@group.calendar.google.com': { name: 'Smith family', color: '#10b981' },
+      'ic-home': { name: 'Our house' },
+    };
+
+    const info = await calendarEntryInfo();
+    expect(info.calendars).toEqual([
+      { id: 'family@group.calendar.google.com', name: 'Smith family', color: '#10b981', source: 'google' },
+      // Only what the form draws: never the calendar's address or account.
+      { id: 'ic-home', name: 'Our house', color: '#ef4444', source: 'icloud' },
+    ]);
   });
 });

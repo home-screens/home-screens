@@ -190,28 +190,33 @@ export async function fetchCalendarEvents(
       // Calendar-id prefix keeps ids unique when the same event appears on
       // two selected calendars; the fallback covers the (rare) missing id so
       // no event ever renders with an empty, untappable identity.
-      const calEvents: CalendarEvent[] = items.map((event) => ({
-        id: `${calendarId}:${event.id ?? `${event.start?.dateTime ?? event.start?.date ?? ''}-${event.summary ?? ''}`}`,
-        title: event.summary ?? '(No title)',
-        start: event.start?.dateTime ?? event.start?.date ?? '',
-        end: event.end?.dateTime ?? event.end?.date ?? '',
-        location: event.location ?? undefined,
-        description: event.description ?? undefined,
-        allDay: !event.start?.dateTime,
+      const calEvents: CalendarEvent[] = items.map((event) => {
         // Label first: it is the color Google's own apps show, and the legacy
         // palette still answers with older shades for the same 11 colors.
-        calendarColor:
-          (event.eventLabelId ? labelColors.get(event.eventLabelId) : undefined)
-          ?? (event.colorId ? eventColorMap.get(event.colorId) : undefined)
-          ?? calColor,
-        sourceId: calendarId,
-        sourceName: calName,
-        ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
-        // Only a real event id can be written back; the made-up fallback id above cannot.
-        ...(writable && event.id ? { writable: true } : {}),
-        ...(event.recurringEventId ? { repeats: true, seriesId: event.recurringEventId } : {}),
-        ...(event.etag ? { etag: event.etag } : {}),
-      }));
+        const ownColor = (event.eventLabelId ? labelColors.get(event.eventLabelId) : undefined)
+          ?? (event.colorId ? eventColorMap.get(event.colorId) : undefined);
+        return {
+          id: `${calendarId}:${event.id ?? `${event.start?.dateTime ?? event.start?.date ?? ''}-${event.summary ?? ''}`}`,
+          title: event.summary ?? '(No title)',
+          start: event.start?.dateTime ?? event.start?.date ?? '',
+          end: event.end?.dateTime ?? event.end?.date ?? '',
+          location: event.location ?? undefined,
+          description: event.description ?? undefined,
+          allDay: !event.start?.dateTime,
+          calendarColor: ownColor ?? calColor,
+          // A colour somebody gave this one event: the calendar's own colour
+          // rides along for legends, and a household's colour for the whole
+          // calendar replaces that one, as Google's own app does.
+          ...(ownColor ? { sourceColor: calColor } : {}),
+          sourceId: calendarId,
+          sourceName: calName,
+          ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
+          // Only a real event id can be written back; the made-up fallback id above cannot.
+          ...(writable && event.id ? { writable: true } : {}),
+          ...(event.recurringEventId ? { repeats: true, seriesId: event.recurringEventId } : {}),
+          ...(event.etag ? { etag: event.etag } : {}),
+        };
+      });
       return { events: calEvents, results: [{ id: calendarId, name: calName, ok: true }] };
     },
     (calendarId, reason) => {

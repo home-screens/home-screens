@@ -681,8 +681,10 @@
       "appearance": {
         "colorFor": "Couleur pour {name}",
         "reset": "Réinitialiser",
-        "edit": "Renommer ou recolorer {name}",
-        "done": "Terminé"
+        "edit": "Changer le nom ou la couleur : {name}",
+        "done": "Terminé",
+        "nameFor": "Nom pour {name}",
+        "searchLabel": "Noms et couleurs des calendriers"
       },
       "icloud": {
         "heading": "Calendrier iCloud",

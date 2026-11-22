@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Pencil, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { CalendarEventEntry, CalendarOverride, ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
@@ -16,11 +16,13 @@ import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
 import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
+import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
 import { localizedHolidayCountries, type HolidayCountry } from '@/lib/holiday-countries';
 import { settingsPath } from '@/lib/settings-route';
 import { configuredCalendarSourceIds, prunePersonSources } from '@/lib/calendar-source-refs';
+import { calendarLook, storedOverride, withCalendarOverride } from '@/lib/calendar-overrides';
 
 
 interface CalendarSettings {
@@ -44,33 +46,13 @@ interface Props {
 export default function CalendarSection({ values, onChange: stageChange }: Props) {
   const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides } = values;
 
-  // One row open at a time: two editors side by side in a scrolling list is
-  // more noise than help, and the strip is tall enough to crowd its neighbour.
-  const [editingCalendarId, setEditingCalendarId] = useState<string | null>(null);
-
-  /**
-   * Write one calendar's own name or colour.
-   *
-   * An empty box or an unset colour is removed rather than stored blank, and
-   * an entry with nothing left in it goes entirely, so a household that
-   * clears what it typed is back to the name and colour Google sends rather
-   * than carrying an override that says "no override".
-   */
-  const setCalendarOverride = (id: string, patch: { name?: string; color?: string }) => {
-    const next = { ...(calendarOverrides ?? {}) };
-    const merged = { ...(next[id] ?? {}), ...patch };
-    if (!merged.name?.trim()) delete merged.name;
-    if (!merged.color?.trim()) delete merged.color;
-    if (Object.keys(merged).length === 0) delete next[id];
-    else next[id] = merged;
-    onChange({ calendarOverrides: Object.keys(next).length ? next : undefined });
-  };
   const t = useTranslate('editor');
 
   // Every way a calendar leaves the list arrives here: a feed removed, a
   // Google calendar unpicked or signed out, an iCloud calendar unticked or
   // its account removed, the holidays turned off. Whoever owned it lets go in
-  // the same edit, so People never keeps a tick it has no box to untick.
+  // the same edit, so People never keeps a tick it has no box to untick. Its
+  // own name and colour stay, for when it is ticked again.
   const valuesRef = useRef(values);
   valuesRef.current = values;
   const onChange = useCallback((updates: Partial<CalendarSettings>) => {
@@ -84,6 +66,13 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     const pruned = prunePersonSources(next.personSources, (id) => configured.has(id));
     stageChange(pruned === next.personSources ? updates : { ...updates, personSources: pruned });
   }, [stageChange]);
+
+  // One calendar's name and colour open at a time, Google's and iCloud's
+  // together: two strips in a scrolling list is more noise than help.
+  const [editingLookId, setEditingLookId] = useState<string | null>(null);
+  const setLook = useCallback((id: string, patch: CalendarOverride) => {
+    onChange({ calendarOverrides: withCalendarOverride(valuesRef.current.calendarOverrides, id, patch) });
+  }, [onChange]);
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
   const locale = useLocale();
@@ -160,91 +149,60 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     <>
       {googleCalendars.length > 0 ? (
         <div
-            className="max-h-48 overflow-y-auto rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong"
-            // Settings search jumps here for "names and colours": the per
-            // calendar name and colour are edited on these rows.
-            data-field-id="calendar.calendarOverrides"
-          >
+          className="max-h-48 overflow-y-auto rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong"
+          // Settings search lands here for "names and colours" while no strip
+          // is open; an open strip carries the anchor itself.
+          data-field-id={editingLookId === null ? 'calendar.calendarOverrides' : undefined}
+        >
           {googleCalendars.map((cal) => {
-            const override = calendarOverrides?.[cal.id];
-            const editing = editingCalendarId === cal.id;
+            const shown = selectedCalendarIds.includes(cal.id);
+            const own = { name: cal.summary, color: cal.backgroundColor ?? '#3b82f6' };
+            const look = calendarLook(cal.id, own, calendarOverrides);
+            const editing = shown && editingLookId === cal.id;
             return (
-              <div key={cal.id}>
-                {/* A div, not a label: a label would hand a click on the
-                    pencil to the checkbox and toggle the calendar off. The
-                    checkbox carries its own label instead. */}
+              <div key={cal.id} data-testid="google-calendar-row">
                 <div className="flex items-center gap-3 px-3 py-2 hover:bg-hs-hover">
-                  <input
-                    type="checkbox"
-                    checked={selectedCalendarIds.includes(cal.id)}
-                    onChange={() => toggleCalendar(cal.id)}
-                    aria-label={cal.summary}
-                    className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-                  />
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    // The household's colour once it has set one, so the dot
-                    // beside the name matches what the wall will draw.
-                    style={{ backgroundColor: override?.color || cal.backgroundColor }}
-                  />
-                  <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                    <span className="block truncate">
-                      {override?.name?.trim() || cal.summary}
-                      {cal.primary && (
-                        <span className="text-hs-text-faint ml-1 text-xs">{t('settings.calendarPage.google.primaryBadge')}</span>
-                      )}
+                  {/* The pencil sits outside the label, so a click on it opens
+                      the strip instead of unticking the calendar. */}
+                  <label className="flex flex-1 min-w-0 items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={shown}
+                      onChange={() => toggleCalendar(cal.id)}
+                      className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+                    />
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: look.color }}
+                    />
+                    <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                      <span className="block truncate">
+                        {look.name}
+                        {cal.primary && (
+                          <span className="text-hs-text-faint ml-1 text-xs">{t('settings.calendarPage.google.primaryBadge')}</span>
+                        )}
+                      </span>
+                      {shown && <SourceHealthError status={health.get(cal.id)} />}
                     </span>
-                    {selectedCalendarIds.includes(cal.id) && <SourceHealthError status={health.get(cal.id)} />}
-                  </span>
-                  {selectedCalendarIds.includes(cal.id) && <SourceHealthBadge status={health.get(cal.id)} />}
-                  <button
-                    type="button"
-                    onClick={() => setEditingCalendarId(editing ? null : cal.id)}
-                    aria-expanded={editing}
-                    aria-label={t('settings.calendarPage.appearance.edit', { name: cal.summary })}
-                    title={t('settings.calendarPage.appearance.edit', { name: cal.summary })}
-                    className="shrink-0 rounded p-1 text-hs-text-faint transition-colors hover:bg-hs-hover hover:text-hs-text-body"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
+                  </label>
+                  {shown && <SourceHealthBadge status={health.get(cal.id)} />}
+                  {/* Only on calendars that are on the wall: a name for one
+                      that is not shown has nowhere to appear. */}
+                  {shown && (
+                    <CalendarLookButton
+                      name={look.name}
+                      open={editing}
+                      onToggle={() => setEditingLookId(editing ? null : cal.id)}
+                    />
+                  )}
                 </div>
                 {editing && (
-                  // Under the row rather than over it: the list is scrollable
-                  // and a popover would be clipped by its own container.
-                  <div className="flex items-center gap-2 bg-hs-accent-soft px-3 py-2 pl-9">
-                    <input
-                      type="text"
-                      value={override?.name ?? ''}
-                      // The placeholder is Google's own name, so an empty box
-                      // reads as "use what Google sends" and not as missing.
-                      placeholder={cal.summary}
-                      onChange={(e) => setCalendarOverride(cal.id, { name: e.target.value })}
-                      className="min-w-0 flex-1 rounded border border-hs-border-strong bg-hs-input px-2 py-1 text-[13px] text-hs-text-body"
-                    />
-                    <input
-                      type="color"
-                      value={override?.color || cal.backgroundColor || '#888888'}
-                      onChange={(e) => setCalendarOverride(cal.id, { color: e.target.value })}
-                      aria-label={t('settings.calendarPage.appearance.colorFor', { name: cal.summary })}
-                      className="h-7 w-9 shrink-0 cursor-pointer rounded border border-hs-border-strong bg-transparent"
-                    />
-                    {(override?.name || override?.color) && (
-                      <button
-                        type="button"
-                        onClick={() => setCalendarOverride(cal.id, { name: '', color: '' })}
-                        className="shrink-0 text-xs text-hs-text-muted hover:text-hs-text-body"
-                      >
-                        {t('settings.calendarPage.appearance.reset')}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setEditingCalendarId(null)}
-                      className="shrink-0 text-xs text-hs-text-muted hover:text-hs-text-body"
-                    >
-                      {t('settings.calendarPage.appearance.done')}
-                    </button>
-                  </div>
+                  <CalendarLookStrip
+                    own={own}
+                    override={storedOverride(calendarOverrides, cal.id)}
+                    onChange={(patch) => setLook(cal.id, patch)}
+                    onDone={() => setEditingLookId(null)}
+                  />
                 )}
               </div>
             );
@@ -466,7 +424,17 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           )}
         </SourceBlock>
 
-        <ICloudCalendarManager icloudSources={icloudSources} onChange={onChange} health={health} />
+        <ICloudCalendarManager
+          icloudSources={icloudSources}
+          onChange={onChange}
+          health={health}
+          calendarOverrides={calendarOverrides}
+          // Without Google's list, iCloud's carries the search anchor.
+          searchAnchor={!(googleConnected && !googleLoading && googleCalendars.length > 0)}
+          editingLookId={editingLookId}
+          onEditLook={setEditingLookId}
+          onLookChange={setLook}
+        />
 
         <ICalFeedManager icalSources={icalSources} onChange={onChange} health={health} onSourceChecked={recordSourceHealth} />
 
@@ -499,6 +467,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         googleCalendars={googleCalendars}
         shownGoogleIds={selectedCalendarIds}
         icloudSources={icloudSources}
+        calendarOverrides={calendarOverrides}
         onChange={onChange}
       />
 

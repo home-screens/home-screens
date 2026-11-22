@@ -143,7 +143,10 @@ export function useLiveConfig(
       const fingerprint = dataFingerprintOfParts(nextScreens, nextSettings, nextProfiles, nextRules);
       if (fingerprint === dataFingerprintRef.current) return;
       dataFingerprintRef.current = fingerprint;
-      displayCache.clear();
+      // Keeps which revision each read was answered at, so a calendar whose
+      // revision the same change moved (a rename, the add-event switch) is
+      // still re-read on the next beats instead of at its own poll.
+      displayCache.forgetAnswers();
     }
 
     /**

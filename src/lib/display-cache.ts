@@ -81,6 +81,14 @@ class DisplayDataCache {
    * the newer one; it compares this before storing.
    */
   private published = new Map<string, number>();
+  /**
+   * The revision each read was last answered at (`answerRevision`), for the
+   * reads whose answers carry one, the newest MAX_ENTRIES of them. It mirrors
+   * the entries, except that `forgetAnswers` keeps it: a settings change drops every answer, and
+   * without this `useRevisionRefresh` could no longer tell that a calendar
+   * still on screen is behind, so a rename waited for the 5-minute poll.
+   */
+  private answeredAt = new Map<string, string>();
   private _hits = 0;
   private _misses = 0;
   private _evictions = 0;
@@ -130,6 +138,15 @@ class DisplayDataCache {
       this.evictLRU();
     }
     this.cache.set(url, entry);
+    // Delete first so a fresh answer moves to the newest end, then keep the
+    // newest MAX_ENTRIES: answers dropped by `forgetAnswers` leave their
+    // revisions behind, and the heartbeat scans them every few seconds.
+    this.answeredAt.delete(url);
+    if (entry.revision !== undefined) this.answeredAt.set(url, entry.revision);
+    for (const oldest of this.answeredAt.keys()) {
+      if (this.answeredAt.size <= MAX_ENTRIES) break;
+      this.answeredAt.delete(oldest);
+    }
   }
 
   /**
@@ -188,6 +205,7 @@ class DisplayDataCache {
   invalidate(url: string): void {
     this.cache.delete(url);
     this.inflight.delete(url);
+    this.answeredAt.delete(url);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('displaycache:invalidate', { detail: url }));
     }
@@ -204,11 +222,14 @@ class DisplayDataCache {
     this.invalidateWhere((url) => url.startsWith(prefix));
   }
 
-  /** The cached URLs the test accepts, each with the revision its answer is at. */
+  /**
+   * The read URLs the test accepts, each with the revision its last answer
+   * was at: the cached ones, and those whose answer `forgetAnswers` dropped.
+   */
   revisionsWhere(test: (url: string) => boolean): { url: string; revision?: string }[] {
     const found: { url: string; revision?: string }[] = [];
-    for (const [url, entry] of this.cache) {
-      if (test(url)) found.push({ url, revision: entry.revision });
+    for (const url of new Set([...this.cache.keys(), ...this.answeredAt.keys()])) {
+      if (test(url)) found.push({ url, revision: this.answeredAt.get(url) });
     }
     return found;
   }
@@ -232,18 +253,23 @@ class DisplayDataCache {
    */
   refreshWhere(test: (url: string) => boolean): void {
     if (typeof window === 'undefined') return;
-    for (const url of [...this.cache.keys()]) {
+    for (const url of new Set([...this.cache.keys(), ...this.answeredAt.keys()])) {
       if (!test(url)) continue;
       const event = new CustomEvent('displaycache:refresh', { detail: url, cancelable: true });
       if (window.dispatchEvent(event)) {
         this.cache.delete(url);
         this.inflight.delete(url);
+        this.answeredAt.delete(url);
       }
     }
   }
 
-  /** Clear all entries and reset stats (call on config change) */
-  clear(): void {
+  /**
+   * Drop every answer and reset stats, for a config change that can affect
+   * fetched data. Which revision each read was answered at is kept, so a
+   * read still on screen is re-read when its revision moves (`refreshWhere`).
+   */
+  forgetAnswers(): void {
     this.generation++;
     this.cache.clear();
     this.inflight.clear();
@@ -251,6 +277,12 @@ class DisplayDataCache {
     this._hits = 0;
     this._misses = 0;
     this._evictions = 0;
+  }
+
+  /** Forget everything, revisions included. */
+  clear(): void {
+    this.forgetAnswers();
+    this.answeredAt.clear();
   }
 
   /** Returns aggregate cache statistics for reporting. */
@@ -317,6 +349,7 @@ class DisplayDataCache {
     }
     if (oldest) {
       this.cache.delete(oldest);
+      this.answeredAt.delete(oldest);
       this._evictions++;
     }
   }

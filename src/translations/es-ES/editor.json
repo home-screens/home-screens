@@ -682,7 +682,9 @@
         "colorFor": "Color de {name}",
         "reset": "Restablecer",
         "edit": "Cambiar el nombre o el color de {name}",
-        "done": "Listo"
+        "done": "Hecho",
+        "nameFor": "Nombre de {name}",
+        "searchLabel": "Nombres y colores de los calendarios"
       },
       "icloud": {
         "heading": "Calendario de iCloud",

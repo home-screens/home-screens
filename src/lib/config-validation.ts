@@ -2,6 +2,7 @@ import type { ScreenConfiguration } from '@/types/config';
 import { getLatestSchemaVersion } from '@/lib/migrations';
 import { validateDisplays, validateAllSchedules, isValidDisplayTransform, isValidTouchMatrix, DISPLAY_TRANSFORMS, TOUCH_MATRIX_ERROR } from '@/lib/display-filter';
 import { autoBackupSettingsProblem } from '@/lib/auto-backup-policy';
+import { calendarOverridesProblem } from '@/lib/calendar-overrides';
 
 /**
  * The one gate every path that persists a whole config goes through: the
@@ -24,6 +25,8 @@ export function validateConfigForWrite(value: unknown): string | null {
     || Object.values(mappings).some((ids) => !Array.isArray(ids) || ids.some((id) => typeof id !== 'string')))) {
     return 'Calendar ownership must list calendar source ids for each person.';
   }
+  const looksProblem = calendarOverridesProblem(config.settings.calendar?.calendarOverrides);
+  if (looksProblem) return looksProblem;
   if (!isValidDisplayTransform(config.settings.displayTransform)) {
     return `Screen rotation must be one of: ${DISPLAY_TRANSFORMS.join(', ')}`;
   }

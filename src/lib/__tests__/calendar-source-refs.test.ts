@@ -111,6 +111,13 @@ describe('pruneCalendarSourceRefs', () => {
     expect(next.displays![0].screens[0].modules[2]).toBe(before.displays![0].screens[0].modules[2]);
   });
 
+  it('keeps a removed calendar\'s own name and colour for when it is ticked again', () => {
+    const before = config();
+    before.settings.calendar.calendarOverrides = { gone: { name: 'Soccer', color: '#10b981' } };
+    const next = pruneCalendarSourceRefs(before, new Set(['gone']));
+    expect(next.settings.calendar.calendarOverrides).toEqual({ gone: { name: 'Soccer', color: '#10b981' } });
+  });
+
   it('hands back the same config when nothing named the removed calendar', () => {
     const before = config();
     expect(pruneCalendarSourceRefs(before, new Set(['never-used']))).toBe(before);

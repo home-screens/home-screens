@@ -73,6 +73,7 @@ describe('settings-form transforms', () => {
         hideDeclined: true,
         eventEntry: { enabled: true, calendarIds: ['cal-a'], defaultCalendarId: 'cal-a', defaultMinutes: 90 },
         wallEntry: false,
+        calendarOverrides: { 'cal-a': { name: 'Family', color: '#10b981' }, 'ic-1': { name: 'Our home' } },
       },
       sleep: {
         sleepEnabled: true,
@@ -102,6 +103,12 @@ describe('settings-form transforms', () => {
     const config = toConfigSettings(custom);
     const back = toFormState(config as GlobalSettings);
     expect(back).toEqual(custom);
+  });
+
+  it('leaves calendar names and colours out of the config until there are some', () => {
+    expect(toConfigSettings(FORM_DEFAULTS).calendar).not.toHaveProperty('calendarOverrides');
+    const emptied = toConfigSettings({ ...FORM_DEFAULTS, calendar: { ...FORM_DEFAULTS.calendar, calendarOverrides: {} } });
+    expect(emptied.calendar).not.toHaveProperty('calendarOverrides');
   });
 
   it('panelPowerOff is absent by default, absent when off, and true when on', () => {

@@ -8330,7 +8330,7 @@
             "kind": "object",
             "text": "Record<string, CalendarOverride>"
           },
-          "description": "Per-calendar name and colour, overriding whatever the source sends"
+          "description": "Your own name and color for a Google or iCloud calendar, shown instead of the ones it comes with"
         },
         {
           "name": "icalSources",
@@ -11480,15 +11480,6 @@
       "methods": [
         {
           "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
-      "path": "/api/calendar/appearance",
-      "methods": [
-        {
-          "method": "POST",
           "access": "display"
         }
       ]

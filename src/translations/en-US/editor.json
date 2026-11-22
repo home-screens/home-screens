@@ -679,10 +679,12 @@
         }
       },
       "appearance": {
-        "colorFor": "Colour for {name}",
+        "colorFor": "Color for {name}",
         "reset": "Reset",
-        "edit": "Rename or recolour {name}",
-        "done": "Done"
+        "edit": "Change the name or color of {name}",
+        "done": "Done",
+        "nameFor": "Name for {name}",
+        "searchLabel": "Calendar names and colors"
       },
       "icloud": {
         "heading": "iCloud Calendar",

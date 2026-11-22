@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
-import { applyCalendarOverrides } from '@/lib/calendar-overrides';
+import { applyCalendarOverrides, renameSourceStatus } from '@/lib/calendar-overrides';
 import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
 import { CALENDAR_FETCH_MAX_EVENTS, CALENDAR_MAX_WINDOW_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
@@ -231,13 +231,13 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
       }
     }
 
-    const sourceStatus = mergeSourceStatus(sourceResults, Date.now());
+    const sourceStatus = renameSourceStatus(mergeSourceStatus(sourceResults, Date.now()), calendarOverrides);
     recordSourceStatus(sourceStatus);
 
     // The household's own names and colours, applied once over the merged
-    // list rather than inside each source's fetch. One place covers Google,
-    // iCal, iCloud and holidays alike, and it keeps the provider clients
-    // free of settings they have no other reason to know about.
+    // list rather than inside each source's fetch, which keeps the provider
+    // clients free of settings they have no other reason to know about. Not
+    // part of the cache key: a change bumps the calendar revision, which is.
     const merged = applyCalendarOverrides(
       [...google.events, ...ical.events, ...icloud.events, ...holidays.events],
       calendarOverrides,

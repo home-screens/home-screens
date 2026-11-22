@@ -762,6 +762,14 @@ export interface CalendarEvent {
   description?: string;
   allDay: boolean;
   calendarColor?: string;
+  /**
+   * The calendar's colour, set only when `calendarColor` is the event's own
+   * (Google lets one event be coloured apart from its calendar). Legends and
+   * per-calendar rows read `sourceColor ?? calendarColor`, so a few coloured
+   * events never repaint their calendar. The household's colour for the
+   * calendar (`calendarOverrides`) replaces this and leaves `calendarColor`.
+   */
+  sourceColor?: string;
   sourceId?: string;
   sourceName?: string;
   /** Set by the birthday/holiday sources; absent means a plain event. */
@@ -805,7 +813,7 @@ export interface CalendarEvent {
 export interface CalendarOverride {
   /** Shown instead of the source's name. Empty or absent keeps the original. */
   name?: string;
-  /** Any CSS colour, used for the legend dot and the events. Absent keeps the original. */
+  /** Shown instead of the source's colour, as `#rrggbb`. Absent keeps the original. */
   color?: string;
 }
 
@@ -879,20 +887,19 @@ export interface CalendarSettings {
   /** Google calendars to show */
   googleCalendarIds: string[];
   /**
-   * Per-calendar name and colour, overriding whatever the source sends
+   * Your own name and color for a Google or iCloud calendar, shown instead of the ones it comes
+   * with
    *
-   * Keyed by source id, which is a Google calendar id or an iCal/iCloud
-   * source id. Google supplies its own name and colour at fetch time and
-   * offers no way to change them for this household, so a name nobody
-   * recognises or a clashing blue is otherwise permanent. An absent entry,
-   * or an absent field within one, keeps the source's own value.
-   *
-   * Applied where the fetch assigns `sourceName` and `calendarColor`, so an
-   * override reaches events, legends and per-person colouring alike rather
-   * than being patched per module.
-   *
-   * iCal and iCloud sources carry their own editable `name`/`color`, so
-   * they are normally edited there; an entry here still wins if one exists.
+   * Keyed by source id: a Google calendar id or an iCloud source id. Calendar
+   * links have their own `name` and `color` and need none. An absent entry,
+   * or an absent field within one, keeps the provider's value. Every place
+   * that names a calendar reads it through `calendarLook`
+   * (`src/lib/calendar-overrides.ts`), and the calendar route applies it to
+   * events, so a change reaches the wall, the pickers and the add-event
+   * forms alike. A change bumps the calendar revision (`updateConfigAtomic`,
+   * and any journal that rewrites config.json, such as a restore). An entry
+   * stays when its calendar is unticked or signed out of; only Reset removes
+   * it.
    */
   calendarOverrides?: Record<string, CalendarOverride>;
   /** iCal (ICS) feeds (see ICalSource) */

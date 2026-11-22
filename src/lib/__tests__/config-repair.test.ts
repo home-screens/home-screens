@@ -67,3 +67,24 @@ describe('repairConfigShape', () => {
     expect(repaired.displays![1]).toBe(config.displays![1]);
   });
 });
+
+describe('repairConfigShape: the household\'s calendar names and colours', () => {
+  const withLooks = (calendarOverrides: unknown) => ({
+    version: 1, screens: [], settings: { calendar: { googleCalendarIds: [], calendarOverrides } },
+  }) as unknown as ScreenConfiguration;
+
+  it('leaves sound names and colours as they are', () => {
+    const config = withLooks({ work: { name: 'Work', color: '#10b981' } });
+    expect(repairConfigShape(config)).toBe(config);
+  });
+
+  it('drops what a hand edit left that is not a name or a #rrggbb colour', () => {
+    const repaired = repairConfigShape(withLooks({ work: { name: 42, color: '#10b981' }, home: { name: 'Home', color: 'blue' }, odd: 'x' }));
+    expect(repaired.settings.calendar.calendarOverrides).toEqual({ work: { color: '#10b981' }, home: { name: 'Home' } });
+  });
+
+  it('removes the map when nothing in it is usable', () => {
+    const repaired = repairConfigShape(withLooks([1, 2]));
+    expect('calendarOverrides' in repaired.settings.calendar).toBe(false);
+  });
+});

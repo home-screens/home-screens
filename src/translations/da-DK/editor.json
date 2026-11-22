@@ -681,8 +681,10 @@
       "appearance": {
         "colorFor": "Farve til {name}",
         "reset": "Nulstil",
-        "edit": "Omdøb eller skift farve på {name}",
-        "done": "Færdig"
+        "edit": "Skift navn eller farve på {name}",
+        "done": "Færdig",
+        "nameFor": "Navn til {name}",
+        "searchLabel": "Navne og farver på kalendere"
       },
       "icloud": {
         "heading": "iCloud-kalender",
