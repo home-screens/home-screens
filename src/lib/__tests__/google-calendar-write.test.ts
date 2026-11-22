@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/google-auth', () => ({ getAuthenticatedClient: vi.fn() }));
 
-const { draftFromGoogle, seriesTimes, toGoogleBody, withNewRRule, writeRefusal } = await import('../google-calendar-write');
+const { describeWriteFailure, draftFromGoogle, seriesTimes, toGoogleBody, withNewRRule, writeRefusal } = await import('../google-calendar-write');
 const { normalizeEventDraft } = await import('../calendar-write');
 
 const TZ = 'America/Chicago';
@@ -110,5 +110,27 @@ describe('writeRefusal', () => {
     const refusal = writeRefusal(err);
     expect(refusal.code).toBe(code);
     expect(refusal.status).toBe(status);
+  });
+  it('logs the status and Google\'s reason, never the event it was sending', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // Google's client keeps the request it sent on the error.
+    const err = Object.assign(new Error('Bad Request'), {
+      status: 400,
+      config: { data: { summary: 'Dentist for Sam', location: '42 Maple Ave' } },
+      response: { status: 400, data: { error: { errors: [{ reason: 'invalid' }] } } },
+    });
+    writeRefusal(err);
+    const logged = warn.mock.calls.flat().map((part) => (typeof part === 'string' ? part : JSON.stringify(part))).join(' ');
+    warn.mockRestore();
+    expect(logged).toContain('HTTP 400, invalid');
+    expect(logged).not.toContain('Dentist');
+    expect(logged).not.toContain('Maple');
+  });
+});
+
+describe('describeWriteFailure', () => {
+  it('names a network failure by its code', () => {
+    expect(describeWriteFailure(Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNREFUSED' } }), undefined)).toBe('HTTP none, ECONNREFUSED');
+    expect(describeWriteFailure(null, 502)).toBe('HTTP 502');
   });
 });

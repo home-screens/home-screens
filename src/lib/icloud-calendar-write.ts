@@ -13,7 +13,7 @@ import {
   type NormalizedEvent,
   type RepeatReading,
 } from '@/lib/calendar-write';
-import { draftFromGoogle, isKnownWriteStatus, seriesTimes, toGoogleTimes, writeRefusalForStatus } from '@/lib/google-calendar-write';
+import { describeWriteFailure, draftFromGoogle, isKnownWriteStatus, seriesTimes, toGoogleTimes, writeRefusalForStatus } from '@/lib/google-calendar-write';
 import { forgetICloudClient, isICloudUrl, withICloudClient, type ICloudCalDAVClient } from '@/lib/caldav-calendar';
 import { parseICSEvents } from '@/lib/ical-calendar';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
@@ -979,7 +979,7 @@ async function call<T>(account: ICloudAccount, label: string, run: (client: IClo
     return await withICloudClient(account, label, run);
   } catch (err) {
     if (err instanceof CalendarWriteError) throw err;
-    log.warn(`${label} did not get an answer from iCloud`, err);
+    log.warn(`${label} did not get an answer from iCloud (${describeWriteFailure(err, undefined)})`);
     throw writeRefusalForStatus(undefined, 'iCloud');
   }
 }

@@ -136,6 +136,25 @@ export function isKnownWriteStatus(status: number | undefined): boolean {
 }
 
 /**
+ * A failed write for the log: its status and the service's short reason
+ * ("invalid", "ECONNRESET"), never the error itself. Google's client keeps
+ * the request on its error, so logging that would put the event's name and
+ * place in the hub's log, and the privacy policy says event details never
+ * reach the hub's disk.
+ */
+export function describeWriteFailure(err: unknown, status: number | undefined): string {
+  const e = err as {
+    code?: unknown;
+    name?: unknown;
+    cause?: { code?: unknown };
+    response?: { data?: { error?: { status?: unknown; errors?: Array<{ reason?: unknown }> } } };
+  } | null;
+  const google = e?.response?.data?.error;
+  const reason = [google?.errors?.[0]?.reason, google?.status, e?.code, e?.cause?.code, e?.name].find((r) => typeof r === 'string');
+  return `HTTP ${status ?? 'none'}${reason ? `, ${String(reason)}` : ''}`;
+}
+
+/**
  * A calendar service's HTTP answer to a write, in the family's words, as a
  * refusal the phone and the wall translate. Shared by the Google and iCloud
  * writers, so the same answer reads the same from either. No status (the
@@ -165,7 +184,7 @@ export function writeRefusalForStatus(
 /** Google's answer in the family's words, as a refusal the phone and the wall translate. */
 export function writeRefusal(err: unknown, extra?: Record<string, unknown>): CalendarWriteError {
   const status = statusOf(err);
-  if (!isKnownWriteStatus(status)) log.warn('Google refused or did not answer a calendar write', err);
+  if (!isKnownWriteStatus(status)) log.warn(`Google refused or did not answer a calendar write (${describeWriteFailure(err, status)})`);
   return writeRefusalForStatus(status, 'Google', extra);
 }
 
