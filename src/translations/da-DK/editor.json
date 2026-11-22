@@ -687,7 +687,8 @@
         "searchLabel": "Navne og farver på kalendere",
         "ownColor": "Kalenderens egen farve",
         "customColor": "Vælg en anden farve",
-        "changeInSettings": "Skift kalendernes navne og farver under Indstillinger"
+        "changeInSettings": "Skift kalendernes navne og farver under Indstillinger",
+        "reorder": "Flyt {name}"
       },
       "icloud": {
         "heading": "iCloud-kalender",
@@ -786,6 +787,12 @@
         "length120": "2 timer",
         "wallSwitch": "Lad væggen tilføje, ændre og fjerne begivenheder",
         "wallHelp": "Kun i de kalendere, der er sat kryds ved ovenfor. Væggen spørger, før noget bliver fjernet. Hver skærm kan slå det fra på sin egen side."
+      },
+      "swatches": {
+        "heading": "Farver at vælge mellem",
+        "help": "De farver, der vises, når du trykker på en kalenders prik på skærmen. Skærmen kan ikke blande nye farver, så vælg dem her.",
+        "slot": "Farve {number}",
+        "reset": "Sæt de oprindelige farver tilbage"
       }
     },
     "dataPage": {

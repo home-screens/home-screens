@@ -217,7 +217,8 @@
         "other": "{count} personer"
       },
       "showEveryone": "Vis alle"
-    }
+    },
+    "colourFor": "Farve til {name}"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",

@@ -27,6 +27,7 @@ import { fitChips } from './chip-budget';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { calendarRanker } from '@/lib/calendar-order';
 import { openDayCellProps, openDayProps, useDaySheetOpener, type OpenDaySheet } from '../shared/useDaySheet';
 import { moreButtonStyle } from './grid-view-bits';
 
@@ -81,7 +82,10 @@ interface CellEvent {
  * sit once on the Everyone row, and a cell that overflows shows "+N" rather
  * than shrinking its text — the board must stay legible at seven people.
  */
-export function FamilyGridView({ events, timezone, config, scale, today, anchor = today, now, timeFormat, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
+export function FamilyGridView({ events, timezone, config, scale, today, anchor = today, now, timeFormat, calendarOrder, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
+  // The household's calendar priority, built once: it decides which events
+  // keep the rows on a day with more than fits.
+  const rank = useMemo(() => calendarRanker(calendarOrder), [calendarOrder]);
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -116,9 +120,9 @@ export function FamilyGridView({ events, timezone, config, scale, today, anchor 
   // Per row: the week's events bucketed by day, all-day first then by start.
   const grid = useMemo(() => rows.map((row) => {
     const own = eventsForRow(weekEvents, row, rows);
-    const cells: CellEvent[][] = days.map((day) => bucketEventsForDay(own, day, timezone));
+    const cells: CellEvent[][] = days.map((day) => bucketEventsForDay(own, day, timezone, rank));
     return { row, cells, count: own.length };
-  }), [rows, weekEvents, days, timezone]);
+  }), [rows, weekEvents, days, timezone, rank]);
 
   const decorByDay = useDayDecors(days, weekEvents, config, { today, now, timezone, isDark: scale.isDark });
 

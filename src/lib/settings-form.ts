@@ -64,6 +64,8 @@ export interface CalendarState {
    * read out of settings into the form, and written back when it saves.
    */
   calendarOverrides?: Record<string, CalendarOverride>;
+  calendarOrder?: string[];
+  swatches?: string[];
 }
 
 export interface SleepState {
@@ -237,6 +239,8 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       eventEntry: s.calendar.eventEntry ?? null,
       wallEntry: s.calendarWallEntry ?? true,
       calendarOverrides: s.calendar.calendarOverrides,
+      calendarOrder: s.calendar.calendarOrder,
+      swatches: s.calendar.swatches,
     },
     sleep: sleepConfigToForm(s.sleep, s.screensaver),
     alerts: {
@@ -296,6 +300,8 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       ...(calendar.calendarOverrides && Object.keys(calendar.calendarOverrides).length
         ? { calendarOverrides: calendar.calendarOverrides }
         : {}),
+      ...(calendar.calendarOrder?.length ? { calendarOrder: calendar.calendarOrder } : {}),
+      ...(calendar.swatches?.length ? { swatches: calendar.swatches } : {}),
     },
     // On unless turned off; written only when off, for the same reason.
     ...(calendar.wallEntry ? {} : { calendarWallEntry: false }),

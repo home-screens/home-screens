@@ -337,6 +337,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       calendarPeopleState: !familyRevision && hasCalendarOwners(settings.calendar)
         ? familyError ? 'failed' : 'loading' : undefined,
       familyGroups,
+      calendarOrder: settings.calendar?.calendarOrder,
       calendarConfigured: hasAnyCalendarSource(settings.calendar),
     };
   }, [settings, fullscreenTheme, householdTimezone, familyMembers, familyGroups, familyRevision, familyError]);

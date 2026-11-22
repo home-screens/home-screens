@@ -14,6 +14,9 @@ import type { FamilyGroup } from '@/types/family';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
+import { useModuleSurface } from './module-surface';
+import { useMutedCalendarSources } from './shared/useMutedCalendarSources';
+import { useLegendColorPicker } from './shared/useLegendColorPicker';
 import { CalendarTapOverlays } from './shared/CalendarTapOverlays';
 import { useWallCalendarAdding } from './shared/useWallCalendarAdding';
 import { DaySheetContext, useDaySheet } from './shared/useDaySheet';
@@ -195,6 +198,21 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
     const cutoff = listFrom ?? listViewCutoff(now, keepFinishedToday);
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone, listFrom]);
+  // Tap a legend row to hide that calendar from the wall, or its dot to
+  // recolour it. See the hook for why muting is localStorage, not config.
+  const surface = useModuleSurface();
+  const mutedSources = useMutedCalendarSources();
+  const legendToggle = surface === 'display' ? mutedSources.toggle : undefined;
+  const colourFor = useCallback((name: string) => t('calendar.colourFor', { name }), [t]);
+  const legendColor = useLegendColorPicker({
+    enabled: surface === 'display',
+    events: allEvents,
+    label: colourFor,
+  });
+  // Filtered AFTER `legend` is derived, on purpose: the legend is built from
+  // the painted events, so a hidden calendar keeps its row (dimmed) and stays
+  // restorable. Filtering first would delete the only way back.
+  const visibleEvents = useMemo(() => mutedSources.filter(legendColor.events), [mutedSources, legendColor.events]);
   const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
   // The family's day notes, shared by every calendar; the switch is on unless set off.
   const dayNotes = useDayNotes(config.showDayNotes !== false);
@@ -349,6 +367,10 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
             rows={legend}
             label={t('calendar.legendLabel')}
             failingIds={failingSourceIds}
+            mutedIds={mutedSources.muted}
+            onToggle={legendToggle}
+            onPickColor={legendColor.open}
+            colorLabel={colourFor}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
             style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
@@ -372,7 +394,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
         <div className="flex-1 min-h-0">
           <DaySheetContext.Provider value={daySheet.opener}>
             <LookAheadContext.Provider value={lookContext}>
-              <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} anchor={listFrom ?? anchor} stepped={look.away} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
+              <ViewComponent events={visibleEvents} config={config} style={style} today={today} now={now} anchor={listFrom ?? anchor} stepped={look.away} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
             </LookAheadContext.Provider>
           </DaySheetContext.Provider>
         </div>
@@ -381,6 +403,10 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
             rows={legend}
             label={t('calendar.legendLabel')}
             failingIds={failingSourceIds}
+            mutedIds={mutedSources.muted}
+            onToggle={legendToggle}
+            onPickColor={legendColor.open}
+            colorLabel={colourFor}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
             style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', maxHeight: '3.4em', overflow: 'hidden' }}
@@ -418,6 +444,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
           onClose={() => setPeopleOpen(false)}
         />
       )}
+      {legendColor.popover}
     </ModuleWrapper>
   );
 }

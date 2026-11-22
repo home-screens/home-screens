@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { startOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX } from 'lucide-react';
@@ -11,6 +11,9 @@ import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { clampRollingWeeks, listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { buildLegendRows } from '@/lib/calendar-legend';
+import { useModuleSurface } from '../module-surface';
+import { useMutedCalendarSources } from '../shared/useMutedCalendarSources';
+import { useLegendColorPicker } from '../shared/useLegendColorPicker';
 import { ownerBySource, peopleForSelection, peopleSelection, type PeopleSelection } from '@/lib/calendar-people';
 import type { FamilyGroup } from '@/types/family';
 import { effectiveWeatherPlacement, viewTraits, VIEW_TRAITS } from './view-traits';
@@ -198,6 +201,8 @@ interface FullscreenCalendarModuleProps {
   sourceStatus?: CalendarSourceStatus[];
   /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
   calendarSetup?: CalendarSetupNeed;
+  /** Calendar priority order, most wanted first; absent means plain time order. */
+  calendarOrder?: string[];
   /** People with assigned calendars from Settings > Family (see buildModuleProps). */
   people?: CalendarPerson[];
   /** Avoid rendering source fallback rows before the configured people arrive. */
@@ -224,6 +229,7 @@ export default function FullscreenCalendarModule({
   calendarLoading,
   sourceStatus,
   calendarSetup,
+  calendarOrder,
   people,
   peopleState,
   groups,
@@ -362,12 +368,26 @@ export default function FullscreenCalendarModule({
   // Legend rows come from the events the current view actually draws — the
   // shared fetch window is wider than any single view, so scope to the
   // view's day range first (the registry knows each view's range).
+  const surface = useModuleSurface();
+  const mutedSources = useMutedCalendarSources();
+  const legendToggle = surface === 'display' ? mutedSources.toggle : undefined;
+  // Tap the dot rather than the row to recolour that calendar. Repaints the
+  // events the legend is derived from, so dot and bars move together.
+  const colourFor = useCallback((name: string) => t('calendar.colourFor', { name }), [t]);
+  const legendColor = useLegendColorPicker({
+    enabled: surface === 'display',
+    events,
+    label: colourFor,
+  });
+  // Filtered AFTER `legend` is derived: a hidden calendar keeps its row
+  // (dimmed) and stays restorable. Filtering first would delete the way back.
+  const visibleEvents = useMemo(() => mutedSources.filter(legendColor.events), [mutedSources, legendColor.events]);
   const legendPlacement = config.showLegend ?? 'off';
   const legend = useMemo(() => {
     if (legendPlacement === 'off') return [];
     const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
-    return buildLegendRows(events, window, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
-  }, [legendPlacement, events, timezone, today, anchor, weekStartsOn, t, traits, config, scale.width, people, groups]);
+    return buildLegendRows(legendColor.events, window, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
+  }, [legendPlacement, legendColor.events, timezone, today, anchor, weekStartsOn, t, traits, config, scale.width, people, groups]);
 
   const currentTemp = hourly?.[0]?.temp;
   const weatherIconId = hourly?.[0]?.icon;
@@ -413,10 +433,10 @@ export default function FullscreenCalendarModule({
   const titleNote = config.view === 'day-timeline' || config.view === 'free-time' ? dayNotesFor(dayNotes, anchor).join(' · ') : '';
 
   const viewProps = useMemo<CalendarViewProps>(
-    () => ({ events, config, scale, today, anchor, stepped: look.away, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes, scroll }),
-    [events, config, scale, today, anchor, look.away, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes, scroll],
+    () => ({ events: visibleEvents, calendarOrder, config, scale, today, anchor, stepped: look.away, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes, scroll }),
+    [visibleEvents, calendarOrder, config, scale, today, anchor, look.away, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes, scroll],
   );
-  const hasEvents = events.length > 0;
+  const hasEvents = visibleEvents.length > 0;
   // Views with something to say on an empty feed: a day note in view, the
   // family grid and free time still draw every configured person, a week
   // list can be all meals and chores, and day rules mark days that need no
@@ -647,6 +667,10 @@ export default function FullscreenCalendarModule({
 
       {legendPlacement === 'header' && (
         <CalendarLegend
+          mutedIds={mutedSources.muted}
+          onToggle={legendToggle}
+          onPickColor={legendColor.open}
+          colorLabel={colourFor}
           rows={legend}
           label={t('fullscreen-calendar.ariaLabels.legend')}
           style={{ ...legendStripStyle(scale), borderBottom: '1px solid var(--cal-border-subtle)' }}
@@ -712,6 +736,10 @@ export default function FullscreenCalendarModule({
 
       {legendPlacement === 'footer' && (
         <CalendarLegend
+          mutedIds={mutedSources.muted}
+          onToggle={legendToggle}
+          onPickColor={legendColor.open}
+          colorLabel={colourFor}
           rows={legend}
           label={t('fullscreen-calendar.ariaLabels.legend')}
           style={{ ...legendStripStyle(scale), borderTop: '1px solid var(--cal-border-subtle)' }}
@@ -750,6 +778,7 @@ export default function FullscreenCalendarModule({
           onClose={() => setPeopleOpen(false)}
         />
       )}
+      {legendColor.popover}
     </div>
   );
 }

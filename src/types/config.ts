@@ -887,6 +887,34 @@ export interface CalendarSettings {
   /** Google calendars to show */
   googleCalendarIds: string[];
   /**
+   * The order calendars are shown in within a day, most wanted first
+   *
+   * A day on the wall is a fixed number of rows, so whatever order events are
+   * in decides which ones survive the cap. In time order that decision is
+   * arbitrary: a 7am bin collection pushes a birthday off the bottom. Listing
+   * the calendars that matter first means those are the ones that stay.
+   *
+   * Holds source ids. A calendar missing from the list is shown after every
+   * listed one, in its usual place in time, so putting one calendar at the top
+   * is a complete instruction rather than the start of ranking them all.
+   */
+  calendarOrder?: string[];
+
+  /**
+   * The colours offered when a calendar is recoloured by tapping its dot on
+   * the wall
+   *
+   * Eight colours, in the order the sheet lays them out, the same ones
+   * Settings offers each calendar. Absent means those defaults. A household
+   * that keeps every calendar in greens and blues can put the shades it
+   * actually uses in reach, instead of hunting the same few each time.
+   *
+   * Short, overlong or malformed lists are not rejected: each slot falls back
+   * to its own default, so one bad colour costs that swatch and nothing else.
+   */
+  swatches?: string[];
+
+  /**
    * Your own name and color for a Google or iCloud calendar, shown instead of the ones it comes
    * with
    *

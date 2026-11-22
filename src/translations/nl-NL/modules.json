@@ -217,7 +217,8 @@
         "other": "{count} personen"
       },
       "showEveryone": "Iedereen tonen"
-    }
+    },
+    "colourFor": "Kleur voor {name}"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dag",

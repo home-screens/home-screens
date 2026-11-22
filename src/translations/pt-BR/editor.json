@@ -687,7 +687,8 @@
         "searchLabel": "Nomes e cores dos calendários",
         "ownColor": "Cor original",
         "customColor": "Escolher outra cor",
-        "changeInSettings": "Mude os nomes e as cores dos calendários em Configurações"
+        "changeInSettings": "Mude os nomes e as cores dos calendários em Configurações",
+        "reorder": "Mover {name}"
       },
       "icloud": {
         "heading": "Calendário do iCloud",
@@ -786,6 +787,12 @@
         "length120": "2 horas",
         "wallSwitch": "Deixar a parede adicionar, mudar e remover eventos",
         "wallHelp": "Só nos calendários marcados acima. Antes de remover, ela pergunta. Cada tela pode desligar isso na própria página."
+      },
+      "swatches": {
+        "heading": "Cores para escolher",
+        "help": "As cores oferecidas ao tocar no ponto de um calendário na tela. A tela não cria cores novas, então defina aqui as que você usa.",
+        "slot": "Cor {number}",
+        "reset": "Voltar às cores originais"
       }
     },
     "dataPage": {

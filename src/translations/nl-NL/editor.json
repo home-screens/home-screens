@@ -687,7 +687,8 @@
         "searchLabel": "Namen en kleuren van agenda's",
         "ownColor": "Kleur van de agenda zelf",
         "customColor": "Andere kleur kiezen",
-        "changeInSettings": "Namen en kleuren van agenda's wijzigen in Instellingen"
+        "changeInSettings": "Namen en kleuren van agenda's wijzigen in Instellingen",
+        "reorder": "{name} verplaatsen"
       },
       "icloud": {
         "heading": "iCloud-agenda",
@@ -786,6 +787,12 @@
         "length120": "2 uur",
         "wallSwitch": "Laat het wandscherm afspraken toevoegen, wijzigen en verwijderen",
         "wallHelp": "Alleen in de agenda's die je hierboven hebt aangevinkt. Verwijderen vraagt eerst of je het zeker weet. Op de eigen pagina van elk display kun je dit apart uitzetten."
+      },
+      "swatches": {
+        "heading": "Kleuren om uit te kiezen",
+        "help": "De kleuren die verschijnen als je op het bolletje van een agenda op het scherm tikt. Het scherm kan zelf geen kleur mengen, kies ze dus hier.",
+        "slot": "Kleur {number}",
+        "reset": "Oorspronkelijke kleuren terugzetten"
       }
     },
     "dataPage": {

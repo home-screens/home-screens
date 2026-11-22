@@ -217,7 +217,8 @@
         "other": "{count} pessoas"
       },
       "showEveryone": "Mostrar todos"
-    }
+    },
+    "colourFor": "Cor de {name}"
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",
