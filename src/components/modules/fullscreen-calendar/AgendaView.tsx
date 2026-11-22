@@ -312,20 +312,24 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
                 </div>
               )}
               {ev.sourceName && (
-                <div style={{
-                  fontSize: fontSize * 0.6,
+                // The calendar's name, as large as the time line above so it
+                // reads from across the room, with the calendar's own colour
+                // even on an event that was given another.
+                <div data-agenda-calendar="" style={{
+                  fontSize: fontSize * 0.8,
                   fontWeight: 500,
                   color: 'var(--cal-text-tertiary)',
                   marginTop: scale.bu * 0.3,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 4,
+                  gap: fontSize * 0.35,
                 }}>
                   <div style={{
-                    width: 6,
-                    height: 6,
+                    width: fontSize * 0.5,
+                    height: fontSize * 0.5,
+                    flexShrink: 0,
                     borderRadius: '50%',
-                    background: color,
+                    background: ev.sourceColor ?? color,
                   }} />
                   {ev.sourceName}
                 </div>

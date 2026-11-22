@@ -684,7 +684,10 @@
         "edit": "Naam of kleur van {name} wijzigen",
         "done": "Klaar",
         "nameFor": "Naam voor {name}",
-        "searchLabel": "Namen en kleuren van agenda's"
+        "searchLabel": "Namen en kleuren van agenda's",
+        "ownColor": "Kleur van de agenda zelf",
+        "customColor": "Andere kleur kiezen",
+        "changeInSettings": "Namen en kleuren van agenda's wijzigen in Instellingen"
       },
       "icloud": {
         "heading": "iCloud-agenda",

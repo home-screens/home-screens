@@ -74,9 +74,9 @@ Apple lets you make a password just for Home Screens, so your real Apple ID pass
 
 ## Your own names and colours {% #names-and-colours %}
 
-A Google or iCloud calendar arrives with the name and colour it has there, which can be an email address in a blue that clashes with the rest of the wall. To change them for your screens only, click the pencil next to a ticked calendar in **Settings > Calendar**, type a name and pick a colour. Every screen, every calendar picker in the editor and the add-event form use them, and Google and Apple keep their own.
+A Google or iCloud calendar arrives with the name and colour it has there, which can be an email address in a blue that clashes with the rest of the wall. To change them for your screens only, click the pencil next to a ticked calendar in **Settings > Calendar**, type a name and pick a colour. Every screen, every calendar picker in the editor and the add-event form use them, and Google and Apple keep their own. A card's list of calendars links straight to this page.
 
-Leave the name empty to go back to the calendar's own name, or click **Reset** to put back both. An event you gave its own colour in Google keeps that colour, and the calendar's colour key still shows the colour you picked. Unticking a calendar, or signing out, keeps the name and colour you gave it, so ticking it again brings them back. Calendar links don't need this: you name them and pick their colour when you add them.
+The first colour is the one the calendar came with: pick it to put that colour back and keep your name. The round box at the end picks any other colour. Leave the name empty to go back to the calendar's own name, or click **Reset** to put back both. An event you gave its own colour in Google keeps that colour, and the calendar's colour key still shows the colour you picked. Unticking a calendar, or signing out, keeps the name and colour you gave it, so ticking it again brings them back. Calendar links don't need this: you name them and pick their colour when you add them.
 
 ## Who is who
 

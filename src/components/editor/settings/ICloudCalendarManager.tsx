@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { icloudSourceId } from '@/lib/icloud-source-id';
 import { editorFetch } from '@/lib/editor-fetch';
+import { CALENDAR_COLOR_PALETTE } from '@/lib/calendar-color';
+import { insertInListOrder } from '@/lib/calendar-sources';
 import type { CalendarOverride, ICloudSource } from '@/types/config';
 import type { ICloudCalendarListing } from '@/lib/caldav-calendar';
 import { calendarLook, storedOverride } from '@/lib/calendar-overrides';
@@ -13,11 +15,6 @@ import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import { logger } from '@/lib/logger';
 
 const log = logger('ICloudCalendarManager');
-
-const ICLOUD_FALLBACK_PALETTE = [
-  '#f97316', '#a855f7', '#3b82f6', '#ef4444',
-  '#10b981', '#f59e0b', '#ec4899', '#06b6d4',
-];
 
 interface ICloudAccountInfo {
   id: string;
@@ -62,6 +59,21 @@ export default function ICloudCalendarManager({
   sourcesRef.current = icloudSources;
   const accountsRef = useRef(accounts);
   accountsRef.current = accounts;
+  const calendarsRef = useRef(calendarsByAccount);
+  calendarsRef.current = calendarsByAccount;
+  /**
+   * A new source where the account's own list puts it (its calendars in
+   * Apple's order, then its birthdays), so one ticked again goes back to its
+   * place in every list instead of the bottom.
+   */
+  const withSource = useCallback((sources: ICloudSource[], source: ICloudSource) => {
+    const listing = calendarsRef.current[source.accountId];
+    const urls = listing?.status === 'ready' ? listing.calendars.map((c) => c.url) : [];
+    return insertInListOrder(sources, source, (s) => {
+      if (s.accountId !== source.accountId) return -1;
+      return s.kind === 'birthdays' ? urls.length : urls.indexOf(s.url);
+    });
+  }, []);
   /** A calendar's id, the same each time it is ticked (`icloudSourceId`). */
   const idFor = useCallback((accountId: string, kind: ICloudSource['kind'], url: string) => {
     const appleId = accountsRef.current.find((a) => a.id === accountId)?.appleId ?? accountId;
@@ -163,7 +175,7 @@ export default function ICloudCalendarManager({
   const nextColor = useCallback((appleColor: string | null) => {
     if (appleColor) return appleColor;
     const used = new Set(sourcesRef.current.map((s) => s.color));
-    return ICLOUD_FALLBACK_PALETTE.find((c) => !used.has(c)) ?? ICLOUD_FALLBACK_PALETTE[0];
+    return CALENDAR_COLOR_PALETTE.find((c) => !used.has(c)) ?? CALENDAR_COLOR_PALETTE[0];
   }, []);
 
   const toggleCalendar = useCallback((accountId: string, cal: ICloudCalendarListing) => {
@@ -181,9 +193,9 @@ export default function ICloudCalendarManager({
         color: nextColor(cal.color),
         enabled: true,
       };
-      onChange({ icloudSources: [...sources, source] });
+      onChange({ icloudSources: withSource(sources, source) });
     }
-  }, [onChange, nextColor, idFor]);
+  }, [onChange, nextColor, idFor, withSource]);
 
   const toggleBirthdays = useCallback((accountId: string) => {
     const sources = sourcesRef.current;
@@ -200,9 +212,9 @@ export default function ICloudCalendarManager({
         color: nextColor(null),
         enabled: true,
       };
-      onChange({ icloudSources: [...sources, source] });
+      onChange({ icloudSources: withSource(sources, source) });
     }
-  }, [onChange, nextColor, idFor, t]);
+  }, [onChange, nextColor, idFor, withSource, t]);
 
   const sourceFor = (accountId: string, kind: ICloudSource['kind'], url: string) =>
     icloudSources.find((s) => s.accountId === accountId && s.kind === kind && (kind === 'birthdays' || s.url === url));

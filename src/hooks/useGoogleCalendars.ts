@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { insertInListOrder } from '@/lib/calendar-sources';
 import type { ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleClientMode } from '@/lib/google-token-store';
 import { logger } from '@/lib/logger';
@@ -136,11 +137,13 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
 
   const toggleCalendar = useCallback((id: string) => {
     const current = valuesRef.current.selectedCalendarIds;
-    const next = current.includes(id)
-      ? current.filter((c) => c !== id)
-      : [...current, id];
-    onChange({ selectedCalendarIds: next });
-  }, [onChange]);
+    onChange({
+      selectedCalendarIds: current.includes(id)
+        ? current.filter((c) => c !== id)
+        // Back in its place in Google's list, not at the bottom of every list.
+        : insertInListOrder(current, id, (other) => googleCalendars.findIndex((c) => c.id === other)),
+    });
+  }, [onChange, googleCalendars]);
 
   /**
    * Forget the grant. The chosen calendars are dropped only once the hub

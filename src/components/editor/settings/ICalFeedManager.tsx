@@ -3,17 +3,14 @@
 import { useState } from 'react';
 import { uuid } from '@/lib/uuid';
 import { editorFetch } from '@/lib/editor-fetch';
+import { CALENDAR_COLOR_PALETTE } from '@/lib/calendar-color';
 import type { ICalCheckResult } from '@/lib/ical-calendar';
 import type { CalendarSourceStatus, ICalSource } from '@/types/config';
 import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
-
-const ICAL_COLOR_PALETTE = [
-  '#f97316', '#a855f7', '#3b82f6', '#ef4444',
-  '#10b981', '#f59e0b', '#ec4899', '#06b6d4',
-];
+import CalendarColorChoice from './CalendarColorChoice';
 
 interface ICalFeedManagerProps {
   icalSources: ICalSource[];
@@ -42,7 +39,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
   const [linkCheck, setLinkCheck] = useState<LinkCheck>({ state: 'idle' });
   const [newFeedColor, setNewFeedColor] = useState(() => {
     const usedColors = new Set(icalSources.map(s => s.color));
-    return ICAL_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? ICAL_COLOR_PALETTE[0];
+    return CALENDAR_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? CALENDAR_COLOR_PALETTE[0];
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -71,7 +68,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
     closeAddForm();
     // Auto-pick next unused color
     const usedColors = new Set([...icalSources.map(s => s.color), newFeedColor]);
-    setNewFeedColor(ICAL_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? ICAL_COLOR_PALETTE[0]);
+    setNewFeedColor(CALENDAR_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? CALENDAR_COLOR_PALETTE[0]);
   }
 
   /**
@@ -187,19 +184,13 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                     <p className="text-[11px] text-hs-text-faint leading-relaxed">
                       {t('modals.icalFeeds.homeNetworkHint')}
                     </p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
-                      {ICAL_COLOR_PALETTE.map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => updateICalSource(source.id, { color })}
-                          className="w-5 h-5 rounded-full border-2 transition-colors"
-                          style={{
-                            backgroundColor: color,
-                            borderColor: source.color === color ? '#fff' : 'transparent',
-                          }}
-                        />
-                      ))}
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
+                      <CalendarColorChoice
+                        value={source.color}
+                        label={t('settings.calendarPage.appearance.colorFor', { name: source.name })}
+                        onChange={(color) => { if (color) updateICalSource(source.id, { color }); }}
+                      />
                     </div>
                   </div>
                 )}
@@ -239,19 +230,13 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                 {!linkCheck.unverified && <p className="text-hs-warning/80">{t('modals.icalFeeds.checkFailedHint')}</p>}
               </div>
             )}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
-              {ICAL_COLOR_PALETTE.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setNewFeedColor(color)}
-                  className="w-5 h-5 rounded-full border-2 transition-colors"
-                  style={{
-                    backgroundColor: color,
-                    borderColor: newFeedColor === color ? '#fff' : 'transparent',
-                  }}
-                />
-              ))}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
+              <CalendarColorChoice
+                value={newFeedColor}
+                label={t('fields.color')}
+                onChange={(color) => { if (color) setNewFeedColor(color); }}
+              />
             </div>
             <div className="flex items-center gap-2 pt-1">
               <Button

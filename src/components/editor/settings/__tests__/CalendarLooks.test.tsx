@@ -36,6 +36,7 @@ function jsonResponse(body: unknown, status = 200) {
 const FAMILY = 'family@group.calendar.google.com';
 const TEAM = 'team@group.calendar.google.com';
 const HOME_URL = 'https://caldav.icloud.com/1/calendars/home/';
+const WORK_URL = 'https://caldav.icloud.com/1/calendars/work/';
 const HOME: ICloudSource = { id: 'ic-home', accountId: 'acct', kind: 'calendar', url: HOME_URL, name: 'Home', color: '#ef4444', enabled: true };
 
 type Values = Parameters<typeof CalendarSection>[0]['values'];
@@ -92,7 +93,7 @@ beforeEach(() => {
     }
     if (url === '/api/icloud/accounts') return jsonResponse([{ id: 'acct', appleId: 'parent@icloud.com' }]);
     if (url.startsWith('/api/icloud/calendars')) {
-      return jsonResponse({ calendars: [{ url: HOME_URL, name: 'Home', color: '#ef4444' }], birthdaysAvailable: false });
+      return jsonResponse({ calendars: [{ url: HOME_URL, name: 'Home', color: '#ef4444' }, { url: WORK_URL, name: 'Work', color: '#a855f7' }], birthdaysAvailable: false });
     }
     if (url === '/api/calendar/status') return jsonResponse({ sourceStatus: [] });
     if (url.startsWith('/api/holidays')) return jsonResponse([]);
@@ -182,5 +183,37 @@ describe('a calendar\'s own name and colour', () => {
     fireEvent.click(within(icloudRow(view, 'Home')).getByRole('checkbox'));
     expect((staged.at(-1)?.icloudSources ?? [])[0]?.id).toBe(id);
     expect(icloudRow(view, 'Our house')).toBeTruthy();
+  });
+
+  it('closes the strip on Enter, keeping what was typed', async () => {
+    const { view, looks } = page();
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Family')).getByTestId('calendar-look-edit'));
+    const box = view.getByTestId('calendar-look-name');
+    fireEvent.change(box, { target: { value: 'Smith family' } });
+    fireEvent.keyDown(box, { key: 'Enter' });
+    expect(view.queryByTestId('calendar-look-strip')).toBeNull();
+    expect(looks()).toEqual({ [FAMILY]: { name: 'Smith family' } });
+  });
+
+  it('puts back just the colour from the calendar\'s own swatch, keeping its name', async () => {
+    const { view, looks } = page({ calendarOverrides: { [FAMILY]: { name: 'Smith family', color: '#10b981' } } });
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Smith family')).getByTestId('calendar-look-edit'));
+    fireEvent.click(view.getByTestId('calendar-color-own'));
+    expect(looks()).toEqual({ [FAMILY]: { name: 'Smith family' } });
+  });
+
+  it('puts a calendar ticked again back in its place in the lists, Google\'s and iCloud\'s', async () => {
+    const work = { ...HOME, id: icloudSourceId('parent@icloud.com', 'calendar', WORK_URL), url: WORK_URL, name: 'Work' };
+    const home = { ...HOME, id: icloudSourceId('parent@icloud.com', 'calendar', HOME_URL) };
+    const { view, staged } = page({ selectedCalendarIds: [FAMILY, TEAM], icloudSources: [home, work] });
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Family')).getByRole('checkbox'));
+    fireEvent.click(within(googleRow(view, 'Family')).getByRole('checkbox'));
+    expect(staged.at(-1)?.selectedCalendarIds).toEqual([FAMILY, TEAM]);
+    fireEvent.click(within(icloudRow(view, 'Home')).getByRole('checkbox'));
+    fireEvent.click(within(icloudRow(view, 'Home')).getByRole('checkbox'));
+    expect((staged.at(-1)?.icloudSources ?? []).map((s) => s.name)).toEqual(['Home', 'Work']);
   });
 });

@@ -684,7 +684,10 @@
         "edit": "Skift navn eller farve på {name}",
         "done": "Færdig",
         "nameFor": "Navn til {name}",
-        "searchLabel": "Navne og farver på kalendere"
+        "searchLabel": "Navne og farver på kalendere",
+        "ownColor": "Kalenderens egen farve",
+        "customColor": "Vælg en anden farve",
+        "changeInSettings": "Skift kalendernes navne og farver under Indstillinger"
       },
       "icloud": {
         "heading": "iCloud-kalender",

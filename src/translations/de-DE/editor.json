@@ -684,7 +684,10 @@
         "edit": "Name oder Farbe von {name} ändern",
         "done": "Fertig",
         "nameFor": "Name für {name}",
-        "searchLabel": "Namen und Farben der Kalender"
+        "searchLabel": "Namen und Farben der Kalender",
+        "ownColor": "Originalfarbe",
+        "customColor": "Eigene Farbe wählen",
+        "changeInSettings": "Namen und Farben der Kalender in den Einstellungen ändern"
       },
       "icloud": {
         "heading": "iCloud-Kalender",

@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { HubUnreachableError, readJson } from '@/lib/hub-request';
 import { addIsoDays } from '@/lib/iso-date';
@@ -18,9 +19,18 @@ export type CalendarWriteResult =
   | { ok: false; cancelled: true };
 
 /**
+ * How often an open Calendar tab reads again. The phone takes no heartbeat,
+ * so this is how a calendar renamed in Settings, or an event added on the
+ * wall, reaches a phone that was already showing the tab. The hub's
+ * calendar answer is cached, so a read between changes costs it nothing.
+ */
+const CALENDAR_TAB_POLL_MS = 60_000;
+
+/**
  * The phone's Calendar tab data: what adding offers (`/api/calendar/entry`)
  * and the events for the days on screen (`/api/calendar`), read again after
- * every change so the list shows what Google or iCloud now holds.
+ * every change so the list shows what Google or iCloud now holds, every
+ * minute while the tab shows, and when the phone comes back to it.
  */
 export function useCalendarTab(days: readonly string[]) {
   const [entry, setEntry] = useState<CalendarEntryInfo | null>(null);
@@ -32,7 +42,8 @@ export function useCalendarTab(days: readonly string[]) {
   // A slower read for an earlier week must not land over the newer one.
   const generation = useRef(0);
 
-  const load = useCallback(async () => {
+  /** `quiet`: a read in the background, whose failure keeps what is on screen. */
+  const load = useCallback(async (quiet = false) => {
     const mine = ++generation.current;
     try {
       const entryRes = await editorFetch('/api/calendar/entry');
@@ -48,15 +59,17 @@ export function useCalendarTab(days: readonly string[]) {
       setEvents(body?.events ?? []);
       setLoadError(false);
     } catch {
-      if (mine === generation.current) setLoadError(true);
+      if (mine === generation.current && !quiet) setLoadError(true);
     } finally {
       if (mine === generation.current) setLoaded(true);
     }
   }, [first, last]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  usePolledFetch(
+    (_mounted, reason) => load(reason !== 'setup'),
+    [load],
+    { intervalMs: CALENDAR_TAB_POLL_MS, pauseWhenHidden: true },
+  );
 
   /** `why`, for a write that may ask for the grown-up code, is what the pad says it is for. */
   const write = useCallback(async (url: string, method: 'GET' | 'POST' | 'PATCH' | 'DELETE', body?: unknown, why?: string): Promise<CalendarWriteResult> => {
@@ -74,5 +87,6 @@ export function useCalendarTab(days: readonly string[]) {
     }
   }, []);
 
-  return { entry, events, loaded, loadError, reload: load, write };
+  const reload = useCallback(() => load(), [load]);
+  return { entry, events, loaded, loadError, reload, write };
 }

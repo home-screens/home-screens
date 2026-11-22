@@ -78,3 +78,20 @@ export function buildCalendarUrl(
 export function isCalendarReadUrl(url: string): boolean {
   return url.split('?')[0] === '/api/calendar';
 }
+
+/**
+ * `item` added to `current` where its provider's own list puts it, so a
+ * calendar ticked again goes back to its place in every list (pickers,
+ * People, Adding events) instead of the bottom. `rankOf` is an item's place
+ * in that list, or -1 for one it does not hold; those, and the rest, keep
+ * their order.
+ */
+export function insertInListOrder<T>(current: readonly T[], item: T, rankOf: (entry: T) => number): T[] {
+  const rank = rankOf(item);
+  if (rank === -1) return [...current, item];
+  const before = current.findIndex((other) => {
+    const r = rankOf(other);
+    return r !== -1 && r > rank;
+  });
+  return before === -1 ? [...current, item] : [...current.slice(0, before), item, ...current.slice(before)];
+}

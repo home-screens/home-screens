@@ -23,6 +23,17 @@ export const DEFAULT_CALENDAR_ACCENT = '#3b82f6';
 /** The blue every calendar surface falls back to when an event has no source color. */
 export const DEFAULT_EVENT_COLOR = DEFAULT_CALENDAR_ACCENT;
 
+/**
+ * The colours Settings > Calendar offers for a calendar: a new calendar link
+ * and an iCloud calendar Apple sent no colour for take the first one not in
+ * use, and every calendar's colour choice shows them. Lowercase, as
+ * `<input type="color">` writes.
+ */
+export const CALENDAR_COLOR_PALETTE: readonly string[] = [
+  '#f97316', '#a855f7', '#3b82f6', '#ef4444',
+  '#10b981', '#f59e0b', '#ec4899', '#06b6d4',
+];
+
 const PILL_DARK_TEXT = '#1b1b1f';
 
 /**

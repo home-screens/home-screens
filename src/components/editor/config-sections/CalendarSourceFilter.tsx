@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -7,6 +8,7 @@ import { useTranslate } from '@/i18n';
 import type { ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import { calendarLook } from '@/lib/calendar-overrides';
+import { settingsPath } from '@/lib/settings-route';
 
 // Stable fallbacks for the store selectors below. A literal `?? []` inside a
 // zustand selector mints a new array per snapshot when the key is absent,
@@ -154,6 +156,14 @@ export function CalendarSourceFilter({
           </label>
         ))}
       </div>
+      {/* The names and colours above are set once for every card, in Settings. */}
+      <Link
+        href={settingsPath({ kind: 'defaults', page: 'calendar' })}
+        data-testid="calendar-sources-settings-link"
+        className="mt-1 self-start text-[11px] text-hs-accent hover:text-hs-accent-hover underline"
+      >
+        {t('settings.calendarPage.appearance.changeInSettings')}
+      </Link>
     </div>
   );
 }
