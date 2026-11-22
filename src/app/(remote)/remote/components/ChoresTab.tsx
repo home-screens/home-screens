@@ -222,7 +222,14 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     // Back on the network: the roster too, not at its next poll.
     onOnline: refreshFamily,
     onWarning: setLastWarning,
-    words: { failed: t('choresTab.saveFailed'), refusal: refusalWords },
+    words: {
+      failed: t('choresTab.saveFailed'),
+      refusal: refusalWords,
+      untickWhy: ({ choreId, memberId }) => tCore('grownUp.why.untick', {
+        chore: chores.find((c) => c.id === choreId)?.name ?? '',
+        member: members.find((m) => m.id === memberId)?.name ?? '',
+      }),
+    },
   });
 
   const showBalances = !!config.showPoints;

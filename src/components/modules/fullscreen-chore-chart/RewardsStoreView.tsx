@@ -409,6 +409,7 @@ export function RewardsStoreView({
           goal={resolveSavingsGoal({ rewards, goals }, redeem.pending.member.id)}
           error={redeem.error}
           busy={redeem.busy}
+          asksGrownUp={redeem.asksGrownUp}
           onConfirm={redeem.confirm}
           onCancel={redeem.cancel}
           k={k}

@@ -19,14 +19,19 @@ import type { RewardDefinition } from '@/lib/reward-data';
  */
 
 let answers: Response[] = [];
-const displayFetch = vi.fn(async () => {
+const displayFetch = vi.fn(async (url?: string) => {
+  // The store reads whether a grown-up code is set to label its button; no code here.
+  if (url === '/api/grown-up-code') return json(200, { set: false, actions: [], unlockMinutes: 5 });
   const next = answers.shift();
   if (!next) throw new TypeError('Load failed');
   return next;
 });
-vi.mock('@/lib/display-fetch', () => ({ displayFetch: (...args: unknown[]) => displayFetch(...(args as [])) }));
+vi.mock('@/lib/display-fetch', () => ({ displayFetch: (...args: unknown[]) => displayFetch(...(args as [string])) }));
 
 const { useRedeemReward } = await import('../useRedeemReward');
+
+/** The calls the redeem itself made, without the store's read of the grown-up code. */
+const redeemCalls = () => displayFetch.mock.calls.filter(([url]) => url !== '/api/grown-up-code') as unknown as [string, RequestInit][];
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const stamp = '2026-01-01T00:00:00.000Z';
@@ -77,7 +82,7 @@ describe('useRedeemReward refusals', () => {
     const hook = setup();
     await askAndConfirm(hook, 12);
     expect(hook.result.current.error).toBe('Not enough tickets for that any more.');
-    expect(displayFetch).toHaveBeenCalledTimes(2);
+    expect(redeemCalls()).toHaveLength(2);
   });
 
   it('says "you already got it" when this reward was just redeemed for this kid from another screen', async () => {
@@ -98,7 +103,7 @@ describe('useRedeemReward refusals', () => {
     expect(hook.result.current.pending?.balance).toBe(4);
 
     await act(async () => { await hook.result.current.confirm(); });
-    const secondBody = JSON.parse((displayFetch.mock.calls[1] as unknown as [string, RequestInit])[1].body as string);
+    const secondBody = JSON.parse(redeemCalls()[1][1].body as string);
     expect(secondBody.expectedBalance).toBe(4);
     expect(hook.result.current.redeemed).toEqual({ memberName: 'Ada', rewardName: 'Movie night', cost: 10 });
     expect(hook.result.current.pending).toBeNull();

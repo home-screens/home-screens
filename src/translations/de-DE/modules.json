@@ -1715,5 +1715,13 @@
     "receiptThanks": "Danke fürs Lesen",
     "receiptSummary": "Angepinnt {pinned} · Wichtig {important}",
     "pinnedOne": "Angepinnt"
+  },
+  "photoControls": {
+    "label": "Foto-Steuerung",
+    "next": "Weiter",
+    "pause": "Pause",
+    "play": "Abspielen",
+    "position": "{at} von {count}",
+    "allPictures": "Alle Bilder"
   }
 }

@@ -1715,5 +1715,13 @@
     "receiptThanks": "Tak for kigget",
     "receiptSummary": "Fastgjorte {pinned} · Vigtige {important}",
     "pinnedOne": "Fastgjort"
+  },
+  "photoControls": {
+    "label": "Fotobetjening",
+    "next": "Næste",
+    "pause": "Pause",
+    "play": "Afspil",
+    "position": "{at} af {count}",
+    "allPictures": "Alle billeder"
   }
 }

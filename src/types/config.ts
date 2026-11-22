@@ -367,6 +367,17 @@ export interface ModuleInstance {
    * moves on.
    */
   openButtonScreen?: string;
+  /**
+   * How a tap opens `openButtonScreen`: `button` draws the button under the module, `card` makes
+   * a tap anywhere on the card open it, with a small arrow in the corner instead of a button. Unset
+   * means `button`
+   *
+   * `card` applies only to module types that take no taps of their own
+   * (`canOpenWithCard` in `src/lib/open-button.ts`, from the registry's
+   * `takesTaps`); on any other type it is read as `button`, so a card never
+   * has two meanings for one touch.
+   */
+  openWith?: 'button' | 'card';
 }
 
 /**
@@ -3677,6 +3688,16 @@ export interface PhotoSlideshowConfig {
    * Force-advance cap for video slides. Default 60000.
    */
   maxVideoDurationMs?: number;
+  /**
+   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * album it is from. Unset means on
+   *
+   * Absent reads as on (a tap did nothing before this existed, so turning it
+   * on changes nothing until someone touches the photo). Off also hides the
+   * module's open button, as `interactive` does on To-do and the meal
+   * planners (`openButtonHidden`).
+   */
+  interactive?: boolean;
 }
 
 // QR code module config
@@ -3907,6 +3928,40 @@ export interface MultiMonthConfig {
    * behaved. New ones get it from the registry default.
    */
   fitToBox?: boolean;
+  /**
+   * Mark each day that has something on it with up to three dots, one per event, in the colour of
+   * its calendar
+   *
+   * Reads the same calendar events as the Calendar card (the module lists
+   * `calendar` in its registry `dataRequirements`, and `calendar-window.ts`
+   * widens the shared fetch to the months drawn). Omitted = off, so a card
+   * already on a wall keeps its look; new cards get it from the registry.
+   */
+  showEventMarks?: boolean;
+  /**
+   * On touch displays, tap a day with something on it to see that day's events, and tap one of
+   * them for its details
+   *
+   * The same day sheet and event detail as the Calendar card's
+   * `eventTapDetails`. A day with nothing on it does nothing. Omitted = off;
+   * new cards get it from the registry.
+   */
+  eventTapDetails?: boolean;
+  /**
+   * Which calendars count. Empty or omitted means all of them
+   *
+   * Source ids, the same shape and meaning as `CalendarConfig.sourceFilter`.
+   */
+  sourceFilter?: string[];
+  /**
+   * Count the family's calendar day notes too: a day with only a note gets a mark, and the day's
+   * notes show when it is tapped
+   *
+   * Omitted = off here, unlike the Calendar card, where an omitted
+   * `showDayNotes` means on: a month grid has no room to draw a note, so a
+   * note only shows as a mark and in the day sheet.
+   */
+  showDayNotes?: boolean;
 }
 
 // Garbage day module config
@@ -5300,6 +5355,16 @@ export interface FullscreenPhotoConfig {
    * Force-advance cap for video slides. Default 60000.
    */
   maxVideoDurationMs?: number;
+  /**
+   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * album it is from. Unset means on
+   *
+   * Absent reads as on (a tap did nothing before this existed, so turning it
+   * on changes nothing until someone touches the photo). Off also hides the
+   * module's open button, as `interactive` does on To-do and the meal
+   * planners (`openButtonHidden`).
+   */
+  interactive?: boolean;
 }
 
 // Video module config

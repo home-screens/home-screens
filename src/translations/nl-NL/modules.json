@@ -1715,5 +1715,13 @@
     "receiptThanks": "Bedankt voor het lezen",
     "receiptSummary": "Vastgezet {pinned} · Belangrijk {important}",
     "pinnedOne": "Vastgezet"
+  },
+  "photoControls": {
+    "label": "Fotobediening",
+    "next": "Volgende",
+    "pause": "Pauze",
+    "play": "Afspelen",
+    "position": "{at} van {count}",
+    "allPictures": "Alle foto's"
   }
 }

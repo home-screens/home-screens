@@ -48,6 +48,8 @@ import AccordionSection from './AccordionSection';
 import { PANEL_SECTION_CONDITIONS } from './panel-section-reveal';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import LabeledField from '@/components/ui/LabeledField';
+import SegmentedControl from '@/components/ui/SegmentedControl';
+import { canOpenWithCard, openWith } from '@/lib/open-button';
 import { resolveTitleFontSize, displayTextPercent, moduleBaseFontSize, textSizeDefinitionFor, TEXT_SCALE_MIN, TEXT_SCALE_MAX } from '@/lib/module-style';
 
 import {
@@ -888,8 +890,9 @@ export default function PropertyPanel({
                     setOrphaned(stranded && previous ? { moduleId: selectedModule.id, screenId: previous.id, name: previous.name } : null);
                     setTwinAdded(null);
                     updateModule(selectedScreenId, selectedModule.id, {
-                      // Omit the field entirely for "Nothing" so configs stay clean.
+                      // Omit the fields entirely for "Nothing" so configs stay clean.
                       openButtonScreen: next,
+                      ...(next ? {} : { openWith: undefined }),
                     });
                   }}
                   className="w-full px-2 py-1.5 text-sm bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
@@ -908,8 +911,29 @@ export default function PropertyPanel({
                     [...openedGroup, ...rotatingGroup].map((screen) => <option key={screen.id} value={screen.id}>{optionLabel(screen)}</option>)
                   )}
                 </select>
+                {target && (
+                  <div className="space-y-1 pt-1" data-field-id="openWith">
+                    <LabeledField label={t('propertyPanel.openButton.openWith')} as="div">
+                      <SegmentedControl
+                        label={t('propertyPanel.openButton.openWith')}
+                        value={openWith(selectedModule)}
+                        onChange={(v) => updateModule(selectedScreenId, selectedModule.id, { openWith: v === 'card' ? 'card' : undefined })}
+                        options={[
+                          { value: 'button', label: t('propertyPanel.openButton.openWithButton') },
+                          { value: 'card', label: t('propertyPanel.openButton.openWithCard') },
+                        ]}
+                        disabled={!canOpenWithCard(selectedModule.type)}
+                      />
+                    </LabeledField>
+                    {!canOpenWithCard(selectedModule.type) && (
+                      <p className={helpClass} data-testid="open-with-takes-taps">{t('propertyPanel.openButton.openWithTakesTaps')}</p>
+                    )}
+                  </div>
+                )}
                 <p id={`module-open-button-help-${selectedModule.id}`} className={helpClass}>
-                  {t('propertyPanel.openButton.help')}
+                  {target && openWith(selectedModule) === 'card'
+                    ? t('propertyPanel.openButton.openWithCardHelp', { name: target.name })
+                    : t('propertyPanel.openButton.help')}
                 </p>
                 {orphaned?.moduleId === selectedModule.id && orphaned.screenId !== target?.id && (
                   <div className="space-y-1.5" data-testid="open-button-orphaned">

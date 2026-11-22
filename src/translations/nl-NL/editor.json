@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Geavanceerde netwerktoegang",
         "description": "Displaysleutel, aangemelde apparaten en toegang beperken tot bepaalde netwerken."
-      }
+      },
+      "grownUpPointerPrefix": "Wil je dat het wandscherm om een code vraagt voordat kinderen tickets uitgeven? Dat stel je in bij ",
+      "grownUpPointerSuffix": " op de pagina Gezin."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "Hoeveel bonusklusjes één persoon tegelijk mag pakken",
         "grabHoldLabel": "Hoe lang een gepakt bonusklusje van iemand blijft",
         "saved": "Opgeslagen"
+      },
+      "grownUp": {
+        "heading": "Oudercode voor het wandscherm",
+        "description": "Vier cijfers waar het wandscherm om vraagt voordat het de dingen doet die je hieronder aanvinkt, zodat kleine handjes niet zelf tickets kunnen uitgeven. Het is geen slot op je thuisnetwerk; dat is het wachtwoord op de pagina Beveiliging.",
+        "notSet": "Nog geen code.",
+        "isSet": "Er is een code ingesteld.",
+        "set": "Code instellen",
+        "change": "Wijzigen",
+        "remove": "Verwijderen",
+        "removeConfirm": "Code verwijderen",
+        "codeLabel": "Vier cijfers",
+        "againLabel": "Nog een keer",
+        "save": "Code opslaan",
+        "mismatch": "De twee codes zijn niet hetzelfde.",
+        "format": "Gebruik vier cijfers.",
+        "jobsLabel": "Erom vragen bij",
+        "jobs": {
+          "redeem": {
+            "label": "Tickets uitgeven in de beloningswinkel",
+            "hint": "Op het wandscherm en op de klusjespagina van de kinderen."
+          },
+          "untick": {
+            "label": "Een klusje uitvinken",
+            "hint": "Uitvinken haalt de verdiende tickets weer weg."
+          },
+          "todoist-close": {
+            "label": "Een Todoist-taak afronden",
+            "hint": "Een afgeronde taak kun je vanaf het wandscherm niet terugzetten."
+          }
+        },
+        "unlockLabel": "Hoe lang het wandscherm ontgrendeld blijft",
+        "minutes": {
+          "one": "1 minuut",
+          "other": "{count} minuten"
+        },
+        "unlockHint": "Na de juiste code doet dat wandscherm de aangevinkte dingen zo lang zonder het opnieuw te vragen. Wie op de telefoon is ingelogd, krijgt de vraag nooit."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Instellingenpaneel verbergen",
     "expandTitle": "Instellingenpaneel tonen",
     "openButton": {
-      "label": "Toon een knop die opent",
+      "label": "Opent",
       "none": "Niets",
       "andMore": "en {count} meer",
       "help": "Zet in de onderhoek van de module een knop met de naam van dat scherm. Een tik erop op een aanraakscherm toont het scherm.",
-      "sectionTitle": "Open-knop",
+      "sectionTitle": "Een scherm openen",
       "opensOnTap": "{name} (opent bij een tik)",
       "offBadge": "{name} (uit)",
       "holds": "Toont {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "‘Tikken op het scherm’ aanzetten",
       "switchOn": "Aanzetten",
       "onlyWhen": "De knop verschijnt alleen {when}.",
-      "onlyConditions": "De knop verschijnt alleen zolang de voorwaarden van dat scherm kloppen."
+      "onlyConditions": "De knop verschijnt alleen zolang de voorwaarden van dat scherm kloppen.",
+      "openWith": "Openen met",
+      "openWithButton": "De knop",
+      "openWithCard": "Een tik op de module",
+      "openWithCardHelp": "Een tik ergens op de module opent {name}. Een pijltje in de hoek laat zien dat je op de module kunt tikken.",
+      "openWithTakesTaps": "Deze module doet zelf al iets bij een tik, dus het scherm opent met de knop."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
-      "clockBackground": "Klokachtergrond"
+      "clockBackground": "Klokachtergrond",
+      "interactive": "Tikken op het display",
+      "interactiveHint": "Op een aanraakscherm laat een tik Terug, Pauze en Volgende zien, en uit welk album de foto komt. Opzij vegen wisselt nog steeds van scherm.",
+      "interactiveHintCard": "Op een aanraakscherm laat een tik Terug, Pauze en Volgende zien, en uit welk album de foto komt. Over de foto vegen gaat naar de volgende."
     },
     "garbage-day": {
       "frequencyWeekly": "Elke week",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Onderstreping",
       "todayText": "Gekleurd getal",
       "todayNone": "Geen",
-      "accentColor": "Accentkleur"
+      "accentColor": "Accentkleur",
+      "events": "Afspraken",
+      "showEventMarks": "Dagen met afspraken markeren",
+      "showEventMarksHint": "Tot drie stippen onder elke dag waarop iets staat, in de kleur van de agenda.",
+      "showDayNotesHint": "Een dag met alleen een notitie wordt ook gemarkeerd, en de notities verschijnen als je op de dag tikt.",
+      "eventTapDetails": "Tik op een dag voor de afspraken",
+      "eventTapDetailsHint": "Op een aanraakscherm opent dit de lijst van die dag, dezelfde die de module Kalender toont. Tikken op een lege dag doet niets."
     },
     "news": {
       "viewHeadline": "Kop (roterend)",

@@ -93,6 +93,8 @@ Tickets are earned automatically as chores are checked off, using each chore's t
 
 The kids' page and the wall let anyone check off today's chores, grab and let go of bonus chores, look at yesterday, and spend tickets. Adding or changing people, chores or rewards, adjusting balances, and checking off earlier days all live on the family remote (people and chores can also be changed in the editor), behind the password once you set one. The kids' page stays open even then, so a shared tablet never needs a login. That is worth knowing before you give a guest your WiFi password.
 
+To keep the bigger jobs for grown-ups, set a **grown-up code** under **Settings > Family**: four numbers, and a tick next to each job that should ask for it (spending tickets, unticking a chore, closing a Todoist task). The wall and the kids' page then show **Ask a grown-up** on that job, and a number pad comes up when it is tapped. The right code does the job and keeps that wall or phone unlocked for a few minutes (one, five or fifteen; **Lock now** ends it early), so handing out three rewards takes the code once. After five wrong tries the pad waits a minute. Someone signed in on the family remote is never asked. The hub checks the code itself, so the kids' page on another tablet asks too. It is a speed bump for little hands, not a lock for your network; the password under **Security** is that.
+
 ## Next steps
 
 - [Meals](/docs/meals): plan the week's dinners from the same phone

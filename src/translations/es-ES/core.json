@@ -656,5 +656,28 @@
     "connection": {
       "title": "Ahora mismo no se puede conectar con Home Screens"
     }
+  },
+  "grownUp": {
+    "title": "Código de los mayores",
+    "ask": "Pídeselo a un mayor",
+    "why": {
+      "redeem": {
+        "one": "Para gastar 1 ticket de {member} en {reward}",
+        "other": "Para gastar {count} tickets de {member} en {reward}"
+      },
+      "untick": "Para desmarcar {chore} de {member}",
+      "todoistClose": "Para completar {task}"
+    },
+    "wrong": "Ese no es. Inténtalo de nuevo.",
+    "tooMany": {
+      "one": "Demasiados intentos. Espera {count} segundo y vuelve a probar.",
+      "other": "Demasiados intentos. Espera {count} segundos y vuelve a probar."
+    },
+    "offline": "No se pudo conectar con el hub. Inténtalo de nuevo.",
+    "unlocked": {
+      "one": "Desbloqueado 1 minuto más",
+      "other": "Desbloqueado {count} minutos más"
+    },
+    "lockNow": "Bloquear ya"
   }
 }

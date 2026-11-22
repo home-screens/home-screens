@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Erweiterter Netzwerkzugriff",
         "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke."
-      }
+      },
+      "grownUpPointerPrefix": "Soll die Wand fragen, bevor Kinder Tickets ausgeben? Dafür gibt es den ",
+      "grownUpPointerSuffix": " auf der Seite Familie."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "Wie viele Bonusaufgaben sich eine Person gleichzeitig schnappen darf",
         "grabHoldLabel": "Wie lange eine geschnappte Bonusaufgabe gilt",
         "saved": "Gespeichert"
+      },
+      "grownUp": {
+        "heading": "Eltern-Code für die Wand",
+        "description": "Vier Ziffern, nach denen die Wand fragt, bevor sie etwas tut, das du unten anhakst. So können kleine Hände nicht allein Tickets ausgeben. Ein Schloss für dein Heimnetz ist das nicht, dafür gibt es das Passwort unter „Sicherheit“.",
+        "notSet": "Noch kein Code.",
+        "isSet": "Ein Code ist festgelegt.",
+        "set": "Code festlegen",
+        "change": "Ändern",
+        "remove": "Entfernen",
+        "removeConfirm": "Code entfernen",
+        "codeLabel": "Vier Ziffern",
+        "againLabel": "Code wiederholen",
+        "save": "Code speichern",
+        "mismatch": "Die beiden Codes stimmen nicht überein.",
+        "format": "Gib vier Ziffern ein.",
+        "jobsLabel": "Wann danach gefragt wird",
+        "jobs": {
+          "redeem": {
+            "label": "Tickets im Belohnungs-Shop ausgeben",
+            "hint": "An der Wand und auf der Aufgabenseite der Kinder."
+          },
+          "untick": {
+            "label": "Haken bei einer Aufgabe entfernen",
+            "hint": "Dabei werden die Tickets für die Aufgabe wieder abgezogen."
+          },
+          "todoist-close": {
+            "label": "Todoist-Aufgabe erledigen",
+            "hint": "Eine erledigte Aufgabe lässt sich an der Wand nicht zurückholen."
+          }
+        },
+        "unlockLabel": "Entsperrt bleiben für",
+        "minutes": {
+          "one": "1 Minute",
+          "other": "{count} Minuten"
+        },
+        "unlockHint": "Nach dem richtigen Code fragt die Wand, an der er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Einstellungsbereich ausblenden",
     "expandTitle": "Einstellungsbereich anzeigen",
     "openButton": {
-      "label": "Knopf zeigen, der Folgendes öffnet",
+      "label": "Öffnet",
       "none": "Nichts",
       "andMore": "und {count} weitere",
       "help": "Fügt in der unteren Ecke des Moduls einen Knopf mit dem Namen dieses Screens hinzu. Ein Tipp darauf am Touch-Display zeigt den Screen.",
-      "sectionTitle": "Öffnen-Knopf",
+      "sectionTitle": "Einen Screen öffnen",
       "opensOnTap": "{name} (öffnet sich per Tipp)",
       "offBadge": "{name} (aus)",
       "holds": "Zeigt {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "„Am Display antippen“ einschalten",
       "switchOn": "Einschalten",
       "onlyWhen": "Der Knopf erscheint nur {when}.",
-      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen."
+      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen.",
+      "openWith": "Öffnen per",
+      "openWithButton": "Knopf",
+      "openWithCard": "Tipp auf das Modul",
+      "openWithCardHelp": "Ein Tipp irgendwo auf das Modul öffnet {name}. Ein kleiner Pfeil in seiner Ecke zeigt, dass man es antippen kann.",
+      "openWithTakesTaps": "Dieses Modul nutzt das Antippen schon für eigene Dinge, deshalb öffnet hier der Knopf."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Zufällige Reihenfolge",
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
-      "clockBackground": "Uhr-Hintergrund"
+      "clockBackground": "Uhr-Hintergrund",
+      "interactive": "Antippen an der Wand",
+      "interactiveHint": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Seitlich wischen wechselt weiter den Screen.",
+      "interactiveHintCard": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Über das Foto wischen zeigt das nächste."
     },
     "garbage-day": {
       "frequencyWeekly": "Wöchentlich",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Unterstrich",
       "todayText": "Farbige Zahl",
       "todayNone": "Keine",
-      "accentColor": "Akzentfarbe"
+      "accentColor": "Akzentfarbe",
+      "events": "Termine",
+      "showEventMarks": "Tage mit Terminen markieren",
+      "showEventMarksHint": "Bis zu drei Punkte unter jedem Tag, an dem etwas ansteht, jeweils in der Farbe des Kalenders, zu dem der Termin gehört.",
+      "showDayNotesHint": "Ein Tag, der nur eine Tagesnotiz hat, bekommt auch eine Markierung, und beim Antippen des Tages erscheinen seine Notizen.",
+      "eventTapDetails": "Tag antippen, um seine Termine zu sehen",
+      "eventTapDetailsHint": "Öffnet auf einem Touch-Display die Liste dieses Tages, dieselbe, die auch das Kalender-Modul zeigt. Ein Tag, an dem nichts ansteht, reagiert nicht."
     },
     "news": {
       "viewHeadline": "Schlagzeile (rotierend)",

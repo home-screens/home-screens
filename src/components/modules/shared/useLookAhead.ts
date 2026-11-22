@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { holdRotationFor } from '@/lib/interaction-hold';
-import { classifySwipe } from '@/lib/swipe-gesture';
+import { useOwnedSwipe, type OwnedSwipeProps } from './useOwnedSwipe';
 import { WALL_SCROLL_IDLE_MS } from '@/lib/wall-scroll';
 import { clampLookAhead, lookAheadAnchor, type LookAheadStep } from '@/lib/look-ahead';
 import { BROWSE_ROTATION_HOLD_MS } from '@/components/display/useTapRotationHold';
@@ -12,21 +12,8 @@ import { useLookAheadStore } from '@/stores/look-ahead-store';
 /** How long "The wall goes up to 8 weeks ahead" stays after a tap past the end. */
 export const LOOK_AHEAD_LIMIT_NOTICE_MS = 4_000;
 
-/**
- * On a module whose sideways swipe steps its week, the display's own swipe
- * (which changes screens) stays out of it (`useSwipeNavigation`). Unlike
- * `data-swipe-ignore`, it leaves the touch handling alone, so the swipe
- * still reaches the module as pointer events and lists still scroll.
- */
-export const SWIPE_OWNER_ATTR = 'data-swipe-owner';
-
-/** What a module's root takes so a sideways swipe on it steps the week. */
-export interface LookAheadRootProps {
-  [SWIPE_OWNER_ATTR]?: '';
-  onPointerDown?: (e: ReactPointerEvent) => void;
-  onPointerUp?: (e: ReactPointerEvent) => void;
-  onPointerCancel?: () => void;
-}
+/** What a module's root takes so a sideways swipe on it steps the week (`useOwnedSwipe`). */
+export type LookAheadRootProps = OwnedSwipeProps;
 
 export interface LookAhead {
   /** The arrows show: taps on, on a real display, in a view that steps. */
@@ -147,25 +134,8 @@ export function useLookAhead({ step: stepIn, enabled, today, moduleId, reach }: 
   }, [away, touched]);
 
   // A sideways swipe on the module steps the week: left for later, right for
-  // earlier, by the same rule that tells a screen flick from a tap or a
-  // scroll (`classifySwipe`). A vertical scroll cancels the pointer.
-  const swipeRef = useRef<{ x: number; y: number; t: number; pointerId: number } | null>(null);
-  const rootProps = useMemo<LookAheadRootProps>(() => (on ? {
-    [SWIPE_OWNER_ATTR]: '',
-    onPointerDown: (e) => {
-      swipeRef.current = e.isPrimary ? { x: e.clientX, y: e.clientY, t: e.timeStamp, pointerId: e.pointerId } : null;
-      touched();
-    },
-    onPointerUp: (e) => {
-      const start = swipeRef.current;
-      swipeRef.current = null;
-      if (!start || e.pointerId !== start.pointerId) return;
-      const direction = classifySwipe(start, { x: e.clientX, y: e.clientY, t: e.timeStamp });
-      if (direction === 'left') forward();
-      else if (direction === 'right') back();
-    },
-    onPointerCancel: () => { swipeRef.current = null; },
-  } : {}), [on, touched, forward, back]);
+  // earlier. A vertical scroll cancels the pointer.
+  const rootProps: LookAheadRootProps = useOwnedSwipe(on, forward, back, touched);
 
   const span = away && step && reach ? reach(step) : null;
   const spanStart = span?.start.getTime() ?? null;

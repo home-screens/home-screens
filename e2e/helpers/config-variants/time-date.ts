@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, lacks, matches, notMatches, child, count, redBackground, redStyle, localIso } from './shared';
 import { localDate } from '../dates';
+import { todayCalendarEvents } from '../api';
 import { parseDateInTZ } from '@/lib/timezone';
 
 /** Config-variant rows for the time and date modules. */
@@ -430,6 +431,46 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       await expect(headerRows).toHaveCount(3);
       const tops = await headerRows.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
       expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(1);
+    },
+  },
+
+  // Marks and taps read the shared calendar events. The shared fixture's one
+  // event spans today and tomorrow, so both days carry one dot.
+  {
+    type: 'multi-month', name: 'event-marks', kind: 'networked', stubKey: 'calendar', stubBody: todayCalendarEvents(),
+    // Marks alone (taps off, as on a wall without a touchscreen): nothing to tap.
+    config: { monthCount: 1, showEventMarks: true, eventTapDetails: false },
+    expect: async (mod) => {
+      await expect(mod.locator(`[data-day-marks="1"]`).first()).toBeAttached();
+      await expect(mod.locator('[data-day-cell]')).toHaveCount(0);
+    },
+  },
+  {
+    // Calendars the card is not set to show leave no mark.
+    type: 'multi-month', name: 'event-marks-source-filter', kind: 'networked', stubKey: 'calendar', stubBody: todayCalendarEvents(),
+    config: { monthCount: 1, showEventMarks: true, sourceFilter: ['cal-someone-else'] },
+    expect: async (mod) => {
+      await has(new Date().toLocaleString('en-US', { month: 'long' }))(mod);
+      await expect(mod.locator('[data-day-marks]')).toHaveCount(0);
+    },
+  },
+  {
+    // A tap on a busy day opens the Calendar card's day sheet for it.
+    type: 'multi-month', name: 'tap-a-day', kind: 'networked', stubKey: 'calendar', stubBody: todayCalendarEvents(),
+    config: { monthCount: 1, eventTapDetails: true },
+    expect: async (mod) => {
+      const day = mod.locator(`[data-day-cell="${localIso(0, 0).slice(0, 10)}"]`);
+      await expect(day).toBeAttached();
+      await day.click();
+      await expect(mod.page().getByRole('dialog')).toContainText('Dentist Appointment');
+    },
+  },
+  {
+    // Day notes on: a day with only a note is marked too.
+    type: 'multi-month', name: 'day-notes-marks', kind: 'networked', stubKey: 'calendar', stubBody: [], seed: 'dayNotes',
+    config: { monthCount: 1, showEventMarks: true, showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator(`[data-day-marks="0"]`).first()).toBeAttached();
     },
   },
 

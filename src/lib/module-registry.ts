@@ -189,6 +189,16 @@ export interface ModuleDefinition {
    */
   fullscreenTwin?: { type: import('@/types/config').BuiltinModuleType; config?: Record<string, unknown> };
   /**
+   * True for modules that can use a touch on the wall themselves (an event, a
+   * tick, a recipe, a photo's controls, a day, or a page inside an iframe),
+   * whether or not their own tap switch is on. Such a card opens another
+   * screen only through its open button, never with a tap anywhere on the
+   * card (`canOpenWithCard`), so one touch never has two meanings. Per type
+   * on purpose: turning a module's tap switch off must not change what the
+   * editor offers for its open button.
+   */
+  takesTaps?: boolean;
+  /**
    * Shared-state keys this module type publishes (see shared-state-store.ts).
    * Declaring either field marks the type as a state producer: the editor
    * offers the "run in background" toggle and lists these keys in the
@@ -506,6 +516,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Full Screen --
   {
     type: 'fullscreen-calendar',
+    takesTaps: true,
     defaultTheme: 'linen',
     needsInstanceAddress: true,
     label: 'Full-Screen Calendar',
@@ -576,6 +587,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-chore-chart',
+    takesTaps: true,
     defaultTheme: 'charcoal',
     label: 'Full-Screen Chore Chart',
     icon: ClipboardList,
@@ -605,6 +617,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-meal-planner',
+    takesTaps: true,
     needsInstanceAddress: true,
     label: 'Full-Screen Meal Planner',
     icon: UtensilsCrossed,
@@ -661,6 +674,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-photo',
+    takesTaps: true,
     needsInstanceAddress: true,
     needsBoxSize: true,
     label: 'Full-Screen Photo Viewer',
@@ -677,6 +691,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       mediaTypes: 'photos',
       livePhotos: 'once',
       maxVideoDurationMs: 60_000,
+      interactive: true,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -684,6 +699,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-news',
+    takesTaps: true,
     label: 'Full-Screen News',
     icon: Newspaper,
     category: 'Full Screen',
@@ -750,6 +766,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'calendar',
+    takesTaps: true,
     fullscreenTwin: { type: 'fullscreen-calendar' },
     needsInstanceAddress: true,
     label: 'Calendar',
@@ -836,6 +853,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'multi-month',
+    takesTaps: true,
     autoSizesText: true,
     // Off (or absent, on calendars from before the toggle existed) the grid
     // renders its literal pixel size, so Text size is a percent of the base.
@@ -843,6 +861,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Multi-Month Calendar',
     icon: CalendarRange,
     category: 'Time & Date',
+    // The family's events, for the day marks and the day sheet.
+    dataRequirements: ['calendar'],
     defaultConfig: {
       view: 'vertical',
       monthCount: 3,
@@ -856,6 +876,10 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       // New calendars fill their card. Existing ones have no such key, and
       // `fitToBox` reads as off there, so nothing already on a wall moves.
       fitToBox: true,
+      // Marks and taps likewise: on for new cards, off for cards already on a wall.
+      showEventMarks: true,
+      eventTapDetails: true,
+      showDayNotes: false,
     },
     defaultSize: { w: 400, h: 700 },
     defaultStyle: { fontSize: 26 },
@@ -962,6 +986,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- News & Finance --
   {
     type: 'news',
+    takesTaps: true,
     fullscreenTwin: { type: 'fullscreen-news' },
     autoSizesText: true,
     label: 'News Headlines',
@@ -1119,6 +1144,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Personal --
   {
     type: 'todo',
+    takesTaps: true,
     autoSizesText: true,
     needsInstanceAddress: true,
     label: 'To-Do List',
@@ -1188,6 +1214,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'todoist',
+    takesTaps: true,
     label: 'Todoist',
     icon: ListChecks,
     category: 'Personal',
@@ -1257,6 +1284,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'meal-planner',
+    takesTaps: true,
     // The small planner already shows the week; the twin opens on the book.
     fullscreenTwin: { type: 'fullscreen-meal-planner', config: { view: 'recipes' } },
     needsInstanceAddress: true,
@@ -1280,6 +1308,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'chore-chart',
+    takesTaps: true,
     fullscreenTwin: { type: 'fullscreen-chore-chart' },
     label: 'Chore Chart',
     icon: ClipboardList,
@@ -1377,6 +1406,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'photo-slideshow',
+    takesTaps: true,
     fullscreenTwin: { type: 'fullscreen-photo' },
     needsInstanceAddress: true,
     needsBoxSize: true,
@@ -1392,6 +1422,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       mediaTypes: 'photos',
       livePhotos: 'once',
       maxVideoDurationMs: 60_000,
+      interactive: true,
     },
     defaultSize: { w: 500, h: 400 },
     defaultStyle: MEDIA_CARD_BLUR,
@@ -1418,6 +1449,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'iframe',
+    takesTaps: true,
     label: 'Web Embed',
     icon: Globe,
     category: 'Media & Display',
@@ -1509,6 +1541,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'display-control',
+    takesTaps: true,
     rendersAsDisplay: true,
     label: 'Display Control',
     icon: LayoutGrid,

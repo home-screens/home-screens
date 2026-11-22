@@ -1726,5 +1726,13 @@
     "receiptThanks": "Merci de votre lecture",
     "receiptSummary": "Épinglées {pinned} · Importantes {important}",
     "pinnedOne": "Épinglée"
+  },
+  "photoControls": {
+    "label": "Commandes des photos",
+    "next": "Suivante",
+    "pause": "Pause",
+    "play": "Lecture",
+    "position": "{at} sur {count}",
+    "allPictures": "Toutes les images"
   }
 }

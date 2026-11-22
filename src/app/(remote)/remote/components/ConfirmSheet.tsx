@@ -20,7 +20,7 @@ export default function ConfirmSheet({
 }: {
   title: string;
   description: string;
-  confirmLabel?: string;
+  confirmLabel?: ReactNode;
   cancelLabel?: string;
   confirmColor?: string;
   icon?: ReactNode;

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { fetchWithTimeout, parseJsonBody, requireSecret, withDisplayAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { cache as todoistCache } from '@/app/api/todoist/route';
+import { requireGrownUp } from '@/lib/grown-up-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,10 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
   if (!taskId || !TASK_ID_RE.test(taskId)) {
     return NextResponse.json({ error: 'Invalid taskId' }, { status: 400 });
   }
+
+  // A closed task cannot be opened again from here, so it may need the grown-up code.
+  const grownUp = await requireGrownUp(request, 'todoist-close');
+  if (grownUp) return grownUp;
 
   const token = await requireSecret('todoist_token', 'Todoist');
   if (token instanceof NextResponse) return token;

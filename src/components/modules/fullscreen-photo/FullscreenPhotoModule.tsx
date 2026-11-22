@@ -21,6 +21,7 @@ import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
 import PhotoCredit from '../shared/PhotoCredit';
+import { PhotoControls, photoAlbumName } from '../shared/PhotoControls';
 import { useSetupSentence } from '../ModuleStates';
 import { useModuleSurface } from '../module-surface';
 
@@ -205,7 +206,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   const showClock = config.showClock ?? true;
 
   // The photo list (the same media route as photo-slideshow); none for a single photo.
-  const { data, error, items, batch, advance, sources, activeLayer, layerReady, layerFailed } = usePhotoList('fullscreen-photo', config, { moduleId, playVideos, single: isSinglePhoto });
+  const { data, error, items, batch, advance, controls, position, sources, activeLayer, layerReady, layerFailed } = usePhotoList('fullscreen-photo', config, { moduleId, playVideos, single: isSinglePhoto });
 
   // Midnight when nothing is set, unlike the other full-screen modules: see
   // photoThemeTokens.
@@ -347,6 +348,18 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       {showClock && (
         <ClockOverlay theme={theme} backdrop={config} timezone={timezone} timeFormat={timeFormat} />
       )}
+
+      {/* Back, pause and next for a finger, over the clock while they are up.
+          No swipe of its own: the photo is the whole screen, so a sideways
+          swipe still changes screens. */}
+      <PhotoControls
+        controls={controls}
+        position={position}
+        album={photoAlbumName(normalizePhotoSource(config.photoSource), t('photoControls.allPictures'))}
+        box={boxSize ?? { w: 1080, h: 1920 }}
+        enabled={playVideos && config.interactive !== false}
+        ownSwipe={false}
+      />
     </div>
   );
 }

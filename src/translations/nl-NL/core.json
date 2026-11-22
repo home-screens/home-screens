@@ -656,5 +656,28 @@
     "connection": {
       "title": "Kan Home Screens nu niet bereiken"
     }
+  },
+  "grownUp": {
+    "title": "Oudercode",
+    "ask": "Vraag een volwassene",
+    "why": {
+      "redeem": {
+        "one": "Om 1 ticket van {member} uit te geven aan {reward}",
+        "other": "Om {count} tickets van {member} uit te geven aan {reward}"
+      },
+      "untick": "Om {chore} voor {member} uit te vinken",
+      "todoistClose": "Om {task} af te ronden"
+    },
+    "wrong": "Dat klopt niet. Probeer het opnieuw.",
+    "tooMany": {
+      "one": "Te veel pogingen. Probeer het over {count} seconde opnieuw.",
+      "other": "Te veel pogingen. Probeer het over {count} seconden opnieuw."
+    },
+    "offline": "De hub was niet bereikbaar. Probeer het opnieuw.",
+    "unlocked": {
+      "one": "Nog 1 minuut ontgrendeld",
+      "other": "Nog {count} minuten ontgrendeld"
+    },
+    "lockNow": "Nu vergrendelen"
   }
 }

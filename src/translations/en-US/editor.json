@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Advanced network access",
         "description": "Display key, signed-in devices, and limiting access to certain networks."
-      }
+      },
+      "grownUpPointerPrefix": "Want the wall to ask before kids spend tickets? That is the ",
+      "grownUpPointerSuffix": " on the Family page."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "How many bonus chores one person can grab at once",
         "grabHoldLabel": "When a grab of a bonus chore ends",
         "saved": "Saved"
+      },
+      "grownUp": {
+        "heading": "Grown-up code for the wall",
+        "description": "Four numbers the wall asks for before the jobs you tick below, so little hands can't spend tickets on their own. It isn't a lock for your home network; the password on Security is.",
+        "notSet": "No code yet.",
+        "isSet": "A code is set.",
+        "set": "Set a code",
+        "change": "Change",
+        "remove": "Remove",
+        "removeConfirm": "Remove the code",
+        "codeLabel": "Four numbers",
+        "againLabel": "The same again",
+        "save": "Save code",
+        "mismatch": "The two codes don't match.",
+        "format": "Use four numbers.",
+        "jobsLabel": "Ask for it before",
+        "jobs": {
+          "redeem": {
+            "label": "Spending tickets in the rewards store",
+            "hint": "On the wall and on the kids' chores page."
+          },
+          "untick": {
+            "label": "Unticking a chore",
+            "hint": "Unticking takes its tickets back."
+          },
+          "todoist-close": {
+            "label": "Closing a Todoist task",
+            "hint": "A closed task can't be opened again from the wall."
+          }
+        },
+        "unlockLabel": "Stay unlocked for",
+        "minutes": {
+          "one": "1 minute",
+          "other": "{count} minutes"
+        },
+        "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Hide the settings panel",
     "expandTitle": "Show the settings panel",
     "openButton": {
-      "label": "Show a button that opens",
+      "label": "Opens",
       "none": "Nothing",
       "andMore": "and {count} more",
       "help": "Adds a button in the module’s bottom corner with that screen’s name on it. Tapping it on a touch display shows the screen.",
-      "sectionTitle": "Open button",
+      "sectionTitle": "Open a screen",
       "opensOnTap": "{name} (opens on tap)",
       "offBadge": "{name} (off)",
       "holds": "Shows {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "Turn on Tap on the Wall",
       "switchOn": "Switch it on",
       "onlyWhen": "The button only shows {when}.",
-      "onlyConditions": "The button only shows while that screen’s conditions match."
+      "onlyConditions": "The button only shows while that screen’s conditions match.",
+      "openWith": "Open it with",
+      "openWithButton": "The button",
+      "openWithCard": "A tap on the card",
+      "openWithCardHelp": "A tap anywhere on the card opens {name}. A small arrow in its corner shows the card can be tapped.",
+      "openWithTakesTaps": "This card already uses taps for its own things, so it opens with the button."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Shuffle Order",
       "kenBurnsEffect": "Ken Burns Effect",
       "showClockOverlay": "Show Clock Overlay",
-      "clockBackground": "Clock Background"
+      "clockBackground": "Clock Background",
+      "interactive": "Tap on the Wall",
+      "interactiveHint": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A sideways swipe still changes screens.",
+      "interactiveHintCard": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A swipe on the photo moves to the next one."
     },
     "garbage-day": {
       "frequencyWeekly": "Every week",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Underline",
       "todayText": "Colored number",
       "todayNone": "None",
-      "accentColor": "Accent Color"
+      "accentColor": "Accent Color",
+      "events": "Events",
+      "showEventMarks": "Mark days with events",
+      "showEventMarksHint": "Up to three dots under each day that has something on it, in the colour of its calendar.",
+      "showDayNotesHint": "A day with only a note gets a mark too, and its notes show when the day is tapped.",
+      "eventTapDetails": "Tap a day to see its events",
+      "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows. Days with nothing on them do nothing."
     },
     "news": {
       "viewHeadline": "Headline (Rotating)",

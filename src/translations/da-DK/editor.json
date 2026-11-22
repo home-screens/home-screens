@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Avanceret netværksadgang",
         "description": "Skærmnøgle, tilmeldte enheder og begrænsning til bestemte netværk."
-      }
+      },
+      "grownUpPointerPrefix": "Skal væggen spørge, før børnene bruger billetter? Det finder du under ",
+      "grownUpPointerSuffix": " på siden Familie."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "Hvor mange bonuspligter én person kan snuppe ad gangen",
         "grabHoldLabel": "Hvor længe en snuppet bonuspligt er deres",
         "saved": "Gemt"
+      },
+      "grownUp": {
+        "heading": "Voksenkode til væggen",
+        "description": "Fire tal, som væggen spørger efter, før den gør de ting, du sætter kryds ved herunder, så små fingre ikke selv kan bruge billetter. Den låser ikke dit hjemmenetværk; det gør adgangskoden under Sikkerhed.",
+        "notSet": "Ingen kode endnu.",
+        "isSet": "Der er valgt en kode.",
+        "set": "Vælg en kode",
+        "change": "Skift",
+        "remove": "Fjern",
+        "removeConfirm": "Fjern koden",
+        "codeLabel": "Fire tal",
+        "againLabel": "Samme tal igen",
+        "save": "Gem kode",
+        "mismatch": "De to koder er ikke ens.",
+        "format": "Brug fire tal.",
+        "jobsLabel": "Spørg efter koden, før nogen kan",
+        "jobs": {
+          "redeem": {
+            "label": "Bruge billetter i belønningsbutikken",
+            "hint": "På væggen og på børnenes pligtside."
+          },
+          "untick": {
+            "label": "Fjerne fluebenet ved en pligt",
+            "hint": "Når fluebenet fjernes, tages pligtens billetter tilbage."
+          },
+          "todoist-close": {
+            "label": "Markere en Todoist-opgave som klaret",
+            "hint": "Det kan ikke fortrydes fra væggen."
+          }
+        },
+        "unlockLabel": "Hold væggen låst op i",
+        "minutes": {
+          "one": "1 minut",
+          "other": "{count} minutter"
+        },
+        "unlockHint": "Efter den rigtige kode gør den væg de ting, der er sat kryds ved, uden at spørge igen i så lang tid. Er man logget ind på telefonen, bliver man aldrig spurgt."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Skjul indstillingspanelet",
     "expandTitle": "Vis indstillingspanelet",
     "openButton": {
-      "label": "Vis en knap, der åbner",
+      "label": "Åbner",
       "none": "Ingenting",
       "andMore": "og {count} til",
       "help": "Sætter en knap med skærmens navn i modulets nederste hjørne. Et tryk på en berøringsskærm viser skærmen.",
-      "sectionTitle": "Åbn-knap",
+      "sectionTitle": "Åbn en skærm",
       "opensOnTap": "{name} (åbner ved tryk)",
       "offBadge": "{name} (slukket)",
       "holds": "Viser {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "Slå “Tryk på skærmen” til",
       "switchOn": "Tænd den",
       "onlyWhen": "Knappen vises kun {when}.",
-      "onlyConditions": "Knappen vises kun, mens den skærms betingelser passer."
+      "onlyConditions": "Knappen vises kun, mens den skærms betingelser passer.",
+      "openWith": "Åbn den med",
+      "openWithButton": "Knappen",
+      "openWithCard": "Et tryk på modulet",
+      "openWithCardHelp": "Et tryk hvor som helst på modulet åbner {name}. En lille pil i hjørnet viser, at man kan trykke på det.",
+      "openWithTakesTaps": "Dette modul bruger allerede tryk til sine egne ting, så skærmen åbnes med knappen."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Bland rækkefølgen",
       "kenBurnsEffect": "Ken Burns-effekt",
       "showClockOverlay": "Vis ur ovenpå",
-      "clockBackground": "Urets baggrund"
+      "clockBackground": "Urets baggrund",
+      "interactive": "Tryk på displayet",
+      "interactiveHint": "På en touchskærm viser et tryk Tilbage, Pause og Næste, og hvilket album billedet kommer fra. Et stryg til siden skifter stadig skærm.",
+      "interactiveHintCard": "På en touchskærm viser et tryk Tilbage, Pause og Næste, og hvilket album billedet kommer fra. Et stryg hen over billedet viser det næste."
     },
     "garbage-day": {
       "frequencyWeekly": "Hver uge",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Understregning",
       "todayText": "Farvet tal",
       "todayNone": "Ingen",
-      "accentColor": "Accentfarve"
+      "accentColor": "Accentfarve",
+      "events": "Begivenheder",
+      "showEventMarks": "Markér dage med begivenheder",
+      "showEventMarksHint": "Op til tre prikker under hver dag, hvor der sker noget, hver i sin kalenders farve.",
+      "showDayNotesHint": "En dag, der kun har en note, får også et mærke, og noterne vises, når man trykker på dagen.",
+      "eventTapDetails": "Tryk på en dag for at se dens begivenheder",
+      "eventTapDetailsHint": "På en touchskærm åbner det dagens liste, den samme som Kalender-modulet viser. Et tryk på en tom dag gør ingenting."
     },
     "news": {
       "viewHeadline": "Overskrift (skiftende)",

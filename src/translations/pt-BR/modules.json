@@ -1726,5 +1726,13 @@
     "receiptThanks": "Obrigado pela leitura",
     "receiptSummary": "Fixados {pinned} · Importantes {important}",
     "pinnedOne": "Fixado"
+  },
+  "photoControls": {
+    "label": "Controles das fotos",
+    "next": "Próxima",
+    "pause": "Pausar",
+    "play": "Reproduzir",
+    "position": "{at} de {count}",
+    "allPictures": "Todas as fotos"
   }
 }

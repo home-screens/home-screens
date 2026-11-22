@@ -8,6 +8,7 @@ import { isoDateInTZ, resolveHouseholdTimezone } from '@/lib/timezone';
 import { hubTimezone } from '@/lib/household-day';
 import { settingsTimeFormat } from '@/lib/clock-time';
 import { HouseholdClockProvider } from './remote/household-clock';
+import { GrownUpSheetLayer } from './remote/components/GrownUpSheet';
 
 export const metadata: Metadata = {
   title: 'Remote Control',
@@ -56,6 +57,9 @@ export default async function RemoteLayout({ children }: { children: React.React
         timeFormat={settingsTimeFormat(config?.settings)}
       >
         {children}
+        {/* The grown-up code's pad, once for every phone surface (/remote and
+            /chores): any write sent through grownUpFetch can ask for it. */}
+        <GrownUpSheetLayer />
       </HouseholdClockProvider>
     </I18nProvider>
   );

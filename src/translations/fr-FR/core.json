@@ -656,5 +656,28 @@
     "connection": {
       "title": "Home Screens est injoignable pour le moment"
     }
+  },
+  "grownUp": {
+    "title": "Code parental",
+    "ask": "Demander à un adulte",
+    "why": {
+      "redeem": {
+        "one": "Pour dépenser {count} ticket de {member} pour {reward}",
+        "other": "Pour dépenser {count} tickets de {member} pour {reward}"
+      },
+      "untick": "Pour décocher {chore} pour {member}",
+      "todoistClose": "Pour terminer {task}"
+    },
+    "wrong": "Ce n'est pas le bon code. Réessaie.",
+    "tooMany": {
+      "one": "Trop d'essais. Réessaie dans {count} seconde.",
+      "other": "Trop d'essais. Réessaie dans {count} secondes."
+    },
+    "offline": "Impossible de joindre le hub. Réessaie.",
+    "unlocked": {
+      "one": "Déverrouillé encore {count} minute",
+      "other": "Déverrouillé encore {count} minutes"
+    },
+    "lockNow": "Verrouiller maintenant"
   }
 }

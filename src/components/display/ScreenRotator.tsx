@@ -17,6 +17,7 @@ import { usePhotoShowStore } from '@/stores/photo-show-store';
 import { useRecipeShowStore } from '@/stores/recipe-show-store';
 import TimerOverlay from './TimerOverlay';
 import PhotoShowOverlay from './PhotoShowOverlay';
+import { GrownUpPadLayer } from '@/components/modules/shared/GrownUpPad';
 import RecipeShowOverlay from './RecipeShowOverlay';
 import { settingsTimeFormat } from '@/lib/clock-time';
 import NetworkIndicator from './NetworkIndicator';
@@ -1063,6 +1064,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           <RecipeShowOverlay theme={settings.fullscreenTheme} timeFormat={settingsTimeFormat(settings)} />
         </OverlayBoundary>
       )}
+      {/* The grown-up code's pad, for any write that turns out to need it, and
+          the "Unlocked" chip while this wall is unlocked. */}
+      <OverlayBoundary name="grown-up">
+        <GrownUpPadLayer />
+      </OverlayBoundary>
 
       {/* The wall runs on the hub's clock while no zone is saved, so the
           preview says so where the parent is looking. Not on a real wall:

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChoreCompletion, ChoreDefinition, ChoreGrab } from '@/types/config';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { postChoreMarks, postChoreToggle, type ChoreMarks, type ChoreMarksWrite, type ChoreWriteOutcome } from '@/lib/chore-client';
 import { planChoreToggle } from '@/lib/chore-toggle';
 import { countsSinceReset, resetViewDay, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
@@ -46,6 +47,8 @@ export interface ChoreMarksWords {
   failed: string;
   /** Under the row: what a refusal means, or null to say nothing (the lists it carries say it on their own). */
   refusal: (refused: { reason: BonusRefusal; memberId?: string }) => string | null;
+  /** What the grown-up code is for, when unticking this row needs it. */
+  untickWhy?: (row: ChoreRowRef) => string;
 }
 
 export interface UseChoreMarksOptions<Before = unknown> {
@@ -192,7 +195,11 @@ export function useChoreMarks<Before = unknown>(options: UseChoreMarksOptions<Be
     const plan = planChoreToggle(before, choreId, memberId, date, (c) => !chore || countsSinceReset(chore, c, resets, resetViewDay(date, today)));
     setCompletions(plan.completions);
 
-    const outcome = await postChoreToggle(editorFetch, { choreId, memberId, date, direction: plan.direction });
+    // Unticking takes tickets back, so it may need the grown-up code.
+    const fetcher = plan.direction === 'uncomplete'
+      ? grownUpFetch(editorFetch, optionsRef.current.words.untickWhy?.(row) ?? '')
+      : editorFetch;
+    const outcome = await postChoreToggle(fetcher, { choreId, memberId, date, direction: plan.direction });
     if (!mountedRef.current) return outcome;
     if (outcome.ok) {
       applyMarks(outcome.answer);
@@ -209,7 +216,8 @@ export function useChoreMarks<Before = unknown>(options: UseChoreMarksOptions<Be
       // the row about why. Left on until the next poll, it looked done (and,
       // with no network, stayed looking done) and then quietly was not.
       restore(plan.completions, before);
-      if (!isSessionExpired(outcome.error)) setRowNotice({ ...row, text: optionsRef.current.words.failed });
+      // Nobody gave the grown-up code: the tick stays on, and nothing failed.
+      if (!isSessionExpired(outcome.error) && !isGrownUpCancelled(outcome.error)) setRowNotice({ ...row, text: optionsRef.current.words.failed });
     }
     setRowBusy(key, false);
     return outcome;

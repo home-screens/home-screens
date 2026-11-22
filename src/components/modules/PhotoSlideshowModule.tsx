@@ -10,6 +10,7 @@ import type { LayerIndex } from './shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
 import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
 import PhotoCredit from './shared/PhotoCredit';
+import { PhotoControls, photoAlbumName } from './shared/PhotoControls';
 
 interface PhotoSlideshowModuleProps {
   config: PhotoSlideshowConfig;
@@ -38,7 +39,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const t = useTranslate('modules');
   const playVideos = !!(screenId && moduleId);
 
-  const { data, error, items, batch, advance, sources, activeLayer, layerReady, layerFailed } = usePhotoList('photo-slideshow', config, { moduleId, playVideos });
+  const { data, error, items, batch, advance, controls, position, sources, activeLayer, layerReady, layerFailed } = usePhotoList('photo-slideshow', config, { moduleId, playVideos });
 
   const gate = moduleGate({
     style, data, error,
@@ -85,6 +86,15 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
         {renderLayer(0)}
         {renderLayer(1)}
         <PhotoCredit item={sources[activeLayer]} box={boxSize} />
+        {/* Back, pause and next for a finger, and a swipe on the photo steps it. */}
+        <PhotoControls
+          controls={controls}
+          position={position}
+          album={photoAlbumName(normalizePhotoSource(config.photoSource), t('photoControls.allPictures'))}
+          box={boxSize ?? { w: 500, h: 400 }}
+          enabled={playVideos && config.interactive !== false}
+          ownSwipe
+        />
       </div>
     </ModuleWrapper>
   );

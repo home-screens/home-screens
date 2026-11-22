@@ -656,5 +656,28 @@
     "connection": {
       "title": "Home Screens ist gerade nicht erreichbar"
     }
+  },
+  "grownUp": {
+    "title": "Eltern-Code",
+    "ask": "Eltern fragen",
+    "why": {
+      "redeem": {
+        "one": "Um 1 Ticket von {member} für „{reward}“ auszugeben",
+        "other": "Um {count} Tickets von {member} für „{reward}“ auszugeben"
+      },
+      "untick": "Um den Haken bei „{chore}“ für {member} zu entfernen",
+      "todoistClose": "Um „{task}“ zu erledigen"
+    },
+    "wrong": "Das stimmt nicht. Versuch es noch einmal.",
+    "tooMany": {
+      "one": "Zu viele Versuche. Probier es in {count} Sekunde noch einmal.",
+      "other": "Zu viele Versuche. Probier es in {count} Sekunden noch einmal."
+    },
+    "offline": "Der Hub ist nicht erreichbar. Versuch es noch einmal.",
+    "unlocked": {
+      "one": "Noch 1 Minute entsperrt",
+      "other": "Noch {count} Minuten entsperrt"
+    },
+    "lockNow": "Jetzt sperren"
   }
 }

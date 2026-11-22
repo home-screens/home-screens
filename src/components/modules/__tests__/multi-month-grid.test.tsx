@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, fireEvent } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import { installResizeObserverStub } from './helpers/harness';
 import enUSModules from '@/translations/en-US/modules.json';
-import { DEFAULT_MODULE_STYLE, type MultiMonthConfig, type ModuleStyle, type WeekStartDay } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type CalendarEvent, type MultiMonthConfig, type ModuleStyle, type WeekStartDay } from '@/types/config';
+import { NO_DAY_NOTES, type DayNotes } from '@/lib/day-notes';
 import MultiMonthModule, { getMonthGrid, WEEKS_PER_GRID } from '../MultiMonthModule';
 
 const START_DAYS: WeekStartDay[] = ['sunday', 'monday'];
@@ -104,6 +105,9 @@ describe('getMonthGrid', () => {
 installResizeObserverStub();
 
 const clock = vi.hoisted(() => ({ now: new Date(0) }));
+// The day notes read; none unless a test hands some in.
+const dayNotesMock = vi.fn((_enabled: boolean): DayNotes => NO_DAY_NOTES);
+vi.mock('@/hooks/useDayNotes', () => ({ useDayNotes: (enabled: boolean) => dayNotesMock(enabled) }));
 vi.mock('@/hooks/useTZClock', () => ({
   useTZClock: () => clock.now,
 }));
@@ -114,7 +118,7 @@ function Wrapper({ children }: { children: ReactNode }) {
   return <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>{children}</I18nProvider>;
 }
 
-function renderModule(now: Date, overrides: Partial<MultiMonthConfig> = {}) {
+function renderModule(now: Date, overrides: Partial<MultiMonthConfig> = {}, events?: CalendarEvent[]) {
   clock.now = now;
   const config = {
     view: 'vertical',
@@ -125,7 +129,7 @@ function renderModule(now: Date, overrides: Partial<MultiMonthConfig> = {}) {
     showAdjacentDays: true,
     ...overrides,
   } as MultiMonthConfig;
-  return render(<Wrapper><MultiMonthModule config={config} style={style} /></Wrapper>);
+  return render(<Wrapper><MultiMonthModule config={config} style={style} events={events} /></Wrapper>);
 }
 
 /** jsdom expands the `flex: 1` shorthand to its longhand triple. */
@@ -179,5 +183,69 @@ describe('MultiMonthModule rows', () => {
 
   it('numbers a Monday grid the ISO way, like a Monday calendar', () => {
     expect(weekNumbers('monday')).toEqual([49, 50, 51, 52, 53, 1]);
+  });
+});
+
+function event(id: string, day: string, title: string, color: string, allDay = false): CalendarEvent {
+  return allDay
+    ? { id, title, start: day, end: day, allDay: true, calendarColor: color }
+    : { id, title, start: `${day}T09:00:00`, end: `${day}T10:00:00`, allDay: false, calendarColor: color };
+}
+
+describe('MultiMonthModule day marks and taps', () => {
+  afterEach(() => {
+    cleanup();
+    dayNotesMock.mockReset();
+    dayNotesMock.mockImplementation(() => NO_DAY_NOTES);
+  });
+
+  const FEB = new Date(2026, 1, 15);
+  const events = [
+    event('a', '2026-02-10', 'Piano', '#4073ff'),
+    event('b', '2026-02-20', 'Soccer', '#f97316'),
+    event('c', '2026-02-20', 'Dentist', '#4073ff'),
+    event('d', '2026-02-20', 'Swim', '#22c55e'),
+    event('e', '2026-02-20', 'Book club', '#4073ff'),
+  ];
+  const marks = (container: HTMLElement) => Array.from(container.querySelectorAll<HTMLElement>('[data-day-marks]'));
+
+  it('draws nothing new while marks and taps are off, even with events', () => {
+    const { container } = renderModule(FEB, {}, events);
+    expect(marks(container)).toHaveLength(0);
+    expect(container.querySelector('[data-day-cell]')).toBeNull();
+  });
+
+  it('marks each busy day with one dot per event, three at most', () => {
+    const { container } = renderModule(FEB, { showEventMarks: true }, events);
+    const busy = marks(container);
+    expect(busy.map((el) => el.getAttribute('data-day-marks'))).toEqual(['1', '4']);
+    expect(busy[0].children).toHaveLength(1);
+    expect(busy[1].children).toHaveLength(3);
+    expect((busy[0].children[0] as HTMLElement).style.background).toBe('rgb(64, 115, 255)');
+  });
+
+  it('keeps marks to the calendars picked', () => {
+    const picked = events.map((ev, i) => ({ ...ev, sourceId: i === 0 ? 'family' : 'sports' }));
+    const { container } = renderModule(FEB, { showEventMarks: true, sourceFilter: ['family'] }, picked);
+    expect(marks(container).map((el) => el.getAttribute('data-day-marks'))).toEqual(['1']);
+  });
+
+  it('opens the day sheet for a tapped busy day, and an empty day does nothing', () => {
+    const { container } = renderModule(FEB, { eventTapDetails: true }, events);
+    expect(container.querySelector('[data-day-cell="2026-02-11"]')).toBeNull();
+    const day = container.querySelector<HTMLElement>('[data-day-cell="2026-02-20"]')!;
+    expect(day).not.toBeNull();
+    fireEvent.click(day);
+    for (const title of ['Soccer', 'Dentist', 'Swim', 'Book club']) {
+      expect(document.body.textContent).toContain(title);
+    }
+  });
+
+  it('counts a note-only day when day notes are on', () => {
+    dayNotesMock.mockImplementation((enabled: boolean) => (enabled ? { '2026-02-03': ['Library books due'] } : NO_DAY_NOTES));
+    const { container } = renderModule(FEB, { showEventMarks: true, eventTapDetails: true, showDayNotes: true }, events);
+    expect(container.querySelector('[data-day-cell="2026-02-03"]')).not.toBeNull();
+    fireEvent.click(container.querySelector<HTMLElement>('[data-day-cell="2026-02-03"]')!);
+    expect(document.body.textContent).toContain('Library books due');
   });
 });

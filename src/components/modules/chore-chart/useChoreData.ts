@@ -26,7 +26,8 @@ import {
 } from './types';
 import { choresOwedBy } from '@/lib/chore-assignments';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { useFormattingLocale } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { grownUpFetch } from '@/lib/grown-up-client';
 import { isoDateInTZ } from '@/lib/timezone';
 import { planChoreToggle, readOverspentNotice, type OverspentNotice } from '@/lib/chore-toggle';
 import { localDateFromIso } from '@/lib/iso-date';
@@ -131,6 +132,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   // is for places without one, like the editor's canvas.
   const choreChartTtl = FETCH_KEY_REGISTRY['chore-chart']?.ttlMs ?? 5_000;
   const formattingLocale = useFormattingLocale();
+  const tCore = useTranslate('core');
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), choreChartTtl);
   const [fetchedChoreData, choreDataError] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
@@ -309,7 +311,12 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
 
     setCompletions(plan.completions);
 
-    const outcome = await postChoreToggle(displayFetch, { choreId, memberId, date: today, direction: plan.direction });
+    // Unticking takes tickets back, so it may need the grown-up code; a pad
+    // left unanswered comes back as an unsaved write and the tick stays.
+    const fetcher = plan.direction === 'uncomplete'
+      ? grownUpFetch(displayFetch, tCore('grownUp.why.untick', { chore: chore?.name ?? '', member: members.find((m) => m.id === memberId)?.name ?? '' }))
+      : displayFetch;
+    const outcome = await postChoreToggle(fetcher, { choreId, memberId, date: today, direction: plan.direction });
     if (!outcome.ok) {
       applyMarks(outcome.refused ? outcome.marks : null, snapshot, grabs);
       return outcome;
@@ -324,7 +331,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     // later with nothing to explain it.
     setOverspentNotice(readOverspentNotice(answer.overspent, members));
     return outcome;
-  }, [publishRewards, members, completions, chores, bonusResets, grabs, applyMarks, today]);
+  }, [publishRewards, members, completions, chores, bonusResets, grabs, applyMarks, today, tCore]);
 
   const grabChore = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go'): Promise<ChoreWriteOutcome> => {
     const snapshot = grabs;

@@ -656,5 +656,28 @@
     "connection": {
       "title": "Can't reach Home Screens right now"
     }
+  },
+  "grownUp": {
+    "title": "Grown-up code",
+    "ask": "Ask a grown-up",
+    "why": {
+      "redeem": {
+        "one": "To spend 1 of {member}'s tickets on {reward}",
+        "other": "To spend {count} of {member}'s tickets on {reward}"
+      },
+      "untick": "To untick {chore} for {member}",
+      "todoistClose": "To close {task}"
+    },
+    "wrong": "That's not it. Try again.",
+    "tooMany": {
+      "one": "Too many tries. Try again in {count} second.",
+      "other": "Too many tries. Try again in {count} seconds."
+    },
+    "offline": "Couldn't reach the hub. Try again.",
+    "unlocked": {
+      "one": "Unlocked for 1 more minute",
+      "other": "Unlocked for {count} more minutes"
+    },
+    "lockNow": "Lock now"
   }
 }

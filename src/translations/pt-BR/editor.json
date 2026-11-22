@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Acesso de rede avançado",
         "description": "Chave da tela, aparelhos conectados e limitar o acesso a certas redes."
-      }
+      },
+      "grownUpPointerPrefix": "Quer que a parede peça um código antes que as crianças gastem tickets? É o ",
+      "grownUpPointerSuffix": " na página Família."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "Quantas tarefas bônus uma pessoa pode pegar ao mesmo tempo",
         "grabHoldLabel": "Até quando uma tarefa bônus fica com quem pegou",
         "saved": "Salvo"
+      },
+      "grownUp": {
+        "heading": "Código dos adultos para a parede",
+        "description": "Quatro números que a parede pede antes de fazer o que você marcar abaixo, para que mãozinhas não gastem tickets sozinhas. Ele não protege a sua rede de casa; quem faz isso é a senha em Segurança.",
+        "notSet": "Ainda sem código.",
+        "isSet": "Há um código definido.",
+        "set": "Definir um código",
+        "change": "Mudar",
+        "remove": "Remover",
+        "removeConfirm": "Remover o código",
+        "codeLabel": "Quatro números",
+        "againLabel": "Os mesmos de novo",
+        "save": "Salvar código",
+        "mismatch": "Os dois códigos não são iguais.",
+        "format": "Use quatro números.",
+        "jobsLabel": "Pedir o código antes de",
+        "jobs": {
+          "redeem": {
+            "label": "Gastar tickets na loja de recompensas",
+            "hint": "Na parede e na página de tarefas das crianças."
+          },
+          "untick": {
+            "label": "Desmarcar uma tarefa",
+            "hint": "Desmarcar tira de volta os tickets que ela deu."
+          },
+          "todoist-close": {
+            "label": "Concluir uma tarefa do Todoist",
+            "hint": "Uma tarefa concluída não pode ser reaberta pela parede."
+          }
+        },
+        "unlockLabel": "Ficar desbloqueado por",
+        "minutes": {
+          "one": "{count} minuto",
+          "other": "{count} minutos"
+        },
+        "unlockHint": "Depois do código certo, aquela parede faz o que está marcado sem pedir de novo durante esse tempo. Quem está conectado pelo celular nunca precisa digitar o código."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Ocultar o painel de configurações",
     "expandTitle": "Mostrar o painel de configurações",
     "openButton": {
-      "label": "Mostrar um botão que abre",
+      "label": "Abre",
       "none": "Nada",
       "andMore": "e mais {count}",
       "help": "Adiciona no canto inferior do módulo um botão com o nome dessa tela. Ao tocá-lo numa tela sensível ao toque, a tela aparece.",
-      "sectionTitle": "Botão de abrir",
+      "sectionTitle": "Abrir uma tela",
       "opensOnTap": "{name} (abre ao tocar)",
       "offBadge": "{name} (desligada)",
       "holds": "Mostra {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "Ligar “Tocar na tela”",
       "switchOn": "Ligar",
       "onlyWhen": "O botão só aparece {when}.",
-      "onlyConditions": "O botão só aparece enquanto as condições dessa tela baterem."
+      "onlyConditions": "O botão só aparece enquanto as condições dessa tela baterem.",
+      "openWith": "Abrir com",
+      "openWithButton": "O botão",
+      "openWithCard": "Um toque no módulo",
+      "openWithCardHelp": "Um toque em qualquer lugar do módulo abre {name}. Uma setinha no canto mostra que dá para tocar nele.",
+      "openWithTakesTaps": "Este módulo já usa os toques para as coisas dele, então abre com o botão."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Ordem aleatória",
       "kenBurnsEffect": "Efeito Ken Burns",
       "showClockOverlay": "Mostrar relógio sobreposto",
-      "clockBackground": "Fundo do relógio"
+      "clockBackground": "Fundo do relógio",
+      "interactive": "Tocar na parede",
+      "interactiveHint": "Numa tela sensível ao toque, um toque mostra Voltar, Pausar e Próxima, e de qual álbum é a foto. Deslizar para o lado continua trocando de tela.",
+      "interactiveHintCard": "Numa tela sensível ao toque, um toque mostra Voltar, Pausar e Próxima, e de qual álbum é a foto. Deslizar sobre a foto passa para a próxima."
     },
     "garbage-day": {
       "frequencyWeekly": "Toda semana",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Sublinhado",
       "todayText": "Número colorido",
       "todayNone": "Nenhum",
-      "accentColor": "Cor de destaque"
+      "accentColor": "Cor de destaque",
+      "events": "Eventos",
+      "showEventMarks": "Marcar dias com eventos",
+      "showEventMarksHint": "Até três pontinhos embaixo de cada dia que tem alguma coisa marcada, cada um na cor do seu calendário.",
+      "showDayNotesHint": "Um dia só com um recado também ganha uma marca, e os recados aparecem quando alguém toca no dia.",
+      "eventTapDetails": "Toque em um dia para ver os eventos",
+      "eventTapDetailsHint": "Numa tela sensível ao toque, abre a lista daquele dia, a mesma que o módulo Calendário mostra. Tocar num dia vazio não faz nada."
     },
     "news": {
       "viewHeadline": "Manchete (alternando)",

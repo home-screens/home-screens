@@ -137,3 +137,62 @@ test('a phone command reaches a screen that shows only when opened', async ({ pa
   await expect(page.getByText('RECIPE BOOK', { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Back to Kitchen' })).toBeVisible();
 });
+
+function cardConfig() {
+  return baseConfig({
+    screens: [
+      makeScreen('kitchen', 'Kitchen', [
+        {
+          ...textModule('KITCHEN', { position: { x: 100, y: 100 }, size: { w: 880, h: 400 } }),
+          openButtonScreen: 'recipes',
+          openWith: 'card' as const,
+        },
+        {
+          // Takes taps of its own, so "card" is read as the button.
+          ...buildModuleInstance('meal-planner'),
+          position: { x: 100, y: 700 },
+          size: { w: 880, h: 700 },
+          openButtonScreen: 'recipes',
+          openWith: 'card' as const,
+        },
+      ]),
+      makeScreen('weather', 'Weather', [textModule('WEATHER PAGE', { position: { x: 100, y: 100 } })]),
+      makeScreen('recipes', 'Recipe Book', [textModule('RECIPE BOOK', { position: { x: 100, y: 100 } })], { rotation: 'opened', goBackAfterMs: 60_000 }),
+    ],
+    settings: { rotationIntervalMs: 60_000 },
+  });
+}
+
+test('a card set to open with a tap opens its screen from anywhere on it, with a corner mark and no button', async ({ page, request }) => {
+  await renderOnDisplay(page, request, cardConfig());
+  const textCard = page.locator('[data-module-id="text-kitchen"]');
+  await expect(textCard.getByText('KITCHEN', { exact: true })).toBeVisible();
+  const card = textCard.getByTestId('open-screen-card');
+  await expect(card).toHaveAttribute('aria-label', 'Open Recipe Book');
+  await expect(textCard.getByTestId('open-screen-mark')).toBeVisible();
+  await expect(textCard.getByTestId('open-screen-button')).toHaveCount(0);
+  // The whole box is the target.
+  const box = (await textCard.boundingBox())!;
+  const target = (await card.boundingBox())!;
+  expect(Math.round(target.width)).toBe(Math.round(box.width));
+  expect(Math.round(target.height)).toBe(Math.round(box.height));
+  // A card that takes taps of its own keeps its button.
+  await expect(page.locator('[data-module-type="meal-planner"]').getByTestId('open-screen-button')).toBeVisible();
+
+  // A tap far from the mark, in the card's top-left corner.
+  await page.mouse.click(box.x + 40, box.y + 40);
+  await expect(page.getByText('RECIPE BOOK', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back to Kitchen' }).click();
+  await expect(page.getByText('KITCHEN', { exact: true })).toBeVisible();
+});
+
+test('a flick that starts on a tap-to-open card changes screens and opens nothing', async ({ page, request }) => {
+  await renderOnDisplay(page, request, cardConfig());
+  const box = (await page.locator('[data-module-id="text-kitchen"]').boundingBox())!;
+  await page.mouse.move(box.x + box.width - 60, box.y + 200);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 60, box.y + 200, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByText('WEATHER PAGE', { exact: true })).toBeVisible();
+  await expect(page.getByText('RECIPE BOOK', { exact: true })).toBeHidden();
+});

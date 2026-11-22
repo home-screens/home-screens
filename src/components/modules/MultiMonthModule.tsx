@@ -2,17 +2,27 @@
 
 import type { CSSProperties } from 'react';
 import { useTZClock } from '@/hooks/useTZClock';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { useFormattingLocale, formatDateSync } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatDateSync, type TranslateFn } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { weekStartsOnFor } from '@/lib/calendar-utils';
+import { eventsForDay, weekStartsOnFor } from '@/lib/calendar-utils';
+import { selectCalendarEvents } from '@/lib/calendar-rules';
+import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { householdTimeFormat } from '@/lib/clock-time';
+import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
+import { useDayNotes } from '@/hooks/useDayNotes';
 import { weekNumberFor } from '@/lib/week-number';
 import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { withAlpha } from '@/lib/hex-color';
-import type { MultiMonthConfig, ModuleStyle, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
+import type { CalendarEvent, MultiMonthConfig, ModuleStyle, TimeFormat, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { DaySheetOverlay } from './shared/DaySheetOverlay';
+import { EventDetailOverlay } from './shared/EventDetailOverlay';
+import { useEventTapDetail } from './shared/useEventTapDetail';
+import { openDayCellProps, openDayProps, useDaySheet, type OpenDaySheet } from './shared/useDaySheet';
+import { wallRowPress } from './shared/wallPress';
 
 /**
  * Starting point for the fit, as a fraction of card height. Deliberately above
@@ -26,6 +36,34 @@ interface MultiMonthModuleProps {
   config: MultiMonthConfig;
   style: ModuleStyle;
   timezone?: string;
+  /** The family's calendar events, for the day marks and the day sheet. */
+  events?: CalendarEvent[];
+  timeFormat?: TimeFormat;
+}
+
+const EMPTY_EVENTS: CalendarEvent[] = [];
+
+/** Most dots under one day: more than three reads as a smudge, not a count. */
+export const MAX_DAY_MARKS = 3;
+/**
+ * A dot's diameter and the row it sits in, in the grid's em (the module's
+ * font size), never smaller than the pixels after them: a one-month card's
+ * small type would otherwise draw dots too small to see across a room.
+ */
+const MARK_DOT_EM = 0.16;
+const MARK_DOT_MIN_PX = 4;
+const MARK_ROW_EM = 0.24;
+const MARK_ROW_MIN_PX = 6;
+const markDot = `max(${MARK_DOT_MIN_PX}px, ${MARK_DOT_EM}em)`;
+
+/** What the month grids need to mark and open days: undefined while neither is on. */
+interface DayMarks {
+  marks: boolean;
+  opener: OpenDaySheet | null;
+  eventsOn: (date: Date) => CalendarEvent[];
+  notesOn: (date: Date) => readonly string[];
+  accentColor: string;
+  t: TranslateFn;
 }
 
 // Reference week starting Sunday 2024-01-07 (a known Sunday). Index 0 = Sunday, ... 6 = Saturday.
@@ -127,6 +165,7 @@ function MonthGrid({
   todayStyle,
   todayMarker,
   locale,
+  days,
 }: {
   year: number;
   month: number;
@@ -140,6 +179,7 @@ function MonthGrid({
   todayStyle: MultiMonthTodayStyle;
   todayMarker: CSSProperties;
   locale: string;
+  days?: DayMarks;
 }) {
   const cells = getMonthGrid(year, month, startDay);
   const headers = getDayHeaders(startDay, locale);
@@ -259,13 +299,28 @@ function MonthGrid({
               const isWeekend = startDay === 'sunday' ? (col === 0 || col === 6) : (col === 5 || col === 6);
               const visible = cell.current || showAdjacentDays;
 
+              // Marks and taps belong to this month's own days; an adjacent
+              // day is drawn again, marked, in its own month.
+              const date = cell.current && days ? new Date(year, month, cell.day) : null;
+              const dayEvents = date ? days!.eventsOn(date) : EMPTY_EVENTS;
+              const dayNotes = date ? days!.notesOn(date) : [];
+              const cellTap = date ? openDayCellProps(days!.opener, date, dayEvents, dayNotes.length > 0) : undefined;
+              const dayTap = date ? openDayProps(days!.opener, date, dayEvents, days!.t, locale, dayNotes.length > 0) : undefined;
+              const marked = !!days?.marks;
+              const isPast = !!date && (year < today.year || (year === today.year && (month < today.month || (month === today.month && cell.day < today.day))));
+              const press = cellTap ? wallRowPress('flex flex-col items-center justify-center rounded-[0.3em] cursor-pointer') : null;
+
               return (
                 <div
                   key={col}
-                  className="flex items-center justify-center"
+                  {...press}
+                  {...cellTap}
+                  className={press?.className ?? `flex ${marked ? 'flex-col ' : ''}items-center justify-center`}
                   style={{ minHeight: 0 }}
                 >
                   <div
+                    {...dayTap}
+                    role={dayTap ? 'button' : undefined}
                     className="flex items-center justify-center"
                     suppressHydrationWarning
                     data-today={isToday ? 'true' : undefined}
@@ -280,17 +335,42 @@ function MonthGrid({
                       background: 'transparent',
                       color: 'inherit',
                       borderRadius: '50%',
-                      width: '1.75em',
-                      // Clamped to the row: the circle is decoration around a
-                      // 0.65em number, so letting its full 1.75em set the row's
-                      // minimum would drive the fit above to shrink the font long
-                      // before the digits were anywhere near colliding.
-                      height: 'min(1.75em, 100%)',
+                      // With marks the row below takes its share of the cell,
+                      // and the circle stays round by following its height.
+                      ...(marked
+                        // The digits' own line height and never less than one em, so a
+                        // tight row overflows as a whole (which the fit sees and shrinks
+                        // for) rather than inside the number.
+                        ? { height: `min(1.75em, calc(100% - max(${MARK_ROW_MIN_PX}px, ${(MARK_ROW_EM / 0.65).toFixed(3)}em)))`, minHeight: '1em', lineHeight: 1, aspectRatio: '1 / 1', flexShrink: 0 }
+                        : {
+                            width: '1.75em',
+                            // Clamped to the row: the circle is decoration around a
+                            // 0.65em number, so letting its full 1.75em set the row's
+                            // minimum would drive the fit above to shrink the font long
+                            // before the digits were anywhere near colliding.
+                            height: 'min(1.75em, 100%)',
+                          }),
                       ...(isToday ? todayMarker : null),
                     }}
                   >
                     {visible ? cell.day : ''}
                   </div>
+                  {marked && (
+                    <div
+                      aria-hidden="true"
+                      data-day-marks={date && (dayEvents.length > 0 || dayNotes.length > 0) ? dayEvents.length : undefined}
+                      className="flex items-center justify-center shrink-0"
+                      style={{ height: `max(${MARK_ROW_MIN_PX}px, ${MARK_ROW_EM}em)`, gap: `max(3px, ${MARK_DOT_EM * 0.6}em)`, opacity: isPast ? TEXT_OPACITY.dim : 1 }}
+                    >
+                      {dayEvents.slice(0, MAX_DAY_MARKS).map((ev) => (
+                        <span key={ev.id} style={{ width: markDot, height: markDot, flexShrink: 0, borderRadius: '50%', background: ev.calendarColor ?? days!.accentColor }} />
+                      ))}
+                      {dayEvents.length === 0 && dayNotes.length > 0 && (
+                        // A note-only day: one dot in the card's own ink.
+                        <span style={{ width: markDot, height: markDot, flexShrink: 0, borderRadius: '50%', background: 'currentColor', opacity: TEXT_OPACITY.secondary }} />
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -301,9 +381,10 @@ function MonthGrid({
   );
 }
 
-export default function MultiMonthModule({ config, style, timezone }: MultiMonthModuleProps) {
+export default function MultiMonthModule({ config, style, timezone, events, timeFormat }: MultiMonthModuleProps) {
   const now = useTZClock(timezone);
   const locale = useFormattingLocale();
+  const t = useTranslate('modules');
 
   const view = config.view ?? 'vertical';
   const monthCount = config.monthCount ?? 3;
@@ -316,6 +397,9 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
   // Built once per render, not once per day cell — 42 cells per month grid.
   const todayMarker = todayMarkerStyle(todayStyle, accentColor);
+  const marks = config.showEventMarks === true;
+  const taps = config.eventTapDetails === true;
+  const withNotes = config.showDayNotes === true && (marks || taps);
 
   const today = {
     year: now.getFullYear(),
@@ -328,6 +412,37 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
     const d = new Date(today.year, today.month + i, 1);
     months.push([d.getFullYear(), d.getMonth()]);
   }
+
+  // The family's events through the card's calendar picker, the Calendar
+  // card's own pipeline, and each day's share of them looked up once.
+  const rawEvents = events ?? EMPTY_EVENTS;
+  const sourceFilter = config.sourceFilter;
+  const sourced = useMemo(
+    () => (marks || taps ? selectCalendarEvents(rawEvents, { sourceFilter, timezone, now: new Date(0) }) : EMPTY_EVENTS),
+    [marks, taps, rawEvents, sourceFilter, timezone],
+  );
+  const dayNotes: DayNotes = useDayNotes(withNotes);
+  const daySheet = useDaySheet(sourced, taps, withNotes ? dayNotes : undefined);
+  const { detailEvent, open: openDetail, close: closeDetail } = useEventTapDetail(sourced, taps);
+  const eventsOn = useMemo(() => {
+    const cache = new Map<number, CalendarEvent[]>();
+    return (date: Date) => {
+      const key = date.getTime();
+      let found = cache.get(key);
+      if (!found) {
+        found = eventsForDay(sourced, date, timezone);
+        cache.set(key, found);
+      }
+      return found;
+    };
+  }, [sourced, timezone]);
+  const notesOn = useCallback((date: Date) => (withNotes ? dayNotesFor(dayNotes, date) : []), [withNotes, dayNotes]);
+  const days = useMemo<DayMarks | undefined>(
+    () => (marks || taps ? { marks, opener: daySheet.opener, eventsOn, notesOn, accentColor, t } : undefined),
+    [marks, taps, daySheet.opener, eventsOn, notesOn, accentColor, t],
+  );
+  const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
+  const detailTheme = getThemeTokens('charcoal');
 
   const isHorizontal = view === 'horizontal';
 
@@ -348,7 +463,7 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   const desired = config.fitToBox ? scaledFontSize : style.fontSize;
   const { boxRef, contentRef, fontSize } = useFitFontSize(
     desired,
-    [view, monthCount, startDay, showWeekNumbers, hideMonthLabel, today.year, today.month].join('|'),
+    [view, monthCount, startDay, showWeekNumbers, hideMonthLabel, marks, today.year, today.month].join('|'),
   );
   // One element, measured by both: the fit needs it as its box, the scaler
   // needs its height.
@@ -400,11 +515,41 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
                 todayStyle={todayStyle}
                 todayMarker={todayMarker}
                 locale={locale}
+                days={days}
               />
             </div>
           ))}
         </div>
       </div>
+      {/* The Calendar card's two overlays: the day, then an event of it on top. */}
+      {daySheet.day && (
+        <DaySheetOverlay
+          date={daySheet.day.date}
+          events={daySheet.day.events}
+          notes={daySheet.day.notes}
+          variant="sheet"
+          theme={detailTheme}
+          accentColor={accentColor}
+          colorFor={(ev) => ev.calendarColor ?? accentColor}
+          timeFormat={resolvedTimeFormat}
+          timezone={timezone}
+          paused={detailEvent != null}
+          onOpenEvent={openDetail}
+          onClose={daySheet.close}
+        />
+      )}
+      {taps && detailEvent && (
+        <EventDetailOverlay
+          event={detailEvent}
+          variant="sheet"
+          theme={detailTheme}
+          accentColor={detailEvent.calendarColor ?? accentColor}
+          timeFormat={resolvedTimeFormat}
+          timezone={timezone}
+          now={now}
+          onClose={closeDetail}
+        />
+      )}
     </ModuleWrapper>
   );
 }

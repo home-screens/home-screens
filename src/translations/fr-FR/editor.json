@@ -2431,7 +2431,9 @@
       "advanced": {
         "heading": "Accès réseau avancé",
         "description": "Clé d'affichage, appareils connectés et limitation à certains réseaux."
-      }
+      },
+      "grownUpPointerPrefix": "Tu veux que le mur demande un code avant que les enfants dépensent des tickets ? C'est la section « ",
+      "grownUpPointerSuffix": " » de la page Famille."
     },
     "shared": {
       "secretField": {
@@ -2842,6 +2844,42 @@
         "grabLimitLabel": "Combien de tâches bonus une personne peut prendre à la fois",
         "grabHoldLabel": "Jusqu'à quand une tâche bonus prise reste réservée",
         "saved": "Enregistré"
+      },
+      "grownUp": {
+        "heading": "Un code parental pour le mur",
+        "description": "Quatre chiffres que le mur demande avant les actions que vous cochez ci-dessous, pour que les petites mains ne dépensent pas de tickets toutes seules. Ce n'est pas un verrou pour votre réseau : c'est le rôle du mot de passe de la page Sécurité.",
+        "notSet": "Pas encore de code.",
+        "isSet": "Un code est défini.",
+        "set": "Définir un code",
+        "change": "Changer",
+        "remove": "Supprimer",
+        "removeConfirm": "Supprimer le code",
+        "codeLabel": "Quatre chiffres",
+        "againLabel": "Les mêmes chiffres",
+        "save": "Enregistrer le code",
+        "mismatch": "Les deux codes ne correspondent pas.",
+        "format": "Utilisez quatre chiffres.",
+        "jobsLabel": "Le demander avant",
+        "jobs": {
+          "redeem": {
+            "label": "Dépenser des tickets dans la boutique de récompenses",
+            "hint": "Sur le mur et sur la page des tâches des enfants."
+          },
+          "untick": {
+            "label": "Décocher une tâche",
+            "hint": "Décocher reprend les tickets gagnés."
+          },
+          "todoist-close": {
+            "label": "Terminer une tâche Todoist",
+            "hint": "Une tâche terminée ne peut pas être rouverte depuis le mur."
+          }
+        },
+        "unlockLabel": "Rester déverrouillé pendant",
+        "minutes": {
+          "one": "{count} minute",
+          "other": "{count} minutes"
+        },
+        "unlockHint": "Une fois le bon code saisi, ce mur fait les actions cochées sans le redemander pendant ce temps. On ne le demande jamais à quelqu'un qui est connecté sur le téléphone."
       }
     },
     "touchAlignment": {
@@ -3770,11 +3808,11 @@
     "collapseTitle": "Masquer le panneau des réglages",
     "expandTitle": "Afficher le panneau des réglages",
     "openButton": {
-      "label": "Afficher un bouton qui ouvre",
+      "label": "Ouvre",
       "none": "Rien",
       "andMore": "et {count} de plus",
       "help": "Ajoute dans le coin bas du module un bouton portant le nom de cet écran. Sur un écran tactile, le toucher affiche l’écran.",
-      "sectionTitle": "Bouton d’ouverture",
+      "sectionTitle": "Ouvrir un écran",
       "opensOnTap": "{name} (s’ouvre au toucher)",
       "offBadge": "{name} (éteint)",
       "holds": "Affiche {what}",
@@ -3807,7 +3845,12 @@
       "turnOnTap": "Activer « Toucher l’écran mural »",
       "switchOn": "L’allumer",
       "onlyWhen": "Le bouton n’apparaît que {when}.",
-      "onlyConditions": "Le bouton n’apparaît que tant que les conditions de cet écran correspondent."
+      "onlyConditions": "Le bouton n’apparaît que tant que les conditions de cet écran correspondent.",
+      "openWith": "L’ouvrir avec",
+      "openWithButton": "Le bouton",
+      "openWithCard": "Un toucher sur le module",
+      "openWithCardHelp": "Un toucher n’importe où sur le module ouvre {name}. Une petite flèche dans son coin montre qu’on peut le toucher.",
+      "openWithTakesTaps": "Ce module utilise déjà le toucher pour ses propres actions, l’écran s’ouvre donc avec le bouton."
     }
   },
   "sudoPrompt": {
@@ -4488,7 +4531,10 @@
       "shuffleOrder": "Ordre aléatoire",
       "kenBurnsEffect": "Effet Ken Burns",
       "showClockOverlay": "Afficher l'horloge en superposition",
-      "clockBackground": "Fond de l'horloge"
+      "clockBackground": "Fond de l'horloge",
+      "interactive": "Activer le tactile sur le mur",
+      "interactiveHint": "Sur un écran tactile, un toucher affiche Retour, Pause et Suivante, et l'album de la photo. Glisser sur le côté change toujours d'écran.",
+      "interactiveHintCard": "Sur un écran tactile, un toucher affiche Retour, Pause et Suivante, et l'album de la photo. Glisser sur la photo passe à la suivante."
     },
     "garbage-day": {
       "frequencyWeekly": "Chaque semaine",
@@ -4691,7 +4737,13 @@
       "todayUnderline": "Soulignement",
       "todayText": "Chiffre coloré",
       "todayNone": "Aucune",
-      "accentColor": "Couleur d'accent"
+      "accentColor": "Couleur d'accent",
+      "events": "Événements",
+      "showEventMarks": "Marquer les jours avec des événements",
+      "showEventMarksHint": "Jusqu'à trois points sous chaque jour où quelque chose est prévu, de la couleur de son calendrier.",
+      "showDayNotesHint": "Un jour qui n'a qu'une note est marqué aussi, et ses notes s'affichent quand on touche le jour.",
+      "eventTapDetails": "Toucher un jour pour voir ses événements",
+      "eventTapDetailsHint": "Sur un écran tactile, ouvre la liste de ce jour, la même que celle du module Calendrier. Toucher un jour où rien n'est prévu ne fait rien."
     },
     "news": {
       "viewHeadline": "Manchette (rotation)",

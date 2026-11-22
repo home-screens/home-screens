@@ -1560,6 +1560,16 @@
           },
           "description": "Longest a video slide can play before moving on (60 sec)",
           "default": 60000
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "default": true
         }
       ]
     },
@@ -2959,6 +2969,45 @@
           },
           "description": "Size the calendar to the module instead of to the text size setting.",
           "default": true
+        },
+        {
+          "name": "showEventMarks",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Mark each day that has something on it with up to three dots, one per event, in the colour of its calendar",
+          "default": true
+        },
+        {
+          "name": "eventTapDetails",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "On touch displays, tap a day with something on it to see that day's events, and tap one of them for its details",
+          "default": true
+        },
+        {
+          "name": "sourceFilter",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Which calendars count. Empty or omitted means all of them"
+        },
+        {
+          "name": "showDayNotes",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Count the family's calendar day notes too: a day with only a note gets a mark, and the day's notes show when it is tapped",
+          "default": false
         }
       ],
       "views": [
@@ -6543,6 +6592,16 @@
           },
           "description": "Longest a video slide can play before moving on (60 sec)",
           "default": 60000
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "default": true
         }
       ]
     },
@@ -9181,6 +9240,19 @@
             "text": "string"
           },
           "description": "Draw a button under the module that opens this screen (its id) when tapped. The button carries the screen's name. Unset means no button"
+        },
+        {
+          "name": "openWith",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"card\" | \"button\"",
+            "values": [
+              "button",
+              "card"
+            ]
+          },
+          "description": "How a tap opens `openButtonScreen`: `button` draws the button under the module, `card` makes a tap anywhere on the card open it, with a small arrow in the corner instead of a button. Unset means `button`"
         }
       ]
     },
@@ -11628,6 +11700,32 @@
         {
           "method": "DELETE",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/grown-up-code",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "open"
+        },
+        {
+          "method": "PUT",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/grown-up-code/unlock",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "open"
         }
       ]
     },

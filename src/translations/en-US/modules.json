@@ -1715,5 +1715,13 @@
     "receiptThanks": "Thank you for reading",
     "receiptSummary": "Pinned {pinned} · Important {important}",
     "pinnedOne": "Pinned"
+  },
+  "photoControls": {
+    "label": "Photo controls",
+    "next": "Next",
+    "pause": "Pause",
+    "play": "Play",
+    "position": "{at} of {count}",
+    "allPictures": "All pictures"
   }
 }

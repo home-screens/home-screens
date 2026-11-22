@@ -301,6 +301,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'core|timer.pause',
   'core|timer.stop',
   'modules|display-control.start',
+  // The wall's photo buttons say "Pause" the way the timer buttons do.
+  'modules|photoControls.pause',
   // Photo sources: product and planet names, the same in every language.
   'editor|photoSources.kinds.immich',
   'editor|photoSources.kinds.onedrive',

@@ -656,5 +656,28 @@
     "connection": {
       "title": "Kan ikke nå Home Screens lige nu"
     }
+  },
+  "grownUp": {
+    "title": "Voksenkode",
+    "ask": "Spørg en voksen",
+    "why": {
+      "redeem": {
+        "one": "For at bruge 1 af {member}s billetter på {reward}",
+        "other": "For at bruge {count} af {member}s billetter på {reward}"
+      },
+      "untick": "For at fjerne {member}s flueben ved {chore}",
+      "todoistClose": "For at markere {task} som klaret"
+    },
+    "wrong": "Det var ikke den. Prøv igen.",
+    "tooMany": {
+      "one": "For mange forsøg. Vent {count} sekund, og prøv så igen.",
+      "other": "For mange forsøg. Vent {count} sekunder, og prøv så igen."
+    },
+    "offline": "Kunne ikke nå hubben. Prøv igen.",
+    "unlocked": {
+      "one": "Låst op i 1 minut mere",
+      "other": "Låst op i {count} minutter mere"
+    },
+    "lockNow": "Lås nu"
   }
 }

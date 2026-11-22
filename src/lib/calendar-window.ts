@@ -1,4 +1,4 @@
-import { addDays, startOfDay } from 'date-fns';
+import { addDays, addMonths, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { clampAgendaDays, clampRollingWeeks, clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import { isModuleEnabled } from '@/lib/schedule';
@@ -6,6 +6,7 @@ import type {
   CalendarConfig,
   FullscreenCalendarConfig,
   ModuleInstance,
+  MultiMonthConfig,
   Screen,
 } from '@/types/config';
 
@@ -109,6 +110,21 @@ function getModuleWindow(mod: ModuleInstance, now: Date, daysAhead: number): Mod
     if (columns > daysAhead + 1) return gridWindow('days', now, weekStartsOn, columns);
     if (daily.dimPastEvents === true || daily.showNowRule === true) return fromStartOfToday(now);
     return null; // daily: upcoming only
+  }
+  if (mod.type === 'multi-month') {
+    // Dates only unless it marks or opens days: then every drawn day, from
+    // the first grid week of this month to the last grid row of the last
+    // month (each month always draws six rows), or a three-month card would
+    // only ever see the default week of events.
+    const mm = mod.config as Partial<MultiMonthConfig>;
+    if (mm.showEventMarks !== true && mm.eventTapDetails !== true) return null;
+    const weekStartsOn = weekStartsOnFor(mm.startDay);
+    const months = Math.max(1, Math.floor(mm.monthCount ?? 3));
+    const first = startOfMonth(now);
+    return {
+      start: startOfWeek(first, { weekStartsOn }),
+      end: addDays(startOfWeek(addMonths(first, months - 1), { weekStartsOn }), 6 * 7),
+    };
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;

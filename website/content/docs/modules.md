@@ -79,7 +79,7 @@ Ambient displays that fill the whole screen. They have no position, size or styl
 - **Countdown** ([reference](/docs/module-reference#countdown)): days until a birthday, a trip or the last day of school. Add as many events as you like; views **All Events** (stacked) or just the **Next Event**. Needs nothing.
 - **Date** ([reference](/docs/module-reference#date)): today's date in five layouts: **Full**, **Minimal**, **Stacked**, **Editorial** and **Banner**. Needs nothing.
 - **Year Progress** ([reference](/docs/module-reference#year-progress)): how much of the year has gone, as a bar. Needs nothing.
-- **Multi-Month Calendar** ([reference](/docs/module-reference#multi-month-calendar)): a three-month grid, **Vertical** or **Horizontal**, with today marked. Needs nothing.
+- **Multi-Month Calendar** ([reference](/docs/module-reference#multi-month-calendar)): a three-month grid, **Vertical** or **Horizontal**, with today marked. With **Mark days with events** on, a day with something on it gets up to three small dots in its calendars' colours, and on a touchscreen a tap on that day lists its events. Needs nothing; the dots and the list need a calendar.
 
 ### Weather & Environment
 

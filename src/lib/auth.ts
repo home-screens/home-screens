@@ -260,6 +260,20 @@ export async function hasEditorSession(request: Request): Promise<boolean> {
 }
 
 /**
+ * True only for a real signed-in session: a password is set and the request
+ * carries a valid cookie. Unlike `hasEditorSession`, no password means false,
+ * because then anyone on the network is "the editor" and the grown-up code
+ * has to ask everyone.
+ */
+export async function hasSignedInSession(request: Request): Promise<boolean> {
+  const state = await getCachedAuthState();
+  if (!hasPassword(state) || !state.cookieSecret) return false;
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const token = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/)?.[1];
+  return Boolean(token && verifySession(token, state.cookieSecret, state.sessionEpoch));
+}
+
+/**
  * Validates the session cookie from a request.
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
  * and the session is invalid or missing.
