@@ -107,9 +107,23 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Pick a list in the editor'),
   },
   {
+    // A new card can add from the wall (registry default), so the empty list
+    // offers its own Add row instead of sending everyone to the phone.
     type: 'todo', name: 'no-items', kind: 'local-data',
     todoSeed: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [] }] },
     config: { listId: E2E_TODO_LIST_ID },
+    expect: async (mod) => {
+      await expect(mod).toContainText('Nothing on E2E TODO yet');
+      await expect(mod).toContainText('Tap Add, or add things on your phone.');
+      await expect(mod.getByRole('button', { name: 'Add to E2E TODO' })).toBeVisible();
+    },
+  },
+  {
+    // A card made before wall adding (or with it switched off) keeps the
+    // phone-only empty state.
+    type: 'todo', name: 'no-items-no-add', kind: 'local-data',
+    todoSeed: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [] }] },
+    config: { listId: E2E_TODO_LIST_ID, wallAdd: false },
     expect: showsCopy('Add things on your phone and they show up here'),
   },
   {
