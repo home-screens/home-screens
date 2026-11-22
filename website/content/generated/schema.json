@@ -3019,6 +3019,15 @@
           "default": true
         },
         {
+          "name": "addEvents",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show \"Add event\" when a day is tapped, and Change and Remove on an event, once adding events is on in the Calendar settings. Absent means on"
+        },
+        {
           "name": "sourceFilter",
           "optional": true,
           "type": {

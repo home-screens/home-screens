@@ -526,6 +526,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (the full-screen grocery view's Add button)
   'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
+  'multi-month.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'news.showNewMarker': 'not-observable',
   'fullscreen-news.showNewMarker': 'not-observable',
   'fullscreen-news.refreshIntervalMs': 'timing-only',

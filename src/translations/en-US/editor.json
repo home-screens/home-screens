@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Up to three dots under each day that has something on it, in the colour of its calendar.",
       "showDayNotesHint": "A day with only a note gets a mark too, and its notes show when the day is tapped.",
       "eventTapDetails": "Tap a day to see its events",
-      "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows. Days with nothing on them do nothing."
+      "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows."
     },
     "news": {
       "viewHeadline": "Headline (Rotating)",

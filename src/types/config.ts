@@ -4057,10 +4057,19 @@ export interface MultiMonthConfig {
    * them for its details
    *
    * The same day sheet and event detail as the Calendar card's
-   * `eventTapDetails`. A day with nothing on it does nothing. Omitted = off;
-   * new cards get it from the registry.
+   * `eventTapDetails`. A day with nothing on it does nothing, unless events
+   * can be added from it (`addEvents`). Omitted = off; new cards get it from
+   * the registry.
    */
   eventTapDetails?: boolean;
+  /**
+   * Show "Add event" when a day is tapped, and Change and Remove on an event, once adding events
+   * is on in the Calendar settings. Absent means on
+   *
+   * The same switch as `CalendarConfig.addEvents`. While adding is offered
+   * here every day opens, including one with nothing on it.
+   */
+  addEvents?: boolean;
   /**
    * Which calendars count. Empty or omitted means all of them
    *

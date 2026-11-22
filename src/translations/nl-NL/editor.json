@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Tot drie stippen onder elke dag waarop iets staat, in de kleur van de agenda.",
       "showDayNotesHint": "Een dag met alleen een notitie wordt ook gemarkeerd, en de notities verschijnen als je op de dag tikt.",
       "eventTapDetails": "Tik op een dag voor de afspraken",
-      "eventTapDetailsHint": "Op een aanraakscherm opent dit de lijst van die dag, dezelfde die de module Kalender toont. Tikken op een lege dag doet niets."
+      "eventTapDetailsHint": "Op een aanraakscherm opent dit de lijst van die dag, dezelfde die de module Kalender toont."
     },
     "news": {
       "viewHeadline": "Kop (roterend)",

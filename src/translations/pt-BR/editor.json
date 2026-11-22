@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Até três pontinhos embaixo de cada dia que tem alguma coisa marcada, cada um na cor do seu calendário.",
       "showDayNotesHint": "Um dia só com um recado também ganha uma marca, e os recados aparecem quando alguém toca no dia.",
       "eventTapDetails": "Toque em um dia para ver os eventos",
-      "eventTapDetailsHint": "Numa tela sensível ao toque, abre a lista daquele dia, a mesma que o módulo Calendário mostra. Tocar num dia vazio não faz nada."
+      "eventTapDetailsHint": "Numa tela sensível ao toque, abre a lista daquele dia, a mesma que o módulo Calendário mostra."
     },
     "news": {
       "viewHeadline": "Manchete (alternando)",

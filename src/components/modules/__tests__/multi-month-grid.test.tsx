@@ -111,6 +111,16 @@ vi.mock('@/hooks/useDayNotes', () => ({ useDayNotes: (enabled: boolean) => dayNo
 vi.mock('@/hooks/useTZClock', () => ({
   useTZClock: () => clock.now,
 }));
+// Whether this wall may add events: off unless a test turns it on.
+const wallAdding = vi.hoisted(() => ({ on: false, asked: [] as boolean[] }));
+vi.mock('@/components/modules/shared/useWallCalendarAdding', () => ({
+  useWallCalendarAdding: (moduleAllows: boolean) => {
+    wallAdding.asked.push(moduleAllows);
+    return wallAdding.on && moduleAllows
+      ? { entry: { enabled: true, google: null, calendars: [{ id: 'family', name: 'Family', color: '#4073ff', source: 'google' }], defaultCalendarId: 'family', defaultMinutes: 60, timezone: 'UTC', wallDefault: true }, remove: async () => true }
+      : null;
+  },
+}));
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
 
@@ -239,6 +249,35 @@ describe('MultiMonthModule day marks and taps', () => {
     for (const title of ['Soccer', 'Dentist', 'Swim', 'Book club']) {
       expect(document.body.textContent).toContain(title);
     }
+  });
+
+  describe('while this wall may add events', () => {
+    afterEach(() => {
+      wallAdding.on = false;
+      wallAdding.asked.length = 0;
+    });
+
+    it('opens an empty day too, with Add event, and Change and Remove on an event', () => {
+      wallAdding.on = true;
+      const { container } = renderModule(FEB, { eventTapDetails: true }, events.map((ev) => ({ ...ev, canEdit: true })));
+      const empty = container.querySelector<HTMLElement>('[data-day-cell="2026-02-11"]');
+      expect(empty).not.toBeNull();
+      fireEvent.click(empty!);
+      expect(document.querySelector('[data-testid="day-sheet-add-event"]')).not.toBeNull();
+      cleanup();
+
+      const again = renderModule(FEB, { eventTapDetails: true }, events.map((ev) => ({ ...ev, canEdit: true })));
+      fireEvent.click(again.container.querySelector<HTMLElement>('[data-day-cell="2026-02-10"]')!);
+      fireEvent.click(document.querySelector<HTMLElement>('[data-day-sheet-row="a"]')!);
+      expect(document.querySelector('[data-testid="event-detail-remove"]')).not.toBeNull();
+    });
+
+    it('keeps an empty day plain when the card has "Add events from a day" off', () => {
+      wallAdding.on = true;
+      const { container } = renderModule(FEB, { eventTapDetails: true, addEvents: false }, events);
+      expect(wallAdding.asked.at(-1)).toBe(false);
+      expect(container.querySelector('[data-day-cell="2026-02-11"]')).toBeNull();
+    });
   });
 
   it('counts a note-only day when day notes are on', () => {

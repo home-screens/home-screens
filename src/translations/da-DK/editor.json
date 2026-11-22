@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Op til tre prikker under hver dag, hvor der sker noget, hver i sin kalenders farve.",
       "showDayNotesHint": "En dag, der kun har en note, får også et mærke, og noterne vises, når man trykker på dagen.",
       "eventTapDetails": "Tryk på en dag for at se dens begivenheder",
-      "eventTapDetailsHint": "På en touchskærm åbner det dagens liste, den samme som Kalender-modulet viser. Et tryk på en tom dag gør ingenting."
+      "eventTapDetailsHint": "På en touchskærm åbner det dagens liste, den samme som Kalender-modulet viser."
     },
     "news": {
       "viewHeadline": "Overskrift (skiftende)",

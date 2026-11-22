@@ -193,6 +193,33 @@ test('with adding off, the phone says so and neither the phone nor the wall offe
   await request.put('/api/config', { data: config(true) });
 });
 
+test('a Multi-Month card adds on an empty day too, and keeps it plain with "Add events from a day" off', async ({ page, request, google }) => {
+  const months = (moduleAdds: boolean): ScreenConfiguration => ({
+    ...config(),
+    screens: [makeScreen('wall', 'Wall', [{ ...buildModuleInstance('multi-month'), config: { monthCount: 2, showEventMarks: true, eventTapDetails: true, ...(moduleAdds ? {} : { addEvents: false }) } }])],
+  });
+  const day = localDate(6);
+  await request.put('/api/config', { data: months(true) });
+  await page.goto('/display?screen=wall');
+  const cell = page.locator(`[data-open-day="${day}"]`).first();
+  await expect(cell).toBeVisible({ timeout: 30_000 });
+  await cell.click();
+  await page.getByTestId('day-sheet-add-event').click();
+  const form = page.getByTestId('wall-event-form');
+  for (const key of ['Z', 'o', 'o']) await form.locator(`[data-key="${key}"]`).click();
+  await form.locator('[data-key="action"]').click();
+  await form.locator('[data-hour="11"]').click();
+  await page.getByTestId('wall-event-save').click();
+  await expect(form).toHaveCount(0);
+  expect(writes(google, 'POST').at(-1)!.body).toMatchObject({ summary: 'Zoo', start: { dateTime: `${day}T11:00:00` } });
+
+  await request.put('/api/config', { data: months(false) });
+  await page.goto('/display?screen=wall');
+  await expect(page.locator(`[data-open-day="${localDate(0)}"]`).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(`[data-open-day="${localDate(5)}"]`)).toHaveCount(0);
+  await request.put('/api/config', { data: config(true) });
+});
+
 test('a calendar with "Add events from a day" off offers no adding, while the phone still can', async ({ page, request }) => {
   await request.put('/api/config', { data: config(true, false) });
   await page.goto('/display?screen=wall');

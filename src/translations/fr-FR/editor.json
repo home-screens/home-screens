@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Jusqu'à trois points sous chaque jour où quelque chose est prévu, de la couleur de son calendrier.",
       "showDayNotesHint": "Un jour qui n'a qu'une note est marqué aussi, et ses notes s'affichent quand on touche le jour.",
       "eventTapDetails": "Toucher un jour pour voir ses événements",
-      "eventTapDetailsHint": "Sur un écran tactile, ouvre la liste de ce jour, la même que celle du module Calendrier. Toucher un jour où rien n'est prévu ne fait rien."
+      "eventTapDetailsHint": "Sur un écran tactile, ouvre la liste de ce jour, la même que celle du module Calendrier."
     },
     "news": {
       "viewHeadline": "Manchette (rotation)",

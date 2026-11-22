@@ -18,8 +18,8 @@ import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color
 import { withAlpha } from '@/lib/hex-color';
 import type { CalendarEvent, MultiMonthConfig, ModuleStyle, TimeFormat, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { DaySheetOverlay } from './shared/DaySheetOverlay';
-import { EventDetailOverlay } from './shared/EventDetailOverlay';
+import { CalendarTapOverlays } from './shared/CalendarTapOverlays';
+import { useWallCalendarAdding } from './shared/useWallCalendarAdding';
 import { useEventTapDetail } from './shared/useEventTapDetail';
 import { openDayCellProps, openDayProps, useDaySheet, type OpenDaySheet } from './shared/useDaySheet';
 import { wallRowPress } from './shared/wallPress';
@@ -422,7 +422,10 @@ export default function MultiMonthModule({ config, style, timezone, events, time
     [marks, taps, rawEvents, sourceFilter, timezone],
   );
   const dayNotes: DayNotes = useDayNotes(withNotes);
-  const daySheet = useDaySheet(sourced, taps, withNotes ? dayNotes : undefined);
+  // Add, Change and Remove from the wall, as on the Calendar card; while it is
+  // offered every day opens, so an empty one can take an event.
+  const adding = useWallCalendarAdding(taps && config.addEvents !== false);
+  const daySheet = useDaySheet(sourced, taps, withNotes ? dayNotes : undefined, adding !== null);
   const { detailEvent, open: openDetail, close: closeDetail } = useEventTapDetail(sourced, taps);
   const eventsOn = useMemo(() => {
     const cache = new Map<number, CalendarEvent[]>();
@@ -521,35 +524,22 @@ export default function MultiMonthModule({ config, style, timezone, events, time
           ))}
         </div>
       </div>
-      {/* The Calendar card's two overlays: the day, then an event of it on top. */}
-      {daySheet.day && (
-        <DaySheetOverlay
-          date={daySheet.day.date}
-          events={daySheet.day.events}
-          notes={daySheet.day.notes}
-          variant="sheet"
-          theme={detailTheme}
-          accentColor={accentColor}
-          colorFor={(ev) => ev.calendarColor ?? accentColor}
-          timeFormat={resolvedTimeFormat}
-          timezone={timezone}
-          paused={detailEvent != null}
-          onOpenEvent={openDetail}
-          onClose={daySheet.close}
-        />
-      )}
-      {taps && detailEvent && (
-        <EventDetailOverlay
-          event={detailEvent}
-          variant="sheet"
-          theme={detailTheme}
-          accentColor={detailEvent.calendarColor ?? accentColor}
-          timeFormat={resolvedTimeFormat}
-          timezone={timezone}
-          now={now}
-          onClose={closeDetail}
-        />
-      )}
+      <CalendarTapOverlays
+        daySheet={daySheet}
+        tapDetails={taps}
+        detailEvent={detailEvent}
+        openDetail={openDetail}
+        closeDetail={closeDetail}
+        variant="sheet"
+        theme={detailTheme}
+        accentColor={accentColor}
+        colorFor={(ev) => ev.calendarColor ?? accentColor}
+        detailAccentFor={(ev) => ev.calendarColor ?? accentColor}
+        timeFormat={resolvedTimeFormat}
+        timezone={timezone}
+        now={now}
+        adding={adding}
+      />
     </ModuleWrapper>
   );
 }

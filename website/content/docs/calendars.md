@@ -129,7 +129,7 @@ Your family can add, change and remove events from a phone and from the wall, on
 
 On a phone, the family remote's **Calendar** tab lists the coming week with each day's events and day notes. Tap **Add event** under a day, or tap an event to change or remove it. An event from a calendar that can't be changed has no arrow.
 
-On the wall, with **Tap an event to see details** on, tapping a day opens it with **Add event**, even a day with nothing on it yet, and an event's details offer **Change** and **Remove**. The name is typed on the wall's own keyboard, or tap **Type on your phone** for a code that opens the phone's form for that day. Removing always asks first.
+On the wall, with **Tap an event to see details** on (**Tap a day to see its events** on a Multi-Month Calendar), tapping a day opens it with **Add event**, even a day with nothing on it yet, and an event's details offer **Change** and **Remove**. The name is typed on the wall's own keyboard, or tap **Type on your phone** for a code that opens the phone's form for that day. Removing always asks first.
 
 - **Repeats:** every day, every weekday, every week, every 2 weeks, every month or every year, and from the phone it can stop on a date. Changing or removing one day of a repeating event asks whether you mean **Just this day** or **Every time**. A repeat set up some other way in Google Calendar or Apple Calendar shows as it is and is changed there.
 - **Late nights:** an end earlier than the start is the next day, for a sleepover. Anything longer than a day is an all-day event, which can cover several days.

@@ -11,11 +11,11 @@ import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import type { ModuleInstance, MultiMonthTodayStyle } from '@/types/config';
 import { useWeekStartOptions } from './option-hooks';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import { CalendarGroup } from './CalendarSettingsGroups';
+import { AddEventsToggle, CalendarGroup } from './CalendarSettingsGroups';
 
 export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean; showEventMarks?: boolean; eventTapDetails?: boolean; sourceFilter?: string[]; showDayNotes?: boolean }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean; showEventMarks?: boolean; eventTapDetails?: boolean; addEvents?: boolean; sourceFilter?: string[]; showDayNotes?: boolean }>(mod, screenId);
   // The Calendar card's own source list and wording: the same calendars, named the same way.
   const { availableSources } = useCalendarSources('configSections.calendar');
   const usesEvents = c.showEventMarks === true || c.eventTapDetails === true;
@@ -95,6 +95,11 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
           <Toggle label={t('configSections.multi-month.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
           <p className={hintClass}>{t('configSections.multi-month.eventTapDetailsHint')}</p>
         </div>
+        {c.eventTapDetails === true && (
+          <div className="flex flex-col gap-1">
+            <AddEventsToggle checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} hintClassName={hintClass} />
+          </div>
+        )}
       </CalendarGroup>
     </>
   );

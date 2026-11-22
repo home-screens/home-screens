@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Hasta tres puntos debajo de cada día que tenga algo, del color de su calendario.",
       "showDayNotesHint": "Un día que solo tiene una nota también lleva marca, y sus notas se ven al tocar el día.",
       "eventTapDetails": "Tocar un día para ver sus eventos",
-      "eventTapDetailsHint": "En una pantalla táctil, abre la lista de ese día, la misma que muestra el módulo Calendario. Tocar un día vacío no hace nada."
+      "eventTapDetailsHint": "En una pantalla táctil, abre la lista de ese día, la misma que muestra el módulo Calendario."
     },
     "news": {
       "viewHeadline": "Titular (rotatorio)",

@@ -188,12 +188,25 @@ export function CalendarTouchGroup({ keyPrefix, config: c, set }: {
           options={tapStyleOptions}
         />
       )}
-      {c.eventTapDetails === true && (
-        <>
-          <Toggle label={t(`${KEY}.addEvents`)} checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} />
-          <p className="-mt-1 text-[11px] text-hs-text-faint">{t(`${KEY}.addEventsHelp`)}</p>
-        </>
-      )}
+      {c.eventTapDetails === true && <AddEventsToggle checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} />}
     </CalendarGroup>
+  );
+}
+
+/**
+ * "Add events from a day" and its help line, for every calendar module that
+ * opens a day. `hintClassName` lets a section draw the line like its other hints.
+ */
+export function AddEventsToggle({ checked, onChange, hintClassName = '-mt-1 text-[11px] text-hs-text-faint' }: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  hintClassName?: string;
+}) {
+  const t = useTranslate('editor');
+  return (
+    <>
+      <Toggle label={t(`${KEY}.addEvents`)} checked={checked} onChange={onChange} />
+      <p className={hintClassName}>{t(`${KEY}.addEventsHelp`)}</p>
+    </>
   );
 }

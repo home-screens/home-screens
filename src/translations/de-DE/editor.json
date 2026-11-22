@@ -4814,7 +4814,7 @@
       "showEventMarksHint": "Bis zu drei Punkte unter jedem Tag, an dem etwas ansteht, jeweils in der Farbe des Kalenders, zu dem der Termin gehört.",
       "showDayNotesHint": "Ein Tag, der nur eine Tagesnotiz hat, bekommt auch eine Markierung, und beim Antippen des Tages erscheinen seine Notizen.",
       "eventTapDetails": "Tag antippen, um seine Termine zu sehen",
-      "eventTapDetailsHint": "Öffnet auf einem Touch-Display die Liste dieses Tages, dieselbe, die auch das Kalender-Modul zeigt. Ein Tag, an dem nichts ansteht, reagiert nicht."
+      "eventTapDetailsHint": "Öffnet auf einem Touch-Display die Liste dieses Tages, dieselbe, die auch das Kalender-Modul zeigt."
     },
     "news": {
       "viewHeadline": "Schlagzeile (rotierend)",
