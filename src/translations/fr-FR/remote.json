@@ -24,6 +24,7 @@
     "control": "Contrôle",
     "chores": "Tâches",
     "lists": "Listes",
+    "calendar": "Calendrier",
     "meals": "Repas",
     "photos": "Photos",
     "timers": "Minuteurs",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "Aucun article",
       "description": "Planifie des repas avec des ingrédients pour voir ta liste de courses."
-    }
+    },
+    "alsoOn": "Aussi sur {list}",
+    "openInLists": "Ouvrir dans Listes"
   },
   "mealsSettings": {
     "ariaLabel": "Paramètres des repas",
@@ -1033,10 +1036,6 @@
     "newRoutine": "Nouvelle routine",
     "editRoutine": "Modifier la routine",
     "emptyHint": "Une routine est un minuteur étape par étape, comme une routine du matin : s'habiller, se brosser les dents, faire son lit. Créez-en une et lancez-la sur l'écran.",
-    "routineMeta": {
-      "one": "{steps} étape · {minutes} min",
-      "other": "{steps} étapes · {minutes} min"
-    },
     "stepCount": "Étape {current} sur {total}",
     "pause": "Pause",
     "resume": "Reprendre",
@@ -1065,7 +1064,6 @@
     "removeStep": "Retirer l'étape",
     "addStep": "Ajouter une étape",
     "minutesShort": "{minutes} min",
-    "loadError": "Impossible de charger les routines. Vérifiez la connexion et réessayez.",
     "retry": "Réessayer",
     "onAllDisplays": "Sur tous les écrans",
     "onDisplay": "Sur {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "Tous les écrans",
     "showOnNext": "Prochain minuteur sur",
     "onDisplays": "Sur {count} écrans",
-    "replaceTitle": "Démarrer un nouveau minuteur ?",
-    "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
     "soundOn": "Son activé",
     "soundOff": "Son coupé",
     "minUnit": "min",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "Tout est fait !"
     },
     "loadError": "Impossible de charger tes listes. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "alreadyOnList": "{item} est déjà sur la liste",
+    "putBack": "{item} est de retour sur la liste"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens choisit des dîners parmi tes recettes Mealie pour les {count} soirs vides de la semaine du {range} et les enregistre dans Mealie. Les soirs couverts par une règle du planning dans Mealie suivent cette règle."
       },
       "confirmLabel": "Remplir les dîners"
+    }
+  },
+  "calendarTab": {
+    "title": "Calendrier",
+    "sub": "Ce qui est prévu chaque jour, et les notes pour le mur",
+    "addEvent": "Nouvel événement",
+    "addNote": "Nouvelle note",
+    "addEventAria": "Ajouter un événement le {day}",
+    "allDay": "Toute la journée",
+    "repeats": "Se répète",
+    "changeAria": "Modifier {title}",
+    "googleCalendar": "Google Agenda",
+    "appleCalendar": "Calendrier Apple",
+    "unreachable": "Impossible de joindre Home Screens, donc rien n'a encore changé. Tout ce que tu as écrit est toujours là.",
+    "added": "Ajouté au calendrier {calendar}. Il apparaît sur le mur dans quelques secondes.",
+    "changed": "C'est modifié. Le changement apparaît sur le mur dans quelques secondes.",
+    "removed": "Retiré du calendrier {calendar}.",
+    "offTitle": "L'ajout d'événements est désactivé",
+    "offBody": "On peut l'activer dans Réglages > Calendrier. Les notes du jour marchent comme d'habitude.",
+    "signInTitle": "L'ajout d'événements demande encore une étape",
+    "signInBody": "Pour ajouter des événements, il faut se reconnecter une fois de plus à Google. C'est dans Réglages > Calendrier.",
+    "justThisDay": "Ce jour-là seulement",
+    "everyTime": "Toutes les fois",
+    "keepIt": "Le garder",
+    "backToForm": "Retour au formulaire",
+    "saveAsk": {
+      "title": "Modifier {title}"
+    },
+    "removeAsk": {
+      "title": "Retirer {title} ?",
+      "body": "L'événement disparaît du calendrier {calendar} pour tout le monde : ici, sur le mur et dans {app}."
+    },
+    "form": {
+      "newTitle": "Nouvel événement",
+      "changeTitle": "Modifier l'événement",
+      "what": "C'est quoi ?",
+      "whatPlaceholder": "Entraînement de foot, dentiste…",
+      "day": "Jour",
+      "firstDay": "Premier jour",
+      "lastDay": "Dernier jour",
+      "allDay": "Toute la journée",
+      "starts": "Début",
+      "ends": "Fin",
+      "nextDay": "le lendemain",
+      "endsOn": "Se termine le {day} à {time} · {length}",
+      "hours": {
+        "one": "{count} heure",
+        "other": "{count} heures"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "repeats": "Répétition",
+      "stops": "S'arrête",
+      "stopsNever": "Jamais",
+      "stopsOnDate": "À une date",
+      "done": "Terminé",
+      "calendar": "Calendrier",
+      "staysOnGoogle": "Un événement reste dans son calendrier. Pour le déplacer, modifie-le dans Google Agenda.",
+      "staysOnICloud": "Un événement reste dans son calendrier. Pour le déplacer, modifie-le dans Calendrier Apple.",
+      "place": "Lieu",
+      "placeOptional": "(si tu veux)",
+      "placePlaceholder": "Ajouter un lieu",
+      "add": "Ajouter au calendrier",
+      "save": "Enregistrer",
+      "remove": "Retirer",
+      "fromWall": "Commencé sur le mur {wall} pour le {day}.",
+      "changedElsewhere": "Quelqu'un vient de modifier cet événement, voici donc la dernière version. Refais ta modification, puis enregistre.",
+      "repeatsNote": "{title} se répète. Quand tu enregistres, tu choisis ce jour-là ou toutes les fois.",
+      "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans Réglages > Calendrier."
     }
   }
 }

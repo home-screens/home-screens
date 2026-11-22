@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Lock } from 'lucide-react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { redeemGoalEffect, ticketsAfterRedeeming } from '@/lib/reward-rules';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -15,6 +16,8 @@ interface RedeemConfirmProps {
   goal?: RewardDefinition | null;
   error?: string | null;
   busy?: boolean;
+  /** Spending needs the grown-up code: the yes says so, with a lock, before it is pressed. */
+  asksGrownUp?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   k: number;
@@ -28,8 +31,9 @@ interface RedeemConfirmProps {
  * k for tap targets) so it reads from where the kid is standing, not like a
  * phone dialog dropped on a wall.
  */
-export default function RedeemConfirm({ reward, memberName, balance, goal = null, error, busy, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
+export default function RedeemConfirm({ reward, memberName, balance, goal = null, error, busy, asksGrownUp = false, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
   const tr = useTranslate('modules');
+  const trCore = useTranslate('core');
   const left = ticketsAfterRedeeming(balance, reward);
   const goalEffect = redeemGoalEffect(balance, reward, goal);
   const buttonText = 26 * t;
@@ -136,7 +140,9 @@ export default function RedeemConfirm({ reward, memberName, balance, goal = null
               opacity: busy ? 0.7 : 1,
             }}
           >
-            {tr('fullscreen-chore-chart.rewardsStore.confirmYes')}
+            {asksGrownUp
+              ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4em' }}><Lock size="1em" strokeWidth={2.6} aria-hidden="true" />{trCore('grownUp.ask')}</span>
+              : tr('fullscreen-chore-chart.rewardsStore.confirmYes')}
           </button>
         </div>
       </div>

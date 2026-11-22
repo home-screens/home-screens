@@ -367,6 +367,17 @@ export interface ModuleInstance {
    * moves on.
    */
   openButtonScreen?: string;
+  /**
+   * How a tap opens `openButtonScreen`: `button` draws the button under the module, `card` makes
+   * a tap anywhere on the card open it, with a small arrow in the corner instead of a button. Unset
+   * means `button`
+   *
+   * `card` applies only to module types that take no taps of their own
+   * (`canOpenWithCard` in `src/lib/open-button.ts`, from the registry's
+   * `takesTaps`); on any other type it is read as `button`, so a card never
+   * has two meanings for one touch.
+   */
+  openWith?: 'button' | 'card';
 }
 
 /**
@@ -764,6 +775,27 @@ export interface CalendarEvent {
    */
   icon?: string;
   opacity?: number;
+  /**
+   * Set by a source that can be written (Google today): this account may
+   * change events on the event's calendar. The household's own switches
+   * decide `canEdit` on top of it.
+   */
+  writable?: boolean;
+  /** Part of a repeating series; `seriesId` names the series where the source has one (Google). */
+  repeats?: boolean;
+  seriesId?: string;
+  /**
+   * The source's own address for the event, sent back with a change: the
+   * iCloud calendar object's path. Only on events with `canEdit`.
+   */
+  sourceRef?: string;
+  /**
+   * The source's version of the event, sent back with a change so a newer
+   * edit made elsewhere is never overwritten. Only on events with `canEdit`.
+   */
+  etag?: string;
+  /** The phone and the wall may offer Change and Remove for this event. */
+  canEdit?: boolean;
 }
 
 /**
@@ -895,6 +927,32 @@ export interface CalendarSettings {
    * Google only: skip events the signed-in account declined
    */
   hideDeclined?: boolean;
+  /**
+   * Adding, changing and removing events from the phone and the wall (see CalendarEventEntry).
+   * Absent means off
+   */
+  eventEntry?: CalendarEventEntry;
+}
+
+/** Adding, changing and removing calendar events from Home Screens */
+export interface CalendarEventEntry {
+  /**
+   * Let Home Screens add and change events. Google calendars need one more Google sign-in to allow
+   * it; iCloud calendars need nothing more
+   */
+  enabled: boolean;
+  /**
+   * The calendars events can go on: Google calendar IDs and iCloud calendar IDs. Only calendars the
+   * screens show, and that this account may change, are used
+   */
+  calendarIds: string[];
+  /** The calendar a new event starts on. Absent means the first one listed */
+  defaultCalendarId?: string;
+  /**
+   * How long a new event lasts until someone changes it, in minutes: 30, 60, 90 or 120. Absent
+   * means 60
+   */
+  defaultMinutes?: number;
 }
 
 export interface SleepSettings {
@@ -1242,6 +1300,16 @@ export interface GlobalSettings {
    * @default false
    */
   pixelShift?: boolean;
+  /**
+   * Let the walls add, change and remove calendar events too, once adding events is on in the
+   * Calendar settings. Each display can turn this off for itself
+   *
+   * Absent means on. The per-display override is enforced on the wall only: the display token is
+   * shared by every kiosk, so the hub cannot tell which display sent a write.
+   *
+   * @default true
+   */
+  calendarWallEntry?: boolean;
   /** Backup reminder (see BackupReminderSettings) */
   backupReminder?: BackupReminderSettings;
   /** New-release banner (see UpdateNotificationSettings) */
@@ -1430,6 +1498,8 @@ export interface DisplayNodeSettings {
   pixelShift?: boolean;
   /** Alert overlay, replacing the shared object as a whole */
   alerts?: AlertSettings;
+  /** Add, change and remove calendar events on this wall */
+  calendarWallEntry?: boolean;
 
   // NOTE: per-display location overrides (latitude/longitude/locationName/
   // timezone) were intentionally NOT added. The server-side API routes
@@ -1958,6 +2028,11 @@ export interface FullscreenCalendarConfig {
    */
   eventTapDetails?: boolean;
   /**
+   * Show "Add event" when a day is tapped, and Change and Remove on an event, once adding events
+   * is on in the Calendar settings. Absent means on
+   */
+  addEvents?: boolean;
+  /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *
    * default 'sheet' (bottom sheet); 'card' = centered card
@@ -2384,6 +2459,11 @@ export interface CalendarConfig {
    * event to open a detail overlay, "+N more" or a day to open the day sheet
    */
   eventTapDetails?: boolean;
+  /**
+   * Show "Add event" when a day is tapped, and Change and Remove on an event, once adding events
+   * is on in the Calendar settings. Absent means on
+   */
+  addEvents?: boolean;
   /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *
@@ -3063,6 +3143,16 @@ export interface TodoConfig {
    * whatever they had.
    */
   interactive?: boolean;
+  /**
+   * An Add row under the list on a touch wall, so anyone at the wall can put something on it with
+   * the wall's keyboard. Changing and removing stay on the phone. Needs taps on
+   *
+   * Omitted = off, so a card made before this keeps its look; the registry
+   * default turns it on for new cards. Drawn by the List, Compact and Board
+   * views. The hub takes the wall's add only for a list some card shows with
+   * this on (`wallMayAddToList` in `src/lib/todo-wall.ts`).
+   */
+  wallAdd?: boolean;
   /** Where done items go: `bottom` (sink under the open ones), `inline` (stay put) or `hidden` */
   completedPlacement?: TodoCompletedPlacement;
   /**
@@ -3705,6 +3795,16 @@ export interface PhotoSlideshowConfig {
    * Force-advance cap for video slides. Default 60000.
    */
   maxVideoDurationMs?: number;
+  /**
+   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * album it is from. Unset means on
+   *
+   * Absent reads as on (a tap did nothing before this existed, so turning it
+   * on changes nothing until someone touches the photo). Off also hides the
+   * module's open button, as `interactive` does on To-do and the meal
+   * planners (`openButtonHidden`).
+   */
+  interactive?: boolean;
 }
 
 // QR code module config
@@ -3935,6 +4035,40 @@ export interface MultiMonthConfig {
    * behaved. New ones get it from the registry default.
    */
   fitToBox?: boolean;
+  /**
+   * Mark each day that has something on it with up to three dots, one per event, in the colour of
+   * its calendar
+   *
+   * Reads the same calendar events as the Calendar card (the module lists
+   * `calendar` in its registry `dataRequirements`, and `calendar-window.ts`
+   * widens the shared fetch to the months drawn). Omitted = off, so a card
+   * already on a wall keeps its look; new cards get it from the registry.
+   */
+  showEventMarks?: boolean;
+  /**
+   * On touch displays, tap a day with something on it to see that day's events, and tap one of
+   * them for its details
+   *
+   * The same day sheet and event detail as the Calendar card's
+   * `eventTapDetails`. A day with nothing on it does nothing. Omitted = off;
+   * new cards get it from the registry.
+   */
+  eventTapDetails?: boolean;
+  /**
+   * Which calendars count. Empty or omitted means all of them
+   *
+   * Source ids, the same shape and meaning as `CalendarConfig.sourceFilter`.
+   */
+  sourceFilter?: string[];
+  /**
+   * Count the family's calendar day notes too: a day with only a note gets a mark, and the day's
+   * notes show when it is tapped
+   *
+   * Omitted = off here, unlike the Calendar card, where an omitted
+   * `showDayNotes` means on: a month grid has no room to draw a note, so a
+   * note only shows as a mark and in the day sheet.
+   */
+  showDayNotes?: boolean;
 }
 
 // Garbage day module config
@@ -4285,6 +4419,15 @@ export interface MealSettings {
    * comes back when this is cleared.
    */
   planSource?: MealPlanSource;
+  /**
+   * A to-do list for the other things to buy (paper towels, dog food). Its open items show at the
+   * end of the grocery list on the phone and the wall, and the wall's grocery card adds to it.
+   * Unset = none
+   *
+   * Read only while the plan is kept in Home Screens; a Mealie plan shops from
+   * Mealie's own list. A list that has been removed reads as unset.
+   */
+  groceryExtrasListId?: string;
 }
 
 /**
@@ -4343,6 +4486,16 @@ export interface MealPlannerConfig {
    * the grocery view existed takes taps too.
    */
   interactive?: boolean;
+  /**
+   * In the grocery view on a touch wall, an Add row under the list, so anyone at the wall can put
+   * something on the family's shopping list with the wall's keyboard. Needs taps on
+   *
+   * Omitted = off, so a card made before this keeps its look; the registry
+   * default turns it on for new cards. It adds to the Mealie list the family
+   * shops from while the plan lives in Mealie, otherwise to the to-do list
+   * picked as `MealSettings.groceryExtrasListId` (no Add row without one).
+   */
+  wallAdd?: boolean;
 }
 
 // Icon module config (Font Awesome)
@@ -4675,6 +4828,16 @@ export interface DisplayControlConfig {
    * @default false
    */
   dockExtras?: boolean;
+  /**
+   * With the `dock` or `panel` layout: also show a Timers button, which opens a sheet that starts
+   * one of the family's routines or a quick timer on this display. The dock puts it last, after
+   * the divider; the panel puts it in a row under the four buttons
+   *
+   * Ignored by the other layouts. The timer starts on the display the module
+   * is on (`wallTimerTargets`); routines are made on the phone.
+   * @default false
+   */
+  showTimers?: boolean;
   /**
    * With the `dock` layout: which screens get a button, in this order, each with an optional name,
    * icon and colour of its own (see DockButton). Unset gives every screen of the rotation a button
@@ -5086,6 +5249,15 @@ export interface FullscreenMealPlannerConfig {
    * Omitted = on, the same as the registry default.
    */
   interactive?: boolean;
+  /**
+   * In the grocery view on a touch wall, an Add button by the list's name, so anyone at the wall can
+   * put something on the family's shopping list with the wall's keyboard. Needs taps on
+   *
+   * The same as `MealPlannerConfig.wallAdd`: omitted = off, on for new cards
+   * through the registry default, and it adds to the Mealie list the family
+   * shops from or to `MealSettings.groceryExtrasListId`.
+   */
+  wallAdd?: boolean;
 }
 
 // Fullscreen weather module config
@@ -5319,6 +5491,16 @@ export interface FullscreenPhotoConfig {
    * Force-advance cap for video slides. Default 60000.
    */
   maxVideoDurationMs?: number;
+  /**
+   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * album it is from. Unset means on
+   *
+   * Absent reads as on (a tap did nothing before this existed, so turning it
+   * on changes nothing until someone touches the photo). Off also hides the
+   * module's open button, as `interactive` does on To-do and the meal
+   * planners (`openButtonHidden`).
+   */
+  interactive?: boolean;
 }
 
 // Video module config

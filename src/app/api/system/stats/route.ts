@@ -113,6 +113,7 @@ export const GET = withAuth(async () => {
       arch: os.arch(),
       uptime: os.uptime(),
       nodeVersion: process.version,
+      timeZoneData: process.versions.tz ?? null,
     },
     memory: (() => {
       const total = os.totalmem();

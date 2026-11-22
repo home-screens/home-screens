@@ -5,6 +5,7 @@ import type { FamilyMember } from '@/types/family';
 import type { ChoreWriteOutcome } from '@/lib/chore-client';
 import { useTranslate } from '@/i18n';
 import { DIVIDER } from '@/lib/constants';
+import { isGrownUpCancelled } from '@/lib/grown-up-client';
 
 /** How long "that didn't save" stays up. A passing message, like the overspent notice. */
 export const CHORE_WRITE_ALERT_MS = 5000;
@@ -40,6 +41,8 @@ export function useChoreWriteAlert(members: readonly FamilyMember[]) {
       setAlert(null);
       return;
     }
+    // Nobody gave the grown-up code: the tick stays, and nothing failed.
+    if (!outcome.refused && isGrownUpCancelled(outcome.error)) return;
     if (!outcome.refusal) {
       setAlert({ text: tCore('refusals.saveFailed'), bonus: false });
       return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { formatDateSync, formatDayRange, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import { NoteGlyph } from '@/components/notes/NoteGlyph';
@@ -75,19 +75,43 @@ function rangeLabel(first: string, last: string, today: string, locale: string):
   return formatDayRange(dateOfIso(first), dateOfIso(last), locale, { month: 'short', year: last.slice(0, 4) !== today.slice(0, 4) });
 }
 
+/** What the Calendar tab adds to each day: its events above the notes, and "Add event" beside "Add note". */
+export interface DayEventsSlot {
+  /** The day's event rows, drawn above its notes. */
+  rows: (date: string) => ReactNode;
+  /** Shown only while events can be added. */
+  onAdd?: (date: string) => void;
+}
+
 /**
- * The Notes tab's Calendar page: short notes for a day ("Picture day",
- * "Bring boots") that every calendar on the wall draws on that day. Seven
- * days at a time starting today, laid out like the Meals week: each note is
- * its own row, and a dashed row adds one while the day has room. Past days
- * are not listed, since a note cannot be written for them.
+ * Short notes for a day ("Picture day", "Bring boots") that every calendar
+ * on the wall draws on that day, on the Notes tab's Calendar page and, with
+ * the day's events beside them, on the Calendar tab. Seven days at a time
+ * starting today, laid out like the Meals week: each note is its own row, and
+ * a dashed row adds one while the day has room. Past days are not listed,
+ * since a note cannot be written for them.
  */
-export default function DayNotesPage() {
+export default function DayNotesPage({ events, sub, card, page: pageProp, onPageChange }: {
+  events?: DayEventsSlot;
+  /** The week on screen, when the caller needs it too (the Calendar tab reads that week's events). */
+  page?: number;
+  onPageChange?: (page: number) => void;
+  /** The line under the page title; the Notes tab's own when absent. */
+  sub?: string;
+  /** A card above the days (the Calendar tab's "adding is off"). */
+  card?: ReactNode;
+} = {}) {
   const t = useTranslate('remote');
   const locale = useFormattingLocale();
   const today = useHouseholdToday();
   const { notes, loaded, loadError, retry, add, update, remove, resolveId } = useDayNotesData();
-  const [page, setPage] = useState(0);
+  const [ownPage, setOwnPage] = useState(0);
+  const page = pageProp ?? ownPage;
+  const setPage = (next: (p: number) => number) => {
+    const value = next(page);
+    if (onPageChange) onPageChange(value);
+    else setOwnPage(value);
+  };
   const [editing, setEditing] = useState<Editing | null>(null);
   // Words typed and then closed without saving, per day and note, so a stray
   // tap outside the sheet never costs anyone what they typed.
@@ -145,12 +169,13 @@ export default function DayNotesPage() {
 
   return (
     <div data-testid="day-notes-page">
-      <div style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>{t('notes.dayNotes.sub')}</div>
+      <div style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>{sub ?? t('notes.dayNotes.sub')}</div>
+      {card}
       <MealsWeekNav
         weekLabel={weekLabel}
         isCurrentWeek={page === 0}
         navigateWeek={(direction) => setPage((p) => Math.min(LAST_DAY_NOTES_PAGE, Math.max(0, p + direction)))}
-        jumpToToday={() => setPage(0)}
+        jumpToToday={() => setPage(() => 0)}
         prevDisabled={page === 0}
         nextDisabled={page === LAST_DAY_NOTES_PAGE}
       />
@@ -168,6 +193,7 @@ export default function DayNotesPage() {
               {isToday && <span style={TODAY_BADGE}>{t('mealsTab.weekView.todayBadge')}</span>}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {events?.rows(date)}
               {onDay.map((note) => (
                 <button
                   key={note.id}
@@ -184,19 +210,40 @@ export default function DayNotesPage() {
                   <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
                 </button>
               ))}
-              {onDay.length < DAY_NOTES_LIMITS.maxPerDay && (
-                <button
-                  type="button"
-                  className="press-scale"
-                  data-testid="day-notes-add"
-                  aria-label={t('notes.dayNotes.addAria', { day: words })}
-                  onClick={() => setEditing({ date, id: null })}
-                  style={EMPTY_ROW}
-                >
-                  <Plus size={16} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
-                  {onDay.length === 0 ? t('notes.dayNotes.addForDay') : t('notes.dayNotes.addAnother')}
-                </button>
-              )}
+              {(() => {
+                const addNote = onDay.length < DAY_NOTES_LIMITS.maxPerDay && (
+                  <button
+                    type="button"
+                    className="press-scale"
+                    data-testid="day-notes-add"
+                    aria-label={t('notes.dayNotes.addAria', { day: words })}
+                    onClick={() => setEditing({ date, id: null })}
+                    style={EMPTY_ROW}
+                  >
+                    <Plus size={16} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
+                    {events?.onAdd ? t('calendarTab.addNote') : onDay.length === 0 ? t('notes.dayNotes.addForDay') : t('notes.dayNotes.addAnother')}
+                  </button>
+                );
+                if (!events?.onAdd) return addNote;
+                const onAdd = events.onAdd;
+                // Add event and Add note side by side; a full day of notes leaves Add event the whole row.
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: addNote ? '1fr 1fr' : '1fr', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="press-scale"
+                      data-testid="calendar-add-event"
+                      aria-label={t('calendarTab.addEventAria', { day: words })}
+                      onClick={() => onAdd(date)}
+                      style={{ ...EMPTY_ROW, color: 'var(--hs-text-muted)' }}
+                    >
+                      <Plus size={16} aria-hidden="true" style={{ flex: 'none' }} />
+                      {t('calendarTab.addEvent')}
+                    </button>
+                    {addNote}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );

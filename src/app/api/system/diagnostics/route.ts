@@ -293,6 +293,7 @@ export const GET = withAuth(async (request) => {
       build: buildInfo,
       generatedAt: new Date().toISOString(),
       node: process.version,
+      timeZoneData: process.versions.tz ?? null,
       platform: `${os.platform()}-${os.arch()}`,
       truncated: journalTruncated ? ['logs/journalctl-home-screens.log'] : undefined,
     },

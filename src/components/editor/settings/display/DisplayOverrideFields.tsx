@@ -426,6 +426,25 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               <FullscreenThemeGrid value={value} onChange={onChange} disabled={disabled} />
             )}
           </OverrideRow>
+
+          {/* Only once the household turned adding events on; until then there is nothing to allow. */}
+          {settings.calendar?.eventEntry?.enabled && (
+            <OverrideRow
+              label={t('settings.perDisplayPage.calendar.wallEntryLabel')}
+              defaultValue={settings.calendarWallEntry !== false}
+              override={overrides.calendarWallEntry}
+              onFork={(seed) => setOverride('calendarWallEntry', seed)}
+              onReset={() => setOverride('calendarWallEntry', undefined)}
+              defaultsPageHref={settingsHref({ kind: 'defaults', page: 'calendar' })}
+              defaultsPageLabel={t('settings.perDisplayPage.calendar.defaultsLabel')}
+              formatValue={(v) => (v ? t('settings.perDisplayPage.display.fields.pixelShiftOn') : t('settings.perDisplayPage.display.fields.pixelShiftOff'))}
+              displayName={display.name}
+            >
+              {({ value, onChange, disabled }) => (
+                <Toggle label={t('settings.perDisplayPage.calendar.wallEntryToggle')} checked={value} disabled={disabled} onChange={onChange} />
+              )}
+            </OverrideRow>
+          )}
         </div>
       </div>
     </>

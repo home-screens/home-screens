@@ -9,20 +9,29 @@ import { useTranslate } from '@/i18n';
 
 type Outcome =
   | { kind: 'working' }
-  | { kind: 'connected' }
+  /**
+   * `calendar`: a Calendar sign-in to add events; `canAddEvents` is false when
+   * Google's box was left empty. `justFinished`: this visit redeemed the code,
+   * rather than being opened again afterwards.
+   */
+  | { kind: 'connected'; purpose?: 'photos' | 'calendar'; canAddEvents?: boolean; justFinished?: boolean }
   | { kind: 'expired' }
   | { kind: 'cancelled' }
   | { kind: 'failed'; message: string | null };
 
 /** How long a refused window.close() gets before the page says so. */
 const CLOSE_CHECK_MS = 300;
+/** How long the tick shows before a finished sign-in closes its own tab. */
+const AUTO_CLOSE_MS = 1500;
 
 /**
- * The end of a Google Photos sign-in on the hub itself. homescreens.dev
- * forwards Google's answer here (`?code=…&state=…`, or `?error=…` when the
- * family said no); this page hands the code to the hub, which checks the
- * one-time value in `state` and redeems it with its PKCE verifier. The editor
- * tab that started the sign-in notices through its own status check.
+ * The end of a Google web sign-in on the hub itself: Google Photos import, or
+ * Calendar when it adds events. homescreens.dev forwards Google's answer here
+ * (`?code=…&state=…`, or `?error=…` when the family said no); this page hands
+ * the code to the hub, which checks the one-time value in `state`, redeems it
+ * with its PKCE verifier into the right grant, and says which one it was.
+ * The editor tab that started the sign-in notices through its own status
+ * check.
  */
 async function finishSignIn(search: string): Promise<Outcome> {
   const params = new URLSearchParams(search);
@@ -39,7 +48,7 @@ async function finishSignIn(search: string): Promise<Outcome> {
       return status?.connected ? { kind: 'connected' } : { kind: 'expired' };
     }
 
-    const res = await fetch('/api/google-picker/auth', {
+    const res = await fetch('/api/auth/google/return', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, state }),
@@ -50,7 +59,10 @@ async function finishSignIn(search: string): Promise<Outcome> {
       window.location.href = `/login?from=${encodeURIComponent(`${window.location.pathname}${search}`)}`;
       return { kind: 'working' };
     }
-    if (res.ok) return { kind: 'connected' };
+    if (res.ok) {
+      const done = await res.json().catch(() => ({})) as { purpose?: 'photos' | 'calendar'; canAddEvents?: boolean };
+      return { kind: 'connected', purpose: done.purpose, canAddEvents: done.canAddEvents, justFinished: true };
+    }
     const data = await res.json().catch(() => ({})) as { error?: string; expired?: boolean };
     return data.expired ? { kind: 'expired' } : { kind: 'failed', message: data.error ?? null };
   } catch {
@@ -84,6 +96,17 @@ export default function GoogleSignInReturn() {
     });
   }, [router]);
 
+  // A sign-in that just finished goes back to the editor tab that started
+  // it, which catches up when it comes to the front. Browsers only let a page
+  // close a tab a script opened; any other tab keeps the button. A Calendar
+  // sign-in with Google's box left empty stays open to say so.
+  const finished = outcome.kind === 'connected' && outcome.justFinished === true && outcome.canAddEvents !== false;
+  useEffect(() => {
+    if (!finished) return;
+    const timer = setTimeout(() => window.close(), AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [finished]);
+
   // Browsers only let a page close a tab that a script opened, so check.
   const closeTab = () => {
     window.close();
@@ -111,11 +134,27 @@ export default function GoogleSignInReturn() {
 
         {outcome.kind === 'connected' && (
           <>
-            <Badge tone="success"><Check className="h-5 w-5" strokeWidth={2.5} /></Badge>
-            <h1 className="text-lg font-semibold text-hs-text-primary">{t('connectGoogle.connectedTitle')}</h1>
-            <p className="mt-1.5 mb-4 text-sm text-hs-text-muted">
-              {withBold(t('connectGoogle.connectedBody'), '{choosePhotos}', choosePhotos)}
-            </p>
+            {outcome.purpose === 'calendar' ? (
+              <>
+                {outcome.canAddEvents === false
+                  ? <Badge tone="warning"><TriangleAlert className="h-5 w-5" /></Badge>
+                  : <Badge tone="success"><Check className="h-5 w-5" strokeWidth={2.5} /></Badge>}
+                <h1 className="text-lg font-semibold text-hs-text-primary">
+                  {outcome.canAddEvents === false ? t('settings.calendarPage.adding.scopeMissingTitle') : t('connectGoogle.calendarConnectedTitle')}
+                </h1>
+                <p className="mt-1.5 mb-4 text-sm text-hs-text-muted">
+                  {outcome.canAddEvents === false ? t('connectGoogle.calendarReadOnlyBody') : t('connectGoogle.calendarConnectedBody')}
+                </p>
+              </>
+            ) : (
+              <>
+                <Badge tone="success"><Check className="h-5 w-5" strokeWidth={2.5} /></Badge>
+                <h1 className="text-lg font-semibold text-hs-text-primary">{t('connectGoogle.connectedTitle')}</h1>
+                <p className="mt-1.5 mb-4 text-sm text-hs-text-muted">
+                  {withBold(t('connectGoogle.connectedBody'), '{choosePhotos}', choosePhotos)}
+                </p>
+              </>
+            )}
             <Button variant="primary" onClick={closeTab}>{t('connectGoogle.closeTab')}</Button>
             {closeBlocked && (
               <p className="mt-3 text-xs text-hs-text-faint">{t('connectGoogle.closeBlocked')}</p>

@@ -93,12 +93,109 @@ function forgetCalDAVClient(account: ICloudAccount, client: Promise<CalDAVClient
   if (caldavClients.get(account.id)?.client === client) caldavClients.delete(account.id);
 }
 
+/** The signed-in calendar client the event fetch keeps, as the event writer sees it. */
+export type ICloudCalDAVClient = CalDAVClient;
+
+/**
+ * Run one request on the account's signed-in calendar client, bounded like
+ * every other iCloud call. The event writer goes through here so it shares
+ * the client the event fetch keeps. A request that throws drops the client,
+ * so the next one signs in afresh.
+ */
+export async function withICloudClient<T>(
+  account: ICloudAccount,
+  label: string,
+  run: (client: ICloudCalDAVClient, fetchOptions: RequestInit) => Promise<T>,
+): Promise<T> {
+  const pending = cachedCalDAVClient(account);
+  const client = await pending;
+  try {
+    return await withTimeout((fetchOptions) => run(client, fetchOptions), label);
+  } catch (err) {
+    forgetCalDAVClient(account, pending);
+    throw err;
+  }
+}
+
+/** Sign in afresh on the next request: iCloud turned the saved app password away. */
+export function forgetICloudClient(account: ICloudAccount): void {
+  caldavClients.delete(account.id);
+}
+
+// Whether this account may write events on a calendar changes only when the
+// calendar is shared differently, so the answer is kept for an hour per
+// calendar, like the signed-in client. A failed lookup is never kept: the
+// calendar reads as view-only until the next fetch asks again.
+const PRIVILEGE_TTL_MS = 60 * 60 * 1000;
+
+const privilegeCache = new Map<string, { at: number; writable: Promise<boolean> }>();
+
+/** The DAV privileges that let this account add, change and remove events. `all` holds every other one. */
+const WRITE_PRIVILEGES = new Set(['write', 'writeContent', 'all']);
+
+/**
+ * Whether a PROPFIND answer's `current-user-privilege-set` (as tsdav parses
+ * it, element names camel-cased without their namespace) holds a write
+ * privilege. A read-only shared calendar holds only `read` and its kin.
+ */
+export function privilegesAllowWrite(privilegeSet: unknown): boolean {
+  const privileges = (privilegeSet as { privilege?: unknown } | null | undefined)?.privilege;
+  const entries = Array.isArray(privileges) ? privileges : privileges ? [privileges] : [];
+  return entries.some(
+    (entry) => entry !== null && typeof entry === 'object' && Object.keys(entry).some((name) => WRITE_PRIVILEGES.has(name)),
+  );
+}
+
+async function lookUpCalendarWritable(client: CalDAVClient, url: string): Promise<boolean> {
+  const responses = await withTimeout(
+    (fetchOptions) =>
+      client.propfind({ url, props: { 'd:current-user-privilege-set': {} }, depth: '0', fetchOptions }),
+    'iCloud calendar access',
+  );
+  const answer = responses.find((r) => r.ok && r.props?.currentUserPrivilegeSet);
+  return privilegesAllowWrite(answer?.props?.currentUserPrivilegeSet);
+}
+
+/**
+ * Whether this account may write events on the calendar at `url`, from a
+ * PROPFIND of `current-user-privilege-set` (tsdav has no helper for it).
+ * Never rejects: a failed lookup reads as view-only.
+ */
+function calendarWritable(client: CalDAVClient, account: ICloudAccount, url: string): Promise<boolean> {
+  const key = `${credentialKey(account)}\n${url}`;
+  const cached = privilegeCache.get(key);
+  if (cached && Date.now() - cached.at < PRIVILEGE_TTL_MS) return cached.writable;
+  const writable = lookUpCalendarWritable(client, url).catch((err) => {
+    log.warn(`Could not tell whether an iCloud calendar can be changed (${url})`, err);
+    if (privilegeCache.get(key)?.writable === writable) privilegeCache.delete(key);
+    return false;
+  });
+  privilegeCache.set(key, { at: Date.now(), writable });
+  return writable;
+}
+
+/**
+ * Whether a calendar object is a repeating event: a VEVENT with an RRULE, or
+ * a changed day of a series (RECURRENCE-ID). One object holds one event and
+ * its changed days, so every event read from it shares the answer. The
+ * VTIMEZONE rules (which carry RRULEs of their own) are not looked at.
+ */
+export function objectRepeats(icsText: string): boolean {
+  let inEvent = false;
+  for (const line of icsText.replace(/\r?\n[ \t]/g, '').split(/\r?\n/)) {
+    if (/^BEGIN:VEVENT\s*$/i.test(line)) inEvent = true;
+    else if (/^END:VEVENT\s*$/i.test(line)) inEvent = false;
+    else if (inEvent && /^(RRULE|RECURRENCE-ID)[;:]/i.test(line)) return true;
+  }
+  return false;
+}
+
 /**
  * The account's Basic-auth credential rides every CalDAV request, so never
  * query a calendar URL outside iCloud — a non-iCloud URL in config (hand
  * edit, restored backup) would hand the app password to an arbitrary host.
  */
-function isICloudUrl(value: string): boolean {
+export function isICloudUrl(value: string): boolean {
   try {
     const url = new URL(value);
     return url.protocol === 'https:' && (url.hostname === 'icloud.com' || url.hostname.endsWith('.icloud.com'));
@@ -237,20 +334,30 @@ async function fetchAccountEvents(
     const settled = await settleSourceFetches(
       calendarSources,
       async (source) => {
-        const objects = await withTimeout(
-          (fetchOptions) =>
-            caldavClient.fetchCalendarObjects({
-              calendar: { url: source.url } as DAVCalendar,
-              timeRange: { start: from.toISOString(), end: to.toISOString() },
-              fetchOptions,
-            }),
-          `iCloud events for "${source.name}"`,
-        );
+        const [objects, writable] = await Promise.all([
+          withTimeout(
+            (fetchOptions) =>
+              caldavClient.fetchCalendarObjects({
+                calendar: { url: source.url } as DAVCalendar,
+                timeRange: { start: from.toISOString(), end: to.toISOString() },
+                fetchOptions,
+              }),
+            `iCloud events for "${source.name}"`,
+          ),
+          calendarWritable(caldavClient, account, source.url),
+        ]);
         const sourceEvents: CalendarEvent[] = [];
         for (const obj of objects) {
           if (!obj.data) continue;
           try {
-            sourceEvents.push(...parseICSEvents(obj.data, source, from, to, timezone));
+            const parsed = parseICSEvents(obj.data, source, from, to, timezone);
+            const repeats = objectRepeats(obj.data);
+            // The object's address and version go back with a change, so
+            // only an object that has both can be written.
+            const editable = writable && obj.url && obj.etag ? { writable: true, etag: obj.etag, sourceRef: obj.url } : null;
+            for (const event of parsed) {
+              sourceEvents.push({ ...event, ...(repeats ? { repeats: true } : {}), ...editable });
+            }
           } catch (err) {
             log.warn(`Unparseable event in "${source.name}" (${obj.url})`, err);
           }
@@ -299,6 +406,7 @@ const birthdayCache = new Map<string, { day: string; birthdays: AccountBirthday[
 export function clearICloudCaches(): void {
   birthdayCache.clear();
   caldavClients.clear();
+  privilegeCache.clear();
 }
 
 async function loadAccountBirthdays(account: ICloudAccount): Promise<AccountBirthday[]> {

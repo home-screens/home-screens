@@ -20,6 +20,7 @@ import ListView from './todoist/ListView';
 import BoardView from './todoist/BoardView';
 import FocusView from './todoist/FocusView';
 import { useTranslate } from '@/i18n';
+import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { logger } from '@/lib/logger';
 
 const log = logger('todoist');
@@ -41,6 +42,7 @@ const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
 export default function TodoistModule({ config, style, timeFormat, timezone, screenId, moduleId }: TodoistModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   // Optimistic close: tasks the user has tapped, hidden locally until the next
@@ -70,6 +72,9 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
   const [pressedId, press] = usePressedKey();
 
   const handleComplete = useCallback((taskId: string) => {
+    // A closed task cannot be opened again from the wall, so closing may need the grown-up code.
+    const task = data?.tasks.find((tk) => tk.id === taskId);
+    const closeFetch = grownUpFetch(displayFetch, tCore('grownUp.why.todoistClose', { task: task?.content ?? '' }));
     void press(taskId, () => runComplete(taskId, {
       apply: () => setCompletedIds((prev) => {
         if (prev.has(taskId)) return prev;
@@ -78,7 +83,7 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
         return next;
       }),
       request: async () => {
-        const res = await displayFetch('/api/todoist/close', {
+        const res = await closeFetch('/api/todoist/close', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ taskId }),
@@ -90,7 +95,7 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
         displayCache.invalidate(todoistUrl());
       },
       rollback: (err) => {
-        log.error('Todoist close failed:', err);
+        if (!isGrownUpCancelled(err)) log.error('Todoist close failed:', err);
         setCompletedIds((prev) => {
           if (!prev.has(taskId)) return prev;
           const next = new Set(prev);
@@ -99,7 +104,7 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
         });
       },
     }));
-  }, [runComplete, press]);
+  }, [runComplete, press, data, tCore]);
 
   const allowComplete = config.allowComplete === true;
   const onComplete = allowComplete ? handleComplete : undefined;

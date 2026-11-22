@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
 import { useControlFrame } from './useControlFrame';
 import { BrightnessSlider, ControlButton, ControlGrid, PageAndPowerButtons } from './controls';
+import { rowButtonMetrics } from './metrics';
 
 /**
  * Buttons only: a grid plus a Brightness row that swaps the grid for a
@@ -52,14 +53,14 @@ export function PadLayout(props: LayoutProps) {
             <PageAndPowerButtons m={m} onPrev={onPrev} onNext={onNext} onSleep={onSleep} onWake={onWake} />
           </ControlGrid>
           <ControlButton
-            m={m}
+            m={rowButtonMetrics(m)}
             row
             label={t('display-control.brightness')}
             sub={brightness === null ? '–' : `${brightness}%`}
             icon="brightness"
             onClick={() => setBrightnessOpen(true)}
             className="shrink-0"
-            style={{ height: m.brightRowH }}
+            style={{ height: m.rowH }}
           />
         </div>
       )}

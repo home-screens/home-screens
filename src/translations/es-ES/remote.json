@@ -24,6 +24,7 @@
     "control": "Control",
     "chores": "Tareas",
     "lists": "Listas",
+    "calendar": "Calendario",
     "meals": "Comidas",
     "photos": "Fotos",
     "timers": "Temporizadores",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "No hay artículos en la lista",
       "description": "Planifica comidas con ingredientes para ver tu lista de la compra."
-    }
+    },
+    "alsoOn": "También en {list}",
+    "openInLists": "Abrir en Listas"
   },
   "mealsSettings": {
     "ariaLabel": "Ajustes de comidas",
@@ -1033,10 +1036,6 @@
     "newRoutine": "Nueva rutina",
     "editRoutine": "Editar rutina",
     "emptyHint": "Una rutina es un temporizador paso a paso, como la rutina de la mañana: vestirse, lavarse los dientes, hacer la cama. Crea una y ponla en la pantalla.",
-    "routineMeta": {
-      "one": "{steps} paso · {minutes} min",
-      "other": "{steps} pasos · {minutes} min"
-    },
     "stepCount": "Paso {current} de {total}",
     "pause": "Pausa",
     "resume": "Seguir",
@@ -1065,7 +1064,6 @@
     "removeStep": "Quitar paso",
     "addStep": "Añadir paso",
     "minutesShort": "{minutes} min",
-    "loadError": "No se pudieron cargar las rutinas. Revisa la conexión e inténtalo otra vez.",
     "retry": "Reintentar",
     "onAllDisplays": "En todas las pantallas",
     "onDisplay": "En {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "Todas las pantallas",
     "showOnNext": "Próximo temporizador en",
     "onDisplays": "En {count} pantallas",
-    "replaceTitle": "¿Empezar un temporizador nuevo?",
-    "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
     "soundOn": "Sonido activado",
     "soundOff": "Sonido apagado",
     "minUnit": "min",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "¡Todo hecho!"
     },
     "loadError": "No se pudieron cargar tus listas. Comprueba que el hub está encendido y vuelve a intentarlo.",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "alreadyOnList": "{item} ya está en la lista",
+    "putBack": "{item} vuelve a estar en la lista"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens elige cenas de tus recetas de Mealie para las {count} noches vacías de la semana del {range} y las guarda en Mealie. Las noches con una regla del plan de comidas en Mealie siguen esa regla."
       },
       "confirmLabel": "Rellenar cenas"
+    }
+  },
+  "calendarTab": {
+    "title": "Calendario",
+    "sub": "Lo que hay cada día y notas para la pared",
+    "addEvent": "Añadir evento",
+    "addNote": "Añadir nota",
+    "addEventAria": "Añadir un evento para el {day}",
+    "allDay": "Todo el día",
+    "repeats": "Se repite",
+    "changeAria": "Cambiar {title}",
+    "googleCalendar": "Google Calendar",
+    "appleCalendar": "Apple Calendar",
+    "unreachable": "No se pudo conectar con Home Screens, así que todavía no ha cambiado nada. Todo lo que escribiste sigue aquí.",
+    "added": "Añadido a {calendar}. Saldrá en la pared en unos segundos.",
+    "changed": "Cambiado. La pared lo mostrará en unos segundos.",
+    "removed": "Quitado de {calendar}.",
+    "offTitle": "Añadir eventos está desactivado",
+    "offBody": "Se puede activar en Ajustes > Calendario. Las notas del día funcionan como siempre.",
+    "signInTitle": "Falta un paso para añadir eventos",
+    "signInBody": "Para añadir eventos hay que iniciar sesión en Google una vez más. Se hace en Ajustes > Calendario.",
+    "justThisDay": "Solo este día",
+    "everyTime": "Todas las veces",
+    "keepIt": "Mejor no",
+    "backToForm": "Volver al formulario",
+    "saveAsk": {
+      "title": "Cambiar {title}"
+    },
+    "removeAsk": {
+      "title": "¿Quitar {title}?",
+      "body": "Se quita del calendario {calendar} para todos: aquí, en la pared y en {app}."
+    },
+    "form": {
+      "newTitle": "Nuevo evento",
+      "changeTitle": "Cambiar evento",
+      "what": "¿Qué es?",
+      "whatPlaceholder": "Entreno de fútbol, dentista…",
+      "day": "Día",
+      "firstDay": "Primer día",
+      "lastDay": "Último día",
+      "allDay": "Todo el día",
+      "starts": "Empieza",
+      "ends": "Termina",
+      "nextDay": "al día siguiente",
+      "endsOn": "Termina el {day} a las {time} · {length}",
+      "hours": {
+        "one": "{count} hora",
+        "other": "{count} horas"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "repeats": "Se repite",
+      "stops": "Deja de repetirse",
+      "stopsNever": "Nunca",
+      "stopsOnDate": "En una fecha",
+      "done": "Hecho",
+      "calendar": "Calendario",
+      "staysOnGoogle": "Un evento se queda en su calendario. Para moverlo, cámbialo en Google Calendar.",
+      "staysOnICloud": "Un evento se queda en su calendario. Para moverlo, cámbialo en Apple Calendar.",
+      "place": "Lugar",
+      "placeOptional": "(si quieres)",
+      "placePlaceholder": "Añade un lugar",
+      "add": "Añadir al calendario",
+      "save": "Guardar",
+      "remove": "Quitar",
+      "fromWall": "Lo empezaste en la pared {wall}, para el {day}.",
+      "changedElsewhere": "Alguien acaba de cambiar este evento, así que esta es la versión más reciente. Vuelve a hacer tu cambio y guarda.",
+      "repeatsNote": "{title} se repite. Al guardar, eliges si cambia solo este día o todas las veces.",
+      "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en Ajustes > Calendario."
     }
   }
 }

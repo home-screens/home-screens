@@ -27,6 +27,10 @@ import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { parseIsoDate } from '@/lib/iso-date';
+import { todoCardAdds } from '@/lib/todo-wall';
+import { WallAddRow } from './shared/WallAddRow';
+import { WallAddSheet, type WallAddResult } from './shared/WallAddSheet';
+import { addToTodoListFromWall } from './shared/wallListAdd';
 
 /** Members change about never; one poll a minute keeps initials current. */
 const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
@@ -41,6 +45,11 @@ const OVERDUE_AMBER = '#f59e0b';
 
 /** How many open items the focus and progress views name before "and N more". */
 const FOCUS_ITEMS = 3;
+
+/** How long a row the wall just added (or found already there) glows on the card behind the add sheet. */
+const FRESH_MS = 2_500;
+/** The glow on a row the wall found already on the list: the warning amber, not the accent of something new. */
+const ALREADY_AMBER = '#facc15';
 
 /** localStorage flag: the "tap a box" hint has been shown on this display. */
 const TAP_HINT_SEEN_KEY = 'hs:todo-tap-hint-seen';
@@ -292,6 +301,19 @@ function MoreLine({ n, t }: { n: number; t: TranslateFn }) {
 
 // ─── Rows ───
 
+/** A row the wall just added, or found already there, glowing for a moment on the card. */
+type Fresh = { id: string; tone: 'new' | 'already' };
+
+/** The glow for one row: the accent for something new, amber for something already there, fading out. */
+function freshGlow(fresh: Fresh | null, itemId: string, accentColor: string): React.CSSProperties {
+  const on = fresh?.id === itemId;
+  const tint = fresh?.tone === 'already' ? ALREADY_AMBER : accentColor;
+  return {
+    backgroundImage: on ? `linear-gradient(90deg, color-mix(in srgb, ${tint} 32%, transparent), transparent 85%)` : undefined,
+    transition: 'background-image 600ms ease',
+  };
+}
+
 interface RowContext {
   accentColor: string;
   showDueDates: boolean;
@@ -300,6 +322,7 @@ interface RowContext {
   now: Date;
   locale: string;
   t: TranslateFn;
+  fresh: Fresh | null;
 }
 
 /** Row contents: the box, the text, then any due chip and initials. */
@@ -353,7 +376,7 @@ function Row({ item, listId, ctx, tappable, pressed, onToggle, last, dense }: {
   const opacity = item.completed ? TEXT_OPACITY.dim : TEXT_OPACITY.primary;
   if (tappable) {
     return (
-      <li style={{ borderBottom }}>
+      <li data-item-id={item.id} style={{ borderBottom, ...freshGlow(ctx.fresh, item.id, ctx.accentColor) }}>
         <button
           type="button"
           data-testid="todo-item"
@@ -383,6 +406,7 @@ function Row({ item, listId, ctx, tappable, pressed, onToggle, last, dense }: {
   return (
     <li
       data-testid="todo-item"
+      data-item-id={item.id}
       className="flex items-center"
       style={{
         gap: dense ? '0.4em' : '0.56em',
@@ -390,6 +414,7 @@ function Row({ item, listId, ctx, tappable, pressed, onToggle, last, dense }: {
         minHeight: dense ? undefined : '2.08em',
         borderBottom,
         opacity,
+        ...freshGlow(ctx.fresh, item.id, ctx.accentColor),
       }}
     >
       <RowBody item={item} ctx={ctx} tappable={false} pressed={false} />
@@ -403,6 +428,12 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.06);
+  // The card's own element too, to find a row the add sheet just added.
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const attachRoot = useCallback((el: HTMLDivElement | null) => {
+    rootRef.current = el;
+    containerRef(el);
+  }, [containerRef]);
   // A black accent (the pre-v2 default) reads as a hole on a dark card once a
   // box is filled; the shared tap-checkbox blue stands in for it.
   const accentColor = hasAccentColor(config.accentColor) ? config.accentColor : TAP_CHECKBOX_ACCENT;
@@ -419,6 +450,11 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   // On that same touch wall a finger scrolls the List and Compact views past
   // the rows that fit, instead of the card leaving them out and counting them.
   const scroll = wallScrollOn(!!config.interactive, screenId, moduleId) && (view === 'list' || view === 'compact');
+  // An Add row under the list (each column, on the board) opens the add
+  // sheet: the same rule the hub holds the wall to (`todoCardAdds`).
+  const adds = interactive && todoCardAdds(config);
+  const [addingTo, setAddingTo] = useState<string | null>(null);
+  const [fresh, setFresh] = useState<Fresh | null>(null);
 
   const [fetched, fetchError] = useFetchData<TodoListsPayload>(todoListsUrl(), TODO_LISTS_TTL_MS);
   const serverLists = useMemo(() => fetched?.lists ?? [], [fetched]);
@@ -522,13 +558,53 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
     [runToggle, press, tapHint],
   );
 
+  /**
+   * One Add from the sheet (`addToTodoListFromWall`). The card scrolls to the
+   * row the add landed on and it glows for a moment behind the sheet.
+   */
+  const addTo = useCallback(async (listId: string, text: string): Promise<WallAddResult> => {
+    const { itemId, ...result } = await addToTodoListFromWall(listId, text, t('wallAdd.failed'));
+    if (itemId) {
+      // A tick held on this card a moment ago must not hide the item being put back.
+      setOverrides((prev) => {
+        if (!(itemId in prev)) return prev;
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
+      setFresh({ id: itemId, tone: result.outcome === 'already' ? 'already' : 'new' });
+    }
+    return result;
+  }, [t]);
+
+  // The glowing row comes into view inside a card that scrolls (once the
+  // answered lists have drawn it), then the glow fades.
+  useEffect(() => {
+    if (!fresh) return;
+    const rows = rootRef.current?.querySelectorAll<HTMLElement>('[data-item-id]') ?? [];
+    const row = Array.from(rows).find((el) => el.dataset.itemId === fresh.id);
+    const box = row?.closest<HTMLElement>('[data-wall-scroll="on"]');
+    if (!row || !box) return;
+    const r = row.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    // The screen may be drawn scaled; scrollTop is in the box's own pixels.
+    const scale = b.height > 0 ? box.clientHeight / b.height : 1;
+    if (r.bottom > b.bottom) box.scrollTop += (r.bottom - b.bottom) * scale;
+    else if (r.top < b.top) box.scrollTop -= (b.top - r.top) * scale;
+  }, [fresh, lists]);
+  useEffect(() => {
+    if (!fresh) return;
+    const timer = setTimeout(() => setFresh(null), FRESH_MS);
+    return () => clearTimeout(timer);
+  }, [fresh]);
+
   // "Today" for the due chips is the household's day, not the Pi's: the
   // shipped image keeps the OS on UTC, so an item due today would read
   // Overdue from early evening onwards otherwise. A ticking clock, because an
   // unchanged poll no longer re-renders the card: "Due today" turns into
   // "Overdue" at midnight without anyone touching the list.
   const now = useTZClock(timezone);
-  const ctx: RowContext = { accentColor, showDueDates, showAssignees, members, now, locale, t };
+  const ctx: RowContext = { accentColor, showDueDates, showAssignees, members, now, locale, t, fresh };
 
   // First fetch still in flight: a plain card, never a crash.
   if (!fetched && !fetchError) {
@@ -542,10 +618,36 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   // someone to fix a setting that is fine.
   if (!fetched) return <ModuleNotUpdatingState style={style} error={fetchError} />;
 
+  const sheetList = addingTo ? lists.find((l) => l.id === addingTo) ?? null : null;
+  // The list as this card names it: its heading override, if it has one (a
+  // board column always shows the list's own name). A card with its heading
+  // hidden says just "Add", and its sheet keeps the name it shows elsewhere.
+  const shownName = (target: TodoList) => (view === 'board' ? target.name : config.title?.trim() || target.name);
+  const namesList = view !== 'board' && config.showTitle !== false;
+  // The list was removed while the sheet was open: it closes rather than adding to nothing.
+  const sheet = adds && sheetList && (
+    <WallAddSheet
+      listName={shownName(sheetList)}
+      aside={t('todo.nLeft', { n: sheetList.items.filter((it) => !it.completed).length })}
+      accent={accentColor}
+      onAdd={(text) => addTo(sheetList.id, text)}
+      onClose={() => setAddingTo(null)}
+    />
+  );
+  const addRow = (target: TodoList, size: 'regular' | 'small' = 'regular') => adds && (
+    <WallAddRow
+      label={namesList ? t('wallAdd.rowLabel', { list: shownName(target) }) : t('wallAdd.rowShort')}
+      accent={view === 'board' ? target.color || accentColor : accentColor}
+      size={size}
+      testId={`todo-add-${target.id}`}
+      onPress={() => { tapHint.dismiss(); setAddingTo(target.id); }}
+    />
+  );
+
   const shell = (body: ReactNode) => (
     <ModuleWrapper style={style}>
       <div
-        ref={containerRef}
+        ref={attachRoot}
         data-testid="todo-module"
         data-view={view}
         className="flex flex-col h-full relative"
@@ -558,7 +660,8 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
             role="status"
             className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full font-semibold pointer-events-none"
             style={{
-              bottom: '0.4em',
+              // Above the Add row, which it would otherwise cover for its first seconds.
+              bottom: adds ? '2.8em' : '0.4em',
               fontSize: '0.8em',
               padding: '0.45em 1.1em',
               // A light pill with its own dark text, readable on any card: chip ink.
@@ -572,6 +675,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
             {t('todo.tapHint')}
           </div>
         )}
+        {sheet}
       </div>
     </ModuleWrapper>
   );
@@ -581,7 +685,16 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
       return <ModuleEmptyState style={style} type="todo" message={t('todo.noListsYet')} />;
     }
     return shell(
-      <BoardView lists={lists} placement={placement} ctx={ctx} tappable={tappable} pressedId={pressedId} onToggle={toggle} fontPx={scaledFontSize} />,
+      <BoardView
+        lists={lists}
+        placement={placement}
+        ctx={ctx}
+        tappable={tappable}
+        pressedId={pressedId}
+        onToggle={toggle}
+        fontPx={scaledFontSize}
+        addRow={adds ? (l) => addRow(l, 'small') : undefined}
+      />,
     );
   }
 
@@ -589,7 +702,18 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
     return <ModuleEmptyState style={style} type="todo" message={t('todo.pickAList')} />;
   }
   if (list.items.length === 0) {
-    return <ModuleEmptyState style={style} type="todo" message={t('todo.noTasksYet')} />;
+    if (!adds) return <ModuleEmptyState style={style} type="todo" message={t('todo.noTasksYet')} />;
+    // A wall that can add says so, rather than sending everyone to the phone.
+    return shell(
+      <>
+        <Header title={config.title?.trim() || list.name} showTitle={config.showTitle !== false} done={0} total={0} right={<></>} t={t} />
+        <div data-testid="todo-empty-add" className="flex flex-col flex-1 min-h-0 items-center justify-center text-center" style={{ gap: '0.3em' }}>
+          <div className="font-semibold" style={{ fontSize: '1em' }}>{t('wallAdd.emptyTitle', { list: shownName(list) })}</div>
+          <div style={{ fontSize: '0.72em', color: ink(0.55) }}>{t('wallAdd.emptyHint')}</div>
+        </div>
+        {addRow(list)}
+      </>,
+    );
   }
 
   const viewProps: ViewProps = {
@@ -603,9 +727,9 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
 
   if (view === 'focus') return shell(<FocusView {...viewProps} />);
   if (view === 'progress') return shell(<ProgressView {...viewProps} />);
-  if (view === 'compact') return shell(<CompactView {...viewProps} fontPx={scaledFontSize} scroll={scroll} />);
+  if (view === 'compact') return shell(<CompactView {...viewProps} fontPx={scaledFontSize} scroll={scroll} fresh={fresh} addRow={addRow(list, 'small')} />);
   return shell(
-    <ListView {...viewProps} ctx={ctx} tappable={tappable} pressedId={pressedId} onToggle={toggle} fontPx={scaledFontSize} scroll={scroll} />,
+    <ListView {...viewProps} ctx={ctx} tappable={tappable} pressedId={pressedId} onToggle={toggle} fontPx={scaledFontSize} scroll={scroll} addRow={addRow(list)} />,
   );
 }
 
@@ -632,6 +756,15 @@ interface FittedListProps {
   fontPx: number;
   /** A touch wall: a finger scrolls every row, and the list goes back to the top by itself. */
   scroll: boolean;
+  /** The Add row (`WallAddRow`), at the card's foot under the rows; nothing when the wall can't add. */
+  addRow?: ReactNode;
+}
+
+/** The Add row at the foot of a card, under the rows and any "starts fresh" line. */
+function AddRowSlot({ addRow, below }: { addRow: ReactNode; below: boolean }) {
+  if (!addRow) return null;
+  // Under the "starts fresh" line, which already sits at the foot; otherwise pushed there itself.
+  return <div className={below ? 'shrink-0' : 'mt-auto shrink-0'}>{addRow}</div>;
 }
 
 /**
@@ -658,7 +791,7 @@ function Rows({ ulRef, scroll, accentColor, t, testId, children }: {
   );
 }
 
-function ListView({ list, title, showTitle, placement, accentColor, ctx, tappable, pressedId, onToggle, fontPx, scroll }: TappableViewProps & FittedListProps) {
+function ListView({ list, title, showTitle, placement, accentColor, ctx, tappable, pressedId, onToggle, fontPx, scroll, addRow }: TappableViewProps & FittedListProps) {
   const { done, total } = countDone(list.items);
   const items = arrangeItems(list.items, placement);
   const allDone = total > 0 && done === total;
@@ -685,6 +818,7 @@ function ListView({ list, title, showTitle, placement, accentColor, ctx, tappabl
       </Rows>
       <MoreLine n={more} t={ctx.t} />
       {allDone && <RepeatLine list={list} t={ctx.t} />}
+      <AddRowSlot addRow={addRow} below={allDone && list.repeat !== 'never'} />
     </>
   );
 }
@@ -826,7 +960,7 @@ function ProgressView({ list, title, showTitle, placement, accentColor, t }: Vie
   );
 }
 
-function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx, scroll }: ViewProps & FittedListProps) {
+function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx, scroll, addRow, fresh = null }: ViewProps & FittedListProps & { fresh?: Fresh | null }) {
   const { done, total } = countDone(list.items);
   const allDone = total > 0 && done === total;
   const items = arrangeItems(list.items, placement);
@@ -842,8 +976,9 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
           <li
             key={item.id}
             data-testid="todo-item"
+            data-item-id={item.id}
             className="flex items-center"
-            style={{ gap: '0.4em', padding: '0.28em 0', fontSize: '0.85em', opacity: item.completed ? TEXT_OPACITY.secondary : TEXT_OPACITY.primary }}
+            style={{ gap: '0.4em', padding: '0.28em 0', fontSize: '0.85em', opacity: item.completed ? TEXT_OPACITY.secondary : TEXT_OPACITY.primary, ...freshGlow(fresh, item.id, accentColor) }}
           >
             <span
               className="rounded-full shrink-0"
@@ -861,6 +996,7 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
       </Rows>
       <MoreLine n={more} t={t} />
       {allDone && <RepeatLine list={list} t={t} />}
+      <AddRowSlot addRow={addRow} below={allDone && list.repeat !== 'never'} />
     </>
   );
 }
@@ -870,7 +1006,7 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
  * view's: a tall board shows every item there is room for, and a short one
  * drops the rows that would be cut in half and counts them.
  */
-function BoardColumn({ list, placement, ctx, tappable, pressedId, onToggle, fontPx }: {
+function BoardColumn({ list, placement, ctx, tappable, pressedId, onToggle, fontPx, addRow }: {
   list: TodoList;
   placement: TodoCompletedPlacement;
   ctx: RowContext;
@@ -878,6 +1014,8 @@ function BoardColumn({ list, placement, ctx, tappable, pressedId, onToggle, font
   pressedId: string | null;
   onToggle: (listId: string, item: TodoListItem) => void;
   fontPx: number;
+  /** The column's Add row, at its foot so every column's lines up. */
+  addRow?: (list: TodoList) => ReactNode;
 }) {
   const { done, total } = countDone(list.items);
   const allDone = total > 0 && done === total;
@@ -925,6 +1063,7 @@ function BoardColumn({ list, placement, ctx, tappable, pressedId, onToggle, font
       {more > 0 && (
         <div className="shrink-0" data-testid="todo-board-more" style={{ fontSize: '0.62em', color: ink(0.45), marginTop: '0.24em' }}>{ctx.t('todo.andMore', { n: more })}</div>
       )}
+      <AddRowSlot addRow={addRow?.(list)} below={false} />
     </div>
   );
 }
@@ -937,6 +1076,7 @@ function BoardView({ lists, ...column }: {
   pressedId: string | null;
   onToggle: (listId: string, item: TodoListItem) => void;
   fontPx: number;
+  addRow?: (list: TodoList) => ReactNode;
 }) {
   return (
     <div className="flex h-full min-h-0" style={{ gap: '0.96em' }}>

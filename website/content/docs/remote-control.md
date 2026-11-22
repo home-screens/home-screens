@@ -60,6 +60,8 @@ The **Timers** tab starts a big countdown that takes over the whole wall, made f
 
 A **routine** is a saved list of timed steps, each with its own emoji and length: get dressed, brush teeth, shoes on. Steps run one after another; a step can instead be set to **Wait for a Done tap** on the wall before the next one starts. While a timer runs, the tab shows pause, skip, add a minute, and stop. One timer runs at a time for the whole house; starting another asks first. With more than one display, **Send to** picks which walls the timer takes over (it reads **Next timer shows on** while one is running).
 
+On a touchscreen, the wall has its own buttons too: **Pause**, **+1 min** and **Stop** (hold Stop for a second, so a passing tap cannot end bedtime). They show for a few seconds when a timer starts, then tuck away; a tap on the timer brings them back, and they stay up while it is paused. A step set to **Wait for a Done tap** still takes a tap anywhere as Done. **Time's up!** stays on the wall until someone taps it, so nobody misses the end, and goes by itself after 10 minutes. A [Display Control](/docs/module-reference#display-control) set to Dock or Panel can also start one from the wall: turn on **Also show Timers** and its Timers button lists your routines and the quick lengths.
+
 ### Chores, Lists, Notes, Meals, Photos
 
 - **Chores** is where grown-ups add people, chores (from scratch or from a ready-made list) and rewards, and fix a missed day. See [Chores and rewards](/docs/chores).

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
-import { requireSession } from '@/lib/auth';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { hasEditorSession, requireSession } from '@/lib/auth';
+import { forgetWallAdded, wallMayUndo } from '@/lib/wall-added';
 import { updateItem, deleteItem, type UpdateItemInput } from '@/lib/todo-actions';
 import { todoWrite, asObject } from '@/lib/todo-api';
 
@@ -31,8 +32,18 @@ export const PATCH = withDisplayAuth(async (request: NextRequest, ctx: RouteCont
   return todoWrite((data) => updateItem(data, listId, itemId, body), undefined, { assigneeIds: fields.assigneeIds });
 }, 'Failed to update the item');
 
-/** DELETE /api/todo/lists/[listId]/items/[itemId]: remove one item. */
-export const DELETE = withAuth(async (_request: NextRequest, ctx: RouteContext) => {
+/**
+ * DELETE /api/todo/lists/[listId]/items/[itemId]: remove one item.
+ *
+ * The display token gets in only for the wall's Undo: an item the hub added
+ * for a wall in the last few minutes (`wall-added.ts`). Anything else needs
+ * the phone's or editor's session.
+ */
+export const DELETE = withDisplayAuth(async (request: NextRequest, ctx: RouteContext) => {
   const { listId, itemId } = await ctx.params;
-  return todoWrite((data) => deleteItem(data, listId, itemId));
+  const fromWall = !(await hasEditorSession(request));
+  if (fromWall && !wallMayUndo(itemId)) await requireSession(request);
+  const response = await todoWrite((data) => deleteItem(data, listId, itemId));
+  if (fromWall && response.ok) forgetWallAdded(itemId);
+  return response;
 }, 'Failed to delete the item');

@@ -746,7 +746,42 @@
         "show": "Was angezeigt wird",
         "showDescription": "Grenzen, von denen jedes Kalendermodul ausgeht. Ein Modul kann mit eigenen Filtern weiter eingrenzen."
       },
-      "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt."
+      "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt.",
+      "adding": {
+        "heading": "Termine hinzufügen",
+        "description": "Termine vom Handy und von der Wand aus hinzufügen, ändern und entfernen.",
+        "switch": "Home Screens darf Termine hinzufügen und ändern",
+        "switchHelpBoth": "Bei Google-Kalendern meldest du dich dafür noch einmal bei Google an. iCloud-Kalender brauchen nichts weiter. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpGoogle": "Damit Google das erlaubt, meldest du dich noch einmal an. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpICloud": "Deine iCloud-Kalender brauchen nichts weiter. Sie werden so oder so genauso angezeigt wie bisher.",
+        "ready": "Angemeldet und bereit für neue Termine",
+        "signInTitle": "Noch ein Schritt: noch einmal bei Google anmelden",
+        "signInBody": "Google fragt dich, ob Home Screens „Termine in allen Ihren Kalendern ansehen und bearbeiten“ darf. Ein Google-Tab öffnet sich, und danach kommst du von selbst hierher zurück.",
+        "signInButton": "Mit Google anmelden",
+        "signInAgain": "Noch einmal anmelden",
+        "signInFailed": "Diese Anmeldung hat nicht geklappt. Versuch es noch einmal.",
+        "pastePlaceholder": "Code von der Anmeldeseite hier einfügen",
+        "pasteButton": "Fertig",
+        "scopeMissingTitle": "Google hat nur das Anzeigen von Terminen erlaubt",
+        "scopeMissingBody": "Auf der Seite von Google war das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ nicht angehakt, deshalb kann Home Screens deine Kalender weiterhin nur anzeigen. Melde dich noch einmal an und setz dort den Haken.",
+        "webClientTitle": "Zuerst eine Google-Web-Anmeldung hinzufügen",
+        "webClientBody": "Für neue Termine nutzt Home Screens dieselbe Google-Web-Anmeldung wie der Google-Fotos-Import. Trag ihre Client-ID und ihr Client-Geheimnis ein und komm dann hierher zurück.",
+        "webClientLink": "API-Schlüssel öffnen",
+        "calendarsLabel": "Kalender, in die Termine eingetragen werden können",
+        "calendarsHelp": "Hier stehen nur Kalender, die auf den Bildschirmen zu sehen sind. So landet ein neuer Termin nie dort, wo ihn niemand sieht.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Bei Google nur zum Ansehen",
+        "fromContacts": "Kommt aus den Kontakten",
+        "defaultLabel": "Neue Termine landen in",
+        "lengthLabel": "Übliche Dauer",
+        "length30": "30 Min.",
+        "length60": "1 Stunde",
+        "length90": "1½ Stunden",
+        "length120": "2 Stunden",
+        "wallSwitch": "Die Wand darf Termine hinzufügen, ändern und entfernen",
+        "wallHelp": "Nur in den Kalendern, die oben angehakt sind. Vor dem Entfernen wird nachgefragt. Jedes Display kann das auf seiner eigenen Seite ausschalten."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1282,7 +1317,8 @@
           "pixelShift": "Einbrennschutz",
           "fullscreenTheme": "Design",
           "sleep": "Schlafen & Dimmen",
-          "alerts": "Hinweis-Overlay"
+          "alerts": "Hinweis-Overlay",
+          "calendarWallEntry": "Termine an dieser Wand hinzufügen"
         },
         "chipValues": {
           "pauseOn": "An",
@@ -1393,6 +1429,11 @@
         "connectLabel": "Verbinde dich damit",
         "runLabel": "Dann führe das aus",
         "connectUnknown": "Verbinde dich von einem Terminal aus mit dem Pi dieses Displays (der Benutzername ist {user}) und führe dann aus:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Termine an dieser Wand hinzufügen, ändern und entfernen",
+        "wallEntryToggle": "An dieser Wand erlauben",
+        "defaultsLabel": "Kalender"
       }
     },
     "alertFormFields": {
@@ -1604,9 +1645,9 @@
         "clientSecretLabel": "Client-Geheimnis für Kalender",
         "clientSecretPlaceholder": "z. B. GOCSPX-…",
         "clientSecretHelp": "Das Client-Secret derselben OAuth-Anmeldedaten von oben.",
-        "webClientIdLabel": "Client-ID für Foto-Import",
-        "webClientIdHelp": "Füge https://homescreens.dev/connect/google als autorisierte Weiterleitungs-URI hinzu.",
-        "webClientSecretLabel": "Client-Geheimnis für Foto-Import",
+        "webClientIdLabel": "Client-ID für die Web-Anmeldung",
+        "webClientIdHelp": "Damit melden sich der Google-Fotos-Import und das Hinzufügen von Terminen an. Füge https://homescreens.dev/connect/google als autorisierte Weiterleitungs-URI hinzu.",
+        "webClientSecretLabel": "Client-Geheimnis für die Web-Anmeldung",
         "webClientSecretHelp": "Das Client-Geheimnis aus dem Webanwendungs-Zugangsdatenpaar oben.",
         "mapsKeyLabel": "Maps-API-Schlüssel",
         "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
@@ -1618,9 +1659,9 @@
           "helpOwnApp": "Erstelle in der Google Cloud Console eine OAuth-Anmeldung vom Typ „TVs and Limited Input devices“ und füge dann beide Hälften hier ein."
         },
         "photosBand": {
-          "title": "Zum Importieren von Google Fotos",
-          "help": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Nur nötig, wenn du Fotos holen willst. Sonst überspringen.",
-          "helpOwnApp": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“."
+          "title": "Für Google Fotos und neue Termine",
+          "help": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Nur nötig, wenn du Fotos holen oder Termine hinzufügen willst. Sonst überspringen.",
+          "helpOwnApp": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Der Google-Fotos-Import und das Hinzufügen von Terminen nutzen sie."
         },
         "mapsBand": {
           "title": "Für Fahrzeiten",
@@ -1956,6 +1997,11 @@
         "connectedOffer": "Mealie ist verbunden. Wähle es, um mit den Rezepten und dem Plan aus Mealie zu planen.",
         "onMealie": "Alle Essensansichten, das Handy und dieser Editor nutzen jetzt deinen Mealie-Plan, und was du hier planst, wird in Mealie gespeichert. Dein Home-Screens-Plan bleibt erhalten und kommt zurück, wenn du zurückwechselst.",
         "mealieSettingsLink": "Mealie-Einstellungen"
+      },
+      "groceryExtras": {
+        "heading": "Andere Einkäufe",
+        "description": "Wähle eine eurer Listen für Dinge, die kein Essen braucht, wie Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand, und eine Einkaufskarte mit „An der Wand hinzufügen“ fügt dort hinzu.",
+        "none": "Keine"
       },
       "status": {
         "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
@@ -2437,7 +2483,9 @@
       "advanced": {
         "heading": "Erweiterter Netzwerkzugriff",
         "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke."
-      }
+      },
+      "grownUpPointerPrefix": "Soll die Wand fragen, bevor Kinder Tickets ausgeben? Dafür gibt es den ",
+      "grownUpPointerSuffix": " auf der Seite Familie."
     },
     "shared": {
       "secretField": {
@@ -2618,6 +2666,7 @@
       "hostname": "Gerätename",
       "platform": "Plattform",
       "uptime": "Betriebszeit",
+      "timeZoneData": "Zeitzonendaten",
       "hardwareTitle": "CPU & Temperatur",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (lokal)",
@@ -2847,6 +2896,50 @@
         "grabLimitLabel": "Wie viele Bonusaufgaben sich eine Person gleichzeitig schnappen darf",
         "grabHoldLabel": "Wie lange eine geschnappte Bonusaufgabe gilt",
         "saved": "Gespeichert"
+      },
+      "grownUp": {
+        "heading": "Eltern-Code für die Wand",
+        "description": "Vier Ziffern, nach denen die Wand fragt, bevor sie etwas tut, das du unten anhakst. So können kleine Hände nicht allein Tickets ausgeben. Ein Schloss für dein Heimnetz ist das nicht, dafür gibt es das Passwort unter „Sicherheit“.",
+        "notSet": "Noch kein Code.",
+        "isSet": "Ein Code ist festgelegt.",
+        "set": "Code festlegen",
+        "change": "Ändern",
+        "remove": "Entfernen",
+        "removeConfirm": "Code entfernen",
+        "codeLabel": "Vier Ziffern",
+        "againLabel": "Code wiederholen",
+        "save": "Code speichern",
+        "mismatch": "Die beiden Codes stimmen nicht überein.",
+        "format": "Gib vier Ziffern ein.",
+        "jobsLabel": "Wann danach gefragt wird",
+        "jobs": {
+          "redeem": {
+            "label": "Tickets im Belohnungs-Shop ausgeben",
+            "hint": "An der Wand und auf der Aufgabenseite der Kinder."
+          },
+          "untick": {
+            "label": "Haken bei einer Aufgabe entfernen",
+            "hint": "Dabei werden die Tickets für die Aufgabe wieder abgezogen."
+          },
+          "todoist-close": {
+            "label": "Todoist-Aufgabe erledigen",
+            "hint": "Eine erledigte Aufgabe lässt sich an der Wand nicht zurückholen."
+          },
+          "calendar-remove": {
+            "label": "Kalendertermin entfernen",
+            "hint": "An der Wand und auf Handys, wenn Home Screens kein Passwort hat."
+          },
+          "calendar-change-series": {
+            "label": "Alle Tage eines Termins ändern, der sich wiederholt",
+            "hint": "Wenn eine Änderung für alle Tage gilt, nicht nur für einen."
+          }
+        },
+        "unlockLabel": "Entsperrt bleiben für",
+        "minutes": {
+          "one": "1 Minute",
+          "other": "{count} Minuten"
+        },
+        "unlockHint": "Nach dem richtigen Code fragt die Wand, an der er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt."
       }
     },
     "touchAlignment": {
@@ -3775,11 +3868,11 @@
     "collapseTitle": "Einstellungsbereich ausblenden",
     "expandTitle": "Einstellungsbereich anzeigen",
     "openButton": {
-      "label": "Knopf zeigen, der Folgendes öffnet",
+      "label": "Öffnet",
       "none": "Nichts",
       "andMore": "und {count} weitere",
       "help": "Fügt in der unteren Ecke des Moduls einen Knopf mit dem Namen dieses Screens hinzu. Ein Tipp darauf am Touch-Display zeigt den Screen.",
-      "sectionTitle": "Öffnen-Knopf",
+      "sectionTitle": "Einen Screen öffnen",
       "opensOnTap": "{name} (öffnet sich per Tipp)",
       "offBadge": "{name} (aus)",
       "holds": "Zeigt {what}",
@@ -3812,7 +3905,12 @@
       "turnOnTap": "„Am Display antippen“ einschalten",
       "switchOn": "Einschalten",
       "onlyWhen": "Der Knopf erscheint nur {when}.",
-      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen."
+      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen.",
+      "openWith": "Öffnen per",
+      "openWithButton": "Knopf",
+      "openWithCard": "Tipp auf das Modul",
+      "openWithCardHelp": "Ein Tipp irgendwo auf das Modul öffnet {name}. Ein kleiner Pfeil in seiner Ecke zeigt, dass man es antippen kann.",
+      "openWithTakesTaps": "Dieses Modul nutzt das Antippen schon für eigene Dinge, deshalb öffnet hier der Knopf."
     }
   },
   "sudoPrompt": {
@@ -4259,7 +4357,9 @@
       "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
       "compact": "Nur Symbole, keine Wörter",
       "dockHint": "Ein Knopf pro Bildschirm dieses Displays. Antippen springt direkt zu dem Bildschirm.",
-      "dockExtras": "Auch Schlafen und Helligkeit zeigen",
+      "dockExtras": "Auch Schlaf und Helligkeit zeigen",
+      "showTimers": "Auch Timer zeigen",
+      "showTimersHint": "Ein Knopf, der eine Routine oder einen Schnell-Timer auf diesem Display startet. Routinen legst du am Handy unter „Timer“ an.",
       "dockButtons": "Knöpfe",
       "dockButtonsChoose": "Auswählen, welche Bildschirme einen Knopf bekommen",
       "dockButtonsEvery": "Jeder Bildschirm dieses Displays bekommt einen Knopf, in der Reihenfolge der Rotation.",
@@ -4491,7 +4591,10 @@
       "shuffleOrder": "Zufällige Reihenfolge",
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
-      "clockBackground": "Uhr-Hintergrund"
+      "clockBackground": "Uhr-Hintergrund",
+      "interactive": "Antippen an der Wand",
+      "interactiveHint": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Seitlich wischen wechselt weiter den Screen.",
+      "interactiveHintCard": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Über das Foto wischen zeigt das nächste."
     },
     "garbage-day": {
       "frequencyWeekly": "Wöchentlich",
@@ -4669,7 +4772,13 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, das Abendessen bewerten, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, das Abendessen bewerten, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es.",
+      "wallAdd": "An der Wand hinzufügen",
+      "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
+      "wallAddHelpLocal": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die unten gewählte Liste.",
+      "extrasList": "Andere Einkäufe kommen auf",
+      "extrasListNone": "Keine (keine Zeile zum Hinzufügen)",
+      "extrasListHelp": "Eine eurer Listen. Was noch darauf steht, erscheint am Ende der Einkaufsliste, hier und auf dem Handy. Alle Einkaufskarten teilen sie."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",
@@ -4694,7 +4803,13 @@
       "todayUnderline": "Unterstrich",
       "todayText": "Farbige Zahl",
       "todayNone": "Keine",
-      "accentColor": "Akzentfarbe"
+      "accentColor": "Akzentfarbe",
+      "events": "Termine",
+      "showEventMarks": "Tage mit Terminen markieren",
+      "showEventMarksHint": "Bis zu drei Punkte unter jedem Tag, an dem etwas ansteht, jeweils in der Farbe des Kalenders, zu dem der Termin gehört.",
+      "showDayNotesHint": "Ein Tag, der nur eine Tagesnotiz hat, bekommt auch eine Markierung, und beim Antippen des Tages erscheinen seine Notizen.",
+      "eventTapDetails": "Tag antippen, um seine Termine zu sehen",
+      "eventTapDetailsHint": "Öffnet auf einem Touch-Display die Liste dieses Tages, dieselbe, die auch das Kalender-Modul zeigt. Ein Tag, an dem nichts ansteht, reagiert nicht."
     },
     "news": {
       "viewHeadline": "Schlagzeile (rotierend)",
@@ -5178,7 +5293,9 @@
       "completedHidden": "Ausgeblendet",
       "showDueDates": "Fälligkeit anzeigen",
       "showAssignees": "Zeigen, für wen",
-      "interactive": "Tippen zum Abhaken (Touchscreen)"
+      "interactive": "Tippen zum Abhaken (Touchscreen)",
+      "wallAdd": "An der Wand hinzufügen (Touchscreen)",
+      "wallAddHelp": "Eine Zeile zum Hinzufügen unter der Liste. Alle an der Wand können etwas hinzufügen; ändern und löschen geht weiter auf dem Handy."
     },
     "todoist": {
       "apiToken": "API-Token",
@@ -5438,7 +5555,9 @@
       "advancedLooks": "Erweitertes Aussehen",
       "ruleCountNone": "keine",
       "ruleCountOne": "1 Regel",
-      "ruleCountOther": "{count} Regeln"
+      "ruleCountOther": "{count} Regeln",
+      "addEvents": "Beim Tippen auf einen Tag Termine hinzufügen",
+      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter Einstellungen > Kalender eingeschaltet sein."
     },
     "fullscreen-weather": {
       "view": "Ansicht",
@@ -5948,7 +6067,10 @@
     "cancelledTitle": "Anmeldung abgebrochen",
     "cancelledBody": "Kein Problem. Du kannst es im Editor jederzeit noch einmal versuchen.",
     "failedTitle": "Anmeldung konnte nicht abgeschlossen werden",
-    "backToEditor": "Zurück zum Editor"
+    "backToEditor": "Zurück zum Editor",
+    "calendarConnectedTitle": "Home Screens kann jetzt Termine hinzufügen",
+    "calendarConnectedBody": "Geh zurück zu Einstellungen > Kalender und wähle aus, in welche Kalender Termine kommen.",
+    "calendarReadOnlyBody": "Das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ war nicht angehakt. Melde dich unter Einstellungen > Kalender noch einmal an und setz den Haken."
   },
   "conditionSummary": {
     "always": "immer",

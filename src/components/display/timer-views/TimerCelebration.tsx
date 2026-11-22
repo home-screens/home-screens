@@ -16,8 +16,9 @@ export const CONFETTI = [
 ] as const;
 
 /**
- * Shown for the linger window after a routine finishes (or a quick timer
- * ends), then the overlay dismisses and normal rotation is visible again.
+ * Shown when a routine finishes or a quick timer ends, until a tap closes it
+ * on this display, Stop ends it everywhere, a new timer replaces it, or
+ * `TIMES_UP_HOLD_MS` passes; then normal rotation is visible again.
  */
 export default function TimerCelebration({
   session, title, s, t,
@@ -47,7 +48,9 @@ export default function TimerCelebration({
             position: 'absolute', top: top * s * 0.55, left: `${leftPct}%`,
             width: w * s, height: h * s, backgroundColor: color, borderRadius: 4 * s,
             ['--hs-confetti-rotate' as string]: `${rotate}deg`,
-            animation: `hs-timer-confetti 2.6s ease-in-out ${i * 0.18}s infinite alternate`,
+            // Six swings, then the pieces rest: "Time's up!" can stay for
+            // minutes, and a Pi should not keep drawing confetti all that time.
+            animation: `hs-timer-confetti 2.6s ease-in-out ${i * 0.18}s 6 alternate`,
           }}
         />
       ))}
@@ -89,6 +92,11 @@ export default function TimerCelebration({
           </div>
         </div>
       )}
+
+      {/* A tap anywhere closes it on this display (TimerOverlay). */}
+      <div style={{ marginTop: (isRoutine ? 70 : 56) * s, fontSize: 34 * s, fontWeight: 550, color: 'rgba(255,255,255,0.45)' }}>
+        {t('timer.tapToClose')}
+      </div>
     </div>
   );
 }

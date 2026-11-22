@@ -7,8 +7,12 @@ import { localISODate } from '@/lib/timezone';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent } from '@/types/config';
 
-/** Opens the day sheet for `date` with the events the tapped cell had. */
-export type OpenDaySheet = (date: Date, events: readonly CalendarEvent[]) => void;
+/**
+ * Opens the day sheet for `date` with the events the tapped cell had.
+ * `everyDay` is set while events can be added from this wall: then a day
+ * with nothing on it opens too, since that is where "Add event" is.
+ */
+export type OpenDaySheet = ((date: Date, events: readonly CalendarEvent[]) => void) & { readonly everyDay?: boolean };
 
 /**
  * The opener for the calendar module a view is drawn in, or null when
@@ -27,7 +31,8 @@ export function useDaySheetOpener(): OpenDaySheet | null {
  * for tests). Undefined while the module has taps off, and for a day with
  * nothing on it, so the element stays the plain text it always was. A day
  * with no events but a note of the family's (`hasNotes`) opens too: the sheet
- * is where a note cut short in a cell can be read whole.
+ * is where a note cut short in a cell can be read whole. So does every day
+ * while events can be added here (`open.everyDay`).
  */
 export function openDayProps(
   open: OpenDaySheet | null,
@@ -37,7 +42,7 @@ export function openDayProps(
   locale: string,
   hasNotes = false,
 ): { onClick: () => void; 'aria-label': string; 'data-open-day': string } | undefined {
-  if (!open || (events.length === 0 && !hasNotes)) return undefined;
+  if (!open || (events.length === 0 && !hasNotes && !open.everyDay)) return undefined;
   return {
     onClick: () => open(date, events),
     'aria-label': t('calendar.daySheet.openDay', { date: daySheetHeading(date, locale).full }),
@@ -53,7 +58,8 @@ export function openDayProps(
  * a finger only: the day number stays the cell's one button for a keyboard
  * or a screen reader, rather than a button wrapped around the event buttons.
  * Undefined while the module has taps off, and for a day with nothing on it
- * (no events, and no note when `hasNotes` is passed).
+ * (no events, and no note when `hasNotes` is passed) unless events can be
+ * added here.
  * `data-day-cell` carries the date for tests.
  */
 export function openDayCellProps(
@@ -62,7 +68,7 @@ export function openDayCellProps(
   events: readonly CalendarEvent[],
   hasNotes = false,
 ): { onClick: (e: React.MouseEvent<HTMLElement>) => void; 'data-day-cell': string } | undefined {
-  if (!open || (events.length === 0 && !hasNotes)) return undefined;
+  if (!open || (events.length === 0 && !hasNotes && !open.everyDay)) return undefined;
   return {
     onClick: (e) => {
       const handled = (e.target as Element).closest?.('[data-event-id], [data-open-day]');
@@ -85,9 +91,11 @@ export function openDayCellProps(
  *
  * The day's notes are looked up the same way, from `dayNotes`, so a sheet
  * shows a note saved from the phone while it is open. A sheet with no event
- * left closes unless the day has a note, which is enough to keep it.
+ * left closes unless the day has a note, which is enough to keep it, or
+ * events can be added here (`everyDay`), where an empty day still offers
+ * "Add event".
  */
-export function useDaySheet(events: readonly CalendarEvent[], enabled: boolean, dayNotes?: DayNotes): {
+export function useDaySheet(events: readonly CalendarEvent[], enabled: boolean, dayNotes?: DayNotes, everyDay = false): {
   opener: OpenDaySheet | null;
   day: { date: Date; events: CalendarEvent[]; notes: readonly string[] } | null;
   close: () => void;
@@ -100,12 +108,18 @@ export function useDaySheet(events: readonly CalendarEvent[], enabled: boolean, 
     setOpen({ date, ids: cellEvents.map((ev) => ev.id) });
   }, []);
   const close = useCallback(() => setOpen(null), []);
+  // A new function only when `everyDay` flips, so the memoized views keep
+  // the same opener otherwise.
+  const opener = useMemo<OpenDaySheet>(
+    () => (everyDay ? Object.assign((date: Date, cellEvents: readonly CalendarEvent[]) => openDay(date, cellEvents), { everyDay: true }) : openDay),
+    [openDay, everyDay],
+  );
   const day = useMemo(() => {
     if (!enabled || !open) return null;
     const byId = new Map(events.map((ev) => [ev.id, ev]));
     const dayEvents = open.ids.flatMap((id) => byId.get(id) ?? []);
     const notes = dayNotesFor(dayNotes, open.date);
-    return dayEvents.length > 0 || notes.length > 0 ? { date: open.date, events: dayEvents, notes } : null;
-  }, [enabled, open, events, dayNotes]);
-  return { opener: enabled ? openDay : null, day, close };
+    return dayEvents.length > 0 || notes.length > 0 || everyDay ? { date: open.date, events: dayEvents, notes } : null;
+  }, [enabled, open, events, dayNotes, everyDay]);
+  return { opener: enabled ? opener : null, day, close };
 }

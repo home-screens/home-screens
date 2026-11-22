@@ -1,6 +1,6 @@
 import type { SavedMeal, PlannedMeal, MealPlanSource, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { normalizeMealSettings } from '@/lib/meal-constants';
-import { setMealPlanSource } from '@/lib/meal-settings';
+import { setGroceryExtrasList, setMealPlanSource } from '@/lib/meal-settings';
 import { mealWriteBody, type MealDataWrite } from '@/lib/meal-write';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
@@ -199,6 +199,18 @@ export async function saveMealPlanSource(fetcher: MealFetch, source: MealPlanSou
   const next = setMealPlanSource(current, source);
   if (next === current) return;
   await saveMealSettings(fetcher, next);
+}
+
+/**
+ * Pick the to-do list the other things to buy go on (`undefined` for none),
+ * from outside the Meals settings pages, the same way `saveMealPlanSource`
+ * does: settings read fresh, only this one changed.
+ */
+export async function saveGroceryExtrasList(fetcher: MealFetch, listId: string | undefined): Promise<MealSettings> {
+  const { settings: current } = await loadMealSettings(fetcher);
+  const next = setGroceryExtrasList(current, listId);
+  if (next === current) return current;
+  return saveMealSettings(fetcher, next);
 }
 
 /** One week's grocery ticks as the hub has them after a tick was saved. */

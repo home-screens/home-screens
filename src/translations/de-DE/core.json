@@ -15,6 +15,7 @@
       "tooManyLists": "Du kannst bis zu {max} Listen haben",
       "tooManyItems": "Eine Liste fasst bis zu {max} Einträge",
       "orderChanged": "Die Liste hat sich geändert, während du etwas verschoben hast. Versuche es noch einmal.",
+      "wallAddOff": "Hinzufügen an der Wand ist für diese Liste ausgeschaltet",
       "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal."
     },
     "notes": {
@@ -53,6 +54,30 @@
       "tooDeep": "Ordner können nur {max} Ebenen tief sein.",
       "folderExists": "Hier gibt es schon einen Ordner namens {name}.",
       "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst."
+    },
+    "calendarWrite": {
+      "titleRequired": "Gib dem Termin einen Namen.",
+      "titleTooLong": "Ein Terminname darf höchstens {max} Zeichen lang sein.",
+      "placeTooLong": "Ein Ort darf höchstens {max} Zeichen lang sein.",
+      "badDate": "Mit diesem Tag stimmt etwas nicht.",
+      "dayTooFar": "Ein Termin muss innerhalb von {years} Jahren ab heute beginnen.",
+      "badTime": "Mit dieser Uhrzeit stimmt etwas nicht.",
+      "endsWhenItStarts": "Der Termin endet genau dann, wenn er beginnt. Wähle ein späteres Ende.",
+      "lastDayBeforeFirst": "Der letzte Tag liegt vor dem ersten.",
+      "tooManyDays": "Ein ganztägiger Termin darf höchstens {max} Tage dauern.",
+      "badRepeat": "Diese Wiederholung kann Home Screens nicht einstellen.",
+      "weekdaysOnWeekend": "„Jeden Wochentag“ geht nur bei einem Termin, der an einem Tag von Montag bis Freitag beginnt.",
+      "repeatEndsBeforeStart": "Die Wiederholung hört auf, bevor sie anfängt.",
+      "repeatTooLong": "Eine Wiederholung darf höchstens {years} Jahre lang laufen.",
+      "repeatNeedsEveryTime": "Wenn du die Wiederholung änderst, gilt das für alle Tage.",
+      "notOffered": "Das Hinzufügen von Terminen ist gerade ausgeschaltet.",
+      "calendarNotTicked": "In diesen Kalender kann man keine Termine eintragen.",
+      "notEditable": "Dieser Termin kann hier nicht geändert werden.",
+      "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert.",
+      "gone": "Dieser Termin wurde schon entfernt.",
+      "notAllowed": "Dieser Kalender kann von Home Screens aus nicht geändert werden.",
+      "signInNeeded": "Für den Kalender musst du dich noch einmal anmelden. Das geht unter Einstellungen > Kalender.",
+      "unreachable": "Der Kalender war nicht erreichbar, deshalb hat sich noch nichts geändert. Versuch es in einer Minute noch einmal."
     }
   },
   "today": "Heute",
@@ -240,7 +265,7 @@
     "quickName": "{minutes}-Minuten-Timer",
     "almostDone": "Fast geschafft!",
     "done": "Fertig!",
-    "paused": "Pause",
+    "paused": "Pausiert",
     "allDone": "Alles geschafft!",
     "timesUp": "Die Zeit ist um!",
     "finished": "{name} geschafft",
@@ -251,7 +276,24 @@
     "moreSteps": "+{count} weitere",
     "progressWords": "{done} geschafft · {left} übrig",
     "quickNameSeconds": "{seconds}-Sekunden-Timer",
-    "quickNameClock": "{time}-Timer"
+    "quickNameClock": "{time}-Timer",
+    "pause": "Pause",
+    "resume": "Weiter",
+    "stop": "Stopp",
+    "addMinute": "+1 Min.",
+    "secondsShort": "{seconds} Sek.",
+    "stopHoldHint": "Stopp (zum Bestätigen halten)",
+    "keepHoldingToStop": "Länger halten zum Stoppen",
+    "tapToClose": "Zum Schließen tippen",
+    "controls": "Timer-Knöpfe",
+    "replaceTitle": "Neuen Timer starten?",
+    "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
+    "routinesLoadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "routineMeta": {
+      "one": "{steps} Schritt · {minutes} Min.",
+      "other": "{steps} Schritte · {minutes} Min."
+    },
+    "holdShort": "halten"
   },
   "launcher": {
     "heading": "Wohin möchtest du?",
@@ -639,5 +681,56 @@
     "connection": {
       "title": "Home Screens ist gerade nicht erreichbar"
     }
+  },
+  "grownUp": {
+    "title": "Eltern-Code",
+    "ask": "Eltern fragen",
+    "why": {
+      "redeem": {
+        "one": "Um 1 Ticket von {member} für „{reward}“ auszugeben",
+        "other": "Um {count} Tickets von {member} für „{reward}“ auszugeben"
+      },
+      "untick": "Um den Haken bei „{chore}“ für {member} zu entfernen",
+      "todoistClose": "Um „{task}“ zu erledigen",
+      "calendarRemove": "Um „{title}“ zu entfernen",
+      "calendarChangeSeries": "Um „{title}“ an allen Tagen zu ändern"
+    },
+    "wrong": "Das stimmt nicht. Versuch es noch einmal.",
+    "tooMany": {
+      "one": "Zu viele Versuche. Probier es in {count} Sekunde noch einmal.",
+      "other": "Zu viele Versuche. Probier es in {count} Sekunden noch einmal."
+    },
+    "offline": "Der Hub ist nicht erreichbar. Versuch es noch einmal.",
+    "unlocked": {
+      "one": "Noch 1 Minute entsperrt",
+      "other": "Noch {count} Minuten entsperrt"
+    },
+    "lockNow": "Jetzt sperren"
+  },
+  "calendarRepeat": {
+    "none": "Wiederholt sich nicht",
+    "daily": "Jeden Tag",
+    "weekdays": "Jeden Wochentag",
+    "weekdaysHint": "Montag bis Freitag",
+    "weekly": "Jede Woche am {weekday}",
+    "biweekly": "Alle 2 Wochen am {weekday}",
+    "monthly": "Jeden Monat am {day}.",
+    "yearly": "Jedes Jahr am {date}",
+    "until": "{rule}, bis {date}",
+    "other": "Woanders eingestellte Wiederholung",
+    "short": {
+      "daily": "Jeden Tag",
+      "weekdays": "Wochentags",
+      "weekly": "Jede Woche",
+      "biweekly": "Alle 2 Wochen",
+      "monthly": "Jeden Monat",
+      "yearly": "Jedes Jahr"
+    }
+  },
+  "calendarChange": {
+    "thisDayStays": "{day}. Die anderen Tage bleiben, wie sie sind.",
+    "everyTimePastFuture": "Alle vergangenen und kommenden Tage",
+    "askBody": "Nur an diesem Tag ändern oder an allen Tagen?",
+    "everyTimeFromFirst": "Alle Tage, vom ersten an"
   }
 }

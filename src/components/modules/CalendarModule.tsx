@@ -5,7 +5,6 @@ import { addDays, startOfDay, startOfWeek } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
-import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { isEventUpcoming, listViewCutoff, clampRollingWeeks, clampWeeksToShow, isGridView, weekStartsOnFor } from '@/lib/calendar-utils';
@@ -15,8 +14,9 @@ import type { FamilyGroup } from '@/types/family';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
+import { CalendarTapOverlays } from './shared/CalendarTapOverlays';
+import { useWallCalendarAdding } from './shared/useWallCalendarAdding';
 import { DaySheetContext, useDaySheet } from './shared/useDaySheet';
-import { DaySheetOverlay } from './shared/DaySheetOverlay';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { CalendarFetchStatus, CalendarSourceStatus, CalendarConfig, CalendarEvent, CalendarPerson, CalendarViewMode, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -207,7 +207,9 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners]);
   const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
   // "+N more" and the grid day numbers open the whole day (the grid views only).
-  const daySheet = useDaySheet(allEvents, tapDetails, dayNotes);
+  // Add, Change and Remove from the wall, once the household turned adding on (S9: the module can say no).
+  const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
+  const daySheet = useDaySheet(allEvents, tapDetails, dayNotes, adding !== null);
   const detailTheme = getThemeTokens('charcoal');
   // A grid that draws its own title (every Month, and every grid in the
   // modern looks) puts the arrows in it; the other views get a heading row.
@@ -323,37 +325,23 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
       </div>
-      {/* Before the event detail, so a detail opened from one of its rows
-          portals in after it and draws on top. */}
-      {daySheet.day && (
-        <DaySheetOverlay
-          date={daySheet.day.date}
-          events={daySheet.day.events}
-          notes={daySheet.day.notes}
-          owners={owners}
-          variant={config.eventTapStyle ?? 'sheet'}
-          theme={detailTheme}
-          accentColor={accentColor}
-          colorFor={(ev) => ev.calendarColor ?? accentColor}
-          timeFormat={resolvedTimeFormat}
-          timezone={timezone}
-          paused={detailEvent != null}
-          onOpenEvent={openDetail}
-          onClose={daySheet.close}
-        />
-      )}
-      {tapDetails && detailEvent && (
-        <EventDetailOverlay
-          event={detailEvent}
-          variant={config.eventTapStyle ?? 'sheet'}
-          theme={detailTheme}
-          accentColor={detailEvent.calendarColor ?? accentColor}
-          timeFormat={resolvedTimeFormat}
-          timezone={timezone}
-          now={now}
-          onClose={closeDetail}
-        />
-      )}
+      <CalendarTapOverlays
+        daySheet={daySheet}
+        tapDetails={tapDetails}
+        detailEvent={detailEvent}
+        openDetail={openDetail}
+        closeDetail={closeDetail}
+        owners={owners}
+        variant={config.eventTapStyle ?? 'sheet'}
+        theme={detailTheme}
+        accentColor={accentColor}
+        colorFor={(ev) => ev.calendarColor ?? accentColor}
+        detailAccentFor={(ev) => ev.calendarColor ?? accentColor}
+        timeFormat={resolvedTimeFormat}
+        timezone={timezone}
+        now={now}
+        adding={adding}
+      />
     </ModuleWrapper>
   );
 }

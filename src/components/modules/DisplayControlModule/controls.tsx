@@ -5,7 +5,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
 import type { LayoutProps } from './types';
-import { HoldConfirmButton } from './HoldConfirmButton';
+import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
 
 // Icons shared by every layout. `size` is the rendered box in px.
 const iconProps = (size: number) => ({
@@ -48,7 +48,15 @@ export const BrightnessIcon = ({ size = 36 }: { size?: number }) => (
   </svg>
 );
 
-export type ControlIconName = 'prev' | 'next' | 'up' | 'down' | 'sleep' | 'wake' | 'brightness';
+/** A stopwatch, for the Timers button. */
+export const TimerIcon = ({ size = 36 }: { size?: number }) => (
+  <svg {...iconProps(size)}>
+    <path d="M10 2h4M12 14l3-3" />
+    <circle cx="12" cy="14" r="8" />
+  </svg>
+);
+
+export type ControlIconName = 'prev' | 'next' | 'up' | 'down' | 'sleep' | 'wake' | 'brightness' | 'timer';
 
 const ICONS: Record<ControlIconName, (p: { size?: number }) => React.ReactElement> = {
   prev: PrevIcon,
@@ -58,6 +66,7 @@ const ICONS: Record<ControlIconName, (p: { size?: number }) => React.ReactElemen
   sleep: SleepIcon,
   wake: WakeIcon,
   brightness: BrightnessIcon,
+  timer: TimerIcon,
 };
 
 /** An icon at whatever size the box allows. */
@@ -89,6 +98,7 @@ export function ControlButton({
   onClick,
   row = false,
   ariaLabel,
+  opensDialog = false,
   className = '',
   style,
 }: {
@@ -99,6 +109,8 @@ export function ControlButton({
   onClick: () => void;
   row?: boolean;
   ariaLabel?: string;
+  /** The tap opens a sheet over the wall rather than acting at once. */
+  opensDialog?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -107,6 +119,7 @@ export function ControlButton({
       type="button"
       {...wallPress(`${BUTTON_CLASS} ${row ? 'flex flex-row items-center justify-center' : 'flex flex-col items-center justify-center'} ${className}`)}
       aria-label={ariaLabel ?? label}
+      aria-haspopup={opensDialog ? 'dialog' : undefined}
       onClick={onClick}
       style={{ ...buttonStyle(m), ...style }}
     >

@@ -10,6 +10,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlanLauncher from './MealPlanLauncher';
+import { GroceryAddFields } from './GroceryAddFields';
 import { mealViewOptions } from '@/lib/meal-view-options';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { settingsPath } from '@/lib/settings-route';
@@ -30,6 +31,7 @@ type Config = {
   tapRecipeAction?: RecipeTapAction;
   showTitle?: boolean;
   interactive?: boolean;
+  wallAdd?: boolean;
 };
 
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -127,6 +129,10 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.meal-planner.interactiveHint')}
       </p>
+      {/* The grocery view's Add row needs taps (groceryCardAdds). */}
+      {view === 'grocery' && c.interactive !== false && (
+        <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
+      )}
 
       {/* Accent Color */}
       <ColorPicker

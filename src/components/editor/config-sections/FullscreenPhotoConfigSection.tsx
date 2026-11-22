@@ -145,6 +145,16 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         checked={c.kenBurns ?? false}
         onChange={(v) => set({ kenBurns: v })}
       />
+      {!isSinglePhoto && (
+        <div className="flex flex-col gap-1">
+          <Toggle
+            label={t('configSections.fullscreen-photo.interactive')}
+            checked={c.interactive !== false}
+            onChange={(v) => set({ interactive: v })}
+          />
+          <p className="text-xs leading-relaxed text-hs-text-muted">{t('configSections.fullscreen-photo.interactiveHint')}</p>
+        </div>
+      )}
       <Toggle
         label={t('configSections.fullscreen-photo.showClockOverlay')}
         checked={showClock}

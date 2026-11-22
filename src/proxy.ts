@@ -125,13 +125,15 @@ function isDisplayAccessiblePost(pathname: string): boolean {
  *   /api/chores       → toggle a chore completion
  *   /api/chores/grab  → grab a bonus chore, or let it go
  *   /api/rewards      → redeem a reward
+ *   /api/grown-up-code/unlock → check the grown-up code before a ticked job
+ *                        (rate limited per address and per hub)
  *
  * Exact match (not prefix) — the admin-only sub-paths /api/chores/data and
  * /api/rewards/data must stay protected, since reward editing and manual
  * balance adjustments live there. Both handlers do their own input
  * validation and (for redemptions) balance checks.
  */
-const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/chores/grab', '/api/rewards', '/api/rewards/goal']);
+const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/chores/grab', '/api/rewards', '/api/rewards/goal', '/api/grown-up-code/unlock']);
 
 function isKidViewPost(pathname: string): boolean {
   return KID_VIEW_POST_ROUTES.has(pathname);

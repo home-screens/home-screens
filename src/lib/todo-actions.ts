@@ -1,6 +1,7 @@
 import { isIsoDate } from './iso-date';
 import { isFullHexColor } from './hex-color';
 import { RefusalError, requiredText, type RefusalParams } from './refusal';
+import { oneLineText } from './text-length';
 import { uuid } from './uuid';
 import { TODO_LIMITS, type TodoData, type TodoList, type TodoListItem, type TodoRepeat } from '@/types/todos';
 
@@ -31,6 +32,7 @@ export type TodoRefusalCode =
   | 'lists.tooManyLists'
   | 'lists.tooManyItems'
   | 'lists.orderChanged'
+  | 'lists.wallAddOff'
   | 'lists.badRequest';
 
 /** Thrown by the pure operations below; the route wrapper answers with its code. */
@@ -248,6 +250,48 @@ export function addItem(data: TodoData, listId: string, input: AddItemInput, now
   };
   const items = input.position === 'top' ? [item, ...list.items] : [...list.items, item];
   return { data: replaceList(data, { ...list, items, updatedAt: iso }), item };
+}
+
+/**
+ * Two items the family would call the same thing: the same words, whatever
+ * their capitals and spacing. "Milk" and "milk " are one thing; "Milk" and
+ * "2% milk" are two.
+ */
+export function sameItemText(a: string, b: string): boolean {
+  return oneLineText(a).toLocaleLowerCase() === oneLineText(b).toLocaleLowerCase();
+}
+
+/**
+ * What an add did: made a new item, found it `already` there and not ticked
+ * (nothing changed), or found it ticked off and put it back on the list.
+ */
+export type AddOutcome = 'added' | 'already' | 'putBack';
+
+/**
+ * Add, unless the list already has it. The same words on an item still to do
+ * change nothing; on a ticked one they untick it (the most recently ticked,
+ * if there are several), so typing "milk" again puts milk back on the list
+ * rather than making a second one. `item` is the item the add landed on.
+ */
+export function addItemIfNew(
+  data: TodoData,
+  listId: string,
+  input: AddItemInput,
+  now = new Date(),
+): { data: TodoData; item: TodoListItem; outcome: AddOutcome } {
+  const list = findList(data, listId);
+  const text = cleanText(input.text);
+  const open = list.items.find((it) => !it.completed && sameItemText(it.text, text));
+  if (open) return { data, item: open, outcome: 'already' };
+  const ticked = list.items
+    .filter((it) => it.completed && sameItemText(it.text, text))
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))[0];
+  if (ticked) {
+    const next = updateItem(data, listId, ticked.id, { completed: false }, now);
+    const item = findList(next, listId).items.find((it) => it.id === ticked.id) as TodoListItem;
+    return { data: next, item, outcome: 'putBack' };
+  }
+  return { ...addItem(data, listId, input, now), outcome: 'added' };
 }
 
 export interface UpdateItemInput {

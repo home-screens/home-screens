@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { useMemo, useRef, type PointerEvent, type ReactNode } from 'react';
+import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { relativeLuminance } from '@/lib/fullscreen-themes';
 import type { ModuleInstance, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
@@ -10,7 +10,9 @@ import { useRotation } from '@/components/display/rotation-context';
 import { useModuleSurface } from '@/components/modules/module-surface';
 import { ModuleFrameProvider, type ModuleFrame } from '@/components/modules/module-frame';
 import { resolveFontStack } from '@/lib/font-registry';
-import { wallPressProps } from './wallPress';
+import { openWith } from '@/lib/open-button';
+import { TAP_SLOP_PX } from '@/lib/swipe-gesture';
+import { wallPressProps, wallRowPress } from './wallPress';
 import { PANEL_SECTION_OPEN_BUTTON, revealPanelSection } from '@/components/editor/panel-section-reveal';
 
 /** The gap between the module's content and the pill. */
@@ -32,7 +34,7 @@ export function openButtonHidden(config: Record<string, unknown>): boolean {
 }
 
 interface OpenButtonSlotProps {
-  mod: Pick<ModuleInstance, 'openButtonScreen' | 'size' | 'config'>;
+  mod: Pick<ModuleInstance, 'type' | 'openButtonScreen' | 'openWith' | 'size' | 'config'>;
   /** The module's resolved style: the pill takes its ink, font and inset from the card. */
   style: ModuleStyle;
   children: ReactNode;
@@ -56,6 +58,25 @@ export function OpenButtonSlot({ mod, style, children }: OpenButtonSlotProps) {
   const frame = useMemo<ModuleFrame>(() => ({ reserveBottomPx: height + BUTTON_GAP_PX }), [height]);
   if (!target) return <>{children}</>;
   const inset = Math.max(style.padding, BUTTON_GAP_PX);
+  const inkIsLight = (relativeLuminance(style.textColor) ?? 1) > 0.4;
+  if (openWith(mod) === 'card') {
+    // The whole card is the way in: nothing to make room for, and a small
+    // mark in the corner instead of the pill.
+    return (
+      <>
+        {children}
+        <OpenScreenCard
+          screenId={target.id}
+          name={target.name}
+          unavailable={target.unavailable === true}
+          markSize={height}
+          inset={inset}
+          radius={style.borderRadius}
+          ink={style.textColor}
+        />
+      </>
+    );
+  }
   return (
     <ModuleFrameProvider value={frame}>
       {children}
@@ -76,7 +97,7 @@ export function OpenButtonSlot({ mod, style, children }: OpenButtonSlotProps) {
           name={target.name}
           iconType={target.iconType}
           unavailable={target.unavailable === true}
-          inkIsLight={(relativeLuminance(style.textColor) ?? 1) > 0.4}
+          inkIsLight={inkIsLight}
           height={height}
           iconOnly={mod.size.w < WORDS_MIN_WIDTH_PX}
         />
@@ -170,6 +191,114 @@ export function OpenScreenButton({ screenId, name, iconType, height, iconOnly, i
         {!iconOnly && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>}
         {!LeadIcon && <ChevronRight size={Math.round(height * 0.5)} strokeWidth={2.4} aria-hidden="true" style={{ flexShrink: 0, marginRight: '-0.2em' }} />}
       </span>
+    </button>
+  );
+}
+
+interface OpenScreenCardProps {
+  screenId: string;
+  name: string;
+  /** The editor's copy: the target is out of reach right now, so the wall opens nothing. */
+  unavailable: boolean;
+  /** The mark's size: the pill's height, so both read the same from the doorway. */
+  markSize: number;
+  /** The card's inset, where the pill would sit. */
+  inset: number;
+  /** The card's corner radius, so the pressed tint follows its shape. */
+  radius: number;
+  /** The card's text colour: the mark and the pressed tint are drawn in it. */
+  ink: string;
+}
+
+/**
+ * A card that opens its screen with a tap anywhere on it (`openWith:
+ * 'card'`): a see-through button over the whole box, tinted while pressed,
+ * with a small arrow in the corner so a passer-by can tell the card goes
+ * somewhere. A sideways swipe that starts on the card still changes screens
+ * (the swipe listens on the window), and a drag that happens to end on the
+ * card opens nothing. On the editor canvas only the mark is drawn, so a click
+ * on the card selects the module and a click on the mark opens its section.
+ */
+export function OpenScreenCard({ screenId, name, unavailable, markSize, inset, radius, ink }: OpenScreenCardProps) {
+  const t = useTranslate('modules');
+  const rotation = useRotation();
+  const surface = useModuleSurface();
+  const down = useRef<{ x: number; y: number } | null>(null);
+  const up = useRef<{ x: number; y: number } | null>(null);
+  const live = surface !== 'editor' && !!rotation;
+  const label = t('openButton.open', { name });
+  const mark = (
+    <span
+      aria-hidden="true"
+      data-testid="open-screen-mark"
+      style={{
+        position: 'absolute',
+        right: inset,
+        bottom: inset,
+        width: markSize,
+        height: markSize,
+        borderRadius: '50%',
+        border: `${Math.max(2, Math.round(markSize / 22))}px solid color-mix(in srgb, ${ink} 32%, transparent)`,
+        color: ink,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: unavailable ? 0.45 : undefined,
+        outline: unavailable ? '2px dashed currentColor' : undefined,
+        outlineOffset: unavailable ? 3 : undefined,
+      }}
+    >
+      <ArrowUpRight size={Math.round(markSize * 0.5)} strokeWidth={2.6} style={{ opacity: 0.72 }} />
+    </span>
+  );
+  if (!live) {
+    // The editor canvas and a box with no rotation: the mark alone. On the
+    // canvas a click on it opens the module's Open a screen section.
+    const onEditorClick = surface === 'editor' ? () => { setTimeout(() => revealPanelSection(PANEL_SECTION_OPEN_BUTTON), 80); } : undefined;
+    return (
+      <span
+        data-testid="open-screen-card"
+        data-screen-id={screenId}
+        title={unavailable ? t('openButton.unavailable') : undefined}
+        onClick={onEditorClick}
+        style={{ position: 'absolute', right: 0, bottom: 0, width: markSize + inset * 2, height: markSize + inset * 2, pointerEvents: onEditorClick ? 'auto' : 'none' }}
+      >
+        {mark}
+      </span>
+    );
+  }
+  // Where the finger landed and lifted: a click whose two ends are further
+  // apart than a tap's drift was a drag (a swipe that ended on the card).
+  const travel = () => {
+    const a = down.current, b = up.current;
+    return a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
+  };
+  return (
+    <button
+      type="button"
+      {...wallRowPress(undefined, {
+        onPointerDown: (e: PointerEvent<HTMLElement>) => { down.current = { x: e.clientX, y: e.clientY }; up.current = null; },
+        onPointerUp: (e: PointerEvent<HTMLElement>) => { up.current = { x: e.clientX, y: e.clientY }; },
+      })}
+      data-testid="open-screen-card"
+      data-screen-id={screenId}
+      aria-label={label}
+      onClick={() => { if (travel() <= TAP_SLOP_PX) rotation.showScreen(screenId); }}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: radius,
+        border: 0,
+        padding: 0,
+        margin: 0,
+        background: 'transparent',
+        color: ink,
+        cursor: 'pointer',
+        touchAction: 'manipulation',
+        pointerEvents: 'auto',
+      }}
+    >
+      {mark}
     </button>
   );
 }

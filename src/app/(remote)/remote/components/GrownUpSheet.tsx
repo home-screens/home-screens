@@ -1,0 +1,110 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { Delete, Lock } from 'lucide-react';
+import { useTranslate } from '@/i18n';
+import { GROWN_UP_CODE_LENGTH } from '@/lib/grown-up-code';
+import { registerGrownUpAsker } from '@/lib/grown-up-client';
+import { GROWN_UP_KEYS, useGrownUpEntry } from '@/hooks/useGrownUpEntry';
+
+/** Above a confirm sheet (z 60) and a bottom sheet (z 101), which it is asked from. */
+const SHEET_Z = 120;
+const ACCENT = 'var(--hs-success, #4ade80)';
+
+// The unlock route answers a wrong code with 422 and is open on the LAN, so
+// a plain fetch is right here: `editorFetch` would read a 401 as an expired
+// sign-in and leave for the login screen.
+const unlockFetch = (url: string, init?: RequestInit) => fetch(url, init);
+
+/**
+ * The phone's grown-up code pad, in the phone's own sheet style: the same
+ * steps as the wall's (`useGrownUpEntry`), drawn like `ConfirmSheet`.
+ */
+function GrownUpSheet({ why, onUnlocked, onCancel }: { why: string; onUnlocked: () => void; onCancel: () => void }) {
+  const t = useTranslate('core');
+  const { digits, state, press } = useGrownUpEntry(unlockFetch, onUnlocked);
+  const wrong = state.kind === 'wrong';
+  const waiting = state.kind === 'waiting';
+  const message = wrong ? t('grownUp.wrong')
+    : state.kind === 'waiting' ? t('grownUp.tooMany', { count: state.secondsLeft })
+    : state.kind === 'offline' ? t('grownUp.offline')
+    : '';
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: SHEET_Z, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end' }} onClick={onCancel}>
+      <div
+        role="dialog"
+        aria-label={t('grownUp.title')}
+        data-testid="grown-up-sheet"
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '100%', background: 'var(--hs-bg-panel)', borderRadius: '20px 20px 0 0', padding: '20px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))', textAlign: 'center' }}
+      >
+        <div style={{ width: 48, height: 48, margin: '0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--hs-success, #4ade80) 14%, transparent)', color: ACCENT }}>
+          <Lock size={24} aria-hidden="true" />
+        </div>
+        <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--hs-text-primary)', marginTop: 8 }}>{t('grownUp.title')}</div>
+        <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginTop: 4, lineHeight: 1.4 }}>{why}</div>
+        <div
+          data-testid="grown-up-dots"
+          data-filled={digits.length}
+          className={wrong ? 'grown-up-dots-wrong' : undefined}
+          style={{ display: 'flex', gap: 14, justifyContent: 'center', margin: '18px 0 8px' }}
+        >
+          {Array.from({ length: GROWN_UP_CODE_LENGTH }, (_, i) => {
+            const on = i < digits.length;
+            const color = wrong ? 'var(--hs-danger, #f87171)' : 'var(--hs-text-primary)';
+            return <span key={i} style={{ width: 15, height: 15, borderRadius: '50%', border: `2px solid ${on || wrong ? color : 'var(--hs-text-faint)'}`, background: on ? color : 'transparent' }} />;
+          })}
+        </div>
+        <div role="status" data-testid="grown-up-message" style={{ minHeight: 20, fontSize: 14, fontWeight: 600, color: 'var(--hs-danger, #f87171)', marginBottom: 8 }}>{message}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {GROWN_UP_KEYS.map((key, i) => key === ''
+            ? <span key={i} />
+            : (
+              <button
+                key={i}
+                type="button"
+                className="press-scale"
+                disabled={waiting || state.kind === 'checking'}
+                aria-label={key === 'del' ? t('actions.delete') : key}
+                data-testid={`grown-up-key-${key}`}
+                onClick={() => press(key)}
+                style={{ height: 56, borderRadius: 14, border: 'none', background: 'var(--hs-bg-hover)', color: 'var(--hs-text-primary)', fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: waiting ? 0.35 : 1, cursor: 'pointer' }}
+              >
+                {key === 'del' ? <Delete size={22} aria-hidden="true" /> : key}
+              </button>
+            ))}
+        </div>
+        <button
+          type="button"
+          className="press-scale"
+          data-testid="grown-up-cancel"
+          onClick={onCancel}
+          style={{ width: '100%', minHeight: 48, marginTop: 10, borderRadius: 12, border: 'none', background: 'var(--hs-bg-hover)', color: 'var(--hs-text-primary)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+        >
+          {t('actions.cancel')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Mounted once by the phone's layout, for every surface under it (`/remote`
+ * and `/chores`): the sheet whenever a write through `grownUpFetch` needs
+ * the code.
+ */
+export function GrownUpSheetLayer() {
+  const [asking, setAsking] = useState<{ why: string; resolve: (ok: boolean) => void } | null>(null);
+  const askingRef = useRef(asking);
+  askingRef.current = asking;
+  useEffect(() => registerGrownUpAsker((why) => new Promise<boolean>((resolve) => {
+    askingRef.current?.resolve(false);
+    setAsking({ why, resolve });
+  })), []);
+  if (!asking) return null;
+  const finish = (ok: boolean) => {
+    asking.resolve(ok);
+    setAsking(null);
+  };
+  return <GrownUpSheet why={asking.why} onUnlocked={() => finish(true)} onCancel={() => finish(false)} />;
+}

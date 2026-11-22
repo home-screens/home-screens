@@ -152,7 +152,49 @@
         "other": "{count} eventos"
       },
       "toTime": "hasta {time}",
-      "openDay": "Ver todo lo que hay el {date}"
+      "openDay": "Ver todo lo que hay el {date}",
+      "empty": "Todavía no hay nada este día.",
+      "addEvent": "Añadir evento"
+    },
+    "eventForm": {
+      "newKicker": "Nuevo evento · {weekday}",
+      "changeKicker": "Cambiar evento · {weekday}",
+      "what": "¿Qué es?",
+      "namePlaceholder": "Escribe un nombre",
+      "typeOnPhone": "Escribir en el teléfono",
+      "handoffBody": "Apunta aquí con la cámara del teléfono. Se abrirá allí un evento nuevo para el {day}.",
+      "backToKeyboard": "Volver al teclado de la pared",
+      "allDay": "Todo el día",
+      "repeats": "Se repite",
+      "howOften": "¿Cada cuánto?",
+      "repeatNote": "Se sigue repitiendo hasta que alguien lo cambie o lo quite. Para que termine en una fecha, ponlo desde el teléfono.",
+      "starts": "Empieza",
+      "ends": "Termina",
+      "howLong": "Cuánto dura",
+      "endsAt": "Termina a las {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} hora",
+        "other": "{count} horas"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "length30": "30 min",
+      "length60": "1 hora",
+      "length90": "1 hora y media",
+      "length120": "2 horas",
+      "length180": "3 horas",
+      "lengthOther": "Otra",
+      "calendar": "Calendario",
+      "staysOn": "Se queda en su calendario",
+      "add": "Añadir al calendario",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "tryAgain": "Intentar de nuevo",
+      "done": "Hecho",
+      "changedElsewhere": "Alguien acaba de cambiar este evento. Esta es la versión más reciente: vuelve a hacer tu cambio.",
+      "changeTitle": "Cambiar {title}",
+      "backToForm": "Volver al formulario"
     }
   },
   "fullscreen-calendar": {
@@ -386,9 +428,6 @@
       },
       "searchAria": "Buscar en las recetas",
       "clearSearch": "Borrar la búsqueda",
-      "spaceKey": "espacio",
-      "doneKey": "Hecho",
-      "deleteKey": "Borrar una letra",
       "moreChips": {
         "one": "+ {count} más",
         "other": "+ {count} más"
@@ -565,13 +604,48 @@
         "mealieNotConnected": "Conéctalo en Ajustes en el ordenador para ver la lista.",
         "mealieTokenRefused": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver la lista.",
         "mealieSetup": "Revisa Mealie en Ajustes en el ordenador para ver la lista."
-      }
+      },
+      "alsoOn": "También en {list}"
     }
   },
   "wallScroll": {
     "backToToday": "Volver a hoy",
     "backToNow": "Volver al presente",
     "backToTop": "Volver arriba"
+  },
+  "wallKeyboard": {
+    "spaceKey": "espacio",
+    "doneKey": "Hecho",
+    "deleteKey": "Borrar una letra",
+    "shiftKey": "Mayúscula",
+    "numbersKey": "123",
+    "numbersAria": "Números y signos",
+    "lettersKey": "abc",
+    "lettersAria": "Letras",
+    "left": {
+      "one": "queda {count}",
+      "other": "quedan {count}"
+    },
+    "close": "Cerrar"
+  },
+  "wallAdd": {
+    "rowLabel": "Añadir a {list}",
+    "rowShort": "Añadir",
+    "kicker": "Añadir a",
+    "placeholder": "Escribe aquí",
+    "hint": "Escribe una cosa y toca Añadir. Todas las que quieras.",
+    "action": "Añadir",
+    "justAdded": "Recién añadido",
+    "already": "ya está en la lista",
+    "putBack": "de vuelta en la lista",
+    "merged": "sumado al que ya estaba",
+    "undo": "Deshacer",
+    "unreachable": "No se pudo añadir. Home Screens no responde, vuelve a tocar Añadir en un momento.",
+    "failed": "No se pudo añadir. Inténtalo de nuevo en un momento.",
+    "undoFailed": "No se pudo deshacer. Arréglalo en Listas desde tu móvil.",
+    "emptyTitle": "Todavía no hay nada en {list}",
+    "emptyHint": "Toca Añadir o añade cosas desde tu móvil.",
+    "mealieFailed": "No se pudo añadir. Mealie no responde, inténtalo de nuevo en un momento."
   },
   "openButton": {
     "open": "Abrir {name}",
@@ -1462,14 +1536,14 @@
     "prev": "Anterior",
     "next": "Siguiente",
     "sleep": "Suspender",
-    "sleepHoldHint": "Suspender (mantén para confirmar)",
+    "sleepHoldHint": "Suspender (mantén pulsado para confirmar)",
     "brightness": "Brillo",
     "closeBrightness": "Cerrar brillo",
     "ariaPrev": "Pantalla anterior",
     "ariaNext": "Pantalla siguiente",
     "holdSub": "mantén 1 segundo",
     "holdShort": "mantener",
-    "keepHolding": "Sigue manteniendo para suspender",
+    "keepHolding": "Mantén pulsado para suspender",
     "wake": "Despertar",
     "wakeSub": "enciende la pantalla",
     "controls": "Controla",
@@ -1480,7 +1554,15 @@
     "brightnessUnknown": "Brillo, aún sin informar",
     "dockEmpty": "Aún no hay pantallas",
     "unnamedScreen": "Pantalla {number}",
-    "goTo": "Ir a {name}"
+    "goTo": "Ir a {name}",
+    "timers": "Temporizadores",
+    "timersEyebrow": "Empieza en este display",
+    "routines": "Rutinas",
+    "quickTimer": "Temporizador rápido",
+    "noRoutines": "Crea rutinas en el teléfono, en Temporizadores.",
+    "start": "Empezar",
+    "timerStartFailed": "No se pudo empezar el temporizador. Inténtalo otra vez.",
+    "timersPreview": "Esto es una vista previa, así que tocar aquí no empieza ningún temporizador."
   },
   "timetable": {
     "name": "Horario escolar",
@@ -1548,7 +1630,15 @@
     "allDay": "Todo el día",
     "holiday": "Festivo",
     "birthday": "Cumpleaños",
-    "birthdayWithAge": "Cumpleaños · cumple {age}"
+    "birthdayWithAge": "Cumpleaños · cumple {age}",
+    "repeats": "Se repite",
+    "change": "Cambiar",
+    "remove": "Quitar",
+    "keepIt": "Mejor no",
+    "removeTitle": "¿Quitar {title}?",
+    "removeBody": "Se quita del calendario {calendar} para todos: en la pared, en los teléfonos y en la app de calendario.",
+    "justThisDay": "Solo este día",
+    "everyTime": "Todas las veces"
   },
   "fullscreen-weather": {
     "loading": "Cargando la previsión…",
@@ -1716,5 +1806,13 @@
     "receiptThanks": "Gracias por leer",
     "receiptSummary": "Fijadas {pinned} · Importantes {important}",
     "pinnedOne": "Fijada"
+  },
+  "photoControls": {
+    "label": "Controles de fotos",
+    "next": "Siguiente",
+    "pause": "Pausa",
+    "play": "Reproducir",
+    "position": "{at} de {count}",
+    "allPictures": "Todas las fotos"
   }
 }

@@ -41,13 +41,13 @@ import { FamilyGridView } from './FamilyGridView';
 import { UpNextView } from './UpNextView';
 import { FreeTimeView } from './FreeTimeView';
 import { RollingWeeksView } from './RollingWeeksView';
-import { EventDetailOverlay } from '../shared/EventDetailOverlay';
+import { CalendarTapOverlays } from '../shared/CalendarTapOverlays';
+import { useWallCalendarAdding } from '../shared/useWallCalendarAdding';
 import { CalendarLegend } from '../shared/CalendarLegend';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from '../shared/useFailingSources';
 import { CalendarSetupCard } from '../shared/CalendarSetupCard';
 import { useEventTapDetail } from '../shared/useEventTapDetail';
 import { DaySheetContext, useDaySheet } from '../shared/useDaySheet';
-import { DaySheetOverlay } from '../shared/DaySheetOverlay';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { fullscreenCalendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
 import { useLookAhead, type LookAhead } from '../shared/useLookAhead';
@@ -444,7 +444,9 @@ export default function FullscreenCalendarModule({
   const tapDetails = config.eventTapDetails === true;
   const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(events, tapDetails);
   // "+N more" and the grid day numbers open the whole day (see useDaySheet).
-  const daySheet = useDaySheet(events, tapDetails, dayNotes);
+  // Add, Change and Remove from the wall, once the household turned adding on (S9: the module can say no).
+  const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
+  const daySheet = useDaySheet(events, tapDetails, dayNotes, adding !== null);
 
   return (
     <div
@@ -640,37 +642,23 @@ export default function FullscreenCalendarModule({
         />
       )}
 
-      {/* Before the event detail, so a detail opened from one of its rows
-          portals in after it and draws on top. */}
-      {daySheet.day && (
-        <DaySheetOverlay
-          date={daySheet.day.date}
-          events={daySheet.day.events}
-          notes={daySheet.day.notes}
-          owners={owners}
-          variant={config.eventTapStyle ?? 'sheet'}
-          theme={theme}
-          accentColor={drawnAccent}
-          colorFor={(ev) => eventBorder(ev.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
-          timeFormat={timeFormat}
-          timezone={timezone}
-          paused={detailEvent != null}
-          onOpenEvent={openDetail}
-          onClose={daySheet.close}
-        />
-      )}
-      {tapDetails && detailEvent && (
-        <EventDetailOverlay
-          event={detailEvent}
-          variant={config.eventTapStyle ?? 'sheet'}
-          theme={theme}
-          accentColor={eventBorder(detailEvent.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
-          timeFormat={timeFormat}
-          timezone={timezone}
-          now={now}
-          onClose={closeDetail}
-        />
-      )}
+      <CalendarTapOverlays
+        daySheet={daySheet}
+        tapDetails={tapDetails}
+        detailEvent={detailEvent}
+        openDetail={openDetail}
+        closeDetail={closeDetail}
+        owners={owners}
+        variant={config.eventTapStyle ?? 'sheet'}
+        theme={theme}
+        accentColor={drawnAccent}
+        colorFor={(ev) => eventBorder(ev.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
+        detailAccentFor={(ev) => eventBorder(ev.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
+        timeFormat={timeFormat}
+        timezone={timezone}
+        now={now}
+        adding={adding}
+      />
     </div>
   );
 }

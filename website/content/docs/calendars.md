@@ -108,7 +108,35 @@ If all-day events crowd out the rest of the day, set **All-day events** to **Tit
 
 With **Tap an event to see details** on (it is on for new calendar modules), tapping an event opens its time, place and notes. On a busy day the grid views show **+N more**: tap it, or the day itself, and everything on that day opens in a list: the day's notes in full, then every event, each one tappable for its details. A day with only a note opens too, so a long note cut short in its square can be read whole. The full-screen Schedule and Day views show a small **+2** where events at the same time ran out of room side by side; tap it, or a day's heading in the Schedule, for the same list. Lists that hold more than fits, like the agenda, scroll with a finger and slide back to today on their own a minute after the last touch. With the setting off, the calendar is just a picture, the way a wall without a touchscreen shows it.
 
+The **Multi-Month Calendar** can do the same for a whole season. Its **Mark days with events** switch puts up to three dots under each day that has something on it, one per event in the colour of its calendar, and **Tap a day to see its events** opens that same day list on a touchscreen. Both are on for new Multi-Month cards; a card added before them keeps its plain look until you switch them on. Its own calendar picker keeps, say, a work calendar off the family's months, and **Day notes** marks a day that only has a note and shows the note in the list.
+
 The same setting puts two arrows at the top of the calendar to look ahead: **›** shows next week (next month on a month, the next few days on a view that shows a few days), and **‹** goes back. A sideways swipe on the calendar does the same, instead of changing screens. While you look, the top says which week it is ("Next week, November 8 – 14") and **Back to this week** comes straight back. A minute after the last touch anywhere on the screen, the calendar slides back to this week on its own, and the screen does not move on while someone is looking. A week you step back to is shown whole, not faded. The arrows reach eight weeks either way, or two months back and six ahead on a month; tap past the end and the calendar says how far it goes. The views about right now, Up next and Free time, have no arrows.
+
+## Add and change events {% #add-events %}
+
+Your family can add, change and remove events from a phone and from the wall, on Google and iCloud calendars. It is off until you turn it on.
+
+1. In the editor, open **Settings > Calendar** and turn on **Let Home Screens add and change events** under **Adding events**.
+2. For Google calendars, sign in once more: click **Sign in with Google**, and Google asks to let Home Screens "View and edit events on all your calendars". Showing your calendars works the same either way. iCloud calendars need nothing more, since the app-specific password you saved already allows it.
+3. Tick the calendars events can go on. Only calendars the screens show are listed, and one you can only read, such as a shared calendar or Birthdays, can't be ticked.
+4. Pick which calendar new events go on and how long they usually last.
+
+On a phone, the family remote's **Calendar** tab lists the coming week with each day's events and day notes. Tap **Add event** under a day, or tap an event to change or remove it. An event from a calendar that can't be changed has no arrow.
+
+On the wall, with **Tap an event to see details** on, tapping a day opens it with **Add event**, even a day with nothing on it yet, and an event's details offer **Change** and **Remove**. The name is typed on the wall's own keyboard, or tap **Type on your phone** for a code that opens the phone's form for that day. Removing always asks first.
+
+- **Repeats:** every day, every weekday, every week, every 2 weeks, every month or every year, and from the phone it can stop on a date. Changing or removing one day of a repeating event asks whether you mean **Just this day** or **Every time**. A repeat set up some other way in Google Calendar or Apple Calendar shows as it is and is changed there.
+- **Late nights:** an end earlier than the start is the next day, for a sleepover. Anything longer than a day is an all-day event, which can cover several days.
+- **Moving an event to another calendar** is done in Google Calendar or Apple Calendar; here an event stays on its calendar.
+- **Changed somewhere else:** if someone changed the event in the meantime, saving shows you the newest version instead of overwriting it.
+
+**Let the wall add, change and remove events** is on for every wall once adding is on. Turn it off here for all of them, or for one display on that display's page in Settings. Each calendar module also has **Add events from a day** in its settings, on unless you turn it off.
+
+With Home Screens' own Google app, adding to Google calendars comes later, once Google has reviewed the wider sign-in. iCloud calendars, and Google calendars on your own Google app, can add events now.
+
+### Adding events with your own Google app {% #own-app-add-events %}
+
+Google gives the "View and edit events" permission only to its web sign-in, not to the short code, so adding events signs in the way the Google Photos import does. If you already set up your own app for Google Photos, there is nothing to add. Otherwise, make the **Web application** credential described under [Use your own Google app](/docs/backgrounds#use-your-own-google-app) for Google Photos, and save it as the **Web sign-in Client ID** and **Secret** under **Settings > API keys**.
 
 ## API keys {% #api-keys %}
 

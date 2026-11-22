@@ -11,9 +11,23 @@ import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks'
 import { saveGroceryCheck, tickMealieShoppingItem } from '@/lib/meal-client';
 import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import type { MealieProblem } from '@/lib/meal-sources';
-import { wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows, type WallGroceryItem, type WallGroceryRows } from '@/lib/grocery-wall';
+import {
+  todoItemOfGroceryRow,
+  wallGroceryFromLocal,
+  wallGroceryFromMealie,
+  wallGroceryFromTodoList,
+  wallGroceryRows,
+  type WallGroceryItem,
+  type WallGroceryRows,
+} from '@/lib/grocery-wall';
+import { todoListsUrl } from '@/lib/fetch-keys';
+import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
+import { groceryAddListId } from '@/lib/todo-wall';
 import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
 import { usePressedKey } from './usePressedKey';
+
+/** The Mealie list every grocery card on the wall reads and an Add from the wall writes back. */
+export const WALL_SHOPPING_URL = '/api/mealie/shopping';
 
 /** How often the wall reads the Mealie list again: a tick made at the store shows up within a minute. */
 export const WALL_SHOPPING_TTL_MS = 60_000;
@@ -31,6 +45,13 @@ export interface LocalGroceryData {
   settings: MealSettings;
 }
 
+/** Where an Add from a grocery card goes. */
+export type WallGroceryAddTarget =
+  /** The Mealie list the family shops from. */
+  | { kind: 'mealie'; listId: string; name: string }
+  /** The to-do list picked for the other things to buy, while the plan is kept here; `left` is what is still on it. */
+  | { kind: 'todo'; listId: string; name: string; left: number };
+
 export interface WallGrocery {
   state: 'loading' | 'ready' | 'failed';
   /** Why Mealie's list could not be read, while `failed`. */
@@ -44,6 +65,8 @@ export interface WallGrocery {
   week: { start: string; end: string } | null;
   pressed: string | null;
   tick: (item: WallGroceryItem) => void;
+  /** Where an Add from this card would go; null with nowhere to add (no Mealie list, no list picked). */
+  addTo: WallGroceryAddTarget | null;
 }
 
 const EMPTY_ROWS: WallGroceryRows = { groups: [], left: 0, got: 0 };
@@ -68,20 +91,27 @@ export function useWallGrocery(
   todayISO: string,
   mealieProblem: MealieProblem = 'unreachable',
 ): WallGrocery {
-  const [wire, wireError] = useFetchData<MealieShoppingAnswer>(source === 'mealie' ? '/api/mealie/shopping' : '', WALL_SHOPPING_TTL_MS);
+  const [wire, wireError] = useFetchData<MealieShoppingAnswer>(source === 'mealie' ? WALL_SHOPPING_URL : '', WALL_SHOPPING_TTL_MS);
 
   const week = useMemo(
     () => (local ? getWeekRange(fromISODate(todayISO), local.settings.weekStartDay) : null),
     [local, todayISO],
   );
 
+  // The family's list for the other things to buy rides along at the end of
+  // the week's list, read from the to-do lists every list card shares.
+  const extrasId = source === 'local' && local ? groceryAddListId(local.settings) : null;
+  const [todos] = useFetchData<TodoListsPayload>(extrasId ? todoListsUrl() : '', TODO_LISTS_TTL_MS);
+  const extras = useMemo(() => (extrasId ? todos?.lists.find((l) => l.id === extrasId) ?? null : null), [extrasId, todos]);
+
   const groups = useMemo(() => {
     if (source === 'mealie') return wire?.list ? wallGroceryFromMealie(wire.list) : [];
     if (source === 'off' || !local || !week) return [];
     const weekPlan = filterPlanToWeek(local.plan, week.start, week.end);
     const checked = groceryChecksForWeek(local.groceryChecked ?? {}, week.start);
-    return wallGroceryFromLocal(weekGroceryList(weekPlan, local.savedMeals, checked).list);
-  }, [source, wire, local, week]);
+    const meals = wallGroceryFromLocal(weekGroceryList(weekPlan, local.savedMeals, checked).list);
+    return extras ? [...meals, wallGroceryFromTodoList(extras, week.start)] : meals;
+  }, [source, wire, local, week, extras]);
 
   // This wall's ticks over the list last read; an entry goes once the list
   // read back says the same (a read that left before the write keeps it).
@@ -135,12 +165,14 @@ export function useWallGrocery(
     void press(item.id, () => run(item.id, {
       apply: () => setTicks((prev) => new Map(prev).set(item.id, checked)),
       request: async () => {
-        if (source === 'mealie') await tickMealieShoppingItem(displayFetch, item.id, checked);
+        const todoItem = todoItemOfGroceryRow(item.id);
+        if (todoItem && extrasId) await sendTodoWrite(displayFetch, updateItemRequest(extrasId, todoItem, { completed: checked }), 'Failed to update the item');
+        else if (source === 'mealie') await tickMealieShoppingItem(displayFetch, item.id, checked);
         else await saveGroceryCheck(displayFetch, week?.start ?? todayISO, item.id, checked ? 'check' : 'uncheck');
       },
       rollback: () => setTicks((prev) => new Map(prev).set(item.id, before)),
     }));
-  }, [press, run, source, week, todayISO, keepFor]);
+  }, [press, run, source, week, todayISO, keepFor, extrasId]);
 
   const rows = useMemo(() => wallGroceryRows(groups, ticks, keep), [groups, ticks, keep]);
 
@@ -149,7 +181,11 @@ export function useWallGrocery(
     return {
       state, ...(state === 'failed' ? { problem: mealieProblem } : {}),
       listName: wire?.list?.name ?? null, noMealieList: !!wire && !wire.list, rows: wire ? rows : EMPTY_ROWS, week: null, pressed, tick,
+      addTo: wire?.list ? { kind: 'mealie', listId: wire.list.id, name: wire.list.name } : null,
     };
   }
-  return { state: local ? 'ready' : 'loading', listName: null, noMealieList: false, rows, week, pressed, tick };
+  return {
+    state: local ? 'ready' : 'loading', listName: null, noMealieList: false, rows, week, pressed, tick,
+    addTo: extras ? { kind: 'todo', listId: extras.id, name: extras.name, left: extras.items.filter((it) => !it.completed).length } : null,
+  };
 }

@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { SavedMeal } from '@/types/config';
+import type { TodoList, TodoListItem } from '@/types/todos';
+import { groceryExtrasItems } from '@/lib/grocery-wall';
+import { useTodoLists } from '../hooks/useTodoLists';
 import { GROCERY_CATEGORY_ICONS, groceryListNeedsHeadings, shortNameList, type GroceryList } from '@/lib/grocery-utils';
 import { groceryShareText } from '@/lib/shopping-list';
 import { useLocale, useTranslate } from '@/i18n';
@@ -16,15 +19,152 @@ interface MealsGroceryViewProps {
   toggleGroceryItem: (itemName: string) => Promise<void>;
   /** The week the list is for: "this week's meals" only while it is this week. */
   week: ShownWeek;
+  /**
+   * The family's list for the other things to buy, shown last ("Also on
+   * Shopping"): its id and the week's first day. Only on this week's list,
+   * and only while the plan is kept here.
+   */
+  extras?: { listId: string; since: string } | null;
+  /** Show that list on the Lists tab. */
+  onOpenList?: (listId: string) => void;
 }
 
-export default function MealsGroceryView({
+/** One line of the grocery list: a meal's ingredient, or something on the family's other list. */
+function GroceryRow({ name, amount, checked, onToggle }: { name: string; amount?: string; checked: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '11px 12px',
+        minHeight: 44,
+        marginBottom: 4,
+        borderRadius: 10,
+        border: '1px solid var(--hs-border)',
+        background: 'var(--hs-bg-panel)',
+        cursor: 'pointer',
+        opacity: checked ? 0.45 : 1,
+        transition: 'all 0.15s',
+        textAlign: 'left' as const,
+        color: 'inherit',
+        fontFamily: 'inherit',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <div
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          background: checked ? 'var(--hs-success)' : 'transparent',
+          border: checked ? 'none' : '2px solid var(--hs-text-faint)',
+          transition: 'all 0.15s',
+        }}
+      >
+        {checked && (
+          <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>
+        )}
+      </div>
+
+      <span
+        style={{
+          flex: 1,
+          fontSize: 14,
+          fontWeight: 500,
+          color: checked ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
+          textDecoration: checked ? 'line-through' : 'none',
+        }}
+      >
+        {name}
+      </span>
+
+      {amount && (
+        <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
+          {amount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** The family's list for the other things to buy, as this week's grocery list shows it. */
+interface ExtrasGroup {
+  list: TodoList;
+  /** What is still on it and what was ticked this week (`groceryExtrasItems`). */
+  items: TodoListItem[];
+  toggle: (itemId: string) => void;
+}
+
+/** The list for other things to buy, last on the grocery list ("Also on Shopping"), with a way to its own tab. */
+function GroceryExtrasGroup({ group, onOpenList }: { group: ExtrasGroup; onOpenList?: (listId: string) => void }) {
+  const t = useTranslate('remote');
+  const { list, items, toggle } = group;
+  const done = items.filter((it) => it.completed).length;
+  return (
+    <div data-grocery-extras style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+        {list.color && <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: list.color, flexShrink: 0 }} />}
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {t('mealsGrocery.alsoOn', { list: list.name })}
+        </span>
+        <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'var(--hs-bg-panel)', color: 'var(--hs-text-faint)', fontWeight: 500 }}>
+          {done}/{items.length}
+        </span>
+        {onOpenList && (
+          <button
+            type="button"
+            onClick={() => onOpenList(list.id)}
+            style={{ marginLeft: 'auto', minHeight: 44, padding: '0 4px', border: 0, background: 'none', color: 'var(--hs-accent)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
+          >
+            {t('mealsGrocery.openInLists')} &rsaquo;
+          </button>
+        )}
+      </div>
+      {items.map((item) => (
+        <GroceryRow key={item.id} name={item.text} checked={item.completed} onToggle={() => toggle(item.id)} />
+      ))}
+    </div>
+  );
+}
+
+const KEEP_SELECTION = () => {};
+
+/**
+ * The week's grocery list on the phone. With a list picked for the other
+ * things to buy, that list is read through the Lists tab's own hook (a tick
+ * shows at once and the hub's answer settles it) and joins the list: its own
+ * group at the end, the count at the top and what Share sends. Without one,
+ * nothing reads the to-do lists at all.
+ */
+export default function MealsGroceryView(props: MealsGroceryViewProps) {
+  return props.extras ? <GroceryWithExtras {...props} extras={props.extras} /> : <GroceryBody {...props} group={null} />;
+}
+
+function GroceryWithExtras(props: MealsGroceryViewProps & { extras: { listId: string; since: string } }) {
+  const { listId, since } = props.extras;
+  const { lists, toggleItem } = useTodoLists({ selectedListId: listId, onSelectList: KEEP_SELECTION });
+  const list = lists.find((l) => l.id === listId) ?? null;
+  const items = useMemo(() => (list ? groceryExtrasItems(list, since) : []), [list, since]);
+  const group = list && items.length > 0 ? { list, items, toggle: (itemId: string) => toggleItem(listId, itemId) } : null;
+  return <GroceryBody {...props} group={group} />;
+}
+
+function GroceryBody({
   groceryList,
-  groceryStats,
+  groceryStats: mealStats,
   withoutIngredients,
   toggleGroceryItem,
   week,
-}: MealsGroceryViewProps) {
+  onOpenList,
+  group,
+}: MealsGroceryViewProps & { group: ExtrasGroup | null }) {
   const t = useTranslate('remote');
   const locale = useLocale();
   const showHeadings = groceryListNeedsHeadings(groceryList);
@@ -33,16 +173,24 @@ export default function MealsGroceryView({
   // already loaded by the remote layout.
   const tCore = useTranslate('core');
 
+  // The other-things list counts and shares with the meals' ingredients, as on the wall.
+  const groceryStats = group
+    ? { total: mealStats.total + group.items.length, checked: mealStats.checked + group.items.filter((it) => it.completed).length }
+    : mealStats;
+
   const buildShareText = useCallback((): string => groceryShareText(
-    [...groceryList].map(([catKey, { items }]) => ({
-      // `t()` returns the raw key path on miss (and emits a once-per-key dev
-      // warning), which is the right developer feedback for any future
-      // GroceryCategory enum value added without a matching translation.
-      label: tCore(`meal.grocery.categoryLabels.${catKey}`),
-      items: items.filter((i) => !i.checked).map((i) => ({ text: i.name, detail: i.amount })),
-    })),
+    [
+      ...[...groceryList].map(([catKey, { items }]) => ({
+        // `t()` returns the raw key path on miss (and emits a once-per-key dev
+        // warning), which is the right developer feedback for any future
+        // GroceryCategory enum value added without a matching translation.
+        label: tCore(`meal.grocery.categoryLabels.${catKey}`),
+        items: items.filter((i) => !i.checked).map((i) => ({ text: i.name, detail: i.amount })),
+      })),
+      ...(group ? [{ label: group.list.name, items: group.items.filter((it) => !it.completed).map((it) => ({ text: it.text })) }] : []),
+    ],
     { heading: t('mealsGrocery.shareHeading'), complete: t('mealsGrocery.shareCompleteMessage') },
-  ), [groceryList, t, tCore]);
+  ), [groceryList, group, t, tCore]);
 
   const [shareLabel, setShareLabel] = useState<'idle' | 'copied'>('idle');
 
@@ -156,70 +304,13 @@ export default function MealsGroceryView({
           )}
 
           {items.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => toggleGroceryItem(item.name)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '11px 12px',
-                minHeight: 44,
-                marginBottom: 4,
-                borderRadius: 10,
-                border: '1px solid var(--hs-border)',
-                background: 'var(--hs-bg-panel)',
-                cursor: 'pointer',
-                opacity: item.checked ? 0.45 : 1,
-                transition: 'all 0.15s',
-                textAlign: 'left' as const,
-                color: 'inherit',
-                fontFamily: 'inherit',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              <div
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  background: item.checked ? 'var(--hs-success)' : 'transparent',
-                  border: item.checked ? 'none' : '2px solid var(--hs-text-faint)',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {item.checked && (
-                  <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>
-                )}
-              </div>
-
-              <span
-                style={{
-                  flex: 1,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: item.checked ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
-                  textDecoration: item.checked ? 'line-through' : 'none',
-                }}
-              >
-                {item.name}
-              </span>
-
-              {item.amount && (
-                <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-                  {item.amount}
-                </span>
-              )}
-            </button>
+            <GroceryRow key={item.name} name={item.name} amount={item.amount} checked={item.checked} onToggle={() => toggleGroceryItem(item.name)} />
           ))}
         </div>
         );
       })}
+
+      {group && <GroceryExtrasGroup group={group} onOpenList={onOpenList} />}
     </div>
   );
 }

@@ -7,14 +7,11 @@ import { formatQuickName, formatRemaining } from '@/components/display/timer-vie
 import type { Routine, TimerView } from '@/types/timers';
 import { useDisplayTarget } from '../display-target';
 import { useTimersData } from '../hooks/useTimersData';
-import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, secondsFromFields } from '@/lib/timer-logic';
+import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, QUICK_TIMER_PRESETS_SEC, routineTotalSec, secondsFromFields } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
 import RoutineFormOverlay from './RoutineFormOverlay';
 import TimerViewThumb from './TimerViewThumb';
 import Glyph from '@/components/ui/Glyph';
-
-/** Preset quick-timer lengths in seconds — short bursts matter to kids. */
-const QUICK_PRESETS_SEC = [30, 60, 120, 300, 600, 900];
 
 const MAX_QUICK_SEC = 240 * 60;
 
@@ -38,6 +35,7 @@ export const timerChipClass = (active: boolean) =>
 
 export default function TimersTab() {
   const t = useTranslate('remote');
+  const tc = useTranslate('core');
   const {
     routines, routinesLoaded, routinesError, retryRoutines, live, error, setError,
     startRoutine, startQuick, control, saveRoutines, targetIds, setTargetIds,
@@ -250,7 +248,7 @@ export default function TimersTab() {
       <section className="mx-5 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
         <h2 className="text-[15px] font-bold text-hs-text-primary">{t('timers.quickTimer')}</h2>
         <div className="mt-3 grid grid-cols-3 gap-2">
-          {QUICK_PRESETS_SEC.map((sec) => (
+          {QUICK_TIMER_PRESETS_SEC.map((sec) => (
             <button
               key={sec}
               onClick={() => requestStart(() => void startQuick(sec, quickView, quickSound))}
@@ -338,7 +336,7 @@ export default function TimersTab() {
 
         {routinesError && (
           <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong">
-            <p className="text-[13px] text-hs-text-faint">{t('timers.loadError')}</p>
+            <p className="text-[13px] text-hs-text-faint">{tc('timer.routinesLoadError')}</p>
             <button
               onClick={() => void retryRoutines()}
               className="mt-3 min-h-[40px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
@@ -356,9 +354,7 @@ export default function TimersTab() {
 
         <div className="mt-3 flex flex-col gap-2.5">
           {routines.map((routine) => {
-            const totalMin = Math.round(
-              routine.steps.reduce((sum, s) => sum + s.durationSec, 0) / 60,
-            );
+            const totalMin = Math.round(routineTotalSec(routine) / 60);
             return (
               <div
                 key={routine.id}
@@ -368,7 +364,7 @@ export default function TimersTab() {
                 <div className="min-w-0 flex-1">
                   <div className="text-[15px] font-bold text-hs-text-primary truncate">{routine.name}</div>
                   <div className="text-[12px] text-hs-text-faint">
-                    {t('timers.routineMeta', { count: routine.steps.length, steps: routine.steps.length, minutes: totalMin })}
+                    {tc('timer.routineMeta', { count: routine.steps.length, steps: routine.steps.length, minutes: totalMin })}
                     {' · '}
                     {t(TIMER_VIEW_LABEL_KEYS[routine.view])}
                   </div>
@@ -394,8 +390,8 @@ export default function TimersTab() {
 
       {pendingStart && (
         <ConfirmSheet
-          title={t('timers.replaceTitle')}
-          description={t('timers.replaceBody')}
+          title={tc('timer.replaceTitle')}
+          description={tc('timer.replaceBody')}
           confirmLabel={t('timers.start')}
           onConfirm={() => {
             pendingStart();

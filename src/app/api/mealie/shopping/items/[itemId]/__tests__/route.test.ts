@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
   requireDisplayAuth: vi.fn(),
+  hasEditorSession: vi.fn().mockResolvedValue(true),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 vi.mock('@/lib/mealie-shopping', async (importOriginal) => ({
@@ -15,6 +16,8 @@ vi.mock('@/lib/mealie-shopping', async (importOriginal) => ({
 import { DELETE, PATCH } from '../route';
 import { deleteMealieShoppingItem, MealieShoppingGoneError, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
 import { MealieError } from '@/lib/mealie';
+import { hasEditorSession, requireSession } from '@/lib/auth';
+import { noteWallAdded, resetWallAdded, wallMayUndo } from '@/lib/wall-added';
 
 const ITEM = 'a168eaec-3774-43de-9e11-683da1c3f46a';
 const patch = (itemId: string, body: unknown) => PATCH(
@@ -83,5 +86,29 @@ describe('DELETE /api/mealie/shopping/items/[itemId]', () => {
     const res = await del(ITEM);
     expect(res.status).toBe(502);
     expect(await res.json()).toMatchObject({ failure: 'unreachable' });
+  });
+});
+
+describe('DELETE /api/mealie/shopping/items/[itemId] from a wall', () => {
+  const del = (itemId: string) => DELETE(new NextRequest(`http://localhost/api/mealie/shopping/items/${itemId}`, { method: 'DELETE' }), { params: Promise.resolve({ itemId }) });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetWallAdded();
+    vi.mocked(hasEditorSession).mockResolvedValue(false);
+    vi.mocked(requireSession).mockRejectedValue(new Response('{}', { status: 401 }));
+    vi.mocked(deleteMealieShoppingItem).mockResolvedValue(undefined);
+  });
+
+  it('takes off an item the hub just added for a wall, once', async () => {
+    noteWallAdded(ITEM);
+    expect((await del(ITEM)).status).toBe(200);
+    expect(deleteMealieShoppingItem).toHaveBeenCalledWith(ITEM);
+    expect(wallMayUndo(ITEM)).toBe(false);
+  });
+
+  it('leaves anything else to the phone', async () => {
+    expect((await del(ITEM)).status).toBe(401);
+    expect(deleteMealieShoppingItem).not.toHaveBeenCalled();
   });
 });

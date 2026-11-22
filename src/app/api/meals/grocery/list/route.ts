@@ -8,6 +8,9 @@ import { groceryChecksForWeek } from '@/lib/grocery-checks';
 import { readMealieShopping } from '@/lib/mealie-shopping';
 import { mealieFailureResponse } from '@/lib/mealie-api';
 import { shoppingCounts, shoppingListByName } from '@/lib/shopping-list';
+import { groceryExtrasItems } from '@/lib/grocery-wall';
+import { groceryAddListId } from '@/lib/todo-wall';
+import { readTodoData } from '@/lib/todo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +25,10 @@ export const dynamic = 'force-dynamic';
  * weekStartDay meal setting, same as every meal surface, and starts from the
  * household's today (Settings time zone), not the hub's clock: a Pi on UTC
  * would otherwise answer with next week's list from Saturday evening. The
- * checked state is that week's ticks only.
+ * checked state is that week's ticks only. The family's list for the other
+ * things to buy, when one is picked (`MealSettings.groceryExtrasListId`),
+ * comes last as its own category named after the list, with what is still on
+ * it and what was ticked this week, as the Grocery tab and the wall show it.
  *
  * While the plan lives in Mealie the list does too: the answer is the Mealie
  * list the family shops from, one category per Mealie label (`category` is
@@ -56,11 +62,18 @@ export const GET = withDisplayAuth(async () => {
   }
   const weekPlan = filterPlanToWeek(data.plan, start, end);
   const { list, counts } = weekGroceryList(weekPlan, data.savedMeals, groceryChecksForWeek(data.groceryChecked, start));
+  const categories: Array<{ category: string; items: Array<{ name: string; amount: string; checked: boolean }> }> =
+    Array.from(list.entries()).map(([category, { items }]) => ({ category, items }));
+  let total = counts.total;
+  let checked = counts.checked;
+  const extrasId = groceryAddListId(data.settings);
+  const extras = extrasId ? (await readTodoData()).lists.find((l) => l.id === extrasId) : undefined;
+  const extraItems = extras ? groceryExtrasItems(extras, start) : [];
+  if (extras && extraItems.length > 0) {
+    categories.push({ category: extras.name, items: extraItems.map((it) => ({ name: it.text, amount: '', checked: it.completed })) });
+    total += extraItems.length;
+    checked += extraItems.filter((it) => it.completed).length;
+  }
 
-  return NextResponse.json({
-    week: { start, end },
-    categories: Array.from(list.entries()).map(([category, { items }]) => ({ category, items })),
-    total: counts.total,
-    checked: counts.checked,
-  });
+  return NextResponse.json({ week: { start, end }, categories, total, checked });
 }, 'Failed to build the grocery list');

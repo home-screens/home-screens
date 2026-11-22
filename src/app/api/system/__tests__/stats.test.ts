@@ -296,6 +296,7 @@ describe('GET /api/system/stats - os and memory', () => {
       arch: expect.any(String),
       uptime: expect.any(Number),
       nodeVersion: expect.stringMatching(/^v\d+/),
+      timeZoneData: expect.stringMatching(/^\d{4}[a-z]$/),
     }));
 
     expect(data.memory).toEqual(expect.objectContaining({

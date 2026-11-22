@@ -39,7 +39,6 @@ vi.mock('@/lib/library-files', async (importOriginal) => ({
 const { getSecret } = await import('@/lib/secrets');
 const {
   getPickerAuthUrl,
-  extractAuthCode,
   exchangePickerCode,
   isPickerConnected,
   createPickerSession,
@@ -47,8 +46,8 @@ const {
   startPickerImport,
   getPickerImport,
   clearPickerImportJobs,
-  REDIRECT_URI,
 } = await import('@/lib/google-picker');
+const { extractAuthCode, REDIRECT_URI } = await import('@/lib/google-web-sign-in');
 
 const mockedGetSecret = vi.mocked(getSecret);
 
@@ -127,7 +126,7 @@ beforeEach(() => {
 describe('getPickerAuthUrl', () => {
   it('throws without web client credentials', async () => {
     mockedGetSecret.mockResolvedValue(null);
-    await expect(getPickerAuthUrl()).rejects.toThrow('Photos Import Client ID and Secret');
+    await expect(getPickerAuthUrl()).rejects.toThrow('Web sign-in Client ID and Secret');
   });
 
   it('builds the consent URL with the picker scope and helper redirect', async () => {

@@ -746,7 +746,42 @@
         "show": "O que mostrar",
         "showDescription": "Limites iniciais de todo módulo de calendário. Um módulo pode restringir mais com seus próprios filtros."
       },
-      "description": "Conecte seus calendários, diga a quem cada um pertence e defina quanto cada módulo de calendário mostra."
+      "description": "Conecte seus calendários, diga a quem cada um pertence e defina quanto cada módulo de calendário mostra.",
+      "adding": {
+        "heading": "Adicionar eventos",
+        "description": "Adicione, mude e remova eventos pelo celular e pela parede.",
+        "switch": "Deixar o Home Screens adicionar e mudar eventos",
+        "switchHelpBoth": "Para os calendários do Google, o Google pede que você entre mais uma vez. Os calendários do iCloud não precisam de mais nada. Mostrar seus calendários funciona igual de qualquer jeito.",
+        "switchHelpGoogle": "O Google pede que você entre mais uma vez para permitir isso. Mostrar seus calendários funciona igual de qualquer jeito.",
+        "switchHelpICloud": "Seus calendários do iCloud não precisam de mais nada. Mostrar os calendários funciona igual de qualquer jeito.",
+        "ready": "Conectado, já pode adicionar eventos",
+        "signInTitle": "Mais um passo: entre no Google de novo",
+        "signInBody": "O Google vai pedir para você deixar o Home Screens “Ver e editar eventos em todas as suas agendas”. Uma aba do Google se abre e, no fim, você volta para cá automaticamente.",
+        "signInButton": "Entrar com o Google",
+        "signInAgain": "Entrar de novo",
+        "signInFailed": "Esse login não funcionou. Tente de novo.",
+        "pastePlaceholder": "Cole o código da página de login",
+        "pasteButton": "Concluir",
+        "scopeMissingTitle": "O Google só permitiu mostrar os eventos",
+        "scopeMissingBody": "Na página do Google, a caixa “Ver e editar eventos” ficou desmarcada, então o Home Screens ainda só consegue mostrar seus calendários. Entre de novo e marque essa caixa.",
+        "webClientTitle": "Primeiro, adicione um acesso Web do Google",
+        "webClientBody": "Para adicionar eventos, o Home Screens entra com o mesmo acesso Web do Google que a importação do Google Fotos usa. Adicione o ID do cliente e o segredo dele e depois volte aqui.",
+        "webClientLink": "Abrir Chaves de API",
+        "calendarsLabel": "Calendários que podem receber eventos",
+        "calendarsHelp": "Só aparecem aqui os calendários que as telas mostram, para que um evento novo nunca vá parar num lugar que ninguém vê.",
+        "groupGoogle": "Google Agenda",
+        "groupICloud": "Calendário do iCloud",
+        "readOnly": "Só para ver no Google",
+        "fromContacts": "Vem dos Contatos",
+        "defaultLabel": "Eventos novos vão para",
+        "lengthLabel": "Duração normal",
+        "length30": "Meia hora",
+        "length60": "1 hora",
+        "length90": "1h30",
+        "length120": "2 horas",
+        "wallSwitch": "Deixar a parede adicionar, mudar e remover eventos",
+        "wallHelp": "Só nos calendários marcados acima. Antes de remover, ela pergunta. Cada tela pode desligar isso na própria página."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1282,7 +1317,8 @@
           "pixelShift": "Proteção contra burn-in",
           "fullscreenTheme": "Tema",
           "sleep": "Suspensão e escurecimento",
-          "alerts": "Sobreposição de avisos"
+          "alerts": "Sobreposição de avisos",
+          "calendarWallEntry": "Adicionar eventos nesta parede"
         },
         "chipValues": {
           "pauseOn": "Ativada",
@@ -1393,6 +1429,11 @@
         "connectLabel": "Conecte-se a ela",
         "runLabel": "Depois rode isto",
         "connectUnknown": "Conecte-se ao Pi desta tela por um terminal (o usuário é {user}) e depois rode:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Adicionar, mudar e remover eventos nesta parede",
+        "wallEntryToggle": "Permitir nesta parede",
+        "defaultsLabel": "Calendário"
       }
     },
     "alertFormFields": {
@@ -1604,9 +1645,9 @@
         "clientSecretLabel": "Segredo do cliente para a agenda",
         "clientSecretPlaceholder": "ex: GOCSPX-...",
         "clientSecretHelp": "O client secret da mesma credencial OAuth acima.",
-        "webClientIdLabel": "ID do cliente para importar fotos",
-        "webClientIdHelp": "Adicione https://homescreens.dev/connect/google como URI de redirecionamento autorizada.",
-        "webClientSecretLabel": "Segredo do cliente para importar fotos",
+        "webClientIdLabel": "ID do cliente do acesso Web",
+        "webClientIdHelp": "Usado para importar do Google Fotos e para adicionar eventos ao calendário. Adicione https://homescreens.dev/connect/google como URI de redirecionamento autorizada.",
+        "webClientSecretLabel": "Segredo do cliente do acesso Web",
         "webClientSecretHelp": "O segredo do cliente da credencial de aplicativo da Web acima.",
         "mapsKeyLabel": "Chave de API do Maps",
         "mapsKeyPlaceholder": "Cole sua chave de API do Google Maps",
@@ -1618,9 +1659,9 @@
           "helpOwnApp": "Crie uma credencial OAuth do tipo “TVs and Limited Input devices” no Google Cloud Console e cole as duas partes aqui."
         },
         "photosBand": {
-          "title": "Para importar o Google Fotos",
-          "help": "Um acesso separado do calendário, do tipo “Web application”. Só é preciso se você quiser trazer fotos. Se não, pule.",
-          "helpOwnApp": "Um acesso separado do calendário, do tipo “Web application”."
+          "title": "Para o Google Fotos e para adicionar eventos",
+          "help": "Um acesso separado do calendário, do tipo “Web application”. Só é preciso para trazer fotos ou adicionar eventos ao calendário. Se não for usar, pule.",
+          "helpOwnApp": "Um acesso separado do calendário, do tipo “Web application”. É usado para importar do Google Fotos e para adicionar eventos ao calendário."
         },
         "mapsBand": {
           "title": "Para tempos de trajeto",
@@ -1956,6 +1997,11 @@
         "connectedOffer": "O Mealie está conectado. Escolha-o para planejar com as receitas e o plano que você mantém lá.",
         "onMealie": "Todas as telas de refeições, o celular e este editor agora usam seu plano do Mealie, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
         "mealieSettingsLink": "Ajustes do Mealie"
+      },
+      "groceryExtras": {
+        "heading": "Outras compras",
+        "description": "Escolha uma das suas listas para o que nenhuma refeição precisa, como papel-toalha ou ração do cachorro. O que ainda está nela aparece no fim da lista de compras no celular e na parede, e um cartão de compras com Adicionar na parede adiciona nela.",
+        "none": "Nenhuma"
       },
       "status": {
         "loadFailed": "Falha ao carregar as configurações de refeições.",
@@ -2437,7 +2483,9 @@
       "advanced": {
         "heading": "Acesso de rede avançado",
         "description": "Chave da tela, aparelhos conectados e limitar o acesso a certas redes."
-      }
+      },
+      "grownUpPointerPrefix": "Quer que a parede peça um código antes que as crianças gastem tickets? É o ",
+      "grownUpPointerSuffix": " na página Família."
     },
     "shared": {
       "secretField": {
@@ -2618,6 +2666,7 @@
       "hostname": "Nome do dispositivo",
       "platform": "Plataforma",
       "uptime": "Tempo ativo",
+      "timeZoneData": "Dados de fuso horário",
       "hardwareTitle": "CPU e térmica",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (local)",
@@ -2847,6 +2896,50 @@
         "grabLimitLabel": "Quantas tarefas bônus uma pessoa pode pegar ao mesmo tempo",
         "grabHoldLabel": "Até quando uma tarefa bônus fica com quem pegou",
         "saved": "Salvo"
+      },
+      "grownUp": {
+        "heading": "Código dos adultos para a parede",
+        "description": "Quatro números que a parede pede antes de fazer o que você marcar abaixo, para que mãozinhas não gastem tickets sozinhas. Ele não protege a sua rede de casa; quem faz isso é a senha em Segurança.",
+        "notSet": "Ainda sem código.",
+        "isSet": "Há um código definido.",
+        "set": "Definir um código",
+        "change": "Mudar",
+        "remove": "Remover",
+        "removeConfirm": "Remover o código",
+        "codeLabel": "Quatro números",
+        "againLabel": "Os mesmos de novo",
+        "save": "Salvar código",
+        "mismatch": "Os dois códigos não são iguais.",
+        "format": "Use quatro números.",
+        "jobsLabel": "Pedir o código antes de",
+        "jobs": {
+          "redeem": {
+            "label": "Gastar tickets na loja de recompensas",
+            "hint": "Na parede e na página de tarefas das crianças."
+          },
+          "untick": {
+            "label": "Desmarcar uma tarefa",
+            "hint": "Desmarcar tira de volta os tickets que ela deu."
+          },
+          "todoist-close": {
+            "label": "Concluir uma tarefa do Todoist",
+            "hint": "Uma tarefa concluída não pode ser reaberta pela parede."
+          },
+          "calendar-remove": {
+            "label": "Remover um evento do calendário",
+            "hint": "Na parede. Nos celulares, só quando o Home Screens não tem senha."
+          },
+          "calendar-change-series": {
+            "label": "Mudar todos os dias de um evento que se repete",
+            "hint": "Quando a mudança vale para todas as vezes, não só para um dia."
+          }
+        },
+        "unlockLabel": "Ficar desbloqueado por",
+        "minutes": {
+          "one": "{count} minuto",
+          "other": "{count} minutos"
+        },
+        "unlockHint": "Depois do código certo, aquela parede faz o que está marcado sem pedir de novo durante esse tempo. Quem está conectado pelo celular nunca precisa digitar o código."
       }
     },
     "touchAlignment": {
@@ -3775,11 +3868,11 @@
     "collapseTitle": "Ocultar o painel de configurações",
     "expandTitle": "Mostrar o painel de configurações",
     "openButton": {
-      "label": "Mostrar um botão que abre",
+      "label": "Abre",
       "none": "Nada",
       "andMore": "e mais {count}",
       "help": "Adiciona no canto inferior do módulo um botão com o nome dessa tela. Ao tocá-lo numa tela sensível ao toque, a tela aparece.",
-      "sectionTitle": "Botão de abrir",
+      "sectionTitle": "Abrir uma tela",
       "opensOnTap": "{name} (abre ao tocar)",
       "offBadge": "{name} (desligada)",
       "holds": "Mostra {what}",
@@ -3812,7 +3905,12 @@
       "turnOnTap": "Ligar “Tocar na tela”",
       "switchOn": "Ligar",
       "onlyWhen": "O botão só aparece {when}.",
-      "onlyConditions": "O botão só aparece enquanto as condições dessa tela baterem."
+      "onlyConditions": "O botão só aparece enquanto as condições dessa tela baterem.",
+      "openWith": "Abrir com",
+      "openWithButton": "O botão",
+      "openWithCard": "Um toque no módulo",
+      "openWithCardHelp": "Um toque em qualquer lugar do módulo abre {name}. Uma setinha no canto mostra que dá para tocar nele.",
+      "openWithTakesTaps": "Este módulo já usa os toques para as coisas dele, então abre com o botão."
     }
   },
   "sudoPrompt": {
@@ -4259,7 +4357,9 @@
       "allowRetargeting": "Permitir que o usuário altere o destino em tempo de execução",
       "compact": "Só ícones, sem texto",
       "dockHint": "Um botão por tela deste display. Toque em um para ir direto para aquela tela.",
-      "dockExtras": "Mostrar também Dormir e Brilho",
+      "dockExtras": "Mostrar também Suspender e Brilho",
+      "showTimers": "Mostrar também Timers",
+      "showTimersHint": "Um botão para começar uma rotina ou um timer rápido neste display. As rotinas são criadas no celular, em Timers.",
       "dockButtons": "Botões",
       "dockButtonsChoose": "Escolher quais telas ganham um botão",
       "dockButtonsEvery": "Cada tela deste display ganha um botão, na ordem da rotação.",
@@ -4491,7 +4591,10 @@
       "shuffleOrder": "Ordem aleatória",
       "kenBurnsEffect": "Efeito Ken Burns",
       "showClockOverlay": "Mostrar relógio sobreposto",
-      "clockBackground": "Fundo do relógio"
+      "clockBackground": "Fundo do relógio",
+      "interactive": "Tocar na parede",
+      "interactiveHint": "Numa tela sensível ao toque, um toque mostra Voltar, Pausar e Próxima, e de qual álbum é a foto. Deslizar para o lado continua trocando de tela.",
+      "interactiveHintCard": "Numa tela sensível ao toque, um toque mostra Voltar, Pausar e Próxima, e de qual álbum é a foto. Deslizar sobre a foto passa para a próxima."
     },
     "garbage-day": {
       "frequencyWeekly": "Toda semana",
@@ -4669,7 +4772,13 @@
       "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
       "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas, avaliar o jantar, rolar listas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque. O botão de abrir também precisa disso."
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas, avaliar o jantar, rolar listas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque. O botão de abrir também precisa disso.",
+      "wallAdd": "Adicionar na parede",
+      "wallAddHelpMealie": "Qualquer pessoa na parede pode adicionar à lista de compras. Vai para a lista do Mealie que a família usa nas compras.",
+      "wallAddHelpLocal": "Qualquer pessoa na parede pode adicionar à lista de compras. Vai para a lista escolhida abaixo.",
+      "extrasList": "Outras compras vão para",
+      "extrasListNone": "Nenhuma (sem linha Adicionar)",
+      "extrasListHelp": "Uma das suas listas. O que ainda está nela aparece no fim da lista de compras, aqui e no celular. Todos os cartões de compras usam a mesma."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminação",
@@ -4694,7 +4803,13 @@
       "todayUnderline": "Sublinhado",
       "todayText": "Número colorido",
       "todayNone": "Nenhum",
-      "accentColor": "Cor de destaque"
+      "accentColor": "Cor de destaque",
+      "events": "Eventos",
+      "showEventMarks": "Marcar dias com eventos",
+      "showEventMarksHint": "Até três pontinhos embaixo de cada dia que tem alguma coisa marcada, cada um na cor do seu calendário.",
+      "showDayNotesHint": "Um dia só com um recado também ganha uma marca, e os recados aparecem quando alguém toca no dia.",
+      "eventTapDetails": "Toque em um dia para ver os eventos",
+      "eventTapDetailsHint": "Numa tela sensível ao toque, abre a lista daquele dia, a mesma que o módulo Calendário mostra. Tocar num dia vazio não faz nada."
     },
     "news": {
       "viewHeadline": "Manchete (alternando)",
@@ -5178,7 +5293,9 @@
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar prazos",
       "showAssignees": "Mostrar para quem",
-      "interactive": "Tocar para concluir (tela sensível ao toque)"
+      "interactive": "Tocar para concluir (tela sensível ao toque)",
+      "wallAdd": "Adicionar pela parede (tela sensível ao toque)",
+      "wallAddHelp": "Uma linha Adicionar embaixo da lista. Qualquer pessoa na parede pode adicionar; mudar e tirar continua no celular."
     },
     "todoist": {
       "apiToken": "Token de API",
@@ -5438,7 +5555,9 @@
       "advancedLooks": "Aparência avançada",
       "ruleCountNone": "nenhuma",
       "ruleCountOne": "1 regra",
-      "ruleCountOther": "{count} regras"
+      "ruleCountOther": "{count} regras",
+      "addEvents": "Adicionar eventos ao tocar num dia",
+      "addEventsHelp": "Mostra “Adicionar evento” ao tocar num dia e os botões Mudar e Remover em cada evento. Só funciona com Adicionar eventos ligado em Configurações > Calendário."
     },
     "fullscreen-weather": {
       "view": "Visualização",
@@ -5948,7 +6067,10 @@
     "cancelledTitle": "O login foi cancelado",
     "cancelledBody": "Sem problemas. Comece de novo pelo editor quando quiser.",
     "failedTitle": "Não foi possível concluir o login",
-    "backToEditor": "Voltar ao editor"
+    "backToEditor": "Voltar ao editor",
+    "calendarConnectedTitle": "O Home Screens já pode adicionar eventos",
+    "calendarConnectedBody": "Volte para Configurações > Calendário para escolher em quais calendários os eventos entram.",
+    "calendarReadOnlyBody": "A caixa “Ver e editar eventos” ficou desmarcada. Entre de novo em Configurações > Calendário e marque essa caixa."
   },
   "conditionSummary": {
     "always": "sempre",

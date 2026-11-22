@@ -3,7 +3,7 @@
 import type { FamilyMember } from '@/types/family';
 
 import { useState, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Lock, Plus, Minus } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -23,6 +23,9 @@ import { showToast } from '../remote-toast';
 import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, redeemGoalEffect, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { GROUP_HEADING, REMOTE_ACCENT } from './remote-styles';
+import { asksForCode } from '@/lib/grown-up-code';
+import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
+import { useGrownUpStatus, useGrownUpUnlock } from '@/hooks/useGrownUp';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -98,6 +101,11 @@ export default function RewardsView({
 
   // The reward this person is saving for, while it is still one they could redeem.
   const goal = data ? resolveSavingsGoal(data, selectedMemberId) : null;
+  // Spending tickets may need the grown-up code: the confirm says so before
+  // it is pressed. A signed-in grown-up (or a phone already unlocked) is not asked.
+  const grownUpStatus = useGrownUpStatus(fetch);
+  const unlocked = useGrownUpUnlock() !== null;
+  const asksGrownUp = asksForCode(grownUpStatus, 'redeem') && !unlocked;
 
   // ── Handlers ──
   const handleRedeem = async () => {
@@ -106,7 +114,9 @@ export default function RewardsView({
     const said = { name: who, reward: redeemTarget.reward.name };
     try {
       // The balance this sheet was built from: the hub refuses if it has moved.
-      const { outcome, numbers } = await requestRedemption(editorFetch, { rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId, expectedBalance: data?.balances[redeemTarget.memberId] ?? 0 });
+      // Spending tickets may need the grown-up code; the hub says when.
+      const why = tCore('grownUp.why.redeem', { count: redeemTarget.reward.cost, member: who, reward: redeemTarget.reward.name });
+      const { outcome, numbers } = await requestRedemption(grownUpFetch(editorFetch, why), { rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId, expectedBalance: data?.balances[redeemTarget.memberId] ?? 0 });
       // The hub's numbers, with a yes or with "the tickets moved": goals too,
       // since the one for this reward is gone and the card must say so now,
       // not at the next poll, or a kid is told to spend again.
@@ -128,6 +138,8 @@ export default function RewardsView({
         await refreshData();
       }
     } catch (err) {
+      // Nobody gave the grown-up code: the sheet stays, so Cancel is still there.
+      if (isGrownUpCancelled(err)) return;
       if (!isSessionExpired(err)) setSaveError('redeemFailed');
       await refreshData();
     }
@@ -422,9 +434,11 @@ export default function RewardsView({
           : t('rewardsView.redeem.confirmDescriptionPlural', { cost, memberName, remaining: remainingTickets });
         // Two sentences: the base line ends without a full stop in some locales.
         const description = goalLine ? `${base.replace(/[.。]$/, '')}. ${goalLine}` : base;
-        const confirmLabel = cost === 1
-          ? t('rewardsView.redeem.confirmLabelSingular', { cost })
-          : t('rewardsView.redeem.confirmLabelPlural', { cost });
+        const confirmLabel = asksGrownUp
+          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Lock size={18} strokeWidth={2.6} aria-hidden="true" />{tCore('grownUp.ask')}</span>
+          : cost === 1
+            ? t('rewardsView.redeem.confirmLabelSingular', { cost })
+            : t('rewardsView.redeem.confirmLabelPlural', { cost });
         return (
           <ConfirmSheet
             icon={

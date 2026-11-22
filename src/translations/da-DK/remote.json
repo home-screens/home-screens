@@ -24,6 +24,7 @@
     "control": "Kontrol",
     "chores": "Pligter",
     "lists": "Lister",
+    "calendar": "Kalender",
     "meals": "Måltider",
     "photos": "Billeder",
     "timers": "Timere",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "Ingen varer på listen",
       "description": "Planlæg måltider med ingredienser for at se din indkøbsliste."
-    }
+    },
+    "alsoOn": "Også på {list}",
+    "openInLists": "Åbn i Lister"
   },
   "mealsSettings": {
     "ariaLabel": "Indstillinger for måltider",
@@ -1033,10 +1036,6 @@
     "newRoutine": "Ny rutine",
     "editRoutine": "Rediger rutine",
     "emptyHint": "En rutine er en timer med trin, som en morgenrutine: tag tøj på, børst tænder, red din seng. Lav en og start den på skærmen.",
-    "routineMeta": {
-      "one": "{steps} trin · {minutes} min.",
-      "other": "{steps} trin · {minutes} min."
-    },
     "stepCount": "Trin {current} af {total}",
     "pause": "Pause",
     "resume": "Fortsæt",
@@ -1065,7 +1064,6 @@
     "removeStep": "Fjern trin",
     "addStep": "Tilføj trin",
     "minutesShort": "{minutes} min.",
-    "loadError": "Rutinerne kunne ikke indlæses. Tjek forbindelsen og prøv igen.",
     "retry": "Prøv igen",
     "onAllDisplays": "På alle skærme",
     "onDisplay": "På {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "Alle skærme",
     "showOnNext": "Næste timer på",
     "onDisplays": "På {count} skærme",
-    "replaceTitle": "Start en ny timer?",
-    "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
     "soundOn": "Lyd til",
     "soundOff": "Lyd fra",
     "minUnit": "min.",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "Alt er gjort!"
     },
     "loadError": "Dine lister kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen"
+    "retry": "Prøv igen",
+    "alreadyOnList": "{item} står allerede på listen",
+    "putBack": "{item} står på listen igen"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens vælger aftensmad blandt dine Mealie-opskrifter til de {count} tomme aftener i ugen {range} og gemmer dem i Mealie. Aftener med en madplansregel i Mealie følger reglen."
       },
       "confirmLabel": "Udfyld aftensmad"
+    }
+  },
+  "calendarTab": {
+    "title": "Kalender",
+    "sub": "Hvad der sker hver dag, og noter til væggen",
+    "addEvent": "Tilføj begivenhed",
+    "addNote": "Tilføj note",
+    "addEventAria": "Tilføj en begivenhed til {day}",
+    "allDay": "Hele dagen",
+    "repeats": "Gentages",
+    "changeAria": "Ændr {title}",
+    "googleCalendar": "Google Kalender",
+    "appleCalendar": "Apple Kalender",
+    "unreachable": "Kunne ikke nå Home Screens, så intet er ændret endnu. Alt, hvad du har skrevet, er her stadig.",
+    "added": "Tilføjet til {calendar}. Den dukker op på væggen om få sekunder.",
+    "changed": "Ændret. Væggen viser det om få sekunder.",
+    "removed": "Fjernet fra {calendar}.",
+    "offTitle": "Det er slået fra at tilføje begivenheder",
+    "offBody": "Det kan slås til under Indstillinger > Kalender. Dagsnoter virker som altid.",
+    "signInTitle": "Der mangler et trin, før du kan tilføje begivenheder",
+    "signInBody": "Du skal logge ind med Google én gang til for at tilføje begivenheder. Det gør du under Indstillinger > Kalender.",
+    "justThisDay": "Kun denne dag",
+    "everyTime": "Alle gange",
+    "keepIt": "Behold den",
+    "backToForm": "Tilbage til formularen",
+    "saveAsk": {
+      "title": "Ændr {title}"
+    },
+    "removeAsk": {
+      "title": "Fjern {title}?",
+      "body": "Den bliver fjernet fra kalenderen {calendar} for alle: her, på væggen og i {app}."
+    },
+    "form": {
+      "newTitle": "Ny begivenhed",
+      "changeTitle": "Ændr begivenhed",
+      "what": "Hvad skal der ske?",
+      "whatPlaceholder": "Fodboldtræning, tandlæge…",
+      "day": "Dag",
+      "firstDay": "Første dag",
+      "lastDay": "Sidste dag",
+      "allDay": "Hele dagen",
+      "starts": "Starter",
+      "ends": "Slutter",
+      "nextDay": "næste dag",
+      "endsOn": "Slutter {day} kl. {time} · {length}",
+      "hours": {
+        "one": "{count} time",
+        "other": "{count} timer"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} t. {minutes} min",
+      "repeats": "Gentages",
+      "stops": "Stopper",
+      "stopsNever": "Aldrig",
+      "stopsOnDate": "På en dato",
+      "done": "Færdig",
+      "calendar": "Kalender",
+      "staysOnGoogle": "En begivenhed bliver i sin kalender. Vil du flytte den, så gør det i Google Kalender.",
+      "staysOnICloud": "En begivenhed bliver i sin kalender. Vil du flytte den, så gør det i Apple Kalender.",
+      "place": "Sted",
+      "placeOptional": "(hvis du vil)",
+      "placePlaceholder": "Tilføj et sted",
+      "add": "Sæt i kalenderen",
+      "save": "Gem",
+      "remove": "Fjern",
+      "fromWall": "Startet på væggen {wall} til {day}.",
+      "changedElsewhere": "En anden har lige ændret denne begivenhed, så her er den nyeste udgave. Lav din ændring igen, og gem så.",
+      "repeatsNote": "{title} gentages. Når du gemmer, vælger du, om det gælder denne dag eller alle gange.",
+      "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under Indstillinger > Kalender."
     }
   }
 }

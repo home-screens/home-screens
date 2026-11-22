@@ -5,6 +5,7 @@ import {
   DISPLAY_OVERRIDE_FIELDS,
   SLEEP_OVERRIDE_FIELDS,
   ALERT_OVERRIDE_FIELDS,
+  CALENDAR_OVERRIDE_FIELDS,
   overrideUnitOf,
 } from '../display-override-fields';
 
@@ -82,14 +83,14 @@ const NOT_OVERRIDE_ROWS: Record<string, string> = {
 };
 
 describe('per-display override field lists', () => {
-  const lists = [...DISPLAY_OVERRIDE_FIELDS, ...SLEEP_OVERRIDE_FIELDS, ...ALERT_OVERRIDE_FIELDS] as string[];
+  const lists = [...DISPLAY_OVERRIDE_FIELDS, ...SLEEP_OVERRIDE_FIELDS, ...ALERT_OVERRIDE_FIELDS, ...CALENDAR_OVERRIDE_FIELDS] as string[];
 
   it('covers every field on DisplayNodeSettings, or explains why not', () => {
     const missing = declaredFields('DisplayNodeSettings').filter((f) => !lists.includes(f) && !(f in NOT_OVERRIDE_ROWS));
     expect(
       missing,
       `DisplayNodeSettings fields with no override list entry and no reasoned exemption: ${missing.join(', ')}. `
-      + 'Add each to DISPLAY_OVERRIDE_FIELDS / SLEEP_OVERRIDE_FIELDS / ALERT_OVERRIDE_FIELDS, '
+      + 'Add each to DISPLAY_OVERRIDE_FIELDS / SLEEP_OVERRIDE_FIELDS / ALERT_OVERRIDE_FIELDS / CALENDAR_OVERRIDE_FIELDS, '
       + 'or to NOT_OVERRIDE_ROWS in this test with the reason it is owned elsewhere.',
     ).toEqual([]);
   });

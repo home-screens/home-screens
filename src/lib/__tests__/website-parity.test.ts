@@ -10,8 +10,7 @@ import { sortVersionsDesc as appSortVersionsDesc } from '@/lib/plugin-versions';
 import { versionOfTag as appVersionOfTag } from '@/lib/update-policy';
 import { MODULE_CATEGORIES } from '@/lib/module-registry';
 import { HOSTED_CALENDAR_CLIENT_ID, HOSTED_PHOTOS_CLIENT_ID } from '@/lib/google-hosted';
-import { REDIRECT_URI as APP_REDIRECT_URI } from '@/lib/google-picker';
-import { beginSignIn, clearPendingSignIn } from '@/lib/google-picker-sign-in';
+import { beginSignIn, clearPendingSignIn, REDIRECT_URI as APP_REDIRECT_URI } from '@/lib/google-web-sign-in';
 import type {
   PluginPermission as AppPluginPermission,
   RegistryPlugin as AppRegistryPlugin,
@@ -154,13 +153,13 @@ describe('hosted Google sign-in across the app, the worker and the website', () 
   it.each(['http://192.168.1.50:3000', 'http://homescreens.local:3000', 'https://10.0.0.7'])(
     'the website reads the hub address %s out of a state the app wrote',
     (address) => {
-      const { state } = beginSignIn(address);
+      const { state } = beginSignIn(address, 'photos');
       expect(hubReturnOrigin(state)).toBe(address);
     },
   );
 
   it('the website finds no address in a state the app wrote without one', () => {
-    const { state } = beginSignIn(null);
+    const { state } = beginSignIn(null, 'photos');
     expect(hubReturnOrigin(state)).toBeNull();
   });
 

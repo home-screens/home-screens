@@ -79,7 +79,7 @@ Ambient displays that fill the whole screen. They have no position, size or styl
 - **Countdown** ([reference](/docs/module-reference#countdown)): days until a birthday, a trip or the last day of school. Add as many events as you like; views **All Events** (stacked) or just the **Next Event**. Needs nothing.
 - **Date** ([reference](/docs/module-reference#date)): today's date in five layouts: **Full**, **Minimal**, **Stacked**, **Editorial** and **Banner**. Needs nothing.
 - **Year Progress** ([reference](/docs/module-reference#year-progress)): how much of the year has gone, as a bar. Needs nothing.
-- **Multi-Month Calendar** ([reference](/docs/module-reference#multi-month-calendar)): a three-month grid, **Vertical** or **Horizontal**, with today marked. Needs nothing.
+- **Multi-Month Calendar** ([reference](/docs/module-reference#multi-month-calendar)): a three-month grid, **Vertical** or **Horizontal**, with today marked. With **Mark days with events** on, a day with something on it gets up to three small dots in its calendars' colours, and on a touchscreen a tap on that day lists its events. Needs nothing; the dots and the list need a calendar.
 
 ### Weather & Environment
 
@@ -128,7 +128,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your WiFi so guests can join by scanning. Needs nothing.
 - **Web Embed** ([reference](/docs/module-reference#web-embed-i-frame)): any web page in a tile: a Home Assistant dashboard, a Grafana chart, a Google Sheet. Needs a page that allows being embedded.
 - **Icon** ([reference](/docs/module-reference#icon)): a single icon, an emoji or one of your own pictures, with rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
-- **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Four layouts: **Bar**, **Pad**, **Panel** and **Arrows** (just Previous and Next, filling the whole module). For touchscreens.
+- **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Five layouts: **Bar**, **Pad**, **Panel**, **Arrows** (just Previous and Next, filling the whole module) and **Dock** (one button per screen, with Sleep and Brightness if you like). Dock and Panel can also show a Timers button that starts a routine or a quick timer. For touchscreens.
 
 ### Travel
 

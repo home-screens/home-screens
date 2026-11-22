@@ -40,7 +40,7 @@ function json(body: unknown, status = 200): Response {
 function statsPayload(restartNeeded: unknown) {
   return {
     disk: { total: 32e9, used: 8e9, free: 24e9, dataDir: { config: 1, backups: 1, backgrounds: 1, total: 3 } },
-    os: { hostname: 'home-screens', platform: 'linux', arch: 'arm64', uptime: 3600, nodeVersion: 'v24.0.0' },
+    os: { hostname: 'home-screens', platform: 'linux', arch: 'arm64', uptime: 3600, nodeVersion: 'v24.0.0', timeZoneData: '2026e' },
     memory: { total: 4e9, free: 2e9, used: 2e9 },
     app: { screens: 2, modules: 6, moduleTypes: {}, profiles: 0, configuredSecrets: [], googleApps: null, configSize: 1 },
     hardware: null,

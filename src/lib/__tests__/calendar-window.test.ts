@@ -42,6 +42,24 @@ describe('getCalendarFetchWindow', () => {
     expect(getCalendarFetchWindow(week, NOW, DAYS_AHEAD, inside)).toEqual(getCalendarFetchWindow(week, NOW, DAYS_AHEAD));
   });
 
+  it('leaves a multi-month that only draws dates out of the fetch', () => {
+    const plain = [makeScreen([makeModule('multi-month', { monthCount: 3, startDay: 'sunday' })])];
+    expect(getCalendarFetchWindow(plain, NOW, DAYS_AHEAD)).toBeNull();
+  });
+
+  it('fetches every day a multi-month marks or opens, through the last grid row of its last month', () => {
+    for (const config of [{ showEventMarks: true }, { eventTapDetails: true }]) {
+      const screens = [makeScreen([makeModule('multi-month', { monthCount: 3, startDay: 'monday', ...config })])];
+      const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)!;
+      // July 2026 starts on a Wednesday: the Monday grid opens on June 29.
+      const gridStart = startOfWeek(startOfMonth(NOW), { weekStartsOn: 1 });
+      expect(win.timeMin).toBe(addDays(gridStart, -1).toISOString());
+      // September's grid opens on Monday August 31 and always draws six rows.
+      const lastGridStart = startOfWeek(new Date(2026, 8, 1), { weekStartsOn: 1 });
+      expect(win.timeMax).toBe(addDays(lastGridStart, 6 * 7 + 1).toISOString());
+    }
+  });
+
   it('returns null when no calendar modules are present', () => {
     const screens = [makeScreen([makeModule('clock', {}), makeModule('weather', {})])];
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();

@@ -746,7 +746,42 @@
         "show": "Hvad der vises",
         "showDescription": "Grænser som alle kalendermoduler starter fra. Et modul kan indsnævre yderligere med egne filtre."
       },
-      "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser."
+      "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser.",
+      "adding": {
+        "heading": "Tilføj begivenheder",
+        "description": "Tilføj, ændr og fjern begivenheder fra din telefon og fra væggen.",
+        "switch": "Lad Home Screens tilføje og ændre begivenheder",
+        "switchHelpBoth": "Til Google-kalendere beder Google dig om at logge ind én gang til. For iCloud-kalendere skal du ikke gøre mere. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpGoogle": "Google beder dig om at logge ind én gang til for at give lov. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpICloud": "For dine iCloud-kalendere skal du ikke gøre mere. De vises på samme måde, uanset om det er slået til eller ej.",
+        "ready": "Logget ind og klar til at tilføje begivenheder",
+        "signInTitle": "Et trin mere: log ind med Google igen",
+        "signInBody": "Google beder dig om at give Home Screens lov til at “Se og redigere begivenheder i alle dine kalendere”. Der åbnes en Google-fane, og bagefter kommer du automatisk tilbage hertil.",
+        "signInButton": "Log ind med Google",
+        "signInAgain": "Log ind igen",
+        "signInFailed": "Det login virkede ikke. Prøv igen.",
+        "pastePlaceholder": "Indsæt koden fra login-siden",
+        "pasteButton": "Afslut",
+        "scopeMissingTitle": "Google gav kun lov til at vise begivenheder",
+        "scopeMissingBody": "På Googles side blev der ikke sat kryds ved “Se og redigere begivenheder”, så Home Screens kan stadig kun vise dine kalendere. Log ind igen, og sæt kryds der.",
+        "webClientTitle": "Tilføj først et Google-weblogin",
+        "webClientBody": "Når du tilføjer begivenheder, logger Home Screens ind med det samme Google-weblogin, som import fra Google Fotos bruger. Tilføj dets klient-id og klienthemmelighed, og kom så tilbage hertil.",
+        "webClientLink": "Åbn API-nøgler",
+        "calendarsLabel": "Kalendere, som begivenheder kan lægges i",
+        "calendarsHelp": "Kun kalendere, som skærmene viser, er med på listen, så en ny begivenhed aldrig havner et sted, hvor ingen ser den.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Kan ikke ændres i Google",
+        "fromContacts": "Kommer fra Kontakter",
+        "defaultLabel": "Nye begivenheder kommer i",
+        "lengthLabel": "Normal længde",
+        "length30": "30 min",
+        "length60": "1 time",
+        "length90": "1½ time",
+        "length120": "2 timer",
+        "wallSwitch": "Lad væggen tilføje, ændre og fjerne begivenheder",
+        "wallHelp": "Kun i de kalendere, der er sat kryds ved ovenfor. Væggen spørger, før noget bliver fjernet. Hver skærm kan slå det fra på sin egen side."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1282,7 +1317,8 @@
           "pixelShift": "Beskyttelse mod indbrænding",
           "fullscreenTheme": "Tema",
           "sleep": "Slumring & dæmpning",
-          "alerts": "Beskeder på skærmen"
+          "alerts": "Beskeder på skærmen",
+          "calendarWallEntry": "Tilføj begivenheder på denne væg"
         },
         "chipValues": {
           "pauseOn": "Til",
@@ -1393,6 +1429,11 @@
         "connectLabel": "Forbind til den",
         "runLabel": "Kør så dette",
         "connectUnknown": "Forbind til skærmens Pi fra en terminal (brugernavnet er {user}), og kør så:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Tilføj, ændr og fjern begivenheder på denne væg",
+        "wallEntryToggle": "Tillad det på denne væg",
+        "defaultsLabel": "Kalender"
       }
     },
     "alertFormFields": {
@@ -1604,9 +1645,9 @@
         "clientSecretLabel": "Klienthemmelighed til kalender",
         "clientSecretPlaceholder": "f.eks. GOCSPX-…",
         "clientSecretHelp": "Klienthemmeligheden fra det samme OAuth-id ovenfor.",
-        "webClientIdLabel": "Klient-id til foto-import",
-        "webClientIdHelp": "Tilføj https://homescreens.dev/connect/google som godkendt redirect-URI.",
-        "webClientSecretLabel": "Klienthemmelighed til foto-import",
+        "webClientIdLabel": "Klient-id til weblogin",
+        "webClientIdHelp": "Bruges både til import fra Google Fotos og til at tilføje begivenheder i kalenderen. Tilføj https://homescreens.dev/connect/google som godkendt redirect-URI.",
+        "webClientSecretLabel": "Klienthemmelighed til weblogin",
         "webClientSecretHelp": "Klienthemmeligheden fra webapplikations-id’et ovenfor.",
         "mapsKeyLabel": "Maps-API-nøgle",
         "mapsKeyPlaceholder": "Indsæt din Google Maps-API-nøgle",
@@ -1618,9 +1659,9 @@
           "helpOwnApp": "Opret en OAuth-adgang af typen “TVs and Limited Input devices” i Google Cloud Console, og indsæt så begge dele her."
         },
         "photosBand": {
-          "title": "Til import fra Google Fotos",
-          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind. Ellers spring det over.",
-          "helpOwnApp": "Et separat login fra kalenderens, af typen “Web application”."
+          "title": "Til Google Fotos og til at tilføje begivenheder",
+          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind eller tilføje begivenheder i kalenderen. Ellers spring det over.",
+          "helpOwnApp": "Et separat login fra kalenderens, af typen “Web application”. Det bruges til import fra Google Fotos og til at tilføje begivenheder i kalenderen."
         },
         "mapsBand": {
           "title": "Til køretider",
@@ -1956,6 +1997,11 @@
         "connectedOffer": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den plan, du har der.",
         "onMealie": "Alle madvisninger, telefonen og denne editor bruger nu din Mealie-plan, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
         "mealieSettingsLink": "Mealie-indstillinger"
+      },
+      "groceryExtras": {
+        "heading": "Andre indkøb",
+        "description": "Vælg en af jeres lister til de ting, ingen ret skal bruge, som køkkenrulle eller hundemad. Det, der stadig står på den, vises sidst i indkøbslisten på telefonen og på væggen, og et indkøbskort med Tilføj på væggen tilføjer til den.",
+        "none": "Ingen"
       },
       "status": {
         "loadFailed": "Kunne ikke indlæse indstillingerne for måltider.",
@@ -2437,7 +2483,9 @@
       "advanced": {
         "heading": "Avanceret netværksadgang",
         "description": "Skærmnøgle, tilmeldte enheder og begrænsning til bestemte netværk."
-      }
+      },
+      "grownUpPointerPrefix": "Skal væggen spørge, før børnene bruger billetter? Det finder du under ",
+      "grownUpPointerSuffix": " på siden Familie."
     },
     "shared": {
       "secretField": {
@@ -2618,6 +2666,7 @@
       "hostname": "Enhedsnavn",
       "platform": "Platform",
       "uptime": "Oppetid",
+      "timeZoneData": "Tidszonedata",
       "hardwareTitle": "CPU og temperatur",
       "sourceReporter": "Rapportør",
       "sourceHub": "Hub (lokal)",
@@ -2847,6 +2896,50 @@
         "grabLimitLabel": "Hvor mange bonuspligter én person kan snuppe ad gangen",
         "grabHoldLabel": "Hvor længe en snuppet bonuspligt er deres",
         "saved": "Gemt"
+      },
+      "grownUp": {
+        "heading": "Voksenkode til væggen",
+        "description": "Fire tal, som væggen spørger efter, før den gør de ting, du sætter kryds ved herunder, så små fingre ikke selv kan bruge billetter. Den låser ikke dit hjemmenetværk; det gør adgangskoden under Sikkerhed.",
+        "notSet": "Ingen kode endnu.",
+        "isSet": "Der er valgt en kode.",
+        "set": "Vælg en kode",
+        "change": "Skift",
+        "remove": "Fjern",
+        "removeConfirm": "Fjern koden",
+        "codeLabel": "Fire tal",
+        "againLabel": "Samme tal igen",
+        "save": "Gem kode",
+        "mismatch": "De to koder er ikke ens.",
+        "format": "Brug fire tal.",
+        "jobsLabel": "Spørg efter koden, før nogen kan",
+        "jobs": {
+          "redeem": {
+            "label": "Bruge billetter i belønningsbutikken",
+            "hint": "På væggen og på børnenes pligtside."
+          },
+          "untick": {
+            "label": "Fjerne fluebenet ved en pligt",
+            "hint": "Når fluebenet fjernes, tages pligtens billetter tilbage."
+          },
+          "todoist-close": {
+            "label": "Markere en Todoist-opgave som klaret",
+            "hint": "Det kan ikke fortrydes fra væggen."
+          },
+          "calendar-remove": {
+            "label": "Fjerne en begivenhed fra kalenderen",
+            "hint": "På væggen og på telefoner, når Home Screens ikke har en adgangskode."
+          },
+          "calendar-change-series": {
+            "label": "Ændre alle dagene for en begivenhed, der gentages",
+            "hint": "Når en ændring gælder alle gange, ikke kun én dag."
+          }
+        },
+        "unlockLabel": "Hold væggen låst op i",
+        "minutes": {
+          "one": "1 minut",
+          "other": "{count} minutter"
+        },
+        "unlockHint": "Efter den rigtige kode gør den væg de ting, der er sat kryds ved, uden at spørge igen i så lang tid. Er man logget ind på telefonen, bliver man aldrig spurgt."
       }
     },
     "touchAlignment": {
@@ -3775,11 +3868,11 @@
     "collapseTitle": "Skjul indstillingspanelet",
     "expandTitle": "Vis indstillingspanelet",
     "openButton": {
-      "label": "Vis en knap, der åbner",
+      "label": "Åbner",
       "none": "Ingenting",
       "andMore": "og {count} til",
       "help": "Sætter en knap med skærmens navn i modulets nederste hjørne. Et tryk på en berøringsskærm viser skærmen.",
-      "sectionTitle": "Åbn-knap",
+      "sectionTitle": "Åbn en skærm",
       "opensOnTap": "{name} (åbner ved tryk)",
       "offBadge": "{name} (slukket)",
       "holds": "Viser {what}",
@@ -3812,7 +3905,12 @@
       "turnOnTap": "Slå “Tryk på skærmen” til",
       "switchOn": "Tænd den",
       "onlyWhen": "Knappen vises kun {when}.",
-      "onlyConditions": "Knappen vises kun, mens den skærms betingelser passer."
+      "onlyConditions": "Knappen vises kun, mens den skærms betingelser passer.",
+      "openWith": "Åbn den med",
+      "openWithButton": "Knappen",
+      "openWithCard": "Et tryk på modulet",
+      "openWithCardHelp": "Et tryk hvor som helst på modulet åbner {name}. En lille pil i hjørnet viser, at man kan trykke på det.",
+      "openWithTakesTaps": "Dette modul bruger allerede tryk til sine egne ting, så skærmen åbnes med knappen."
     }
   },
   "sudoPrompt": {
@@ -4259,7 +4357,9 @@
       "allowRetargeting": "Lad brugeren skifte mål undervejs",
       "compact": "Kun ikoner, ingen ord",
       "dockHint": "Én knap pr. skærm på dette display. Tryk på en for at hoppe direkte til den skærm.",
-      "dockExtras": "Vis også Sov og Lysstyrke",
+      "dockExtras": "Vis også Slumre og Lysstyrke",
+      "showTimers": "Vis også Timere",
+      "showTimersHint": "En knap, der starter en rutine eller en hurtig timer på dette display. Rutiner laves på telefonen under Timere.",
       "dockButtons": "Knapper",
       "dockButtonsChoose": "Vælg hvilke skærme der får en knap",
       "dockButtonsEvery": "Hver skærm på dette display får en knap, i rotationens rækkefølge.",
@@ -4491,7 +4591,10 @@
       "shuffleOrder": "Bland rækkefølgen",
       "kenBurnsEffect": "Ken Burns-effekt",
       "showClockOverlay": "Vis ur ovenpå",
-      "clockBackground": "Urets baggrund"
+      "clockBackground": "Urets baggrund",
+      "interactive": "Tryk på displayet",
+      "interactiveHint": "På en touchskærm viser et tryk Tilbage, Pause og Næste, og hvilket album billedet kommer fra. Et stryg til siden skifter stadig skærm.",
+      "interactiveHintCard": "På en touchskærm viser et tryk Tilbage, Pause og Næste, og hvilket album billedet kommer fra. Et stryg hen over billedet viser det næste."
     },
     "garbage-day": {
       "frequencyWeekly": "Hver uge",
@@ -4669,7 +4772,13 @@
       "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet. Virker også for måltider, der er gemt med ingredienser eller noter. Har et måltid et opskriftslink, får det også en kode til at åbne opskriften på en telefon.",
       "tapRecipeActionNoLinkHint": "Et måltid uden opskriftslink viser i stedet sine ingredienser og noter på opskriftskortet.",
       "interactive": "Tryk på displayet",
-      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter, bedømme aftensmaden, rulle i lange lister og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm. Åbn-knappen har også brug for det."
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter, bedømme aftensmaden, rulle i lange lister og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm. Åbn-knappen har også brug for det.",
+      "wallAdd": "Tilføj på væggen",
+      "wallAddHelpMealie": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på den Mealie-liste, familien handler efter.",
+      "wallAddHelpLocal": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på listen, der er valgt nedenfor.",
+      "extrasList": "Andre indkøb kommer på",
+      "extrasListNone": "Ingen (ingen Tilføj-linje)",
+      "extrasListHelp": "En af jeres lister. Det, der stadig står på den, vises sidst i indkøbslisten, her og på telefonen. Alle indkøbskort deler den."
     },
     "moon-phase": {
       "showIllumination": "Vis oplyst i %",
@@ -4694,7 +4803,13 @@
       "todayUnderline": "Understregning",
       "todayText": "Farvet tal",
       "todayNone": "Ingen",
-      "accentColor": "Accentfarve"
+      "accentColor": "Accentfarve",
+      "events": "Begivenheder",
+      "showEventMarks": "Markér dage med begivenheder",
+      "showEventMarksHint": "Op til tre prikker under hver dag, hvor der sker noget, hver i sin kalenders farve.",
+      "showDayNotesHint": "En dag, der kun har en note, får også et mærke, og noterne vises, når man trykker på dagen.",
+      "eventTapDetails": "Tryk på en dag for at se dens begivenheder",
+      "eventTapDetailsHint": "På en touchskærm åbner det dagens liste, den samme som Kalender-modulet viser. Et tryk på en tom dag gør ingenting."
     },
     "news": {
       "viewHeadline": "Overskrift (skiftende)",
@@ -5178,7 +5293,9 @@
       "completedHidden": "Skjult",
       "showDueDates": "Vis frister",
       "showAssignees": "Vis hvem",
-      "interactive": "Tryk for at klare (touchskærm)"
+      "interactive": "Tryk for at klare (touchskærm)",
+      "wallAdd": "Tilføj fra væggen (touchskærm)",
+      "wallAddHelp": "En Tilføj-linje under listen. Alle ved væggen kan tilføje; ændre og fjerne sker stadig på telefonen."
     },
     "todoist": {
       "apiToken": "API-token",
@@ -5438,7 +5555,9 @@
       "advancedLooks": "Avanceret udseende",
       "ruleCountNone": "ingen",
       "ruleCountOne": "1 regel",
-      "ruleCountOther": "{count} regler"
+      "ruleCountOther": "{count} regler",
+      "addEvents": "Tilføj begivenheder fra en dag",
+      "addEventsHelp": "Viser \"Tilføj begivenhed\", når man trykker på en dag, og Ændr og Fjern på en begivenhed. Det skal først slås til under Indstillinger > Kalender."
     },
     "fullscreen-weather": {
       "view": "Visning",
@@ -5948,7 +6067,10 @@
     "cancelledTitle": "Login blev annulleret",
     "cancelledBody": "Det gør ikke noget. Du kan starte forfra i editoren, når du har lyst.",
     "failedTitle": "Login kunne ikke afsluttes",
-    "backToEditor": "Tilbage til editoren"
+    "backToEditor": "Tilbage til editoren",
+    "calendarConnectedTitle": "Home Screens kan nu tilføje begivenheder",
+    "calendarConnectedBody": "Gå tilbage til Indstillinger > Kalender for at vælge, hvilke kalendere nye begivenheder skal lægges i.",
+    "calendarReadOnlyBody": "Der blev ikke sat kryds ved “Se og redigere begivenheder”. Log ind igen under Indstillinger > Kalender, og sæt kryds der."
   },
   "conditionSummary": {
     "always": "altid",

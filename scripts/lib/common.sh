@@ -302,6 +302,15 @@ hs_render_template() {
 # it. wlroots follows labwc as its dependency; its package name carries the
 # soname and changes between releases, so it is never named.
 SYSTEM_PACKAGES="chromium labwc kanshi wlopm wlr-randr wtype"
+# Programs the hub's own server runs, brought current beside SYSTEM_PACKAGES
+# by setup-system (a display-only Pi runs no Node). install_node only checks
+# the major version, so without this a hub keeps the Node it was installed
+# with, and with it that release's time zone data: when Alberta stopped
+# changing its clocks on 2026-11-01, a hub on older data put every Alberta
+# event an hour late. NodeSource's repository is pinned to one major, so this
+# only ever takes the newest release of the Node already there. Not a
+# session program: the service restart that ends every update picks it up.
+HUB_RUNTIME_PACKAGES="nodejs"
 # Packages a release knows to be bad at the archive's newest version, held
 # back with apt-mark until a later release takes them off this list. The
 # holds setup-system placed are remembered in data/system-package-holds, so

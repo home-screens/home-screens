@@ -16,4 +16,6 @@ export interface LayoutProps {
   onSleep: () => void;
   onWake: () => void;
   onBrightness: (pct: number) => void;
+  /** Opens the Timers sheet. Unset when this module has no Timers button (dock and panel only). */
+  onTimers?: () => void;
 }

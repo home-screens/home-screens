@@ -206,12 +206,19 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
   { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },
+  // The rows under it (which calendars, where new events go, usual length,
+  // the walls' switch) only show while it is on, so searches for them land here.
+  { pageId: 'calendar', fieldId: 'calendar.eventEntry', labelKey: 'settings.calendarPage.adding.switch', keywordKeys: ['settings.calendarPage.adding.heading', 'settings.calendarPage.adding.wallSwitch', 'settings.calendarPage.adding.defaultLabel', 'settings.calendarPage.adding.lengthLabel'], keywords: ['add event', 'new event', 'edit event', 'change event', 'remove event', 'write', 'wall', 'repeat'] },
   { pageId: 'calendar', fieldId: 'calendar.calendarOverrides', labelKey: 'settings.calendarPage.google.heading', keywords: ['rename', 'recolour', 'recolor', 'colour', 'color', 'calendar name', 'names and colours'] },
 
   { pageId: 'family', fieldId: 'family.grabLimit', labelKey: 'settings.familyPage.chores.grabLimitLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'grab limit', 'up for grabs', 'chores', 'chore settings', 'extra tickets', 'at once'] },
   { pageId: 'family', fieldId: 'family.grabHold', labelKey: 'settings.familyPage.chores.grabHoldLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'up for grabs', 'chores', 'chore settings', 'bedtime', 'extra tickets', 'comes back'] },
+  { pageId: 'family', fieldId: 'family.grownUpCode', labelKey: 'settings.familyPage.grownUp.heading', keywordKeys: ['settings.familyPage.grownUp.description'], keywords: ['pin', 'code', 'parent', 'lock', 'kids', 'child lock', 'parental'] },
+  { pageId: 'family', fieldId: 'family.grownUpJobs', labelKey: 'settings.familyPage.grownUp.jobsLabel', keywordKeys: ['settings.familyPage.grownUp.heading'], keywords: ['pin', 'redeem', 'rewards', 'untick', 'todoist', 'lock'] },
+  { pageId: 'family', fieldId: 'family.grownUpUnlock', labelKey: 'settings.familyPage.grownUp.unlockLabel', keywordKeys: ['settings.familyPage.grownUp.heading'], keywords: ['pin', 'unlocked', 'minutes'] },
 
   { pageId: 'meals', fieldId: 'meals.planSource', labelKey: 'settings.mealsPage.planSource.heading', keywordKeys: ['settings.mealsPage.planSource.description'], keywords: ['mealie', 'recipes', 'meal plan'] },
+  { pageId: 'meals', fieldId: 'meals.groceryExtrasList', labelKey: 'settings.mealsPage.groceryExtras.heading', keywordKeys: ['settings.mealsPage.groceryExtras.description'], keywords: ['grocery', 'shopping', 'shopping list', 'groceries', 'add on the wall'] },
   { pageId: 'meals', fieldId: 'meals.enabledSlots', labelKey: 'settings.mealsPage.slots.heading' },
   { pageId: 'meals', fieldId: 'meals.weekStartDay', labelKey: 'settings.mealsPage.weekStart.heading', keywordKeys: ['settings.mealsPage.weekStart.heading'] },
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading', keywordKeys: ['settings.mealsPage.timeFormat.description', 'settings.mealsPage.timeFormat.twelveHourLabel', 'settings.mealsPage.timeFormat.twentyFourHourLabel'], keywords: ['clock'] },

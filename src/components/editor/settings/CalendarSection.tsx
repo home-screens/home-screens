@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Pencil, X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { CalendarOverride, ICalSource, ICloudSource } from '@/types/config';
+import type { CalendarEventEntry, CalendarOverride, ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,7 @@ import HostedCalendarSignIn from './HostedCalendarSignIn';
 import { DeviceCodeButton, DeviceCodeLink } from '../DeviceCodeParts';
 import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
+import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
@@ -30,6 +31,8 @@ interface CalendarSettings {
   daysAhead: number;
   holidayCountry?: string;
   hideDeclined: boolean;
+  eventEntry: CalendarEventEntry | null;
+  wallEntry: boolean;
   calendarOverrides?: Record<string, CalendarOverride>;
 }
 
@@ -108,6 +111,11 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     values,
     onChange,
     onAuthError,
+    onSignedInElsewhere: () => {
+      setAuthError(null);
+      // The badges still show the status from before the sign-in.
+      recheckSourceHealth();
+    },
   });
 
   const deviceFlow = useGoogleDeviceFlow({
@@ -484,14 +492,29 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         </SourceBlock>
       </SettingsArea>
 
-      {/* 3. People: who the calendars belong to */}
+      {/* 3. Adding events from the phone and the wall */}
+      <CalendarAddingArea
+        eventEntry={values.eventEntry}
+        wallEntry={values.wallEntry}
+        googleCalendars={googleCalendars}
+        shownGoogleIds={selectedCalendarIds}
+        icloudSources={icloudSources}
+        onChange={onChange}
+      />
+
+      {/* 4. People: who the calendars belong to */}
       <SettingsArea
         title={t('settings.calendarPage.people.heading')}
         description={t('settings.calendarPage.people.help')}
         testId="calendar-area-people"
       >
         <div data-field-id="calendar.personSources">
-          <CalendarPeopleManager personSources={personSources} onChange={(next) => onChange({ personSources: next })} />
+          {/* Read again when Google signs in or out: it names Google's calendars from its own listing. */}
+          <CalendarPeopleManager
+            key={googleConnected ? 'google' : 'no-google'}
+            personSources={personSources}
+            onChange={(next) => onChange({ personSources: next })}
+          />
         </div>
       </SettingsArea>
 

@@ -94,7 +94,7 @@ test.describe('Recipe book, a family without Mealie', () => {
     await type(page, 'f');
     await expect.poll(() => tileNames(mod)).toEqual(['Waffles']);
     await expect(mod.getByTestId('recipe-book-heading')).toHaveText('Recipes with “waf”');
-    await page.getByTestId('wall-keyboard').locator('[data-key="done"]').click();
+    await page.getByTestId('wall-keyboard').locator('[data-key="action"]').click();
     await expect(page.getByTestId('wall-keyboard')).toHaveCount(0);
 
     await mod.getByTestId('recipe-book-tile').filter({ hasText: 'Waffles' }).click();

@@ -28,11 +28,11 @@ export function useControlFrame(
   layout: 'bar' | 'pad' | 'panel' | 'nav',
   { fadeWhilePicking = true }: { fadeWhilePicking?: boolean } = {},
 ): ControlFrame {
-  const { allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId } = props;
+  const { allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId, onTimers } = props;
   const [pickerOpen, setPickerOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
   const [boxRef, box] = useElementBox('padding');
-  const m = controlMetrics({ w: box.width, h: box.height, layout, compact, showPicker });
+  const m = controlMetrics({ w: box.width, h: box.height, layout, compact, showPicker, timers: onTimers !== undefined });
   const picker = showPicker ? (
     <TargetPicker
       value={currentTarget}

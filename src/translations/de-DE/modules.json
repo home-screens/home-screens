@@ -152,7 +152,49 @@
         "other": "{count} Termine"
       },
       "toTime": "bis {time}",
-      "openDay": "Alles am {date} ansehen"
+      "openDay": "Alles am {date} ansehen",
+      "empty": "An diesem Tag steht noch nichts an.",
+      "addEvent": "Termin hinzufügen"
+    },
+    "eventForm": {
+      "newKicker": "Neuer Termin · {weekday}",
+      "changeKicker": "Termin ändern · {weekday}",
+      "what": "Was steht an?",
+      "namePlaceholder": "Namen eintippen",
+      "typeOnPhone": "Am Handy tippen",
+      "handoffBody": "Halte die Kamera deines Handys auf den Code. Dann öffnet sich dort ein neuer Termin für {day}.",
+      "backToKeyboard": "Zurück zur Tastatur an der Wand",
+      "allDay": "Ganztägig",
+      "repeats": "Wiederholung",
+      "howOften": "Wie oft?",
+      "repeatNote": "Das geht so weiter, bis der Termin geändert oder entfernt wird. Soll er an einem bestimmten Tag aufhören, stell das am Handy ein.",
+      "starts": "Beginn",
+      "ends": "Ende",
+      "howLong": "Dauer",
+      "endsAt": "Endet um {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} Stunde",
+        "other": "{count} Stunden"
+      },
+      "minutes": "{count} Min.",
+      "hoursMinutes": "{hours} Std. {minutes} Min.",
+      "length30": "30 Min.",
+      "length60": "1 Stunde",
+      "length90": "1½ Stunden",
+      "length120": "2 Stunden",
+      "length180": "3 Stunden",
+      "lengthOther": "Andere",
+      "calendar": "Kalender",
+      "staysOn": "Bleibt in seinem Kalender",
+      "add": "In den Kalender eintragen",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "tryAgain": "Noch einmal versuchen",
+      "done": "Fertig",
+      "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert. Das hier ist der neueste Stand. Mach deine Änderung noch einmal.",
+      "changeTitle": "„{title}“ ändern",
+      "backToForm": "Zurück zum Formular"
     }
   },
   "fullscreen-calendar": {
@@ -386,9 +428,6 @@
       },
       "searchAria": "Rezepte durchsuchen",
       "clearSearch": "Suche löschen",
-      "spaceKey": "Leerzeichen",
-      "doneKey": "Fertig",
-      "deleteKey": "Buchstaben löschen",
       "moreChips": {
         "one": "+ {count} weitere",
         "other": "+ {count} weitere"
@@ -562,13 +601,48 @@
         "mealieNotConnected": "Verbinde es in den Einstellungen am Computer, dann erscheint die Liste.",
         "mealieTokenRefused": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheint die Liste.",
         "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheint die Liste."
-      }
+      },
+      "alsoOn": "Außerdem auf {list}"
     }
   },
   "wallScroll": {
     "backToToday": "Zurück zu heute",
     "backToNow": "Zurück zum Jetzt",
     "backToTop": "Zurück nach oben"
+  },
+  "wallKeyboard": {
+    "spaceKey": "Leerzeichen",
+    "doneKey": "Fertig",
+    "deleteKey": "Buchstaben löschen",
+    "shiftKey": "Großbuchstabe",
+    "numbersKey": "123",
+    "numbersAria": "Zahlen und Zeichen",
+    "lettersKey": "abc",
+    "lettersAria": "Buchstaben",
+    "left": {
+      "one": "noch {count}",
+      "other": "noch {count}"
+    },
+    "close": "Schließen"
+  },
+  "wallAdd": {
+    "rowLabel": "Zu {list} hinzufügen",
+    "rowShort": "Hinzufügen",
+    "kicker": "Hinzufügen zu",
+    "placeholder": "Hier tippen",
+    "hint": "Tippe eine Sache, dann auf Hinzufügen. So viele, wie du willst.",
+    "action": "Hinzufügen",
+    "justAdded": "Gerade hinzugefügt",
+    "already": "steht schon drauf",
+    "putBack": "wieder drauf",
+    "merged": "zum vorhandenen dazu",
+    "undo": "Rückgängig",
+    "unreachable": "Das hat nicht geklappt. Home Screens antwortet nicht, tippe gleich noch einmal auf Hinzufügen.",
+    "failed": "Das hat nicht geklappt. Versuch es gleich noch einmal.",
+    "undoFailed": "Rückgängig hat nicht geklappt. Ändere es auf dem Handy unter Listen.",
+    "emptyTitle": "Noch nichts auf {list}",
+    "emptyHint": "Tippe auf Hinzufügen oder füge auf dem Handy etwas hinzu.",
+    "mealieFailed": "Das hat nicht geklappt. Mealie antwortet nicht, versuch es gleich noch einmal."
   },
   "openButton": {
     "open": "{name} öffnen",
@@ -1461,7 +1535,7 @@
     "ariaNext": "Nächster Bildschirm",
     "holdSub": "1 Sekunde halten",
     "holdShort": "halten",
-    "keepHolding": "Weiter halten zum Schlafen",
+    "keepHolding": "Länger halten zum Schlafen",
     "wake": "Aufwecken",
     "wakeSub": "Bildschirm wieder an",
     "controls": "Steuert",
@@ -1472,7 +1546,15 @@
     "brightnessUnknown": "Helligkeit, noch nicht gemeldet",
     "dockEmpty": "Noch keine Bildschirme",
     "unnamedScreen": "Bildschirm {number}",
-    "goTo": "Zu {name}"
+    "goTo": "Zu {name}",
+    "timers": "Timer",
+    "timersEyebrow": "Startet auf diesem Display",
+    "routines": "Routinen",
+    "quickTimer": "Schnell-Timer",
+    "noRoutines": "Routinen legst du am Handy unter „Timer“ an.",
+    "start": "Start",
+    "timerStartFailed": "Der Timer ist nicht gestartet. Versuch es noch einmal.",
+    "timersPreview": "Das ist eine Vorschau, hier startet ein Tippen keinen Timer."
   },
   "timetable": {
     "name": "Stundenplan",
@@ -1540,7 +1622,15 @@
     "allDay": "Ganztägig",
     "holiday": "Feiertag",
     "birthday": "Geburtstag",
-    "birthdayWithAge": "Geburtstag · wird {age}"
+    "birthdayWithAge": "Geburtstag · wird {age}",
+    "repeats": "Wiederholt sich",
+    "change": "Ändern",
+    "remove": "Entfernen",
+    "keepIt": "Behalten",
+    "removeTitle": "„{title}“ entfernen?",
+    "removeBody": "Der Termin verschwindet für alle aus dem Kalender „{calendar}“: an der Wand, auf den Handys und in der Kalender-App.",
+    "justThisDay": "Nur an diesem Tag",
+    "everyTime": "An allen Tagen"
   },
   "fullscreen-weather": {
     "loading": "Wettervorhersage wird geladen…",
@@ -1708,5 +1798,13 @@
     "receiptThanks": "Danke fürs Lesen",
     "receiptSummary": "Angepinnt {pinned} · Wichtig {important}",
     "pinnedOne": "Angepinnt"
+  },
+  "photoControls": {
+    "label": "Foto-Steuerung",
+    "next": "Weiter",
+    "pause": "Pause",
+    "play": "Abspielen",
+    "position": "{at} von {count}",
+    "allPictures": "Alle Bilder"
   }
 }

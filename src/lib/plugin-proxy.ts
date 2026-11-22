@@ -24,6 +24,15 @@ export interface FollowRedirectsOptions {
   /** Request body for body-bearing methods; ignored for GET/HEAD. */
   payload: string | undefined;
   headers: Record<string, string>;
+  /**
+   * Names of the headers the proxy itself added: the sign-in token and any
+   * saved keys from `secretInjections.header`. They are dropped once a
+   * redirect leaves the site they were added for, the way a browser drops
+   * `Authorization`, and any other header the plugin set rides on.
+   */
+  injectedHeaders?: string[];
+  /** The proxy put a saved key or the sign-in token in the URL's query. */
+  injectedQuery?: boolean;
   allowedDomains: string[];
   allowLan: boolean;
   /** DNS-resolving SSRF check applied to every redirect target. */
@@ -48,7 +57,10 @@ export type FollowRedirectsResult =
 export async function followRedirectsWithValidation(
   opts: FollowRedirectsOptions,
 ): Promise<FollowRedirectsResult> {
-  const { pluginId, headers, allowedDomains, allowLan, safeCheck } = opts;
+  const { pluginId, allowedDomains, allowLan, safeCheck } = opts;
+  let headers = opts.headers;
+  const injected = new Set((opts.injectedHeaders ?? []).map((name) => name.toLowerCase()));
+  const carriesSavedKeys = injected.size > 0 || opts.injectedQuery === true;
   let isBodyMethod = opts.method !== 'GET' && opts.method !== 'HEAD';
   let currentUrl = opts.url;
   let currentMethod = opts.method;
@@ -106,6 +118,26 @@ export async function followRedirectsWithValidation(
           { status: 403 },
         ),
       };
+    }
+    // Keys and tokens the proxy added belong to the site they were added for,
+    // over https. A hop down to plain http is refused outright when any were
+    // added (one in the query may have been carried into the new address by
+    // the server), and a hop to another site goes on without the added headers.
+    const from = new URL(currentUrl);
+    const to = new URL(nextUrl);
+    if (carriesSavedKeys && from.protocol === 'https:' && to.protocol === 'http:') {
+      auditProxyDenied(pluginId, nextUrl, 'redirect_insecure_with_keys');
+      return {
+        ok: false,
+        error: NextResponse.json(
+          { error: 'Upstream redirected a request carrying saved keys to an insecure http address' },
+          { status: 403 },
+        ),
+      };
+    }
+    if (from.origin !== to.origin && injected.size) {
+      headers = Object.fromEntries(Object.entries(headers).filter(([name]) => !injected.has(name.toLowerCase())));
+      injected.clear();
     }
     // Per the fetch spec, 301/302/303 downgrade to GET and drop the body;
     // 307/308 preserve the original method and body.

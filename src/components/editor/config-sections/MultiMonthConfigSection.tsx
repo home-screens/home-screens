@@ -10,10 +10,16 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import type { ModuleInstance, MultiMonthTodayStyle } from '@/types/config';
 import { useWeekStartOptions } from './option-hooks';
+import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
+import { CalendarGroup } from './CalendarSettingsGroups';
 
 export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean; showEventMarks?: boolean; eventTapDetails?: boolean; sourceFilter?: string[]; showDayNotes?: boolean }>(mod, screenId);
+  // The Calendar card's own source list and wording: the same calendars, named the same way.
+  const { availableSources } = useCalendarSources('configSections.calendar');
+  const usesEvents = c.showEventMarks === true || c.eventTapDetails === true;
+  const hintClass = 'text-xs leading-relaxed text-hs-text-muted';
 
   const TODAY_STYLE_OPTIONS: { value: MultiMonthTodayStyle; label: string }[] = [
     { value: 'filled', label: t('configSections.multi-month.todayFilled') },
@@ -64,6 +70,32 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
           resetLabel={t('common.resetToDefault')}
         />
       )}
+      <CalendarGroup label={t('configSections.multi-month.events')}>
+        <div className="flex flex-col gap-1">
+          <Toggle label={t('configSections.multi-month.showEventMarks')} checked={c.showEventMarks === true} onChange={(v) => set({ showEventMarks: v })} />
+          <p className={hintClass}>{t('configSections.multi-month.showEventMarksHint')}</p>
+        </div>
+        {usesEvents && (
+          <>
+            <CalendarSourceFilter
+              keyPrefix="configSections.calendar"
+              availableSources={availableSources}
+              sourceFilter={c.sourceFilter ?? []}
+              onChange={(next) => set({ sourceFilter: next })}
+            />
+            <div className="flex flex-col gap-1">
+              <Toggle label={t('configSections.calendarDayNotes.label')} checked={c.showDayNotes === true} onChange={(v) => set({ showDayNotes: v })} />
+              <p className={hintClass}>{t('configSections.multi-month.showDayNotesHint')}</p>
+            </div>
+          </>
+        )}
+      </CalendarGroup>
+      <CalendarGroup label={t('configSections.calendarGroups.touch')}>
+        <div className="flex flex-col gap-1">
+          <Toggle label={t('configSections.multi-month.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
+          <p className={hintClass}>{t('configSections.multi-month.eventTapDetailsHint')}</p>
+        </div>
+      </CalendarGroup>
     </>
   );
 }

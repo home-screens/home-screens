@@ -152,7 +152,49 @@
         "other": "{count} afspraken"
       },
       "toTime": "tot {time}",
-      "openDay": "Alles van {date} bekijken"
+      "openDay": "Alles van {date} bekijken",
+      "empty": "Nog niets op deze dag.",
+      "addEvent": "Afspraak toevoegen"
+    },
+    "eventForm": {
+      "newKicker": "Nieuwe afspraak · {weekday}",
+      "changeKicker": "Afspraak wijzigen · {weekday}",
+      "what": "Wat is het?",
+      "namePlaceholder": "Typ een naam",
+      "typeOnPhone": "Typ op je telefoon",
+      "handoffBody": "Richt de camera van je telefoon hierop. Dan gaat een nieuwe afspraak voor {day} open.",
+      "backToKeyboard": "Terug naar het toetsenbord op het scherm",
+      "allDay": "Hele dag",
+      "repeats": "Herhalen",
+      "howOften": "Hoe vaak?",
+      "repeatNote": "De afspraak blijft terugkomen tot hij wordt gewijzigd of verwijderd. Moet hij op een bepaalde datum stoppen? Stel dat in op je telefoon.",
+      "starts": "Begint",
+      "ends": "Eindigt",
+      "howLong": "Hoe lang",
+      "endsAt": "Eindigt om {time}",
+      "endsLength": "{time} · {length}",
+      "hours": {
+        "one": "{count} uur",
+        "other": "{count} uur"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} u {minutes} min",
+      "length30": "30 min",
+      "length60": "1 uur",
+      "length90": "1½ uur",
+      "length120": "2 uur",
+      "length180": "3 uur",
+      "lengthOther": "Anders",
+      "calendar": "Agenda",
+      "staysOn": "Blijft in dezelfde agenda",
+      "add": "In de agenda zetten",
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "tryAgain": "Opnieuw proberen",
+      "done": "Klaar",
+      "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd. Hier zie je de nieuwste versie. Doe je wijziging nog een keer.",
+      "changeTitle": "{title} wijzigen",
+      "backToForm": "Terug naar het formulier"
     }
   },
   "fullscreen-calendar": {
@@ -386,9 +428,6 @@
       },
       "searchAria": "In de recepten zoeken",
       "clearSearch": "Zoekopdracht wissen",
-      "spaceKey": "spatie",
-      "doneKey": "Klaar",
-      "deleteKey": "Letter wissen",
       "moreChips": {
         "one": "+ nog {count}",
         "other": "+ nog {count}"
@@ -562,13 +601,48 @@
         "mealieNotConnected": "Koppel het in Instellingen op de computer om de lijst te zien.",
         "mealieTokenRefused": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de lijst te zien.",
         "mealieSetup": "Controleer Mealie in Instellingen op de computer om de lijst te zien."
-      }
+      },
+      "alsoOn": "Ook op {list}"
     }
   },
   "wallScroll": {
     "backToToday": "Terug naar vandaag",
     "backToNow": "Terug naar nu",
     "backToTop": "Terug naar boven"
+  },
+  "wallKeyboard": {
+    "spaceKey": "spatie",
+    "doneKey": "Klaar",
+    "deleteKey": "Letter wissen",
+    "shiftKey": "Hoofdletter",
+    "numbersKey": "123",
+    "numbersAria": "Cijfers en tekens",
+    "lettersKey": "abc",
+    "lettersAria": "Letters",
+    "left": {
+      "one": "nog {count}",
+      "other": "nog {count}"
+    },
+    "close": "Sluiten"
+  },
+  "wallAdd": {
+    "rowLabel": "Toevoegen aan {list}",
+    "rowShort": "Toevoegen",
+    "kicker": "Toevoegen aan",
+    "placeholder": "Typ het hier",
+    "hint": "Typ één ding en tik op Toevoegen. Zo veel als je wilt.",
+    "action": "Toevoegen",
+    "justAdded": "Net toegevoegd",
+    "already": "staat er al op",
+    "putBack": "weer op de lijst",
+    "merged": "bij de bestaande gezet",
+    "undo": "Ongedaan maken",
+    "unreachable": "Toevoegen lukte niet. Home Screens reageert niet, tik zo meteen nog eens op Toevoegen.",
+    "failed": "Toevoegen lukte niet. Probeer het zo meteen opnieuw.",
+    "undoFailed": "Ongedaan maken lukte niet. Pas het aan bij Lijsten op je telefoon.",
+    "emptyTitle": "Nog niets op {list}",
+    "emptyHint": "Tik op Toevoegen, of voeg dingen toe op je telefoon.",
+    "mealieFailed": "Toevoegen lukte niet. Mealie reageert niet, probeer het zo meteen opnieuw."
   },
   "openButton": {
     "open": "{name} openen",
@@ -1472,7 +1546,15 @@
     "brightnessUnknown": "Helderheid, nog niet gemeld",
     "dockEmpty": "Nog geen schermen",
     "unnamedScreen": "Scherm {number}",
-    "goTo": "Naar {name}"
+    "goTo": "Naar {name}",
+    "timers": "Timers",
+    "timersEyebrow": "Start op dit display",
+    "routines": "Routines",
+    "quickTimer": "Snelle timer",
+    "noRoutines": "Maak routines bij Timers op je telefoon.",
+    "start": "Start",
+    "timerStartFailed": "De timer is niet gestart. Probeer het opnieuw.",
+    "timersPreview": "Dit is een voorbeeldweergave, dus tikken start hier geen timer."
   },
   "timetable": {
     "name": "Rooster",
@@ -1540,7 +1622,15 @@
     "allDay": "Hele dag",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
-    "birthdayWithAge": "Verjaardag · wordt {age}"
+    "birthdayWithAge": "Verjaardag · wordt {age}",
+    "repeats": "Terugkerend",
+    "change": "Wijzigen",
+    "remove": "Verwijderen",
+    "keepIt": "Laten staan",
+    "removeTitle": "{title} verwijderen?",
+    "removeBody": "De afspraak verdwijnt voor iedereen uit de agenda {calendar}: op de muur, op telefoons en in de agenda-app.",
+    "justThisDay": "Alleen deze dag",
+    "everyTime": "Elke keer"
   },
   "fullscreen-weather": {
     "loading": "Weersverwachting laden…",
@@ -1708,5 +1798,13 @@
     "receiptThanks": "Bedankt voor het lezen",
     "receiptSummary": "Vastgezet {pinned} · Belangrijk {important}",
     "pinnedOne": "Vastgezet"
+  },
+  "photoControls": {
+    "label": "Fotobediening",
+    "next": "Volgende",
+    "pause": "Pauze",
+    "play": "Afspelen",
+    "position": "{at} van {count}",
+    "allPictures": "Alle foto's"
   }
 }

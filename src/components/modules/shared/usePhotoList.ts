@@ -51,5 +51,8 @@ export function usePhotoList(
   const currentItem = batch.length === 0 ? null : batch[index % batch.length] ?? null;
   const layers = useCrossfadeLayers(currentItem, index, advance);
 
-  return { data, error, items, batch, advance, ...layers };
+  // Where the slideshow is, for the wall's "3 of 5".
+  const position = batch.length > 1 ? { at: (index % batch.length) + 1, of: batch.length } : null;
+
+  return { data, error, items, batch, advance, controls, position, ...layers };
 }

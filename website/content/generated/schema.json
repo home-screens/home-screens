@@ -212,6 +212,15 @@
           "default": true
         },
         {
+          "name": "addEvents",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show \"Add event\" when a day is tapped, and Change and Remove on an event, once adding events is on in the Calendar settings. Absent means on"
+        },
+        {
           "name": "eventTapStyle",
           "optional": true,
           "type": {
@@ -1088,6 +1097,16 @@
           },
           "description": "Let people use the wall on a touch screen: tick things off the grocery list, open and step through recipes, rate dinner, search the recipe book, and scroll a view that runs past the screen. Every view follows it. A tick writes to the family's list, never to the layout",
           "default": true
+        },
+        {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "In the grocery view on a touch wall, an Add button by the list's name, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
+          "default": true
         }
       ],
       "views": [
@@ -1560,6 +1579,16 @@
           },
           "description": "Longest a video slide can play before moving on (60 sec)",
           "default": 60000
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "default": true
         }
       ]
     },
@@ -2360,6 +2389,15 @@
           "default": true
         },
         {
+          "name": "addEvents",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show \"Add event\" when a day is tapped, and Change and Remove on an event, once adding events is on in the Calendar settings. Absent means on"
+        },
+        {
           "name": "eventTapStyle",
           "optional": true,
           "type": {
@@ -2959,6 +2997,45 @@
           },
           "description": "Size the calendar to the module instead of to the text size setting.",
           "default": true
+        },
+        {
+          "name": "showEventMarks",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Mark each day that has something on it with up to three dots, one per event, in the colour of its calendar",
+          "default": true
+        },
+        {
+          "name": "eventTapDetails",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "On touch displays, tap a day with something on it to see that day's events, and tap one of them for its details",
+          "default": true
+        },
+        {
+          "name": "sourceFilter",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Which calendars count. Empty or omitted means all of them"
+        },
+        {
+          "name": "showDayNotes",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Count the family's calendar day notes too: a day with only a note gets a mark, and the day's notes show when it is tapped",
+          "default": false
         }
       ],
       "views": [
@@ -4581,6 +4658,16 @@
           "default": true
         },
         {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "An Add row under the list on a touch wall, so anyone at the wall can put something on it with the wall's keyboard. Changing and removing stay on the phone. Needs taps on",
+          "default": true
+        },
+        {
           "name": "completedPlacement",
           "optional": true,
           "type": {
@@ -5451,6 +5538,16 @@
             "text": "boolean"
           },
           "description": "Let people use the wall on a touch screen: tick things off the grocery list, open recipes, rate dinner, search the recipe view, and scroll a list or week that runs past the box (it goes back to today a minute later). Every view follows it. A tick writes to the family's list, never to the layout",
+          "default": true
+        },
+        {
+          "name": "wallAdd",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "In the grocery view on a touch wall, an Add row under the list, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
           "default": true
         }
       ],
@@ -6543,6 +6640,16 @@
           },
           "description": "Longest a video slide can play before moving on (60 sec)",
           "default": 60000
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "default": true
         }
       ]
     },
@@ -7337,6 +7444,16 @@
           "defaultText": "false"
         },
         {
+          "name": "showTimers",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "With the `dock` or `panel` layout: also show a Timers button, which opens a sheet that starts one of the family's routines or a quick timer on this display. The dock puts it last, after the divider; the panel puts it in a row under the four buttons",
+          "defaultText": "false"
+        },
+        {
           "name": "dockButtons",
           "optional": true,
           "type": {
@@ -7849,6 +7966,16 @@
           "defaultText": "false"
         },
         {
+          "name": "calendarWallEntry",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Let the walls add, change and remove calendar events too, once adding events is on in the Calendar settings. Each display can turn this off for itself",
+          "defaultText": "true"
+        },
+        {
           "name": "backupReminder",
           "optional": true,
           "type": {
@@ -8269,6 +8396,15 @@
             "text": "boolean"
           },
           "description": "Google only: skip events the signed-in account declined"
+        },
+        {
+          "name": "eventEntry",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "CalendarEventEntry"
+          },
+          "description": "Adding, changing and removing events from the phone and the wall (see CalendarEventEntry). Absent means off"
         }
       ]
     },
@@ -9180,6 +9316,19 @@
             "text": "string"
           },
           "description": "Draw a button under the module that opens this screen (its id) when tapped. The button carries the screen's name. Unset means no button"
+        },
+        {
+          "name": "openWith",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"card\" | \"button\"",
+            "values": [
+              "button",
+              "card"
+            ]
+          },
+          "description": "How a tap opens `openButtonScreen`: `button` draws the button under the module, `card` makes a tap anywhere on the card open it, with a small arrow in the corner instead of a button. Unset means `button`"
         }
       ]
     },
@@ -9899,6 +10048,15 @@
             "text": "AlertSettings"
           },
           "description": "Alert overlay, replacing the shared object as a whole"
+        },
+        {
+          "name": "calendarWallEntry",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Add, change and remove calendar events on this wall"
         }
       ]
     },
@@ -10443,6 +10601,15 @@
             ]
           },
           "description": "Where the meal plan lives: unset for Home Screens, `mealie` for a connected Mealie"
+        },
+        {
+          "name": "groceryExtrasListId",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "A to-do list for the other things to buy (paper towels, dog food). Its open items show at the end of the grocery list on the phone and the wall, and the wall's grocery card adds to it. Unset = none"
         }
       ]
     },
@@ -11001,6 +11168,15 @@
       ]
     },
     {
+      "path": "/api/auth/google/return",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/auth/google/status",
       "methods": [
         {
@@ -11009,6 +11185,19 @@
         },
         {
           "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/google/web",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        },
+        {
+          "method": "POST",
           "access": "session"
         }
       ]
@@ -11310,6 +11499,41 @@
         {
           "method": "POST",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/entry",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/events",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/events/{id}",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "PATCH",
+          "access": "display"
+        },
+        {
+          "method": "DELETE",
+          "access": "display"
         }
       ]
     },
@@ -11640,6 +11864,32 @@
       ]
     },
     {
+      "path": "/api/grown-up-code",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "open"
+        },
+        {
+          "method": "PUT",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/grown-up-code/unlock",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "open"
+        }
+      ]
+    },
+    {
       "path": "/api/health",
       "methods": [
         {
@@ -11889,7 +12139,7 @@
       "methods": [
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11902,7 +12152,7 @@
         },
         {
           "method": "DELETE",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12713,7 +12963,7 @@
       "methods": [
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12726,7 +12976,7 @@
         },
         {
           "method": "DELETE",
-          "access": "session"
+          "access": "display"
         }
       ]
     },

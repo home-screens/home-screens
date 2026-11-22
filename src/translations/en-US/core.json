@@ -15,6 +15,7 @@
       "tooManyLists": "You can have up to {max} lists",
       "tooManyItems": "A list can hold up to {max} items",
       "orderChanged": "The list changed while you were moving things. Try again.",
+      "wallAddOff": "Adding from the wall is turned off for this list",
       "badRequest": "That change couldn't be understood. Reload the page and try again."
     },
     "notes": {
@@ -53,6 +54,30 @@
       "tooDeep": "Folders can only go {max} levels deep.",
       "folderExists": "There's already a folder called {name} here.",
       "folderNotEmpty": "That folder still has files in it. Move or delete them first."
+    },
+    "calendarWrite": {
+      "titleRequired": "Give the event a name.",
+      "titleTooLong": "An event name can be at most {max} characters.",
+      "placeTooLong": "A place can be at most {max} characters.",
+      "badDate": "That day doesn't look right.",
+      "dayTooFar": "An event must start within {years} years of today.",
+      "badTime": "That time doesn't look right.",
+      "endsWhenItStarts": "It ends when it starts. Pick a later end.",
+      "lastDayBeforeFirst": "The last day is before the first.",
+      "tooManyDays": "An all-day event can cover at most {max} days.",
+      "badRepeat": "That repeat isn't one Home Screens can set.",
+      "weekdaysOnWeekend": "Every weekday needs an event that starts on a weekday.",
+      "repeatEndsBeforeStart": "It stops before it starts.",
+      "repeatTooLong": "A repeat can run at most {years} years.",
+      "repeatNeedsEveryTime": "Changing how it repeats changes every time.",
+      "notOffered": "Adding events isn't turned on right now.",
+      "calendarNotTicked": "Events can't go on that calendar.",
+      "notEditable": "That event can't be changed here.",
+      "changedElsewhere": "Someone changed this event a moment ago.",
+      "gone": "That event was already removed.",
+      "notAllowed": "This calendar can't be changed from Home Screens.",
+      "signInNeeded": "The calendar needs you to sign in again. It's in Settings > Calendar.",
+      "unreachable": "Couldn't reach the calendar, so nothing changed yet. Try again in a minute."
     }
   },
   "today": "Today",
@@ -251,7 +276,24 @@
     "moreSteps": "+{count} more",
     "progressWords": "{done} done · {left} to go",
     "quickNameSeconds": "{seconds} second timer",
-    "quickNameClock": "{time} timer"
+    "quickNameClock": "{time} timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} sec",
+    "stopHoldHint": "Stop (hold to confirm)",
+    "keepHoldingToStop": "Keep holding to stop",
+    "tapToClose": "Tap to close",
+    "controls": "Timer buttons",
+    "replaceTitle": "Start a new timer?",
+    "replaceBody": "A timer is already running. Starting a new one will stop it.",
+    "routinesLoadError": "Couldn't load your routines. Check the connection and try again.",
+    "routineMeta": {
+      "one": "{steps} step · {minutes} min",
+      "other": "{steps} steps · {minutes} min"
+    },
+    "holdShort": "hold"
   },
   "launcher": {
     "heading": "Where do you want to go?",
@@ -639,5 +681,56 @@
     "connection": {
       "title": "Can't reach Home Screens right now"
     }
+  },
+  "grownUp": {
+    "title": "Grown-up code",
+    "ask": "Ask a grown-up",
+    "why": {
+      "redeem": {
+        "one": "To spend 1 of {member}'s tickets on {reward}",
+        "other": "To spend {count} of {member}'s tickets on {reward}"
+      },
+      "untick": "To untick {chore} for {member}",
+      "todoistClose": "To close {task}",
+      "calendarRemove": "To remove {title}",
+      "calendarChangeSeries": "To change {title} every time"
+    },
+    "wrong": "That's not it. Try again.",
+    "tooMany": {
+      "one": "Too many tries. Try again in {count} second.",
+      "other": "Too many tries. Try again in {count} seconds."
+    },
+    "offline": "Couldn't reach the hub. Try again.",
+    "unlocked": {
+      "one": "Unlocked for 1 more minute",
+      "other": "Unlocked for {count} more minutes"
+    },
+    "lockNow": "Lock now"
+  },
+  "calendarRepeat": {
+    "none": "Does not repeat",
+    "daily": "Every day",
+    "weekdays": "Every weekday",
+    "weekdaysHint": "Monday to Friday",
+    "weekly": "Every week on {weekday}",
+    "biweekly": "Every 2 weeks on {weekday}",
+    "monthly": "Every month on the {day}",
+    "yearly": "Every year on {date}",
+    "until": "{rule}, until {date}",
+    "other": "Repeats in a way set up elsewhere",
+    "short": {
+      "daily": "Every day",
+      "weekdays": "Weekdays",
+      "weekly": "Every week",
+      "biweekly": "Every 2 weeks",
+      "monthly": "Every month",
+      "yearly": "Every year"
+    }
+  },
+  "calendarChange": {
+    "thisDayStays": "{day}. The other days stay.",
+    "everyTimePastFuture": "Every time, past and future",
+    "askBody": "Change just this day, or every time it happens?",
+    "everyTimeFromFirst": "Every time it happens, from the first one"
   }
 }

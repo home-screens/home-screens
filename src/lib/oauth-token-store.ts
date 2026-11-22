@@ -198,9 +198,10 @@ export interface OAuthTokenStoreOptions {
    * client_secret when the client has one). Resolved per refresh, and as one
    * value, because a provider can switch clients while running and the
    * endpoint must match the credentials. Throws with the provider's own
-   * message when unusable.
+   * message when unusable. Given the grant being renewed, so a provider with
+   * more than one client can renew with the one that issued it.
    */
-  getTokenClient: () => Promise<{ tokenUrl: string; params: Record<string, string> }>;
+  getTokenClient: (tokens: StoredOAuthTokens) => Promise<{ tokenUrl: string; params: Record<string, string> }>;
   /** Passive presence check, no network. */
   hasCredentials: () => Promise<boolean>;
   /** Logger namespace. */
@@ -275,7 +276,7 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   async function renewGrant(tokens: StoredOAuthTokens): Promise<StoredOAuthTokens> {
     let client: { tokenUrl: string; params: Record<string, string> };
     try {
-      client = await opts.getTokenClient();
+      client = await opts.getTokenClient(tokens);
     } catch (err) {
       // No client to renew with is a setup problem, not an outage.
       throw new TokenRenewalRefusedError(err instanceof Error ? err.message : String(err));

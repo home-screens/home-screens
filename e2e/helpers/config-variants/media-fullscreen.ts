@@ -173,7 +173,48 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     },
   },
 
+  {
+    // Tap on the Wall: a tap brings up back, pause and next with the album
+    // line; next steps the photo; pause leaves the mark once the bar is gone.
+    type: 'photo-slideshow', name: 'tap-controls', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }, { url: TINY_GIF_2, type: 'image' }],
+    config: { intervalMs: 600_000, interactive: true },
+    expect: async (mod) => {
+      const layer = mod.getByTestId('photo-controls');
+      await expect(layer).toBeAttached();
+      await expect(mod.getByTestId('photo-controls-bar')).toHaveCount(0);
+      await layer.click();
+      await expect(mod.getByTestId('photo-controls-bar')).toBeVisible();
+      await expect(mod.getByTestId('photo-controls-album')).toContainText('1 of 2');
+      await mod.getByTestId('photo-next').click();
+      await expect(mod.getByTestId('photo-controls-album')).toContainText('2 of 2');
+      await mod.getByTestId('photo-pause').click();
+      await expect(mod.getByTestId('photo-pause')).toContainText('Play');
+    },
+  },
+  {
+    // Off: the photo takes no touch at all, as before the switch existed.
+    type: 'photo-slideshow', name: 'tap-off', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }, { url: TINY_GIF_2, type: 'image' }],
+    config: { interactive: false },
+    expect: async (mod) => {
+      await expect(mod.locator('img').first()).toBeAttached();
+      await expect(mod.getByTestId('photo-controls')).toHaveCount(0);
+    },
+  },
+
   // ================= fullscreen-photo =================
+  {
+    // The full-screen photo's controls: the same bar, and no swipe of its own.
+    type: 'fullscreen-photo', name: 'tap-controls', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }, { url: TINY_GIF_2, type: 'image' }],
+    config: { interactive: true },
+    expect: async (mod) => {
+      const layer = mod.getByTestId('photo-controls');
+      await expect(layer).not.toHaveAttribute('data-swipe-owner', '');
+      await layer.click();
+      await expect(mod.getByTestId('photo-controls-bar')).toBeVisible();
+      await mod.getByTestId('photo-next').click();
+      await expect(mod.getByTestId('photo-controls-album')).toContainText('2 of 2');
+    },
+  },
   {
     // Crossfade path with a single image. transition 'none' → no CSS transition;
     // objectFit 'contain' → computed object-fit on the slide <img>.

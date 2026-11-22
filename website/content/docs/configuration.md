@@ -74,8 +74,8 @@ Supported secret keys:
 | `tomtom_key` | Traffic module (TomTom) |
 | `google_client_id` | Google Calendar, only with your own Google app (TVs and Limited Input devices client) |
 | `google_client_secret` | Google Calendar, only with your own Google app |
-| `google_web_client_id` | Google Photos import, only with your own Google app (web application client) |
-| `google_web_client_secret` | Google Photos import, only with your own Google app |
+| `google_web_client_id` | Google Photos import and adding calendar events, only with your own Google app (web application client) |
+| `google_web_client_secret` | Google Photos import and adding calendar events, only with your own Google app |
 | `microsoft_client_id` | OneDrive photos in the Photo Slideshow and Full-Screen Photo Viewer (the Application ID of your own Microsoft app) |
 | `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
 | `immich_api_key` | Immich API key (Account Settings > API Keys; [which boxes to tick](/docs/backgrounds#immich-key)) |

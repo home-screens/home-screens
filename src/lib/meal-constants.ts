@@ -788,6 +788,10 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
   // Kept with no Mealie connected: refusing it would refuse every other meal
   // setting too, and every surface already says Mealie isn't connected.
   const planSource: MealPlanSource | undefined = r.planSource === 'mealie' ? r.planSource : undefined;
+  // A to-do list id; whether the list still exists is read where it is used.
+  const groceryExtrasListId = typeof r.groceryExtrasListId === 'string' && r.groceryExtrasListId.trim() && r.groceryExtrasListId.length <= 200
+    ? r.groceryExtrasListId
+    : undefined;
 
   return {
     enabledSlots,
@@ -795,6 +799,7 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
     defaultSlotTimes,
     ...(timeFormat ? { timeFormat } : {}),
     ...(planSource ? { planSource } : {}),
+    ...(groceryExtrasListId ? { groceryExtrasListId } : {}),
   };
 }
 

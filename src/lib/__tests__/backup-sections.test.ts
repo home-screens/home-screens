@@ -12,6 +12,7 @@ import { MEMBER_REFERENCE_DOMAINS } from '../member-references';
 const NOT_IN_A_BACKUP: Record<string, string> = {
   'data/secrets.json': 'the credentials section, exported and encrypted on its own',
   'data/auth.json': 'the credentials section',
+  'data/grown-up-code.json': 'the grown-up code, kept with this hub like the password, so a restore keeps the code the household set here',
   'data/icloud-accounts.json': 'the credentials section',
   'data/google-tokens.json': 'the credentials section',
   'data/google-picker-tokens.json': 'the credentials section',

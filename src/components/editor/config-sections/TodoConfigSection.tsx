@@ -201,6 +201,17 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           onChange={(v) => set({ interactive: v })}
         />
       )}
+      {/* The Add row needs taps; the same views draw it (todoCardAdds). */}
+      {READS_INTERACTIVE.has(view) && c.interactive && (
+        <>
+          <Toggle
+            label={t('configSections.todo.wallAdd')}
+            checked={!!c.wallAdd}
+            onChange={(v) => set({ wallAdd: v })}
+          />
+          <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.todo.wallAddHelp')}</p>
+        </>
+      )}
 
       {/* Lists are family data: items get typed and ticked on /remote too. */}
       <PhoneSurfaceLinks context="lists" />

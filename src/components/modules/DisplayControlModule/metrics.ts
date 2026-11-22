@@ -39,8 +39,11 @@ export interface ControlMetrics {
   pickerH: number;
   /** Height reserved for the always-visible slider (panel layout only). */
   sliderH: number;
-  /** Height reserved for the Brightness row that opens the slider (pad only). */
-  brightRowH: number;
+  /**
+   * Height reserved for the full-width button under the grid: the pad's
+   * Brightness, or the panel's Timers when it has one. 0 when there is none.
+   */
+  rowH: number;
   /** The box one command button ends up with. */
   bw: number;
   bh: number;
@@ -62,6 +65,8 @@ export interface ControlBox {
   compact: boolean;
   /** Whether the target picker row takes space. */
   showPicker: boolean;
+  /** The panel's Timers row under the grid. Ignored by the other layouts. */
+  timers?: boolean;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -89,11 +94,11 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
 
   const pickerH = showPicker ? clamp(h * 0.1, 22, 40) : 0;
   const sliderH = layout === 'panel' ? clamp(h * 0.13, 22, 56) : 0;
-  const brightRowH = layout === 'pad' ? clamp(h * 0.13, 24, 58) : 0;
+  const rowH = layout === 'pad' || (layout === 'panel' && box.timers === true) ? clamp(h * 0.13, 24, 58) : 0;
   const showCaption = sliderH >= 40;
   if (pickerH) innerH -= pickerH + gap;
   if (sliderH) innerH -= sliderH + gap;
-  if (brightRowH) innerH -= brightRowH + gap;
+  if (rowH) innerH -= rowH + gap;
   innerH = Math.max(0, innerH);
 
   const picker = clamp(pickerH * 0.36, 10, 18);
@@ -114,7 +119,7 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
       sub: showSubs ? clamp(label * 0.85, 10, 18) : 0,
       showWords, showSubs, showCaption: false,
       showPickerPrefix: innerW >= 620,
-      pickerH, sliderH: 0, brightRowH: 0, bw, bh,
+      pickerH, sliderH: 0, rowH: 0, bw, bh,
       thumb: 0, track: 0, caption: 0, picker,
     };
   }
@@ -139,7 +144,7 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
       sub: 0,
       showWords, showSubs: false, showCaption: false,
       showPickerPrefix: innerW >= 380,
-      pickerH, sliderH: 0, brightRowH: 0, bw, bh,
+      pickerH, sliderH: 0, rowH: 0, bw, bh,
       thumb: 0, track: 0, caption: 0, picker,
     };
   }
@@ -169,12 +174,27 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
     sub,
     showWords, showSubs, showCaption,
     showPickerPrefix: innerW >= 380,
-    pickerH, sliderH, brightRowH, bw, bh,
+    pickerH, sliderH, rowH, bw, bh,
     thumb: clamp(sliderH * 0.42, 12, 24),
     track: clamp(sliderH * 0.16, 4, 8),
     caption: clamp(sliderH * 0.26, 10, 15),
     picker,
   };
+}
+
+/**
+ * What the full-width button under the grid (the pad's Brightness, the
+ * panel's Timers) draws with: its icon and words sized from the row's own
+ * height, not from the grid buttons above it, which are several times taller
+ * (their icon used to overflow the row and be cut off top and bottom). The
+ * words follow the grid's: an icons-only grid has an icons-only row.
+ */
+export function rowButtonMetrics(m: ControlMetrics): ControlMetrics {
+  const h = m.rowH;
+  const label = m.showWords ? clamp(h * 0.4, 11, 22) : 0;
+  const sub = clamp(label * 0.85, 10, 18);
+  const subFits = label > 0 && (label + sub) * 1.2 <= h;
+  return { ...m, icon: clamp(h * 0.6, 12, 34), label, sub: subFits ? sub : 0, showSubs: subFits };
 }
 
 /**
@@ -239,8 +259,8 @@ export interface DockBox {
   h: number;
   /** Screens in the dock. */
   count: number;
-  /** Two extra tiles (Sleep, Brightness) after a divider. */
-  extras: boolean;
+  /** Tiles after the divider that are controls, not screens (`dockExtraTiles`). */
+  extras: number;
   compact: boolean;
   /** Height the target picker row takes off the top (0 when hidden). */
   pickerH: number;
@@ -257,7 +277,7 @@ const SLOT_RATIO = 1.5;
 export function dockMetrics(box: DockBox): DockMetrics {
   const w = box.w > 0 ? box.w : DOCK_UNMEASURED.w;
   const h = Math.max(0, (box.h > 0 ? box.h : DOCK_UNMEASURED.h) - box.pickerH);
-  const count = Math.max(1, box.count) + (box.extras ? 2 : 0);
+  const count = Math.max(1, box.count) + box.extras;
   const vertical = h > 0 && w / h <= 0.75;
   const min = Math.min(w, h);
   const outer = clamp(min * 0.06, 4, 12);
@@ -287,7 +307,7 @@ export function dockMetrics(box: DockBox): DockMetrics {
     // nameless tiles while a 17-button one scrolled at full size.)
     const gap = clamp(tile * 0.16, 4, 16);
     const padAcross = clamp(tile * 0.16, 6, 18);
-    const dividerRun = box.extras ? gap * 2 + 1 : 0;
+    const dividerRun = box.extras > 0 ? gap * 2 + 1 : 0;
     const label = clamp(tile * 0.22, 11, 20);
     const ok = !withWords
       || (tile >= WORDS_FLOOR && (!vertical || tile + label * 7 + padAcross * 2 <= across));
@@ -326,6 +346,15 @@ export function dockMetrics(box: DockBox): DockMetrics {
   };
 }
 
+/**
+ * How many control tiles follow the dock's divider: Sleep and Brightness,
+ * then Timers. The wall lays them out and the editor counts them with this
+ * one rule, so the "fits" line never disagrees with the wall.
+ */
+export function dockExtraTiles(config: { dockExtras?: boolean; showTimers?: boolean }): number {
+  return (config.dockExtras === true ? 2 : 0) + (config.showTimers === true ? 1 : 0);
+}
+
 export interface DockCapacity {
   /** Most screen tiles the dock shows at once; past this it scrolls. */
   fits: number;
@@ -338,13 +367,13 @@ export interface DockCapacity {
  * they carry names, so the editor can say so next to the list. Counts the
  * tiles that are fully in view from the start of the pill, the way a person
  * counts them, by the same metrics the wall draws with; the extras take
- * their two places and the divider off the end.
+ * their places and the divider off the end.
  */
 export function dockCapacity(box: Omit<DockBox, 'count' | 'compact'>): DockCapacity {
   const m = dockMetrics({ ...box, count: 1, compact: false });
-  const dividerRun = box.extras ? m.gap * 2 + 1 : 0;
+  const dividerRun = box.extras > 0 ? m.gap * 2 + 1 : 0;
   // Where the first tile starts, then one slot and gap per tile after it.
   const first = m.padIn + (m.slot - m.tile) / 2;
   const places = Math.floor((m.along - first - m.tile - dividerRun + 0.5) / (m.slot + m.gap)) + 1;
-  return { fits: Math.max(0, places - (box.extras ? 2 : 0)), names: m.showWords };
+  return { fits: Math.max(0, places - box.extras), names: m.showWords };
 }

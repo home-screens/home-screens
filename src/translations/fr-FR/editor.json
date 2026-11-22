@@ -746,7 +746,42 @@
         "show": "Quoi afficher",
         "showDescription": "Limites de départ pour chaque module calendrier. Un module peut affiner avec ses propres filtres."
       },
-      "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche."
+      "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche.",
+      "adding": {
+        "heading": "Ajouter des événements",
+        "description": "Ajoutez, modifiez et retirez des événements depuis votre téléphone et le mur.",
+        "switch": "Permettre à Home Screens d'ajouter et de modifier des événements",
+        "switchHelpBoth": "Pour les agendas Google, Google vous demande de vous reconnecter une fois. Les calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpGoogle": "Google vous demande de vous reconnecter une fois pour l'autoriser. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpICloud": "Vos calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, ils s'affichent comme avant.",
+        "ready": "Connecté, prêt à ajouter des événements",
+        "signInTitle": "Encore une étape : reconnectez-vous à Google",
+        "signInBody": "Google vous demandera d'autoriser Home Screens à « Afficher et modifier les événements de tous vos agendas ». Un onglet Google s'ouvre, puis vous revenez ici automatiquement.",
+        "signInButton": "Se connecter avec Google",
+        "signInAgain": "Se reconnecter",
+        "signInFailed": "Cette connexion n'a pas marché. Réessayez.",
+        "pastePlaceholder": "Collez le code de la page de connexion",
+        "pasteButton": "Terminer",
+        "scopeMissingTitle": "Google a seulement permis d'afficher les événements",
+        "scopeMissingBody": "Sur la page de Google, la case « Afficher et modifier les événements » n'a pas été cochée, donc Home Screens peut seulement afficher vos calendriers. Reconnectez-vous et cochez cette case.",
+        "webClientTitle": "D'abord, ajoutez une connexion Web Google",
+        "webClientBody": "L'ajout d'événements utilise la même connexion Web Google que l'import Google Photos. Ajoutez son ID client et son secret client, puis revenez ici.",
+        "webClientLink": "Ouvrir les clés API",
+        "calendarsLabel": "Calendriers qui peuvent recevoir des événements",
+        "calendarsHelp": "Seuls les calendriers affichés sur les écrans sont proposés, pour qu'un nouvel événement n'arrive jamais là où personne ne le voit.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Lecture seule dans Google",
+        "fromContacts": "Vient des Contacts",
+        "defaultLabel": "Les nouveaux événements vont dans",
+        "lengthLabel": "Durée habituelle",
+        "length30": "30 min",
+        "length60": "1 heure",
+        "length90": "1 h 30",
+        "length120": "2 heures",
+        "wallSwitch": "Permettre au mur d'ajouter, de modifier et de retirer des événements",
+        "wallHelp": "Seulement dans les calendriers cochés ci-dessus. Le mur demande toujours avant de retirer. Chaque affichage peut le désactiver sur sa propre page."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1282,7 +1317,8 @@
           "pixelShift": "Protection contre le marquage",
           "fullscreenTheme": "Thème",
           "sleep": "Veille et atténuation",
-          "alerts": "Superposition d'alerte"
+          "alerts": "Superposition d'alerte",
+          "calendarWallEntry": "Ajout d'événements sur ce mur"
         },
         "chipValues": {
           "pauseOn": "Activé",
@@ -1393,6 +1429,11 @@
         "connectLabel": "Connecte-toi dessus",
         "runLabel": "Puis lance ceci",
         "connectUnknown": "Connecte-toi au Pi de cet écran depuis un terminal (le nom d'utilisateur est {user}), puis lance :"
+      },
+      "calendar": {
+        "wallEntryLabel": "Ajouter, modifier et retirer des événements sur ce mur",
+        "wallEntryToggle": "Autoriser sur ce mur",
+        "defaultsLabel": "Calendrier"
       }
     },
     "alertFormFields": {
@@ -1604,9 +1645,9 @@
         "clientSecretLabel": "Secret client pour l'agenda",
         "clientSecretPlaceholder": "ex. GOCSPX-…",
         "clientSecretHelp": "Le client secret du même identifiant OAuth ci-dessus.",
-        "webClientIdLabel": "ID client pour l'import de photos",
-        "webClientIdHelp": "Ajoutez https://homescreens.dev/connect/google comme URI de redirection autorisée.",
-        "webClientSecretLabel": "Secret client pour l'import de photos",
+        "webClientIdLabel": "ID client pour la connexion Web",
+        "webClientIdHelp": "L'import Google Photos et l'ajout d'événements au calendrier se connectent tous les deux avec cet identifiant. Ajoutez https://homescreens.dev/connect/google comme URI de redirection autorisée.",
+        "webClientSecretLabel": "Secret client pour la connexion Web",
         "webClientSecretHelp": "Le secret client de l'identifiant d'application Web ci-dessus.",
         "mapsKeyLabel": "Clé API Maps",
         "mapsKeyPlaceholder": "Colle ta clé API Google Maps",
@@ -1618,9 +1659,9 @@
           "helpOwnApp": "Créez des identifiants OAuth de type « TVs and Limited Input devices » dans la Google Cloud Console, puis collez les deux moitiés ici."
         },
         "photosBand": {
-          "title": "Pour importer Google Photos",
-          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement si vous voulez importer des photos. Sinon, passez.",
-          "helpOwnApp": "Un identifiant distinct de celui de l'agenda, de type « Web application »."
+          "title": "Pour Google Photos et l'ajout d'événements",
+          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement pour importer des photos ou ajouter des événements au calendrier. Sinon, passez.",
+          "helpOwnApp": "Un identifiant distinct de celui de l'agenda, de type « Web application ». L'import Google Photos et l'ajout d'événements au calendrier s'en servent."
         },
         "mapsBand": {
           "title": "Pour les temps de trajet",
@@ -1956,6 +1997,11 @@
         "connectedOffer": "Mealie est connecté. Choisis-le pour planifier avec les recettes et le planning que tu y tiens.",
         "onMealie": "Toutes les vues de repas, le téléphone et cet éditeur utilisent maintenant ton planning Mealie, et ce que tu planifies ici est enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
         "mealieSettingsLink": "Réglages Mealie"
+      },
+      "groceryExtras": {
+        "heading": "Autres achats",
+        "description": "Choisis une de vos listes pour ce dont aucun repas n'a besoin, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses sur le téléphone et sur le mur, et une carte de courses avec « Ajouter sur le mur » y ajoute.",
+        "none": "Aucune"
       },
       "status": {
         "loadFailed": "Échec du chargement des paramètres des repas.",
@@ -2437,7 +2483,9 @@
       "advanced": {
         "heading": "Accès réseau avancé",
         "description": "Clé d'affichage, appareils connectés et limitation à certains réseaux."
-      }
+      },
+      "grownUpPointerPrefix": "Tu veux que le mur demande un code avant que les enfants dépensent des tickets ? C'est la section « ",
+      "grownUpPointerSuffix": " » de la page Famille."
     },
     "shared": {
       "secretField": {
@@ -2618,6 +2666,7 @@
       "hostname": "Nom de l'appareil",
       "platform": "Plateforme",
       "uptime": "Temps de fonctionnement",
+      "timeZoneData": "Données des fuseaux horaires",
       "hardwareTitle": "CPU & température",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (local)",
@@ -2847,6 +2896,50 @@
         "grabLimitLabel": "Combien de tâches bonus une personne peut prendre à la fois",
         "grabHoldLabel": "Jusqu'à quand une tâche bonus prise reste réservée",
         "saved": "Enregistré"
+      },
+      "grownUp": {
+        "heading": "Un code parental pour le mur",
+        "description": "Quatre chiffres que le mur demande avant les actions que vous cochez ci-dessous, pour que les petites mains ne dépensent pas de tickets toutes seules. Ce n'est pas un verrou pour votre réseau : c'est le rôle du mot de passe de la page Sécurité.",
+        "notSet": "Pas encore de code.",
+        "isSet": "Un code est défini.",
+        "set": "Définir un code",
+        "change": "Changer",
+        "remove": "Supprimer",
+        "removeConfirm": "Supprimer le code",
+        "codeLabel": "Quatre chiffres",
+        "againLabel": "Les mêmes chiffres",
+        "save": "Enregistrer le code",
+        "mismatch": "Les deux codes ne correspondent pas.",
+        "format": "Utilisez quatre chiffres.",
+        "jobsLabel": "Le demander avant",
+        "jobs": {
+          "redeem": {
+            "label": "Dépenser des tickets dans la boutique de récompenses",
+            "hint": "Sur le mur et sur la page des tâches des enfants."
+          },
+          "untick": {
+            "label": "Décocher une tâche",
+            "hint": "Décocher reprend les tickets gagnés."
+          },
+          "todoist-close": {
+            "label": "Terminer une tâche Todoist",
+            "hint": "Une tâche terminée ne peut pas être rouverte depuis le mur."
+          },
+          "calendar-remove": {
+            "label": "Retirer un événement du calendrier",
+            "hint": "Sur le mur, et sur les téléphones quand Home Screens n'a pas de mot de passe."
+          },
+          "calendar-change-series": {
+            "label": "Modifier tous les jours d'un événement qui se répète",
+            "hint": "Quand la modification vaut pour toutes les fois, pas pour un seul jour."
+          }
+        },
+        "unlockLabel": "Rester déverrouillé pendant",
+        "minutes": {
+          "one": "{count} minute",
+          "other": "{count} minutes"
+        },
+        "unlockHint": "Une fois le bon code saisi, ce mur fait les actions cochées sans le redemander pendant ce temps. On ne le demande jamais à quelqu'un qui est connecté sur le téléphone."
       }
     },
     "touchAlignment": {
@@ -3775,11 +3868,11 @@
     "collapseTitle": "Masquer le panneau des réglages",
     "expandTitle": "Afficher le panneau des réglages",
     "openButton": {
-      "label": "Afficher un bouton qui ouvre",
+      "label": "Ouvre",
       "none": "Rien",
       "andMore": "et {count} de plus",
       "help": "Ajoute dans le coin bas du module un bouton portant le nom de cet écran. Sur un écran tactile, le toucher affiche l’écran.",
-      "sectionTitle": "Bouton d’ouverture",
+      "sectionTitle": "Ouvrir un écran",
       "opensOnTap": "{name} (s’ouvre au toucher)",
       "offBadge": "{name} (éteint)",
       "holds": "Affiche {what}",
@@ -3812,7 +3905,12 @@
       "turnOnTap": "Activer « Toucher l’écran mural »",
       "switchOn": "L’allumer",
       "onlyWhen": "Le bouton n’apparaît que {when}.",
-      "onlyConditions": "Le bouton n’apparaît que tant que les conditions de cet écran correspondent."
+      "onlyConditions": "Le bouton n’apparaît que tant que les conditions de cet écran correspondent.",
+      "openWith": "L’ouvrir avec",
+      "openWithButton": "Le bouton",
+      "openWithCard": "Un toucher sur le module",
+      "openWithCardHelp": "Un toucher n’importe où sur le module ouvre {name}. Une petite flèche dans son coin montre qu’on peut le toucher.",
+      "openWithTakesTaps": "Ce module utilise déjà le toucher pour ses propres actions, l’écran s’ouvre donc avec le bouton."
     }
   },
   "sudoPrompt": {
@@ -4260,6 +4358,8 @@
       "compact": "Icônes seulement, sans texte",
       "dockHint": "Un bouton par écran de cet affichage. Touchez-en un pour aller directement à cet écran.",
       "dockExtras": "Afficher aussi Veille et Luminosité",
+      "showTimers": "Afficher aussi Minuteurs",
+      "showTimersHint": "Un bouton qui démarre une routine ou un minuteur rapide sur cet affichage. Les routines se créent sur le téléphone, dans Minuteurs.",
       "dockButtons": "Boutons",
       "dockButtonsChoose": "Choisir quels écrans ont un bouton",
       "dockButtonsEvery": "Chaque écran de cet affichage a un bouton, dans l'ordre de la rotation.",
@@ -4491,7 +4591,10 @@
       "shuffleOrder": "Ordre aléatoire",
       "kenBurnsEffect": "Effet Ken Burns",
       "showClockOverlay": "Afficher l'horloge en superposition",
-      "clockBackground": "Fond de l'horloge"
+      "clockBackground": "Fond de l'horloge",
+      "interactive": "Activer le tactile sur le mur",
+      "interactiveHint": "Sur un écran tactile, un toucher affiche Retour, Pause et Suivante, et l'album de la photo. Glisser sur le côté change toujours d'écran.",
+      "interactiveHintCard": "Sur un écran tactile, un toucher affiche Retour, Pause et Suivante, et l'album de la photo. Glisser sur la photo passe à la suivante."
     },
     "garbage-day": {
       "frequencyWeekly": "Chaque semaine",
@@ -4669,7 +4772,13 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
+      "wallAdd": "Ajouter sur le mur",
+      "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
+      "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
+      "extrasList": "Les autres achats vont sur",
+      "extrasListNone": "Aucune (pas de ligne Ajouter)",
+      "extrasListHelp": "Une de vos listes. Ce qui reste dessus apparaît à la fin de la liste de courses, ici et sur le téléphone. Toutes les cartes de courses la partagent."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",
@@ -4694,7 +4803,13 @@
       "todayUnderline": "Soulignement",
       "todayText": "Chiffre coloré",
       "todayNone": "Aucune",
-      "accentColor": "Couleur d'accent"
+      "accentColor": "Couleur d'accent",
+      "events": "Événements",
+      "showEventMarks": "Marquer les jours avec des événements",
+      "showEventMarksHint": "Jusqu'à trois points sous chaque jour où quelque chose est prévu, de la couleur de son calendrier.",
+      "showDayNotesHint": "Un jour qui n'a qu'une note est marqué aussi, et ses notes s'affichent quand on touche le jour.",
+      "eventTapDetails": "Toucher un jour pour voir ses événements",
+      "eventTapDetailsHint": "Sur un écran tactile, ouvre la liste de ce jour, la même que celle du module Calendrier. Toucher un jour où rien n'est prévu ne fait rien."
     },
     "news": {
       "viewHeadline": "Manchette (rotation)",
@@ -5178,7 +5293,9 @@
       "completedHidden": "Masqués",
       "showDueDates": "Afficher les échéances",
       "showAssignees": "Afficher pour qui",
-      "interactive": "Toucher pour valider (écran tactile)"
+      "interactive": "Toucher pour valider (écran tactile)",
+      "wallAdd": "Ajouter depuis le mur (écran tactile)",
+      "wallAddHelp": "Une ligne Ajouter sous la liste. Tout le monde peut ajouter depuis le mur ; modifier et supprimer restent sur le téléphone."
     },
     "todoist": {
       "apiToken": "Jeton API",
@@ -5438,7 +5555,9 @@
       "advancedLooks": "Apparence avancée",
       "ruleCountNone": "aucune",
       "ruleCountOne": "1 règle",
-      "ruleCountOther": "{count} règles"
+      "ruleCountOther": "{count} règles",
+      "addEvents": "Ajouter des événements depuis un jour",
+      "addEventsHelp": "Affiche « Ajouter un événement » quand on touche un jour, ainsi que Modifier et Retirer sur un événement. L'ajout doit être activé dans Réglages > Calendrier."
     },
     "fullscreen-weather": {
       "view": "Vue",
@@ -5948,7 +6067,10 @@
     "cancelledTitle": "Connexion annulée",
     "cancelledBody": "Pas de souci. Recommencez depuis l'éditeur quand vous voulez.",
     "failedTitle": "Impossible de terminer la connexion",
-    "backToEditor": "Retour à l'éditeur"
+    "backToEditor": "Retour à l'éditeur",
+    "calendarConnectedTitle": "Home Screens peut ajouter des événements",
+    "calendarConnectedBody": "Retournez dans Réglages > Calendrier pour choisir les calendriers qui reçoivent les événements.",
+    "calendarReadOnlyBody": "La case « Afficher et modifier les événements » n'a pas été cochée. Reconnectez-vous depuis Réglages > Calendrier et cochez-la."
   },
   "conditionSummary": {
     "always": "toujours",

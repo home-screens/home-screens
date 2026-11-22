@@ -284,7 +284,7 @@ export default function FullscreenMealPlannerModule({
           {view === 'next-meal' && <NextMealView {...viewProps} next={next} />}
           {/* Like Next meal, the whole plan: late in the evening it is tomorrow's. */}
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
-          {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} />}
+          {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} theme={theme} />}
           {view === 'recipes' && <RecipeBookView {...viewProps} book={book} />}
           </MealVotesScope>
           </MealRecipeContext.Provider>

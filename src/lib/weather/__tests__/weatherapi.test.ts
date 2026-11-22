@@ -177,6 +177,41 @@ describe('WeatherAPIProvider', () => {
     });
   });
 
+  it('shows the chance of snow when it is higher than the chance of rain', async () => {
+    // A winter day of snow and no rain read 0% when only the rain chance was used.
+    spy = mockWa({
+      current: { is_day: 1 },
+      forecast: {
+        forecastday: [waDay({
+          day: { ...waDay().day, daily_chance_of_rain: 0, daily_chance_of_snow: 85 },
+          hour: [waHour({ chance_of_rain: 0, chance_of_snow: 70 })],
+        })],
+      },
+    });
+    const provider = new WeatherAPIProvider('key');
+    const [hourly, daily] = await Promise.all([
+      provider.getHourly(44.71, -93.42, 'imperial'),
+      provider.getForecast(44.71, -93.42, 'imperial'),
+    ]);
+    expect(hourly[0].precipProbability).toBe(70);
+    expect(daily[0].precipProbability).toBe(85);
+  });
+
+  it('keeps the rain chance when it is the higher one', async () => {
+    spy = mockWa({
+      current: { is_day: 1 },
+      forecast: {
+        forecastday: [waDay({
+          day: { ...waDay().day, daily_chance_of_rain: 60, daily_chance_of_snow: 10 },
+          hour: [waHour({ chance_of_rain: 55, chance_of_snow: 5 })],
+        })],
+      },
+    });
+    const provider = new WeatherAPIProvider('key');
+    expect((await provider.getHourly(44.71, -93.42, 'metric'))[0].precipProbability).toBe(55);
+    expect((await provider.getForecast(44.71, -93.42, 'metric'))[0].precipProbability).toBe(60);
+  });
+
   it('getForecast uses imperial precip/wind/temp fields in imperial units', async () => {
     spy = mockWa({ current: { is_day: 1 }, forecast: { forecastday: [waDay()] } });
     const out = await new WeatherAPIProvider('key').getForecast(44.71, -93.42, 'imperial');

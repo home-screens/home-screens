@@ -12,6 +12,8 @@ import DisplayTokenPanel from './DisplayTokenPanel';
 import IpAllowlistPanel from './IpAllowlistPanel';
 import { logger } from '@/lib/logger';
 import { RESET_COMMAND, AUTH_FILE } from '@/lib/password-reset';
+import Link from 'next/link';
+import { settingsPath } from '@/lib/settings-route';
 
 const log = logger('security');
 
@@ -196,6 +198,18 @@ export default function SecuritySection() {
           })}
         </p>
       </div>
+
+      {/* The other lock people look for here: the one kids meet at the wall. */}
+      <p className="mt-6 text-xs text-hs-text-faint" data-testid="security-grown-up-pointer">
+        {t('settings.securityPage.grownUpPointerPrefix')}
+        <Link
+          href={settingsPath({ kind: 'defaults', page: 'family' }, { highlight: 'family.grownUpCode' })}
+          className="text-hs-accent hover:text-hs-accent-hover underline"
+        >
+          {t('settings.familyPage.grownUp.heading')}
+        </Link>
+        {t('settings.securityPage.grownUpPointerSuffix')}
+      </p>
 
       {modal && (
         <PasswordModal

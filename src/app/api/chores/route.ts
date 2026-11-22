@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireGrownUp } from '@/lib/grown-up-gate';
 import type { NextRequest } from 'next/server';
 import type { ChoreToggleRequest } from '@/types/config';
 import { publicErrorResponse, isValidISODate, SMALL_BODY_BYTES } from '@/lib/api-utils';
@@ -183,6 +184,14 @@ export const POST = async (request: NextRequest) => {
       { error: 'Someone else has this bonus chore, or it is not open to this person.', reason: refusal, ...(holder ? { memberId: holder } : {}), ...choreMarks(toggle.data) },
       { status: 409 },
     );
+  }
+
+  // Unticking takes tickets back, so it may need the grown-up code. Asked
+  // once the toggle is planned (only then is it known to untick) and before
+  // anything is written: a refused plan is simply never committed.
+  if (toggle.outcome === 'changed' && toggle.direction === 'uncomplete') {
+    const grownUp = await requireGrownUp(request, 'untick');
+    if (grownUp) return grownUp;
   }
 
   // Credit on add, exact-debit on remove. Both files are PLANNED here and

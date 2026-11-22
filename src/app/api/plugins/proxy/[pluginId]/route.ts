@@ -235,14 +235,20 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   // Resolve secret injections
   let upstreamUrl = body.url;
   const upstreamHeaders: Record<string, string> = { ...body.headers };
+  // What the proxy adds on the plugin's behalf, so a redirect to another site
+  // can go on without it (see followRedirectsWithValidation).
+  const secretHeaderNames: string[] = [];
+  let secretInQuery = false;
 
   if (body.secretInjections?.header) {
     const resolved = await resolveSecrets(safeId, body.secretInjections.header);
     Object.assign(upstreamHeaders, resolved);
+    secretHeaderNames.push(...Object.keys(resolved));
   }
 
   if (body.secretInjections?.query) {
     const resolved = await resolveSecrets(safeId, body.secretInjections.query);
+    secretInQuery = Object.keys(resolved).length > 0;
     const url = new URL(upstreamUrl);
     for (const [key, value] of Object.entries(resolved)) {
       url.searchParams.set(key, value);
@@ -330,8 +336,11 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       url = injectToken(injectSpec, url, headers, accessToken);
       injected = true;
     }
+    const tokenInHeader = injected && injectSpec?.placement === 'header';
     const followed = await followRedirectsWithValidation({
       pluginId: safeId, url, method, payload, headers, allowedDomains, allowLan, safeCheck,
+      injectedHeaders: tokenInHeader ? [...secretHeaderNames, 'Authorization'] : secretHeaderNames,
+      injectedQuery: secretInQuery || (injected && !tokenInHeader),
     });
     return { followed, injected };
   }

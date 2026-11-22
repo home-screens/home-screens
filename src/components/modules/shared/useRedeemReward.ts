@@ -6,6 +6,9 @@ import type { RewardDefinition } from '@/lib/reward-data';
 import { displayFetch } from '@/lib/display-fetch';
 import { requestRedemption, type RedeemNumbers, type RedeemOutcome } from '@/lib/reward-rules';
 import { useTranslate } from '@/i18n';
+import { asksForCode } from '@/lib/grown-up-code';
+import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
+import { useGrownUpStatus, useGrownUpUnlock } from '@/hooks/useGrownUp';
 
 const REDEEMED_BANNER_MS = 5000;
 
@@ -61,6 +64,11 @@ export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions)
   const [error, setError] = useState<string | null>(null);
   const [redeemed, setRedeemed] = useState<RedeemedInfo | null>(null);
   const redeemedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Spending tickets may need the grown-up code: the confirm button says so
+  // before it is pressed, unless this wall is already unlocked.
+  const grownUpStatus = useGrownUpStatus(displayFetch, enabled);
+  const unlocked = useGrownUpUnlock() !== null;
+  const asksGrownUp = asksForCode(grownUpStatus, 'redeem') && !unlocked;
 
   useEffect(() => () => {
     if (redeemedTimerRef.current !== null) clearTimeout(redeemedTimerRef.current);
@@ -89,7 +97,8 @@ export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions)
     setBusy(true);
     setError(null);
     try {
-      const { outcome, numbers } = await requestRedemption(displayFetch, { rewardId: reward.id, memberId: member.id, expectedBalance: balance });
+      const why = tCore('grownUp.why.redeem', { count: reward.cost, member: member.name, reward: reward.name });
+      const { outcome, numbers } = await requestRedemption(grownUpFetch(displayFetch, why), { rewardId: reward.id, memberId: member.id, expectedBalance: balance });
       // The hub's numbers, whether it said yes or the tickets moved under the
       // sheet (another screen spent them): take them now rather than charge
       // a second time or wait for the next poll.
@@ -111,12 +120,13 @@ export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions)
         const [dictionary, key] = REFUSAL_KEYS[outcome];
         setError((dictionary === 'core' ? tCore : t)(key, { reward: reward.name }));
       }
-    } catch {
-      setError(t('fullscreen-chore-chart.rewardsStore.errorOffline'));
+    } catch (err) {
+      // Nobody gave the grown-up code: the sheet stays, with nothing to report.
+      if (!isGrownUpCancelled(err)) setError(t('fullscreen-chore-chart.rewardsStore.errorOffline'));
     } finally {
       setBusy(false);
     }
   }, [enabled, pending, busy, onRedeemed, t, tCore]);
 
-  return { pending, busy, error, redeemed, ask, cancel, confirm, dismissRedeemed };
+  return { pending, busy, error, redeemed, asksGrownUp, ask, cancel, confirm, dismissRedeemed };
 }

@@ -11,7 +11,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { publishRevisions } from '@/lib/display-heartbeat';
-import { SESSION_LINGER_MS, startSession } from '@/lib/timer-logic';
+import { TIMES_UP_HOLD_MS, startSession } from '@/lib/timer-logic';
 import type { TimerSession } from '@/types/timers';
 
 vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
@@ -95,7 +95,7 @@ describe('TimerOverlay follows the heartbeat', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(6_000); });
     expect(screen.getByTestId('celebration')).toBeTruthy();
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_LINGER_MS); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(TIMES_UP_HOLD_MS); });
     expect(screen.queryByTestId('timer-overlay')).toBeNull();
     expect(vi.getTimerCount()).toBe(0);
   });

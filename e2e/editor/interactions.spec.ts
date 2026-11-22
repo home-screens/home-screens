@@ -529,6 +529,39 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(page.getByRole('button', { name: 'Use a different time', exact: true })).toBeVisible();
   });
 
+  test('a card that takes no taps can open its screen with a tap anywhere on it; one that takes taps keeps the button', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [
+        makeScreen('kitchen', 'Kitchen', [
+          textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 }, openButtonScreen: 'recipes' }),
+          { ...buildModuleInstance('calendar'), id: 'kitchen-cal', position: { x: 100, y: 500 }, size: { w: 800, h: 500 }, openButtonScreen: 'recipes' },
+        ]),
+        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+      ],
+    }));
+    await openEditor(page);
+    await page.locator('[data-module-id="kitchen-text"]').click();
+    const choice = page.locator('[data-field-id="openWith"]');
+    await expect(choice.getByRole('radio', { name: 'The button' })).toHaveAttribute('aria-checked', 'true');
+    await choice.getByRole('radio', { name: 'A tap on the card' }).click();
+    await pollConfig(request, (c) => c.screens[0].modules[0].openWith).then((p) => p.toBe('card'));
+    await expect(page.getByText('A tap anywhere on the card opens Recipe Book.', { exact: false })).toBeVisible();
+    // The canvas draws the corner mark instead of the pill.
+    await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-mark"]')).toBeVisible();
+    await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]')).toHaveCount(0);
+
+    // A calendar takes taps of its own: the card choice is offered but off, with the reason.
+    // The corner: the unconfigured calendar's middle holds a link to its settings.
+    await page.locator('[data-module-id="kitchen-cal"]').click({ position: { x: 12, y: 12 } });
+    await expect(page.locator('[data-field-id="openWith"]').getByRole('radio', { name: 'A tap on the card' })).toBeDisabled();
+    await expect(page.getByTestId('open-with-takes-taps')).toBeVisible();
+
+    // Back to Nothing clears the choice with the target.
+    await page.locator('[data-module-id="kitchen-text"]').click();
+    await page.locator('#module-open-button-kitchen-text').selectOption('');
+    await pollConfig(request, (c) => c.screens[0].modules[0].openWith).then((p) => p.toBeUndefined());
+  });
+
   test('the open button lists only screens it can open, edits the target\'s quiet time in place, and the canvas draws it', async ({ page, request }) => {
     await putConfig(request, baseConfig({
       screens: [
@@ -540,7 +573,7 @@ test.describe('open button and screens that show only when opened', () => {
     }));
     await openEditor(page);
     await page.locator('[data-module-id="kitchen-text"]').click();
-    await page.getByRole('button', { name: 'Open button' }).click();
+    await page.getByRole('button', { name: 'Open a screen' }).click();
 
     const select = page.locator('#module-open-button-kitchen-text');
     await expect(select).toHaveValue('');
@@ -569,7 +602,7 @@ test.describe('open button and screens that show only when opened', () => {
     // A screen that takes its turn has no quiet time, and the section says why.
     await putConfig(request, await getConfig(request).then((c) => ({ ...c, screens: c.screens.map((s) => (s.id === 'recipes' ? { ...s, rotation: undefined } : s)) })));
     await page.reload();
-    // A module with a button opens on its Open button section.
+    // A module with a button opens on its Open a screen section.
     await page.locator('[data-module-id="kitchen-text"]').click();
     await expect(page.getByTestId('open-button-in-rotation-hint')).toContainText('Recipe Book takes its turn');
     await expect(minutes).toBeHidden();
@@ -601,7 +634,7 @@ test.describe('open button and screens that show only when opened', () => {
     }));
     await openEditor(page);
     await page.locator('[data-module-id="meals"]').click();
-    await page.getByRole('button', { name: 'Open button' }).click();
+    await page.getByRole('button', { name: 'Open a screen' }).click();
 
     await page.getByRole('button', { name: 'Add a Recipe Book screen' }).click();
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
@@ -641,7 +674,7 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(page.locator('#module-open-button-meals')).toHaveValue(added.id);
     await expect(page.getByTestId('screen-tab-opens-only')).toHaveText('When opened');
 
-    // A click on the pill on the canvas opens the Open button section.
+    // A click on the pill on the canvas opens the Open a screen section.
     await pill.click();
     await expect(page.locator('[data-panel-section="open-button"]')).toHaveAttribute('data-revealed', '');
 

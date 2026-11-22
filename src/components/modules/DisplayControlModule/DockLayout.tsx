@@ -13,10 +13,10 @@ import { useBurnInProtection } from '@/components/display/burn-in-context';
 import { PIXEL_SHIFT_EDGE_CLEARANCE_PX, WANDER_REACH_X_PX, WANDER_REACH_Y_PX, wanderBetween } from '@/lib/pixel-shift';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
-import { HoldConfirmButton } from './HoldConfirmButton';
+import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
-import { controlMetrics, dockMetrics, type DockMetrics } from './metrics';
-import { SleepIcon, BrightnessIcon } from './controls';
+import { controlMetrics, dockExtraTiles, dockMetrics, type DockMetrics } from './metrics';
+import { SleepIcon, BrightnessIcon, TimerIcon } from './controls';
 
 export interface DockLayoutProps extends LayoutProps {
   /** This display's rotation, in order; empty when nothing rotates here. */
@@ -34,14 +34,16 @@ export interface DockLayoutProps extends LayoutProps {
  * colour with a light ring and a dot under it, the others are dimmed. A tall
  * box lays it down the side with the names to the right. With `extras`,
  * Sleep and Brightness follow a divider at the end, the way the macOS dock
- * keeps the trash apart.
+ * keeps the trash apart. With `onTimers`, a Timers button comes last and
+ * opens the sheet that starts a routine or a quick timer on this display.
  */
 export function DockLayout(props: DockLayoutProps) {
   const t = useTranslate('modules');
   const {
     allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
-    brightness, onSleep, onBrightness, screens, activeIndex, onGoto, extras,
+    brightness, onSleep, onBrightness, onTimers, screens, activeIndex, onGoto, extras,
   } = props;
+  const timers = onTimers !== undefined;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [brightnessOpen, setBrightnessOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
@@ -53,7 +55,7 @@ export function DockLayout(props: DockLayoutProps) {
     w: box.width,
     h: box.height,
     count: screens.length,
-    extras,
+    extras: dockExtraTiles({ dockExtras: extras, showTimers: timers }),
     compact,
     pickerH: showPicker ? pm.pickerH + pm.gap : 0,
   });
@@ -180,15 +182,17 @@ export function DockLayout(props: DockLayoutProps) {
               );
             })}
 
+            {(extras || timers) && (
+              <div
+                aria-hidden="true"
+                className="shrink-0 self-center bg-white/20"
+                style={m.vertical
+                  ? { height: 1, width: m.tile * 0.7, marginBlock: m.gap * 0.5 }
+                  : { width: 1, height: m.tile * 0.7, marginInline: m.gap * 0.5 }}
+              />
+            )}
             {extras && (
               <>
-                <div
-                  aria-hidden="true"
-                  className="shrink-0 self-center bg-white/20"
-                  style={m.vertical
-                    ? { height: 1, width: m.tile * 0.7, marginBlock: m.gap * 0.5 }
-                    : { width: 1, height: m.tile * 0.7, marginInline: m.gap * 0.5 }}
-                />
                 <HoldConfirmButton
                   ariaLabel={t('display-control.sleepHoldHint')}
                   hint={t('display-control.keepHolding')}
@@ -212,6 +216,19 @@ export function DockLayout(props: DockLayoutProps) {
                   <TileName m={m} name={t('display-control.brightness')} />
                 </button>
               </>
+            )}
+            {timers && (
+              <button
+                type="button"
+                {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row' : 'flex-col'}`)}
+                aria-label={t('display-control.timers')}
+                aria-haspopup="dialog"
+                onClick={onTimers}
+                style={itemStyle(m)}
+              >
+                <ExtraTile m={m}><TimerIcon size={m.icon} /></ExtraTile>
+                <TileName m={m} name={t('display-control.timers')} />
+              </button>
             )}
           </div>
         )}
@@ -297,7 +314,7 @@ function DockTile({
   );
 }
 
-/** Sleep and Brightness tiles: glass rather than a colour, so they read as controls, not screens. */
+/** Sleep, Brightness and Timers tiles: glass rather than a colour, so they read as controls, not screens. */
 function ExtraTile({ m, children }: { m: DockMetrics; children: ReactNode }) {
   return (
     <span

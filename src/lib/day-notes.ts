@@ -3,6 +3,7 @@ import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-n
 import { addIsoDays, isIsoDate } from './iso-date';
 import { localISODate } from './timezone';
 import { RefusalError, type RefusalParams } from './refusal';
+import { oneLineText, textLength } from './text-length';
 
 /**
  * The rules for calendar day notes, shared by the API, the phone's optimistic
@@ -37,22 +38,6 @@ export type DayNotes = Readonly<Record<string, readonly string[]>>;
 
 export const NO_DAY_NOTES: DayNotes = Object.freeze({});
 const NONE: readonly string[] = Object.freeze([]);
-
-/** One line of plain words: trimmed, every run of spaces and line breaks made one space. */
-export function normalizeDayNoteText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
-}
-
-/** Characters as people count them: an emoji is one, not the two code units JavaScript sees. */
-export function dayNoteLength(text: string): number {
-  return Array.from(text).length;
-}
-
-/** `text` cut to the cap, counted the way `dayNoteLength` counts. */
-export function clampDayNoteText(text: string): string {
-  const chars = Array.from(text);
-  return chars.length <= DAY_NOTES_LIMITS.maxTextLength ? text : chars.slice(0, DAY_NOTES_LIMITS.maxTextLength).join('');
-}
 
 /** Each day's note texts, in the order they were written: what the calendar views read. */
 export function indexDayNotes(notes: readonly DayNote[]): DayNotes {
@@ -90,8 +75,8 @@ export function notesOnDay(data: DayNotesData, date: string): DayNote[] {
 
 function checkWords(text: unknown): string {
   if (typeof text !== 'string') throw new DayNotesError(400, 'dayNotes.textRequired', 'A day note needs some words.');
-  const words = normalizeDayNoteText(text);
-  if (dayNoteLength(words) > DAY_NOTES_LIMITS.maxTextLength) {
+  const words = oneLineText(text);
+  if (textLength(words) > DAY_NOTES_LIMITS.maxTextLength) {
     throw new DayNotesError(400, 'dayNotes.textTooLong', `Keep it to ${DAY_NOTES_LIMITS.maxTextLength} letters or fewer.`, { max: DAY_NOTES_LIMITS.maxTextLength });
   }
   return words;
@@ -169,7 +154,7 @@ export function validateDayNotesData(raw: unknown): string | null {
     ids.add(note.id);
     if (!isIsoDate(note.date)) return `${where}: "${String(note.date)}" is not a day`;
     if (typeof note.text !== 'string' || !note.text.trim()) return `${where} has no words`;
-    if (dayNoteLength(note.text) > DAY_NOTES_LIMITS.maxTextLength) return `${where} is longer than ${DAY_NOTES_LIMITS.maxTextLength} characters`;
+    if (textLength(note.text) > DAY_NOTES_LIMITS.maxTextLength) return `${where} is longer than ${DAY_NOTES_LIMITS.maxTextLength} characters`;
     const count = (perDay.get(note.date) ?? 0) + 1;
     if (count > DAY_NOTES_LIMITS.maxPerDay) return `Day notes: ${note.date} has more than ${DAY_NOTES_LIMITS.maxPerDay} notes`;
     perDay.set(note.date, count);

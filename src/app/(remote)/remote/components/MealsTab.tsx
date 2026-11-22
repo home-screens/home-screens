@@ -27,7 +27,8 @@ import { DinnerRatingSheet } from './MealRatingSheet';
 import { REMOTE_ACCENT } from './remote-styles';
 import { isoWeekday } from '@/lib/iso-date';
 
-export default function MealsTab() {
+/** `onOpenList` shows one of the family's lists on the Lists tab (from the Grocery tab's "Also on" group). */
+export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string) => void } = {}) {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
@@ -308,6 +309,8 @@ export default function MealsTab() {
           withoutIngredients={groceryWithoutIngredients}
           toggleGroceryItem={toggleGroceryItem}
           week={week}
+          extras={isCurrentWeek && settings.groceryExtrasListId ? { listId: settings.groceryExtrasListId, since: weekDates[0].date } : null}
+          onOpenList={onOpenList}
         />
       ))}
 

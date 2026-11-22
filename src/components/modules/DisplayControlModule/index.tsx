@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { DisplayControlConfig } from '@/types/config';
 import { dispatchDisplayCommand as dispatchToHub } from '@/lib/display-dispatch';
 import { useModuleSurface } from '@/components/modules/module-surface';
@@ -12,6 +12,8 @@ import { PadLayout } from './PadLayout';
 import { PanelLayout } from './PanelLayout';
 import { NavLayout } from './NavLayout';
 import { DockLayout } from './DockLayout';
+import { dockExtraTiles } from './metrics';
+import { TimersSheet } from './TimersSheet';
 import { useRotation } from '@/components/display/rotation-context';
 import { dockGotoTarget, dockScreensOn, resolveDockButtons, type DockScreen } from '@/lib/screen-dock';
 import type { DisplayDescriptor } from '@/lib/display-filter';
@@ -144,6 +146,15 @@ export default function DisplayControlModule({
     for (const id of others) void dispatchDisplayCommand(id, 'goto-screen', payload);
   }, [rotation, dockScreens, currentTarget, renderDisplayId, availableDisplays, dispatchDisplayCommand]);
 
+  // The Timers sheet opens on the wall and in a preview window, so a preview
+  // shows what a tap does; the sheet itself starts nothing there. On the
+  // editor canvas the button is drawn to judge its place and opens nothing.
+  const [timersOpen, setTimersOpen] = useState(false);
+  const hasTimers = config.showTimers === true && (config.layout === 'dock' || config.layout === 'panel');
+  const onTimers = useCallback(() => {
+    if (surface !== 'editor') setTimersOpen(true);
+  }, [surface]);
+
   const layoutProps: LayoutProps = {
     currentTarget,
     setCurrentTarget,
@@ -158,23 +169,28 @@ export default function DisplayControlModule({
     onSleep,
     onWake,
     onBrightness,
+    onTimers: hasTimers ? onTimers : undefined,
   };
 
+  let layout: ReactNode;
   switch (config.layout) {
     case 'bar':
-      return <BarLayout {...layoutProps} />;
+      layout = <BarLayout {...layoutProps} />;
+      break;
     case 'pad':
-      return <PadLayout {...layoutProps} />;
+      layout = <PadLayout {...layoutProps} />;
+      break;
     case 'nav':
-      return <NavLayout {...layoutProps} />;
+      layout = <NavLayout {...layoutProps} />;
+      break;
     case 'dock':
       // A dock with its own buttons whose screens are all out of reach right
       // now (outside their hours) has nothing to offer: "No screens yet" on
       // a finished wall reads as setup never done. The editor still draws it.
-      if (surface === 'display' && (config.dockButtons?.length ?? 0) > 0 && dockScreens.length === 0 && config.dockExtras !== true) {
+      if (surface === 'display' && (config.dockButtons?.length ?? 0) > 0 && dockScreens.length === 0 && dockExtraTiles(config) === 0) {
         return null;
       }
-      return (
+      layout = (
         <DockLayout
           {...layoutProps}
           screens={dockScreens}
@@ -183,8 +199,24 @@ export default function DisplayControlModule({
           extras={config.dockExtras === true}
         />
       );
+      break;
     case 'panel':
     default:
-      return <PanelLayout {...layoutProps} />;
+      layout = <PanelLayout {...layoutProps} />;
   }
+
+  return (
+    <>
+      {layout}
+      {/* Portals over the whole wall, so it sits here once for every layout. */}
+      {timersOpen && hasTimers && (
+        <TimersSheet
+          displayId={renderDisplayId}
+          hasDisplayList={!isLegacyMode}
+          live={surface === 'display'}
+          onClose={() => setTimersOpen(false)}
+        />
+      )}
+    </>
+  );
 }

@@ -8,6 +8,7 @@ import {
   DISPLAY_OVERRIDE_FIELDS,
   SLEEP_OVERRIDE_FIELDS,
   ALERT_OVERRIDE_FIELDS,
+  CALENDAR_OVERRIDE_FIELDS,
   resolveDisplayDefault,
 } from '@/lib/display-override-fields';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
@@ -86,6 +87,7 @@ export default function OverviewSubtab({
     ...DISPLAY_OVERRIDE_FIELDS,
     ...SLEEP_OVERRIDE_FIELDS,
     ...ALERT_OVERRIDE_FIELDS,
+    ...CALENDAR_OVERRIDE_FIELDS,
   ];
   const overrideSummaries = findDisplaysOverridingFields(config, allOverrideFields);
   const myOverrides = overrideSummaries.find((s) => s.displayId === display.id);
@@ -376,6 +378,11 @@ function formatOverrideComparison(
     case 'showPaginationDots':
     case 'showRotationProgress':
     case 'setupHintEnabled':
+    case 'calendarWallEntry':
+      return compare(
+        formatPauseEnabled(overrideValue as boolean, t),
+        formatPauseEnabled(settings.calendarWallEntry !== false, t),
+      );
     case 'pixelShift':
       // One generic On/Off pair serves every switch.
       return compare(

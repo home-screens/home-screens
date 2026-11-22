@@ -71,14 +71,19 @@ hs_step_required_packages() {
   fi
 }
 
-# Bring the programs the kiosk runs to the archive's newest version. A Pi
-# keeps the Chromium and labwc it was flashed with otherwise, and a fix that
-# lands in a package only ever reaches Pis flashed after it. Every one of
-# them is a session program, so a change is a restart to finish.
+# Bring the programs the kiosk and the hub's server run to the archive's
+# newest version. A Pi keeps the Chromium, labwc and Node it was flashed with
+# otherwise, and a fix that lands in a package only ever reaches Pis flashed
+# after it. A newer session program is a restart of the wall to finish; a
+# newer Node is picked up by the service restart every update ends with.
 hs_step_newer_packages() {
   hs_upgrade_system_packages
   if [ -n "${HS_UPGRADED_PACKAGES}" ]; then
-    changed="${changed}packages,session-packages,"
+    changed="${changed}packages,"
+    # shellcheck disable=SC2086
+    if hs_installs_session_package ${HS_UPGRADED_PACKAGES}; then
+      changed="${changed}session-packages,"
+    fi
   fi
 }
 

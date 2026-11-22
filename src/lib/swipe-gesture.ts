@@ -22,10 +22,16 @@ export interface SwipePoint {
 export type SwipeDirection = 'left' | 'right';
 
 /**
- * Minimum horizontal travel. 4× Chromium's ~15px touch slop, so a tap (which
- * stays inside the slop) and a flick can never be confused.
+ * How far a finger may drift and still be a tap: Chromium's touch slop.
+ * A click that ends further than this from where it started was a drag.
  */
-export const SWIPE_MIN_DISTANCE_PX = 60;
+export const TAP_SLOP_PX = 15;
+
+/**
+ * Minimum horizontal travel. 4× the touch slop, so a tap (which stays inside
+ * the slop) and a flick can never be confused.
+ */
+export const SWIPE_MIN_DISTANCE_PX = 4 * TAP_SLOP_PX;
 
 /**
  * Maximum gesture duration. Combined with the distance floor this is an

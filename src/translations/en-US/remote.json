@@ -24,6 +24,7 @@
     "control": "Control",
     "chores": "Chores",
     "lists": "Lists",
+    "calendar": "Calendar",
     "meals": "Meals",
     "photos": "Photos",
     "timers": "Timers",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "No grocery items",
       "description": "Plan meals with ingredients to see your shopping list."
-    }
+    },
+    "alsoOn": "Also on {list}",
+    "openInLists": "Open in Lists"
   },
   "mealsSettings": {
     "ariaLabel": "Meal settings",
@@ -1033,10 +1036,6 @@
     "newRoutine": "New routine",
     "editRoutine": "Edit routine",
     "emptyHint": "A routine is a step-by-step timer, like a morning routine: get dressed, brush teeth, make your bed. Make one and start it on the display.",
-    "routineMeta": {
-      "one": "{steps} step · {minutes} min",
-      "other": "{steps} steps · {minutes} min"
-    },
     "stepCount": "Step {current} of {total}",
     "pause": "Pause",
     "resume": "Resume",
@@ -1065,7 +1064,6 @@
     "removeStep": "Remove step",
     "addStep": "Add step",
     "minutesShort": "{minutes} min",
-    "loadError": "Couldn't load your routines. Check the connection and try again.",
     "retry": "Try again",
     "onAllDisplays": "On all displays",
     "onDisplay": "On {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "All displays",
     "showOnNext": "Next timer shows on",
     "onDisplays": "On {count} displays",
-    "replaceTitle": "Start a new timer?",
-    "replaceBody": "A timer is already running. Starting a new one will stop it.",
     "soundOn": "Sound on",
     "soundOff": "Sound off",
     "minUnit": "min",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "All done!"
     },
     "loadError": "Couldn't load your lists. Check the hub is on and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "alreadyOnList": "{item} is already on the list",
+    "putBack": "{item} is back on the list"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens picks dinners from your Mealie recipes for the {count} empty nights of {range} and saves them in Mealie. Nights with a meal plan rule in Mealie follow the rule."
       },
       "confirmLabel": "Fill dinners"
+    }
+  },
+  "calendarTab": {
+    "title": "Calendar",
+    "sub": "What's on each day, and notes for the wall",
+    "addEvent": "Add event",
+    "addNote": "Add note",
+    "addEventAria": "Add an event on {day}",
+    "allDay": "All day",
+    "repeats": "Repeats",
+    "changeAria": "Change {title}",
+    "googleCalendar": "Google Calendar",
+    "appleCalendar": "Apple Calendar",
+    "unreachable": "Couldn't reach Home Screens, so nothing changed yet. Everything you typed is still here.",
+    "added": "Added to {calendar}. It shows on the wall in a few seconds.",
+    "changed": "Changed. The wall shows it in a few seconds.",
+    "removed": "Removed from {calendar}.",
+    "offTitle": "Adding events is turned off",
+    "offBody": "It can be turned on in Settings > Calendar. Day notes work as always.",
+    "signInTitle": "Adding events needs one more step",
+    "signInBody": "Adding events needs one more Google sign-in. It's in Settings > Calendar.",
+    "justThisDay": "Just this day",
+    "everyTime": "Every time",
+    "keepIt": "Keep it",
+    "backToForm": "Back to the form",
+    "saveAsk": {
+      "title": "Change {title}"
+    },
+    "removeAsk": {
+      "title": "Remove {title}?",
+      "body": "It comes off the {calendar} calendar for everyone: here, on the wall and in {app}."
+    },
+    "form": {
+      "newTitle": "New event",
+      "changeTitle": "Change event",
+      "what": "What is it?",
+      "whatPlaceholder": "Soccer practice, dentist...",
+      "day": "Day",
+      "firstDay": "First day",
+      "lastDay": "Last day",
+      "allDay": "All day",
+      "starts": "Starts",
+      "ends": "Ends",
+      "nextDay": "next day",
+      "endsOn": "Ends {day} at {time} · {length}",
+      "hours": {
+        "one": "{count} hour",
+        "other": "{count} hours"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "repeats": "Repeats",
+      "stops": "Stops",
+      "stopsNever": "Never",
+      "stopsOnDate": "On a date",
+      "done": "Done",
+      "calendar": "Calendar",
+      "staysOnGoogle": "An event stays on its calendar. To move it, change it in Google Calendar.",
+      "staysOnICloud": "An event stays on its calendar. To move it, change it in Apple Calendar.",
+      "place": "Place",
+      "placeOptional": "(if you like)",
+      "placePlaceholder": "Add a place",
+      "add": "Add to calendar",
+      "save": "Save",
+      "remove": "Remove",
+      "fromWall": "Started on the {wall} wall for {day}.",
+      "changedElsewhere": "Someone changed this event a moment ago, so this is the newest version. Make your change again, then save.",
+      "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
+      "noCalendars": "No calendar takes new events yet. Pick some in Settings > Calendar."
     }
   }
 }

@@ -807,7 +807,7 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 
 ### POST /api/mealie/shopping/items
 
-Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. Requires a valid session.
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the Wall** on, and at most 80 characters; otherwise `403`.
 
 ### PATCH /api/mealie/shopping/items/:itemId
 
@@ -815,7 +815,7 @@ Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can chan
 
 ### DELETE /api/mealie/shopping/items/:itemId
 
-Takes an item off its list, for Undo right after adding it. Answers `{ "ok": true }`, also when the item was already gone. Requires a valid session.
+Takes an item off its list, for Undo right after adding it. Answers `{ "ok": true }`, also when the item was already gone. Requires a valid session, except for an item the hub added for a display in the last five minutes, which that display's token may take off (the wall's Undo).
 
 ### GET /api/mealie/image/:recipeId
 
@@ -918,6 +918,46 @@ Any other `action` is answered with `400`, and an unknown `noteId` with `404`. *
 ### DELETE /api/notes/:noteId
 
 Removes the note for good. Requires a valid session. An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+
+---
+
+## Calendar events
+
+Adding, changing and removing events on Google and iCloud calendars from the phone and the wall (see [Add and change events](/docs/calendars#add-events)). Nothing here works until **Settings > Calendar > Adding events** is on; each calendar must also be ticked there and shown. Every route takes a valid session or a display token. A display token is accepted only while the walls may add (`settings.calendarWallEntry` is not `false`, or some display turned it on for itself); one token serves every display, so each wall checks its own switch. Writes count against a limit of 20 a minute per address.
+
+Events in `GET /api/calendar` that may be changed carry `canEdit: true`, plus `etag` (the version to send back), `repeats` and `seriesId` for one day of a repeating Google event, and `sourceRef` for an iCloud event. Every other event has none of them.
+
+An event is sent as a draft on the household's clock: `{ "title", "date": "YYYY-MM-DD", "allDay", "startTime": "HH:MM", "endTime": "HH:MM", "lastDate": "YYYY-MM-DD", "location", "repeat": { "frequency", "until": "YYYY-MM-DD" } }`. `startTime` and `endTime` are for timed events, and an end earlier than the start is the next day; `lastDate` is the last day of an all-day event, inclusive. `frequency` is `daily`, `weekdays`, `weekly`, `biweekly`, `monthly` or `yearly`, and `until` is the last day it may happen. Titles are at most 80 characters (an emoji counts as one).
+
+A refusal answers `{ "error", "code" }`, with `code` one of `calendarWrite.*`: `400` for a draft that is not valid (`titleRequired`, `endsWhenItStarts`, `repeatNeedsEveryTime` and the rest), `403` when adding is off or the calendar is not ticked (`notOffered`, `calendarNotTicked`, `notEditable`), Google or iCloud refused (`notAllowed`) or Google needs a new sign-in (`signInNeeded`), `404` for an event that was already removed (`gone`), `409` when it changed since the form loaded it (`changedElsewhere`), `429` past the limit, and `502` when Google or iCloud could not be reached (`unreachable`). Every write moves the calendar revision, so walls read the change within seconds.
+
+### GET /api/calendar/entry
+
+What the forms offer: `{ "enabled", "google", "calendars": [{ "id", "name", "color", "source": "google" | "icloud" }], "defaultCalendarId", "defaultMinutes", "timezone", "wallDefault" }`. `calendars` lists the calendars a new event can go on now; empty means no "Add event". `google` is where Google stands: `ready`, `off`, `needsSignIn`, `scopeMissing` (Google's "View and edit events" box was left empty), `needsWebClient` (an own Google app with no web sign-in saved), `notOffered`, or `null` on a hub with no Google calendars.
+
+### POST /api/calendar/events
+
+Adds an event. **Body:** `{ "calendarId", "draft" }`. **Response:** `201 { "id" }`, the event's id as `/api/calendar` carries it.
+
+### GET /api/calendar/events/:id
+
+One event ready for the Change form: `{ "calendarId", "eventId", "etag", "seriesId", "seriesEtag", "draft", "repeat" }`. `repeat` is `{ "kind": "none" }`, `{ "kind": "known", "rule" }`, or `{ "kind": "other" }` for a repeat set up elsewhere that the forms cannot change.
+
+### PATCH /api/calendar/events/:id
+
+Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "repeatChanged" }`. `scope` is `instance` (this event, or this one day of a series) or `series` (every time); `etag` is the version the form loaded (the series' for `series`); `dayWas` is the day the form opened on, so moving a series by a day moves every time by a day. A new repeat can only change every time. **Response:** `{ "ok": true }`.
+
+### DELETE /api/calendar/events/:id
+
+Removes an event. **Body:** `{ "scope", "seriesId" }`, as for `PATCH`. An event that is already gone counts as removed. **Response:** `{ "ok": true }`.
+
+### GET /api/auth/google/web, POST /api/auth/google/web
+
+The Google web sign-in that lets Home Screens add events, for the editor. `GET ?origin=` answers `{ "url", "returnsToHub" }`; `POST { "code" }` redeems a code pasted from the sign-in page and answers `{ "connected": true, "canAddEvents" }`. Requires a valid session.
+
+### POST /api/auth/google/return
+
+Where the hub's return page (`/editor/connect/google`) hands a Google web sign-in back: `{ "code", "state" }`. The waiting sign-in that `state` names says whether it was for Google Photos import or for adding calendar events, and the code is redeemed into that one. **Response:** `{ "connected": true, "purpose": "photos" | "calendar", "canAddEvents" }`. Requires a valid session.
 
 ---
 

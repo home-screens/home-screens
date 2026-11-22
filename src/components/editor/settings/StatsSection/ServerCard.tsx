@@ -54,6 +54,12 @@ export function ServerCard({
         <div className="text-hs-text-secondary">{stats.os.platform} / {stats.os.arch}</div>
         <div className="text-hs-text-faint">Node.js</div>
         <div className="text-hs-text-secondary font-mono">{stats.os.nodeVersion}</div>
+        {stats.os.timeZoneData && (
+          <>
+            <div className="text-hs-text-faint">{t('settings.statsSection.timeZoneData')}</div>
+            <div className="text-hs-text-secondary font-mono">{stats.os.timeZoneData}</div>
+          </>
+        )}
         <div className="text-hs-text-faint">{t('settings.statsSection.uptime')}</div>
         <div className="text-hs-text-secondary">{formatUptime(stats.os.uptime)}</div>
       </div>

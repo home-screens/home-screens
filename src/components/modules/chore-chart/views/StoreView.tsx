@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { ChevronRight, History, Ticket } from 'lucide-react';
+import { ChevronRight, History, Lock, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
@@ -61,6 +61,7 @@ export function resolveStoreLayout(raw: unknown): StoreLayout {
  */
 export function StoreView({ config, data, width, height, fontSize }: StoreViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const layout = resolveStoreLayout(config.storeLayout);
   const allowTouch = config.allowDisplayComplete !== false;
   const accent = config.accentColor || '#f59e0b';
@@ -362,7 +363,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
       <ChoreIcon value={reward.emoji} size={Math.round(fontSize * 2)} color="currentColor" />
     </div>
   );
-  const sheetButton = (label: string, onClick: () => void, primary: boolean, testId: string, disabled = false) => (
+  const sheetButton = (label: ReactNode, onClick: () => void, primary: boolean, testId: string, disabled = false) => (
     <button
       type="button"
       data-testid={testId}
@@ -443,7 +444,15 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
         </>,
         <>
           {sheetButton(t('chore-chart.store.notNow'), () => { redeem.cancel(); setChoosingFor(null); }, false, 'store-cancel')}
-          {sheetButton(t('fullscreen-chore-chart.rewardsStore.confirmYes'), () => { void redeem.confirm().then(() => setChoosingFor(null)); }, true, 'store-confirm', redeem.busy)}
+          {sheetButton(
+            redeem.asksGrownUp
+              ? <span className="inline-flex items-center" style={{ gap: '0.4em' }}><Lock size="1em" strokeWidth={2.8} aria-hidden="true" />{tCore('grownUp.ask')}</span>
+              : t('fullscreen-chore-chart.rewardsStore.confirmYes'),
+            () => { void redeem.confirm().then(() => setChoosingFor(null)); },
+            true,
+            'store-confirm',
+            redeem.busy,
+          )}
         </>,
         'store-confirm-sheet',
       )}

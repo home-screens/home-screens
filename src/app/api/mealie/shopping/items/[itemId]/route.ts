@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { hasEditorSession, requireSession } from '@/lib/auth';
+import { forgetWallAdded, wallMayUndo } from '@/lib/wall-added';
 import { deleteMealieShoppingItem, isMealieShoppingId, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
 import { withMealieErrors } from '@/lib/mealie-api';
 
@@ -29,14 +31,20 @@ export const PATCH = withDisplayAuth(withMealieErrors(async (request: NextReques
 
 /**
  * DELETE /api/mealie/shopping/items/[itemId]: take an item off its Mealie
- * list, for Undo right after adding it. Session only: the wall can tick, not
- * remove. Already gone answers 200 too.
+ * list, for Undo right after adding it. Already gone answers 200 too.
+ *
+ * The display token gets in only for the wall's Undo: an item the hub added
+ * for a wall in the last few minutes (`wall-added.ts`). Anything else needs
+ * the phone's session; the wall can tick, not remove.
  */
-export const DELETE = withAuth(withMealieErrors(async (_request: NextRequest, ctx: RouteContext) => {
+export const DELETE = withDisplayAuth(withMealieErrors(async (request: NextRequest, ctx: RouteContext) => {
   const { itemId } = await ctx.params;
   if (!isMealieShoppingId(itemId)) {
     return NextResponse.json({ error: 'Not a Mealie shopping list item' }, { status: 400 });
   }
+  const fromWall = !(await hasEditorSession(request));
+  if (fromWall && !wallMayUndo(itemId)) await requireSession(request);
   await deleteMealieShoppingItem(itemId);
+  if (fromWall) forgetWallAdded(itemId);
   return NextResponse.json({ ok: true });
 }), 'Failed to take the item off the Mealie shopping list');

@@ -24,6 +24,7 @@
     "control": "Steuerung",
     "chores": "Aufgaben",
     "lists": "Listen",
+    "calendar": "Kalender",
     "meals": "Mahlzeiten",
     "photos": "Fotos",
     "timers": "Timer",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "Keine Einträge",
       "description": "Plane Mahlzeiten mit Zutaten, um deine Einkaufsliste zu sehen."
-    }
+    },
+    "alsoOn": "Außerdem auf {list}",
+    "openInLists": "In Listen öffnen"
   },
   "mealsSettings": {
     "ariaLabel": "Mahlzeiten-Einstellungen",
@@ -1033,10 +1036,6 @@
     "newRoutine": "Neue Routine",
     "editRoutine": "Routine bearbeiten",
     "emptyHint": "Eine Routine ist ein Timer mit Schritten, z. B. eine Morgenroutine: anziehen, Zähne putzen, Bett machen. Erstelle eine und starte sie auf dem Display.",
-    "routineMeta": {
-      "one": "{steps} Schritt · {minutes} Min.",
-      "other": "{steps} Schritte · {minutes} Min."
-    },
     "stepCount": "Schritt {current} von {total}",
     "pause": "Pause",
     "resume": "Weiter",
@@ -1065,7 +1064,6 @@
     "removeStep": "Schritt entfernen",
     "addStep": "Schritt hinzufügen",
     "minutesShort": "{minutes} Min.",
-    "loadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
     "retry": "Erneut versuchen",
     "onAllDisplays": "Auf allen Displays",
     "onDisplay": "Auf {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "Alle Displays",
     "showOnNext": "Nächster Timer auf",
     "onDisplays": "Auf {count} Displays",
-    "replaceTitle": "Neuen Timer starten?",
-    "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
     "soundOn": "Ton an",
     "soundOff": "Ton aus",
     "minUnit": "Min.",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "Alles erledigt!"
     },
     "loadError": "Deine Listen konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
-    "retry": "Noch einmal"
+    "retry": "Noch einmal",
+    "alreadyOnList": "{item} steht schon auf der Liste",
+    "putBack": "{item} steht wieder auf der Liste"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens sucht aus deinen Mealie-Rezepten Abendessen für die {count} leeren Abende der Woche vom {range} aus und speichert sie in Mealie. Abende mit einer Essensplan-Regel in Mealie folgen der Regel."
       },
       "confirmLabel": "Abendessen füllen"
+    }
+  },
+  "calendarTab": {
+    "title": "Kalender",
+    "sub": "Termine für jeden Tag und Notizen für die Wand",
+    "addEvent": "Termin hinzufügen",
+    "addNote": "Notiz hinzufügen",
+    "addEventAria": "Termin für {day} hinzufügen",
+    "allDay": "Ganztägig",
+    "repeats": "Wiederholt sich",
+    "changeAria": "{title} ändern",
+    "googleCalendar": "Google Kalender",
+    "appleCalendar": "Apple Calendar",
+    "unreachable": "Home Screens war nicht erreichbar, deshalb hat sich noch nichts geändert. Alles, was du eingegeben hast, ist noch da.",
+    "added": "In „{calendar}“ eingetragen. Der Termin erscheint ein paar Sekunden später an der Wand.",
+    "changed": "Geändert. Ein paar Sekunden später ist das auch an der Wand zu sehen.",
+    "removed": "Aus „{calendar}“ entfernt.",
+    "offTitle": "Das Hinzufügen von Terminen ist ausgeschaltet",
+    "offBody": "Das lässt sich am Computer unter Einstellungen > Kalender einschalten. Tagesnotizen funktionieren wie immer.",
+    "signInTitle": "Für neue Termine fehlt noch ein Schritt",
+    "signInBody": "Für neue Termine musst du dich noch einmal bei Google anmelden. Das geht am Computer unter Einstellungen > Kalender.",
+    "justThisDay": "Nur an diesem Tag",
+    "everyTime": "An allen Tagen",
+    "keepIt": "Behalten",
+    "backToForm": "Zurück zum Formular",
+    "saveAsk": {
+      "title": "„{title}“ ändern"
+    },
+    "removeAsk": {
+      "title": "„{title}“ entfernen?",
+      "body": "Der Termin verschwindet für alle aus dem Kalender „{calendar}“: hier, an der Wand und in {app}."
+    },
+    "form": {
+      "newTitle": "Neuer Termin",
+      "changeTitle": "Termin ändern",
+      "what": "Was steht an?",
+      "whatPlaceholder": "z. B. Fußballtraining, Zahnarzt…",
+      "day": "Tag",
+      "firstDay": "Erster Tag",
+      "lastDay": "Letzter Tag",
+      "allDay": "Ganztägig",
+      "starts": "Beginn",
+      "ends": "Ende",
+      "nextDay": "am nächsten Tag",
+      "endsOn": "Endet am {day} um {time} · {length}",
+      "hours": {
+        "one": "{count} Stunde",
+        "other": "{count} Stunden"
+      },
+      "minutes": "{count} Min.",
+      "hoursMinutes": "{hours} Std. {minutes} Min.",
+      "repeats": "Wiederholung",
+      "stops": "Hört auf",
+      "stopsNever": "Nie",
+      "stopsOnDate": "An einem bestimmten Tag",
+      "done": "Fertig",
+      "calendar": "Kalender",
+      "staysOnGoogle": "Ein Termin bleibt in seinem Kalender. In einen anderen Kalender verschieben kannst du ihn in Google Kalender.",
+      "staysOnICloud": "Ein Termin bleibt in seinem Kalender. In einen anderen Kalender verschieben kannst du ihn in Apple Calendar.",
+      "place": "Ort",
+      "placeOptional": "(wenn du magst)",
+      "placePlaceholder": "Ort hinzufügen",
+      "add": "In den Kalender eintragen",
+      "save": "Speichern",
+      "remove": "Entfernen",
+      "fromWall": "Für {day}, angefangen an der Wand „{wall}“.",
+      "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert, deshalb siehst du jetzt den neuesten Stand. Mach deine Änderung noch einmal und speichere dann.",
+      "repeatsNote": "„{title}“ wiederholt sich. Beim Speichern wählst du: nur an diesem Tag oder an allen Tagen.",
+      "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter Einstellungen > Kalender welche aus."
     }
   }
 }

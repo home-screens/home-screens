@@ -40,7 +40,8 @@ export type ProxyDenialReason =
   | 'domain_not_allowed'
   | 'ssrf_blocked'
   | 'redirect_domain_not_allowed'
-  | 'redirect_ssrf_blocked';
+  | 'redirect_ssrf_blocked'
+  | 'redirect_insecure_with_keys';
 
 type AuditEvent =
   | { action: 'login_success'; ip: string }
@@ -71,7 +72,10 @@ type AuditEvent =
   | { action: 'auto_backup_link'; change: 'created' | 'removed' }
   | { action: 'auto_backup_destination'; change: 'set' | 'removed' }
   | { action: 'auto_backup_password'; change: 'set' | 'removed' }
-  | { action: 'auto_backup_removed'; file: string };
+  | { action: 'auto_backup_removed'; file: string }
+  | { action: 'grown_up_code_set' }
+  | { action: 'grown_up_code_removed' }
+  | { action: 'grown_up_code_wrong'; ip: string };
 
 type AuditEntry = AuditEvent & { ts: string }; // ISO 8601
 

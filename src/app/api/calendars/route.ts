@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { calendar as googleCalendar } from '@googleapis/calendar';
 import { getAuthenticatedClient, loadTokens } from '@/lib/google-auth';
 import { withAuth } from '@/lib/api-utils';
+import { calendarApi, isWritableRole } from '@/lib/google-calendar';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +21,7 @@ export const GET = withAuth(async () => {
     return NextResponse.json({ error: reason }, { status: 403 });
   }
 
-  const calendar = googleCalendar({ version: 'v3', auth });
+  const calendar = calendarApi(auth);
   const res = await calendar.calendarList.list();
   const items = res.data.items ?? [];
 
@@ -30,6 +30,8 @@ export const GET = withAuth(async () => {
     summary: cal.summary ?? '(Untitled)',
     backgroundColor: cal.backgroundColor ?? '#3b82f6',
     primary: cal.primary ?? false,
+    // Settings > Calendar offers only these for adding events.
+    writable: isWritableRole(cal.accessRole),
   }));
 
   return NextResponse.json(calendars);

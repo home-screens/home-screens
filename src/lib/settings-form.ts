@@ -1,4 +1,4 @@
-import type { CalendarOverride, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
+import type { CalendarEventEntry, CalendarOverride, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
 import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_FALLBACKS } from '@/lib/display-override-fields';
 
@@ -55,6 +55,10 @@ export interface CalendarState {
   daysAhead: number;
   holidayCountry: string;
   hideDeclined: boolean;
+  /** Adding events from the phone and the wall; null until it is first turned on. */
+  eventEntry: CalendarEventEntry | null;
+  /** `settings.calendarWallEntry`: the walls may add too. */
+  wallEntry: boolean;
   /**
    * Per-calendar name/colour overrides. Must appear in BOTH mappings below:
    * read out of settings into the form, and written back when it saves.
@@ -117,7 +121,7 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'open-meteo', units: 'imperial', radarServerUrl: '' },
-  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], personSources: {}, daysAhead: 7, holidayCountry: '', hideDeclined: false },
+  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], personSources: {}, daysAhead: 7, holidayCountry: '', hideDeclined: false, eventEntry: null, wallEntry: true },
   sleep: {
     sleepEnabled: false,
     idleDimEnabled: true,
@@ -230,6 +234,8 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
       hideDeclined: s.calendar.hideDeclined ?? false,
+      eventEntry: s.calendar.eventEntry ?? null,
+      wallEntry: s.calendarWallEntry ?? true,
       calendarOverrides: s.calendar.calendarOverrides,
     },
     sleep: sleepConfigToForm(s.sleep, s.screensaver),
@@ -284,10 +290,15 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
       hideDeclined: calendar.hideDeclined,
+      // Left out until adding is first turned on, so a household that never
+      // does keeps exactly the settings it had.
+      ...(calendar.eventEntry ? { eventEntry: calendar.eventEntry } : {}),
       ...(calendar.calendarOverrides && Object.keys(calendar.calendarOverrides).length
         ? { calendarOverrides: calendar.calendarOverrides }
         : {}),
     },
+    // On unless turned off; written only when off, for the same reason.
+    ...(calendar.wallEntry ? {} : { calendarWallEntry: false }),
     ...sleepFormToConfig(sleep),
     alerts: {
       enabled: alerts.alertsEnabled,

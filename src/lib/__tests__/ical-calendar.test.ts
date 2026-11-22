@@ -40,7 +40,7 @@ vi.mock('@/lib/url-safety', async () => ({
 }));
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { checkICalUrl, clearICalFeedCache, fetchICalEvents } from '@/lib/ical-calendar';
+import { checkICalUrl, clearICalFeedCache, fetchICalEvents, parseICSEvents } from '@/lib/ical-calendar';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
 
@@ -892,6 +892,74 @@ END:VCALENDAR`;
   // Walls and the editor ask with different windows every few minutes; a
   // feed is downloaded at most once a minute and an unchanged one is never
   // parsed twice.
+  describe('yearly rules that restate their start day without a month', () => {
+    // Some older phone calendar apps write a birthday as FREQ=YEARLY;BYMONTHDAY=2
+    // starting on 2 October. The standard reads that as the 2nd of every month;
+    // the app that wrote it shows it once a year, and so should the wall.
+    const window = ['2026-11-01T00:00:00Z', '2027-11-01T00:00:00Z'] as const;
+
+    function feed(rule: string, start: string, extra = ''): string {
+      return [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Test//Test//EN',
+        'BEGIN:VEVENT', 'UID:rule-1', 'DTSTAMP:20231001T000000Z', start, `RRULE:${rule}`, 'SUMMARY:Ted Birthday', 'END:VEVENT',
+        extra,
+        'END:VCALENDAR',
+      ].filter(Boolean).join('\r\n');
+    }
+
+    async function startsFor(rule: string, start: string, extra = '', timezone = 'America/Chicago'): Promise<string[]> {
+      mockFetchResponse(feed(rule, start, extra));
+      const { events } = await fetchICalEvents([makeSource()], ...window, timezone);
+      return events.map((e) => e.start);
+    }
+
+    it('shows an all-day birthday once a year, on its own date', async () => {
+      const starts = await startsFor('FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTHDAY=2', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+
+    it('does the same for a timed event, reading its day in its own zone', async () => {
+      // 20:00 in Chicago on 2 October is already 3 October in UTC.
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2', 'DTSTART;TZID=America/Chicago:20231002T200000', '', 'UTC');
+      expect(starts).toEqual(['2027-10-03T01:00:00.000Z']);
+    });
+
+    it('keeps an occurrence the calendar moved to another month', async () => {
+      const moved = [
+        'BEGIN:VEVENT', 'UID:rule-1', 'DTSTAMP:20231001T000000Z', 'RECURRENCE-ID;VALUE=DATE:20271002',
+        'DTSTART;VALUE=DATE:20270905', 'DTEND;VALUE=DATE:20270906', 'SUMMARY:Ted Birthday (early)', 'END:VEVENT',
+      ].join('\r\n');
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2', 'DTSTART;VALUE=DATE:20231002', moved);
+      expect(starts).toEqual(['2027-09-05']);
+    });
+
+    it('leaves a rule with two month days repeating every month', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=1,3', 'DTSTART;VALUE=DATE:20231001');
+      expect(starts).toHaveLength(24);
+    });
+
+    it('leaves every Friday the 13th alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=13;BYDAY=FR', 'DTSTART;VALUE=DATE:20231013');
+      // Friday the 13ths from November 2026 to October 2027: Nov 2026 and Aug 2027.
+      expect(starts).toEqual(['2026-11-13', '2027-08-13']);
+    });
+
+    it('leaves a month day that is not the start day alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=7', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toHaveLength(12);
+    });
+
+    it('leaves a rule that names its month alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2;BYMONTH=10', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+
+    it('leaves a plain yearly rule alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+  });
+
   describe('feed cache', () => {
     const NOW = new Date('2025-03-12T12:00:00Z');
     const MARCH = ['2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z'] as const;
@@ -1036,5 +1104,43 @@ END:VCALENDAR`;
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(events.every((e) => e.calendarColor === '#22c55e')).toBe(true);
     });
+  });
+});
+
+// A changed day of a series can be all day while the series is timed, or the
+// other way round (Apple Calendar and Home Screens both write them).
+// node-ical times every changed day the series' way.
+describe('parseICSEvents: a changed day that is all day or timed unlike its series', () => {
+  const source = { id: 'src', name: 'Home', color: '#000' };
+  const doc = (master: string[], changed: string[]) => [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//t//EN',
+    'BEGIN:VEVENT', 'UID:soccer', 'DTSTAMP:20260101T000000Z', ...master, 'RRULE:FREQ=WEEKLY', 'SUMMARY:Soccer', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:soccer', 'DTSTAMP:20260101T000000Z', ...changed, 'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const window = [new Date('2026-11-13T00:00:00Z'), new Date('2026-11-30T00:00:00Z')] as const;
+
+  it('shows an all-day day of a timed series as all day', () => {
+    const text = doc(
+      ['DTSTART;TZID=America/Chicago:20261107T090000', 'DTEND;TZID=America/Chicago:20261107T100000'],
+      ['RECURRENCE-ID;TZID=America/Chicago:20261121T090000', 'DTSTART;VALUE=DATE:20261121', 'DTEND;VALUE=DATE:20261122', 'SUMMARY:Tournament'],
+    );
+    const events = parseICSEvents(text, source, ...window, 'America/Chicago');
+    expect(events.map((e) => [e.title, e.allDay, e.start, e.end])).toEqual([
+      ['Soccer', false, '2026-11-14T15:00:00.000Z', '2026-11-14T16:00:00.000Z'],
+      ['Tournament', true, '2026-11-21', '2026-11-22'],
+      ['Soccer', false, '2026-11-28T15:00:00.000Z', '2026-11-28T16:00:00.000Z'],
+    ]);
+    expect(events[1].id).toBe('src:soccer:2026-11-21');
+  });
+
+  it('keeps the times of a timed day of an all-day series', () => {
+    const text = doc(
+      ['DTSTART;VALUE=DATE:20261107', 'DTEND;VALUE=DATE:20261108'],
+      ['RECURRENCE-ID;VALUE=DATE:20261121', 'DTSTART;TZID=America/Chicago:20261121T130000', 'DTEND;TZID=America/Chicago:20261121T150000', 'SUMMARY:Final'],
+    );
+    const events = parseICSEvents(text, source, ...window, 'America/Chicago');
+    expect(events.find((e) => e.title === 'Final')).toMatchObject({ allDay: false, start: '2026-11-21T19:00:00.000Z', end: '2026-11-21T21:00:00.000Z' });
+    expect(events.filter((e) => e.title === 'Soccer').map((e) => e.start)).toEqual(['2026-11-14', '2026-11-28']);
   });
 });

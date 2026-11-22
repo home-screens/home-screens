@@ -236,10 +236,21 @@ body {
 @keyframes wall-scrim-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wall-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes wall-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+/* Where the next letter typed on the wall's keyboard goes (`WallCaret`). */
+@keyframes wall-caret { 50% { opacity: 0; } }
 .wall-sheet-panel::-webkit-scrollbar { display: none; }
+/* The bar of big buttons a tap brings up (`WallControlBar`) rises a little as
+   its shade fades in. `translate`, not `transform`, which centres the bar. */
+@keyframes wall-bar-in { from { translate: 0 18%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+.wall-control-bar { animation: wall-bar-in 220ms ease-out; }
+.wall-control-shade { animation: wall-scrim-in 200ms ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .wall-overlay, .wall-overlay * { animation: none !important; }
+  .wall-overlay, .wall-overlay *, .wall-control-bar, .wall-control-shade { animation: none !important; }
 }
+
+/* A wrong grown-up code: the dots shake once, red, then empty. */
+@keyframes grown-up-shake { 0%, 100% { translate: 0; } 20%, 60% { translate: -14px; } 40%, 80% { translate: 14px; } }
+.grown-up-dots-wrong { animation: grown-up-shake 360ms ease-in-out; }
 
 /* A list moving under a finger inside a frosted card: the card's glass rests
    until the list stops (`WALL_SCROLL_GLASS_REST_MS`). Re-blurring the card

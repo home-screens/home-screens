@@ -35,7 +35,7 @@ function setupAuth(accessToken = 'ya29.first') {
   mockGetAuth.mockResolvedValue({ credentials: { access_token: accessToken } } as never);
 }
 
-function setupCalendarList(calendars: { id: string; summary?: string; backgroundColor?: string }[]) {
+function setupCalendarList(calendars: { id: string; summary?: string; backgroundColor?: string; accessRole?: string }[]) {
   mockCalendarListList.mockResolvedValue({
     data: { items: calendars },
   });
@@ -108,6 +108,35 @@ describe('fetchCalendarEvents', () => {
     expect(events[0].sourceId).toBe('cal1');
     expect(events[0].sourceName).toBe('Work');
     expect(events[0].calendarColor).toBe('#4285f4');
+  });
+
+  it('marks events the account may write, their version and their series', async () => {
+    setupAuth();
+    setupCalendarList([
+      { id: 'family', summary: 'Family', accessRole: 'owner' },
+      { id: 'shared', summary: 'Shared', accessRole: 'writer' },
+      { id: 'team', summary: 'Team', accessRole: 'reader' },
+    ]);
+    setupColors({});
+    const byCalendar: Record<string, Record<string, unknown>[]> = {
+      family: [
+        { id: 'soccer_20260117T150000Z', etag: '"e1"', recurringEventId: 'soccer', summary: 'Soccer', start: { dateTime: '2026-01-17T09:00:00-06:00' }, end: { dateTime: '2026-01-17T10:30:00-06:00' } },
+        { summary: 'No id', start: { date: '2026-01-18' }, end: { date: '2026-01-19' } },
+      ],
+      shared: [{ id: 's1', etag: '"e2"', summary: 'Dinner', start: { date: '2026-01-19' }, end: { date: '2026-01-20' } }],
+      team: [{ id: 't1', etag: '"e3"', summary: 'Standup', start: { date: '2026-01-20' }, end: { date: '2026-01-21' } }],
+    };
+    mockEventsList.mockImplementation(async (params: { calendarId: string }) => ({ data: { items: byCalendar[params.calendarId] ?? [] } }));
+
+    const { events } = await fetchCalendarEvents(['family', 'shared', 'team'], '2026-01-01', '2026-01-31');
+    const byTitle = new Map(events.map((e) => [e.title, e]));
+
+    expect(byTitle.get('Soccer')).toMatchObject({ writable: true, repeats: true, seriesId: 'soccer', etag: '"e1"' });
+    expect(byTitle.get('Dinner')).toMatchObject({ writable: true, etag: '"e2"' });
+    expect(byTitle.get('Dinner')).not.toHaveProperty('repeats');
+    // A reader cannot write, and an event without a real id cannot be written back.
+    expect(byTitle.get('Standup')).not.toHaveProperty('writable');
+    expect(byTitle.get('No id')).not.toHaveProperty('writable');
   });
 
   it('handles all-day events (date without dateTime)', async () => {
@@ -437,7 +466,7 @@ describe('fetchCalendarEvents', () => {
       await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
 
       expect(mockEventsList.mock.calls[0][0].fields).toBe(
-        'items(id,summary,start,end,location,description,colorId,eventLabelId,attendees(self,responseStatus)),nextPageToken',
+        'items(id,etag,recurringEventId,summary,start,end,location,description,colorId,eventLabelId,attendees(self,responseStatus)),nextPageToken',
       );
     });
 

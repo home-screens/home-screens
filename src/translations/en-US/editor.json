@@ -746,7 +746,42 @@
         "show": "What to show",
         "showDescription": "Limits every calendar module starts from. A module can narrow further with its own filters."
       },
-      "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows."
+      "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows.",
+      "adding": {
+        "heading": "Adding events",
+        "description": "Add, change and remove events from your phone and the wall.",
+        "switch": "Let Home Screens add and change events",
+        "switchHelpBoth": "For Google calendars, Google asks you to sign in once more. iCloud calendars need nothing more. Showing your calendars works the same either way.",
+        "switchHelpGoogle": "Google asks you to sign in once more to allow it. Showing your calendars works the same either way.",
+        "switchHelpICloud": "Your iCloud calendars need nothing more. Showing them works the same either way.",
+        "ready": "Signed in, can add events",
+        "signInTitle": "One more step: sign in to Google again",
+        "signInBody": "Google will ask you to let Home Screens “View and edit events on all your calendars”. A Google tab opens, and you'll come back here on your own.",
+        "signInButton": "Sign in with Google",
+        "signInAgain": "Sign in again",
+        "signInFailed": "That sign-in didn't work. Try again.",
+        "pastePlaceholder": "Paste the code from the sign-in page",
+        "pasteButton": "Finish",
+        "scopeMissingTitle": "Google only allowed showing events",
+        "scopeMissingBody": "On Google’s page, the box for “View and edit events” was left empty, so Home Screens can still only show your calendars. Sign in again and tick that box.",
+        "webClientTitle": "First, add a Google web sign-in",
+        "webClientBody": "Adding events signs in with the same Google web sign-in that Google Photos import uses. Add its Client ID and Secret, then come back here.",
+        "webClientLink": "Open API keys",
+        "calendarsLabel": "Calendars that events can go on",
+        "calendarsHelp": "Only calendars the screens show are listed, so a new event never lands somewhere nobody sees it.",
+        "groupGoogle": "Google",
+        "groupICloud": "iCloud",
+        "readOnly": "Read only in Google",
+        "fromContacts": "Comes from Contacts",
+        "defaultLabel": "New events go on",
+        "lengthLabel": "Usual length",
+        "length30": "30 min",
+        "length60": "1 hour",
+        "length90": "1½ hours",
+        "length120": "2 hours",
+        "wallSwitch": "Let the wall add, change and remove events",
+        "wallHelp": "Only on the calendars ticked above. Removing asks first. Each display can turn this off on its own page."
+      }
     },
     "dataPage": {
       "groups": {
@@ -1282,7 +1317,8 @@
           "pixelShift": "Burn-in protection",
           "fullscreenTheme": "Theme",
           "sleep": "Sleep & dimming",
-          "alerts": "Alert overlay"
+          "alerts": "Alert overlay",
+          "calendarWallEntry": "Add events on this wall"
         },
         "chipValues": {
           "pauseOn": "On",
@@ -1393,6 +1429,11 @@
         "connectLabel": "Connect to it",
         "runLabel": "Then run this",
         "connectUnknown": "Connect to this display's Pi from a terminal (the username is {user}), then run:"
+      },
+      "calendar": {
+        "wallEntryLabel": "Add, change and remove events on this wall",
+        "wallEntryToggle": "Allow it on this wall",
+        "defaultsLabel": "Calendar"
       }
     },
     "alertFormFields": {
@@ -1604,9 +1645,9 @@
         "clientSecretLabel": "Calendar Client Secret",
         "clientSecretPlaceholder": "e.g. GOCSPX-...",
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
-        "webClientIdLabel": "Photos Import Client ID",
-        "webClientIdHelp": "Add https://homescreens.dev/connect/google as an authorized redirect URI.",
-        "webClientSecretLabel": "Photos Import Client Secret",
+        "webClientIdLabel": "Web sign-in Client ID",
+        "webClientIdHelp": "Google Photos import and adding calendar events both sign in with this. Add https://homescreens.dev/connect/google as an authorized redirect URI.",
+        "webClientSecretLabel": "Web sign-in Client Secret",
         "webClientSecretHelp": "The client secret from the web application credential above.",
         "mapsKeyLabel": "Maps API Key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
@@ -1618,9 +1659,9 @@
           "helpOwnApp": "Make an OAuth credential of type “TVs and Limited Input devices” in the Google Cloud Console, then paste both halves here."
         },
         "photosBand": {
-          "title": "For importing Google Photos",
-          "help": "A separate login from the calendar one, of type “Web application”. Only needed if you want to pull photos in. Skip this if you don't.",
-          "helpOwnApp": "A separate login from the calendar one, of type “Web application”."
+          "title": "For Google Photos and adding events",
+          "help": "A separate login from the calendar one, of type “Web application”. Only needed to pull photos in or to add calendar events. Skip this if you don’t.",
+          "helpOwnApp": "A separate login from the calendar one, of type “Web application”. Google Photos import and adding calendar events use it."
         },
         "mapsBand": {
           "title": "For drive times",
@@ -1956,6 +1997,11 @@
         "connectedOffer": "Mealie is connected. Choose it to plan with the recipes and plan you keep there.",
         "onMealie": "Every meal view, the phone and this editor now use your Mealie plan, and planning here saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
         "mealieSettingsLink": "Mealie settings"
+      },
+      "groceryExtras": {
+        "heading": "Other things to buy",
+        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall, and a grocery card with Add on the Wall adds to it.",
+        "none": "None"
       },
       "status": {
         "loadFailed": "Failed to load meal settings.",
@@ -2437,7 +2483,9 @@
       "advanced": {
         "heading": "Advanced network access",
         "description": "Display key, signed-in devices, and limiting access to certain networks."
-      }
+      },
+      "grownUpPointerPrefix": "Want the wall to ask before kids spend tickets? That is the ",
+      "grownUpPointerSuffix": " on the Family page."
     },
     "shared": {
       "secretField": {
@@ -2618,6 +2666,7 @@
       "hostname": "Device name",
       "platform": "Platform",
       "uptime": "Uptime",
+      "timeZoneData": "Time zone data",
       "hardwareTitle": "CPU & Thermal",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (local)",
@@ -2847,6 +2896,50 @@
         "grabLimitLabel": "How many bonus chores one person can grab at once",
         "grabHoldLabel": "When a grab of a bonus chore ends",
         "saved": "Saved"
+      },
+      "grownUp": {
+        "heading": "Grown-up code for the wall",
+        "description": "Four numbers the wall asks for before the jobs you tick below, so little hands can't spend tickets on their own. It isn't a lock for your home network; the password on Security is.",
+        "notSet": "No code yet.",
+        "isSet": "A code is set.",
+        "set": "Set a code",
+        "change": "Change",
+        "remove": "Remove",
+        "removeConfirm": "Remove the code",
+        "codeLabel": "Four numbers",
+        "againLabel": "The same again",
+        "save": "Save code",
+        "mismatch": "The two codes don't match.",
+        "format": "Use four numbers.",
+        "jobsLabel": "Ask for it before",
+        "jobs": {
+          "redeem": {
+            "label": "Spending tickets in the rewards store",
+            "hint": "On the wall and on the kids' chores page."
+          },
+          "untick": {
+            "label": "Unticking a chore",
+            "hint": "Unticking takes its tickets back."
+          },
+          "todoist-close": {
+            "label": "Closing a Todoist task",
+            "hint": "A closed task can't be opened again from the wall."
+          },
+          "calendar-remove": {
+            "label": "Removing a calendar event",
+            "hint": "On the wall, and on phones when Home Screens has no password."
+          },
+          "calendar-change-series": {
+            "label": "Changing every day of a repeating event",
+            "hint": "When a change covers every time it happens, not just one day."
+          }
+        },
+        "unlockLabel": "Stay unlocked for",
+        "minutes": {
+          "one": "1 minute",
+          "other": "{count} minutes"
+        },
+        "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked."
       }
     },
     "touchAlignment": {
@@ -3775,11 +3868,11 @@
     "collapseTitle": "Hide the settings panel",
     "expandTitle": "Show the settings panel",
     "openButton": {
-      "label": "Show a button that opens",
+      "label": "Opens",
       "none": "Nothing",
       "andMore": "and {count} more",
       "help": "Adds a button in the module’s bottom corner with that screen’s name on it. Tapping it on a touch display shows the screen.",
-      "sectionTitle": "Open button",
+      "sectionTitle": "Open a screen",
       "opensOnTap": "{name} (opens on tap)",
       "offBadge": "{name} (off)",
       "holds": "Shows {what}",
@@ -3812,7 +3905,12 @@
       "turnOnTap": "Turn on Tap on the Wall",
       "switchOn": "Switch it on",
       "onlyWhen": "The button only shows {when}.",
-      "onlyConditions": "The button only shows while that screen’s conditions match."
+      "onlyConditions": "The button only shows while that screen’s conditions match.",
+      "openWith": "Open it with",
+      "openWithButton": "The button",
+      "openWithCard": "A tap on the card",
+      "openWithCardHelp": "A tap anywhere on the card opens {name}. A small arrow in its corner shows the card can be tapped.",
+      "openWithTakesTaps": "This card already uses taps for its own things, so it opens with the button."
     }
   },
   "sudoPrompt": {
@@ -4260,6 +4358,8 @@
       "compact": "Icons only, no words",
       "dockHint": "One button per screen of this display. Tap one to jump straight to that screen.",
       "dockExtras": "Also show Sleep and Brightness",
+      "showTimers": "Also show Timers",
+      "showTimersHint": "A button that starts a routine or a quick timer on this display. Routines are made on the phone, under Timers.",
       "dockButtons": "Buttons",
       "dockButtonsChoose": "Choose which screens get a button",
       "dockButtonsEvery": "Every screen of this display gets a button, in rotation order.",
@@ -4491,7 +4591,10 @@
       "shuffleOrder": "Shuffle Order",
       "kenBurnsEffect": "Ken Burns Effect",
       "showClockOverlay": "Show Clock Overlay",
-      "clockBackground": "Clock Background"
+      "clockBackground": "Clock Background",
+      "interactive": "Tap on the Wall",
+      "interactiveHint": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A sideways swipe still changes screens.",
+      "interactiveHintCard": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A swipe on the photo moves to the next one."
     },
     "garbage-day": {
       "frequencyWeekly": "Every week",
@@ -4669,7 +4772,13 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, open recipes, rate dinner, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too."
+      "interactiveHint": "Lets people tick things off the grocery list, open recipes, rate dinner, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too.",
+      "wallAdd": "Add on the Wall",
+      "wallAddHelpMealie": "Anyone at the wall can add to the grocery list. It goes on the Mealie list the family shops from.",
+      "wallAddHelpLocal": "Anyone at the wall can add to the grocery list. It goes on the list picked below.",
+      "extrasList": "Other things to buy go on",
+      "extrasListNone": "None (no Add row)",
+      "extrasListHelp": "One of your lists. What is still on it shows at the end of the grocery list here and on the phone. Every grocery card shares it."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",
@@ -4694,7 +4803,13 @@
       "todayUnderline": "Underline",
       "todayText": "Colored number",
       "todayNone": "None",
-      "accentColor": "Accent Color"
+      "accentColor": "Accent Color",
+      "events": "Events",
+      "showEventMarks": "Mark days with events",
+      "showEventMarksHint": "Up to three dots under each day that has something on it, in the colour of its calendar.",
+      "showDayNotesHint": "A day with only a note gets a mark too, and its notes show when the day is tapped.",
+      "eventTapDetails": "Tap a day to see its events",
+      "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows. Days with nothing on them do nothing."
     },
     "news": {
       "viewHeadline": "Headline (Rotating)",
@@ -5178,7 +5293,9 @@
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
       "showAssignees": "Show who",
-      "interactive": "Tap to complete (touchscreen)"
+      "interactive": "Tap to complete (touchscreen)",
+      "wallAdd": "Add from the wall (touchscreen)",
+      "wallAddHelp": "An Add row under the list. Anyone at the wall can add; changing and removing stay on the phone."
     },
     "todoist": {
       "apiToken": "API Token",
@@ -5438,7 +5555,9 @@
       "advancedLooks": "Advanced looks",
       "ruleCountNone": "none",
       "ruleCountOne": "1 rule",
-      "ruleCountOther": "{count} rules"
+      "ruleCountOther": "{count} rules",
+      "addEvents": "Add events from a day",
+      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in Settings > Calendar."
     },
     "fullscreen-weather": {
       "view": "View",
@@ -5948,7 +6067,10 @@
     "cancelledTitle": "Sign-in was cancelled",
     "cancelledBody": "No problem. Start again from the editor whenever you like.",
     "failedTitle": "Couldn't finish signing in",
-    "backToEditor": "Back to the editor"
+    "backToEditor": "Back to the editor",
+    "calendarConnectedTitle": "Home Screens can add events",
+    "calendarConnectedBody": "Go back to Settings > Calendar to pick which calendars events go on.",
+    "calendarReadOnlyBody": "The box for “View and edit events” was left empty. Sign in again from Settings > Calendar and tick it."
   },
   "conditionSummary": {
     "always": "always",

@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { eventKindLabel, formatEventTime, isZeroLengthEvent } from '@/lib/calendar-utils';
 import { eventOwner, type EventOwner } from '@/lib/calendar-people';
@@ -46,6 +46,8 @@ interface DaySheetOverlayProps {
   /** An event detail is open on top: the sheet waits under it without counting down. */
   paused: boolean;
   onOpenEvent: (id: string) => void;
+  /** Shown while events can be added from this wall: "Add event" beside Close. */
+  onAdd?: () => void;
   onClose: () => void;
 }
 
@@ -57,7 +59,7 @@ interface DaySheetOverlayProps {
  * from the last touch and not while an event's detail is open over it. A
  * row opens that event's detail on top; closing the detail comes back here.
  */
-export function DaySheetOverlay({ date, events, notes = [], owners, variant, theme, accentColor, colorFor, timeFormat, timezone, paused, onOpenEvent, onClose }: DaySheetOverlayProps) {
+export function DaySheetOverlay({ date, events, notes = [], owners, variant, theme, accentColor, colorFor, timeFormat, timezone, paused, onOpenEvent, onAdd, onClose }: DaySheetOverlayProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
 
@@ -168,14 +170,49 @@ export function DaySheetOverlay({ date, events, notes = [], owners, variant, the
       <div style={{ display: 'flex', flexDirection: 'column', gap: len(12, 6) }}>
         {rows.map(row)}
       </div>
+      {rows.length === 0 && notes.length === 0 && (
+        // Only opens empty while events can be added here.
+        <div data-day-sheet-empty="" style={{ fontSize: len(30, 15), color: theme.textSecondary, padding: `${len(26, 12)} 0 ${len(6, 3)}` }}>
+          {t('calendar.daySheet.empty')}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: len(16, 8), marginTop: len(26, 14) }}>
+      {onAdd && (
+        <button
+          type="button"
+          {...wallPressProps}
+          data-testid="day-sheet-add-event"
+          onClick={onAdd}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: len(14, 8),
+            background: accentColor,
+            border: '1px solid transparent',
+            color: '#fff',
+            fontSize: len(28, 15),
+            fontWeight: 700,
+            fontFamily: 'inherit',
+            padding: `${len(22, 12)} 0`,
+            borderRadius: 18,
+            cursor: 'pointer',
+            minHeight: 44,
+          }}
+        >
+          <Plus aria-hidden="true" strokeWidth={2.6} style={{ width: len(34, 18), height: len(34, 18) }} />
+          {t('calendar.daySheet.addEvent')}
+        </button>
+      )}
       <button
         type="button"
         {...wallPressProps}
         onClick={onClose}
         style={{
           display: 'block',
+          flex: 1,
           width: '100%',
-          marginTop: len(26, 14),
           background: theme.surfaceAlt,
           border: `1px solid ${theme.border}`,
           color: theme.text,
@@ -191,6 +228,7 @@ export function DaySheetOverlay({ date, events, notes = [], owners, variant, the
       >
         {t('event-detail.close')}
       </button>
+      </div>
     </div>
   );
 

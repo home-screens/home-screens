@@ -9,7 +9,7 @@ import Glyph from '@/components/ui/Glyph';
  * bottom. Variant A of the approved mockup.
  */
 export default function RingTimerView({
-  session, step, remainingMs, fraction, nudge, paused, title, s, t,
+  session, step, remainingMs, fraction, nudge, title, s, t,
 }: TimerViewProps) {
   const isRoutine = session.kind === 'routine';
   const deg = fraction * 360;
@@ -108,19 +108,17 @@ export default function RingTimerView({
               {t('timer.almostDone')}
             </div>
           )}
-          {paused && (
-            <div style={{ ...pillStyle(s, '#0a0f16', 'rgba(255,255,255,0.85)'), marginTop: 30 * s }}>
-              {t('timer.paused')}
-            </div>
-          )}
         </div>
       </div>
 
       {isRoutine && (
+        // The chips share the width: up to five fit a portrait wall, each
+        // giving up room (and wrapping its name) before any runs off an edge.
         <div
+          data-testid="timer-chips"
           style={{
-            marginTop: 'auto', marginBottom: 130 * s, display: 'flex',
-            gap: 24 * s, padding: `0 ${60 * s}px`, alignItems: 'stretch',
+            marginTop: 'auto', marginBottom: 130 * s, display: 'flex', justifyContent: 'center',
+            gap: 20 * s, padding: `0 ${48 * s}px`, alignItems: 'stretch', width: '100%', boxSizing: 'border-box',
           }}
         >
           {chips.steps.map((chip, i) => {
@@ -132,7 +130,7 @@ export default function RingTimerView({
                 key={chip.id}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 * s,
-                  padding: `${30 * s}px ${26 * s}px`, borderRadius: 28 * s, minWidth: 200 * s,
+                  padding: `${30 * s}px ${18 * s}px`, borderRadius: 28 * s, flex: `0 1 ${240 * s}px`, minWidth: 0,
                   backgroundColor: isCurrent ? 'rgba(45,212,191,0.12)' : 'rgba(255,255,255,0.05)',
                   border: `2px solid ${isCurrent ? 'rgba(45,212,191,0.55)' : 'rgba(255,255,255,0.08)'}`,
                   boxShadow: isCurrent ? `0 0 ${44 * s}px rgba(45,212,191,0.18)` : undefined,
@@ -140,7 +138,7 @@ export default function RingTimerView({
                 }}
               >
                 <div style={{ fontSize: 56 * s, lineHeight: 1 }}><Glyph value={chip.icon} fallback="⏱️" /></div>
-                <div style={{ fontSize: 28 * s, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textAlign: 'center' }}>
+                <div style={{ fontSize: 28 * s, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textAlign: 'center', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                   {chip.label}
                 </div>
                 {isDone ? (
@@ -156,7 +154,7 @@ export default function RingTimerView({
             );
           })}
           {chips.hiddenAfter > 0 && (
-            <div style={{ alignSelf: 'center', fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ alignSelf: 'center', flexShrink: 0, whiteSpace: 'nowrap', fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
               {t('timer.moreSteps', { count: chips.hiddenAfter })}
             </div>
           )}

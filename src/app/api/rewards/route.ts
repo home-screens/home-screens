@@ -10,6 +10,7 @@ import { withDataTransaction } from '@/lib/data-transaction';
 import { householdToday } from '@/lib/household-day';
 import { rewardsEtag } from '@/lib/chore-revisions';
 import { holdsEtag, revalidatedHeaders } from '@/lib/file-etag';
+import { requireGrownUp } from '@/lib/grown-up-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,6 +92,11 @@ export const POST = async (request: NextRequest) => {
         { status: 400 },
       );
     }
+
+    // Spending tickets may need the grown-up code: asked last, so a redeem
+    // that would fail anyway says why instead of asking for the code first.
+    const grownUp = await requireGrownUp(request, 'redeem');
+    if (grownUp) return grownUp;
 
     // Look up member name for denormalized snapshot
     const family = await readFamilyData();

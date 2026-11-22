@@ -159,9 +159,14 @@ export function CalendarWhatShowsGroup({ keyPrefix, config: c, set, availableSou
 interface TouchConfig {
   eventTapDetails?: boolean;
   eventTapStyle?: EventTapStyle;
+  addEvents?: boolean;
 }
 
-/** "Touch": whether a tap opens an event, and how the details are drawn. Shared by both calendar modules. */
+/**
+ * "Touch": whether a tap opens an event, how the details are drawn, and
+ * whether a tapped day offers "Add event" once adding events is on. Shared by
+ * both calendar modules.
+ */
 export function CalendarTouchGroup({ keyPrefix, config: c, set }: {
   keyPrefix: CalendarKeyPrefix;
   config: TouchConfig;
@@ -182,6 +187,12 @@ export function CalendarTouchGroup({ keyPrefix, config: c, set }: {
           onChange={(v) => set({ eventTapStyle: v })}
           options={tapStyleOptions}
         />
+      )}
+      {c.eventTapDetails === true && (
+        <>
+          <Toggle label={t(`${KEY}.addEvents`)} checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} />
+          <p className="-mt-1 text-[11px] text-hs-text-faint">{t(`${KEY}.addEventsHelp`)}</p>
+        </>
       )}
     </CalendarGroup>
   );

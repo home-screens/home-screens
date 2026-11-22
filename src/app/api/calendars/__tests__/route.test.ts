@@ -71,8 +71,8 @@ describe('GET /api/calendars', () => {
     calendarListMock.mockResolvedValue({
       data: {
         items: [
-          { id: 'primary@x', summary: 'Home', backgroundColor: '#123456', primary: true },
-          { id: 'work@x', summary: null },
+          { id: 'primary@x', summary: 'Home', backgroundColor: '#123456', primary: true, accessRole: 'owner' },
+          { id: 'work@x', summary: null, accessRole: 'reader' },
         ],
       },
     });
@@ -80,8 +80,8 @@ describe('GET /api/calendars', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveLength(2);
-    expect(body[0]).toEqual({ id: 'primary@x', summary: 'Home', backgroundColor: '#123456', primary: true });
-    // Missing fields fall back to defaults.
-    expect(body[1]).toEqual({ id: 'work@x', summary: '(Untitled)', backgroundColor: '#3b82f6', primary: false });
+    expect(body[0]).toEqual({ id: 'primary@x', summary: 'Home', backgroundColor: '#123456', primary: true, writable: true });
+    // Missing fields fall back to defaults; a reader cannot take new events.
+    expect(body[1]).toEqual({ id: 'work@x', summary: '(Untitled)', backgroundColor: '#3b82f6', primary: false, writable: false });
   });
 });

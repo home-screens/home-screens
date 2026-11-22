@@ -24,6 +24,7 @@
     "control": "Bediening",
     "chores": "Klusjes",
     "lists": "Lijsten",
+    "calendar": "Kalender",
     "meals": "Maaltijden",
     "photos": "Foto's",
     "timers": "Timers",
@@ -488,7 +489,9 @@
     "empty": {
       "title": "Geen boodschappen",
       "description": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien."
-    }
+    },
+    "alsoOn": "Ook op {list}",
+    "openInLists": "Openen in Lijsten"
   },
   "mealsSettings": {
     "ariaLabel": "Maaltijdinstellingen",
@@ -1033,10 +1036,6 @@
     "newRoutine": "Nieuwe routine",
     "editRoutine": "Routine bewerken",
     "emptyHint": "Een routine is een timer met stappen, zoals een ochtendroutine: aankleden, tanden poetsen, bed opmaken. Maak er een en start hem op het scherm.",
-    "routineMeta": {
-      "one": "{steps} stap · {minutes} min",
-      "other": "{steps} stappen · {minutes} min"
-    },
     "stepCount": "Stap {current} van {total}",
     "pause": "Pauze",
     "resume": "Verder",
@@ -1065,7 +1064,6 @@
     "removeStep": "Stap verwijderen",
     "addStep": "Stap toevoegen",
     "minutesShort": "{minutes} min",
-    "loadError": "De routines konden niet worden geladen. Controleer de verbinding en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
     "onAllDisplays": "Op alle schermen",
     "onDisplay": "Op {name}",
@@ -1073,8 +1071,6 @@
     "allDisplays": "Alle schermen",
     "showOnNext": "Volgende timer op",
     "onDisplays": "Op {count} schermen",
-    "replaceTitle": "Nieuwe timer starten?",
-    "replaceBody": "Er loopt al een timer. Een nieuwe timer stopt de huidige.",
     "soundOn": "Geluid aan",
     "soundOff": "Geluid uit",
     "minUnit": "min",
@@ -1174,7 +1170,9 @@
       "nothingOpen": "Alles gedaan!"
     },
     "loadError": "Je lijsten konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
-    "retry": "Opnieuw"
+    "retry": "Opnieuw",
+    "alreadyOnList": "{item} staat al op de lijst",
+    "putBack": "{item} staat weer op de lijst"
   },
   "formOverlay": {
     "discard": {
@@ -1490,6 +1488,75 @@
         "other": "Home Screens kiest avondmaaltijden uit je Mealie-recepten voor de {count} lege avonden van de week van {range} en slaat ze op in Mealie. Avonden met een regel voor het maaltijdplan in Mealie volgen die regel."
       },
       "confirmLabel": "Avondeten vullen"
+    }
+  },
+  "calendarTab": {
+    "title": "Kalender",
+    "sub": "Wat er per dag gebeurt, en notities voor de muur",
+    "addEvent": "Afspraak toevoegen",
+    "addNote": "Notitie toevoegen",
+    "addEventAria": "Afspraak toevoegen op {day}",
+    "allDay": "Hele dag",
+    "repeats": "Terugkerend",
+    "changeAria": "{title} wijzigen",
+    "googleCalendar": "Google Agenda",
+    "appleCalendar": "Apple Agenda",
+    "unreachable": "Home Screens was niet bereikbaar, dus er is nog niets veranderd. Alles wat je hebt getypt, staat er nog.",
+    "added": "Toegevoegd aan {calendar}. Over een paar seconden staat hij op de muur.",
+    "changed": "Gewijzigd. Over een paar seconden zie je het op de muur.",
+    "removed": "Verwijderd uit {calendar}.",
+    "offTitle": "Afspraken toevoegen staat uit",
+    "offBody": "Je kunt het aanzetten bij Instellingen > Kalender. Dagnotities werken gewoon zoals altijd.",
+    "signInTitle": "Afspraken toevoegen vraagt nog één stap",
+    "signInBody": "Voor afspraken toevoegen moet je je nog een keer aanmelden bij Google. Dat doe je bij Instellingen > Kalender.",
+    "justThisDay": "Alleen deze dag",
+    "everyTime": "Elke keer",
+    "keepIt": "Laten staan",
+    "backToForm": "Terug naar het formulier",
+    "saveAsk": {
+      "title": "{title} wijzigen"
+    },
+    "removeAsk": {
+      "title": "{title} verwijderen?",
+      "body": "De afspraak verdwijnt voor iedereen uit de agenda {calendar}: hier, op de muur en in {app}."
+    },
+    "form": {
+      "newTitle": "Nieuwe afspraak",
+      "changeTitle": "Afspraak wijzigen",
+      "what": "Wat is het?",
+      "whatPlaceholder": "Voetbaltraining, tandarts…",
+      "day": "Dag",
+      "firstDay": "Eerste dag",
+      "lastDay": "Laatste dag",
+      "allDay": "Hele dag",
+      "starts": "Begint",
+      "ends": "Eindigt",
+      "nextDay": "volgende dag",
+      "endsOn": "Eindigt op {day} om {time} · {length}",
+      "hours": {
+        "one": "{count} uur",
+        "other": "{count} uur"
+      },
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} u {minutes} min",
+      "repeats": "Herhalen",
+      "stops": "Stopt",
+      "stopsNever": "Nooit",
+      "stopsOnDate": "Op een datum",
+      "done": "Klaar",
+      "calendar": "Agenda",
+      "staysOnGoogle": "Een afspraak blijft in zijn eigen agenda. Wil je hem verplaatsen? Doe dat dan in Google Agenda.",
+      "staysOnICloud": "Een afspraak blijft in zijn eigen agenda. Wil je hem verplaatsen? Doe dat dan in Apple Agenda.",
+      "place": "Plek",
+      "placeOptional": "(als je wilt)",
+      "placePlaceholder": "Voeg een plek toe",
+      "add": "In de agenda zetten",
+      "save": "Opslaan",
+      "remove": "Verwijderen",
+      "fromWall": "Begonnen op de muur {wall}, voor {day}.",
+      "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd, dus je ziet nu de nieuwste versie. Doe je wijziging nog een keer en sla dan op.",
+      "repeatsNote": "{title} komt vaker terug. Als je opslaat, kies je: alleen deze dag of elke keer.",
+      "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij Instellingen > Kalender."
     }
   }
 }

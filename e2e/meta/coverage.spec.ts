@@ -485,6 +485,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'affirmations.timeAware': 'not-observable',
   'affirmations.weatherAware': 'not-observable',
   'air-quality.refreshIntervalMs': 'timing-only',
+  'calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'chore-chart.allowDisplayComplete': 'covered-elsewhere',
@@ -496,6 +497,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'display-control.allowRetargeting': 'covered-elsewhere',
   'display-control.defaultTarget': 'covered-elsewhere',
   'fullscreen-calendar.dimPastEvents': 'timing-only',
+  'fullscreen-calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'fullscreen-calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.weekCollapsePastDays': 'timing-only',
@@ -520,6 +522,9 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'iframe.refreshIntervalMs': 'timing-only',
   'meal-planner.interactive': 'covered-elsewhere', // meal-recipe-grocery.spec.ts (boxes on, and no boxes when off)
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
+  'meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (adds to the picked list; no row without one)
+  'fullscreen-meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (the full-screen grocery view's Add button)
+  'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'news.showNewMarker': 'not-observable',
   'fullscreen-news.showNewMarker': 'not-observable',
@@ -1197,6 +1202,8 @@ const PUBLIC_ROUTES: Record<string, string> = {
   '/api/backup/latest': 'the private download link a NAS task or home backup server fetches with no session. The 256-bit token from Settings is the proof, compared in constant time with wrong tries limited per address; it serves only a copy that already exists (keys inside always locked) and never builds one. The IP allowlist still applies.',
   '/api/chores': 'the /chores kid view and the wall read the chore list and tick chores with no session; KID_VIEW_POST_ROUTES in src/proxy.ts is what lets the tick through, and the handlers check the member and the date themselves.',
   '/api/chores/grab': 'the /chores kid view and the wall grab bonus chores with no session, exactly as they tick chores through /api/chores. It moves no tickets.',
+  '/api/grown-up-code': 'the wall, the kids\' chores page and the phone read whether a grown-up code is set, which jobs it guards and whether they would be asked, to label their buttons. It never carries the code. Setting, changing and removing the code are withAuth handlers on the same path.',
+  '/api/grown-up-code/unlock': 'checks the grown-up code from the wall, the kids\' chores page or an unsigned phone, none of which has a session; KID_VIEW_POST_ROUTES in src/proxy.ts lets it through. The code is the proof, and wrong tries are limited per address and for the whole hub.',
   '/api/health': 'the liveness probe: the upgrade pipeline and the display-only launcher ask it whether the hub booted, and a support thread asks for it first. Version, build, schema and uptime only, nothing about the household.',
   '/api/i18n/[locale]': 'ships the UI dictionaries. Every surface needs them before login, and they are the same strings for every household.',
   '/api/plugins/auth/callback': 'the OAuth redirect target. The provider sends the browser here with no session; the HMAC-signed state is what proves the exchange is ours.',

@@ -42,6 +42,18 @@ export function hostedCalendarClient(): HostedGoogleClient | null {
   return { clientId: HOSTED_CALENDAR_CLIENT_ID, tokenUrl };
 }
 
+/**
+ * Whether Home Screens' own app may offer adding calendar events. It needs a
+ * wider Google sign-in ("View and edit events") that Google must review
+ * before households can use it, so it stays off until `HS_GOOGLE_HOSTED_EVENTS=1`,
+ * which lets the review video be recorded on a development hub. Households on
+ * their own Google app are not affected.
+ */
+export function hostedEventsEnabled(): boolean {
+  return process.env.HS_GOOGLE_HOSTED_EVENTS?.trim() === '1';
+}
+
+/** Home Screens' web app: Google Photos import signs in with it, and so does Calendar when it adds events. */
 export function hostedPhotosClient(): HostedGoogleClient | null {
   if (!hostedEnabled()) return null;
   const tokenUrl = process.env.HS_GOOGLE_PHOTOS_TOKEN_URL?.trim() || PHOTOS_TOKEN_URL;
