@@ -8197,6 +8197,15 @@
           "default": []
         },
         {
+          "name": "calendarOverrides",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "Record<string, CalendarOverride>"
+          },
+          "description": "Per-calendar name and colour, overriding whatever the source sends"
+        },
+        {
           "name": "icalSources",
           "optional": false,
           "type": {
@@ -11282,6 +11291,15 @@
       "methods": [
         {
           "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/appearance",
+      "methods": [
+        {
+          "method": "POST",
           "access": "display"
         }
       ]

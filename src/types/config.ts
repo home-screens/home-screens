@@ -766,6 +766,17 @@ export interface CalendarEvent {
   opacity?: number;
 }
 
+/**
+ * What a household has changed about one calendar source: the name it is
+ * shown under and the colour it is drawn in.
+ */
+export interface CalendarOverride {
+  /** Shown instead of the source's name. Empty or absent keeps the original. */
+  name?: string;
+  /** Any CSS colour, used for the legend dot and the events. Absent keeps the original. */
+  color?: string;
+}
+
 export interface ICalSource {
   /** Unique ID */
   id: string;
@@ -835,6 +846,23 @@ export interface CalendarPerson {
 export interface CalendarSettings {
   /** Google calendars to show */
   googleCalendarIds: string[];
+  /**
+   * Per-calendar name and colour, overriding whatever the source sends
+   *
+   * Keyed by source id, which is a Google calendar id or an iCal/iCloud
+   * source id. Google supplies its own name and colour at fetch time and
+   * offers no way to change them for this household, so a name nobody
+   * recognises or a clashing blue is otherwise permanent. An absent entry,
+   * or an absent field within one, keeps the source's own value.
+   *
+   * Applied where the fetch assigns `sourceName` and `calendarColor`, so an
+   * override reaches events, legends and per-person colouring alike rather
+   * than being patched per module.
+   *
+   * iCal and iCloud sources carry their own editable `name`/`color`, so
+   * they are normally edited there; an entry here still wins if one exists.
+   */
+  calendarOverrides?: Record<string, CalendarOverride>;
   /** iCal (ICS) feeds (see ICalSource) */
   icalSources: ICalSource[];
   /** iCloud calendars picked from connected accounts (see ICloudSource) */

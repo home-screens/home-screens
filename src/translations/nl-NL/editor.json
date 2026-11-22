@@ -678,6 +678,12 @@
           "help": "Toont je Google-agenda's op je displays. Je rondt het aanmelden af op je telefoon of computer met een korte code."
         }
       },
+      "appearance": {
+        "colorFor": "Kleur voor {name}",
+        "reset": "Herstellen",
+        "edit": "{name} hernoemen of verkleuren",
+        "done": "Klaar"
+      },
       "icloud": {
         "heading": "iCloud-agenda",
         "checkingAccounts": "Accounts controleren…",

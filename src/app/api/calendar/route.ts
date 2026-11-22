@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
+import { applyCalendarOverrides } from '@/lib/calendar-overrides';
 import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
 import { CALENDAR_FETCH_MAX_EVENTS, CALENDAR_MAX_WINDOW_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { budgetEvents, mergeSourceStatus, recordSourceStatus, withSavedEvents, type SourceFetchResult } from '@/lib/calendar-source-status';
-import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
+import type { CalendarEvent, CalendarOverride, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
 import { logger } from '@/lib/logger';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { CALENDAR_REVISION_HEADER, calendarRevision } from '@/lib/calendar-revision';
@@ -31,6 +32,15 @@ interface CalendarPayload {
 
 export const dynamic = 'force-dynamic';
 
+/** Stable serialisation of the overrides for the cache key. */
+function overridesKey(overrides: Record<string, CalendarOverride> | undefined): string {
+  if (!overrides) return '';
+  return Object.keys(overrides)
+    .sort()
+    .map((id) => `${id}=${overrides[id].name ?? ''}|${overrides[id].color ?? ''}`)
+    .join(',');
+}
+
 interface CalendarParams {
   calendarIds: string[];
   icalSources: ICalSource[];
@@ -44,6 +54,8 @@ interface CalendarParams {
   icloudKey: string;
   /** `calendarRevision()` when the request came in: a sign-in or disconnect starts a new cache entry. */
   revision: string;
+  /** The household's own names/colours, applied over the merged payload. */
+  calendarOverrides: Record<string, CalendarOverride> | undefined;
 }
 
 const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
@@ -74,6 +86,7 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     const holidayCountry = config.settings.calendar.holidayCountry;
     const hideDeclined = config.settings.calendar.hideDeclined ?? false;
     const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
+    const calendarOverrides = config.settings.calendar.calendarOverrides;
 
     const timezone = config.settings.timezone;
 
@@ -113,11 +126,15 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     // before a sign-in kept being handed out for the rest of its TTL.
     const revision = calendarRevision();
 
-    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision };
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey, revision, calendarOverrides };
   },
-  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, timezone, revision }) =>
-    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax};tz:${timezone ?? ''};r:${revision}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone }) => {
+  // `ov` is not optional padding: the overrides are baked into the cached
+  // payload, so without them in the key a rename or recolour keeps serving
+  // the previous name until the entry expires -- the change appears to have
+  // been ignored. Keys are sorted so the string is stable across renders.
+  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, timezone, revision, calendarOverrides }) =>
+    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax};tz:${timezone ?? ''};r:${revision};ov:${overridesKey(calendarOverrides)}`,
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, calendarOverrides }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -226,8 +243,14 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     const sourceStatus = mergeSourceStatus(sourceResults, Date.now());
     recordSourceStatus(sourceStatus);
 
-    const merged = [...google.events, ...ical.events, ...icloud.events, ...holidays.events]
-      .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
+    // The household's own names and colours, applied once over the merged
+    // list rather than inside each source's fetch. One place covers Google,
+    // iCal, iCloud and holidays alike, and it keeps the provider clients
+    // free of settings they have no other reason to know about.
+    const merged = applyCalendarOverrides(
+      [...google.events, ...ical.events, ...icloud.events, ...holidays.events],
+      calendarOverrides,
+    ).sort((a, b) => compareEventStarts(a.start, b.start, timezone));
     // The safety cap is deliberately not a user setting: a small "max
     // events" once scaled into the grid fetch and silently truncated month
     // grids to the nearest few days. Upcoming-first budgeting only when the

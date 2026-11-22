@@ -678,6 +678,12 @@
           "help": "Muestra tus calendarios de Google en tus displays. Terminarás de iniciar sesión en tu móvil u ordenador con un código corto."
         }
       },
+      "appearance": {
+        "colorFor": "Color de {name}",
+        "reset": "Restablecer",
+        "edit": "Cambiar el nombre o el color de {name}",
+        "done": "Listo"
+      },
       "icloud": {
         "heading": "Calendario de iCloud",
         "checkingAccounts": "Comprobando cuentas…",

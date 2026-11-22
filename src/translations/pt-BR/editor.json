@@ -678,6 +678,12 @@
           "help": "Mostra seus calendários do Google nos seus displays. Você vai concluir o login no celular ou computador com um código curto."
         }
       },
+      "appearance": {
+        "colorFor": "Cor de {name}",
+        "reset": "Redefinir",
+        "edit": "Renomear ou recolorir {name}",
+        "done": "Pronto"
+      },
       "icloud": {
         "heading": "Calendário do iCloud",
         "checkingAccounts": "Verificando contas…",

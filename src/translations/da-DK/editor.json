@@ -678,6 +678,12 @@
           "help": "Viser dine Google-kalendere på dine skærme. Du afslutter login på din telefon eller computer med en kort kode."
         }
       },
+      "appearance": {
+        "colorFor": "Farve til {name}",
+        "reset": "Nulstil",
+        "edit": "Omdøb eller skift farve på {name}",
+        "done": "Færdig"
+      },
       "icloud": {
         "heading": "iCloud-kalender",
         "checkingAccounts": "Tjekker konti…",

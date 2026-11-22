@@ -1,4 +1,4 @@
-import type { GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
+import type { CalendarOverride, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
 import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_FALLBACKS } from '@/lib/display-override-fields';
 
@@ -55,6 +55,11 @@ export interface CalendarState {
   daysAhead: number;
   holidayCountry: string;
   hideDeclined: boolean;
+  /**
+   * Per-calendar name/colour overrides. Must appear in BOTH mappings below:
+   * read out of settings into the form, and written back when it saves.
+   */
+  calendarOverrides?: Record<string, CalendarOverride>;
 }
 
 export interface SleepState {
@@ -225,6 +230,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
       hideDeclined: s.calendar.hideDeclined ?? false,
+      calendarOverrides: s.calendar.calendarOverrides,
     },
     sleep: sleepConfigToForm(s.sleep, s.screensaver),
     alerts: {
@@ -278,6 +284,9 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
       hideDeclined: calendar.hideDeclined,
+      ...(calendar.calendarOverrides && Object.keys(calendar.calendarOverrides).length
+        ? { calendarOverrides: calendar.calendarOverrides }
+        : {}),
     },
     ...sleepFormToConfig(sleep),
     alerts: {

@@ -678,6 +678,12 @@
           "help": "Montre vos agendas Google sur vos affichages. Vous terminerez la connexion sur votre téléphone ou votre ordinateur avec un code court."
         }
       },
+      "appearance": {
+        "colorFor": "Couleur pour {name}",
+        "reset": "Réinitialiser",
+        "edit": "Renommer ou recolorer {name}",
+        "done": "Terminé"
+      },
       "icloud": {
         "heading": "Calendrier iCloud",
         "checkingAccounts": "Vérification des comptes…",
