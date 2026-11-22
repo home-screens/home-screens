@@ -18,7 +18,7 @@ import { removeFolder, seedImage } from '../helpers/library';
 // A fully-formed /api/system/stats payload matching the SystemStats shape the
 // sheet reads (os.hostname, os.uptime, memory.used/total, disk.used/total).
 const STATS = {
-  os: { hostname: 'e2e-test-pi', platform: 'linux', arch: 'arm64', uptime: 93784, nodeVersion: 'v22.0.0' },
+  os: { hostname: 'e2e-test-pi', platform: 'linux', arch: 'arm64', uptime: 93784, nodeVersion: 'v22.0.0', timeZoneData: '2026e' },
   memory: { total: 8_000_000_000, free: 4_000_000_000, used: 4_000_000_000 }, // 50%
   disk: { total: 100_000_000_000, used: 25_000_000_000, free: 75_000_000_000 }, // 25%
   app: { screens: 1, modules: 1, profiles: 0 },

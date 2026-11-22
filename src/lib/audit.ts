@@ -40,7 +40,8 @@ export type ProxyDenialReason =
   | 'domain_not_allowed'
   | 'ssrf_blocked'
   | 'redirect_domain_not_allowed'
-  | 'redirect_ssrf_blocked';
+  | 'redirect_ssrf_blocked'
+  | 'redirect_insecure_with_keys';
 
 type AuditEvent =
   | { action: 'login_success'; ip: string }

@@ -27,6 +27,8 @@ export interface BundleMeta {
   build: BuildInfo | null;
   generatedAt: string;
   node: string;
+  /** The time zone data release Node carries ("2026e"); null when it says none. */
+  timeZoneData: string | null;
   platform: string;
   /**
    * Non-empty when one or more inputs were truncated by a per-input cap
@@ -78,7 +80,7 @@ function renderReadme(input: BundleInput): string {
 Generated: ${input.meta.generatedAt}
 Version:   ${input.meta.version} (${input.meta.buildChannel} build, updates from the ${input.meta.updateChannel} channel)
 Build:     ${input.meta.build ? `${input.meta.build.sha.slice(0, 12)} at ${input.meta.build.builtAt}` : 'no build-info.json (git checkout or pre-stamp tarball)'}
-Platform:  ${input.meta.platform} (node ${input.meta.node})
+Platform:  ${input.meta.platform} (node ${input.meta.node}${input.meta.timeZoneData ? `, time zone data ${input.meta.timeZoneData}` : ''})
 
 ## Contents
 

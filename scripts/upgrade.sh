@@ -188,8 +188,12 @@ hs_write_system_packages_record() {
 }
 
 # hs_upgrade_system_packages
-# Brings SYSTEM_PACKAGES to the archive's newest version and leaves the names
-# of the ones that changed in HS_UPGRADED_PACKAGES. Best effort end to end:
+# Brings SYSTEM_PACKAGES and HUB_RUNTIME_PACKAGES (lib/common.sh) to the
+# archive's newest version in one apt request and leaves the names of the
+# ones that changed in HS_UPGRADED_PACKAGES. A newer nodejs from NodeSource
+# brings its own npm, below the engines floor; nothing on the release path
+# runs npm, and the paths that do (ensure-runtime, install) raise it first.
+# Best effort end to end:
 # every apt call is bounded, and a failure only means the Pi keeps what it
 # has until the next install, which is what the missing-package step above it
 # has always done. Skipped in the image build (the packages are installed
@@ -211,7 +215,10 @@ hs_write_system_packages_record() {
 # (seconds), HS_MIN_FREE_KB.
 hs_upgrade_system_packages() {
   HS_UPGRADED_PACKAGES=""
-  local packages="${SYSTEM_PACKAGES:-}" holds="${SYSTEM_PACKAGE_HOLDS:-}"
+  local packages holds="${SYSTEM_PACKAGE_HOLDS:-}"
+  packages="${SYSTEM_PACKAGES:-} ${HUB_RUNTIME_PACKAGES:-}"
+  packages="${packages# }"
+  packages="${packages% }"
   [ -n "${packages}" ] || return 0
   [ "${HS_CHROOT:-0}" = "1" ] && return 0
   command -v apt-get >/dev/null 2>&1 || return 0

@@ -2612,6 +2612,7 @@
       "hostname": "Enhedsnavn",
       "platform": "Platform",
       "uptime": "Oppetid",
+      "timeZoneData": "Tidszonedata",
       "hardwareTitle": "CPU og temperatur",
       "sourceReporter": "Rapportør",
       "sourceHub": "Hub (lokal)",

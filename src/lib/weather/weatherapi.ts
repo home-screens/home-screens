@@ -26,6 +26,7 @@ interface WAHour {
   gust_mph?: number;
   condition: WACondition;
   chance_of_rain: number;
+  chance_of_snow?: number;
   uv?: number;
   /** 1 between sunrise and sunset at that hour, 0 otherwise. */
   is_day: number;
@@ -42,6 +43,7 @@ interface WADay {
   totalprecip_mm: number;
   totalprecip_in: number;
   daily_chance_of_rain: number;
+  daily_chance_of_snow?: number;
   condition: WACondition;
 }
 
@@ -54,6 +56,14 @@ interface WAForecastDay {
 interface WAForecastResponse {
   current: { is_day: number };
   forecast: { forecastday: WAForecastDay[] };
+}
+
+/**
+ * WeatherAPI gives rain and snow their own chance. Reading only the rain one
+ * put 0% on a day of nothing but snow, so the wall shows the larger of the two.
+ */
+function precipChance(rain: number | undefined, snow: number | undefined): number {
+  return Math.max(rain ?? 0, snow ?? 0);
 }
 
 // ── WeatherAPI provider ──────────────────────────────────────────────
@@ -107,7 +117,7 @@ export class WeatherAPIProvider implements WeatherProvider {
       windSpeed: isCelsius ? h.wind_kph : h.wind_mph,
       windDirection: h.wind_degree,
       windGust: isCelsius ? h.gust_kph : h.gust_mph,
-      precipProbability: h.chance_of_rain ?? 0,
+      precipProbability: precipChance(h.chance_of_rain, h.chance_of_snow),
       uvIndex: h.uv != null ? Math.round(h.uv) : undefined,
     }));
   }
@@ -122,7 +132,7 @@ export class WeatherAPIProvider implements WeatherProvider {
       low: isCelsius ? d.day.mintemp_c : d.day.mintemp_f,
       icon: this.mapConditionToIcon(d.day.condition.code, true),
       description: d.day.condition.text ?? '',
-      precipProbability: d.day.daily_chance_of_rain ?? 0,
+      precipProbability: precipChance(d.day.daily_chance_of_rain, d.day.daily_chance_of_snow),
       precipAmount: isCelsius ? (d.day.totalprecip_mm ?? 0) : (d.day.totalprecip_in ?? 0),
       humidity: d.day.avghumidity,
       windSpeed: isCelsius ? d.day.maxwind_kph : d.day.maxwind_mph,

@@ -261,6 +261,68 @@ describe('followRedirectsWithValidation', () => {
     if (result.ok) expect(result.response.status).toBe(304);
     expect(fetchWithTimeout).toHaveBeenCalledTimes(1);
   });
+
+  describe('keys and tokens the proxy added', () => {
+    const signedIn = {
+      headers: { Authorization: 'Bearer TOKEN', 'X-Api-Key': 'SECRET', Accept: 'application/json' },
+      injectedHeaders: ['Authorization', 'x-api-key'],
+      allowedDomains: ['api.example.com', 'cdn.example.net'],
+    };
+    const sentHeaders = (call: number) =>
+      (vi.mocked(fetchWithTimeout).mock.calls[call][1] as RequestInit).headers as Record<string, string>;
+
+    it('keeps them on a redirect within the same site', async () => {
+      scriptFetch([{ redirect: 'https://api.example.com/v2/next' }, { body: '{}' }]);
+      const result = await followRedirectsWithValidation(baseOpts(signedIn));
+      expect(result.ok).toBe(true);
+      expect(sentHeaders(1)).toEqual(signedIn.headers);
+    });
+
+    it('drops them on a redirect to another site, and keeps the plugin\'s own headers', async () => {
+      scriptFetch([
+        { redirect: 'https://cdn.example.net/photo.jpg' },
+        { redirect: 'https://api.example.com/back' },
+        { body: '{}' },
+      ]);
+      const result = await followRedirectsWithValidation(baseOpts(signedIn));
+      expect(result.ok).toBe(true);
+      expect(sentHeaders(0)).toEqual(signedIn.headers);
+      expect(sentHeaders(1)).toEqual({ Accept: 'application/json' });
+      // Once dropped they stay dropped, even when a later hop comes back.
+      expect(sentHeaders(2)).toEqual({ Accept: 'application/json' });
+    });
+
+    it('treats another port as another site', async () => {
+      scriptFetch([{ redirect: 'https://api.example.com:8443/next' }, { body: '{}' }]);
+      await followRedirectsWithValidation(baseOpts(signedIn));
+      expect(sentHeaders(1)).toEqual({ Accept: 'application/json' });
+    });
+
+    it('refuses a hop down to plain http when it carries them', async () => {
+      scriptFetch([{ redirect: 'http://api.example.com/next' }]);
+      const result = await followRedirectsWithValidation(baseOpts(signedIn));
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error.status).toBe(403);
+      expect(fetchWithTimeout).toHaveBeenCalledTimes(1);
+      expect(auditProxyDenied).toHaveBeenCalledWith('test-plugin', 'http://api.example.com/next', 'redirect_insecure_with_keys');
+    });
+
+    it('refuses the same hop when a key went in the address instead', async () => {
+      scriptFetch([{ redirect: 'http://api.example.com/next?api_key=SECRET' }]);
+      const result = await followRedirectsWithValidation(
+        baseOpts({ url: 'https://api.example.com/start?api_key=SECRET', injectedQuery: true }),
+      );
+      expect(result.ok).toBe(false);
+      expect(fetchWithTimeout).toHaveBeenCalledTimes(1);
+    });
+
+    it('still follows a hop down to http when nothing was added', async () => {
+      scriptFetch([{ redirect: 'http://api.example.com/next' }, { body: '{}' }]);
+      const result = await followRedirectsWithValidation(baseOpts({ headers: { Accept: 'text/html' } }));
+      expect(result.ok).toBe(true);
+      expect(sentHeaders(1)).toEqual({ Accept: 'text/html' });
+    });
+  });
 });
 
 /* ─── Auth-refresh throttling ─────────────────────

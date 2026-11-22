@@ -77,8 +77,10 @@ export function parseICSEvents(
         excludeExdates: true,
         expandOngoing: true,
       });
+      const onlyMonth = yearlyRuleStartMonth(vevent);
 
       for (const instance of instances) {
+        if (onlyMonth && !instance.isOverride && wallDate(instance.start, vevent).slice(5, 7) !== onlyMonth) continue;
         const ev = instanceToCalendarEvent(instance.event, instance.start, instance.end, instance.isFullDay, source);
         if (ev) events.push(ev);
       }
@@ -490,6 +492,40 @@ function computeFallbackEnd(start: Date, isAllDay: boolean): Date {
   }
   // Timed event with no DTEND — treat as instant (end = start)
   return start;
+}
+
+/**
+ * The day a start falls on where the event lives, as `YYYY-MM-DD`: an all-day
+ * date as written, a timed one in its own zone (the hub's zone is not the
+ * event's, and a Pi left at UTC would put an evening start on the next day).
+ */
+function wallDate(date: Date, vevent: VEvent): string {
+  return vevent.datetype === 'date' ? localISODate(date) : isoDateInTZ(date, vevent.start?.tz);
+}
+
+const YEARLY_SHAPING_PARTS = ['byMonth', 'byDay', 'byweekday', 'byYearDay', 'byWeekNo', 'bySetPos'] as const;
+
+/**
+ * The month (`MM`) a yearly rule really means, for a rule that restates its
+ * own start day in BYMONTHDAY but leaves out BYMONTH, or null for any other
+ * rule. Some older phone calendar apps write a birthday as
+ * `FREQ=YEARLY;BYMONTHDAY=2` starting on 2 October. The standard reads that as
+ * the 2nd of every month and node-ical expands it so, while the app that wrote
+ * it, and Google's own calendar, show it once a year. Only that exact shape
+ * counts: a single BYMONTHDAY equal to the start's day and no other part that
+ * picks months or weekdays, so a rule that really does repeat through the
+ * year (`BYMONTHDAY=1,3`, or every Friday the 13th) is left alone. node-ical's
+ * `options` carry only the parts the feed wrote, so a missing BYMONTH is
+ * certain.
+ */
+function yearlyRuleStartMonth(vevent: VEvent): string | null {
+  const options = vevent.rrule?.options;
+  if (!options || !vevent.start || options.freq !== 'YEARLY') return null;
+  const monthDays = options.byMonthDay;
+  if (!Array.isArray(monthDays) || monthDays.length !== 1) return null;
+  if (YEARLY_SHAPING_PARTS.some((part) => options[part] != null)) return null;
+  const start = wallDate(vevent.start, vevent);
+  return Number(start.slice(8, 10)) === Number(monthDays[0]) ? start.slice(5, 7) : null;
 }
 
 /** Convert a VEvent (or instance) into our CalendarEvent format. */

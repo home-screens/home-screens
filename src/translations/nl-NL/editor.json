@@ -2612,6 +2612,7 @@
       "hostname": "Apparaatnaam",
       "platform": "Platform",
       "uptime": "Bedrijfstijd",
+      "timeZoneData": "Tijdzonegegevens",
       "hardwareTitle": "CPU & temperatuur",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (lokaal)",

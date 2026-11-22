@@ -2612,6 +2612,7 @@
       "hostname": "Nombre del dispositivo",
       "platform": "Plataforma",
       "uptime": "Tiempo activo",
+      "timeZoneData": "Datos de zonas horarias",
       "hardwareTitle": "CPU y térmica",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (local)",

@@ -130,6 +130,40 @@ describe('plugin proxy — auth token injection', () => {
     expect(upstreamCall().headers.Authorization).toBeUndefined();
   });
 
+  it('names what it added, so a redirect to another site can go on without it', async () => {
+    await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
+    await fs.mkdir(path.join(tmpDir, 'data', 'plugin-secrets'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data', 'plugin-secrets', 'o.json'), JSON.stringify({ api_key: 'KEY' }));
+    const { savePluginTokens } = await import('@/lib/plugin-auth');
+    await savePluginTokens('o', { access_token: 'OTOK', token_type: 'Bearer', expiry_date: Date.now() + 3600_000 });
+
+    const { POST } = await import('../route');
+    await POST(proxyReq('o', {
+      url: 'https://api.example.com/data',
+      headers: { Accept: 'application/json' },
+      secretInjections: { header: { 'X-Api-Key': '{{api_key}}' } },
+    }), ctx('o'));
+    const arg = mocks.followRedirects.mock.calls[0][0];
+    expect(arg.headers).toEqual({ Accept: 'application/json', 'X-Api-Key': 'KEY', Authorization: 'Bearer OTOK' });
+    expect(arg.injectedHeaders).toEqual(['X-Api-Key', 'Authorization']);
+    expect(arg.injectedQuery).toBe(false);
+  });
+
+  it('flags a token or key that went into the address', async () => {
+    await seedPlugin('q', {
+      auth: { ...OAUTH_HEADER_AUTH, tokenPlacement: 'query', tokenParamName: 'access_token' },
+      allowedDomains: ['api.example.com'],
+    });
+    const { savePluginTokens } = await import('@/lib/plugin-auth');
+    await savePluginTokens('q', { access_token: 'QTOK', token_type: 'Bearer', expiry_date: Date.now() + 3600_000 });
+
+    const { POST } = await import('../route');
+    await POST(proxyReq('q', { url: 'https://api.example.com/data' }), ctx('q'));
+    const arg = mocks.followRedirects.mock.calls[0][0];
+    expect(arg.injectedHeaders).toEqual([]);
+    expect(arg.injectedQuery).toBe(true);
+  });
+
   it('honors skipAuth (no token attached even on a target domain)', async () => {
     await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
     const { savePluginTokens } = await import('@/lib/plugin-auth');

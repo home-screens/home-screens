@@ -28,6 +28,12 @@ export interface SystemStats {
     arch: string;
     uptime: number;
     nodeVersion: string;
+    /**
+     * The time zone data release this Node carries (`process.versions.tz`,
+     * "2026e"). Every event time the hub works out goes through it, so a
+     * stale copy is an hour off wherever a zone changed its rules since.
+     */
+    timeZoneData: string | null;
   };
   memory: {
     total: number;

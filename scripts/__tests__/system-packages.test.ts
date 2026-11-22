@@ -18,11 +18,13 @@ import path from 'path';
 const UPGRADE = readFileSync(path.join(process.cwd(), 'scripts', 'upgrade.sh'), 'utf-8');
 const COMMON = readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'common.sh'), 'utf-8');
 
-function definition(name: string): string {
-  const start = UPGRADE.indexOf(`${name}() {`);
-  if (start < 0) throw new Error(`no ${name} in upgrade.sh`);
-  const end = UPGRADE.indexOf('\n}\n', start);
-  return UPGRADE.slice(start, end + 3);
+const SETUP_SYSTEM = readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'setup-system.sh'), 'utf-8');
+
+function definition(name: string, source = UPGRADE): string {
+  const start = source.indexOf(`${name}() {`);
+  if (start < 0) throw new Error(`no ${name} in its script`);
+  const end = source.indexOf('\n}\n', start);
+  return source.slice(start, end + 3);
 }
 
 let root: string;
@@ -106,10 +108,12 @@ afterEach(() => {
 
 function run(snippet: string, env: Record<string, string> = {}) {
   const common = COMMON.match(/^SYSTEM_PACKAGES="[^"]+"$/m)![0];
+  const hubRuntime = COMMON.match(/^HUB_RUNTIME_PACKAGES="[^"]+"$/m)![0];
   const script = [
     'set -euo pipefail',
     `APP_DIR="${app}"`,
     env.SYSTEM_PACKAGES ? '' : common,
+    hubRuntime,
     'SYSTEM_PACKAGE_HOLDS="${SYSTEM_PACKAGE_HOLDS:-}"',
     definition('hs_package_versions'),
     definition('hs_write_system_packages_record'),
@@ -256,6 +260,61 @@ describe('hs_upgrade_system_packages', () => {
     const marks = calls().filter((c) => c.startsWith('apt-mark'));
     expect(marks).toEqual(['apt-mark unhold labwc', 'apt-mark hold chromium']);
     expect(readFileSync(path.join(app, 'data', 'system-package-holds'), 'utf-8').trim()).toBe('chromium');
+  });
+
+  describe("the hub's Node", () => {
+    // A hub kept the Node it was installed with, and that release's time zone
+    // data with it: Alberta events an hour late after 2026-11-01.
+    beforeEach(() => {
+      writeFileSync(db(), `${readFileSync(db(), 'utf-8')}nodejs=22.14.0-1nodesource1\n`);
+      writeFileSync(archive(), `${readFileSync(archive(), 'utf-8')}nodejs=22.23.5-1nodesource1\n`);
+    });
+
+    it('is brought to the newest release in the same request as the kiosk programs', () => {
+      const out = run('hs_upgrade_system_packages; echo "upgraded=${HS_UPGRADED_PACKAGES}"');
+      expect(upgraded(out)).toBe('upgraded=chromium labwc nodejs');
+      const apt = calls().filter((c) => c.startsWith('apt-get'));
+      expect(apt).toHaveLength(4);
+      expect(apt[3]).toMatch(/--only-upgrade -y -qq .* chromium labwc kanshi wlopm wlr-randr wtype nodejs$/);
+      expect(readFileSync(db(), 'utf-8')).toContain('nodejs=22.23.5-1nodesource1');
+      expect(record().versions.nodejs).toBe('22.23.5-1nodesource1');
+    });
+
+    it('is left out where apt did not install it', () => {
+      writeFileSync(db(), readFileSync(db(), 'utf-8').replace(/^nodejs=.*\n/m, ''));
+      run('hs_upgrade_system_packages');
+      const install = calls().find((c) => c.includes('--only-upgrade -y -qq'))!;
+      expect(install).not.toContain('nodejs');
+    });
+
+    it('stays as it is while someone holds it', () => {
+      writeFileSync(path.join(root, 'held'), 'nodejs\n');
+      const out = run('hs_upgrade_system_packages; echo "upgraded=${HS_UPGRADED_PACKAGES}"');
+      expect(upgraded(out)).toBe('upgraded=chromium labwc');
+      expect(readFileSync(db(), 'utf-8')).toContain('nodejs=22.14.0-1nodesource1');
+    });
+
+    const newerPackagesStep = (dbLines: string) => {
+      writeFileSync(db(), dbLines);
+      const out = run([
+        definition('hs_installs_session_package'),
+        definition('hs_step_newer_packages', SETUP_SYSTEM),
+        'changed=""',
+        'hs_step_newer_packages >/dev/null',
+        'echo "changed=${changed}"',
+      ].join('\n'));
+      return out.trim().split('\n').pop();
+    };
+
+    it('counts as a change but not one the wall has to restart for', () => {
+      // Every kiosk program already current; only Node is behind.
+      const current = readFileSync(archive(), 'utf-8').replace(/^nodejs=.*$/m, 'nodejs=22.14.0-1nodesource1');
+      expect(newerPackagesStep(current)).toBe('changed=packages,');
+    });
+
+    it('still asks for the wall restart when a kiosk program changed beside it', () => {
+      expect(newerPackagesStep(readFileSync(db(), 'utf-8'))).toBe('changed=packages,session-packages,');
+    });
   });
 
   it('counts every program in the list as one the session runs', () => {

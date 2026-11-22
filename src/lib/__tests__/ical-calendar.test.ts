@@ -892,6 +892,74 @@ END:VCALENDAR`;
   // Walls and the editor ask with different windows every few minutes; a
   // feed is downloaded at most once a minute and an unchanged one is never
   // parsed twice.
+  describe('yearly rules that restate their start day without a month', () => {
+    // Some older phone calendar apps write a birthday as FREQ=YEARLY;BYMONTHDAY=2
+    // starting on 2 October. The standard reads that as the 2nd of every month;
+    // the app that wrote it shows it once a year, and so should the wall.
+    const window = ['2026-11-01T00:00:00Z', '2027-11-01T00:00:00Z'] as const;
+
+    function feed(rule: string, start: string, extra = ''): string {
+      return [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Test//Test//EN',
+        'BEGIN:VEVENT', 'UID:rule-1', 'DTSTAMP:20231001T000000Z', start, `RRULE:${rule}`, 'SUMMARY:Ted Birthday', 'END:VEVENT',
+        extra,
+        'END:VCALENDAR',
+      ].filter(Boolean).join('\r\n');
+    }
+
+    async function startsFor(rule: string, start: string, extra = '', timezone = 'America/Chicago'): Promise<string[]> {
+      mockFetchResponse(feed(rule, start, extra));
+      const { events } = await fetchICalEvents([makeSource()], ...window, timezone);
+      return events.map((e) => e.start);
+    }
+
+    it('shows an all-day birthday once a year, on its own date', async () => {
+      const starts = await startsFor('FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTHDAY=2', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+
+    it('does the same for a timed event, reading its day in its own zone', async () => {
+      // 20:00 in Chicago on 2 October is already 3 October in UTC.
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2', 'DTSTART;TZID=America/Chicago:20231002T200000', '', 'UTC');
+      expect(starts).toEqual(['2027-10-03T01:00:00.000Z']);
+    });
+
+    it('keeps an occurrence the calendar moved to another month', async () => {
+      const moved = [
+        'BEGIN:VEVENT', 'UID:rule-1', 'DTSTAMP:20231001T000000Z', 'RECURRENCE-ID;VALUE=DATE:20271002',
+        'DTSTART;VALUE=DATE:20270905', 'DTEND;VALUE=DATE:20270906', 'SUMMARY:Ted Birthday (early)', 'END:VEVENT',
+      ].join('\r\n');
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2', 'DTSTART;VALUE=DATE:20231002', moved);
+      expect(starts).toEqual(['2027-09-05']);
+    });
+
+    it('leaves a rule with two month days repeating every month', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=1,3', 'DTSTART;VALUE=DATE:20231001');
+      expect(starts).toHaveLength(24);
+    });
+
+    it('leaves every Friday the 13th alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=13;BYDAY=FR', 'DTSTART;VALUE=DATE:20231013');
+      // Friday the 13ths from November 2026 to October 2027: Nov 2026 and Aug 2027.
+      expect(starts).toEqual(['2026-11-13', '2027-08-13']);
+    });
+
+    it('leaves a month day that is not the start day alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=7', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toHaveLength(12);
+    });
+
+    it('leaves a rule that names its month alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY;BYMONTHDAY=2;BYMONTH=10', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+
+    it('leaves a plain yearly rule alone', async () => {
+      const starts = await startsFor('FREQ=YEARLY', 'DTSTART;VALUE=DATE:20231002');
+      expect(starts).toEqual(['2027-10-02']);
+    });
+  });
+
   describe('feed cache', () => {
     const NOW = new Date('2025-03-12T12:00:00Z');
     const MARCH = ['2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z'] as const;
