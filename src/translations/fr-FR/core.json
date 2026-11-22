@@ -251,7 +251,24 @@
     "moreSteps": "+{count} de plus",
     "progressWords": "{done} faites · {left} à faire",
     "quickNameSeconds": "Minuteur de {seconds} secondes",
-    "quickNameClock": "Minuteur de {time}"
+    "quickNameClock": "Minuteur de {time}",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "stop": "Arrêter",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} s",
+    "stopHoldHint": "Arrêter (maintenir pour confirmer)",
+    "keepHoldingToStop": "Maintenez pour arrêter",
+    "tapToClose": "Touchez pour fermer",
+    "controls": "Boutons du minuteur",
+    "replaceTitle": "Démarrer un nouveau minuteur ?",
+    "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
+    "routinesLoadError": "Impossible de charger les routines. Vérifiez la connexion et réessayez.",
+    "routineMeta": {
+      "one": "{steps} étape · {minutes} min",
+      "other": "{steps} étapes · {minutes} min"
+    },
+    "holdShort": "maintenir"
   },
   "launcher": {
     "heading": "Où voulez-vous aller ?",

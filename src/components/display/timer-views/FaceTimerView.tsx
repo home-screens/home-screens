@@ -8,7 +8,7 @@ import { formatRemaining, pillStyle, type TimerViewProps } from './shared';
  * kids can read clocks). Variant B of the approved mockup.
  */
 export default function FaceTimerView({
-  session, step, remainingMs, fraction, nudge, paused, title, s, t,
+  session, step, remainingMs, fraction, nudge, title, s, t,
 }: TimerViewProps) {
   const isRoutine = session.kind === 'routine';
   // The transparent gap grows clockwise from 12; the colored remaining wedge
@@ -81,9 +81,6 @@ export default function FaceTimerView({
         <div style={{ marginTop: 120 * s, fontSize: 170 * s, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
           {formatRemaining(remainingMs)}
         </div>
-      )}
-      {paused && (
-        <div style={{ ...pillStyle(s, '#fff', '#262b33'), marginTop: 20 * s }}>{t('timer.paused')}</div>
       )}
 
       {nudge && (

@@ -239,8 +239,8 @@ export interface DockBox {
   h: number;
   /** Screens in the dock. */
   count: number;
-  /** Two extra tiles (Sleep, Brightness) after a divider. */
-  extras: boolean;
+  /** Tiles after the divider that are controls, not screens (`dockExtraTiles`). */
+  extras: number;
   compact: boolean;
   /** Height the target picker row takes off the top (0 when hidden). */
   pickerH: number;
@@ -257,7 +257,7 @@ const SLOT_RATIO = 1.5;
 export function dockMetrics(box: DockBox): DockMetrics {
   const w = box.w > 0 ? box.w : DOCK_UNMEASURED.w;
   const h = Math.max(0, (box.h > 0 ? box.h : DOCK_UNMEASURED.h) - box.pickerH);
-  const count = Math.max(1, box.count) + (box.extras ? 2 : 0);
+  const count = Math.max(1, box.count) + box.extras;
   const vertical = h > 0 && w / h <= 0.75;
   const min = Math.min(w, h);
   const outer = clamp(min * 0.06, 4, 12);
@@ -287,7 +287,7 @@ export function dockMetrics(box: DockBox): DockMetrics {
     // nameless tiles while a 17-button one scrolled at full size.)
     const gap = clamp(tile * 0.16, 4, 16);
     const padAcross = clamp(tile * 0.16, 6, 18);
-    const dividerRun = box.extras ? gap * 2 + 1 : 0;
+    const dividerRun = box.extras > 0 ? gap * 2 + 1 : 0;
     const label = clamp(tile * 0.22, 11, 20);
     const ok = !withWords
       || (tile >= WORDS_FLOOR && (!vertical || tile + label * 7 + padAcross * 2 <= across));
@@ -326,6 +326,15 @@ export function dockMetrics(box: DockBox): DockMetrics {
   };
 }
 
+/**
+ * How many control tiles follow the dock's divider: Sleep and Brightness,
+ * then Timers. The wall lays them out and the editor counts them with this
+ * one rule, so the "fits" line never disagrees with the wall.
+ */
+export function dockExtraTiles(config: { dockExtras?: boolean; dockTimers?: boolean }): number {
+  return (config.dockExtras === true ? 2 : 0) + (config.dockTimers === true ? 1 : 0);
+}
+
 export interface DockCapacity {
   /** Most screen tiles the dock shows at once; past this it scrolls. */
   fits: number;
@@ -338,13 +347,13 @@ export interface DockCapacity {
  * they carry names, so the editor can say so next to the list. Counts the
  * tiles that are fully in view from the start of the pill, the way a person
  * counts them, by the same metrics the wall draws with; the extras take
- * their two places and the divider off the end.
+ * their places and the divider off the end.
  */
 export function dockCapacity(box: Omit<DockBox, 'count' | 'compact'>): DockCapacity {
   const m = dockMetrics({ ...box, count: 1, compact: false });
-  const dividerRun = box.extras ? m.gap * 2 + 1 : 0;
+  const dividerRun = box.extras > 0 ? m.gap * 2 + 1 : 0;
   // Where the first tile starts, then one slot and gap per tile after it.
   const first = m.padIn + (m.slot - m.tile) / 2;
   const places = Math.floor((m.along - first - m.tile - dividerRun + 0.5) / (m.slot + m.gap)) + 1;
-  return { fits: Math.max(0, places - (box.extras ? 2 : 0)), names: m.showWords };
+  return { fits: Math.max(0, places - box.extras), names: m.showWords };
 }

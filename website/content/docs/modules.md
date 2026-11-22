@@ -128,7 +128,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your WiFi so guests can join by scanning. Needs nothing.
 - **Web Embed** ([reference](/docs/module-reference#web-embed-i-frame)): any web page in a tile: a Home Assistant dashboard, a Grafana chart, a Google Sheet. Needs a page that allows being embedded.
 - **Icon** ([reference](/docs/module-reference#icon)): a single icon, an emoji or one of your own pictures, with rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
-- **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Four layouts: **Bar**, **Pad**, **Panel** and **Arrows** (just Previous and Next, filling the whole module). For touchscreens.
+- **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Five layouts: **Bar**, **Pad**, **Panel**, **Arrows** (just Previous and Next, filling the whole module) and **Dock** (one button per screen, with Sleep, Brightness and a Timers button that starts a routine or a quick timer if you like). For touchscreens.
 
 ### Travel
 

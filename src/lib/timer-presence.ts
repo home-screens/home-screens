@@ -1,5 +1,6 @@
 /**
- * Which timer session this display tab is showing full-screen, if any.
+ * Which timer session this display tab is showing full-screen, if any, and a
+ * nudge to read the session again now.
  *
  * Written by `TimerOverlay` (the only thing that decides whether a session
  * is on this screen) and read by the status heartbeat, so the remote can say
@@ -29,8 +30,28 @@ export function subscribeTimerPresence(fn: () => void): () => void {
   };
 }
 
+const refreshListeners = new Set<() => void>();
+
+/**
+ * Something on this display just changed the timer session (the Timers sheet
+ * started one): read it now instead of on the next heartbeat, so the takeover
+ * follows the tap at once rather than up to three seconds later.
+ */
+export function requestTimerRefresh(): void {
+  for (const fn of refreshListeners) fn();
+}
+
+/** `TimerOverlay` listens here for `requestTimerRefresh`. */
+export function subscribeTimerRefresh(fn: () => void): () => void {
+  refreshListeners.add(fn);
+  return () => {
+    refreshListeners.delete(fn);
+  };
+}
+
 /** Test-only reset. */
 export function __resetTimerPresenceForTests(): void {
   showingSessionId = null;
   listeners.clear();
+  refreshListeners.clear();
 }

@@ -47,8 +47,8 @@ function validIcon(icon: unknown): boolean {
   return typeof icon === 'string' && (icon.length <= 16 || isCustomIconValue(icon));
 }
 
-/** How long a finished/cancelled session stays readable (celebration window). */
-export const SESSION_LINGER_MS = 15_000;
+/** How long a stopped session stays readable, so every reader sees it end. */
+export const CANCELLED_LINGER_MS = 15_000;
 
 /**
  * How long an elapsed waitForTap step holds for its "Done!" tap before the
@@ -58,6 +58,15 @@ export const SESSION_LINGER_MS = 15_000;
  * display there is no on-device dismiss path at all.
  */
 export const HOLD_AUTO_ADVANCE_MS = 10 * 60_000;
+
+/**
+ * How long "Time's up!" stays on the wall with nobody tapping it. A parent
+ * who stepped out comes back to it rather than to a clock that says nothing
+ * ended; a tap closes it on that display, Stop on the phone or the hub ends
+ * it everywhere, and a new timer replaces it. Capped for the same reason as
+ * a held step: a wall with no touchscreen has no way to close it.
+ */
+export const TIMES_UP_HOLD_MS = 10 * 60_000;
 
 export const MAX_ROUTINES = 50;
 export const MAX_STEPS = 20;
@@ -87,6 +96,27 @@ export function secondsFromFields(minText: string, secText: string, { min, max }
 export const DEFAULT_TIMER_SOUND = true;
 
 /**
+ * The quick lengths a timer can be started with in one tap, in seconds: the
+ * phone's Timers tab and the wall's Timers sheet offer the same six.
+ */
+export const QUICK_TIMER_PRESETS_SEC = [30, 60, 120, 300, 600, 900] as const;
+
+/** How long a routine runs with every step taken at its own length, in seconds. */
+export function routineTotalSec(routine: Pick<Routine, 'steps'>): number {
+  return routine.steps.reduce((sum, s) => sum + s.durationSec, 0);
+}
+
+/**
+ * Where a timer started from a wall shows: on that display alone, so the
+ * kitchen starting a pasta timer never takes over the kids' room. A hub with
+ * no display list has one display, which `all` covers (and which a display
+ * without an id of its own matches).
+ */
+export function wallTimerTargets(displayId: string | undefined, hasDisplayList: boolean): TimerTargets {
+  return hasDisplayList && displayId ? [displayId] : 'all';
+}
+
+/**
  * Lazily materialize a session at `now`: advance past fully-elapsed
  * auto-advance steps, hold on an elapsed waitForTap step, flip to 'done'
  * past the last step, and expire finished sessions after the linger window.
@@ -103,7 +133,8 @@ export function materializeSession(
 
   if (session.status !== 'running') {
     const endedAt = session.completedAt ?? session.startedAt;
-    if (now - endedAt > SESSION_LINGER_MS) return null;
+    const lingerMs = session.status === 'done' ? TIMES_UP_HOLD_MS : CANCELLED_LINGER_MS;
+    if (now - endedAt > lingerMs) return null;
     return { ...session, awaitingTap: false };
   }
 
@@ -142,7 +173,7 @@ export function materializeSession(
     // The session finished the moment the last step's time elapsed, not when
     // someone happened to read it — keeps the celebration window honest.
     completedAt = stepStartedAt;
-    if (now - completedAt > SESSION_LINGER_MS) return null;
+    if (now - completedAt > TIMES_UP_HOLD_MS) return null;
   }
 
   return { ...session, stepIndex, stepStartedAt, status, completedAt, awaitingTap };
@@ -233,8 +264,9 @@ export function addMinute(s: TimerSession, now: number): TimerSession {
   return { ...s, stepStartedAt: Math.max(s.stepStartedAt + 60_000, revivedStart) };
 }
 
+/** Stop a running timer, or end a finished one's "Time's up!" everywhere. */
 export function cancelSession(s: TimerSession, now: number): TimerSession {
-  if (s.status !== 'running') return s;
+  if (s.status === 'cancelled') return s;
   return { ...s, status: 'cancelled', completedAt: now };
 }
 

@@ -1034,10 +1034,6 @@
     "newRoutine": "Nova rotina",
     "editRoutine": "Editar rotina",
     "emptyHint": "Uma rotina é um timer passo a passo, como a rotina da manhã: se vestir, escovar os dentes, arrumar a cama. Crie uma e inicie na tela.",
-    "routineMeta": {
-      "one": "{steps} passo · {minutes} min",
-      "other": "{steps} passos · {minutes} min"
-    },
     "stepCount": "Passo {current} de {total}",
     "pause": "Pausar",
     "resume": "Continuar",
@@ -1066,7 +1062,6 @@
     "removeStep": "Remover passo",
     "addStep": "Adicionar passo",
     "minutesShort": "{minutes} min",
-    "loadError": "Não foi possível carregar as rotinas. Verifique a conexão e tente de novo.",
     "retry": "Tentar de novo",
     "onAllDisplays": "Em todas as telas",
     "onDisplay": "Em {name}",
@@ -1074,8 +1069,6 @@
     "allDisplays": "Todas as telas",
     "showOnNext": "Próximo timer em",
     "onDisplays": "Em {count} telas",
-    "replaceTitle": "Começar um novo timer?",
-    "replaceBody": "Já tem um timer rodando. Começar um novo vai pará-lo.",
     "soundOn": "Som ligado",
     "soundOff": "Som desligado",
     "minUnit": "min",

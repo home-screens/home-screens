@@ -139,6 +139,18 @@ describe('/api/timers/session', () => {
     expect(await (await getSession(req())).json()).toEqual({ session: null });
   });
 
+  it('Stop ends a finished timer\'s "Time\'s up!" everywhere, but nothing else acts on it', async () => {
+    await postSession(req({ action: 'start', kind: 'quick', durationSec: 60, targets: 'all' }));
+    nowSpy.mockReturnValue(T0 + 5 * 60_000);
+    expect((await (await getSession(req())).json()).session.status).toBe('done');
+    expect((await postSession(req({ action: 'pause' }))).status).toBe(404);
+
+    const { session } = await (await postSession(req({ action: 'cancel' }))).json();
+    expect(session.status).toBe('cancelled');
+    nowSpy.mockReturnValue(T0 + 6 * 60_000);
+    expect(await (await getSession(req())).json()).toEqual({ session: null });
+  });
+
   it('starting a new session replaces the running one', async () => {
     await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }));
     const res = await postSession(

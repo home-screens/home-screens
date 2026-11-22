@@ -1480,7 +1480,14 @@
     "brightnessUnknown": "Luminosité, pas encore signalée",
     "dockEmpty": "Pas encore d'écrans",
     "unnamedScreen": "Écran {number}",
-    "goTo": "Aller à {name}"
+    "goTo": "Aller à {name}",
+    "timers": "Minuteurs",
+    "timersEyebrow": "Sur cet affichage",
+    "routines": "Routines",
+    "quickTimer": "Minuteur rapide",
+    "noRoutines": "Créez des routines sur le téléphone, dans Minuteurs.",
+    "start": "Démarrer",
+    "timerStartFailed": "Le minuteur n'a pas démarré. Réessayez."
   },
   "timetable": {
     "name": "Emploi du temps",

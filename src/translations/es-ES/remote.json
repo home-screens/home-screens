@@ -1033,10 +1033,6 @@
     "newRoutine": "Nueva rutina",
     "editRoutine": "Editar rutina",
     "emptyHint": "Una rutina es un temporizador paso a paso, como la rutina de la mañana: vestirse, lavarse los dientes, hacer la cama. Crea una y ponla en la pantalla.",
-    "routineMeta": {
-      "one": "{steps} paso · {minutes} min",
-      "other": "{steps} pasos · {minutes} min"
-    },
     "stepCount": "Paso {current} de {total}",
     "pause": "Pausa",
     "resume": "Seguir",
@@ -1065,7 +1061,6 @@
     "removeStep": "Quitar paso",
     "addStep": "Añadir paso",
     "minutesShort": "{minutes} min",
-    "loadError": "No se pudieron cargar las rutinas. Revisa la conexión e inténtalo otra vez.",
     "retry": "Reintentar",
     "onAllDisplays": "En todas las pantallas",
     "onDisplay": "En {name}",
@@ -1073,8 +1068,6 @@
     "allDisplays": "Todas las pantallas",
     "showOnNext": "Próximo temporizador en",
     "onDisplays": "En {count} pantallas",
-    "replaceTitle": "¿Empezar un temporizador nuevo?",
-    "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
     "soundOn": "Sonido activado",
     "soundOff": "Sonido apagado",
     "minUnit": "min",

@@ -4255,6 +4255,8 @@
       "compact": "Icônes seulement, sans texte",
       "dockHint": "Un bouton par écran de cet affichage. Touchez-en un pour aller directement à cet écran.",
       "dockExtras": "Afficher aussi Veille et Luminosité",
+      "dockTimers": "Afficher aussi Minuteurs",
+      "dockTimersHint": "Un bouton qui démarre une routine ou un minuteur rapide sur cet affichage. Les routines se créent sur le téléphone, dans Minuteurs.",
       "dockButtons": "Boutons",
       "dockButtonsChoose": "Choisir quels écrans ont un bouton",
       "dockButtonsEvery": "Chaque écran de cet affichage a un bouton, dans l'ordre de la rotation.",

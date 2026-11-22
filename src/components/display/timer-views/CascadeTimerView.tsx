@@ -9,7 +9,7 @@ import Glyph from '@/components/ui/Glyph';
  * approved mockup.
  */
 export default function CascadeTimerView({
-  session, step, remainingMs, fraction, nudge, paused, title, s, t,
+  session, step, remainingMs, fraction, nudge, title, s, t,
 }: TimerViewProps) {
   const isRoutine = session.kind === 'routine';
   const next = isRoutine ? session.steps[session.stepIndex + 1] : undefined;
@@ -82,11 +82,6 @@ export default function CascadeTimerView({
           <div style={{ marginTop: 60 * s, display: 'flex', alignItems: 'center', gap: 28 * s, maxWidth: '90%' }}>
             <div style={{ fontSize: 84 * s, lineHeight: 1 }}><Glyph value={step.icon} fallback="⏱️" /></div>
             <div style={{ fontSize: 74 * s, fontWeight: 700, letterSpacing: '-0.02em' }}>{step.label}</div>
-          </div>
-        )}
-        {paused && (
-          <div style={{ ...pillStyle(s, '#0c0f14', 'rgba(255,255,255,0.9)'), marginTop: 40 * s }}>
-            {t('timer.paused')}
           </div>
         )}
         {nudge && !session.awaitingTap && (

@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, startQuickTimer } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
-import type { ScreenConfiguration } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance, type ScreenConfiguration } from '@/types/config';
 
 /**
  * Kiosk-side timer BEHAVIOR. The sibling `timers.spec.ts` is geometry only
@@ -21,15 +21,16 @@ import type { ScreenConfiguration } from '@/types/config';
  * surface on the next beat either way.
  *
  * Every session here uses seconds-scale durations (MIN_STEP_SEC is 5) and the
- * `ring` view, whose dial holds the countdown, the "Done!" tap pill, and the
- * "Paused" pill — so one locator scope (`timer-dial`) covers the current step
- * without colliding with the routine chips rendered along the bottom.
+ * `ring` view, whose dial holds the countdown and the "Done!" tap pill, so one
+ * locator scope (`timer-dial`) covers the current step without colliding with
+ * the routine chips rendered along the bottom. "Paused" is said by the wall's
+ * button bar (`timer-controls`), which a tap or a pause brings up.
  *
  * Isolation: there is exactly ONE session globally, and `start` replaces
- * whatever was running. A finished session lingers SESSION_LINGER_MS (15s) as
- * the celebration and cannot be cancelled (the route 404s on a non-running
- * session), so tests that assert the ABSENCE of a takeover start their own
- * session first rather than relying on the previous test having drained.
+ * whatever was running. A finished session stays TIMES_UP_HOLD_MS (10 min) as
+ * "Time's up!"; `cancel` ends it as well as a running one, which is what every
+ * afterEach relies on. Tests that assert the ABSENCE of a takeover still start
+ * their own session first rather than relying on the previous test's cleanup.
  */
 
 const ROTATION_TEXT = 'TIMER ROTATION CONTENT';
@@ -87,6 +88,13 @@ async function control(request: APIRequestContext, action: string): Promise<void
 }
 
 const dial = (page: Page) => page.getByTestId('timer-dial');
+const bar = (page: Page) => page.getByTestId('timer-controls');
+const pausedWord = (page: Page) => bar(page).getByText('Paused', { exact: true });
+
+/** The session as the hub has it now. */
+async function hubSession(request: APIRequestContext): Promise<{ status: string; pausedAt?: number } | null> {
+  return (await (await request.get('/api/timers/session')).json()).session;
+}
 
 /** The dial's live countdown, in whole seconds. */
 async function readCountdownSec(page: Page): Promise<number> {
@@ -95,9 +103,9 @@ async function readCountdownSec(page: Page): Promise<number> {
   return m * 60 + s;
 }
 
-// A running session in the worker's shared data/ would take over the display
-// for every later spec in this worker — always clear it. A done/cancelled
-// session can't be cancelled (404) and simply expires; ignore that failure.
+// A running or finished session in the worker's shared data/ would take over
+// the display for every later spec in this worker: always clear it. `cancel`
+// ends a finished one too; an already-cancelled one answers 404, ignored.
 test.afterEach(async ({ request }) => {
   await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
 });
@@ -125,8 +133,8 @@ test('the countdown ticks down in real time between server polls', async ({ page
   expect(first - second).toBeLessThanOrEqual(4);
 });
 
-test('an elapsed timer flips to the celebration, then hands the screen back to rotation', async ({ page, request }) => {
-  // Completion and the SESSION_LINGER_MS (15s) linger are both derived
+test('an elapsed timer flips to the celebration, stays until its hold runs out, then hands the screen back to rotation', async ({ page, request }) => {
+  // Completion and the TIMES_UP_HOLD_MS (10 min) hold are both derived
   // client-side from epoch timestamps via materializeSession (src/lib/
   // timer-logic.ts) — a pure, idempotent function of (raw session, now). The
   // 3s session poll keeps refetching the SERVER's own materialization (using
@@ -147,12 +155,17 @@ test('an elapsed timer flips to the celebration, then hands the screen back to r
   await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'celebration');
   await expect(page.getByText("Time's up!")).toBeVisible();
 
-  // Past the linger window: materializeSession returns null and the whole
-  // overlay unmounts. Rotation kept running underneath the takeover the
-  // entire time, so the display is left exactly where rotation would have put
-  // it — assert on the overlay being GONE (the underlying module was in the
-  // DOM all along, merely covered).
-  await page.clock.runFor(15_500);
+  // Well past the old 15 s it is still up: a parent who stepped out comes
+  // back to it.
+  await page.clock.runFor(60_000);
+  await expect(page.getByText("Time's up!")).toBeVisible();
+
+  // Past the hold: materializeSession returns null and the whole overlay
+  // unmounts. Rotation kept running underneath the takeover the entire time,
+  // so the display is left exactly where rotation would have put it: assert
+  // on the overlay being GONE (the underlying module was in the DOM all
+  // along, merely covered).
+  await page.clock.runFor(10 * 60_000);
   await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
   await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
 });
@@ -237,7 +250,8 @@ test('pausing from the hub freezes the countdown on the display; resuming restar
   // Unlike elapsing time, a pause is a server EVENT — it reaches the display
   // on the next 3s session poll.
   await control(request, 'pause');
-  await expect(dial(page).getByText('Paused')).toBeVisible({ timeout: 10_000 });
+  // A pause from anywhere brings the wall's buttons up, and the bar says so.
+  await expect(pausedWord(page)).toBeVisible({ timeout: 10_000 });
 
   // Frozen: materializeSession pins `effectiveNow` to pausedAt, so the same
   // second is still rendered after several local ticks.
@@ -248,7 +262,7 @@ test('pausing from the hub freezes the countdown on the display; resuming restar
   // Resuming shifts the step anchor by the pause length — no time was lost, and
   // the countdown picks up from where it stopped rather than jumping.
   await control(request, 'resume');
-  await expect(dial(page).getByText('Paused')).toHaveCount(0, { timeout: 10_000 });
+  await expect(pausedWord(page)).toHaveCount(0, { timeout: 10_000 });
   const resumed = await readCountdownSec(page);
   expect(resumed).toBeLessThanOrEqual(frozen);
   // The countdown restarts at the resume POST, but the display only notices on
@@ -258,4 +272,113 @@ test('pausing from the hub freezes the countdown on the display; resuming restar
 
   await page.waitForTimeout(2500);
   expect(await readCountdownSec(page)).toBeLessThan(resumed);
+});
+
+test('a tap brings up the wall\'s buttons; Pause, +1 min and a held Stop act on the timer', async ({ page, request }) => {
+  await putConfig(request, timerConfig());
+  await startQuick(request, 240);
+  await page.clock.install();
+  await page.goto('/display');
+  await expect(dial(page).getByText(/^\d+:\d\d$/).first()).toBeVisible();
+
+  // A new timer shows its buttons for the first 8 s, so everyone learns they
+  // are there; then a tap anywhere brings them back for another 8 s.
+  await expect(bar(page)).toBeVisible();
+  await page.clock.runFor(8_500);
+  await expect(bar(page)).toHaveCount(0);
+  await page.getByTestId('timer-overlay').click({ position: { x: 40, y: 40 } });
+  await expect(bar(page)).toBeVisible();
+  await page.clock.runFor(8_500);
+  await expect(bar(page)).toHaveCount(0);
+
+  await page.getByTestId('timer-overlay').click({ position: { x: 40, y: 40 } });
+  await page.getByTestId('timer-pause').click();
+  await expect(pausedWord(page)).toBeVisible();
+  expect((await hubSession(request))?.pausedAt).toBeDefined();
+  // Paused, the bar stays up however long nobody touches it.
+  await page.clock.runFor(30_000);
+  await expect(page.getByTestId('timer-resume')).toBeVisible();
+
+  await page.getByTestId('timer-resume').click();
+  await expect(page.getByTestId('timer-pause')).toBeVisible();
+  expect((await hubSession(request))?.pausedAt).toBeUndefined();
+
+  const before = await readCountdownSec(page);
+  await page.getByTestId('timer-add-minute').click();
+  await expect.poll(() => readCountdownSec(page)).toBeGreaterThan(before + 50);
+
+  // A short tap on Stop only says to keep holding.
+  const stop = page.getByRole('button', { name: 'Stop (hold to confirm)' });
+  await stop.click();
+  await expect(page.getByRole('status').filter({ hasText: 'Keep holding to stop' })).toBeVisible();
+  expect((await hubSession(request))?.status).toBe('running');
+
+  // A full second's hold stops it everywhere and hands the wall back.
+  await stop.hover();
+  await page.mouse.down();
+  await page.clock.runFor(1_200);
+  await page.mouse.up();
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
+  await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
+});
+
+test('a tap closes "Time\'s up!" on this display, and Stop from the hub ends it everywhere', async ({ page, request }) => {
+  // Real clock: the reload below reads the hub's own view of the session,
+  // which a faked page clock would contradict.
+  test.setTimeout(45_000);
+  await putConfig(request, timerConfig());
+  await startQuick(request, 5);
+  await page.goto('/display');
+  await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'celebration', { timeout: 15_000 });
+  await expect(page.getByText('Tap to close')).toBeVisible();
+
+  await page.getByTestId('timer-overlay').click();
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
+  await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
+
+  // Closing it was this display's own: a reload shows it again, until a Stop
+  // ends it for every display.
+  await page.reload();
+  await expect(page.getByText("Time's up!")).toBeVisible();
+  await control(request, 'cancel');
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0, { timeout: 10_000 });
+});
+
+test('the dock\'s Timers button starts a routine or a quick timer on this display', async ({ page, request }) => {
+  const dock = {
+    id: 'dock', type: 'display-control', position: { x: 60, y: 1600 }, size: { w: 960, h: 200 }, zIndex: 2,
+    style: { ...DEFAULT_MODULE_STYLE },
+    config: { layout: 'dock', dockTimers: true, defaultTarget: 'self', allowRetargeting: false, compact: false },
+  } as ModuleInstance;
+  await putConfig(request, baseConfig({ screens: [makeScreen('s', 'S', [textModule(ROTATION_TEXT), dock])] }));
+  const { revision } = await (await request.get('/api/timers/routines')).json();
+  expect((await request.put('/api/timers/routines', { data: { ...HOLD_ROUTINE, revision } })).ok()).toBe(true);
+  // Nothing left running from an earlier test, which would ask before replacing.
+  await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
+  await page.goto('/display');
+
+  await page.getByRole('button', { name: 'Timers' }).click();
+  const sheet = page.getByTestId('timers-sheet');
+  await expect(sheet.getByText('Tap routine')).toBeVisible();
+  await expect(sheet.getByText('2 steps · 10 min')).toBeVisible();
+
+  await sheet.getByText('5 min', { exact: true }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'face');
+  const quick = await hubSession(request);
+  expect(quick?.status).toBe('running');
+
+  // Hold Stop, then start the routine the same way.
+  await page.getByTestId('timer-overlay').click({ position: { x: 40, y: 40 } });
+  const stop = page.getByRole('button', { name: 'Stop (hold to confirm)' });
+  await stop.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(1_300);
+  await page.mouse.up();
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Timers' }).click();
+  await page.getByTestId('timers-sheet').getByText('Tap routine').click();
+  await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'ring');
+  await expect(page.getByText('Step 1 of 2')).toBeVisible();
 });

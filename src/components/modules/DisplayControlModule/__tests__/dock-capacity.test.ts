@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { dockCapacity, dockMetrics } from '../metrics';
+import { dockCapacity, dockExtraTiles, dockMetrics } from '../metrics';
 
 // Display Control is cardless, so the box is the whole module.
-const box = { w: 820, h: 160, extras: false, pickerH: 0 };
+const box = { w: 820, h: 160, extras: 0, pickerH: 0 };
 
 /** Tiles fully in view from the start of the pill, as the wall lays them out. */
 function tilesInView(b: typeof box, count: number): number {
@@ -40,9 +40,21 @@ describe('dockCapacity', () => {
   });
   it('gives the extras their two places and the divider first', () => {
     const plain = dockCapacity(box).fits;
-    const withExtras = dockCapacity({ ...box, extras: true }).fits;
+    const withExtras = dockCapacity({ ...box, extras: 2 }).fits;
     expect(withExtras).toBeLessThanOrEqual(plain - 2);
     expect(withExtras).toBeGreaterThanOrEqual(plain - 3);
+  });
+  it('gives Timers one more place after Sleep and Brightness', () => {
+    const extras = dockCapacity({ ...box, extras: 2 }).fits;
+    const withTimers = dockCapacity({ ...box, extras: 3 }).fits;
+    expect(withTimers).toBeLessThanOrEqual(extras - 1);
+    expect(withTimers).toBeGreaterThanOrEqual(extras - 2);
+  });
+  it('counts the control tiles after the divider from the settings', () => {
+    expect(dockExtraTiles({})).toBe(0);
+    expect(dockExtraTiles({ dockExtras: true })).toBe(2);
+    expect(dockExtraTiles({ dockTimers: true })).toBe(1);
+    expect(dockExtraTiles({ dockExtras: true, dockTimers: true })).toBe(3);
   });
   it('says when the box is too short for names', () => {
     expect(dockCapacity({ ...box, h: 60 }).names).toBe(false);

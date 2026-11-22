@@ -1461,7 +1461,7 @@
     "ariaNext": "Nächster Bildschirm",
     "holdSub": "1 Sekunde halten",
     "holdShort": "halten",
-    "keepHolding": "Weiter halten zum Schlafen",
+    "keepHolding": "Länger halten zum Schlafen",
     "wake": "Aufwecken",
     "wakeSub": "Bildschirm wieder an",
     "controls": "Steuert",
@@ -1472,7 +1472,14 @@
     "brightnessUnknown": "Helligkeit, noch nicht gemeldet",
     "dockEmpty": "Noch keine Bildschirme",
     "unnamedScreen": "Bildschirm {number}",
-    "goTo": "Zu {name}"
+    "goTo": "Zu {name}",
+    "timers": "Timer",
+    "timersEyebrow": "Startet auf diesem Display",
+    "routines": "Routinen",
+    "quickTimer": "Schnell-Timer",
+    "noRoutines": "Routinen legst du am Handy unter „Timer“ an.",
+    "start": "Start",
+    "timerStartFailed": "Der Timer ist nicht gestartet. Versuch es noch einmal."
   },
   "timetable": {
     "name": "Stundenplan",

@@ -4648,6 +4648,15 @@ export interface DisplayControlConfig {
    */
   dockExtras?: boolean;
   /**
+   * With the `dock` layout: also show a Timers button at the end of the dock, which opens a sheet
+   * that starts one of the family's routines or a quick timer on this display
+   *
+   * Ignored by the other layouts. The timer starts on the display the dock is
+   * on (`wallTimerTargets`); routines are made on the phone.
+   * @default false
+   */
+  dockTimers?: boolean;
+  /**
    * With the `dock` layout: which screens get a button, in this order, each with an optional name,
    * icon and colour of its own (see DockButton). Unset gives every screen of the rotation a button
    *

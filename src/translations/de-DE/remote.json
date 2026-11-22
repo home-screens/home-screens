@@ -1033,10 +1033,6 @@
     "newRoutine": "Neue Routine",
     "editRoutine": "Routine bearbeiten",
     "emptyHint": "Eine Routine ist ein Timer mit Schritten, z. B. eine Morgenroutine: anziehen, Zähne putzen, Bett machen. Erstelle eine und starte sie auf dem Display.",
-    "routineMeta": {
-      "one": "{steps} Schritt · {minutes} Min.",
-      "other": "{steps} Schritte · {minutes} Min."
-    },
     "stepCount": "Schritt {current} von {total}",
     "pause": "Pause",
     "resume": "Weiter",
@@ -1065,7 +1061,6 @@
     "removeStep": "Schritt entfernen",
     "addStep": "Schritt hinzufügen",
     "minutesShort": "{minutes} Min.",
-    "loadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
     "retry": "Erneut versuchen",
     "onAllDisplays": "Auf allen Displays",
     "onDisplay": "Auf {name}",
@@ -1073,8 +1068,6 @@
     "allDisplays": "Alle Displays",
     "showOnNext": "Nächster Timer auf",
     "onDisplays": "Auf {count} Displays",
-    "replaceTitle": "Neuen Timer starten?",
-    "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
     "soundOn": "Ton an",
     "soundOff": "Ton aus",
     "minUnit": "Min.",

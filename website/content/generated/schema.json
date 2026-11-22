@@ -7337,6 +7337,16 @@
           "defaultText": "false"
         },
         {
+          "name": "dockTimers",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "With the `dock` layout: also show a Timers button at the end of the dock, which opens a sheet that starts one of the family's routines or a quick timer on this display",
+          "defaultText": "false"
+        },
+        {
           "name": "dockButtons",
           "optional": true,
           "type": {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { Fragment, type CSSProperties } from 'react';
 import { formatRemaining, formatStepLength, pillStyle, type TimerViewProps } from './shared';
 import Glyph from '@/components/ui/Glyph';
 
@@ -21,7 +21,7 @@ const starBackground = STAR_FIELD.map(
  * into the countdown ring. Variant D of the approved mockup.
  */
 export default function PathTimerView({
-  session, step, remainingMs, fraction, nudge, paused, title, s, t,
+  session, step, remainingMs, fraction, nudge, title, s, t,
 }: TimerViewProps) {
   const isRoutine = session.kind === 'routine';
   const deg = fraction * 360;
@@ -31,6 +31,22 @@ export default function PathTimerView({
   const upcoming = session.steps.slice(session.stepIndex + 1, session.stepIndex + 3);
   const hiddenAfter = session.steps.length - (session.stepIndex + 1) - upcoming.length;
   const ringMask = 'radial-gradient(closest-side, transparent 89%, #000 89.5%)';
+
+  // The dotted trail runs only between the stops, never through a stop's
+  // name or length: a short piece in each gap, and a piece that grows above
+  // the first stop and below the last, which also centres the stops. A quick
+  // timer has no stops, so its pieces only space the dial.
+  const trail = (gap: boolean) => (
+    <div
+      aria-hidden="true"
+      style={{
+        width: 8 * s, borderRadius: 999, flex: gap ? `0 0 ${44 * s}px` : '1 1 0', minHeight: gap ? 44 * s : 0,
+        background: isRoutine
+          ? `repeating-linear-gradient(180deg, rgba(255,255,255,0.28) 0 ${26 * s}px, transparent ${26 * s}px ${52 * s}px)`
+          : undefined,
+      }}
+    />
+  );
 
   const bubbleStyle = (dim: number): CSSProperties => ({
     width: 170 * s, height: 170 * s, borderRadius: '50%', flexShrink: 0,
@@ -63,24 +79,13 @@ export default function PathTimerView({
           )}
         </div>
 
-        {/* Dotted trail behind the nodes; nodes have opaque backgrounds so the
-            trail reads as passing behind each stop. */}
-        {isRoutine && (
-          <div
-            style={{
-              position: 'absolute', left: '50%', top: 330 * s, bottom: 130 * s, width: 8 * s,
-              transform: 'translateX(-50%)', borderRadius: 999,
-              background: `repeating-linear-gradient(180deg, rgba(255,255,255,0.28) 0 ${26 * s}px, transparent ${26 * s}px ${52 * s}px)`,
-            }}
-          />
-        )}
-
         <div
           style={{
             position: 'relative', flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 44 * s, paddingBottom: 60 * s,
+            alignItems: 'center', paddingTop: 50 * s, paddingBottom: 60 * s, minHeight: 0,
           }}
         >
+          {trail(false)}
           {prev && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ position: 'relative' }}>
@@ -101,6 +106,7 @@ export default function PathTimerView({
               </div>
             </div>
           )}
+          {prev && trail(true)}
 
           <div
             data-testid="timer-dial"
@@ -133,29 +139,31 @@ export default function PathTimerView({
                 {formatRemaining(remainingMs)}
               </div>
             )}
-            {paused && (
-              <div style={{ ...pillStyle(s, '#100c2a', 'rgba(255,255,255,0.85)'), marginTop: 18 * s }}>
-                {t('timer.paused')}
-              </div>
-            )}
           </div>
 
           {upcoming.map((up) => (
-            <div key={up.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={bubbleStyle(1)}><Glyph value={up.icon} fallback="⏱️" /></div>
-              <div style={{ marginTop: 14 * s, fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>
-                {up.label}
+            <Fragment key={up.id}>
+              {trail(true)}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={bubbleStyle(1)}><Glyph value={up.icon} fallback="⏱️" /></div>
+                <div style={{ marginTop: 14 * s, fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>
+                  {up.label}
+                </div>
+                <div style={{ marginTop: 6 * s, fontSize: 26 * s, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>
+                  {formatStepLength(up.durationSec, t)}
+                </div>
               </div>
-              <div style={{ marginTop: 6 * s, fontSize: 26 * s, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>
-                {formatStepLength(up.durationSec, t)}
-              </div>
-            </div>
+            </Fragment>
           ))}
           {hiddenAfter > 0 && (
-            <div style={{ fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
-              {t('timer.moreSteps', { count: hiddenAfter })}
-            </div>
+            <>
+              {trail(true)}
+              <div style={{ fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
+                {t('timer.moreSteps', { count: hiddenAfter })}
+              </div>
+            </>
           )}
+          {trail(false)}
         </div>
       </div>
     </div>

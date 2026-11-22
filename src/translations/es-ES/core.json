@@ -251,7 +251,24 @@
     "moreSteps": "+{count} más",
     "progressWords": "{done} hechos · {left} por hacer",
     "quickNameSeconds": "Temporizador de {seconds} segundos",
-    "quickNameClock": "Temporizador de {time}"
+    "quickNameClock": "Temporizador de {time}",
+    "pause": "Pausa",
+    "resume": "Seguir",
+    "stop": "Parar",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} s",
+    "stopHoldHint": "Parar (mantén pulsado para confirmar)",
+    "keepHoldingToStop": "Mantén pulsado para parar",
+    "tapToClose": "Toca para cerrar",
+    "controls": "Botones del temporizador",
+    "replaceTitle": "¿Empezar un temporizador nuevo?",
+    "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
+    "routinesLoadError": "No se pudieron cargar las rutinas. Revisa la conexión e inténtalo otra vez.",
+    "routineMeta": {
+      "one": "{steps} paso · {minutes} min",
+      "other": "{steps} pasos · {minutes} min"
+    },
+    "holdShort": "mantener"
   },
   "launcher": {
     "heading": "¿A dónde quieres ir?",

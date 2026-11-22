@@ -92,3 +92,42 @@ describe('HoldConfirmButton', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 });
+
+describe('HoldConfirmButton placement and holding look', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it('puts the hint above a button too narrow for it, outside the clipped sweep', () => {
+    render(
+      <HoldConfirmButton durationMs={1000} onConfirm={() => {}} hint="Keep holding to stop" hintPlacement="above" hintFontSize={20}>
+        Stop
+      </HoldConfirmButton>,
+    );
+    const btn = screen.getByRole('button');
+    act(() => void fireEvent.pointerDown(btn));
+    act(() => vi.advanceTimersByTime(200));
+    act(() => void fireEvent.pointerUp(btn));
+    const hint = screen.getByRole('status');
+    expect(hint.style.bottom).toBe('calc(100% + 12px)');
+    expect(hint.style.top).toBe('');
+    expect(btn.className).not.toContain('overflow-hidden');
+    expect(screen.getByTestId('hold-sweep').parentElement!.className).toContain('overflow-hidden');
+  });
+
+  it('merges the holding style only while a finger is down', () => {
+    render(
+      <HoldConfirmButton durationMs={1000} onConfirm={() => {}} style={{ borderColor: 'white' }} holdingStyle={{ borderColor: 'red' }}>
+        Stop
+      </HoldConfirmButton>,
+    );
+    const btn = screen.getByRole('button');
+    expect(btn.style.borderColor).toBe('white');
+    act(() => void fireEvent.pointerDown(btn));
+    expect(btn.style.borderColor).toBe('red');
+    act(() => void fireEvent.pointerUp(btn));
+    expect(btn.style.borderColor).toBe('white');
+  });
+});

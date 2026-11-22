@@ -33,3 +33,18 @@ describe('timer-presence', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 });
+
+describe('requestTimerRefresh', () => {
+  beforeEach(() => __resetTimerPresenceForTests());
+
+  it('reaches every listener until it unsubscribes', async () => {
+    const { requestTimerRefresh, subscribeTimerRefresh } = await import('@/lib/timer-presence');
+    const fn = vi.fn();
+    const off = subscribeTimerRefresh(fn);
+    requestTimerRefresh();
+    expect(fn).toHaveBeenCalledTimes(1);
+    off();
+    requestTimerRefresh();
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+});

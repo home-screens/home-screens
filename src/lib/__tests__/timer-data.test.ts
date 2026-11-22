@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   HOLD_AUTO_ADVANCE_MS,
-  SESSION_LINGER_MS,
+  CANCELLED_LINGER_MS,
+  TIMES_UP_HOLD_MS,
   addMinute,
   advanceStep,
   cancelSession,
@@ -99,10 +100,10 @@ describe('materializeSession', () => {
     const done = materializeSession(s, capEnd + 1)!;
     expect(done.status).toBe('done');
     expect(done.completedAt).toBe(capEnd);
-    expect(materializeSession(s, capEnd + SESSION_LINGER_MS + 1)).toBeNull();
+    expect(materializeSession(s, capEnd + TIMES_UP_HOLD_MS + 1)).toBeNull();
   });
 
-  it('completes when past the last step and expires after the linger window', () => {
+  it('completes when past the last step and stays until the Time\'s up hold runs out', () => {
     const s = start({
       steps: [{ id: 'only', label: 'x', icon: '⏱️', durationSec: 60 }],
     });
@@ -110,7 +111,9 @@ describe('materializeSession', () => {
     expect(done.status).toBe('done');
     expect(done.completedAt).toBe(T0 + 60_000);
 
-    expect(materializeSession(s, T0 + 60_000 + SESSION_LINGER_MS + 1)).toBeNull();
+    // "Time's up!" stays well past the old 15 s, until its own hold runs out.
+    expect(materializeSession(s, T0 + 60_000 + 5 * 60_000)!.status).toBe('done');
+    expect(materializeSession(s, T0 + 60_000 + TIMES_UP_HOLD_MS + 1)).toBeNull();
   });
 
   it('freezes the countdown while paused but still advances pre-pause elapsed steps', () => {
@@ -194,11 +197,24 @@ describe('addMinute', () => {
 });
 
 describe('cancelSession', () => {
-  it('marks cancelled with completedAt and expires like done', () => {
+  it('marks cancelled with completedAt and expires after a short linger', () => {
     const s = cancelSession(start(), T0 + 5000);
     expect(s.status).toBe('cancelled');
     expect(materializeSession(s, T0 + 6000)!.status).toBe('cancelled');
-    expect(materializeSession(s, T0 + 5000 + SESSION_LINGER_MS + 1)).toBeNull();
+    expect(materializeSession(s, T0 + 5000 + CANCELLED_LINGER_MS + 1)).toBeNull();
+  });
+});
+
+describe('cancelSession on a finished timer', () => {
+  it('ends "Time\'s up!" everywhere: a done session becomes cancelled', () => {
+    const s = start({ steps: [{ id: 'only', label: 'x', icon: '⏱️', durationSec: 60 }] });
+    const done = materializeSession(s, T0 + 70_000)!;
+    const { awaitingTap, ...raw } = done;
+    void awaitingTap;
+    const ended = cancelSession(raw, T0 + 80_000);
+    expect(ended.status).toBe('cancelled');
+    expect(ended.completedAt).toBe(T0 + 80_000);
+    expect(cancelSession(ended, T0 + 90_000)).toBe(ended);
   });
 });
 

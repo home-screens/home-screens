@@ -2,7 +2,7 @@
 
 import { wallPress } from '@/components/modules/shared/wallPress';
 import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Timer } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { dockTileColor, type DockScreen } from '@/lib/screen-dock';
@@ -13,10 +13,11 @@ import { useBurnInProtection } from '@/components/display/burn-in-context';
 import { PIXEL_SHIFT_EDGE_CLEARANCE_PX, WANDER_REACH_X_PX, WANDER_REACH_Y_PX, wanderBetween } from '@/lib/pixel-shift';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
-import { HoldConfirmButton } from './HoldConfirmButton';
+import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
-import { controlMetrics, dockMetrics, type DockMetrics } from './metrics';
+import { controlMetrics, dockExtraTiles, dockMetrics, type DockMetrics } from './metrics';
 import { SleepIcon, BrightnessIcon } from './controls';
+import { TimersSheet } from './TimersSheet';
 
 export interface DockLayoutProps extends LayoutProps {
   /** This display's rotation, in order; empty when nothing rotates here. */
@@ -26,6 +27,10 @@ export interface DockLayoutProps extends LayoutProps {
   onGoto: (index: number) => void;
   /** Sleep and Brightness after a divider. */
   extras: boolean;
+  /** A Timers button after the divider (and after Sleep and Brightness). */
+  timers: boolean;
+  /** A tap on Timers opens the sheet: on the wall itself, not in an editor preview. */
+  timersLive: boolean;
 }
 
 /**
@@ -34,16 +39,18 @@ export interface DockLayoutProps extends LayoutProps {
  * colour with a light ring and a dot under it, the others are dimmed. A tall
  * box lays it down the side with the names to the right. With `extras`,
  * Sleep and Brightness follow a divider at the end, the way the macOS dock
- * keeps the trash apart.
+ * keeps the trash apart. With `timers`, a Timers button comes last and opens
+ * the sheet that starts a routine or a quick timer on this display.
  */
 export function DockLayout(props: DockLayoutProps) {
   const t = useTranslate('modules');
   const {
     allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
-    brightness, onSleep, onBrightness, screens, activeIndex, onGoto, extras,
+    brightness, onSleep, onBrightness, screens, activeIndex, onGoto, extras, timers, timersLive,
   } = props;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [brightnessOpen, setBrightnessOpen] = useState(false);
+  const [timersOpen, setTimersOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
   const [boxRef, box] = useElementBox('padding');
   // The picker row borrows the bar layout's model so it matches the other
@@ -53,7 +60,7 @@ export function DockLayout(props: DockLayoutProps) {
     w: box.width,
     h: box.height,
     count: screens.length,
-    extras,
+    extras: dockExtraTiles({ dockExtras: extras, dockTimers: timers }),
     compact,
     pickerH: showPicker ? pm.pickerH + pm.gap : 0,
   });
@@ -180,15 +187,17 @@ export function DockLayout(props: DockLayoutProps) {
               );
             })}
 
+            {(extras || timers) && (
+              <div
+                aria-hidden="true"
+                className="shrink-0 self-center bg-white/20"
+                style={m.vertical
+                  ? { height: 1, width: m.tile * 0.7, marginBlock: m.gap * 0.5 }
+                  : { width: 1, height: m.tile * 0.7, marginInline: m.gap * 0.5 }}
+              />
+            )}
             {extras && (
               <>
-                <div
-                  aria-hidden="true"
-                  className="shrink-0 self-center bg-white/20"
-                  style={m.vertical
-                    ? { height: 1, width: m.tile * 0.7, marginBlock: m.gap * 0.5 }
-                    : { width: 1, height: m.tile * 0.7, marginInline: m.gap * 0.5 }}
-                />
                 <HoldConfirmButton
                   ariaLabel={t('display-control.sleepHoldHint')}
                   hint={t('display-control.keepHolding')}
@@ -213,12 +222,28 @@ export function DockLayout(props: DockLayoutProps) {
                 </button>
               </>
             )}
+            {timers && (
+              <button
+                type="button"
+                {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row' : 'flex-col'}`)}
+                aria-label={t('display-control.timers')}
+                aria-haspopup="dialog"
+                onClick={() => { if (timersLive) setTimersOpen(true); }}
+                style={itemStyle(m)}
+              >
+                <ExtraTile m={m}><Timer size={m.icon} strokeWidth={1.75} aria-hidden="true" /></ExtraTile>
+                <TileName m={m} name={t('display-control.timers')} />
+              </button>
+            )}
           </div>
         )}
         {/* Outside the pill: the pill clips to its box and scrolls, so a
             popover inside it was cut off with its slider out of reach. It
             floats over the dock's own area instead, above a bottom dock and
             beside a side dock. */}
+        {timersOpen && (
+          <TimersSheet displayId={selfId} hasDisplayList={!isLegacyMode} onClose={() => setTimersOpen(false)} />
+        )}
         {brightnessOpen && (
           <div
             data-testid="display-control-dock-popover"
@@ -297,7 +322,7 @@ function DockTile({
   );
 }
 
-/** Sleep and Brightness tiles: glass rather than a colour, so they read as controls, not screens. */
+/** Sleep, Brightness and Timers tiles: glass rather than a colour, so they read as controls, not screens. */
 function ExtraTile({ m, children }: { m: DockMetrics; children: ReactNode }) {
   return (
     <span

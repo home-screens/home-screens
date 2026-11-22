@@ -251,7 +251,24 @@
     "moreSteps": "+{count} mere",
     "progressWords": "{done} klaret · {left} tilbage",
     "quickNameSeconds": "{seconds} sekunders timer",
-    "quickNameClock": "{time}-timer"
+    "quickNameClock": "{time}-timer",
+    "pause": "Pause",
+    "resume": "Fortsæt",
+    "stop": "Stop",
+    "addMinute": "+1 min.",
+    "secondsShort": "{seconds} sek.",
+    "stopHoldHint": "Stop (hold inde for at bekræfte)",
+    "keepHoldingToStop": "Bliv ved med at holde for at stoppe",
+    "tapToClose": "Tryk for at lukke",
+    "controls": "Timerknapper",
+    "replaceTitle": "Start en ny timer?",
+    "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
+    "routinesLoadError": "Rutinerne kunne ikke indlæses. Tjek forbindelsen og prøv igen.",
+    "routineMeta": {
+      "one": "{steps} trin · {minutes} min.",
+      "other": "{steps} trin · {minutes} min."
+    },
+    "holdShort": "hold inde"
   },
   "launcher": {
     "heading": "Hvor vil du hen?",

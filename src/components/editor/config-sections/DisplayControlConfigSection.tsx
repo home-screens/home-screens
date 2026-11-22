@@ -12,7 +12,7 @@ import { displayDescriptors } from '@/lib/display-filter';
 import { showsOnlyWhenOpened } from '@/lib/on-demand-screen';
 import { dockGotoTarget, dockScreensOn, resolveDockButtons, toDockScreen } from '@/lib/screen-dock';
 import { getModuleDefinition } from '@/lib/module-registry';
-import { controlMetrics, dockCapacity } from '@/components/modules/DisplayControlModule/metrics';
+import { controlMetrics, dockCapacity, dockExtraTiles } from '@/components/modules/DisplayControlModule/metrics';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance, type DisplayControlConfig, type DisplayNode, type Screen } from '@/types/config';
 import { DockButtonsList } from './DockButtonsList';
 
@@ -63,8 +63,9 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
     const w = Math.max(0, mod.size.w - inset * 2);
     const h = Math.max(0, mod.size.h - inset * 2);
     const pm = controlMetrics({ w, h, layout: 'bar', compact: c.compact === true, showPicker });
-    return dockCapacity({ w, h, extras: c.dockExtras === true, pickerH: showPicker ? pm.pickerH + pm.gap : 0 });
-  }, [mod.type, mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, showPicker]);
+    const extras = dockExtraTiles({ dockExtras: c.dockExtras, dockTimers: c.dockTimers });
+    return dockCapacity({ w, h, extras, pickerH: showPicker ? pm.pickerH + pm.gap : 0 });
+  }, [mod.type, mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, c.dockTimers, showPicker]);
 
   const LAYOUT_LABELS: Record<DisplayControlConfig['layout'], string> = {
     bar: t('configSections.display-control.layoutBar'),
@@ -106,6 +107,14 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
             checked={c.dockExtras === true}
             onChange={(v) => set({ dockExtras: v })}
           />
+          <Toggle
+            label={t('configSections.display-control.dockTimers')}
+            checked={c.dockTimers === true}
+            onChange={(v) => set({ dockTimers: v })}
+          />
+          <p className="text-[11px] text-hs-text-faint">
+            {t('configSections.display-control.dockTimersHint')}
+          </p>
           <DockButtonsList
             value={c.dockButtons}
             onChange={(dockButtons) => set({ dockButtons })}

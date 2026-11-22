@@ -1472,7 +1472,14 @@
     "brightnessUnknown": "Brightness, not reported yet",
     "dockEmpty": "No screens yet",
     "unnamedScreen": "Screen {number}",
-    "goTo": "Go to {name}"
+    "goTo": "Go to {name}",
+    "timers": "Timers",
+    "timersEyebrow": "Starts on this display",
+    "routines": "Routines",
+    "quickTimer": "Quick timer",
+    "noRoutines": "Make routines on the phone, under Timers.",
+    "start": "Start",
+    "timerStartFailed": "That timer didn't start. Try again."
   },
   "timetable": {
     "name": "School Timetable",

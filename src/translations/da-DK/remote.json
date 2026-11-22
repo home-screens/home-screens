@@ -1033,10 +1033,6 @@
     "newRoutine": "Ny rutine",
     "editRoutine": "Rediger rutine",
     "emptyHint": "En rutine er en timer med trin, som en morgenrutine: tag tøj på, børst tænder, red din seng. Lav en og start den på skærmen.",
-    "routineMeta": {
-      "one": "{steps} trin · {minutes} min.",
-      "other": "{steps} trin · {minutes} min."
-    },
     "stepCount": "Trin {current} af {total}",
     "pause": "Pause",
     "resume": "Fortsæt",
@@ -1065,7 +1061,6 @@
     "removeStep": "Fjern trin",
     "addStep": "Tilføj trin",
     "minutesShort": "{minutes} min.",
-    "loadError": "Rutinerne kunne ikke indlæses. Tjek forbindelsen og prøv igen.",
     "retry": "Prøv igen",
     "onAllDisplays": "På alle skærme",
     "onDisplay": "På {name}",
@@ -1073,8 +1068,6 @@
     "allDisplays": "Alle skærme",
     "showOnNext": "Næste timer på",
     "onDisplays": "På {count} skærme",
-    "replaceTitle": "Start en ny timer?",
-    "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
     "soundOn": "Lyd til",
     "soundOff": "Lyd fra",
     "minUnit": "min.",

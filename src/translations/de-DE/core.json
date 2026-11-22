@@ -240,7 +240,7 @@
     "quickName": "{minutes}-Minuten-Timer",
     "almostDone": "Fast geschafft!",
     "done": "Fertig!",
-    "paused": "Pause",
+    "paused": "Pausiert",
     "allDone": "Alles geschafft!",
     "timesUp": "Die Zeit ist um!",
     "finished": "{name} geschafft",
@@ -251,7 +251,24 @@
     "moreSteps": "+{count} weitere",
     "progressWords": "{done} geschafft · {left} übrig",
     "quickNameSeconds": "{seconds}-Sekunden-Timer",
-    "quickNameClock": "{time}-Timer"
+    "quickNameClock": "{time}-Timer",
+    "pause": "Pause",
+    "resume": "Weiter",
+    "stop": "Stopp",
+    "addMinute": "+1 Min.",
+    "secondsShort": "{seconds} Sek.",
+    "stopHoldHint": "Stopp (zum Bestätigen halten)",
+    "keepHoldingToStop": "Länger halten zum Stoppen",
+    "tapToClose": "Zum Schließen tippen",
+    "controls": "Timer-Knöpfe",
+    "replaceTitle": "Neuen Timer starten?",
+    "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
+    "routinesLoadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "routineMeta": {
+      "one": "{steps} Schritt · {minutes} Min.",
+      "other": "{steps} Schritte · {minutes} Min."
+    },
+    "holdShort": "halten"
   },
   "launcher": {
     "heading": "Wohin möchtest du?",

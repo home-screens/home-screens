@@ -1472,7 +1472,14 @@
     "brightnessUnknown": "Lysstyrke, ikke meldt endnu",
     "dockEmpty": "Ingen skærme endnu",
     "unnamedScreen": "Skærm {number}",
-    "goTo": "Gå til {name}"
+    "goTo": "Gå til {name}",
+    "timers": "Timere",
+    "timersEyebrow": "Starter på dette display",
+    "routines": "Rutiner",
+    "quickTimer": "Hurtig timer",
+    "noRoutines": "Lav rutiner på telefonen under Timere.",
+    "start": "Start",
+    "timerStartFailed": "Timeren startede ikke. Prøv igen."
   },
   "timetable": {
     "name": "Skema",

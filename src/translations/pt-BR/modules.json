@@ -1480,7 +1480,14 @@
     "brightnessUnknown": "Brilho, ainda não informado",
     "dockEmpty": "Ainda não há telas",
     "unnamedScreen": "Tela {number}",
-    "goTo": "Ir para {name}"
+    "goTo": "Ir para {name}",
+    "timers": "Timers",
+    "timersEyebrow": "Começa aqui",
+    "routines": "Rotinas",
+    "quickTimer": "Timer rápido",
+    "noRoutines": "Crie rotinas no celular, em Timers.",
+    "start": "Começar",
+    "timerStartFailed": "O timer não começou. Tente de novo."
   },
   "timetable": {
     "name": "Horário escolar",

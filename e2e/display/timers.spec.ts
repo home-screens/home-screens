@@ -174,3 +174,36 @@ for (const view of TIMER_VIEWS) {
     await expectNoOverflow(page);
   });
 }
+
+/**
+ * Five steps is the most the Glow ring's chip row shows; the chips share the
+ * width of a portrait wall rather than running off both edges.
+ */
+test('ring view keeps all five step chips on a portrait wall', async ({ page, request }) => {
+  const shape = SHAPES[0];
+  await seedDisplay(page, request, shape);
+  const five = {
+    routines: [{
+      ...ROUTINE.routines[0],
+      steps: [
+        ...ROUTINE.routines[0].steps,
+        { id: 's5', label: 'Read together', icon: '📚', durationSec: 60 },
+      ],
+    }],
+  };
+  const { revision } = await (await request.get('/api/timers/routines')).json();
+  expect((await request.put('/api/timers/routines', { data: { ...five, revision } })).ok()).toBe(true);
+  expect((await request.post('/api/timers/session', {
+    data: { action: 'start', kind: 'routine', routineId: 'r1', targets: 'all', view: 'ring', sound: false },
+  })).ok()).toBe(true);
+  await page.goto('/display');
+
+  const chips = page.getByTestId('timer-chips').locator(':scope > div');
+  await expect(chips).toHaveCount(5);
+  for (let i = 0; i < 5; i += 1) {
+    const box = (await chips.nth(i).boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(shape.w);
+  }
+  await expectNoOverflow(page);
+});

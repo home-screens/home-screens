@@ -6,7 +6,8 @@ import { displayFetch } from '@/lib/display-fetch';
 import { subscribeRevisions } from '@/lib/display-heartbeat';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { materializeSession } from '@/lib/timer-logic';
-import { setShowingTimerSession } from '@/lib/timer-presence';
+import { setShowingTimerSession, subscribeTimerRefresh } from '@/lib/timer-presence';
+import { useTouchReveal } from '@/components/modules/shared/useTouchReveal';
 import type { MaterializedTimerSession, TimerSession } from '@/types/timers';
 import { NUDGE_FRACTION, TIMER_CANVAS_H, TIMER_CANVAS_W, formatQuickName } from './timer-views/shared';
 import { playTimerSound } from './timer-views/timer-sounds';
@@ -15,8 +16,17 @@ import FaceTimerView from './timer-views/FaceTimerView';
 import CascadeTimerView from './timer-views/CascadeTimerView';
 import PathTimerView from './timer-views/PathTimerView';
 import TimerCelebration from './timer-views/TimerCelebration';
+import TimerControls from './timer-views/TimerControls';
 
 const TICK_MS = 250;
+
+/** How long the buttons a tap brings up stay with nobody touching the screen. */
+export const TIMER_CONTROLS_IDLE_MS = 8_000;
+
+/** "Time's up!" stays for minutes, so it checks for its end once a second rather than four times. */
+const DONE_TICK_MS = 1_000;
+
+type SessionAction = 'pause' | 'resume' | 'add-minute' | 'cancel' | 'step-done';
 
 interface TimerOverlayProps {
   /** Undefined on the legacy single-display route — matches every session. */
@@ -32,7 +42,11 @@ interface TimerOverlayProps {
 
 /**
  * Full-screen takeover for a running timer/routine session, started from
- * /remote. Fetches the session when the heartbeat names a new revision (a
+ * /remote or the wall's Timers sheet. Its buttons (pause, one more minute,
+ * stop) show for `TIMER_CONTROLS_IDLE_MS` when a timer starts and after every
+ * tap, and stay up while paused. A step waiting for its "Done!" keeps the
+ * whole screen as that button. "Time's up!" stays until a tap closes it on
+ * this display (or `TIMES_UP_HOLD_MS` passes). Fetches the session when the heartbeat names a new revision (a
  * start, skip, pause or cancel was saved) and derives the live countdown,
  * step advances and expiry locally from the session's epoch timestamps via
  * `materializeSession` — so beat latency affects only how fast a takeover
@@ -77,6 +91,9 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     });
   }), [refresh]);
 
+  // The Timers sheet on this display just started one: show it now.
+  useEffect(() => subscribeTimerRefresh(() => { void refresh(); }), [refresh]);
+
   const live: MaterializedTimerSession | null = useMemo(
     () => materializeSession(serverSession, now),
     [serverSession, now],
@@ -97,15 +114,20 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   // session expires here: the hub keeps the finished session on file, so no
   // new revision (and no fetch) ever arrives to clear `serverSession`.
   const tickingSessionId = live && matches ? live.id : null;
+  const tickMs = live?.status === 'done' ? DONE_TICK_MS : TICK_MS;
   useEffect(() => {
     if (!tickingSessionId) return;
-    const id = setInterval(() => setNow(Date.now()), TICK_MS);
+    const id = setInterval(() => setNow(Date.now()), tickMs);
     return () => clearInterval(id);
-  }, [tickingSessionId]);
+  }, [tickingSessionId, tickMs]);
+
+  // "Time's up!" closed by a tap here. Other displays keep their linger.
+  const [dismissedId, setDismissedId] = useState<string | null>(null);
+  const dismissed = live?.status === 'done' && live.id === dismissedId;
 
   // Tell the status heartbeat which session is on this screen (null when the
   // takeover is down), so the remote can confirm a display picked it up.
-  const showingId = live && matches && live.status !== 'cancelled' ? live.id : null;
+  const showingId = live && matches && live.status !== 'cancelled' && !dismissed ? live.id : null;
   useEffect(() => {
     setShowingTimerSession(showingId);
   }, [showingId]);
@@ -121,6 +143,22 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   const fraction = step ? Math.min(1, Math.max(0, remainingMs / durMs)) : 0;
   const nudge = !!step && !live?.awaitingTap && remainingMs > 0 && fraction <= NUDGE_FRACTION;
   const paused = live?.pausedAt !== undefined;
+  const controls = useTouchReveal({
+    idleMs: TIMER_CONTROLS_IDLE_MS,
+    pinned: paused,
+    enabled: !!step && !live?.awaitingTap,
+  });
+
+  // Each new timer shows its buttons for the first wait, so someone who has
+  // never seen them learns a tap brings them back.
+  const introducedRef = useRef<string | null>(null);
+  const introduce = controls.poke;
+  const introId = live && matches && live.status === 'running' && !live.awaitingTap ? live.id : null;
+  useEffect(() => {
+    if (!introId || introducedRef.current === introId) return;
+    introducedRef.current = introId;
+    introduce();
+  }, [introId, introduce]);
 
   const title =
     live?.name ?? (live ? formatQuickName(live.steps[0].durationSec, t, 'timer') : '');
@@ -140,13 +178,13 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     else if (current.nudge && !prev.nudge) playTimerSound('nudge');
   }, [live, matches, nudge]);
 
-  const tapDone = useCallback(() => {
+  const act = useCallback((action: SessionAction) => {
     void (async () => {
       try {
         await displayFetch('/api/timers/session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'step-done' }),
+          body: JSON.stringify({ action }),
         });
       } catch {
         // The next poll reconciles.
@@ -155,7 +193,16 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     })();
   }, [refresh]);
 
-  if (!live || !matches || live.status === 'cancelled') return null;
+  if (!live || !matches || live.status === 'cancelled' || dismissed) return null;
+
+  // What a tap on the screen means: "Done!" on a step waiting for it, close on
+  // "Time's up!", and otherwise bring the buttons up (or keep them up). A tap
+  // on one of the buttons lands here too, which keeps them up a while longer.
+  const onTap = live.awaitingTap
+    ? () => act('step-done')
+    : live.status === 'done'
+      ? () => setDismissedId(live.id)
+      : controls.poke;
 
   // 0 until the rotator has measured the viewport — same invisible-first-frame
   // convention as the screen renderer, preventing an unscaled flash.
@@ -178,13 +225,13 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
         // Paired with the ::view-transition rules in globals.css.
         viewTransitionName: 'timer-overlay',
       }}
-      onClick={live.awaitingTap ? tapDone : undefined}
+      onClick={onTap}
     >
       {live.status === 'done' ? (
         <TimerCelebration session={live} title={title} s={s} t={t} />
       ) : (
         (() => {
-          const props = { session: live, step: step!, remainingMs, fraction, nudge, paused, title, s, t };
+          const props = { session: live, step: step!, remainingMs, fraction, nudge, title, s, t };
           switch (live.view) {
             case 'face':
               return <FaceTimerView {...props} />;
@@ -196,6 +243,21 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
               return <RingTimerView {...props} />;
           }
         })()
+      )}
+      {controls.shown && live.status === 'running' && (
+        <TimerControls
+          view={live.view}
+          paused={paused}
+          s={s}
+          t={t}
+          onPause={() => act('pause')}
+          onResume={() => act('resume')}
+          onAddMinute={() => act('add-minute')}
+          onStop={() => {
+            controls.hide();
+            act('cancel');
+          }}
+        />
       )}
     </div>
   );

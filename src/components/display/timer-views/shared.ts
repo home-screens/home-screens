@@ -29,7 +29,6 @@ export interface TimerViewProps {
   /** Remaining fraction of the current step, clamped 0..1. */
   fraction: number;
   nudge: boolean;
-  paused: boolean;
   /** Localized session title (routine name, or "N minute timer"). */
   title: string;
   s: number;
@@ -89,7 +88,7 @@ export function stepWindow(
   };
 }
 
-/** Shared "Paused" / "Done!" pill used by every view. */
+/** The "Done!" pill every view shows on a step waiting for its tap. */
 export const pillStyle = (s: number, color: string, bg: string): CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',

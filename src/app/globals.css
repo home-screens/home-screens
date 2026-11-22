@@ -237,8 +237,13 @@ body {
 @keyframes wall-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes wall-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 .wall-sheet-panel::-webkit-scrollbar { display: none; }
+/* The bar of big buttons a tap brings up (`WallControlBar`) rises a little as
+   its shade fades in. `translate`, not `transform`, which centres the bar. */
+@keyframes wall-bar-in { from { translate: 0 18%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+.wall-control-bar { animation: wall-bar-in 220ms ease-out; }
+.wall-control-shade { animation: wall-scrim-in 200ms ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .wall-overlay, .wall-overlay * { animation: none !important; }
+  .wall-overlay, .wall-overlay *, .wall-control-bar, .wall-control-shade { animation: none !important; }
 }
 
 /* A list moving under a finger inside a frosted card: the card's glass rests

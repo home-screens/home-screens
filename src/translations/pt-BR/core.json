@@ -251,7 +251,24 @@
     "moreSteps": "+{count} mais",
     "progressWords": "{done} feitos · {left} restantes",
     "quickNameSeconds": "Timer de {seconds} segundos",
-    "quickNameClock": "Timer de {time}"
+    "quickNameClock": "Timer de {time}",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "stop": "Parar",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} s",
+    "stopHoldHint": "Parar (segure para confirmar)",
+    "keepHoldingToStop": "Continue segurando para parar",
+    "tapToClose": "Toque para fechar",
+    "controls": "Botões do timer",
+    "replaceTitle": "Começar um novo timer?",
+    "replaceBody": "Já tem um timer rodando. Começar um novo vai parar o atual.",
+    "routinesLoadError": "Não foi possível carregar as rotinas. Verifique a conexão e tente de novo.",
+    "routineMeta": {
+      "one": "{steps} passo · {minutes} min",
+      "other": "{steps} passos · {minutes} min"
+    },
+    "holdShort": "segurar"
   },
   "launcher": {
     "heading": "Para onde você quer ir?",

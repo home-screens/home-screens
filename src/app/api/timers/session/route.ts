@@ -83,7 +83,10 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
     // Materialize first so controls act on the step the user is looking at,
     // not a step that silently elapsed since the last write.
     const live = materializeSession(current.session, now);
-    if (!live || live.status !== 'running') throw new TimerError(404, 'timers.notRunning', 'No timer is running');
+    // Stop also ends a finished timer, so "Time's up!" can be cleared
+    // everywhere; every other control needs it still running.
+    const stoppable = live && (live.status === 'running' || (live.status === 'done' && body.action === 'cancel'));
+    if (!live || !stoppable) throw new TimerError(404, 'timers.notRunning', 'No timer is running');
     const { awaitingTap, ...session } = live;
     void awaitingTap;
     return { session: op(session, now) };

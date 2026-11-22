@@ -251,7 +251,24 @@
     "moreSteps": "+{count} more",
     "progressWords": "{done} done · {left} to go",
     "quickNameSeconds": "{seconds} second timer",
-    "quickNameClock": "{time} timer"
+    "quickNameClock": "{time} timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} sec",
+    "stopHoldHint": "Stop (hold to confirm)",
+    "keepHoldingToStop": "Keep holding to stop",
+    "tapToClose": "Tap to close",
+    "controls": "Timer buttons",
+    "replaceTitle": "Start a new timer?",
+    "replaceBody": "A timer is already running. Starting a new one will stop it.",
+    "routinesLoadError": "Couldn't load your routines. Check the connection and try again.",
+    "routineMeta": {
+      "one": "{steps} step · {minutes} min",
+      "other": "{steps} steps · {minutes} min"
+    },
+    "holdShort": "hold"
   },
   "launcher": {
     "heading": "Where do you want to go?",

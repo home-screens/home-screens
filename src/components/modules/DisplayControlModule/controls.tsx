@@ -5,7 +5,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
 import type { LayoutProps } from './types';
-import { HoldConfirmButton } from './HoldConfirmButton';
+import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
 
 // Icons shared by every layout. `size` is the rendered box in px.
 const iconProps = (size: number) => ({

@@ -12,6 +12,7 @@ import { PadLayout } from './PadLayout';
 import { PanelLayout } from './PanelLayout';
 import { NavLayout } from './NavLayout';
 import { DockLayout } from './DockLayout';
+import { dockExtraTiles } from './metrics';
 import { useRotation } from '@/components/display/rotation-context';
 import { dockGotoTarget, dockScreensOn, resolveDockButtons, type DockScreen } from '@/lib/screen-dock';
 import type { DisplayDescriptor } from '@/lib/display-filter';
@@ -171,7 +172,7 @@ export default function DisplayControlModule({
       // A dock with its own buttons whose screens are all out of reach right
       // now (outside their hours) has nothing to offer: "No screens yet" on
       // a finished wall reads as setup never done. The editor still draws it.
-      if (surface === 'display' && (config.dockButtons?.length ?? 0) > 0 && dockScreens.length === 0 && config.dockExtras !== true) {
+      if (surface === 'display' && (config.dockButtons?.length ?? 0) > 0 && dockScreens.length === 0 && dockExtraTiles(config) === 0) {
         return null;
       }
       return (
@@ -181,6 +182,8 @@ export default function DisplayControlModule({
           activeIndex={dockActiveIndex}
           onGoto={onGoto}
           extras={config.dockExtras === true}
+          timers={config.dockTimers === true}
+          timersLive={surface === 'display'}
         />
       );
     case 'panel':

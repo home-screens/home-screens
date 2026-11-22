@@ -526,6 +526,16 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('button[aria-label="Sleep (hold to confirm)"]')).toBeVisible();
     },
   },
+  // Timers: one more control tile after the divider, which opens the sheet.
+  {
+    type: 'display-control', name: 'dock-timers', kind: 'network-free',
+    config: { layout: 'dock', dockTimers: true },
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label^="Go to"]').first()).toBeVisible();
+      await expect(mod.locator('button[aria-label="Timers"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label="Brightness"]')).toHaveCount(0);
+    },
+  },
   // The dock's own buttons: only the listed screen, under its own name.
   {
     type: 'display-control', name: 'dock-buttons', kind: 'network-free',

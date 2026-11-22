@@ -1472,7 +1472,14 @@
     "brightnessUnknown": "Helderheid, nog niet gemeld",
     "dockEmpty": "Nog geen schermen",
     "unnamedScreen": "Scherm {number}",
-    "goTo": "Naar {name}"
+    "goTo": "Naar {name}",
+    "timers": "Timers",
+    "timersEyebrow": "Start op dit display",
+    "routines": "Routines",
+    "quickTimer": "Snelle timer",
+    "noRoutines": "Maak routines bij Timers op je telefoon.",
+    "start": "Start",
+    "timerStartFailed": "De timer is niet gestart. Probeer het opnieuw."
   },
   "timetable": {
     "name": "Rooster",
