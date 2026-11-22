@@ -488,6 +488,8 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
+  'calendar.showOnePerson': 'covered-elsewhere', // calendar-wall-switch.spec.ts
+  'calendar.wallViews': 'covered-elsewhere', // calendar-wall-switch.spec.ts (the row on a tall card, none on a short one)
   'chore-chart.allowDisplayComplete': 'covered-elsewhere',
   'chore-chart.showStreaks': 'not-observable',
   'countdown.holidayCountry': 'not-observable',
@@ -500,6 +502,8 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'fullscreen-calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
+  'fullscreen-calendar.showOnePerson': 'covered-elsewhere', // calendar-wall-switch.spec.ts (picker, one person, back after a minute)
+  'fullscreen-calendar.wallViews': 'covered-elsewhere', // calendar-wall-switch.spec.ts (switch, own view home, back after a minute)
   'fullscreen-calendar.weekCollapsePastDays': 'timing-only',
   'fullscreen-chore-chart.allowDisplayComplete': 'covered-elsewhere',
   'fullscreen-chore-chart.celebrationSound': 'not-observable', // a synthesized chime through the AudioContext; headless Chromium has no speaker to assert on

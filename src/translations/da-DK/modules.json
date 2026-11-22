@@ -195,6 +195,28 @@
       "changedElsewhere": "En anden har lige ændret denne begivenhed. Her er den nyeste udgave, så lav din ændring igen.",
       "changeTitle": "Ændr {title}",
       "backToForm": "Tilbage til formularen"
+    },
+    "viewLabels": {
+      "daily": "Dage",
+      "agenda": "Agenda",
+      "week": "Uge",
+      "multiWeek": "Uger",
+      "rolling": "Rullende",
+      "month": "Måned"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Visninger",
+      "sheetEyebrow": "Vis én person",
+      "sheetTitle": "Hvis kalender?",
+      "allPeople": {
+        "one": "{count} person",
+        "other": "{count} personer"
+      },
+      "peopleCount": {
+        "one": "{count} person",
+        "other": "{count} personer"
+      },
+      "showEveryone": "Vis alle"
     }
   },
   "fullscreen-calendar": {

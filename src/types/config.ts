@@ -2040,6 +2040,23 @@ export interface FullscreenCalendarConfig {
    */
   addEvents?: boolean;
   /**
+   * Other views a family can switch to from buttons on a touch wall, beside this calendar's own
+   * view, for a minute at a time. Up to three
+   *
+   * Views in `FULLSCREEN_CALENDAR_VIEW_ORDER`; the own `view` is always
+   * offered and needs no entry. Omitted or empty = no view buttons, which is
+   * how every calendar saved before this option behaves. New calendars get
+   * Week and Month from the registry. Rules in `src/lib/calendar-wall-switch.ts`.
+   */
+  wallViews?: FullscreenCalendarView[];
+  /**
+   * On a touch wall, a button that shows one person's events (or one family group's) with the
+   * family's, then goes back to everyone a minute later. Needs people with their own calendars
+   *
+   * Omitted = off; new calendars get it on from the registry.
+   */
+  showOnePerson?: boolean;
+  /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *
    * default 'sheet' (bottom sheet); 'card' = centered card
@@ -2471,6 +2488,23 @@ export interface CalendarConfig {
    * is on in the Calendar settings. Absent means on
    */
   addEvents?: boolean;
+  /**
+   * Other views a family can switch to from buttons on a touch wall, beside this calendar's own
+   * view, for a minute at a time. Up to three. Shown on a card at least 400 pixels tall
+   *
+   * Views in `CALENDAR_CARD_VIEW_ORDER`; the own `viewMode` is always
+   * offered and needs no entry. Omitted or empty = no view buttons, which is
+   * how every card saved before this option behaves. New cards get Week and
+   * Month from the registry. Rules in `src/lib/calendar-wall-switch.ts`.
+   */
+  wallViews?: CalendarViewMode[];
+  /**
+   * On a touch wall, a button that shows one person's events (or one family group's) with the
+   * family's, then goes back to everyone a minute later. Needs people with their own calendars
+   *
+   * Omitted = off; new cards get it on from the registry.
+   */
+  showOnePerson?: boolean;
   /**
    * How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card)
    *

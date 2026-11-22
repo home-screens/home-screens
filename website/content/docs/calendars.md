@@ -118,6 +118,12 @@ The **Multi-Month Calendar** can do the same for a whole season. Its **Mark days
 
 The same setting puts two arrows at the top of the calendar to look ahead: **›** shows next week (next month on a month, the next few days on a view that shows a few days), and **‹** goes back. A sideways swipe on the calendar does the same, instead of changing screens. While you look, the top says which week it is ("Next week, November 8 – 14") and **Back to this week** comes straight back. A minute after the last touch anywhere on the screen, the calendar slides back to this week on its own, and the screen does not move on while someone is looking. A week you step back to is shown whole, not faded. The arrows reach eight weeks either way, or two months back and six ahead on a month; tap past the end and the calendar says how far it goes. The views about right now, Up next and Free time, have no arrows.
 
+### Switch views and show one person {% #switch-views %}
+
+A calendar can also put a row of buttons under its heading. On the left, **Week**, **Month** and the other views you pick: tap one to see the calendar that way. On the right, **Everyone**: tap it, pick a person or a family group, and the calendar shows only their events, plus the family's shared calendars and holidays. Tap **×** to see everyone again. A minute after the last touch the calendar goes back to its own view and everyone, and the screen waits while someone is using it.
+
+Pick the views under **Touch** in the calendar's settings, with **Switch views on the wall**: its own view is always there, plus up to three more. **Show one person** turns on the person button. It needs at least two people with calendars of their own (set under **Settings > Calendar**, matching calendars to people). New calendars start with Week and Month and the person button. A calendar added before these settings keeps its look until you pick them. On a **Calendar** card, the buttons show only when the card is at least 400 pixels tall.
+
 ## Add and change events {% #add-events %}
 
 Your family can add, change and remove events from a phone and from the wall, on Google and iCloud calendars. It is off until you turn it on.

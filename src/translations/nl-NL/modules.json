@@ -195,6 +195,28 @@
       "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd. Hier zie je de nieuwste versie. Doe je wijziging nog een keer.",
       "changeTitle": "{title} wijzigen",
       "backToForm": "Terug naar het formulier"
+    },
+    "viewLabels": {
+      "daily": "Dagen",
+      "agenda": "Agenda",
+      "week": "Week",
+      "multiWeek": "Weken",
+      "rolling": "Rollend",
+      "month": "Maand"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Weergaven",
+      "sheetEyebrow": "Eén persoon tonen",
+      "sheetTitle": "Wiens kalender?",
+      "allPeople": {
+        "one": "{count} persoon",
+        "other": "Alle {count} personen"
+      },
+      "peopleCount": {
+        "one": "{count} persoon",
+        "other": "{count} personen"
+      },
+      "showEveryone": "Iedereen tonen"
     }
   },
   "fullscreen-calendar": {

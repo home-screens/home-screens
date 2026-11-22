@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 règle",
       "ruleCountOther": "{count} règles",
       "addEvents": "Ajouter des événements depuis un jour",
-      "addEventsHelp": "Affiche « Ajouter un événement » quand on touche un jour, ainsi que Modifier et Retirer sur un événement. L'ajout doit être activé dans Réglages > Calendrier."
+      "addEventsHelp": "Affiche « Ajouter un événement » quand on touche un jour, ainsi que Modifier et Retirer sur un événement. L'ajout doit être activé dans Réglages > Calendrier.",
+      "wallViews": "Changer de vue sur le mur",
+      "wallViewsOwn": "Vue de ce calendrier",
+      "wallViewsHint": "Des boutons sous le titre, quatre au plus. Une minute après le dernier toucher, le mur revient à la vue {view}.",
+      "wallViewsFull": "Quatre au maximum. Décochez-en une pour en choisir une autre.",
+      "wallSwitchShortCard": "Le mur montre ces boutons sur une carte d'au moins {min} pixels de haut. Celle-ci fait {height} pixels de haut."
     },
     "fullscreen-weather": {
       "view": "Vue",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Affiche {names}, plus les calendriers partagés et les jours fériés.",
       "peopleFilterStaleMember": "Quelqu'un qui n'est plus dans la famille",
       "peopleFilterStaleGroup": "Un groupe supprimé",
-      "peopleFilterClear": "Afficher tout le monde"
+      "peopleFilterClear": "Afficher tout le monde",
+      "showOnePerson": "Afficher une seule personne",
+      "showOnePersonHint": "Un bouton sur un mur tactile qui affiche les événements d'une seule personne, ou d'un groupe, plus les événements communs à la famille. Au bout d'une minute, tout le monde réapparaît.",
+      "showOnePersonNeedsPeople": "Il faut au moins deux personnes avec leur propre calendrier."
     },
     "calendarDayNotes": {
       "label": "Notes du jour",

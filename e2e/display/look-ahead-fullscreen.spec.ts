@@ -217,7 +217,8 @@ test.describe('Full-screen calendar look-ahead', () => {
 
   test('a long stepped title steps down in size so the header stays on the wall', async ({ page, request }) => {
     // Wednesday December 9, 2026: three weeks on is the week that crosses the year.
-    await weekList(page, request, {}, new Date(2026, 11, 9, 9, 41));
+    // Without the wall's view buttons, so the view's label stays in the header beside the title.
+    await weekList(page, request, { wallViews: [], showOnePerson: false }, new Date(2026, 11, 9, 9, 41));
     const title = page.locator('.fsc-header-title');
     await expect(title).toHaveText('December 6 – 12, 2026');
     await expect(title).toHaveCSS('font-size', '37.8px');

@@ -12,13 +12,17 @@ import { useTranslate } from '@/i18n';
 import { useCalendarSources } from './CalendarSourceFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShowsGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
-import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarAllDayStyle, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
+import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarAllDayStyle, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, CalendarViewMode, EventTapStyle, ModuleInstance } from '@/types/config';
+import { CALENDAR_CARD_VIEW_ORDER } from '@/lib/calendar-wall-switch';
+import { CARD_VIEW_BUTTONS } from '@/components/modules/calendar/view-buttons';
 import { useWeekStartOptions } from './option-hooks';
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  // The wall's own words for each view, so the Touch ticks name its buttons.
+  const tModules = useTranslate('modules');
   const { config: c, set } = useModuleConfig<{
-    viewMode?: string;
+    viewMode?: CalendarViewMode;
     daysToShow?: number;
     showTime?: boolean;
     showLocation?: boolean;
@@ -34,6 +38,9 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     agendaShowFinishedToday?: boolean;
     eventTapDetails?: boolean;
     eventTapStyle?: EventTapStyle;
+    addEvents?: boolean;
+    wallViews?: CalendarViewMode[];
+    showOnePerson?: boolean;
     weeksToShow?: number;
     gridMaxEventsPerCell?: number;
     gridDayLabelScale?: number;
@@ -299,7 +306,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       </CalendarRulesGroup>
 
       {/* ── Touch: interaction, not appearance ── */}
-      <CalendarTouchGroup keyPrefix="configSections.calendar" config={c} set={set} />
+      <CalendarTouchGroup
+        keyPrefix="configSections.calendar"
+        config={c}
+        set={set}
+        views={{ home: viewMode, order: CALENDAR_CARD_VIEW_ORDER, labelFor: (v) => tModules(CARD_VIEW_BUTTONS[v]?.labelKey ?? v) }}
+        cardHeight={mod.size.h}
+      />
     </>
   );
 }

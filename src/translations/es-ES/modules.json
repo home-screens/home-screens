@@ -195,6 +195,28 @@
       "changedElsewhere": "Alguien acaba de cambiar este evento. Esta es la versión más reciente: vuelve a hacer tu cambio.",
       "changeTitle": "Cambiar {title}",
       "backToForm": "Volver al formulario"
+    },
+    "viewLabels": {
+      "daily": "Días",
+      "agenda": "Lista",
+      "week": "Semana",
+      "multiWeek": "Semanas",
+      "rolling": "Móvil",
+      "month": "Mes"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Vistas",
+      "sheetEyebrow": "Ver solo a una persona",
+      "sheetTitle": "¿De quién quieres ver el calendario?",
+      "allPeople": {
+        "one": "{count} persona",
+        "other": "Las {count} personas"
+      },
+      "peopleCount": {
+        "one": "{count} persona",
+        "other": "{count} personas"
+      },
+      "showEveryone": "Ver a todos"
     }
   },
   "fullscreen-calendar": {

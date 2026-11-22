@@ -250,6 +250,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|air-quality.pollutants.o3',
   'modules|air-quality.pollutants.pm10',
   'modules|air-quality.pollutants.pm25',
+  'modules|calendar.viewLabels.agenda',
   'modules|chore-chart.iconLabels.apple',
   'modules|chore-chart.iconLabels.baby',
   'modules|chore-chart.iconLabels.circle-dollar-sign',
@@ -919,6 +920,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|visibilityConditions.matchEquals',
     'modules|affirmations.categories.compliments',
     'modules|affirmations.categories.mindfulness',
+    'modules|calendar.viewLabels.week',
     'modules|calendar.weekShort',
     'modules|fullscreen-calendar.weekNumber', // "Week 25" is Dutch too
     'modules|chore-chart.iconLabels.backpack',

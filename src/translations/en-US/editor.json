@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 rule",
       "ruleCountOther": "{count} rules",
       "addEvents": "Add events from a day",
-      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in Settings > Calendar."
+      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in Settings > Calendar.",
+      "wallViews": "Switch views on the wall",
+      "wallViewsOwn": "This calendar's view",
+      "wallViewsHint": "Buttons under the heading, up to four. A minute after the last touch the wall goes back to {view}.",
+      "wallViewsFull": "Four is the most. Untick one to pick another.",
+      "wallSwitchShortCard": "The wall shows these buttons on a card at least {min} pixels tall. This one is {height} pixels tall."
     },
     "fullscreen-weather": {
       "view": "View",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Shows {names}, plus shared calendars and holidays.",
       "peopleFilterStaleMember": "Someone no longer on the family list",
       "peopleFilterStaleGroup": "A group that was removed",
-      "peopleFilterClear": "Show everyone"
+      "peopleFilterClear": "Show everyone",
+      "showOnePerson": "Show one person",
+      "showOnePersonHint": "A button on a touch wall that shows one person's events, or a group's, along with the family's. It goes back to everyone a minute later.",
+      "showOnePersonNeedsPeople": "Needs at least two people with calendars of their own."
     },
     "calendarDayNotes": {
       "label": "Day notes",

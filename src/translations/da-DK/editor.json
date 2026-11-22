@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 regel",
       "ruleCountOther": "{count} regler",
       "addEvents": "Tilføj begivenheder fra en dag",
-      "addEventsHelp": "Viser \"Tilføj begivenhed\", når man trykker på en dag, og Ændr og Fjern på en begivenhed. Det skal først slås til under Indstillinger > Kalender."
+      "addEventsHelp": "Viser \"Tilføj begivenhed\", når man trykker på en dag, og Ændr og Fjern på en begivenhed. Det skal først slås til under Indstillinger > Kalender.",
+      "wallViews": "Skift visning på væggen",
+      "wallViewsOwn": "Denne kalenders visning",
+      "wallViewsHint": "Knapper under overskriften, højst fire. Et minut efter sidste berøring går væggen tilbage til {view}.",
+      "wallViewsFull": "Du kan højst vælge fire. Fjern et flueben for at vælge en anden.",
+      "wallSwitchShortCard": "Væggen viser disse knapper på et kort, der er mindst {min} pixels højt. Dette er {height} pixels højt."
     },
     "fullscreen-weather": {
       "view": "Visning",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Viser {names} samt delte kalendere og helligdage.",
       "peopleFilterStaleMember": "En, der ikke længere er på familielisten",
       "peopleFilterStaleGroup": "En gruppe, der er fjernet",
-      "peopleFilterClear": "Vis alle"
+      "peopleFilterClear": "Vis alle",
+      "showOnePerson": "Vis én person",
+      "showOnePersonHint": "En knap på en touchskærm, der viser én persons eller én gruppes begivenheder sammen med familiens. Efter et minut vises alle igen.",
+      "showOnePersonNeedsPeople": "Kræver mindst to personer med hver sin kalender."
     },
     "calendarDayNotes": {
       "label": "Dagsnoter",

@@ -195,6 +195,28 @@
       "changedElsewhere": "Quelqu'un vient de modifier cet événement. Voici la dernière version : refais ta modification.",
       "changeTitle": "Modifier {title}",
       "backToForm": "Retour au formulaire"
+    },
+    "viewLabels": {
+      "daily": "Jours",
+      "agenda": "Agenda",
+      "week": "Semaine",
+      "multiWeek": "Semaines",
+      "rolling": "Glissant",
+      "month": "Mois"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Vues",
+      "sheetEyebrow": "Voir une seule personne",
+      "sheetTitle": "Le calendrier de qui ?",
+      "allPeople": {
+        "one": "{count} personne",
+        "other": "Les {count} personnes"
+      },
+      "peopleCount": {
+        "one": "{count} personne",
+        "other": "{count} personnes"
+      },
+      "showEveryone": "Montrer tout le monde"
     }
   },
   "fullscreen-calendar": {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { addDays, startOfDay, startOfWeek } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
@@ -34,6 +34,14 @@ import { calendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
 import { formatDayRange } from '@/i18n/formatters';
 import { useLookAhead } from './shared/useLookAhead';
 import { LookAheadBar, LookAheadContext } from './shared/LookAhead';
+import { useElementBox } from '@/hooks/useElementBox';
+import { CARD_VIEW_BUTTONS } from './calendar/view-buttons';
+import { useWallCalendarSwitch } from './shared/useWallCalendarSwitch';
+import { CalendarSwitchBar } from './shared/CalendarSwitchBar';
+import { WallPersonSheet } from './shared/WallPersonSheet';
+import {
+  CALENDAR_CARD_VIEW_ORDER, CARD_SWITCH_MIN_HEIGHT, livePick, offersPersonPicker, personEventCounts, wallPeopleChoices, wallSwitchedConfig, wallViewChoices,
+} from '@/lib/calendar-wall-switch';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -87,10 +95,37 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   rolling: GridView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState, screenId, moduleId }: CalendarModuleProps) {
+export default function CalendarModule({ config: savedConfig, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState, screenId, moduleId }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
+
+  // On a touch wall the family can borrow another of the views the editor
+  // offered, and show one person, for a minute (useWallCalendarSwitch), on a
+  // card tall enough for the buttons. From here on `config` is the calendar
+  // as it is drawn right now; at rest it is the saved config itself.
+  const [boxRef, box] = useElementBox<HTMLDivElement>();
+  // Measured first: a short card never flashes the buttons before it knows.
+  const tallEnough = box.height > 0 && box.height + 2 * style.padding >= CARD_SWITCH_MIN_HEIGHT;
+  const switchOnWall = wallScrollOn(savedConfig.eventTapDetails === true, screenId, moduleId) && tallEnough;
+  const homeView = savedConfig.viewMode ?? 'daily';
+  const editorSelection = useMemo(
+    () => peopleSelection(savedConfig.peopleFilter, people, groups, peopleState),
+    [savedConfig.peopleFilter, people, groups, peopleState],
+  );
+  const peopleChoices = useMemo(() => wallPeopleChoices(people, groups, editorSelection), [people, groups, editorSelection]);
+  const viewChoices = useMemo(() => wallViewChoices(homeView, savedConfig.wallViews, CALENDAR_CARD_VIEW_ORDER), [homeView, savedConfig.wallViews]);
+  const personOffered = switchOnWall && savedConfig.showOnePerson === true && (offersPersonPicker(peopleChoices) || peopleState === 'loading');
+  const switchShown = switchOnWall && (viewChoices.length > 1 || personOffered);
+  const wall = useWallCalendarSwitch({
+    enabled: switchShown,
+    homeView,
+    views: viewChoices,
+    pick: (pick) => (personOffered ? livePick(pick, peopleChoices) : null),
+  });
+  const config = useMemo(() => wallSwitchedConfig(savedConfig, 'viewMode', wall.borrowed, wall.pick), [savedConfig, wall.borrowed, wall.pick]);
+  const [peopleOpen, setPeopleOpen] = useState(false);
+
   const sourceFilter = config.sourceFilter;
   // Sub-minute ticking only while a slot actually needs it: a stalled
   // countdown ("in 1 minute") or progress bar is visible within a render
@@ -109,7 +144,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const eventRules = config.eventRules;
   const rulesNow = rulesNeedNow(eventRules) ? now : null;
   // "Show only these people", resolved once per roster change (groups expand to members here).
-  const selection = useMemo(() => peopleSelection(config.peopleFilter, people, groups, peopleState), [config.peopleFilter, people, groups, peopleState]);
+  const selection = useMemo(
+    () => (config.peopleFilter === savedConfig.peopleFilter ? editorSelection : peopleSelection(config.peopleFilter, people, groups, peopleState)),
+    [config.peopleFilter, savedConfig.peopleFilter, editorSelection, people, groups, peopleState],
+  );
   const sourcedEvents = useMemo(
     () => selectCalendarEvents(rawEvents, {
       sourceFilter, peopleSelection: selection, titleFilter: config.titleFilter, eventRules, timezone, now: rulesNow ?? new Date(0),
@@ -210,6 +248,15 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // Add, Change and Remove from the wall, once the household turned adding on (S9: the module can say no).
   const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
   const daySheet = useDaySheet(allEvents, tapDetails, dayNotes, adding !== null);
+  // The picker's counts: each person's events in what the view shows, before
+  // any one person is picked. Worked out only while the picker is open.
+  const pickerCounts = useMemo(() => {
+    if (!peopleOpen) return new Map<string, number>();
+    const everyone = selectCalendarEvents(rawEvents, {
+      sourceFilter, peopleSelection: editorSelection, titleFilter: config.titleFilter, eventRules, timezone, now: rulesNow ?? new Date(0),
+    });
+    return personEventCounts(everyone, peopleChoices.people, viewWindow ?? windowAt(listFrom ?? anchor), timezone);
+  }, [peopleOpen, rawEvents, sourceFilter, editorSelection, config.titleFilter, eventRules, timezone, rulesNow, peopleChoices, viewWindow, windowAt, listFrom, anchor]);
   const detailTheme = getThemeTokens('charcoal');
   // A grid that draws its own title (every Month, and every grid in the
   // modern looks) puts the arrows in it; the other views get a heading row.
@@ -267,6 +314,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   return (
     <ModuleWrapper style={style}>
       <div
+        ref={boxRef}
         className="h-full flex flex-col relative"
         data-tap-events={tapDetails ? '' : undefined}
         onClick={onRootClick}
@@ -307,6 +355,20 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
         {!titledGrid && <LookAheadBar look={look} dates={lookDates} shortDates={lookShortDates} accent={accentColor} datesOnly={spansWeeks} />}
+        {switchShown && (
+          <CalendarSwitchBar
+            look="card"
+            views={viewChoices.map((view) => ({ value: view, label: t(CARD_VIEW_BUTTONS[view].labelKey), icon: CARD_VIEW_BUTTONS[view].icon }))}
+            current={wall.view}
+            onView={wall.showView}
+            people={personOffered ? peopleChoices : null}
+            pick={wall.pick}
+            pending={peopleState === 'loading'}
+            onOpenPeople={() => setPeopleOpen(true)}
+            onClearPerson={() => wall.showPick(null)}
+            style={{ marginBottom: '0.5em' }}
+          />
+        )}
         <div className="flex-1 min-h-0">
           <DaySheetContext.Provider value={daySheet.opener}>
             <LookAheadContext.Provider value={lookContext}>
@@ -342,6 +404,20 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
         now={now}
         adding={adding}
       />
+      {peopleOpen && personOffered && (
+        <WallPersonSheet
+          choices={peopleChoices}
+          current={wall.pick}
+          counts={pickerCounts}
+          theme={detailTheme}
+          accentColor={accentColor}
+          onPick={(pick) => {
+            wall.showPick(pick);
+            setPeopleOpen(false);
+          }}
+          onClose={() => setPeopleOpen(false)}
+        />
+      )}
     </ModuleWrapper>
   );
 }

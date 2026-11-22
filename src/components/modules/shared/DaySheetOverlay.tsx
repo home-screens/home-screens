@@ -23,9 +23,15 @@ import { wallPressProps } from './wallPress';
  * otherwise run past the bottom. Never below `min` px so a small screen stays
  * readable, never above `px` so a big one keeps the event detail's size.
  */
-function len(px: number, min: number): string {
+/**
+ * A length for a sheet over the wall: `px` on a 1080-wide portrait wall,
+ * following the window down to `min`. The sheet sets `--ds-u`. Shared with the
+ * other sheets drawn in the day sheet's look.
+ */
+export function daySheetLen(px: number, min: number): string {
   return `clamp(${min}px, calc(var(--ds-u) * ${Math.round((px / 10.8) * 1000) / 1000}), ${px}px)`;
 }
+const len = daySheetLen;
 
 interface DaySheetOverlayProps {
   date: Date;

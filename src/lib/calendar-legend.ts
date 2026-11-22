@@ -58,7 +58,7 @@ export function viewDayWindow(opts: {
  * the shared fetch window is usually wider than any single view.
  */
 export function eventsInWindow<T extends { start: string; end: string }>(
-  events: T[],
+  events: readonly T[],
   start: Date,
   end: Date,
   timezone?: string,

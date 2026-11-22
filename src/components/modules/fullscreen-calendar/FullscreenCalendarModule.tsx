@@ -13,7 +13,7 @@ import { householdTimeFormat } from '@/lib/clock-time';
 import { buildLegendRows } from '@/lib/calendar-legend';
 import { ownerBySource, peopleForSelection, peopleSelection, type PeopleSelection } from '@/lib/calendar-people';
 import type { FamilyGroup } from '@/types/family';
-import { effectiveWeatherPlacement, viewTraits } from './view-traits';
+import { effectiveWeatherPlacement, viewTraits, VIEW_TRAITS } from './view-traits';
 import { scheduleColumnCount, type CalendarScale, type CalendarViewProps, type CalendarWeather } from './view-support';
 import { buildHourlyIndex } from './event-weather';
 import { getWeatherIcon } from '@/lib/weather-icons';
@@ -51,6 +51,12 @@ import { DaySheetContext, useDaySheet } from '../shared/useDaySheet';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { fullscreenCalendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
 import { useLookAhead, type LookAhead } from '../shared/useLookAhead';
+import { useWallCalendarSwitch } from '../shared/useWallCalendarSwitch';
+import { CalendarSwitchBar } from '../shared/CalendarSwitchBar';
+import { WallPersonSheet } from '../shared/WallPersonSheet';
+import {
+  FULLSCREEN_CALENDAR_VIEW_ORDER, livePick, offersPersonPicker, personEventCounts, wallPeopleChoices, wallSwitchedConfig, wallViewChoices,
+} from '@/lib/calendar-wall-switch';
 import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
@@ -204,7 +210,7 @@ interface FullscreenCalendarModuleProps {
 }
 
 export default function FullscreenCalendarModule({
-  config,
+  config: savedConfig,
   style: _style,
   events: rawEventsRaw,
   timezone,
@@ -240,12 +246,40 @@ export default function FullscreenCalendarModule({
   // Legend ring, named header pill, and per-row "saved" suffix all key off
   // this shared derivation (see useFailingSources).
   const { failingSources, failingSourceIds, hasLiveSource } = useFailingSources({
-    sourceStatus, sourceFilter: config.sourceFilter,
+    sourceStatus, sourceFilter: savedConfig.sourceFilter,
   });
+
+  // On a touch wall the family can borrow another of the views the editor
+  // offered, and show one person, for a minute (useWallCalendarSwitch). From
+  // here on `config` is the calendar as it is drawn right now; at rest it is
+  // the saved config itself.
+  const switchOnWall = wallScrollOn(savedConfig.eventTapDetails === true, screenId, moduleId);
+  const editorSelection = useMemo(
+    () => peopleSelection(savedConfig.peopleFilter, people, groups, peopleState),
+    [savedConfig.peopleFilter, people, groups, peopleState],
+  );
+  const peopleChoices = useMemo(() => wallPeopleChoices(people, groups, editorSelection), [people, groups, editorSelection]);
+  const viewChoices = useMemo(
+    () => wallViewChoices(savedConfig.view, savedConfig.wallViews, FULLSCREEN_CALENDAR_VIEW_ORDER),
+    [savedConfig.view, savedConfig.wallViews],
+  );
+  const personOffered = switchOnWall && savedConfig.showOnePerson === true && (offersPersonPicker(peopleChoices) || peopleState === 'loading');
+  const switchShown = switchOnWall && (viewChoices.length > 1 || personOffered);
+  const wall = useWallCalendarSwitch({
+    enabled: switchShown,
+    homeView: savedConfig.view,
+    views: viewChoices,
+    pick: (pick) => (personOffered ? livePick(pick, peopleChoices) : null),
+  });
+  const config = useMemo(() => wallSwitchedConfig(savedConfig, 'view', wall.borrowed, wall.pick), [savedConfig, wall.borrowed, wall.pick]);
+  const [peopleOpen, setPeopleOpen] = useState(false);
 
   // "Show only these people", resolved once per roster change: groups expand
   // to members here, so a screen pointed at "Kids" follows the family list.
-  const selection = useMemo(() => peopleSelection(config.peopleFilter, people, groups, peopleState), [config.peopleFilter, people, groups, peopleState]);
+  const selection = useMemo(
+    () => (config.peopleFilter === savedConfig.peopleFilter ? editorSelection : peopleSelection(config.peopleFilter, people, groups, peopleState)),
+    [config.peopleFilter, savedConfig.peopleFilter, editorSelection, people, groups, peopleState],
+  );
   // The per-person views draw only the chosen people, like the events.
   const visiblePeople = useMemo(() => peopleForSelection(people, selection), [people, selection]);
   // Name tags: the owner drawn in place of each event's calendar dot.
@@ -448,6 +482,18 @@ export default function FullscreenCalendarModule({
   const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
   const daySheet = useDaySheet(events, tapDetails, dayNotes, adding !== null);
 
+  // The picker's counts: each person's events in what the view shows, before
+  // any one person is picked. Worked out only while the picker is open.
+  const pickerCounts = useMemo(() => {
+    if (!peopleOpen) return new Map<string, number>();
+    const everyone = selectVisibleEvents(rawEvents, config.view, config.sourceFilter, selectionNow ?? today, {
+      timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
+      eventRules: config.eventRules, peopleSelection: editorSelection, from: listFrom,
+    });
+    const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
+    return personEventCounts(everyone, peopleChoices.people, window, timezone);
+  }, [peopleOpen, rawEvents, config, selectionNow, today, timezone, editorSelection, listFrom, traits, anchor, weekStartsOn, scale.width, peopleChoices]);
+
   return (
     <div
       ref={containerRef}
@@ -563,15 +609,41 @@ export default function FullscreenCalendarModule({
             {Math.round(currentTemp)}{tempUnit}
           </span>
         )}
-        <span
-          className="fsc-view-badge"
-          style={{ fontSize: `${scale.bu * 1.0 * scale.typoMul}px` }}
-          aria-label={t('fullscreen-calendar.ariaLabels.view', { label: viewLabel })}
-        >
-          <ViewIcon size={scale.bu * 1.2 * scale.typoMul} aria-hidden="true" />
-          {viewLabel}
-        </span>
+        {/* With the wall's view buttons below, the lit button names the view. */}
+        {!switchShown && (
+          <span
+            className="fsc-view-badge"
+            style={{ fontSize: `${scale.bu * 1.0 * scale.typoMul}px` }}
+            aria-label={t('fullscreen-calendar.ariaLabels.view', { label: viewLabel })}
+          >
+            <ViewIcon size={scale.bu * 1.2 * scale.typoMul} aria-hidden="true" />
+            {viewLabel}
+          </span>
+        )}
       </header>
+
+      {switchShown && (
+        <CalendarSwitchBar
+          look="fullscreen"
+          bu={scale.bu}
+          views={viewChoices.map((view) => ({ value: view, label: t(VIEW_TRAITS[view].labelKey), icon: VIEW_TRAITS[view].icon }))}
+          current={wall.view}
+          onView={wall.showView}
+          people={personOffered ? peopleChoices : null}
+          pick={wall.pick}
+          pending={peopleState === 'loading'}
+          onOpenPeople={() => setPeopleOpen(true)}
+          onClearPerson={() => wall.showPick(null)}
+          style={{
+            background: 'var(--cal-header-bg)',
+            backdropFilter: 'var(--cal-bar-backdrop)',
+            WebkitBackdropFilter: 'var(--cal-bar-backdrop)',
+            borderBottom: '1px solid var(--cal-border-subtle)',
+            position: 'relative',
+            zIndex: 20,
+          }}
+        />
+      )}
 
       {legendPlacement === 'header' && (
         <CalendarLegend
@@ -659,6 +731,20 @@ export default function FullscreenCalendarModule({
         now={now}
         adding={adding}
       />
+      {peopleOpen && personOffered && (
+        <WallPersonSheet
+          choices={peopleChoices}
+          current={wall.pick}
+          counts={pickerCounts}
+          theme={theme}
+          accentColor={drawnAccent}
+          onPick={(pick) => {
+            wall.showPick(pick);
+            setPeopleOpen(false);
+          }}
+          onClose={() => setPeopleOpen(false)}
+        />
+      )}
     </div>
   );
 }

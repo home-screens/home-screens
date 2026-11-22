@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 regel",
       "ruleCountOther": "{count} regels",
       "addEvents": "Afspraken toevoegen bij een dag",
-      "addEventsHelp": "Toont \"Afspraak toevoegen\" als je op een dag tikt, en Wijzigen en Verwijderen bij een afspraak. Afspraken toevoegen moet aanstaan bij Instellingen > Kalender."
+      "addEventsHelp": "Toont \"Afspraak toevoegen\" als je op een dag tikt, en Wijzigen en Verwijderen bij een afspraak. Afspraken toevoegen moet aanstaan bij Instellingen > Kalender.",
+      "wallViews": "Weergave wisselen aan de muur",
+      "wallViewsOwn": "Weergave van deze kalender",
+      "wallViewsHint": "Knoppen onder de kop, hooguit vier. Een minuut na de laatste aanraking gaat de muur terug naar {view}.",
+      "wallViewsFull": "Vier is het maximum. Vink er een uit om een andere te kiezen.",
+      "wallSwitchShortCard": "De muur toont deze knoppen alleen op een module van minstens {min} pixels hoog. Deze is {height} pixels."
     },
     "fullscreen-weather": {
       "view": "Weergave",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Toont {names}, plus gedeelde kalenders en feestdagen.",
       "peopleFilterStaleMember": "Iemand die niet meer op de gezinslijst staat",
       "peopleFilterStaleGroup": "Een verwijderde groep",
-      "peopleFilterClear": "Iedereen tonen"
+      "peopleFilterClear": "Iedereen tonen",
+      "showOnePerson": "Eén persoon tonen",
+      "showOnePersonHint": "Op een aanraakscherm laat een knop alleen de afspraken van één persoon of groep zien, samen met de gedeelde gezinsafspraken. Na een minuut zie je weer iedereen.",
+      "showOnePersonNeedsPeople": "Hiervoor hebben minstens twee mensen een eigen kalender nodig."
     },
     "calendarDayNotes": {
       "label": "Dagnotities",

@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 regra",
       "ruleCountOther": "{count} regras",
       "addEvents": "Adicionar eventos ao tocar num dia",
-      "addEventsHelp": "Mostra “Adicionar evento” ao tocar num dia e os botões Mudar e Remover em cada evento. Só funciona com Adicionar eventos ligado em Configurações > Calendário."
+      "addEventsHelp": "Mostra “Adicionar evento” ao tocar num dia e os botões Mudar e Remover em cada evento. Só funciona com Adicionar eventos ligado em Configurações > Calendário.",
+      "wallViews": "Trocar de visualização na parede",
+      "wallViewsOwn": "Visualização deste calendário",
+      "wallViewsHint": "Botões abaixo do título, no máximo quatro. Um minuto depois do último toque, a parede volta para {view}.",
+      "wallViewsFull": "No máximo quatro. Desmarque uma para escolher outra.",
+      "wallSwitchShortCard": "A parede mostra estes botões num cartão de pelo menos {min} pixels de altura. Este tem {height} pixels."
     },
     "fullscreen-weather": {
       "view": "Visualização",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Mostra {names}, além dos calendários compartilhados e feriados.",
       "peopleFilterStaleMember": "Alguém que não está mais na família",
       "peopleFilterStaleGroup": "Um grupo que foi removido",
-      "peopleFilterClear": "Mostrar todo mundo"
+      "peopleFilterClear": "Mostrar todo mundo",
+      "showOnePerson": "Mostrar só uma pessoa",
+      "showOnePersonHint": "Um botão numa parede sensível ao toque que mostra os eventos de uma pessoa, ou de um grupo, junto com os da família. Um minuto depois, a parede volta a mostrar todo mundo.",
+      "showOnePersonNeedsPeople": "Precisa de pelo menos duas pessoas com calendário próprio."
     },
     "calendarDayNotes": {
       "label": "Recados do dia",

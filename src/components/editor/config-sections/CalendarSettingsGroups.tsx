@@ -12,7 +12,8 @@ import type {
   CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle,
 } from '@/types/config';
 import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
-import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, useCalendarRoster } from './CalendarPeopleControls';
+import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, ShowOnePersonToggle, useCalendarRoster } from './CalendarPeopleControls';
+import { canPickAnotherView, CARD_SWITCH_MIN_HEIGHT } from '@/lib/calendar-wall-switch';
 import { CalendarSourceFilter, type CalendarSource } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 
@@ -156,23 +157,37 @@ export function CalendarWhatShowsGroup({ keyPrefix, config: c, set, availableSou
   );
 }
 
-interface TouchConfig {
+interface TouchConfig<V extends string> {
   eventTapDetails?: boolean;
   eventTapStyle?: EventTapStyle;
   addEvents?: boolean;
+  wallViews?: V[];
+  showOnePerson?: boolean;
+}
+
+/** The module's views for "Switch views on the wall": its own, all of them in order, and the wall's word for each. */
+export interface TouchViews<V extends string> {
+  home: V;
+  order: readonly V[];
+  labelFor: (view: V) => string;
 }
 
 /**
- * "Touch": whether a tap opens an event, how the details are drawn, and
- * whether a tapped day offers "Add event" once adding events is on. Shared by
- * both calendar modules.
+ * "Touch": whether a tap opens an event, how the details are drawn, whether a
+ * tapped day offers "Add event" once adding events is on, and which views and
+ * people the wall's buttons offer. Shared by both calendar modules.
+ * `cardHeight` is the Calendar card's height, for the note that a short card
+ * shows no buttons; the full-screen calendar passes none.
  */
-export function CalendarTouchGroup({ keyPrefix, config: c, set }: {
+export function CalendarTouchGroup<V extends string>({ keyPrefix, config: c, set, views, cardHeight }: {
   keyPrefix: CalendarKeyPrefix;
-  config: TouchConfig;
-  set: (patch: Partial<TouchConfig>) => void;
+  config: TouchConfig<V>;
+  set: (patch: Partial<TouchConfig<V>>) => void;
+  views: TouchViews<V>;
+  cardHeight?: number;
 }) {
   const t = useTranslate('editor');
+  const roster = useCalendarRoster();
   const tapStyleOptions: { value: EventTapStyle; label: string }[] = [
     { value: 'sheet', label: t(`${keyPrefix}.eventTapStyleSheet`) },
     { value: 'card', label: t(`${keyPrefix}.eventTapStyleCard`) },
@@ -189,7 +204,59 @@ export function CalendarTouchGroup({ keyPrefix, config: c, set }: {
         />
       )}
       {c.eventTapDetails === true && <AddEventsToggle checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} />}
+      {c.eventTapDetails === true && (
+        <>
+          <WallViewsPicker views={views} picked={c.wallViews} onChange={(next) => set({ wallViews: next })} />
+          <ShowOnePersonToggle checked={c.showOnePerson === true} onChange={(v) => set({ showOnePerson: v })} owners={roster.owners} />
+          {cardHeight !== undefined && cardHeight < CARD_SWITCH_MIN_HEIGHT && ((c.wallViews?.length ?? 0) > 0 || c.showOnePerson === true) && (
+            <p className="text-xs leading-relaxed text-hs-warning" data-testid="wall-switch-short-card">
+              {t(`${KEY}.wallSwitchShortCard`, { min: CARD_SWITCH_MIN_HEIGHT, height: Math.round(cardHeight) })}
+            </p>
+          )}
+        </>
+      )}
     </CalendarGroup>
+  );
+}
+
+/**
+ * "Switch views on the wall": the module's views as a check list, the
+ * calendar's own ticked for good, three more at most. What is ticked becomes
+ * the row of view buttons on a touch wall.
+ */
+function WallViewsPicker<V extends string>({ views, picked, onChange }: { views: TouchViews<V>; picked: V[] | undefined; onChange: (next: V[]) => void }) {
+  const t = useTranslate('editor');
+  const { home, order, labelFor } = views;
+  const ticked = new Set((picked ?? []).filter((view) => view !== home && order.includes(view)));
+  const full = !canPickAnotherView(home, picked, order);
+  const toggle = (view: V, on: boolean) =>
+    onChange(order.filter((v) => v !== home && (v === view ? on : ticked.has(v))));
+  const checkbox = 'rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0 disabled:opacity-60';
+  return (
+    <div className="flex flex-col gap-1" data-field-id="wallViews">
+      <span className="text-xs text-hs-text-muted">{t(`${KEY}.wallViews`)}</span>
+      <div className="rounded-md bg-hs-card border border-hs-border-strong">
+        {order.map((view) => {
+          const own = view === home;
+          const on = own || ticked.has(view);
+          const locked = own || (!on && full);
+          return (
+            <label
+              key={view}
+              data-wall-view-option={view}
+              className={`flex items-center gap-2.5 px-3 py-1.5 ${locked ? 'cursor-default' : 'cursor-pointer hover:bg-hs-hover'}`}
+            >
+              <input type="checkbox" className={checkbox} checked={on} disabled={locked} onChange={(event) => toggle(view, event.target.checked)} />
+              <span className={`text-sm truncate ${locked && !own ? 'text-hs-text-faint' : 'text-hs-text-body'}`}>{labelFor(view)}</span>
+              {own && <span className="ml-auto text-[11px] text-hs-text-faint whitespace-nowrap">{t(`${KEY}.wallViewsOwn`)}</span>}
+            </label>
+          );
+        })}
+      </div>
+      <p className="text-xs leading-relaxed text-hs-text-muted">
+        {full ? t(`${KEY}.wallViewsFull`) : t(`${KEY}.wallViewsHint`, { view: labelFor(home) })}
+      </p>
+    </div>
   );
 }
 

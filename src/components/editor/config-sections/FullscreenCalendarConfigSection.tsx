@@ -18,6 +18,7 @@ import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShow
 import type { FullscreenCalendarView, TodayHighlightStyle, EventOverlapMode, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, HourWindowMode } from '@/types/config';
 import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
 import { clampRollingWeeks } from '@/lib/calendar-utils';
+import { FULLSCREEN_CALENDAR_VIEW_ORDER } from '@/lib/calendar-wall-switch';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
@@ -35,6 +36,8 @@ const SHOW_DESCRIPTION_KEY = {
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  // The wall's own words for each view, so the Touch ticks name its buttons.
+  const tModules = useTranslate('modules');
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
   // What the picker shows while accentColor is empty: the accent the module
@@ -440,7 +443,12 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       </CalendarRulesGroup>
 
       {/* ── Touch: interaction, not appearance ── */}
-      <CalendarTouchGroup keyPrefix="configSections.fullscreen-calendar" config={c} set={set} />
+      <CalendarTouchGroup
+        keyPrefix="configSections.fullscreen-calendar"
+        config={c}
+        set={set}
+        views={{ home: view, order: FULLSCREEN_CALENDAR_VIEW_ORDER, labelFor: (v) => tModules(viewTraits(v).labelKey) }}
+      />
     </>
   );
 }

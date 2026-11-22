@@ -56,6 +56,25 @@ export function NameTagsToggle({ checked, onChange, owners }: { checked: boolean
   );
 }
 
+/**
+ * "Show one person" on a touch wall, with what it does under it; with fewer
+ * than two people who own a calendar the wall has nobody to choose between,
+ * which the hint says instead of hiding the switch.
+ */
+export function ShowOnePersonToggle({ checked, onChange, owners }: { checked: boolean; onChange: (next: boolean) => void; owners: FamilyMember[] }) {
+  const t = useTranslate('editor');
+  return (
+    <div className="flex flex-col gap-1" data-field-id="showOnePerson">
+      <Toggle label={t('configSections.calendarPeople.showOnePerson')} checked={checked} onChange={onChange} />
+      <Hint>
+        {owners.length >= 2 ? t('configSections.calendarPeople.showOnePersonHint') : (
+          <>{t('configSections.calendarPeople.showOnePersonNeedsPeople')} <MatchCalendarsLink /></>
+        )}
+      </Hint>
+    </div>
+  );
+}
+
 /** "Key lists": what the color key names. People and Groups wait for calendar owners. */
 export function LegendModeSelect({ value, onChange, owners, groups }: {
   value: CalendarLegendMode; onChange: (next: CalendarLegendMode) => void; owners: FamilyMember[]; groups: FamilyGroup[];

@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 regla",
       "ruleCountOther": "{count} reglas",
       "addEvents": "Añadir eventos al tocar un día",
-      "addEventsHelp": "Muestra «Añadir evento» al tocar un día, y «Cambiar» y «Quitar» en cada evento. Antes hay que activarlo en Ajustes > Calendario."
+      "addEventsHelp": "Muestra «Añadir evento» al tocar un día, y «Cambiar» y «Quitar» en cada evento. Antes hay que activarlo en Ajustes > Calendario.",
+      "wallViews": "Cambiar de vista en la pared",
+      "wallViewsOwn": "Vista de este calendario",
+      "wallViewsHint": "Botones bajo el título, cuatro como máximo. Un minuto después del último toque, la pared vuelve a la vista «{view}».",
+      "wallViewsFull": "Cuatro es el máximo. Desmarca una para elegir otra.",
+      "wallSwitchShortCard": "La pared muestra estos botones en una tarjeta de al menos {min} píxeles de alto. Esta mide {height} píxeles."
     },
     "fullscreen-weather": {
       "view": "Vista",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Muestra {names}, más los calendarios compartidos y los festivos.",
       "peopleFilterStaleMember": "Alguien que ya no está en la familia",
       "peopleFilterStaleGroup": "Un grupo que se quitó",
-      "peopleFilterClear": "Mostrar a todos"
+      "peopleFilterClear": "Mostrar a todos",
+      "showOnePerson": "Ver solo a una persona",
+      "showOnePersonHint": "En una pantalla táctil, un botón que muestra solo los eventos de una persona, o de un grupo, junto con los de la familia. Pasado un minuto, vuelve a mostrar a todos.",
+      "showOnePersonNeedsPeople": "Hacen falta al menos dos personas con calendario propio."
     },
     "calendarDayNotes": {
       "label": "Notas del día",

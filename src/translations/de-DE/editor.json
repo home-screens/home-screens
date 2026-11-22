@@ -5562,7 +5562,12 @@
       "ruleCountOne": "1 Regel",
       "ruleCountOther": "{count} Regeln",
       "addEvents": "Beim Tippen auf einen Tag Termine hinzufügen",
-      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter Einstellungen > Kalender eingeschaltet sein."
+      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter Einstellungen > Kalender eingeschaltet sein.",
+      "wallViews": "Ansichten an der Wand wechseln",
+      "wallViewsOwn": "Ansicht dieses Kalenders",
+      "wallViewsHint": "Bis zu vier Knöpfe unter der Überschrift. Eine Minute nach dem letzten Tippen zeigt die Wand wieder „{view}“.",
+      "wallViewsFull": "Mehr als vier gehen nicht. Nimm einen Haken weg, um einen anderen zu setzen.",
+      "wallSwitchShortCard": "Die Wand zeigt diese Knöpfe nur auf Karten, die mindestens {min} Pixel hoch sind. Diese ist {height} Pixel hoch."
     },
     "fullscreen-weather": {
       "view": "Ansicht",
@@ -5658,7 +5663,10 @@
       "peopleFilterShowingShared": "Zeigt {names} sowie gemeinsame Kalender und Feiertage.",
       "peopleFilterStaleMember": "Jemand, der nicht mehr auf der Familienliste steht",
       "peopleFilterStaleGroup": "Eine entfernte Gruppe",
-      "peopleFilterClear": "Alle anzeigen"
+      "peopleFilterClear": "Alle anzeigen",
+      "showOnePerson": "Eine Person zeigen",
+      "showOnePersonHint": "Ein Knopf an einer Wand mit Touchscreen, der die Termine einer Person oder Gruppe zeigt, dazu die gemeinsamen Familientermine. Nach einer Minute sind wieder alle zu sehen.",
+      "showOnePersonNeedsPeople": "Dafür brauchen mindestens zwei Personen einen eigenen Kalender."
     },
     "calendarDayNotes": {
       "label": "Tagesnotizen",

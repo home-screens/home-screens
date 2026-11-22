@@ -540,6 +540,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       // On for new modules: a touch wall answers a tap. A wall without a touchscreen never gets one.
       eventTapDetails: true,
       eventTapStyle: 'sheet',
+      // New calendars offer Week and Month beside their own view, and one person, on a touch wall.
+      wallViews: ['week-list', 'month-grid'],
+      showOnePerson: true,
       startDay: 'sunday',
       showCountdown: false,
       showProgressBar: false,
@@ -794,6 +797,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       // On for new modules: a touch wall answers a tap. A wall without a touchscreen never gets one.
       eventTapDetails: true,
       eventTapStyle: 'sheet',
+      // New cards offer Week and Month beside their own view, and one person, once tall enough.
+      wallViews: ['week', 'month'],
+      showOnePerson: true,
       showCountdown: false,
       showProgressBar: false,
       emptyDayText: '',

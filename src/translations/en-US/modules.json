@@ -195,6 +195,28 @@
       "changedElsewhere": "Someone changed this event a moment ago. This is the newest version; make your change again.",
       "changeTitle": "Change {title}",
       "backToForm": "Back to the form"
+    },
+    "viewLabels": {
+      "daily": "Days",
+      "agenda": "Agenda",
+      "week": "Week",
+      "multiWeek": "Weeks",
+      "rolling": "Rolling",
+      "month": "Month"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Views",
+      "sheetEyebrow": "Show one person",
+      "sheetTitle": "Whose calendar?",
+      "allPeople": {
+        "one": "{count} person",
+        "other": "All {count} people"
+      },
+      "peopleCount": {
+        "one": "{count} person",
+        "other": "{count} people"
+      },
+      "showEveryone": "Show everyone"
     }
   },
   "fullscreen-calendar": {

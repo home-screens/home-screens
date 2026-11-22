@@ -195,6 +195,28 @@
       "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert. Das hier ist der neueste Stand. Mach deine Änderung noch einmal.",
       "changeTitle": "„{title}“ ändern",
       "backToForm": "Zurück zum Formular"
+    },
+    "viewLabels": {
+      "daily": "Tage",
+      "agenda": "Agenda",
+      "week": "Woche",
+      "multiWeek": "Wochen",
+      "rolling": "Laufend",
+      "month": "Monat"
+    },
+    "wallSwitch": {
+      "viewsLabel": "Ansichten",
+      "sheetEyebrow": "Eine Person zeigen",
+      "sheetTitle": "Wessen Kalender?",
+      "allPeople": {
+        "one": "{count} Person",
+        "other": "{count} Personen"
+      },
+      "peopleCount": {
+        "one": "{count} Person",
+        "other": "{count} Personen"
+      },
+      "showEveryone": "Alle zeigen"
     }
   },
   "fullscreen-calendar": {
