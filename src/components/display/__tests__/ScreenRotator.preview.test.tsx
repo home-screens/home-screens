@@ -37,8 +37,12 @@ vi.mock('../useLiveConfig', () => ({
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
 vi.mock('../useBootWarmup', () => ({ useBootWarmup: () => {} }));
-// PaginationDots translates its paused pill; no locale blob is loaded here.
-vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
+// PaginationDots names its dots through the dictionary: read them in English.
+vi.mock('@/i18n', async () => {
+  const { lookupKey } = await import('@/i18n/fallback');
+  const core = (await import('@/translations/en-US/core.json')).default;
+  return { useTranslate: () => (key: string, vars?: Record<string, string | number>) => lookupKey(core, key, vars) ?? key };
+});
 vi.mock('../useBackgroundRotation', () => ({ useBackgroundRotation: () => ({}) }));
 const useDisplayCommands = vi.fn();
 const useStatusReporter = vi.fn();
@@ -144,7 +148,7 @@ describe('ScreenRotator start screen and preview mode', () => {
     // preview exists to show. The active dot carries the pause glyph.
     expect(dom.queryByTestId('pause-pill')).toBeNull();
     expect(dom.getByTestId('pagination-held')).toBeTruthy();
-    expect(dom.queryByRole('button', { name: 'Resume rotation' })).toBeNull();
+    expect(dom.queryByRole('button', { name: 'Start changing screens again' })).toBeNull();
 
     // Third arg of useDisplayCommands is `drain`; last arg of useStatusReporter is `enabled`.
     expect(useDisplayCommands).toHaveBeenCalled();

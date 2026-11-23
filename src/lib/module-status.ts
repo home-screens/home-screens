@@ -38,20 +38,16 @@ export interface ModuleStatusContext {
   keyLabel?: (key: string) => string | undefined;
 }
 
-/** Tailwind classes for the corner badge on the canvas, per tone. */
+/**
+ * Tailwind classes for the corner badge on the canvas, per tone: a strong
+ * fill with its on-colour glyph, because it sits on the module's own picture.
+ * Background matches the canvas's dark type label beside it.
+ */
 export const STATUS_BADGE_CLASS: Record<ModuleStatusTone, string> = {
-  off: 'bg-red-700/70 text-red-100',
-  waiting: 'bg-amber-600/70 text-amber-200',
+  off: 'bg-hs-danger/70 text-hs-on-danger',
+  waiting: 'bg-hs-warning/70 text-hs-on-warning',
   active: 'bg-hs-accent/70 text-white',
-  background: 'bg-slate-600/70 text-slate-200',
-};
-
-/** Tailwind classes for the readable chip (canvas selection + property panel). */
-export const STATUS_CHIP_CLASS: Record<ModuleStatusTone, string> = {
-  off: 'bg-red-950/80 text-red-200 border-red-900',
-  waiting: 'bg-amber-950/80 text-amber-200 border-amber-900/70',
-  active: 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/35',
-  background: 'bg-slate-800/80 text-slate-200 border-slate-600/60',
+  background: 'bg-black/50 text-white',
 };
 
 /**

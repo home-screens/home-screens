@@ -66,7 +66,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       />
 
       {/* Slideshow or one picture. A single picture can come from any
-          source the Image Library offers, so the mode shows for every source. */}
+          source the Pictures & videos window offers, so the mode shows for every source. */}
       <LabeledSelect
         label={t('configSections.fullscreen-photo.mode')}
         value={isSinglePhoto ? 'single' : 'slideshow'}
@@ -112,7 +112,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         />
       )}
 
-      {/* Transition & Object Fit row */}
+      {/* Transition & Object fit row */}
       <div className="flex gap-2">
         {!isSinglePhoto && (
           <LabeledSelect
@@ -148,11 +148,11 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {!isSinglePhoto && (
         <div className="flex flex-col gap-1">
           <Toggle
-            label={t('configSections.fullscreen-photo.interactive')}
+            label={t('configSections.tapOnWall')}
             checked={c.interactive !== false}
             onChange={(v) => set({ interactive: v })}
+            description={t('configSections.fullscreen-photo.interactiveHint')}
           />
-          <p className="text-xs leading-relaxed text-hs-text-muted">{t('configSections.fullscreen-photo.interactiveHint')}</p>
         </div>
       )}
       <Toggle
@@ -170,7 +170,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
             displayValue={`${clockBackdrop}%`}
             onChange={(v) => set({ clockBackdrop: v === themeBackdrop ? undefined : v })}
           />
-          {/* Plain "Color", read as the Clock Background's by sitting right
+          {/* Plain "Color", read as the Clock background's by sitting right
               under it: the picker row leaves its label about 95px beside the
               swatch, and "Clock Background Color" wrapped to three lines. */}
           <ColorPicker

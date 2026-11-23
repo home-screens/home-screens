@@ -1,5 +1,8 @@
 'use client';
 
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+
 /**
  * A short list of named things to tick, for filters that take any of
  * several (Immich albums, people). Nothing ticked means "any".
@@ -12,7 +15,7 @@ export default function CheckboxList({ options, selected, onChange, emptyLabel, 
   emptyLabel: string;
   testId?: string;
 }) {
-  if (options.length === 0) return <p className="text-[10px] text-hs-text-faint">{emptyLabel}</p>;
+  if (options.length === 0) return <FieldHint>{emptyLabel}</FieldHint>;
   const chosen = new Set(selected);
   const toggle = (id: string, on: boolean) => {
     const next = on ? [...selected.filter((s) => s !== id), id] : selected.filter((s) => s !== id);
@@ -26,7 +29,7 @@ export default function CheckboxList({ options, selected, onChange, emptyLabel, 
             type="checkbox"
             checked={chosen.has(option.id)}
             onChange={(e) => toggle(option.id, e.target.checked)}
-            className="rounded border-hs-border-strong"
+            className={CHECKBOX_CLASS}
           />
           {option.thumbnailUrl && <img src={option.thumbnailUrl} alt="" className="h-5 w-5 rounded-full border border-hs-border-strong object-cover" />}
           <span className="truncate">{option.label}</span>

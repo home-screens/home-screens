@@ -307,6 +307,6 @@ describe('POST /api/plugins/install-external: where a download may send the hub'
     mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'));
     const res = await POST(makeRequest({ tarballUrl: 'https://x.io/p.tar.gz' }));
     expect(res.status).toBe(502);
-    expect(await res.json()).toEqual({ error: 'Could not download from https://x.io/p.tar.gz', detail: 'it could not be reached' });
+    expect(await res.json()).toEqual({ error: 'Could not download from https://x.io/p.tar.gz', code: 'plugins.downloadFailed', detail: 'it could not be reached' });
   });
 });

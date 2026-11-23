@@ -493,7 +493,12 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
               />
             </>
           ) : activeTab === 'timers' ? (
-            <TimersTab />
+            <>
+              <div className="px-4 pb-8 pt-4">
+                <TimersTab />
+              </div>
+              <div className="h-20" />
+            </>
           ) : activeTab === 'chores' ? (
             <>
               <div className="px-4 pb-8 pt-4">

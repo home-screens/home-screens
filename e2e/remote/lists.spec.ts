@@ -98,6 +98,12 @@ test('the item sheet edits the text, sets a due day, and deletes', async ({ page
   await page.getByRole('dialog').getByRole('button', { name: 'Delete item' }).click();
   await expect(item(page, 'RENAMED ITEM')).toHaveCount(0);
   await expect.poll(async () => (await seededList(request)).items.map((i) => i.id)).toEqual(['b']);
+
+  // One item goes at once, with an Undo that puts it back in its place, due day and all.
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(item(page, 'RENAMED ITEM')).toBeVisible();
+  await expect.poll(async () => (await seededList(request)).items.map((i) => i.text)[0]).toBe('RENAMED ITEM');
+  expect((await seededList(request)).items[0].dueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 });
 
 test('the Who row assigns a family member', async ({ page, request, sandboxDir }) => {
@@ -178,7 +184,9 @@ test('the list sheet renames, sets a daily repeat, tidies up, and deletes', asyn
 
   // Delete from the same sheet, through the confirm sheet.
   await page.getByRole('dialog').getByRole('button', { name: 'Delete list' }).click();
-  await confirmSheet(page).getByRole('button', { name: 'Delete list' }).click();
+  // The question names the list; the answer is the bare verb.
+  await expect(confirmSheet(page)).toContainText('Delete “Shopping”?');
+  await confirmSheet(page).getByRole('button', { name: 'Delete', exact: true }).click();
   await expect.poll(async () => (await getLists(request)).map((l) => l.id)).not.toContain(E2E_TODO_LIST_ID);
   // With no lists left the tab offers to make the first one.
   await expect(page.getByTestId('todo-first-list')).toBeVisible();

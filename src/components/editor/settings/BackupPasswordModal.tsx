@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import { MIN_PASSPHRASE_LENGTH } from '@/lib/backup-credentials-types';
+import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 export interface BackupPasswordModalProps {
   /**
@@ -43,7 +45,6 @@ export default function BackupPasswordModal({
   onClose,
 }: BackupPasswordModalProps) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -71,103 +72,110 @@ export default function BackupPasswordModal({
       closable={!busy}
       className="w-full max-w-md"
     >
-      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 id="backup-password-title" className="text-lg font-semibold text-hs-text-primary mb-2">
-          {mode === 'set'
+      <ModalPanel>
+        <ModalHeader
+          titleId="backup-password-title"
+          title={mode === 'set'
             ? t('settings.dataPage.backupPassword.setTitle')
             : t('settings.dataPage.backupPassword.enterTitle')}
-        </h2>
-        <p className="text-xs text-hs-text-faint mb-4">
-          {mode === 'set'
-            ? purpose === 'save'
-              ? t('settings.dataPage.backupPassword.saveDescription')
-              : t('settings.dataPage.backupPassword.setDescription')
-            : onUseSaved
-              ? t('settings.dataPage.backupPassword.enterSavedDescription')
-              : t('settings.dataPage.backupPassword.enterDescription')}
-        </p>
-
-        {mode === 'enter' && onUseSaved && (
-          <Button variant="primary" onClick={onUseSaved} disabled={busy} className="mb-4">
-            {t('settings.dataPage.backupPassword.useSaved')}
-          </Button>
-        )}
-
-        {error && (
-          <p className="text-xs text-hs-danger mb-3" role="alert">
-            {error}
-          </p>
-        )}
-
-        <label className="block text-sm text-hs-text-muted mb-1" htmlFor="backup-password">
-          {mode === 'enter' && onUseSaved
-            ? t('settings.dataPage.backupPassword.orTypeOne')
-            : t('settings.dataPage.backupPassword.passwordLabel')}
-        </label>
-        <input
-          id="backup-password"
-          type="password"
-          autoFocus={!onUseSaved}
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-          className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-3"
+          onClose={onClose}
+          closable={!busy}
         />
+        <ModalBody>
+          <FieldHint className="mb-4">
+            {mode === 'set'
+              ? purpose === 'save'
+                ? t('settings.dataPage.backupPassword.saveDescription')
+                : t('settings.dataPage.backupPassword.setDescription')
+              : onUseSaved
+                ? t('settings.dataPage.backupPassword.enterSavedDescription')
+                : t('settings.dataPage.backupPassword.enterDescription')}
+          </FieldHint>
 
-        {mode === 'set' && (
-          <>
-            <label className="block text-sm text-hs-text-muted mb-1" htmlFor="backup-password-confirm">
-              {t('settings.dataPage.backupPassword.confirmLabel')}
-            </label>
-            <input
-              id="backup-password-confirm"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submit()}
-              className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-3"
-            />
-          </>
-        )}
+          {mode === 'enter' && onUseSaved && (
+            <Button variant="primary" onClick={onUseSaved} disabled={busy} className="mb-4">
+              {t('settings.dataPage.backupPassword.useSaved')}
+            </Button>
+          )}
 
-        {localError && (
-          <p className="text-xs text-hs-danger mb-3" role="alert">
-            {localError}
-          </p>
-        )}
+          {error && (
+            <p className="text-xs text-hs-danger mb-3" role="alert">
+              {error}
+            </p>
+          )}
 
-        {mode === 'set' && (
-          <p className="text-xs text-hs-text-faint mb-4">
-            {t('settings.dataPage.backupPassword.noRecoveryNote')}
-          </p>
-        )}
+          <label className="block text-sm text-hs-text-muted mb-1" htmlFor="backup-password">
+            {mode === 'enter' && onUseSaved
+              ? t('settings.dataPage.backupPassword.orTypeOne')
+              : t('settings.dataPage.backupPassword.passwordLabel')}
+          </label>
+          <input
+            id="backup-password"
+            type="password"
+            autoFocus={!onUseSaved}
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            className={`mb-3 ${MODAL_INPUT_CLASS}`}
+          />
 
-        <div className="flex justify-end gap-2">
-          {mode === 'enter' && onSkip && (
+          {mode === 'set' && (
+            <>
+              <label className="block text-sm text-hs-text-muted mb-1" htmlFor="backup-password-confirm">
+                {t('settings.dataPage.backupPassword.confirmLabel')}
+              </label>
+              <input
+                id="backup-password-confirm"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submit()}
+                className={`mb-3 ${MODAL_INPUT_CLASS}`}
+              />
+            </>
+          )}
+
+          {localError && (
+            <p className="text-xs text-hs-danger mb-3" role="alert">
+              {localError}
+            </p>
+          )}
+
+          {mode === 'set' && (
+            <FieldHint>
+              {t('settings.dataPage.backupPassword.noRecoveryNote')}
+            </FieldHint>
+          )}
+        </ModalBody>
+
+        <ModalFooter
+          start={mode === 'enter' && onSkip ? (
             <button
               onClick={onSkip}
               disabled={busy}
-              className="mr-auto text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors disabled:opacity-50"
+              className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors disabled:opacity-50"
             >
               {t('settings.dataPage.backupPassword.skipButton')}
             </button>
-          )}
-          <Button variant="secondary" onClick={onClose} disabled={busy}>
-            {tCore('actions.cancel')}
-          </Button>
-          <Button variant={onUseSaved ? 'secondary' : 'primary'} onClick={submit} disabled={!canSubmit}>
-            {busy
+          ) : undefined}
+          onCancel={onClose}
+          cancelDisabled={busy}
+          primary={{
+            label: busy
               ? t('settings.dataPage.fullBackup.working')
               : mode === 'set'
                 ? purpose === 'save'
                   ? t('settings.dataPage.backupPassword.saveButton')
                   : t('settings.dataPage.backupPassword.continueButton')
-                : t('settings.dataPage.backupPassword.unlockButton')}
-          </Button>
-        </div>
-      </div>
+                : t('settings.dataPage.backupPassword.unlockButton'),
+            onClick: submit,
+            disabled: !canSubmit,
+            variant: onUseSaved ? 'secondary' : 'primary',
+          }}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

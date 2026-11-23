@@ -207,7 +207,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
                             className="rounded-full py-px"
                             style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.secondary, paddingInline: '0.5em' }}
                           >
-                            {mealTagLabel(meal, tag)}
+                            {mealTagLabel(meal, tag, tCore)}
                           </span>
                         ))}
                       </div>

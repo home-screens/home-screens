@@ -28,20 +28,20 @@ The chart is empty until you add people and chores, from a phone or from the edi
 
 ## 2. Add your family
 
-Open **Settings > Family** in the editor, or open the family remote and tap **Settings > Family**. Add each person with a name, an optional emoji and a colour. The same [family list](/docs/family) is used by chores, rewards and calendars; you can also edit it from **Chores > Manage > Members**.
+Open **Settings > Family** in the editor, or open the family remote and tap **Settings > Family**. Add each person with a name, an optional emoji and a colour. The same [family list](/docs/family) is used by chores, rewards and calendars; you can also edit it from **Chores > Manage > Family**.
 
 You can add up to 64 people. Existing larger families are preserved. With five or more people, the board keeps one column each and the summary line counts how many finished today rather than trying to show a face per person.
 
 ## 3. Add chores
 
-The quickest start is the ready-made list. While the chore list is empty, **Manage** shows **Pick from the list**: 27 everyday chores sorted into Morning, After school, Evening and Once a week, each with an icon and a ticket value. Tick the ones your house does, say who they go to (your biggest group, such as "Kids", is picked for you, or everyone when you have no groups), choose the day the once-a-week ones land on (Saturday unless you change it), and add them in one go. They become ordinary chores you can change one by one afterwards. The list stays reachable later through **Add from the starter list** under the Add Chore button. In the editor, **Edit Chore Chart** in the Chore Chart's settings offers the same list: **Pick from the starter list** while you have no chores yet, and **Starter list** next to **Add Chore** after that. Anything already on your list is marked so it cannot be added twice.
+The quickest start is the ready-made list. While the chore list is empty, **Manage** shows **Pick from the list**: 27 everyday chores sorted into Morning, After school, Evening and Once a week, each with an icon and a ticket value. Tick the ones your house does, say who they go to (your biggest group, such as "Kids", is picked for you, or everyone when you have no groups), choose the day the once-a-week ones land on (Saturday unless you change it), and add them in one go. They become ordinary chores you can change one by one afterwards. The list stays reachable later through **Add from the starter list** under the Add chore button. In the editor, **Edit chore chart** in the Chore Chart's settings offers the same list: **Pick from the starter list** while you have no chores yet, and **Starter list** next to **Add chore** after that. Anything already on your list is marked so it cannot be added twice.
 
 To write a chore yourself, still under **Manage**, add it with a name, an emoji, and how many **tickets** it is worth. **Steps** is optional: a short how-to, one step per line, up to 12. On the phone a chore with steps gets a small arrow that opens the list, so "clean your room" can say what that means. Then decide when and who:
 
 - **When:** every day, certain days of the week, every other week, or once on a date. Each chore also has a time of day (morning, afternoon, evening, or anytime), which is how the wall groups the list and highlights what is due now.
 - **Who:** one person, several, or a [group](/docs/family#groups) such as "Kids". Give a chore to a group and everyone in it gets it, each with their own tick. Add somebody to the group later and they get it too. With several people you choose how it is shared:
   - **Fixed (all do it)**: everyone listed does it every time.
-  - **Rotate Daily** or **Rotate Weekly**: it passes from one person to the next.
+  - **Rotate daily** or **Rotate weekly**: it passes from one person to the next.
   - **Schedule**: a small grid, one row per person and seven day columns. Tap a cell to give that person that day. A note underneath says which days still have nobody. A schedule is for people you pick one by one, so it is not offered while a group is ticked.
 
 {% screenshot name="remote-chores" phone=true caption="The family remote's Chores tab. Today, Manage, and Rewards." /%}
@@ -69,7 +69,7 @@ On the Full-Screen Chore Chart, bonus chores sit in their own band under the fam
 
 Two household settings decide how grabbing works. They are shown in one line under the **Bonus** heading, above the bonus chores, on the family remote's **Chores > Manage** list and in the editor's chore window; tap **Change** there. They are also on **Settings > Family** in the editor:
 
-- **How many can one person grab at once**: one at a time (the default), two, three, or no limit. It stops the fastest kid grabbing everything at breakfast.
+- **How many can one person grab at once?**: one at a time (the default), two, three, or no limit. It stops the fastest kid grabbing everything at breakfast.
 - **When does a grab end?**: at bedtime (the default: if it isn't done that day, anyone can grab it the next time it comes up), or when the chore comes back, so a weekly one stays theirs until Monday. The second suits big jobs that take a weekend. A "when I put it back" chore's grab lasts a week, and always until the next day the chore shows up.
 
 A grown-up can always free someone's grab: tap the **•••** next to the chore on the family remote's **Today** tab. Looking back at an earlier day of the same week, a weekly bonus chore shows the week as it stands ("Dax did it Wednesday", "Ada's on it"); it is changed from today's page, not from that day.
@@ -91,7 +91,7 @@ Tickets are earned automatically as chores are checked off, using each chore's t
 
 ## What kids can and cannot do
 
-The kids' page and the wall let anyone check off today's chores, grab and let go of bonus chores, look at yesterday, and spend tickets. Adding or changing people, chores or rewards, adjusting balances, and checking off earlier days all live on the family remote (people and chores can also be changed in the editor), behind the password once you set one. The kids' page stays open even then, so a shared tablet never needs a login. That is worth knowing before you give a guest your WiFi password.
+The kids' page and the wall let anyone check off today's chores, grab and let go of bonus chores, look at yesterday, and spend tickets. Adding or changing people, chores or rewards, adjusting balances, and checking off earlier days all live on the family remote (people and chores can also be changed in the editor), behind the password once you set one. The kids' page stays open even then, so a shared tablet never needs a login. That is worth knowing before you give a guest your Wi-Fi password.
 
 To keep the bigger jobs for grown-ups, set a **grown-up code** under **Settings > Family**: four numbers, and a tick next to each job that should ask for it (spending tickets, unticking a chore, closing a Todoist task). The wall and the kids' page then show **Ask a grown-up** on that job, and a number pad comes up when it is tapped. The right code does the job and keeps that wall or phone unlocked for a few minutes (one, five or fifteen; **Lock now** ends it early), so handing out three rewards takes the code once. After five wrong tries the pad waits a minute. Someone signed in on the family remote is never asked. The hub checks the code itself, so the kids' page on another tablet asks too. It is a speed bump for little hands, not a lock for your network; the password under **Security** is that.
 

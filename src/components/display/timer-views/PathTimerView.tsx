@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, type CSSProperties } from 'react';
+import { Check } from 'lucide-react';
 import { formatRemaining, formatStepLength, pillStyle, type TimerViewProps } from './shared';
 import Glyph from '@/components/ui/Glyph';
 
@@ -98,7 +99,7 @@ export default function PathTimerView({
                     justifyContent: 'center', boxShadow: `0 ${6 * s}px ${18 * s}px rgba(0,0,0,0.35)`,
                   }}
                 >
-                  ✓
+                  <Check size="1em" strokeWidth={3.5} aria-hidden="true" />
                 </div>
               </div>
               <div style={{ marginTop: 18 * s, fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>

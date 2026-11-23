@@ -1,3 +1,5 @@
+import { FIELD_HINT_SIZE } from '@/components/ui/FieldHint';
+
 /**
  * The type tier every sentence in the timetables window is set in.
  *
@@ -10,6 +12,8 @@
  *
  * Labels, column headings and one-word captions are chrome and stay where they
  * are. This is for prose: the notes that explain a control, and the messages
- * that say why something was refused or kept.
+ * that say why something was refused or kept. The notes are `FieldHint`s, which
+ * the window sets on its `prose` surface, so the tier is declared there and
+ * this reads it.
  */
-export const PROSE_CLASS = 'text-[13px] leading-relaxed';
+export const PROSE_CLASS = FIELD_HINT_SIZE.prose;

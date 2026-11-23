@@ -79,7 +79,7 @@ describe('the Meals tab paging through Mealie\'s plan', () => {
   });
 
   /* Paging back to the first week of the copy never brought in the week
-   * before it, so Copy Last Week stayed hidden. */
+   * before it, so Copy last week stayed hidden. */
   it('brings in the week before the one in view', async () => {
     const fetchMock = vi.fn(async (url: string) => (url.startsWith('/api/mealie/plan')
       ? ok({ mealie: { ...mealsAnswer('ok', { start: '2026-09-14', end: '2026-10-25' }).mealie } })

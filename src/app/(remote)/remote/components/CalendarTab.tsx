@@ -7,6 +7,7 @@ import { upcomingDays } from '@/lib/day-notes';
 import { capitalize } from '@/lib/meal-constants';
 import { daySheetHeading, daySheetRows } from '@/lib/calendar-day-sheet';
 import { formatEventTime } from '@/lib/calendar-utils';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { refusalText } from '@/lib/hub-request';
 import type { EditableGoogleEvent } from '@/lib/google-calendar-write';
 import type { EditableICloudEvent } from '@/lib/icloud-calendar-write';
@@ -21,6 +22,8 @@ import EventFormOverlay, { rememberCalendar, type EventFormSubmit } from './Even
 import EventChoiceSheet from './EventChoiceSheet';
 import ConfirmSheet from './ConfirmSheet';
 import { dateOfIso } from './DayNoteSheet';
+import TabHeader from './TabHeader';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 const ROW: CSSProperties = {
   position: 'relative', overflow: 'hidden', width: '100%', display: 'flex', alignItems: 'center', gap: 10, minHeight: 52,
@@ -60,7 +63,8 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const [form, setForm] = useState<Form | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [ask, setAsk] = useState<Ask | null>(null);
-  const [busy, setBusy] = useState(false);
+  // What the hub is doing just now: opening an event, saving the form, or removing the event.
+  const [pending, setPending] = useState<'open' | 'save' | 'remove' | null>(null);
 
   const canAdd = Boolean(entry && entry.calendars.length > 0);
   // An iCloud event names the calendar object it lives in, which the hub checks before writing.
@@ -83,17 +87,17 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const codeOf = (result: CalendarWriteResult) => (!result.ok && 'json' in result ? (result.json as { code?: string } | null)?.code : undefined);
 
   const openEvent = async (event: CalendarEvent) => {
-    if (!event.canEdit || busy) return;
-    setBusy(true);
+    if (!event.canEdit || pending) return;
+    setPending('open');
     const result = await write(editUrl(event), 'GET');
-    setBusy(false);
+    setPending(null);
     if (!result.ok) return failed(result);
     const known = entry?.calendars.find((c) => c.id === event.sourceId);
     setForm({
       mode: 'change',
       event,
       editable: result.json as EditableEvent,
-      calendar: known ?? { name: event.sourceName ?? '', color: event.calendarColor ?? '#888', source: event.sourceRef ? 'icloud' : 'google' },
+      calendar: known ?? { name: event.sourceName ?? '', color: event.calendarColor ?? DEFAULT_EVENT_COLOR, source: event.sourceRef ? 'icloud' : 'google' },
     });
     setFormKey((k) => k + 1);
   };
@@ -104,9 +108,9 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   };
 
   const add = async (value: EventFormSubmit) => {
-    setBusy(true);
+    setPending('save');
     const result = await write('/api/calendar/events', 'POST', { calendarId: value.calendarId, draft: value.draft });
-    setBusy(false);
+    setPending(null);
     if (!result.ok) return failed(result);
     rememberCalendar(value.calendarId);
     const name = entry?.calendars.find((c) => c.id === value.calendarId)?.name ?? '';
@@ -118,7 +122,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const change = async (value: EventFormSubmit, scope: ChangeScope) => {
     if (form?.mode !== 'change') return;
     const { editable, event } = form;
-    setBusy(true);
+    setPending('save');
     const result = await write(`/api/calendar/events/${encodeURIComponent(event.id)}`, 'PATCH', {
       draft: value.draft,
       etag: scope === 'series' ? editable.seriesEtag : editable.etag,
@@ -128,7 +132,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
       dayWas: editable.draft.date,
       repeatChanged: value.repeatChanged,
     }, scope === 'series' ? tCore('grownUp.why.calendarChangeSeries', { title: value.draft.title }) : undefined);
-    setBusy(false);
+    setPending(null);
     setAsk(null);
     if (result.ok) {
       close();
@@ -158,13 +162,13 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const remove = async (scope: ChangeScope) => {
     if (form?.mode !== 'change') return;
     const { editable, event, calendar } = form;
-    setBusy(true);
+    setPending('remove');
     const result = await write(`/api/calendar/events/${encodeURIComponent(event.id)}`, 'DELETE', {
       scope,
       seriesId: editable.seriesId,
       ...('sourceRef' in editable ? { sourceRef: editable.sourceRef, etag: editable.etag } : {}),
     }, tCore('grownUp.why.calendarRemove', { title: editable.draft.title }));
-    setBusy(false);
+    setPending(null);
     setAsk(null);
     if (!result.ok) return failed(result);
     close();
@@ -225,12 +229,12 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const needsGoogle = entry?.enabled && !canAdd && entry.google !== null && entry.google !== 'notOffered' && entry.google !== 'ready';
   const card = (off || needsGoogle) ? (
     <div data-testid="calendar-adding-card" style={{ background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border-strong)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', gap: 12 }}>
-      <span style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(59,130,246,0.14)', color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--hs-accent-soft)', color: 'var(--hs-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
         <CalendarPlus size={20} aria-hidden="true" />
       </span>
       <div>
         <b style={{ display: 'block', fontSize: 15, marginBottom: 3 }}>{off ? t('calendarTab.offTitle') : t('calendarTab.signInTitle')}</b>
-        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{off ? t('calendarTab.offBody') : t('calendarTab.signInBody')}</p>
+        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{t(off ? 'calendarTab.offBody' : 'calendarTab.signInBody', { place: settingsPlaceText(tCore, 'calendar') })}</p>
       </div>
     </div>
   ) : null;
@@ -241,9 +245,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
 
   return (
     <div data-testid="calendar-tab">
-      <div style={{ padding: '8px 0 12px' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>{t('calendarTab.title')}</h2>
-      </div>
+      <TabHeader title={t('calendarTab.title')} />
       <DayNotesPage
         events={{ rows, ...(canAdd ? { onAdd: (date: string) => setForm({ mode: 'new', date }) } : {}) }}
         sub={t('calendarTab.sub')}
@@ -261,7 +263,8 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
           {...(form.mode === 'change'
             ? { initial: form.editable.draft, repeat: form.editable.repeat, calendar: form.calendar, notice: form.notice ?? null, onRemove: () => setAsk({ kind: 'remove' }) }
             : { fromWall: form.fromWall })}
-          busy={busy}
+          saving={pending === 'save'}
+          removing={pending === 'remove'}
           onSubmit={submit}
           onClose={close}
         />
@@ -285,7 +288,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
       {ask?.kind === 'remove' && editing && (editing.editable.seriesId ? (
         <EventChoiceSheet
           testId="event-remove-choice"
-          title={t('calendarTab.removeAsk.title', { title: editing.editable.draft.title })}
+          title={tCore('confirm.removeTitle', { name: editing.editable.draft.title })}
           description={t('calendarTab.removeAsk.body', { calendar: editing.calendar.name, app })}
           cancelLabel={t('calendarTab.keepIt')}
           choices={[
@@ -297,14 +300,12 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
         />
       ) : (
         <ConfirmSheet
-          title={t('calendarTab.removeAsk.title', { title: editing.editable.draft.title })}
+          title={tCore('confirm.removeTitle', { name: editing.editable.draft.title })}
           description={t('calendarTab.removeAsk.body', { calendar: editing.calendar.name, app })}
           confirmLabel={t('calendarTab.form.remove')}
           cancelLabel={t('calendarTab.keepIt')}
-          confirmColor="#f87171"
           onConfirm={() => void remove('instance')}
           onCancel={() => setAsk(null)}
-          zIndex={210}
         />
       ))}
     </div>

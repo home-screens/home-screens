@@ -36,8 +36,18 @@
   --hs-success:        #22c55e;
   --hs-danger:         #f87171;
   --hs-warning:        #f59e0b;
+  /* Amber as small words or a thin line on the page (a chosen chip's label):
+     the warning amber here, deeper in the light theme so it reads on white. */
+  --hs-warning-ink:    #f59e0b;
   /* Text on a solid warning fill: dark on amber reads in both themes. */
   --hs-on-warning:     #1b1200;
+  /* Text on a solid success or danger fill (a "give" or "take" button):
+     dark on this theme's light green and light red, which white fails on. */
+  --hs-on-success:     #0a0a0a;
+  --hs-on-danger:      #1a0505;
+  /* Text on a solid --hs-warning-ink fill (a chart's amber when it has no
+     accent of its own): dark here, white on the light theme's deeper amber. */
+  --hs-on-warning-ink: #1b1200;
 
   /* Kid-surface tokens (dark). Distinguishes the ungated /chores page from
      the password-protectable /remote wherever both are offered — same shape,
@@ -47,6 +57,16 @@
   --hs-kid-soft:       rgba(168, 85, 247, 0.10);
   --hs-kid-ring:       rgba(168, 85, 247, 0.32);
   --hs-kid-hover:      rgba(168, 85, 247, 0.18);
+
+  /* Meal planner identity (dark): the amber that says "this is the meal
+     plan" across the editor's meal planner window, kept apart from the
+     warning colour so a selected meal never reads as a problem. */
+  --hs-meal:           #f59e0b;
+  --hs-meal-soft:      rgba(245, 158, 11, 0.10);
+  --hs-meal-ring:      rgba(245, 158, 11, 0.45);
+  --hs-meal-hover:     rgba(245, 158, 11, 0.18);
+  /* Text on a solid meal fill. */
+  --hs-on-meal:        #1b1200;
 
   /* Property-panel subgroup card (dark) */
   --hs-group-card-bg:      #1e2128;
@@ -103,13 +123,24 @@
   --hs-success:        #059669;
   --hs-danger:         #dc2626;
   --hs-warning:        #d97706;
+  --hs-warning-ink:    #b45309;
   --hs-on-warning:     #1b1200;
+  --hs-on-success:     #0a0a0a;
+  --hs-on-danger:      #ffffff;
+  --hs-on-warning-ink: #ffffff;
 
   /* Kid-surface tokens (light) */
   --hs-kid:            #7e22ce;
   --hs-kid-soft:       #f5edff;
   --hs-kid-ring:       rgba(126, 34, 206, 0.24);
   --hs-kid-hover:      #ecdcff;
+
+  /* Meal planner identity (light): a deeper amber that reads on the light panels. */
+  --hs-meal:           #b45309;
+  --hs-meal-soft:      #fef3c7;
+  --hs-meal-ring:      rgba(180, 83, 9, 0.35);
+  --hs-meal-hover:     #fde68a;
+  --hs-on-meal:        #ffffff;
 
   /* Property-panel subgroup card (light) */
   --hs-group-card-bg:      #ffffff;
@@ -140,6 +171,8 @@
   --z-index-modal: 60;
   --z-index-confirm: 70;
   --z-index-nested: 80;
+  /* Editor toasts, over every window so an Undo is never covered. */
+  --z-index-toast: 90;
 
   /* Background tokens */
   --color-hs-body:         var(--hs-bg-body);
@@ -176,13 +209,24 @@
   --color-hs-success:  var(--hs-success);
   --color-hs-danger:   var(--hs-danger);
   --color-hs-warning:  var(--hs-warning);
+  --color-hs-warning-ink: var(--hs-warning-ink);
   --color-hs-on-warning: var(--hs-on-warning);
+  --color-hs-on-success: var(--hs-on-success);
+  --color-hs-on-danger:  var(--hs-on-danger);
+  --color-hs-on-warning-ink: var(--hs-on-warning-ink);
 
   /* Kid-surface tokens */
   --color-hs-kid:       var(--hs-kid);
   --color-hs-kid-soft:  var(--hs-kid-soft);
   --color-hs-kid-ring:  var(--hs-kid-ring);
   --color-hs-kid-hover: var(--hs-kid-hover);
+
+  /* Meal planner identity tokens */
+  --color-hs-meal:       var(--hs-meal);
+  --color-hs-meal-soft:  var(--hs-meal-soft);
+  --color-hs-meal-ring:  var(--hs-meal-ring);
+  --color-hs-meal-hover: var(--hs-meal-hover);
+  --color-hs-on-meal:    var(--hs-on-meal);
 
   /* Property-panel subgroup tokens */
   --color-hs-group-card-bg:     var(--hs-group-card-bg);
@@ -217,8 +261,11 @@ body {
    takes a quarter of a second to draw, and a tap with no answer gets tapped
    again. `scale`, not `transform`, so a button placed with a transform of
    its own stays where it is. */
+/* A calendar's day number or header that opens the day is a button too. */
 .wall-btn[data-pressed],
-.wall-btn:active {
+.wall-btn:active,
+[data-open-day][data-pressed],
+[data-open-day]:active {
   filter: brightness(0.85);
   scale: 0.94;
 }
@@ -501,8 +548,10 @@ body {
 }
 
 /* ============================================================================
-   Mobile tap feedback — inline styles can't express :active, so these utility
-   classes provide press-state transforms for the phone's chores page.
+   Phone tap feedback: inline styles can't express :active, so these utility
+   classes give every tappable thing on the phone (/remote, /chores) its
+   pressed look. `press-scale` for rows and cards, `-sm` for chips and small
+   buttons, `-xs` for icon buttons, `press-btn` for filled buttons.
    ============================================================================ */
 
 .press-scale:active {
@@ -558,6 +607,22 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hs-pop-in,
   .hs-pulse-once {
+    animation: none;
+  }
+}
+
+/* An editor toast (`ui/Toast.tsx`) rises a little into its stack. */
+@keyframes hs-toast-in {
+  from { opacity: 0; translate: 0 12px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.hs-toast-in {
+  animation: hs-toast-in 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-toast-in {
     animation: none;
   }
 }

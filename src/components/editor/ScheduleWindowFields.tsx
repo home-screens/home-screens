@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import PropertyGroup from './PropertyGroup';
 import ScheduleWeekStrip from './ScheduleWeekStrip';
 import HomeTimeHint from './HomeTimeHint';
+import FieldHint from '@/components/ui/FieldHint';
 import { INPUT_CLASS, SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -19,12 +20,13 @@ import type { ModuleSchedule } from '@/types/config';
  */
 type Skin = 'groups' | 'condition' | 'settings';
 
-const SKIN: Record<Skin, { input: string; hint: string; homeHint: string | undefined }> = {
-  groups: { input: INPUT_CLASS, hint: 'mt-1.5 text-[10px] text-hs-text-faint leading-relaxed', homeHint: undefined },
-  condition: { input: INPUT_CLASS, hint: 'text-[10px] text-hs-text-dim', homeHint: '' },
+/** `hint` is spacing only: the hint's size comes from the surface (`FieldHint`). */
+const SKIN: Record<Skin, { input: string; hint: string | undefined; homeHint: string | undefined }> = {
+  groups: { input: INPUT_CLASS, hint: 'mt-1.5', homeHint: undefined },
+  condition: { input: INPUT_CLASS, hint: undefined, homeHint: '' },
   settings: {
     input: `mt-1 block w-full ${SETTINGS_INPUT_CLASS}`,
-    hint: 'text-[11px] text-hs-text-faint',
+    hint: undefined,
     homeHint: '-mt-1.5',
   },
 };
@@ -151,9 +153,9 @@ export default function ScheduleWindowFields({
   const hints = (
     <>
       <HomeTimeHint className={look.homeHint} />
-      <p className={look.hint}>
+      <FieldHint className={look.hint}>
         {t(wording === 'opened' ? 'scheduleEditor.opened.allDayHint' : 'scheduleEditor.allDayHint')}
-      </p>
+      </FieldHint>
     </>
   );
 

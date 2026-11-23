@@ -28,6 +28,8 @@ import { eventOwner } from '@/lib/calendar-people';
 import { EventMarker, TagPrefix } from '../shared/EventMarker';
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { LookAheadTitle, useLookAheadContext } from '../shared/LookAhead';
+import { WallButton } from '../shared/WallButton';
+import { cardIsDark } from '@/lib/module-style';
 
 /** Gutter for the month and multi-week grids: 2px, double the week grid's
  *  1px, because their cells are short and need more air to separate. The
@@ -208,8 +210,7 @@ function MoreCount({ date, events, count, fontSize, accentColor, textColor, modu
   const label = t('calendar.moreCount', { count });
   if (!tap) return <span className={plain.className} style={{ fontSize, ...plain.style }}>{label}</span>;
   return (
-    <button
-      type="button"
+    <WallButton
       {...tap}
       className="self-start shrink-0 rounded-full font-bold whitespace-nowrap cursor-pointer"
       style={{
@@ -221,7 +222,7 @@ function MoreCount({ date, events, count, fontSize, accentColor, textColor, modu
       }}
     >
       {label}
-    </button>
+    </WallButton>
   );
 }
 
@@ -392,6 +393,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
   const todayText = pickPillTextColor(accentColor);
   const dayText = pickTintedTextColor(style.textColor, accentColor, style.backgroundColor);
   const monthText = pickTintedTextColor(accentColor, accentColor, style.backgroundColor);
+  // A day rule's automatic tint is stronger on a dark card than a light one.
+  const isDark = cardIsDark(style);
 
   const { weeks } = grid;
   const eventsByDay = useGridEventsByDay(weeks, events, eventStyle.timezone);
@@ -426,7 +429,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               const notes = dayNotesFor(dayNotes, date);
               const listed = listIn(dayEvents, notes.length);
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
-              const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
+              const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark });
               // A day with only a note opens too: the cell cuts it to one line.
               const dayTap = openDayProps(openDay, date, dayEvents, t, locale, notes.length > 0);
               const cellTap = openDayCellProps(openDay, date, dayEvents, notes.length > 0);
@@ -608,6 +611,8 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
   const gridTemplate = gridTemplateFor(config);
   const { textColor, backgroundColor: moduleBackground } = style;
+  // A day rule's automatic tint is stronger on a dark card than a light one.
+  const isDark = cardIsDark(style);
 
   // Loop-invariant colors, hoisted like the banner view's (up to 84 cells
   // re-render on every minute tick).
@@ -653,7 +658,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
               const cellShadow = [isToday ? todayRing : null, marksMonthStart ? monthRule : null]
                 .filter(Boolean).join(', ');
 
-              const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
+              const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark });
               // A day with only a note opens too: the cell cuts it to one line.
               const dayTap = openDayProps(openDay, date, dayEvents, t, locale, notes.length > 0);
               const cellTap = openDayCellProps(openDay, date, dayEvents, notes.length > 0);
@@ -664,7 +669,8 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                   {...cellTap}
                   className={`flex flex-col p-0.5 overflow-hidden rounded${cellTap ? ' cursor-pointer' : ''}`}
                   style={mergeCellDecor({
-                    background: isToday ? todayCellTint : `rgba(255, 255, 255, ${isWeekend ? 0.065 : 0.045})`,
+                    // The card's ink, so a light card shades its cells darker instead of losing them.
+                    background: isToday ? todayCellTint : ink(isWeekend ? 0.065 : 0.045),
                     ...(cellShadow ? { boxShadow: cellShadow } : {}),
                   }, decor)}
                 >

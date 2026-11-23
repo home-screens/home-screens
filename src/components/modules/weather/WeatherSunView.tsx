@@ -3,17 +3,16 @@
 import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { Sunrise, Sunset } from 'lucide-react';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { NO_VALUE, TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
-import { formatTimeInTZ } from '@/lib/timezone';
+import { formatTimeOfDay } from '@/lib/timezone';
 import { dayLengthText, shortUnitParts, sunArcModel, sunArcPoints } from '@/lib/weather/sun-arc';
 import { hoursInTZ } from '@/lib/sun-astro';
 import { daysToFullMoon, moonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { smoothPath } from '../fullscreen-weather/weather-view-utils';
 import { useSunTimes, useViewBox } from './chart-parts';
-import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
 /**
@@ -51,15 +50,7 @@ export default function WeatherSunView({ timezone, timeFormat, scaledFontSize, l
 
   const { boxRef, contentRef, fontSize } = useFitFontSize(scaledFontSize, [landscape, dropMoon, dropHeadline, fullMoonCaption].join('|'));
 
-  if (latitude == null || longitude == null) {
-    return (
-      <div className="w-full h-full flex items-center justify-center" style={{ fontSize: `${scaledFontSize}px` }}>
-        <WeatherEmptyState message={t('common.locationNotSet')} />
-      </div>
-    );
-  }
-
-  const clock = { timezone, locale, hour12: timeFormat !== '24h' };
+  const clock = { timezone, locale, timeFormat };
   // What the card says about today, from the rule the full-screen Almanac's
   // sun card shares: after sunset the sun is gone, not parked on the horizon.
   const model = sunArcModel(sun, hoursInTZ(now, timezone));
@@ -121,8 +112,8 @@ export default function WeatherSunView({ timezone, timeFormat, scaledFontSize, l
               </svg>
             </div>
             <div className="flex justify-between tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-              <span className="inline-flex items-center gap-[0.3em]"><Sunrise size="1.2em" strokeWidth={1.6} aria-hidden="true" />{sun.sunrise ? formatTimeInTZ(sun.sunrise, clock) : '—'}</span>
-              <span className="inline-flex items-center gap-[0.3em]"><Sunset size="1.2em" strokeWidth={1.6} aria-hidden="true" />{sun.sunset ? formatTimeInTZ(sun.sunset, clock) : '—'}</span>
+              <span className="inline-flex items-center gap-[0.3em]"><Sunrise size="1.2em" strokeWidth={1.6} aria-hidden="true" />{sun.sunrise ? formatTimeOfDay(sun.sunrise, clock) : NO_VALUE}</span>
+              <span className="inline-flex items-center gap-[0.3em]"><Sunset size="1.2em" strokeWidth={1.6} aria-hidden="true" />{sun.sunset ? formatTimeOfDay(sun.sunset, clock) : NO_VALUE}</span>
             </div>
           </div>
 

@@ -30,6 +30,7 @@ import { checkSheetLink, checkTimetableFiles } from '@/lib/timetable-client';
 import { dateInZone } from '@/lib/timetable-layout';
 import type { TimetableImportCheckResult, TimetableImportTab } from '@/lib/timetable-api';
 import type { ImportedTimetable } from '@/lib/timetable-import';
+import Notice from '@/components/ui/Notice';
 // The fold rule only, from its own module: the reader it belongs to resolves DNS
 // and must never reach the editor bundle.
 import { foldSheetCode } from '@/lib/timetable-codes';
@@ -46,6 +47,7 @@ import MemberDot from './MemberDot';
 import { makeSubject, nextSubjectColor, periodsOf, shortCodeFor } from './use-timetable-draft';
 import { addIsoDays, mondayOf } from '@/lib/iso-date';
 import { sheetLabel } from './sheet-label';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * An example week, kept as a file under `public/` so it can be opened in a
@@ -293,7 +295,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
     setError(null);
     try {
       const files = await Promise.all(list.map(async (file) => ({ name: file.name, text: await file.text() })));
-      const answer = await checkTimetableFiles(editorFetch, files, t('common.saveError'));
+      const answer = await checkTimetableFiles(editorFetch, files, tCore('refusals.failed'));
       if (!answer.ok) {
         setError(failure(answer.messageKey));
         return;
@@ -304,7 +306,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.unreachable') : refusalSentence(cause, t) ?? tCore('refusals.failed'));
     } finally {
       setReading(false);
     }
@@ -317,7 +319,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
     else setChecking(true);
     setError(null);
     try {
-      const answer = await checkSheetLink(editorFetch, typed, t('common.saveError'));
+      const answer = await checkSheetLink(editorFetch, typed, tCore('refusals.failed'));
       if (!answer.ok) {
         setError(failure(answer.messageKey));
         if (!forMember) setResult(null);
@@ -338,7 +340,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
       setCodeChoices(seedCodeChoices(answer));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setError(cause instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(cause, t) ?? t('common.saveError'));
+      setError(cause instanceof HubUnreachableError ? tCore('refusals.unreachable') : refusalSentence(cause, t) ?? tCore('refusals.failed'));
     } finally {
       setChecking(false);
       setOwnBusy(null);
@@ -438,7 +440,7 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
               </Button>
             </span>
           </label>
-          <p className="max-w-[100ch] text-[13px] leading-relaxed text-hs-text-muted">{t('timetableModal.import.linkHelp')}</p>
+          <FieldHint className="max-w-[100ch]">{t('timetableModal.import.linkHelp')}</FieldHint>
           <SampleSheetLine />
 
           {/* The sample this screen offers is a CSV, so not being able to hand a
@@ -465,13 +467,11 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
               />
             </label>
           </div>
-          <p className="max-w-[100ch] text-[13px] leading-relaxed text-hs-text-muted">{t('timetableModal.import.fileHelp')}</p>
+          <FieldHint className="max-w-[100ch]">{t('timetableModal.import.fileHelp')}</FieldHint>
         </div>
 
         {error && (
-          <div role="alert" className="rounded-lg border border-hs-danger/30 bg-hs-danger/10 px-3 py-2 text-[13px] text-hs-danger">
-            {error}
-          </div>
+          <Notice tone="danger" role="alert">{error}</Notice>
         )}
 
         {listed && (
@@ -530,9 +530,9 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
           <div className="space-y-3 rounded-lg border border-hs-border bg-hs-card/60 p-3">
             <div className="space-y-1">
               <p className="text-sm font-medium text-hs-text-primary">{t('timetableModal.import.unlistedTitle')}</p>
-              <p className="max-w-[100ch] text-[13px] leading-relaxed text-hs-text-muted">
+              <FieldHint className="max-w-[100ch]">
                 {t('timetableModal.import.unlistedHelp')}
-              </p>
+              </FieldHint>
             </div>
             {members.map((member) => {
               const tab = ownTabs[member.id];
@@ -624,14 +624,14 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
                     under it must not say the code has been matched: the
                     dropdown above it is asking. */}
                 {code.suggestion && (
-                  <p className="text-[13px] text-hs-text-faint">
+                  <FieldHint>
                     {t(
                       code.suggestion.confident
                         ? 'timetableModal.import.unknownHelp'
                         : 'timetableModal.import.unknownHelpMaybe',
                       { subject: code.suggestion.name },
                     )}
-                  </p>
+                  </FieldHint>
                 )}
               </div>
             ))}
@@ -661,18 +661,15 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
                 </select>
               </span>
             </label>
-            <p className="text-[13px] text-hs-text-faint">{t('timetableModal.import.schoolHelp')}</p>
+            <FieldHint>{t('timetableModal.import.schoolHelp')}</FieldHint>
           </div>
         )}
 
         {/* A week with more periods than the school rings a bell for. Those
             lessons save and then show up nowhere, so it is said here. */}
         {overrun.length > 0 && school && (
-          <div
-            role="status"
-            className="space-y-1 rounded-lg border border-hs-warning/30 bg-hs-warning/10 p-3 text-[13px] text-hs-text-body"
-          >
-            <p>
+          <Notice tone="warning" role="status">
+            <p className="text-hs-text-body">
               {t('timetableModal.import.tooManyPeriods', {
                 names: listNames(
                   overrun.map(
@@ -683,31 +680,27 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
                 count: schoolPeriods,
               })}
             </p>
-            <p className="text-hs-text-faint">{t('timetableModal.import.tooManyPeriodsHelp')}</p>
-          </div>
+            <p className="mt-1 text-hs-text-faint">{t('timetableModal.import.tooManyPeriodsHelp')}</p>
+          </Notice>
         )}
 
         {/* Import needs a school to hang the weeks off, and the picker above is
             only drawn when there is a choice to make, so with one school or
             none the screen held no clue at all about a dead button. */}
         {mapped.length > 0 && !schoolId && (
-          <div
-            role="status"
-            className="rounded-lg border border-hs-warning/30 bg-hs-warning/10 p-3 text-[13px] text-hs-text-body"
-          >
-            {t('timetableModal.import.needSchool')}
-          </div>
+          <Notice tone="warning" role="status">
+            <span className="text-hs-text-body">{t('timetableModal.import.needSchool')}</span>
+          </Notice>
         )}
 
         {/* And a code nobody has answered for, which can be a long way up a
             scrolling panel, so the codes take you to the row that is waiting. */}
         {mapped.length > 0 && unanswered.length > 0 && (
-          <div
-            role="status"
-            className="rounded-lg border border-hs-warning/30 bg-hs-warning/10 p-3 text-[13px] text-hs-text-body"
-          >
-            <NeedCodes codes={unanswered.map((entry) => entry.code)} onShow={showFirstUnanswered} />
-          </div>
+          <Notice tone="warning" role="status">
+            <div className="text-hs-text-body">
+              <NeedCodes codes={unanswered.map((entry) => entry.code)} onShow={showFirstUnanswered} />
+            </div>
+          </Notice>
         )}
 
         {/* The resting screen used to be a link box and then a great deal of
@@ -718,14 +711,18 @@ export default function ImportView({ data, members, onApply, onCancel }: ImportV
 
         {mapped.some((entry) => entry.url) && (
           <div className="space-y-1 rounded-lg border border-hs-border bg-hs-card/60 p-3">
-            <Toggle label={t('timetableModal.import.sync')} checked={sync} onChange={setSync} />
-            <p className="text-[13px] text-hs-text-faint">{t('timetableModal.import.syncHelp')}</p>
+            <Toggle
+              label={t('timetableModal.import.sync')}
+              checked={sync}
+              onChange={setSync}
+              description={t('timetableModal.import.syncHelp')}
+            />
           </div>
         )}
       </div>
 
       <div className="flex items-center gap-3 border-t border-hs-border-strong px-5 py-3">
-        <p className="flex-1 text-[13px] text-hs-text-faint">{t('timetableModal.import.footerNote')}</p>
+        <FieldHint className="flex-1">{t('timetableModal.import.footerNote')}</FieldHint>
         <Button size="sm" onClick={onCancel}>
           {t('timetableModal.import.cancel')}
         </Button>
@@ -818,13 +815,13 @@ function SampleSheetLine() {
   const t = useTranslate('editor');
   const [before, after] = around(t('timetableModal.import.sampleHelp', { link: '\u0000' }));
   return (
-    <p className="max-w-[100ch] text-[13px] leading-relaxed text-hs-text-muted">
+    <FieldHint className="max-w-[100ch]">
       {before}
       <a href={SAMPLE_SHEET} download className="text-hs-accent hover:underline">
         {t('timetableModal.import.sample')}
       </a>
       {after}
-    </p>
+    </FieldHint>
   );
 }
 

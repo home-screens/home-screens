@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { CalendarEvent, CalendarPerson } from '@/types/config';
 import {
-  buildPersonRows, eventsForRow, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, EVERYONE_ROW_ID,
+  buildPersonRows, eventsForRow, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, ownerBySource, EVERYONE_ROW_ID,
 } from '@/lib/calendar-people';
 
 const ev = (id: string, sourceId: string | undefined, extra: Partial<CalendarEvent> = {}): CalendarEvent => ({
@@ -19,7 +19,7 @@ describe('buildPersonRows with people configured', () => {
   it('lists every person even with no events, in settings order', () => {
     const rows = buildPersonRows([], people, opts);
     expect(rows.map((r) => r.id)).toEqual(['p-ella', 'p-owen']);
-    expect(rows[1].initials).toBe('OL');
+    expect(rows[1].initials).toBe('O');
   });
 
   it('adds the Everyone row first only when an unclaimed event exists', () => {
@@ -37,6 +37,19 @@ describe('buildPersonRows with people configured', () => {
     expect(byRow[EVERYONE_ROW_ID]).toEqual(['a', 'h', 'n']);
     expect(byRow['p-ella']).toEqual(['b']);
     expect(byRow['p-owen']).toEqual(['c']);
+  });
+});
+
+describe('name tags', () => {
+  it('gives two people who share a first letter letters of their own, the same on the tag and the row', () => {
+    const twins: CalendarPerson[] = [
+      { id: 'p-sam', name: 'Sam', color: '#2563eb', sourceIds: ['src-sam'] },
+      { id: 'p-sarah', name: 'Sarah', color: '#fbbf24', sourceIds: ['src-sarah'] },
+      { id: 'p-ella', name: 'Ella', color: '#db2777', sourceIds: ['src-ella'] },
+    ];
+    const owners = ownerBySource(twins);
+    expect([owners.get('src-sam')?.initials, owners.get('src-sarah')?.initials, owners.get('src-ella')?.initials]).toEqual(['Sam', 'Sar', 'E']);
+    expect(buildPersonRows([], twins, opts).map((r) => r.initials)).toEqual(['Sam', 'Sar', 'E']);
   });
 });
 

@@ -17,11 +17,12 @@ export const WALL_ROW_CLASS = 'wall-row';
 
 type PressEvent = PointerEvent<HTMLElement>;
 
+/** Methods, so a button's own handlers (typed for `HTMLButtonElement`) fit as React's do. */
 interface PressHandlers {
-  onPointerDown?: (e: PressEvent) => void;
-  onPointerUp?: (e: PressEvent) => void;
-  onPointerCancel?: (e: PressEvent) => void;
-  onPointerLeave?: (e: PressEvent) => void;
+  onPointerDown?(e: PressEvent): void;
+  onPointerUp?(e: PressEvent): void;
+  onPointerCancel?(e: PressEvent): void;
+  onPointerLeave?(e: PressEvent): void;
 }
 
 const press = (e: PressEvent) => e.currentTarget.setAttribute('data-pressed', '');

@@ -21,7 +21,7 @@ export const DELETE = withAuth(async () => {
 
   if (isDeploying()) {
     return NextResponse.json(
-      { error: 'Cannot cancel during deploy — the update is being installed' },
+      { error: 'Cannot cancel during deploy: the update is being installed' },
       { status: 409 },
     );
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pencil, Play, Trash2, X } from 'lucide-react';
+import { Pencil, Play, Plus, Trash2, X } from 'lucide-react';
 import { useLocale, useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -32,6 +32,8 @@ import {
 } from '@/lib/custom-icons';
 import { customIconUseCount, customIconUseRows } from '@/lib/custom-icon-usage';
 import type { TranslateFn } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 /** One line under the upload button about a file that was not added. */
 type UploadNote =
@@ -118,7 +120,7 @@ export default function CustomIconsPage() {
       <div className="flex items-center gap-4 mb-5">
         <div className="h-2 w-64 rounded bg-hs-card overflow-hidden" aria-hidden>
           <div
-            className={`h-full rounded ${share > 0.8 ? 'bg-hs-warning' : 'bg-amber-500'}`}
+            className={`h-full rounded ${share > 0.8 ? 'bg-hs-warning' : 'bg-hs-accent'}`}
             style={{ width: `${Math.max(share * 100, bytes ? 1.5 : 0)}%` }}
           />
         </div>
@@ -175,11 +177,12 @@ export default function CustomIconsPage() {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`min-h-[118px] rounded-lg border border-dashed text-xs flex items-center justify-center text-center px-3 transition-colors ${
+          className={`min-h-[118px] rounded-lg border border-dashed text-xs flex items-center justify-center gap-1 text-center px-3 transition-colors ${
             dragging ? 'border-hs-accent text-hs-accent bg-hs-accent/10' : 'border-hs-border-strong text-hs-text-muted hover:border-hs-accent'
           }`}
         >
-          + {t('customIcons.page.dropHint')}
+          <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {t('customIcons.page.dropHint')}
         </button>
         {icons.map((icon) => (
           <IconTile
@@ -194,7 +197,7 @@ export default function CustomIconsPage() {
       </div>
 
       {icons.length === 0 && <p className="text-xs text-hs-text-muted mt-4">{t('customIcons.page.empty')}</p>}
-      <p className="text-[11.5px] text-hs-text-muted mt-4">{t('customIcons.formats')}</p>
+      <FieldHint className="mt-4">{t('customIcons.formats')}</FieldHint>
     </div>
   );
 }
@@ -234,13 +237,14 @@ function IconTile({ icon, usage, renaming, onRename, onChanged }: {
 
   const remove = async () => {
     const confirmed = await useConfirmStore.getState().confirm({
-      title: t('customIcons.remove.title', { name: icon.name }),
-      message: uses
-        ? `${t('customIcons.remove.inUse', { count: uses })} ${t('customIcons.page.usedByList', { list: where })}`
-        : t('customIcons.remove.notUsed'),
-      confirmLabel: t('customIcons.remove.confirm'),
+      ...buildDeleteConfirm({
+        verb: 'delete',
+        name: icon.name,
+        consequence: uses
+          ? `${t('customIcons.remove.inUse', { count: uses })} ${t('customIcons.page.usedByList', { list: where })}`
+          : t('customIcons.remove.notUsed'),
+      }, t),
       cancelLabel: t('customIcons.remove.keep'),
-      variant: 'danger',
     });
     if (!confirmed) return;
     try {

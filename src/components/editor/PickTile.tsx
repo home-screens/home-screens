@@ -23,7 +23,7 @@ export function PickTile({ thumb, alt, label, secondary, chosen, saving, disable
   thumb: string; alt: string; label?: string; secondary?: string;
   chosen: boolean; saving?: boolean; disabled?: boolean;
   onClick: () => void; ariaLabel?: string; testId: string;
-  /** A photo is shown whole-ish in a square, like the Image Library's grid; a wall keeps the display's shape. */
+  /** A photo is shown whole-ish in a square, like the Pictures & videos window's grid; a wall keeps the display's shape. */
   square?: boolean;
 }) {
   const displayAspect = useTileAspect();

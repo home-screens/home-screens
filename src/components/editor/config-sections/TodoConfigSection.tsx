@@ -3,7 +3,6 @@
 import { useRefetchOnClose } from '@/hooks/useRefetchOnClose';
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Toggle from '@/components/ui/Toggle';
@@ -20,6 +19,7 @@ import { createListRequest, sendTodoWrite } from '@/lib/todo-client';
 import { useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList } from '@/types/todos';
 import type { ModuleInstance, TodoConfig, TodoView, TodoCompletedPlacement } from '@/types/config';
+import ColorPicker from '@/components/ui/ColorPicker';
 
 const DEFAULT_ACCENT = '#3b82f6';
 
@@ -70,7 +70,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     try {
       // The route names the list it made. Diffing the lists instead would
       // pick up one a phone created meanwhile.
-      const { created } = await sendTodoWrite(editorFetch, createListRequest(name), t('common.saveError'));
+      const { created } = await sendTodoWrite(editorFetch, createListRequest(name), tCore('refusals.saveFailed'));
       refetch();
       if (created) set({ listId: created.id });
       setNewName('');
@@ -168,7 +168,9 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           onChange={(v) => set({ title: v })}
         />
       )}
-      <AccentColorPicker
+      <ColorPicker
+        label={t('accentColorPicker.label')}
+        swatches="accent-or-none"
         value={c.accentColor ?? DEFAULT_ACCENT}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -196,7 +198,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {/* List and Board take ticks; Compact scrolls under a finger. */}
       {READS_INTERACTIVE.has(view) && (
         <Toggle
-          label={t('configSections.todo.interactive')}
+          label={t('configSections.tapOnWall')}
           checked={!!c.interactive}
           onChange={(v) => set({ interactive: v })}
         />
@@ -208,8 +210,8 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             label={t('configSections.todo.wallAdd')}
             checked={!!c.wallAdd}
             onChange={(v) => set({ wallAdd: v })}
+            description={t('configSections.todo.wallAddHelp')}
           />
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.todo.wallAddHelp')}</p>
         </>
       )}
 

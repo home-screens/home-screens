@@ -178,7 +178,7 @@ export interface ModuleDefinition {
    * True for modules that render a built-in title of their own (a fixed
    * header like "Traffic", or a configurable one like todo's). The editor shows
    * a hint under Card Title so users know the two would stack, and points at
-   * the module's Show Title toggle.
+   * the module's Show title toggle.
    */
   hasOwnTitle?: boolean;
   /**

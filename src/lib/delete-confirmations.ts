@@ -1,3 +1,20 @@
+/**
+ * The questions asked before something goes, in one shape on every surface:
+ * the title asks and names the thing (Delete “Kitchen”?), the body says what
+ * happens, and the button answers with the verb.
+ *
+ * Which verb:
+ * - Delete: gone for good. Screens, modules, chores, rules, profiles, notes,
+ *   lists, meals, rewards, routines, pictures, your icons, timetable schools,
+ *   subjects and timetables, backup copies, displays.
+ * - Remove: taken off something, and it still exists. A person from a chore,
+ *   an event from a calendar, a calendar from the list, done items from a list.
+ * - Clear: empty a slot (a default time, the alerts on a display).
+ *
+ * Names sit in curly quotes, “like this”, from the shared titles in `core`
+ * `confirm.*`, so every surface quotes them the same way.
+ */
+
 import type { TranslateFn } from '@/i18n/types';
 import type { ModuleInstance } from '@/types/config';
 
@@ -6,6 +23,45 @@ export interface DeleteConfirmContent {
   message: string;
   confirmLabel: string;
   variant: 'danger';
+}
+
+/** The verb on the answer button. See the rule at the top of this file. */
+export type ConfirmVerb = 'delete' | 'remove' | 'clear';
+
+export type DeleteConfirmSpec = {
+  verb: ConfirmVerb;
+  /** What happens on yes, as a sentence. */
+  consequence: string;
+  /** A fuller answer than the bare verb, when the question alone leaves it unclear ("Remove calendar"). */
+  confirmLabel?: string;
+} & (
+  /** What it is called; the title quotes it: Delete “Kitchen”? */
+  | { name: string; question?: never }
+  /**
+   * The whole question, for something with no name of its own ("Delete this
+   * note?") or a count ("Remove 3 done items from “Groceries”?"). A noun is
+   * never slotted into a shared sentence: that does not translate.
+   */
+  | { question: string; name?: never }
+);
+
+/**
+ * The one delete question: title, body and a named answer for the editor's
+ * confirm dialog (spread into `confirm()`) or the phone's `ConfirmSheet`
+ * (`title`, `description={message}`, `confirmLabel`). `tCore` reads `core`.
+ */
+export function buildDeleteConfirm(spec: DeleteConfirmSpec, tCore: TranslateFn): DeleteConfirmContent {
+  return {
+    title: spec.question ?? tCore(`confirm.${spec.verb}Title`, { name: spec.name }),
+    message: spec.consequence,
+    confirmLabel: spec.confirmLabel ?? tCore(`actions.${spec.verb}`),
+    variant: 'danger',
+  };
+}
+
+/** The same question as a phone `ConfirmSheet`'s props. */
+export function sheetQuestion(content: DeleteConfirmContent): { title: string; description: string; confirmLabel: string } {
+  return { title: content.title, description: content.message, confirmLabel: content.confirmLabel };
 }
 
 /**
@@ -25,14 +81,13 @@ export function buildScreenDeleteConfirm(
   openers: readonly string[] = [],
 ): DeleteConfirmContent {
   const detail = t('screenTabs.deleteConfirmDetail', { count: screen.modules.length });
-  return {
-    title: t('screenTabs.deleteConfirmTitle', { name: screen.name }),
+  return buildDeleteConfirm({
+    verb: 'delete',
+    name: screen.name,
     // A plural-form entry, so each locale picks its own branch rather than
     // having a count glued onto a sentence.
-    message: openers.length > 0 ? t('screenTabs.deleteConfirmOpeners', { names: openers.join(', '), count: screen.modules.length }) : detail,
-    confirmLabel: tCore('actions.delete'),
-    variant: 'danger',
-  };
+    consequence: openers.length > 0 ? t('screenTabs.deleteConfirmOpeners', { names: openers.join(', '), count: screen.modules.length }) : detail,
+  }, tCore);
 }
 
 /**
@@ -46,10 +101,20 @@ export function buildModuleDeleteConfirm(
   t: TranslateFn,
   tCore: TranslateFn,
 ): DeleteConfirmContent {
+  return buildDeleteConfirm({ verb: 'delete', name: moduleLabel, consequence: t('propertyPanel.actions.confirmDeleteDetail') }, tCore);
+}
+
+/**
+ * The question asked before pictures or videos leave the library, from
+ * Settings > Pictures & videos (one tile or a selection) and from the picture
+ * picker's tiles. The picker once deleted on one click: both now ask the same
+ * thing in the same words.
+ */
+export function buildLibraryDeleteConfirm(count: number, t: TranslateFn): DeleteConfirmContent {
   return {
-    title: t('propertyPanel.actions.confirmDeleteTitle', { name: moduleLabel }),
-    message: t('propertyPanel.actions.confirmDeleteDetail'),
-    confirmLabel: tCore('actions.delete'),
+    title: t('settings.mediaPage.deleteTitle', { count }),
+    message: t('settings.mediaPage.deleteMessage', { count }),
+    confirmLabel: t('settings.mediaPage.deleteConfirm'),
     variant: 'danger',
   };
 }

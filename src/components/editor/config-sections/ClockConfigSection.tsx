@@ -21,6 +21,7 @@ import { clockDatePattern } from '@/components/modules/clock/date-pattern';
 import { clockHourFormat } from '@/components/modules/clock/hour-format';
 import type { ModuleInstance, ClockView, ClockHourFormat, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import IconButton from '@/components/ui/IconButton';
 
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
@@ -232,12 +233,12 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         <Toggle label={t('configSections.clock.showSeconds')} checked={c.showSeconds !== false} onChange={(v) => set({ showSeconds: v })} />
       )}
 
-      {/* Show Date */}
+      {/* Show date */}
       {has('showDate') && (
         <Toggle label={t('configSections.clock.showDate')} checked={c.showDate !== false} onChange={(v) => set({ showDate: v })} />
       )}
 
-      {/* Date Format (preset dropdown + custom input + live preview) */}
+      {/* Date format (preset dropdown + custom input + live preview) */}
       {has('dateFormat') && (
         <DateFormatField
           label={t('configSections.clock.dateFormat')}
@@ -274,10 +275,11 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         <Toggle label={t('configSections.clock.flipAnimation')} checked={c.animateFlip !== false} onChange={(v) => set({ animateFlip: v })} />
       )}
 
-      {/* Accent Color */}
+      {/* Accent color */}
       {has('accentColor') && (
         <ColorPicker
           label={t('configSections.clock.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? '#22d3ee'}
           onChange={(v) => set({ accentColor: v })}
         />
@@ -289,14 +291,8 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           <span className="text-xs text-hs-text-muted">{t('configSections.clock.timeZonesCount', { count: worldZones.length, max: 3 })}</span>
           {worldZones.map((zone, i) => (
             <div key={i} className="flex items-center gap-1 text-xs bg-hs-card rounded p-1.5">
-              <span className="flex-1 text-hs-text-secondary">{zone.label} — {zone.timezone}</span>
-              <button
-                type="button"
-                onClick={() => removeZone(i)}
-                className="text-hs-text-faint hover:text-hs-danger shrink-0"
-              >
-                &times;
-              </button>
+              <span className="flex-1 text-hs-text-secondary">{zone.label} · {zone.timezone}</span>
+              <IconButton label={t('configSections.clock.removeZone', { name: zone.label })} onClick={() => removeZone(i)} />
             </div>
           ))}
           {worldZones.length < 3 && availableZones.length > 0 && (
@@ -322,12 +318,8 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             type="datetime-local"
             value={c.referenceTime ?? ''}
             onChange={(v) => set({ referenceTime: v })}
+            hint={c.timezone ? t('configSections.clock.referenceTimezoneHint', { timezone: c.timezone }) : undefined}
           />
-          {c.timezone && (
-            <span className="text-xs text-hs-text-faint">
-              {t('configSections.clock.referenceTimezoneHint', { timezone: c.timezone })}
-            </span>
-          )}
           <LabeledInput
             label={t('configSections.clock.referenceLabel')}
             value={c.referenceLabel ?? ''}
@@ -374,17 +366,13 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Size and placement, every view. Fixed: the box only places the clock
           and Text size (Style) alone sets how big it is. A clock pinned to a
           corner grows out of that corner when it is bigger than the box. */}
-      <div className="flex flex-col gap-1">
-        <LabeledSelect
-          label={t('configSections.clock.sizeMode')}
-          value={c.sizeMode ?? 'fit'}
-          onChange={(v) => set({ sizeMode: v })}
-          options={SIZE_MODE_OPTIONS}
-        />
-        {c.sizeMode === 'fixed' && (
-          <span className="text-xs text-hs-text-faint">{t('configSections.clock.sizeModeFixedHint')}</span>
-        )}
-      </div>
+      <LabeledSelect
+        label={t('configSections.clock.sizeMode')}
+        value={c.sizeMode ?? 'fit'}
+        onChange={(v) => set({ sizeMode: v })}
+        options={SIZE_MODE_OPTIONS}
+        hint={c.sizeMode === 'fixed' ? t('configSections.clock.sizeModeFixedHint') : undefined}
+      />
       <LabeledSelect
         label={t('configSections.clock.alignment')}
         value={c.alignment ?? 'center'}

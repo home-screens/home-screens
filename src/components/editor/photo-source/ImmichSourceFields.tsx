@@ -12,6 +12,8 @@ import ImmichPermissionNote from './ImmichPermissionNote';
 import CheckboxList from './CheckboxList';
 import { PHOTO_SOURCE_MEDIA_PATH, photoSourceParams } from '@/lib/photo-source';
 import type { MediaListItem, PhotoSource } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
 
 interface ConnectionStatus {
   reachable: boolean;
@@ -93,12 +95,9 @@ export function ImmichSourceFields({ source, onChange }: Props) {
     <div className="space-y-2">
       {/* Connection status */}
       <div className="flex items-center gap-2">
-        <span
-          className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            checking ? 'bg-hs-warning animate-pulse' :
-            status?.authenticated ? 'bg-hs-success' :
-            status?.reachable ? 'bg-hs-warning' : 'bg-hs-danger'
-          }`}
+        <StatusDot
+          tone={checking ? 'info' : status?.authenticated ? 'success' : status?.reachable ? 'warning' : 'danger'}
+          pulse={checking}
         />
         <span className="text-xs text-hs-text-muted">
           {checking ? t('photoSources.immich.connecting') :
@@ -119,7 +118,7 @@ export function ImmichSourceFields({ source, onChange }: Props) {
         <>
           <LabeledField label={t('photoSources.immich.albums')}>
             {albumsHidden && <ImmichPermissionNote permission={albumsHidden} className="mb-1" />}
-            <p className="mb-1 text-[10px] text-hs-text-faint">{albumIds.length === 0 ? t('photoSources.immich.anyAlbum') : t('photoSources.immich.albumsChosen', { count: albumIds.length })}</p>
+            <FieldHint className="mb-1">{albumIds.length === 0 ? t('photoSources.immich.anyAlbum') : t('photoSources.immich.albumsChosen', { count: albumIds.length })}</FieldHint>
             <CheckboxList
               options={albums.map((a) => ({ id: a.id, label: `${a.name} (${a.assetCount})` }))}
               selected={albumIds}
@@ -131,7 +130,7 @@ export function ImmichSourceFields({ source, onChange }: Props) {
 
           <LabeledField label={t('photoSources.immich.people')}>
             {peopleHidden && <ImmichPermissionNote permission={peopleHidden} className="mb-1" />}
-            <p className="mb-1 text-[10px] text-hs-text-faint">{personIds.length === 0 ? t('photoSources.immich.anyone') : t('photoSources.immich.peopleChosen', { count: personIds.length })}</p>
+            <FieldHint className="mb-1">{personIds.length === 0 ? t('photoSources.immich.anyone') : t('photoSources.immich.peopleChosen', { count: personIds.length })}</FieldHint>
             <CheckboxList
               options={peopleOptions}
               selected={personIds}
@@ -142,7 +141,7 @@ export function ImmichSourceFields({ source, onChange }: Props) {
           </LabeledField>
 
           <LabeledField label={t('photoSources.immich.leaveOut')}>
-            <p className="mb-1 text-[10px] text-hs-text-faint">{excludePersonIds.length === 0 ? t('photoSources.immich.noOneLeftOut') : t('photoSources.immich.leftOutChosen', { count: excludePersonIds.length })}</p>
+            <FieldHint className="mb-1">{excludePersonIds.length === 0 ? t('photoSources.immich.noOneLeftOut') : t('photoSources.immich.leftOutChosen', { count: excludePersonIds.length })}</FieldHint>
             <CheckboxList
               options={peopleOptions.filter((p) => !personIds.includes(p.id))}
               selected={excludePersonIds}

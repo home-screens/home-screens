@@ -5,6 +5,7 @@ import { formatEventTime } from '@/lib/calendar-utils';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarFetchStatus, CalendarSourceStatus, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Per-source `messageKey` the calendar route emits for a missing or expired Google sign-in. */
 export const GOOGLE_NOT_SIGNED_IN_KEY = 'googleNotSignedIn';
@@ -97,12 +98,15 @@ export function calendarStatusView(opts: {
   now: Date;
   today: Date;
   t: TranslateFn;
+  /** Reads `core`, for the settings page the setup card points at. */
+  tCore: TranslateFn;
 }): CalendarStatusView {
   const { calendarStatus, failingSources, t } = opts;
+  const place = settingsPlaceText(opts.tCore, 'calendar');
   const since = (fetchedAt: number) => formatSince(fetchedAt, opts);
   const setupCard = (setup: CalendarSetupNeed): CalendarStatusView => (setup === 'noSources'
-    ? { kind: 'setup', setup, title: t('calendar.noSourcesYet'), hint: t('calendar.noSourcesYetHint') }
-    : { kind: 'setup', setup, title: t('calendar.signInAgain'), hint: t('calendar.signInAgainHint') });
+    ? { kind: 'setup', setup, title: t('calendar.noSourcesYet'), hint: t('calendar.noSourcesYetHint', { place }) }
+    : { kind: 'setup', setup, title: t('calendar.signInAgain'), hint: t('calendar.signInAgainHint', { place }) });
 
   if (opts.calendarSetup === 'noSources') return setupCard('noSources');
 

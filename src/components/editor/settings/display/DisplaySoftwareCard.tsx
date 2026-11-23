@@ -11,6 +11,8 @@ import {
   resolveDisplaySoftwareState,
 } from '@/lib/display-software-status';
 import type { DisplaySoftwareInfo } from '@/lib/displays-api-types';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import StatusDot from '@/components/ui/StatusDot';
 
 interface DisplaySoftwareCardProps {
   displayId: string;
@@ -54,12 +56,12 @@ export default function DisplaySoftwareCard({
 
   if (state.kind === 'needs-setup') {
     return (
-      <div className="rounded-lg border border-hs-warning/30 border-l-[3px] border-l-hs-warning bg-hs-warning/[0.07] p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-warning mb-2.5">
+      <div className="rounded-lg border border-hs-warning/30 bg-hs-warning/10 p-4">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-warning-ink mb-2.5">
           {t('settings.perDisplayPage.displaySoftware.heading')}
         </div>
         <div className="flex items-center gap-2 mb-1.5">
-          <AlertTriangle size={16} className="text-hs-warning shrink-0" aria-hidden="true" />
+          <AlertTriangle size={16} className="text-hs-warning-ink shrink-0" aria-hidden="true" />
           <span className="text-[15px] font-semibold text-hs-text-primary">
             {t('settings.perDisplayPage.displaySoftware.needsSetupTitle')}
           </span>
@@ -97,11 +99,11 @@ export default function DisplaySoftwareCard({
 
   return (
     <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
-      <div className="text-xs font-semibold text-hs-text-secondary uppercase tracking-wider mb-3">
+      <SettingsSectionHeading>
         {t('settings.perDisplayPage.displaySoftware.heading')}
-      </div>
+      </SettingsSectionHeading>
       <div className="flex items-center gap-2.5">
-        <StatusDot kind={state.kind} />
+        <StatusDot tone={SOFTWARE_TONE[state.kind]} />
         <div>
           <div className="text-base text-hs-text-primary font-medium">
             {state.kind === 'current' &&
@@ -153,6 +155,7 @@ function CommandRow({
   testId: string;
   t: ReturnType<typeof useTranslate>;
 }) {
+  const tCore = useTranslate('core');
   // The hub is usually reached over plain HTTP on the LAN, where the async
   // clipboard API is missing; the shared copy carries the fallback.
   const { copied, copy } = useCopyFlash();
@@ -164,7 +167,7 @@ function CommandRow({
       <div className="flex items-stretch gap-2">
         <code
           data-testid={testId}
-          className="flex-1 min-w-0 whitespace-pre-wrap break-all rounded-md border border-hs-border bg-hs-bg px-3 py-2 text-xs leading-relaxed text-hs-text-primary font-mono"
+          className="flex-1 min-w-0 whitespace-pre-wrap break-all rounded-md border border-hs-border bg-hs-input px-3 py-2 text-xs leading-relaxed text-hs-text-primary font-mono"
         >
           {command}
         </code>
@@ -175,7 +178,7 @@ function CommandRow({
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
           {copied
-            ? t('settings.perDisplayPage.displaySoftware.copied')
+            ? tCore('status.copied')
             : t('settings.perDisplayPage.displaySoftware.copy')}
         </button>
       </div>
@@ -183,14 +186,4 @@ function CommandRow({
   );
 }
 
-function StatusDot({ kind }: { kind: 'current' | 'outdated' | 'pending' | 'unreported' }) {
-  const color =
-    kind === 'current'
-      ? 'bg-emerald-500'
-      : kind === 'outdated'
-        ? 'bg-amber-500'
-        : kind === 'pending'
-          ? 'bg-sky-500'
-          : 'bg-hs-text-faint';
-  return <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} aria-hidden="true" />;
-}
+const SOFTWARE_TONE = { current: 'success', outdated: 'warning', pending: 'info', unreported: 'neutral' } as const;

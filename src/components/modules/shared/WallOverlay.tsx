@@ -2,12 +2,10 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useInteractionHold } from '@/lib/interaction-hold';
-import { useSettledTap } from '@/hooks/useSheetTapGuard';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { EventTapStyle } from '@/types/config';
-import { useAutoClose } from './useAutoClose';
+import { useWallSheet } from './useWallSheet';
 
 export interface WallOverlayProps {
   /** What the dialog is called (the event, the meal, the day). */
@@ -48,9 +46,7 @@ export function WallOverlay({
   label, onClose, autoCloseMs, paused = false, restartKey, closeOnScrim = true, scrim = 'rgba(0,0,0,0.62)',
   testId, className, style, children,
 }: WallOverlayProps) {
-  useInteractionHold();
-  const touched = useAutoClose(onClose, autoCloseMs, { restartKey, paused });
-  const settled = useSettledTap();
+  const { touched, settled } = useWallSheet({ onClose, autoCloseMs, paused, restartKey });
   if (typeof document === 'undefined') return null;
   return createPortal(
     <div

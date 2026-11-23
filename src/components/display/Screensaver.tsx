@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { ScreensaverMode, TimeFormat } from '@/types/config';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
-import { formatTimeInTZ } from '@/lib/timezone';
+import { formatTimeOfDay } from '@/lib/timezone';
 import { useFormattingLocale } from '@/i18n';
 import { householdTimeFormat } from '@/lib/clock-time';
 
@@ -60,10 +60,10 @@ function DriftingClock({ timezone, timeFormat }: { timezone?: string; timeFormat
   const [time, setTime] = useState('');
   const [spot, setSpot] = useState(START);
   const locale = useFormattingLocale();
-  const hour12 = householdTimeFormat(timeFormat, locale) === '12h';
+  const hours = householdTimeFormat(timeFormat, locale);
 
   useEffect(() => {
-    const read = () => setTime(formatTimeInTZ(new Date(), { timezone, locale, hour12 }));
+    const read = () => setTime(formatTimeOfDay(new Date(), { timeFormat: hours, locale, timezone }));
     read();
     // A chain rather than an interval: each wait is measured from the clock
     // again, so a clock step or a late timer never leaves it off the boundary.
@@ -77,7 +77,7 @@ function DriftingClock({ timezone, timeFormat }: { timezone?: string; timeFormat
     };
     schedule();
     return () => clearTimeout(id);
-  }, [timezone, locale, hour12]);
+  }, [timezone, locale, hours]);
 
   return (
     <div

@@ -8,6 +8,7 @@ import { displayCache } from '@/lib/display-cache';
 import FamilyManager from '@/components/family/FamilyManager';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import Button from '@/components/ui/Button';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
@@ -37,7 +38,7 @@ import { getLocalizedDayNames } from '@/lib/meal-constants';
 import ChoreIcon, {
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
-import { ListChecks, Users, X } from 'lucide-react';
+import { ListChecks, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_STEPS_MAX_CHARS, buildChoreAssigneeLine, buildChoreSummaryLine, comesBackHintKey, describeStepsCount, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
@@ -51,6 +52,10 @@ import { CHORE_CLAIMS, CHORE_COMES_BACK, CHORE_FREQUENCIES, CHORE_KINDS, CHORE_R
 import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
 import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import Notice from '@/components/ui/Notice';
+import IconButton from '@/components/ui/IconButton';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 // ── Props ─────────────────────────────────────────────────────────
 
@@ -144,29 +149,16 @@ function ChoreForm({
 
       <div className="space-y-1">
         <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.kindLabel')}</span>
-        <div
-          role="radiogroup"
-          aria-label={tModules('chore-chart.choreForm.kindLabel')}
-          onKeyDown={radioGroupKeyDown(CHORE_KINDS, kind, setKind)}
-          className="flex gap-1 rounded-md bg-hs-card p-0.5"
-        >
-          {CHORE_KINDS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={kind === value}
-              tabIndex={radioTabIndex(CHORE_KINDS, kind, value)}
-              onClick={() => setKind(value)}
-              className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
-                kind === value ? 'bg-hs-accent-soft text-hs-accent' : 'text-hs-text-faint hover:bg-hs-hover'
-              }`}
-            >
-              {tModules(value === 'regular' ? 'chore-chart.choreForm.kindRegular' : 'chore-chart.choreForm.kindBonus')}
-            </button>
-          ))}
-        </div>
-        {isBonus && <p className="text-[11px] text-hs-text-faint">{tModules('chore-chart.choreForm.bonusHint')}</p>}
+        <SegmentedControl
+          label={tModules('chore-chart.choreForm.kindLabel')}
+          value={kind}
+          onChange={setKind}
+          options={CHORE_KINDS.map((value) => ({
+            value,
+            label: tModules(value === 'regular' ? 'chore-chart.choreForm.kindRegular' : 'chore-chart.choreForm.kindBonus'),
+          }))}
+        />
+        {isBonus && <FieldHint>{tModules('chore-chart.choreForm.bonusHint')}</FieldHint>}
       </div>
 
       <IconPicker
@@ -174,7 +166,6 @@ function ChoreForm({
         onChange={setEmoji}
         icons={CHORE_ICONS}
         label={t('fields.icon')}
-        variant="desktop"
         suggestedName={name}
       />
 
@@ -239,9 +230,9 @@ function ChoreForm({
 
       {isBonus && (
         <div className="-mt-1 space-y-1">
-          <p className="text-[11px] text-hs-text-faint">{tModules(comesBackHintKey(bonusClaim, comesBack))}</p>
+          <FieldHint>{tModules(comesBackHintKey(bonusClaim, comesBack))}</FieldHint>
           {frequency === 'once' && (
-            <p className="text-[11px] text-hs-text-faint" data-testid="chore-once-bonus-note">{tModules('chore-chart.choreForm.onceBonusNote')}</p>
+            <FieldHint data-testid="chore-once-bonus-note">{tModules('chore-chart.choreForm.onceBonusNote')}</FieldHint>
           )}
         </div>
       )}
@@ -278,7 +269,7 @@ function ChoreForm({
           </div>
           {/* The grab limit and when a grab ends are household-wide, set on Settings > Family. */}
           {bonusClaim === 'first' && (
-            <p className="text-[11px] text-hs-text-faint">{t('choreChartModal.choreForm.grabRulesNote')}</p>
+            <FieldHint>{t('choreChartModal.choreForm.grabRulesNote')}</FieldHint>
           )}
         </div>
       )}
@@ -348,9 +339,9 @@ function ChoreForm({
                     </button>
                   ))}
                 </div>
-                <p className={`text-[11px] ${goesToNobody ? 'text-hs-warning' : 'text-hs-text-faint'}`}>
+                <FieldHint tone={goesToNobody ? 'warning' : undefined}>
                   {tModules(goesToNobody ? 'chore-chart.choreForm.emptyGroupNote' : isBonus ? 'chore-chart.choreForm.groupsHintBonus' : 'chore-chart.choreForm.groupsHint')}
-                </p>
+                </FieldHint>
                 <div className="text-[11px] text-hs-text-faint">{tModules('chore-chart.choreForm.peopleLabel')}</div>
               </>
             )}
@@ -423,15 +414,10 @@ function ChoreForm({
                       );
                     })}
                   </div>
-                  <button
-                    type="button"
-                    aria-label={tModules('chore-chart.choreForm.removeFromSchedule', { name: group.name })}
-                    title={tModules('chore-chart.choreForm.removeFromSchedule', { name: group.name })}
+                  <IconButton
+                    label={tModules('chore-chart.choreForm.removeFromSchedule', { name: group.name })}
                     onClick={() => removeGroupFromSchedule(group.id)}
-                    className="w-5 h-5 shrink-0 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-hover transition-colors"
-                  >
-                    <X size={12} aria-hidden />
-                  </button>
+                  />
                 </div>
               );
             })}
@@ -461,27 +447,22 @@ function ChoreForm({
                           className={`flex-1 aspect-square rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                             isOn ? '' : 'bg-hs-card text-hs-text-faint'
                           }`}
-                          style={isOn ? { background: member.color, color: 'white' } : undefined}
+                          style={isOn ? { background: member.color, color: memberInk(member.color) } : undefined}
                         >
                           {dayNamesShort[d][0]}
                         </button>
                       );
                     })}
                   </div>
-                  <button
-                    type="button"
-                    aria-label={tModules('chore-chart.choreForm.removeFromSchedule', { name: member.name })}
-                    title={tModules('chore-chart.choreForm.removeFromSchedule', { name: member.name })}
+                  <IconButton
+                    label={tModules('chore-chart.choreForm.removeFromSchedule', { name: member.name })}
                     onClick={() => removeMemberFromSchedule(memberId)}
-                    className="w-5 h-5 shrink-0 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-hover transition-colors"
-                  >
-                    <X size={12} aria-hidden />
-                  </button>
+                  />
                 </div>
               );
             })}
           </div>
-          {goesToNobody && <p className="text-[11px] text-hs-warning">{tModules('chore-chart.choreForm.emptyGroupNote')}</p>}
+          {goesToNobody && <p className="text-[11px] text-hs-warning-ink">{tModules('chore-chart.choreForm.emptyGroupNote')}</p>}
           {/* Add group and member buttons */}
           {unscheduledMembers.length + unscheduledGroups.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -491,9 +472,10 @@ function ChoreForm({
                   type="button"
                   title={groupMembers(group, members).map((m) => m.name).join(', ')}
                   onClick={() => addGroupToSchedule(group.id)}
+                  aria-label={tModules('chore-chart.choreForm.addToSchedule', { name: group.name })}
                   className="flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-hs-card text-hs-text-faint hover:bg-hs-hover border border-dashed border-hs-border transition-all max-w-full"
                 >
-                  <span>+</span> <Users size={12} aria-hidden /> <span className="truncate">{group.name}</span>
+                  <Plus size={12} aria-hidden /> <Users size={12} aria-hidden /> <span className="truncate">{group.name}</span>
                 </button>
               ))}
               {unscheduledMembers.map((m) => (
@@ -501,9 +483,10 @@ function ChoreForm({
                   key={m.id}
                   type="button"
                   onClick={() => addMemberToSchedule(m.id)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-hs-card text-hs-text-faint hover:bg-hs-hover border border-dashed border-hs-border transition-all"
+                  aria-label={tModules('chore-chart.choreForm.addToSchedule', { name: m.name })}
+                  className="flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-hs-card text-hs-text-faint hover:bg-hs-hover border border-dashed border-hs-border transition-all max-w-full"
                 >
-                  <span>+</span> {m.name}
+                  <Plus size={12} aria-hidden /> <span className="truncate">{m.name}</span>
                 </button>
               ))}
             </div>
@@ -514,7 +497,7 @@ function ChoreForm({
             {scheduleDays.length < 7 && (
               <>
                 {' · '}
-                <span className="text-hs-warning/70">
+                <span className="text-hs-warning-ink/70">
                   {tModules('chore-chart.choreForm.coverageUncovered', {
                     days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
                   })}
@@ -549,7 +532,7 @@ function ChoreForm({
       )}
 
       {validationHintKind && (
-        <p className="text-xs text-hs-warning/80">
+        <p className="text-xs text-hs-warning-ink/80">
           {tModules(`chore-chart.choreForm.validation.${validationHintKind}`)}
         </p>
       )}
@@ -783,9 +766,10 @@ function ChoreColumn({
                 setEditingChoreId(null);
                 closeStarter();
               }}
-              className="text-[11px] font-medium px-2 py-0.5 rounded bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors"
             >
-              + {t('choreChartModal.chores.addButton')}
+              <Plus className="h-3 w-3" aria-hidden="true" />
+              {t('choreChartModal.chores.addButton')}
             </button>
           </div>
         )}
@@ -806,7 +790,7 @@ function ChoreColumn({
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
         {chores.length === 0 && !showAddChore && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
-            {members.length > 0 && <ListChecks size={22} className="text-hs-warning" aria-hidden />}
+            {members.length > 0 && <ListChecks size={22} className="text-hs-warning-ink" aria-hidden />}
             <p className="text-xs text-hs-text-faint">{t('choreChartModal.chores.empty')}</p>
             {members.length === 0 ? (
               <p className="text-[11px] text-hs-text-faint">{t('choreChartModal.chores.addMembersFirst')}</p>
@@ -816,11 +800,11 @@ function ChoreColumn({
                   type="button"
                   data-testid="starter-open"
                   onClick={openStarter}
-                  className="mt-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-hs-warning/15 text-hs-warning hover:bg-hs-warning/25 transition-colors"
+                  className="mt-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-hs-warning/15 text-hs-warning-ink hover:bg-hs-warning/25 transition-colors"
                 >
                   {t('choreChartModal.starter.openButton')}
                 </button>
-                <p className="text-[11px] text-hs-text-faint">{t('choreChartModal.starter.hint', { count: STARTER_CHORE_COUNT })}</p>
+                <FieldHint>{t('choreChartModal.starter.hint', { count: STARTER_CHORE_COUNT })}</FieldHint>
               </>
             )}
           </div>
@@ -867,7 +851,7 @@ function ChoreColumn({
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
                   {tModules('chore-chart.choreSummary.arrow')}{' '}
-                  <span className={choreAssigneeIds(chore, groups).length === 0 ? 'text-hs-warning' : undefined}>
+                  <span className={choreAssigneeIds(chore, groups).length === 0 ? 'text-hs-warning-ink' : undefined}>
                     {buildChoreAssigneeLine({ chore, members, groups, unknownLabel: tModules('chore-chart.unknownAssignee'), nobodyLabel: tModules('chore-chart.choreSummary.nobody') })}
                   </span>
                   {rotationSuffix && (
@@ -878,27 +862,22 @@ function ChoreColumn({
                 </div>
               </div>
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
-                <button
-                  type="button"
+                <IconButton
+                  icon={Pencil}
+                  tone="neutral"
                   data-edit-chore={chore.id}
                   onClick={() => {
                     setEditingChoreId(chore.id);
                     setShowAddChore(false);
                     closeStarter();
                   }}
-                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
-                  aria-label={t('choreChartModal.chores.editAriaLabel', { name: chore.name })}
-                >
-                  &#9998;
-                </button>
-                <button
-                  type="button"
+                  label={t('choreChartModal.chores.editAriaLabel', { name: chore.name })}
+                />
+                <IconButton
+                  icon={Trash2}
                   onClick={() => deleteChore(chore.id)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
-                  aria-label={t('choreChartModal.chores.deleteAriaLabel', { name: chore.name })}
-                >
-                  &times;
-                </button>
+                  label={t('choreChartModal.chores.deleteAriaLabel', { name: chore.name })}
+                />
               </div>
             </div>
             </Fragment>
@@ -947,6 +926,7 @@ function PreviewColumn({
   setShowStarter,
 }: PreviewColumnProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   let columnTitle: string;
   if (showStarter) columnTitle = t('choreChartModal.starter.columnTitle');
   else if (showAddChore) columnTitle = t('choreChartModal.preview.columnTitleNew');
@@ -987,7 +967,7 @@ function PreviewColumn({
             members={members}
             groups={groups}
             familyReady={familyReady}
-            submitLabel={t('choreChartModal.choreForm.saveSubmit')}
+            submitLabel={tCore('actions.save')}
             onSubmit={(data) => updateChore(editingChoreId, data)}
             onCancel={() => setEditingChoreId(null)}
           />
@@ -1043,7 +1023,7 @@ export default function ChoreChartModal({
     failed: setSaveError,
   }, {
     enabled: loaded,
-    words: { refused: t('common.saveError'), unreachable: tCore('refusals.hubUnreachable') },
+    words: { refused: tCore('refusals.saveFailed'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
@@ -1061,7 +1041,7 @@ export default function ChoreChartModal({
   useEscapeKey(closeChoreForm, choreFormOpen && !confirmOpen && !familyEditing);
   // When the chore form closes (saved, added, cancelled or Escape), the
   // keyboard goes back to where it came from: the chore's Edit button, or
-  // + Add Chore. Left alone it fell to the page, sixty Tabs from the list.
+  // Add chore. Left alone it fell to the page, sixty Tabs from the list.
   const formFor = useRef<string | null>(null);
   useEffect(() => {
     if (choreFormOpen) {
@@ -1109,12 +1089,9 @@ export default function ChoreChartModal({
   const deleteChore = async (id: string) => {
     const chore = chores.find((c) => c.id === id);
     if (!chore) return;
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('choreChartModal.chores.deleteConfirm.title'),
-      message: t('choreChartModal.chores.deleteConfirm.message', { name: chore.name }),
-      confirmLabel: t('choreChartModal.chores.deleteConfirm.confirmLabel'),
-      variant: 'danger',
-    });
+    const ok = await useConfirmStore.getState().confirm(
+      buildDeleteConfirm({ verb: 'delete', name: chore.name, consequence: tCore('chores.deleteBody') }, tCore),
+    );
     if (!ok) return;
     setChores((prev) => removeChoreFromList(prev, id));
     // The chore open in the form is gone: so is its form.
@@ -1124,7 +1101,7 @@ export default function ChoreChartModal({
   return (
     <CRUDModalShell
       title={t('choreChartModal.title')}
-      subtitle={t('choreChartModal.subtitleMembersChores', { members: members.length, chores: chores.length })}
+      subtitle={`${t('configSections.chore-chart.membersCount', { count: members.length })} · ${t('configSections.chore-chart.choresCount', { count: chores.length })}`}
       maxWidth="max-w-6xl"
       // While a chore, person or group is open in a form, Escape closes that
       // form (below) rather than the whole window, which threw the edit away.
@@ -1133,14 +1110,12 @@ export default function ChoreChartModal({
       onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
       {loadError && (
-        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
-          {t('choreChartModal.loadError')}
-        </div>
+        <Notice tone="danger" role="alert" className="mx-4 mt-3">{t('choreChartModal.loadError')}</Notice>
       )}
       {saveError && (
-        <div role="alert" className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
+        <Notice tone="danger" role="alert" className="mx-4 mt-3">
           {saveError === 'conflict' ? tCore('chores.changedElsewhere') : saveError}
-        </div>
+        </Notice>
       )}
       {/* Nothing is editable until the store is in hand. The columns start
           empty, and the load below replaces whatever is in state when it

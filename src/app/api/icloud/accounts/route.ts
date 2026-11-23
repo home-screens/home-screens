@@ -46,6 +46,7 @@ export const POST = withAuth(async (request) => {
       {
         error:
           "Couldn't sign in to iCloud. Double-check the Apple ID, and make sure the password is an app password created at account.apple.com; your regular Apple password won't work here.",
+        code: 'icloud.signInRefused',
       },
       { status: 400 },
     );

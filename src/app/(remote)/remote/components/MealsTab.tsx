@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { pickTargetChosen, type MealPickTarget } from '@/lib/meal-courses';
@@ -24,8 +24,9 @@ import AtHomePill from './AtHomePill';
 import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMealieStatus';
 import { MealVotesProvider } from '@/components/meals/meal-votes';
 import { DinnerRatingSheet } from './MealRatingSheet';
-import { REMOTE_ACCENT } from './remote-styles';
 import { isoWeekday } from '@/lib/iso-date';
+import { dismissToast, showToast, useRemoteToast } from '../remote-toast';
+import { LoadFailed } from './RetryButton';
 
 /** `onOpenList` shows one of the family's lists on the Lists tab (from the Grocery tab's "Also on" group). */
 export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string) => void } = {}) {
@@ -53,9 +54,7 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
     saving,
     saveError,
     setSaveError,
-    notice,
     showNotice,
-    dismissNotice,
     form,
     weekDates,
     todayISO,
@@ -108,29 +107,35 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
   // Leaving a sub-tab takes its notice along: an Undo for the plan does not
   // follow the family onto the grocery list.
   const openView = useCallback((view: MealsSubView) => {
-    if (view !== subView) dismissNotice();
+    if (view !== subView) dismissToast();
     setSubView(view);
-  }, [subView, dismissNotice]);
+  }, [subView]);
   const [showSettings, setShowSettings] = useState(false);
   const dayNamesFull = useMemo(() => getLocalizedDayNames(locale, 'full'), [locale]);
   const closeSheet = useCallback(() => setSheet(null), [setSheet]);
 
-  // "Show on the wall" speaks through the tab's own notice and error line,
-  // which sit over an open meal sheet (the remote's toast would be under it).
-  // A send that works takes back the error an earlier one left, and only that.
-  const wallError = useRef<string | null>(null);
+  // A save that failed is said through the phone's toast, which sits above
+  // any open sheet; the meal form says it on the form instead, so it waits
+  // there until the form closes. Said once: the same failure again is a new
+  // toast, not a message that was already up.
+  useEffect(() => {
+    if (!saveError || form.editingMeal) return;
+    showToast(saveError, 'error');
+    setSaveError(null);
+  }, [saveError, form.editingMeal, setSaveError]);
+  // A later Mealie write that went through takes down the error it left, and
+  // only that one.
+  const toast = useRemoteToast();
+  const clearError = (message: string) => {
+    if (toast?.tone === 'error' && toast.message === message) dismissToast();
+  };
+
+  // "Show on the wall" says how it went through the same toast. A send that
+  // works replaces an error an earlier one left.
   const wallNotices = useMemo<WallNotices>(() => ({
-    sent: (message, takeDown) => {
-      const stale = wallError.current;
-      wallError.current = null;
-      if (stale) setSaveError((current) => (current === stale ? null : current));
-      showNotice(message, takeDown, takeDown ? t('mealsTab.showOnWall.takeDown') : undefined);
-    },
-    failed: (message) => {
-      wallError.current = message;
-      setSaveError(message);
-    },
-  }), [showNotice, setSaveError, t]);
+    sent: (message, takeDown) => showNotice(message, takeDown, takeDown ? t('mealsTab.showOnWall.takeDown') : undefined),
+    failed: (message) => showToast(message, 'error'),
+  }), [showNotice, t]);
 
   // Mirror the tab and the week shown into the address, once the household's
   // week start has settled which week that is.
@@ -152,30 +157,7 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
   // Never an empty week: that reads as "nothing planned", and a meal saved
   // from here would be built on nothing.
   if (loadError) {
-    return (
-      <div style={{ padding: '48px 16px', textAlign: 'center' }} data-testid="meals-load-error">
-        <p role="alert" style={{ fontSize: 14, color: 'var(--hs-text-faint)', margin: 0 }}>{t('mealsTab.loadError')}</p>
-        <button
-          type="button"
-          onClick={() => void retryLoad()}
-          className="press-btn"
-          style={{
-            marginTop: 16,
-            minHeight: 44,
-            padding: '0 18px',
-            borderRadius: 12,
-            border: 'none',
-            background: 'var(--hs-hover)',
-            color: 'var(--hs-text-primary)',
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          {t('mealsTab.retry')}
-        </button>
-      </div>
-    );
+    return <LoadFailed testId="meals-load-error" message={t('mealsTab.loadError')} onRetry={retryLoad} />;
   }
 
   const fromMealie = source === 'mealie';
@@ -187,7 +169,7 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
   // drawing an empty week, which would read as nothing planned.
   const unreachable = fromMealie && (status.state === 'unreachable' || weekState === 'failed');
 
-  // The week between the arrows: "This Week", or the dates of another.
+  // The week between the arrows: "This week", or the dates of another.
   const weekLabel = isCurrentWeek ? t('mealsTab.weekLabel.thisWeek') : week.range;
   const weekReady = weekState === 'ready';
 
@@ -196,14 +178,6 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
   // What the picker marks with a tick: the dish being changed, or, when
   // adding, the dishes of that kind the meal already has.
   const chosen = picker ? pickTargetChosen(pickerEntry, picker) : null;
-
-  // Where the notice and a save error sit: above the tab bar (and above the
-  // Library's add button), or, while a sheet is up, at the top of the screen
-  // over the dimmed page. At the bottom they covered the sheet's own rows
-  // (the serving time, Clear).
-  const toastPlace: CSSProperties = sheet || picker || confirmAction || showSettings || ratingDinner
-    ? { top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }
-    : { bottom: subView === 'library' && !fromMealie ? 144 : 100 };
 
   return (
     <MealVotesProvider loaded={familyRatings}>
@@ -300,7 +274,7 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
           baseUrl={baseUrl}
           todayISO={todayISO}
           onError={setSaveError}
-          onErrorResolved={(message) => setSaveError((current) => (current === message ? null : current))}
+          onErrorResolved={clearError}
         />
       ) : (
         <MealsGroceryView
@@ -360,14 +334,13 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
           title={confirmAction.title}
           description={confirmAction.description}
           confirmLabel={confirmAction.confirmLabel}
-          confirmColor={confirmAction.confirmColor}
+          tone={confirmAction.tone}
           onConfirm={confirmAction.onConfirm}
           onCancel={() => setConfirmAction(null)}
-          zIndex={130}
         />
       )}
 
-      {/* Rate Dinner is something the family does, not a view of the plan, so
+      {/* Rate dinner is something the family does, not a view of the plan, so
           it opens over whichever tab is up and closes back onto it. */}
       {ratingDinner && (
         <DinnerRatingSheet
@@ -393,70 +366,6 @@ export default function MealsTab({ onOpenList }: { onOpenList?: (listId: string)
           onClose={() => setShowSettings(false)}
         />
       )}
-
-      {notice && !saveError && (
-        <div
-          role="status"
-          onClick={notice.undo ? undefined : dismissNotice}
-          style={{
-            position: 'fixed',
-            ...toastPlace,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'max-content',
-            maxWidth: 'calc(100% - 32px)',
-            background: 'var(--hs-bg-panel)',
-            border: '1px solid var(--hs-border)',
-            color: 'var(--hs-text)',
-            padding: '10px 18px',
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 600,
-            textAlign: 'center',
-            zIndex: 250,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <span>{notice.message}</span>
-          {notice.undo && (
-            <button
-              type="button"
-              onClick={() => { notice.undo?.(); dismissNotice(); }}
-              style={{ flex: 'none', whiteSpace: 'nowrap', minHeight: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--hs-border)', background: 'transparent', color: REMOTE_ACCENT, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              {notice.undoLabel ?? t('mealsTab.notice.undo')}
-            </button>
-          )}
-        </div>
-      )}
-
-      {saveError && !form.editingMeal && (
-        <div
-          style={{
-            position: 'fixed',
-            ...toastPlace,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'var(--hs-danger)',
-            color: '#fff',
-            padding: '10px 20px',
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 600,
-            zIndex: 250,
-            boxShadow: 'none',
-            cursor: 'pointer',
-          }}
-          onClick={() => setSaveError(null)}
-          role="alert"
-        >
-          {saveError}
-        </div>
-      )}
-
     </div>
     </MealVotesProvider>
   );

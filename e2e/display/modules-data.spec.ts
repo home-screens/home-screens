@@ -204,12 +204,12 @@ test('fullscreen-calendar schedule view renders a midnight-crossing event on bot
 
 /**
  * Failure ≠ empty: a calendar fetch that FAILS with nothing ever loaded must
- * render the "can't load" state — never the same wording as a genuinely
+ * render the "not updating" state, never the same wording as a genuinely
  * empty calendar, which is an answer families act on. Conversely a
  * SUCCESSFUL fetch returning zero events is an ordinary quiet week and must
  * never claim an outage. The two tests pin the discriminator's direction.
  */
-test('fullscreen-calendar renders the cant-load state when the fetch fails with nothing loaded', async ({ page, request }) => {
+test('fullscreen-calendar renders the not-updating state when the fetch fails with nothing loaded', async ({ page, request }) => {
   await stubModuleData(page, { overrides: { calendar: { status: 500 } } });
   const cfg = baseConfig({
     screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', {})])],
@@ -217,7 +217,7 @@ test('fullscreen-calendar renders the cant-load state when the fetch fails with 
   });
   const display = await renderOnDisplay(page, request, cfg);
   const mod = display.module('fullscreen-calendar');
-  await expect(mod).toContainText("Can't load events right now");
+  await expect(mod).toContainText('Not updating right now');
   await expect(mod).not.toContainText('No events this week');
 });
 
@@ -230,7 +230,7 @@ test('fullscreen-calendar renders the ordinary empty state on a successful empty
   const display = await renderOnDisplay(page, request, cfg);
   const mod = display.module('fullscreen-calendar');
   await expect(mod).toContainText('No events this week');
-  await expect(mod).not.toContainText("Can't load events");
+  await expect(mod).not.toContainText('Not updating right now');
 });
 
 for (const r of RESILIENCE_NO_CRASH) {
@@ -350,7 +350,7 @@ test('weather with a failing provider says it is not updating instead of "No wea
   });
   const display = await renderOnDisplay(page, request, cfg);
   const mod = display.module('weather');
-  await expect(mod).toContainText('Weather is not updating');
+  await expect(mod).toContainText('Not updating right now');
   await expect(mod).not.toContainText('No weather data');
   await expect(mod).not.toContainText('502');
 });

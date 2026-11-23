@@ -3,19 +3,18 @@
 import { useState } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
-import Button from '@/components/ui/Button';
-import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
+import { CHECKBOX_CLASS, MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface LayoutExportModalProps {
   onClose: () => void;
-  /** Pre-select a single screen (e.g., from right-click "Export This Screen") */
+  /** Pre-select a single screen (e.g., from right-click "Export this screen") */
   preSelectedScreenId?: string;
 }
 
 export default function LayoutExportModal({ onClose, preSelectedScreenId }: LayoutExportModalProps) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const { config, selectedDisplayId, exportLayout } = useEditorStore();
   const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
 
@@ -68,77 +67,72 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
 
   return (
     <ModalFrame labelledBy="layout-export-title" onClose={onClose} className="w-full max-w-md">
-      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 id="layout-export-title" className="text-lg font-semibold text-hs-text-primary">{t('layoutExportModal.title')}</h2>
-          <span className="ml-auto"><EscHint /></span>
-        </div>
+      <ModalPanel>
+        <ModalHeader titleId="layout-export-title" title={t('layoutExportModal.title')} onClose={onClose} />
+        <ModalBody>
+          {/* Name */}
+          <label className="block text-sm text-hs-text-muted mb-1">{t('layoutExportModal.nameLabel')}</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={`mb-4 ${MODAL_INPUT_CLASS}`}
+            placeholder={defaultName}
+          />
 
-        {/* Name */}
-        <label className="block text-sm text-hs-text-muted mb-1">{t('layoutExportModal.nameLabel')}</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-4"
-          placeholder={defaultName}
-        />
+          {/* Description */}
+          <label className="block text-sm text-hs-text-muted mb-1">{t('layoutExportModal.descriptionLabel')}</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className={`mb-4 resize-none ${MODAL_INPUT_CLASS}`}
+            placeholder={t('layoutExportModal.descriptionPlaceholder')}
+          />
 
-        {/* Description */}
-        <label className="block text-sm text-hs-text-muted mb-1">{t('layoutExportModal.descriptionLabel')}</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-          className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-4 resize-none"
-          placeholder={t('layoutExportModal.descriptionPlaceholder')}
-        />
-
-        {/* Screen selection */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-hs-text-muted">{t('layoutExportModal.screensHeading')}</span>
-            {screens.length > 1 && (
-              <button
-                onClick={toggleAll}
-                className="text-xs text-hs-accent hover:text-hs-accent-hover"
-              >
-                {selectedScreenIds.size === screens.length
-                  ? t('layoutExportModal.deselectAll')
-                  : t('layoutExportModal.selectAll')}
-              </button>
-            )}
+          {/* Screen selection */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-hs-text-muted">{t('layoutExportModal.screensHeading')}</span>
+              {screens.length > 1 && (
+                <button
+                  onClick={toggleAll}
+                  className="text-xs text-hs-accent hover:text-hs-accent-hover"
+                >
+                  {selectedScreenIds.size === screens.length
+                    ? t('layoutExportModal.deselectAll')
+                    : t('layoutExportModal.selectAll')}
+                </button>
+              )}
+            </div>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {screens.map((screen) => (
+                <label
+                  key={screen.id}
+                  className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-hs-card cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedScreenIds.has(screen.id)}
+                    onChange={() => toggleScreen(screen.id)}
+                    className={CHECKBOX_CLASS}
+                  />
+                  <span className="text-sm text-hs-text-body">{screen.name}</span>
+                  <span className="text-xs text-hs-text-faint ml-auto">
+                    {screen.modules.length === 1
+                      ? t('layoutExportModal.moduleCountSingular', { count: screen.modules.length })
+                      : t('layoutExportModal.moduleCountPlural', { count: screen.modules.length })}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
-          <div className="space-y-1 max-h-40 overflow-y-auto">
-            {screens.map((screen) => (
-              <label
-                key={screen.id}
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-hs-card cursor-pointer transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedScreenIds.has(screen.id)}
-                  onChange={() => toggleScreen(screen.id)}
-                  className="accent-hs-accent"
-                />
-                <span className="text-sm text-hs-text-body">{screen.name}</span>
-                <span className="text-xs text-hs-text-faint ml-auto">
-                  {screen.modules.length === 1
-                    ? t('layoutExportModal.moduleCountSingular', { count: screen.modules.length })
-                    : t('layoutExportModal.moduleCountPlural', { count: screen.modules.length })}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
-          <Button variant="primary" onClick={handleExport} disabled={selectedScreenIds.size === 0}>
-            {t('layoutExportModal.exportButton')}
-          </Button>
-        </div>
-      </div>
+        </ModalBody>
+        <ModalFooter
+          onCancel={onClose}
+          primary={{ label: t('layoutExportModal.exportButton'), onClick: handleExport, disabled: selectedScreenIds.size === 0 }}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

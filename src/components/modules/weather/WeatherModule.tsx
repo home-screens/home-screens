@@ -8,9 +8,9 @@ import { useWallClock } from '@/hooks/useTZClock';
 import { forecastFromToday } from '@/lib/weather/daily';
 import { useTranslate } from '@/i18n';
 import { resolveWeatherLocationLabel } from './location-label';
-import { EditorSettingsLink } from '../EditorSettingsLink';
 import ModuleWrapper from '../ModuleWrapper';
-import { ModuleSetupState } from '../ModuleStates';
+import { ModuleLoadingState } from '../ModuleStates';
+import { LocationRequired } from '../LocationRequired';
 import { useLoadingStalled } from '@/hooks/useLoadingStalled';
 import type { FetchError } from '@/lib/fetch-error';
 import WeatherCurrentView from './WeatherCurrentView';
@@ -135,37 +135,13 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
   const { isoDate: todayISO } = useWallClock(timezone);
 
   if (locationMissing) {
-    return (
-      <ModuleWrapper style={style}>
-        <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center gap-1">
-          <p style={{ fontSize: `${scaledFontSize}px`, opacity: TEXT_OPACITY.secondary }}>{t('common.locationNotSet')}</p>
-          {locationSettingsHref ? (
-            // Editor preview: the hint is the link.
-            <EditorSettingsLink
-              href={locationSettingsHref}
-              style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.secondary }}
-            >
-              {t('weather.setLocationInSettings')}
-            </EditorSettingsLink>
-          ) : (
-            <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>{t('weather.setLocationInSettings')}</p>
-          )}
-        </div>
-      </ModuleWrapper>
-    );
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} fontSize={scaledFontSize} measureRef={containerRef} />;
   }
 
   if (waiting) {
-    if (weatherError?.kind === 'setup') return <ModuleSetupState style={style} error={weatherError} />;
-    return (
-      <ModuleWrapper style={style}>
-        <div ref={containerRef} className="w-full h-full flex items-center justify-center text-center px-2">
-          <p style={{ fontSize: `${scaledFontSize * 0.8}px`, opacity: TEXT_OPACITY.dim }} aria-live="polite">
-            {weatherError || stalled ? t('weather.notUpdating') : t('weather.loading')}
-          </p>
-        </div>
-      </ModuleWrapper>
-    );
+    // The shared loading state, and "Not updating right now" once the first
+    // read has failed or is taking too long, as every card says it.
+    return <ModuleLoadingState style={style} message={t('weather.loading')} error={weatherError} stalled={stalled} />;
   }
 
   if (view === 'alerts' && config.hideWhenNoAlerts && alerts !== undefined) {

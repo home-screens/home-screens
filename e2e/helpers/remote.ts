@@ -2,9 +2,9 @@ import type { Locator, Page } from '@playwright/test';
 
 /**
  * The two /remote overlays whose buttons deliberately share their trigger's
- * wording: `FormOverlay`'s save reads "Add Member" / "Add Chore" like the
- * button that opened it, and `ConfirmSheet`'s confirm reads "Delete Chore" /
- * "Redeem …" like the control that raised it.
+ * wording: `FormOverlay`'s save reads "Add Member" / "Add chore" like the
+ * button that opened it, and `ConfirmSheet`'s confirm reads "Delete" or
+ * "Redeem …", sharing a word with the control that raised it.
  *
  * Addressing those by label alone (`getByRole('button', …).last()`) is a race,
  * not a selector: for the render between the trigger's click and React's

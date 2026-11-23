@@ -22,6 +22,7 @@ import { ART_FRAME_COLORS, ART_MAT_COLORS, ART_WALL_COLORS } from '@/lib/art-pre
 import type { ArtGenre, MediaListItem, PhotoSource } from '@/types/config';
 import PreviewStrip from './PreviewStrip';
 import ArtSwatches from './ArtSwatches';
+import FieldHint from '@/components/ui/FieldHint';
 
 type Art = Extract<PhotoSource, { kind: 'art' }>;
 
@@ -168,19 +169,19 @@ export default function ArtSourceFields({ use, source, onChange }: {
         />
       )}
       {counted && counted.count > 0 && (
-        <p className="text-[10px] text-hs-text-faint" data-testid="art-count">{t('photoSources.art.matchCount', { count: counted.count })}</p>
+        <FieldHint data-testid="art-count">{t('photoSources.art.matchCount', { count: counted.count })}</FieldHint>
       )}
       {counted && counted.count > 0 && counted.count < FEW_MATCHES && (
-        <p className="text-[10px] text-hs-warning" data-testid="art-few">{t('photoSources.art.fewMatches')}</p>
+        <p className="text-[10px] text-hs-warning-ink" data-testid="art-few">{t('photoSources.art.fewMatches')}</p>
       )}
       {counted && counted.count === 0 && (
-        <p className="text-[10px] text-hs-warning" data-testid="art-none">{t('photoSources.art.noMatches')}</p>
+        <p className="text-[10px] text-hs-warning-ink" data-testid="art-none">{t('photoSources.art.noMatches')}</p>
       )}
       {hiddenCount > 0 && (
-        <p className="text-[10px] text-hs-text-faint" data-testid="art-hidden">
+        <FieldHint data-testid="art-hidden">
           {t('photoSources.art.hiddenCount', { count: hiddenCount })}{' '}
           <button type="button" className="text-hs-accent-hover underline" onClick={() => updateSettings({ artHidden: undefined })}>{t('photoSources.art.hiddenShow')}</button>
-        </p>
+        </FieldHint>
       )}
       <PreviewStrip urls={(previewData ?? []).map((item) => item.url)} />
       {use === 'background' && (
@@ -230,25 +231,28 @@ export default function ArtSourceFields({ use, source, onChange }: {
               value={source.label ?? DEFAULT_ART_LABEL}
               onChange={(label) => set({ label: label === DEFAULT_ART_LABEL ? undefined : label })}
               options={ART_LABELS.map((value) => ({ value, label: t(`photoSources.art.labels.${value}`) }))}
+              hint={t(noMat ? 'photoSources.art.labelNoMat' : 'photoSources.art.labelHint')}
+              hintTestId="art-label-hint"
             />
-            <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint" data-testid="art-label-hint">
-              {t(noMat ? 'photoSources.art.labelNoMat' : 'photoSources.art.labelHint')}
-            </p>
           </div>
           {hung && (
             <Toggle label={t('photoSources.art.texture')} checked={source.texture !== false} onChange={(on) => set({ texture: on ? undefined : false })} />
           )}
           {fit === 'cover' && (
             <div>
-              <Toggle label={t('photoSources.art.drift')} checked={!!source.drift} onChange={(on) => set({ drift: on || undefined })} />
-              <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t('photoSources.art.driftHint')}</p>
+              <Toggle
+                label={t('photoSources.art.drift')}
+                checked={!!source.drift}
+                onChange={(on) => set({ drift: on || undefined })}
+                description={t('photoSources.art.driftHint')}
+              />
             </div>
           )}
         </>
       )}
-      <p className="text-[10px] leading-relaxed text-hs-text-faint">
+      <FieldHint>
         {t(use === 'background' ? 'photoSources.art.backgroundInfo' : 'photoSources.art.streamInfo')}
-      </p>
+      </FieldHint>
     </>
   );
 }

@@ -20,7 +20,7 @@ import { DaySheetContext, useDaySheet } from './shared/useDaySheet';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { CalendarFetchStatus, CalendarSourceStatus, CalendarConfig, CalendarEvent, CalendarPerson, CalendarViewMode, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { ModuleLoadingState, ModuleNotUpdatingState } from './ModuleStates';
 import type { EventDisplayStyle } from './calendar/support';
 import { DailyView } from './calendar/DailyView';
 import { AgendaView } from './calendar/AgendaView';
@@ -97,6 +97,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
 
 export default function CalendarModule({ config: savedConfig, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState, screenId, moduleId }: CalendarModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
 
@@ -276,7 +277,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   // message (see calendarStatusView).
   const status = calendarStatusView({
     calendarSetup, calendarLoading, calendarStatus, failingSources, hasLiveSource,
-    timezone, timeFormat: resolvedTimeFormat, locale, now, today, t,
+    timezone, timeFormat: resolvedTimeFormat, locale, now, today, t, tCore,
   });
 
   // No calendar picked yet replaces the view with the setup card, unless a
@@ -297,19 +298,11 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
     );
   }
 
-  if (status.kind === 'cantLoad' || status.kind === 'loading') {
-    // Neither is a free day: the first fetch is still out, or it has only
-    // ever failed. Same quiet line, different words.
-    return (
-      <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full" data-testid={status.kind === 'loading' ? 'calendar-loading' : undefined}>
-          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
-            {t(status.kind === 'loading' ? 'calendar.loadingEvents' : 'calendar.cantLoadEvents')}
-          </p>
-        </div>
-      </ModuleWrapper>
-    );
-  }
+  // Neither is a free day: the first fetch is still out, or it has only ever
+  // failed. The shared loading state, and the words every card uses for data
+  // that never arrived.
+  if (status.kind === 'loading') return <ModuleLoadingState style={style} message={t('calendar.loadingEvents')} />;
+  if (status.kind === 'cantLoad') return <ModuleNotUpdatingState style={style} />;
 
   return (
     <ModuleWrapper style={style}>

@@ -22,6 +22,9 @@ import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { LoadedPlugin } from '@/types/plugins';
 import type { ModuleInstance, ModuleVisibility, VisibilityCondition } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Stable empty map so an absent `plugins` prop doesn't re-create one. */
 const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
@@ -44,6 +47,7 @@ export function VisibilityOutcomeLine({
   plugins,
   now,
   t,
+  tCore,
 }: {
   visibility: ModuleVisibility;
   states: ReadonlyMap<string, SharedStateEntry> | null;
@@ -61,6 +65,8 @@ export function VisibilityOutcomeLine({
   /** Wall clock for `time` conditions; defaults to now for time-free trees. */
   now?: ScheduleClock;
   t: TranslateFn;
+  /** Reads `core`, for where the live values are listed. */
+  tCore: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
   // A tree that only reads the clock is judged on the household clock even
@@ -70,13 +76,13 @@ export function VisibilityOutcomeLine({
   if (!judged) {
     const now = Date.now();
     return (
-      <p className="text-[10px] text-hs-text-dim" data-visibility-outcome="offline">
+      <FieldHint data-visibility-outcome="offline">
         {typeof reportedAt === 'number'
           ? t('visibilityConditions.outcome.offlineSince', {
               time: formatRelativeTime(now, Math.min(reportedAt, now), { locale: formattingLocale }),
             })
           : t('visibilityConditions.outcome.noLiveData')}
-      </p>
+      </FieldHint>
     );
   }
   const { visible, unknownKeys } = explainVisibility(visibility, judged, now ?? new Date());
@@ -101,7 +107,7 @@ export function VisibilityOutcomeLine({
       const note = unhealthyNoteForKeys(missing, providerHealth ?? {}, plugins ?? EMPTY_PLUGINS);
       cause += ' · ' + (note
         ? t('visibilityConditions.providerHealthNote', { plugin: note.pluginName, message: note.message })
-        : t('visibilityConditions.outcome.seeLiveValues'));
+        : t('visibilityConditions.outcome.seeLiveValues', { place: settingsPlaceText(tCore, 'automation', t('settings.sharedStatePage.heading')) }));
     } else {
       cause = t('visibilityConditions.outcome.keyNotPicked');
     }
@@ -110,11 +116,11 @@ export function VisibilityOutcomeLine({
   }
   return (
     <p
-      className={`text-[10px] ${visible ? 'text-hs-success' : 'text-hs-warning'}`}
+      className={`text-[10px] ${visible ? 'text-hs-success' : 'text-hs-warning-ink'}`}
       data-visibility-outcome={visible ? 'shown' : 'hidden'}
     >
       {outcome}
-      {cause && <span className="text-hs-text-dim"> · {cause}</span>}
+      {cause && <span className="text-hs-text-faint"> · {cause}</span>}
     </p>
   );
 }
@@ -151,6 +157,7 @@ export function VisibilityConditionsEditor({
   statusTitle?: string;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
 
@@ -223,8 +230,8 @@ export function VisibilityConditionsEditor({
             // Empty conditions = always visible; a valid, saveable starting point.
             setVisibility(on ? { conditions: [] } : undefined)
           }
+          description={t(subjectKey('enableHelp'))}
         />
-        <p className="text-[11px] text-hs-text-faint leading-relaxed mt-1">{t(subjectKey('enableHelp'))}</p>
       </PropertyGroup>
 
       {enabled && visibility && (
@@ -232,10 +239,10 @@ export function VisibilityConditionsEditor({
           <PropertyGroup title={t(statusTitle ? 'visibilityConditions.matchTitle' : 'visibilityConditions.conditionsTitle')} accent={2}>
             <div className="space-y-2">
               {providedKeys.length === 0 && !searchAvailable && (
-                <p className="text-xs text-hs-warning">{t('visibilityConditions.noProvidersHint')}</p>
+                <p className="text-xs text-hs-warning-ink">{t('visibilityConditions.noProvidersHint')}</p>
               )}
               {visibility.conditions.length === 0 && (
-                <p className="text-xs text-hs-text-dim">{t(subjectKey('noConditionsHint'))}</p>
+                <FieldHint>{t(subjectKey('noConditionsHint'))}</FieldHint>
               )}
               {visibility.conditions.length > 0 && (
                 <VisibilityOutcomeLine
@@ -247,13 +254,13 @@ export function VisibilityConditionsEditor({
                   plugins={plugins}
                   now={now}
                   t={t}
+                  tCore={tCore}
                 />
               )}
               {validationError && (
-                <div className="rounded border border-hs-danger/40 bg-hs-danger/10 p-2 space-y-1">
-                  <p className="text-xs text-hs-danger">{t('visibilityConditions.invalidHint')}</p>
-                  <p className="text-[10px] text-hs-text-dim">{validationError}</p>
-                </div>
+                <Notice tone="danger" size="sm" title={t('visibilityConditions.invalidHint')}>
+                  <FieldHint>{validationError}</FieldHint>
+                </Notice>
               )}
               <ConditionTreeEditor
                 conditions={visibility.conditions}
@@ -265,7 +272,7 @@ export function VisibilityConditionsEditor({
                 t={t}
               />
               {visibility.conditions.length > 1 && (
-                <p className="text-[10px] text-hs-text-dim">{t(subjectKey('allMustMatchHint'))}</p>
+                <FieldHint>{t(subjectKey('allMustMatchHint'))}</FieldHint>
               )}
             </div>
           </PropertyGroup>

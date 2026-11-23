@@ -1,5 +1,6 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { formatRemaining, type TimerTranslate } from './shared';
 import type { MaterializedTimerSession } from '@/types/timers';
 
@@ -65,7 +66,7 @@ export default function TimerCelebration({
           boxShadow: `0 0 ${120 * s}px rgba(52,211,153,0.35)`,
         }}
       >
-        ✓
+        <Check size="1em" strokeWidth={3.5} aria-hidden="true" />
       </div>
       <div style={{ marginTop: 90 * s, fontSize: 110 * s, fontWeight: 800, letterSpacing: '-0.02em' }}>
         {isRoutine ? t('timer.allDone') : t('timer.timesUp')}

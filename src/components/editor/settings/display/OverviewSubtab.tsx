@@ -19,6 +19,8 @@ import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
 import DisplaySoftwareCard from './DisplaySoftwareCard';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { NO_VALUE } from '@/lib/constants';
 
 interface OverviewSubtabProps {
   config: ScreenConfiguration;
@@ -109,7 +111,7 @@ export default function OverviewSubtab({
               {dims.width} × {dims.height}
             </span>
           ) : (
-            <span className="text-hs-text-faint">—</span>
+            <span className="text-hs-text-faint">{NO_VALUE}</span>
           )}
         </KvCard>
         <KvCard label={t('settings.perDisplayPage.overview.activeProfileLabel')}>
@@ -143,9 +145,9 @@ export default function OverviewSubtab({
       )}
 
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
-        <div className="text-xs font-semibold text-hs-text-secondary uppercase tracking-wider mb-3">
+        <SettingsSectionHeading>
           {t('settings.perDisplayPage.overview.overridesHeading', { name: display.name })}
-        </div>
+        </SettingsSectionHeading>
         {myOverrides && myOverrides.overriddenFields.length > 0 ? (
           <>
             <div className="text-sm text-hs-text-muted mb-3">

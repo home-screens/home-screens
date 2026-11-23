@@ -62,20 +62,20 @@ async function getChoreData(request: APIRequestContext) {
  * Enter Chores tab → Manage sub-view (admin-only).
  *
  * Pass `members` (how many people the test seeded) whenever the test goes on
- * to tap "Add Chore". That button sends you to Members while the family list
+ * to tap "Add chore". That button sends you to Family while the family list
  * is still empty, so a tap that beats the list never opens the chore form and
  * the spec times out filling a name field that is not there.
  */
 async function openManage(page: Page, members?: number) {
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Manage', exact: true }).click();
-  if (members !== undefined) await expect(page.getByRole('button', { name: `Members ${members}`, exact: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'Manage', exact: true }).click();
+  if (members !== undefined) await expect(page.getByRole('tab', { name: `Family ${members}`, exact: true })).toBeVisible();
 }
 
 /**
  * Open the blank chore form from Manage. The bottom-of-list button reads
  * "Write your own" while the list is empty (the starter card sits above it)
- * and "Add Chore" once chores exist, so match either.
+ * and "Add chore" once chores exist, so match either.
  */
 async function openChoreForm(page: Page) {
   await page.getByRole('button', { name: /^(Write your own|Add Chore)$/ }).first().click();
@@ -95,7 +95,7 @@ test('admin adds a member and it round-trips to family.json', async ({ page, req
   await page.goto('/remote');
   await openManage(page);
 
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await page.getByRole('button', { name: 'Add person' }).click();
   await page.getByLabel('Name', { exact: true }).fill('Charlie');
   // The list-add and overlay-save buttons share the name "Add Member"; the
@@ -123,7 +123,7 @@ test('a failed member save warns in the sub-view where the edit happened', async
   await page.goto('/remote');
   await openManage(page);
 
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await page.getByRole('button', { name: 'Add person' }).click();
   await page.getByLabel('Name', { exact: true }).fill('Charlie');
   await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
@@ -131,7 +131,7 @@ test('a failed member save warns in the sub-view where the edit happened', async
   // Not getByRole('alert'): Next's route announcer is also role="alert". The
   // hub's own sentence is never shown; an answer without a refusal code gets
   // the surface's fallback in the family's language.
-  await expect(page.getByTestId('family-manager').getByRole('status')).toHaveText('Could not save your family.');
+  await expect(page.getByTestId('family-manager').getByRole('status')).toHaveText("That didn't save. Try again.");
 });
 
 test('admin edits a member name and it round-trips', async ({ page, request, sandboxDir }) => {
@@ -139,7 +139,7 @@ test('admin edits a member name and it round-trips', async ({ page, request, san
   await page.goto('/remote');
   await openManage(page);
 
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await page.getByRole('button', { name: 'Edit Avery' }).click();
   await page.getByLabel('Name', { exact: true }).fill('Avery Rose');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -154,11 +154,11 @@ test('admin deletes a member and it round-trips', async ({ page, request, sandbo
   await page.goto('/remote');
   await openManage(page);
 
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await page.getByRole('button', { name: 'Remove Avery?' }).click();
   // The overlay's delete button and the ConfirmSheet's confirm both read
   // "Delete Member", scope to the sheet so the click waits for it.
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Remove person' }).click();
+  await page.getByTestId('confirm-sheet').getByRole('button', { name: 'Remove person' }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).members.length)
@@ -168,15 +168,15 @@ test('admin deletes a member and it round-trips', async ({ page, request, sandbo
 // ── Chores ────────────────────────────────────────────────────────────
 
 test('admin adds a chore assigned to a member and it round-trips', async ({ page, request, sandboxDir }) => {
-  // "Add Chore" is a no-op with zero members, so seed one first.
+  // "Add chore" is a no-op with zero members, so seed one first.
   await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await openManage(page, 1);
 
   await openChoreForm(page);
-  await page.getByPlaceholder('Chore name...').fill('Water the plants');
+  await page.getByPlaceholder('Chore name…').fill('Water the plants');
   await page.getByRole('button', { name: 'Avery' }).click(); // assignee toggle
-  await page.getByRole('button', { name: 'Add Chore' }).last().click();
+  await page.getByRole('button', { name: 'Add chore' }).last().click();
 
   await expect
     .poll(async () => {
@@ -197,7 +197,7 @@ test('admin gives a chore to a group and it is saved as the group, with its rota
   await openManage(page, 2);
 
   await openChoreForm(page);
-  await page.getByPlaceholder('Chore name...').fill('Empty the dishwasher');
+  await page.getByPlaceholder('Chore name…').fill('Empty the dishwasher');
   await page.getByRole('button', { name: /^Kids/ }).click();
 
   // One group of two is two people, so taking turns is on offer.
@@ -205,7 +205,7 @@ test('admin gives a chore to a group and it is saved as the group, with its rota
   // Ticking the group does not tick its people, so each one says the group has them.
   await expect(page.getByText('In Kids', { exact: true })).toHaveCount(2);
   await rotation.selectOption('rotate-weekly');
-  await page.getByRole('button', { name: 'Add Chore' }).last().click();
+  await page.getByRole('button', { name: 'Add chore' }).last().click();
 
   await expect
     .poll(async () => {
@@ -231,10 +231,10 @@ test('removing a group says how many chores go to it and leaves them in the list
   });
   await page.goto('/remote');
   await openManage(page, 2);
-  await page.getByRole('button', { name: 'Members 2', exact: true }).click();
+  await page.getByRole('tab', { name: 'Family 2', exact: true }).click();
 
   await page.getByRole('button', { name: 'Remove Kids?' }).click();
-  const sheet = page.getByRole('alertdialog');
+  const sheet = page.getByTestId('confirm-sheet');
   await expect(sheet).toContainText('1 chore goes to Kids');
   await sheet.getByRole('button', { name: 'Remove group' }).click();
 
@@ -244,11 +244,11 @@ test('removing a group says how many chores go to it and leaves them in the list
 
   // The chore list picked up the change, so a later chore save is not refused
   // as stale, and the row says nobody has it rather than showing a blank.
-  await page.getByRole('button', { name: /^Chores 1/ }).click();
+  await page.getByRole('tab', { name: /^Chores 1/ }).click();
   await expect(page.getByRole('button', { name: 'Edit Empty the dishwasher' })).toContainText('Nobody yet');
   await page.getByRole('button', { name: 'Edit Empty the dishwasher' }).click();
   await page.getByRole('button', { name: 'Avery' }).click();
-  await page.getByRole('button', { name: 'Save Chore' }).click();
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
   await expect
     .poll(async () => (await getChoreData(request)).chores.find((c) => c.id === 'gc1')?.assigneeIds)
     .toEqual(['m1']);
@@ -259,7 +259,7 @@ test('picking a group nobody is in yet warns that the chore would go to no one',
   await page.goto('/remote');
   await openManage(page, 1);
   await openChoreForm(page);
-  await page.getByPlaceholder('Chore name...').fill('Walk the dog');
+  await page.getByPlaceholder('Chore name…').fill('Walk the dog');
   await expect(page.getByText('Everyone in a group gets the chore.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: /^Cousins/ }).click();
   await expect(page.getByText('Nobody is in the group you picked yet', { exact: false })).toBeVisible();
@@ -283,12 +283,12 @@ test('a group gets its own row on a schedule and is saved with its days', async 
   await openManage(page, 2);
   await page.getByRole('button', { name: 'Edit Dishes' }).click();
 
-  await page.getByRole('button', { name: '+ Kids' }).click();
+  await page.getByRole('button', { name: 'Add Kids to the schedule' }).click();
   const row = page.getByTestId('schedule-group-g-kids');
   await row.getByRole('button', { name: 'Kids, Wed' }).click();
   await row.getByRole('button', { name: 'Kids, Fri' }).click();
   await expect(row.getByRole('button', { name: 'Kids, Wed' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Save Chore' }).click();
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => {
@@ -330,13 +330,13 @@ test('changing only a group row on a schedule counts as an unsaved change', asyn
   await row.getByRole('button', { name: 'Kids, Fri' }).click();
   await row.getByRole('button', { name: 'Kids, Wed' }).click();
   await expect(page.getByText('Add at least one person or group to the schedule')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Save Chore' })).toBeDisabled();
+  await expect(page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true })).toBeDisabled();
 
   // Unticking the last day leaves the row where it was; taking it off is its own button.
   await expect(row).toBeVisible();
   await page.getByRole('button', { name: 'Take Kids off the schedule' }).click();
   await expect(row).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '+ Kids' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add Kids to the schedule' })).toBeVisible();
 });
 
 test('a household with no groups sees no Groups block on the chore form', async ({ page, request, sandboxDir }) => {
@@ -354,8 +354,8 @@ test('admin edits a chore name and it round-trips', async ({ page, request, sand
   await openManage(page);
 
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
-  await page.getByPlaceholder('Chore name...').fill('Feed the cat');
-  await page.getByRole('button', { name: 'Save Chore' }).click();
+  await page.getByPlaceholder('Chore name…').fill('Feed the cat');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).chores.map((c) => c.name))
@@ -376,8 +376,8 @@ test('a chore edit made from an older copy is refused and the newer list shown',
   await seedChores(request, { chores: [{ ...MEMBER_AND_CHORE.chores[0], name: 'Walk the dog' }] });
 
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
-  await page.getByPlaceholder('Chore name...').fill('Feed the cat');
-  await page.getByRole('button', { name: 'Save Chore' }).click();
+  await page.getByPlaceholder('Chore name…').fill('Feed the cat');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect(page.getByText("Someone else changed the chores. Your last change wasn't saved. Please try it again.")).toBeVisible();
   await expect(page.getByRole('button', { name: 'Edit Walk the dog' })).toBeVisible();
@@ -385,8 +385,8 @@ test('a chore edit made from an older copy is refused and the newer list shown',
 
   // Made again on the copy the hub handed over, the change lands.
   await page.getByRole('button', { name: 'Edit Walk the dog' }).click();
-  await page.getByPlaceholder('Chore name...').fill('Feed the cat');
-  await page.getByRole('button', { name: 'Save Chore' }).click();
+  await page.getByPlaceholder('Chore name…').fill('Feed the cat');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
   await expect
     .poll(async () => (await getChoreData(request)).chores.map((c) => c.name))
     .toEqual(['Feed the cat']);
@@ -398,9 +398,9 @@ test('admin explicitly deletes the last chore with force and it round-trips', as
   await openManage(page);
 
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
-  await page.getByRole('button', { name: 'Delete Chore' }).click();
+  await page.getByRole('button', { name: 'Delete chore' }).click();
   const saved = page.waitForResponse((response) => response.url().endsWith('/api/chores/data') && response.request().method() === 'PUT');
-  await confirmSheet(page).getByRole('button', { name: 'Delete Chore' }).click();
+  await confirmSheet(page).getByRole('button', { name: 'Delete', exact: true }).click();
   const response = await saved;
   expect(response.request().postDataJSON()).toEqual({ chores: [], force: true, revision: expect.any(String) });
   expect(response.ok()).toBe(true);
@@ -415,7 +415,7 @@ for (const [label, reloadBody] of [['malformed', {}], ['empty', { chores: [] }]]
     await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
     await page.goto('/remote');
     await openManage(page);
-    await page.getByRole('button', { name: /^Members \d+$/ }).click();
+    await page.getByRole('tab', { name: /^Family \d+$/ }).click();
     await page.getByRole('button', { name: 'Edit Avery' }).click();
     await page.getByLabel('Name', { exact: true }).fill('Avery Rose');
 
@@ -432,7 +432,7 @@ for (const [label, reloadBody] of [['malformed', {}], ['empty', { chores: [] }]]
       }
     });
     await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
-    await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+    await expect(page.getByText("That didn't save. Try again.")).toBeVisible();
     await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeVisible();
     expect(puts).toBe(0);
 
@@ -454,13 +454,13 @@ test('a single-assignee chore saves as fixed rotation', async ({ page, request, 
   await openManage(page, 1);
 
   await openChoreForm(page);
-  await page.getByPlaceholder('Chore name...').fill('Solo chore');
+  await page.getByPlaceholder('Chore name…').fill('Solo chore');
   await page.getByRole('button', { name: 'Avery' }).click();
 
   // With one assignee the Rotation control never mounts and the save coerces
   // rotation to 'fixed' (see useChoreForm.submit).
   await expect(page.getByText('Rotation', { exact: true })).toBeHidden();
-  await page.getByRole('button', { name: 'Add Chore' }).last().click();
+  await page.getByRole('button', { name: 'Add chore' }).last().click();
 
   await expect
     .poll(async () => {
@@ -476,7 +476,7 @@ test('a multi-assignee chore can be set to rotate daily and it round-trips', asy
   await openManage(page, 2);
 
   await openChoreForm(page);
-  await page.getByPlaceholder('Chore name...').fill('Take out trash');
+  await page.getByPlaceholder('Chore name…').fill('Take out trash');
   await page.getByRole('button', { name: 'Avery' }).click();
   await page.getByRole('button', { name: 'Blair' }).click();
 
@@ -486,8 +486,8 @@ test('a multi-assignee chore can be set to rotate daily and it round-trips', asy
     has: page.locator('option', { hasText: 'Fixed (all do it)' }),
   });
   await expect(rotationSelect).toBeVisible();
-  await rotationSelect.selectOption({ label: 'Rotate Daily' });
-  await page.getByRole('button', { name: 'Add Chore' }).last().click();
+  await rotationSelect.selectOption({ label: 'Rotate daily' });
+  await page.getByRole('button', { name: 'Add chore' }).last().click();
 
   await expect
     .poll(async () => {
@@ -515,16 +515,16 @@ test('admin creates a reward and it round-trips to rewards.json', async ({ page,
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   // Outer chores sub-nav → Rewards (unambiguous: RewardsView isn't mounted yet).
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
 
   // The inner rewards nav's own tab is "Edit list" — the outer sub-nav owns the
   // word "Rewards", so no scoping dance is needed to tell them apart.
-  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
+  await page.getByRole('tab', { name: 'Edit list', exact: true }).click();
 
-  await page.getByRole('button', { name: 'Add Reward' }).click();
-  await page.getByPlaceholder('e.g. Extra Screen Time').fill('Ice Cream Trip');
+  await page.getByRole('button', { name: 'Add reward' }).click();
+  await page.getByPlaceholder('e.g. Extra screen time').fill('Ice Cream Trip');
   await page.getByPlaceholder('10').fill('5');
-  await page.getByRole('button', { name: 'Save Reward' }).click();
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Add reward' }).click();
 
   await expect
     .poll(async () => {
@@ -547,7 +547,7 @@ test('admin redeems a reward and it records a redemption', async ({ page, reques
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
 
   // Redeem is the default rewards sub-view; the reward row is a button named
   // for the reward, enabled because the balance (5) covers the cost (2).
@@ -573,21 +573,21 @@ test('kid /chores view hides all management affordances', async ({ page, request
   // The chore is visible (kids see today's list) …
   await expect(page.getByText('Feed the dog')).toBeVisible();
   // … but the Manage sub-view and its add controls are gone.
-  await expect(page.getByRole('button', { name: 'Manage', exact: true })).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Add Chore' })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: 'Manage', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Add chore' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Add person' })).toHaveCount(0);
 });
 
 test('kid /chores rewards view exposes only redeem and history, not management', async ({ page, request, sandboxDir }) => {
   await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/chores');
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
 
-  await expect(page.getByRole('button', { name: 'Redeem', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'History', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Redeem', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'History', exact: true })).toBeVisible();
   // Manage-tickets and Balances are admin-only inner tabs.
-  await expect(page.getByRole('button', { name: 'Balances', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Add Reward' })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: 'Balances', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Add reward' })).toHaveCount(0);
 });
 
 test('kid cannot check off a chore on a past day', async ({ page, request, sandboxDir }) => {
@@ -603,7 +603,7 @@ test('kid cannot check off a chore on a past day', async ({ page, request, sandb
 
   // … navigate to yesterday. Kids get a Yesterday/Today toggle instead of the
   // grown-up 90-day strip.
-  await page.getByRole('button', { name: 'Yesterday', exact: true }).click();
+  await page.getByRole('tab', { name: 'Yesterday', exact: true }).click();
 
   // The chore still renders, but as a read-only row (canEdit = !isViewingPast ||
   // isAdmin → false here), so no toggle button exists in either state.
@@ -635,20 +635,20 @@ test('the chore & reward management UI avoids developer jargon', async ({ page, 
   // Chore list + chore edit form (Manage defaults to the Chores section).
   await openManage(page);
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
-  await expect(page.getByPlaceholder('Chore name...')).toBeVisible();
+  await expect(page.getByPlaceholder('Chore name…')).toBeVisible();
   await expectNoJargon();
   await page.getByRole('button', { name: 'Back' }).click();
-  await expect(page.getByPlaceholder('Chore name...')).toBeHidden(); // let the overlay unmount
+  await expect(page.getByPlaceholder('Chore name…')).toBeHidden(); // let the overlay unmount
 
-  // Members list.
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  // The family list.
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await expectNoJargon();
 
   // Reward add form.
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
-  await page.getByRole('button', { name: 'Add Reward' }).click();
-  await expect(page.getByPlaceholder('e.g. Extra Screen Time')).toBeVisible();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Edit list', exact: true }).click();
+  await page.getByRole('button', { name: 'Add reward' }).click();
+  await expect(page.getByPlaceholder('e.g. Extra screen time')).toBeVisible();
   await expectNoJargon();
 });
 
@@ -743,9 +743,9 @@ test('admin adjusts a ticket balance up and down from the Balances tab', async (
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
   // "Balances" is unique to the admin-only inner rewards nav.
-  await page.getByRole('button', { name: 'Balances', exact: true }).click();
+  await page.getByRole('tab', { name: 'Balances', exact: true }).click();
 
   const readBalance = async () => {
     const res = await request.get('/api/rewards');
@@ -779,8 +779,8 @@ test('admin gives several people tickets at once with a reason, and the history 
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'Balances', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Balances', exact: true }).click();
   await page.getByTestId('adjust-tickets-open').click();
 
   const sheet = page.getByTestId('adjust-tickets-sheet');
@@ -805,7 +805,7 @@ test('admin gives several people tickets at once with a reason, and the history 
   expect(adjustments.filter((a) => a.reason === 'Helped carry the groceries').map((a) => [a.memberId, a.delta])).toEqual([['m-ga', 3], ['m-gb', 3]]);
 
   // The reason shows under Bram's adjusted row in the ticket history.
-  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
   const feed = page.getByTestId('tickets-feed');
   await feed.getByRole('button', { name: 'Bram' }).click();
   const row = feed.getByTestId('tickets-row').filter({ hasText: 'Helped carry the groceries' }).first();
@@ -826,16 +826,16 @@ test('admin edits a reward through the reward form and it round-trips', async ({
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Edit list', exact: true }).click();
 
   // Tapping the reward row opens RewardFormOverlay in edit mode (name pre-filled).
   await page.getByRole('button', { name: /Movie Night/ }).click();
-  const nameInput = page.getByPlaceholder('e.g. Extra Screen Time');
+  const nameInput = page.getByPlaceholder('e.g. Extra screen time');
   await expect(nameInput).toHaveValue('Movie Night');
   await nameInput.fill('Pizza Party');
   await page.getByPlaceholder('10').fill('8'); // Ticket Cost input
-  await page.getByRole('button', { name: 'Save Reward' }).click();
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => {
@@ -854,20 +854,20 @@ test('admin deletes a reward through the reward form and it round-trips', async 
   // The only reward: deleting it empties the list, which the data route
   // refuses (guardEmptyOverwrite, 409) unless the client sends force. A
   // confirmed delete does, so the last reward can actually be deleted —
-  // it used to bounce with "Failed to save. Please try again."
+  // it used to bounce with a failed save
   await seedRewards(request, [
         { id: 'rw-del', name: 'Bike Ride', emoji: 'lucide:bike', cost: 4, description: '', memberIds: [], enabled: true },
       ]);
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Edit list', exact: true }).click();
 
   await page.getByRole('button', { name: /Bike Ride/ }).click();
-  await page.getByRole('button', { name: 'Delete Reward' }).click(); // footer → ConfirmSheet
+  await page.getByRole('button', { name: 'Delete reward' }).click(); // footer → ConfirmSheet
   // ConfirmSheet confirm reads "Delete" (core.actions.delete); the footer button
-  // is "Delete Reward", so exact match targets the sheet's confirm.
+  // is "Delete reward", so exact match targets the sheet's confirm.
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
   await expect
@@ -965,7 +965,7 @@ test('a failed chore toggle rolls the check back and the retry succeeds', async 
   // … and returns to its pre-tap state once the 500 lands, with a word
   // under the row about why.
   await expect(markBtn).toBeVisible();
-  await expect(page.getByTestId('chore-notice-c-rb')).toHaveText('Failed to save. Please try again.');
+  await expect(page.getByTestId('chore-notice-c-rb')).toHaveText("That didn't save. Try again.");
   expect(await completionExists(request, 'c-rb', 'm-rb', today)).toBe(false);
 
   // The interception was the only failure — the same tap now sticks.
@@ -999,14 +999,14 @@ test('a failed reward save warns and drops the reward back out of the list', asy
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Edit list', exact: true }).click();
 
   const addReward = async (name: string, cost: string) => {
-    await page.getByRole('button', { name: 'Add Reward' }).click();
-    await page.getByPlaceholder('e.g. Extra Screen Time').fill(name);
+    await page.getByRole('button', { name: 'Add reward' }).click();
+    await page.getByPlaceholder('e.g. Extra screen time').fill(name);
     await page.getByPlaceholder('10').fill(cost);
-    await page.getByRole('button', { name: 'Save Reward' }).click();
+    await page.getByTestId('form-overlay').getByRole('button', { name: 'Add reward' }).click();
   };
   const savedRewardNames = async () => {
     const rewards = (await (await request.get('/api/rewards')).json()).rewards as Array<{ name: string }>;
@@ -1015,7 +1015,7 @@ test('a failed reward save warns and drops the reward back out of the list', asy
 
   await addReward('Trampoline Park', '7');
 
-  await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+  await expect(page.getByText("That didn't save. Try again.")).toBeVisible();
   // Rolled back to the snapshot: the new reward is gone, the old one survives.
   await expect(page.getByRole('button', { name: /Trampoline Park/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Board Game/ })).toBeVisible();
@@ -1025,7 +1025,7 @@ test('a failed reward save warns and drops the reward back out of the list', asy
   await addReward('Trampoline Park', '7');
 
   await expect(page.getByRole('button', { name: /Trampoline Park/ })).toBeVisible();
-  await expect(page.getByText('Failed to save. Please try again.')).toHaveCount(0);
+  await expect(page.getByText("That didn't save. Try again.")).toHaveCount(0);
   await expect.poll(savedRewardNames).toContain('Trampoline Park');
 });
 
@@ -1039,7 +1039,7 @@ test('member avatar and color picks persist through the member form', async ({ p
 
   await page.goto('/remote');
   await openManage(page);
-  await page.getByRole('button', { name: /^Members \d+$/ }).click();
+  await page.getByRole('tab', { name: /^Family \d+$/ }).click();
   await page.getByRole('button', { name: 'Edit Pat' }).click();
 
   await page.getByLabel('Emoji (optional)').fill('👑');

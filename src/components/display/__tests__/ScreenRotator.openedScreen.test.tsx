@@ -224,7 +224,7 @@ describe('ScreenRotator: a screen that shows only when opened', () => {
     renderRotator(makeSettings());
     tick(0);
     // The pause gesture is a double tap on the active dot.
-    const dot = dom.getAllByRole('button', { name: /pause rotation/i })[0];
+    const dot = dom.getAllByRole('button', { name: 'pagination.pause' })[0];
     act(() => { fireEvent.click(dot); fireEvent.click(dot); });
     expect(dom.getByTestId('pause-pill')).toBeTruthy();
     show('recipes');

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { ChevronRight, Pencil } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { uuid } from '@/lib/uuid';
+import IconButton from '@/components/ui/IconButton';
 
 /**
  * The card chrome every rules list shares (calendar Event looks and Day
@@ -109,7 +110,7 @@ function RuleNameEditor({ initial, otherNames, onCommit, onCancel }: {
         className="w-full rounded border border-hs-accent bg-hs-input px-1.5 py-0.5 text-xs font-semibold text-hs-text-body outline-none"
       />
       {taken && (
-        <span className="text-[10px] text-hs-warning" data-rule-name-taken="">
+        <span className="text-[10px] text-hs-warning-ink" data-rule-name-taken="">
           {t(`${KEY}.ruleNameTaken`)}
         </span>
       )}
@@ -172,7 +173,7 @@ export function RuleCard({
           )}
           <button type="button" aria-label={t(`${KEY}.moveUp`)} title={t(`${KEY}.moveUp`)} disabled={index === 0} onClick={() => onMove(index - 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30">▲</button>
           <button type="button" aria-label={t(`${KEY}.moveDown`)} title={t(`${KEY}.moveDown`)} disabled={index === total - 1} onClick={() => onMove(index + 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30">▼</button>
-          <button type="button" aria-label={t(`${KEY}.remove`)} title={t(`${KEY}.remove`)} onClick={onRemove} className="px-1 text-xs text-hs-text-muted hover:text-hs-danger">✕</button>
+          <IconButton label={t(`${KEY}.remove`)} onClick={onRemove} />
         </div>
       </div>
       {/* The panel is narrow, so what the rule does and whether it is in

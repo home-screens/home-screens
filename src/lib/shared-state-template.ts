@@ -27,12 +27,9 @@
 
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { formatNumber } from '@/i18n/formatters';
+import { NO_VALUE } from '@/lib/constants';
 
 const TOKEN_RE = /(?<!\{)\{([a-z0-9_:.-]{1,128})((?:\|[^{}|]*)*)\}/g;
-
-/** Rendered in place of a token whose key has no published value yet, so a
- *  cold display shows something sane before the producer's first publish. */
-export const UNKNOWN_VALUE_PLACEHOLDER = '–';
 
 /** Intl.NumberFormat rejects maximumFractionDigits above 100; anything past
  *  a handful of digits is a typo, so the grammar caps `round:N` here. */
@@ -117,7 +114,9 @@ export function resolveSharedStateTokens(
   opts: ResolveTokenOptions = {},
 ): string {
   if (!text.includes('{')) return text;
-  const placeholder = opts.placeholder ?? UNKNOWN_VALUE_PLACEHOLDER;
+  // A key with no published value yet: a cold display shows the wall's
+  // no-value mark until the producer's first publish.
+  const placeholder = opts.placeholder ?? NO_VALUE;
   const locale = opts.locale ?? 'en-US';
   return text.replace(TOKEN_RE, (full, key: string, rawFilters: string) => {
     const filters = parseFilters(rawFilters);

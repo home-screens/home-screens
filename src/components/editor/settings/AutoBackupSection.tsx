@@ -24,6 +24,11 @@ import type { AutoBackupSettings } from '@/types/config';
 import type { AutoBackupCopyInfo, AutoBackupStatus, BackupContentsSummary } from '@/lib/auto-backup-types';
 import type { PictureBackupSummary } from '@/lib/picture-backup';
 import { useAutoBackup, type FolderCheck, type FolderDraft } from './useAutoBackup';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import StatusDot from '@/components/ui/StatusDot';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 const TIME_RE = /^\d{2}:\d{2}$/;
 /** Copies shown before "Show all". */
@@ -140,7 +145,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
     setPasswordError(null);
     const code = await backup.saveSecrets({ backupPassword: password });
     if (code) {
-      setPasswordError(code === 'editor_password_required' ? t(`${K}.keys.needsEditorPassword`) : t(`${K}.saveFailed`));
+      setPasswordError(code === 'editor_password_required' ? t(`${K}.keys.needsEditorPassword`) : tCore('refusals.saveFailed'));
       return;
     }
     setChoosingPassword(false);
@@ -166,7 +171,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
               <select
                 value={settings.every}
                 onChange={(e) => void save({ every: e.target.value as AutoBackupSettings['every'] })}
-                className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
+                className={SETTINGS_INPUT_SM_CLASS}
               >
                 {AUTO_BACKUP_FREQUENCIES.map((every) => (
                   <option key={every} value={every}>{t(`${K}.every.${every}`)}</option>
@@ -178,14 +183,14 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <label htmlFor={timeInputId} className="block text-xs text-hs-text-muted">{t(`${K}.timeLabel`)}</label>
-                  <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.timeHelp`)}</p>
+                  <FieldHint className="mt-0.5">{t(`${K}.timeHelp`)}</FieldHint>
                 </div>
                 <input
                   id={timeInputId}
                   type="time"
                   value={settings.time}
                   onChange={(e) => { if (TIME_RE.test(e.target.value)) void save({ time: e.target.value }); }}
-                  className="w-32 shrink-0 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+                  className={`w-32 shrink-0 ${SETTINGS_INPUT_SM_CLASS}`}
                 />
               </div>
               <HomeTimeHint />
@@ -194,14 +199,14 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
             <div className="flex items-center justify-between gap-3" data-field-id="data.autoBackupKeep">
               <div>
                 <span className="block text-xs text-hs-text-muted">{t(`${K}.keepLabel`)}</span>
-                <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.keepHelp`)}</p>
+                <FieldHint className="mt-0.5">{t(`${K}.keepHelp`)}</FieldHint>
               </div>
               <label className="flex items-center gap-2 shrink-0">
                 <select
                   aria-label={t(`${K}.keepLabel`)}
                   value={settings.keep}
                   onChange={(e) => void save({ keep: Number(e.target.value) })}
-                  className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
+                  className={SETTINGS_INPUT_SM_CLASS}
                 >
                   {[...new Set([...AUTO_BACKUP_KEEP_CHOICES, settings.keep])].sort((a, b) => a - b).map((n) => (
                     <option key={n} value={n}>{n}</option>
@@ -226,7 +231,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
                       value={choice}
                       checked={settings.pictures === choice}
                       onChange={() => void save({ pictures: choice })}
-                      className="accent-hs-accent mt-0.5"
+                      className={`${CHECKBOX_CLASS} mt-0.5`}
                     />
                     <span className="block text-xs text-hs-text-body">
                       {tCore(`pictureBackup.${choice}`)}
@@ -239,7 +244,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
                   </label>
                 );
               })}
-              <p className="text-xs text-hs-text-faint pl-6">{t(`${K}.picturesHelp`)}</p>
+              <FieldHint className="pl-6">{t(`${K}.picturesHelp`)}</FieldHint>
             </fieldset>
             )}
 
@@ -256,7 +261,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
               <Button variant="secondary" onClick={backUpNow} disabled={backup.running || restoreBusy} data-field-id="data.autoBackupNow">
                 {backup.running ? t(`${K}.backingUp`) : t(`${K}.backUpNow`)}
               </Button>
-              {runMessage && <p className="text-xs text-hs-warning" role="alert">{runMessage}</p>}
+              {runMessage && <p className="text-xs text-hs-warning-ink" role="alert">{runMessage}</p>}
             </div>
           </div>
         )}
@@ -265,7 +270,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
           <p className="text-xs text-hs-danger mt-2" role="alert">{t(`${K}.loadFailed`)}</p>
         )}
         {saveError && (
-          <p className="text-xs text-hs-danger mt-2" role="alert">{t('common.saveFailed')}</p>
+          <p className="text-xs text-hs-danger mt-2" role="alert">{tCore('refusals.saveFailed')}</p>
         )}
         {choosingPassword && (
           <BackupPasswordModal
@@ -303,25 +308,17 @@ function KeysChoice({ includeKeys, status, onToggle, onChoosePassword }: {
   const noEditorPassword = status?.editorPasswordSet === false;
   return (
     <div data-field-id="data.autoBackupKeys">
-      <label className={`flex items-start gap-2.5 ${noEditorPassword ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
-        <input
-          type="checkbox"
-          checked={includeKeys && !noEditorPassword}
-          disabled={noEditorPassword}
-          onChange={(e) => onToggle(e.target.checked)}
-          className="accent-hs-accent mt-0.5"
-        />
-        <span>
-          <span className="block text-xs text-hs-text-body">{t(`${K}.keys.label`)}</span>
-          <span className="block text-xs text-hs-text-faint">
-            {noEditorPassword ? t(`${K}.keys.needsEditorPassword`) : t(`${K}.keys.help`)}
-          </span>
-        </span>
-      </label>
+      <Toggle
+        label={t(`${K}.keys.label`)}
+        checked={includeKeys && !noEditorPassword}
+        disabled={noEditorPassword}
+        onChange={onToggle}
+        description={noEditorPassword ? t(`${K}.keys.needsEditorPassword`) : t(`${K}.keys.help`)}
+      />
       {noEditorPassword && (
         <a
           href={settingsHref({ kind: 'defaults', page: 'security' }, { highlight: 'security.changePassword' })}
-          className="ml-6 mt-1 inline-block text-xs text-hs-accent-hover hover:underline"
+          className="mt-1 inline-block text-xs text-hs-accent-hover hover:underline"
         >
           {t(`${K}.keys.setEditorPassword`)}
         </a>
@@ -335,13 +332,17 @@ function KeysChoice({ includeKeys, status, onToggle, onChoosePassword }: {
                 {t(`${K}.keys.change`)}
               </button>
             </div>
-            <p className="text-xs text-hs-text-faint">{t(`${K}.keys.passwordNote`)}</p>
+            <FieldHint>{t(`${K}.keys.passwordNote`)}</FieldHint>
           </div>
         ) : (
-          <div className="ml-6 mt-2 rounded-md border border-hs-warning/40 bg-hs-warning/10 px-3 py-2.5" role="status">
-            <p className="text-xs text-hs-warning">{t(`${K}.keys.passwordMissing`)}</p>
-            <Button variant="warning" onClick={onChoosePassword} className="mt-2">{t(`${K}.keys.choosePassword`)}</Button>
-          </div>
+          <Notice
+            tone="warning"
+            role="status"
+            className="ml-6 mt-2"
+            action={<Button variant="warning" size="sm" onClick={onChoosePassword}>{t(`${K}.keys.choosePassword`)}</Button>}
+          >
+            {t(`${K}.keys.passwordMissing`)}
+          </Notice>
         )
       )}
     </div>
@@ -386,7 +387,7 @@ function RunLines({ status, when }: { status: AutoBackupStatus; when: When }) {
       {last && (
         <p>
           <span className="text-hs-text-faint">{t(`${K}.lastLabel`)}</span>{' '}
-          <span className={last.warning ? 'text-hs-warning' : 'text-hs-text-secondary'}>{last.text}</span>
+          <span className={last.warning ? 'text-hs-warning-ink' : 'text-hs-text-secondary'}>{last.text}</span>
         </p>
       )}
       {failed && status.lastOkAt && (
@@ -402,7 +403,7 @@ function RunLines({ status, when }: { status: AutoBackupStatus; when: When }) {
         </p>
       )}
       {!offsiteSetUp && status.lastOkAt && (
-        <p className="pt-1.5 text-hs-warning">{t(`${K}.onlyHere`)}</p>
+        <p className="pt-1.5 text-hs-warning-ink">{t(`${K}.onlyHere`)}</p>
       )}
     </div>
   );
@@ -415,7 +416,7 @@ function Offsite({ status, backup, when }: { status: AutoBackupStatus; backup: B
   return (
     <SettingsPanelPart heading={t(`${K}.offsite.heading`)}>
       <div className="space-y-2.5">
-        <p className="text-xs text-hs-text-faint">{t(`${K}.offsite.description`)}</p>
+        <FieldHint>{t(`${K}.offsite.description`)}</FieldHint>
         <FolderCard status={status} backup={backup} when={when} />
         <LinkCard status={status} backup={backup} when={when} />
       </div>
@@ -427,8 +428,7 @@ const cardClass = 'rounded-lg bg-hs-card border border-hs-border px-3.5 py-3';
 const linkButton = 'text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors disabled:opacity-50';
 
 function Dot({ tone }: { tone: 'good' | 'bad' | 'idle' }) {
-  const color = tone === 'good' ? 'bg-hs-success' : tone === 'bad' ? 'bg-hs-warning' : 'bg-hs-text-faint';
-  return <span aria-hidden className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${color} mt-[5px]`} />;
+  return <StatusDot tone={tone === 'good' ? 'success' : tone === 'bad' ? 'warning' : 'neutral'} size="sm" className="mt-[5px]" />;
 }
 
 /** The form's values for a saved folder: its address the way a computer shows it, and `DOMAIN\name` back together. */
@@ -457,7 +457,7 @@ function summaryWords(dest: DestinationSummary): FolderWords {
   return { user: dest.username, share: dest.share, host: dest.host };
 }
 
-const inputClass = 'w-full rounded-md bg-hs-input border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body placeholder:text-hs-text-faint focus:border-hs-accent focus:outline-none';
+const inputClass = `w-full ${SETTINGS_INPUT_SM_CLASS}`;
 
 function KindChoice({ kind, onChange }: { kind: StorageKind; onChange: (kind: StorageKind) => void }) {
   const t = useTranslate('editor');
@@ -475,15 +475,15 @@ function KindChoice({ kind, onChange }: { kind: StorageKind; onChange: (kind: St
             checked={kind === choice}
             onChange={() => onChange(choice)}
             aria-describedby={`${id}-${choice}-help`}
-            className="accent-hs-accent mt-0.5 cursor-pointer"
+            className={`${CHECKBOX_CLASS} mt-0.5`}
           />
           <div className="min-w-0">
             <label htmlFor={`${id}-${choice}`} className="block text-xs text-hs-text-primary cursor-pointer">
               {t(`${K}.folder.${choice === 'smb' ? 'kindShare' : 'kindWebdav'}`)}
             </label>
-            <p id={`${id}-${choice}-help`} className="text-xs text-hs-text-faint">
+            <FieldHint id={`${id}-${choice}-help`}>
               {t(`${K}.folder.${choice === 'smb' ? 'kindShareHelp' : 'kindWebdavHelp'}`)}
-            </p>
+            </FieldHint>
           </div>
         </div>
       ))}
@@ -493,6 +493,7 @@ function KindChoice({ kind, onChange }: { kind: StorageKind; onChange: (kind: St
 
 function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup: Backup; when: When }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const dest = status.destination;
   const [editing, setEditing] = useState(false);
   // A new folder starts on Network share: what a NAS, a Windows PC or a Mac offers without extra setup.
@@ -584,20 +585,20 @@ function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup
     if (!result) return null;
     if ('saveCode' in result) {
       if (newServerPassword) {
-        return <p className="text-xs text-hs-warning" role="alert">{t(`${K}.folder.passwordNewServer`, { host: draftWords(draft).host })}</p>;
+        return <p className="text-xs text-hs-warning-ink" role="alert">{t(`${K}.folder.passwordNewServer`, { host: draftWords(draft).host })}</p>;
       }
-      return <p className="text-xs text-hs-warning" role="alert">{t(`${K}.folder.formErrors.${KNOWN_FORM_CODES.has(result.saveCode) ? result.saveCode : 'failed'}`)}</p>;
+      return <p className="text-xs text-hs-warning-ink" role="alert">{KNOWN_FORM_CODES.has(result.saveCode) ? t(`${K}.folder.formErrors.${result.saveCode}`) : tCore('refusals.saveFailed')}</p>;
     }
     if (result.ok) {
       return <p className="text-xs text-hs-success" role="status">{t(`${K}.folder.${kindNow === 'smb' ? 'worksShare' : 'works'}`)}</p>;
     }
     if ('formCode' in result) {
-      return <p className="text-xs text-hs-warning" role="alert">{t(`${K}.folder.formErrors.${KNOWN_FORM_CODES.has(result.formCode) ? result.formCode : 'failed'}`)}</p>;
+      return <p className="text-xs text-hs-warning-ink" role="alert">{KNOWN_FORM_CODES.has(result.formCode) ? t(`${K}.folder.formErrors.${result.formCode}`) : tCore('refusals.saveFailed')}</p>;
     }
     if (result.code === 'share-not-found' && editing && result.shares && result.shares.length > 0) {
       return (
         <div role="alert">
-          <p className="text-xs text-hs-warning">{t(`${K}.folder.sharesOffered`, words)}</p>
+          <p className="text-xs text-hs-warning-ink">{t(`${K}.folder.sharesOffered`, words)}</p>
           <div className="mt-2 flex flex-wrap gap-1.5" data-testid="auto-backup-share-choices">
             {result.shares.map((share) => (
               <button
@@ -614,7 +615,7 @@ function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup
         </div>
       );
     }
-    return <p className="text-xs text-hs-warning" role="alert">{t(`${K}.offsiteErrors.${result.code}`, words)}</p>;
+    return <p className="text-xs text-hs-warning-ink" role="alert">{t(`${K}.offsiteErrors.${result.code}`, words)}</p>;
   })();
 
   if (editing) {
@@ -638,9 +639,9 @@ function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup
             <span className="block text-xs text-hs-text-faint mt-1">{t(`${K}.folder.${isShare ? 'shareAddressHelp' : 'addressHelp'}`)}</span>
           </label>
           {(isShare ? warnsOutsideHome(draft.address) : warnsPlainHttp(draft.address)) && (
-            <p className="text-xs text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-md px-2.5 py-2" role="status">
+            <Notice tone="warning" role="status">
               {t(`${K}.folder.${isShare ? 'outsideHomeWarning' : 'httpWarning'}`)}
-            </p>
+            </Notice>
           )}
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
@@ -688,7 +689,7 @@ function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup
       <div className={`${cardClass} flex items-start gap-3`} data-field-id="data.autoBackupFolder" data-testid="auto-backup-folder">
         <div className="min-w-0 flex-1">
           <p className="text-sm text-hs-text-primary">{t(`${K}.folder.name`)}</p>
-          <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.folder.description`)}</p>
+          <FieldHint className="mt-0.5">{t(`${K}.folder.description`)}</FieldHint>
         </div>
         <Button variant="secondary" onClick={open}>{t(`${K}.folder.setUp`)}</Button>
       </div>
@@ -703,7 +704,7 @@ function FolderCard({ status, backup, when }: { status: AutoBackupStatus; backup
           <p className="text-sm text-hs-text-primary">{t(`${K}.folder.name`)}</p>
           {failing ? (
             <div className="mt-0.5 text-xs">
-              <p className="flex gap-1.5 text-hs-warning">
+              <p className="flex gap-1.5 text-hs-warning-ink">
                 <Dot tone="bad" />
                 <span>{t(`${K}.folder.failing`)} {t(`${K}.offsiteErrors.${status.offsite.lastError}`, words)}</span>
               </p>
@@ -746,6 +747,7 @@ const KNOWN_FORM_CODES = new Set([
 
 function LinkCard({ status, backup, when }: { status: AutoBackupStatus; backup: Backup; when: When }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [token, setToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [working, setWorking] = useState(false);
@@ -757,6 +759,7 @@ function LinkCard({ status, backup, when }: { status: AutoBackupStatus; backup: 
         title: t(`${K}.link.newConfirm.title`),
         message: t(`${K}.link.newConfirm.message`),
         confirmLabel: t(`${K}.link.newConfirm.confirm`),
+        variant: 'primary',
       });
       if (!ok) return;
     }
@@ -791,7 +794,7 @@ function LinkCard({ status, backup, when }: { status: AutoBackupStatus; backup: 
       <div className={`${cardClass} flex items-start gap-3`} data-field-id="data.autoBackupLink" data-testid="auto-backup-link">
         <div className="min-w-0 flex-1">
           <p className="text-sm text-hs-text-primary">{t(`${K}.link.name`)}</p>
-          <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.link.description`)}</p>
+          <FieldHint className="mt-0.5">{t(`${K}.link.description`)}</FieldHint>
         </div>
         <Button variant="secondary" onClick={() => void make(false)} disabled={working}>{t(`${K}.link.make`)}</Button>
       </div>
@@ -820,11 +823,11 @@ function LinkCard({ status, backup, when }: { status: AutoBackupStatus; backup: 
               value={url}
               onFocus={(e) => e.target.select()}
               data-testid="auto-backup-link-url"
-              className="min-w-0 flex-1 rounded-md bg-hs-input border border-hs-border-strong px-2.5 py-1.5 font-mono text-xs text-hs-text-body focus:outline-none"
+              className={`min-w-0 flex-1 font-mono ${SETTINGS_INPUT_SM_CLASS}`}
             />
-            <Button variant="secondary" onClick={() => void copy()}>{copied ? t(`${K}.link.copied`) : t(`${K}.link.copy`)}</Button>
+            <Button variant="secondary" onClick={() => void copy()}>{copied ? tCore('status.copied') : t(`${K}.link.copy`)}</Button>
           </div>
-          <p className="text-xs text-hs-text-faint">{t(`${K}.link.warning`)}</p>
+          <FieldHint>{t(`${K}.link.warning`)}</FieldHint>
           <div className="flex items-center gap-4">
             <button onClick={() => void make(true)} disabled={working} className={linkButton}>{t(`${K}.link.makeNew`)}</button>
             <button onClick={() => void remove()} disabled={working} className={linkButton}>{t(`${K}.link.remove`)}</button>
@@ -843,6 +846,7 @@ function CopiesList({ status, when, restoreBusy, onRestore, backup }: {
   backup: Backup;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const [showAll, setShowAll] = useState(false);
   const [working, setWorking] = useState<string | null>(null);
@@ -868,7 +872,8 @@ function CopiesList({ status, when, restoreBusy, onRestore, backup }: {
         title: t(`${K}.copies.restoreConfirm.title`),
         message: lines.join('\n\n'),
         confirmLabel: t(`${K}.copies.restoreConfirm.confirm`),
-        variant: 'primary',
+        // Like every restore: what is there now is replaced for good.
+        variant: 'danger',
       });
       if (!ok) return;
       await onRestore({ copy, summary, hasSavedPassword: status.hasBackupPassword });
@@ -878,12 +883,11 @@ function CopiesList({ status, when, restoreBusy, onRestore, backup }: {
   };
 
   const remove = async (copy: AutoBackupCopyInfo) => {
-    const ok = await useConfirmStore.getState().confirm({
-      title: t(`${K}.copies.removeConfirm.title`),
-      message: t(`${K}.copies.removeConfirm.message`, { when: when.full(copy.savedAt) }),
-      confirmLabel: t(`${K}.copies.removeConfirm.confirm`),
-      variant: 'danger',
-    });
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'delete',
+      question: t(`${K}.copies.removeConfirm.title`),
+      consequence: t(`${K}.copies.removeConfirm.message`, { when: when.full(copy.savedAt) }),
+    }, tCore));
     if (!ok) return;
     setWorking(copy.name);
     await backup.removeCopy(copy.name);

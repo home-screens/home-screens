@@ -388,7 +388,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
         letterSpacing: '0.06em',
         color: 'var(--cal-text-tertiary)',
       }}>
-        {t('fullscreen-calendar.allDay')}
+        {t('calendar.allDay')}
       </div>
       <div style={{
         flex: 1,

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, NO_VALUE } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
@@ -105,7 +105,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
                       )}
                     </div>
                   ) : (
-                    <span style={{ fontSize: '0.55em', opacity: 0.15 }}>&mdash;</span>
+                    <span style={{ fontSize: '0.55em', opacity: 0.15 }}>{NO_VALUE}</span>
                   )}
                 </div>
               );

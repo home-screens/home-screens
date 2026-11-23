@@ -10,6 +10,7 @@ import SleepFormFields, {
   type SleepFormValues,
 } from './SleepFormFields';
 import WholeBlockOverrideCard from './WholeBlockOverrideCard';
+import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
 
 interface SleepSubtabProps {
   config: ScreenConfiguration;
@@ -35,6 +36,7 @@ interface SleepSubtabProps {
  */
 export default function SleepSubtab({ config, display }: SleepSubtabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { updateDisplaySettings, saveConfig } = useEditorStore();
   const isForked = !!(display.settings?.sleep || display.settings?.screensaver);
   // Resolve each half independently against the global default. If only one
@@ -75,7 +77,7 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
       label={t('settings.perDisplayPage.sleep.label')}
       displayName={display.name}
       defaultsHref={settingsHref({ kind: 'defaults', page: 'screen', panel: 'sleep' })}
-      defaultsLabel={t('settings.perDisplayPage.sleep.defaultsLabel')}
+      defaultsLabel={defaultsPlaceText(t, tCore, 'screen')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.sleep.infoPart1')}
@@ -83,7 +85,7 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
             href={settingsHref({ kind: 'defaults', page: 'screen', panel: 'sleep' })}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
-            {t('settings.perDisplayPage.sleep.defaultsLabel')}
+            {defaultsPlaceText(t, tCore, 'screen')}
           </Link>
           {t('settings.perDisplayPage.sleep.infoPart2')}
         </>

@@ -1,7 +1,7 @@
 import type { AffirmationEntry } from './types';
 
 // ---------------------------------------------------------------------------
-// Built-in content library — de-DE (198 entries)
+// Built-in content library: de-DE (198 entries)
 // ---------------------------------------------------------------------------
 
 export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
@@ -41,7 +41,7 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
 
   // ── Compliments ───────────────────────────────────────────────
   { text: 'Du erhellst jeden Raum, den du betrittst.', category: 'compliments', time: 'anytime' },
-  { text: 'Dein Lächeln ist ansteckend — hör nie auf, es zu teilen.', category: 'compliments', time: 'morning' },
+  { text: 'Dein Lächeln ist ansteckend. Hör nie auf, es zu teilen.', category: 'compliments', time: 'morning' },
   { text: 'Du hast ein Gespür dafür, anderen das Gefühl zu geben, gesehen zu werden.', category: 'compliments', time: 'anytime' },
   { text: 'Die Welt ist besser, weil es dich gibt.', category: 'compliments', time: 'anytime' },
   { text: 'Deine Freundlichkeit zieht weitere Kreise, als du ahnst.', category: 'compliments', time: 'anytime' },
@@ -115,12 +115,12 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
   { text: 'Gib den Ton für die Woche an. Du schaffst das.', category: 'motivational', time: 'morning', days: [1] },
   { text: 'Dienstag: der Beweis, dass du den Montag überstanden hast und weitermachst.', category: 'compliments', time: 'morning', days: [2] },
   { text: 'Wochenmitte: Du bist näher dran, als du denkst.', category: 'motivational', time: 'anytime', days: [3] },
-  { text: 'Mittwoch — die Hälfte ist geschafft. Du machst das großartig.', category: 'compliments', time: 'afternoon', days: [3] },
+  { text: 'Mittwoch: Die Hälfte ist geschafft. Du machst das großartig.', category: 'compliments', time: 'afternoon', days: [3] },
   { text: 'Fast geschafft. Beende die Woche stark.', category: 'motivational', time: 'morning', days: [4] },
   { text: 'Donnerstagsenergie: Das Wochenende ist in Sicht.', category: 'motivational', time: 'afternoon', days: [4] },
   { text: 'Du hast die Woche geschafft. Sei stolz auf dich.', category: 'compliments', time: 'afternoon', days: [5] },
   { text: 'Schönen Freitag. Du hast dir jedes bisschen dieses Wochenendes verdient.', category: 'compliments', time: 'afternoon', days: [5] },
-  { text: 'Genieße das Wochenende — du hast es dir verdient.', category: 'compliments', time: 'anytime', days: [5, 6, 0] },
+  { text: 'Genieße das Wochenende. Du hast es dir verdient.', category: 'compliments', time: 'anytime', days: [5, 6, 0] },
   { text: 'Samstage sind zum Auftanken da. Tu, was dir guttut.', category: 'mindfulness', time: 'morning', days: [6] },
   { text: 'Sonntag: ruh dich aus, denk nach und bereite dich darauf vor, wieder zu strahlen.', category: 'mindfulness', time: 'morning', days: [0] },
   { text: 'Nutze den heutigen Tag, um dich auf eine großartige Woche vorzubereiten.', category: 'motivational', time: 'afternoon', days: [0] },
@@ -139,7 +139,7 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
   { text: 'Denk an ein freundliches Wort, das dir kürzlich jemand gesagt hat.', category: 'gratitude', time: 'evening' },
   { text: 'Dein Leben ist voller leiser Wunder. Halte Ausschau nach ihnen.', category: 'gratitude', time: 'anytime' },
   { text: 'Nenne einen Menschen, der dein Leben dieses Jahr besser gemacht hat.', category: 'gratitude', time: 'evening' },
-  { text: 'Das Dach über deinem Kopf, das Essen auf deinem Tisch — das sind keine Kleinigkeiten.', category: 'gratitude', time: 'anytime' },
+  { text: 'Das Dach über deinem Kopf, das Essen auf deinem Tisch: Das sind keine Kleinigkeiten.', category: 'gratitude', time: 'anytime' },
   { text: 'Denk an eine Herausforderung, die dich stärker gemacht hat. Sei dankbar dafür.', category: 'gratitude', time: 'evening' },
   { text: 'Dankbarkeit ist die gesündeste aller menschlichen Emotionen.', category: 'gratitude', attribution: 'Zig Ziglar', time: 'anytime' },
   { text: 'Was hast du heute, das du dir einst gewünscht hast?', category: 'gratitude', time: 'morning' },
@@ -161,9 +161,9 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
   { text: 'Bemerke fünf Dinge, die du gerade jetzt sehen kannst.', category: 'mindfulness', time: 'anytime' },
   { text: 'Lass los, was du nicht kontrollieren kannst.', category: 'mindfulness', time: 'anytime' },
   { text: 'Deine Gedanken sind Wolken. Lass sie vorüberziehen.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Frieden ist nicht das Fehlen von Chaos — es ist die Ruhe in dir.', category: 'mindfulness', time: 'anytime' },
+  { text: 'Frieden ist nicht das Fehlen von Chaos. Es ist die Ruhe in dir.', category: 'mindfulness', time: 'anytime' },
   { text: 'Gerade jetzt, in diesem Moment, bist du sicher.', category: 'mindfulness', time: 'night' },
-  { text: 'Stille ist nicht leer — sie ist voller Antworten.', category: 'mindfulness', time: 'evening' },
+  { text: 'Stille ist nicht leer. Sie ist voller Antworten.', category: 'mindfulness', time: 'evening' },
   { text: 'Spüre deine Füße auf dem Boden. Du bist verankert.', category: 'mindfulness', time: 'anytime' },
   { text: 'Innehalten. Atmen. Weitermachen.', category: 'mindfulness', time: 'anytime' },
   { text: 'Du bist nicht deine Gedanken. Du bist das Bewusstsein dahinter.', category: 'mindfulness', time: 'anytime' },
@@ -198,7 +198,7 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
   { text: 'Wie das Herbstlaub, lass los, was bereit ist zu fallen.', category: 'mindfulness', time: 'anytime', season: 'fall' },
   { text: 'Der Herbst lehrt uns, dass Loslassen schön sein kann.', category: 'affirmations', time: 'anytime', season: 'fall' },
   { text: 'Die Welt verändert ihre Farben. Auch du darfst dich verändern.', category: 'affirmations', time: 'anytime', season: 'fall' },
-  { text: 'Erntezeit — sammle die Früchte deiner harten Arbeit.', category: 'gratitude', time: 'anytime', season: 'fall' },
+  { text: 'Erntezeit: Sammle die Früchte deiner harten Arbeit.', category: 'gratitude', time: 'anytime', season: 'fall' },
   { text: 'Selbst im Winter geschieht Wachstum unter der Oberfläche.', category: 'affirmations', time: 'anytime', season: 'winter' },
   { text: 'Die Stille des Winters ist eine Einladung, nach innen zu gehen.', category: 'mindfulness', time: 'evening', season: 'winter' },
   { text: 'Draußen kalt, innen warm. Hüte dein inneres Feuer.', category: 'affirmations', time: 'anytime', season: 'winter' },
@@ -216,7 +216,7 @@ export const DE_DE_AFFIRMATIONS: AffirmationEntry[] = [
   // ── Morning-specific ──────────────────────────────────────────
   { text: 'Guten Morgen. Dieser Tag steckt voller Möglichkeiten.', category: 'affirmations', time: 'morning' },
   { text: 'Der Morgen gehört dir. Setz dir dein Ziel und nimm ihn in Besitz.', category: 'motivational', time: 'morning' },
-  { text: 'Aufstehen und strahlen — nicht weil du musst, sondern weil du darfst.', category: 'gratitude', time: 'morning' },
+  { text: 'Aufstehen und strahlen, nicht weil du musst, sondern weil du darfst.', category: 'gratitude', time: 'morning' },
   { text: 'Was möchtest du heute fühlen? Geh darauf zu.', category: 'mindfulness', time: 'morning' },
   { text: 'Ein neuer Tag bedeutet eine neue Chance, etwas Wunderbares zu schaffen.', category: 'motivational', time: 'morning' },
   { text: 'Deine Morgenroutine ist ein Akt der Selbstliebe.', category: 'affirmations', time: 'morning' },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { BookOpen, ChevronRight, CloudOff, Pencil, Search } from 'lucide-react';
+import { BookOpen, Check, ChevronRight, CloudOff, Pencil, Search, UtensilsCrossed } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { DEFAULT_MEAL_EMOJI, LIBRARY_FILTERS, getMealSlotLabelKey, type LibraryFilter } from '@/lib/meal-constants';
 import type { MealPickTarget } from '@/lib/meal-courses';
@@ -19,11 +19,15 @@ import Glyph from '@/components/ui/Glyph';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
 import TallSheet from './TallSheet';
-import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
-import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
+import { mealieSearchFailedWords } from './MealsMealieStatus';
+import { RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
+import { RetryButton } from './RetryButton';
+import EmptyState from './EmptyState';
+import ChipButton from './ChipButton';
 import { formatShownMinutes } from './meals-shared';
-import { REMOTE_ACCENT, SECTION_HEADING } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK, SECTION_HEADING } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
+import { mealiePlaces } from '@/components/meals/mealie-places';
 
 interface MealPickerSheetProps {
   target: MealPickTarget;
@@ -61,14 +65,16 @@ function useTitle(target: MealPickTarget): string {
  */
 export default function MealPickerSheet(props: MealPickerSheetProps) {
   const { fromMealie, library, onClose, subtitle, target } = props;
-  const t = useTranslate('remote');
   const title = useTitle(target);
 
   return (
     <TallSheet
       label={title}
+      title={title}
+      subtitle={subtitle}
       onClose={onClose}
-      zIndex={110}
+      // Over the meal sheet when opened from its Change and Add buttons.
+      layer="sheetOverSheet"
       testId="meal-picker"
       // Mealie's list fills in as it answers, and the family's meals narrow
       // as words are typed: a fixed height keeps the sheet (and the box
@@ -78,42 +84,16 @@ export default function MealPickerSheet(props: MealPickerSheetProps) {
       // double tap must not land on the meal sheet under it ("Change the drink").
       guardTaps
     >
-      {fromMealie ? (
-        <>
-          <div style={{ padding: '4px 16px 12px', borderBottom: '1px solid var(--hs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flex: 'none' }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', lineHeight: '24px' }}>{title}</div>
-              <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, lineHeight: '18px' }}>{subtitle}</div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                minWidth: 44, minHeight: 44, padding: '4px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8,
-                border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)',
-                cursor: 'pointer', fontFamily: 'inherit', flex: 'none',
-              }}
-            >
-              {t('mealPicker.cancel')}
-            </button>
-          </div>
-          <MealieBody {...props} />
-        </>
-      ) : (
-        <>
-          <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)', flex: 'none' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{title}</div>
-            <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>{subtitle}</div>
-          </div>
-          <LocalBody {...props} />
-        </>
-      )}
+      {fromMealie ? <MealieBody {...props} /> : <LocalBody {...props} />}
     </TallSheet>
   );
 }
 
+/** An empty or failed search inside the sheet, which has less room than a tab. */
+const SHEET_EMPTY = { padding: '56px 8px 0' };
+
 function Tick() {
-  return <span aria-hidden="true" style={{ fontSize: 15, color: REMOTE_ACCENT, fontWeight: 700, flex: 'none' }}>&#10003;</span>;
+  return <Check size={16} strokeWidth={3} aria-hidden="true" style={{ color: REMOTE_ACCENT_INK, flex: 'none' }} />;
 }
 
 /** Mealie's recipes, searched live through the hub. */
@@ -148,13 +128,13 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
   let empty: ReactNode = null;
   if (nothingFound) {
     empty = shortcut.kind === 'search' ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneTitle', { query: typed })} description={tCore('mealie.search.noneDescription')} />
+      <EmptyState icon={Search} title={t('mealie.search.noneTitle', { query: typed })} body={tCore('mealie.search.noneDescription')} style={SHEET_EMPTY} />
     ) : shortcut.kind === 'cookbook' || shortcut.kind === 'category' ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: shortcut.name ?? '' })} description={t('mealie.search.noneInCategoryDescription')} />
+      <EmptyState icon={Search} title={t('mealie.search.noneInCategoryTitle', { category: shortcut.name ?? '' })} body={t('mealie.search.noneInCategoryDescription')} style={SHEET_EMPTY} />
     ) : shortcut.kind === 'favorites' ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noFavoritesTitle')} description={t('mealie.search.noFavoritesDescription')} />
+      <EmptyState icon={Search} title={t('mealie.search.noFavoritesTitle')} body={t('mealie.search.noFavoritesDescription')} style={SHEET_EMPTY} />
     ) : (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noRecentTitle')} description={t('mealie.search.noRecentDescription')} />
+      <EmptyState icon={Search} title={t('mealie.search.noRecentTitle')} body={t('mealie.search.noRecentDescription')} style={SHEET_EMPTY} />
     );
   }
 
@@ -182,43 +162,42 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
           onFilter={choose}
         >
           {courseCategory && (
-            <FilterChip
-              active={shortcut.kind === 'category' && shortcut.slug === courseCategory.slug}
+            <ChipButton
+              selected={shortcut.kind === 'category' && shortcut.slug === courseCategory.slug}
               onClick={() => choose({ category: courseCategory.slug })}
             >
               {courseCategory.name}
-            </FilterChip>
+            </ChipButton>
           )}
           {cookbooks.map((c) => (
-            <FilterChip
+            <ChipButton
               key={c.slug}
-              active={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
+              selected={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
               onClick={() => choose({ cookbook: c.slug })}
               icon={<BookOpen size={13} strokeWidth={2} aria-hidden />}
             >
               {c.name}
-            </FilterChip>
+            </ChipButton>
           ))}
         </RecipeShortcutChips>
         {heading && <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', padding: '10px 0 2px' }}>{heading}</div>}
         {search.loading ? (
           <RecipeSkeletonRows />
         ) : search.error ? (
-          <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={tCore(failed.title)} description={t(failed.description)}>
-            <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
-          </CenterMessage>
+          <EmptyState icon={CloudOff} title={tCore(failed.title)} body={t(failed.description, mealiePlaces(tCore))} action={<RetryButton onRetry={search.retry} />} style={SHEET_EMPTY} />
         ) : (
           empty ?? search.items.map((meal) => {
             const chosen = chosenIds.has(meal.id);
             const shown = mealShownMinutes(meal);
             const tag = meal.tags?.[0];
-            const meta = [shown ? formatShownMinutes(shown, t) : null, tag ? mealTagLabel(meal, tag) : null].filter(Boolean).join(' · ');
+            const meta = [shown ? formatShownMinutes(shown, t) : null, tag ? mealTagLabel(meal, tag, tCore) : null].filter(Boolean).join(' · ');
             return (
               <button
                 key={meal.id}
                 type="button"
                 onClick={() => onPickMeal(meal)}
                 aria-pressed={chosen}
+                className="press-scale"
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', minHeight: 66,
                   border: 'none', borderBottom: '1px solid var(--hs-border)', background: 'transparent',
@@ -230,7 +209,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
                   <span
                     style={{
                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      fontSize: 15, fontWeight: 600, lineHeight: '20px', color: chosen ? REMOTE_ACCENT : 'var(--hs-text-primary)',
+                      fontSize: 15, fontWeight: 600, lineHeight: '20px', color: chosen ? REMOTE_ACCENT_INK : 'var(--hs-text-primary)',
                     }}
                   >
                     {meal.name}
@@ -278,9 +257,10 @@ function TypeInsteadRow({ title, note, lit, onClick, testId }: {
         type="button"
         onClick={onClick}
         data-testid={testId}
+        className="press-scale"
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', minHeight: 56,
-          borderRadius: 12, border: `1px dashed ${lit ? REMOTE_ACCENT : 'var(--hs-border-strong)'}`,
+          borderRadius: 12, border: `1px dashed ${lit ? REMOTE_ACCENT_INK : 'var(--hs-border-strong)'}`,
           background: lit ? withAlpha(REMOTE_ACCENT, 0.08) : 'transparent',
           textAlign: 'left', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit',
         }}
@@ -356,8 +336,10 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
     return (
       <button
         key={meal.id}
+        type="button"
         onClick={() => onPickMeal(meal)}
         aria-pressed={chosen}
+        className="press-scale"
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', border: 'none',
           borderBottom: '1px solid var(--hs-border)', background: 'transparent', cursor: 'pointer',
@@ -365,7 +347,7 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
         }}
       >
         <span style={{ fontSize: 24 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: chosen ? REMOTE_ACCENT : 'var(--hs-text-primary)' }}>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: chosen ? REMOTE_ACCENT_INK : 'var(--hs-text-primary)' }}>
           {meal.name}
         </span>
         {chosen && <Tick />}
@@ -392,33 +374,40 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
       </div>
       <div ref={listRef} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 16px 16px', flex: 1, minHeight: 0, scrollbarWidth: 'none' as const }}>
         {library.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--hs-text-faint)', fontSize: 13, lineHeight: 1.5 }}>
-            <p style={{ margin: 0 }}>{t('mealsPlan.picker.emptyLibrary')}</p>
-            <button
-              onClick={() => { onClose(); onOpenLibrary(); }}
-              style={{
-                marginTop: 12, padding: '10px 20px', minHeight: 44, borderRadius: 10, border: '1px solid var(--hs-border)',
-                background: 'var(--hs-bg-panel)', color: 'var(--hs-text-body)', fontSize: 13, fontWeight: 600,
-                fontFamily: 'inherit', cursor: 'pointer',
-              }}
-            >
-              {t('mealsPlan.empty.addMealsButton')}
-            </button>
-          </div>
+          <EmptyState
+            icon={UtensilsCrossed}
+            title={t('mealsPlan.picker.emptyLibraryTitle')}
+            body={t('mealsPlan.picker.emptyLibrary')}
+            style={{ padding: '24px 8px 8px' }}
+            action={(
+              <button
+                type="button"
+                onClick={() => { onClose(); onOpenLibrary(); }}
+                className="press-btn"
+                style={{
+                  padding: '10px 20px', minHeight: 44, borderRadius: 10, border: '1px solid var(--hs-border)',
+                  background: 'var(--hs-bg-panel)', color: 'var(--hs-text-body)', fontSize: 13, fontWeight: 600,
+                  fontFamily: 'inherit', cursor: 'pointer',
+                }}
+              >
+                {t('mealsPlan.empty.addMealsButton')}
+              </button>
+            )}
+          />
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '10px 0 2px' }}>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '6px 0 0' }}>
               {LIBRARY_FILTERS.map((f) => (
-                <FilterChip key={f} active={filter === f} onClick={() => setFilter(f)}>
+                <ChipButton key={f} selected={filter === f} onClick={() => setFilter(f)}>
                   {t(`mealsTab.library.filters.${f}`)}
-                </FilterChip>
+                </ChipButton>
               ))}
             </div>
             {found.length === 0 ? (
               typed && !inLibrary ? (
-                <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealPicker.noneTitle', { query: typed })} description={t('mealPicker.noneDescription')} padding="32px 8px" />
+                <EmptyState icon={Search} title={t('mealPicker.noneTitle', { query: typed })} body={t('mealPicker.noneDescription')} style={{ padding: '32px 8px 0' }} />
               ) : (
-                <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealsTab.library.empty.titleNoMatches')} description={t('mealsTab.library.empty.hintNoMatches')} padding="32px 8px" />
+                <EmptyState icon={Search} title={t('mealsTab.library.empty.titleNoMatches')} body={t('mealsTab.library.empty.hintNoMatches')} style={{ padding: '32px 8px 0' }} />
               )
             ) : groups.matching.length > 0 ? (
               <>

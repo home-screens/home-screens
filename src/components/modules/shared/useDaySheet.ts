@@ -6,6 +6,7 @@ import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { localISODate } from '@/lib/timezone';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent } from '@/types/config';
+import { wallPressProps } from './wallPress';
 
 /**
  * Opens the day sheet for `date` with the events the tapped cell had.
@@ -41,9 +42,16 @@ export function openDayProps(
   t: TranslateFn,
   locale: string,
   hasNotes = false,
-): { onClick: () => void; 'aria-label': string; 'data-open-day': string } | undefined {
+) {
   if (!open || (events.length === 0 && !hasNotes && !open.everyDay)) return undefined;
+  // The pressed look a wall button gets the moment a finger lands (globals.css
+  // draws it for `[data-open-day]`): a day number is a button, often a small one.
+  const { onPointerDown, onPointerUp, onPointerCancel, onPointerLeave } = wallPressProps;
   return {
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
     onClick: () => open(date, events),
     'aria-label': t('calendar.daySheet.openDay', { date: daySheetHeading(date, locale).full }),
     'data-open-day': localISODate(date),

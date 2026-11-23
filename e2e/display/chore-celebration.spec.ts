@@ -3,6 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedHouseholdChores, seedRewards } from '../helpers/api';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
 /**
  * The day-complete celebration on the full-screen chore chart, and the
@@ -52,6 +53,8 @@ test.describe('day-complete celebration', () => {
     await expect(overlay).toContainText('All done, Ada!');
     await expect(overlay).toContainText('1 of 1 chore · 2 tickets today');
 
+    // A tap within a double tap of the card opening is the tap that finished the day.
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await overlay.click();
     await expect(overlay).toHaveCount(0);
   });

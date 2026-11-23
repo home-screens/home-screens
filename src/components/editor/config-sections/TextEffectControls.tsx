@@ -1,5 +1,6 @@
 'use client';
 
+import { Plus } from 'lucide-react';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -7,6 +8,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useTranslate } from '@/i18n';
 import type { ConfigControlsProps } from './config-controls';
 import type { TextConfig, TextEffect } from '@/types/config';
+import IconButton from '@/components/ui/IconButton';
 
 export function TextEffectControls({ config: c, set }: ConfigControlsProps<TextConfig>) {
   const t = useTranslate('editor');
@@ -124,6 +126,7 @@ function ColorPalette({
   onChange: (palette: string[]) => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
@@ -131,9 +134,10 @@ function ColorPalette({
         <button
           type="button"
           onClick={() => onChange([...palette, '#ffffff'])}
-          className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
+          className="inline-flex items-center gap-0.5 text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
         >
-          {t('configSections.text.addColor')}
+          <Plus className="h-2.5 w-2.5" aria-hidden="true" />
+          {tCore('actions.add')}
         </button>
       </div>
       <div className="space-y-1">
@@ -151,13 +155,7 @@ function ColorPalette({
             />
             <span className="text-[10px] text-hs-text-muted flex-1">{color}</span>
             {palette.length > 1 && (
-              <button
-                type="button"
-                onClick={() => onChange(palette.filter((_, i) => i !== idx))}
-                className="text-[10px] text-hs-text-faint hover:text-red-400 px-1"
-              >
-                ×
-              </button>
+              <IconButton label={t('configSections.text.removeColor')} onClick={() => onChange(palette.filter((_, i) => i !== idx))} />
             )}
           </div>
         ))}

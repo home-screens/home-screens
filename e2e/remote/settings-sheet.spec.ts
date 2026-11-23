@@ -56,7 +56,7 @@ test('system stats render from GET /api/system/stats', async ({ page }) => {
   await expect(page.getByTestId('remote-restart-needed')).toHaveCount(0);
 });
 
-test('a restart an update still needs is offered above Power and asks like Reboot Device', async ({ page }) => {
+test('a restart an update still needs is offered above Power and asks like Restart everything', async ({ page }) => {
   await stubStats(page, {
     ...STATS,
     restartNeeded: { reasons: ['launcher'], tag: 'v1.14.0', at: '2026-09-27T12:00:00Z' },
@@ -71,19 +71,19 @@ test('a restart an update still needs is offered above Power and asks like Reboo
   await openSheet(page);
   const notice = page.getByTestId('remote-restart-needed');
   await expect(notice.getByText('Restart to finish the update')).toBeVisible();
-  await expect(notice.getByText('Part of the last update only starts working after the device restarts.')).toBeVisible();
+  await expect(notice.getByText('Part of the last update only starts working after everything restarts.')).toBeVisible();
 
   // Finger-sized, like the rest of the phone.
   const button = notice.getByRole('button', { name: 'Restart now' });
   const box = await button.boundingBox();
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
 
-  // It opens the same confirm as Reboot Device. As there, the only tap made
+  // It opens the same confirm as Restart everything. As there, the only tap made
   // is the one that backs out: a confirmed reboot maps to a real `sudo reboot`.
   await button.click();
-  await expect(page.getByText('Reboot the device?')).toBeVisible();
+  await expect(page.getByText('Restart everything?')).toBeVisible();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await expect(page.getByText('Reboot the device?')).toBeHidden();
+  await expect(page.getByText('Restart everything?')).toBeHidden();
   await expect(notice).toBeVisible();
   expect(powerPosts.length).toBe(0);
 });
@@ -118,7 +118,7 @@ test('backup downloads a bundle file with sane name and content', async ({ page 
 
   // Let the real GET /api/backup serve so we exercise the actual bundle build.
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Backup All Data' }).click();
+  await page.getByRole('button', { name: 'Back up everything' }).click();
   const download = await downloadPromise;
 
   // Filename: home-screens-backup-YYYY-MM-DD.json
@@ -133,7 +133,7 @@ test('backup downloads a bundle file with sane name and content', async ({ page 
   expect(bundle.config).toBeTruthy();
 
   // The button flips to the success state after a successful download.
-  await expect(page.getByText('Backup Saved')).toBeVisible();
+  await expect(page.getByText('Backup saved')).toBeVisible();
 });
 
 test('the Pictures row cycles the remembered choice and shows its size', async ({ page, request }) => {
@@ -147,7 +147,7 @@ test('the Pictures row cycles the remembered choice and shows its size', async (
     const row = page.getByTestId('remote-backup-pictures');
     await expect(row).toContainText('Only the ones on screen');
     await row.click();
-    await expect(row).toContainText(/Your whole library · \d+ KB/);
+    await expect(row).toContainText(/All your photos and videos · \d+ KB/);
     await row.click();
     await expect(row).toContainText('Left out');
     expect(await page.evaluate(() => localStorage.getItem('hs-backup-pictures'))).toBe('off');
@@ -193,9 +193,10 @@ test('restore-from-file happy path POSTs the bundle to /api/backup', async ({ pa
     buffer: Buffer.from(JSON.stringify(bundle)),
   });
 
-  // The client validates shape, then arms the tap-again confirmation.
-  await expect(page.getByText('Tap again to restore')).toBeVisible();
-  await page.getByRole('button', { name: 'Tap again to restore' }).click();
+  // The client validates shape, then asks before it replaces anything.
+  const question = page.getByTestId('confirm-sheet');
+  await expect(question.getByText('Restore this backup?')).toBeVisible();
+  await question.getByRole('button', { name: 'Restore', exact: true }).click();
 
   // Success state after the POST resolves.
   await expect(page.getByText('Restored', { exact: true })).toBeVisible();
@@ -285,9 +286,9 @@ test('reboot asks first and is never sent from a cancelled sheet', async ({ page
   await openSheet(page);
   // The reboot control is present; it maps to a real `sudo reboot`, so the
   // only tap made here is the one that backs out.
-  await page.getByRole('button', { name: 'Reboot Device' }).click();
-  await expect(page.getByText('Reboot the device?')).toBeVisible();
+  await page.getByRole('button', { name: 'Restart everything' }).click();
+  await expect(page.getByText('Restart everything?')).toBeVisible();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await expect(page.getByText('Reboot the device?')).toBeHidden();
+  await expect(page.getByText('Restart everything?')).toBeHidden();
   expect(powerPosts.length).toBe(0);
 });

@@ -7,22 +7,25 @@ import type { GooglePhotosImport } from '@/hooks/useGooglePhotosImport';
 import { settingsPath } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
 import GooglePhotosSignIn from './GooglePhotosSignIn';
+import Spinner from '@/components/ui/Spinner';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * The button half of "add from Google Photos" for a library surface (the
- * Image Library's Local tab, the Pictures & videos page): Add from Google
+ * Pictures & videos window's library tab, the Pictures & videos page): Add from Google
  * Photos once signed in, Google's sign-in button before. Nothing shows until
  * the hub has said which it is, so neither flashes.
  */
 export function GooglePhotosAction({ google, label }: { google: GooglePhotosImport; label?: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   if (google.appsLoading || !google.status) return null;
   if (!google.connected) {
     // Neither Home Screens' own app nor the household's is set up.
     if (!google.hosted && !google.status.credentialsConfigured) {
       return (
         <Link href={settingsPath({ kind: 'defaults', page: 'integrations' })} className="text-[11px] text-hs-accent hover:text-hs-accent-hover">
-          {t('photoSources.google.needsSetup')}
+          {t('photoSources.google.needsSetup', { place: settingsPlaceText(tCore, 'integrations') })}
         </Link>
       );
     }
@@ -49,8 +52,9 @@ export function GooglePhotosProgress({ google, folderLabel }: { google: GooglePh
     lines.push(<GooglePhotosSignIn key="sign-in" google={google} intro={false} />);
   } else if (google.session) {
     lines.push(
-      <p key="waiting" className="text-[11px] text-hs-text-muted">
-        <span className="animate-pulse">{tCore('imports.googleWaiting')}</span>{' '}
+      <p key="waiting" role="status" className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-hs-text-muted">
+        <Spinner />
+        <span>{tCore('imports.googleWaiting')}</span>
         <a href={google.session.pickerUri} target="_blank" rel="noreferrer" className="text-hs-accent hover:text-hs-accent-hover">
           {t('photoSources.google.openAgain')}
         </a>
@@ -77,10 +81,10 @@ export function GooglePhotosProgress({ google, folderLabel }: { google: GooglePh
       </p>,
     );
   } else if (google.jobFailed) {
-    lines.push(<p key="failed" className="text-[11px] text-hs-warning">{t('configSections.googlePhotosImport.allFailed')}</p>);
+    lines.push(<p key="failed" className="text-[11px] text-hs-warning-ink">{t('configSections.googlePhotosImport.allFailed')}</p>);
   }
-  if (google.startErrorText) lines.push(<p key="start-error" className="text-[11px] text-hs-warning">{google.startErrorText}</p>);
-  if (google.error) lines.push(<p key="error" className="text-[11px] text-hs-warning">{google.error}</p>);
+  if (google.startErrorText) lines.push(<p key="start-error" className="text-[11px] text-hs-warning-ink">{google.startErrorText}</p>);
+  if (google.error) lines.push(<p key="error" className="text-[11px] text-hs-warning-ink">{google.error}</p>);
   if (lines.length === 0) return null;
   return <div className="space-y-1" data-testid="google-photos-progress">{lines}</div>;
 }

@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
 import { usePendingCommand } from '../hooks';
 import { CONFIRM_TIMEOUT_MS } from '@/lib/display-liveness';
+import { NO_VALUE } from '@/lib/constants';
 import { displayCommandRequest } from '@/lib/display-dispatch';
 import { REMOTE_ACCENT } from './remote-styles';
 
@@ -13,7 +14,7 @@ interface BrightnessCardProps {
   /**
    * The brightness the target displays that are answering all report, or
    * null when it is not known (`agreedBrightness`): in All mode two displays
-   * at different levels read as "--" rather than either number. The slider
+   * at different levels read as `NO_VALUE` rather than either number. The slider
    * seeds from this instead of assuming 100%: reopening the remote after
    * setting 40% must show 40%, and a "little nudge" must not jump the wall
    * to 95%.
@@ -61,7 +62,7 @@ export default function BrightnessCard({ reported, disabled, onSent, onNoConfirm
     <div className={`mx-5 mt-4 p-4 bg-hs-card border border-hs-border rounded-[14px] ${disabled ? 'opacity-40' : ''}`}>
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2 text-sm font-semibold text-hs-text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px] text-hs-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px] text-hs-warning-ink">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
           </svg>
           {t('brightnessCard.label')}
@@ -70,7 +71,7 @@ export default function BrightnessCard({ reported, disabled, onSent, onNoConfirm
           data-testid="brightness-value"
           className={`text-sm font-semibold tabular-nums ${expected !== null ? 'text-hs-text-faint animate-pulse' : 'text-hs-text-muted'}`}
         >
-          {known ? `${shown}%` : '--'}
+          {known ? `${shown}%` : NO_VALUE}
         </span>
       </div>
 

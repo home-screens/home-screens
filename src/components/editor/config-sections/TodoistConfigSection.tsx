@@ -10,9 +10,13 @@ import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, TodoistConfig } from '@/types/config';
 import { settingsPath } from '@/lib/settings-route';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 function TodoistTokenStatus() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { status, loading, error, hasStatus } = useSecretStatus();
   // With no good status ever fetched, stay in the neutral "checking" state —
   // claiming "not connected" would mislead a user whose token is actually
@@ -25,22 +29,22 @@ function TodoistTokenStatus() {
     <div className="space-y-1">
       <span className="text-xs text-hs-text-muted">{t('configSections.todoist.apiToken')}</span>
       {configured === null ? (
-        <p className="text-[10px] text-hs-text-faint">{t('configSections.todoist.checking')}</p>
+        <FieldHint>{t('configSections.todoist.checking')}</FieldHint>
       ) : configured ? (
         <span className="flex items-center gap-1.5 text-[10px] text-hs-success">
-          <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
+          <StatusDot tone="success" size="sm" />
           {t('configSections.todoist.connected')}
         </span>
       ) : (
-        <p className="text-[10px] text-hs-text-faint">
+        <FieldHint>
           {t('configSections.todoist.notConfigured')}{' '}
           <Link
             href={settingsPath({ kind: 'defaults', page: 'integrations' })}
             className="text-hs-accent hover:text-hs-accent-hover underline"
           >
-            {t('configSections.todoist.settingsIntegrationsLink')}
+            {settingsPlaceText(tCore, 'integrations')}
           </Link>
-        </p>
+        </FieldHint>
       )}
     </div>
   );
@@ -126,7 +130,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       <Toggle label={t('configSections.todoist.showNoDueDate')} checked={c.showNoDueDate !== false} onChange={(v) => set({ showNoDueDate: v })} />
       <Toggle
-        label={t('configSections.todoist.tapToComplete')}
+        label={t('configSections.tapOnWall')}
         checked={!!c.allowComplete}
         onChange={(v) => set({ allowComplete: v })}
       />

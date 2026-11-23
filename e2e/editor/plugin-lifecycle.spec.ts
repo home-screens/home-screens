@@ -330,7 +330,7 @@ test('a dev-mode plugin loads from a dev server and re-registers a changed bundl
       await dialog.getByRole('button', { name: 'Load', exact: true }).click();
       // Loaded dev plugins are listed by name; wait for it before closing.
       await expect(dialog.getByText('E2E Dev Plugin')).toBeVisible();
-      await page.getByRole('button', { name: 'Close dialog' }).click();
+      await dialog.getByRole('button', { name: 'Close', exact: true }).click();
       await expect(dialog).toBeHidden();
     };
 
@@ -376,7 +376,7 @@ test('a dev-plugin version bump migrates module configs', async ({ page, request
       await dialog.getByPlaceholder('http://localhost:5173').fill(dev.origin);
       await dialog.getByRole('button', { name: 'Load', exact: true }).click();
       await expect(dialog.getByText('E2E Dev Plugin')).toBeVisible();
-      await page.getByRole('button', { name: 'Close dialog' }).click();
+      await dialog.getByRole('button', { name: 'Close', exact: true }).click();
       await expect(dialog).toBeHidden();
     };
 

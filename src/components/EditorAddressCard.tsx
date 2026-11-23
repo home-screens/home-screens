@@ -38,7 +38,7 @@ export default function EditorAddressCard({ className }: { className?: string })
           className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-hs-card border border-hs-border-strong px-3 text-sm text-hs-text-body hover:bg-hs-hover disabled:opacity-50"
         >
           {copied ? <Check className="w-4 h-4 text-hs-success" /> : <Copy className="w-4 h-4" />}
-          {copied ? t('launcher.copied') : t('launcher.copy')}
+          {copied ? t('status.copied') : t('launcher.copy')}
         </button>
       </div>
     </div>

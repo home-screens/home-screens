@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import { useSheetDialog } from '@/hooks/useSheetDialog';
 import ConfirmSheet from './ConfirmSheet';
 import { useBackGesture } from '../hooks/useBackGesture';
+import { REMOTE_LAYERS, type RemoteLayer } from './remote-layers';
 
 export default function FormOverlay({
   title,
@@ -14,7 +16,7 @@ export default function FormOverlay({
   onBack,
   children,
   footer,
-  zIndex = 55,
+  layer = 'form',
 }: {
   title: string;
   backLabel?: string;
@@ -29,8 +31,8 @@ export default function FormOverlay({
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  /** Raise above the Settings sheet (z 101) when opened from it. */
-  zIndex?: number;
+  /** `sheetOverSheet` for a page opened from a sheet (Your icons, from Settings). */
+  layer?: RemoteLayer;
 }) {
   const tCore = useTranslate('core');
   const t = useTranslate('remote');
@@ -48,17 +50,16 @@ export default function FormOverlay({
   // Read from the popstate listener, which is registered once.
   const dirtyRef = useRef(dirty);
   dirtyRef.current = dirty;
-  const confirmRef = useRef(confirmDiscard);
-  confirmRef.current = confirmDiscard;
   const backDisabledRef = useRef(backDisabled);
   backDisabledRef.current = backDisabled;
   const onBackRef = useRef(onBack);
   onBackRef.current = onBack;
 
   /**
-   * The Back gesture is this form's Back control (see `useBackGesture`).
-   * Without it, the gesture unloaded the whole remote and threw away a typed
-   * draft that the Cancel button would have asked about.
+   * The Back gesture and Escape are this form's Back control (see
+   * `useBackGesture`). Without them, the gesture unloaded the whole remote
+   * and threw away a typed draft that the Cancel button would have asked
+   * about.
    */
   const closing = useRef(false);
   const releaseRef = useRef<() => void>(() => {});
@@ -81,33 +82,31 @@ export default function FormOverlay({
   const { release } = useBackGesture(() => {
     // A save in flight: the sheet's own Back control is disabled here too.
     if (backDisabledRef.current) return true;
-    // Back out of the discard prompt means "keep editing", the same as its
-    // own button, rather than a second prompt over the first.
-    if (confirmRef.current) {
-      setConfirmDiscard(false);
-      return true;
-    }
-    // Everything else is exactly the Back control: a clean form closes, a
-    // dirty one asks first and stays open meanwhile.
+    // Exactly the Back control: a clean form closes, a dirty one asks first
+    // and stays open meanwhile. A sheet opened over the form (the discard
+    // prompt among them) holds its own entry, so Back closes that first:
+    // out of the discard prompt, Back means "keep editing".
     handleBack();
     return dirtyRef.current;
   });
   releaseRef.current = release;
 
+  const dialog = useSheetDialog<HTMLDivElement>({ onClose: backDisabled ? undefined : handleBack, keepAutoFocus: true });
+
   return (
     // A real dialog role: the overlay's submit button and the trigger that
-    // opened it share their wording ("Add Member", "Add Chore"), so anything
+    // opened it share their wording ("Add person", "Add chore"), so anything
     // addressing the submit by label alone resolves to the trigger during the
     // render that opens the overlay.
     <div
-      role="dialog"
-      aria-modal="true"
+      {...dialog}
       aria-label={title}
       data-testid="form-overlay"
       style={{
+        outline: 'none',
         position: 'fixed',
         inset: 0,
-        zIndex,
+        zIndex: REMOTE_LAYERS[layer],
         backgroundColor: 'var(--hs-bg-body)',
         display: 'flex',
         flexDirection: 'column',
@@ -131,6 +130,7 @@ export default function FormOverlay({
         }}
       >
         <button
+          className="press-btn"
           onClick={handleBack}
           disabled={backDisabled}
           style={{
@@ -179,8 +179,11 @@ export default function FormOverlay({
       >
         {children}
       </div>
+      {/* The footer slot owns its padding, so no form's buttons can run into
+          the screen edges, and the body above owns the one inset: callers
+          add neither. */}
       {footer && (
-        <div style={{ width: '100%', maxWidth: 640, flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
+        <div style={{ width: '100%', maxWidth: 640, flexShrink: 0, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
           {footer}
         </div>
       )}

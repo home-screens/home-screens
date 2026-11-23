@@ -11,6 +11,7 @@ import { useMealieRecipeBrowser, type RecipeShortcutChoice } from '@/components/
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useReturnFocus } from '@/hooks/useReturnFocus';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 import { mealieRequestFailedWords } from './mealie-problem-words';
@@ -200,216 +201,211 @@ export default function MealPickerPopover({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center" data-meal-picker>
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-
-      {/* Panel */}
-      <div
-        role="dialog"
-        aria-label={title}
-        className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-[400px] max-h-[540px] flex flex-col shadow-2xl"
-      >
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-hs-border-strong">
-          <div className="text-sm font-bold text-hs-text-body">{title}</div>
-          <div className="text-xs text-hs-text-faint">
-            {dayName} &middot; {slotLabel}
-          </div>
+    <ModalFrame
+      label={title}
+      onClose={onClose}
+      backdropClassName="bg-black/50"
+      className="bg-hs-panel border border-hs-border-strong rounded-xl w-[400px] max-h-[540px] flex flex-col shadow-2xl"
+    >
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-hs-border-strong">
+        <div className="text-sm font-bold text-hs-text-body">{title}</div>
+        <div className="text-xs text-hs-text-faint">
+          {dayName} &middot; {slotLabel}
         </div>
+      </div>
 
-        {/* Search */}
-        <div className="px-3 py-2 border-b border-hs-border-strong/50">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" aria-hidden />
-            <input
-              ref={inputRef}
-              type="text"
-              className={`${MODAL_INPUT_CLASS} pl-8 pr-8`}
-              placeholder={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={onInputKeyDown}
-              aria-label={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => { setSearch(''); inputRef.current?.focus(); }}
-                aria-label={t('mealPlannerModal.picker.clearSearch')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-hs-text-faint hover:text-hs-text-body"
-              >
-                <X className="w-3.5 h-3.5" aria-hidden />
-              </button>
-            )}
-          </div>
-          {onMealie && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {(['favorites', 'recent'] as const).map((f) => {
-                const on = shortcut.kind === f;
-                const Icon = f === 'favorites' ? Heart : History;
-                return (
-                  <button
-                    key={f}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => choose(f)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
-                      on
-                        ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
-                        : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
-                    }`}
-                  >
-                    <Icon className="w-3 h-3" aria-hidden />
-                    {f === 'favorites' ? tCore('mealie.search.favorites') : tCore('mealie.search.recent')}
-                  </button>
-                );
-              })}
-              {courseCategory && (
+      {/* Search */}
+      <div className="px-3 py-2 border-b border-hs-border-strong/50">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" aria-hidden />
+          <input
+            ref={inputRef}
+            type="text"
+            className={`${MODAL_INPUT_CLASS} pl-8 pr-8`}
+            placeholder={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={onInputKeyDown}
+            aria-label={onMealie ? tCore('mealie.search.placeholder') : t('mealPlannerModal.picker.searchPlaceholder')}
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); inputRef.current?.focus(); }}
+              aria-label={t('mealPlannerModal.picker.clearSearch')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-hs-text-faint hover:text-hs-text-body"
+            >
+              <X className="w-3.5 h-3.5" aria-hidden />
+            </button>
+          )}
+        </div>
+        {onMealie && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(['favorites', 'recent'] as const).map((f) => {
+              const on = shortcut.kind === f;
+              const Icon = f === 'favorites' ? Heart : History;
+              return (
                 <button
+                  key={f}
                   type="button"
-                  aria-pressed={shortcut.kind === 'category'}
-                  onClick={() => choose({ category: courseCategory.slug })}
+                  aria-pressed={on}
+                  onClick={() => choose(f)}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
-                    shortcut.kind === 'category'
-                      ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
+                    on
+                      ? 'border-hs-meal-ring text-hs-meal bg-hs-meal-soft'
                       : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
                   }`}
                 >
-                  <Tag className="w-3 h-3" aria-hidden />
-                  {courseCategory.name}
+                  <Icon className="w-3 h-3" aria-hidden />
+                  {f === 'favorites' ? tCore('mealie.search.favorites') : tCore('mealie.search.recent')}
                 </button>
-              )}
-              {cookbooks.map((c) => {
-                const on = shortcut.kind === 'cookbook' && shortcut.slug === c.slug;
-                return (
-                  <button
-                    key={c.slug}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => choose({ cookbook: c.slug })}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
-                      on
-                        ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
-                        : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
-                    }`}
-                  >
-                    <BookOpen className="w-3 h-3" aria-hidden />
-                    {c.name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* List */}
-        <div ref={listRef} className="flex-1 overflow-y-auto p-2" onScroll={onListScroll}>
-          {onMealie && (countLine || rows.length > 0) && (
-            <div className="flex justify-between px-2 pt-0.5 pb-1 text-[11px] text-hs-text-faint">
-              <span>{countLine}</span>
-              {rows.length > 0 && <span>{t('mealPlannerModal.picker.keysHint')}</span>}
-            </div>
-          )}
-
-          {offerText && (
-            <button
-              type="button"
-              data-row={0}
-              onClick={() => onPickText(query)}
-              onMouseEnter={() => setActive(0)}
-              className={`${rowClass(0)} border border-dashed mb-1.5 ${
-                nothingFound ? 'border-amber-500/60 bg-amber-500/8' : 'border-hs-border-strong'
-              }`}
-            >
-              <span className="w-8 h-8 rounded-md border border-dashed border-hs-border-strong text-hs-text-faint flex items-center justify-center shrink-0">
-                <Pencil className="w-3.5 h-3.5" aria-hidden />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium text-hs-text-body truncate leading-[18px]">
-                  {t('mealPlannerModal.picker.typeInstead', { text: query })}
-                </span>
-                <span className="block text-[11px] text-hs-text-faint leading-[15px]">
-                  {onMealie ? tCore('mealie.search.typeInsteadNote') : t('mealPlannerModal.picker.typeInsteadLocal')}
-                </span>
-              </span>
-            </button>
-          )}
-
-          {nothingFound && (
-            <div className="px-3 py-5 text-center">
-              <p className="text-sm font-semibold text-hs-text-body">
-                {onMealie
-                  ? t('mealPlannerModal.picker.noRecipesCalled', { text: query })
-                  : t('mealPlannerModal.picker.noMealsFound')}
-              </p>
-              {onMealie && (
-                <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{tCore('mealie.search.noneDescription')}</p>
-              )}
-            </div>
-          )}
-
-          {onMealie && loadingFirstPage && (
-            <div aria-hidden>
-              {Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => (
-                <div key={i} className="flex items-center gap-3 px-2 py-[7px]">
-                  <span className="w-8 h-8 rounded-md bg-hs-card shrink-0" />
-                  <span className="flex-1 space-y-1.5">
-                    <span className="block h-3 w-2/3 rounded bg-hs-card" />
-                    <span className="block h-2.5 w-1/3 rounded bg-hs-card/70" />
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {onMealie && mealie.error && !loadingFirstPage && (
-            <div className="px-3 py-5 text-center">
-              <p className="text-sm font-semibold text-hs-text-body">{failed.title}</p>
-              {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{failed.fix}</p>}
+              );
+            })}
+            {courseCategory && (
               <button
                 type="button"
-                onClick={mealie.retry}
-                className="mt-2 px-3 py-1 text-xs font-medium rounded-md border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card"
+                aria-pressed={shortcut.kind === 'category'}
+                onClick={() => choose({ category: courseCategory.slug })}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
+                  shortcut.kind === 'category'
+                    ? 'border-hs-meal-ring text-hs-meal bg-hs-meal-soft'
+                    : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
+                }`}
               >
-                {t('mealPlannerModal.picker.tryAgain')}
+                <Tag className="w-3 h-3" aria-hidden />
+                {courseCategory.name}
               </button>
-            </div>
-          )}
-
-          {onMealie && !loadingFirstPage && !mealie.error && !query && mealRows.length === 0 && (
-            <div className="px-3 py-5 text-center text-xs text-hs-text-faint leading-relaxed">
-              {shortcut.kind === 'cookbook' || shortcut.kind === 'category'
-                ? t('mealPlannerModal.picker.noneInCategory', { category: shortcut.name ?? '' })
-                : shortcut.kind === 'favorites' ? t('mealPlannerModal.picker.noFavorites') : t('mealPlannerModal.picker.noRecentlyMade')}
-            </div>
-          )}
-
-          {onMealie && !loadingFirstPage && mealRows.map((meal, i) => mealRow(meal, i + textOffset))}
-
-          {!onMealie && localGroups && (
-            <>
-              {localGroups.matching.length > 0 && (
-                <div className="px-2 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
-                  {target.pick === 'main' ? slotLabel : t(`mealPlannerModal.picker.groupHeading.${target.kind}`)}
-                </div>
-              )}
-              {localGroups.matching.map((meal, i) => mealRow(meal, i + textOffset))}
-              {localGroups.matching.length > 0 && localGroups.others.length > 0 && (
-                <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
-                  {t('mealPlannerModal.picker.everythingElse')}
-                </div>
-              )}
-              {localGroups.others.map((meal, i) => mealRow(meal, i + textOffset + localGroups.matching.length))}
-              {!query && meals.length === 0 && (
-                <div className="flex items-center justify-center py-8 text-xs text-hs-text-faint">
-                  {t('mealPlannerModal.picker.noMealsFound')}
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            )}
+            {cookbooks.map((c) => {
+              const on = shortcut.kind === 'cookbook' && shortcut.slug === c.slug;
+              return (
+                <button
+                  key={c.slug}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => choose({ cookbook: c.slug })}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
+                    on
+                      ? 'border-hs-meal-ring text-hs-meal bg-hs-meal-soft'
+                      : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
+                  }`}
+                >
+                  <BookOpen className="w-3 h-3" aria-hidden />
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* List */}
+      <div ref={listRef} className="flex-1 overflow-y-auto p-2" onScroll={onListScroll}>
+        {onMealie && (countLine || rows.length > 0) && (
+          <div className="flex justify-between px-2 pt-0.5 pb-1 text-[11px] text-hs-text-faint">
+            <span>{countLine}</span>
+            {rows.length > 0 && <span>{t('mealPlannerModal.picker.keysHint')}</span>}
+          </div>
+        )}
+
+        {offerText && (
+          <button
+            type="button"
+            data-row={0}
+            onClick={() => onPickText(query)}
+            onMouseEnter={() => setActive(0)}
+            className={`${rowClass(0)} border border-dashed mb-1.5 ${
+              nothingFound ? 'border-hs-meal-ring bg-hs-meal-soft' : 'border-hs-border-strong'
+            }`}
+          >
+            <span className="w-8 h-8 rounded-md border border-dashed border-hs-border-strong text-hs-text-faint flex items-center justify-center shrink-0">
+              <Pencil className="w-3.5 h-3.5" aria-hidden />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm font-medium text-hs-text-body truncate leading-[18px]">
+                {t('mealPlannerModal.picker.typeInstead', { text: query })}
+              </span>
+              <span className="block text-[11px] text-hs-text-faint leading-[15px]">
+                {onMealie ? tCore('mealie.search.typeInsteadNote') : t('mealPlannerModal.picker.typeInsteadLocal')}
+              </span>
+            </span>
+          </button>
+        )}
+
+        {nothingFound && (
+          <div className="px-3 py-5 text-center">
+            <p className="text-sm font-semibold text-hs-text-body">
+              {onMealie
+                ? t('mealPlannerModal.picker.noRecipesCalled', { text: query })
+                : t('mealPlannerModal.picker.noMealsFound')}
+            </p>
+            {onMealie && (
+              <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{tCore('mealie.search.noneDescription')}</p>
+            )}
+          </div>
+        )}
+
+        {onMealie && loadingFirstPage && (
+          <div aria-hidden>
+            {Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => (
+              <div key={i} className="flex items-center gap-3 px-2 py-[7px]">
+                <span className="w-8 h-8 rounded-md bg-hs-card shrink-0" />
+                <span className="flex-1 space-y-1.5">
+                  <span className="block h-3 w-2/3 rounded bg-hs-card" />
+                  <span className="block h-2.5 w-1/3 rounded bg-hs-card/70" />
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {onMealie && mealie.error && !loadingFirstPage && (
+          <div className="px-3 py-5 text-center">
+            <p className="text-sm font-semibold text-hs-text-body">{failed.title}</p>
+            {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{failed.fix}</p>}
+            <button
+              type="button"
+              onClick={mealie.retry}
+              className="mt-2 px-3 py-1 text-xs font-medium rounded-md border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card"
+            >
+              {t('mealPlannerModal.picker.tryAgain')}
+            </button>
+          </div>
+        )}
+
+        {onMealie && !loadingFirstPage && !mealie.error && !query && mealRows.length === 0 && (
+          <div className="px-3 py-5 text-center text-xs text-hs-text-faint leading-relaxed">
+            {shortcut.kind === 'cookbook' || shortcut.kind === 'category'
+              ? t('mealPlannerModal.picker.noneInCategory', { category: shortcut.name ?? '' })
+              : shortcut.kind === 'favorites' ? t('mealPlannerModal.picker.noFavorites') : t('mealPlannerModal.picker.noRecentlyMade')}
+          </div>
+        )}
+
+        {onMealie && !loadingFirstPage && mealRows.map((meal, i) => mealRow(meal, i + textOffset))}
+
+        {!onMealie && localGroups && (
+          <>
+            {localGroups.matching.length > 0 && (
+              <div className="px-2 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
+                {target.pick === 'main' ? slotLabel : t(`mealPlannerModal.picker.groupHeading.${target.kind}`)}
+              </div>
+            )}
+            {localGroups.matching.map((meal, i) => mealRow(meal, i + textOffset))}
+            {localGroups.matching.length > 0 && localGroups.others.length > 0 && (
+              <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
+                {t('mealPlannerModal.picker.everythingElse')}
+              </div>
+            )}
+            {localGroups.others.map((meal, i) => mealRow(meal, i + textOffset + localGroups.matching.length))}
+            {!query && meals.length === 0 && (
+              <div className="flex items-center justify-center py-8 text-xs text-hs-text-faint">
+                {t('mealPlannerModal.picker.noMealsFound')}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </ModalFrame>
   );
 }

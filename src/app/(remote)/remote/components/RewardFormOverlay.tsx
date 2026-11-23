@@ -7,15 +7,17 @@ import { useState } from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
-import { FIELD, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
+import { FIELD, FIELD_LABEL, REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
-import IconPicker from '@/components/modules/chore-chart/IconPicker';
+import PhoneIconPicker from '@/components/custom-icons/PhoneIconPicker';
 import { DEFAULT_REWARD_ICON } from '@/lib/chore-constants';
 import FormOverlay from './FormOverlay';
+import PhoneSwitch from './PhoneSwitch';
 import SaveDeleteFooter from './SaveDeleteFooter';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 import { withAlpha } from '@/lib/hex-color';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 interface RewardFormOverlayProps {
   reward: RewardDefinition | null; // null = add mode
@@ -76,12 +78,12 @@ export default function RewardFormOverlay({
   return (
     <>
       <FormOverlay
-        title={isEdit ? t('rewardForm.titleEdit') : t('rewardForm.titleAdd')}
+        title={isEdit ? t('rewardForm.titleEdit') : t('rewardForm.titleNew')}
         dirty={dirty}
         onBack={onBack}
         footer={
           <SaveDeleteFooter
-            saveLabel={t('rewardForm.saveButton')}
+            saveLabel={isEdit ? undefined : t('rewardForm.addSubmit')}
             canSave={Boolean(name.trim())}
             onSave={handleSave}
             deleteLabel={isEdit && onDelete ? t('rewardForm.deleteButton') : undefined}
@@ -89,12 +91,11 @@ export default function RewardFormOverlay({
           />
         }
       >
-        <IconPicker
+        <PhoneIconPicker
           value={emoji}
           onChange={setEmoji}
-          icons={[...REWARD_ICONS]}
+          choices={{ kind: 'icons', names: REWARD_ICONS }}
           label={t('rewardForm.iconLabel')}
-          variant="mobile"
           suggestedName={name}
         />
 
@@ -130,45 +131,14 @@ export default function RewardFormOverlay({
           </div>
           <div>
             <div style={FIELD_LABEL}>{t('rewardForm.enabledLabel')}</div>
-            <button
-              onClick={() => setEnabled((v) => !v)}
-              style={{
-                ...FIELD,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                cursor: 'pointer',
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 26,
-                  borderRadius: 13,
-                  background: enabled ? REMOTE_ACCENT : 'var(--hs-border-strong)',
-                  position: 'relative',
-                  transition: 'background 0.15s',
-                  flexShrink: 0,
-                }}
-              >
-                <div
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: '50%',
-                    background: 'white',
-                    position: 'absolute',
-                    top: 2,
-                    left: enabled ? 20 : 2,
-                    transition: 'left 0.15s',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: 14, color: 'var(--hs-text-muted)' }}>
-                {enabled ? t('rewardForm.visible') : t('rewardForm.hidden')}
-              </span>
-            </button>
+            {/* The words say the state; the switch itself is named for the field. */}
+            <PhoneSwitch
+              checked={enabled}
+              onChange={setEnabled}
+              label={enabled ? t('rewardForm.visible') : t('rewardForm.hidden')}
+              ariaLabel={t('rewardForm.enabledLabel')}
+              style={{ ...FIELD, padding: '8px 12px 8px 16px' }}
+            />
             {/* Hiding parks the kids' goals: their cards go empty until it is shown again. */}
             {!enabled && hiddenLine && (
               <p data-testid="reward-hidden-savers" style={{ fontSize: 12, color: 'var(--hs-text-muted)', margin: '8px 2px 0', lineHeight: 1.4 }}>{hiddenLine}</p>
@@ -201,7 +171,7 @@ export default function RewardFormOverlay({
                 cursor: 'pointer',
                 border: isEveryone ? `1px solid ${withAlpha(REMOTE_ACCENT, 0.3)}` : '1px solid transparent',
                 background: isEveryone ? withAlpha(REMOTE_ACCENT, 0.15) : 'var(--hs-bg-card)',
-                color: isEveryone ? REMOTE_ACCENT : 'var(--hs-text-faint)',
+                color: isEveryone ? REMOTE_ACCENT_INK : 'var(--hs-text-faint)',
                 transition: 'all 0.15s',
               }}
             >
@@ -237,9 +207,11 @@ export default function RewardFormOverlay({
 
       {confirmDelete && (
         <ConfirmSheet
-          title={t('rewardForm.deleteConfirm.title')}
-          description={`${t('rewardForm.deleteConfirm.description', { name: reward?.name ?? '' })}${saverLine ? ` ${saverLine} ${goalClearsLine}` : ''}`}
-          confirmLabel={tCore('actions.delete')}
+          {...sheetQuestion(buildDeleteConfirm({
+            verb: 'delete',
+            name: reward?.name ?? '',
+            consequence: `${t('rewardForm.deleteConfirm.description')}${saverLine ? ` ${saverLine} ${goalClearsLine}` : ''}`,
+          }, tCore))}
           onConfirm={() => {
             setConfirmDelete(false);
             onDelete?.(reward!.id);

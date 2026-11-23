@@ -61,9 +61,11 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
                 options={FREQUENCY_OPTIONS}
               />
               {freq === 'biweekly' && (
-                <LabeledField label={t('configSections.garbage-day.knownDateLabel', { label: label.toLowerCase() })}>
+                <LabeledField
+                  label={t('configSections.garbage-day.knownDateLabel', { label: label.toLowerCase() })}
+                  hint={t('configSections.garbage-day.knownDateHelp', { label: label.toLowerCase() })}
+                >
                   <input type="date" className={INPUT_CLASS} value={start ?? ''} onChange={(e) => set({ [`${key}StartDate`]: e.target.value })} />
-                  <span className="text-[10px] text-hs-text-faint">{t('configSections.garbage-day.knownDateHelp', { label: label.toLowerCase() })}</span>
                 </LabeledField>
               )}
               <ColorPicker label={t('configSections.garbage-day.iconColor')} value={color || defaultColors[key]} onChange={(v) => set({ [`${key}Color`]: v })} />

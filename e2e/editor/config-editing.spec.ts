@@ -42,7 +42,7 @@ test('greeting: editing Name persists and re-renders the preview', async ({ page
 });
 
 // ViewSelect renders <label><span>View</span><select/></label>. Its span text
-// is exactly "View", which also prefixes "View Mode" elsewhere — so match the
+// is exactly "View", which also prefixes "View mode" elsewhere — so match the
 // label whose span is exactly "View" and drill to its <select>.
 function viewSelect(page: Page) {
   return page
@@ -191,7 +191,7 @@ test('calendar: switching View Mode persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar'));
 
   await autosaved(page, async () => {
-    await page.getByLabel('View Mode').selectOption('month');
+    await page.getByLabel('View mode').selectOption('month');
   });
 
   expect((await moduleConfig(request, 'calendar')).viewMode).toBe('month');
@@ -224,7 +224,7 @@ test('calendar: choosing Title only for all-day events persists', async ({ page,
 test('calendar: the week grid offers Show Time for its classic pills, and it persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'week' }));
 
-  const showTime = page.getByRole('switch', { name: 'Show Time' });
+  const showTime = page.getByRole('switch', { name: 'Show time' });
   await expect(showTime).toBeChecked();
   await autosaved(page, async () => {
     await showTime.click();
@@ -235,7 +235,7 @@ test('calendar: the week grid offers Show Time for its classic pills, and it per
   await autosaved(page, async () => {
     await page.getByLabel('Event style').selectOption('colored');
   });
-  await expect(page.getByRole('switch', { name: 'Show Time' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show time' })).toHaveCount(0);
 });
 
 test('calendar: switching Event Style persists', async ({ page, request }) => {
@@ -266,7 +266,7 @@ test('calendar: rolling Weeks to Show slider persists', async ({ page, request }
   // The slider re-bounds to 1-8 for rolling (the multi-week grid runs 2-12);
   // native range inputs carry that as min/max — the source of the implicit
   // aria-value bounds — so pin the attributes before stepping. 2 + one right → 3.
-  const slider = page.getByRole('slider', { name: 'Weeks to Show' });
+  const slider = page.getByRole('slider', { name: 'Weeks to show' });
   await expect(slider).toHaveAttribute('min', '1');
   await expect(slider).toHaveAttribute('max', '8');
 
@@ -283,7 +283,7 @@ test('fullscreen-calendar: rolling Weeks to Show slider persists', async ({ page
 
   // Bounds are always 1-8 here; pinning them guards a regression that a
   // value-only assertion at default 6 + one right → 7 could not catch.
-  const slider = page.getByRole('slider', { name: 'Weeks to Show' });
+  const slider = page.getByRole('slider', { name: 'Weeks to show' });
   await expect(slider).toHaveAttribute('min', '1');
   await expect(slider).toHaveAttribute('max', '8');
 
@@ -401,7 +401,7 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
   // The rule's picture opens the Image Library on the day art that ships.
   const artPicker = dayCard.locator('[data-day-art-picker]');
   await artPicker.getByTestId('day-art-choose').click();
-  const library = page.getByRole('dialog', { name: 'Image Library' });
+  const library = page.getByRole('dialog', { name: 'Pictures & videos' });
   await expect(library.getByTestId('picker-tab-builtin')).toHaveAttribute('aria-selected', 'true');
   await library.getByTestId('starter-picture-halloween').click();
   await autosaved(page, async () => {
@@ -525,7 +525,7 @@ test('weather: toggling Feels Like persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('weather'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Feels Like' }).click();
+    await page.getByRole('switch', { name: 'Feels like' }).click();
   });
 
   expect((await moduleConfig(request, 'weather')).showFeelsLike).toBe(false);
@@ -563,7 +563,7 @@ test('shared: Send to Back reorders overlapping modules and persists zIndex', as
   await page.locator('[data-module-id="text-above"]').click();
 
   await autosaved(page, async () => {
-    await page.getByRole('button', { name: 'Send to Back' }).click();
+    await page.getByRole('button', { name: 'Send to back' }).click();
   });
 
   // Persisted: renormalized 1..n with the target at the bottom.
@@ -579,8 +579,8 @@ test('shared: Send to Back reorders overlapping modules and persists zIndex', as
   await expect(page.locator('[data-module-id="text-below"]')).toHaveCSS('z-index', '2');
 
   // At the back now: Send to Back disables, Bring to Front stays available.
-  await expect(page.getByRole('button', { name: 'Send to Back' })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Bring to Front' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Send to back' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Bring to front' })).toBeEnabled();
 });
 
 test('shared: Alt+click on an overlap cycles selection to buried modules; a plain click never does', async ({ page, request }) => {
@@ -636,7 +636,7 @@ test('year-progress: toggling Show Percentage persists', async ({ page, request 
   await selectModule(page, request, buildModuleInstance('year-progress'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Percentage' }).click();
+    await page.getByRole('switch', { name: 'Show percentage' }).click();
   });
 
   expect((await moduleConfig(request, 'year-progress')).showPercentage).toBe(false);
@@ -645,10 +645,10 @@ test('year-progress: toggling Show Percentage persists', async ({ page, request 
 test('multi-month: adjusting Months to Show persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('multi-month'));
 
-  // "Months to Show" is a Slider bound to `monthCount` (not a number field
+  // "Months to show" is a Slider bound to `monthCount` (not a number field
   // named `monthsToShow`). Default 3, one step right → 4.
   await autosaved(page, async () => {
-    const slider = page.getByRole('slider', { name: 'Months to Show' });
+    const slider = page.getByRole('slider', { name: 'Months to show' });
     await slider.focus();
     await slider.press('ArrowRight');
   });
@@ -660,7 +660,7 @@ test('moon-phase: toggling Show Illumination persists', async ({ page, request }
   await selectModule(page, request, buildModuleInstance('moon-phase'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Illumination %' }).click();
+    await page.getByRole('switch', { name: 'Show illumination %' }).click();
   });
 
   expect((await moduleConfig(request, 'moon-phase')).showIllumination).toBe(false);
@@ -672,7 +672,7 @@ test('sunrise-sunset: toggling Show Golden Hour persists', async ({ page, reques
   // Registry default showGoldenHour is false → one click flips it ON (plan
   // snippet asserted false, which was wrong for this default).
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Golden Hour' }).click();
+    await page.getByRole('switch', { name: 'Show golden hour' }).click();
   });
 
   expect((await moduleConfig(request, 'sunrise-sunset')).showGoldenHour).toBe(true);
@@ -705,12 +705,12 @@ test('rain-map: adjusting Zoom persists', async ({ page, request }) => {
 // Covers news, stock-ticker, crypto, sports, standings, traffic.
 
 test('news: adjusting Max Items persists', async ({ page, request }) => {
-  // "Max Items" is a Slider only rendered for non-headline views — seed `list`
+  // "Max items" is a Slider only rendered for non-headline views — seed `list`
   // so it shows (registry default view is `headline`, which hides it).
   await selectModule(page, request, buildModuleInstance('news', { view: 'list' }));
 
   await autosaved(page, async () => {
-    const slider = page.getByRole('slider', { name: 'Max Items' });
+    const slider = page.getByRole('slider', { name: 'Max items' });
     await slider.focus();
     await slider.press('ArrowRight');
   });
@@ -789,7 +789,7 @@ test('sports: adjusting Ticker Speed persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('sports', { view: 'ticker' }));
 
   await autosaved(page, async () => {
-    const slider = page.getByRole('slider', { name: 'Ticker Speed (sec/game)' });
+    const slider = page.getByRole('slider', { name: 'Ticker speed (sec/game)' });
     await slider.focus();
     await slider.press('ArrowRight');
   });
@@ -800,9 +800,9 @@ test('sports: adjusting Ticker Speed persists', async ({ page, request }) => {
 test('standings: adjusting Teams to Show persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('standings'));
 
-  // "Teams to Show (0 = all)" is a Slider bound to `teamsToShow`; default 0 → 1.
+  // "Teams to show (0 = all)" is a Slider bound to `teamsToShow`; default 0 → 1.
   await autosaved(page, async () => {
-    const slider = page.getByRole('slider', { name: 'Teams to Show (0 = all)' });
+    const slider = page.getByRole('slider', { name: 'Teams to show (0 = all)' });
     await slider.focus();
     await slider.press('ArrowRight');
   });
@@ -835,7 +835,7 @@ test('dad-joke: toggling Show Dividers persists', async ({ page, request }) => {
 
   // showDividers defaults on (checked = value !== false) → one click flips off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Dividers' }).click();
+    await page.getByRole('switch', { name: 'Show dividers' }).click();
   });
 
   expect((await moduleConfig(request, 'dad-joke')).showDividers).toBe(false);
@@ -845,7 +845,7 @@ test('word-of-day: toggling Show Dividers persists', async ({ page, request }) =
   await selectModule(page, request, buildModuleInstance('word-of-day'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Dividers' }).click();
+    await page.getByRole('switch', { name: 'Show dividers' }).click();
   });
 
   expect((await moduleConfig(request, 'word-of-day')).showDividers).toBe(false);
@@ -855,7 +855,7 @@ test('history: toggling Show Dividers persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('history'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Dividers' }).click();
+    await page.getByRole('switch', { name: 'Show dividers' }).click();
   });
 
   expect((await moduleConfig(request, 'history')).showDividers).toBe(false);
@@ -904,11 +904,13 @@ test('clock: Digital, Flip and Dot matrix offer Show AM/PM', async ({ page, requ
 test('quote: picking an accent color preset persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('quote'));
 
-  // AccentColorPicker is a <select> of preset swatches (label "Accent Color"),
-  // not a row of named buttons — pick the Blue preset by its value.
+  // The accent picker's swatches are buttons named after their colour, in a
+  // group named after the field.
+  const swatches = page.getByRole('group', { name: 'Accent color' });
   await autosaved(page, async () => {
-    await page.getByLabel('Accent Color').selectOption('#3b82f6');
+    await swatches.getByRole('button', { name: 'Blue', exact: true }).click();
   });
+  await expect(swatches.getByRole('button', { name: 'Blue', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
   expect((await moduleConfig(request, 'quote')).accentColor).toBe('#3b82f6');
 });
@@ -974,7 +976,7 @@ test('todoist: switching View Mode persists', async ({ page, request }) => {
 
   // View modes: list (default) / board / focus — index 1 is board.
   await autosaved(page, async () => {
-    await page.getByLabel('View Mode').selectOption({ index: 1 });
+    await page.getByLabel('View mode').selectOption({ index: 1 });
   });
 
   expect((await moduleConfig(request, 'todoist')).viewMode).toBe('board');
@@ -985,13 +987,13 @@ test('todo: the panel offers only what the chosen view reads', async ({ page, re
   const heading = page.getByLabel('Heading', { exact: true });
   const dueDates = page.getByRole('switch', { name: 'Show due dates' });
   const who = page.getByRole('switch', { name: 'Show who' });
-  const taps = page.getByRole('switch', { name: 'Tap to complete (touchscreen)' });
+  const taps = page.getByRole('switch', { name: 'Tap on the wall' });
   // List draws all of it. Whether the heading shows is the Title picker's
   // choice now, so the section has no second switch for it.
   await expect(heading).toBeVisible();
   await expect(dueDates).toBeVisible();
   await expect(taps).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show title' })).toHaveCount(0);
 
   // Focus names the next items and nothing else, and takes no taps.
   await autosaved(page, async () => { await viewSelect(page).selectOption('focus'); });
@@ -1021,7 +1023,7 @@ test('notes: the heading box follows the views that draw a heading', async ({ pa
   await selectModule(page, request, buildModuleInstance('notes'));
   const heading = page.getByLabel('Heading', { exact: true });
   const titlePicker = page.getByLabel('Title', { exact: true });
-  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show title' })).toHaveCount(0);
 
   // Notebook and Neon write a heading on their own surface.
   for (const view of ['notebook', 'neon']) {
@@ -1045,9 +1047,9 @@ test('notes: the heading box follows the views that draw a heading', async ({ pa
 
 test('todoist: the panel offers only what the chosen view reads', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('todoist', { groupBy: 'none' }));
-  const groupBy = page.getByLabel('Group By');
-  const subtasks = page.getByRole('switch', { name: 'Show Subtasks' });
-  const maxTasks = page.getByLabel('Max Tasks');
+  const groupBy = page.getByLabel('Group by');
+  const subtasks = page.getByRole('switch', { name: 'Show subtasks' });
+  const maxTasks = page.getByLabel('Max tasks');
   await expect(groupBy).toHaveValue('none');
   await expect(subtasks).toBeVisible();
   await expect(maxTasks).toBeVisible();
@@ -1055,19 +1057,19 @@ test('todoist: the panel offers only what the chosen view reads', async ({ page,
   // A board is its groups: no "None", and one saved from the list reads as
   // Project, which is how the wall draws it. It shows a task's name and due
   // date only, so the switches for the rest step aside.
-  await autosaved(page, async () => { await page.getByLabel('View Mode').selectOption('board'); });
+  await autosaved(page, async () => { await page.getByLabel('View mode').selectOption('board'); });
   await expect(groupBy).toHaveValue('project');
   await expect(groupBy.getByRole('option', { name: 'None' })).toHaveCount(0);
   await expect(subtasks).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Show Description' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show description' })).toHaveCount(0);
   await expect(maxTasks).toBeVisible();
 
   // Focus is everything due, whatever the cap, and has no groups to pick.
-  await autosaved(page, async () => { await page.getByLabel('View Mode').selectOption('focus'); });
+  await autosaved(page, async () => { await page.getByLabel('View mode').selectOption('focus'); });
   await expect(groupBy).toHaveCount(0);
   await expect(maxTasks).toHaveCount(0);
   await expect(subtasks).toBeVisible();
-  await expect(page.getByLabel('Sort By')).toBeVisible();
+  await expect(page.getByLabel('Sort by')).toBeVisible();
   // The hidden choices are untouched.
   expect((await moduleConfig(request, 'todoist')).groupBy).toBe('none');
 });
@@ -1113,7 +1115,7 @@ test('garbage-day: editing Custom Category Name persists', async ({ page, reques
   await selectModule(page, request, buildModuleInstance('garbage-day', { customDay: 3 }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Custom Category Name').fill('Compost');
+    await page.getByLabel('Custom category name').fill('Compost');
   });
 
   expect((await moduleConfig(request, 'garbage-day')).customLabel).toBe('Compost');
@@ -1124,7 +1126,7 @@ test('affirmations: toggling Weather-Aware Content persists', async ({ page, req
 
   // weatherAware defaults on → one click flips it off (plan asserted true).
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Weather-Aware Content' }).click();
+    await page.getByRole('switch', { name: 'Weather-aware content' }).click();
   });
 
   expect((await moduleConfig(request, 'affirmations')).weatherAware).toBe(false);
@@ -1134,7 +1136,7 @@ test('meal-planner: toggling Show Pictures persists', async ({ page, request }) 
   await selectModule(page, request, buildModuleInstance('meal-planner'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Pictures' }).click();
+    await page.getByRole('switch', { name: 'Show pictures' }).click();
   });
 
   expect((await moduleConfig(request, 'meal-planner')).showEmoji).toBe(false);
@@ -1145,7 +1147,7 @@ test('chore-chart: toggling Show Streaks persists', async ({ page, request }) =>
   await selectModule(page, request, buildModuleInstance('chore-chart', { view: 'progress' }));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Streaks' }).click();
+    await page.getByRole('switch', { name: 'Show streaks' }).click();
   });
 
   expect((await moduleConfig(request, 'chore-chart')).showStreaks).toBe(false);
@@ -1155,7 +1157,7 @@ test('chore-chart: moving History Limit persists', async ({ page, request }) => 
   await selectModule(page, request, buildModuleInstance('chore-chart', { view: 'reward-history' }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('History Limit').fill('12');
+    await page.getByLabel('History limit').fill('12');
   });
 
   expect((await moduleConfig(request, 'chore-chart')).historyLimit).toBe(12);
@@ -1165,7 +1167,7 @@ test('chore-chart: switching Store Layout persists', async ({ page, request }) =
   await selectModule(page, request, buildModuleInstance('chore-chart', { view: 'rewards-store' }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Store Layout').selectOption('price-list');
+    await page.getByLabel('Store layout').selectOption('price-list');
   });
 
   expect((await moduleConfig(request, 'chore-chart')).storeLayout).toBe('price-list');
@@ -1238,7 +1240,7 @@ test('image: editing Alt Text persists', async ({ page, request }) => {
   }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Alt Text').fill('E2E alt text');
+    await page.getByLabel('Alt text').fill('E2E alt text');
   });
 
   expect((await moduleConfig(request, 'image')).alt).toBe('E2E alt text');
@@ -1249,11 +1251,11 @@ test('image: the Image Library offers every source as a tab', async ({ page, req
     src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
   }));
 
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
-  await page.getByRole('button', { name: 'Browse Library...' }).click();
-  const library = page.getByRole('dialog', { name: 'Image Library' });
+  await page.getByRole('button', { name: 'Pictures & videos', exact: true }).click();
+  await page.getByRole('button', { name: 'Browse your pictures…' }).click();
+  const library = page.getByRole('dialog', { name: 'Pictures & videos' });
   // No built-in pictures for an Image module, so the library's own tab leads.
-  await expect(library.getByRole('tab')).toHaveText(['Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
+  await expect(library.getByRole('tab')).toHaveText(['Pictures & videos', 'Immich', 'Unsplash', 'NASA', 'Art']);
   await expect(library.getByTestId('picker-tab-library')).toHaveAttribute('aria-selected', 'true');
   await expect(library.getByTestId('picker-confirm')).toBeDisabled();
 });
@@ -1285,7 +1287,7 @@ test('photo-slideshow: the options it shares with Full-Screen Photo persist', as
     await page.getByLabel('Transition').selectOption('zoom');
   });
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Shuffle Order' }).click();
+    await page.getByRole('switch', { name: 'Shuffle order' }).click();
   });
   await autosaved(page, async () => {
     await page.getByRole('switch', { name: 'Ken Burns Effect' }).click();
@@ -1312,7 +1314,7 @@ test('photo-slideshow: OneDrive source offers sign-in and persists the choice', 
   await selectModule(page, request, buildModuleInstance('photo-slideshow'));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Photo Source').selectOption('onedrive');
+    await page.getByLabel('Photo source').selectOption('onedrive');
   });
 
   expect((await moduleConfig(request, 'photo-slideshow')).photoSource).toEqual({ kind: 'onedrive', folderId: '' });
@@ -1324,9 +1326,9 @@ test('photo-slideshow: every source is listed, and one without its key says so',
   await clearSecrets(request, ['unsplash_access_key', 'immich_api_key', 'immich_url', 'microsoft_client_id']);
   await selectModule(page, request, buildModuleInstance('photo-slideshow'));
 
-  const source = page.getByLabel('Photo Source');
+  const source = page.getByLabel('Photo source');
   await expect(source.locator('option')).toHaveText([
-    'Library',
+    'Pictures & videos',
     'Immich (needs setting up)',
     'iCloud shared album',
     'OneDrive (needs setting up)',
@@ -1335,7 +1337,7 @@ test('photo-slideshow: every source is listed, and one without its key says so',
     'Paintings from museums',
   ]);
   // A library folder plays all of itself, so it has no per-refresh count.
-  await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
+  await expect(page.getByRole('slider', { name: 'Photos per refresh' })).toHaveCount(0);
 
   await autosaved(page, async () => {
     await source.selectOption('unsplash');
@@ -1344,7 +1346,7 @@ test('photo-slideshow: every source is listed, and one without its key says so',
   await expect(page.getByTestId('photo-source-key-missing')).toBeVisible();
   // Unsplash plays photos only, and one request brings up to 30.
   await expect(page.locator('select:has(option[value="videos"])')).toHaveCount(0);
-  await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveAttribute('max', '30');
+  await expect(page.getByRole('slider', { name: 'Photos per refresh' })).toHaveAttribute('max', '30');
 
   await autosaved(page, async () => {
     await page.getByLabel('Search words').fill('mountains lake');
@@ -1453,7 +1455,7 @@ test('fullscreen-chore-chart: toggling Show Rewards Button persists', async ({ p
   // Default showRewardsButton is false → one click turns it on (plan asserted
   // false).
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Rewards Button' }).click();
+    await page.getByRole('switch', { name: 'Show rewards button' }).click();
   });
 
   expect((await moduleConfig(request, 'fullscreen-chore-chart')).showRewardsButton).toBe(true);
@@ -1480,7 +1482,7 @@ test('fullscreen-meal-planner: toggling Show Pictures persists', async ({ page, 
   await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Pictures' }).click();
+    await page.getByRole('switch', { name: 'Show pictures' }).click();
   });
 
   expect((await moduleConfig(request, 'fullscreen-meal-planner')).showEmoji).toBe(false);
@@ -1492,38 +1494,38 @@ test('fullscreen-meal-planner: each view offers only the switches it draws, and 
     await page.getByRole('combobox', { name: 'View', exact: true }).selectOption(value);
   });
   // Today draws everything.
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Difficulty' })).toBeVisible();
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show difficulty' })).toBeVisible();
+  await expect(page.getByLabel('Tap meal to open recipe')).toBeVisible();
 
   // The Recipe book: a tile always shows its picture and minutes, and a tap always opens the card.
   await view('recipes');
-  for (const name of ['Show Tags', 'Show Pictures', 'Show Cooking Time', 'Show Difficulty']) {
+  for (const name of ['Show tags', 'Show pictures', 'Show cooking time', 'Show difficulty']) {
     await expect(page.getByRole('switch', { name })).toHaveCount(0);
   }
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Show Family Ratings' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Title' })).toBeVisible();
+  await expect(page.getByLabel('Tap meal to open recipe')).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show family ratings' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show title' })).toBeVisible();
 
   // The grocery list draws no dishes at all; taps still tick it.
   await view('grocery');
-  for (const name of ['Show Tags', 'Show Pictures', 'Show Cooking Time', 'Show Family Ratings', 'Show Difficulty']) {
+  for (const name of ['Show tags', 'Show pictures', 'Show cooking time', 'Show family ratings', 'Show difficulty']) {
     await expect(page.getByRole('switch', { name })).toHaveCount(0);
   }
-  await expect(page.getByRole('switch', { name: 'Show Title' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show title' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Tap on the wall' })).toBeVisible();
 
   // The Menu board and Next meal follow Tap on the Wall too, so the switch is there.
   await view('menu-board');
-  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Tap on the wall' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toHaveCount(0);
   await view('next-meal');
-  await expect(page.getByRole('switch', { name: 'Tap on the Wall' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Title' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Tap on the wall' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show title' })).toHaveCount(0);
 
   // A switch hidden along the way kept its value.
   await view('today');
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveAttribute('aria-checked', 'false');
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toHaveAttribute('aria-checked', 'false');
   expect((await moduleConfig(request, 'fullscreen-meal-planner')).showTags).toBe(false);
 });
 
@@ -1533,22 +1535,22 @@ test('meal-planner: each view offers only the switches it draws, and Tap on the 
     await page.getByRole('combobox', { name: 'View', exact: true }).selectOption(value);
   });
   // The week grid has no room for minutes or tags.
-  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show pictures' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show cooking time' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toHaveCount(0);
 
   for (const value of ['today', 'next-meal', 'compact', 'list', 'grocery', 'recipes']) {
     await view(value);
-    await expect(page.getByRole('switch', { name: 'Tap on the Wall' }), value).toBeVisible();
+    await expect(page.getByRole('switch', { name: 'Tap on the wall' }), value).toBeVisible();
   }
   // Recipes: no heading of its own, so the title picker does not offer one.
   await expect(page.getByRole('combobox', { name: 'Title', exact: true }).locator('option[value="own"]')).toHaveCount(0);
 
   await view('grocery');
-  for (const name of ['Show Pictures', 'Show Cooking Time', 'Show Tags', 'Show Family Ratings']) {
+  for (const name of ['Show pictures', 'Show cooking time', 'Show tags', 'Show family ratings']) {
     await expect(page.getByRole('switch', { name })).toHaveCount(0);
   }
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
+  await expect(page.getByLabel('Tap meal to open recipe')).toHaveCount(0);
   // The list's name is its own title.
   await expect(page.getByRole('combobox', { name: 'Title', exact: true }).locator('option[value="own"]')).toHaveCount(1);
 });
@@ -1644,9 +1646,9 @@ test('fullscreen-photo: a single picture is offered whatever the slideshow sourc
   });
   expect((await moduleConfig(request, 'fullscreen-photo')).file).toBe('');
   // One picture, chosen in the Image Library; the source fields step aside.
-  await expect(page.getByLabel('Photo Source')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Choose...' }).click();
-  await expect(page.getByRole('dialog', { name: 'Image Library' }).getByTestId('picker-tab-library')).toBeVisible();
+  await expect(page.getByLabel('Photo source')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Choose…' }).click();
+  await expect(page.getByRole('dialog', { name: 'Pictures & videos' }).getByTestId('picker-tab-library')).toBeVisible();
 });
 
 test('fullscreen-photo: Clock Background starts at the theme\'s own and persists', async ({ page, request }) => {
@@ -1654,7 +1656,7 @@ test('fullscreen-photo: Clock Background starts at the theme\'s own and persists
 
   // Unset draws the theme's own backdrop, which on a light theme is 72%, so
   // the slider starts there; one step right stores 73.
-  const slider = page.getByRole('slider', { name: 'Clock Background' });
+  const slider = page.getByRole('slider', { name: 'Clock background' });
   await expect(slider).toHaveValue('72');
 
   await autosaved(page, async () => {
@@ -1672,7 +1674,7 @@ test('fullscreen-photo: a picked Clock Background color persists and an unset st
   // Unpicked, linen's backdrop is white at 72%. A dark pick carries light
   // text and the dark backdrop's own strength, so the slider follows to 55.
   const color = colorText(page, 'Color');
-  const slider = page.getByRole('slider', { name: 'Clock Background' });
+  const slider = page.getByRole('slider', { name: 'Clock background' });
   await expect(color).toHaveValue('#ffffff');
   await expect(slider).toHaveValue('72');
 
@@ -1718,11 +1720,11 @@ test('fullscreen-news: the front page takes a title, and the Just in switch pers
 test('news: the page-turn time and Max Items are offered where the view uses them', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('news', { view: 'cards' }));
   await expect(page.getByRole('slider', { name: /^Next page every \(seconds\)/ })).toBeVisible();
-  await expect(page.getByText('Accent Color', { exact: true })).toBeVisible();
+  await expect(page.getByText('Accent color', { exact: true })).toBeVisible();
 
   await selectModule(page, request, buildModuleInstance('news', { view: 'headline' }));
-  await expect(page.getByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeVisible();
-  await expect(page.getByRole('slider', { name: /^Max Items/ })).toBeVisible();
+  await expect(page.getByRole('slider', { name: /^Rotate headlines \(seconds\)/ })).toBeVisible();
+  await expect(page.getByRole('slider', { name: /^Max items/ })).toBeVisible();
 
   await selectModule(page, request, buildModuleInstance('news', { view: 'ticker' }));
   await expect(page.getByText('Show the source', { exact: true })).toBeVisible();
@@ -1764,7 +1766,7 @@ test('weather: switching the Icon Style persists', async ({ page, request }) => 
 
   // iconSet defaults to 'color'; switch to 'outline'.
   await autosaved(page, async () => {
-    await page.getByLabel('Icon Style').selectOption('outline');
+    await page.getByLabel('Icon style').selectOption('outline');
   });
 
   expect((await moduleConfig(request, 'weather')).iconSet).toBe('outline');
@@ -1786,18 +1788,18 @@ test('weather: toggling Wind Speed on persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('weather'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Wind Speed' }).click();
+    await page.getByRole('switch', { name: 'Wind speed' }).click();
   });
 
   expect((await moduleConfig(request, 'weather')).showWind).toBe(true);
 });
 
 test('weather: editing Days to Show (daily view) persists', async ({ page, request }) => {
-  // "Days to Show" only renders for day-bearing views; seed `daily`.
+  // "Days to show" only renders for day-bearing views; seed `daily`.
   await selectModule(page, request, buildModuleInstance('weather', { view: 'daily' }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Days to Show').fill('7');
+    await page.getByLabel('Days to show').fill('7');
   });
 
   expect((await moduleConfig(request, 'weather')).daysToShow).toBe(7);
@@ -1821,13 +1823,13 @@ test('weather: toggling daily forecast presentation persists', async ({ page, re
 });
 
 test('weather: toggling Hide When No Alerts on the alerts view persists', async ({ page, request }) => {
-  // The alerts view + its "Hide When No Alerts" toggle only appear when the
+  // The alerts view + its "Hide when no alerts" toggle only appear when the
   // effective provider advertises alert support. noaa does (and needs no key),
   // so seed provider+view to reach that branch.
   await selectModule(page, request, buildModuleInstance('weather', { provider: 'noaa', view: 'alerts' }));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Hide When No Alerts' }).click();
+    await page.getByRole('switch', { name: 'Hide when no alerts' }).click();
   });
 
   expect((await moduleConfig(request, 'weather')).hideWhenNoAlerts).toBe(true);
@@ -1864,7 +1866,7 @@ test('text: enabling the scrolling marquee persists', async ({ page, request }) 
   await selectModule(page, request, buildModuleInstance('text', { content: 'SCROLL ME' }));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Scrolling Marquee' }).click();
+    await page.getByRole('switch', { name: 'Scrolling marquee' }).click();
   });
 
   expect((await moduleConfig(request, 'text')).marquee).toBe(true);
@@ -1884,7 +1886,7 @@ test('text: switching Text Transform persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('text', { content: 'shout' }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Text Transform').selectOption('uppercase');
+    await page.getByLabel('Text transform').selectOption('uppercase');
   });
 
   expect((await moduleConfig(request, 'text')).textTransform).toBe('uppercase');
@@ -1982,7 +1984,7 @@ test('chore-chart: switching Week Starts On persists', async ({ page, request })
 
   // weekStartDay defaults 'monday'; switch to 'sunday'.
   await autosaved(page, async () => {
-    await page.getByLabel('Week Starts On').selectOption('sunday');
+    await page.getByLabel('Week starts on').selectOption('sunday');
   });
 
   expect((await moduleConfig(request, 'chore-chart')).weekStartDay).toBe('sunday');
@@ -1993,7 +1995,7 @@ test('chore-chart: toggling Show Tickets off persists', async ({ page, request }
 
   // showPoints defaults on (?? true) → one click flips it off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Tickets' }).click();
+    await page.getByRole('switch', { name: 'Show tickets' }).click();
   });
 
   expect((await moduleConfig(request, 'chore-chart')).showPoints).toBe(false);
@@ -2003,7 +2005,7 @@ test('chore-chart: toggling Show Time of Day off persists', async ({ page, reque
   await selectModule(page, request, buildModuleInstance('chore-chart'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Time of Day' }).click();
+    await page.getByRole('switch', { name: 'Show time of day' }).click();
   });
 
   expect((await moduleConfig(request, 'chore-chart')).showTimeOfDay).toBe(false);
@@ -2014,7 +2016,7 @@ test('chore-chart: toggling Tap to Complete off persists', async ({ page, reques
 
   // allowDisplayComplete defaults on (?? true) → one click flips it off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Tap to Complete (Display)' }).click();
+    await page.getByRole('switch', { name: 'Tap on the wall' }).click();
   });
 
   expect((await moduleConfig(request, 'chore-chart')).allowDisplayComplete).toBe(false);
@@ -2024,8 +2026,8 @@ test('chore-chart: editing the Accent Color persists', async ({ page, request })
   await selectModule(page, request, buildModuleInstance('chore-chart'));
 
   await autosaved(page, async () => {
-    await colorText(page, 'Accent Color').fill('#ff8800');
-    await colorText(page, 'Accent Color').blur();
+    await colorText(page, 'Accent color').fill('#ff8800');
+    await colorText(page, 'Accent color').blur();
   });
 
   expect((await moduleConfig(request, 'chore-chart')).accentColor).toBe('#ff8800');
@@ -2050,7 +2052,7 @@ test('meal-planner: toggling Show Cooking Time off persists', async ({ page, req
 
   // showPrepTime defaults on (?? true) → one click flips it off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Cooking Time' }).click();
+    await page.getByRole('switch', { name: 'Show cooking time' }).click();
   });
 
   expect((await moduleConfig(request, 'meal-planner')).showPrepTime).toBe(false);
@@ -2061,7 +2063,7 @@ test('meal-planner: toggling Show Tags off persists', async ({ page, request }) 
   await selectModule(page, request, buildModuleInstance('meal-planner', { view: 'list' }));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Tags' }).click();
+    await page.getByRole('switch', { name: 'Show tags' }).click();
   });
 
   expect((await moduleConfig(request, 'meal-planner')).showTags).toBe(false);
@@ -2072,7 +2074,7 @@ test('meal-planner: switching the tap-to-open recipe action persists', async ({ 
 
   // A new module opens the recipe card; switch to 'qr'.
   await autosaved(page, async () => {
-    await page.getByLabel('Tap Meal to Open Recipe').selectOption('qr');
+    await page.getByLabel('Tap meal to open recipe').selectOption('qr');
   });
 
   expect((await moduleConfig(request, 'meal-planner')).tapRecipeAction).toBe('qr');
@@ -2080,24 +2082,24 @@ test('meal-planner: switching the tap-to-open recipe action persists', async ({ 
 
 test('meal-planner: the Recipes view hides Show Tags, Show Cooking Time and the tap action, which it does not use', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('meal-planner', { view: 'list' }));
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap meal to open recipe')).toBeVisible();
 
   await autosaved(page, async () => {
     await viewSelect(page).selectOption('recipes');
   });
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toHaveCount(0);
+  await expect(page.getByLabel('Tap meal to open recipe')).toHaveCount(0);
   // A row always says how long the recipe takes; its picture and stars are the choices left.
-  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Show Family Ratings' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show cooking time' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show pictures' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show family ratings' })).toBeVisible();
 
   await autosaved(page, async () => {
     await viewSelect(page).selectOption('list');
   });
-  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
-  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Show tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap meal to open recipe')).toBeVisible();
 });
 
 // ---- standings ----
@@ -2129,9 +2131,9 @@ for (const { name, value } of [
 test('standings: switching the Grouping persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('standings'));
 
-  // grouping defaults 'conference'; switch to 'league' (option "Full League").
+  // grouping defaults 'conference'; switch to 'league' (option "Full league").
   await autosaved(page, async () => {
-    await standingsSelectByOption(page, 'Full League').selectOption('league');
+    await standingsSelectByOption(page, 'Full league').selectOption('league');
   });
 
   expect((await moduleConfig(request, 'standings')).grouping).toBe('league');
@@ -2142,7 +2144,7 @@ test('standings: toggling the Playoff Cutoff Line off persists', async ({ page, 
 
   // showPlayoffLine defaults on (!== false) → one click flips it off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Playoff Cutoff Line' }).click();
+    await page.getByRole('switch', { name: 'Playoff cutoff line' }).click();
   });
 
   expect((await moduleConfig(request, 'standings')).showPlayoffLine).toBe(false);
@@ -2322,7 +2324,7 @@ async function moduleInstance(request: APIRequestContext) {
 }
 
 test.describe('PropertyPanel Position & Size', () => {
-  // PositionSection lives in a collapsed "Position & Size" accordion; open it
+  // PositionSection lives in a collapsed "Position & size" accordion; open it
   // before driving the X/Y/W/H number inputs. Each input is a <label> wrapping
   // <span>X</span><input type=number>, so getByLabel reaches it by the span text.
   // These four fields set exact values with no grid snapping (moveModule /
@@ -2334,7 +2336,7 @@ test.describe('PropertyPanel Position & Size', () => {
     const canvasModule = page.locator('[data-module-id="text-1"]');
     const startBox = (await canvasModule.boundingBox())!;
 
-    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+    await page.getByRole('button', { name: 'Position & size', exact: true }).click();
 
     await autosaved(page, async () => {
       await page.getByLabel('X', { exact: true }).fill('300');
@@ -2358,7 +2360,7 @@ test.describe('PropertyPanel Position & Size', () => {
     const canvasModule = page.locator('[data-module-id="text-1"]');
     const startBox = (await canvasModule.boundingBox())!;
 
-    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+    await page.getByRole('button', { name: 'Position & size', exact: true }).click();
 
     await autosaved(page, async () => {
       await page.getByLabel('W', { exact: true }).fill('480');
@@ -2380,7 +2382,7 @@ test.describe('PropertyPanel Position & Size', () => {
     mod.size = { w: 200, h: 160 };
     await selectModule(page, request, mod);
 
-    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+    await page.getByRole('button', { name: 'Position & size', exact: true }).click();
 
     await autosaved(page, async () => {
       await page.getByLabel('W', { exact: true }).fill('5000');
@@ -2494,10 +2496,10 @@ test.describe('PropertyPanel Style', () => {
   test('font family picker persists and restyles the preview', async ({ page, request }) => {
     await selectStyledGreeting(page, request);
 
-    // FontFamilyPicker is a <select> (label "Font Family") of registry font ids;
+    // FontFamilyPicker is a <select> (label "Font family") of registry font ids;
     // the stored value is the id, and the wrapper renders its resolved CSS stack.
     await autosaved(page, async () => {
-      await page.getByLabel('Font Family').selectOption('poppins');
+      await page.getByLabel('Font family').selectOption('poppins');
     });
 
     expect((await moduleInstance(request)).style.fontFamily).toBe('poppins');
@@ -3070,13 +3072,13 @@ test.describe('PropertyPanel Style section', () => {
   test('a module that owns a colour is not offered the Style control for it', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('sticky-note'));
     await styleSection(page).click();
-    await expect(page.getByText('Border Color', { exact: true })).toBeVisible();
-    await expect(page.getByText('Text Color', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Border color', { exact: true })).toBeVisible();
+    await expect(page.getByText('Text color', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Background', { exact: true })).toHaveCount(0);
 
     await selectModule(page, request, buildModuleInstance('text'));
     await styleSection(page).click();
-    await expect(page.getByText('Text Color', { exact: true })).toBeVisible();
+    await expect(page.getByText('Text color', { exact: true })).toBeVisible();
     await expect(page.getByText('Background', { exact: true })).toBeVisible();
   });
 
@@ -3090,11 +3092,11 @@ test.describe('PropertyPanel Style section', () => {
     // What a material owns: the card's colours, border, glass and face.
     const owned = [
       page.getByText('Background', { exact: true }),
-      page.getByText('Text Color', { exact: true }),
-      page.getByText('Border Color', { exact: true }),
-      page.getByRole('slider', { name: 'Border Width' }),
+      page.getByText('Text color', { exact: true }),
+      page.getByText('Border color', { exact: true }),
+      page.getByRole('slider', { name: 'Border width' }),
       page.getByRole('slider', { name: 'Frosted glass' }),
-      page.getByRole('combobox', { name: 'Font Family', exact: true }),
+      page.getByRole('combobox', { name: 'Font family', exact: true }),
     ];
     // The looks come in two groups, the fourteen layouts first.
     await expect(picker.locator('optgroup')).toHaveCount(2);

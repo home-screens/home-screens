@@ -1,4 +1,7 @@
 {
+  "loadFailed": {
+    "retry": "Prøv igen"
+  },
   "refusals": {
     "dayNotes": {
       "textRequired": "En dagsnote skal have et par ord.",
@@ -37,15 +40,14 @@
     "hubDisconnected": "Kan ikke nå Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Kan ikke nå Home Screens. Tjek, at denne telefon er på hjemmets wi-fi, og at hoved-Pi'en er tændt.",
+    "unreachable": "Kan ikke nå Home Screens. Tjek, at denne telefon er på hjemmets Wi-Fi, og at Home Screens er tændt.",
     "restarting": "Home Screens genstarter. Forbinder igen om cirka 20 sekunder…",
-    "rebooting": "Enheden genstarter. Forbinder igen om cirka et minut…"
+    "rebooting": "Home Screens genstarter. Forbinder igen om cirka et minut…"
   },
   "backupReminder": {
     "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
     "daysAgoPlural": "Du har ikke foretaget i {n} dage.",
-    "backupButton": "Sikkerhedskopi",
-    "savingButton": "Gemmer…",
+    "backupButton": "Sikkerhedskopiér nu",
     "dismissAriaLabel": "Afvis",
     "autoFailed": "Den automatiske sikkerhedskopi mislykkedes. Åbn Indstillinger på en computer for at se hvorfor.",
     "autoNotSent": "Din sikkerhedskopi blev gemt, men kunne ikke sendes til din netværksmappe. Åbn Indstillinger på en computer for at se hvorfor."
@@ -58,20 +60,20 @@
   },
   "displayHero": {
     "stateActive": "Aktiv",
-    "stateDimmed": "Deaktiveret",
+    "stateDimmed": "Dæmpet",
     "stateAsleep": "Slumrer",
     "stateOffline": "Offline",
     "updatedTimeAgo": "Opdateret {ago}",
     "lastSeenTimeAgo": "Sidst set {ago}",
     "screenIndex": "Skærm {current} af {total}",
-    "waiting": "Venter på skærm…",
-    "unreachable": "Skærm er ikke tilgængelig",
-    "notConnectedTitle": "Skærmen har ikke oprettet forbindelse endnu",
+    "waiting": "Venter på væggen…",
+    "unreachable": "Kan ikke nå væggen",
+    "notConnectedTitle": "Denne væg har ikke oprettet forbindelse endnu",
     "notConnectedHint": "Tjek, at den er tændt, eller åbn Home Screens på en computer for at gøre opsætningen færdig.",
-    "theDisplay": "Skærmen",
-    "allHeading": "Alle skærme",
+    "theDisplay": "Væggen",
+    "allHeading": "Alle vægge",
     "rowNotConnected": "Ikke forbundet endnu",
-    "pickOneHint": "Vælg én skærm for at skifte dens side eller profil.",
+    "pickOneHint": "Vælg én væg for at skifte dens skærm eller profil.",
     "controlsPaused": "Styringen holder pause, indtil den er forbundet igen."
   },
   "screenControls": {
@@ -79,12 +81,12 @@
     "nextAriaLabel": "Næste skærm"
   },
   "quickActions": {
-    "wakeDisplay": "Væk skærm",
-    "sleepDisplay": "Slumr skærm",
+    "wakeDisplay": "Væk væggen",
+    "sleepDisplay": "Lad væggen slumre",
     "sendAlert": "Send advarsel",
     "waitingFor": "Venter på {name}…",
-    "waitingForAll": "Venter på skærmene…",
-    "waitingForUnnamed": "Venter på skærmen…"
+    "waitingForAll": "Venter på væggene…",
+    "waitingForUnnamed": "Venter på væggen…"
   },
   "brightnessCard": {
     "label": "Lysstyrke",
@@ -98,7 +100,7 @@
   },
   "displayPicker": {
     "targeting": "Send til",
-    "allLabel": "Alle skærme"
+    "allLabel": "Alle vægge"
   },
   "mobileColorPicker": {
     "colorLabel": "Farve",
@@ -141,7 +143,6 @@
     "ticketCountPlural": "{n} billetter",
     "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
     "choreAriaLabelCompleted": "Afsluttet: {chore}",
-    "saveFailed": "Kunne ikke gemme. Prøv igen.",
     "dayToggle": {
       "ariaLabel": "Hvilken dag der vises",
       "yesterday": "I går",
@@ -197,8 +198,7 @@
       "title": "Sæt den tilbage?",
       "description": "»{chore}« bliver ledig igen. Ingen mister de billetter, de allerede har fået for den."
     },
-    "loadError": "Dine pligter kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen",
+    "loadError": "Dine pligter kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "goalLine": {
       "moreToGoSingular": "{n} billet mere",
       "moreToGoPlural": "{n} billetter mere",
@@ -236,7 +236,7 @@
   "choresManage": {
     "tabs": {
       "chores": "Pligter",
-      "members": "Medlemmer"
+      "members": "Familie"
     },
     "chores": {
       "editAriaLabel": "Redigér {name}",
@@ -246,7 +246,7 @@
       "titleNew": "Ny pligt",
       "titleEdit": "Redigér pligt",
       "nameLabel": "Navn",
-      "namePlaceholder": "Titel på pligt...",
+      "namePlaceholder": "Pligtens navn…",
       "iconLabel": "Ikon",
       "ticketsLabel": "Billetter",
       "ticketsHint": "Så mange billetter tjener et barn for denne pligt. Billetter kan byttes til belønninger.",
@@ -258,14 +258,8 @@
       "weeklyScheduleLabel": "Ugeskema",
       "rotationLabel": "Rotation",
       "addSubmit": "Tilføj pligt",
-      "saveSubmit": "Gem pligt",
       "deleteButton": "Slet pligt",
       "grabRulesNote": "Hvor mange én person kan snuppe, og hvor længe en snuppet pligt er deres, indstilles for hele familien under Bonus på fanen Administrér."
-    },
-    "choreDelete": {
-      "title": "Slet \"{name}\"?",
-      "description": "Pligten forsvinder. Billetter, som børnene allerede har tjent for den, bliver på deres kort.",
-      "confirmLabel": "Slet pligt"
     },
     "starter": {
       "cardTitle": "Start med forslag til pligter",
@@ -279,7 +273,7 @@
   },
   "mealsTab": {
     "header": "Måltider",
-    "loading": "Henter måltider...",
+    "loading": "Henter måltider…",
     "settingsButtonAriaLabel": "Åbn indstillinger for måltider",
     "settingsButtonTitle": "Indstillinger",
     "weekLabel": {
@@ -306,14 +300,12 @@
         "confirmLabel": "Nulstil uge"
       },
       "deleteMeal": {
-        "title": "Slet \"{name}\"?",
         "description": "Dette vil også fjerne måltidet fra alle planlagte tidspunkter.",
         "descriptionPlanned": "Måltidet er planlagt til {days}. Når du sletter det, forsvinder det også fra madplanen.",
         "moreDays": {
           "one": "{count} dag mere",
           "other": "{count} dage mere"
-        },
-        "confirmLabel": "Slet måltid"
+        }
       },
       "suggestWeek": {
         "title": "Erstat denne uges måltider?",
@@ -344,7 +336,7 @@
       }
     },
     "library": {
-      "searchPlaceholder": "Søg efter måltider...",
+      "searchPlaceholder": "Søg efter måltider…",
       "hint": "Tryk på et måltid for at ændre det, eller på skærmknappen for at vise det på væggen.",
       "filterByAriaLabel": "Filtrér på {label}",
       "empty": {
@@ -368,8 +360,7 @@
         "kid-friendly": "Børnevenlig"
       }
     },
-    "loadError": "Dine måltider kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen",
+    "loadError": "Dine måltider kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} t",
@@ -407,15 +398,12 @@
     }
   },
   "mealForm": {
-    "titleNew": "Tilføj måltid",
+    "titleNew": "Nyt måltid",
     "titleEdit": "Redigér måltid",
-    "saveSubmit": "Gem måltid",
-    "saveChangesSubmit": "Gem ændringer",
-    "savingSubmit": "Gemmer…",
+    "addSubmit": "Tilføj måltid",
     "deleteButton": "Slet måltid",
     "nameLabel": "Navn på måltid",
     "namePlaceholder": "f.eks. kylling i wok",
-    "emojiSelectAriaLabel": "Vælg {emoji}",
     "prepTimeLabel": "Forberedelsestid",
     "cookTimeLabel": "Tilberedningstid",
     "minPlaceholder": "min",
@@ -428,11 +416,11 @@
     "ingredientNamePlaceholder": "Navn",
     "ingredientAmountPlaceholder": "Mængde",
     "removeIngredientAriaLabel": "Fjern ingrediens",
-    "addIngredientButton": "+ Tilføj ingrediens",
-    "recipeUrlLabel": "Opskrift-URL",
+    "addIngredientButton": "Tilføj ingrediens",
+    "recipeUrlLabel": "Opskriftslink",
     "recipeUrlPlaceholder": "https://...",
     "notesLabel": "Noter",
-    "notesPlaceholder": "Noter om dette måltid …",
+    "notesPlaceholder": "Noter om dette måltid…",
     "favoriteOn": "Favorit",
     "favoriteOff": "Føj til favoritter"
   },
@@ -452,7 +440,7 @@
       "addMealsButton": "Tilføj måltider"
     },
     "slot": {
-      "addMeal": "+ Tilføj måltid",
+      "addMeal": "Tilføj måltid",
       "planSlotAriaLabel": "Planlæg {slot} til {day}",
       "mealFallback": "måltid",
       "changeMealAriaLabel": "Skift {meal} for {slot}",
@@ -463,7 +451,8 @@
     },
     "picker": {
       "title": "Vælg et måltid",
-      "emptyLibrary": "Ingen gemte måltider endnu. Skriv et herover til i aften, eller gem dem I tit laver.",
+      "emptyLibraryTitle": "Ingen gemte måltider endnu",
+      "emptyLibrary": "Skriv et ovenfor til i aften, eller gem de måltider, I tit laver.",
       "typePlaceholder": "Find et måltid, eller skriv et",
       "searchLabel": "Søg i dine måltider, eller skriv et",
       "subtitle": "{slot} · {day}"
@@ -473,7 +462,6 @@
     "itemsCountSingular": "{checked} af {total} vare",
     "itemsCountPlural": "{checked} af {total} varer",
     "shareButton": "Del",
-    "shareCopiedButton": "Kopieret!",
     "autoGeneratedHint": "Oprettet automatisk ud fra denne uges måltider",
     "autoGeneratedHintDates": "Oprettet automatisk ud fra måltiderne i ugen {range}",
     "shareHeading": "Indkøbsliste",
@@ -496,10 +484,9 @@
   "mealsSettings": {
     "ariaLabel": "Indstillinger for måltider",
     "title": "Indstillinger for måltider",
-    "cancelAriaLabel": "Annullér og luk",
     "slots": {
       "heading": "Måltider i planen",
-      "description": "Hvilke måltider planlægger du? Det ændrer, hvad skærmen og editoren viser.",
+      "description": "Hvilke måltider planlægger du? Det ændrer, hvad væggen og editoren viser.",
       "toggleAriaLabelEnabled": "{label}, slået til",
       "toggleAriaLabelDisabled": "{label}, slået fra"
     },
@@ -523,12 +510,6 @@
       "clearAriaLabel": "Ryd standardtid for {name}",
       "timeInputAriaLabel": "Standardtid for {name}"
     },
-    "save": {
-      "saving": "Gemmer…",
-      "submit": "Gem indstillinger",
-      "saveFailed": "Kunne ikke gemme. Prøv igen.",
-      "networkError": "Netværksfejl. Prøv igen."
-    },
     "planSource": {
       "heading": "Jeres madplan ligger i",
       "homeScreens": "Home Screens",
@@ -537,14 +518,14 @@
       "connectedNote": "Mealie er forbundet til husstanden “{household}”. Vælg det for at planlægge med de opskrifter og den madplan, I har der.",
       "connectedNoteNoName": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den madplan, I har der.",
       "onNote": "Med Mealie kommer måltiderne fra Mealie, her og på væggen, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan gemmes og kommer tilbage, hvis du skifter tilbage.",
-      "switchingToMealieNote": "Når du har gemt, kommer måltiderne fra Mealie her og på skærmen, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
-      "switchingToHomeNote": "Når du har gemt, viser telefonen og skærmen igen den Home Screens-plan, du havde før. Intet ændrer sig i Mealie."
+      "switchingToMealieNote": "Når du har gemt, kommer måltiderne fra Mealie her og på væggen, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
+      "switchingToHomeNote": "Når du har gemt, viser telefonen og væggen igen den Home Screens-plan, du havde før. Intet ændrer sig i Mealie."
     }
   },
   "rewardForm": {
-    "titleAdd": "Tilføj belønning",
+    "titleNew": "Ny belønning",
     "titleEdit": "Redigér belønning",
-    "saveButton": "Gem belønning",
+    "addSubmit": "Tilføj belønning",
     "deleteButton": "Slet belønning",
     "iconLabel": "Ikon",
     "nameLabel": "Navn",
@@ -555,12 +536,11 @@
     "visible": "Synlig",
     "hidden": "Skjult",
     "descriptionLabel": "Beskrivelse (valgfri)",
-    "descriptionPlaceholder": "Kort beskrivelse …",
+    "descriptionPlaceholder": "Kort beskrivelse…",
     "availableToLabel": "Kan bruges af",
     "everyone": "Alle",
     "deleteConfirm": {
-      "title": "Slet belønning",
-      "description": "Slet \"{name}\"? Belønninger, der allerede er givet, bliver i historikken.",
+      "description": "Belønninger, der allerede er givet, bliver i historikken.",
       "goalClears": {
         "one": "Det sparemål slettes.",
         "other": "Deres sparemål slettes."
@@ -582,7 +562,7 @@
     "titleLabel": "Titel",
     "titlePlaceholder": "Valgfri",
     "messageLabel": "Besked",
-    "messagePlaceholder": "Hvad skal skærmen vise?",
+    "messagePlaceholder": "Hvad skal væggen vise?",
     "durationLabel": "Varighed",
     "duration10s": "10s",
     "duration30s": "30s",
@@ -594,10 +574,10 @@
     "sentButton": "Sendt!",
     "failedButton": "Blev ikke sendt, prøv igen",
     "clearOnDisplay": "Ryd beskeder på {name}",
-    "clearOnAll": "Ryd beskeder på alle skærme",
+    "clearOnAll": "Ryd beskeder på alle vægge",
     "clearingButton": "Rydder…",
     "showingNow": "({count} vises nu)",
-    "clearOnUnnamed": "Ryd beskeder på skærmen"
+    "clearOnUnnamed": "Ryd beskeder på væggen"
   },
   "rewardsView": {
     "changedElsewhere": "En anden har ændret belønningerne. Din seneste ændring blev ikke gemt. Prøv igen.",
@@ -613,7 +593,7 @@
       "balanceLabel": "tilgængelige billetter",
       "availableHeading": "Tilgængelige belønninger",
       "empty": "Der er ikke tilføjet belønninger endnu",
-      "memberFallback": "dette medlem",
+      "memberFallback": "denne person",
       "confirmTitle": "Indløs {name}?",
       "confirmDescriptionSingular": "Det koster {memberName} {cost} billet. Tilbage: {remaining}",
       "confirmDescriptionPlural": "Det koster {memberName} {cost} billetter. Tilbage: {remaining}",
@@ -642,8 +622,8 @@
       "countPlural": "{n} belønninger",
       "everyone": "Alle",
       "disabled": "Slået fra",
-      "memberCountSingular": "{n} medlem",
-      "memberCountPlural": "{n} medlemmer",
+      "memberCountSingular": "{n} person",
+      "memberCountPlural": "{n} personer",
       "addButton": "Tilføj belønning"
     },
     "balances": {
@@ -651,7 +631,6 @@
       "adjustDownAriaLabel": "Træk en billet fra {name}",
       "adjustUpAriaLabel": "Giv {name} en billet"
     },
-    "saveFailed": "Kunne ikke gemme. Prøv igen.",
     "goal": {
       "heading": "Sparer op til",
       "pick": "Vælg noget at spare op til",
@@ -726,8 +705,8 @@
     "closeAriaLabel": "Luk indstillinger",
     "system": {
       "heading": "System",
-      "errorFailedToLoad": "Indlæsning fejlede",
-      "hostLabel": "Enhedsnavn",
+      "errorFailedToLoad": "Kunne ikke hente det her. Prøv igen.",
+      "hostLabel": "Navn i netværket",
       "uptimeLabel": "Oppetid",
       "memoryLabel": "Hukommelse",
       "diskLabel": "Harddisk"
@@ -741,22 +720,23 @@
     "data": {
       "heading": "Data",
       "backup": {
-        "label": "Backup alt data",
-        "savedLabel": "Backup gemt",
+        "label": "Sikkerhedskopiér alt",
+        "savedLabel": "Sikkerhedskopi gemt",
         "busyLabel": "Henter…",
         "description": "Hent familiens pligter, måltider, belønninger og billeder"
       },
       "restore": {
-        "label": "Gendan backup",
-        "confirmingLabel": "Bekræft for at gendanne",
+        "label": "Gendan en sikkerhedskopi",
         "busyLabel": "Gendanner…",
         "doneLabel": "Gendannet",
-        "invalidFileLabel": "Ugyldig backupfil",
-        "failedLabel": "Gendannelse fejlede",
-        "idleDescription": "Upload en backupfil fra denne enhed",
-        "confirmingDescription": "Dette vil overskrive alle eksisterende data",
+        "invalidFileLabel": "Ugyldig sikkerhedskopi",
+        "failedLabel": "Kunne ikke gendanne den sikkerhedskopi. Prøv igen.",
+        "idleDescription": "Upload en sikkerhedskopi fra denne telefon",
+        "confirmingDescription": "Alt, hvad der er på Home Screens nu, bliver erstattet med det, der er i sikkerhedskopien.",
         "doneWithoutKeysLabel": "Gendannet, uden nøgler",
-        "doneWithoutKeysDescription": "Dine nøgler og konti er uændrede. Tilføj dem igen i editoren."
+        "doneWithoutKeysDescription": "Dine nøgler og konti er uændrede. Tilføj dem igen i editoren.",
+        "confirmTitle": "Gendan denne sikkerhedskopi?",
+        "confirmButton": "Gendan"
       }
     },
     "power": {
@@ -765,19 +745,19 @@
         "label": "Genstart Home Screens",
         "description": "Løser de fleste hikke. Intet af det, du har sat op, går tabt.",
         "confirmTitle": "Genstart Home Screens?",
-        "confirmBody": "Skærmene bliver sorte et øjeblik, og denne fjernbetjening forbinder igen om cirka 20 sekunder.",
+        "confirmBody": "Væggen bliver sort et øjeblik, og denne fjernbetjening forbinder igen om cirka 20 sekunder.",
         "confirmButton": "Genstart"
       },
       "reboot": {
-        "label": "Genstart enhed",
-        "description": "Genstart af hele systemet",
-        "confirmTitle": "Genstart enheden?",
-        "confirmBody": "Alt stopper, mens den genstarter. Denne fjernbetjening forbinder igen om cirka et minut.",
-        "confirmButton": "Genstart enheden"
+        "label": "Genstart alt",
+        "description": "Slukker og tænder det hele. Tager cirka et minut.",
+        "confirmTitle": "Genstart alt?",
+        "confirmBody": "Alt stopper, mens det genstarter. Denne fjernbetjening forbinder igen om cirka et minut.",
+        "confirmButton": "Genstart alt"
       },
       "restartNeeded": {
         "title": "Genstart for at afslutte opdateringen",
-        "description": "En del af den seneste opdatering virker først, når enheden er genstartet.",
+        "description": "En del af den seneste opdatering virker først, når alt er genstartet.",
         "button": "Genstart nu"
       }
     },
@@ -825,13 +805,12 @@
     "addButton": "Tilføj billeder og videoer",
     "addFromGoogle": "Google Fotos",
     "addFromICloud": "iCloud-link",
-    "space": "Billeder og videoer fylder {size}. Der er {free} ledig plads på hubben.",
+    "space": "Billeder og videoer fylder {size}. Der er {free} ledig plads på Home Screens.",
     "spaceNoFree": "Billeder og videoer fylder {size}.",
-    "spaceLow": "Hubben er næsten fuld: kun {free} tilbage. Slet billeder, du ikke har brug for, så der bliver plads.",
+    "spaceLow": "Næsten fuld: kun {free} tilbage på Home Screens. Slet billeder, du ikke har brug for, så der bliver plads.",
     "emptyTitle": "Der er ikke noget i {folder} endnu",
     "emptyHint": "Tilføj billeder eller videoer fra denne telefon.",
     "loadFailed": "Dine billeder kunne ikke hentes.",
-    "tryAgain": "Prøv igen",
     "showsOn": {
       "one": "Det bliver vist på {walls}.",
       "other": "De bliver vist på {walls}."
@@ -977,7 +956,7 @@
       "googleTitle": "Tilføj fra Google Fotos",
       "googleIntro": "Vælg billeder i Google Fotos, og kom så tilbage hertil. De bliver lagt i {folder}.",
       "googleOpen": "Åbn Google Fotos",
-      "googlePreparing": "Gør Google Fotos klar...",
+      "googlePreparing": "Gør Google Fotos klar…",
       "googleExpired": "Google Fotos holdt op med at vente. Prøv igen.",
       "googleFailed": "Kunne ikke nå Google Fotos. Prøv igen.",
       "icloudIntro": "Indsæt et link til et delt album eller et link, du har lavet med Kopier iCloud-link i appen Fotos. Alt i linket bliver lagt i {folder}.",
@@ -989,14 +968,14 @@
         "gone": "Det album deles ikke længere. Del det igen i appen Fotos, og indsæt det nye link.",
         "busy": "Der bliver stadig tilføjet billeder. Prøv igen om et minut.",
         "tooMany": "Det er for mange på én gang. Del færre, og prøv igen.",
-        "lost": "Hubben genstartede undervejs. Prøv igen.",
+        "lost": "Home Screens genstartede undervejs. Prøv igen.",
         "unreachable": "Kunne ikke nå iCloud. Prøv igen."
       },
       "progress": "Tilføjer {done} af {total}",
       "nothingPicked": "Der blev ikke valgt noget.",
       "busy": "Der bliver stadig tilføjet billeder. Prøv igen om et minut.",
       "tooMany": "Det er for mange på én gang. Vælg færre, og prøv igen.",
-      "lost": "Hubben genstartede undervejs. Prøv igen.",
+      "lost": "Home Screens genstartede undervejs. Prøv igen.",
       "tryAgain": "Prøv igen",
       "couldNotAdd": {
         "one": "1 kunne ikke tilføjes.",
@@ -1023,7 +1002,7 @@
     "play": "Afspil billedshowet"
   },
   "choresKidView": {
-    "notConfigured": "Ingen pligter endnu. Bed en voksen om at tilføje et pligtskema til skærmen.",
+    "notConfigured": "Ingen pligter endnu. Bed en voksen om at sætte et pligtskema op på væggen.",
     "grownUpsLink": "Voksne: åbn familiefjernbetjeningen"
   },
   "timers": {
@@ -1035,7 +1014,8 @@
     "routines": "Rutiner",
     "newRoutine": "Ny rutine",
     "editRoutine": "Rediger rutine",
-    "emptyHint": "En rutine er en timer med trin, som en morgenrutine: tag tøj på, børst tænder, red din seng. Lav en og start den på skærmen.",
+    "emptyTitle": "Ingen rutiner endnu",
+    "emptyHint": "En rutine er en timer med trin, som en morgenrutine: tag tøj på, børst tænder, red din seng. Lav en, og start den på væggen.",
     "stepCount": "Trin {current} af {total}",
     "pause": "Pause",
     "resume": "Fortsæt",
@@ -1043,9 +1023,7 @@
     "stop": "Stop",
     "addMinute": "+1 min.",
     "done": "Færdig!",
-    "save": "Gem",
     "deleteRoutine": "Slet",
-    "reallyDelete": "Vil du slette den?",
     "routineName": "Navn",
     "routineNamePlaceholder": "Morgenrutine",
     "routineIcon": "Ikon",
@@ -1064,15 +1042,12 @@
     "removeStep": "Fjern trin",
     "addStep": "Tilføj trin",
     "minutesShort": "{minutes} min.",
-    "retry": "Prøv igen",
-    "onAllDisplays": "På alle skærme",
+    "onAllDisplays": "På alle vægge",
     "onDisplay": "På {name}",
     "showOn": "Send til",
-    "allDisplays": "Alle skærme",
+    "allDisplays": "Alle vægge",
     "showOnNext": "Næste timer på",
-    "onDisplays": "På {count} skærme",
-    "soundOn": "Lyd til",
-    "soundOff": "Lyd fra",
+    "onDisplays": "På {count} vægge",
     "minUnit": "min.",
     "secUnit": "sek.",
     "stepSeconds": "Sekunder",
@@ -1080,16 +1055,19 @@
     "quickNameClock": "{time}-timer",
     "secondsShort": "{seconds} sek.",
     "showingOn": "Vises på {names}",
-    "showingOnDisplay": "Vises på skærmen",
-    "waitingForDisplay": "Venter på, at en skærm tager den…",
-    "notShowing": "Ingen skærm viser den endnu. Tjek, at en skærm er tændt.",
+    "showingOnDisplay": "Vises på væggen",
+    "waitingForDisplay": "Venter på, at en væg tager den…",
+    "notShowing": "Ingen væg viser den endnu. Tjek, at væggen er tændt.",
     "whyNoSave": {
       "name": "Giv rutinen et navn for at gemme.",
       "stepName": "Giv hvert trin et navn for at gemme.",
       "stepLength": "Hvert trin skal vare mindst {seconds} sekunder."
     },
     "quickTooShort": "En timer skal vare mindst {seconds} sekunder.",
-    "stepLimit": "En rutine kan have op til {count} trin."
+    "stepLimit": "En rutine kan have op til {count} trin.",
+    "deleteConfirm": {
+      "description": "Rutinen og dens trin forsvinder for altid. Det kan ikke fortrydes."
+    }
   },
   "lists": {
     "title": "Lister",
@@ -1160,19 +1138,18 @@
       "save": "Gem",
       "delete": "Slet liste",
       "confirmDelete": {
-        "title": "Slet {name}?",
         "description": "Alt på listen forsvinder med den. Det kan ikke fortrydes."
       }
     },
     "share": {
       "button": "Del",
-      "copied": "Kopieret!",
       "nothingOpen": "Alt er gjort!"
     },
-    "loadError": "Dine lister kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen",
+    "loadError": "Dine lister kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "alreadyOnList": "{item} står allerede på listen",
-    "putBack": "{item} står på listen igen"
+    "putBack": "{item} står på listen igen",
+    "deleted": "{item} er fjernet fra listen.",
+    "undo": "Fortryd"
   },
   "formOverlay": {
     "discard": {
@@ -1184,9 +1161,9 @@
   },
   "feedback": {
     "alertSent": "Besked sendt til {name}",
-    "alertSentAll": "Besked sendt til alle skærme",
+    "alertSentAll": "Besked sendt til alle vægge",
     "alertsCleared": "Beskeder ryddet på {name}",
-    "alertsClearedAll": "Beskeder ryddet på alle skærme",
+    "alertsClearedAll": "Beskeder ryddet på alle vægge",
     "noConfirm": "{name} svarede ikke. Den er måske slukket eller offline.",
     "profileSwitched": "{name} skiftede til {profile}",
     "profileCleared": "{name} viser alle sider",
@@ -1195,8 +1172,8 @@
     "profileKeptAfterSchedule": "{name} bliver ved med at vise {profile}, når planen er slut",
     "profileFailed": "Kunne ikke skifte profil på {name}",
     "hubBack": "Home Screens er tilbage",
-    "alertSentUnnamed": "Besked sendt til skærmen",
-    "alertsClearedUnnamed": "Beskeder ryddet på skærmen"
+    "alertSentUnnamed": "Besked sendt til væggen",
+    "alertsClearedUnnamed": "Beskeder ryddet på væggen"
   },
   "tabNotSetUp": {
     "chores": {
@@ -1229,7 +1206,6 @@
     "title": "Indstillinger for pligter",
     "grabbingHeading": "Når bonuspligter snuppes",
     "letGoHint": "En voksen kan altid give en snuppet pligt fri: tryk på ••• ud for pligten på fanen I dag.",
-    "save": "Gem",
     "changeAriaLabel": "Skift, hvordan bonuspligter snuppes"
   },
   "atHome": {
@@ -1241,7 +1217,7 @@
       "board": "Opslagstavle",
       "calendar": "Kalender"
     },
-    "boardToCalendar": "Noget til en bestemt dag? Sæt det i kalenderen",
+    "boardToCalendar": "Noget til en bestemt dag? Sæt det i kalenderen.",
     "onWall": {
       "zero": "Intet på væggen",
       "one": "{count} på væggen",
@@ -1296,7 +1272,6 @@
       "body": "Skriv en note herunder, så dukker den op på væggen få sekunder efter. Noter forsvinder af sig selv, når den tid, du har valgt, er gået."
     },
     "loadError": "Noterne kunne ikke hentes.",
-    "retry": "Prøv igen",
     "editAria": "Rediger note fra {name}",
     "dayNotes": {
       "sub": "Dagsnoter vises i kalenderne på væggen",
@@ -1319,7 +1294,6 @@
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",
     "savesToMealie": "Gemmes i Mealie",
-    "done": "Færdig",
     "mainDish": "Hovedret",
     "change": "Skift",
     "changeAriaLabel": "Skift {meal}",
@@ -1371,7 +1345,6 @@
     "timeAndOrderKeptHere": "Home Screens husker dette tidspunkt og rækkefølgen af retterne. Mealie har ikke plads til nogen af dem, så de vises ikke der."
   },
   "mealPicker": {
-    "cancel": "Annullér",
     "swap": {
       "side": "Skift tilbehøret",
       "dessert": "Skift desserten",
@@ -1401,22 +1374,22 @@
       "updated": "· Sidst opdateret {time}"
     },
     "notConnected": {
-      "description": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem på computeren under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens i måltidsindstillingerne."
+      "description": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem på computeren under {place}, eller sæt madplanen tilbage til Home Screens i måltidsindstillingerne."
     },
     "tokenRefused": {
-      "description": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det på computeren under Indstillinger > API-nøgler."
+      "description": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det på computeren under {place}."
     },
     "setup": {
-      "description": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres."
+      "description": "Tjek Mealies adresse på computeren under {place}. Hvis den er rigtig, skal Mealie måske opdateres."
     },
     "connection": {
       "description": "Tjek, at telefonen er forbundet, og prøv igen."
     },
     "paused": {
-      "tokenDescription": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause.",
-      "tokenDescriptionWithTime": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}.",
-      "setupDescription": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause.",
-      "setupDescriptionWithTime": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}."
+      "tokenDescription": "Lav et nyt token i Mealie, og gem det på computeren under {place}. Indtil da er planlægningen sat på pause.",
+      "tokenDescriptionWithTime": "Lav et nyt token i Mealie, og gem det på computeren under {place}. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}.",
+      "setupDescription": "Tjek Mealies adresse på computeren under {place}. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause.",
+      "setupDescriptionWithTime": "Tjek Mealies adresse på computeren under {place}. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}."
     },
     "saveFailed": {
       "token": "Mealie lukker ikke Home Screens ind, så det blev ikke gemt.",
@@ -1506,9 +1479,9 @@
     "changed": "Ændret. Væggen viser det om få sekunder.",
     "removed": "Fjernet fra {calendar}.",
     "offTitle": "Det er slået fra at tilføje begivenheder",
-    "offBody": "Det kan slås til under Indstillinger > Kalender. Dagsnoter virker som altid.",
+    "offBody": "Det kan slås til under {place}. Dagsnoter virker som altid.",
     "signInTitle": "Der mangler et trin, før du kan tilføje begivenheder",
-    "signInBody": "Du skal logge ind med Google én gang til for at tilføje begivenheder. Det gør du under Indstillinger > Kalender.",
+    "signInBody": "Du skal logge ind med Google én gang til for at tilføje begivenheder. Det gør du under {place}.",
     "justThisDay": "Kun denne dag",
     "everyTime": "Alle gange",
     "keepIt": "Behold den",
@@ -1517,7 +1490,6 @@
       "title": "Ændr {title}"
     },
     "removeAsk": {
-      "title": "Fjern {title}?",
       "body": "Den bliver fjernet fra kalenderen {calendar} for alle: her, på væggen og i {app}."
     },
     "form": {
@@ -1551,12 +1523,11 @@
       "placeOptional": "(hvis du vil)",
       "placePlaceholder": "Tilføj et sted",
       "add": "Sæt i kalenderen",
-      "save": "Gem",
       "remove": "Fjern",
       "fromWall": "Startet på væggen {wall} til {day}.",
       "changedElsewhere": "En anden har lige ændret denne begivenhed, så her er den nyeste udgave. Lav din ændring igen, og gem så.",
       "repeatsNote": "{title} gentages. Når du gemmer, vælger du, om det gælder denne dag eller alle gange.",
-      "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under Indstillinger > Kalender."
+      "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under {place}."
     }
   }
 }

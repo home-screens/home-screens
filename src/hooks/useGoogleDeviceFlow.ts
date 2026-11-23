@@ -3,8 +3,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
-import { errorWithDetail } from '@/lib/hub-request';
 import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
+import { refusalSentence } from '@/lib/hub-request';
 
 interface UseGoogleDeviceFlowOptions {
   onSuccess: () => Promise<void>;
@@ -30,7 +30,6 @@ interface UseGoogleDeviceFlowReturn {
  */
 export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): UseGoogleDeviceFlowReturn {
   const t = useTranslate('core');
-  const te = useTranslate('editor');
   const [clientIdHint, setClientIdHint] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   // The device code is the hub's handle on the flow, so every poll carries it.
@@ -44,7 +43,7 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
       const data = await res.json();
       if (!res.ok) {
         if (data.clientIdHint) setClientIdHint(data.clientIdHint);
-        throw new Error(errorWithDetail(data) || t('errors.deviceFlowFailed'));
+        throw new Error(refusalSentence(data, t) ?? t('errors.deviceFlowFailed'));
       }
       deviceCodeRef.current = data.device_code;
       return {
@@ -66,12 +65,12 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
         return { status: 'connected' };
       }
       if (data.status === 'pending') return { status: 'pending', slowDown: data.slowDown === true };
-      return { status: 'ended', message: data.error || t('errors.authorizationFailed') };
+      return { status: 'ended', message: refusalSentence(data, t) ?? t('errors.authorizationFailed') };
     },
     onConnected: onSuccess,
     words: {
       codeExpired: t('errors.codeExpired'),
-      hubUnreachable: te('deviceSignIn.hubUnreachable'),
+      hubUnreachable: t('refusals.unreachable'),
     },
   });
 

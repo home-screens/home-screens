@@ -4,14 +4,16 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Heart, History, Search, X } from 'lucide-react';
 import type { MealieRecipeFilter } from '@/lib/mealie';
 import { useTranslate } from '@/i18n';
-import { selectedPillStyle } from './remote-styles';
+import ChipButton from './ChipButton';
+import IconButton from './IconButton';
+import PhoneSpinner from './PhoneSpinner';
 
 /**
  * The pieces the recipe picker and the Library share while the plan lives in
- * Mealie: the search box, the Favorites and Recently made shortcuts, the
- * grey rows that hold the place while the hub asks Mealie, and the centred
- * messages for nothing found or no answer. The picker's search box and
- * chips serve the family's own meals too.
+ * Mealie: the search box, the Favorites and Recently made shortcuts, and the
+ * grey rows that hold the place while the hub asks Mealie. The picker's
+ * search box and chips serve the family's own meals too. Nothing found and no
+ * answer are said with `EmptyState`, as on every other page.
  */
 
 export function RecipeSearchBox({
@@ -78,60 +80,15 @@ export function RecipeSearchBox({
         }}
       />
       {value && (
-        <button
-          type="button"
+        <IconButton
+          label={t('mealie.search.clear')}
           onClick={() => onChange('')}
-          aria-label={t('mealie.search.clear')}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 99,
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--hs-text-faint)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: 'none',
-            cursor: 'pointer',
-          }}
+          style={{ margin: '-1px -6px -1px 0', borderRadius: 99, color: 'var(--hs-text-faint)' }}
         >
           <X size={16} strokeWidth={2} aria-hidden />
-        </button>
+        </IconButton>
       )}
     </label>
-  );
-}
-
-const CHIP: CSSProperties = {
-  padding: '6px 14px',
-  minHeight: 36,
-  fontSize: 12,
-  fontWeight: 600,
-  borderRadius: 999,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
-
-export function FilterChip({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon?: ReactNode; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      style={{
-        ...CHIP,
-        ...selectedPillStyle(active),
-      }}
-    >
-      {icon}
-      {children}
-    </button>
   );
 }
 
@@ -152,13 +109,14 @@ export function RecipeShortcutChips({
 }) {
   const tCore = useTranslate('core');
   return (
-    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '10px 0 2px', ...style }}>
-      <FilterChip active={!searching && filter === 'favorites'} onClick={() => onFilter('favorites')} icon={<Heart size={13} strokeWidth={2} aria-hidden />}>
+    // The chips' 44 px targets carry their own 4 px above and below.
+    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '6px 0 0', ...style }}>
+      <ChipButton selected={!searching && filter === 'favorites'} onClick={() => onFilter('favorites')} icon={<Heart size={13} strokeWidth={2} aria-hidden />}>
         {tCore('mealie.search.favorites')}
-      </FilterChip>
-      <FilterChip active={!searching && filter === 'recent'} onClick={() => onFilter('recent')} icon={<History size={13} strokeWidth={2} aria-hidden />}>
+      </ChipButton>
+      <ChipButton selected={!searching && filter === 'recent'} onClick={() => onFilter('recent')} icon={<History size={13} strokeWidth={2} aria-hidden />}>
         {tCore('mealie.search.recent')}
-      </FilterChip>
+      </ChipButton>
       {children}
     </div>
   );
@@ -171,11 +129,7 @@ export function RecipeSkeletonRows({ count = 6, square = 48, radius = 8, card = 
   return (
     <div data-testid="mealie-looking" aria-busy="true">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)', padding: '10px 0 2px' }}>
-        <span
-          aria-hidden
-          className="animate-spin"
-          style={{ width: 14, height: 14, borderRadius: 99, border: '2px solid var(--hs-border-strong)', borderTopColor: 'var(--hs-text-muted)', flex: 'none' }}
-        />
+        <PhoneSpinner size={14} tone="quiet" />
         {tCore('mealie.search.looking')}
       </div>
       {Array.from({ length: count }, (_, i) => (
@@ -193,40 +147,6 @@ export function RecipeSkeletonRows({ count = 6, square = 48, radius = 8, card = 
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-/** A round icon, a line in bold and a quieter line under it, centred. */
-export function CenterMessage({ icon, title, description, children, padding = '56px 8px' }: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  children?: ReactNode;
-  padding?: string;
-}) {
-  return (
-    <div style={{ padding, textAlign: 'center' }}>
-      <div
-        aria-hidden
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 99,
-          margin: '0 auto 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--hs-bg-panel)',
-          border: '1px solid var(--hs-border)',
-          color: 'var(--hs-text-muted)',
-        }}
-      >
-        {icon}
-      </div>
-      <p style={{ fontSize: 15, color: 'var(--hs-text-body)', fontWeight: 600, margin: '0 0 4px' }}>{title}</p>
-      <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: children ? '0 0 20px' : 0, lineHeight: '19.5px' }}>{description}</p>
-      {children}
     </div>
   );
 }

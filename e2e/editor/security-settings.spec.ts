@@ -61,7 +61,7 @@ test('logging in and changing the password works end to end', async ({ page, con
   await modal.getByPlaceholder('Current password').fill(PASSWORD);
   await modal.getByPlaceholder('New password (min 8 characters)').fill(NEW_PASSWORD);
   await modal.getByPlaceholder('Confirm new password').fill(NEW_PASSWORD);
-  await modal.getByRole('button', { name: 'Change Password', exact: true }).click();
+  await modal.getByRole('button', { name: 'Change password', exact: true }).click();
 
   await expect(page.getByText(/changed/i)).toBeVisible();
 });
@@ -84,9 +84,8 @@ test('the display token can be revealed and regenerated', async ({ page }) => {
   const before = await tokenCode.innerText();
 
   await page.getByRole('button', { name: 'Make a new key' }).click();
-  // The confirm button reads "Confirm" (not "Regenerate"); it's the only
-  // Confirm on screen since session-revocation confirm isn't triggered.
-  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+  // The first press swaps in the second step, whose button names the action too.
+  await page.getByRole('button', { name: 'Make a new key' }).click();
 
   await expect
     .poll(async () => tokenCode.innerText())
@@ -130,7 +129,7 @@ test('the IP allowlist accepts an entry and saves', async ({ page }) => {
   const saved = page.waitForResponse(
     (r) => r.url().includes('/api/auth/ip-allowlist') && r.request().method() === 'PUT',
   );
-  // Save button appears only once the list is dirty; label is "Save Changes".
+  // Save button appears only once the list is dirty; label is "Save".
   await page.getByRole('button', { name: /^Save/ }).click();
   const res = await saved;
   expect(res.ok()).toBe(true);

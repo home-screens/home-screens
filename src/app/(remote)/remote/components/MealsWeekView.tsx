@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import { CalendarDays } from 'lucide-react';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
@@ -19,7 +20,9 @@ import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatShownMinutes, type MealsViewProps } from './meals-shared';
 import MealThumb from './MealThumb';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
+import EmptyState from './EmptyState';
+import PrimaryButton from './PrimaryButton';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsWeekViewProps extends MealsViewProps {
@@ -95,7 +98,7 @@ export default function MealsWeekView({
                     padding: '2px 8px',
                     borderRadius: 4,
                     background: withAlpha(REMOTE_ACCENT, 0.12),
-                    color: REMOTE_ACCENT,
+                    color: REMOTE_ACCENT_INK,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
                     marginLeft: 'auto',
@@ -144,6 +147,7 @@ export default function MealsWeekView({
                   key={slot}
                   type="button"
                   data-testid="meals-week-row"
+                  className="press-scale"
                   onClick={() => onOpenMeal(date, slot)}
                   style={{
                     display: 'block',
@@ -159,7 +163,7 @@ export default function MealsWeekView({
                     // Only earlier days fade: today's meals stay at full
                     // strength all day, so tonight still reads as today after dinner.
                     opacity: isPast ? 0.4 : 1,
-                    border: isCurrentSlot ? `1px solid ${REMOTE_ACCENT}` : '1px solid var(--hs-border)',
+                    border: isCurrentSlot ? `1px solid ${REMOTE_ACCENT_INK}` : '1px solid var(--hs-border)',
                     boxShadow: isCurrentSlot ? `0 0 12px ${withAlpha(REMOTE_ACCENT, 0.08)}` : 'none',
                   }}
                 >
@@ -229,31 +233,17 @@ export default function MealsWeekView({
       })}
 
       {nothingPlanned && (
-        <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {week.thisWeek ? t('mealsTab.weekView.empty.title') : t('mealsTab.weekView.empty.titleDates', { range: week.range })}
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            {t('mealsTab.weekView.empty.description')}
-          </p>
-          <button
-            onClick={() => setSubView('plan')}
-            style={{
-              padding: '10px 24px',
-              minHeight: 44,
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              background: REMOTE_ACCENT,
-              color: '#000',
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: 'inherit',
-            }}
-          >
-            {t('mealsTab.weekView.empty.planButton')}
-          </button>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title={week.thisWeek ? t('mealsTab.weekView.empty.title') : t('mealsTab.weekView.empty.titleDates', { range: week.range })}
+          body={t('mealsTab.weekView.empty.description')}
+          style={{ padding: '32px 16px 24px' }}
+          action={(
+            <PrimaryButton compact onClick={() => setSubView('plan')}>
+              {t('mealsTab.weekView.empty.planButton')}
+            </PrimaryButton>
+          )}
+        />
       )}
     </div>
   );

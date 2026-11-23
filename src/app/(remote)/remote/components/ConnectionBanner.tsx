@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
+import { REMOTE_LAYERS } from './remote-layers';
 
 export type ConnectionBannerMode = 'unreachable' | 'restart-service' | 'reboot';
 
@@ -20,7 +21,8 @@ export default function ConnectionBanner({ mode = 'unreachable' }: { mode?: Conn
       aria-live="polite"
       data-testid="connection-banner"
       data-mode={mode}
-      className={`sticky top-0 z-20 backdrop-blur-sm border-b px-4 py-2 ${
+      style={{ zIndex: REMOTE_LAYERS.pageChrome }}
+      className={`sticky top-0 backdrop-blur-sm border-b px-4 py-2 ${
         reconnecting
           ? 'bg-hs-accent/15 border-hs-accent/30'
           : 'bg-hs-danger/20 border-hs-danger/30'

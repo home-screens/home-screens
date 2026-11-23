@@ -26,7 +26,7 @@ import {
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, TimeFormat } from '@/types/config';
-import { isoDateInTZ } from '@/lib/timezone';
+import { formatTimeOfDay, isoDateInTZ } from '@/lib/timezone';
 import { WallOverlay, WallSheetPanel } from './WallOverlay';
 import { wallPressProps } from './wallPress';
 import { wallTypingVars } from './wallTypingVars';
@@ -259,7 +259,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   };
   const timeWords = (minutes: number) => {
     const d = new Date(2000, 0, 1, Math.floor(minutes / 60) % 24, minutes % 60);
-    return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: timeFormat !== '24h' }).format(d);
+    return formatTimeOfDay(d, { timeFormat, locale });
   };
   const lengthWords = (minutes: number) => (minutes % 60 === 0
     ? t('calendar.eventForm.hours', { count: minutes / 60 })
@@ -438,7 +438,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: P(14), marginTop: P(26) }}>
           <button type="button" role="switch" aria-checked={allDay} {...wallPressProps} data-testid="wall-event-all-day" onClick={() => setAllDay((v) => !v)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: Math.max(44, P(100)), padding: `${P(14)}px ${P(26)}px`, borderRadius: P(20), background: 'color-mix(in srgb, var(--wt-text) 4%, var(--wt-surface))', border: `1px solid var(--wt-border)`, font: 'inherit', fontSize: P(30), fontWeight: 600, color: 'var(--wt-text)', cursor: 'pointer' }}>
-            {t('calendar.eventForm.allDay')}
+            {t('calendar.allDay')}
             <span aria-hidden="true" style={{ width: P(112), height: P(64), borderRadius: P(32), position: 'relative', background: allDay ? 'var(--wt-accent)' : 'var(--wt-border)', flexShrink: 0 }}>
               <span style={{ position: 'absolute', top: P(6), left: allDay ? P(54) : P(6), width: P(52), height: P(52), borderRadius: '50%', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
             </span>
@@ -506,7 +506,11 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             }}
           />
         )}
-        {problemText && <div role="alert" style={{ marginTop: P(14), fontSize: P(24), color: theme.isDark ? '#f87171' : '#b91c1c' }}>{problemText}</div>}
+        {problemText && (
+          <div style={{ marginTop: P(14) }}>
+            <WallNotice tone="error" P={P} testId="wall-event-problem">{problemText}</WallNotice>
+          </div>
+        )}
 
         <div style={label}>{t('calendar.eventForm.calendar')}</div>
         {mode === 'new' ? (

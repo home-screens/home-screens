@@ -11,6 +11,7 @@ import { eventEndLabel, formatEventTime, parseEventWallTime } from '@/lib/calend
 import type { CalendarEvent, TimeFormat } from '@/types/config';
 import { eventAriaLabel } from './list-view-bits';
 import type { openDayProps } from '../shared/useDaySheet';
+import { WallButton } from '../shared/WallButton';
 
 // ─── Utilities ───
 
@@ -247,8 +248,7 @@ export function HiddenCountPill({ count, top, right, fontSize, padding, label, t
   // have to land on a few millimetres of text.
   const reach = scale.bu * 0.9;
   return (
-    <button
-      type="button"
+    <WallButton
       {...tap}
       data-hidden-count=""
       style={{
@@ -268,7 +268,7 @@ export function HiddenCountPill({ count, top, right, fontSize, padding, label, t
       <span style={{ ...pill, display: 'block', color: 'var(--cal-accent)', background: 'linear-gradient(var(--cal-accent-bg), var(--cal-accent-bg)), var(--cal-surface)', border: '1px solid var(--cal-accent-surface)' }}>
         +{count}
       </span>
-    </button>
+    </WallButton>
   );
 }
 

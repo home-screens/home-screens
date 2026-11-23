@@ -4,11 +4,12 @@ import { Droplets, Gauge, Sun, Sunrise, Sunset, Wind, type LucideIcon } from 'lu
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
-import { formatTimeInTZ } from '@/lib/timezone';
+import { formatTimeOfDay } from '@/lib/timezone';
 import { dayLengthText, sunArcModel } from '@/lib/weather/sun-arc';
 import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
 import { PRESSURE_NOTE_KEY, pressureSeries, pressureTrend, uvLevel, windFootline } from '@/lib/weather/condition-sentences';
-import { ViewTitle, useSunTimes, useViewBox } from './chart-parts';
+import { useSunTimes, useViewBox } from './chart-parts';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
@@ -41,7 +42,7 @@ export default function WeatherStatsView({ config, hourly, units, timezone, time
   const [outerRef, box] = useViewBox();
   const now = hourly[0];
 
-  const clock = { timezone, locale, hour12: timeFormat !== '24h' };
+  const clock = { timezone, locale, timeFormat };
   const cells: Cell[] = [];
   if (now?.windSpeed != null) {
     // The gust or the direction under the number, as the Conditions wind card says it.
@@ -74,10 +75,10 @@ export default function WeatherStatsView({ config, hourly, units, timezone, time
   if (sun.sunrise) {
     // The same figure, written the same way, as the Sun and moon view's headline.
     const length = dayLengthText(sunArcModel(sun, 0).dayLength, locale);
-    cells.push({ key: 'sunrise', icon: Sunrise, label: t('weather.sunrise'), value: formatTimeInTZ(sun.sunrise, clock), note: `${length} ${t('fullscreen-weather.cards.daylight')}` });
+    cells.push({ key: 'sunrise', icon: Sunrise, label: t('weather.sunrise'), value: formatTimeOfDay(sun.sunrise, clock), note: `${length} ${t('fullscreen-weather.cards.daylight')}` });
   }
   if (sun.sunset) {
-    cells.push({ key: 'sunset', icon: Sunset, label: t('fullscreen-weather.stats.sunset'), value: formatTimeInTZ(sun.sunset, clock) });
+    cells.push({ key: 'sunset', icon: Sunset, label: t('fullscreen-weather.stats.sunset'), value: formatTimeOfDay(sun.sunset, clock) });
   }
 
   const mode: Mode = box.width > box.height * 3 ? 'row' : box.width < scaledFontSize * 16 ? 'list' : 'grid';
@@ -101,7 +102,7 @@ export default function WeatherStatsView({ config, hourly, units, timezone, time
             overflows past the bottom edge, where the fit loop measures it,
             instead of splitting the overflow across both. */}
         <div ref={contentRef} className="h-full flex flex-col">
-          {config.showTitle !== false && mode !== 'row' && <ViewTitle>{t('weather.rightNow')}</ViewTitle>}
+          {config.showTitle !== false && mode !== 'row' && <ModuleTitleRow title={t('weather.rightNow')} />}
           {cells.length === 0 ? (
             <WeatherEmptyState />
           ) : (

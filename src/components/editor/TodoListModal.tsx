@@ -16,15 +16,18 @@ import {
   type TodoListsPayload,
   type TodoWriteRequest,
 } from '@/lib/todo-client';
-import { TodoError, updateItem } from '@/lib/todo-actions';
+import { TodoError, confirmsBefore, updateItem } from '@/lib/todo-actions';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useWriteSession } from '@/hooks/useWriteSession';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
-import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import { MODAL_INPUT_CLASS, CHECKBOX_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { TODO_LIMITS, type TodoList, type TodoListItem } from '@/types/todos';
+import Notice from '@/components/ui/Notice';
+import IconButton from '@/components/ui/IconButton';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 interface TodoListModalProps {
   listId: string;
@@ -84,7 +87,7 @@ function ItemRow({
         checked={item.completed}
         onChange={(e) => onToggle(item.id, e.target.checked)}
         aria-label={t('todoListModal.itemDoneLabel', { text: item.text })}
-        className="h-4 w-4 shrink-0 rounded border-hs-border-strong bg-hs-card text-hs-accent"
+        className={CHECKBOX_CLASS}
       />
       <input
         type="text"
@@ -102,14 +105,7 @@ function ItemRow({
         aria-label={t('todoListModal.itemTextLabel')}
         className={`${ROW_INPUT_CLASS} ${item.completed ? 'line-through text-hs-text-faint' : 'text-hs-text-body'}`}
       />
-      <button
-        type="button"
-        onClick={() => onDelete(item.id)}
-        aria-label={t('todoListModal.removeItemLabel', { text: item.text })}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-xs text-hs-text-faint transition-colors hover:bg-hs-card hover:text-hs-danger"
-      >
-        &times;
-      </button>
+      <IconButton label={t('todoListModal.removeItemLabel', { text: item.text })} onClick={() => onDelete(item.id)} />
     </li>
   );
 }
@@ -142,7 +138,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   const [draft, setDraft] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
 
-  const saveFailed = t('common.saveError');
+  const saveFailed = tCore('refusals.saveFailed');
 
   const { data: lists, loaded, loadError: loadFailed, write } = useWriteSession<TodoList[], TodoWriteRequest>({
     initial: [],
@@ -221,12 +217,11 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   const removeDone = async () => {
     if (!list) return;
     const count = list.items.filter((i) => i.completed).length;
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('todoListModal.removeDoneConfirm.title'),
-      message: t('todoListModal.removeDoneConfirm.message', { count, name: list.name }),
-      confirmLabel: t('todoListModal.removeDoneConfirm.confirmLabel'),
-      variant: 'danger',
-    });
+    const ok = !confirmsBefore('clear-completed') || await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'remove',
+      question: tCore('lists.removeDoneTitle', { count, name: list.name }),
+      consequence: tCore('lists.removeDoneBody'),
+    }, tCore));
     if (!ok) return;
     void write(null, listActionRequest(listId, 'clear-completed'));
   };
@@ -245,14 +240,10 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       onClose={() => { flushName(); onClose(); }}
     >
       {loadError && (
-        <div role="alert" className="mx-4 mt-3 rounded-lg border border-hs-danger/30 bg-hs-danger/10 px-3 py-2 text-xs text-hs-danger">
-          {loadError}
-        </div>
+        <Notice tone="danger" role="alert" className="mx-4 mt-3">{loadError}</Notice>
       )}
       {error && (
-        <div role="alert" className="mx-4 mt-3 rounded-lg border border-hs-danger/30 bg-hs-danger/10 px-3 py-2 text-xs text-hs-danger">
-          {error}
-        </div>
+        <Notice tone="danger" role="alert" className="mx-4 mt-3">{error}</Notice>
       )}
 
       {!list ? (

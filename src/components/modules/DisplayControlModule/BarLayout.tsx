@@ -6,6 +6,7 @@ import type { LayoutProps } from './types';
 import { BrightnessPopover } from './BrightnessPopover';
 import { useControlFrame } from './useControlFrame';
 import { ControlButton, SleepButton } from './controls';
+import { NO_VALUE } from '@/lib/constants';
 
 /** One row of word-and-icon buttons; Brightness opens a popover above the row. */
 export function BarLayout(props: LayoutProps) {
@@ -38,7 +39,7 @@ export function BarLayout(props: LayoutProps) {
           row
           className="flex-1"
           label={t('display-control.brightness')}
-          sub={brightness === null ? '–' : `${brightness}%`}
+          sub={brightness === null ? NO_VALUE : `${brightness}%`}
           icon="brightness"
           onClick={() => setBrightnessOpen((v) => !v)}
         />

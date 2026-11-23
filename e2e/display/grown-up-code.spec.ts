@@ -156,7 +156,7 @@ test.describe('grown-up code on the kids\' chores page', () => {
     await setUp(request, sandboxDir);
     await setCode(request);
     await page.goto('/chores');
-    await page.getByRole('button', { name: 'Rewards' }).first().click();
+    await page.getByRole('tab', { name: 'Rewards' }).first().click();
     await page.getByText('Candy', { exact: true }).first().click();
     const sheet = page.getByTestId('confirm-sheet');
     await expect(sheet).toContainText('Ask a grown-up');

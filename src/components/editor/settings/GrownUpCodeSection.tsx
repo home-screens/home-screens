@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
-import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SETTINGS_INPUT_CLASS, CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import { useConfirmStore } from '@/stores/confirm-store';
 import {
   GROWN_UP_ACTIONS,
   GROWN_UP_CODE_LENGTH,
@@ -13,6 +14,7 @@ import {
   type GrownUpAction,
   type GrownUpStatus,
 } from '@/lib/grown-up-code';
+import FieldHint from '@/components/ui/FieldHint';
 
 type Editing = null | 'set';
 
@@ -31,7 +33,6 @@ export default function GrownUpCodeSection() {
   const [code, setCode] = useState('');
   const [again, setAgain] = useState('');
   const [problem, setProblem] = useState<'mismatch' | 'format' | 'failed' | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
 
   useEffect(() => {
@@ -72,6 +73,16 @@ export default function GrownUpCodeSection() {
     }
   };
 
+  const removeCode = async () => {
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('settings.familyPage.grownUp.removeConfirmTitle'),
+      message: t('settings.familyPage.grownUp.removeConfirmMessage'),
+      confirmLabel: t('settings.familyPage.grownUp.removeConfirm'),
+      variant: 'danger',
+    });
+    if (ok) void send('DELETE');
+  };
+
   const toggleAction = (action: GrownUpAction, on: boolean) => {
     if (!status) return;
     const actions = on ? [...status.actions, action] : status.actions.filter((a) => a !== action);
@@ -105,14 +116,8 @@ export default function GrownUpCodeSection() {
               <span className="ml-auto flex gap-2">
                 {status.set ? (
                   <>
-                    <Button size="sm" onClick={() => { setEditing('set'); setConfirmRemove(false); }}>{t('settings.familyPage.grownUp.change')}</Button>
-                    {confirmRemove ? (
-                      <Button size="sm" variant="danger" data-testid="grown-up-remove-confirm" onClick={() => { setConfirmRemove(false); void send('DELETE'); }}>
-                        {t('settings.familyPage.grownUp.removeConfirm')}
-                      </Button>
-                    ) : (
-                      <Button size="sm" onClick={() => setConfirmRemove(true)}>{t('settings.familyPage.grownUp.remove')}</Button>
-                    )}
+                    <Button size="sm" onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.change')}</Button>
+                    <Button size="sm" onClick={() => void removeCode()}>{t('settings.familyPage.grownUp.remove')}</Button>
                   </>
                 ) : (
                   <Button size="sm" variant="primary" onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.set')}</Button>
@@ -167,7 +172,7 @@ export default function GrownUpCodeSection() {
               <label key={action} className="flex items-start gap-3 py-2 border-t border-hs-border-strong first-of-type:border-t-0 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="mt-0.5"
+                  className={`${CHECKBOX_CLASS} mt-0.5`}
                   checked={status.actions.includes(action)}
                   onChange={(e) => toggleAction(action, e.target.checked)}
                   data-testid={`grown-up-job-${action}`}
@@ -193,7 +198,7 @@ export default function GrownUpCodeSection() {
                 ))}
               </select>
             </label>
-            <p className="text-xs text-hs-text-muted">{t('settings.familyPage.grownUp.unlockHint')}</p>
+            <FieldHint>{t('settings.familyPage.grownUp.unlockHint')}</FieldHint>
           </section>
         </>
       )}

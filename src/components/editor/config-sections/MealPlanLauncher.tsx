@@ -3,12 +3,12 @@
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { mealSaveFailedKey } from '@/components/editor/meal-planner-modal/save-failed-words';
+import { mealSaveFailedText } from '@/components/editor/meal-planner-modal/save-failed-words';
 import type { useMealPlannerData } from '@/hooks/useMealPlannerData';
 
 /**
  * The foot of both meal planner panels: how many meals are saved and
- * planned (or that the plan is Mealie's), the Edit Meal Plan button, the
+ * planned (or that the plan is Mealie's), the Edit meal plan button, the
  * line for a meal change that did not save, and the meal planner window.
  * Each panel calls `useMealPlannerData` itself (the full-screen one reads
  * the meals further up, for its recipe count) and hands the result in.
@@ -51,7 +51,7 @@ export default function MealPlanLauncher({ meals, accentColor, countKeyPrefix, o
         {/* The meal change, not the layout: meals save on their own, so the
             editor's Saved can be right while this is not. */}
         {saveError && (
-          <p role="alert" className="text-xs text-hs-danger">{t(mealSaveFailedKey(saveError, mealData.source === 'mealie'))}</p>
+          <p role="alert" className="text-xs text-hs-danger">{mealSaveFailedText(saveError, mealData.source === 'mealie', t, tCore)}</p>
         )}
       </div>
 

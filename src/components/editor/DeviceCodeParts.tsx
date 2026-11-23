@@ -36,13 +36,14 @@ export function useDeviceCodeCopy(code: string | null): {
   hint: string;
 } {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { copied, copy } = useCopyFlash();
   const hint = t('settings.calendarPage.google.copyCode');
   return {
     copy: () => {
       if (code) void copy(code);
     },
-    label: copied ? t('settings.calendarPage.google.codeCopied') : hint,
+    label: copied ? tCore('status.copied') : hint,
     hint,
   };
 }

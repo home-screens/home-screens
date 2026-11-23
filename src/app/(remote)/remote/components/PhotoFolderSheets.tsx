@@ -5,7 +5,8 @@ import { FolderPlus, Monitor, Pencil, Trash2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import { GHOST_BUTTON, HELPER_TEXT, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 
 /** A tappable row in a phone sheet: icon, words, and an optional line under them. */
 export function SheetRow({
@@ -217,16 +218,9 @@ export function PhotoFolderNameSheet({
           <span>{wallNote}</span>
         </div>
       )}
-      <button
-        type="button"
-        onClick={submit}
-        disabled={!canSubmit}
-        data-testid="photo-folder-name-submit"
-        className="press-btn"
-        style={{ ...PRIMARY_BUTTON, marginTop: 18, opacity: canSubmit ? 1 : 0.4 }}
-      >
+      <PrimaryButton onClick={submit} disabled={!canSubmit} data-testid="photo-folder-name-submit" style={{ marginTop: 18 }}>
         {mode === 'create' ? t('photosTab.nameSheet.create') : tCore('actions.save')}
-      </button>
+      </PrimaryButton>
       <button type="button" onClick={onClose} className="press-scale" style={GHOST_BUTTON}>
         {tCore('actions.cancel')}
       </button>

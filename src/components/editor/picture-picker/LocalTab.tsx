@@ -1,6 +1,8 @@
 'use client';
 
+import { Plus, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
 import type { useImageLibrary } from '@/hooks/useImageLibrary';
 import { useGooglePhotosImport } from '@/hooks/useGooglePhotosImport';
 import type { DirectoryInfo } from '@/lib/library-client';
@@ -42,7 +44,7 @@ export default function LocalTab({ mode, lib }: { mode: PickerMode; lib: ReturnT
   const rootLabel = mode === 'pick-video'
     ? t('imageBrowserModal.allVideos')
     : mode === 'manage-directory'
-      ? t('imageBrowserModal.allMedia')
+      ? t('settings.mediaPage.allFolders')
       : t('imageBrowserModal.allPhotos');
 
   const rootDirs = lib.directories.filter((d) => d.path !== '' && !d.path.includes('/'));
@@ -153,7 +155,7 @@ function DirectorySidebar({
           <p className="text-xs text-hs-text-faint p-2">{tCore('loading')}</p>
         ) : (
           <>
-            {/* Root (All Photos / All Videos / All Media) */}
+            {/* Root (All pictures / All videos / All pictures & videos) */}
             <DirectoryButton
               name={rootLabel}
               imageCount={showCounts ? directories.find((d) => d.path === '')?.imageCount ?? 0 : null}
@@ -195,7 +197,7 @@ function DirectorySidebar({
                 }
               }}
               placeholder={t('imageBrowserModal.newFolderPlaceholder')}
-              className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body"
+              className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body focus:outline-none focus:border-hs-accent"
             />
             <button
               onClick={onCreateFolder}
@@ -207,8 +209,9 @@ function DirectorySidebar({
         ) : (
           <button
             onClick={() => setShowNewFolder(true)}
-            className="w-full text-xs text-hs-text-muted hover:text-hs-text-body py-1"
+            className="flex w-full items-center justify-center gap-1 text-xs text-hs-text-muted hover:text-hs-text-body py-1"
           >
+            <Plus className="h-3 w-3" aria-hidden="true" />
             {t('imageBrowserModal.newFolderButton')}
           </button>
         )}
@@ -378,7 +381,7 @@ function MediaGrid({
                     title={tCore('actions.delete')}
                     aria-label={tCore('actions.delete')}
                   >
-                    {deletingImage === item.url ? '...' : '×'}
+                    {deletingImage === item.url ? <Spinner size="sm" /> : <X className="h-3 w-3" aria-hidden />}
                   </button>
                 )}
               </div>

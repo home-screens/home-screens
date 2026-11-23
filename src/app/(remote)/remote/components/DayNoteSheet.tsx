@@ -6,7 +6,8 @@ import { fullDateHeading, useFormattingLocale, useTranslate } from '@/i18n';
 import { clampText, oneLineText, textLength } from '@/lib/text-length';
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 import BottomSheet from './BottomSheet';
-import { DANGER_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, REMOTE_ACCENT, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import { DANGER_BUTTON, HELPER_TEXT, REMOTE_ACCENT_INK, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 
 /** `YYYY-MM-DD` as a Date at noon, so formatting it never slips a day. */
 export function dateOfIso(iso: string): Date {
@@ -60,7 +61,7 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
     <BottomSheet
       title={dayInWords(date, locale)}
       titleAside={(
-        <span style={{ color: used >= max - NEAR_LIMIT ? REMOTE_ACCENT : undefined }}>
+        <span style={{ color: used >= max - NEAR_LIMIT ? REMOTE_ACCENT_INK : undefined }}>
           {t('notes.counter', { used, max })}
         </span>
       )}
@@ -97,7 +98,7 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
           style={{ ...SHEET_FIELD, display: 'block', minHeight: 72, lineHeight: 1.35, resize: 'none', hyphens: 'auto' }}
         />
         {used >= max && (
-          <p id={limitId} role="status" style={{ ...HELPER_TEXT, color: REMOTE_ACCENT, fontSize: 13 }}>
+          <p id={limitId} role="status" style={{ ...HELPER_TEXT, color: REMOTE_ACCENT_INK, fontSize: 13 }}>
             {t('notes.dayNotes.atLimit')}
           </p>
         )}
@@ -108,21 +109,15 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
               className="press-scale"
               data-testid="day-note-sheet-remove"
               onClick={onRemove}
-              style={{ ...DANGER_BUTTON, marginTop: 0, width: 'auto', padding: '0 18px', gap: 8, fontSize: 14, fontWeight: 600 }}
+              style={{ ...DANGER_BUTTON, marginTop: 0, width: 'auto', padding: '0 18px', gap: 8 }}
             >
               <Trash2 size={18} aria-hidden="true" />
               {t('notes.dayNotes.remove')}
             </button>
           )}
-          <button
-            type="submit"
-            className="press-btn"
-            data-testid="day-note-sheet-submit"
-            disabled={!canSubmit}
-            style={{ ...PRIMARY_BUTTON, marginTop: 0, flex: 1, opacity: canSubmit ? 1 : 0.5, cursor: canSubmit ? 'pointer' : 'default' }}
-          >
+          <PrimaryButton type="submit" data-testid="day-note-sheet-submit" disabled={!canSubmit} style={{ marginTop: 0, flex: 1 }}>
             {note === null ? t('notes.dayNotes.put') : t('notes.save')}
-          </button>
+          </PrimaryButton>
         </div>
       </form>
     </BottomSheet>

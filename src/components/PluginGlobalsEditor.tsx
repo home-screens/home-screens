@@ -52,7 +52,7 @@ function useModuleConfig<T = Record<string, unknown>>(moduleId: string, screenId
       : undefined;
     const currentMod = screen?.modules.find((m) => m.id === moduleId);
     if (!currentMod) {
-      log.warn('useModuleConfig: module not found — is this running outside the editor?');
+      log.warn('useModuleConfig: module not found. Is this running outside the editor?');
       return;
     }
     updateModule(screenId, moduleId, {
@@ -77,7 +77,7 @@ export default function PluginGlobalsEditor() {
 
   useLayoutEffect(() => {
     if (!window.__HS_SDK__) {
-      log.warn('PluginGlobalsEditor: __HS_SDK__ not initialized — PluginGlobals must mount first');
+      log.warn('PluginGlobalsEditor: __HS_SDK__ not initialized. PluginGlobals must mount first.');
       return;
     }
 

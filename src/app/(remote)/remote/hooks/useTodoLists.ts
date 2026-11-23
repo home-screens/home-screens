@@ -6,10 +6,11 @@ import { refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import { useWriteSession } from '@/hooks/useWriteSession';
-import { sameId, tempId } from '@/lib/write-session';
-import type { TodoList } from '@/types/todos';
+import { sameId, tempId, type ResolveId } from '@/lib/write-session';
+import type { TodoList, TodoListItem } from '@/types/todos';
 import {
   TodoError,
+  addItem as addItemTo,
   addItemIfNew,
   createList as createListIn,
   deleteItem as deleteItemFrom,
@@ -75,7 +76,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
   const tCore = useTranslate('core');
   const tRemote = useTranslate('remote');
 
-  const { data: lists, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
+  const { data: lists, loaded, loadError, retry, write, mapId, resolveId, session } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
     initial: [],
     load: loadLists,
     send: async (request) => {
@@ -170,6 +171,61 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
     [write],
   );
 
+  /**
+   * Puts back an item that was just deleted, for the toast's Undo: the same
+   * words, due day and people, at the place it was, and ticked if it was. The
+   * hub makes it a new item; the add, the move back into place and the tick
+   * are queued one after another, each naming it by the same stand-in id
+   * until the hub's answer names it.
+   *
+   * The toast's Undo holds this from the render before the delete, so the
+   * list it sees may still hold the item, and another phone may have changed
+   * the list since. The move is worked out from the copy at hand when it
+   * runs, never from that list.
+   */
+  const restoreItem = useCallback(
+    (listId: string, item: TodoListItem, index: number) => {
+      const list = lists.find((l) => sameId(l.id, listId, resolveId));
+      if (!list) return;
+      const temp = tempId();
+      const at = new Date();
+      const fields = { dueDate: item.dueDate, assigneeIds: item.assigneeIds };
+      const others = list.items.filter((it) => !sameId(it.id, item.id, resolveId)).length;
+      /** Every item id on the list in `ls`, with the put-back one moved to `index`. */
+      const backInPlace = (ls: TodoList[], r: ResolveId): string[] => {
+        const ids = ls.find((l) => sameId(l.id, listId, r))?.items.map((it) => it.id) ?? [];
+        const restored = ids.find((id) => sameId(id, temp, r));
+        if (restored === undefined) return ids;
+        const rest = ids.filter((id) => id !== restored);
+        return [...rest.slice(0, index), restored, ...rest.slice(index)];
+      };
+      void write(
+        (ls, r) => {
+          const { data, item: added } = addItemTo({ lists: ls }, r(listId), { text: item.text, ...fields }, at);
+          return data.lists.map((l) => (l.items.includes(added) ? { ...l, items: l.items.map((it) => (it === added ? { ...added, id: temp } : it)) } : l));
+        },
+        (r) => addItemRequest(r(listId), item.text, fields),
+        (created) => {
+          if (created) mapId(temp, created.id);
+        },
+      );
+      if (index < others) {
+        void write(
+          (ls, r) => updateListIn({ lists: ls }, r(listId), { itemOrder: backInPlace(ls, r) }, at).lists,
+          // Sent once the add has landed, so the hub's copy names the new item.
+          (r) => reorderItemsRequest(r(listId), backInPlace(session.current, r)),
+        );
+      }
+      if (item.completed) {
+        void write(
+          (ls, r) => updateItemIn({ lists: ls }, r(listId), r(temp), { completed: true }, at).lists,
+          (r) => updateItemRequest(r(listId), r(temp), { completed: true }),
+        );
+      }
+    },
+    [lists, resolveId, write, mapId, session],
+  );
+
   /** `itemOrder` is the full new order of every item id on the list. */
   const reorderItems = useCallback(
     (listId: string, itemOrder: string[]) => {
@@ -260,6 +316,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
     addItem,
     updateItem,
     deleteItem,
+    restoreItem,
     reorderItems,
     createList,
     updateList,

@@ -38,14 +38,14 @@ function renderArt(source: Partial<Art> = {}, use: 'stream' | 'background' = 'st
   return { onChange, view };
 }
 
-const addFilter = (name: string) => fireEvent.change(screen.getByDisplayValue('+ Add filter'), { target: { value: name } });
+const addFilter = (name: string) => fireEvent.change(screen.getByDisplayValue('Add a filter…'), { target: { value: name } });
 
 describe('ArtSourceFields', () => {
   it('filters nothing until a filter is added from the menu, and a cross takes it away again', () => {
     const { onChange, view } = renderArt({ artist: 'Claude Monet' });
-    const menu = screen.getByDisplayValue('+ Add filter') as HTMLSelectElement;
+    const menu = screen.getByDisplayValue('Add a filter…') as HTMLSelectElement;
     // A slideshow fits pictures into its own box, so it is not offered the screen-shape filter.
-    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Shape']);
+    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['Add a filter…', 'Subject', 'Period', 'Shape']);
     fireEvent.click(screen.getByLabelText('Remove filter: Artist'));
     expect(onChange).toHaveBeenCalledWith({ kind: 'art' });
     view.unmount();
@@ -58,8 +58,8 @@ describe('ArtSourceFields', () => {
 
   it('offers a rotating background the screen-shape filter and the fit', () => {
     renderArt({}, 'background');
-    const menu = screen.getByDisplayValue('+ Add filter') as HTMLSelectElement;
-    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Artist', 'Shape', "Match the screen's shape"]);
+    const menu = screen.getByDisplayValue('Add a filter…') as HTMLSelectElement;
+    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['Add a filter…', 'Subject', 'Period', 'Artist', 'Shape', "Match the screen's shape"]);
     expect(screen.getByDisplayValue('Framed on a wall')).toBeTruthy();
   });
 

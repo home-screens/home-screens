@@ -12,7 +12,7 @@ Exhaustive per-module option tables for every built-in module. If you're new to 
 
 Home Screens includes {% $stats.moduleCount %} built-in modules organized into {% $stats.categoryCount %} categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
-One of those categories, **Health & Fitness**, has no built-in modules yet. It is reserved for add-ons such as Strava and Garmin, stays hidden in the module palette until you install one, and so has no section below.
+One of those categories, **Health & fitness**, has no built-in modules yet. It is reserved for add-ons such as Strava and Garmin, stays hidden in the module palette until you install one, and so has no section below.
 
 Where a module has a `refreshIntervalMs` option, its default comes from that module's fetch cache lifetime rather than a value written into the module itself, so it stays in step with how long the server caches the same data. The numbers below are the current defaults; you can always override them per module.
 
@@ -97,7 +97,7 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 **Tapping a meal:** `tapRecipeAction` works as on the [Meal Planner](#meal-planner), with the recipe card drawn in this module's theme.
 
-**Family ratings:** a rated recipe shows its family average as stars. With `interactive` on, **week**, **today**, **menu-board** and **next-meal** carry a **Rate Dinner** button, and **recipe** and the recipe card a **Rate meal** button; each opens a dialog where a person picks their name and taps one to five stars, and it closes after two minutes with nobody touching it. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
+**Family ratings:** a rated recipe shows its family average as stars. With `interactive` on, **week**, **today**, **menu-board** and **next-meal** carry a **Rate dinner** button, and **recipe** and the recipe card a **Rate meal** button; each opens a dialog where a person picks their name and taps one to five stars, and it closes after two minutes with nobody touching it. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
 
 **Scrolling:** with `interactive` on, the grocery list scrolls with a finger instead of turning its pages, and a week or today too long to fit even at the smallest text scrolls too. Each slides back home a minute after the last touch.
 
@@ -126,16 +126,16 @@ The temperature curve draws however many hours your source returns, and its head
 {% module type="fullscreen-photo" %}
 A fullscreen digital photo frame that cycles through photos from any photo source (a library folder, Immich, an iCloud shared album, OneDrive, Unsplash, NASA or [paintings from museums](/docs/backgrounds#paintings-from-museums), with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from a library folder, Immich or iCloud.
 
-The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field, picked in the [Image Library](/docs/backgrounds#image-library) from any of its tabs; the source, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label, nothing stores a "mode" setting on the module itself. The slideshow's source is `photoSource`, described under [PhotoSource](/docs/configuration#photo-source).
+The editor's **Mode** dropdown toggles between Slideshow and Single photo. Single-photo mode simply sets the `file` field, picked in the [Pictures & videos window](/docs/backgrounds#choosing-a-picture) from any of its tabs; the source, interval, transition, and shuffle controls are hidden while `file` is set. "Single photo" is only an editor UI label, nothing stores a "mode" setting on the module itself. The slideshow's source is `photoSource`, described under [PhotoSource](/docs/configuration#photo-source).
 
 {% fields /%}
 
 {% callout type="note" title="Immich source" %}
-Until both **Immich Server URL** and **Immich API Key** are saved in Settings > API keys, the Immich option in the **Photo Source** list says it needs setting up. Album and person filters are mutually exclusive, selecting one clears the other. The key needs `asset.read` and `asset.view` to show photos, plus `album.read` and `person.read` for the album and person lists; see [which boxes to tick](/docs/backgrounds#immich-key).
+Until both **Server URL** and **API key** are saved on the Immich card in Settings > API keys, the Immich option in the **Photo source** list says it needs setting up. Album and person filters are mutually exclusive, selecting one clears the other. The key needs `asset.read` and `asset.view` to show photos, plus `album.read` and `person.read` for the album and person lists; see [which boxes to tick](/docs/backgrounds#immich-key).
 {% /callout %}
 
 {% callout type="note" title="OneDrive source" %}
-Until a Microsoft **Application (client) ID** is saved in Settings > API keys, the OneDrive option in the **Photo Source** list says it needs setting up. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
+Until a Microsoft **Application (client) ID** is saved in Settings > API keys, the OneDrive option in the **Photo source** list says it needs setting up. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
 {% /callout %}
 {% /module %}
 
@@ -156,12 +156,12 @@ Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calenda
 
 **Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color, the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time, in both styles.
 
-**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker. The rolling weeks view (`viewMode: "rolling"`, 1–8 weeks via `weeksToShow`) uses the same themes; its top-left cell is always today, weekend cells are shaded under every theme (banner included), and each new month is marked on its first day.
+**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View mode picker. The rolling weeks view (`viewMode: "rolling"`, 1–8 weeks via `weeksToShow`) uses the same themes; its top-left cell is always today, weekend cells are shaded under every theme (banner included), and each new month is marked on its first day.
 
 {% /module %}
 
 {% module type="countdown" %}
-Counts down to one or more future events with visual progress rings. Each event can have a background picture, chosen in the [Image Library](/docs/backgrounds#image-library) from your library, Immich, Unsplash or NASA.
+Counts down to one or more future events with visual progress rings. Each event can have a background picture, chosen in the [Pictures & videos window](/docs/backgrounds#choosing-a-picture) from your library, Immich, Unsplash or NASA.
 {% /module %}
 
 {% module type="date" %}
@@ -322,7 +322,7 @@ When every item is done the heading shows a green tick and "All done" in every v
 {% /module %}
 
 {% module type="notes" %}
-Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/notes.json`, not on the module, so one board can sit on any number of screens, each in its own view. They are written from the family remote's Notes tab or from the editor's **Manage notes** window (`NotesBoardModal`, at the top of the module's settings), which has the phone's fields: post with From, Show for, Pin to top and Important, edit a live note's text, author and life, take it down, and post again or delete from Gone. The module itself only reads them.
+Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/notes.json`, not on the module, so one board can sit on any number of screens, each in its own view. They are written from the family remote's Notes tab or from the editor's **Family notes** window (`NotesBoardModal`, opened with **Edit notes** at the top of the module's settings), which has the phone's fields: post with From, Show for, Pin to top and Important, edit a live note's text, author and life, take it down, and post again or delete from Gone. The module itself only reads them.
 
 {% fields /%}
 
@@ -419,13 +419,13 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 - **week**: Grid showing all 7 days and meal slots at a glance with today highlighted.
 - **today**: Vertical stack of slot cards for today with active slot highlighted.
-- **next-meal**: Large display of the next upcoming meal with context label (Now/Coming Up/Tomorrow).
+- **next-meal**: Large display of the next upcoming meal with context label (Now/Coming up/Tomorrow).
 - **compact**: Two-column layout showing Today and Tomorrow side-by-side.
 - **list**: Full week listed vertically with day headers, showing only days with meals.
 - **grocery**: The grocery list the family uses: the Mealie shopping list while the meal plan lives in [Mealie](/docs/meals#mealie), otherwise this week's list built from the planned meals. Only what is still to get is shown, grouped like the phone shows it, with pages that turn every 15 seconds when the list is long. With `interactive` on, tap an item to tick it off; the pages hold still for a minute after a tick.
 - **recipes**: The family's recipes, one per row with a photo, the family's stars and the cooking time, under a search button and the first chips (Favorites, Recently made, All, cookbooks, categories). The same recipes as the Full-Screen Meal Planner's recipe book: Mealie's whenever [Mealie](/docs/meals#mealie) is connected, otherwise the meals saved with ingredients or notes. With `interactive` on, the rows scroll with a finger, tapping one opens its recipe card, and the search button (or the **+ N** chip) opens the whole recipe book over the screen with a keyboard to search.
 
-**Family ratings:** a rated recipe shows its family average as stars; **compact** and the small **week** grid, which are tight on space, show one star and the average. With `interactive` on, a **Rate Dinner** button sits at the bottom of the module and the recipe card has **Rate meal**. The button stays under a week with nothing planned yet, so last night's dinner can still be rated on Monday morning. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
+**Family ratings:** a rated recipe shows its family average as stars; **compact** and the small **week** grid, which are tight on space, show one star and the average. With `interactive` on, a **Rate dinner** button sits at the bottom of the module and the recipe card has **Rate meal**. The button stays under a week with nothing planned yet, so last night's dinner can still be rated on Monday morning. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
 
 **Scrolling:** with `interactive` on, a **list** or **week** that runs past the module's box scrolls with a finger, shows **Back to today** while it is away, and slides back to today a minute after the last touch. The grocery list scrolls instead of turning its pages.
 
@@ -437,7 +437,7 @@ A chore tracking module for families or housemates. Assign chores to members wit
 
 {% fields /%}
 
-**Members and chores are shared household data**, not module options. Members live in `data/family.json` and chores in `data/chores.json`. The family roster is available under **Settings > Family** even without a chore chart. Both are also edited from the editor's **Edit Chore Chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, an optional `assigneeGroupIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week plus an optional `groupSchedule` map of group ID to days-of-week.
+**Members and chores are shared household data**, not module options. Members live in `data/family.json` and chores in `data/chores.json`. The family roster is available under **Settings > Family** even without a chore chart. Both are also edited from the editor's **Edit chore chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, an optional `assigneeGroupIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week plus an optional `groupSchedule` map of group ID to days-of-week.
 
 **View details:**
 
@@ -529,7 +529,7 @@ Rich text block with multiple display modes, effects, and styling options.
 - **shake**: Letters jitter in place
 - **color-cycle**: Letters cycle through `colorCyclePalette`
 
-**Template Variables:** When enabled, seven placeholders are replaced with live data: `{{time}}` (24-hour), `{{time12}}` (12-hour), `{{date}}`, `{{day}}` (weekday name), `{{month}}`, `{{year}}`, and `{{greeting}}`. Anything else stays on screen exactly as typed, so watch the spelling: it is `{{day}}`, not `{{dayOfWeek}}`. The greeting words are currently English only.
+**Template variables:** When enabled, seven placeholders are replaced with live data: `{{time}}` (24-hour), `{{time12}}` (12-hour), `{{date}}`, `{{day}}` (weekday name), `{{month}}`, `{{year}}`, and `{{greeting}}`. Anything else stays on screen exactly as typed, so watch the spelling: it is `{{day}}`, not `{{dayOfWeek}}`. The greeting words are currently English only.
 
 **Shared-state tokens:** Single-brace `{<key>}` (separate from the double-brace template variables above) inserts a live value from the shared state bus: one Home Screens publishes itself, such as `{weather.temperature}` or `{calendar.next_event_title}`, or one an add-on publishes, e.g. `{plugin:ha:sensor.temp}`. Add a filter after a `|` to format it: `|round:1` rounds a numeric value to a set number of decimal places, and `|default:TEXT` supplies placeholder text for a key that hasn't published a value yet, e.g. `{plugin:ha:sensor.temp|round:1|default:n/a}`. Unknown keys render as an en dash with no filter.
 
@@ -539,7 +539,7 @@ Rich text block with multiple display modes, effects, and styling options.
 {% /module %}
 
 {% module type="image" %}
-Displays a static image: a link, or a picture from the [Image Library](/docs/backgrounds#image-library) (your library, Immich, Unsplash, NASA or the Art tab's paintings; pictures from the last four are copied into your library first). **Upload Image** adds a picture from your computer straight to the top of your library.
+Displays a static image: a link, or a picture from the [Pictures & videos window](/docs/backgrounds#choosing-a-picture) (your library, Immich, Unsplash, NASA or the Art tab's paintings; pictures from the last four are copied into your library first). **Upload image** adds a picture from your computer straight to the top of your library.
 {% /module %}
 
 {% module type="video" %}
@@ -567,7 +567,7 @@ When using iCloud as the source, paste a public shared album link from the Photo
 
 When using OneDrive as the source, the module signs in to your Microsoft account once with a short code, and then you pick a folder. That folder's photos feed the slideshow, subfolders included. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
-A library folder plays in name order, so `2.jpg` comes before `10.jpg`. Turn on **Shuffle Order** to mix it. The slideshow has the same transitions as the Full-Screen Photo Viewer (fade, slide, zoom or none) and the same slow **Ken Burns Effect**.
+A library folder plays in name order, so `2.jpg` comes before `10.jpg`. Turn on **Shuffle order** to mix it. The slideshow has the same transitions as the Full-Screen Photo Viewer (fade, slide, zoom or none) and the same slow **Ken Burns Effect**.
 
 When using Unsplash as the source, type the search words. The slideshow shows Unsplash's own photos, up to 30 fresh ones an hour, with each photographer's name in a corner as Unsplash asks. When using NASA, it shows the newest Astronomy Pictures of the Day.
 
@@ -575,7 +575,7 @@ When using Unsplash as the source, type the search words. The slideshow shows Un
 {% /module %}
 
 {% module type="qr-code" %}
-Generates a QR code from any text, URL, or WiFi network credentials.
+Generates a QR code from any text, URL, or Wi-Fi network credentials.
 {% /module %}
 
 {% module type="iframe" %}
@@ -670,7 +670,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 
 **Specific days** narrows a rule to fixed dates: a day of every month (payday on the 15th), a fixed date each year (October 31), every day of one month, the last day of the month (any month, or just one), or the nth weekday of the month, 1st through 5th or the last, so "the 4th Thursday of November" works. Days that don't exist in a month never match: the 31st simply skips shorter months. A rule's other choices (a badge, an outline, a background) then apply to exactly those days.
 
-A day rule's background can also be a **picture**: **Choose a picture** opens the [Image Library](/docs/backgrounds#image-library) on the art that ships with Home Screens (birthdays, Halloween, Christmas, and other quiet patterns), or on your library's `calendar-art` folder, where you can upload your own image or SVG. Immich, Unsplash and NASA pictures work too. The picture is painted on the day cell exactly as it otherwise renders, above the cell's own fill and under the day's number and events, everywhere the calendar draws days. **Art dimming** fades the picture itself: transparent parts of a PNG leave the cell untouched, so the cell keeps its normal look with the art laid in. **Picture size** shrinks the picture inside the day (at 100 it fills the day as before), and **Horizontal position** and **Vertical position** choose which corner or edge a smaller picture sits against. An SVG you add needs a `viewBox` (or a fixed width and height) so it keeps its shape at every size; the library says so if one is missing.
+A day rule's background can also be a **picture**: **Choose a picture** opens the [Pictures & videos window](/docs/backgrounds#choosing-a-picture) on the art that ships with Home Screens (birthdays, Halloween, Christmas, and other quiet patterns), or on your library's `calendar-art` folder, where you can upload your own image or SVG. Immich, Unsplash and NASA pictures work too. The picture is painted on the day cell exactly as it otherwise renders, above the cell's own fill and under the day's number and events, everywhere the calendar draws days. **Art dimming** fades the picture itself: transparent parts of a PNG leave the cell untouched, so the cell keeps its normal look with the art laid in. **Picture size** shrinks the picture inside the day (at 100 it fills the day as before), and **Horizontal position** and **Vertical position** choose which corner or edge a smaller picture sits against. An SVG you add needs a `viewBox` (or a fixed width and height) so it keeps its shape at every size; the library says so if one is missing.
 
 **Matching an event**: every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
 

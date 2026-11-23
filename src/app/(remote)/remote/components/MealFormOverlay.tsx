@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { Heart, Plus, X } from 'lucide-react';
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
 import type { MealFormState } from '../hooks/useMealForm';
 import MealRateButton from './MealRatingSheet';
 import { MEAL_TAGS, MEAL_DIFFICULTIES, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import { GROCERY_CATEGORY_ORDER, groceryAisle } from '@/lib/grocery-utils';
-import { emojiGridWithChosen } from '@/lib/icon-value';
 import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import SaveDeleteFooter from './SaveDeleteFooter';
 import { useFormDirty } from '@/hooks/useFormDirty';
-import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
+import PhoneIconPicker from '@/components/custom-icons/PhoneIconPicker';
 import CustomIconsOverlay from './CustomIconsOverlay';
+import ChipButton from './ChipButton';
 import { withAlpha } from '@/lib/hex-color';
-import { COMPACT_FIELD, COMPACT_LABEL, REMOTE_ACCENT, selectedPillStyle } from './remote-styles';
+import { COMPACT_FIELD, COMPACT_LABEL, selectedPillStyle } from './remote-styles';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -77,16 +78,11 @@ export default function MealFormOverlay({
     formTags, formIngredients, formRecipeUrl, formNotes, formFavorite,
   ]);
 
-  const saveLabel = saving
-    ? t('mealForm.savingSubmit')
-    : editingMeal === 'new'
-      ? t('mealForm.saveSubmit')
-      : t('mealForm.saveChangesSubmit');
-
   const footer = (
     <SaveDeleteFooter
-      saveLabel={saveLabel}
-      canSave={Boolean(formName.trim()) && !saving}
+      saveLabel={editingMeal === 'new' ? t('mealForm.addSubmit') : undefined}
+      canSave={Boolean(formName.trim())}
+      busy={saving}
       onSave={() => void onSave()}
       notice={saveError}
       noticeTone="danger"
@@ -116,9 +112,14 @@ export default function MealFormOverlay({
         />
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ ...COMPACT_LABEL, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span>{tCore('actions.icon')}</span>
+      <PhoneIconPicker
+        value={formEmoji}
+        onChange={setFormEmoji}
+        choices={{ kind: 'emoji', emoji: FOOD_EMOJIS }}
+        label={tCore('actions.icon')}
+        labelStyle={COMPACT_LABEL}
+        suggestedName={formName}
+        labelAction={(
           <button
             type="button"
             onClick={() => setManagingIcons(true)}
@@ -126,34 +127,8 @@ export default function MealFormOverlay({
           >
             {tCore('customIcons.manage')}
           </button>
-        </div>
-        <PhoneCustomIconSection value={formEmoji} onPick={setFormEmoji} suggestedName={formName} />
-        <div style={{ ...PHONE_SUBHEAD_STYLE, marginTop: 12 }}>{tCore('customIcons.everydayEmoji')}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
-          {emojiGridWithChosen(FOOD_EMOJIS, formEmoji).map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => setFormEmoji(emoji)}
-              aria-label={t('mealForm.emojiSelectAriaLabel', { emoji })}
-              aria-pressed={formEmoji === emoji}
-              style={{
-                width: '100%',
-                aspectRatio: '1',
-                borderRadius: 8,
-                border: formEmoji === emoji ? `2px solid ${REMOTE_ACCENT}` : '2px solid transparent',
-                background: formEmoji === emoji ? withAlpha(REMOTE_ACCENT, 0.12) : 'var(--hs-bg-panel)',
-                cursor: 'pointer',
-                fontSize: 22,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
+        )}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
@@ -198,8 +173,10 @@ export default function MealFormOverlay({
               return (
                 <button
                   key={d}
+                  type="button"
                   aria-pressed={isSelected}
                   onClick={() => setFormDifficulty(isSelected ? undefined : d)}
+                  className="press-scale-sm"
                   style={{
                     flex: 1,
                     padding: '12px 4px',
@@ -234,6 +211,7 @@ export default function MealFormOverlay({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => setFormCategory(kind)}
+                className="press-scale-sm"
                 style={{
                   padding: '10px 14px',
                   minHeight: 44,
@@ -254,30 +232,22 @@ export default function MealFormOverlay({
 
       <div style={{ marginBottom: 24 }}>
         <div style={COMPACT_LABEL}>{t('mealForm.tagsLabel')}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {/* The chips' 44 px targets stand 4 px clear of the drawn chip, so the rows sit closer. */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 6, margin: '-4px 0' }}>
           {MEAL_TAGS.map((tag) => {
             const isActive = formTags.some((tt) => normalizeTag(tt) === tag);
             return (
-              <button
+              <ChipButton
                 key={tag}
+                selected={isActive}
                 onClick={() => {
                   setFormTags((prev) =>
                     isActive ? prev.filter((tt) => normalizeTag(tt) !== tag) : [...prev, tag],
                   );
                 }}
-                style={{
-                  padding: '6px 14px',
-                  minHeight: 36,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  borderRadius: 999,
-                  ...selectedPillStyle(isActive),
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
               >
                 {tCore(`meal.tags.${tag}`)}
-              </button>
+              </ChipButton>
             );
           })}
         </div>
@@ -334,9 +304,11 @@ export default function MealFormOverlay({
               ))}
             </select>
             <button
+              type="button"
               onClick={() => {
                 setFormIngredients((prev) => prev.filter((_, i) => i !== idx));
               }}
+              className="press-scale-xs"
               aria-label={t('mealForm.removeIngredientAriaLabel')}
               style={{
                 width: 44,
@@ -345,7 +317,6 @@ export default function MealFormOverlay({
                 border: '1px solid var(--hs-border)',
                 background: 'transparent',
                 color: 'var(--hs-danger)',
-                fontSize: 18,
                 cursor: 'pointer',
                 flexShrink: 0,
                 display: 'flex',
@@ -353,15 +324,17 @@ export default function MealFormOverlay({
                 justifyContent: 'center',
               }}
             >
-              &#215;
+              <X size={18} aria-hidden />
             </button>
           </div>
         ))}
         <button
+          type="button"
           onClick={() => {
             setAddedRow(formIngredients.length);
             setFormIngredients((prev) => [...prev, { name: '', amount: '' }]);
           }}
+          className="press-scale"
           style={{
             width: '100%',
             padding: '12px',
@@ -374,8 +347,13 @@ export default function MealFormOverlay({
             color: 'var(--hs-text-faint)',
             cursor: 'pointer',
             transition: 'all 0.15s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
           }}
         >
+          <Plus size={16} aria-hidden="true" />
           {t('mealForm.addIngredientButton')}
         </button>
       </div>
@@ -411,7 +389,9 @@ export default function MealFormOverlay({
       {editingMeal && editingMeal !== 'new' && <MealRateButton meal={editingMeal} variant="wide" style={{ marginBottom: 24 }} />}
 
       <button
+        type="button"
         onClick={() => setFormFavorite(!formFavorite)}
+        className="press-scale"
         style={{
           width: '100%',
           display: 'flex',
@@ -427,9 +407,13 @@ export default function MealFormOverlay({
           transition: 'all 0.15s',
         }}
       >
-        <span style={{ fontSize: 22, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-border-strong)' }}>
-          {formFavorite ? '♥' : '♡'}
-        </span>
+        <Heart
+          size={22}
+          strokeWidth={2}
+          fill={formFavorite ? 'currentColor' : 'none'}
+          aria-hidden
+          style={{ flex: 'none', color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}
+        />
         <span style={{ fontSize: 14, fontWeight: 600, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}>
           {formFavorite ? t('mealForm.favoriteOn') : t('mealForm.favoriteOff')}
         </span>

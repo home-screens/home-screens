@@ -117,7 +117,7 @@ test.describe('multi-display bootstrap', () => {
     await expect(page.getByRole('heading', { name: 'Run Home Screens on multiple displays' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Add display' }).click();
-    await page.getByPlaceholder('Kitchen Touchscreen').fill('Kitchen');
+    await page.getByPlaceholder('Kitchen touchscreen').fill('Kitchen');
     // ID auto-derives to "kitchen" from the name; submit the add form.
     await page.getByRole('button', { name: 'Add display' }).click();
 
@@ -143,7 +143,7 @@ test.describe('multi-display bootstrap', () => {
     await expect(page.getByRole('heading', { name: 'Run Home Screens on multiple displays' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Add display' }).click();
-    await page.getByPlaceholder('Kitchen Touchscreen').fill('Main');
+    await page.getByPlaceholder('Kitchen touchscreen').fill('Main');
     // Name "Main" slugifies to the reserved `main` id, so no sibling is seeded.
     await page.getByRole('button', { name: 'Add display' }).click();
 
@@ -190,15 +190,15 @@ test.describe('reserved display ids', () => {
     await page.getByRole('button', { name: 'Add display' }).click();
     // "All" slugifies to the reserved id `all` — the realistic way a user hits
     // this, since the ID field auto-derives from the name.
-    await page.getByPlaceholder('Kitchen Touchscreen').fill('All');
-    // `exact` matters: the name field's placeholder ("Kitchen Touchscreen")
+    await page.getByPlaceholder('Kitchen touchscreen').fill('All');
+    // `exact` matters: the name field's placeholder ("Kitchen touchscreen")
     // also contains "kitchen".
     await expect(page.getByPlaceholder('kitchen', { exact: true })).toHaveValue('all');
     await page.getByRole('button', { name: 'Add display' }).click();
 
     await expect(page.getByText(formReservedError('all'))).toBeVisible();
     // The form stays open on the rejected values rather than closing as if saved.
-    await expect(page.getByRole('heading', { name: 'Add Display' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Add display' })).toBeVisible();
 
     // Nothing was written. Auto-save fires 800ms after a mutation, so wait past
     // that window before concluding the registry is still empty.
@@ -212,7 +212,7 @@ test.describe('reserved display ids', () => {
     await expect(page.getByRole('heading', { name: 'Run Home Screens on multiple displays' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Add display' }).click();
-    await page.getByPlaceholder('Kitchen Touchscreen').fill('Default');
+    await page.getByPlaceholder('Kitchen touchscreen').fill('Default');
     // Typing the id directly is the only way to reach `__default__`: slugify
     // strips the underscores, so the auto-derived id would be the legal "default".
     await page.getByPlaceholder('kitchen', { exact: true }).fill('__default__');
@@ -268,7 +268,7 @@ test.describe('display adoption', () => {
     // Scope the submit to the form itself — in multi-display mode the sidebar `+`
     // and the index header also expose an "Add display" control.
     const adoptForm = page.locator('div.space-y-4', { hasText: `Add ${unadoptedId}` });
-    await adoptForm.getByPlaceholder('Kitchen Touchscreen').fill('Porch');
+    await adoptForm.getByPlaceholder('Kitchen touchscreen').fill('Porch');
     await adoptForm.getByRole('button', { name: 'Add display' }).click();
 
     await expect.poll(async () => {
@@ -285,13 +285,13 @@ test.describe('display removal', () => {
     await putConfig(request, twoDisplayConfig());
     await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
 
-    const removeButton = page.getByRole('button', { name: 'Remove Kitchen' });
+    const removeButton = page.getByRole('button', { name: 'Delete Kitchen' });
     await expect(removeButton).toBeEnabled();
     await removeButton.click();
 
     // Confirm dialog copy comes from the confirm store; accept it.
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    await expect(page.getByRole('dialog', { name: 'Delete “Kitchen”?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Delete display' }).click();
 
     await expect.poll(async () => {
       const displays = await readDisplays(request);
@@ -316,10 +316,10 @@ test.describe('orientation change scaling', () => {
 
     // Flip portrait → landscape. Height shrinks, so the low module goes
     // off-canvas and the orientation modal appears.
-    await page.getByRole('button', { name: 'Landscape' }).click();
+    await page.getByRole('radio', { name: 'Landscape' }).click();
     await expect(page.getByText('Modules may be off-screen')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Scale to Fit' }).click();
+    await page.getByRole('button', { name: 'Scale to fit' }).click();
 
     // scaleAllModules scales by min(1920/1080, 1080/1920) = 0.5625, so the
     // module's y ≈ 1500 × 0.5625 ≈ 844 (snapped to the 20px grid → 840).

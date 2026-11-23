@@ -3,7 +3,7 @@
 import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, formatShortDayMonth, formatMealTime, servingTimeView } from '@/lib/meal-constants';
-import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
@@ -149,7 +149,7 @@ export default function WeekGrid({
           <button
             type="button"
             onClick={onJumpToToday}
-            className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition"
+            className="text-[10px] font-semibold px-2 py-0.5 rounded bg-hs-meal-soft text-hs-meal hover:bg-hs-meal-hover transition"
           >
             {t('mealPlannerModal.weekGrid.todayChip')}
           </button>
@@ -245,8 +245,7 @@ export default function WeekGrid({
                     >
                       {isToday && (
                         <span
-                          className="w-[5px] h-[5px] rounded-full mt-1.5 shrink-0"
-                          style={{ backgroundColor: '#f59e0b' }}
+                          className="w-[5px] h-[5px] rounded-full mt-1.5 shrink-0 bg-hs-meal"
                         />
                       )}
                       <div>
@@ -293,9 +292,9 @@ export default function WeekGrid({
                         aria-label={t('mealPlannerModal.weekGrid.mealCellAriaLabel', { name, slot: slotLabel, day: dayLabel })}
                         onClick={(e) => openCell(e.currentTarget)}
                         onKeyDown={(e) => { if (isOpenKey(e)) openCell(e.currentTarget); }}
-                        className={`relative h-full flex flex-col gap-1 px-2.5 py-2 rounded-lg border cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 ${
+                        className={`relative h-full flex flex-col gap-1 px-2.5 py-2 rounded-lg border cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hs-meal-ring ${
                           isSelected
-                            ? 'border-amber-500/45 bg-amber-500/6'
+                            ? 'border-hs-meal-ring bg-hs-meal-soft'
                             : 'bg-hs-card/60 border-hs-border-strong/50 hover:bg-hs-card hover:border-hs-border-strong'
                         }`}
                       >
@@ -325,7 +324,7 @@ export default function WeekGrid({
                             value={serving.value}
                             onChange={(t) => onSetSlotTime(date, slot, t)}
                             slot={slot}
-                            variant="dark"
+                            variant="editor"
                             accentColor={accentColor}
                             compact
                             timeFormat={timeFormat}
@@ -348,9 +347,9 @@ export default function WeekGrid({
                               onRemoveMeal(date, slot);
                             }}
                             aria-label={t('mealPlannerModal.weekGrid.removeMealAriaLabel', { name })}
-                            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border border-hs-border-strong bg-hs-panel text-hs-text-faint opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-hs-danger hover:border-hs-danger/50 transition flex items-center justify-center text-[11px] leading-none"
+                            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border border-hs-border-strong bg-hs-panel text-hs-text-faint opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-hs-danger hover:border-hs-danger/50 transition flex items-center justify-center"
                           >
-                            &times;
+                            <X className="h-2.5 w-2.5" aria-hidden />
                           </button>
                         )}
                       </div>
@@ -363,11 +362,9 @@ export default function WeekGrid({
                         aria-label={t('mealPlannerModal.weekGrid.planCellAriaLabel', { slot: slotLabel, day: dayLabel })}
                         onClick={(e) => openCell(e.currentTarget)}
                         onKeyDown={(e) => { if (isOpenKey(e)) openCell(e.currentTarget); }}
-                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-hs-border-strong focus-visible:border-hs-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 cursor-pointer transition group"
+                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-hs-border-strong focus-visible:border-hs-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hs-meal-ring cursor-pointer transition group"
                       >
-                        <span aria-hidden className="text-sm text-hs-text-faint/60 group-hover:text-hs-text-faint group-focus-visible:text-hs-text-faint">
-                          +
-                        </span>
+                        <Plus aria-hidden className="h-3.5 w-3.5 text-hs-text-faint/60 group-hover:text-hs-text-faint group-focus-visible:text-hs-text-faint" />
                       </div>
                     ) : null}
                   </div>

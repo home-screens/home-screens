@@ -4,6 +4,9 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import type { TimeFormat } from '@/types/config';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * Time format card for the "Defaults → Location & language" page.
@@ -34,23 +37,23 @@ export default function TimeFormatFields() {
 
   return (
     <>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('languageAndRegion.timeFormatLabel')}
-      </h3>
+      </SettingsSectionHeading>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4" data-field-id="location.timeFormat">
         <select
           id="hs-timeformat-select"
           aria-label={t('languageAndRegion.timeFormatLabel')}
           value={currentTimeFormat}
           onChange={(e) => handleChange(e.target.value)}
-          className="block w-full rounded-md border border-hs-border bg-hs-card px-3 py-1.5 text-sm text-hs-text-primary focus:border-hs-accent focus:outline-none"
+          className={`block w-full ${SETTINGS_INPUT_CLASS}`}
         >
           <option value="12h">{t('languageAndRegion.timeFormat12h')}</option>
           <option value="24h">{t('languageAndRegion.timeFormat24h')}</option>
         </select>
-        <p className="mt-1 text-xs text-hs-text-faint">
+        <FieldHint className="mt-1">
           {t('languageAndRegion.timeFormatHelp')}
-        </p>
+        </FieldHint>
       </div>
     </>
   );

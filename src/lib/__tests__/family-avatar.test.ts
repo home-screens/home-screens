@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { memberInitials, memberInk, memberNameStem } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials, memberInk, memberNameStem } from '@/lib/family-avatar';
 
 describe('memberInitials', () => {
-  it('takes one letter by default and up to max letters, one per word', () => {
+  it('takes the first letter of the name, on every surface', () => {
     expect(memberInitials('Ella')).toBe('E');
     expect(memberInitials('owen lee')).toBe('O');
-    expect(memberInitials('owen lee', { max: 2 })).toBe('OL');
-    expect(memberInitials('Mary Ann Smith', { max: 2 })).toBe('MA');
+    expect(memberInitials('Mary Ann Smith')).toBe('M');
     expect(memberInitials('  Ben ')).toBe('B');
     expect(memberInitials('élise')).toBe('É');
   });
@@ -17,8 +16,8 @@ describe('memberInitials', () => {
     expect(memberInitials('🌟 Mia')).toBe('M');
     expect(memberInitials('🌟Mia')).toBe('M');
     expect(memberInitials('* Ava')).toBe('A');
-    expect(memberInitials('⭐ Mary Ann', { max: 2 })).toBe('MA');
-    expect(memberInitials('Mia 🌟', { max: 2 })).toBe('M');
+    expect(memberInitials('⭐ Mary Ann')).toBe('M');
+    expect(memberInitials('Mia 🌟')).toBe('M');
     expect(memberInitials('\u{1F984} Mia')).toBe('M');
   });
 
@@ -44,7 +43,7 @@ describe('memberInitials', () => {
   it('counts digits as letters and keeps letters that are not Latin', () => {
     expect(memberInitials('42')).toBe('4');
     expect(memberInitials('Åse')).toBe('Å');
-    expect(memberInitials('Ærø Bo', { max: 2 })).toBe('ÆB');
+    expect(memberInitials('Ærø Bo')).toBe('Æ');
     expect(memberInitials('Élise')).toBe('É');
   });
 });
@@ -73,5 +72,95 @@ describe('memberInk', () => {
     expect(memberInk('rgb(245, 158, 11)')).toBe('#1b1b1f');
     expect(memberInk('var(--nope)')).toBe('#fff');
     expect(memberInk(undefined)).toBe('#fff');
+  });
+
+  it('gives a theme colour written as var() the ink its theme pairs with it', () => {
+    // The phone draws a chart with no accent of its own in the theme's amber,
+    // which is a var() and cannot be measured: white there was white on amber.
+    expect(memberInk('var(--hs-warning-ink)')).toBe('var(--hs-on-warning-ink)');
+    expect(memberInk('var(--hs-warning)')).toBe('var(--hs-on-warning)');
+    expect(memberInk('var(--hs-meal)')).toBe('var(--hs-on-meal)');
+    expect(memberInk('var(--hs-success)')).toBe('var(--hs-on-success)');
+    expect(memberInk('var(--hs-danger)')).toBe('var(--hs-on-danger)');
+  });
+
+  it('reads the token through spaces and a fallback, and leaves other var() colours on white', () => {
+    expect(memberInk(' var( --hs-warning-ink ) ')).toBe('var(--hs-on-warning-ink)');
+    expect(memberInk('var(--hs-warning-ink, #f59e0b)')).toBe('var(--hs-on-warning-ink)');
+    expect(memberInk('var(--hs-text-faint)')).toBe('#fff');
+  });
+});
+
+describe('getUniqueInitials', () => {
+  it('uses single characters when all first letters are unique', () => {
+    const members = [
+      { id: '1', name: 'Alice' },
+      { id: '2', name: 'Bob' },
+      { id: '3', name: 'Charlie' },
+    ];
+    const result = getUniqueInitials(members);
+    expect(result.get('1')).toBe('A');
+    expect(result.get('2')).toBe('B');
+    expect(result.get('3')).toBe('C');
+  });
+
+  it('extends to 2 characters to resolve collisions', () => {
+    const members = [
+      { id: '1', name: 'Sam' },
+      { id: '2', name: 'Sarah' },
+      { id: '3', name: 'Bob' },
+    ];
+    const result = getUniqueInitials(members);
+    // B is unique → single char
+    expect(result.get('3')).toBe('B');
+    // Sam vs Sarah → 'Sa' vs 'Sa' → still collide → extend to 3: 'Sam' vs 'Sar'
+    expect(result.get('1')).toBe('Sam');
+    expect(result.get('2')).toBe('Sar');
+  });
+
+  it('handles single member', () => {
+    const result = getUniqueInitials([{ id: '1', name: 'Zoe' }]);
+    expect(result.get('1')).toBe('Z');
+  });
+
+  it('handles empty list', () => {
+    const result = getUniqueInitials([]);
+    expect(result.size).toBe(0);
+  });
+
+  it('extends to 2 chars only where needed', () => {
+    const members = [
+      { id: '1', name: 'Dan' },
+      { id: '2', name: 'Dave' },
+      { id: '3', name: 'Emily' },
+    ];
+    const result = getUniqueInitials(members);
+    expect(result.get('3')).toBe('E'); // unique at 1
+    // Dan vs Dave: 'Da' vs 'Da' → collide at 2, resolved at 3
+    expect(result.get('1')).toBe('Dan');
+    expect(result.get('2')).toBe('Dav');
+  });
+
+  it('steps over an emoji or symbol in front of a name, for the letter and the extension', () => {
+    const members = [
+      { id: '1', name: '* Ava' },
+      { id: '2', name: '🌟 Avery' },
+      { id: '3', name: '🦄' },
+    ];
+    const result = getUniqueInitials(members);
+    expect(result.get('1')).toBe('Ava');
+    expect(result.get('2')).toBe('Ave');
+    expect(result.get('3')).toBe('🦄');
+  });
+
+  it('caps at 3 characters for unresolvable collisions', () => {
+    const members = [
+      { id: '1', name: 'AAAAAA' },
+      { id: '2', name: 'AAAAAB' },
+    ];
+    const result = getUniqueInitials(members);
+    // Both are "AAA" at 3 chars, so the rest are cut to 3
+    expect(result.get('1')).toBe('AAA');
+    expect(result.get('2')).toBe('AAA');
   });
 });

@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { HardwareStats } from '@/lib/hardware-stats';
 import { SectionHeading } from './shared/SectionHeading';
+import StatusPill from '@/components/ui/StatusPill';
 import type { SemanticColor } from './shared/types';
 
 export function HardwareCard({
@@ -69,20 +70,17 @@ export function HardwareCard({
             <div className="text-right">
               {hwStats.throttled ? (
                 hwStats.throttled.active ? (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] text-hs-danger bg-hs-danger/15 px-2 py-0.5 rounded-full border border-hs-danger/30">
-                    <span className="w-1 h-1 rounded-full bg-hs-danger" />
+                  <StatusPill tone="danger" dot>
                     {t('settings.statsSection.throttleActive', { raw: hwStats.throttled.raw })}
-                  </span>
+                  </StatusPill>
                 ) : hwStats.throttled.previouslyThrottled ? (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] text-hs-warning bg-hs-warning/15 px-2 py-0.5 rounded-full border border-hs-warning/30">
-                    <span className="w-1 h-1 rounded-full bg-hs-warning" />
+                  <StatusPill tone="warning" dot>
                     {t('settings.statsSection.previouslyThrottled')}
-                  </span>
+                  </StatusPill>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] text-hs-success bg-hs-success/15 px-2 py-0.5 rounded-full border border-hs-success/30">
-                    <span className="w-1 h-1 rounded-full bg-hs-success" />
+                  <StatusPill tone="success" dot>
                     {t('settings.statsSection.throttleOk')}
-                  </span>
+                  </StatusPill>
                 )
               ) : (
                 <span className="text-hs-text-faint">{t('settings.statsSection.unavailable')}</span>
@@ -96,7 +94,7 @@ export function HardwareCard({
                   tempColor === 'danger'
                     ? 'text-hs-danger bg-hs-danger/12 border-hs-danger/25'
                     : tempColor === 'warning'
-                      ? 'text-hs-warning bg-hs-warning/12 border-hs-warning/25'
+                      ? 'text-hs-warning-ink bg-hs-warning/12 border-hs-warning/25'
                       : 'text-hs-success bg-hs-success/12 border-hs-success/25'
                 }`}>
                   <span>{hwStats.cpuTempC.toFixed(1)}</span>

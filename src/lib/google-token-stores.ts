@@ -32,13 +32,13 @@ export const googleCalendarTokenStore = createGoogleTokenStore({
   preference: readGoogleAppPreference,
   service: 'Google Calendar',
   missingCredentialsMessage:
-    'Google Calendar needs both a Client ID and a Client Secret. Add them in Settings → API keys.',
+    'Google Calendar needs both a Client ID and a Client Secret. Add them in Settings > API keys.',
   web: {
     clientIdKey: 'google_web_client_id',
     clientSecretKey: 'google_web_client_secret',
     hosted: hostedPhotosClient,
     missingCredentialsMessage:
-      'Adding events needs the Web sign-in Client ID and Secret. Add them in Settings → API keys.',
+      'Adding events needs the Web sign-in Client ID and Secret. Add them in Settings > API keys.',
   },
   logName: 'google-auth',
 });
@@ -52,7 +52,7 @@ export const googlePickerTokenStore = createGoogleTokenStore({
   preference: readGoogleAppPreference,
   service: 'Google Photos',
   missingCredentialsMessage:
-    'Google Photos import needs both a Web sign-in Client ID and Secret. Add them in Settings → API keys.',
+    'Google Photos import needs both a Web sign-in Client ID and Secret. Add them in Settings > API keys.',
   logName: 'google-picker',
 });
 

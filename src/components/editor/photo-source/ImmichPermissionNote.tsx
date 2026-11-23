@@ -2,6 +2,7 @@
 
 import { useTranslate } from '@/i18n';
 import type { ImmichPermission } from '@/lib/immich-permissions';
+import Notice from '@/components/ui/Notice';
 
 /** What the note says is hidden, by the permission the key is missing. */
 const HIDDEN_KEY: Partial<Record<ImmichPermission, string>> = {
@@ -26,15 +27,13 @@ export default function ImmichPermissionNote({ permission, className = '' }: {
   if (!hiddenKey) return null;
   const [before, after = ''] = t('photoSources.immich.permissionNote.howToFix').split('{permission}');
   return (
-    <p
-      className={`rounded-md border border-hs-warning/25 bg-hs-warning/10 px-2 py-1.5 text-[11px] leading-[1.45] text-hs-text-secondary ${className}`}
-      data-testid="immich-permission-note"
-      data-permission={permission}
-    >
-      <b className="font-semibold text-hs-warning">{t(hiddenKey)}</b>{' '}
-      {before}
-      <b className="font-semibold text-hs-warning">{permission}</b>
-      {after}
-    </p>
+    <Notice tone="warning" size="sm" className={className} testId="immich-permission-note" data-permission={permission}>
+      <p className="text-hs-text-secondary">
+        <b className="font-semibold text-hs-warning-ink">{t(hiddenKey)}</b>{' '}
+        {before}
+        <b className="font-semibold text-hs-warning-ink">{permission}</b>
+        {after}
+      </p>
+    </Notice>
   );
 }

@@ -26,6 +26,7 @@ export default function FullscreenAccentPicker({ label, value, themeAccent, onCh
   return (
     <ColorPicker
       label={label}
+      swatches="accent"
       value={value || themeAccent}
       defaultValue={themeAccent}
       resetLabel={t('common.resetToDefault')}

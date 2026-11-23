@@ -25,7 +25,7 @@ test('family calendar waits for its roster and omits household members without c
     await page.goto('/display');
     await calendarResponse;
     const calendar = page.locator('[data-module-type="fullscreen-calendar"]');
-    await expect(calendar.locator('.fsc-skeleton').first()).toBeVisible();
+    await expect(calendar.getByTestId('module-loading')).toBeVisible();
     await expect(calendar.getByRole('rowheader')).toHaveCount(0);
     release();
     await expect(calendar.getByRole('rowheader')).toHaveCount(1);
@@ -66,7 +66,7 @@ test('a calendar filtered to people shows nothing until the roster arrives, then
     await page.goto('/display');
     await calendarResponse;
     const calendar = page.locator('[data-module-type="fullscreen-calendar"]');
-    await expect(calendar.locator('.fsc-skeleton').first()).toBeVisible();
+    await expect(calendar.getByTestId('module-loading')).toBeVisible();
     await expect(calendar.getByText('BEN EVENT')).toHaveCount(0);
     await expect(calendar.getByText('HOUSE EVENT')).toHaveCount(0);
     release();

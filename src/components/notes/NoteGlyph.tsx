@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { createLucideIcon } from 'lucide-react';
 
 /**
  * A page with a folded corner and two lines of writing: the mark for anything
@@ -6,6 +7,9 @@ import type { CSSProperties } from 'react';
  * calendar's day notes on the wall all draw it, so a kid learns one picture.
  */
 export const NOTE_ICON_PATH = 'M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3zM15 3v6h6M8 13h8M8 17h5';
+
+/** The note mark as a lucide icon, for the places that take one (the phone's tab bar, an empty page). */
+export const NoteIcon = createLucideIcon('family-note', [['path', { d: NOTE_ICON_PATH, key: 'note' }]]);
 
 /** The note mark in `currentColor`, sized by `style` (1em square by default). */
 export function NoteGlyph({ strokeWidth = 2, style }: { strokeWidth?: number; style?: CSSProperties }) {

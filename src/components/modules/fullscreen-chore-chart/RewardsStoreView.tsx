@@ -19,6 +19,8 @@ import RedeemedBanner from './rewards/RedeemedBanner';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useRedeemReward } from '../shared/useRedeemReward';
 import { useAutoClose } from '../shared/useAutoClose';
+import { WallButton } from '../shared/WallButton';
+import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
 import { isRewardOfferedTo, resolveSavingsGoal, sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 
@@ -175,16 +177,16 @@ export function RewardsStoreView({
   };
   // Only once there is a history to look at; the whole family's, not the picked person's.
   const historyButton = onShowHistory && localRedemptions.length > 0 && (
-    <button data-testid="fcc-store-history" onClick={onShowHistory} style={headerPill}>
+    <WallButton data-testid="fcc-store-history" onClick={onShowHistory} style={headerPill}>
       <History size={22 * k} strokeWidth={2.5} aria-hidden="true" />
       {t('fullscreen-chore-chart.rewardsStore.history')}
-    </button>
+    </WallButton>
   );
   const backButton = onBack && (
-    <button data-testid="fcc-store-back" onClick={onBack} style={headerPill}>
+    <WallButton data-testid="fcc-store-back" onClick={onBack} style={headerPill}>
       <ArrowLeft size={22 * k} strokeWidth={2.5} aria-hidden="true" />
       {t('fullscreen-chore-chart.rewardsStore.backToChores')}
-    </button>
+    </WallButton>
   );
   const headerButtons = (historyButton || backButton) && (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 * k, flexShrink: 0 }}>
@@ -315,6 +317,7 @@ export function RewardsStoreView({
   return (
     <div
       data-testid="fcc-store"
+      {...BROWSE_HOLD_ATTR}
       onPointerDown={handlePointerDown}
       style={{
         height: '100%',
@@ -411,7 +414,7 @@ export function RewardsStoreView({
           busy={redeem.busy}
           asksGrownUp={redeem.asksGrownUp}
           onConfirm={redeem.confirm}
-          onCancel={redeem.cancel}
+          sheet={redeem.sheet}
           k={k}
           t={tt}
           d={d}

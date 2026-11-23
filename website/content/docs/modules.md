@@ -10,7 +10,7 @@ nextjs:
 
 A **module** is one thing on your display: a clock, a weather forecast, a calendar grid, a photo slideshow. Home Screens ships with {% $stats.moduleCount %} built-in modules across {% $stats.categoryCount %} categories, and you arrange them by dragging from the module palette onto the canvas in the editor. This page is a short tour of what's available and how to use it.
 
-One of those categories, **Health & Fitness**, is reserved for plugins and fills in the moment you install a fitness one; the built-in modules occupy the other eight.
+One of those categories, **Health & fitness**, is reserved for plugins and fills in the moment you install a fitness one; the built-in modules occupy the other eight.
 
 Looking for every configuration option? Jump to the **[Module Reference](/docs/module-reference)**: every setting, default value, and allowed option for all {% $stats.moduleCount %} modules.
 
@@ -22,7 +22,7 @@ Open the **Editor** and you'll see three surfaces: the **module palette** on the
 
 1. **Drag** a module from the palette onto the canvas. Each one lands at a sensible size for what it shows, so you don't have to size it yourself, and it can never be dropped off the edge of the canvas.
 2. **Resize** it by dragging the bottom-right corner. **Move** it by dragging the module body. Positions snap to a 20-pixel grid while snapping is on, which is what keeps a row of modules lining up.
-3. **Click** it to open its settings in the property panel. **Position & Size** and **Style** sit at the top as collapsed headers, the module's own settings open below them, and **Visibility**, **Schedule**, **Conditions**, and a Delete button follow at the bottom.
+3. **Click** it to open its settings in the property panel. **Position & size** and **Style** sit at the top as collapsed headers, the module's own settings open below them, and **Visibility**, **Schedule**, **Conditions**, and a Delete button follow at the bottom.
 4. **Schedule** it to appear only on certain days or time windows via the Schedule accordion, handy for "only show the school-morning chore list Mon–Fri, 6–8 am."
 
 Most modules have several **views**: different visual treatments of the same information, picked from a dropdown at the top of the module's settings. Half the catalogue offers more than one, and the clock alone has {% $stats.clockViewCount %}. It is worth flipping through them before deciding a module isn't what you wanted.
@@ -46,7 +46,7 @@ Photo Slideshow and Full-Screen Photo Viewer can pull photos straight from a per
 1. Create a free app registration: sign in at [portal.azure.com](https://portal.azure.com), open **App registrations**, and choose **New registration**. Give it a name of your choice and pick "Personal accounts only". Leave the Redirect parts empty. Click Register.
 2. Open **Manage > Authentication > Settings** and enable **Allow public client flows**. Click Save.
 3. Click on **Overview** and Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
-4. Back in the module's **Photo Source** list choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
+4. Back in the module's **Photo source** list choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
 5. Pick a folder. Photos come from that folder and every folder inside it. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 If the saved sign-in ever stops working on its own, click **Sign in with Microsoft** again.
@@ -61,37 +61,37 @@ Each category in the palette groups related modules, with a count next to its na
 
 Every module below names what it shows, the **views** you can pick from the dropdown at the top of its settings, and what it needs before it works. Every setting, with its exact allowed values, is in the [Module Reference](/docs/module-reference).
 
-### Full Screen
+### Full-screen views {% #full-screen %}
 
 Ambient displays that fill the whole screen. They have no position, size or style controls, and they share one set of twelve colour themes: Linen, Paper, Mist, Sandstone, Vellum and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian and Horizon for dark ones. Pick one per module, or set a default for the whole display under **Settings > Screen**. Full-Screen Weather paints its own sky instead, so its theme only shows when **Sky** is **Still** or **Off**.
 
-- **Full-Screen Calendar** ([reference](/docs/module-reference#full-screen-calendar)): the family's week or month on the whole wall. Views: **Schedule** (a column per day), **Week List**, **Month Grid**, **Day Timeline**, **Agenda**, **Family Grid** (one row per person), **Up Next**, **Free Time** and **Rolling Weeks** (the next few weeks, starting today). The week list can show planned meals and chore progress too. Needs a [calendar](/docs/calendars); the family grid and free time views also need **Whose calendars?** filled in on the Calendar page.
+- **Full-Screen Calendar** ([reference](/docs/module-reference#full-screen-calendar)): the family's week or month on the whole wall. Views: **Schedule** (a column per day), **Week list**, **Month grid**, **Day timeline**, **Agenda**, **Family grid** (one row per person), **Up next**, **Free time** and **Rolling weeks** (the next few weeks, starting today). The week list can show planned meals and chore progress too. Needs a [calendar](/docs/calendars); the family grid and free time views also need **Whose calendars?** filled in on the Calendar page.
 - **Full-Screen Weather** ([reference](/docs/module-reference#full-screen-weather)): a weather wall under a living sky that moves with the weather outside (drifting clouds, rain, snow, fog and stars); set **Sky** to **Still** or **Off** if an older display stutters. Views: **Panorama**, **Wide strip** (for a module across the foot of the screen), **Almanac**, **Ambient**, **Week ahead**, **Hour by hour**, **Forecast** (the hours, the days and a rain map on one page) and **Conditions** (a grid of instrument cards: wind, sun, moon, UV, air quality and more), each with a portrait and a landscape layout. The Forecast and Conditions cards are one list in the module's settings: switch a card off or drag it to change the order. Forecast shows the first two under its rain map, or up to six on a landscape display. The air quality card needs an OpenWeatherMap key. A **Weather source** setting picks a provider other than the default. Needs a [location](/docs/weather).
-- **Full-Screen Chore Chart** ([reference](/docs/module-reference#full-screen-chore-chart)): the chore board for the whole family, grouped by time of day or by person, with each person's tickets and the week's stars. Views: **Chore Board**, **Rewards Store**, where kids browse what their tickets can buy, and three **Reward History** views (day by day, totals, and the newest reward in the spotlight). Needs people and chores from the [family remote](/docs/chores). Kids can check things off on a touchscreen.
-- **Full-Screen Meal Planner** ([reference](/docs/module-reference#full-screen-meal-planner)): the week's meals. Views: **Week**, **Today**, **Menu Board**, **Next Meal**, **Recipe** (the next meal's ingredients and steps, big enough to cook from) and **Grocery List**. Needs meals planned from the [family remote](/docs/meals).
+- **Full-Screen Chore Chart** ([reference](/docs/module-reference#full-screen-chore-chart)): the chore board for the whole family, grouped by time of day or by person, with each person's tickets and the week's stars. Views: **Chore board**, **Rewards store**, where kids browse what their tickets can buy, and three **Reward history** views (day by day, totals, and the newest reward in the spotlight). Needs people and chores from the [family remote](/docs/chores). Kids can check things off on a touchscreen.
+- **Full-Screen Meal Planner** ([reference](/docs/module-reference#full-screen-meal-planner)): the week's meals. Views: **Week**, **Today**, **Menu board**, **Next meal**, **Recipe** (the next meal's ingredients and steps, big enough to cook from) and **Grocery list**. Needs meals planned from the [family remote](/docs/meals).
 - **Full-Screen News** ([reference](/docs/module-reference#full-screen-news)): headlines with their photos. Views: **Story** (one story at a time) and **Front page** (a lead story and five more). Uses the same feed list as the News Headlines tile; see the [News](/docs/news) page.
 - **Full-Screen Photo Viewer** ([reference](/docs/module-reference#full-screen-photo-viewer)): a digital photo frame with transitions, shuffle and a slow Ken Burns drift, from your own library, Immich, an iCloud shared album, OneDrive, Unsplash, NASA or museum paintings, or a single photo as a fixed wallpaper. Needs photos; see [Photos and backgrounds](/docs/backgrounds). Putting one on a screen also switches on the family remote's Photos tab.
 
-### Time & Date
+### Time & date
 
 - **Clock** ([reference](/docs/module-reference#clock)): {% $stats.clockViewCount %} looks, from **Classic**, **Digital** and **Analog** to **Flip**, **Word**, **Binary**, **Neon** and **World**. Follows the display's 12 or 24-hour setting or picks its own, seconds on or off, and an optional date line. Needs nothing.
-- **Calendar** ([reference](/docs/module-reference#calendar)): the next few days of events in a tile. Views: **Daily Columns**, **Agenda List**, **Week Grid**, **Multi-Week Grid**, **Month Grid** and **Rolling Weeks**, with classic or coloured event styling. Needs a [calendar](/docs/calendars).
-- **Countdown** ([reference](/docs/module-reference#countdown)): days until a birthday, a trip or the last day of school. Add as many events as you like; views **All Events** (stacked) or just the **Next Event**. Needs nothing.
+- **Calendar** ([reference](/docs/module-reference#calendar)): the next few days of events in a tile. Views: **Daily columns**, **Agenda list**, **Week grid**, **Multi-week grid**, **Month grid** and **Rolling weeks**, with classic or coloured event styling. Needs a [calendar](/docs/calendars).
+- **Countdown** ([reference](/docs/module-reference#countdown)): days until a birthday, a trip or the last day of school. Add as many events as you like; views **All events** (stacked) or just the **Next event**. Needs nothing.
 - **Date** ([reference](/docs/module-reference#date)): today's date in five layouts: **Full**, **Minimal**, **Stacked**, **Editorial** and **Banner**. Needs nothing.
 - **Year Progress** ([reference](/docs/module-reference#year-progress)): how much of the year has gone, as a bar. Needs nothing.
 - **Multi-Month Calendar** ([reference](/docs/module-reference#multi-month-calendar)): a three-month grid, **Vertical** or **Horizontal**, with today marked. With **Mark days with events** on, a day with something on it gets up to three small dots in its calendars' colours, and on a touchscreen a tap on that day lists its events. Needs nothing; the dots and the list need a calendar.
 
-### Weather & Environment
+### Weather & environment
 
 All of these use the location under **Settings > Location & language**; see [Weather](/docs/weather).
 
-- **Weather** ([reference](/docs/module-reference#weather)): the forecast in {% $stats.weatherViewCount %} views: **Current Only**, **Hourly**, **Daily Forecast**, **Combined**, **Compact**, **Table**, **Precipitation**, **Weather Alerts**, and five pieces borrowed from Full-Screen Weather: **Temperature ribbon**, **Week ahead**, **Hour by hour**, **Stats** and **Sun and moon**, plus a **Written forecast**, a line or two per day (on NOAA, the sentences the US National Weather Service writes). **Precipitation** needs Pirate Weather and **Weather Alerts** needs Pirate Weather or NOAA, so those two show up in the list only while the module's weather comes from one of them. A **Weather source** setting picks a provider other than the default. Works with no key on the default provider.
+- **Weather** ([reference](/docs/module-reference#weather)): the forecast in {% $stats.weatherViewCount %} views: **Current only**, **Hourly**, **Daily forecast**, **Combined**, **Compact**, **Table**, **Precipitation**, **Weather alerts**, and five pieces borrowed from Full-Screen Weather: **Temperature ribbon**, **Week ahead**, **Hour by hour**, **Stats** and **Sun and moon**, plus a **Written forecast**, a line or two per day (on NOAA, the sentences the US National Weather Service writes). **Precipitation** needs Pirate Weather and **Weather alerts** needs Pirate Weather or NOAA, so those two show up in the list only while the module's weather comes from one of them. A **Weather source** setting picks a provider other than the default. Works with no key on the default provider.
 - **Moon Phase** ([reference](/docs/module-reference#moon-phase)): tonight's moon, its name and how much of it is lit.
-- **Sunrise / Sunset** ([reference](/docs/module-reference#sunrise-sunset)): today's sunrise and sunset. Views: **Default** (the times as text), **Sun Arc** and **24h Circle**.
+- **Sunrise / Sunset** ([reference](/docs/module-reference#sunrise-sunset)): today's sunrise and sunset. Views: **Default** (the times as text), **Sun arc** and **24h circle**.
 - **Air Quality** ([reference](/docs/module-reference#air-quality)): the air quality index and its parts. Needs an OpenWeatherMap key on the Weather page, whichever weather provider you use.
 - **Rain Map** ([reference](/docs/module-reference#rain-map)): an animated rain radar centred on your home, on a dark, standard or light map. Works with no key. Turn off **Play the last two hours of radar** to hold the newest picture still. **Only show when rain is likely** at the top of its settings hides it on dry days; see [Weather](/docs/weather#show-the-rain-map-only-when-rain-is-likely).
 
-### News & Finance
+### News & finance
 
 - **News Headlines** ([reference](/docs/module-reference#news-headlines)): stories from any site, blog, YouTube channel or subreddit, several feeds at once. Views: **Headline**, **List**, **Ticker**, **Compact** and **Cards**. The [News](/docs/news) page covers feeds and family-friendly filters. Needs nothing.
 - **Stock Ticker** ([reference](/docs/module-reference#stock-ticker)): prices for the symbols you list. Views: **Cards**, **Ticker**, **Table**, **Compact** and **Single**. Needs nothing.
@@ -99,33 +99,33 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **Sports Scores** ([reference](/docs/module-reference#sports-scores)): live and recent scores from {% $stats.standingsLeagueCount %} leagues, college football and basketball included, with AP rankings on college teams. Pick your teams and their games come first, or show only theirs. Views: **Scoreboard**, **Cards**, **List**, **Ticker** and **Team** (one team's record, next game and last result). Cards and List turn pages when the games do not all fit, so a sixty-game college Saturday comes around in full; Scoreboard, Team, Cards and List share one **Next page every** setting. Needs nothing.
 - **Sports Standings** ([reference](/docs/module-reference#sports-standings)): league tables for {% $stats.standingsLeagueCount %} leagues, with your teams highlighted. Views: **Table**, **Compact** and **Conference**. A table too long for its box turns pages, so the teams at the bottom come around too. Needs nothing.
 
-### Knowledge & Fun
+### Knowledge & fun
 
 - **Dad Joke** ([reference](/docs/module-reference#dad-joke)), **Quote of the Day** ([reference](/docs/module-reference#quote-of-the-day)), **Word of the Day** ([reference](/docs/module-reference#word-of-the-day)) and **This Day in History** ([reference](/docs/module-reference#this-day-in-history)): one fresh item each, refreshed on a schedule you set. All need nothing.
 
 ### Personal
 
 - **To-Do List** ([reference](/docs/module-reference#to-do-list)): one of the family's shared lists, kept on your phone under **Lists** in the family remote. Views: **List**, **Focus**, **Progress**, **Board** (every list side by side) and **Compact**. Due days and who each thing is for show on the wall. Needs nothing. See [Lists](/docs/lists).
-- **Notes** ([reference](/docs/module-reference#notes)): the family notes board, written on your phone under **Notes** in the family remote, or in the editor with **Manage notes** at the top of the module's settings. Each note shows who wrote it and comes down on its own after the time picked for it. Views: **Board**, **Cards**, **Sticky** (paper notes in each person's colour), **Bubbles** (a family chat), **Spotlight** (one note at a time, large), **Compact**, **Count** (how many notes are up), **Strip** (a one-line bar), **Ticker**, **Timeline**, **Focus**, **By person**, **Pinned and new** and **Latest**, plus eight **Materials** that bring their own look in place of the card's colours and font: **Chalkboard**, **Letterboard**, **Whiteboard**, **Fridge**, **Notebook**, **Receipt**, **Neon** and **Headline** (a newspaper front page). Needs nothing. See [Notes](/docs/notes).
+- **Notes** ([reference](/docs/module-reference#notes)): the family notes board, written on your phone under **Notes** in the family remote, or in the editor with **Edit notes** at the top of the module's settings. Each note shows who wrote it and comes down on its own after the time picked for it. Views: **Board**, **Cards**, **Sticky** (paper notes in each person's colour), **Bubbles** (a family chat), **Spotlight** (one note at a time, large), **Compact**, **Count** (how many notes are up), **Strip** (a one-line bar), **Ticker**, **Timeline**, **Focus**, **By person**, **Pinned and new** and **Latest**, plus eight **Materials** that bring their own look in place of the card's colours and font: **Chalkboard**, **Letterboard**, **Whiteboard**, **Fridge**, **Notebook**, **Receipt**, **Neon** and **Headline** (a newspaper front page). Needs nothing. See [Notes](/docs/notes).
 - **Todoist** ([reference](/docs/module-reference#todoist)): your Todoist tasks. Views: **List**, **Board** and **Focus**. Needs a Todoist token on the API keys page.
 - **Sticky Note** ([reference](/docs/module-reference#sticky-note)): a note for the family. Needs nothing.
 - **Greeting** ([reference](/docs/module-reference#greeting)): "Good morning, Taylor" and a line for the time of day. Needs nothing.
 - **Garbage Day** ([reference](/docs/module-reference#garbage-day)): trash, recycling and yard-waste reminders on the schedule you set, with a warning the night before. Needs nothing.
 - **Affirmations** ([reference](/docs/module-reference#affirmations)): a kind line for the day in four views: **Elegant**, **Card**, **Minimal** and **Typewriter**. Needs nothing.
-- **Meal Planner** ([reference](/docs/module-reference#meal-planner)): this week's meals in a tile. Views: **Week Grid**, **Today's Meals**, **Next Meal** (shown large), **Compact** (today and tomorrow), **Full Week List** and **Grocery List**. Needs meals from the [family remote](/docs/meals).
-- **Chore Chart** ([reference](/docs/module-reference#chore-chart)): today's chores in a tile. Views: **Board** (a column per person), **Star Chart** (the week), **Today** (by time of day), **Progress** (a ring per person), **Compact** (a dense grid), **Reward History** and **Rewards Store**. Needs people and chores from the [family remote](/docs/chores). Kids can check things off on a touchscreen.
+- **Meal Planner** ([reference](/docs/module-reference#meal-planner)): this week's meals in a tile. Views: **Week grid**, **Today's meals**, **Next meal** (shown large), **Compact** (today and tomorrow), **Full week list** and **Grocery list**. Needs meals from the [family remote](/docs/meals).
+- **Chore Chart** ([reference](/docs/module-reference#chore-chart)): today's chores in a tile. Views: **Board** (a column per person), **Star chart** (the week), **Today** (by time of day), **Progress** (a ring per person), **Compact** (a dense grid), **Reward history** and **Rewards store**. Needs people and chores from the [family remote](/docs/chores). Kids can check things off on a touchscreen.
 - **School Timetable** ([reference](/docs/module-reference#school-timetable)): the school week of the children you pick, one card each, with today's column lit up, what to pack and the holidays marked. Views: **Week** (a card per child) and **Day** (the whole family's school day on one clock: today, then the next one from the afternoon), each with three levels of detail, side by side or stacked. Needs people under **Settings > Family** and a week typed in or imported from a spreadsheet. See [School timetable](/docs/school-timetable).
 
-### Health & Fitness
+### Health & fitness
 
 - Home to activity and wellness modules from [plugins](/docs/plugins): the Strava plugin (activity feed, stat tiles, goal rings, training heatmap, route map; note that Strava only lets subscribers create the free developer app this connects through, so it needs an active Strava subscription) and the Garmin plugin (daily summary, Body Battery, sleep, recent activities, weekly training). No built-in modules live here yet; the section appears in the palette once you install a plugin that uses it.
 
-### Media & Display
+### Media & display
 
 - **Text** ([reference](/docs/module-reference#text)): any words, with rich formatting, gradients, twelve effects and a scrolling marquee. Needs nothing.
 - **Image** ([reference](/docs/module-reference#image)): one picture from your library, Immich, Unsplash, NASA or a link. **Video** ([reference](/docs/module-reference#video)): a video from your library, a direct link or YouTube, looping, with or without sound.
 - **Photo Slideshow** ([reference](/docs/module-reference#photo-slideshow)): photos, videos or both from a folder in your library, Immich or an iCloud shared album, or photos from OneDrive, Unsplash, NASA or museum paintings. See [Photos and backgrounds](/docs/backgrounds).
-- **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your WiFi so guests can join by scanning. Needs nothing.
+- **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your Wi-Fi so guests can join by scanning. Needs nothing.
 - **Web Embed** ([reference](/docs/module-reference#web-embed-i-frame)): any web page in a tile: a Home Assistant dashboard, a Grafana chart, a Google Sheet. Needs a page that allows being embedded.
 - **Icon** ([reference](/docs/module-reference#icon)): a single icon, an emoji or one of your own pictures, with rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
 - **Display Control** ([reference](/docs/module-reference#display-control)): touch buttons for sleep, brightness and moving between screens, aimed at this display, another one by name, or all of them. Five layouts: **Bar**, **Pad**, **Panel**, **Arrows** (just Previous and Next, filling the whole module) and **Dock** (one button per screen, with Sleep and Brightness if you like). Dock and Panel can also show a Timers button that starts a routine or a quick timer. For touchscreens.
@@ -141,9 +141,9 @@ All of these use the location under **Settings > Location & language**; see [Wea
 If your display is a touchscreen, a handful of modules do more than just show information.
 
 - **Chore Chart** and **Full-Screen Chore Chart**: kids tap a chore to check it off, right on the wall. **On by default.** The Full-Screen version can also show a rewards store where they spend the tickets they've earned.
-- **To-Do List**: tap an item to tick it. **On by default** for new modules; *Tap to check off* in the module's settings turns it off. A tick goes to the shared list, so the phone and every display showing that list stay in step.
+- **To-Do List**: tap an item to tick it. **On by default** for new modules; *Tap on the wall* in the module's settings turns it off. A tick goes to the shared list, so the phone and every display showing that list stay in step.
 - **Todoist**: tap a task to complete it in Todoist itself; the whole row takes the tap, and a list longer than its box scrolls under a finger. **Off by default.**
-- **Meal Planner** and **Full-Screen Meal Planner**: tap a meal to see its recipe on a card on the wall, get a QR code you scan with your phone, or open the recipe page right on the display. The **Grocery List** view lets anyone tick things off, and the **Recipe** view has **Back** and **Next step** buttons to follow along while you cook. Both are **on by default**; *Tap on the Wall* in the module's settings turns them off.
+- **Meal Planner** and **Full-Screen Meal Planner**: tap a meal to see its recipe on a card on the wall, get a QR code you scan with your phone, or open the recipe page right on the display. The **Grocery list** view lets anyone tick things off, and the **Recipe** view has **Back** and **Next step** buttons to follow along while you cook. Both are **on by default**; *Tap on the wall* in the module's settings turns them off.
 - **News Headlines** and **Full-Screen News**: tap a story to get a QR code that opens it on your phone, or the story's summary. **On by default**; change or turn it off under *When a story is tapped*.
 - **Display Control**: buttons for sleep, brightness, and moving between screens, aimed at this display or another one.
 
@@ -151,7 +151,7 @@ If your display is a touchscreen, a handful of modules do more than just show in
 
 ## Configuring a module
 
-Selecting a module opens the property panel on the right, grouped into **Position & Size**, **Style**, the module's own settings, then **Visibility**, **Schedule**, and **Conditions**. Clicking empty canvas switches the panel to screen-level settings and the screen's background instead.
+Selecting a module opens the property panel on the right, grouped into **Position & size**, **Style**, the module's own settings, then **Visibility**, **Schedule**, and **Conditions**. Clicking empty canvas switches the panel to screen-level settings and the screen's background instead.
 
 Numeric fields clamp to sensible ranges and any field with a fixed set of choices becomes a dropdown, so you can't type an invalid value. The [Editor guide](/docs/editor#configuring-modules) covers each section in detail, and the [Module Reference](/docs/module-reference) lists the exact allowed values per module.
 

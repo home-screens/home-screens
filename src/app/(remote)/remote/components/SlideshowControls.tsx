@@ -7,6 +7,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { displayCommandRequest } from '@/lib/display-dispatch';
 import type { SlideshowAction } from '@/components/modules/shared/slideshow-commands';
 import { useDisplayTarget } from '../display-target';
+import { REMOTE_ACCENT, REMOTE_ON_ACCENT } from './remote-styles';
 
 interface SlideshowControlsProps {
   /** The photo module types on the screens showing now, which the command addresses. */
@@ -64,7 +65,8 @@ export default function SlideshowControls({ moduleTypes, screenKey, disabled }: 
           }}
           disabled={disabled}
           aria-pressed={paused}
-          className="w-14 h-14 rounded-full bg-hs-accent text-white flex items-center justify-center shrink-0 transition-transform active:scale-95 disabled:opacity-40"
+          className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 disabled:opacity-40"
+          style={{ background: REMOTE_ACCENT, color: REMOTE_ON_ACCENT }}
           aria-label={paused ? t('slideshowControls.play') : t('slideshowControls.pause')}
           data-testid="slideshow-pause"
         >

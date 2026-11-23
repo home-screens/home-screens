@@ -10,7 +10,8 @@ import { useLongPress } from '@/hooks/useLongPress';
 import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { ticketWords } from './ticket-words';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK, REMOTE_ON_ACCENT } from './remote-styles';
+import { memberInk } from '@/lib/family-avatar';
 import { withAlpha } from '@/lib/hex-color';
 
 /** How long after Let it go a tap on the same row does not tick it. */
@@ -147,7 +148,7 @@ export default function BonusChoreRow({
     line = didOn(myDoneOn);
   } else if (mineDone) {
     line = t('choresTab.bonus.youGotIt', { n: chore.points });
-    lineColor = REMOTE_ACCENT;
+    lineColor = REMOTE_ACCENT_INK;
   } else if (mineHeld) {
     // "Tick it when you're done" only where it can be ticked.
     line = locked ? t('choresTab.bonus.youreOnIt') : t('choresTab.bonus.youGrabbedIt');
@@ -158,7 +159,7 @@ export default function BonusChoreRow({
     // The same line at the limit: a row that changes size moves the rows
     // under it, and a second tap then lands on the wrong chore.
     line = tickets;
-    lineColor = REMOTE_ACCENT;
+    lineColor = REMOTE_ACCENT_INK;
   }
 
   const background = locked
@@ -185,13 +186,13 @@ export default function BonusChoreRow({
         position: 'relative', width: 28, height: 28, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: mineDone ? checkedColor : 'transparent',
-        border: mineDone ? 'none' : `2px ${mineHeld ? 'solid' : 'dashed'} ${mineHeld ? checkedColor : REMOTE_ACCENT}`,
+        border: mineDone ? 'none' : `2px ${mineHeld ? 'solid' : 'dashed'} ${mineHeld ? checkedColor : REMOTE_ACCENT_INK}`,
       }}
     >
       {holding && (
         <div style={{ position: 'absolute', inset: 0, background: 'var(--hs-bg-card)', transformOrigin: 'bottom', transform: `scaleY(${hold.progress})`, opacity: 0.85 }} />
       )}
-      {mineDone && <Check size={16} color="white" strokeWidth={2.5} style={{ position: 'relative' }} />}
+      {mineDone && <Check size={16} color={memberInk(checkedColor)} strokeWidth={2.5} style={{ position: 'relative' }} />}
     </div>
   );
 
@@ -245,7 +246,7 @@ export default function BonusChoreRow({
             {line && (
               <span role={hinting ? 'status' : undefined} style={{ fontSize: 12, fontWeight: mineHeld || mineDone ? 600 : 400, color: lineColor, display: 'flex', alignItems: 'center', gap: 6 }}>
                 {othersId && !hinting && (
-                  <span aria-hidden style={{ width: 16, height: 16, borderRadius: '50%', background: colorOf(othersId), color: '#fff', fontSize: 9, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span aria-hidden style={{ width: 16, height: 16, borderRadius: '50%', background: colorOf(othersId), color: memberInk(colorOf(othersId)), fontSize: 9, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {nameOf(othersId)[0]}
                   </span>
                 )}
@@ -254,7 +255,7 @@ export default function BonusChoreRow({
             )}
           </span>
           {!locked && !mineHeld && !mineDone && !showGrabButton && (
-            <span style={{ fontSize: 11, flexShrink: 0, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: REMOTE_ACCENT, background: withAlpha(REMOTE_ACCENT, 0.18) }}>
+            <span style={{ fontSize: 11, flexShrink: 0, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: REMOTE_ACCENT_INK, background: withAlpha(REMOTE_ACCENT, 0.18) }}>
               {tickets}
             </span>
           )}
@@ -275,7 +276,7 @@ export default function BonusChoreRow({
               : t('choresTab.bonus.grabAriaLabel', { chore: chore.name, tickets })}
             style={{
               ...sideButton, border: 'none',
-              background: atLimit ? 'var(--hs-bg-hover)' : REMOTE_ACCENT, color: atLimit ? 'var(--hs-text-faint)' : '#111',
+              background: atLimit ? 'var(--hs-bg-hover)' : REMOTE_ACCENT, color: atLimit ? 'var(--hs-text-faint)' : REMOTE_ON_ACCENT,
             }}
           >
             <Hand size={15} aria-hidden />

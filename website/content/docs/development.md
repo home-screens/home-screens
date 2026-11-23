@@ -77,14 +77,14 @@ There are currently **{% $stats.moduleCount %} modules** organized into {% $stat
 
 | Category | Modules |
 |---|---|
-| **Full Screen** | fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-weather, fullscreen-photo, fullscreen-news |
-| **Time & Date** | clock, calendar, countdown, year-progress, multi-month, date |
-| **Weather & Environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
-| **News & Finance** | news, stock-ticker, crypto, sports, standings |
-| **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
+| **Full-screen views** | fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-weather, fullscreen-photo, fullscreen-news |
+| **Time & date** | clock, calendar, countdown, year-progress, multi-month, date |
+| **Weather & environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
+| **News & finance** | news, stock-ticker, crypto, sports, standings |
+| **Knowledge & fun** | dad-joke, quote, word-of-day, history |
 | **Personal** | todo, notes, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart, timetable |
-| **Health & Fitness** | *(no built-ins; reserved for plugins such as Strava and Garmin. The palette hides the category while it is empty.)* |
-| **Media & Display** | text, image, video, photo-slideshow, qr-code, iframe, icon, shape, display-control |
+| **Health & fitness** | *(no built-ins; reserved for plugins such as Strava and Garmin. The palette hides the category while it is empty.)* |
+| **Media & display** | text, image, video, photo-slideshow, qr-code, iframe, icon, shape, display-control |
 | **Travel** | traffic |
 
 The module system follows a registry pattern. Each module is a self-contained unit, wired together in sequence:
@@ -206,7 +206,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Family data** | `family`, `family/groups`, `chores`, `chores/grab`, `chores/skip`, `chores/put-back`, `chores/settings`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/lists`, `notes`, `timetables/*` | The family roster and groups, and local chore, reward, meal-plan, timer-routine, to-do list, notes board and school timetable state |
 | **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap`, `display/power-state` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only Pis, screen power for the kiosk's power helper |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/migrate-config`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
-| **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | WiFi scan and connect, hostname, static IP, and connectivity checks |
+| **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | Wi-Fi scan and connect, hostname, static IP, and connectivity checks |
 | **Photos** | `photo-source/media`, `photo-source/browse`, `photo-source/import`, `google-picker/auth`, `google-picker/session`, `google-picker/import`, `google-picker/status`, `immich/*`, `onedrive/*`, `icloud/import` | One media list for every photo source, browsing and copying one picture, the Google Photos Picker import, and the Immich, OneDrive and iCloud pieces (connection checks, picture proxies, sign-in, import) |
 | **i18n** | `i18n/[locale]` | Serves locale dictionaries by namespace |
 | **Media** | `backgrounds`, `backgrounds/inventory`, `backgrounds/directories`, `backgrounds/move`, `backgrounds/rotate`, `backgrounds/serve`, `custom-icons`, `custom-icons/[id]`, `custom-icons/serve`, `backup/custom-icons` | The shared picture and video library, background rotation, and the family's own icons |

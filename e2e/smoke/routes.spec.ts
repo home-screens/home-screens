@@ -36,7 +36,7 @@ test('editor loads with the module palette', async ({ page }) => {
 
 test('remote loads the control tab', async ({ page }) => {
   await page.goto('/remote');
-  await expect(page.getByRole('button', { name: 'Sleep Display' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Put the wall to sleep' })).toBeVisible();
 });
 
 test('login redirects to the editor while auth is disabled', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('the hub root', () => {
       const launcher = page.getByTestId('root-launcher');
       await expect(launcher).toBeVisible();
       await expect(launcher.getByRole('link', { name: /Family remote/ })).toHaveAttribute('href', '/remote');
-      await expect(launcher.getByRole('link', { name: /Display/ })).toHaveAttribute('href', '/display');
+      await expect(launcher.getByRole('link', { name: /The wall/ })).toHaveAttribute('href', '/display');
       // No chore chart on any screen yet, so /chores (an empty state a phone
       // visitor cannot act on) is not offered.
       await expect(launcher.getByRole('link', { name: /Kids' chores/ })).toHaveCount(0);

@@ -51,7 +51,7 @@ export const POST = withAuth<RouteContext>(async (request, ctx) => {
       const body = await parseJsonBody<StartBody>(request);
       if (body instanceof NextResponse) return body;
       if (!body.email || !body.password) {
-        return NextResponse.json({ error: 'Enter your email and password.' }, { status: 400 });
+        return NextResponse.json({ error: 'Enter your email and password.', code: 'pluginAuth.credentialsNeeded' }, { status: 400 });
       }
       const result = await garminLogin(body.email, body.password);
       if (result.status === 'mfa_required') {

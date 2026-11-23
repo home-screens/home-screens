@@ -10,8 +10,9 @@ import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { isOnlineNow } from '@/lib/display-liveness';
-import { settingsPath } from '@/lib/settings-route';
+import { settingsPath, placeText } from '@/lib/settings-route';
 import { useLocale, useTranslate } from '@/i18n';
+import StatusDot from '@/components/ui/StatusDot';
 
 /**
  * Display picker for the editor toolbar. Shows which display the editor is
@@ -29,6 +30,7 @@ import { useLocale, useTranslate } from '@/i18n';
  */
 export default function DisplaySwitcher() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useLocale();
   const router = useRouter();
   const { config, selectedDisplayId, setSelectedDisplay } = useEditorStore();
@@ -129,7 +131,7 @@ export default function DisplaySwitcher() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('displaySwitcher.label')}
-        title={t('displaySwitcher.title')}
+        title={t('displaySwitcher.title', { place: placeText([tCore('actions.settings'), t('settings.sidebar.perDisplay')]) })}
         data-testid="display-switcher"
         className="flex items-center gap-2 rounded-md border border-hs-border-strong bg-hs-card/70 px-2.5 py-1.5 text-xs text-hs-text-body hover:bg-hs-hover transition-colors"
       >
@@ -175,10 +177,7 @@ export default function DisplaySwitcher() {
                   d.id === active.id ? 'bg-hs-accent-soft' : 'hover:bg-hs-hover'
                 }`}
               >
-                <span
-                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${online ? 'bg-hs-success' : 'bg-hs-text-faint'}`}
-                  aria-hidden="true"
-                />
+                <StatusDot tone={online ? 'success' : 'neutral'} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-xs text-hs-text-body">{d.name}</span>
                   <span className="block truncate text-[10px] tabular-nums text-hs-text-faint">

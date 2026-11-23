@@ -19,7 +19,6 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
   // The Calendar card's own source list and wording: the same calendars, named the same way.
   const { availableSources } = useCalendarSources('configSections.calendar');
   const usesEvents = c.showEventMarks === true || c.eventTapDetails === true;
-  const hintClass = 'text-xs leading-relaxed text-hs-text-muted';
 
   const TODAY_STYLE_OPTIONS: { value: MultiMonthTodayStyle; label: string }[] = [
     { value: 'filled', label: t('configSections.multi-month.todayFilled') },
@@ -64,6 +63,7 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
       {(c.todayStyle ?? 'filled') !== 'none' && (
         <ColorPicker
           label={t('configSections.multi-month.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? DEFAULT_CALENDAR_ACCENT}
           onChange={(v) => set({ accentColor: v })}
           defaultValue={DEFAULT_CALENDAR_ACCENT}
@@ -71,10 +71,12 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
         />
       )}
       <CalendarGroup label={t('configSections.multi-month.events')}>
-        <div className="flex flex-col gap-1">
-          <Toggle label={t('configSections.multi-month.showEventMarks')} checked={c.showEventMarks === true} onChange={(v) => set({ showEventMarks: v })} />
-          <p className={hintClass}>{t('configSections.multi-month.showEventMarksHint')}</p>
-        </div>
+        <Toggle
+          label={t('configSections.multi-month.showEventMarks')}
+          checked={c.showEventMarks === true}
+          onChange={(v) => set({ showEventMarks: v })}
+          description={t('configSections.multi-month.showEventMarksHint')}
+        />
         {usesEvents && (
           <>
             <CalendarSourceFilter
@@ -83,23 +85,23 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
               sourceFilter={c.sourceFilter ?? []}
               onChange={(next) => set({ sourceFilter: next })}
             />
-            <div className="flex flex-col gap-1">
-              <Toggle label={t('configSections.calendarDayNotes.label')} checked={c.showDayNotes === true} onChange={(v) => set({ showDayNotes: v })} />
-              <p className={hintClass}>{t('configSections.multi-month.showDayNotesHint')}</p>
-            </div>
+            <Toggle
+              label={t('configSections.calendarDayNotes.label')}
+              checked={c.showDayNotes === true}
+              onChange={(v) => set({ showDayNotes: v })}
+              description={t('configSections.multi-month.showDayNotesHint')}
+            />
           </>
         )}
       </CalendarGroup>
       <CalendarGroup label={t('configSections.calendarGroups.touch')}>
-        <div className="flex flex-col gap-1">
-          <Toggle label={t('configSections.multi-month.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
-          <p className={hintClass}>{t('configSections.multi-month.eventTapDetailsHint')}</p>
-        </div>
-        {c.eventTapDetails === true && (
-          <div className="flex flex-col gap-1">
-            <AddEventsToggle checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} hintClassName={hintClass} />
-          </div>
-        )}
+        <Toggle
+          label={t('configSections.multi-month.eventTapDetails')}
+          checked={c.eventTapDetails === true}
+          onChange={(v) => set({ eventTapDetails: v })}
+          description={t('configSections.multi-month.eventTapDetailsHint')}
+        />
+        {c.eventTapDetails === true && <AddEventsToggle checked={c.addEvents !== false} onChange={(v) => set({ addEvents: v })} />}
       </CalendarGroup>
     </>
   );

@@ -39,7 +39,7 @@ A free, open-source smart display for your kitchen, hallway, or family command c
 - **Module**: one thing on a screen. A clock, a weather forecast, a chore chart, a photo slideshow.
 - **Plugin**: an extra module you install from the Plugins button in the editor. Home Assistant, Garmin and Strava are plugins.
 - **Family remote**: the phone page for grown-ups, at `/remote`. Chores, meals, lists, timers, photos, and control of the wall.
-- **Kid view**: the phone page for children, at `/chores`. Check off today's chores and spend tickets, nothing else.
+- **Kids' chores**: the phone page for children, at `/chores`. Check off today's chores and spend tickets, nothing else.
 - **Hub**: the Pi that runs Home Screens. It only comes up when you have more than one display; the others show what the hub serves.
 
 ## Privacy and safety

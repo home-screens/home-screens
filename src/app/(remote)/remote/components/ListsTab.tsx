@@ -12,7 +12,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronDown, ChevronUp, ListTodo, Plus, Settings } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, ListTodo, Plus } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList } from '@/types/todos';
 import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
@@ -26,9 +26,14 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import ListsListSheet from './ListsListSheet';
 import ListsNewListSheet from './ListsNewListSheet';
 import AddBar, { ADD_BAR_HEIGHT } from './AddBar';
-import { HIT_TARGET, PRIMARY_BUTTON, SHEET_FIELD } from './remote-styles';
+import { HIT_TARGET, SHEET_FIELD, chipCountStyle, selectedPillStyle } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
+import { showToast } from '../remote-toast';
 import { useHouseholdToday } from '../household-clock';
 import AtHomePill from './AtHomePill';
+import TabHeader, { GearButton } from './TabHeader';
+import { LoadFailed } from './RetryButton';
+import EmptyState from './EmptyState';
 
 const DONE_COLLAPSED_KEY = 'hs-remote-todo-done-collapsed';
 
@@ -131,24 +136,11 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 12px' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-          {t('lists.title')}
-        </h2>
-      </div>
+      <TabHeader title={t('lists.title')} />
       <AtHomePill style={{ marginTop: -4, marginBottom: 12 }} />
 
       {!loaded && loadError ? (
-        <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="todo-load-error">
-          <p className="text-[13px] text-hs-text-faint">{t('lists.loadError')}</p>
-          <button
-            type="button"
-            onClick={() => void api.retry()}
-            className="mt-3 min-h-[40px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
-          >
-            {t('lists.retry')}
-          </button>
-        </div>
+        <LoadFailed testId="todo-load-error" message={t('lists.loadError')} onRetry={api.retry} />
       ) : !loaded ? null : lists.length === 0 ? (
         <FirstListCard onCreate={(name) => api.createList(name, nextListColor(lists))} />
       ) : (
@@ -181,9 +173,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                       height: 36,
                       padding: '0 12px 0 10px',
                       borderRadius: 18,
-                      border: `1px solid ${on ? 'var(--hs-accent)' : 'var(--hs-border-strong)'}`,
-                      background: on ? 'var(--hs-accent)' : 'var(--hs-bg-panel)',
-                      color: on ? '#fff' : 'var(--hs-text-body)',
+                      ...selectedPillStyle(on, 'var(--hs-text-body)'),
                       fontSize: 14,
                       fontWeight: 600,
                       whiteSpace: 'nowrap',
@@ -191,18 +181,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                   >
                     <i aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: list.color ?? 'var(--hs-text-faint)', display: 'block', flex: 'none' }} />
                     {list.name}
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: 8,
-                        background: on ? 'rgba(255,255,255,0.22)' : 'var(--hs-bg-card)',
-                        color: on ? '#fff' : 'var(--hs-text-muted)',
-                      }}
-                    >
-                      {openCount(list)}
-                    </span>
+                    <span style={chipCountStyle(on)}>{openCount(list)}</span>
                   </span>
                 </button>
               );
@@ -245,30 +224,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                     ? t('lists.summary.empty')
                     : t('lists.summary.progress', { done: doneItems.length, total })}
                 </span>
-                <button
-                  type="button"
-                  aria-label={t('lists.settingsButton')}
-                  onClick={() => setListSheetOpen(true)}
-                  // A 44 px target around the 36 px square; the negative margin
-                  // keeps the square where it sat and the row its height.
-                  style={{ ...HIT_TARGET, width: 44, justifyContent: 'center', margin: '-4px -4px -4px 0' }}
-                >
-                  <span
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      border: '1px solid var(--hs-border)',
-                      background: 'var(--hs-bg-panel)',
-                      color: 'var(--hs-text-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Settings size={18} aria-hidden="true" />
-                  </span>
-                </button>
+                {/* The negative margin keeps the row the height it had. */}
+                <GearButton label={t('lists.settingsButton')} onClick={() => setListSheetOpen(true)} style={{ margin: '-4px 0' }} />
               </div>
               <div style={{ height: 6, background: 'var(--hs-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 14 }} aria-hidden="true">
                 <div
@@ -282,13 +239,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                 />
               </div>
 
-              {total === 0 && (
-                <div style={{ textAlign: 'center', padding: '64px 24px 0' }}>
-                  <ListTodo size={44} style={{ color: 'var(--hs-border-strong)', margin: '0 auto 14px' }} aria-hidden="true" />
-                  <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--hs-text-body)' }}>{t('lists.empty.title')}</div>
-                  <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginTop: 6, lineHeight: 1.45 }}>{t('lists.empty.body')}</div>
-                </div>
-              )}
+              {total === 0 && <EmptyState icon={ListTodo} title={t('lists.empty.title')} body={t('lists.empty.body')} />}
 
               {allDone && (
                 <div data-testid="todo-all-done" style={{ textAlign: 'center', padding: '22px 0 8px' }}>
@@ -299,16 +250,14 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                       height: 64,
                       borderRadius: '50%',
                       background: 'var(--hs-success)',
-                      color: '#fff',
+                      color: 'var(--hs-on-success)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 30,
-                      fontWeight: 800,
                       margin: '0 auto 10px',
                     }}
                   >
-                    ✓
+                    <Check size={32} strokeWidth={3} />
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{t('lists.allDone.title')}</div>
                   {repeatText(selectedList) && (
@@ -405,14 +354,22 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
             setEditingItemId(null);
           }}
           onDelete={() => {
-            api.deleteItem(selectedList.id, editingItem.id);
+            // One small item goes at once, with Undo on the toast (the rule beside ConfirmSheet).
+            const listId = selectedList.id;
+            const item = editingItem;
+            const index = selectedList.items.indexOf(item);
+            api.deleteItem(listId, item.id);
             setEditingItemId(null);
+            showToast(t('lists.deleted', { item: item.text }), 'info', {
+              label: t('lists.undo'),
+              onPress: () => api.restoreItem(listId, item, index),
+            });
           }}
           onClose={() => setEditingItemId(null)}
         />
       )}
       {/* Over the item sheet, so the sheet is still there on the way back. */}
-      {familyOpen && <FamilySettingsView zIndex={300} onBack={() => setFamilyOpen(false)} />}
+      {familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
 
       {listSheetOpen && selectedList && (
         <ListsListSheet
@@ -474,9 +431,9 @@ function FirstListCard({ onCreate }: { onCreate: (name: string) => Promise<boole
         aria-label={t('lists.listSheet.nameLabel')}
         style={SHEET_FIELD}
       />
-      <button type="submit" className="press-btn" style={PRIMARY_BUTTON} disabled={!name.trim() || busy}>
+      <PrimaryButton type="submit" disabled={!name.trim()} busy={busy}>
         {t('lists.newList.submit')}
-      </button>
+      </PrimaryButton>
       <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 10, lineHeight: 1.45 }}>
         {t('lists.firstList.body')}
       </div>

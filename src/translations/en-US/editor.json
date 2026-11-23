@@ -32,34 +32,30 @@
       "cozy": "Roomy (easier from across the room)",
       "snug": "Compact (fits more)"
     },
-    "objectFit": "Object Fit",
+    "objectFit": "Object fit",
     "objectFitCover": "Cover",
     "objectFitContain": "Contain",
     "objectFitFill": "Fill",
-    "showDescription": "Show Description",
-    "showTitle": "Show Title",
-    "apiKey": "API Key",
+    "showDescription": "Show description",
+    "showTitle": "Show title",
+    "apiKey": "API key",
     "resolution": "Resolution",
     "orientation": "Orientation",
-    "saveFailed": "Save failed",
-    "saveError": "Failed to save",
-    "networkError": "Network error",
-    "serverUnreachable": "Failed to reach server",
     "typographySizes": {
       "small": "Small",
       "medium": "Medium",
       "large": "Large",
-      "extra-large": "Extra Large",
-      "2x-large": "2X Large",
-      "3x-large": "3X Large",
-      "4x-large": "4X Large"
+      "extra-large": "Extra large",
+      "2x-large": "2X large",
+      "3x-large": "3X large",
+      "4x-large": "4X large"
     },
     "mediaTypes": "Show",
     "mediaTypesPhotos": "Photos only",
     "mediaTypesVideos": "Videos only",
     "mediaTypesBoth": "Photos + videos",
     "maxVideoDurationSeconds": "Longest a video can play (seconds)",
-    "livePhotos": "Live Photos",
+    "livePhotos": "Live photos",
     "livePhotosStill": "Don't play",
     "livePhotosOnce": "Play once",
     "livePhotosTwice": "Play twice",
@@ -73,9 +69,6 @@
     "color": "Color",
     "icon": "Icon",
     "days": "Days"
-  },
-  "modal": {
-    "closeAriaLabel": "Close dialog"
   },
   "page": {
     "loading": "Loading…",
@@ -185,7 +178,7 @@
     "lookWaitingTitle": "A look is waiting for a value that hasn't been published yet."
   },
   "displaySwitcher": {
-    "title": "Which display are you editing? (Settings overrides live in Settings → Per display.)",
+    "title": "Which display are you editing? (Settings overrides live in {place}.)",
     "label": "Which display are you editing?",
     "onNow": "on now",
     "lastSeen": "last seen {time}",
@@ -203,7 +196,6 @@
     "screenOptionsTitle": "Screen options",
     "screenOptionsAriaLabel": "Options for {name}",
     "deleteTabAriaLabel": "Delete {name}",
-    "deleteConfirmTitle": "Delete “{name}”?",
     "deleteConfirmDetail": {
       "zero": "This screen is empty. You can undo this.",
       "one": "Its {count} module and its settings go too. You can undo this.",
@@ -215,14 +207,14 @@
     "scrollRightTitle": "Scroll tabs right",
     "addScreenAriaLabel": "Add screen",
     "addMenu": {
-      "blank": "Blank Screen",
-      "fromTemplate": "From Template…",
-      "fromFile": "From File…"
+      "blank": "Blank screen",
+      "fromTemplate": "From template…",
+      "fromFile": "From file…"
     },
     "contextMenu": {
-      "moveLeft": "Move Left",
-      "moveRight": "Move Right",
-      "exportThisScreen": "Export This Screen",
+      "moveLeft": "Move left",
+      "moveRight": "Move right",
+      "exportThisScreen": "Export this screen",
       "enable": "Switch on",
       "disable": "Switch off",
       "rename": "Rename",
@@ -350,14 +342,14 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Full-Screen Views",
-      "timeAndDate": "Time & Date",
-      "weatherAndEnvironment": "Weather & Environment",
-      "newsAndFinance": "News & Finance",
-      "knowledgeAndFun": "Knowledge & Fun",
+      "fullScreen": "Full-screen views",
+      "timeAndDate": "Time & date",
+      "weatherAndEnvironment": "Weather & environment",
+      "newsAndFinance": "News & finance",
+      "knowledgeAndFun": "Knowledge & fun",
       "personal": "Personal",
-      "healthAndFitness": "Health & Fitness",
-      "mediaAndDisplay": "Media & Display",
+      "healthAndFitness": "Health & fitness",
+      "mediaAndDisplay": "Media & display",
       "travel": "Travel"
     },
     "types": {
@@ -521,25 +513,6 @@
       "searchPlaceholder": "Search settings…",
       "noResults": "No settings found",
       "matchingFields": "Matching settings",
-      "navLabels": {
-        "calendar": "Calendar",
-        "weather": "Weather",
-        "location": "Location & language",
-        "data": "Backups & data",
-        "integrations": "API keys",
-        "media": "Pictures & videos",
-        "icons": "Your icons",
-        "meals": "Meals",
-        "network": "Network",
-        "security": "Security",
-        "stats": "Status",
-        "system": "System & updates",
-        "displays": "Displays",
-        "screen": "Screen",
-        "automation": "Automation",
-        "phone": "On your phone",
-        "family": "Family"
-      },
       "groups": {
         "screen": "Screen",
         "content": "Content",
@@ -613,13 +586,12 @@
       "status": {
         "lookingUp": "Looking up…",
         "found": "Found {name}.",
-        "error": "Error: {message}",
-        "lookupFailed": "Failed to look up location",
+        "lookupFailed": "Couldn't find that place. Check the spelling and try again.",
         "detecting": "Detecting…",
         "detected": "Found {name}.",
         "detectedViaIp": "Found {name} from your internet connection.",
         "detectedCoords": "Found {lat}, {lon}.",
-        "detectFailed": "Error: Could not detect location",
+        "detectFailed": "Couldn't work out where you are. Type your town instead.",
         "zoneSet": "Time zone set to {zone} to match.",
         "notFound": "No place by that name was found. Try a nearby town."
       },
@@ -640,7 +612,7 @@
         "button": "Set the hub to {zone}",
         "settingButton": "Changing…",
         "success": "The hub's clock now matches your screens.",
-        "error": "Could not change the hub's clock."
+        "error": "Couldn't change the clock on Home Screens. Try again."
       }
     },
     "calendarPage": {
@@ -655,14 +627,13 @@
         "credentialsRequired": "Connecting your calendar needs a Google sign-in you create yourself. Add it on the API keys page.",
         "deviceCodeIntro": "Open the link below on your phone or computer, then enter the code:",
         "waitingForAuthorization": "Waiting for authorization…",
-        "usingClientIdLabel": "Using Client ID:",
+        "usingClientIdLabel": "Using client ID:",
         "verifyCredentialsPart1": "Verify your credentials in ",
         "verifyCredentialsPart2": ", or check your ",
         "googleCloudConsoleLink": "Google Cloud Console",
         "verifyCredentialsPart3": ".",
         "signInHelp": "Sign in to automatically see your calendars. Requires a Google OAuth client of type \"TVs and Limited Input devices\" in the Cloud Console.",
         "copyCode": "Copy code",
-        "codeCopied": "Copied!",
         "googleOnly": "Google only",
         "pausedExplanation": "Google isn't connected right now, so these calendars have stopped updating. Sign in again above to bring them back.",
         "stillUsedByPhotos": "Disconnected on this hub. Google Photos import still uses the same Google sign-in, so your Google account keeps listing Home Screens until you disconnect Google Photos too.",
@@ -670,7 +641,6 @@
         "removeTitle": "Remove {name}",
         "credentialsSetupPrefix": "Add your Google login on the ",
         "credentialsSetupSuffix": " page first.",
-        "settingsIntegrationsLink": "Settings → API keys",
         "hosted": {
           "codeIntroPart1": "On your phone or computer, open ",
           "codeIntroPart2": " and type this code:",
@@ -705,15 +675,15 @@
         "connecting": "Connecting…",
         "connectFailed": "Couldn't connect to iCloud. Check your internet connection and try again.",
         "addAccount": "Add iCloud account",
-        "helpText": "Sign in with an app password, not your regular Apple password. Create one at account.apple.com under Sign-In and Security → App-Specific Passwords."
+        "helpText": "Sign in with an app password, not your regular Apple password. Create one at account.apple.com under Sign-In and Security > App-Specific Passwords."
       },
       "holidays": {
-        "heading": "Public Holidays",
+        "heading": "Public holidays",
         "none": "None",
         "help": "Show public holidays on calendar modules. Data from Nager.Date."
       },
       "shared": {
-        "daysAheadLabel": "Days Ahead"
+        "daysAheadLabel": "Days ahead"
       },
       "health": {
         "heading": "Source status",
@@ -732,12 +702,11 @@
           "icloudNotICloudUrl": "The calendar address isn't an iCloud link",
           "icloudUnreachable": "Couldn't reach iCloud",
           "linkBlocked": "That link can't be used. Check it and try again.",
-          "linkHttpError": "Could not reach the link (HTTP {status})",
+          "linkHttpError": "Couldn't open that link (the server answered {status}). Check the link.",
           "linkInvalid": "The link isn't a valid web address",
-          "linkUnreachable": "Could not reach the link",
+          "linkUnreachable": "Couldn't reach that link. Check it and your connection.",
           "linkUnreadable": "The link didn't return a readable calendar"
-        },
-        "holidays": "Public Holidays"
+        }
       },
       "people": {
         "heading": "Whose calendars?",
@@ -809,10 +778,10 @@
         "thirtyDays": "30 days"
       },
       "alerts": {
-        "exportBackupFailed": "Failed to export backup.",
+        "exportBackupFailed": "Couldn't make the backup. Try again.",
         "invalidBackupFile": "Invalid backup file.",
-        "restoreBackupFailed": "Could not restore that backup.",
-        "credentialsExportFailedTitle": "Could not include your keys",
+        "restoreBackupFailed": "Couldn't restore that backup. Try again.",
+        "credentialsExportFailedTitle": "Couldn't include your keys",
         "credentialsExportFailed": "Your keys and accounts could not be added to this backup. Download the rest anyway?",
         "credentialsExportFailedConfirm": "Download anyway",
         "plaintextExportTitle": "Back up without a password?",
@@ -821,15 +790,15 @@
         "iconsExportFailed": "Your icons could not be added to this backup. Download the rest anyway?"
       },
       "shareLayout": {
-        "heading": "Share Layout",
+        "heading": "Share layout",
         "description": "Export your screen layout (screens, modules, visual settings) without personal data like location, calendar IDs, or device settings. Safe to share with others.",
-        "exportButton": "Export Layout",
-        "importButton": "Import Layout"
+        "exportButton": "Export layout",
+        "importButton": "Import layout"
       },
       "templates": {
         "heading": "Templates",
         "description": "Start from a pre-built template. Your existing settings (location, calendars, etc.) are preserved.",
-        "browseButton": "Browse Templates"
+        "browseButton": "Browse templates"
       },
       "fullBackup": {
         "description": "One file with everything: screens, settings, chores and the family's history. Use it to move to a new device.",
@@ -847,7 +816,7 @@
         "picturesSearchWords": "photos videos library slideshow background zip"
       },
       "backupReminder": {
-        "heading": "Backup Reminder",
+        "heading": "Backup reminder",
         "description": "Get a notification in the editor when you haven't backed up for a while.",
         "enableLabel": "Remind me if I haven't backed up",
         "remindAfterLabel": "Remind after",
@@ -870,8 +839,7 @@
         "restoreStatus": {
           "restoring": "Restoring…",
           "restored": "Restored! Reload the editor to see changes.",
-          "error": "Error: {error}",
-          "failed": "Failed to restore backup"
+          "failed": "Couldn't restore that backup. Try again."
         },
         "kinds": {
           "lastStable": "Last settings before trying early versions",
@@ -903,7 +871,7 @@
       "restore": {
         "completeTitle": "Restore finished",
         "signInAgain": "This backup included your editor password. Sign in again using the password from that backup.",
-        "ipRulesNotRestored": "Your network address rules were left switched off, because this device is not on the restored list. You can turn them back on in Settings.",
+        "ipRulesNotRestored": "Your network address rules were left switched off, because this device is not on the restored list. You can turn them back on in {place}.",
         "loginNotRestored": "The editor password in this backup could not be used, so the password on this device is unchanged.",
         "plaintextTitle": "This backup contains your keys",
         "plaintextMessage": "It holds your API keys, connected accounts, and editor password. Restoring will replace the ones on this device.",
@@ -912,7 +880,8 @@
         "damagedKeys": "The keys in this file are damaged and cannot be read. You can still restore everything else.",
         "reloadFailed": "Your backup was restored, but the editor could not reload. Refresh the page to see it.",
         "finished": "Restore finished. Everything from that backup is back.",
-        "savedPasswordWrong": "The saved backup password does not open this backup. Type the password it was made with."
+        "savedPasswordWrong": "The saved backup password does not open this backup. Type the password it was made with.",
+        "restoreAnyway": "Restore anyway"
       },
       "description": "Save a copy of everything, put it back, or start from a template.",
       "restoreConfirm": {
@@ -979,10 +948,9 @@
         "runRefused": {
           "busy": "A backup is being saved right now. Try again in a moment.",
           "updating": "An update is being installed. Try again when it has finished.",
-          "failed": "Could not reach the hub to start a backup."
+          "failed": "Couldn't reach Home Screens to start a backup. Check the connection and try again."
         },
-        "loadFailed": "Could not load your automatic backups. Reload the page to try again.",
-        "saveFailed": "Could not save. Try again.",
+        "loadFailed": "Couldn't load your automatic backups. Reload the page to try again.",
         "offsite": {
           "heading": "Send a copy somewhere else",
           "description": "A backup kept on this hub is lost if the hub's memory card fails. Send each one somewhere else as well."
@@ -1034,8 +1002,7 @@
             "username_required": "Type the name you sign in to your storage with.",
             "password_required": "Type the password you sign in to your storage with.",
             "password_too_long": "That password is too long.",
-            "not_set_up": "Set up a storage folder first.",
-            "failed": "Could not save. Try again."
+            "not_set_up": "Set up a storage folder first."
           },
           "removeConfirm": {
             "title": "Stop sending backups here?",
@@ -1066,7 +1033,6 @@
           "lastFetched": "Last fetched {when}",
           "notFetched": "Not fetched yet",
           "copy": "Copy",
-          "copied": "Copied",
           "warning": "Anyone with this link can download your newest backup, so keep it private. It only works from inside your home unless you have opened your hub to the outside.",
           "makeNew": "Make a new link",
           "remove": "Remove link",
@@ -1089,7 +1055,7 @@
           "pictures": "Pictures",
           "download": "Download",
           "restore": "Restore",
-          "remove": "Remove",
+          "remove": "Delete",
           "showAll": "Show all {count}",
           "showFewer": "Show fewer",
           "gone": "That backup is no longer on the hub.",
@@ -1104,9 +1070,8 @@
             "confirm": "Restore"
           },
           "removeConfirm": {
-            "title": "Remove this backup?",
-            "message": "Saved {when}. It is deleted from this hub. Copies already sent somewhere else stay where they are.",
-            "confirm": "Remove"
+            "title": "Delete this backup?",
+            "message": "Saved {when}. It is deleted from this hub. Copies already sent somewhere else stay where they are."
           }
         }
       }
@@ -1133,8 +1098,6 @@
         "testStatus": {
           "success": "Working! Current temp: {temp}°",
           "connectedNoData": "Connected but no data returned",
-          "failed": "Failed: {message}",
-          "unknownError": "Unknown error",
           "rejectedKey": "{provider} rejected the saved key. Remove it and paste it again.",
           "failedPlain": "Couldn't get weather from {provider}.",
           "successDays": {
@@ -1216,7 +1179,7 @@
         "heading": "Screen area",
         "orientationPortrait": "Portrait",
         "orientationLandscape": "Landscape",
-        "resolutionCustom": "Custom...",
+        "resolutionCustom": "Custom…",
         "resolutionWidthPlaceholder": "Width",
         "resolutionHeightPlaceholder": "Height",
         "resolutionHelp": "Match this to your real screen. Change it and the area you arrange modules on changes to match.",
@@ -1266,9 +1229,9 @@
       "transitionOptions": {
         "fade": "Fade",
         "slide": "Slide",
-        "slide-up": "Slide Up",
+        "slide-up": "Slide up",
         "zoom": "Zoom",
-        "flip": "3D Flip",
+        "flip": "3D flip",
         "blur": "Blur",
         "crossfade": "Crossfade (overlap)",
         "none": "None (instant)"
@@ -1334,9 +1297,9 @@
         "transitionLabels": {
           "fade": "Fade",
           "slide": "Slide",
-          "slide-up": "Slide Up",
+          "slide-up": "Slide up",
           "zoom": "Zoom",
-          "flip": "3D Flip",
+          "flip": "3D flip",
           "blur": "Blur",
           "crossfade": "Crossfade",
           "none": "None"
@@ -1354,20 +1317,19 @@
         "displayIdHelpPart1": "Used in this display's address ",
         "displayIdHelpPart2": ". Cannot be changed without reconfiguring the Pi.",
         "dangerZoneHeading": "Danger zone",
-        "dangerZoneMainHelp": "The main display is the one this Pi shows itself, so it can't be removed. Removing it would leave its screens with nowhere to go.",
-        "dangerZoneRemovableHelp": "Removing a display stops serving it and deletes its screens. That Pi can show up here again, waiting to be added.",
-        "removeButton": "Remove {name}",
-        "removeConfirm": "Remove display \"{name}\"? This deletes its screens."
+        "dangerZoneMainHelp": "The main display is the one this Pi shows itself, so it can't be deleted. Deleting it would leave its screens with nowhere to go.",
+        "dangerZoneRemovableHelp": "Deleting a display stops serving it and deletes its screens. That Pi can show up here again, waiting to be added.",
+        "removeButton": "Delete {name}",
+        "removeConfirmMessage": "This deletes its screens. That Pi can show up here again, waiting to be added.",
+        "removeConfirmButton": "Delete display"
       },
       "profile": {
         "activeProfileLabel": "Active profile",
         "noneOption": "None",
         "helpPart1": "Which profile {name} is currently displaying. Profile definitions live on ",
-        "helpLink": "Defaults → Automation",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Defaults → Screen",
         "bannerPart1": "Settings here show the ",
         "bannerEmphasisDefault": "default",
         "bannerPart2": " value from ",
@@ -1404,13 +1366,11 @@
       },
       "sleep": {
         "label": "Sleep & dimming",
-        "defaultsLabel": "Defaults → Screen",
         "infoPart1": "Sleep and dimming are overridden together. Turn on the override to change any of them for this display. The default lives on ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Alert overlay",
-        "defaultsLabel": "Defaults → Screen",
         "infoPart1": "Alert settings are overridden together. Turn on the override to change any of them for this display. The default lives on ",
         "infoPart2": "."
       },
@@ -1430,7 +1390,6 @@
         "unreportedHint": "This display has not told the hub what software it is running.",
         "needsSetupBody": "This display was set up before automatic updates existed. Run this on it once, and it keeps itself up to date from then on.",
         "copy": "Copy",
-        "copied": "Copied",
         "needsSetupTitle": "Turn on automatic updates",
         "connectLabel": "Connect to it",
         "runLabel": "Then run this",
@@ -1453,13 +1412,13 @@
       "defaultDurationPerType": "Per-type defaults",
       "defaultDurationHelp": "Info: 10s, Warning: 30s, Urgent: persistent until dismissed.",
       "alertSizeLabel": "Alert size",
-      "activeAlertsHeading": "Active Alerts",
-      "clearAllButton": "Clear All Alerts",
-      "clearingButton": "Clearing...",
+      "activeAlertsHeading": "Active alerts",
+      "clearAllButton": "Clear all alerts",
+      "clearingButton": "Clearing…",
       "cleared": "Cleared",
       "failed": "Failed",
       "clearHelp": "Dismiss all active alerts on the display. Takes effect within 3 seconds.",
-      "apiUsageHeading": "API Usage",
+      "apiUsageHeading": "API usage",
       "apiUsageIntro": "Send alerts from external tools (Home Assistant, scripts, etc.):",
       "apiTypesPart1": "Types: ",
       "apiTypesPart2": ", ",
@@ -1498,7 +1457,7 @@
         "bright": "Bright",
         "dim": "Dimmed",
         "off": "Off",
-        "idleNote": "+ dims after {minutes} quiet minutes, any time"
+        "idleNote": "Also dims after {minutes} quiet minutes, any time"
       },
       "disabledHelp": "Turn this on to set times. Right now the display stays bright all day and night.",
       "powerSectionTitle": "While turned off",
@@ -1510,13 +1469,11 @@
       "upload": "Upload",
       "dropzone": "Drop pictures or videos here, or click to pick, as many as you like",
       "saveInto": "Save into",
-      "uploadFailedWithStatus": "Upload failed ({status})",
       "wontPlay": "{name} is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
-      "uploadFailed": "Upload failed",
       "loadFailed": "Couldn't load your pictures and videos",
       "tryAgain": "Try again",
       "allFolders": "All pictures & videos",
-      "topLevel": "Library (top level)",
+      "topLevel": "Top level (no folder)",
       "allKinds": "All kinds",
       "images": "Images",
       "videos": "Videos",
@@ -1535,7 +1492,7 @@
         "rotatingFolderLast": "Rotating background on '{name}' (its last picture)"
       },
       "selected": "{count} selected",
-      "empty": "Nothing here yet. Upload some pictures or videos",
+      "empty": "Nothing here yet. Upload some pictures or videos.",
       "deleteTitle": {
         "one": "Delete 1 file?",
         "other": "Delete {count} files?"
@@ -1545,7 +1502,7 @@
         "other": "They'll be gone from this hub for good. Slideshows move on to their other pictures, and files a screen depends on are kept, so no screen goes empty."
       },
       "deleteConfirm": "Delete",
-      "refused": "{file} is still in use and was not deleted",
+      "refused": "{file} is still in use and was not deleted.",
       "keptLast": "{file} was kept: it's the last picture in the slideshow on '{name}'.",
       "loading": "Loading your pictures and videos",
       "emptyFiltered": "Nothing matches this filter",
@@ -1622,8 +1579,7 @@
       "deleteFolderTitle": "Delete the folder {name}?",
       "deleteFolderMessage": "Only an empty folder can be deleted.",
       "folderDeleted": "Folder {name} deleted",
-      "deleteFolderFailed": "Couldn't delete the folder",
-      "folderNotEmpty": "That folder still has files in it. Move or delete them first."
+      "deleteFolderFailed": "Couldn't delete the folder"
     },
     "iconsPage": {
       "description": "Pictures your family added. Use them for meals, chores, rewards, people, routines and screen icons.",
@@ -1632,30 +1588,30 @@
     },
     "integrationsPage": {
       "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They stay on this device. A Google sign-in with Home Screens' app renews through its sign-in helper, which keeps nothing.",
-      "loadingStatus": "Loading integration status...",
+      "loadingStatus": "Loading integration status…",
       "summary": {
         "configuredCountPart1": " of ",
         "configuredCountPart2": " connected"
       },
       "groups": {
-        "googleEcosystem": "Google Ecosystem",
-        "photosAndBackgrounds": "Photos & Backgrounds",
+        "googleEcosystem": "Google ecosystem",
+        "photosAndBackgrounds": "Photos & backgrounds",
         "services": "Services"
       },
       "google": {
         "name": "Google",
         "description": "Calendar, Maps, Photos",
-        "clientIdLabel": "Calendar Client ID",
+        "clientIdLabel": "Calendar client ID",
         "clientIdPlaceholder": "e.g. 123456789-abc.apps.googleusercontent.com",
         "clientIdHelp": "Both halves come from the same credential.",
-        "clientSecretLabel": "Calendar Client Secret",
+        "clientSecretLabel": "Calendar client secret",
         "clientSecretPlaceholder": "e.g. GOCSPX-...",
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
-        "webClientIdLabel": "Web sign-in Client ID",
+        "webClientIdLabel": "Web sign-in client ID",
         "webClientIdHelp": "Google Photos import and adding calendar events both sign in with this. Add https://homescreens.dev/connect/google as an authorized redirect URI.",
-        "webClientSecretLabel": "Web sign-in Client Secret",
+        "webClientSecretLabel": "Web sign-in client secret",
         "webClientSecretHelp": "The client secret from the web application credential above.",
-        "mapsKeyLabel": "Maps API Key",
+        "mapsKeyLabel": "Maps API key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
         "mapsKeyHelp": "Paste the key from the same Cloud Console project.",
         "stepByStep": "Step-by-step guide",
@@ -1701,7 +1657,7 @@
         "urlPlaceholder": "e.g. http://192.168.1.50:2283",
         "urlHelp": "The base URL of your Immich instance.",
         "apiKeyPlaceholder": "Paste your Immich API key",
-        "apiKeyHelp": "Create at Immich → Account Settings → API Keys."
+        "apiKeyHelp": "Create at Immich > Account Settings > API Keys."
       },
       "mealie": {
         "name": "Mealie",
@@ -1724,7 +1680,7 @@
         "couldNotCheck": "Couldn't check",
         "removeConfirm": {
           "title": "Stop showing the meal plan?",
-          "message": "Your meal plan comes from Mealie. Without its address and token, the wall and the phone can't show it until you add them again or set the meal plan back to Home Screens in Settings > Meals.",
+          "message": "Your meal plan comes from Mealie. Without its address and token, the wall and the phone can't show it until you add them again or set the meal plan back to Home Screens in {place}.",
           "confirmLabel": "Remove"
         },
         "result": {
@@ -1782,14 +1738,14 @@
       "unsplash": {
         "name": "Unsplash",
         "description": "HD photo backgrounds by category",
-        "accessKeyLabel": "Access Key",
+        "accessKeyLabel": "Access key",
         "accessKeyPlaceholder": "Paste your Unsplash access key",
         "accessKeyHelp": "Free at unsplash.com/developers; 50 requests/hour on free tier."
       },
       "todoist": {
         "name": "Todoist",
         "description": "Display tasks from your projects",
-        "tokenLabel": "API Token",
+        "tokenLabel": "API token",
         "tokenPlaceholder": "Paste your Todoist API token",
         "tokenHelp": "Get your token from app.todoist.com/app/settings/integrations/developer. Validated on save."
       },
@@ -1808,7 +1764,7 @@
       }
     },
     "networkPage": {
-      "loading": "Loading network information...",
+      "loading": "Loading network information…",
       "unavailable": {
         "heading": "Network",
         "message": "Network settings are only available on the display device."
@@ -1818,13 +1774,12 @@
         "noneDetected": "No network interfaces detected."
       },
       "hiddenNetwork": {
-        "connectButton": "Connect to hidden network..."
+        "connectButton": "Connect to hidden network…"
       },
       "hostname": {
         "heading": "Device name",
         "placeholder": "home-screens",
         "saveButton": "Save",
-        "savingButton": "Saving...",
         "successMessage": "Device name updated",
         "defaultErrorMessage": "Couldn't update the device name"
       },
@@ -1843,10 +1798,10 @@
           "unavailable": "Unavailable",
           "unmanaged": "Unmanaged"
         },
-        "managementBadge": "Your Connection",
-        "ipSettingsButton": "IP Settings",
+        "managementBadge": "Your connection",
+        "ipSettingsButton": "IP settings",
         "disconnectButton": "Disconnect",
-        "disconnectingButton": "Disconnecting...",
+        "disconnectingButton": "Disconnecting…",
         "signalLabel": "Signal {percent}%",
         "addressing": {
           "static": "Static",
@@ -1854,12 +1809,12 @@
         }
       },
       "wifiScan": {
-        "heading": "Available Wi-Fi Networks",
+        "heading": "Available Wi-Fi networks",
         "scanningInterface": "Scanning {device}",
         "scanButton": "Scan",
-        "scanningButton": "Scanning...",
+        "scanningButton": "Scanning…",
         "scanCooldownButton": "Scan ({seconds}s)",
-        "defaultScanError": "Scan failed",
+        "defaultScanError": "Couldn't look for networks. Try again.",
         "emptyHint": "Click Scan to search for nearby Wi-Fi networks.",
         "badges": {
           "connected": "Connected",
@@ -1868,7 +1823,7 @@
       },
       "wifiConnect": {
         "titleNamed": "Connect to \"{ssid}\"",
-        "titleHidden": "Connect to Hidden Network",
+        "titleHidden": "Connect to hidden network",
         "ssidLabel": "Network name (SSID)",
         "ssidPlaceholder": "Enter network name",
         "ssidRequiredError": "SSID is required",
@@ -1879,12 +1834,12 @@
         "interfaceLabel": "Interface",
         "cancelButton": "Cancel",
         "connectButton": "Connect",
-        "connectingButton": "Connecting...",
-        "defaultConnectError": "Connection failed",
+        "connectingButton": "Connecting…",
+        "defaultConnectError": "Couldn't join that network. Check the password and try again.",
         "savedPasswordPlaceholder": "Leave empty to use the saved password"
       },
       "managementWarning": {
-        "heading": "Management Interface Warning",
+        "heading": "Management interface warning",
         "autoRevertHint": "If this change breaks connectivity, it will be automatically reverted after 60 seconds.",
         "cancelButton": "Cancel",
         "proceedButton": "I understand, proceed",
@@ -1899,7 +1854,7 @@
       },
       "rollback": {
         "polling": {
-          "heading": "Verifying connectivity...",
+          "heading": "Verifying connectivity…",
           "remaining": "{seconds}s remaining before automatic rollback",
           "warning": "If this page becomes unreachable, the previous settings will be restored automatically."
         },
@@ -1914,9 +1869,9 @@
         "dismissButton": "Dismiss"
       },
       "savedNetworks": {
-        "heading": "Saved Networks",
-        "loading": "Loading saved networks...",
-        "loadError": "Failed to load saved networks",
+        "heading": "Saved networks",
+        "loading": "Loading saved networks…",
+        "loadError": "Couldn't load the saved networks. Try again.",
         "empty": "No saved Wi-Fi networks.",
         "showPasswords": "Show passwords",
         "hidePasswords": "Hide passwords",
@@ -1925,34 +1880,32 @@
         "autoConnect": "Auto-connect",
         "forgetPrompt": "Forget?",
         "forgetButton": "Forget",
-        "forgetConfirmYes": "Yes",
-        "forgetConfirmNo": "No",
-        "forgettingButton": "Removing...",
+        "forgetConfirmYes": "Forget",
+        "forgetConfirmNo": "Keep",
+        "forgettingButton": "Removing…",
         "onAdapter": "on {device}",
         "forgetError": "Couldn't remove this network. Check the device is still reachable and try again."
       },
       "ipSettings": {
-        "heading": "IP Settings ({device})",
+        "heading": "IP settings ({device})",
         "method": {
           "auto": "DHCP (auto)",
           "manual": "Static (manual)"
         },
-        "addressLabel": "IP Address",
+        "addressLabel": "IP address",
         "addressPlaceholder": "192.168.1.50",
-        "prefixLabel": "Subnet Prefix",
+        "prefixLabel": "Subnet prefix",
         "prefixPlaceholder": "24",
         "gatewayLabel": "Gateway",
         "gatewayPlaceholder": "192.168.1.1",
-        "dnsLabel": "DNS Servers",
+        "dnsLabel": "DNS servers",
         "dnsPlaceholder": "8.8.8.8",
         "removeDnsAriaLabel": "Remove DNS server",
-        "addDnsButton": "+ Add DNS server",
+        "addDnsButton": "Add DNS server",
         "dhcpHint": "Assigned by DHCP",
         "managementInterfaceHint": "Changes to this interface will auto-revert if connectivity is lost.",
-        "applyButton": "Apply",
-        "applyingButton": "Applying...",
         "successMessage": "Settings applied",
-        "defaultErrorMessage": "Failed to apply IP settings"
+        "defaultErrorMessage": "Couldn't change the address settings. Try again."
       },
       "diagnostics": {
         "heading": "Diagnostics",
@@ -1973,11 +1926,11 @@
           "latencyMs": "{ms}ms"
         },
         "unavailable": "Diagnostics are not available on this device.",
-        "requestFailed": "Diagnostics request failed",
-        "testButton": "Test Connection",
-        "testingButton": "Testing..."
+        "requestFailed": "Couldn't run the check. Try again.",
+        "testButton": "Test connection",
+        "testingButton": "Testing…"
       },
-      "description": "The wifi and address this display uses."
+      "description": "The Wi-Fi and network address this device uses."
     },
     "mealsPage": {
       "loading": "Loading meal settings…",
@@ -2010,29 +1963,27 @@
         "none": "None"
       },
       "status": {
-        "loadFailed": "Failed to load meal settings.",
-        "networkLoad": "Network error loading meal settings.",
-        "saveFailed": "Failed to save meal settings.",
-        "networkSave": "Network error saving meal settings.",
+        "loadFailed": "Couldn't load the meal settings. Try again.",
+        "networkLoad": "Couldn't reach Home Screens to load the meal settings. Check the connection and try again.",
         "unableToLoad": "Unable to load meal settings."
       },
       "slots": {
-        "heading": "Meal Slots",
+        "heading": "Meal slots",
         "description": "Which meals does your household plan? Affects every meal-planner module across all screens."
       },
       "weekStart": {
-        "heading": "Week Starts On",
+        "heading": "Week starts on",
         "hint": "Only for the meal plan. Each calendar module has its own “Week Starts On” setting."
       },
       "timeFormat": {
-        "heading": "Time Format",
+        "heading": "Time format",
         "description": "Used everywhere meals are shown, on the display and on the phone.",
         "twelveHourLabel": "12-hour",
         "twentyFourHourLabel": "24-hour",
         "followLabel": "Follow global setting"
       },
       "defaultTimes": {
-        "heading": "Default Serving Times",
+        "heading": "Default serving times",
         "description": "Used when a planned meal doesn't have its own time. Leave blank for slots that vary day-to-day.",
         "clear": "Clear",
         "clearAriaLabel": "Clear default time for {name}",
@@ -2049,18 +2000,18 @@
     },
     "systemPage": {
       "loading": "Loading system info…",
-      "loadFailed": "Failed to load system information",
+      "loadFailed": "Couldn't load the system details. Try again.",
       "advanced": {
         "heading": "Advanced",
         "toggleLabel": "Show advanced options",
-        "help": "Reveals developer-facing controls: test builds, build details, and plugin developer mode.",
+        "help": "Shows the extra controls: test builds, build details, and plugin developer mode.",
         "autoUpdateNote": "Automatic updates keep running while these are hidden."
       },
       "version": {
         "heading": "Version",
         "branchLabel": "Branch: {branch}",
         "installedFromRelease": "Installed from release",
-        "checkButton": "Check for Updates",
+        "checkButton": "Check for updates",
         "checking": "Checking…",
         "currentLabel": "You're on version {version}",
         "rcBuildBadge": "Release candidate",
@@ -2068,16 +2019,16 @@
         "nightlyBuildBadge": "Test build"
       },
       "upgradeInProgress": {
-        "title": "Upgrade in progress",
-        "help": "An upgrade is currently running. If it appears stuck, you can cancel it.",
-        "cancelButton": "Cancel Upgrade"
+        "title": "An update is running",
+        "help": "If it looks stuck, you can stop it.",
+        "cancelButton": "Stop the update"
       },
       "updateAvailable": {
         "updateTitle": "Update available: v{version}",
         "rcTitle": "Release candidate available: v{version}",
         "betaTitle": "Beta available: v{version}",
         "currentLine": "You are on v{version}",
-        "updateButton": "Update Now",
+        "updateButton": "Update now",
         "installButton": "Install",
         "nightlyTitle": "Test build available: v{version}",
         "downgradeTitle": "Switch to v{version}",
@@ -2141,9 +2092,9 @@
           "upToDate": "{when}. Already up to date.",
           "didNotStart": "{when}. {tag} did not start, so this display went back to v{version}. It won't try {tag} again.",
           "failedBefore": "{when}. Skipped {tag}, which did not start last time.",
-          "needsPassword": "{when}. Could not update: this device needs its password entered once. Install the update from the box above to enter it.",
-          "failed": "{when}. Could not install {tag}. Install it from the box above to try again and see what went wrong.",
-          "unreachable": "{when}. Could not reach the update server. It will try again tomorrow.",
+          "needsPassword": "{when}. Couldn't update: this device needs its password entered once. Install the update from the box above to enter it.",
+          "failed": "{when}. Couldn't install {tag}. Install it from the box above to try again and see what went wrong.",
+          "unreachable": "{when}. Couldn't reach the update server. It will try again tomorrow.",
           "stepBack": "{when}. Skipped {tag} because it is older than this version. Automatic updates only move forward.",
           "missingStep": "{when}. {tag} needs {step} installed first, and {step} could not be found.",
           "noDownload": "{when}. Skipped {tag} because it has no ready-made download. You can still install it from the box above.",
@@ -2153,7 +2104,7 @@
         }
       },
       "updateNotification": {
-        "heading": "Update Notification",
+        "heading": "Update notification",
         "description": "Get a notification in the editor and on /remote when a new version is available.",
         "enableLabel": "Notify me when an update is available"
       },
@@ -2161,7 +2112,7 @@
       "checkFailed": "Couldn't check for updates right now",
       "changelog": {
         "heading": "Changelog",
-        "viewButton": "View Changelog",
+        "viewButton": "View changelog",
         "empty": "No releases found on GitHub.",
         "notesHeading": "Release notes for {tag}",
         "viewOnGitHub": "View on GitHub",
@@ -2178,9 +2129,9 @@
         "cannotRead": "Can't read your current settings"
       },
       "upgradeDialog": {
-        "title": "Upgrade",
-        "message": "Upgrade to {tag}? The server will restart and you may briefly lose connection.",
-        "confirm": "Upgrade"
+        "title": "Update to {tag}?",
+        "message": "Home Screens restarts to finish, and the wall goes blank for a minute or two.",
+        "confirm": "Update"
       },
       "rollbackDialog": {
         "title": "Go back to {tag}?",
@@ -2188,17 +2139,17 @@
         "confirm": "Go back to {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "Restart the whole device",
-        "rebootMessage": "Are you sure you want to reboot the system? You may briefly lose connection.",
-        "rebootConfirm": "Reboot",
-        "restartTitle": "Restart Home Screens",
-        "restartMessage": "Are you sure you want to restart the service? You may briefly lose connection.",
+        "rebootTitle": "Restart the whole device?",
+        "rebootMessage": "The device turns off and on again. The wall goes dark for a minute or two.",
+        "rebootConfirm": "Restart the device",
+        "restartTitle": "Restart Home Screens?",
+        "restartMessage": "Home Screens reloads, which takes a few seconds. Nothing you set up is lost.",
         "restartConfirm": "Restart"
       },
       "cancelUpgradeDialog": {
-        "title": "Cancel Upgrade",
-        "message": "Are you sure? The running upgrade will be killed. You may need to retry afterwards.",
-        "confirm": "Cancel Upgrade"
+        "title": "Stop the update?",
+        "message": "Home Screens stays on the version it has now. You can start the update again afterwards.",
+        "confirm": "Stop the update"
       },
       "actions": {
         "heading": "If something seems stuck",
@@ -2207,10 +2158,9 @@
         "help": "Restarting Home Screens reloads the app and takes a few seconds. Restarting the device takes a minute or two."
       },
       "powerStatus": {
-        "restartScheduled": "Service restart scheduled. The page will reload momentarily…",
-        "rebootScheduled": "System reboot scheduled. The display will come back online shortly…",
-        "processing": "Processing…",
-        "unknownError": "Unknown error"
+        "restartScheduled": "Home Screens is restarting. This page reloads in a moment…",
+        "rebootScheduled": "The device is restarting. The wall comes back in a minute or two…",
+        "processing": "Working…"
       },
       "description": "Keep Home Screens up to date, and go back if an update causes trouble."
     },
@@ -2254,11 +2204,6 @@
         "summaryScheduled": "{screens} · {when}",
         "summaryManual": "{screens} · only when you pick it"
       },
-      "deleteDialog": {
-        "title": "Delete profile",
-        "message": "Delete \"{name}\"?",
-        "confirm": "Delete"
-      },
       "nameSuggestions": {
         "morning": "School mornings",
         "evening": "Evening",
@@ -2279,7 +2224,7 @@
         "labelPrefix": "Priority order:",
         "helpSuffix": " When multiple rules trigger at once, the rule listed first wins. Drag to reorder."
       },
-      "addButton": "Add Rule",
+      "addButton": "Add rule",
       "newRuleName": "Rule {number}",
       "card": {
         "offBadge": "Off",
@@ -2312,11 +2257,6 @@
         "copyToDisplayPlaceholder": "Pick a display…",
         "copyToDisplayHelp": "Copies this rule to another display. You will need to pick the screen it shows there.",
         "copiedNotice": "Copied to {name}."
-      },
-      "deleteDialog": {
-        "title": "Delete rule",
-        "message": "Delete \"{name}\"?",
-        "confirm": "Delete"
       }
     },
     "sharedStatePage": {
@@ -2338,7 +2278,7 @@
           "one": "{count} value available from your add-ons",
           "other": "{count} values available from your add-ons"
         },
-        "truncationNote": "Showing the first {count}. Search to find more",
+        "truncationNote": "Showing the first {count}. Search to find more.",
         "collapseGroup": "Collapse {producer}",
         "expandGroup": "Expand {producer}",
         "noProviders": "Nothing is available to share yet. Values come from add-ons that share them (like Home Assistant). Once an add-on is set up, its values show up here.",
@@ -2371,7 +2311,7 @@
         "enabled": "Password is on",
         "disabled": "No password yet",
         "enabledOutcome": "The editor and the family remote ask for it. The wall display and the kids' chores page stay open, so nothing on the fridge stops working.",
-        "disabledOutcome": "Anyone on your home wifi can open the editor and the family remote."
+        "disabledOutcome": "Anyone on your home Wi-Fi can open the editor and the family remote."
       },
       "setup": {
         "description": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
@@ -2385,7 +2325,7 @@
       "revokeSessions": {
         "button": "Sign everyone out",
         "warning": "Everyone signed in gets signed out, including you on this device.",
-        "confirmButton": "Confirm",
+        "confirmButton": "Sign everyone out",
         "revoking": "Signing out…",
         "cancel": "Cancel",
         "success": "Everyone is signed out. Taking you to the login page…",
@@ -2397,10 +2337,9 @@
         "reveal": "Reveal",
         "hide": "Hide",
         "copy": "Copy",
-        "copied": "Copied!",
         "regenerateButton": "Make a new key",
         "regenerating": "Regenerating…",
-        "regenerateConfirm": "Confirm",
+        "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
         "regenerateWarning": "Each display reloads once to pick up the new key.",
         "errorRegenerate": "Couldn't make a new key",
@@ -2437,7 +2376,6 @@
           "saveAnyway": "Save anyway",
           "cancel": "Cancel"
         },
-        "saveButton": "Save Changes",
         "lockedOutHintPart1": "If you do get locked out, edit ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " on the device to turn this off.",
@@ -2456,8 +2394,8 @@
       },
       "modal": {
         "setTitle": "Set a password",
-        "changeTitle": "Change Password",
-        "disableTitle": "Disable Authentication",
+        "changeTitle": "Change password",
+        "disableTitle": "Disable authentication",
         "currentPasswordPlaceholder": "Current password",
         "newPasswordPlaceholder": "New password (min 8 characters)",
         "confirmPasswordPlaceholder": "Confirm new password",
@@ -2465,7 +2403,7 @@
         "cancel": "Cancel",
         "setSubmit": "Turn it on",
         "setting": "Setting…",
-        "changeSubmit": "Change Password",
+        "changeSubmit": "Change password",
         "changing": "Changing…",
         "disableSubmit": "Disable",
         "disabling": "Disabling…",
@@ -2473,11 +2411,10 @@
       },
       "errors": {
         "passwordsDoNotMatch": "Passwords do not match",
-        "setFailed": "Failed to set password",
-        "changeFailed": "Failed to change password",
-        "disableFailed": "Failed to disable authentication",
-        "passwordTooShort": "The password needs at least {count} characters.",
-        "invalidAddress": "\"{entry}\" is not a network address. Try one like 192.168.1.0/24."
+        "setFailed": "Couldn't set the password. Try again.",
+        "changeFailed": "Couldn't change the password. Try again.",
+        "disableFailed": "Couldn't turn the password off. Try again.",
+        "passwordTooShort": "The password needs at least {count} characters."
       },
       "success": {
         "passwordSet": "Password set! Authentication is now enabled.",
@@ -2496,7 +2433,6 @@
     "shared": {
       "secretField": {
         "removeButton": "Remove",
-        "savingButton": "…",
         "saveButton": "Save",
         "savedSuccess": "Saved successfully",
         "checkingButton": "Checking…",
@@ -2514,7 +2450,7 @@
         "message": "This plugin has not been reviewed by the Home Screens team. Verify you trust this source."
       },
       "unverified": {
-        "heading": "Unverified Plugin",
+        "heading": "Unverified plugin",
         "message": "This plugin has not been reviewed by the Home Screens team. Install at your own discretion."
       },
       "permissionsHeading": "What this plugin can do",
@@ -2542,7 +2478,6 @@
       "loading": "Loading settings…",
       "loadFailed": "Couldn't load these settings. Close and reopen to try again.",
       "saveButton": "Save",
-      "savingButton": "…",
       "savedSuccess": "Saved successfully",
       "toggleTitle": "Plugin settings",
       "toggleAriaLabel": "Plugin settings for {id}"
@@ -2558,8 +2493,13 @@
       "deviceCodeIntro": "Open this link and enter the code:",
       "devicePolling": "Waiting for you to approve…",
       "cancelButton": "Cancel",
-      "errorGeneric": "Something went wrong. Please try again.",
+      "errorGeneric": "That sign-in didn't work. Check what you typed and try again.",
       "popupBlocked": "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.",
+      "popup": {
+        "closeWindow": "You can close this window.",
+        "failedTitle": "That sign-in didn't work",
+        "failedBody": "Go back to the editor and try again."
+      },
       "garmin": {
         "intro": "Sign in with your Garmin Connect account.",
         "emailPlaceholder": "Email",
@@ -2578,10 +2518,6 @@
         "installed": "Installed",
         "updates": "Updates",
         "developer": "Developer"
-      },
-      "errors": {
-        "actionFailed": "Action failed",
-        "requestFailed": "Request failed ({status})"
       },
       "browse": {
         "searchPlaceholder": "Search plugins…",
@@ -2640,27 +2576,27 @@
         "loadFromUrlLabel": "Load from URL",
         "loadFromUrlHelp": "Enter your dev server URL (e.g. http://localhost:5173). The plugin will auto-reload on changes.",
         "loadButton": "Load",
-        "loadFailed": "Failed to load dev plugin",
-        "devPluginsHeading": "Dev Plugins",
+        "loadFailed": "Couldn't load the plugin from that address. Check that its dev server is running.",
+        "devPluginsHeading": "Dev plugins",
         "devBadge": "Dev",
         "unloadTitle": "Unload",
         "unloadAriaLabel": "Unload {name}",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev plugins are stored in localStorage only; they won't persist across browsers",
+          "localStorage": "Dev plugins are stored in localStorage only; they won't persist across browsers.",
           "autoReload": "The plugin auto-reloads when the bundle changes (polled every 2s)",
           "sourcemapsPart1": "Source maps are supported; add ",
           "sourcemapsPart2": " to your Vite config",
-          "devOverrides": "Dev plugins override installed versions with the same module type"
+          "devOverrides": "Dev plugins override installed versions with the same module type."
         }
       },
       "installConfirm": {
-        "heading": "Install Plugin"
+        "heading": "Install plugin"
       }
     },
     "statsSection": {
       "loadingStats": "Loading stats…",
-      "failedToLoad": "Failed to load stats",
+      "failedToLoad": "Couldn't load the status. Try again.",
       "configurationTitle": "Configuration",
       "screens": "Screens",
       "modules": "Modules",
@@ -2673,7 +2609,7 @@
       "platform": "Platform",
       "uptime": "Uptime",
       "timeZoneData": "Time zone data",
-      "hardwareTitle": "CPU & Thermal",
+      "hardwareTitle": "CPU & thermal",
       "sourceReporter": "Reporter",
       "sourceHub": "Hub (local)",
       "piModel": "Pi model",
@@ -2720,7 +2656,7 @@
       "cacheFreshLabel": "fresh",
       "cacheNoDisplay": "These numbers come from a display. None is connected right now.",
       "cacheNoDisplayForName": "These numbers come from a display. {name} isn't connected right now.",
-      "telemetryTitle": "Anonymous Telemetry",
+      "telemetryTitle": "Anonymous telemetry",
       "telemetryDescription": "Home Screens collects anonymous usage statistics to help prioritize features and understand how the app is used. No personal data, IP addresses, or content is ever collected.",
       "telemetryToggle": "Send anonymous usage data",
       "installId": "Install ID",
@@ -2741,11 +2677,16 @@
       "dataDirTitle": "Home Screens Data",
       "totalAppData": "Total app data",
       "dataBackgrounds": "Backgrounds",
-      "dataBackups": "Config Backups",
+      "dataBackups": "Config backups",
       "dataConfiguration": "Configuration",
       "noAppData": "No app data yet.",
       "displayTitle": "Display",
       "offline": "Offline",
+      "displayStates": {
+        "active": "Active",
+        "dimmed": "Dimmed",
+        "asleep": "Asleep"
+      },
       "switchDisplay": "Switch display",
       "screen": "Screen",
       "indexOf": "{index} of {total}",
@@ -2757,7 +2698,7 @@
       "noDisplayPrefix": "No display connected. Open",
       "noDisplayForNamePrefix": "No display connected for {name}. Open",
       "noDisplayOpenSuffix": "to start.",
-      "displayHardwareTitle": "Display Hardware",
+      "displayHardwareTitle": "Display hardware",
       "webglUnavailable": "WebGL unavailable",
       "cpuCoresLabel": "CPU cores",
       "deviceMemoryLabel": "Device memory",
@@ -2814,11 +2755,11 @@
       "currentScreenLabel": "Showing {name}",
       "multipleClientsCardHeading": "{count} distinct clients reporting for this display",
       "tabsSuffix": "×{count} tabs",
-      "formEditTitle": "Edit Display",
+      "formEditTitle": "Edit display",
       "formAdoptTitle": "Add {id}",
-      "formAddTitle": "Add Display",
+      "formAddTitle": "Add display",
       "formNameLabel": "Name",
-      "formNamePlaceholder": "Kitchen Touchscreen",
+      "formNamePlaceholder": "Kitchen touchscreen",
       "formIdLabel": "ID",
       "formIdHint": "(used in URL: /display/<id>)",
       "formIdPlaceholder": "kitchen",
@@ -2833,7 +2774,6 @@
       "formRotation270": "270° clockwise (portrait)",
       "formRotationHint": "Picks which way round the screen area sits. The width and height above swap automatically so the longer edge matches the rotation you picked.",
       "formCancel": "Cancel",
-      "formSaveChanges": "Save changes",
       "formAddDisplay": "Add display",
       "formErrorName": "Name is required",
       "formErrorId": "ID must be lowercase letters, digits, and hyphens (e.g. \"kitchen\")",
@@ -2843,7 +2783,7 @@
       "formErrorHeight": "Height must be between {min} and {max}. Check for a missing digit: most screens are 1080 or 1920 tall.",
       "softwareUpdateWaiting": "Update waiting",
       "softwareNeedsSetup": "Needs setup",
-      "mainDisplayName": "Main Display"
+      "mainDisplayName": "Main display"
     },
     "header": {
       "backToEditor": "Editor",
@@ -2870,20 +2810,16 @@
       }
     },
     "phonePage": {
-      "description": "Two addresses, both open on any phone or tablet on your home wifi. Nothing to install.",
+      "description": "Two addresses, both open on any phone or tablet on your home Wi-Fi. Nothing to install.",
       "open": "Open",
       "chores": {
-        "heading": "Kids: check off chores",
         "needsChoreChart": "Add a chore chart to any screen to turn this on."
-      },
-      "remote": {
-        "heading": "Parents: family remote"
       },
       "password": {
         "label": "Ask for a password on the family remote",
         "checking": "Checking…",
         "on": "On. The remote and the editor ask for it; the kids' chores page stays open.",
-        "off": "Off. Anyone on your wifi can open it.",
+        "off": "Off. Anyone on your Wi-Fi can open it.",
         "setUpAction": "Set up",
         "manageAction": "Manage"
       },
@@ -2945,7 +2881,9 @@
           "one": "1 minute",
           "other": "{count} minutes"
         },
-        "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked."
+        "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked.",
+        "removeConfirmTitle": "Remove the grown-up code?",
+        "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time."
       }
     },
     "touchAlignment": {
@@ -3018,7 +2956,7 @@
       "pattern-paper": "Paper"
     },
     "sourceNotSetUp": "Not set up yet.",
-    "sourceSetUpLink": "Set up {source} in Settings",
+    "sourceSetUpLink": "Set up {source} in {place}",
     "pickToRotate": "Click the walls you want in the rotation. None picked yet.",
     "modeFixed": "Fixed background",
     "modeRotating": "Rotating between the selected sources",
@@ -3056,31 +2994,28 @@
     "eveningFromSunset": "Sunset",
     "eveningFromTime": "A set time",
     "eveningUntil": "Until",
-    "eveningSunsetHint": "Sunset needs your town in Settings. Without it, evening starts at 8 PM."
+    "eveningSunsetHint": "Sunset needs your town in {place}. Without it, evening starts at 8 PM."
   },
   "imageBrowserModal": {
-    "title": "Image Library",
-    "allPhotos": "All Photos",
+    "allPhotos": "All pictures",
     "newFolderPlaceholder": "Folder name",
-    "newFolderConfirm": "OK",
-    "newFolderButton": "+ New Folder",
-    "deleteFolderButton": "Delete Folder",
-    "uploadButton": "Upload Photos",
+    "newFolderConfirm": "Add",
+    "newFolderButton": "New folder",
+    "deleteFolderButton": "Delete folder",
+    "uploadButton": "Upload pictures",
     "uploadingButton": "Uploading…",
-    "loadingImages": "Loading images...",
-    "emptyPhotos": "No photos yet. Upload some!",
-    "photoCountSingular": "{count} photo",
-    "photoCountPlural": "{count} photos",
-    "confirmSelectImage": "Select Image",
-    "confirmUseFolder": "Use This Folder",
-    "confirmSelectVideo": "Select Video",
+    "loadingImages": "Loading pictures…",
+    "emptyPhotos": "No pictures yet. Upload some!",
+    "photoCountSingular": "{count} picture",
+    "photoCountPlural": "{count} pictures",
+    "confirmSelectImage": "Use this picture",
+    "confirmUseFolder": "Use this folder",
+    "confirmSelectVideo": "Use this video",
     "videoCountSingular": "{count} video",
     "videoCountPlural": "{count} videos",
-    "titleVideos": "Video Library",
-    "uploadVideosButton": "Upload Videos",
-    "allVideos": "All Videos",
+    "uploadVideosButton": "Upload videos",
+    "allVideos": "All videos",
     "titleFolder": "Pick a folder",
-    "allMedia": "All Photos & Videos",
     "uploadMediaButton": "Upload"
   },
   "icloudImport": {
@@ -3110,39 +3045,32 @@
   },
   "choreChartModal": {
     "title": "Chore Chart",
-    "subtitleMembersChores": "{members} members · {chores} chores",
     "loadError": "Couldn't load the chore data. Changes won't be saved.",
     "chores": {
       "columnTitle": "Chores",
-      "addButton": "Add Chore",
-      "searchPlaceholder": "Search chores...",
+      "addButton": "Add chore",
+      "searchPlaceholder": "Search chores…",
       "empty": "No chores yet",
       "addMembersFirst": "Add family members first",
       "editAriaLabel": "Edit {name}",
-      "deleteAriaLabel": "Delete {name}",
-      "deleteConfirm": {
-        "title": "Delete chore",
-        "message": "Delete \"{name}\"?",
-        "confirmLabel": "Delete"
-      }
+      "deleteAriaLabel": "Delete {name}"
     },
     "choreForm": {
-      "namePlaceholder": "Chore name...",
+      "namePlaceholder": "Chore name…",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Frequency",
-      "timeOfDayLabel": "Time of Day",
+      "timeOfDayLabel": "Time of day",
       "dateLabel": "Date",
       "assignToLabel": "Assign to",
-      "weeklyScheduleLabel": "Weekly Schedule",
-      "addSubmit": "Add Chore",
-      "saveSubmit": "Save",
+      "weeklyScheduleLabel": "Weekly schedule",
+      "addSubmit": "Add chore",
       "grabRulesNote": "How many one person can grab, and when a grab ends, are set for the whole household, under Bonus in the chore list."
     },
     "preview": {
-      "columnTitleNew": "New Chore",
-      "columnTitleEdit": "Edit Chore",
-      "columnTitleSchedule": "This Week's Schedule",
-      "placeholder": "Add members and chores to see the weekly schedule",
+      "columnTitleNew": "New chore",
+      "columnTitleEdit": "Edit chore",
+      "columnTitleSchedule": "This week's schedule",
+      "placeholder": "Add people and chores to see the weekly schedule",
       "todayLabel": "Today ({day})",
       "noChores": "No chores",
       "weeklyTotalsHeading": "Weekly totals",
@@ -3154,25 +3082,6 @@
       "hint": "{count} everyday chores, sorted by time of day",
       "headerButton": "Starter list",
       "columnTitle": "Starter chores"
-    },
-    "members": {
-      "columnTitle": "Family Members",
-      "empty": "No members yet",
-      "addButton": "Add Member",
-      "addSubmit": "Add Member",
-      "saveSubmit": "Save",
-      "editAriaLabel": "Edit {name}",
-      "deleteAriaLabel": "Delete {name}",
-      "deleteConfirm": {
-        "title": "Remove member",
-        "message": "Remove \"{name}\"? This also removes them from every chore.",
-        "confirmLabel": "Remove"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Name...",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Pick custom color"
     }
   },
   "todoListModal": {
@@ -3185,14 +3094,9 @@
     "itemTextLabel": "Item",
     "itemDoneLabel": "Done: {text}",
     "removeItemLabel": "Remove {text}",
-    "addPlaceholder": "Add something...",
+    "addPlaceholder": "Add something…",
     "uncheckAll": "Uncheck all",
-    "removeDone": "Remove done items",
-    "removeDoneConfirm": {
-      "title": "Remove done items",
-      "message": "Remove {count} done items from \"{name}\"?",
-      "confirmLabel": "Remove"
-    }
+    "removeDone": "Remove done items"
   },
   "notesBoardModal": {
     "title": "Family notes",
@@ -3203,7 +3107,7 @@
     },
     "newNote": "New note",
     "textLabel": "Note",
-    "textPlaceholder": "Write a note for the family...",
+    "textPlaceholder": "Write a note for the family…",
     "counter": "{used} / {max}",
     "fromLabel": "From",
     "nobody": "Nobody",
@@ -3220,7 +3124,7 @@
     "pin": "Pin to top",
     "important": "Important",
     "post": "Post",
-    "postHint": "Ctrl+Enter (or Cmd+Enter on a Mac) posts too",
+    "postHint": "Ctrl+Enter (or Cmd+Enter on a Mac) posts too.",
     "onWall": "On the wall",
     "empty": "Nothing on the wall right now. Write a note above and it shows up a few seconds later.",
     "rowTextLabel": "Note from {name}",
@@ -3244,9 +3148,8 @@
     "postAgain": "Post again",
     "delete": "Delete",
     "deleteConfirm": {
-      "title": "Delete note",
-      "message": "This note goes away for good. It can't be posted again.",
-      "confirmLabel": "Delete"
+      "title": "Delete this note?",
+      "message": "This note goes away for good. It can't be posted again."
     },
     "loadError": "Couldn't load the notes. Try closing and opening this again."
   },
@@ -3254,8 +3157,7 @@
     "title": "Meal Planner",
     "loading": "Loading meals…",
     "subtitleMealsPlanned": "{meals} meals · {planned} planned",
-    "doneButton": "Done",
-    "newMealName": "New Meal",
+    "newMealName": "New meal",
     "tabs": {
       "library": "Library",
       "detail": "Detail",
@@ -3283,15 +3185,15 @@
       "courseRemoved": "Removed from this meal",
       "saveFailed": "That change didn't save. Try again.",
       "mealieSaveFailed": "Mealie didn't take that change. Check that it's running, then try again.",
-      "mealieTokenSaveFailed": "Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.",
-      "mealieSetupSaveFailed": "Home Screens can't use this Mealie, so that change wasn't saved. Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
-      "mealieNotConnectedSaveFailed": "Mealie isn't connected, so that change wasn't saved. Add its address and token in Settings > API keys."
+      "mealieTokenSaveFailed": "Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in {place}.",
+      "mealieSetupSaveFailed": "Home Screens can't use this Mealie, so that change wasn't saved. Check Mealie's address in {place}. If it's right, Mealie may need an update.",
+      "mealieNotConnectedSaveFailed": "Mealie isn't connected, so that change wasn't saved. Add its address and token in {place}."
     },
     "library": {
-      "searchPlaceholder": "Search meals...",
+      "searchPlaceholder": "Search meals…",
       "noMealsMatch": "No meals match",
       "noMealsYet": "No meals yet",
-      "addNewMealButton": "+ Add New Meal",
+      "addNewMealButton": "Add meal",
       "filters": {
         "all": "All",
         "favorites": "Favs",
@@ -3305,10 +3207,10 @@
       "emptyLine2": "to edit its details",
       "untitledFallback": "Untitled",
       "nameLabel": "Name",
-      "emojiSearchPlaceholder": "Search emojis (e.g. pizza, breakfast, dessert)...",
+      "emojiSearchPlaceholder": "Search emojis (e.g. pizza, breakfast, dessert)…",
       "noEmojisMatch": "No emojis match \"{query}\"",
-      "prepTimeLabel": "Prep Time",
-      "cookTimeLabel": "Cook Time",
+      "prepTimeLabel": "Prep time",
+      "cookTimeLabel": "Cook time",
       "minPlaceholder": "min",
       "servingsLabel": "Servings",
       "difficultyLabel": "Difficulty",
@@ -3318,12 +3220,12 @@
       "ingredientNamePlaceholder": "Ingredient name",
       "amountPlaceholder": "Amount",
       "categoryPlaceholder": "Category",
-      "addIngredientButton": "+ Add ingredient",
-      "recipeUrlLabel": "Recipe URL",
+      "addIngredientButton": "Add ingredient",
+      "recipeUrlLabel": "Recipe link",
       "recipeUrlPlaceholder": "https://...",
       "notesLabel": "Notes",
-      "saveChangesButton": "Save Changes",
-      "deleteButton": "Delete"
+      "deleteButton": "Delete",
+      "removeIngredient": "Remove this ingredient"
     },
     "grocery": {
       "itemsCount": "{checked} of {total} items",
@@ -3345,7 +3247,7 @@
       "suggestButton": "Suggest",
       "suggestBusy": "Picking dinners…",
       "suggestNeedsMeals": "Add a meal to the library first.",
-      "copyLastWeekButton": "Copy Last Week",
+      "copyLastWeekButton": "Copy last week",
       "clearButton": "Clear",
       "previousWeekAriaLabel": "Previous week",
       "nextWeekAriaLabel": "Next week",
@@ -3358,8 +3260,8 @@
       "planCellAriaLabel": "Plan {slot} for {day}"
     },
     "picker": {
-      "title": "Choose a Meal",
-      "searchPlaceholder": "Search meals...",
+      "title": "Choose a meal",
+      "searchPlaceholder": "Search meals…",
       "noMealsFound": "No meals found",
       "titleAdd": {
         "side": "Add a side",
@@ -3408,9 +3310,9 @@
       "subtitleDates": "{planned} planned for {range}",
       "subtitleHouseholdDates": "{household} household · {planned} planned for {range}",
       "tryAgain": "Try again",
-      "notConnectedBody": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them in Settings > API keys, or set the meal plan back to Home Screens in Settings > Meals.",
-      "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in Settings > API keys.",
-      "setupBody": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
+      "notConnectedBody": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them in {place}, or set the meal plan back to Home Screens in {mealsPlace}.",
+      "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in {place}.",
+      "setupBody": "Check Mealie's address in {place}. If it's right, Mealie may need an update.",
       "weekLoading": "Getting {range} from Mealie…",
       "weekFailed": "We couldn't get {range} from Mealie.",
       "libraryNote": "Recipes live in Mealie. Click one to see it here.",
@@ -3432,12 +3334,12 @@
         "connectionBody": "Check this computer's connection, then try again."
       },
       "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them.",
-      "tokenFix": "Make a new token in Mealie and paste it in Settings > API keys.",
-      "tokenPaused": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused.",
-      "tokenPausedSince": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from {time}.",
-      "setupFix": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
-      "setupPaused": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused.",
-      "setupPausedSince": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
+      "tokenFix": "Make a new token in Mealie and paste it in {place}.",
+      "tokenPaused": "Make a new token in Mealie and paste it in {place}. Until then, planning is paused.",
+      "tokenPausedSince": "Make a new token in Mealie and paste it in {place}. Until then, planning is paused. This is the plan from {time}.",
+      "setupFix": "Check Mealie's address in {place}. If it's right, Mealie may need an update.",
+      "setupPaused": "Check Mealie's address in {place}. If it's right, Mealie may need an update. Until then, planning is paused.",
+      "setupPausedSince": "Check Mealie's address in {place}. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
     },
     "popover": {
       "savesToMealie": "Saves to Mealie",
@@ -3472,7 +3374,7 @@
   },
   "timetableModal": {
     "title": "Timetables",
-    "autosaveHint": "Changes save as you go",
+    "autosaveHint": "Changes save as you go.",
     "done": "Done",
     "loadError": "We could not load the timetables. Try closing this window and opening it again.",
     "saveConflict": "Somebody else saved the timetables while this window was open, so we loaded theirs. Your last change did not save: make it again.",
@@ -3495,13 +3397,12 @@
       "withTimetable": "Timetables",
       "without": "In your family, no timetable yet",
       "none": "No timetable",
-      "add": "+ Add",
       "footer": "Names and colors come from Family. To add or rename someone, {link}.",
       "footerLink": "open Family"
     },
     "fromFamily": "from Family",
     "school": "School",
-    "addSchoolLink": "+ Add a school",
+    "addSchoolLink": "Add a school",
     "class": "Class",
     "weeks": "Weeks",
     "weeksSame": "Same each week",
@@ -3510,7 +3411,6 @@
     "showIcons": "Show subject icons",
     "paintWith": "Paint with",
     "clear": "Clear",
-    "addSubject": "+ Subject",
     "noSubjects": "No subjects yet, so there is nothing to paint with. Add the first one to start.",
     "lunchBrush": "Lunch",
     "grid": {
@@ -3541,8 +3441,8 @@
       "period": "Period {number}",
       "start": "Starts",
       "end": "Ends",
-      "addPeriod": "+ Period",
-      "addBreak": "+ Break",
+      "addPeriod": "Period",
+      "addBreak": "Break",
       "breakName": "Break name",
       "breakDefault": "Break",
       "minutes": {
@@ -3563,7 +3463,7 @@
       "holidays": "School holidays",
       "holidaysNone": "None",
       "holidaysHelp": "{area}: Pick the one your school's holidays follow. Leave it at None and holidays are ignored.",
-      "holidayNoCountry": "Set your country under Settings > Calendar to get a list of regions, or type a code like DE-NW.",
+      "holidayNoCountry": "Set your country in {place} to get a list of regions, or type a code like DE-NW.",
       "holidayPublicOnly": "{area}: Pick the one your school is in. Your country has no school holiday dates, so only public holidays show as days off.",
       "holidayNoneForCountry": "We have no holiday dates for your country. You can still mark days off yourself under \"{section}\" below.",
       "holidayRegionWord": "Region",
@@ -3573,12 +3473,11 @@
         "schoolHolidaysUnavailable": "We could not get the holiday dates for this region. Try again later."
       },
       "holidayRegionPlaceholder": "Region code, for example {example}",
-      "remove": "Remove {name}",
+      "remove": "Delete {name}",
       "removeBlocked": "This school is still in use by {names}. Move them to another school first, then it can go.",
       "removeConfirm": {
-        "title": "Remove this school?",
-        "message": "The times and special days for {name} go with it.",
-        "confirmLabel": "Remove school"
+        "message": "Its times and special days go with it.",
+        "confirmLabel": "Delete school"
       }
     },
     "weekCycle": {
@@ -3591,7 +3490,7 @@
     },
     "specialDays": {
       "title": "Days that are different",
-      "add": "+ Add a day",
+      "add": "Add a day",
       "date": "Date",
       "name": "What is it called?",
       "nameDefault": "Special day",
@@ -3614,16 +3513,14 @@
         "other": "{count} people"
       },
       "nothing": "Nothing",
-      "add": "+ Add subject",
+      "add": "Add subject",
       "newCode": "New",
       "newName": "New subject",
       "note": "Colors start from common notebook colors.",
       "footerNote": "Change a color or a bring item once and every kid's card follows.",
-      "remove": "Remove {name}",
+      "remove": "Delete {name}",
       "removeConfirm": {
-        "title": "Remove subject",
-        "message": "Remove \"{name}\"? It comes off every timetable that uses it.",
-        "confirmLabel": "Remove"
+        "message": "It comes off every timetable that uses it."
       }
     },
     "import": {
@@ -3729,7 +3626,7 @@
       "readOn": "Read {date}",
       "inSync": "In sync",
       "notFollowing": "Not following the sheet",
-      "couldNotCheck": "Could not check",
+      "couldNotCheck": "Couldn't check",
       "checking": "Checking…",
       "lastChecked": "Last checked {when}. Next check within the hour.",
       "neverChecked": "Not checked yet. The first check happens within the hour.",
@@ -3795,10 +3692,10 @@
       "needsPerson": "Pick who the date is for first."
     },
     "removeTimetable": {
-      "title": "Remove this timetable?",
+      "title": "Delete this timetable?",
       "message": "{name} keeps everything else. Only their school week goes.",
-      "confirmLabel": "Remove timetable",
-      "action": "Remove {name}'s timetable"
+      "confirmLabel": "Delete timetable",
+      "action": "Delete {name}'s timetable"
     }
   },
   "propertyPanel": {
@@ -3812,7 +3709,7 @@
       "shape": "Shape",
       "effects": "Effects",
       "text": "Text",
-      "positionAndSize": "Position & Size",
+      "positionAndSize": "Position & size",
       "style": "Style",
       "config": "Module settings",
       "settings": "Settings",
@@ -3822,7 +3719,7 @@
       "visibility": "Visibility",
       "conditions": "Conditions",
       "connection": "Connection",
-      "connectionSetup": "Connection Setup"
+      "connectionSetup": "Connection setup"
     },
     "fields": {
       "x": "X",
@@ -3831,14 +3728,14 @@
       "h": "H",
       "borderRadius": "Corner rounding",
       "padding": "Space inside",
-      "borderWidth": "Border Width",
+      "borderWidth": "Border width",
       "opacity": "Solid",
       "backdropBlur": "Frosted glass",
-      "shadowSize": "Shadow Size",
+      "shadowSize": "Shadow size",
       "background": "Background",
-      "borderColor": "Border Color",
+      "borderColor": "Border color",
       "colorAlpha": "Color strength",
-      "textColor": "Text Color",
+      "textColor": "Text color",
       "textScale": "Text size",
       "textScaleHint": "100% is this module's normal text size. Slide to make it bigger or smaller.",
       "fontWeight": "Text thickness",
@@ -3852,11 +3749,10 @@
       "titleWords": "Title words"
     },
     "actions": {
-      "bringToFront": "Bring to Front",
-      "sendToBack": "Send to Back",
+      "bringToFront": "Bring to front",
+      "sendToBack": "Send to back",
       "duplicate": "Duplicate",
-      "delete": "Delete Module",
-      "confirmDeleteTitle": "Delete “{name}”?",
+      "delete": "Delete module",
       "confirmDeleteDetail": "You can undo this."
     },
     "visibility": {
@@ -3879,7 +3775,6 @@
       "andMore": "and {count} more",
       "help": "Adds a button in the module’s bottom corner with that screen’s name on it. Tapping it on a touch display shows the screen.",
       "sectionTitle": "Open a screen",
-      "opensOnTap": "{name} (opens on tap)",
       "offBadge": "{name} (off)",
       "holds": "Shows {what}",
       "targetOff": "The button is hidden while that screen is switched off.",
@@ -3894,11 +3789,11 @@
       "addTwinHelp": "Makes a {name} screen that shows only when opened, and points this button at it.",
       "offShort": "Off",
       "theme": "Drawn in the {theme} theme",
-      "tapOff": "Tap on the Wall is off for this module, so the wall shows no button.",
+      "tapOff": "“Tap on the wall” is off for this module, so the wall shows no button.",
       "orphaned": "{name} now has nothing that opens it, so it never shows. Pick it again, or set it to take its turn.",
       "twinAdded": "Added {name}. It shows only when opened; open its screen settings below to style it.",
       "twinScreenName": {
-        "fullscreen-meal-planner": "Recipe Book",
+        "fullscreen-meal-planner": "Recipe book",
         "fullscreen-calendar": "Calendar",
         "fullscreen-weather": "Weather",
         "fullscreen-chore-chart": "Chores",
@@ -3908,7 +3803,7 @@
       "holdsView": "{module}, {view} view",
       "pickAgain": "Pick it again",
       "letItTakeTurn": "Let it take its turn",
-      "turnOnTap": "Turn on Tap on the Wall",
+      "turnOnTap": "Turn on “Tap on the wall”",
       "switchOn": "Switch it on",
       "onlyWhen": "The button only shows {when}.",
       "onlyConditions": "The button only shows while that screen’s conditions match.",
@@ -3921,38 +3816,38 @@
   },
   "sudoPrompt": {
     "title": "Allow Home Screens to make changes to this device",
-    "body": "Updating, changing WiFi, renaming this device and setting its clock all need to run system commands without being asked for a password. Enter the device password once and Home Screens sets that up for good.",
+    "body": "Updating, changing Wi-Fi, renaming this device and setting its clock all need to run system commands without being asked for a password. Enter the device password once and Home Screens sets that up for good.",
     "imageHint": "On the ready-made Home Screens image the password is screens, unless you changed it.",
     "passwordLabel": "Device password",
     "passwordPlaceholder": "Password",
     "allowButton": "Allow",
-    "workingButton": "Setting up...",
+    "workingButton": "Setting up…",
     "wrongPassword": "That password did not work.",
     "tooManyTries": "Too many tries. Wait {minutes} minutes and try again.",
-    "genericError": "Could not set this up. Try again."
+    "genericError": "Couldn't set this up. Try again."
   },
   "upgradeModal": {
-    "titleUpgrade": "Upgrading to {tag}",
-    "titleRollback": "Rolling back to {tag}",
+    "titleUpgrade": "Updating to {tag}",
+    "titleRollback": "Going back to {tag}",
     "stepLabels": {
-      "preflight": "Pre-flight checks",
-      "backup": "Back up configuration",
-      "download": "Download update",
-      "migrate": "Migrate configuration",
-      "deploy": "Install update",
-      "setup-system": "Apply system configuration",
-      "restart": "Restart service",
-      "cleanup": "Finalize",
-      "fetch": "Download latest code",
-      "checkout": "Switch to new version",
-      "install": "Install dependencies",
-      "build": "Build application"
+      "preflight": "Checking",
+      "backup": "Saving a backup",
+      "download": "Getting the update",
+      "migrate": "Updating your settings",
+      "deploy": "Installing",
+      "setup-system": "Setting up the device",
+      "restart": "Restarting",
+      "cleanup": "Finishing",
+      "fetch": "Getting the update",
+      "checkout": "Switching versions",
+      "install": "Installing",
+      "build": "Getting it ready"
     },
     "warning": {
-      "installing": "Installing update. Do not close or power off the device",
-      "inProgress": "Do not close this page or power off the device"
+      "installing": "Installing the update. Keep this page open and the device turned on.",
+      "inProgress": "Keep this page open and the device turned on."
     },
-    "successDefault": "Upgrade complete!",
+    "successDefault": "The update is done.",
     "successRollback": "You're back on {tag}.",
     "restartNeeded": "One more step: restart the device to finish the update. You can do it here once the page reloads.",
     "reload": {
@@ -3970,31 +3865,41 @@
     },
     "console": {
       "live": "Live",
-      "waiting": "Waiting for output...",
+      "waiting": "Waiting for the first lines…",
       "stillWorking": "Still working, nothing new for {duration}",
-      "reconnecting": "Connection lost, reconnecting..."
+      "reconnecting": "Lost the connection. Getting it back…"
+    },
+    "stopButton": "Stop the update",
+    "errors": {
+      "connectionLost": "Lost the connection during “{step}”",
+      "connectionLostHelp": "The update may still be running. Wait a minute, then reload this page.",
+      "noStream": "Couldn't follow the update",
+      "noStreamHelp": "Reload this page to see how it's going.",
+      "startFailed": "The update didn't start",
+      "startFailedHelp": "Try again in a moment. If it keeps happening, restart Home Screens first.",
+      "stoppedAt": "Stopped at “{step}”"
     }
   },
   "holidayPickerModal": {
-    "title": "Add Holidays",
+    "title": "Add holidays",
     "countryLabel": "Country",
-    "countryPlaceholder": "Select a country...",
-    "loadingHolidays": "Loading holidays...",
+    "countryPlaceholder": "Select a country…",
+    "loadingHolidays": "Loading holidays…",
     "selectionCount": "{selected} of {total} selected",
-    "selectAll": "Select All",
-    "deselectAll": "Deselect All",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
     "noHolidays": "No upcoming holidays found.",
-    "addEmpty": "Add Holidays",
-    "addCountSingular": "Add {count} Holiday",
-    "addCountPlural": "Add {count} Holidays",
+    "addEmpty": "Add holidays",
+    "addCountSingular": "Add {count} holiday",
+    "addCountPlural": "Add {count} holidays",
     "errors": {
-      "loadCountries": "Failed to load countries",
-      "loadHolidays": "Failed to load holidays"
+      "loadCountries": "Couldn't load the list of countries. Try again.",
+      "loadHolidays": "Couldn't load the holidays. Try again."
     }
   },
   "layoutExportModal": {
-    "title": "Export Layout",
-    "defaultName": "My Layout",
+    "title": "Export layout",
+    "defaultName": "My layout",
     "nameLabel": "Name",
     "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Family dashboard with weather and calendar",
@@ -4017,7 +3922,7 @@
     "applyVisualLabel": "Also use this layout's timing",
     "visualSummary": "Each screen shows for {seconds} seconds.",
     "visualSummaryWithTransition": "Each screen shows for {seconds} seconds, with a {transition} between screens.",
-    "saveError": "Failed to save. Check your connection and try again.",
+    "saveError": "Couldn't add the layout. Check the connection and try again.",
     "importButton": "Add these screens",
     "savedAt": "Saved {date}",
     "screenPillSingular": "{name} · {count} module",
@@ -4027,12 +3932,11 @@
   },
   "layoutImport": {
     "alerts": {
-      "invalidLayoutFile": "Invalid layout file:\n{errors}",
       "invalidJsonFile": "That file isn't a layout Home Screens can read."
     }
   },
   "installFromUrlModal": {
-    "title": "Install Plugin from URL",
+    "title": "Install plugin from URL",
     "dialogAriaLabel": "Install plugin from URL",
     "tarballUrlLabel": "Tarball URL",
     "tarballUrlHelpPart1": "HTTPS URL to a ",
@@ -4044,7 +3948,7 @@
     "installingMessage": "Downloading and installing…",
     "doneButton": "Done",
     "tryAgainButton": "Try again",
-    "installFailed": "Install failed",
+    "installFailed": "Couldn't install the plugin. Try again.",
     "pluginFallbackName": "Plugin"
   },
   "externalUpdateModal": {
@@ -4060,10 +3964,10 @@
     "updatedToVersion": "Updated to v{version}.",
     "doneButton": "Done",
     "tryAgainButton": "Try again",
-    "updateFailed": "Update failed"
+    "updateFailed": "Couldn't update the plugin. Try again."
   },
   "fontFamilyPicker": {
-    "label": "Font Family",
+    "label": "Font family",
     "inheritLabel": "Inherit from module"
   },
   "iconPicker": {
@@ -4071,7 +3975,6 @@
     "styleRegular": "Regular",
     "styleBrands": "Brands",
     "chooseTitle": "Choose an icon",
-    "searchPlaceholder": "Search 1,900+ icons by name or keyword…",
     "loadingCatalog": "Loading full catalog…",
     "iconCount": {
       "one": "{count} icon",
@@ -4101,66 +4004,67 @@
   },
   "configSections": {
     "affirmations": {
-      "viewElegant": "Elegant (Accent Lines)",
-      "viewCard": "Card (Gradient Tint)",
-      "viewMinimal": "Minimal (Text Only)",
-      "viewTypewriter": "Typewriter (Animated)",
+      "viewElegant": "Elegant (accent lines)",
+      "viewCard": "Card (gradient tint)",
+      "viewMinimal": "Minimal (text only)",
+      "viewTypewriter": "Typewriter (animated)",
       "categoryAffirmations": "Affirmations",
       "categoryCompliments": "Compliments",
       "categoryMotivational": "Motivational",
-      "categoryGratitude": "Gratitude Prompts",
+      "categoryGratitude": "Gratitude prompts",
       "categoryMindfulness": "Mindfulness",
-      "contentCategories": "Content Categories",
+      "contentCategories": "Content categories",
       "rotationSeconds": "Rotation (seconds)",
-      "timeAware": "Time-Aware Content",
-      "weatherAware": "Weather-Aware Content",
-      "weatherAwareLocationWarning": "Set your location in Settings > Weather to enable weather-aware content.",
-      "showCategoryLabel": "Show Category Label",
-      "accentColor": "Accent Color",
-      "customEntriesCount": "Custom Entries ({count})",
+      "timeAware": "Time-aware content",
+      "weatherAware": "Weather-aware content",
+      "weatherAwareLocationWarning": "Set your location in {place} to enable weather-aware content.",
+      "showCategoryLabel": "Show category label",
+      "accentColor": "Accent color",
+      "customEntriesCount": "Custom entries ({count})",
       "newEntryPlaceholder": "New affirmation text…",
       "attributionPlaceholder": "Attribution (optional)",
-      "addEntry": "Add Entry"
+      "addEntry": "Add entry",
+      "removeEntry": "Remove this line"
     },
     "air-quality": {
       "showAQI": "Show AQI",
-      "showPollutants": "Show Pollutants"
+      "showPollutants": "Show pollutants"
     },
     "calendar": {
-      "viewMode": "View Mode",
-      "viewDaily": "Daily Columns",
-      "viewAgenda": "Agenda List",
-      "viewWeek": "Week Grid",
-      "viewMonth": "Month Grid",
-      "viewMultiWeek": "Multi-Week Grid",
-      "viewRolling": "Rolling Weeks",
-      "googleAuthExpired": "Google Calendar auth expired. Re-authenticate in Settings → Calendar.",
+      "viewMode": "View mode",
+      "viewDaily": "Daily columns",
+      "viewAgenda": "Agenda list",
+      "viewWeek": "Week grid",
+      "viewMonth": "Month grid",
+      "viewMultiWeek": "Multi-week grid",
+      "viewRolling": "Rolling weeks",
+      "googleAuthExpired": "The Google Calendar sign-in ran out. Sign in again in {place}.",
       "sources": "Sources",
-      "allSources": "All Sources",
+      "allSources": "All sources",
       "googleCalendar": "Google Calendar",
       "googleCalendarNumbered": "Google Calendar {n}",
-      "publicHolidays": "Public Holidays",
+      "publicHolidays": "Public holidays",
       "titleFilterMode": "Show events",
       "titleFilterExclude": "All except",
       "titleFilterInclude": "Only matching",
       "titleFilterTerms": "Words to match",
       "titleFilterTermsPlaceholder": "Type a word, press Enter",
       "titleFilterRemoveTerm": "Remove {term}",
-      "daysToShow": "Days to Show",
-      "maxEvents": "Max Events",
-      "showFinishedToday": "Show Today's Finished Events",
-      "weeksToShow": "Weeks to Show",
-      "eventsPerCell": "Max Events per Day",
-      "dayLabelScale": "Date Text Size",
-      "weekStartsOn": "Week Starts On",
-      "showTime": "Show Time",
-      "showLocation": "Show Location",
+      "daysToShow": "Days to show",
+      "maxEvents": "Max events",
+      "showFinishedToday": "Show today's finished events",
+      "weeksToShow": "Weeks to show",
+      "eventsPerCell": "Max events per day",
+      "dayLabelScale": "Date text size",
+      "weekStartsOn": "Week starts on",
+      "showTime": "Show time",
+      "showLocation": "Show location",
       "showEventBackground": "Show event backgrounds",
       "allDayStyle": "All-day events",
       "allDayStyleFull": "Full",
       "allDayStyleTitleOnly": "Title only",
-      "showWeekNumbers": "Show Week Numbers",
-      "accentColor": "Accent Color",
+      "showWeekNumbers": "Show week numbers",
+      "accentColor": "Accent color",
       "eventTapDetails": "Tap an event to see details",
       "eventTapStyle": "Details style",
       "eventTapStyleSheet": "Slide-up panel",
@@ -4178,8 +4082,8 @@
       "showProgressBar": "Show progress on running events",
       "emptyDayText": "Empty day text",
       "emptyDayTextPlaceholder": "Free day!",
-      "dimPastEvents": "Dim Past Events",
-      "showNowRule": "Show Now Rule",
+      "dimPastEvents": "Dim past events",
+      "showNowRule": "Show now rule",
       "separators": "Week and month markers",
       "separatorsNone": "None",
       "separatorsWeeks": "Weeks",
@@ -4190,50 +4094,55 @@
       "legendFooter": "Bottom of calendar"
     },
     "chore-chart": {
-      "viewBoard": "Board (Column per Member)",
-      "viewStarChart": "Star Chart (Weekly Grid)",
-      "viewToday": "Today (Time of Day)",
-      "viewProgress": "Progress (Rings)",
-      "viewCompact": "Compact (Dense Grid)",
-      "viewRewardHistory": "Reward History",
-      "historyLimit": "History Limit",
-      "weekStartsOn": "Week Starts On",
-      "showTickets": "Show Tickets",
-      "showStreaks": "Show Streaks",
-      "showTimeOfDay": "Show Time of Day",
-      "tapToComplete": "Tap to Complete (Display)",
-      "accentColor": "Accent Color",
-      "membersCount": "{count} members",
-      "choresCount": "{count} chores",
-      "editChoreChart": "Edit Chore Chart",
-      "viewRewardsStore": "Rewards Store",
-      "storeLayout": "Store Layout",
+      "viewBoard": "Board (one column per person)",
+      "viewStarChart": "Star chart (weekly grid)",
+      "viewToday": "Today (time of day)",
+      "viewProgress": "Progress (rings)",
+      "viewCompact": "Compact (dense grid)",
+      "viewRewardHistory": "Reward history",
+      "historyLimit": "History limit",
+      "weekStartsOn": "Week starts on",
+      "showTickets": "Show tickets",
+      "showStreaks": "Show streaks",
+      "showTimeOfDay": "Show time of day",
+      "accentColor": "Accent color",
+      "editChoreChart": "Edit chore chart",
+      "viewRewardsStore": "Rewards store",
+      "storeLayout": "Store layout",
       "storeLayoutList": "List",
       "storeLayoutTiles": "Tiles",
-      "storeLayoutPriceList": "Price List",
-      "tapToRedeem": "Tap to Redeem"
+      "storeLayoutPriceList": "Price list",
+      "membersCount": {
+        "one": "{count} person",
+        "other": "{count} people"
+      },
+      "choresCount": {
+        "one": "{count} chore",
+        "other": "{count} chores"
+      }
     },
     "timezoneUseDisplay": "Use display setting ({timezone})",
     "timezoneUseDisplayNoZone": "Use display setting",
+    "tapOnWall": "Tap on the wall",
     "clock": {
-      "viewClassic": "Classic (Centered)",
-      "viewDigital": "Digital (7-Segment LED)",
-      "viewAnalog": "Analog (Clock Face)",
-      "viewMinimal": "Minimal (Time Only)",
-      "viewFlip": "Flip (Split-Flap)",
-      "viewWord": "Word (English Text)",
-      "viewBinary": "Binary (BCD Dots)",
-      "viewVertical": "Vertical (Stacked)",
-      "viewSplit": "Split (Time + Date)",
-      "viewProgress": "Progress (Day Ring)",
-      "viewFuzzy": "Fuzzy (Approximate)",
-      "viewWorld": "World (Time Zones)",
-      "viewDotMatrix": "Dot Matrix (LED Grid)",
-      "viewRadial": "Radial (Concentric Rings)",
-      "viewArc": "Arc (Sun Position)",
-      "viewNeon": "Neon (Glow Sign)",
-      "viewBar": "Bar (Progress Bars)",
-      "viewElapsed": "Elapsed (Since/Until)",
+      "viewClassic": "Classic (centered)",
+      "viewDigital": "Digital (7-segment LED)",
+      "viewAnalog": "Analog (clock face)",
+      "viewMinimal": "Minimal (time only)",
+      "viewFlip": "Flip (split-flap)",
+      "viewWord": "Word (English text)",
+      "viewBinary": "Binary (BCD dots)",
+      "viewVertical": "Vertical (stacked)",
+      "viewSplit": "Split (time + date)",
+      "viewProgress": "Progress (day ring)",
+      "viewFuzzy": "Fuzzy (approximate)",
+      "viewWorld": "World (time zones)",
+      "viewDotMatrix": "Dot matrix (LED grid)",
+      "viewRadial": "Radial (concentric rings)",
+      "viewArc": "Arc (sun position)",
+      "viewNeon": "Neon (glow sign)",
+      "viewBar": "Bar (progress bars)",
+      "viewElapsed": "Elapsed (since/until)",
       "datePresetLanguage": "The usual way for your language",
       "datePresetWeekdayMonthDay": "Monday, January 5",
       "datePresetShortWeekday": "Mon, Jan 5",
@@ -4248,87 +4157,89 @@
       "hourFormatInherit": "Same as the display ({format})",
       "hourFormat12h": "12-hour",
       "hourFormat24h": "24-hour",
-      "showSeconds": "Show Seconds",
+      "showSeconds": "Show seconds",
       "showAmPm": "Show AM/PM",
       "sizeMode": "Size",
       "sizeModeFit": "Fits the box",
       "sizeModeFixed": "Fixed",
       "sizeModeFixedHint": "The box only places the clock. Text size (under Style) sets how big it is.",
       "alignment": "Alignment",
-      "verticalAlign": "Vertical Align",
-      "showDate": "Show Date",
-      "dateFormat": "Date Format",
-      "customOption": "Custom...",
+      "verticalAlign": "Vertical align",
+      "showDate": "Show date",
+      "dateFormat": "Date format",
+      "customOption": "Custom…",
       "dateFormatPlaceholder": "e.g. EEEE, MMMM d",
-      "showWeekNumber": "Show Week Number",
-      "showDayOfYear": "Show Day of Year",
-      "showHourNumbers": "Show Hour Numbers",
-      "flipAnimation": "Flip Animation",
-      "accentColor": "Accent Color",
-      "timeZonesCount": "Time Zones ({count}/{max})",
-      "addTimezone": "Add a time zone...",
-      "referenceTime": "Reference Time",
+      "showWeekNumber": "Show week number",
+      "showDayOfYear": "Show day of year",
+      "showHourNumbers": "Show hour numbers",
+      "flipAnimation": "Flip animation",
+      "accentColor": "Accent color",
+      "timeZonesCount": "Time zones ({count}/{max})",
+      "addTimezone": "Add a time zone…",
+      "referenceTime": "Reference time",
       "referenceTimezoneHint": "Read as {timezone} time",
       "referenceLabel": "Label",
       "referenceLabelPlaceholder": "e.g. market open",
-      "countUp": "Count Up (elapsed)",
+      "countUp": "Count up (elapsed)",
       "elapsedFormat": "Format",
       "formatUnits": "Units (50d 20h 13m)",
-      "formatUnitsUpper": "Units, Capitalized (50D 20H 13M)",
-      "formatUnitsShort": "Units, Short Words (50day 20hr 13min)",
+      "formatUnitsUpper": "Units, capitalized (50D 20H 13M)",
+      "formatUnitsShort": "Units, short words (50day 20hr 13min)",
       "formatColon": "Colon (50:20:13:00)",
       "formatWords": "Words (50 days, 20 hours)",
       "formatWordsTitle": "Words, Capitalized (50 Days, 20 Hours)",
       "elapsedPrecision": "Precision",
       "precisionAuto": "Auto",
       "precisionDays": "Days only",
-      "precisionDaysHours": "Days + Hours",
-      "precisionDaysHoursMinutes": "Days + Hours + Minutes",
-      "precisionDaysHoursMinutesSeconds": "Days + Hours + Minutes + Seconds",
+      "precisionDaysHours": "Days + hours",
+      "precisionDaysHoursMinutes": "Days + hours + minutes",
+      "precisionDaysHoursMinutesSeconds": "Days + hours + minutes + seconds",
       "timezone": "Time zone",
-      "customExamplesHeading": "A few you can copy:"
+      "customExamplesHeading": "A few you can copy:",
+      "removeZone": "Remove {name}"
     },
     "countdown": {
-      "viewAll": "All Events (Stacked)",
-      "viewNext": "Next Event (Single)",
+      "viewAll": "All events (stacked)",
+      "viewNext": "Next event (single)",
       "format": "Format",
-      "formatFlip": "Flip Cards",
+      "formatFlip": "Flip cards",
       "formatUnits": "Units (50d 20h 13m)",
-      "formatUnitsUpper": "Units, Capitalized (50D 20H 13M)",
-      "formatUnitsShort": "Units, Short Words (50day 20hr 13min)",
+      "formatUnitsUpper": "Units, capitalized (50D 20H 13M)",
+      "formatUnitsShort": "Units, short words (50day 20hr 13min)",
       "formatColon": "Colon (50:20:13:00)",
       "formatWords": "Words (50 days, 20 hours)",
       "formatWordsTitle": "Words, Capitalized (50 Days, 20 Hours)",
       "precision": "Precision",
       "precisionAuto": "Auto",
       "precisionDays": "Days only",
-      "precisionDaysHours": "Days + Hours",
-      "precisionDaysHoursMinutes": "Days + Hours + Minutes",
-      "precisionDaysHoursMinutesSeconds": "Days + Hours + Minutes + Seconds",
-      "defaultEventName": "New Event",
-      "showPastEvents": "Show Past Events",
+      "precisionDaysHours": "Days + hours",
+      "precisionDaysHoursMinutes": "Days + hours + minutes",
+      "precisionDaysHoursMinutesSeconds": "Days + hours + minutes + seconds",
+      "defaultEventName": "New event",
+      "showPastEvents": "Show past events",
       "stayOnDay": "Stay on the day",
       "stayOnDayHelp": "Once an event hits zero, keep it on screen until the end of the day before moving on.",
       "scalePercent": "Scale ({percent}%)",
       "events": "Events",
-      "holidaysButton": "Holidays...",
+      "holidaysButton": "Holidays…",
       "backgroundImageHelp": "The nearest upcoming event's background image will be used as the page background.",
       "holidayBadge": "Holiday",
       "namePlaceholder": "Name",
       "repeatYearly": "Repeat yearly",
       "holidayRecurringInfo": "Recurring yearly · {date}",
       "clear": "Clear",
-      "setBackground": "Set Background..."
+      "setBackground": "Set background…",
+      "removeEvent": "Remove this countdown"
     },
     "dad-joke": {
-      "showDividers": "Show Dividers"
+      "showDividers": "Show dividers"
     },
     "date": {
-      "viewFull": "Full (Calendar Page)",
-      "viewMinimal": "Minimal (Single Line)",
-      "viewStacked": "Stacked (Vertical)",
-      "viewEditorial": "Editorial (Magazine)",
-      "viewBanner": "Banner (Horizontal)",
+      "viewFull": "Full (calendar page)",
+      "viewMinimal": "Minimal (single line)",
+      "viewStacked": "Stacked (vertical)",
+      "viewEditorial": "Editorial (magazine)",
+      "viewBanner": "Banner (horizontal)",
       "timezone": "Time zone",
       "datePresetMonthDay": "January 5",
       "datePresetWeekdayMonthDay": "Monday, January 5",
@@ -4339,14 +4250,14 @@
       "datePresetSlashDMY": "05/01/2026",
       "datePresetIso": "2026-01-05",
       "invalidFormat": "Invalid format",
-      "dateFormat": "Date Format",
-      "customOption": "Custom...",
+      "dateFormat": "Date format",
+      "customOption": "Custom…",
       "dateFormatPlaceholder": "e.g. EEEE, MMMM d",
-      "showDayName": "Show Day Name",
-      "showYear": "Show Year",
-      "showWeekNumber": "Show Week Number",
-      "showDayOfYear": "Show Day of Year",
-      "accentColor": "Accent Color"
+      "showDayName": "Show day name",
+      "showYear": "Show year",
+      "showWeekNumber": "Show week number",
+      "showDayOfYear": "Show day of year",
+      "accentColor": "Accent color"
     },
     "display-control": {
       "layout": "Layout",
@@ -4363,8 +4274,8 @@
       "allowRetargeting": "Allow user to change target at runtime",
       "compact": "Icons only, no words",
       "dockHint": "One button per screen of this display. Tap one to jump straight to that screen.",
-      "dockExtras": "Also show Sleep and Brightness",
-      "showTimers": "Also show Timers",
+      "dockExtras": "Also show sleep and brightness",
+      "showTimers": "Also show timers",
       "showTimersHint": "A button that starts a routine or a quick timer on this display. Routines are made on the phone, under Timers.",
       "dockButtons": "Buttons",
       "dockButtonsChoose": "Choose which screens get a button",
@@ -4388,12 +4299,12 @@
     },
     "financial": {
       "viewCards": "Cards",
-      "viewTicker": "Ticker (Scrolling)",
+      "viewTicker": "Ticker (scrolling)",
       "viewTable": "Table",
       "viewCompact": "Compact",
       "viewSingle": "Single",
       "scale": "Scale",
-      "tickerSpeed": "Ticker Speed ({unit})",
+      "tickerSpeed": "Ticker speed ({unit})",
       "stockSymbolsLabel": "Symbols (comma-separated)",
       "cryptoIdsLabel": "Coin IDs (comma-separated, CoinGecko)",
       "tickerUnitStock": "sec/stock",
@@ -4411,18 +4322,18 @@
       "chartLabelsWeek": "Label the chart (7D)"
     },
     "fullscreen-calendar": {
-      "viewSchedule": "Schedule (Column Grid)",
-      "viewWeekList": "Week List",
-      "viewMonthGrid": "Month Grid",
-      "viewDayTimeline": "Day Timeline",
+      "viewSchedule": "Schedule (column grid)",
+      "viewWeekList": "Week list",
+      "viewMonthGrid": "Month grid",
+      "viewDayTimeline": "Day timeline",
       "viewAgenda": "Agenda",
       "view": "View",
       "typographySize": "Text size",
       "themeDefault": "Default (from Settings)",
-      "accentColor": "Accent Color",
-      "dimPastEvents": "Dim Past Events",
-      "shadeWeekends": "Shade Weekends",
-      "showNowLine": "Show Now Line",
+      "accentColor": "Accent color",
+      "dimPastEvents": "Dim past events",
+      "shadeWeekends": "Shade weekends",
+      "showNowLine": "Show now line",
       "todayHighlight": "Today highlight",
       "todayHighlightFull": "Bold background",
       "todayHighlightSubtle": "Subtle background",
@@ -4433,26 +4344,26 @@
       "overlapStacked": "Stacked",
       "wrapEventTitles": "Wrap long event titles",
       "sources": "Sources",
-      "allSources": "All Sources",
+      "allSources": "All sources",
       "googleCalendar": "Google Calendar",
       "googleCalendarNumbered": "Google Calendar {n}",
-      "publicHolidays": "Public Holidays",
+      "publicHolidays": "Public holidays",
       "titleFilterMode": "Show events",
       "titleFilterExclude": "All except",
       "titleFilterInclude": "Only matching",
       "titleFilterTerms": "Words to match",
       "titleFilterTermsPlaceholder": "Type a word, press Enter",
       "titleFilterRemoveTerm": "Remove {term}",
-      "startHour": "Start Hour",
-      "endHour": "End Hour",
-      "daysToShowAuto": "Days to Show (0 = auto)",
-      "collapsePastDays": "Collapse Past Days",
-      "showWeekNumbers": "Show Week Numbers",
-      "maxEventsPerCellAuto": "Max Events per Cell (0 = auto)",
-      "showLocation": "Show Location",
-      "daysAhead": "Days Ahead",
-      "hideEmptyDays": "Hide Empty Days",
-      "showFinishedToday": "Show Today's Finished Events",
+      "startHour": "Start hour",
+      "endHour": "End hour",
+      "daysToShowAuto": "Days to show (0 = auto)",
+      "collapsePastDays": "Collapse past days",
+      "showWeekNumbers": "Show week numbers",
+      "maxEventsPerCellAuto": "Max events per cell (0 = auto)",
+      "showLocation": "Show location",
+      "daysAhead": "Days ahead",
+      "hideEmptyDays": "Hide empty days",
+      "showFinishedToday": "Show today's finished events",
       "eventTapDetails": "Tap an event to see details",
       "eventTapStyle": "Details style",
       "eventTapStyleSheet": "Slide-up panel",
@@ -4480,11 +4391,11 @@
       "legendOff": "Off",
       "legendHeader": "Top of calendar",
       "legendFooter": "Bottom of calendar",
-      "viewFamilyGrid": "Family Grid (People by Week)",
-      "viewUpNext": "Up Next",
-      "viewFreeTime": "Free Time",
-      "viewRolling": "Rolling Weeks",
-      "rollingWeeks": "Weeks to Show",
+      "viewFamilyGrid": "Family grid (people by week)",
+      "viewUpNext": "Up next",
+      "viewFreeTime": "Free time",
+      "viewRolling": "Rolling weeks",
+      "rollingWeeks": "Weeks to show",
       "hourWindow": "Hours shown",
       "hourWindowFixed": "Fixed hours",
       "hourWindowRolling": "Follow the clock",
@@ -4504,16 +4415,16 @@
     },
     "fullscreen-chore-chart": {
       "view": "View",
-      "viewChoreBoard": "Chore Board",
-      "viewRewardsStore": "Rewards Store",
-      "showRewardsButton": "Show Rewards Button",
+      "viewChoreBoard": "Chore board",
+      "viewRewardsStore": "Rewards store",
+      "showRewardsButton": "Show rewards button",
       "showRewardsButtonHelp": "Adds a button on the chore board so kids can switch to the rewards store. Best for touch-enabled displays.",
       "themeDefault": "Default (from Settings)",
       "typographySize": "Text size",
-      "accentColor": "Accent Color",
-      "weekStartsOn": "Week Starts On",
-      "weekProgress": "Week Stars",
-      "weekProgressChips": "In member cards",
+      "accentColor": "Accent color",
+      "weekStartsOn": "Week starts on",
+      "weekProgress": "Week stars",
+      "weekProgressChips": "On each person's card",
       "weekProgressStrip": "Household strip",
       "weekProgressGrid": "Star grid",
       "weekProgressOff": "Off",
@@ -4521,16 +4432,12 @@
       "layoutByTime": "Time of day",
       "layoutByPerson": "Person",
       "layoutHelp": "By person lists every chore under the person who has it. Best for up to four people; a bigger family fits better by time of day.",
-      "showTickets": "Show Tickets",
-      "showStreaks": "Show Streaks",
-      "showTimeOfDay": "Show Time of Day",
-      "tapToComplete": "Tap to Complete (Display)",
-      "membersCount": "{count} members",
-      "choresCount": "{count} chores",
-      "editChoreChart": "Edit Chore Chart",
-      "viewRewardHistory": "Reward History (Day by Day)",
-      "viewRewardTotals": "Reward History (Totals)",
-      "viewRewardSpotlight": "Reward History (Spotlight)",
+      "showTickets": "Show tickets",
+      "showStreaks": "Show streaks",
+      "showTimeOfDay": "Show time of day",
+      "viewRewardHistory": "Reward history (day by day)",
+      "viewRewardTotals": "Reward history (totals)",
+      "viewRewardSpotlight": "Reward history (spotlight)",
       "celebration": "Celebration",
       "celebrationLabel": "When someone finishes every chore",
       "celebrationOff": "Off",
@@ -4545,21 +4452,21 @@
       "view": "View",
       "viewWeek": "Week",
       "viewToday": "Today",
-      "viewMenuBoard": "Menu Board",
-      "viewNextMeal": "Next Meal",
+      "viewMenuBoard": "Menu board",
+      "viewNextMeal": "Next meal",
       "viewRecipe": "Recipe",
-      "viewGrocery": "Grocery List",
-      "viewRecipeBook": "Recipe Book",
+      "viewGrocery": "Grocery list",
+      "viewRecipeBook": "Recipe book",
       "typographySize": "Text size",
-      "showEmoji": "Show Pictures",
-      "showPrepTime": "Show Cooking Time",
-      "showTags": "Show Tags",
-      "showFamilyRatings": "Show Family Ratings",
-      "showDifficulty": "Show Difficulty",
-      "accentColor": "Accent Color",
+      "showEmoji": "Show pictures",
+      "showPrepTime": "Show cooking time",
+      "showTags": "Show tags",
+      "showFamilyRatings": "Show family ratings",
+      "showDifficulty": "Show difficulty",
+      "accentColor": "Accent color",
       "savedMealsCount": "{count} saved meals",
       "plannedCount": "{count} planned",
-      "tapRecipeAction": "Tap Meal to Open Recipe",
+      "tapRecipeAction": "Tap meal to open recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
       "tapRecipeActionCard": "Show recipe card",
@@ -4567,11 +4474,10 @@
       "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view.",
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
-      "interactive": "Tap on the Wall",
       "interactiveHint": "Lets people tick things off the grocery list, open recipes, step through a recipe, rate dinner, search the recipe book, scroll long views and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too.",
       "recipeCountHint": {
-        "one": "{count} of {meals} meals has a recipe. No recipe yet: {missing}. Add ingredients or notes with Edit Meal Plan below, or from the phone.",
-        "other": "{count} of {meals} meals have a recipe. No recipe yet: {missing}. Add ingredients or notes with Edit Meal Plan below, or from the phone."
+        "one": "{count} of {meals} meals has a recipe. No recipe yet: {missing}. Add ingredients or notes with {button} below, or from the phone.",
+        "other": "{count} of {meals} meals have a recipe. No recipe yet: {missing}. Add ingredients or notes with {button} below, or from the phone."
       },
       "recipeCountAll": {
         "one": "The one saved meal has a recipe.",
@@ -4580,33 +4486,32 @@
       "andMore": "{count} more"
     },
     "fullscreen-photo": {
-      "themeDefaultMidnight": "Default (Midnight)",
+      "themeDefaultMidnight": "Default (midnight)",
       "themeDefault": "Default (from Settings)",
       "mode": "Mode",
       "modeSlideshow": "Slideshow",
-      "modeSingle": "Single Photo",
+      "modeSingle": "Single photo",
       "photo": "Photo",
       "noneSelected": "None selected",
-      "choose": "Choose...",
-      "slideIntervalSeconds": "Slide Interval (seconds)",
+      "choose": "Choose…",
+      "slideIntervalSeconds": "Slide interval (seconds)",
       "transition": "Transition",
       "transitionFade": "Fade",
       "transitionSlide": "Slide",
       "transitionZoom": "Zoom",
       "transitionNone": "None",
-      "shuffleOrder": "Shuffle Order",
+      "shuffleOrder": "Shuffle order",
       "kenBurnsEffect": "Ken Burns Effect",
-      "showClockOverlay": "Show Clock Overlay",
-      "clockBackground": "Clock Background",
-      "interactive": "Tap on the Wall",
+      "showClockOverlay": "Show clock overlay",
+      "clockBackground": "Clock background",
       "interactiveHint": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A sideways swipe still changes screens.",
       "interactiveHintCard": "On a touch display, a tap shows back, pause and next, and which album the photo is from. A swipe on the photo moves to the next one."
     },
     "garbage-day": {
       "frequencyWeekly": "Every week",
       "frequencyBiweekly": "Every other week",
-      "highlightDayBefore": "Day Before (put bins out)",
-      "highlightDayOf": "Day Of (collection day)",
+      "highlightDayBefore": "Day before (put bins out)",
+      "highlightDayOf": "Day of (collection day)",
       "dayDisabled": "Disabled",
       "trash": "Trash",
       "recycling": "Recycling",
@@ -4614,21 +4519,21 @@
       "dayLabel": "{label} Day",
       "frequency": "Frequency",
       "knownDateLabel": "A known {label} date",
-      "knownDateHelp": "Pick any date when {label} was/will be collected",
-      "iconColor": "Icon Color",
-      "customCategoryName": "Custom Category Name",
-      "defaultCustomLabel": "Yard Waste",
-      "highlightWhen": "Highlight When"
+      "knownDateHelp": "Pick any day {label} was or will be collected.",
+      "iconColor": "Icon color",
+      "customCategoryName": "Custom category name",
+      "defaultCustomLabel": "Yard waste",
+      "highlightWhen": "Highlight when"
     },
     "greeting": {
       "name": "Name",
       "defaultName": "Friend",
-      "weatherAware": "Weather-Aware Greeting",
-      "locationRequired": "Set your location in Settings > Weather to enable weather-aware greetings."
+      "weatherAware": "Weather-aware greeting",
+      "locationRequired": "Set your location in {place} to enable weather-aware greetings."
     },
     "history": {
-      "cycleEventsSeconds": "Cycle Events (seconds)",
-      "showDividers": "Show Dividers",
+      "cycleEventsSeconds": "Cycle events (seconds)",
+      "showDividers": "Show dividers",
       "sourceWikipedia": "Source: Wikipedia",
       "sourceMuffinLabs": "Source: MuffinLabs"
     },
@@ -4670,7 +4575,7 @@
       "url": "URL",
       "titleAccessibility": "Title (accessibility)",
       "titlePlaceholder": "e.g. Home Assistant Dashboard",
-      "autoRefreshSeconds": "Auto-Refresh (seconds, 0 = off)",
+      "autoRefreshSeconds": "Auto-refresh (seconds, 0 = off)",
       "allowScrolling": "Allow scrolling",
       "enableSandbox": "Enable sandbox",
       "sandboxPermissions": "Sandbox permissions",
@@ -4680,34 +4585,30 @@
       "sandboxHelp": "Space-separated tokens. Leave empty for maximum restriction."
     },
     "image": {
-      "imageSource": "Image Source",
+      "imageSource": "Image source",
       "tabUrl": "URL",
-      "tabLibrary": "Library",
       "imageUrl": "Image URL",
-      "browseLibrary": "Browse Library...",
-      "uploadImage": "Upload Image",
-      "uploading": "Uploading...",
-      "uploadFailed": "Upload failed",
+      "browseLibrary": "Browse your pictures…",
+      "uploadImage": "Upload image",
+      "uploading": "Uploading…",
       "preview": "Preview",
-      "altText": "Alt Text"
+      "altText": "Alt text"
     },
     "video": {
-      "videoSource": "Video Source",
-      "tabLibrary": "Library",
+      "videoSource": "Video source",
       "tabUrl": "URL",
       "videoUrl": "Video URL",
       "chooseVideo": "Video",
       "chooseVideoPlaceholder": "Choose a video…",
       "noVideosYet": "No videos in your library yet. Upload one to get started.",
-      "uploadVideo": "Upload Video",
+      "uploadVideo": "Upload video",
       "movHint": "iPhone videos (.mov) may not always play on Raspberry Pi displays. MP4 (H.264) videos work best.",
       "playSound": "Play sound",
       "soundHint": "Sound needs a one-time setup on the display (see the video guide). Until then, videos play silently.",
       "loop": "Play on repeat",
       "maxDurationSeconds": "Stop after (seconds, 0 = keep playing)",
-      "uploading": "Uploading...",
-      "uploadFailed": "Upload failed",
-      "browseLibrary": "Browse Library...",
+      "uploading": "Uploading…",
+      "browseLibrary": "Browse your videos…",
       "urlHint": "You can paste a YouTube link or a direct video file link (MP4/WebM).",
       "icloudLinkDetected": "This is an iCloud photos link, so it can't play directly. Save its videos to your library and use them from there.",
       "icloudNoVideos": "This link doesn't have any videos in it."
@@ -4715,7 +4616,7 @@
     "googlePhotosImport": {
       "importButton": "Import from Google Photos",
       "checking": "Checking…",
-      "credentialsNeeded": "To import from Google Photos, add a Google Photos import Client ID and Secret in Settings → API keys.",
+      "credentialsNeeded": "To import from Google Photos, add a Google Photos import Client ID and Secret in {place}.",
       "signInIntro": "Sign in with Google, then paste the code you get at the end.",
       "pastePlaceholder": "Paste the code or link here",
       "finishSignIn": "Finish sign-in",
@@ -4741,7 +4642,7 @@
       "failedNote": "{failed} couldn't be saved.",
       "disconnect": "Disconnect Google Photos",
       "stillUsedByCalendar": "Disconnected on this hub. Google Calendar still uses the same Google sign-in, so your Google account keeps listing Home Screens until you disconnect Google Calendar too.",
-      "genericError": "Something went wrong. Please try again.",
+      "genericError": "Something went wrong with Google Photos. Try again.",
       "hosted": {
         "intro": "Pick photos in Google Photos and they're saved to this Home Screens.",
         "finishOnGoogle": "Finish signing in on the Google tab.",
@@ -4752,25 +4653,24 @@
       }
     },
     "meal-planner": {
-      "viewWeek": "Week Grid",
-      "viewToday": "Today's Meals",
-      "viewNextMeal": "Next Meal (Hero)",
-      "viewCompact": "Compact (Today + Tomorrow)",
-      "viewList": "Full Week List",
-      "viewGrocery": "Grocery List",
-      "viewRecipes": "Recipe Book",
-      "showEmoji": "Show Pictures",
-      "showPrepTime": "Show Cooking Time",
-      "showTags": "Show Tags",
-      "showFamilyRatings": "Show Family Ratings",
-      "accentColor": "Accent Color",
+      "viewWeek": "Week grid",
+      "viewToday": "Today's meals",
+      "viewNextMeal": "Next meal (hero)",
+      "viewCompact": "Compact (today + tomorrow)",
+      "viewList": "Full week list",
+      "viewGrocery": "Grocery list",
+      "viewRecipes": "Recipe book",
+      "showEmoji": "Show pictures",
+      "showPrepTime": "Show cooking time",
+      "showTags": "Show tags",
+      "showFamilyRatings": "Show family ratings",
+      "accentColor": "Accent color",
       "sharedSettingsPrefix": "Meal slots, week start, time format, and default serving times are managed from",
-      "sharedSettingsLink": "Settings → Meals",
       "sharedSettingsSuffix": "so all your meal modules stay in sync.",
       "savedMealsCount": "{count} saved meals",
       "plannedCount": "{count} planned",
-      "editMealPlan": "Edit Meal Plan",
-      "tapRecipeAction": "Tap Meal to Open Recipe",
+      "editMealPlan": "Edit meal plan",
+      "tapRecipeAction": "Tap meal to open recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
       "tapRecipeActionCard": "Show recipe card",
@@ -4778,31 +4678,30 @@
       "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view.",
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
-      "interactive": "Tap on the Wall",
       "interactiveHint": "Lets people tick things off the grocery list, open recipes, rate dinner, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too.",
-      "wallAdd": "Add on the Wall",
+      "wallAdd": "Add on the wall",
       "wallAddHelpMealie": "Anyone at the wall can add to the grocery list. It goes on the Mealie list the family shops from.",
       "wallAddHelpLocal": "Anyone at the wall can add to the grocery list. It goes on the list picked below.",
       "extrasList": "Other things to buy go on",
-      "extrasListNone": "None (no Add row)",
+      "extrasListNone": "None (no add row)",
       "extrasListHelp": "One of your lists. What is still on it shows at the end of the grocery list here and on the phone. Every grocery card shares it."
     },
     "moon-phase": {
-      "showIllumination": "Show Illumination %",
-      "showMoonTimes": "Show Moon Times",
+      "showIllumination": "Show illumination %",
+      "showMoonTimes": "Show moon times",
       "locationHelp": "Uses location from global settings."
     },
     "multi-month": {
       "layout": "Layout",
       "layoutVertical": "Vertical (stacked)",
       "layoutHorizontal": "Horizontal (side by side)",
-      "monthsToShow": "Months to Show",
-      "weekStartsOn": "Week Starts On",
+      "monthsToShow": "Months to show",
+      "weekStartsOn": "Week starts on",
       "fitToBox": "Fill the space",
-      "showCurrentMonthLabel": "Show Current Month Name",
-      "showWeekNumbers": "Show Week Numbers",
-      "highlightWeekends": "Highlight Weekends",
-      "showAdjacentDays": "Show Adjacent Days",
+      "showCurrentMonthLabel": "Show current month name",
+      "showWeekNumbers": "Show week numbers",
+      "highlightWeekends": "Highlight weekends",
+      "showAdjacentDays": "Show adjacent days",
       "todayHighlight": "Today highlight",
       "todayFilled": "Filled circle",
       "todaySquare": "Filled square",
@@ -4810,7 +4709,7 @@
       "todayUnderline": "Underline",
       "todayText": "Colored number",
       "todayNone": "None",
-      "accentColor": "Accent Color",
+      "accentColor": "Accent color",
       "events": "Events",
       "showEventMarks": "Mark days with events",
       "showEventMarksHint": "Up to three dots under each day that has something on it, in the colour of its calendar.",
@@ -4819,11 +4718,11 @@
       "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows."
     },
     "news": {
-      "viewHeadline": "Headline (Rotating)",
+      "viewHeadline": "Headline (rotating)",
       "viewList": "List",
-      "viewTicker": "Ticker (Scrolling)",
+      "viewTicker": "Ticker (scrolling)",
       "viewCompact": "Compact",
-      "viewCards": "Cards (Photos)",
+      "viewCards": "Cards (photos)",
       "feeds": "Feeds",
       "noFeeds": "No feeds yet. Add one below.",
       "feedLimitReached": "That is the most feeds one module can follow. Remove one to add another.",
@@ -4846,7 +4745,7 @@
       "feedError": {
         "empty-url": "This feed has no link.",
         "blocked-url": "That link can't be used. Check it and try again.",
-        "no-location": "Set your location in Settings first.",
+        "no-location": "Set your location in {place} first.",
         "unreachable": "Couldn't reach that feed. Check the link and your connection.",
         "timeout": "That feed took too long to answer. Try again in a moment.",
         "http-error": "That feed answered with an error ({status}).",
@@ -4892,7 +4791,7 @@
       "addCustomInvalid": "Paste a link that starts with http:// or https://",
       "addLocalButton": "Add local news",
       "addLocalHint": "Shows stories about {place}.",
-      "addLocalNoLocation": "Set your location in Settings first",
+      "addLocalNoLocation": "Set your location in {place} first",
       "addLocalAlready": "Local news is already in the list",
       "addTopicLabel": "Words to follow",
       "addTopicPlaceholder": "space launches",
@@ -4907,13 +4806,13 @@
       "previewNoFeeds": "Add a feed to see a preview.",
       "previewEmpty": "No stories match right now.",
       "previewFailed": "Couldn't load a preview right now.",
-      "rotateHeadlines": "Rotate Headlines (seconds)",
+      "rotateHeadlines": "Rotate headlines (seconds)",
       "showCounter": "Show the story counter",
-      "maxItems": "Max Items",
+      "maxItems": "Max items",
       "showImages": "Show pictures",
       "descriptionLines": "Summary lines",
       "singleLineTitles": "Keep headlines to one line",
-      "tickerSpeed": "Ticker Speed (sec/item)",
+      "tickerSpeed": "Ticker speed (sec/item)",
       "tickerSeparator": "Ticker separator",
       "separatorDot": "Dot",
       "separatorPipe": "Line",
@@ -4948,26 +4847,26 @@
     "photo-slideshow": {
       "transitionFade": "Fade",
       "transitionNone": "None",
-      "slideInterval": "Slide Interval (seconds)",
+      "slideInterval": "Slide interval (seconds)",
       "transition": "Transition"
     },
     "qr-code": {
-      "modeCustom": "Custom (URL / Text)",
-      "modeWifi": "WiFi Password",
+      "modeCustom": "Custom (URL / text)",
+      "modeWifi": "Wi-Fi password",
       "authWPA": "WPA / WPA2 / WPA3",
       "authWEP": "WEP",
-      "authNone": "None (Open)",
+      "authNone": "None (open)",
       "mode": "Mode",
-      "networkName": "Network Name (SSID)",
+      "networkName": "Network name (SSID)",
       "encryption": "Encryption",
       "password": "Password",
-      "passwordPlaceholder": "WiFi password",
-      "hiddenNetwork": "Hidden Network",
-      "showNetworkName": "Show Network Name",
-      "showPassword": "Show Password",
+      "passwordPlaceholder": "Wi-Fi password",
+      "hiddenNetwork": "Hidden network",
+      "showNetworkName": "Show network name",
+      "showPassword": "Show password",
       "dataUrlOrText": "Data (URL or text)",
       "label": "Label",
-      "qrColor": "QR Color",
+      "qrColor": "QR color",
       "background": "Background",
       "networkNamePlaceholder": "MyNetwork",
       "dataUrlOrTextPlaceholder": "https://example.com"
@@ -4979,21 +4878,21 @@
         "button": "Only show when rain is likely",
         "active": "This map only shows when rain is likely today.",
         "edit": "Change this in Conditions",
-        "needsLocation": "Set your location first, under Settings, so the display knows the forecast."
+        "needsLocation": "Set your location in {place} first, so the display knows the forecast."
       },
       "styleDark": "Dark",
       "styleStandard": "Standard",
       "latitude": "Latitude (0 = global)",
       "longitude": "Longitude (0 = global)",
       "zoom": "Zoom",
-      "animationSpeed": "Animation Speed (ms)",
-      "endPause": "End Pause (ms)",
-      "radarOpacity": "Radar Opacity %",
-      "smoothRadar": "Smooth Radar",
-      "showSnow": "Show Snow",
-      "showTimestamp": "Show Timestamp",
-      "showTimeline": "Show Timeline",
-      "mapStyle": "Map Style",
+      "animationSpeed": "Animation speed (ms)",
+      "endPause": "End pause (ms)",
+      "radarOpacity": "Radar opacity %",
+      "smoothRadar": "Smooth radar",
+      "showSnow": "Show snow",
+      "showTimestamp": "Show timestamp",
+      "showTimeline": "Show timeline",
+      "mapStyle": "Map style",
       "locationHelp": "Uses location from global settings when lat/lon are 0."
     },
     "shape": {
@@ -5074,7 +4973,7 @@
       "favoriteTeams": "My teams",
       "favoriteTeamsSearch": "Search for a team",
       "favoriteTeamsLoading": "Loading teams",
-      "favoriteTeamsError": "Could not load teams",
+      "favoriteTeamsError": "Couldn't load the teams. Try again.",
       "favoriteTeamsHelp": "Games with these teams come first. The first team gets the top game.",
       "favoriteTeamsHelpTeam": "The first team shows first; more than one takes turns.",
       "favoriteTeamsHidden": "league is off",
@@ -5082,95 +4981,94 @@
       "favoriteTeamsRemove": "Remove {team}",
       "favoriteTeamsDrag": "Drag to move {team}",
       "favoritesOnly": "Only show my teams' games",
-      "tickerSpeed": "Ticker Speed (sec/game)",
+      "tickerSpeed": "Ticker speed (sec/game)",
       "rotateSeconds": "Next page every (seconds)"
     },
     "standings": {
       "viewTable": "Table",
       "viewCompact": "Compact",
       "viewConference": "Conference",
-      "groupingDivision": "By Division",
-      "groupingConference": "By Conference",
-      "groupingLeague": "Full League",
+      "groupingDivision": "By division",
+      "groupingConference": "By conference",
+      "groupingLeague": "Full league",
       "league": "League",
       "grouping": "Grouping",
       "favoriteTeamsHelp": "These teams stand out in the table.",
-      "playoffCutoffLine": "Playoff Cutoff Line",
-      "teamsToShow": "Teams to Show (0 = all)",
+      "playoffCutoffLine": "Playoff cutoff line",
+      "teamsToShow": "Teams to show (0 = all)",
       "rotationSeconds": "Rotation (seconds)"
     },
     "sticky-note": {
       "content": "Content",
-      "noteColor": "Note Color"
+      "noteColor": "Note color"
     },
     "sunrise-sunset": {
       "views": {
-        "default": "Default (Text)",
-        "arc": "Sun Arc (Visual)",
-        "circle": "24h Circle (Visual)"
+        "default": "Default (text)",
+        "arc": "Sun arc (visual)",
+        "circle": "24h circle (visual)"
       },
-      "showDayLength": "Show Day Length",
-      "showGoldenHour": "Show Golden Hour",
-      "showAstroDark": "Show Astro Dark",
+      "showDayLength": "Show day length",
+      "showGoldenHour": "Show golden hour",
+      "showAstroDark": "Show astro dark",
       "locationHint": "Uses location from global settings.",
       "theme": "Theme",
-      "themeSimple": "Simple Colors",
-      "themeSky": "Sky Colors"
+      "themeSimple": "Simple colors",
+      "themeSky": "Sky colors"
     },
     "text": {
       "content": "Content",
-      "contentPlaceholder": "Hello, World!",
+      "contentPlaceholder": "Hello, world!",
       "contentRotationPlaceholder": "Slide 1\n---\nSlide 2\n---\nSlide 3",
       "orientation": "Orientation",
       "alignment": "Alignment",
-      "verticalAlign": "Vertical Align",
+      "verticalAlign": "Vertical align",
       "fontOverride": "Font (override)",
       "italic": "Italic",
-      "lineHeight": "Line Height",
-      "textTransform": "Text Transform",
-      "letterSpacing": "Letter Spacing",
-      "wordSpacing": "Word Spacing",
+      "lineHeight": "Line height",
+      "textTransform": "Text transform",
+      "letterSpacing": "Letter spacing",
+      "wordSpacing": "Word spacing",
       "decoration": "Decoration",
-      "decorationColor": "Decoration Color",
-      "decorationThickness": "Decoration Thickness",
+      "decorationColor": "Decoration color",
+      "decorationThickness": "Decoration thickness",
       "emojiHint": "Shown before the text",
       "markdown": "Markdown",
       "markdownHint": "**bold**   *italic*   ~~strike~~   `code`   newlines → line breaks",
-      "autoFit": "Auto-fit to Container",
-      "templateVariables": "Template Variables",
+      "autoFit": "Auto-fit to container",
+      "templateVariables": "Template variables",
       "effect": "Effect",
-      "animationSpeed": "Animation Speed",
-      "outlineWidth": "Outline Width",
-      "outlineColor": "Outline Color",
+      "animationSpeed": "Animation speed",
+      "outlineWidth": "Outline width",
+      "outlineColor": "Outline color",
       "shadowX": "Shadow X",
       "shadowY": "Shadow Y",
-      "shadowBlur": "Shadow Blur",
-      "shadowColor": "Shadow Color",
-      "gradientText": "Gradient Text",
+      "shadowBlur": "Shadow blur",
+      "shadowColor": "Shadow color",
+      "gradientText": "Gradient text",
       "gradientFrom": "From",
       "gradientTo": "To",
       "gradientAngle": "Angle",
-      "maxWidth": "Max Width",
+      "maxWidth": "Max width",
       "maxWidthNoLimit": "No limit",
       "wrap": "Wrap",
-      "dropCap": "Drop Cap",
-      "dropCapColor": "Drop Cap Color",
-      "textBackground": "Text Background",
-      "bgPadding": "BG Padding",
-      "bgRadius": "BG Radius",
+      "dropCap": "Drop cap",
+      "dropCapColor": "Drop cap color",
+      "textBackground": "Text background",
+      "bgPadding": "BG padding",
+      "bgRadius": "BG radius",
       "slideshow": "Slideshow",
       "slidesHintPrefix": "Separate slides with",
       "slidesHintSuffix": "in the content above",
       "interval": "Interval",
       "separator": "Separator",
       "revealAnimation": "Reveal animation",
-      "scrollingMarquee": "Scrolling Marquee",
+      "scrollingMarquee": "Scrolling marquee",
       "direction": "Direction",
       "speed": "Speed",
       "dividers": "Dividers",
-      "accentColor": "Accent Color",
-      "colorCyclePalette": "Color Cycle Palette",
-      "addColor": "+ Add",
+      "accentColor": "Accent color",
+      "colorCyclePalette": "Color cycle palette",
       "sections": {
         "typography": "Typography",
         "features": "Features",
@@ -5205,17 +5103,17 @@
       "effectOptions": {
         "none": "None",
         "typewriter": "Typewriter",
-        "fade-in": "Fade In",
-        "gradient-sweep": "Gradient Sweep",
-        "glow": "Glow / Pulse",
+        "fade-in": "Fade in",
+        "gradient-sweep": "Gradient sweep",
+        "glow": "Glow / pulse",
         "outline": "Outline",
-        "shadow": "Drop Shadow",
-        "3d": "3D / Extruded",
+        "shadow": "Drop shadow",
+        "3d": "3D / extruded",
         "neon": "Neon",
         "wave": "Wave (per-character)",
         "bounce": "Bounce (per-character)",
         "shake": "Shake (per-character)",
-        "color-cycle": "Color Cycle"
+        "color-cycle": "Color cycle"
       },
       "decorationOptions": {
         "none": "None",
@@ -5245,13 +5143,13 @@
       "stateTokensHint": "Insert {example} to show a live value published by a background module.",
       "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those spots show '–' until a module publishes them.",
       "stateTokenFiltersHint": "Add |round:1 to round numbers, or |default:text to choose what shows before a value arrives.",
-      "stateTokenPreview": "Live preview"
+      "stateTokenPreview": "Live preview",
+      "removeColor": "Remove this color"
     },
     "timetable": {
       "show": "Whose week to show",
       "showMember": "Show {name}",
       "noTimetable": "No timetable",
-      "add": "+ Add",
       "addFor": "Add a timetable for {name}",
       "fromFamily": "From Family",
       "manageFamily": "Manage family",
@@ -5268,7 +5166,6 @@
       "showStartTimes": "Show start times",
       "nextWeekFromFriday": "Show next week from Friday",
       "noFamily": "Nobody is in Family yet. Add people on the Family page, then give them a timetable here.",
-      "openFamily": "Open Family",
       "view": "View",
       "viewWeek": "Week",
       "viewDay": "Day",
@@ -5287,59 +5184,56 @@
       "list": "List",
       "pickAList": "Pick a list",
       "listsUnavailable": "Couldn't load your lists",
-      "editItems": "Edit items",
+      "editItems": "Edit list",
       "newList": "New list",
       "newListName": "New list name",
       "newListPlaceholder": "Groceries",
       "create": "Create",
       "title": "Heading",
-      "defaultTitle": "To Do",
+      "defaultTitle": "To do",
       "completedPlacement": "Done items",
       "completedBottom": "At the bottom",
       "completedInline": "Where they are",
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
       "showAssignees": "Show who",
-      "interactive": "Tap to complete (touchscreen)",
-      "wallAdd": "Add from the wall (touchscreen)",
+      "wallAdd": "Add from the wall",
       "wallAddHelp": "An Add row under the list. Anyone at the wall can add; changing and removing stay on the phone."
     },
     "todoist": {
-      "apiToken": "API Token",
-      "checking": "Checking...",
+      "apiToken": "API token",
+      "checking": "Checking…",
       "connected": "Connected",
       "notConfigured": "Not configured.",
-      "settingsIntegrationsLink": "Settings → API keys",
       "title": "List name",
-      "viewMode": "View Mode",
-      "groupByLabel": "Group By",
-      "sortByLabel": "Sort By",
-      "filterProjects": "Filter Projects (comma-separated)",
+      "viewMode": "View mode",
+      "groupByLabel": "Group by",
+      "sortByLabel": "Sort by",
+      "filterProjects": "Filter projects (comma-separated)",
       "filterProjectsPlaceholder": "e.g. Work, Personal",
-      "filterLabels": "Filter Labels (comma-separated)",
+      "filterLabels": "Filter labels (comma-separated)",
       "filterLabelsPlaceholder": "e.g. urgent, home",
-      "showSubtasks": "Show Subtasks",
-      "showLabels": "Show Labels",
-      "showProject": "Show Project",
-      "showNoDueDate": "Show No-Date Tasks",
-      "tapToComplete": "Tap to Complete (touchscreen)",
-      "maxTasks": "Max Tasks",
+      "showSubtasks": "Show subtasks",
+      "showLabels": "Show labels",
+      "showProject": "Show project",
+      "showNoDueDate": "Show no-date tasks",
+      "maxTasks": "Max tasks",
       "viewModes": {
         "list": "List",
         "board": "Board",
-        "focus": "Focus (Today)"
+        "focus": "Focus (today)"
       },
       "groupBy": {
         "none": "None",
         "project": "Project",
         "priority": "Priority",
-        "date": "Due Date",
+        "date": "Due date",
         "label": "Label"
       },
       "sortBy": {
-        "default": "Default Order",
+        "default": "Default order",
         "priority": "Priority",
-        "due_date": "Due Date",
+        "due_date": "Due date",
         "alphabetical": "Alphabetical"
       }
     },
@@ -5348,42 +5242,43 @@
       "newRouteLabel": "Work",
       "labelPlaceholder": "Label",
       "originPlaceholder": "Origin address",
-      "destinationPlaceholder": "Destination address"
+      "destinationPlaceholder": "Destination address",
+      "removeRoute": "Remove this route"
     },
     "weather": {
-      "hideWhenNoAlerts": "Hide When No Alerts",
-      "showLocation": "Show Location",
-      "locationLabel": "Location Label",
-      "iconStyle": "Icon Style",
+      "hideWhenNoAlerts": "Hide when no alerts",
+      "showLocation": "Show location",
+      "locationLabel": "Location label",
+      "iconStyle": "Icon style",
       "dataProvider": "Weather source",
-      "hoursToShow": "Hours to Show",
-      "daysToShow": "Days to Show",
+      "hoursToShow": "Hours to show",
+      "daysToShow": "Days to show",
       "showFeaturedDay": "Show large first day",
       "showRelativeDayLabels": "Use Today and Tmrw labels",
-      "uvIndex": "UV Index",
+      "uvIndex": "UV index",
       "sunTimes": "Sunrise and sunset",
-      "feelsLike": "Feels Like",
-      "highLow": "High / Low",
+      "feelsLike": "Feels like",
+      "highLow": "High / low",
       "precipitation": "Precipitation",
-      "precipitationAmount": "Precipitation Amount",
+      "precipitationAmount": "Precipitation amount",
       "humidity": "Humidity",
-      "windSpeed": "Wind Speed",
+      "windSpeed": "Wind speed",
       "pressure": "Pressure",
       "visibility": "Visibility",
-      "dewPoint": "Dew Point",
+      "dewPoint": "Dew point",
       "iconSets": {
         "outline": "Outline",
         "color": "Color"
       },
       "views": {
-        "current": "Current Only",
+        "current": "Current only",
         "hourly": "Hourly",
-        "daily": "Daily Forecast",
+        "daily": "Daily forecast",
         "combined": "Combined",
         "compact": "Compact",
         "table": "Table",
         "precipitation": "Precipitation",
-        "alerts": "Weather Alerts",
+        "alerts": "Weather alerts",
         "ribbon": "Temperature ribbon",
         "week": "Week ahead",
         "timeline": "Hour by hour",
@@ -5416,7 +5311,7 @@
         },
         "weatherApiFree": "A free WeatherAPI key sends 3 days. Paid plans send more.",
         "useOpenMeteo": "Use Open-Meteo for this module",
-        "changeHousehold": "Or change the weather source in Settings"
+        "changeHousehold": "Or change the weather source in {place}"
       },
       "forecastHours": {
         "sends": {
@@ -5438,14 +5333,14 @@
       }
     },
     "word-of-day": {
-      "showDividers": "Show Dividers"
+      "showDividers": "Show dividers"
     },
     "year-progress": {
-      "showYear": "Show Year",
-      "showMonth": "Show Month",
-      "showWeek": "Show Week",
-      "showDay": "Show Day",
-      "showPercentage": "Show Percentage"
+      "showYear": "Show year",
+      "showMonth": "Show month",
+      "showWeek": "Show week",
+      "showDay": "Show day",
+      "showPercentage": "Show percentage"
     },
     "ruleList": {
       "ruleTitle": "Rule {n}",
@@ -5519,7 +5414,7 @@
       "eventsOnDay": "Events on that day",
       "hasEvents": "Has at least one event",
       "noEvents": "Has no events",
-      "hasMatchingEvent": "Has an event that matches...",
+      "hasMatchingEvent": "Has an event that matches…",
       "background": "Background",
       "noChange": "No change",
       "backgroundAuto": "Auto (from that day's event colors)",
@@ -5564,7 +5459,7 @@
       "ruleCountOne": "1 rule",
       "ruleCountOther": "{count} rules",
       "addEvents": "Add events from a day",
-      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in Settings > Calendar.",
+      "addEventsHelp": "Shows \"Add event\" when a day is tapped, and Change and Remove on an event. Needs adding turned on in {place}.",
       "wallViews": "Switch views on the wall",
       "wallViewsOwn": "This calendar's view",
       "wallViewsHint": "Buttons under the heading, up to four. A minute after the last touch the wall goes back to {view}.",
@@ -5596,7 +5491,7 @@
       "daysToShow": "Days in the forecast list",
       "locationLabel": "Place name",
       "accentAuto": "Accent color follows the weather",
-      "accentColor": "Accent Color",
+      "accentColor": "Accent color",
       "showTime": "Show the time",
       "skyLayerHint": "Living paints the sky to match the weather and the time of day, with white text over it. Pick Still if the display stutters on older hardware; Still and Off keep the theme colors.",
       "showMap": "Show the rain map",
@@ -5637,7 +5532,7 @@
       "showTime": "Show the time",
       "typographySize": "Text size",
       "accentTheme": "Accent color follows the theme",
-      "accentColor": "Accent Color"
+      "accentColor": "Accent color"
     },
     "locationRow": {
       "set": "Location: {name}",
@@ -5646,7 +5541,7 @@
     },
     "calendarPeople": {
       "showNameTags": "Name tags",
-      "nameTagsHint": "Put each person's initials on their events. People come from Settings > Family; which calendar is whose is set under Settings > Calendar > People. Shared calendars keep a plain dot.",
+      "nameTagsHint": "Put each person's initials on their events. People come from {familyPlace}, and which calendar is whose is set in {calendarPlace}. Shared calendars keep a plain dot.",
       "nameTagsNoOwners": "Nobody owns a calendar yet, so there is nothing to tag.",
       "matchCalendars": "Match calendars to people",
       "legendMode": "Key lists",
@@ -5736,7 +5631,7 @@
       "filterAll": "Every note",
       "filterPinned": "Pinned only",
       "filterImportant": "Important only",
-      "manageNotes": "Manage notes",
+      "manageNotes": "Edit notes",
       "stepSeconds": "Seconds per note",
       "tickerSpeed": "Scroll speed (seconds per note)",
       "viewChalkboard": "Chalkboard",
@@ -5757,26 +5652,29 @@
       "done": "Done"
     },
     "icalFeeds": {
-      "title": "iCal / ICS Feeds",
+      "title": "iCal / ICS feeds",
       "editLowercase": "edit",
       "doneLowercase": "done",
       "feedNamePlaceholder": "Feed name",
       "newFeedNamePlaceholder": "Feed name (e.g. Work, Sports)",
-      "addFeed": "+ Add Feed",
+      "addFeed": "Add feed",
       "helpText": "Add ICS/iCal feed URLs from Google Calendar, Apple Calendar, Outlook, Nextcloud, or any service that provides .ics feeds.",
       "checking": "Checking the link…",
-      "checkFailedHint": "Check the link ends in .ics or starts with webcal://",
+      "checkFailedHint": "A calendar link usually ends in .ics or starts with webcal://.",
       "addAnyway": "Add anyway",
       "checkUnavailable": "Couldn't check the link right now",
       "homeNetwork": "Home network",
-      "homeNetworkHint": "Lets the display read a calendar from a device on your home network, like a calendar server you run yourself."
+      "homeNetworkHint": "Lets the display read a calendar from a device on your home network, like a calendar server you run yourself.",
+      "removeFeed": "Remove {name}",
+      "removeConfirmMessage": "Its events stop showing. You can add the link again any time.",
+      "removeConfirmButton": "Remove calendar"
     },
     "orientation": {
       "title": "Modules may be off-screen",
       "warning": "{offCanvasCount} of {totalModuleCount} modules would sit outside the new {newWidth}×{newHeight} screen area.",
-      "scaleToFit": "Scale to Fit",
+      "scaleToFit": "Scale to fit",
       "scaleToFitDescription": "shrinks all modules proportionally so nothing is cut off.",
-      "switchAnyway": "Switch Anyway",
+      "switchAnyway": "Switch anyway",
       "switchAnywayDescription": "keeps modules at their current positions. You can reposition them manually."
     }
   },
@@ -5784,8 +5682,7 @@
     "defaultLabel": "View"
   },
   "accentColorPicker": {
-    "label": "Accent Color",
-    "customColor": "Custom Color",
+    "label": "Accent color",
     "presets": {
       "none": "None",
       "purple": "Purple",
@@ -5795,13 +5692,12 @@
       "amber": "Amber",
       "orange": "Orange",
       "red": "Red",
-      "pink": "Pink",
-      "custom": "Custom"
+      "pink": "Pink"
     }
   },
   "templatePicker": {
     "title": "Templates",
-    "loadFailed": "Failed to load \"{name}\"",
+    "loadFailed": "Couldn't load “{name}”. Try again.",
     "categories": {
       "All": "All",
       "Dashboard": "Dashboard",
@@ -5871,7 +5767,6 @@
       "other": "You haven't backed up in {count} days."
     },
     "downloading": "Downloading…",
-    "backupNow": "Backup Now",
     "dismiss": "Dismiss",
     "autoFailed": "The automatic backup did not work.",
     "autoNotSent": "Your backup was saved but could not be sent to your storage folder.",
@@ -5881,7 +5776,7 @@
   },
   "updateAvailable": {
     "message": "Update available: v{version}",
-    "updateButton": "Update Now",
+    "updateButton": "Update now",
     "dismiss": "Dismiss"
   },
   "statusDot": {
@@ -5954,7 +5849,7 @@
       "waitingForKeys": "waiting for {keys}",
       "keyNotPicked": "a condition doesn't have a key picked yet",
       "conditionsNotMet": "the conditions don't match",
-      "seeLiveValues": "Each condition shows what the display sees now, and every key is listed under Settings > Automation > Shared state."
+      "seeLiveValues": "Each condition shows what the display sees now, and every key is listed in {place}."
     },
     "time": {
       "fromLabel": "From",
@@ -6007,14 +5902,12 @@
   "phoneSurfaces": {
     "surfaces": {
       "chores": {
-        "name": "Check off chores",
         "audience": "For kids",
         "description": "Today's chores and rewards. Nothing else can be changed."
       },
       "remote": {
-        "name": "Family remote",
-        "audience": "For parents",
-        "description": "Add chores, plan meals, add photos, and control displays."
+        "audience": "For grown-ups",
+        "description": "Add chores, plan meals, add photos, and control the wall."
       }
     },
     "chips": {
@@ -6044,10 +5937,9 @@
         "lists": "Lists on a phone",
         "notes": "Notes on a phone"
       },
-      "lede": "Scan with a phone camera, or type the address in. Works on any device on your home wifi.",
-      "passwordHint": "You can ask for a password in Settings, under Security.",
-      "copyLink": "Copy link",
-      "copied": "Copied"
+      "lede": "Scan with a phone camera, or type the address in. Works on any phone or tablet on your home Wi-Fi.",
+      "passwordHint": "You can ask for a password in {place}.",
+      "copyLink": "Copy link"
     }
   },
   "firstRun": {
@@ -6084,8 +5976,8 @@
     "failedTitle": "Couldn't finish signing in",
     "backToEditor": "Back to the editor",
     "calendarConnectedTitle": "Home Screens can add events",
-    "calendarConnectedBody": "Go back to Settings > Calendar to pick which calendars events go on.",
-    "calendarReadOnlyBody": "The box for “View and edit events” was left empty. Sign in again from Settings > Calendar and tick it."
+    "calendarConnectedBody": "Go back to {place} to pick which calendars events go on.",
+    "calendarReadOnlyBody": "The box for “View and edit events” was left empty. Sign in again from {place} and tick it."
   },
   "conditionSummary": {
     "always": "always",
@@ -6102,7 +5994,6 @@
     "noneOf": "none of {n}"
   },
   "deviceSignIn": {
-    "hubUnreachable": "Couldn't reach Home Screens. Check the connection and try again.",
     "codeExpired": "That code expired. Start sign-in again."
   },
   "photoSources": {
@@ -6126,7 +6017,7 @@
         "one": "{count} photo in album",
         "other": "{count} photos in album"
       },
-      "connecting": "Connecting...",
+      "connecting": "Connecting…",
       "allPhotos": "All photos",
       "favorites": "Favorites",
       "albums": "Albums",
@@ -6137,8 +6028,8 @@
       "empty": "No photos here yet.",
       "loadFailed": "Couldn't load photos from Immich.",
       "unreachable": "Can't reach your Immich server.",
-      "unreachableHelp": "Check that it's on, and that the address on Settings > API keys is right.",
-      "keyRejected": "Your Immich key wasn't accepted. Check it on Settings > API keys.",
+      "unreachableHelp": "Check that it's on, and that the address in {place} is right.",
+      "keyRejected": "Your Immich key wasn't accepted. Check it in {place}.",
       "needsSetup": "Immich needs its address and key before you can browse it here.",
       "copyHint": "A copy goes into your library's Immich folder, so it keeps showing if Immich is off.",
       "favoritesEmpty": "No favorites yet. Tap the heart on a photo in Immich and it shows up here.",
@@ -6166,7 +6057,7 @@
       "photoLinkDetected": "This is a photo link, not a Shared Album link. Photo links stop working after about a month, so we save copies into your library and show those instead.",
       "photoLinkAction": "Save to library",
       "videoHint": "Some iPhone videos may not play on older displays. Videos that can't play are skipped automatically.",
-      "checking": "Checking the album...",
+      "checking": "Checking the album…",
       "checkingSlow": "Still checking. A big album can take a minute.",
       "noAnswer": "iCloud didn't answer just now. Your link may be fine.",
       "tryAgain": "Try again",
@@ -6175,7 +6066,7 @@
     },
     "onedrive": {
       "checking": "Checking the OneDrive connection…",
-      "credentialsNeeded": "Add your Microsoft Application ID under Settings, API keys first.",
+      "credentialsNeeded": "Add your Microsoft Application ID in {place} first.",
       "signIn": "Sign in with Microsoft",
       "waiting": "Waiting for you to finish signing in",
       "enterCode": "Enter this code at",
@@ -6193,7 +6084,7 @@
       "emptyFolder": "No subfolders in this folder",
       "useThisFolder": "Use this folder",
       "capNote": "If the folder tree has more than {cap} photos, slides use a random sample of {cap}.",
-      "loadFailed": "Could not load your OneDrive folders.",
+      "loadFailed": "Couldn't load your OneDrive folders. Try again.",
       "folderNotFound": "Folder not found. Choose a different folder.",
       "noPhotos": "No photos in this folder yet",
       "signInDeclined": "Sign-in was cancelled",
@@ -6201,14 +6092,14 @@
       "signInFailed": "Sign-in did not work. Check the Application ID and try again.",
       "disconnectFailed": "Couldn't disconnect OneDrive. Check your internet connection and try again."
     },
-    "sourceLabel": "Photo Source",
+    "sourceLabel": "Photo source",
     "needsFreeKey": "needs a free key",
     "needsSettingUp": "needs setting up",
-    "keyMissing": "This source isn't set up yet, so no new pictures come in. Add it in Settings > API keys, or pick another source.",
-    "keyMissingBackground": "This source isn't set up yet, so the screen keeps its last picture. Add it in Settings > API keys, or pick another source.",
-    "photosPerRefresh": "Photos per Refresh",
+    "keyMissing": "This source isn't set up yet, so no new pictures come in. Add it in {place}, or pick another source.",
+    "keyMissingBackground": "This source isn't set up yet, so the screen keeps its last picture. Add it in {place}, or pick another source.",
+    "photosPerRefresh": "Photos per refresh",
     "kinds": {
-      "library": "Library",
+      "library": "Pictures & videos",
       "immich": "Immich",
       "icloud": "iCloud shared album",
       "onedrive": "OneDrive",
@@ -6218,8 +6109,7 @@
     },
     "library": {
       "folder": "Folder",
-      "topLevel": "All Photos (top level)",
-      "browse": "Browse...",
+      "browse": "Browse…",
       "photoCount": {
         "one": "{count} photo",
         "other": "{count} photos"
@@ -6257,7 +6147,7 @@
       "collectionsHelp": "Photos come from these collections instead of search words. Paste a collection's address from unsplash.com, or its id.",
       "collectionLabel": "Collection",
       "addCollection": "Add",
-      "collectionChecking": "Checking...",
+      "collectionChecking": "Checking…",
       "collectionValid": "Collection found",
       "collectionEmpty": "No photos in this collection",
       "collectionNotFound": "Couldn't find this collection",
@@ -6315,7 +6205,7 @@
       },
       "streamInfo": "Landscapes, seascapes, city views and still lifes from museum collections. The title, artist and museum show in a corner.",
       "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner.",
-      "addFilter": "+ Add filter",
+      "addFilter": "Add a filter…",
       "filters": "Narrow down",
       "removeFilter": "Remove filter: {filter}",
       "period": "Period",
@@ -6405,7 +6295,7 @@
     "picker": {
       "tabs": {
         "builtin": "Built-in",
-        "library": "Local",
+        "library": "Pictures & videos",
         "immich": "Immich",
         "unsplash": "Unsplash",
         "nasa": "NASA",
@@ -6414,12 +6304,12 @@
       "ideas": "Ideas",
       "search": "Search",
       "showMore": "Show more",
-      "copying": "Copying...",
+      "copying": "Copying…",
       "copyFailed": "Couldn't copy this picture. Try again.",
       "loadFailed": "Couldn't load more. Try again.",
       "tryAgain": "Try again",
       "notSetUp": "Not set up yet",
-      "openApiKeys": "Open Settings > API keys",
+      "openApiKeys": "Open {place}",
       "favorite": "Favorite",
       "unsupportedFormat": "This picture is in a format the display can't show. Try a different one."
     },
@@ -6428,7 +6318,7 @@
       "colors": "Colors",
       "patterns": "Patterns",
       "dayPictures": "Day pictures",
-      "sidebarNote": "These come with Home Screens",
+      "sidebarNote": "These come with Home Screens.",
       "copyHint": "Comes with Home Screens, so it is always there."
     },
     "background": {
@@ -6446,7 +6336,7 @@
     "google": {
       "add": "Add from Google Photos",
       "signInToAdd": "Sign in to add from Google Photos",
-      "needsSetup": "Google Photos needs setting up in Settings > API keys",
+      "needsSetup": "Google Photos needs setting up in {place}",
       "openAgain": "Open Google Photos again",
       "cancel": "Cancel",
       "adding": "Adding {done} of {total} to {folder}",
@@ -6468,6 +6358,7 @@
       "openGoogle": "Open Google Photos"
     },
     "modes": {
+      "label": "Choose pictures by",
       "folder": "Folder",
       "pictures": "Pictures",
       "filters": "Filters",
@@ -6493,7 +6384,7 @@
         "other": "{count} picked."
       },
       "help": "Click a picture to add it, and again to take it out.",
-      "loading": "Loading pictures...",
+      "loading": "Loading pictures…",
       "add": "Add {name}",
       "takeOut": "Take out {name}"
     }

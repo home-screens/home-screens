@@ -20,7 +20,7 @@ function screens(n: number) {
 test('?screen= starts the rotation on that screen', async ({ page, request }) => {
   await renderOnDisplay(page, request, baseConfig({ screens: screens(3), settings: { rotationIntervalMs: 60_000 } }), '/display?screen=s2');
   await expect(page.getByText('PAGE 2', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Pause rotation (double-tap)' })).toHaveAttribute('aria-current', 'true');
+  await expect(page.getByRole('button', { name: 'Stay on this screen (tap twice)' })).toHaveAttribute('aria-current', 'true');
   await expect(page.getByRole('button', { name: 'Go to screen 1: Screen 1' })).toBeVisible();
 });
 

@@ -3,6 +3,7 @@
 import { CalendarDays, Images, ListChecks, ListTodo, MessageSquareText, UtensilsCrossed } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
+import EmptyState from './EmptyState';
 
 /** The tabs (and the Notes tab's Calendar page) that depend on a module existing somewhere in the config. */
 export type GatedTab = 'chores' | 'lists' | 'notes' | 'dayNotes' | 'meals' | 'photos';
@@ -27,28 +28,25 @@ const ICONS = {
 export default function TabNotSetUp({ kind }: { kind: GatedTab }) {
   const t = useTranslate('remote');
   const origin = useOrigin();
-  const Icon = ICONS[kind];
   // Scheme stripped: this is an address someone types on another device, and
   // "http://" is noise in front of the part that matters.
   const editorUrl = `${origin.replace(/^https?:\/\//, '')}/editor`;
 
+  const [before, after] = t('tabNotSetUp.howTo').split('{url}');
+
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      <Icon size={44} className="mb-4 text-hs-border-strong" aria-hidden="true" />
-      <p className="text-base font-medium text-hs-text-body">{t(`tabNotSetUp.${kind}.title`)}</p>
-      <p className="mt-2 max-w-xs text-sm text-hs-text-faint">{t(`tabNotSetUp.${kind}.body`)}</p>
-      <p className="mt-4 max-w-xs text-sm text-hs-text-faint">
-        {(() => {
-          const [before, after] = t('tabNotSetUp.howTo').split('{url}');
-          return (
-            <>
-              {before}
-              <span className="font-semibold text-hs-text-muted whitespace-nowrap">{editorUrl}</span>
-              {after}
-            </>
-          );
-        })()}
-      </p>
-    </div>
+    <EmptyState
+      icon={ICONS[kind]}
+      title={t(`tabNotSetUp.${kind}.title`)}
+      body={t(`tabNotSetUp.${kind}.body`)}
+      style={{ paddingBottom: 64 }}
+      action={(
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: 'var(--hs-text-faint)' }}>
+          {before}
+          <span style={{ fontWeight: 600, color: 'var(--hs-text-muted)', whiteSpace: 'nowrap' }}>{editorUrl}</span>
+          {after}
+        </p>
+      )}
+    />
   );
 }

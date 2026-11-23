@@ -7,6 +7,7 @@ import { Clock, Eye, MoreHorizontal, X } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { Screen } from '@/types/config';
 import { showsOnlyWhenOpened } from '@/lib/on-demand-screen';
+import StatusPill from '@/components/ui/StatusPill';
 
 /** Fingers and trackpads alike: every control on a tab is a 24px square. */
 const TAB_CONTROL = 'flex h-6 w-6 shrink-0 items-center justify-center rounded text-hs-text-faint transition-colors hover:bg-hs-hover';
@@ -16,12 +17,9 @@ function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
     // A screen that never rotates on its own says so in a word; "0s" read
     // as a warning about a broken duration.
     return (
-      <span
-        className="ml-1 text-[9px] font-semibold tracking-wide text-hs-warning bg-hs-warning/15 border border-hs-warning/35 rounded-full px-1.5 py-[1px]"
-        aria-hidden
-      >
+      <StatusPill tone="warning" size="sm" className="ml-1" aria-hidden>
         {t('screenTabs.stickyBadge')}
-      </span>
+      </StatusPill>
     );
   }
   const sec = Math.round(ms / 1000);
@@ -31,12 +29,9 @@ function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
   // case that already uses a non-localized number suffix.
   const label = sec < 1 ? `${ms}ms` : t('screenTabs.secondsSuffix', { seconds: sec });
   return (
-    <span
-      className="ml-1 text-[9px] font-semibold tracking-wide text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 rounded-full px-1.5 py-[1px]"
-      aria-hidden
-    >
+    <StatusPill tone="info" size="sm" className="ml-1" aria-hidden>
       {label}
-    </span>
+    </StatusPill>
   );
 }
 
@@ -157,13 +152,15 @@ export default function ScreenTab({
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
           {opensOnly ? (
-            <span
-              className={`ml-1 text-[9px] font-semibold tracking-wide rounded-full px-1.5 py-[1px] border ${stranded ? 'text-hs-warning bg-hs-warning/15 border-hs-warning/35' : 'text-hs-accent-hover bg-hs-accent-soft border-hs-accent/35'}`}
+            <StatusPill
+              tone={stranded ? 'warning' : 'info'}
+              size="sm"
+              className="ml-1"
               data-testid={stranded ? 'screen-tab-orphaned' : 'screen-tab-opens-only'}
               aria-hidden
             >
               {t(stranded ? 'screenTabs.orphanedBadge' : 'screenTabs.opensOnlyBadge')}
-            </span>
+            </StatusPill>
           ) : screen.rotationDurationMs != null && !rotationOff && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
           {screen.schedule && (
             <Clock
@@ -179,12 +176,14 @@ export default function ScreenTab({
             />
           )}
           {isDisabled && (
-            <span
-              className="ml-1 text-[9px] font-semibold tracking-wide text-hs-text-faint bg-hs-card border border-hs-border-strong rounded-full px-1.5 py-[1px] line-through decoration-hs-text-faint/60"
+            <StatusPill
+              tone="neutral"
+              size="sm"
+              className="ml-1 line-through decoration-hs-text-faint/60"
               aria-label={t('screenTabs.disabledIndicatorAriaLabel')}
             >
               {t('screenTabs.disabledBadge')}
-            </span>
+            </StatusPill>
           )}
           {isSelected && (
             <button

@@ -7,7 +7,7 @@ import { canChooseMealiePlan } from '@/lib/meal-settings';
 import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
 import { mealieProblemDescription, mealieProblemWords } from './MealsMealieStatus';
-import { REMOTE_ACCENT, SECTION_HEADING, selectedPillStyle } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK, SECTION_HEADING, selectedPillStyle } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsSettingsPlanSourceSectionProps {
@@ -75,7 +75,7 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
         style={{ margin: '10px 0 0', background: withAlpha(REMOTE_ACCENT, 0.08), border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.28)}`, borderRadius: 10, padding: '10px 12px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '19px' }}>
-          <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
+          <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT_INK, flex: 'none' }} />
           {tCore(`${words}.title`)}
         </div>
         <p style={{ margin: '4px 0 0 24px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>{mealieProblemDescription(fixInSettings, t, tCore)}</p>
@@ -104,13 +104,14 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
     <section style={{ marginBottom: 24 }} data-testid="meals-plan-source">
       <h4 style={SECTION_HEADING}>{t('mealsSettings.planSource.heading')}</h4>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <button type="button" onClick={() => onChange(undefined)} aria-pressed={!onMealie} style={option(!onMealie, false)}>
+        <button type="button" onClick={() => onChange(undefined)} aria-pressed={!onMealie} className="press-scale" style={option(!onMealie, false)}>
           {t('mealsSettings.planSource.homeScreens')}
         </button>
         <button
           type="button"
           onClick={() => onChange('mealie')}
           aria-pressed={onMealie}
+          className="press-scale"
           disabled={mealieOff}
           style={option(onMealie, mealieOff)}
         >

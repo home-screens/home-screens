@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Screen } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_GO_BACK_AFTER_MS, goBackAfterFromMinutes, goBackAfterMinutesText, resolveGoBackAfterMs } from '@/lib/on-demand-screen';
+import FieldHint from '@/components/ui/FieldHint';
 
 type Note =
   | { kind: 'willBe' | 'changed'; from: string; to: string; clamped: boolean }
@@ -83,18 +84,18 @@ export function GoBackAfterField({ id, screen, t, onChange }: {
           onChange={(e) => onType(e.target.value)}
           onBlur={onLeave}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-          className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-20 ${note ? 'border-hs-warning' : 'border-hs-border-strong'}`}
+          className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-20 focus:outline-none focus:border-hs-accent ${note ? 'border-hs-warning' : 'border-hs-border-strong'}`}
         />
         <span className="text-xs text-hs-text-muted">{t('screenSettings.goBackAfterUnit')}</span>
       </div>
       {note && (
-        <p className="text-[11px] text-hs-warning mt-1.5" data-testid="go-back-after-note">
+        <p className="text-[11px] text-hs-warning-ink mt-1.5" data-testid="go-back-after-note">
           {noteText}
         </p>
       )}
-      <p className="text-[11px] text-hs-text-faint mt-1.5">
+      <FieldHint className="mt-1.5">
         {t('screenSettings.goBackAfterHelp', { minutes: DEFAULT_GO_BACK_AFTER_MS / 60_000 })}
-      </p>
+      </FieldHint>
     </div>
   );
 }

@@ -110,7 +110,7 @@
   "garbage-day": {
     "header": "Ophaalschema",
     "nextDay": "Volgende {day}",
-    "emptyState": "Stel ophaaldagen in via de module-instellingen",
+    "emptyState": "Stel in de editor ophaaldagen in, dan zie je hier wanneer het afval wordt opgehaald",
     "labels": {
       "trash": "Restafval",
       "recycling": "Recycling",
@@ -129,7 +129,6 @@
     "moreCount": "+{count} meer",
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
-    "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "loadingEvents": "Afspraken laden…",
     "weekOf": "Week van {date}",
     "legendLabel": "Kalenderbronnen",
@@ -139,9 +138,9 @@
     "sourcesNotUpdating": "Sommige agenda's worden niet bijgewerkt",
     "notUpdatingSince": "Niet bijgewerkt sinds {time}",
     "signInAgain": "De agenda moet opnieuw inloggen",
-    "signInAgainHint": "Open Instellingen › Agenda op een computer en verbind Google Agenda.",
+    "signInAgainHint": "Open {place} op een computer en verbind Google Agenda.",
     "noSourcesYet": "Nog geen agenda's gekozen",
-    "noSourcesYetHint": "Kies in Instellingen › Agenda welke agenda's je wilt zien.",
+    "noSourcesYetHint": "Kies bij {place} welke agenda's je wilt zien",
     "savedShort": "opgeslagen",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
@@ -153,7 +152,7 @@
       },
       "toTime": "tot {time}",
       "openDay": "Alles van {date} bekijken",
-      "empty": "Nog niets op deze dag.",
+      "empty": "Nog niets op deze dag",
       "addEvent": "Afspraak toevoegen"
     },
     "eventForm": {
@@ -163,11 +162,10 @@
       "namePlaceholder": "Typ een naam",
       "typeOnPhone": "Typ op je telefoon",
       "handoffBody": "Richt de camera van je telefoon hierop. Dan gaat een nieuwe afspraak voor {day} open.",
-      "backToKeyboard": "Terug naar het toetsenbord op het scherm",
-      "allDay": "Hele dag",
+      "backToKeyboard": "Terug naar het toetsenbord op de muur",
       "repeats": "Herhalen",
       "howOften": "Hoe vaak?",
-      "repeatNote": "De afspraak blijft terugkomen tot hij wordt gewijzigd of verwijderd. Moet hij op een bepaalde datum stoppen? Stel dat in op je telefoon.",
+      "repeatNote": "De afspraak blijft terugkomen tot hij wordt gewijzigd of weggehaald. Moet hij op een bepaalde datum stoppen? Stel dat in op je telefoon.",
       "starts": "Begint",
       "ends": "Eindigt",
       "howLong": "Hoe lang",
@@ -207,7 +205,7 @@
     "wallSwitch": {
       "viewsLabel": "Weergaven",
       "sheetEyebrow": "Eén persoon tonen",
-      "sheetTitle": "Wiens kalender?",
+      "sheetTitle": "Wiens agenda?",
       "allPeople": {
         "one": "{count} persoon",
         "other": "Alle {count} personen"
@@ -220,7 +218,6 @@
     }
   },
   "fullscreen-calendar": {
-    "allDay": "Hele dag",
     "noEvents": "Geen afspraken",
     "noEventsThisMonth": "Geen afspraken deze maand",
     "noEventsThisWeek": "Geen afspraken deze week",
@@ -237,7 +234,6 @@
       "dayTimeline": "Dag",
       "agenda": "Agenda",
       "familyGrid": "Gezin",
-      "upNext": "Hierna",
       "freeTime": "Vrije tijd",
       "rolling": "Rollend"
     },
@@ -263,7 +259,6 @@
     },
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
-    "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "weekOf": "Week van {date}",
     "weekNumber": "Week {number}",
     "holiday": "Feestdag",
@@ -271,7 +266,6 @@
     "birthdayWithAge": "Verjaardag · wordt {age}",
     "birthdayShort": "jarig",
     "birthdayAgeShort": "wordt {age}",
-    "headerUpNext": "Hierna",
     "headerFreeTime": "Vrije tijd",
     "everyone": "Iedereen",
     "thisWeekCount": {
@@ -329,14 +323,13 @@
       "chores": "Klusjes",
       "choresDone": "{done} van {total} klusjes gedaan"
     },
-    "peopleHint": "Voeg personen toe onder Instellingen > Agenda zodat iedereen een eigen rij krijgt."
+    "peopleHint": "Voeg personen toe bij {place}, zodat iedereen een eigen rij krijgt."
   },
   "weather": {
     "tomorrowShort": "Morg",
     "feelsLike": "Voelt als {temp}",
     "feelsShort": "Voelt {temp}",
     "highLow": "H:{high} L:{low}",
-    "hourlyForecast": "Uurverwachting",
     "forecast": "Verwachting",
     "weatherAlerts": "Weerwaarschuwingen",
     "alertCount": "({count})",
@@ -344,7 +337,6 @@
     "alertSeverityExpires": "{severity} · Verloopt {expires}",
     "noWeatherData": "Geen weergegevens",
     "noForecastData": "Geen verwachtingsgegevens",
-    "setLocationInSettings": "Stel je locatie in via Instellingen",
     "next60Minutes": "Komende 60 minuten",
     "noPrecipitationExpected": "Geen neerslag verwacht",
     "stoppingInMin": "Stopt over {minutes} min",
@@ -372,7 +364,6 @@
       "Unknown": "Onbekend"
     },
     "loading": "Voorspelling ophalen…",
-    "notUpdating": "Het weer wordt niet bijgewerkt",
     "notAvailableForSource": "Niet beschikbaar bij jouw weerbron",
     "rightNow": "Op dit moment",
     "sunrise": "Zonsopkomst"
@@ -564,7 +555,7 @@
     "showQrInstead": "QR-code tonen",
     "closeRecipe": "Sluiten",
     "favoriteAdd": "{meal} aan favorieten toevoegen",
-    "favoriteRemove": "{meal} uit favorieten verwijderen",
+    "favoriteRemove": "{meal} uit favorieten halen",
     "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden",
     "courses": {
       "main": "Hoofdgerecht",
@@ -668,7 +659,7 @@
   },
   "openButton": {
     "open": "{name} openen",
-    "unavailable": "Nu verborgen op het scherm: dat scherm valt buiten zijn uren of voorwaarden."
+    "unavailable": "Nu verborgen op de muur: dat scherm valt buiten zijn uren of voorwaarden."
   },
   "lookAhead": {
     "thisWeek": "Deze week",
@@ -751,8 +742,7 @@
     "noUpcomingMeals": "Geen aankomende maaltijden gepland",
     "mealsPlannedCount": "{filled} van {total} maaltijden gepland",
     "heroLabels": {
-      "now": "Nu",
-      "upNext": "Hierna"
+      "now": "Nu"
     },
     "nextMealLabels": {
       "now": "Nu",
@@ -771,7 +761,6 @@
     "familyProgress": "Voortgang van het gezin",
     "starChart": "Sterrenkaart",
     "chores": "Klusjes",
-    "thisWeek": "Deze week",
     "dayOff": "Vandaag vrij!",
     "dayOffList": "Vandaag vrij: {names}",
     "noChoresToday": "Vandaag geen klusjes",
@@ -807,7 +796,7 @@
       "anytime": "Wanneer dan ook"
     },
     "iconPicker": {
-      "filter": "Pictogrammen filteren...",
+      "filter": "Pictogrammen filteren…",
       "noMatch": "Geen overeenkomende pictogrammen",
       "none": "Geen",
       "clear": "Wissen"
@@ -862,7 +851,7 @@
       "home": "Thuis",
       "key": "Sleutel",
       "lightbulb": "Licht",
-      "wifi": "WiFi",
+      "wifi": "Wifi",
       "toilet": "Toilet",
       "soap": "Zeep",
       "paw-print": "Dierenzorg",
@@ -954,6 +943,7 @@
       "groupMemberNote": "In {group}",
       "emptyGroupNote": "Er zit nog niemand in de groep die je hebt gekozen, dus niemand krijgt dit klusje tot je er iemand aan toevoegt.",
       "removeFromSchedule": "{name} uit het schema halen",
+      "addToSchedule": "{name} aan het schema toevoegen",
       "validation": {
         "enterName": "Geef het klusje een naam",
         "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
@@ -1120,7 +1110,6 @@
       "other": "{name}, {count} dagen"
     },
     "bestStreakNone": "nog geen",
-    "thisWeek": "Deze week",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
@@ -1174,8 +1163,7 @@
       },
       "confirmCancel": "Annuleren",
       "confirmYes": "Ja!",
-      "errorGeneric": "Er ging iets mis",
-      "errorOffline": "Geen verbinding",
+      "errorOffline": "Kon de tickets niet uitgeven. Home Screens reageert niet, dus tik zo meteen nog eens op Ja.",
       "addFromPhoneHint": "Voeg beloningen toe via een telefoon: open {url} en tik op Klusjes",
       "moreTickets": {
         "one": "Nog 1 ticket te gaan",
@@ -1261,8 +1249,8 @@
     "noGames": "Geen wedstrijden gevonden",
     "today": "Vandaag",
     "tomorrow": "Morgen",
-    "pickTeam": "Kies je team in de module-instellingen",
-    "teamLeagueOff": "Zet de competitie van je team aan in de module-instellingen",
+    "pickTeam": "Kies een team in de editor, dan zie je hier de wedstrijden",
+    "teamLeagueOff": "Zet de competitie van je team aan in de editor, dan zie je hier de wedstrijden",
     "unavailable": "De uitslagen nemen even pauze",
     "last": "Laatst:",
     "win": "W",
@@ -1313,10 +1301,9 @@
     "name": "Takenlijst",
     "defaultTitle": "Taken",
     "noTasksYet": "Voeg dingen toe op je telefoon en ze verschijnen hier",
-    "tapHint": "Tik op een vakje om het af te vinken",
     "noListsYet": "Nog geen lijsten. Maak er een op je telefoon.",
-    "pickAList": "Kies een lijst in de editor",
-    "upNext": "Hierna",
+    "pickAList": "Kies een lijst in de editor, dan zie je hem hier",
+    "tapHint": "Tik op een vakje om het af te vinken",
     "allDone": "Alles gedaan",
     "andMore": "en nog {n}",
     "nLeft": "{n} te gaan",
@@ -1344,17 +1331,7 @@
   },
   "fullscreen-photo": {
     "noPhotosYetFolderHint": "of kies een map in de editor",
-    "noPhotoSelected": "Geen foto geselecteerd",
-    "noPhotoSelectedHint": "Kies een foto in het editorpaneel.",
-    "noPhotosYet": "Nog geen foto's",
-    "noPhotosYetHint": "Voeg foto's toe vanaf je telefoon op",
-    "noPhotosYetHintICloud": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album.",
-    "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor.",
-    "noPhotosYetHintImmich": "Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
-    "noPhotosYetHintUnsplash": "Probeer in de editor andere zoekwoorden.",
-    "noPhotosYetHintNasa": "NASA stuurt op dit moment geen afbeeldingen. Ze komen vanzelf terug.",
-    "noPhotosYetHintArt": "Maak in de editor een filter ruimer.",
-    "noPhotosYetHintPicked": "Kies een paar foto's in de editor."
+    "noPhotoSelectedHint": "Kies een foto in de editor, dan zie je hem hier"
   },
   "dad-joke": {
     "loading": "Mop laden…"
@@ -1472,7 +1449,6 @@
       "overdue": "Te laat",
       "today": "Vandaag",
       "tomorrow": "Morgen",
-      "thisWeek": "Deze week",
       "upcoming": "Binnenkort",
       "noDate": "Geen datum",
       "noLabel": "Geen label"
@@ -1506,15 +1482,7 @@
   },
   "photo-slideshow": {
     "loading": "Foto's worden geladen…",
-    "empty": "Geen foto's gevonden",
-    "emptyICloud": "Nog geen foto's. Controleer de albumlink en zorg dat 'Openbare website' aanstaat.",
-    "emptyOneDrive": "Nog geen foto's. Controleer de OneDrive-map in de editor.",
-    "emptyImmich": "Nog geen foto's. Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
-    "emptyUnsplash": "Nog geen foto's. Probeer in de editor andere zoekwoorden.",
-    "emptyNasa": "Op dit moment geen afbeeldingen van NASA. Ze komen vanzelf terug.",
-    "emptyArt": "Geen schilderijen gevonden. Maak in de editor een filter ruimer.",
-    "photoCredit": "{name} / {source}",
-    "emptyPicked": "Nog geen foto's gekozen. Kies er een paar in de editor."
+    "photoCredit": "{name} / {source}"
   },
   "video": {
     "name": "Video",
@@ -1561,25 +1529,26 @@
     "wake": "Wakker maken",
     "wakeSub": "scherm weer aan",
     "controls": "Bedient",
-    "thisDisplay": "Dit display",
-    "thisDisplayTag": "dit display",
-    "allDisplays": "Alle displays",
+    "thisDisplay": "Deze muur",
+    "thisDisplayTag": "deze muur",
+    "allDisplays": "Elke muur",
     "brightnessValue": "Helderheid {percent}%",
     "brightnessUnknown": "Helderheid, nog niet gemeld",
     "dockEmpty": "Nog geen schermen",
     "unnamedScreen": "Scherm {number}",
     "goTo": "Naar {name}",
     "timers": "Timers",
-    "timersEyebrow": "Start op dit display",
+    "timersEyebrow": "Start op deze muur",
     "routines": "Routines",
     "quickTimer": "Snelle timer",
-    "noRoutines": "Maak routines bij Timers op je telefoon.",
+    "noRoutines": "Maak routines op de telefoon, bij Timers",
     "start": "Start",
     "timerStartFailed": "De timer is niet gestart. Probeer het opnieuw.",
     "timersPreview": "Dit is een voorbeeldweergave, dus tikken start hier geen timer."
   },
   "timetable": {
     "name": "Rooster",
+    "loading": "Roosters laden…",
     "today": "Vandaag",
     "free": "vrij",
     "lunch": "Lunchpauze",
@@ -1599,7 +1568,7 @@
     "abLegend": "{day} {periods}: A-week {subjectA}, B-week {subjectB}",
     "holidayLine": "{holiday}, weer naar school op {date}",
     "holidayBrief": "{holiday}, weer school op {date}",
-    "pickWho": "Kies in de instellingen van de module van wie je de week laat zien.",
+    "pickWho": "Kies een persoon in de editor, dan zie je hier de week van die persoon",
     "noTimetableYet": "Nog geen rooster. Een volwassene kan het in de editor invullen.",
     "tomorrow": "Morgen",
     "startsWord": "begint",
@@ -1623,7 +1592,9 @@
     "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
     "moduleFailed": "Dit onderdeel kon niet worden getoond.",
     "setLocationLink": "Locatie instellen",
+    "setLocationInEditor": "Stel in de editor je locatie in",
     "notUpdating": "Wordt nu niet bijgewerkt",
+    "upNext": "Hierna",
     "setup": {
       "needsKey": "Nog geen {service}-sleutel",
       "keyNotWorking": "De {service}-sleutel werkt niet",
@@ -1636,20 +1607,35 @@
     "moreBelow": {
       "one": "{count} meer hieronder",
       "other": "{count} meer hieronder"
+    },
+    "photoEmpty": {
+      "noPhotos": "Nog geen foto's",
+      "nonePicked": "Nog geen foto's gekozen",
+      "noPaintings": "Geen schilderijen gevonden",
+      "noneFromNasa": "Op dit moment geen afbeeldingen van NASA",
+      "hint": {
+        "addPhotos": "Voeg foto's toe vanaf een telefoon: open {url} en tik op Foto's",
+        "pickPictures": "Kies een paar foto's in de editor, dan zie je ze hier",
+        "checkFilters": "Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten",
+        "checkLink": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album",
+        "checkFolder": "Controleer de OneDrive-map in de editor",
+        "checkSearch": "Probeer in de editor andere zoekwoorden",
+        "checkArt": "Maak in de editor een filter ruimer",
+        "tryLater": "Ze komen vanzelf terug"
+      }
     }
   },
   "event-detail": {
     "close": "Sluiten",
     "happeningNow": "Nu bezig",
-    "allDay": "Hele dag",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
     "birthdayWithAge": "Verjaardag · wordt {age}",
     "repeats": "Terugkerend",
     "change": "Wijzigen",
-    "remove": "Verwijderen",
+    "remove": "Weghalen",
     "keepIt": "Laten staan",
-    "removeTitle": "{title} verwijderen?",
+    "removeTitle": "{title} weghalen?",
     "removeBody": "De afspraak verdwijnt voor iedereen uit de agenda {calendar}: op de muur, op telefoons en in de agenda-app.",
     "justThisDay": "Alleen deze dag",
     "everyTime": "Elke keer"

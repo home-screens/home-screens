@@ -38,6 +38,10 @@ import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import { withAlpha } from '@/lib/hex-color';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { LoadingLine } from '@/components/ui/Spinner';
 
 /**
  * Editor settings page section for meal-planner shared settings.
@@ -161,7 +165,7 @@ export default function MealsSection() {
       // sign-in.
       if (!stillCurrent(myReqId) || isSessionExpired(err)) return false;
       setStatus({
-        message: t(err instanceof HubUnreachableError ? 'settings.mealsPage.status.networkSave' : 'settings.mealsPage.status.saveFailed'),
+        message: tCore(err instanceof HubUnreachableError ? 'refusals.hubUnreachable' : 'refusals.saveFailed'),
         kind: 'error',
       });
       setSettings(prev); // rollback optimistic update
@@ -171,7 +175,7 @@ export default function MealsSection() {
       // AND still mounted. Otherwise the newer request will manage it.
       if (stillCurrent(myReqId)) setSaving(false);
     }
-  }, [stillCurrent, t]);
+  }, [stillCurrent, t, tCore]);
 
   useEffect(() => {
     return () => { if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current); };
@@ -223,6 +227,7 @@ export default function MealsSection() {
       title: t('settings.mealsPage.reset.confirmTitle'),
       message: t('settings.mealsPage.reset.help'),
       confirmLabel: t('settings.mealsPage.reset.confirmButton'),
+      variant: 'danger',
     });
     if (ok) apply(resetMealSettings);
   }, [apply, t]);
@@ -231,7 +236,7 @@ export default function MealsSection() {
 
   if (loading) {
     return (
-      <div className="text-sm text-hs-text-faint">{t('settings.mealsPage.loading')}</div>
+      <LoadingLine label={t('settings.mealsPage.loading')} />
     );
   }
 
@@ -250,9 +255,9 @@ export default function MealsSection() {
     <div className="space-y-6">
       {/* Status row — mirrors the parent page's "Saved" indicator */}
       <div className="flex items-center justify-between">
-        <p className="text-xs text-hs-text-faint leading-relaxed">
+        <FieldHint>
           {t('settings.mealsPage.intro.text')}
-        </p>
+        </FieldHint>
         <div className="flex items-center gap-2 text-xs">
           {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
           {!saving && status && status.kind === 'success' && (
@@ -284,14 +289,14 @@ export default function MealsSection() {
         <GroceryExtrasChoice value={settings.groceryExtrasListId} saving={saving} onChange={setExtrasList} />
       )}
 
-      {/* ── Meal Slots ── */}
+      {/* ── Meal slots ── */}
       <section data-field-id="meals.enabledSlots">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.mealsPage.slots.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint mb-3">
+        </SettingsSectionHeading>
+        <FieldHint className="mb-3">
           {t('settings.mealsPage.slots.description')}
-        </p>
+        </FieldHint>
         <div className="grid grid-cols-2 gap-2">
           {SLOT_ORDER.map((slot) => {
             const isEnabled = settings.enabledSlots.includes(slot);
@@ -332,9 +337,9 @@ export default function MealsSection() {
 
       {/* ── Week Start ── */}
       <section data-field-id="meals.weekStartDay">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.mealsPage.weekStart.heading')}
-        </h3>
+        </SettingsSectionHeading>
         <div className="grid grid-cols-2 gap-2">
           {(['sunday', 'monday'] as const).map((day) => {
             const isSelected = settings.weekStartDay === day;
@@ -358,17 +363,17 @@ export default function MealsSection() {
         </div>
         {/* The calendars keep their own first day, and on one wall the two
             weeks sit side by side: say whose week this is. */}
-        <p className="text-xs text-hs-text-faint mt-2">{t('settings.mealsPage.weekStart.hint')}</p>
+        <FieldHint className="mt-2">{t('settings.mealsPage.weekStart.hint')}</FieldHint>
       </section>
 
-      {/* ── Time Format ── */}
+      {/* ── Time format ── */}
       <section data-field-id="meals.timeFormat">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.mealsPage.timeFormat.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint mb-3">
+        </SettingsSectionHeading>
+        <FieldHint className="mb-3">
           {t('settings.mealsPage.timeFormat.description')}
-        </p>
+        </FieldHint>
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
@@ -414,14 +419,14 @@ export default function MealsSection() {
         </div>
       </section>
 
-      {/* ── Default Serving Times ── */}
+      {/* ── Default serving times ── */}
       <section data-field-id="meals.defaultSlotTimes">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.mealsPage.defaultTimes.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint mb-3">
+        </SettingsSectionHeading>
+        <FieldHint className="mb-3">
           {t('settings.mealsPage.defaultTimes.description')}
-        </p>
+        </FieldHint>
         <div className="space-y-2">
           {settings.enabledSlots.map((slot) => {
             const meta = SLOT_META[slot];
@@ -455,7 +460,7 @@ export default function MealsSection() {
                     value={currentTime ?? ''}
                     onChange={(e) => setDefaultTime(slot, e.target.value || undefined)}
                     disabled={saving}
-                    className="flex-1 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+                    className={`flex-1 ${SETTINGS_INPUT_SM_CLASS}`}
                     aria-label={t('settings.mealsPage.defaultTimes.timeInputAriaLabel', { name: slotLabel })}
                   />
                   <div className="flex gap-1">
@@ -488,9 +493,9 @@ export default function MealsSection() {
             );
           })}
           {settings.enabledSlots.length === 0 && (
-            <p className="text-xs text-hs-text-faint italic">
+            <FieldHint className="italic">
               {t('settings.mealsPage.defaultTimes.noSlotsHint')}
-            </p>
+            </FieldHint>
           )}
         </div>
       </section>
@@ -504,9 +509,9 @@ export default function MealsSection() {
         >
           {t('settings.mealsPage.reset.button')}
         </Button>
-        <p className="text-xs text-hs-text-faint mt-2">
+        <FieldHint className="mt-2">
           {t('settings.mealsPage.reset.help')}
-        </p>
+        </FieldHint>
       </section>
     </div>
   );
@@ -563,12 +568,12 @@ function PlanSourceChoice({
 
   return (
     <section data-field-id="meals.planSource">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.mealsPage.planSource.heading')}
-      </h3>
-      <p className="text-xs text-hs-text-faint mb-3">
+      </SettingsSectionHeading>
+      <FieldHint className="mb-3">
         {t('settings.mealsPage.planSource.description')}
-      </p>
+      </FieldHint>
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -591,14 +596,14 @@ function PlanSourceChoice({
           <span className="text-[11px] opacity-80">{mealieSub}</span>
         </button>
       </div>
-      <p className="mt-2.5 text-xs leading-[17px] text-hs-text-muted">
+      <FieldHint className="mt-2.5">
         {!mealieConnected ? (
           <>
             {t('settings.mealsPage.planSource.connectFirst')}{' '}
             <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
           </>
         ) : problem === 'token' || problem === 'setup' ? (
-          <span className="text-hs-warning">
+          <span className="text-hs-warning-ink">
             {t(problem === 'token' ? 'settings.mealsPage.planSource.tokenRefused' : 'settings.mealsPage.planSource.setup')}{' '}
             <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
           </span>
@@ -610,7 +615,7 @@ function PlanSourceChoice({
         ) : (
           t('settings.mealsPage.planSource.connectedOffer')
         )}
-      </p>
+      </FieldHint>
     </section>
   );
 }
@@ -618,7 +623,7 @@ function PlanSourceChoice({
 /**
  * The to-do list the other things to buy go on (paper towels, dog food): its
  * open items show at the end of the grocery list on the phone and the wall,
- * and a grocery card with Add on the Wall adds to it. Shared with the grocery
+ * and a grocery card with Add on the wall adds to it. Shared with the grocery
  * card's own picker in the module settings.
  */
 function GroceryExtrasChoice({ value, saving, onChange }: {
@@ -632,16 +637,16 @@ function GroceryExtrasChoice({ value, saving, onChange }: {
   const picked = value && lists.some((l) => l.id === value) ? value : '';
   return (
     <section data-field-id="meals.groceryExtrasList">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.mealsPage.groceryExtras.heading')}
-      </h3>
-      <p className="text-xs text-hs-text-faint mb-3">{t('settings.mealsPage.groceryExtras.description')}</p>
+      </SettingsSectionHeading>
+      <FieldHint className="mb-3">{t('settings.mealsPage.groceryExtras.description')}</FieldHint>
       <select
         aria-label={t('settings.mealsPage.groceryExtras.heading')}
         value={picked}
         disabled={saving}
         onChange={(e) => onChange(e.target.value || undefined)}
-        className="w-full max-w-xs bg-hs-card border border-hs-border-strong rounded-md text-sm text-hs-text-body px-2 py-1.5"
+        className={`w-full max-w-xs ${SETTINGS_INPUT_SM_CLASS}`}
       >
         <option value="">{t('settings.mealsPage.groceryExtras.none')}</option>
         {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}

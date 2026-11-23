@@ -317,7 +317,7 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     type: 'chore-chart', name: 'accent-color', kind: 'local-data', seed: 'chores',
     config: { view: 'star-chart', accentColor: '#ff0000' },
     expect: async (mod) => {
-      await has('Star Chart')(mod); // auto-wait for the async chore data to render the grid
+      await has('Star chart')(mod); // auto-wait for the async chore data to render the grid
       await expect
         .poll(async () => {
           const colors = await mod.locator('thead th').evaluateAll((els) => els.map((e) => getComputedStyle(e).color));
@@ -372,7 +372,7 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     type: 'chore-chart', name: 'hide-points', kind: 'local-data', seed: 'chores',
     config: { view: 'star-chart', showPoints: false },
     expect: async (mod) => {
-      await has('Star Chart')(mod);
+      await has('Star chart')(mod);
       await expect(mod).not.toContainText('tickets');
     },
   },

@@ -9,7 +9,6 @@ import { ModuleEmptyState, ModuleNotUpdatingState } from './ModuleStates';
 import { useFitCount } from './shared/useFitCount';
 import { MoreLine as SharedMoreLine } from './shared/MoreLine';
 import { TEXT_OPACITY, DIVIDER, ink, hasAccentColor } from '@/lib/constants';
-import { MetadataText } from './shared/MetadataText';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from './shared/TapCheckbox';
 import { wallRowPress } from './shared/wallPress';
 import { usePressedKey } from './shared/usePressedKey';
@@ -25,12 +24,14 @@ import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
+import { MemberBadge } from './shared/MemberBadge';
 import { parseIsoDate } from '@/lib/iso-date';
 import { todoCardAdds } from '@/lib/todo-wall';
 import { WallAddRow } from './shared/WallAddRow';
 import { WallAddSheet, type WallAddResult } from './shared/WallAddSheet';
 import { addToTodoListFromWall } from './shared/wallListAdd';
+import { ModuleTitleRow, TITLE_ROW_RIGHT_EM } from './shared/ModuleTitleRow';
 
 /** Members change about never; one poll a minute keeps initials current. */
 const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
@@ -205,6 +206,8 @@ function DueChip({ label, tone, accentColor }: { label: string; tone: DueTone; a
 
 /** Up to two initials in member colours, then a "+N" bubble. */
 function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<string, FamilyMember> }) {
+  // The bubbles have no names beside them, so two people never share a letter.
+  const initials = useMemo(() => getUniqueInitials([...members.values()]), [members]);
   const known = ids.map((id) => members.get(id)).filter((m): m is FamilyMember => !!m);
   if (known.length === 0) return null;
   const shown = known.slice(0, MAX_INITIALS);
@@ -223,15 +226,15 @@ function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<strin
       style={{ paddingLeft: '0.24em', paddingRight: RING_PX }}
     >
       {shown.map((m) => (
-        <span
+        <MemberBadge
           key={m.id}
-          className={bubble}
           title={m.name}
-          // Ink picked for the member's colour: chip ink, not card ink.
-          style={{ ...bubbleStyle, backgroundColor: m.color, color: memberInk(m.color), boxShadow: ring }}
-        >
-          {memberInitials(m.name)}
-        </span>
+          initials={initials.get(m.id) ?? memberInitials(m.name)}
+          color={m.color}
+          fontSize={bubbleStyle.fontSize}
+          size={bubbleStyle.width}
+          style={{ marginLeft: bubbleStyle.marginLeft, fontWeight: 800, boxShadow: ring }}
+        />
       ))}
       {extra > 0 && (
         <span className={bubble} style={{ ...bubbleStyle, backgroundColor: ink(0.15), color: ink(0.7) }}>
@@ -254,18 +257,11 @@ function Header({ title, showTitle, done, total, right, t }: {
 }) {
   const allDone = total > 0 && done === total;
   return (
-    <div className="flex items-baseline justify-between" style={{ marginBottom: '0.56em', gap: '0.5em' }}>
-      {showTitle && (
-        <h2 className="font-semibold truncate" style={{ fontSize: '1.25em', letterSpacing: '-0.01em' }}>
-          {title}
-        </h2>
-      )}
-      <span className="ml-auto shrink-0">
-        {allDone ? <AllDoneBadge label={t('todo.allDone')} /> : right ?? (
-          <MetadataText className="tabular-nums">{done}/{total}</MetadataText>
-        )}
-      </span>
-    </div>
+    <ModuleTitleRow
+      title={showTitle ? title : undefined}
+      // The badge keeps its own size inside the row's smaller right-hand slot.
+      right={allDone ? <AllDoneBadge label={t('todo.allDone')} size={1 / TITLE_ROW_RIGHT_EM} /> : right ?? `${done}/${total}`}
+    />
   );
 }
 
@@ -843,12 +839,12 @@ function FocusView({ list, title, showTitle, placement, accentColor, t }: ViewPr
         showTitle={showTitle}
         done={done}
         total={total}
-        right={<MetadataText className="tabular-nums">{t('todo.nLeft', { n: open.length })}</MetadataText>}
+        right={t('todo.nLeft', { n: open.length })}
         t={t}
       />
       {!allDone && (
         <div className="font-bold uppercase" style={{ fontSize: '0.6em', letterSpacing: '0.12em', color: ink(0.5), marginBottom: '0.32em' }}>
-          {t('todo.upNext')}
+          {t('common.upNext')}
         </div>
       )}
       <div className="flex flex-col min-h-0 overflow-hidden">

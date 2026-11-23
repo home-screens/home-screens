@@ -3,6 +3,7 @@
 import type { MealSlotType } from '@/types/config';
 import { SLOT_ORDER, SLOT_META, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
+import { Check } from 'lucide-react';
 import { withAlpha } from '@/lib/hex-color';
 import { SECTION_HEADING } from './remote-styles';
 
@@ -36,6 +37,7 @@ export default function MealsSettingsSlotsSection({ enabledSlots, onToggleSlot }
               key={slot}
               type="button"
               onClick={() => onToggleSlot(slot)}
+              className="press-scale"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -72,11 +74,7 @@ export default function MealsSettingsSlotsSection({ enabledSlots, onToggleSlot }
                   flexShrink: 0,
                 }}
               >
-                {isEnabled && (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
+                {isEnabled && <Check size={12} strokeWidth={3} aria-hidden="true" />}
               </div>
               <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--hs-text-primary)' }}>
                 {slotLabel}

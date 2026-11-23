@@ -6,6 +6,7 @@ import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { useTranslate } from '@/i18n';
 import type { AlertSettings } from '@/types/config';
 import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { WallButton } from '@/components/modules/shared/WallButton';
 
 interface AlertOverlayProps {
   alertSettings?: AlertSettings;
@@ -99,7 +100,7 @@ function BannerItem({ alert, onDismiss, s, label }: { alert: DisplayAlert; onDis
         )}
       </div>
       {alert.dismissible !== false && (
-        <button
+        <WallButton
           data-testid="alert-dismiss"
           data-alert-control=""
           onClick={() => onDismiss(alert.id)}
@@ -126,7 +127,7 @@ function BannerItem({ alert, onDismiss, s, label }: { alert: DisplayAlert; onDis
           }}
         >
           <X style={{ width: 28 * s, height: 28 * s }} strokeWidth={2.5} />
-        </button>
+        </WallButton>
       )}
     </div>
   );
@@ -195,7 +196,7 @@ function UrgentBar({ alert, onDismiss, s, label }: { alert: DisplayAlert; onDism
         )}
       </div>
       {alert.dismissible !== false && (
-        <button
+        <WallButton
           data-testid="alert-dismiss"
           data-alert-control=""
           onClick={() => onDismiss(alert.id)}
@@ -215,7 +216,7 @@ function UrgentBar({ alert, onDismiss, s, label }: { alert: DisplayAlert; onDism
           }}
         >
           {label}
-        </button>
+        </WallButton>
       )}
     </div>
   );

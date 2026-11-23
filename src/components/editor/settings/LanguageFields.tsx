@@ -7,6 +7,9 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, revalidateLoaderCache, resolveShippedLocale } from '@/i18n';
 import { LOCALES, DEFAULT_LOCALE } from '@/i18n/manifest';
 import { reloadPluginTranslations, clearActiveLocaleCache } from '@/lib/plugin-loader';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * Language fields card for the "Defaults → Location & language" page.
@@ -102,9 +105,9 @@ export default function LanguageFields() {
 
   return (
     <>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('languageAndRegion.title')}
-      </h3>
+      </SettingsSectionHeading>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4 space-y-4">
         {/* Language */}
         <div data-field-id="location.language">
@@ -118,7 +121,7 @@ export default function LanguageFields() {
             id="hs-language-select"
             value={currentLocale}
             onChange={(e) => handleLocaleChange(e.target.value)}
-            className="block w-full rounded-md border border-hs-border bg-hs-card px-3 py-1.5 text-sm text-hs-text-primary focus:border-hs-accent focus:outline-none"
+            className={`block w-full ${SETTINGS_INPUT_CLASS}`}
           >
             {localeOptions.map((opt) => (
               <option key={opt.tag} value={opt.tag}>
@@ -126,9 +129,9 @@ export default function LanguageFields() {
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-hs-text-faint">
+          <FieldHint className="mt-1">
             {t('languageAndRegion.languageHelp')}
-          </p>
+          </FieldHint>
         </div>
 
         {/* More options disclosure */}
@@ -159,7 +162,7 @@ export default function LanguageFields() {
                 id="hs-formatting-locale-select"
                 value={currentFormattingLocale}
                 onChange={(e) => handleFormattingLocaleChange(e.target.value)}
-                className="block w-full rounded-md border border-hs-border bg-hs-card px-3 py-1.5 text-sm text-hs-text-primary focus:border-hs-accent focus:outline-none"
+                className={`block w-full ${SETTINGS_INPUT_CLASS}`}
               >
                 <option value="">
                   {t('languageAndRegion.formattingLocaleSameAsLanguage')}
@@ -170,9 +173,9 @@ export default function LanguageFields() {
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-xs text-hs-text-faint">
+              <FieldHint className="mt-1">
                 {t('languageAndRegion.formattingLocaleHelp')}
-              </p>
+              </FieldHint>
             </div>
           )}
         </div>

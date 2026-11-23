@@ -13,6 +13,9 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { loadMealPlanSource, saveMealPlanSource } from '@/lib/meal-client';
 import { mealieProblem, type MealieProblem } from '@/lib/meal-sources';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import Notice from '@/components/ui/Notice';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * The card's `data-field-id`, which the Meals page links to. Written out
@@ -55,6 +58,7 @@ const MEALS_PLAN_SOURCE = settingsPath({ kind: 'defaults', page: 'meals' }, { hi
  */
 export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   // `n` is which check this is: the meal plan question starts over with each.
   const [result, setResult] = useState<{ check: MealieCheck; asked: CheckAsked; plan: PlanHome; n: number } | null>(null);
   const [asking, setAsking] = useState<CheckAsked | null>(null);
@@ -107,10 +111,10 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
     if (source !== 'mealie') return null;
     return {
       title: t('settings.integrationsPage.mealie.removeConfirm.title'),
-      message: t('settings.integrationsPage.mealie.removeConfirm.message'),
+      message: t('settings.integrationsPage.mealie.removeConfirm.message', { place: settingsPlaceText(tCore, 'meals') }),
       confirmLabel: t('settings.integrationsPage.mealie.removeConfirm.confirmLabel'),
     };
-  }, [t]);
+  }, [t, tCore]);
 
   const keys = getStatusInfo(status, ['mealie_url', 'mealie_api_key'], t);
   // Nothing saved: Mealie is optional, and most families have nothing to do
@@ -166,7 +170,7 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
               <RotateCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} aria-hidden />
               {testing ? t('settings.integrationsPage.mealie.testing') : t('settings.integrationsPage.mealie.testButton')}
             </Button>
-            <span className="text-xs text-hs-text-faint">{t('settings.integrationsPage.mealie.testHelp')}</span>
+            <FieldHint>{t('settings.integrationsPage.mealie.testHelp')}</FieldHint>
           </div>
           {shownResult && <MealieTestResult result={shownResult.check} />}
           {shownResult?.check.ok && shownResult.plan === 'home' && <MealPlanQuestion key={shownResult.n} />}
@@ -203,26 +207,28 @@ function MealieTestResult({ result }: { result: MealieCheck }) {
   const t = useTranslate('editor');
   if (result.ok) {
     return (
-      <div role="status" data-testid="mealie-test-result" className="flex items-start gap-2 rounded-md border border-hs-success/30 bg-hs-success/8 px-2.5 py-2 text-xs leading-[17px] text-hs-success">
-        <CircleCheck className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden />
-        <div className="min-w-0">
-          <p className="font-semibold">
-            {t('settings.integrationsPage.mealie.result.connected', { household: result.household, version: result.version })}
-          </p>
-          <p className="text-hs-text-muted">{t('settings.integrationsPage.mealie.result.checkedNow')}</p>
-        </div>
-      </div>
+      <Notice
+        tone="success"
+        icon={CircleCheck}
+        role="status"
+        testId="mealie-test-result"
+        title={t('settings.integrationsPage.mealie.result.connected', { household: result.household, version: result.version })}
+      >
+        <p className="text-hs-text-muted">{t('settings.integrationsPage.mealie.result.checkedNow')}</p>
+      </Notice>
     );
   }
   const base = `settings.integrationsPage.mealie.result.${result.failure}`;
   return (
-    <div role="status" data-testid="mealie-test-result" className="flex items-start gap-2 rounded-md border border-hs-warning/30 bg-hs-warning/10 px-2.5 py-2 text-xs leading-[17px] text-hs-warning">
-      <TriangleAlert className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden />
-      <div className="min-w-0">
-        <p className="font-semibold">{t(`${base}.title`, { version: result.version ?? '' })}</p>
-        <p className="text-hs-text-muted">{t(`${base}.body`)}</p>
-      </div>
-    </div>
+    <Notice
+      tone="warning"
+      icon={TriangleAlert}
+      role="status"
+      testId="mealie-test-result"
+      title={t(`${base}.title`, { version: result.version ?? '' })}
+    >
+      <p className="text-hs-text-muted">{t(`${base}.body`)}</p>
+    </Notice>
   );
 }
 
@@ -270,7 +276,7 @@ function MealPlanQuestion() {
       className="rounded-lg border border-hs-border-strong bg-hs-panel p-3"
     >
       <div className="flex items-center gap-2">
-        <span className="w-[22px] h-[22px] rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0" aria-hidden>
+        <span className="w-[22px] h-[22px] rounded-full bg-hs-meal-hover text-hs-meal flex items-center justify-center shrink-0" aria-hidden>
           <CookingPot className="w-[13px] h-[13px]" strokeWidth={2.4} />
         </span>
         <p id={titleId} className="text-[13px] leading-[18px] font-semibold text-hs-text-primary">

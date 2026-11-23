@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import type { AuthStatus } from './types';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 // Status discriminants — kind drives styling/role explicitly so we never
 // sniff English prefixes from translated messages.
@@ -34,10 +34,11 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   /** What the hub said, in the household's language where it is a mistake we know. */
-  const refusal = (data: { error?: string; code?: string; minLength?: number }, fallback: string) => {
+  const refusal = (data: { code?: string; minLength?: number; retryAfterMinutes?: number }, fallback: string) => {
     if (data.code === 'wrong_password') return tCore('login.errors.wrongPassword');
     if (data.code === 'password_too_short') return t('settings.securityPage.errors.passwordTooShort', { count: data.minLength ?? 8 });
-    return data.error || fallback;
+    if (typeof data.retryAfterMinutes === 'number') return tCore('login.errors.tooManyTries', { count: data.retryAfterMinutes });
+    return fallback;
   };
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -81,7 +82,7 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
       setTimeout(onClose, 2000);
     } catch {
       setModalStatus({
-        message: t('common.networkError'),
+        message: tCore('refusals.hubUnreachable'),
         kind: 'error',
       });
     } finally {
@@ -117,7 +118,7 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
       setTimeout(onClose, 2000);
     } catch {
       setModalStatus({
-        message: t('common.networkError'),
+        message: tCore('refusals.hubUnreachable'),
         kind: 'error',
       });
     } finally {
@@ -154,7 +155,7 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
       setTimeout(onClose, 2000);
     } catch {
       setModalStatus({
-        message: t('common.networkError'),
+        message: tCore('refusals.hubUnreachable'),
         kind: 'error',
       });
     } finally {
@@ -171,114 +172,97 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
       closable={!submitting}
       className="w-full max-w-sm"
     >
-      <div className="bg-hs-panel border border-hs-border-strong rounded-lg p-6 w-full shadow-xl">
-        <h4 id="security-password-title" className="text-sm font-medium text-hs-text-body mb-4">
-          {mode === 'set' && t('settings.securityPage.modal.setTitle')}
-          {mode === 'change' && t('settings.securityPage.modal.changeTitle')}
-          {mode === 'disable' && t('settings.securityPage.modal.disableTitle')}
-        </h4>
+      <ModalPanel>
+        <ModalHeader
+          titleId="security-password-title"
+          title={mode === 'set' ? t('settings.securityPage.modal.setTitle')
+            : mode === 'change' ? t('settings.securityPage.modal.changeTitle')
+              : t('settings.securityPage.modal.disableTitle')}
+          onClose={onClose}
+          closable={!submitting}
+        />
 
-        {/* Say what the password covers before asking for one. Reached from
-            "Ask for a password on the family remote", the dialog has to
-            answer the question that row raised; Security's own page never
-            mentioned the remote at all. */}
-        {mode === 'set' && (
-          <p className="-mt-2 mb-4 text-xs text-hs-text-faint">
-            {t('settings.securityPage.modal.setExplanation')}
-          </p>
-        )}
-
-        <div className="space-y-3">
-          {(mode === 'change' || mode === 'disable') && (
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => { setCurrentPassword(e.target.value); setModalStatus(null); }}
-              placeholder={t('settings.securityPage.modal.currentPasswordPlaceholder')}
-              autoFocus
-              className={`w-full ${SETTINGS_INPUT_CLASS}`}
-            />
+        <ModalBody>
+          {/* Say what the password covers before asking for one. Reached from
+              "Ask for a password on the family remote", the dialog has to
+              answer the question that row raised; Security's own page never
+              mentioned the remote at all. */}
+          {mode === 'set' && (
+            <FieldHint className="mb-4">
+              {t('settings.securityPage.modal.setExplanation')}
+            </FieldHint>
           )}
 
-          {(mode === 'set' || mode === 'change') && (
-            <>
+          <div className="space-y-3">
+            {(mode === 'change' || mode === 'disable') && (
               <input
                 type="password"
-                value={newPassword}
-                onChange={(e) => { setNewPassword(e.target.value); setModalStatus(null); }}
-                placeholder={t('settings.securityPage.modal.newPasswordPlaceholder')}
-                autoFocus={mode === 'set'}
+                value={currentPassword}
+                onChange={(e) => { setCurrentPassword(e.target.value); setModalStatus(null); }}
+                placeholder={t('settings.securityPage.modal.currentPasswordPlaceholder')}
+                autoFocus
                 className={`w-full ${SETTINGS_INPUT_CLASS}`}
               />
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setModalStatus(null); }}
-                placeholder={t('settings.securityPage.modal.confirmPasswordPlaceholder')}
-                className={`w-full ${SETTINGS_INPUT_CLASS}`}
-              />
-            </>
-          )}
-
-          {mode === 'disable' && (
-            <p className="text-xs text-hs-text-faint">
-              {t('settings.securityPage.modal.disableWarning')}
-            </p>
-          )}
-
-          {modalStatus && (
-            <p
-              className={`text-xs ${modalStatus.kind === 'success' ? 'text-hs-success' : 'text-hs-danger'}`}
-              aria-live="polite"
-              role={modalStatus.kind === 'error' ? 'alert' : undefined}
-            >
-              {modalStatus.message}
-            </p>
-          )}
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={onClose} disabled={submitting}>
-              {t('settings.securityPage.modal.cancel')}
-            </Button>
-            {mode === 'set' && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSetPassword}
-                disabled={!newPassword || !confirmPassword || submitting}
-              >
-                {submitting
-                  ? t('settings.securityPage.modal.setting')
-                  : t('settings.securityPage.modal.setSubmit')}
-              </Button>
             )}
-            {mode === 'change' && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleChangePassword}
-                disabled={!currentPassword || !newPassword || !confirmPassword || submitting}
-              >
-                {submitting
-                  ? t('settings.securityPage.modal.changing')
-                  : t('settings.securityPage.modal.changeSubmit')}
-              </Button>
+
+            {(mode === 'set' || mode === 'change') && (
+              <>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => { setNewPassword(e.target.value); setModalStatus(null); }}
+                  placeholder={t('settings.securityPage.modal.newPasswordPlaceholder')}
+                  autoFocus={mode === 'set'}
+                  className={`w-full ${SETTINGS_INPUT_CLASS}`}
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setModalStatus(null); }}
+                  placeholder={t('settings.securityPage.modal.confirmPasswordPlaceholder')}
+                  className={`w-full ${SETTINGS_INPUT_CLASS}`}
+                />
+              </>
             )}
+
             {mode === 'disable' && (
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleDisable}
-                disabled={!currentPassword || submitting}
+              <FieldHint>
+                {t('settings.securityPage.modal.disableWarning')}
+              </FieldHint>
+            )}
+
+            {modalStatus && (
+              <p
+                className={`text-xs ${modalStatus.kind === 'success' ? 'text-hs-success' : 'text-hs-danger'}`}
+                aria-live="polite"
+                role={modalStatus.kind === 'error' ? 'alert' : undefined}
               >
-                {submitting
-                  ? t('settings.securityPage.modal.disabling')
-                  : t('settings.securityPage.modal.disableSubmit')}
-              </Button>
+                {modalStatus.message}
+              </p>
             )}
           </div>
-        </div>
-      </div>
+        </ModalBody>
+
+        <ModalFooter
+          onCancel={onClose}
+          cancelLabel={t('settings.securityPage.modal.cancel')}
+          cancelDisabled={submitting}
+          primary={mode === 'set' ? {
+            label: submitting ? t('settings.securityPage.modal.setting') : t('settings.securityPage.modal.setSubmit'),
+            onClick: handleSetPassword,
+            disabled: !newPassword || !confirmPassword || submitting,
+          } : mode === 'change' ? {
+            label: submitting ? t('settings.securityPage.modal.changing') : t('settings.securityPage.modal.changeSubmit'),
+            onClick: handleChangePassword,
+            disabled: !currentPassword || !newPassword || !confirmPassword || submitting,
+          } : {
+            label: submitting ? t('settings.securityPage.modal.disabling') : t('settings.securityPage.modal.disableSubmit'),
+            onClick: handleDisable,
+            disabled: !currentPassword || submitting,
+            variant: 'danger',
+          }}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

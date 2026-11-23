@@ -41,10 +41,6 @@
     "apiKey": "API-sleutel",
     "resolution": "Resolutie",
     "orientation": "Oriëntatie",
-    "saveFailed": "Opslaan mislukt",
-    "saveError": "Opslaan mislukt",
-    "networkError": "Netwerkfout",
-    "serverUnreachable": "Server niet bereikbaar",
     "typographySizes": {
       "small": "Klein",
       "medium": "Middel",
@@ -74,9 +70,6 @@
     "icon": "Pictogram",
     "days": "Dagen"
   },
-  "modal": {
-    "closeAriaLabel": "Dialoogvenster sluiten"
-  },
   "page": {
     "loading": "Laden…",
     "tooNarrowMessage": "De editor heeft een scherm van minstens {minWidth}px breed nodig.",
@@ -93,7 +86,7 @@
       "changedElsewhere": "Elders gewijzigd",
       "changedElsewhereHint": "Deze lay-out is gewijzigd vanuit een andere editor of een telefoon. Laad opnieuw om het te zien.",
       "reloadButton": "Opnieuw laden",
-      "previewTitle": "Dit scherm openen in een venster in de vorm van de display",
+      "previewTitle": "Dit scherm openen in een venster in de vorm van het display",
       "conflict": {
         "title": "Deze lay-out is elders gewijzigd.",
         "hint": "Iemand heeft opgeslagen vanuit een andere editor of een telefoon terwijl jij aan het bewerken was. Laad die wijzigingen, of houd de jouwe en overschrijf de andere.",
@@ -149,7 +142,7 @@
     },
     "zoomFit": "Passend",
     "zoomHint": "Ctrl+scrollen om te zoomen, scrollen om te verschuiven",
-    "backChipTitle": "Verschijnt op het scherm zodat men terug kan"
+    "backChipTitle": "Verschijnt op de muur, zodat je terug kunt"
   },
   "draggableModule": {
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
@@ -163,7 +156,7 @@
       "hidden": "Verborgen",
       "hiddenDetail": "Uitgezet, dus dit komt nooit op het display. Zet het weer aan bij Zichtbaarheid.",
       "scheduledActiveDetail": "{summary} Nu te zien op het display.",
-      "scheduledInactiveDetail": "{summary} Nu niet te zien op het display.",
+      "scheduledInactiveDetail": "{summary} Nu niet te zien op de muur.",
       "conditionOnKey": "Wacht op {key}",
       "conditionNoKey": "Wacht op een live-waarde",
       "conditionMet": "Nu zichtbaar",
@@ -185,7 +178,7 @@
     "lookWaitingTitle": "Een uiterlijk wacht op een waarde die nog niet is gepubliceerd."
   },
   "displaySwitcher": {
-    "title": "Welk display bewerk je nu? (Instellingen-overrides staan onder Instellingen → Per display.)",
+    "title": "Welk display bewerk je nu? (Instellingen per display pas je aan bij {place}.)",
     "label": "Welk display bewerk je nu?",
     "onNow": "nu aan",
     "lastSeen": "laatst gezien {time}",
@@ -203,7 +196,6 @@
     "screenOptionsTitle": "Schermopties",
     "screenOptionsAriaLabel": "Opties voor {name}",
     "deleteTabAriaLabel": "{name} verwijderen",
-    "deleteConfirmTitle": "\"{name}\" verwijderen?",
     "deleteConfirmDetail": {
       "zero": "Dit scherm is leeg. Je kunt dit ongedaan maken.",
       "one": "De {count} module erop en de instellingen gaan mee. Je kunt dit ongedaan maken.",
@@ -435,7 +427,7 @@
       "quote": "Een gedachte voor vandaag",
       "word-of-day": "Een nieuw woord en wat het betekent",
       "history": "Wat er jaren geleden op deze dag gebeurde",
-      "todo": "Een lijst die je op het display kunt afvinken",
+      "todo": "Een lijst die je op de muur kunt afvinken",
       "sticky-note": "Een kort briefje in je eigen woorden",
       "greeting": "Een groet die met de dag meeverandert",
       "todoist": "Je Todoist-taken aan de muur",
@@ -454,7 +446,7 @@
       "shape": "Lijnen en blokken om dingen te scheiden",
       "display-control": "Knoppen om met een tik te wekken, te laten slapen of van scherm te wisselen",
       "traffic": "Hoe lang de rit naar werk of school duurt",
-      "notes": "Notities die het gezin op de telefoon schrijft, op het scherm tot hun tijd om is"
+      "notes": "Notities die het gezin op de telefoon schrijft, op de muur tot hun tijd om is"
     },
     "keywords": {
       "fullscreen-calendar": "agenda kalender afspraken evenementen week maand gezin",
@@ -521,25 +513,6 @@
       "searchPlaceholder": "Instellingen zoeken…",
       "noResults": "Geen instellingen gevonden",
       "matchingFields": "Gevonden instellingen",
-      "navLabels": {
-        "calendar": "Kalender",
-        "weather": "Weer",
-        "location": "Locatie & taal",
-        "data": "Back-ups & gegevens",
-        "integrations": "API-sleutels",
-        "media": "Afbeeldingen & video's",
-        "icons": "Eigen pictogrammen",
-        "meals": "Maaltijden",
-        "network": "Netwerk",
-        "security": "Beveiliging",
-        "stats": "Status",
-        "system": "Systeem & updates",
-        "displays": "Displays",
-        "screen": "Scherm",
-        "automation": "Automatisering",
-        "phone": "Op je telefoon",
-        "family": "Gezin"
-      },
       "groups": {
         "screen": "Scherm",
         "content": "Inhoud",
@@ -564,7 +537,7 @@
     "backlinkBanner": {
       "thisPage": "deze pagina",
       "singleDisplayPart3": " op {pageLabel}. ",
-      "singleDisplayPart5": " om de overrides te bekijken of te verwijderen.",
+      "singleDisplayPart5": " om de overrides te bekijken of te wissen.",
       "singleDisplayCurrentlyOverrides": " overschrijft momenteel ",
       "multiFieldCount": "{count} instellingen",
       "openDisplayLink": "{name} openen",
@@ -613,13 +586,12 @@
       "status": {
         "lookingUp": "Opzoeken…",
         "found": "{name} gevonden.",
-        "error": "Fout: {message}",
-        "lookupFailed": "Locatie opzoeken mislukt",
+        "lookupFailed": "Kon die plaats niet vinden. Controleer de spelling en probeer het opnieuw.",
         "detecting": "Detecteren…",
         "detected": "{name} gevonden.",
         "detectedViaIp": "{name} gevonden via je internetverbinding.",
         "detectedCoords": "{lat}, {lon} gevonden.",
-        "detectFailed": "Fout: locatie kon niet worden gedetecteerd",
+        "detectFailed": "Kon niet bepalen waar je bent. Typ in plaats daarvan je woonplaats.",
         "zoneSet": "Tijdzone op {zone} gezet, zodat die klopt.",
         "notFound": "Geen plaats met die naam gevonden. Probeer een plaats in de buurt."
       },
@@ -640,7 +612,7 @@
         "button": "De hub op {zone} zetten",
         "settingButton": "Bezig met wijzigen…",
         "success": "De klok van de hub komt nu overeen met je schermen.",
-        "error": "De klok van de hub kon niet worden gewijzigd."
+        "error": "Kon de klok van Home Screens niet wijzigen. Probeer het opnieuw."
       }
     },
     "calendarPage": {
@@ -662,15 +634,13 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Meld je aan om je kalenders automatisch te zien. Vereist een Google OAuth-client van het type \"TVs and Limited Input devices\" in de Cloud Console.",
         "copyCode": "Code kopiëren",
-        "codeCopied": "Gekopieerd!",
         "googleOnly": "Alleen Google",
         "pausedExplanation": "Google is nu niet verbonden, dus deze agenda’s worden niet meer bijgewerkt. Log hierboven opnieuw in om ze terug te halen.",
         "stillUsedByPhotos": "Op deze hub is de verbinding verbroken. De import uit Google Foto's gebruikt nog dezelfde Google-aanmelding, dus blijft Home Screens in je Google-account staan tot je ook Google Foto's loskoppelt.",
         "pausedBadge": "Gepauzeerd",
-        "removeTitle": "{name} verwijderen",
+        "removeTitle": "{name} weghalen",
         "credentialsSetupPrefix": "Voeg je Google-login eerst toe op de pagina ",
         "credentialsSetupSuffix": ".",
-        "settingsIntegrationsLink": "Instellingen → API-sleutels",
         "hosted": {
           "codeIntroPart1": "Open op je telefoon of computer ",
           "codeIntroPart2": " en typ deze code:",
@@ -705,7 +675,7 @@
         "connecting": "Verbinden…",
         "connectFailed": "Kon geen verbinding maken met iCloud. Controleer je internetverbinding en probeer het opnieuw.",
         "addAccount": "iCloud-account toevoegen",
-        "helpText": "Log in met een app-wachtwoord, niet met je gewone Apple-wachtwoord. Maak er een aan op account.apple.com onder Inloggen en beveiliging → App-specifieke wachtwoorden."
+        "helpText": "Log in met een app-wachtwoord, niet met je gewone Apple-wachtwoord. Maak er een aan op account.apple.com onder Inloggen en beveiliging > App-specifieke wachtwoorden."
       },
       "holidays": {
         "heading": "Officiële feestdagen",
@@ -732,12 +702,11 @@
           "icloudNotICloudUrl": "Het agenda-adres is geen iCloud-link",
           "icloudUnreachable": "iCloud is niet bereikbaar",
           "linkBlocked": "Die link kan niet worden gebruikt. Controleer hem en probeer het opnieuw.",
-          "linkHttpError": "De link is niet bereikbaar (HTTP {status})",
+          "linkHttpError": "Kon die link niet openen (de server antwoordde {status}). Controleer de link.",
           "linkInvalid": "De link is geen geldig webadres",
-          "linkUnreachable": "De link is niet bereikbaar",
+          "linkUnreachable": "Kon die link niet bereiken. Controleer de link en je verbinding.",
           "linkUnreadable": "De link leverde geen leesbare agenda op"
-        },
-        "holidays": "Officiële feestdagen"
+        }
       },
       "people": {
         "heading": "Van wie zijn de agenda’s?",
@@ -755,7 +724,7 @@
       "description": "Koppel je agenda's, geef aan van wie ze zijn en stel in hoeveel elke agendamodule toont.",
       "adding": {
         "heading": "Afspraken toevoegen",
-        "description": "Voeg afspraken toe, wijzig ze of verwijder ze vanaf je telefoon en het wandscherm.",
+        "description": "Voeg afspraken toe, wijzig ze of haal ze weg vanaf je telefoon en de muur.",
         "switch": "Laat Home Screens afspraken toevoegen en wijzigen",
         "switchHelpBoth": "Voor Google-agenda's meld je je nog één keer aan bij Google. Voor iCloud-agenda's hoef je niets meer te doen. Het tonen van je agenda's blijft gewoon hetzelfde.",
         "switchHelpGoogle": "Om dit toe te staan, meld je je nog één keer aan bij Google. Het tonen van je agenda's blijft gewoon hetzelfde.",
@@ -785,8 +754,8 @@
         "length60": "1 uur",
         "length90": "1½ uur",
         "length120": "2 uur",
-        "wallSwitch": "Laat het wandscherm afspraken toevoegen, wijzigen en verwijderen",
-        "wallHelp": "Alleen in de agenda's die je hierboven hebt aangevinkt. Verwijderen vraagt eerst of je het zeker weet. Op de eigen pagina van elk display kun je dit apart uitzetten."
+        "wallSwitch": "Laat de muur afspraken toevoegen, wijzigen en weghalen",
+        "wallHelp": "Alleen in de agenda's die je hierboven hebt aangevinkt. Weghalen vraagt eerst of je het zeker weet. Op de eigen pagina van elk display kun je dit apart uitzetten."
       }
     },
     "dataPage": {
@@ -809,9 +778,9 @@
         "thirtyDays": "30 dagen"
       },
       "alerts": {
-        "exportBackupFailed": "Back-up exporteren mislukt.",
+        "exportBackupFailed": "Kon de back-up niet maken. Probeer het opnieuw.",
         "invalidBackupFile": "Ongeldig back-upbestand.",
-        "restoreBackupFailed": "Deze back-up kon niet worden teruggezet.",
+        "restoreBackupFailed": "Kon die back-up niet terugzetten. Probeer het opnieuw.",
         "credentialsExportFailedTitle": "Je sleutels konden niet mee",
         "credentialsExportFailed": "Je sleutels en accounts konden niet aan deze back-up worden toegevoegd. De rest toch downloaden?",
         "credentialsExportFailedConfirm": "Toch downloaden",
@@ -870,8 +839,7 @@
         "restoreStatus": {
           "restoring": "Terugzetten…",
           "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
-          "error": "Fout: {error}",
-          "failed": "Back-up terugzetten mislukt"
+          "failed": "Kon die back-up niet terugzetten. Probeer het opnieuw."
         },
         "kinds": {
           "lastStable": "Laatste instellingen voordat je vroege versies probeerde",
@@ -903,7 +871,7 @@
       "restore": {
         "completeTitle": "Terugzetten voltooid",
         "signInAgain": "Deze back-up bevatte je editorwachtwoord. Log opnieuw in met het wachtwoord uit die back-up.",
-        "ipRulesNotRestored": "Je netwerkadresregels staan nog uit, omdat dit apparaat niet op de teruggezette lijst staat. Je kunt ze weer aanzetten in Instellingen.",
+        "ipRulesNotRestored": "Je netwerkadresregels staan nog uit, omdat dit apparaat niet op de teruggezette lijst staat. Je kunt ze weer aanzetten bij {place}.",
         "loginNotRestored": "Het editorwachtwoord in deze back-up was niet bruikbaar, dus het wachtwoord op dit apparaat blijft hetzelfde.",
         "plaintextTitle": "Deze back-up bevat je sleutels",
         "plaintextMessage": "Er staan je API-sleutels, gekoppelde accounts en je editorwachtwoord in. Bij terugzetten vervangen ze die op dit apparaat.",
@@ -912,7 +880,8 @@
         "damagedKeys": "De sleutels in dit bestand zijn beschadigd en onleesbaar. Al het andere kun je nog wel terugzetten.",
         "reloadFailed": "Je back-up is teruggezet, maar de editor kon niet herladen. Ververs de pagina om het te zien.",
         "finished": "Terugzetten voltooid. Alles uit die back-up is weer terug.",
-        "savedPasswordWrong": "Het opgeslagen back-upwachtwoord opent deze back-up niet. Typ het wachtwoord waarmee deze back-up is gemaakt."
+        "savedPasswordWrong": "Het opgeslagen back-upwachtwoord opent deze back-up niet. Typ het wachtwoord waarmee deze back-up is gemaakt.",
+        "restoreAnyway": "Toch terugzetten"
       },
       "description": "Bewaar een kopie van alles, zet die terug of begin met een sjabloon.",
       "restoreConfirm": {
@@ -979,10 +948,9 @@
         "runRefused": {
           "busy": "Er wordt nu al een back-up gemaakt. Probeer het zo opnieuw.",
           "updating": "Er wordt een update geïnstalleerd. Probeer het opnieuw als die klaar is.",
-          "failed": "De hub was niet bereikbaar om een back-up te starten."
+          "failed": "Kon Home Screens niet bereiken om een back-up te starten. Controleer de verbinding en probeer het opnieuw."
         },
         "loadFailed": "Je automatische back-ups konden niet worden geladen. Herlaad de pagina om het opnieuw te proberen.",
-        "saveFailed": "Opslaan is niet gelukt. Probeer het opnieuw.",
         "offsite": {
           "heading": "Een kopie ergens anders bewaren",
           "description": "Een back-up op deze hub gaat verloren als de geheugenkaart van de hub kapotgaat. Stuur elke back-up daarom ook ergens anders heen."
@@ -1034,8 +1002,7 @@
             "username_required": "Typ de gebruikersnaam waarmee je inlogt op je opslag.",
             "password_required": "Typ het wachtwoord waarmee je inlogt op je opslag.",
             "password_too_long": "Dat wachtwoord is te lang.",
-            "not_set_up": "Stel eerst een opslagmap in.",
-            "failed": "Opslaan is niet gelukt. Probeer het opnieuw."
+            "not_set_up": "Stel eerst een opslagmap in."
           },
           "removeConfirm": {
             "title": "Geen back-ups meer hierheen sturen?",
@@ -1066,19 +1033,18 @@
           "lastFetched": "Laatst opgehaald {when}",
           "notFetched": "Nog niet opgehaald",
           "copy": "Kopiëren",
-          "copied": "Gekopieerd",
           "warning": "Iedereen met deze link kan je nieuwste back-up downloaden, dus houd hem geheim. Hij werkt alleen binnen je thuisnetwerk, tenzij je je hub van buitenaf bereikbaar hebt gemaakt.",
           "makeNew": "Nieuwe link maken",
-          "remove": "Link verwijderen",
+          "remove": "Link weghalen",
           "newConfirm": {
             "title": "Nieuwe link maken?",
             "message": "De oude link werkt meteen niet meer. Alles wat je back-ups ophaalt, heeft de nieuwe nodig.",
             "confirm": "Nieuwe link maken"
           },
           "removeConfirm": {
-            "title": "Link verwijderen?",
+            "title": "De link weghalen?",
             "message": "Alles wat je back-ups via deze link ophaalt, werkt dan niet meer.",
-            "confirm": "Link verwijderen"
+            "confirm": "Link weghalen"
           }
         },
         "copies": {
@@ -1105,8 +1071,7 @@
           },
           "removeConfirm": {
             "title": "Deze back-up verwijderen?",
-            "message": "Opgeslagen op {when}. De back-up wordt van deze hub verwijderd. Kopieën die al ergens anders heen zijn gestuurd, blijven waar ze zijn.",
-            "confirm": "Verwijderen"
+            "message": "Opgeslagen op {when}. De back-up wordt van deze hub verwijderd. Kopieën die al ergens anders heen zijn gestuurd, blijven waar ze zijn."
           }
         }
       }
@@ -1133,9 +1098,7 @@
         "testStatus": {
           "success": "Werkt! Huidige temp: {temp}°",
           "connectedNoData": "Verbonden, maar geen gegevens ontvangen",
-          "failed": "Mislukt: {message}",
-          "unknownError": "Onbekende fout",
-          "rejectedKey": "{provider} heeft de opgeslagen sleutel geweigerd. Verwijder hem en plak hem opnieuw.",
+          "rejectedKey": "{provider} heeft de opgeslagen sleutel geweigerd. Haal hem weg en plak hem opnieuw.",
           "failedPlain": "Kon geen weer ophalen van {provider}.",
           "successDays": {
             "one": "Werkt! Huidige temp: {temp}°, {count} dag verwachting.",
@@ -1324,7 +1287,7 @@
           "fullscreenTheme": "Thema",
           "sleep": "Slapen & dimmen",
           "alerts": "Meldingsoverlay",
-          "calendarWallEntry": "Afspraken toevoegen op dit scherm"
+          "calendarWallEntry": "Afspraken toevoegen op deze muur"
         },
         "chipValues": {
           "pauseOn": "Aan",
@@ -1354,20 +1317,19 @@
         "displayIdHelpPart1": "Gebruikt in het adres van dit display ",
         "displayIdHelpPart2": ". Kan niet worden gewijzigd zonder de Pi opnieuw te configureren.",
         "dangerZoneHeading": "Gevarenzone",
-        "dangerZoneMainHelp": "Het hoofddisplay is wat deze Pi zelf laat zien en kan daarom niet worden verwijderd. Verwijderen zou zijn schermen nergens meer laten.",
-        "dangerZoneRemovableHelp": "Een display verwijderen stopt de bediening en verwijdert zijn schermen. Die Pi kan hier opnieuw verschijnen om toegevoegd te worden.",
+        "dangerZoneMainHelp": "Het hoofddisplay is wat deze Pi zelf laat zien, dus het kan niet worden verwijderd. Dan zouden de schermen ervan nergens meer heen kunnen.",
+        "dangerZoneRemovableHelp": "Als je een display verwijdert, wordt het niet meer bediend en worden de schermen ervan verwijderd. Die Pi kan hier opnieuw verschijnen, wachtend om te worden toegevoegd.",
         "removeButton": "{name} verwijderen",
-        "removeConfirm": "Display \"{name}\" verwijderen? Hiermee worden zijn schermen verwijderd."
+        "removeConfirmMessage": "Hiermee worden de schermen ervan verwijderd. Die Pi kan hier opnieuw verschijnen, wachtend om te worden toegevoegd.",
+        "removeConfirmButton": "Display verwijderen"
       },
       "profile": {
         "activeProfileLabel": "Actief profiel",
         "noneOption": "Geen",
         "helpPart1": "Welk profiel {name} momenteel toont. Profieldefinities staan op ",
-        "helpLink": "Standaardwaarden → Automatisering",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Standaardwaarden → Scherm",
         "bannerPart1": "De instellingen hier tonen de ",
         "bannerEmphasisDefault": "standaardwaarde",
         "bannerPart2": " van ",
@@ -1404,13 +1366,11 @@
       },
       "sleep": {
         "label": "Slapen & dimmen",
-        "defaultsLabel": "Standaardwaarden → Scherm",
         "infoPart1": "Slapen en dimmen worden samen overschreven. Zet de overschrijving aan om een van deze instellingen voor dit scherm te wijzigen. De standaard staat op ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Meldingsoverlay",
-        "defaultsLabel": "Standaardwaarden → Scherm",
         "infoPart1": "De melding-instellingen worden samen overschreven. Zet de overschrijving aan om er een voor dit scherm te wijzigen. De standaard staat op ",
         "infoPart2": "."
       },
@@ -1430,15 +1390,14 @@
         "unreportedHint": "Dit scherm heeft de hub nog niet laten weten welke software het gebruikt.",
         "needsSetupBody": "Dit scherm is ingesteld voordat automatische updates bestonden. Voer dit er één keer op uit, daarna houdt het zichzelf bij.",
         "copy": "Kopiëren",
-        "copied": "Gekopieerd",
         "needsSetupTitle": "Automatische updates inschakelen",
         "connectLabel": "Maak er verbinding mee",
         "runLabel": "Voer dit dan uit",
         "connectUnknown": "Maak vanaf een terminal verbinding met de Pi van dit scherm (de gebruikersnaam is {user}) en voer dan uit:"
       },
       "calendar": {
-        "wallEntryLabel": "Afspraken toevoegen, wijzigen en verwijderen op dit scherm",
-        "wallEntryToggle": "Toestaan op dit scherm",
+        "wallEntryLabel": "Afspraken toevoegen, wijzigen en weghalen op deze muur",
+        "wallEntryToggle": "Toestaan op deze muur",
         "defaultsLabel": "Kalender"
       }
     },
@@ -1498,7 +1457,7 @@
         "bright": "Helder",
         "dim": "Gedimd",
         "off": "Uit",
-        "idleNote": "+ dimt na {minutes} rustige minuten, op elk moment"
+        "idleNote": "Dimt ook na {minutes} rustige minuten, op elk moment"
       },
       "disabledHelp": "Zet dit aan om tijden in te stellen. Nu blijft het scherm dag en nacht fel.",
       "powerSectionTitle": "Wanneer uitgeschakeld",
@@ -1510,13 +1469,11 @@
       "upload": "Uploaden",
       "dropzone": "Sleep afbeeldingen of video's hierheen, of klik om te kiezen, zoveel als je wilt",
       "saveInto": "Opslaan in",
-      "uploadFailedWithStatus": "Uploaden mislukt ({status})",
       "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Kies op een iPhone 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
-      "uploadFailed": "Uploaden mislukt",
       "loadFailed": "Je afbeeldingen en video's konden niet worden geladen",
       "tryAgain": "Opnieuw proberen",
       "allFolders": "Alle afbeeldingen & video's",
-      "topLevel": "Bibliotheek (bovenste niveau)",
+      "topLevel": "Bovenste niveau (geen map)",
       "allKinds": "Alle soorten",
       "images": "Afbeeldingen",
       "videos": "Video's",
@@ -1535,7 +1492,7 @@
         "rotatingFolderLast": "Wisselende achtergrond op '{name}' (de laatste afbeelding)"
       },
       "selected": "{count} geselecteerd",
-      "empty": "Nog niets hier. Upload een paar afbeeldingen of video's",
+      "empty": "Nog niets hier. Upload een paar afbeeldingen of video's.",
       "deleteTitle": {
         "one": "1 bestand verwijderen?",
         "other": "{count} bestanden verwijderen?"
@@ -1545,7 +1502,7 @@
         "other": "Ze verdwijnen voorgoed van deze hub. Diavoorstellingen gaan verder met hun andere afbeeldingen. Bestanden die een scherm nodig heeft, blijven staan, zodat er geen scherm leeg raakt."
       },
       "deleteConfirm": "Verwijderen",
-      "refused": "{file} is nog in gebruik en is niet verwijderd",
+      "refused": "{file} is nog in gebruik en is niet verwijderd.",
       "keptLast": "{file} is blijven staan: het is de laatste afbeelding in de diavoorstelling op '{name}'.",
       "loading": "Je afbeeldingen en video's worden geladen",
       "emptyFiltered": "Niets past bij dit filter",
@@ -1622,8 +1579,7 @@
       "deleteFolderTitle": "De map {name} verwijderen?",
       "deleteFolderMessage": "Alleen een lege map kan worden verwijderd.",
       "folderDeleted": "Map {name} verwijderd",
-      "deleteFolderFailed": "De map kon niet worden verwijderd",
-      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst."
+      "deleteFolderFailed": "De map kon niet worden verwijderd"
     },
     "iconsPage": {
       "description": "Foto's die je gezin heeft toegevoegd. Gebruik ze voor maaltijden, klusjes, beloningen, personen, routines en schermpictogrammen.",
@@ -1701,7 +1657,7 @@
         "urlPlaceholder": "bijv. http://192.168.1.50:2283",
         "urlHelp": "De basis-URL van je Immich-installatie.",
         "apiKeyPlaceholder": "Plak je Immich API-sleutel",
-        "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
+        "apiKeyHelp": "Maak aan in Immich > Account Settings > API Keys."
       },
       "mealie": {
         "name": "Mealie",
@@ -1724,8 +1680,8 @@
         "couldNotCheck": "Controleren lukte niet",
         "removeConfirm": {
           "title": "De maaltijdplanning niet meer tonen?",
-          "message": "Je maaltijdplanning komt uit Mealie. Zonder het adres en de token kunnen het scherm en de telefoon hem niet tonen, tot je ze weer invult of de planning terugzet op Home Screens bij Instellingen > Maaltijden.",
-          "confirmLabel": "Verwijderen"
+          "message": "Je maaltijdplanning komt uit Mealie. Zonder het adres en de token kunnen de muur en de telefoon hem niet tonen, tot je ze weer invult of de planning terugzet op Home Screens bij {place}.",
+          "confirmLabel": "Weghalen"
         },
         "result": {
           "connected": "Verbonden met huishouden {household}, Mealie {version}",
@@ -1824,16 +1780,15 @@
         "heading": "Apparaatnaam",
         "placeholder": "home-screens",
         "saveButton": "Opslaan",
-        "savingButton": "Opslaan…",
         "successMessage": "Apparaatnaam bijgewerkt",
         "defaultErrorMessage": "Apparaatnaam bijwerken is niet gelukt"
       },
       "interface": {
         "type": {
           "ethernet": "Ethernet",
-          "wifiBuiltIn": "Ingebouwde Wi-Fi",
-          "wifiUsb": "USB Wi-Fi ({driver})",
-          "wifi": "Wi-Fi"
+          "wifiBuiltIn": "Ingebouwde wifi",
+          "wifiUsb": "USB-wifi ({driver})",
+          "wifi": "Wifi"
         },
         "state": {
           "connected": "Verbonden",
@@ -1854,13 +1809,13 @@
         }
       },
       "wifiScan": {
-        "heading": "Beschikbare Wi-Fi-netwerken",
+        "heading": "Beschikbare wifinetwerken",
         "scanningInterface": "Scannen op {device}",
         "scanButton": "Scannen",
         "scanningButton": "Scannen…",
         "scanCooldownButton": "Scannen ({seconds}s)",
-        "defaultScanError": "Scannen mislukt",
-        "emptyHint": "Klik op Scannen om naar Wi-Fi-netwerken in de buurt te zoeken.",
+        "defaultScanError": "Kon niet naar netwerken zoeken. Probeer het opnieuw.",
+        "emptyHint": "Klik op Scannen om naar wifinetwerken in de buurt te zoeken.",
         "badges": {
           "connected": "Verbonden",
           "saved": "Opgeslagen"
@@ -1880,7 +1835,7 @@
         "cancelButton": "Annuleren",
         "connectButton": "Verbinden",
         "connectingButton": "Verbinden…",
-        "defaultConnectError": "Verbinden mislukt",
+        "defaultConnectError": "Kon niet met dat netwerk verbinden. Controleer het wachtwoord en probeer het opnieuw.",
         "savedPasswordPlaceholder": "Laat leeg om het opgeslagen wachtwoord te gebruiken"
       },
       "managementWarning": {
@@ -1916,8 +1871,8 @@
       "savedNetworks": {
         "heading": "Opgeslagen netwerken",
         "loading": "Opgeslagen netwerken laden…",
-        "loadError": "Opgeslagen netwerken laden mislukt",
-        "empty": "Geen opgeslagen Wi-Fi-netwerken.",
+        "loadError": "Kon de opgeslagen netwerken niet laden. Probeer het opnieuw.",
+        "empty": "Geen opgeslagen wifinetwerken.",
         "showPasswords": "Wachtwoorden tonen",
         "hidePasswords": "Wachtwoorden verbergen",
         "lastUsed": "Laatst gebruikt {date}",
@@ -1925,8 +1880,8 @@
         "autoConnect": "Automatisch verbinden",
         "forgetPrompt": "Vergeten?",
         "forgetButton": "Vergeten",
-        "forgetConfirmYes": "Ja",
-        "forgetConfirmNo": "Nee",
+        "forgetConfirmYes": "Vergeten",
+        "forgetConfirmNo": "Bewaren",
         "forgettingButton": "Verwijderen…",
         "onAdapter": "via {device}",
         "forgetError": "Dit netwerk kon niet worden verwijderd. Kijk of het apparaat nog bereikbaar is en probeer het opnieuw."
@@ -1945,19 +1900,17 @@
         "gatewayPlaceholder": "192.168.1.1",
         "dnsLabel": "DNS-servers",
         "dnsPlaceholder": "8.8.8.8",
-        "removeDnsAriaLabel": "DNS-server verwijderen",
-        "addDnsButton": "+ DNS-server toevoegen",
+        "removeDnsAriaLabel": "DNS-server weghalen",
+        "addDnsButton": "DNS-server toevoegen",
         "dhcpHint": "Toegewezen door DHCP",
         "managementInterfaceHint": "Wijzigingen aan deze interface worden automatisch teruggedraaid als de verbinding wegvalt.",
-        "applyButton": "Toepassen",
-        "applyingButton": "Toepassen…",
         "successMessage": "Instellingen toegepast",
-        "defaultErrorMessage": "IP-instellingen toepassen mislukt"
+        "defaultErrorMessage": "Kon de adresinstellingen niet wijzigen. Probeer het opnieuw."
       },
       "diagnostics": {
         "heading": "Diagnostiek",
         "watchdog": {
-          "label": "Wi-Fi-watchdog:",
+          "label": "Wifi-watchdog:",
           "active": "Actief",
           "inactive": "Inactief",
           "lastRun": "Laatste watchdog-run: {time}",
@@ -1973,11 +1926,11 @@
           "latencyMs": "{ms}ms"
         },
         "unavailable": "Diagnostiek is niet beschikbaar op dit apparaat.",
-        "requestFailed": "Diagnostiekverzoek mislukt",
+        "requestFailed": "Kon de controle niet uitvoeren. Probeer het opnieuw.",
         "testButton": "Verbinding testen",
         "testingButton": "Testen…"
       },
-      "description": "De wifi en het adres die dit scherm gebruikt."
+      "description": "De wifi en het netwerkadres die dit apparaat gebruikt."
     },
     "mealsPage": {
       "loading": "Maaltijdinstellingen laden…",
@@ -2006,14 +1959,12 @@
       },
       "groceryExtras": {
         "heading": "Andere boodschappen",
-        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en het display, en een boodschappenkaart met Toevoegen op het display voegt daaraan toe.",
+        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en de muur, en een boodschappenkaart met Toevoegen op de muur voegt daaraan toe.",
         "none": "Geen"
       },
       "status": {
-        "loadFailed": "Maaltijdinstellingen laden mislukt.",
-        "networkLoad": "Netwerkfout bij het laden van maaltijdinstellingen.",
-        "saveFailed": "Maaltijdinstellingen opslaan mislukt.",
-        "networkSave": "Netwerkfout bij het opslaan van maaltijdinstellingen.",
+        "loadFailed": "Kon de maaltijdinstellingen niet laden. Probeer het opnieuw.",
+        "networkLoad": "Kon Home Screens niet bereiken om de maaltijdinstellingen te laden. Controleer de verbinding en probeer het opnieuw.",
         "unableToLoad": "Kan maaltijdinstellingen niet laden."
       },
       "slots": {
@@ -2049,11 +2000,11 @@
     },
     "systemPage": {
       "loading": "Systeeminformatie laden…",
-      "loadFailed": "Systeeminformatie laden mislukt",
+      "loadFailed": "Kon de systeemgegevens niet laden. Probeer het opnieuw.",
       "advanced": {
         "heading": "Geavanceerd",
         "toggleLabel": "Geavanceerde opties tonen",
-        "help": "Toont opties voor ontwikkelaars: testbuilds, builddetails en de ontwikkelaarsmodus voor plugins.",
+        "help": "Toont de extra opties: testbuilds, builddetails en de ontwikkelaarsmodus voor plugins.",
         "autoUpdateNote": "Automatische updates blijven werken, ook als deze opties verborgen zijn."
       },
       "version": {
@@ -2068,9 +2019,9 @@
         "nightlyBuildBadge": "Testbuild"
       },
       "upgradeInProgress": {
-        "title": "Upgrade bezig",
-        "help": "Er loopt momenteel een upgrade. Als die lijkt vast te zitten, kun je hem annuleren.",
-        "cancelButton": "Upgrade annuleren"
+        "title": "Er loopt een update",
+        "help": "Als hij lijkt vast te zitten, kun je hem stoppen.",
+        "cancelButton": "Update stoppen"
       },
       "updateAvailable": {
         "updateTitle": "Update beschikbaar: v{version}",
@@ -2178,27 +2129,27 @@
         "cannotRead": "Kan je huidige instellingen niet lezen"
       },
       "upgradeDialog": {
-        "title": "Upgrade",
-        "message": "Upgraden naar {tag}? De server start opnieuw en je kunt kort de verbinding verliezen.",
-        "confirm": "Upgraden"
+        "title": "Bijwerken naar {tag}?",
+        "message": "Home Screens start opnieuw op om af te ronden, en de muur is een minuut of twee leeg.",
+        "confirm": "Bijwerken"
       },
       "rollbackDialog": {
         "title": "Terug naar {tag}?",
-        "message": "Home Screens start opnieuw op en het scherm is een paar seconden leeg. Instellingen die je sindsdien hebt gewijzigd, werken mogelijk niet in {tag}. Er wordt eerst een momentopname van je huidige opzet bewaard, dus je kunt terug.",
+        "message": "Home Screens start opnieuw op en de muur is een paar seconden leeg. Instellingen die je sindsdien hebt gewijzigd, werken mogelijk niet in {tag}. Er wordt eerst een momentopname van je huidige opzet bewaard, dus je kunt terug.",
         "confirm": "Terug naar {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "Het hele apparaat opnieuw starten",
-        "rebootMessage": "Weet je zeker dat je het systeem opnieuw wilt opstarten? Je kunt kort de verbinding verliezen.",
-        "rebootConfirm": "Opnieuw opstarten",
-        "restartTitle": "Home Screens opnieuw starten",
-        "restartMessage": "Weet je zeker dat je de service wilt herstarten? Je kunt kort de verbinding verliezen.",
+        "rebootTitle": "Het hele apparaat opnieuw opstarten?",
+        "rebootMessage": "Het apparaat gaat uit en weer aan. De muur is een minuut of twee donker.",
+        "rebootConfirm": "Apparaat opnieuw opstarten",
+        "restartTitle": "Home Screens opnieuw starten?",
+        "restartMessage": "Home Screens laadt opnieuw, dat duurt een paar seconden. Niets van wat je hebt ingesteld gaat verloren.",
         "restartConfirm": "Herstarten"
       },
       "cancelUpgradeDialog": {
-        "title": "Upgrade annuleren",
-        "message": "Weet je het zeker? De lopende upgrade wordt gestopt. Je moet daarna mogelijk opnieuw proberen.",
-        "confirm": "Upgrade annuleren"
+        "title": "Update stoppen?",
+        "message": "Home Screens blijft op de versie die het nu heeft. Je kunt de update daarna opnieuw starten.",
+        "confirm": "Update stoppen"
       },
       "actions": {
         "heading": "Als er iets vastloopt",
@@ -2207,10 +2158,9 @@
         "help": "Home Screens opnieuw starten laadt de app opnieuw en duurt een paar seconden. Het apparaat opnieuw starten duurt een minuut of twee."
       },
       "powerStatus": {
-        "restartScheduled": "Service-herstart gepland. De pagina wordt zo herladen…",
-        "rebootScheduled": "Systeemherstart gepland. Het display komt zo weer online…",
-        "processing": "Verwerken…",
-        "unknownError": "Onbekende fout"
+        "restartScheduled": "Home Screens start opnieuw op. Deze pagina laadt zo opnieuw…",
+        "rebootScheduled": "Het apparaat start opnieuw op. De muur is over een minuut of twee terug…",
+        "processing": "Bezig…"
       },
       "description": "Houd Home Screens up-to-date en ga terug als een update problemen geeft."
     },
@@ -2237,7 +2187,7 @@
         "scheduledBadge": "Gepland",
         "renameTitle": "Hernoemen",
         "deleteTitle": "Profiel verwijderen",
-        "removeFromProfileTitle": "Verwijderen uit profiel",
+        "removeFromProfileTitle": "Uit het profiel halen",
         "disabledLabel": "(uitgeschakeld)",
         "screensHeading": "Schermen",
         "availableHeading": "Beschikbaar",
@@ -2253,11 +2203,6 @@
         "screenCountPlural": "{count} schermen",
         "summaryScheduled": "{screens} · {when}",
         "summaryManual": "{screens} · alleen als je hem kiest"
-      },
-      "deleteDialog": {
-        "title": "Profiel verwijderen",
-        "message": "\"{name}\" verwijderen?",
-        "confirm": "Verwijderen"
       },
       "nameSuggestions": {
         "morning": "Schoolochtenden",
@@ -2312,11 +2257,6 @@
         "copyToDisplayPlaceholder": "Kies een display…",
         "copyToDisplayHelp": "Kopieert deze regel naar een ander display. Je moet daar nog het scherm kiezen dat het laat zien.",
         "copiedNotice": "Gekopieerd naar {name}."
-      },
-      "deleteDialog": {
-        "title": "Regel verwijderen",
-        "message": "“{name}” verwijderen?",
-        "confirm": "Verwijderen"
       }
     },
     "sharedStatePage": {
@@ -2338,7 +2278,7 @@
           "one": "{count} waarde beschikbaar uit je uitbreidingen",
           "other": "{count} waarden beschikbaar uit je uitbreidingen"
         },
-        "truncationNote": "Alleen de eerste {count} worden getoond. Zoek om meer te vinden",
+        "truncationNote": "Alleen de eerste {count} worden getoond. Zoek om meer te vinden.",
         "collapseGroup": "{producer} inklappen",
         "expandGroup": "{producer} uitklappen",
         "noProviders": "Er is nog niets om te delen. Waarden komen van uitbreidingen die ze delen (zoals Home Assistant). Zodra een uitbreiding is ingesteld, verschijnen de waarden hier.",
@@ -2370,11 +2310,11 @@
       "status": {
         "enabled": "Wachtwoord staat aan",
         "disabled": "Nog geen wachtwoord",
-        "enabledOutcome": "De editor en de gezinsafstandsbediening vragen erom. Het wandscherm en de klusjespagina van de kinderen blijven open, dus op de koelkast blijft alles werken.",
-        "disabledOutcome": "Iedereen op je wifi kan de editor en de gezinsafstandsbediening openen."
+        "enabledOutcome": "De editor en de gezinsafstandsbediening vragen erom. De muur en de klusjespagina van de kinderen blijven open, dus op de koelkast blijft alles werken.",
+        "disabledOutcome": "Iedereen op je wifi thuis kan de editor en de gezinsafstandsbediening openen."
       },
       "setup": {
-        "description": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. Het wandscherm en de klusjespagina van de kinderen blijven werken zonder.",
+        "description": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken.",
         "setPasswordButton": "Wachtwoord instellen"
       },
       "actions": {
@@ -2385,7 +2325,7 @@
       "revokeSessions": {
         "button": "Iedereen uitloggen",
         "warning": "Iedereen wordt uitgelogd, jij op dit apparaat ook.",
-        "confirmButton": "Bevestigen",
+        "confirmButton": "Iedereen afmelden",
         "revoking": "Uitloggen…",
         "cancel": "Annuleren",
         "success": "Iedereen is uitgelogd. Je gaat naar de inlogpagina…",
@@ -2397,10 +2337,9 @@
         "reveal": "Tonen",
         "hide": "Verbergen",
         "copy": "Kopiëren",
-        "copied": "Gekopieerd!",
         "regenerateButton": "Nieuwe sleutel maken",
         "regenerating": "Opnieuw genereren…",
-        "regenerateConfirm": "Bevestigen",
+        "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Elk display herlaadt één keer om de nieuwe sleutel op te pikken.",
         "errorRegenerate": "Nieuwe sleutel maken is niet gelukt",
@@ -2420,7 +2359,7 @@
           "help": "Al het andere wordt geweigerd, behalve de inlogpagina."
         },
         "emptyHint": "Voeg minstens één netwerkbereik toe om deze aan te zetten.",
-        "removeAriaLabel": "{entry} verwijderen",
+        "removeAriaLabel": "{entry} weghalen",
         "addPlaceholder": "192.168.1.0/24",
         "addButton": "Toevoegen",
         "errors": {
@@ -2437,7 +2376,6 @@
           "saveAnyway": "Toch opslaan",
           "cancel": "Annuleren"
         },
-        "saveButton": "Wijzigingen opslaan",
         "lockedOutHintPart1": "Als je jezelf buitensluit, bewerk ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " op het apparaat om dit uit te zetten.",
@@ -2469,15 +2407,14 @@
         "changing": "Wijzigen…",
         "disableSubmit": "Uitschakelen",
         "disabling": "Uitschakelen…",
-        "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. Het wandscherm en de klusjespagina van de kinderen blijven werken zonder."
+        "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken."
       },
       "errors": {
         "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
-        "setFailed": "Wachtwoord instellen mislukt",
-        "changeFailed": "Wachtwoord wijzigen mislukt",
-        "disableFailed": "Authenticatie uitschakelen mislukt",
-        "passwordTooShort": "Het wachtwoord moet minstens {count} tekens hebben.",
-        "invalidAddress": "\"{entry}\" is geen netwerkadres. Probeer er een zoals 192.168.1.0/24."
+        "setFailed": "Kon het wachtwoord niet instellen. Probeer het opnieuw.",
+        "changeFailed": "Kon het wachtwoord niet wijzigen. Probeer het opnieuw.",
+        "disableFailed": "Kon het wachtwoord niet uitzetten. Probeer het opnieuw.",
+        "passwordTooShort": "Het wachtwoord moet minstens {count} tekens hebben."
       },
       "success": {
         "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
@@ -2490,13 +2427,12 @@
         "heading": "Geavanceerde netwerktoegang",
         "description": "Displaysleutel, aangemelde apparaten en toegang beperken tot bepaalde netwerken."
       },
-      "grownUpPointerPrefix": "Wil je dat het wandscherm om een code vraagt voordat kinderen tickets uitgeven? Dat stel je in bij ",
+      "grownUpPointerPrefix": "Wil je dat de muur om een code vraagt voordat kinderen tickets uitgeven? Dat stel je in bij ",
       "grownUpPointerSuffix": " op de pagina Gezin."
     },
     "shared": {
       "secretField": {
-        "removeButton": "Verwijderen",
-        "savingButton": "…",
+        "removeButton": "Weghalen",
         "saveButton": "Opslaan",
         "savedSuccess": "Succesvol opgeslagen",
         "checkingButton": "Controleren…",
@@ -2542,7 +2478,6 @@
       "loading": "Instellingen laden…",
       "loadFailed": "Kon deze instellingen niet laden. Sluit en open opnieuw om het nog eens te proberen.",
       "saveButton": "Opslaan",
-      "savingButton": "…",
       "savedSuccess": "Succesvol opgeslagen",
       "toggleTitle": "Plugin-instellingen",
       "toggleAriaLabel": "Plugin-instellingen voor {id}"
@@ -2558,8 +2493,13 @@
       "deviceCodeIntro": "Open deze link en voer de code in:",
       "devicePolling": "Wachten op je goedkeuring…",
       "cancelButton": "Annuleren",
-      "errorGeneric": "Er ging iets mis. Probeer het opnieuw.",
+      "errorGeneric": "Die aanmelding werkte niet. Controleer wat je hebt getypt en probeer het opnieuw.",
       "popupBlocked": "Je browser heeft het aanmeldvenster geblokkeerd. Sta pop-ups voor deze site toe en probeer het opnieuw.",
+      "popup": {
+        "closeWindow": "Je kunt dit venster sluiten.",
+        "failedTitle": "Die aanmelding werkte niet",
+        "failedBody": "Ga terug naar de editor en probeer het opnieuw."
+      },
       "garmin": {
         "intro": "Meld je aan met je Garmin Connect-account.",
         "emailPlaceholder": "E-mail",
@@ -2578,10 +2518,6 @@
         "installed": "Geïnstalleerd",
         "updates": "Updates",
         "developer": "Ontwikkelaar"
-      },
-      "errors": {
-        "actionFailed": "Actie mislukt",
-        "requestFailed": "Verzoek mislukt ({status})"
       },
       "browse": {
         "searchPlaceholder": "Plugins zoeken…",
@@ -2640,18 +2576,18 @@
         "loadFromUrlLabel": "Laden vanuit URL",
         "loadFromUrlHelp": "Voer je dev-server-URL in (bijv. http://localhost:5173). De plugin laadt automatisch opnieuw bij wijzigingen.",
         "loadButton": "Laden",
-        "loadFailed": "Dev-plugin laden mislukt",
+        "loadFailed": "Kon de plugin niet laden vanaf dat adres. Controleer of de dev-server ervan draait.",
         "devPluginsHeading": "Dev-plugins",
         "devBadge": "Dev",
         "unloadTitle": "Ontladen",
         "unloadAriaLabel": "{name} ontladen",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers",
+          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers.",
           "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2s gepolld)",
           "sourcemapsPart1": "Source maps worden ondersteund; voeg ",
           "sourcemapsPart2": " toe aan je Vite-config",
-          "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype"
+          "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype."
         }
       },
       "installConfirm": {
@@ -2660,7 +2596,7 @@
     },
     "statsSection": {
       "loadingStats": "Statistieken laden…",
-      "failedToLoad": "Statistieken konden niet worden geladen",
+      "failedToLoad": "Kon de status niet laden. Probeer het opnieuw.",
       "configurationTitle": "Configuratie",
       "screens": "Schermen",
       "modules": "Modules",
@@ -2746,6 +2682,11 @@
       "noAppData": "Nog geen appgegevens.",
       "displayTitle": "Scherm",
       "offline": "Offline",
+      "displayStates": {
+        "active": "Actief",
+        "dimmed": "Gedimd",
+        "asleep": "Slaapt"
+      },
       "switchDisplay": "Scherm wisselen",
       "screen": "Scherm",
       "indexOf": "{index} van {total}",
@@ -2833,7 +2774,6 @@
       "formRotation270": "270° met de klok mee (staand)",
       "formRotationHint": "Bepaalt hoe het beeldvlak staat. De breedte en hoogte hierboven wisselen automatisch zodat de langste kant bij de gekozen draaiing past.",
       "formCancel": "Annuleren",
-      "formSaveChanges": "Wijzigingen opslaan",
       "formAddDisplay": "Scherm toevoegen",
       "formErrorName": "Naam is verplicht",
       "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"kitchen\")",
@@ -2870,14 +2810,10 @@
       }
     },
     "phonePage": {
-      "description": "Twee adressen, allebei te openen op elke telefoon of tablet op je wifi. Je hoeft niets te installeren.",
+      "description": "Twee adressen, allebei te openen op elke telefoon of tablet op je wifi thuis. Je hoeft niets te installeren.",
       "open": "Openen",
       "chores": {
-        "heading": "Kinderen: klusjes afvinken",
         "needsChoreChart": "Voeg een klusjeskaart toe aan een scherm om dit aan te zetten."
-      },
-      "remote": {
-        "heading": "Ouders: gezinsafstandsbediening"
       },
       "password": {
         "label": "Vraag een wachtwoord voor de gezinsafstandsbediening",
@@ -2904,14 +2840,14 @@
         "saved": "Opgeslagen"
       },
       "grownUp": {
-        "heading": "Oudercode voor het wandscherm",
-        "description": "Vier cijfers waar het wandscherm om vraagt voordat het de dingen doet die je hieronder aanvinkt, zodat kleine handjes niet zelf tickets kunnen uitgeven. Het is geen slot op je thuisnetwerk; dat is het wachtwoord op de pagina Beveiliging.",
+        "heading": "Volwassenencode voor de muur",
+        "description": "Vier cijfers waar de muur om vraagt voordat hij de dingen doet die je hieronder aanvinkt, zodat kleine handjes niet zelf tickets kunnen uitgeven. Het is geen slot op je thuisnetwerk; dat is het wachtwoord op de pagina Beveiliging.",
         "notSet": "Nog geen code.",
         "isSet": "Er is een code ingesteld.",
         "set": "Code instellen",
         "change": "Wijzigen",
-        "remove": "Verwijderen",
-        "removeConfirm": "Code verwijderen",
+        "remove": "Weghalen",
+        "removeConfirm": "Code weghalen",
         "codeLabel": "Vier cijfers",
         "againLabel": "Nog een keer",
         "save": "Code opslaan",
@@ -2921,7 +2857,7 @@
         "jobs": {
           "redeem": {
             "label": "Tickets uitgeven in de beloningswinkel",
-            "hint": "Op het wandscherm en op de klusjespagina van de kinderen."
+            "hint": "Op de muur en op de klusjespagina van de kinderen."
           },
           "untick": {
             "label": "Een klusje uitvinken",
@@ -2929,23 +2865,25 @@
           },
           "todoist-close": {
             "label": "Een Todoist-taak afronden",
-            "hint": "Een afgeronde taak kun je vanaf het wandscherm niet terugzetten."
+            "hint": "Een afgeronde taak kun je vanaf de muur niet terugzetten."
           },
           "calendar-remove": {
-            "label": "Een afspraak uit de agenda verwijderen",
-            "hint": "Op het wandscherm, en op telefoons als Home Screens geen wachtwoord heeft."
+            "label": "Een afspraak uit de agenda halen",
+            "hint": "Op de muur, en op telefoons als Home Screens geen wachtwoord heeft."
           },
           "calendar-change-series": {
             "label": "Alle keren van een terugkerende afspraak wijzigen",
             "hint": "Als een wijziging voor elke keer geldt, niet alleen voor één dag."
           }
         },
-        "unlockLabel": "Hoe lang het wandscherm ontgrendeld blijft",
+        "unlockLabel": "Hoe lang de muur ontgrendeld blijft",
         "minutes": {
           "one": "1 minuut",
           "other": "{count} minuten"
         },
-        "unlockHint": "Na de juiste code doet dat wandscherm de aangevinkte dingen zo lang zonder het opnieuw te vragen. Wie op de telefoon is ingelogd, krijgt de vraag nooit."
+        "unlockHint": "Na de juiste code doet die muur de aangevinkte dingen zo lang zonder het opnieuw te vragen. Wie op de telefoon is aangemeld, krijgt de vraag nooit.",
+        "removeConfirmTitle": "De volwassenencode weghalen?",
+        "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen."
       }
     },
     "touchAlignment": {
@@ -2961,7 +2899,7 @@
   "backgroundPicker": {
     "missing": {
       "label": "Achtergrondafbeelding",
-      "note": "Deze afbeelding staat niet meer op deze Pi, dus het scherm toont in plaats daarvan de effen kleur. Kies een andere of verwijder hem.",
+      "note": "Deze afbeelding staat niet meer op deze Pi, dus het scherm toont in plaats daarvan de effen kleur. Kies een andere of haal hem weg.",
       "pickAnother": "Kies een afbeelding",
       "useSolid": "Effen kleur gebruiken"
     },
@@ -2969,6 +2907,17 @@
     "effectsTitle": "Achtergrondeffecten",
     "sourcesGroup": "Bronnen",
     "refreshNow": "Nu vernieuwen",
+    "shadeGroup": "Verduistering",
+    "shadeEnable": "Achtergrond donkerder maken",
+    "shadeStyleLabel": "Stijl",
+    "shadeStrengthLabel": "Sterkte",
+    "shadeColorLabel": "Kleur",
+    "shadeStyles": {
+      "even": "Gelijkmatig",
+      "topBottom": "Boven en onder",
+      "edges": "Randen",
+      "both": "Beide"
+    },
     "rotateEveryLabel": "Nieuwe foto na",
     "intervals": {
       "minutes": "{count} minuten",
@@ -3007,22 +2956,11 @@
       "pattern-paper": "Papier"
     },
     "sourceNotSetUp": "Nog niet ingesteld.",
-    "sourceSetUpLink": "{source} instellen in Instellingen",
+    "sourceSetUpLink": "{source} instellen bij {place}",
     "pickToRotate": "Klik op de achtergronden die je wilt laten wisselen. Nog niets gekozen.",
     "modeFixed": "Vaste achtergrond",
     "modeRotating": "Wisselt tussen de gekozen bronnen",
     "modeHelp": "Vink de bronnen aan waar de foto's vandaan komen. Eén foto blijft staan, meerdere wisselen.",
-    "shadeGroup": "Verduistering",
-    "shadeEnable": "Achtergrond donkerder maken",
-    "shadeStyleLabel": "Stijl",
-    "shadeStrengthLabel": "Sterkte",
-    "shadeColorLabel": "Kleur",
-    "shadeStyles": {
-      "even": "Gelijkmatig",
-      "topBottom": "Boven en onder",
-      "edges": "Randen",
-      "both": "Beide"
-    },
     "effectsGroup": "Effecten",
     "effectsBrightnessLabel": "Helderheid",
     "effectsContrastLabel": "Contrast",
@@ -3056,31 +2994,28 @@
     "eveningFromSunset": "Zonsondergang",
     "eveningFromTime": "Een vaste tijd",
     "eveningUntil": "Tot",
-    "eveningSunsetHint": "Voor zonsondergang moet je woonplaats in Instellingen staan. Zonder begint de avond om 20.00 uur."
+    "eveningSunsetHint": "Voor zonsondergang moet je woonplaats bij {place} staan. Zonder begint de avond om 20.00 uur."
   },
   "imageBrowserModal": {
-    "title": "Afbeeldingsbibliotheek",
-    "allPhotos": "Alle foto's",
+    "allPhotos": "Alle afbeeldingen",
     "newFolderPlaceholder": "Mapnaam",
-    "newFolderConfirm": "OK",
-    "newFolderButton": "+ Nieuwe map",
+    "newFolderConfirm": "Toevoegen",
+    "newFolderButton": "Nieuwe map",
     "deleteFolderButton": "Map verwijderen",
-    "uploadButton": "Foto's uploaden",
+    "uploadButton": "Afbeeldingen uploaden",
     "uploadingButton": "Uploaden…",
     "loadingImages": "Afbeeldingen laden…",
-    "emptyPhotos": "Nog geen foto's. Upload er een paar!",
-    "photoCountSingular": "{count} foto",
-    "photoCountPlural": "{count} foto's",
-    "confirmSelectImage": "Afbeelding selecteren",
+    "emptyPhotos": "Nog geen afbeeldingen. Upload er een paar!",
+    "photoCountSingular": "{count} afbeelding",
+    "photoCountPlural": "{count} afbeeldingen",
+    "confirmSelectImage": "Deze afbeelding gebruiken",
     "confirmUseFolder": "Deze map gebruiken",
-    "confirmSelectVideo": "Video selecteren",
+    "confirmSelectVideo": "Deze video gebruiken",
     "videoCountSingular": "{count} video",
     "videoCountPlural": "{count} video's",
-    "titleVideos": "Videobibliotheek",
     "uploadVideosButton": "Video's uploaden",
     "allVideos": "Alle video's",
     "titleFolder": "Kies een map",
-    "allMedia": "Alle foto's en video's",
     "uploadMediaButton": "Uploaden"
   },
   "icloudImport": {
@@ -3110,7 +3045,6 @@
   },
   "choreChartModal": {
     "title": "Klusjeskaart",
-    "subtitleMembersChores": "{members} gezinsleden · {chores} klusjes",
     "loadError": "Klusjesgegevens laden mislukt. Wijzigingen worden niet opgeslagen.",
     "chores": {
       "columnTitle": "Klusjes",
@@ -3119,12 +3053,7 @@
       "empty": "Nog geen klusjes",
       "addMembersFirst": "Voeg eerst gezinsleden toe",
       "editAriaLabel": "{name} bewerken",
-      "deleteAriaLabel": "{name} verwijderen",
-      "deleteConfirm": {
-        "title": "Klusje verwijderen",
-        "message": "\"{name}\" verwijderen?",
-        "confirmLabel": "Verwijderen"
-      }
+      "deleteAriaLabel": "{name} verwijderen"
     },
     "choreForm": {
       "namePlaceholder": "Naam van het klusje…",
@@ -3135,14 +3064,13 @@
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
       "addSubmit": "Klusje toevoegen",
-      "saveSubmit": "Opslaan",
       "grabRulesNote": "Hoeveel één persoon mag pakken en hoe lang een gepakt klusje van iemand blijft, stel je voor het hele gezin in onder Bonus in de klusjeslijst."
     },
     "preview": {
       "columnTitleNew": "Nieuw klusje",
       "columnTitleEdit": "Klusje bewerken",
       "columnTitleSchedule": "Schema van deze week",
-      "placeholder": "Voeg gezinsleden en klusjes toe om het weekschema te zien",
+      "placeholder": "Voeg personen en klusjes toe om het weekschema te zien",
       "todayLabel": "Vandaag ({day})",
       "noChores": "Geen klusjes",
       "weeklyTotalsHeading": "Weektotalen",
@@ -3154,25 +3082,6 @@
       "hint": "{count} alledaagse klusjes, ingedeeld per moment van de dag",
       "headerButton": "Kant-en-klare lijst",
       "columnTitle": "Kant-en-klare klusjes"
-    },
-    "members": {
-      "columnTitle": "Gezinsleden",
-      "empty": "Nog geen gezinsleden",
-      "addButton": "Gezinslid toevoegen",
-      "addSubmit": "Gezinslid toevoegen",
-      "saveSubmit": "Opslaan",
-      "editAriaLabel": "{name} bewerken",
-      "deleteAriaLabel": "{name} verwijderen",
-      "deleteConfirm": {
-        "title": "Gezinslid verwijderen",
-        "message": "\"{name}\" verwijderen? Hiermee wordt deze persoon ook uit elk klusje verwijderd.",
-        "confirmLabel": "Verwijderen"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Naam…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Eigen kleur kiezen"
     }
   },
   "todoListModal": {
@@ -3184,15 +3093,10 @@
     "empty": "Nog niets op deze lijst",
     "itemTextLabel": "Item",
     "itemDoneLabel": "Gedaan: {text}",
-    "removeItemLabel": "{text} verwijderen",
-    "addPlaceholder": "Voeg iets toe...",
+    "removeItemLabel": "{text} weghalen",
+    "addPlaceholder": "Voeg iets toe…",
     "uncheckAll": "Alles uitvinken",
-    "removeDone": "Gedane items verwijderen",
-    "removeDoneConfirm": {
-      "title": "Gedane items verwijderen",
-      "message": "{count} gedane items uit \"{name}\" verwijderen?",
-      "confirmLabel": "Verwijderen"
-    }
+    "removeDone": "Gedane items weghalen"
   },
   "notesBoardModal": {
     "title": "Gezinsnotities",
@@ -3203,7 +3107,7 @@
     },
     "newNote": "Nieuwe notitie",
     "textLabel": "Notitie",
-    "textPlaceholder": "Schrijf een notitie voor het gezin...",
+    "textPlaceholder": "Schrijf een notitie voor het gezin…",
     "counter": "{used} / {max}",
     "fromLabel": "Van",
     "nobody": "Niemand",
@@ -3220,7 +3124,7 @@
     "pin": "Vastzetten",
     "important": "Belangrijk",
     "post": "Op de muur zetten",
-    "postHint": "Ctrl+Enter (of Cmd+Enter op een Mac) werkt ook",
+    "postHint": "Ctrl+Enter (of Cmd+Enter op een Mac) werkt ook.",
     "onWall": "Op de muur",
     "empty": "Er staat nu niets op de muur. Schrijf hierboven een notitie en een paar seconden later staat hij erop.",
     "rowTextLabel": "Notitie van {name}",
@@ -3244,9 +3148,8 @@
     "postAgain": "Terug op de muur",
     "delete": "Verwijderen",
     "deleteConfirm": {
-      "title": "Notitie verwijderen",
-      "message": "Deze notitie is dan voorgoed weg. Je kunt hem niet meer terugzetten.",
-      "confirmLabel": "Verwijderen"
+      "title": "Deze notitie verwijderen?",
+      "message": "Deze notitie is dan voorgoed weg. Je kunt hem niet meer terugzetten."
     },
     "loadError": "De notities konden niet worden geladen. Sluit dit venster en open het opnieuw."
   },
@@ -3254,7 +3157,6 @@
     "title": "Maaltijdplanner",
     "loading": "Maaltijden laden…",
     "subtitleMealsPlanned": "{meals} maaltijden · {planned} gepland",
-    "doneButton": "Klaar",
     "newMealName": "Nieuwe maaltijd",
     "tabs": {
       "library": "Bibliotheek",
@@ -3280,18 +3182,18 @@
       "lastWeekCopiedDates": "Maaltijden van {from} gekopieerd",
       "weekCleared": "Week leeggemaakt",
       "undoButton": "Ongedaan maken",
-      "courseRemoved": "Verwijderd uit deze maaltijd",
+      "courseRemoved": "Uit deze maaltijd gehaald",
       "saveFailed": "Die wijziging is niet opgeslagen. Probeer het opnieuw.",
       "mealieSaveFailed": "Mealie heeft die wijziging niet overgenomen. Controleer of het draait en probeer het opnieuw.",
-      "mealieTokenSaveFailed": "Mealie laat Home Screens niet binnen, dus die wijziging is niet opgeslagen. Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
-      "mealieSetupSaveFailed": "Home Screens kan deze Mealie niet gebruiken, dus die wijziging is niet opgeslagen. Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
-      "mealieNotConnectedSaveFailed": "Mealie is niet gekoppeld, dus die wijziging is niet opgeslagen. Vul het adres en de token in bij Instellingen > API-sleutels."
+      "mealieTokenSaveFailed": "Mealie laat Home Screens niet binnen, dus die wijziging is niet opgeslagen. Maak in Mealie een nieuwe token en plak die bij {place}.",
+      "mealieSetupSaveFailed": "Home Screens kan deze Mealie niet gebruiken, dus die wijziging is niet opgeslagen. Controleer het adres van Mealie bij {place}. Klopt het, dan heeft Mealie misschien een update nodig.",
+      "mealieNotConnectedSaveFailed": "Mealie is niet gekoppeld, dus die wijziging is niet opgeslagen. Vul het adres en de token in bij {place}."
     },
     "library": {
       "searchPlaceholder": "Maaltijden zoeken…",
       "noMealsMatch": "Geen maaltijden komen overeen",
       "noMealsYet": "Nog geen maaltijden",
-      "addNewMealButton": "+ Nieuwe maaltijd toevoegen",
+      "addNewMealButton": "Maaltijd toevoegen",
       "filters": {
         "all": "Alle",
         "favorites": "Fav",
@@ -3318,12 +3220,12 @@
       "ingredientNamePlaceholder": "Naam ingrediënt",
       "amountPlaceholder": "Hoeveelheid",
       "categoryPlaceholder": "Categorie",
-      "addIngredientButton": "+ Ingrediënt toevoegen",
-      "recipeUrlLabel": "Recept-URL",
+      "addIngredientButton": "Ingrediënt toevoegen",
+      "recipeUrlLabel": "Receptlink",
       "recipeUrlPlaceholder": "https://…",
       "notesLabel": "Notities",
-      "saveChangesButton": "Wijzigingen opslaan",
-      "deleteButton": "Verwijderen"
+      "deleteButton": "Verwijderen",
+      "removeIngredient": "Dit ingrediënt weghalen"
     },
     "grocery": {
       "itemsCount": "{checked} van {total} items",
@@ -3353,7 +3255,7 @@
         "one": "Nog {count} bij deze maaltijd",
         "other": "Nog {count} bij deze maaltijd"
       },
-      "removeMealAriaLabel": "{name} verwijderen",
+      "removeMealAriaLabel": "{name} weghalen",
       "mealCellAriaLabel": "{name}, {slot}, {day}",
       "planCellAriaLabel": "{slot} plannen voor {day}"
     },
@@ -3408,9 +3310,9 @@
       "subtitleDates": "{planned} gepland in de week van {range}",
       "subtitleHouseholdDates": "Huishouden {household} · {planned} gepland in de week van {range}",
       "tryAgain": "Opnieuw proberen",
-      "notConnectedBody": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in bij Instellingen > API-sleutels, of zet de planning terug op Home Screens bij Instellingen > Maaltijden.",
-      "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij Instellingen > API-sleutels.",
-      "setupBody": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
+      "notConnectedBody": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in bij {place}, of zet de planning terug op Home Screens bij {mealsPlace}.",
+      "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij {place}.",
+      "setupBody": "Controleer het adres van Mealie bij {place}. Klopt het, dan heeft Mealie misschien een update nodig.",
       "weekLoading": "De week van {range} wordt uit Mealie gehaald…",
       "weekFailed": "We konden de week van {range} niet uit Mealie halen.",
       "libraryNote": "De recepten staan in Mealie. Klik op een recept om het hier te zien.",
@@ -3432,12 +3334,12 @@
         "connectionBody": "Kijk of deze computer verbinding heeft en probeer het dan opnieuw."
       },
       "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien.",
-      "tokenFix": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
-      "tokenPaused": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil.",
-      "tokenPausedSince": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is de planning van {time}.",
-      "setupFix": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
-      "setupPaused": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil.",
-      "setupPausedSince": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil. Dit is de planning van {time}."
+      "tokenFix": "Maak in Mealie een nieuwe token en plak die bij {place}.",
+      "tokenPaused": "Maak in Mealie een nieuwe token en plak die bij {place}. Tot dan staat plannen stil.",
+      "tokenPausedSince": "Maak in Mealie een nieuwe token en plak die bij {place}. Tot dan staat plannen stil. Dit is de planning van {time}.",
+      "setupFix": "Controleer het adres van Mealie bij {place}. Klopt het, dan heeft Mealie misschien een update nodig.",
+      "setupPaused": "Controleer het adres van Mealie bij {place}. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil.",
+      "setupPausedSince": "Controleer het adres van Mealie bij {place}. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil. Dit is de planning van {time}."
     },
     "popover": {
       "savesToMealie": "Wordt opgeslagen in Mealie",
@@ -3450,16 +3352,16 @@
       "swapCourse": "Iets anders kiezen",
       "moveUp": "{name} omhoog",
       "moveDown": "{name} omlaag",
-      "remove": "{name} verwijderen",
+      "remove": "{name} weghalen",
       "missingMeal": "Een verwijderde maaltijd",
       "anotherMain": "Nog een hoofdgerecht",
       "servingTime": "Etenstijd",
       "usually": "meestal {time}",
       "clear": {
-        "breakfast": "Dit ontbijt leegmaken",
-        "lunch": "Deze lunch leegmaken",
-        "dinner": "Dit avondeten leegmaken",
-        "snack": "Dit tussendoortje leegmaken"
+        "breakfast": "Dit ontbijt wissen",
+        "lunch": "Deze lunch wissen",
+        "dinner": "Dit avondeten wissen",
+        "snack": "Dit tussendoortje wissen"
       },
       "timeKeptHere": "Home Screens onthoudt deze tijd. Mealie heeft geen tijd, dus daar zie je hem niet.",
       "timeAndOrderKeptHere": "Home Screens onthoudt deze tijd en de volgorde van de gerechten. Mealie heeft voor geen van beide een plek, dus daar zie je ze niet."
@@ -3472,7 +3374,7 @@
   },
   "timetableModal": {
     "title": "Roosters",
-    "autosaveHint": "Wijzigingen worden meteen bewaard",
+    "autosaveHint": "Wijzigingen worden meteen bewaard.",
     "done": "Klaar",
     "loadError": "De roosters konden niet geladen worden. Sluit dit venster en open het opnieuw.",
     "saveConflict": "Iemand anders heeft de roosters opgeslagen terwijl dit venster openstond, dus we hebben die geladen. Jouw laatste wijziging is niet opgeslagen: doe hem nog een keer.",
@@ -3495,22 +3397,20 @@
       "withTimetable": "Roosters",
       "without": "In je gezin, nog geen rooster",
       "none": "Geen rooster",
-      "add": "+ Toevoegen",
       "footer": "Namen en kleuren komen uit Gezin. Om iemand toe te voegen of een andere naam te geven, {link}.",
       "footerLink": "open Gezin"
     },
     "fromFamily": "uit Gezin",
     "school": "Welke school",
-    "addSchoolLink": "+ School toevoegen",
+    "addSchoolLink": "School toevoegen",
     "class": "Klas",
     "weeks": "Weken",
     "weeksSame": "Elke week hetzelfde",
     "weeksAB": "A en B",
     "showing": "Week die je bewerkt",
-    "showIcons": "Icoontjes van de vakken tonen",
+    "showIcons": "Pictogrammen van de vakken tonen",
     "paintWith": "Schilderen met",
     "clear": "Wissen",
-    "addSubject": "+ Vak",
     "noSubjects": "Nog geen vakken, dus er is niets om mee te schilderen. Voeg het eerste toe.",
     "lunchBrush": "Lunchpauze",
     "grid": {
@@ -3541,8 +3441,8 @@
       "period": "{number}e uur",
       "start": "Begint",
       "end": "Eindigt",
-      "addPeriod": "+ Uur",
-      "addBreak": "+ Pauze",
+      "addPeriod": "Uur",
+      "addBreak": "Pauze",
       "breakName": "Naam van de pauze",
       "breakDefault": "Pauze",
       "minutes": {
@@ -3563,7 +3463,7 @@
       "holidays": "Schoolvakanties",
       "holidaysNone": "Geen",
       "holidaysHelp": "{area}: Kies waar je school de vakanties van volgt. Laat het op Geen staan en vakanties worden niet meegenomen.",
-      "holidayNoCountry": "Stel je land in bij Instellingen > Kalender om een lijst met regio's te krijgen, of typ een code als DE-NW.",
+      "holidayNoCountry": "Stel je land in bij {place} om een lijst met regio's te krijgen, of typ een code als DE-NW.",
       "holidayPublicOnly": "{area}: Kies waar je school staat. Er zijn geen schoolvakantiedata voor jouw land, dus alleen officiële feestdagen komen als vrije dag binnen.",
       "holidayNoneForCountry": "We hebben geen vakantiedata voor jouw land. Je kunt vrije dagen nog steeds zelf invullen bij \"{section}\" hieronder.",
       "holidayRegionWord": "Regio",
@@ -3573,12 +3473,11 @@
         "schoolHolidaysUnavailable": "We kregen geen vakantiedata voor deze streek. Probeer het later nog eens."
       },
       "holidayRegionPlaceholder": "Regiocode, bijvoorbeeld {example}",
-      "remove": "{name} weghalen",
+      "remove": "{name} verwijderen",
       "removeBlocked": "Deze school is nog in gebruik bij {names}. Kies eerst een andere school, dan kan deze weg.",
       "removeConfirm": {
-        "title": "Deze school weghalen?",
-        "message": "De tijden en bijzondere dagen van {name} gaan mee.",
-        "confirmLabel": "School weghalen"
+        "message": "De tijden en bijzondere dagen ervan gaan mee.",
+        "confirmLabel": "School verwijderen"
       }
     },
     "weekCycle": {
@@ -3591,7 +3490,7 @@
     },
     "specialDays": {
       "title": "Dagen die anders zijn",
-      "add": "+ Dag toevoegen",
+      "add": "Dag toevoegen",
       "date": "Datum",
       "name": "Hoe heet die dag?",
       "nameDefault": "Bijzondere dag",
@@ -3603,7 +3502,7 @@
     },
     "subjects": {
       "color": "Kleur",
-      "icon": "Icoontje",
+      "icon": "Pictogram",
       "short": "Afkorting",
       "name": "Naam",
       "bring": "Meenemen",
@@ -3614,16 +3513,14 @@
         "other": "{count} personen"
       },
       "nothing": "Niets",
-      "add": "+ Vak toevoegen",
+      "add": "Vak toevoegen",
       "newCode": "Nieuw",
       "newName": "Nieuw vak",
       "note": "De kleuren komen van gewone schriftkleuren.",
       "footerNote": "Pas één keer een kleur of iets om mee te nemen aan, en de kaart van elk kind gaat mee.",
-      "remove": "{name} weghalen",
+      "remove": "{name} verwijderen",
       "removeConfirm": {
-        "title": "Vak weghalen",
-        "message": "\"{name}\" weghalen? Het verdwijnt uit elk rooster dat het gebruikt.",
-        "confirmLabel": "Weghalen"
+        "message": "Het vak verdwijnt uit elk rooster dat het gebruikt."
       }
     },
     "import": {
@@ -3785,7 +3682,7 @@
       "saveChange": "Opslaan",
       "wallFrom": "Op de muur vanaf {weekday}avond",
       "edit": "Wijzigen",
-      "remove": "Verwijderen",
+      "remove": "Weghalen",
       "rowOff": "klaar om {time}",
       "rowOffStart": "begint om {time}",
       "rowAllOff": "geen les meer",
@@ -3795,10 +3692,10 @@
       "needsPerson": "Kies eerst voor wie de datum is."
     },
     "removeTimetable": {
-      "title": "Dit rooster weghalen?",
+      "title": "Dit rooster verwijderen?",
       "message": "Bij {name} blijft al het andere. Alleen de schoolweek gaat weg.",
-      "confirmLabel": "Rooster weghalen",
-      "action": "Rooster van {name} weghalen"
+      "confirmLabel": "Rooster verwijderen",
+      "action": "Rooster van {name} verwijderen"
     }
   },
   "propertyPanel": {
@@ -3856,7 +3753,6 @@
       "sendToBack": "Naar achteren",
       "duplicate": "Dupliceren",
       "delete": "Module verwijderen",
-      "confirmDeleteTitle": "\"{name}\" verwijderen?",
       "confirmDeleteDetail": "Je kunt dit ongedaan maken."
     },
     "visibility": {
@@ -3879,7 +3775,6 @@
       "andMore": "en {count} meer",
       "help": "Zet in de onderhoek van de module een knop met de naam van dat scherm. Een tik erop op een aanraakscherm toont het scherm.",
       "sectionTitle": "Een scherm openen",
-      "opensOnTap": "{name} (opent bij een tik)",
       "offBadge": "{name} (uit)",
       "holds": "Toont {what}",
       "targetOff": "De knop is verborgen zolang dat scherm uit staat.",
@@ -3894,7 +3789,7 @@
       "addTwinHelp": "Maakt een {name}-scherm dat alleen verschijnt wanneer het geopend wordt, en richt deze knop erop.",
       "offShort": "Uit",
       "theme": "In het thema {theme}",
-      "tapOff": "‘Tikken op het scherm’ staat uit voor deze module, dus het scherm toont geen knop.",
+      "tapOff": "“Tikken op de muur” staat uit voor deze module, dus de muur toont geen knop.",
       "orphaned": "Niets opent {name} nog, dus het verschijnt nooit. Kies het opnieuw, of laat het aan de beurt komen met de andere.",
       "twinAdded": "{name} toegevoegd. Het verschijnt alleen wanneer het geopend wordt; open hieronder zijn scherminstellingen om het vorm te geven.",
       "twinScreenName": {
@@ -3908,7 +3803,7 @@
       "holdsView": "{module}, weergave {view}",
       "pickAgain": "Opnieuw kiezen",
       "letItTakeTurn": "Aan de beurt laten komen",
-      "turnOnTap": "‘Tikken op het scherm’ aanzetten",
+      "turnOnTap": "“Tikken op de muur” aanzetten",
       "switchOn": "Aanzetten",
       "onlyWhen": "De knop verschijnt alleen {when}.",
       "onlyConditions": "De knop verschijnt alleen zolang de voorwaarden van dat scherm kloppen.",
@@ -3926,33 +3821,33 @@
     "passwordLabel": "Apparaatwachtwoord",
     "passwordPlaceholder": "Wachtwoord",
     "allowButton": "Toestaan",
-    "workingButton": "Bezig met instellen...",
+    "workingButton": "Bezig met instellen…",
     "wrongPassword": "Dat wachtwoord werkte niet.",
     "tooManyTries": "Te veel pogingen. Wacht {minutes} minuten en probeer het opnieuw.",
-    "genericError": "Dit kon niet worden ingesteld. Probeer het opnieuw."
+    "genericError": "Kon dit niet instellen. Probeer het opnieuw."
   },
   "upgradeModal": {
-    "titleUpgrade": "Upgraden naar {tag}",
-    "titleRollback": "Terugdraaien naar {tag}",
+    "titleUpgrade": "Bijwerken naar {tag}",
+    "titleRollback": "Terug naar {tag}",
     "stepLabels": {
-      "preflight": "Pre-flight controles",
-      "backup": "Configuratie back-uppen",
-      "download": "Update downloaden",
-      "migrate": "Configuratie migreren",
-      "deploy": "Update installeren",
-      "setup-system": "Systeemconfiguratie toepassen",
-      "restart": "Service herstarten",
+      "preflight": "Controleren",
+      "backup": "Back-up maken",
+      "download": "Update ophalen",
+      "migrate": "Je instellingen bijwerken",
+      "deploy": "Installeren",
+      "setup-system": "Apparaat instellen",
+      "restart": "Opnieuw starten",
       "cleanup": "Afronden",
-      "fetch": "Nieuwste code downloaden",
-      "checkout": "Wisselen naar nieuwe versie",
-      "install": "Afhankelijkheden installeren",
-      "build": "Applicatie bouwen"
+      "fetch": "Update ophalen",
+      "checkout": "Van versie wisselen",
+      "install": "Installeren",
+      "build": "Klaarmaken"
     },
     "warning": {
-      "installing": "Update installeren. Sluit het apparaat niet af",
-      "inProgress": "Sluit deze pagina niet en zet het apparaat niet uit"
+      "installing": "De update wordt geïnstalleerd. Houd deze pagina open en laat het apparaat aanstaan.",
+      "inProgress": "Houd deze pagina open en laat het apparaat aanstaan."
     },
-    "successDefault": "Upgrade voltooid!",
+    "successDefault": "De update is klaar.",
     "successRollback": "Terug naar {tag} is gelukt!",
     "restartNeeded": "Nog één stap: het apparaat moet opnieuw opstarten om de update af te ronden. Dat kan hier zodra de pagina is herladen.",
     "reload": {
@@ -3970,9 +3865,19 @@
     },
     "console": {
       "live": "Live",
-      "waiting": "Wachten op uitvoer...",
+      "waiting": "Wachten op de eerste regels…",
       "stillWorking": "Nog bezig, al {duration} niets nieuws",
-      "reconnecting": "Verbinding verbroken, opnieuw verbinden..."
+      "reconnecting": "Verbinding verbroken. Opnieuw verbinden…"
+    },
+    "stopButton": "Update stoppen",
+    "errors": {
+      "connectionLost": "Verbinding verbroken tijdens “{step}”",
+      "connectionLostHelp": "De update loopt misschien nog. Wacht een minuut en laad deze pagina dan opnieuw.",
+      "noStream": "Kon de update niet volgen",
+      "noStreamHelp": "Laad deze pagina opnieuw om te zien hoe het gaat.",
+      "startFailed": "De update is niet gestart",
+      "startFailedHelp": "Probeer het zo meteen opnieuw. Gebeurt het steeds, start Home Screens dan eerst opnieuw.",
+      "stoppedAt": "Gestopt bij “{step}”"
     }
   },
   "holidayPickerModal": {
@@ -3988,8 +3893,8 @@
     "addCountSingular": "{count} feestdag toevoegen",
     "addCountPlural": "{count} feestdagen toevoegen",
     "errors": {
-      "loadCountries": "Landen laden mislukt",
-      "loadHolidays": "Feestdagen laden mislukt"
+      "loadCountries": "Kon de lijst met landen niet laden. Probeer het opnieuw.",
+      "loadHolidays": "Kon de feestdagen niet laden. Probeer het opnieuw."
     }
   },
   "layoutExportModal": {
@@ -4017,7 +3922,7 @@
     "applyVisualLabel": "Ook de tijden van deze lay-out gebruiken",
     "visualSummary": "Elk scherm is {seconds} seconden te zien.",
     "visualSummaryWithTransition": "Elk scherm is {seconds} seconden te zien, met een {transition} tussen de schermen.",
-    "saveError": "Opslaan mislukt. Controleer je verbinding en probeer opnieuw.",
+    "saveError": "Kon de lay-out niet toevoegen. Controleer de verbinding en probeer het opnieuw.",
     "importButton": "Deze schermen toevoegen",
     "savedAt": "Opgeslagen {date}",
     "screenPillSingular": "{name} met {count} module",
@@ -4027,7 +3932,6 @@
   },
   "layoutImport": {
     "alerts": {
-      "invalidLayoutFile": "Ongeldig lay-outbestand:\n{errors}",
       "invalidJsonFile": "Dat bestand is geen lay-out die Home Screens kan lezen."
     }
   },
@@ -4044,7 +3948,7 @@
     "installingMessage": "Downloaden en installeren…",
     "doneButton": "Klaar",
     "tryAgainButton": "Opnieuw proberen",
-    "installFailed": "Installatie mislukt",
+    "installFailed": "Kon de plugin niet installeren. Probeer het opnieuw.",
     "pluginFallbackName": "Plugin"
   },
   "externalUpdateModal": {
@@ -4060,7 +3964,7 @@
     "updatedToVersion": "Bijgewerkt naar v{version}.",
     "doneButton": "Klaar",
     "tryAgainButton": "Opnieuw proberen",
-    "updateFailed": "Bijwerken mislukt"
+    "updateFailed": "Kon de plugin niet bijwerken. Probeer het opnieuw."
   },
   "fontFamilyPicker": {
     "label": "Lettertype",
@@ -4071,7 +3975,6 @@
     "styleRegular": "Lijn",
     "styleBrands": "Merken",
     "chooseTitle": "Kies een pictogram",
-    "searchPlaceholder": "Zoek door 1.900+ pictogrammen op naam of trefwoord…",
     "loadingCatalog": "Volledige catalogus laden…",
     "iconCount": {
       "one": "{count} pictogram",
@@ -4084,9 +3987,9 @@
     "kindAll": "Alles",
     "tabEmoji": "Emoji",
     "tabFontAwesome": "Font Awesome",
-    "searchAllPlaceholder": "Zoek iconen op naam of trefwoord…",
-    "removeIcon": "Icoon verwijderen",
-    "previewLabel": "Op het scherm",
+    "searchAllPlaceholder": "Zoek pictogrammen op naam of trefwoord…",
+    "removeIcon": "Pictogram weghalen",
+    "previewLabel": "Op de muur",
     "emojiGroups": {
       "popular": "Populair",
       "people": "Mensen",
@@ -4114,13 +4017,14 @@
       "rotationSeconds": "Rotatie (seconden)",
       "timeAware": "Tijdsbewuste inhoud",
       "weatherAware": "Weerbewuste inhoud",
-      "weatherAwareLocationWarning": "Stel je locatie in bij Instellingen > Weer om weerbewuste inhoud in te schakelen.",
+      "weatherAwareLocationWarning": "Stel je locatie in bij {place} om weerbewuste inhoud in te schakelen.",
       "showCategoryLabel": "Categorielabel tonen",
       "accentColor": "Accentkleur",
       "customEntriesCount": "Eigen items ({count})",
       "newEntryPlaceholder": "Nieuwe affirmatietekst…",
       "attributionPlaceholder": "Bron (optioneel)",
-      "addEntry": "Item toevoegen"
+      "addEntry": "Item toevoegen",
+      "removeEntry": "Deze regel weghalen"
     },
     "air-quality": {
       "showAQI": "AQI tonen",
@@ -4134,7 +4038,7 @@
       "viewMonth": "Maandraster",
       "viewMultiWeek": "Multiweekraster",
       "viewRolling": "Rollende weken",
-      "googleAuthExpired": "Google Agenda-verificatie verlopen. Verifieer opnieuw via Instellingen → Agenda.",
+      "googleAuthExpired": "De aanmelding bij Google Agenda is verlopen. Meld je opnieuw aan bij {place}.",
       "sources": "Bronnen",
       "allSources": "Alle bronnen",
       "googleCalendar": "Google Agenda",
@@ -4145,7 +4049,7 @@
       "titleFilterInclude": "Alleen overeenkomend",
       "titleFilterTerms": "Te zoeken woorden",
       "titleFilterTermsPlaceholder": "Typ een woord, druk op Enter",
-      "titleFilterRemoveTerm": "{term} verwijderen",
+      "titleFilterRemoveTerm": "{term} weghalen",
       "daysToShow": "Aantal dagen tonen",
       "maxEvents": "Max. evenementen",
       "showFinishedToday": "Afgelopen gebeurtenissen van vandaag tonen",
@@ -4190,8 +4094,8 @@
       "legendFooter": "Onder in de kalender"
     },
     "chore-chart": {
-      "viewBoard": "Bord (kolom per lid)",
-      "viewStarChart": "Star Chart (weekraster)",
+      "viewBoard": "Bord (één kolom per persoon)",
+      "viewStarChart": "Sterrenkaart (weekraster)",
       "viewToday": "Vandaag (dagdeel)",
       "viewProgress": "Voortgang (ringen)",
       "viewCompact": "Compact (dicht raster)",
@@ -4201,20 +4105,25 @@
       "showTickets": "Tickets tonen",
       "showStreaks": "Streaks tonen",
       "showTimeOfDay": "Dagdeel tonen",
-      "tapToComplete": "Tik om af te ronden (display)",
       "accentColor": "Accentkleur",
-      "membersCount": "{count} leden",
-      "choresCount": "{count} klusjes",
       "editChoreChart": "Klusjeslijst bewerken",
       "viewRewardsStore": "Beloningswinkel",
       "storeLayout": "Winkelindeling",
       "storeLayoutList": "Lijst",
       "storeLayoutTiles": "Tegels",
       "storeLayoutPriceList": "Prijslijst",
-      "tapToRedeem": "Tikken om in te wisselen"
+      "membersCount": {
+        "one": "{count} persoon",
+        "other": "{count} personen"
+      },
+      "choresCount": {
+        "one": "{count} klusje",
+        "other": "{count} klusjes"
+      }
     },
     "timezoneUseDisplay": "Display-instelling gebruiken ({timezone})",
     "timezoneUseDisplayNoZone": "Display-instelling gebruiken",
+    "tapOnWall": "Tikken op de muur",
     "clock": {
       "viewClassic": "Klassiek (gecentreerd)",
       "viewDigital": "Digitaal (7-segment LED)",
@@ -4258,7 +4167,7 @@
       "verticalAlign": "Verticale uitlijning",
       "showDate": "Datum tonen",
       "dateFormat": "Datumopmaak",
-      "customOption": "Aangepast...",
+      "customOption": "Aangepast…",
       "dateFormatPlaceholder": "bv. EEEE, MMMM d",
       "showWeekNumber": "Weeknummer tonen",
       "showDayOfYear": "Dag van het jaar tonen",
@@ -4266,7 +4175,7 @@
       "flipAnimation": "Flip-animatie",
       "accentColor": "Accentkleur",
       "timeZonesCount": "Tijdzones ({count}/{max})",
-      "addTimezone": "Tijdzone toevoegen...",
+      "addTimezone": "Tijdzone toevoegen…",
       "referenceTime": "Referentietijd",
       "referenceTimezoneHint": "Gelezen als {timezone}-tijd",
       "referenceLabel": "Label",
@@ -4286,7 +4195,8 @@
       "precisionDaysHoursMinutes": "Dagen + uren + minuten",
       "precisionDaysHoursMinutesSeconds": "Dagen + uren + minuten + seconden",
       "timezone": "Tijdzone",
-      "customExamplesHeading": "Een paar voorbeelden om over te nemen:"
+      "customExamplesHeading": "Een paar voorbeelden om over te nemen:",
+      "removeZone": "{name} weghalen"
     },
     "countdown": {
       "viewAll": "Alle evenementen (gestapeld)",
@@ -4311,14 +4221,15 @@
       "stayOnDayHelp": "Zodra een gebeurtenis op nul staat, blijft die in beeld tot het einde van de dag.",
       "scalePercent": "Schaal ({percent}%)",
       "events": "Evenementen",
-      "holidaysButton": "Feestdagen...",
+      "holidaysButton": "Feestdagen…",
       "backgroundImageHelp": "De achtergrondafbeelding van het eerstvolgende evenement wordt als pagina-achtergrond gebruikt.",
       "holidayBadge": "Feestdag",
       "namePlaceholder": "Naam",
       "repeatYearly": "Jaarlijks herhalen",
       "holidayRecurringInfo": "Jaarlijks terugkerend · {date}",
       "clear": "Wissen",
-      "setBackground": "Achtergrond instellen..."
+      "setBackground": "Achtergrond instellen…",
+      "removeEvent": "Deze aftelling weghalen"
     },
     "dad-joke": {
       "showDividers": "Scheidingslijnen tonen"
@@ -4340,7 +4251,7 @@
       "datePresetIso": "2026-01-05",
       "invalidFormat": "Ongeldige opmaak",
       "dateFormat": "Datumopmaak",
-      "customOption": "Aangepast...",
+      "customOption": "Aangepast…",
       "dateFormatPlaceholder": "bv. EEEE, MMMM d",
       "showDayName": "Dagnaam tonen",
       "showYear": "Jaartal tonen",
@@ -4363,8 +4274,8 @@
       "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen",
       "compact": "Alleen pictogrammen, geen tekst",
       "dockHint": "Eén knop per scherm van dit display. Tik erop om meteen naar dat scherm te gaan.",
-      "dockExtras": "Ook Slaap en Helderheid tonen",
-      "showTimers": "Ook Timers tonen",
+      "dockExtras": "Ook slaap en helderheid tonen",
+      "showTimers": "Ook timers tonen",
       "showTimersHint": "Een knop die een routine of een snelle timer op dit display start. Routines maak je bij Timers op de telefoon.",
       "dockButtons": "Knoppen",
       "dockButtonsChoose": "Kiezen welke schermen een knop krijgen",
@@ -4442,7 +4353,7 @@
       "titleFilterInclude": "Alleen overeenkomend",
       "titleFilterTerms": "Te zoeken woorden",
       "titleFilterTermsPlaceholder": "Typ een woord, druk op Enter",
-      "titleFilterRemoveTerm": "{term} verwijderen",
+      "titleFilterRemoveTerm": "{term} weghalen",
       "startHour": "Beginuur",
       "endHour": "Einduur",
       "daysToShowAuto": "Aantal dagen tonen (0 = automatisch)",
@@ -4506,14 +4417,14 @@
       "view": "Weergave",
       "viewChoreBoard": "Klusjesbord",
       "viewRewardsStore": "Beloningenwinkel",
-      "showRewardsButton": "Knop Beloningen tonen",
+      "showRewardsButton": "Knop voor beloningen tonen",
       "showRewardsButtonHelp": "Voegt een knop toe aan het klusjesbord zodat kinderen naar de beloningenwinkel kunnen wisselen. Het beste voor displays met touchscreen.",
       "themeDefault": "Standaard (uit Instellingen)",
       "typographySize": "Tekstgrootte",
       "accentColor": "Accentkleur",
       "weekStartsOn": "Week begint op",
       "weekProgress": "Weeksterren",
-      "weekProgressChips": "In de ledenkaarten",
+      "weekProgressChips": "Op de kaart van elke persoon",
       "weekProgressStrip": "Gezinsbalk",
       "weekProgressGrid": "Sterrenraster",
       "weekProgressOff": "Uit",
@@ -4524,10 +4435,6 @@
       "showTickets": "Tickets tonen",
       "showStreaks": "Streaks tonen",
       "showTimeOfDay": "Dagdeel tonen",
-      "tapToComplete": "Tik om af te ronden (display)",
-      "membersCount": "{count} leden",
-      "choresCount": "{count} klusjes",
-      "editChoreChart": "Klusjeslijst bewerken",
       "viewRewardHistory": "Beloningsgeschiedenis (dag voor dag)",
       "viewRewardTotals": "Beloningsgeschiedenis (totalen)",
       "viewRewardSpotlight": "Beloningsgeschiedenis (in de schijnwerper)",
@@ -4567,11 +4474,10 @@
       "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
-      "interactive": "Tikken op het display",
       "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, stap voor stap door een recept gaan, het avondeten beoordelen, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
       "recipeCountHint": {
-        "one": "{count} van de {meals} maaltijden heeft een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon.",
-        "other": "{count} van de {meals} maaltijden hebben een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon."
+        "one": "{count} van de {meals} maaltijden heeft een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met {button} hieronder, of op de telefoon.",
+        "other": "{count} van de {meals} maaltijden hebben een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met {button} hieronder, of op de telefoon."
       },
       "recipeCountAll": {
         "one": "De ene bewaarde maaltijd heeft een recept.",
@@ -4587,7 +4493,7 @@
       "modeSingle": "Enkele foto",
       "photo": "Foto",
       "noneSelected": "Geen geselecteerd",
-      "choose": "Kiezen...",
+      "choose": "Kiezen…",
       "slideIntervalSeconds": "Slide-interval (seconden)",
       "transition": "Overgang",
       "transitionFade": "Vervagen",
@@ -4598,7 +4504,6 @@
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
       "clockBackground": "Klokachtergrond",
-      "interactive": "Tikken op het display",
       "interactiveHint": "Op een aanraakscherm laat een tik Terug, Pauze en Volgende zien, en uit welk album de foto komt. Opzij vegen wisselt nog steeds van scherm.",
       "interactiveHintCard": "Op een aanraakscherm laat een tik Terug, Pauze en Volgende zien, en uit welk album de foto komt. Over de foto vegen gaat naar de volgende."
     },
@@ -4614,7 +4519,7 @@
       "dayLabel": "{label}-dag",
       "frequency": "Frequentie",
       "knownDateLabel": "Een bekende {label}-datum",
-      "knownDateHelp": "Kies een datum waarop {label} is/wordt opgehaald",
+      "knownDateHelp": "Kies een ophaaldag voor {label}, uit het verleden of de toekomst.",
       "iconColor": "Pictogramkleur",
       "customCategoryName": "Eigen categorienaam",
       "defaultCustomLabel": "Tuinafval",
@@ -4624,7 +4529,7 @@
       "name": "Naam",
       "defaultName": "Vriend",
       "weatherAware": "Weerbewuste begroeting",
-      "locationRequired": "Stel je locatie in bij Instellingen > Weer om weerbewuste begroetingen in te schakelen."
+      "locationRequired": "Stel je locatie in bij {place} om weerbewuste begroetingen in te schakelen."
     },
     "history": {
       "cycleEventsSeconds": "Evenementen wisselen (seconden)",
@@ -4682,18 +4587,15 @@
     "image": {
       "imageSource": "Afbeeldingsbron",
       "tabUrl": "URL",
-      "tabLibrary": "Bibliotheek",
       "imageUrl": "Afbeeldings-URL",
-      "browseLibrary": "Bibliotheek doorzoeken...",
+      "browseLibrary": "Bladeren door je afbeeldingen…",
       "uploadImage": "Afbeelding uploaden",
-      "uploading": "Uploaden...",
-      "uploadFailed": "Uploaden mislukt",
+      "uploading": "Uploaden…",
       "preview": "Voorbeeld",
       "altText": "Alt-tekst"
     },
     "video": {
       "videoSource": "Videobron",
-      "tabLibrary": "Bibliotheek",
       "tabUrl": "URL",
       "videoUrl": "Video-URL",
       "chooseVideo": "Video",
@@ -4705,9 +4607,8 @@
       "soundHint": "Geluid vereist een eenmalige instelling op het scherm (zie de videogids). Tot die tijd spelen video's zonder geluid af.",
       "loop": "Herhaald afspelen",
       "maxDurationSeconds": "Stoppen na (seconden, 0 = blijven spelen)",
-      "uploading": "Uploaden...",
-      "uploadFailed": "Uploaden mislukt",
-      "browseLibrary": "Bibliotheek doorzoeken...",
+      "uploading": "Uploaden…",
+      "browseLibrary": "Bladeren door je video's…",
       "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken.",
       "icloudLinkDetected": "Dit is een iCloud-fotolink en kan niet direct worden afgespeeld. Bewaar de video's in je bibliotheek en gebruik ze van daaruit.",
       "icloudNoVideos": "Deze link bevat geen video's."
@@ -4715,7 +4616,7 @@
     "googlePhotosImport": {
       "importButton": "Importeren uit Google Foto's",
       "checking": "Controleren…",
-      "credentialsNeeded": "Om uit Google Foto's te importeren, voeg je bij Instellingen → API-sleutels een client-ID en clientgeheim voor de Google Foto's-import toe.",
+      "credentialsNeeded": "Om uit Google Foto's te importeren, voeg je bij {place} een client-ID en clientgeheim voor de Google Foto's-import toe.",
       "signInIntro": "Meld je aan met Google en plak daarna de code die je aan het einde krijgt.",
       "pastePlaceholder": "Plak de code of link hier",
       "finishSignIn": "Aanmelden afronden",
@@ -4741,7 +4642,7 @@
       "failedNote": "{failed} konden niet worden opgeslagen.",
       "disconnect": "Google Foto's loskoppelen",
       "stillUsedByCalendar": "Google Foto's is op deze hub losgekoppeld. Google Agenda gebruikt nog dezelfde Google-aanmelding, dus blijft Home Screens in je Google-account staan tot je ook de verbinding met Google Agenda verbreekt.",
-      "genericError": "Er ging iets mis. Probeer het opnieuw.",
+      "genericError": "Er ging iets mis met Google Foto's. Probeer het opnieuw.",
       "hosted": {
         "intro": "Kies foto's in Google Foto's en ze worden op deze Home Screens bewaard.",
         "finishOnGoogle": "Rond het aanmelden af in het Google-tabblad.",
@@ -4765,7 +4666,6 @@
       "showFamilyRatings": "Gezinsbeoordelingen tonen",
       "accentColor": "Accentkleur",
       "sharedSettingsPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden beheerd via",
-      "sharedSettingsLink": "Instellingen → Maaltijden",
       "sharedSettingsSuffix": "zodat al je maaltijdmodules synchroon blijven.",
       "savedMealsCount": "{count} opgeslagen maaltijden",
       "plannedCount": "{count} gepland",
@@ -4778,11 +4678,10 @@
       "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
-      "interactive": "Tikken op het display",
       "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
-      "wallAdd": "Toevoegen op het display",
-      "wallAddHelpMealie": "Iedereen bij het display kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
-      "wallAddHelpLocal": "Iedereen bij het display kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
+      "wallAdd": "Toevoegen op de muur",
+      "wallAddHelpMealie": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
+      "wallAddHelpLocal": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
       "extrasList": "Andere boodschappen gaan op",
       "extrasListNone": "Geen (geen regel Toevoegen)",
       "extrasListHelp": "Een van jullie lijsten. Wat er nog op staat, komt onderaan de boodschappenlijst, hier en op de telefoon. Alle boodschappenkaarten delen hem."
@@ -4826,12 +4725,12 @@
       "viewCards": "Kaarten (met foto’s)",
       "feeds": "Nieuwsbronnen",
       "noFeeds": "Nog geen nieuwsbronnen. Voeg er hieronder een toe.",
-      "feedLimitReached": "Meer nieuwsbronnen kan één module niet volgen. Verwijder er een om een andere toe te voegen.",
+      "feedLimitReached": "Meer nieuwsbronnen kan één module niet volgen. Haal er een weg om een andere toe te voegen.",
       "feedExpand": "{name} bewerken",
       "feedCollapse": "Klaar met bewerken van {name}",
       "feedMoveUp": "{name} omhoog",
       "feedMoveDown": "{name} omlaag",
-      "feedRemove": "{name} verwijderen",
+      "feedRemove": "{name} weghalen",
       "feedLabel": "Naam op het scherm",
       "feedLabelPlaceholder": "Laat leeg om de eigen naam van de bron te gebruiken",
       "feedMaxItems": "Max. berichten uit deze bron",
@@ -4846,7 +4745,7 @@
       "feedError": {
         "empty-url": "Deze bron heeft geen link.",
         "blocked-url": "Die link kan niet worden gebruikt. Controleer hem en probeer het opnieuw.",
-        "no-location": "Stel eerst je locatie in bij Instellingen.",
+        "no-location": "Stel eerst je locatie in bij {place}.",
         "unreachable": "Die bron was niet bereikbaar. Controleer de link en je verbinding.",
         "timeout": "Die bron deed er te lang over om te antwoorden. Probeer het zo nog eens.",
         "http-error": "Die bron antwoordde met een fout ({status}).",
@@ -4892,7 +4791,7 @@
       "addCustomInvalid": "Plak een link die begint met http:// of https://",
       "addLocalButton": "Lokaal nieuws toevoegen",
       "addLocalHint": "Toont berichten over {place}.",
-      "addLocalNoLocation": "Stel eerst je locatie in bij Instellingen",
+      "addLocalNoLocation": "Stel eerst je locatie in bij {place}",
       "addLocalAlready": "Lokaal nieuws staat al in de lijst",
       "addTopicLabel": "Woorden om te volgen",
       "addTopicPlaceholder": "raketlanceringen",
@@ -4953,7 +4852,7 @@
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",
-      "modeWifi": "WiFi-wachtwoord",
+      "modeWifi": "Wifiwachtwoord",
       "authWPA": "WPA / WPA2 / WPA3",
       "authWEP": "WEP",
       "authNone": "Geen (open)",
@@ -4961,7 +4860,7 @@
       "networkName": "Netwerknaam (SSID)",
       "encryption": "Versleuteling",
       "password": "Wachtwoord",
-      "passwordPlaceholder": "WiFi-wachtwoord",
+      "passwordPlaceholder": "Wifiwachtwoord",
       "hiddenNetwork": "Verborgen netwerk",
       "showNetworkName": "Netwerknaam tonen",
       "showPassword": "Wachtwoord tonen",
@@ -4979,7 +4878,7 @@
         "button": "Alleen tonen als regen waarschijnlijk is",
         "active": "Deze kaart verschijnt alleen als regen vandaag waarschijnlijk is.",
         "edit": "Wijzigen bij Voorwaarden",
-        "needsLocation": "Stel eerst je locatie in bij Instellingen, zodat het scherm de verwachting kent."
+        "needsLocation": "Stel eerst je locatie in bij {place}, zodat het display de verwachting kent."
       },
       "styleDark": "Donker",
       "styleStandard": "Standaard",
@@ -5074,12 +4973,12 @@
       "favoriteTeams": "Mijn teams",
       "favoriteTeamsSearch": "Zoek een team",
       "favoriteTeamsLoading": "Teams laden",
-      "favoriteTeamsError": "Teams konden niet worden geladen",
+      "favoriteTeamsError": "Kon de teams niet laden. Probeer het opnieuw.",
       "favoriteTeamsHelp": "Wedstrijden van deze teams komen eerst. Het eerste team krijgt de bovenste plek.",
       "favoriteTeamsHelpTeam": "Het eerste team wordt eerst getoond; bij meerdere wisselen ze elkaar af.",
       "favoriteTeamsHidden": "competitie staat uit",
-      "favoriteTeamsLimit": "Meer teams kan deze module niet volgen ({count}). Verwijder er een om een ander toe te voegen.",
-      "favoriteTeamsRemove": "{team} verwijderen",
+      "favoriteTeamsLimit": "Meer teams kan deze module niet volgen ({count}). Haal er een weg om een ander toe te voegen.",
+      "favoriteTeamsRemove": "{team} weghalen",
       "favoriteTeamsDrag": "{team} verplaatsen",
       "favoritesOnly": "Alleen wedstrijden van mijn teams tonen",
       "tickerSpeed": "Tickersnelheid (sec/wedstrijd)",
@@ -5170,7 +5069,6 @@
       "dividers": "Scheidingslijnen",
       "accentColor": "Accentkleur",
       "colorCyclePalette": "Kleurcyclus-palet",
-      "addColor": "+ Toevoegen",
       "sections": {
         "typography": "Typografie",
         "features": "Functies",
@@ -5245,13 +5143,13 @@
       "stateTokensHint": "Voeg {example} in om een live waarde van een achtergrondmodule te tonen.",
       "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die plekken tonen '–' totdat een module ze publiceert.",
       "stateTokenFiltersHint": "Voeg |round:1 toe om getallen af te ronden, of |default:tekst om te kiezen wat er staat voordat een waarde binnenkomt.",
-      "stateTokenPreview": "Live voorbeeld"
+      "stateTokenPreview": "Live voorbeeld",
+      "removeColor": "Deze kleur weghalen"
     },
     "timetable": {
       "show": "Van wie je de week laat zien",
       "showMember": "{name} tonen",
       "noTimetable": "Geen rooster",
-      "add": "+ Toevoegen",
       "addFor": "Een rooster maken voor {name}",
       "fromFamily": "Uit Gezin",
       "manageFamily": "Gezin bewerken",
@@ -5268,7 +5166,6 @@
       "showStartTimes": "Begintijden tonen",
       "nextWeekFromFriday": "Vanaf vrijdag de volgende week tonen",
       "noFamily": "Er zit nog niemand in Gezin. Voeg mensen toe op de pagina Gezin en geef ze hier een rooster.",
-      "openFamily": "Gezin openen",
       "view": "Weergave",
       "viewWeek": "Week",
       "viewDay": "Dag",
@@ -5287,7 +5184,7 @@
       "list": "Lijst",
       "pickAList": "Kies een lijst",
       "listsUnavailable": "Je lijsten konden niet worden geladen",
-      "editItems": "Items bewerken",
+      "editItems": "Lijst bewerken",
       "newList": "Nieuwe lijst",
       "newListName": "Naam van de nieuwe lijst",
       "newListPlaceholder": "Boodschappen",
@@ -5300,16 +5197,14 @@
       "completedHidden": "Verborgen",
       "showDueDates": "Deadlines tonen",
       "showAssignees": "Tonen voor wie",
-      "interactive": "Tik om af te ronden (touchscreen)",
-      "wallAdd": "Toevoegen vanaf het display (touchscreen)",
-      "wallAddHelp": "Een regel Toevoegen onder de lijst. Iedereen bij het display kan toevoegen; wijzigen en verwijderen blijft op de telefoon."
+      "wallAdd": "Toevoegen vanaf de muur",
+      "wallAddHelp": "Een regel Toevoegen onder de lijst. Iedereen bij de muur kan toevoegen; wijzigen en weghalen blijft op de telefoon."
     },
     "todoist": {
       "apiToken": "API-token",
-      "checking": "Controleren...",
+      "checking": "Controleren…",
       "connected": "Verbonden",
       "notConfigured": "Niet geconfigureerd.",
-      "settingsIntegrationsLink": "Instellingen → API-sleutels",
       "title": "Naam van de lijst",
       "viewMode": "Weergavemodus",
       "groupByLabel": "Groeperen op",
@@ -5322,7 +5217,6 @@
       "showLabels": "Labels tonen",
       "showProject": "Project tonen",
       "showNoDueDate": "Taken zonder datum tonen",
-      "tapToComplete": "Tik om af te ronden (touchscreen)",
       "maxTasks": "Max. taken",
       "viewModes": {
         "list": "Lijst",
@@ -5348,7 +5242,8 @@
       "newRouteLabel": "Werk",
       "labelPlaceholder": "Label",
       "originPlaceholder": "Vertrekadres",
-      "destinationPlaceholder": "Bestemmingsadres"
+      "destinationPlaceholder": "Bestemmingsadres",
+      "removeRoute": "Deze route weghalen"
     },
     "weather": {
       "hideWhenNoAlerts": "Verbergen zonder waarschuwingen",
@@ -5416,7 +5311,7 @@
         },
         "weatherApiFree": "Een gratis WeatherAPI-sleutel stuurt 3 dagen. Betaalde abonnementen sturen meer.",
         "useOpenMeteo": "Open-Meteo gebruiken voor deze module",
-        "changeHousehold": "Of de weerbron wijzigen in Instellingen"
+        "changeHousehold": "Of wijzig de weerbron bij {place}"
       },
       "forecastHours": {
         "sends": {
@@ -5451,7 +5346,7 @@
       "ruleTitle": "Regel {n}",
       "moveUp": "Omhoog",
       "moveDown": "Omlaag",
-      "remove": "Regel verwijderen",
+      "remove": "Regel weghalen",
       "renameRule": "Regel hernoemen",
       "ruleNamePlaceholder": "Regelnaam (optioneel)",
       "ruleNameTaken": "Die naam wordt al door een andere regel gebruikt"
@@ -5489,7 +5384,7 @@
       "changeColor": "Kleur veranderen",
       "color": "Kleur",
       "fade": "Vervagen",
-      "icon": "Icoon",
+      "icon": "Pictogram",
       "renameTo": "Titel tonen als",
       "renamePlaceholder": "Echte titel houden",
       "whichDays": "Welke dagen",
@@ -5519,7 +5414,7 @@
       "eventsOnDay": "Afspraken op die dag",
       "hasEvents": "Heeft minstens één afspraak",
       "noEvents": "Heeft geen afspraken",
-      "hasMatchingEvent": "Heeft een passende afspraak...",
+      "hasMatchingEvent": "Heeft een passende afspraak…",
       "background": "Achtergrond",
       "noChange": "Geen verandering",
       "backgroundAuto": "Automatisch (uit de afspraakkleuren van die dag)",
@@ -5544,7 +5439,7 @@
       },
       "outline": "Dag omlijnen",
       "badge": "Badge toevoegen",
-      "badgeIcon": "Badge-icoon",
+      "badgeIcon": "Badge-pictogram",
       "badgeText": "Badge-tekst",
       "badgeTextPlaceholder": "Geen school",
       "badgeFilled": "Gekleurde badge",
@@ -5552,7 +5447,7 @@
       "matchesEveryDay": "Deze regel geldt nu voor elke dag. Voeg hierboven een detail toe om hem te beperken.",
       "artPicture": "Plaatje",
       "artNone": "Nog geen plaatje",
-      "artRemove": "Verwijderen"
+      "artRemove": "Weghalen"
     },
     "calendarGroups": {
       "whatShows": "Wat er te zien is",
@@ -5564,12 +5459,12 @@
       "ruleCountOne": "1 regel",
       "ruleCountOther": "{count} regels",
       "addEvents": "Afspraken toevoegen bij een dag",
-      "addEventsHelp": "Toont \"Afspraak toevoegen\" als je op een dag tikt, en Wijzigen en Verwijderen bij een afspraak. Afspraken toevoegen moet aanstaan bij Instellingen > Kalender.",
-      "wallViews": "Weergave wisselen aan de muur",
+      "addEventsHelp": "Toont \"Afspraak toevoegen\" als je op een dag tikt, en Wijzigen en Weghalen bij een afspraak. Afspraken toevoegen moet aanstaan bij {place}.",
+      "wallViews": "Weergave wisselen op de muur",
       "wallViewsOwn": "Weergave van deze kalender",
       "wallViewsHint": "Knoppen onder de kop, hooguit vier. Een minuut na de laatste aanraking gaat de muur terug naar {view}.",
       "wallViewsFull": "Vier is het maximum. Vink er een uit om een andere te kiezen.",
-      "wallSwitchShortCard": "De muur toont deze knoppen alleen op een module van minstens {min} pixels hoog. Deze is {height} pixels."
+      "wallSwitchShortCard": "De muur toont deze knoppen alleen op een module van minstens {min} pixels hoog. Deze is {height} pixels hoog."
     },
     "fullscreen-weather": {
       "view": "Weergave",
@@ -5646,7 +5541,7 @@
     },
     "calendarPeople": {
       "showNameTags": "Naamlabels",
-      "nameTagsHint": "Zet de initialen van elke persoon bij zijn of haar afspraken. Personen komen uit Instellingen > Gezin; van wie welke kalender is, stel je in onder Instellingen > Kalender > Personen. Gedeelde kalenders houden een gewone stip.",
+      "nameTagsHint": "Zet de initialen van elke persoon bij zijn of haar afspraken. Personen komen uit {familyPlace}, en van wie welke kalender is, stel je in bij {calendarPlace}. Gedeelde kalenders houden een gewone stip.",
       "nameTagsNoOwners": "Nog niemand heeft een kalender, dus er valt niets te labelen.",
       "matchCalendars": "Kalenders aan personen koppelen",
       "legendMode": "Legenda toont",
@@ -5667,8 +5562,8 @@
       "peopleFilterStaleGroup": "Een verwijderde groep",
       "peopleFilterClear": "Iedereen tonen",
       "showOnePerson": "Eén persoon tonen",
-      "showOnePersonHint": "Op een aanraakscherm laat een knop alleen de afspraken van één persoon of groep zien, samen met de gedeelde gezinsafspraken. Na een minuut zie je weer iedereen.",
-      "showOnePersonNeedsPeople": "Hiervoor hebben minstens twee mensen een eigen kalender nodig."
+      "showOnePersonHint": "Op een muur met aanraakscherm laat een knop alleen de afspraken van één persoon of groep zien, samen met de gedeelde gezinsafspraken. Na een minuut zie je weer iedereen.",
+      "showOnePersonNeedsPeople": "Hiervoor hebben minstens twee mensen een eigen agenda nodig."
     },
     "calendarDayNotes": {
       "label": "Dagnotities",
@@ -5676,7 +5571,7 @@
       "hintNone": "Nog niets geschreven. Voeg er een toe op de telefoon: Notities, dan Kalender."
     },
     "textLooks": {
-      "hint": "Verander de kleur, het icoon of de woorden als een live-waarde past. De bovenste regel wint als twee hetzelfde instellen. Past er niets, dan houdt de tekst zijn eigen stijl.",
+      "hint": "Verander de kleur, het pictogram of de woorden als een live-waarde past. De bovenste regel wint als twee hetzelfde instellen. Past er niets, dan houdt de tekst zijn eigen stijl.",
       "empty": "Nog geen uiterlijk ingesteld. De tekst houdt zijn eigen stijl totdat je er een toevoegt.",
       "addLook": "Uiterlijk toevoegen",
       "sourceKeyUnknown": "Geen enkele module op dit scherm publiceert deze sleutel nog. Tot die tijd verandert dit uiterlijk niets.",
@@ -5688,7 +5583,7 @@
       "borderColor": "Randkleur",
       "background": "Achtergrond",
       "color": "Kleur",
-      "icon": "Icoon",
+      "icon": "Pictogram",
       "iconLabel": "Vóór de tekst getoond",
       "showTextAs": "Tekst tonen als",
       "words": "Woorden",
@@ -5736,7 +5631,7 @@
       "filterAll": "Alle notities",
       "filterPinned": "Alleen vastgezette",
       "filterImportant": "Alleen belangrijke",
-      "manageNotes": "Notities beheren",
+      "manageNotes": "Notities bewerken",
       "stepSeconds": "Seconden per notitie",
       "tickerSpeed": "Snelheid (seconden per notitie)",
       "viewChalkboard": "Krijtbord",
@@ -5762,14 +5657,17 @@
       "doneLowercase": "klaar",
       "feedNamePlaceholder": "Feednaam",
       "newFeedNamePlaceholder": "Feednaam (bv. Werk, Sport)",
-      "addFeed": "+ Feed toevoegen",
+      "addFeed": "Feed toevoegen",
       "helpText": "Voeg ICS/iCal-feed-URL's toe vanuit Google Agenda, Apple Calendar, Outlook, Nextcloud of een andere dienst die .ics-feeds aanbiedt.",
       "checking": "Link controleren…",
-      "checkFailedHint": "Controleer of de link eindigt op .ics of begint met webcal://",
+      "checkFailedHint": "Een agendalink eindigt meestal op .ics of begint met webcal://.",
       "addAnyway": "Toch toevoegen",
       "checkUnavailable": "De link kon nu niet worden gecontroleerd",
       "homeNetwork": "Thuisnetwerk",
-      "homeNetworkHint": "Laat het scherm een agenda lezen van een apparaat in je thuisnetwerk, zoals een eigen agendaserver."
+      "homeNetworkHint": "Laat het scherm een agenda lezen van een apparaat in je thuisnetwerk, zoals een eigen agendaserver.",
+      "removeFeed": "{name} weghalen",
+      "removeConfirmMessage": "De afspraken ervan worden niet meer getoond. Je kunt de link altijd opnieuw toevoegen.",
+      "removeConfirmButton": "Agenda weghalen"
     },
     "orientation": {
       "title": "Modules kunnen buiten beeld vallen",
@@ -5785,7 +5683,6 @@
   },
   "accentColorPicker": {
     "label": "Accentkleur",
-    "customColor": "Aangepaste kleur",
     "presets": {
       "none": "Geen",
       "purple": "Paars",
@@ -5795,13 +5692,12 @@
       "amber": "Amber",
       "orange": "Oranje",
       "red": "Rood",
-      "pink": "Roze",
-      "custom": "Aangepast"
+      "pink": "Roze"
     }
   },
   "templatePicker": {
     "title": "Sjablonen",
-    "loadFailed": "Laden van \"{name}\" mislukt",
+    "loadFailed": "Kon “{name}” niet laden. Probeer het opnieuw.",
     "categories": {
       "All": "Alle",
       "Dashboard": "Overzicht",
@@ -5871,7 +5767,6 @@
       "other": "Je hebt al {count} dagen geen back-up gemaakt."
     },
     "downloading": "Downloaden…",
-    "backupNow": "Nu back-uppen",
     "dismiss": "Sluiten",
     "autoFailed": "De automatische back-up is niet gelukt.",
     "autoNotSent": "Je back-up is opgeslagen, maar kon niet naar je opslagmap worden gestuurd.",
@@ -5895,7 +5790,7 @@
     "conditionsTitle": "Voorwaarden",
     "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om de module te tonen.",
     "addCondition": "Voorwaarde toevoegen",
-    "removeCondition": "Voorwaarde verwijderen",
+    "removeCondition": "Voorwaarde weghalen",
     "kindLabel": "Type voorwaarde",
     "kinds": {
       "state": "Waarde komt overeen",
@@ -5954,7 +5849,7 @@
       "waitingForKeys": "wacht op {keys}",
       "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
       "conditionsNotMet": "de voorwaarden kloppen niet",
-      "seeLiveValues": "Elke voorwaarde laat zien wat het display nu ziet, en alle waarden staan onder Instellingen > Automatisering > Gedeelde waarden."
+      "seeLiveValues": "Elke voorwaarde laat zien wat het display nu ziet, en alle waarden staan bij {place}."
     },
     "time": {
       "fromLabel": "Van",
@@ -6007,14 +5902,12 @@
   "phoneSurfaces": {
     "surfaces": {
       "chores": {
-        "name": "Klusjes afvinken",
         "audience": "Voor kinderen",
         "description": "De klusjes van vandaag en de beloningen. Verder kan er niets worden aangepast."
       },
       "remote": {
-        "name": "Gezinsafstandsbediening",
-        "audience": "Voor ouders",
-        "description": "Klusjes toevoegen, maaltijden plannen, foto's toevoegen en displays bedienen."
+        "audience": "Voor volwassenen",
+        "description": "Klusjes toevoegen, maaltijden plannen, foto's toevoegen en de muur bedienen."
       }
     },
     "chips": {
@@ -6044,10 +5937,9 @@
         "lists": "Lijsten op een telefoon",
         "notes": "Notities op een telefoon"
       },
-      "lede": "Scan met de camera van je telefoon of typ het adres in. Werkt op elk apparaat op je wifi thuis.",
-      "passwordHint": "Je kunt om een wachtwoord vragen bij Instellingen, onder Beveiliging.",
-      "copyLink": "Link kopiëren",
-      "copied": "Gekopieerd"
+      "lede": "Scan met de camera van je telefoon of typ het adres in. Werkt op elke telefoon of tablet op je wifi thuis.",
+      "passwordHint": "Je kunt om een wachtwoord laten vragen bij {place}.",
+      "copyLink": "Link kopiëren"
     }
   },
   "firstRun": {
@@ -6084,8 +5976,8 @@
     "failedTitle": "Aanmelden kon niet worden afgerond",
     "backToEditor": "Terug naar de editor",
     "calendarConnectedTitle": "Home Screens kan afspraken toevoegen",
-    "calendarConnectedBody": "Ga terug naar Instellingen > Kalender om te kiezen in welke agenda's afspraken komen.",
-    "calendarReadOnlyBody": "Het vakje bij “Afspraken in al je agenda's bekijken en bewerken” is leeg gebleven. Meld je opnieuw aan via Instellingen > Kalender en vink het aan."
+    "calendarConnectedBody": "Ga terug naar {place} om te kiezen in welke agenda's afspraken komen.",
+    "calendarReadOnlyBody": "Het vakje bij “Afspraken in al je agenda's bekijken en bewerken” is leeg gebleven. Meld je opnieuw aan via {place} en vink het aan."
   },
   "conditionSummary": {
     "always": "altijd",
@@ -6102,7 +5994,6 @@
     "noneOf": "geen van {n}"
   },
   "deviceSignIn": {
-    "hubUnreachable": "Kon Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
     "codeExpired": "Die code is verlopen. Start opnieuw met inloggen."
   },
   "photoSources": {
@@ -6137,8 +6028,8 @@
       "empty": "Hier staan nog geen foto's.",
       "loadFailed": "Kon de foto's uit Immich niet laden.",
       "unreachable": "Je Immich-server is niet bereikbaar.",
-      "unreachableHelp": "Controleer of hij aanstaat en of het adres bij Instellingen > API-sleutels klopt.",
-      "keyRejected": "Immich accepteert je sleutel niet. Controleer hem bij Instellingen > API-sleutels.",
+      "unreachableHelp": "Controleer of hij aanstaat en of het adres bij {place} klopt.",
+      "keyRejected": "Immich accepteert je sleutel niet. Controleer hem bij {place}.",
       "needsSetup": "Immich heeft eerst een adres en een sleutel nodig voordat je hier kunt bladeren.",
       "copyHint": "Er komt een kopie in de Immich-map van je bibliotheek, zodat de foto te zien blijft als Immich uitstaat.",
       "favoritesEmpty": "Nog geen favorieten. Tik in Immich op het hartje bij een foto en hij verschijnt hier.",
@@ -6175,7 +6066,7 @@
     },
     "onedrive": {
       "checking": "OneDrive-verbinding controleren…",
-      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij Instellingen, API-sleutels.",
+      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij {place}.",
       "signIn": "Inloggen met Microsoft",
       "waiting": "Wachten tot je klaar bent met inloggen",
       "enterCode": "Voer deze code in op",
@@ -6193,7 +6084,7 @@
       "emptyFolder": "Geen submappen in deze map",
       "useThisFolder": "Deze map gebruiken",
       "capNote": "Als de mappenboom meer dan {cap} foto's bevat, gebruikt de diavoorstelling een willekeurige selectie van {cap}.",
-      "loadFailed": "Kon je OneDrive-mappen niet laden.",
+      "loadFailed": "Kon je OneDrive-mappen niet laden. Probeer het opnieuw.",
       "folderNotFound": "Map niet gevonden. Kies een andere map.",
       "noPhotos": "Nog geen foto's in deze map",
       "signInDeclined": "Inloggen is geannuleerd",
@@ -6204,11 +6095,11 @@
     "sourceLabel": "Fotobron",
     "needsFreeKey": "gratis sleutel nodig",
     "needsSettingUp": "nog niet ingesteld",
-    "keyMissing": "Deze bron is nog niet ingesteld, dus er komen geen nieuwe afbeeldingen binnen. Stel hem in bij Instellingen > API-sleutels, of kies een andere bron.",
-    "keyMissingBackground": "Deze bron is nog niet ingesteld, dus het scherm blijft de laatste afbeelding tonen. Stel hem in bij Instellingen > API-sleutels, of kies een andere bron.",
+    "keyMissing": "Deze bron is nog niet ingesteld, dus er komen geen nieuwe afbeeldingen binnen. Stel hem in bij {place}, of kies een andere bron.",
+    "keyMissingBackground": "Deze bron is nog niet ingesteld, dus het scherm blijft de laatste afbeelding tonen. Stel hem in bij {place}, of kies een andere bron.",
     "photosPerRefresh": "Foto's per vernieuwing",
     "kinds": {
-      "library": "Bibliotheek",
+      "library": "Afbeeldingen & video's",
       "immich": "Immich",
       "icloud": "Gedeeld iCloud-album",
       "onedrive": "OneDrive",
@@ -6218,7 +6109,6 @@
     },
     "library": {
       "folder": "Map",
-      "topLevel": "Alle foto's (bovenste niveau)",
       "browse": "Bladeren…",
       "photoCount": {
         "one": "{count} foto",
@@ -6257,13 +6147,13 @@
       "collectionsHelp": "Foto's komen uit deze collecties in plaats van uit zoekwoorden. Plak het adres van een collectie op unsplash.com, of alleen het ID.",
       "collectionLabel": "Collectie",
       "addCollection": "Toevoegen",
-      "collectionChecking": "Controleren...",
+      "collectionChecking": "Controleren…",
       "collectionValid": "Collectie gevonden",
       "collectionEmpty": "Geen foto's in deze collectie",
       "collectionNotFound": "Deze collectie is niet gevonden",
       "collectionUnchecked": "Deze collectie kon nu niet worden gecontroleerd",
-      "removeCollection": "Collectie {id} verwijderen",
-      "removeCollectionShort": "Verwijderen"
+      "removeCollection": "Collectie {id} weghalen",
+      "removeCollectionShort": "Weghalen"
     },
     "nasa": {
       "pictureOfTheDay": "Foto van de dag",
@@ -6315,9 +6205,9 @@
       },
       "streamInfo": "Landschappen, zeegezichten, stadsgezichten en stillevens uit museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
       "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek.",
-      "addFilter": "+ Filter toevoegen",
+      "addFilter": "Een filter toevoegen…",
       "filters": "Verfijnen",
-      "removeFilter": "Filter verwijderen: {filter}",
+      "removeFilter": "Filter weghalen: {filter}",
       "period": "Periode",
       "fromYear": "Vanaf jaar",
       "toYear": "Tot jaar",
@@ -6405,7 +6295,7 @@
     "picker": {
       "tabs": {
         "builtin": "Ingebouwd",
-        "library": "Lokaal",
+        "library": "Afbeeldingen & video's",
         "immich": "Immich",
         "unsplash": "Unsplash",
         "nasa": "NASA",
@@ -6419,7 +6309,7 @@
       "loadFailed": "Kon niet meer laden. Probeer het opnieuw.",
       "tryAgain": "Opnieuw proberen",
       "notSetUp": "Nog niet ingesteld",
-      "openApiKeys": "Instellingen > API-sleutels openen",
+      "openApiKeys": "{place} openen",
       "favorite": "Favoriet",
       "unsupportedFormat": "Deze afbeelding heeft een formaat dat het scherm niet kan tonen. Kies een andere."
     },
@@ -6428,7 +6318,7 @@
       "colors": "Kleuren",
       "patterns": "Patronen",
       "dayPictures": "Dagplaatjes",
-      "sidebarNote": "Deze zitten standaard in Home Screens",
+      "sidebarNote": "Deze zitten standaard in Home Screens.",
       "copyHint": "Zit standaard in Home Screens, dus is altijd beschikbaar."
     },
     "background": {
@@ -6446,7 +6336,7 @@
     "google": {
       "add": "Toevoegen uit Google Foto's",
       "signInToAdd": "Log in om foto's uit Google Foto's toe te voegen",
-      "needsSetup": "Google Foto's moet nog worden ingesteld bij Instellingen > API-sleutels",
+      "needsSetup": "Google Foto's moet nog worden ingesteld bij {place}",
       "openAgain": "Google Foto's opnieuw openen",
       "cancel": "Annuleren",
       "adding": "Toevoegen aan {folder}: {done} van {total}",
@@ -6468,6 +6358,7 @@
       "openGoogle": "Google Foto's openen"
     },
     "modes": {
+      "label": "Afbeeldingen kiezen via",
       "folder": "Map",
       "pictures": "Foto's",
       "filters": "Filters",
@@ -6493,7 +6384,7 @@
         "other": "{count} gekozen."
       },
       "help": "Klik op een foto om die toe te voegen, en nog een keer om die weer weg te halen.",
-      "loading": "Foto's laden...",
+      "loading": "Foto's laden…",
       "add": "{name} toevoegen",
       "takeOut": "{name} weghalen"
     }

@@ -11,6 +11,7 @@ import type { FullscreenWeatherCard, FullscreenWeatherView } from '@/types/confi
 import {
   DEFAULT_FULLSCREEN_WEATHER_CARDS, isDefaultWeatherCards, offWeatherCards,
 } from '@/lib/fullscreen-weather-cards';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** The editor's name for each card, under `configSections.fullscreen-weather`. */
 const CARD_LABEL: Record<FullscreenWeatherCard, string> = {
@@ -121,7 +122,7 @@ export function WeatherCardsList({ value, onChange, view }: WeatherCardsListProp
           {t('configSections.fullscreen-weather.cardsReset')}
         </button>
       </div>
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">{hint}</p>
+      <FieldHint>{hint}</FieldHint>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value} strategy={verticalListSortingStrategy}>
           <ul className="space-y-1" aria-label={t('configSections.fullscreen-weather.cards')}>

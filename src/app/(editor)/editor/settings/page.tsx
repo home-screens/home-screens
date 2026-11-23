@@ -20,6 +20,7 @@ import { useSettingsHighlight } from '@/components/editor/settings/useSettingsHi
 import { useSavedFieldFlash } from '@/components/editor/settings/useSavedFieldFlash';
 import { useOrientationGuard } from '@/components/editor/settings/useOrientationGuard';
 import { useUpgradeModal } from '@/components/editor/settings/useUpgradeModal';
+import { FieldSurfaceProvider } from '@/components/ui/FieldHint';
 
 export default function SettingsPage() {
   // `useSearchParams` forces the page to bail out of static prerender
@@ -35,7 +36,10 @@ export default function SettingsPage() {
         </div>
       }
     >
-      <SettingsPageContent />
+      {/* Hints and toggle help lines on every Settings page take the Settings size. */}
+      <FieldSurfaceProvider surface="page">
+        <SettingsPageContent />
+      </FieldSurfaceProvider>
     </Suspense>
   );
 }

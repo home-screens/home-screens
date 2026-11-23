@@ -41,28 +41,28 @@ describe('TargetPicker', () => {
     expect(screen.getByRole('button', { name: 'Kitchen' })).toBeTruthy();
   });
 
-  it('reads "This display" when the target is this display but its id is unknown (editor)', () => {
+  it('reads "This wall" when the target is this display but its id is unknown (editor)', () => {
     render(wrap(<TargetPicker value={undefined} onChange={() => {}} options={displays} m={m} />));
-    expect(screen.getByRole('button', { name: 'This display' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'This wall' })).toBeTruthy();
   });
 
   it('lists friendly names, marks this display, and puts All displays last', () => {
     render(wrap(<TargetPicker value="kitchen" onChange={() => {}} options={displays} selfId="kitchen" m={m} />));
     fireEvent.click(screen.getByRole('button', { name: 'Kitchen' }));
     const items = screen.getAllByRole('menuitem');
-    expect(items.map((el) => el.textContent)).toEqual(['Kitchenthis display', 'Hallway', 'All displays']);
+    expect(items.map((el) => el.textContent)).toEqual(['Kitchenthis wall', 'Hallway', 'Every wall']);
   });
 
   it('falls back to the id for a display with no name', () => {
     render(wrap(<TargetPicker value="all" onChange={() => {}} options={[{ id: 'test', name: '' }]} m={m} />));
-    fireEvent.click(screen.getByRole('button', { name: 'All displays' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Every wall' }));
     expect(screen.getByRole('menuitem', { name: 'test' })).toBeTruthy();
   });
 
   it('fires onChange and closes the list when an entry is chosen', () => {
     const onChange = vi.fn();
     render(wrap(<TargetPicker value="all" onChange={onChange} options={displays} m={m} />));
-    fireEvent.click(screen.getByRole('button', { name: 'All displays' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Every wall' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Hallway' }));
     expect(onChange).toHaveBeenCalledWith('hallway');
     expect(screen.queryByRole('menuitem', { name: 'Hallway' })).toBeNull();
@@ -72,7 +72,7 @@ describe('TargetPicker', () => {
     const onChange = vi.fn();
     render(wrap(<TargetPicker value="kitchen" onChange={onChange} options={displays} selfId="kitchen" m={m} />));
     fireEvent.click(screen.getByRole('button', { name: 'Kitchen' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'All displays' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Every wall' }));
     expect(onChange).toHaveBeenCalledWith('all');
   });
 

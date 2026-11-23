@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind, Umbrella, Leaf } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import StatusPill from '@/components/ui/StatusPill';
 import IntegrationCard from '../shared/IntegrationCard';
 import SecretField, { type SecretCheck } from '../shared/SecretField';
 import type { WeatherKeyCheck } from '@/app/api/weather/check-key/route';
 import { getProviderStatus, type WeatherProvider, type WeatherProviderId, type ProviderStatusType } from './providers';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
+import { HubUnreachableError } from '@/lib/hub-request';
 
 const ICONS: Record<WeatherProviderId, React.ReactNode> = {
   'open-meteo': <Globe className="w-[18px] h-[18px] text-white" />,
@@ -79,6 +82,7 @@ export default function WeatherProviderCard({
   units,
 }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [testStatus, setTestStatus] = useState<TestStatus | null>(null);
   const [testing, setTesting] = useState(false);
 
@@ -174,12 +178,9 @@ export default function WeatherProviderCard({
     } catch (e) {
       setTestStatus({
         kind: 'error',
-        message: t('settings.weatherPage.providerCard.testStatus.failed', {
-          message:
-            e instanceof Error
-              ? e.message
-              : t('settings.weatherPage.providerCard.testStatus.unknownError'),
-        }),
+        message: e instanceof HubUnreachableError
+          ? tCore('refusals.unreachable')
+          : t('settings.weatherPage.providerCard.testStatus.failedPlain', { provider: providerName }),
       });
     } finally {
       setTesting(false);
@@ -199,7 +200,7 @@ export default function WeatherProviderCard({
     >
       {provider.secretKey === null ? (
         provider.helperTextKey && (
-          <p className="text-xs text-hs-text-muted mb-4">{t(provider.helperTextKey)}</p>
+          <FieldHint className="mb-4">{t(provider.helperTextKey)}</FieldHint>
         )
       ) : (
         <div className="mb-4">
@@ -218,9 +219,9 @@ export default function WeatherProviderCard({
 
       <div className="flex items-center gap-2 flex-wrap">
         {isDefault ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-hs-success/10 text-hs-success text-xs">
+          <StatusPill tone="success">
             {t('settings.weatherPage.providerCard.currentlyDefault')}
-          </span>
+          </StatusPill>
         ) : (
           <Button
             variant="primary"

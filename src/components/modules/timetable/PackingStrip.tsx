@@ -15,7 +15,8 @@ import { atLeast } from './cells';
 import type { RowsGeometry, DayGeometry } from '@/lib/timetable-day-fit';
 import { pickGridTimeColor } from '@/lib/calendar-color';
 import { BringPills, type DayPerson, type DayTokens } from './DayCard';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInitials } from '@/lib/family-avatar';
+import { MemberBadge } from '../shared/MemberBadge';
 
 export interface PackingStripProps {
   /** "Pack tonight", "Bring today" or "Pack for Monday". */
@@ -80,25 +81,14 @@ export default function PackingStrip({ title, subtitle, persons, geometry, token
               lineHeight: 1.2,
             }}
           >
-            <span
+            <MemberBadge
               aria-hidden="true"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '1.36em',
-                height: '1.36em',
-                flexShrink: 0,
-                borderRadius: '50%',
-                fontSize: '0.7em',
-                fontWeight: 800,
-                lineHeight: 1,
-                background: entry.member.color,
-                color: memberInk(entry.member.color),
-              }}
-            >
-              {memberInitials(entry.member.name)}
-            </span>
+              initials={memberInitials(entry.member.name)}
+              color={entry.member.color}
+              fontSize="0.7em"
+              size="1.36em"
+              style={{ fontWeight: 800 }}
+            />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2em', minWidth: 0 }}>
               <span
                 style={{

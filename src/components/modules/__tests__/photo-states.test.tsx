@@ -73,10 +73,20 @@ describe('FullscreenPhotoModule when its list cannot be read', () => {
     expect(container.querySelector('.animate-spin')).toBeNull();
   });
 
-  it('spins, with no words, while the first read is still out', () => {
+  it('shows the shared loading state, sized for the wall, while the first read is still out', () => {
     const { container } = render(<FullscreenPhotoModule config={fullscreen()} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
-    expect(container.querySelector('.animate-spin')).not.toBeNull();
+    expect(container.querySelector('.animate-spin')).toBeNull();
+    expect(screen.getByTestId('module-loading').textContent).toBe(enUSModules['photo-slideshow'].loading);
     expect(screen.queryByTestId('module-not-updating')).toBeNull();
+    // 28 px on the 1080-wide canvas, not the editor's 16 px.
+    expect((container.querySelector('[data-module-card]') as HTMLElement).style.fontSize).toBe('28px');
+  });
+
+  it('says the same empty-library words as the slideshow card, with the phone address', () => {
+    mockData = [];
+    render(<FullscreenPhotoModule config={fullscreen({ photoSource: { kind: 'library', folder: '' } })} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
+    expect(screen.getByText(enUSModules.common.photoEmpty.noPhotos)).toBeTruthy();
+    expect(screen.getByTestId('fullscreen-photo-remote-url')).toBeTruthy();
   });
 });
 
@@ -131,5 +141,20 @@ describe('PhotoSlideshowModule options it shares with Full-Screen Photo', () => 
     fireEvent.load(img);
     expect(img.style.transition).toContain('transform 800ms');
     expect(slide.container.querySelector('style')!.textContent).toContain('@keyframes kb-a');
+  });
+});
+
+describe('PhotoSlideshowModule with nothing to show', () => {
+  it('points an empty library at the phone, in the words the full-screen photo uses', () => {
+    mockData = [];
+    const { container } = render(<PhotoSlideshowModule config={slideshow()} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
+    expect(screen.getByText(enUSModules.common.photoEmpty.noPhotos)).toBeTruthy();
+    expect(container.textContent).toContain('/remote');
+  });
+
+  it('names the fix in the editor for a cloud source', () => {
+    mockData = [];
+    render(<PhotoSlideshowModule config={slideshow({ photoSource: { kind: 'onedrive', folderId: 'F1' } })} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
+    expect(screen.getByText(enUSModules.common.photoEmpty.hint.checkFolder)).toBeTruthy();
   });
 });

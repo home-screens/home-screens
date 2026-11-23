@@ -10,7 +10,7 @@
  */
 
 import Link from 'next/link';
-import { Table, Trash2 } from 'lucide-react';
+import { Plus, Table, Trash2 } from 'lucide-react';
 import { useConfirmStore } from '@/stores/confirm-store';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledSelect from '@/components/ui/LabeledSelect';
@@ -23,7 +23,6 @@ import type { FamilyMember } from '@/types/family';
 import { TIMETABLE_LIMITS, type DayKey, type Timetable, type TimetableData, type WeekLetter } from '@/types/timetables';
 import MemberDot from './MemberDot';
 import PaintGrid from './PaintGrid';
-import { PROSE_CLASS } from './prose';
 import SourcePanel from './SourcePanel';
 import SubjectPalette from './SubjectPalette';
 import {
@@ -38,6 +37,8 @@ import {
   withoutTimetable,
   type TimetableBrush,
 } from './use-timetable-draft';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 /** A value no saved id can collide with, for splitting a sentence around a link. */
 const MARKER = '\u0000';
@@ -84,6 +85,7 @@ export default function TimetablesTab({
   update,
 }: TimetablesTabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const tModules = useTranslate('modules');
 
   const withTimetables = members.filter((member) => findTimetable(data, member.id));
@@ -113,12 +115,12 @@ export default function TimetablesTab({
    */
   const removeTimetable = async () => {
     if (!selected) return;
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('timetableModal.removeTimetable.title'),
-      message: t('timetableModal.removeTimetable.message', { name: selected.name }),
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'delete',
+      question: t('timetableModal.removeTimetable.title'),
+      consequence: t('timetableModal.removeTimetable.message', { name: selected.name }),
       confirmLabel: t('timetableModal.removeTimetable.confirmLabel'),
-      variant: 'danger',
-    });
+    }, tCore));
     if (!ok) return;
     const next = withTimetables.find((member) => member.id !== selected.id);
     update((current) => withoutTimetable(current, selected.id));
@@ -178,12 +180,15 @@ export default function TimetablesTab({
                 </span>
                 <span className="block truncate text-[11px] text-hs-text-faint">{t('timetableModal.rail.none')}</span>
               </span>
-              <span className="text-[11px] text-hs-accent">{t('timetableModal.rail.add')}</span>
+              <span className="inline-flex items-center gap-0.5 text-[11px] text-hs-accent">
+                <Plus className="h-3 w-3" aria-hidden="true" />
+                {tCore('actions.add')}
+              </span>
             </button>
           ))}
         </div>
 
-        <p className={`border-t border-hs-border px-3 py-2 ${PROSE_CLASS} text-hs-text-faint`}>
+        <FieldHint className="border-t border-hs-border px-3 py-2">
           {footerBefore}
           <Link
             href={settingsPath({ kind: 'defaults', page: 'family' })}
@@ -192,7 +197,7 @@ export default function TimetablesTab({
             {t('timetableModal.rail.footerLink')}
           </Link>
           {footerAfter}
-        </p>
+        </FieldHint>
       </div>
 
       {selected && timetable && school ? (
@@ -223,8 +228,9 @@ export default function TimetablesTab({
             <button
               type="button"
               onClick={() => onAddSchool(selected.id)}
-              className="mb-1 rounded px-1 py-0.5 text-[11px] text-hs-accent transition-colors hover:underline"
+              className="mb-1 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] text-hs-accent transition-colors hover:underline"
             >
+              <Plus className="h-3 w-3" aria-hidden="true" />
               {t('timetableModal.addSchoolLink')}
             </button>
 

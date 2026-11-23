@@ -79,7 +79,7 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     config: { view: 'chores', weekProgress: 'off' },
     expect: async (mod) => {
       await has('Feed the dog')(mod);
-      await expect(mod).not.toContainText('This Week');
+      await expect(mod).not.toContainText('This week');
       await expect(mod.locator('[data-testid="fcc-chip-stars"]')).toHaveCount(0);
     },
   },
@@ -249,7 +249,7 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
       config: { view: 'today', showFamilyRatings },
       expect: async (mod) => {
         await has('Tagged Feast')(mod);
-        await expect(mod.getByRole('button', { name: 'Rate Dinner', exact: true })).toHaveCount(showFamilyRatings ? 1 : 0);
+        await expect(mod.getByRole('button', { name: 'Rate dinner', exact: true })).toHaveCount(showFamilyRatings ? 1 : 0);
       },
     }))),
 ];

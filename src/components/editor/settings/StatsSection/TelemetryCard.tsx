@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
+import { Switch } from '@/components/ui/Toggle';
 import type { SystemStats } from '@/lib/system-stats-types';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import { formatDateInTZ, formatTimeInTZ } from '@/lib/timezone';
 import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
+import FieldHint from '@/components/ui/FieldHint';
 
 export function TelemetryCard({
   stats,
@@ -41,30 +43,20 @@ export function TelemetryCard({
     <section>
       <SectionHeading icon={BarChart3} title={t('settings.statsSection.telemetryTitle')} />
       <div className="space-y-3">
-        <p className="text-xs text-hs-text-muted leading-relaxed">
+        <FieldHint>
           {t('settings.statsSection.telemetryDescription')}
-        </p>
+        </FieldHint>
 
         <div className="flex items-center justify-between">
           <label htmlFor="telemetry-toggle" className="text-sm text-hs-text-secondary">
             {t('settings.statsSection.telemetryToggle')}
           </label>
-          <button
+          <Switch
             id="telemetry-toggle"
-            role="switch"
-            aria-checked={telemetryOn}
+            checked={telemetryOn}
             disabled={isSaving}
-            onClick={onToggle}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
-              telemetryOn ? 'bg-hs-accent' : 'bg-hs-card'
-            }`}
-          >
-            <span
-              className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-                telemetryOn ? 'translate-x-[18px]' : 'translate-x-[3px]'
-              }`}
-            />
-          </button>
+            onChange={() => void onToggle()}
+          />
         </div>
 
         {stats.telemetry && (

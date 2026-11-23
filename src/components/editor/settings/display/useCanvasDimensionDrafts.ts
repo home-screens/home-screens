@@ -27,7 +27,7 @@ import type { DisplayNode, ScreenConfiguration } from '@/types/config';
  * contract.
  *
  * A resize or rotation that would leave modules past the edge of this
- * display's canvas goes through the same Scale to Fit / Switch Anyway prompt
+ * display's canvas goes through the same Scale to fit / Switch anyway prompt
  * as the Defaults Screen page; the returned `orientation` drives the modal.
  */
 export function useCanvasDimensionDrafts(display: DisplayNode, config: ScreenConfiguration) {

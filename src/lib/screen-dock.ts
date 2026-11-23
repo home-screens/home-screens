@@ -148,11 +148,11 @@ const DESCRIBED_MODULES = 4;
  * way the language joins a list. Modules shown on every screen and hidden
  * background copies say nothing about this screen. Empty for an empty
  * screen, and empty when the screen holds one module whose label is the
- * screen's own name: "Recipe Book shows Recipe Book" says nothing.
+ * screen's own name: "Recipe book shows Recipe book" says nothing.
  */
 export function describeScreenContents(screen: Pick<Screen, 'modules' | 'name'>, t: TranslateFn, locale?: string): string {
   // One full-screen module: named by the view it is set to, which is what
-  // the household picked ("Full-Screen Meal Planner, Recipe Book view").
+  // the household picked ("Full-Screen Meal Planner, Recipe book view").
   const drawn = screen.modules.filter((mod) => !mod.showOnEveryScreen && !mod.backgroundProvider);
   if (drawn.length === 1) {
     const view = fullscreenViewLabel(drawn[0], t);

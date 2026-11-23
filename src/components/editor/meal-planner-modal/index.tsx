@@ -54,6 +54,8 @@ import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useCopyTimeWords } from '@/components/meals/useCopyTime';
 import { usePickedMeals } from '@/components/meals/usePickedMeals';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
+import Toast from '@/components/ui/Toast';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
 import SidebarGrocery from './SidebarGrocery';
@@ -69,8 +71,10 @@ import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import type { MealSaveFailure } from '@/hooks/useMealPlannerData';
 import { MealVotesProvider } from '@/components/meals/meal-votes';
 import type { FamilyMealRating } from '@/types/meal-ratings';
-import { mealSaveFailedKey } from './save-failed-words';
+import { mealSaveFailedText } from './save-failed-words';
+import { mealiePlaces } from '@/components/meals/mealie-places';
 import { mealieProblemBody, mealieProblemTitleKey } from './mealie-problem-words';
+import Notice from '@/components/ui/Notice';
 
 // ── Props ────────────────────────────────────────────────────
 
@@ -244,7 +248,7 @@ export default function MealPlannerModal({
   // ── Mealie: which days the copy holds, and whether planning is open ──
 
   // Paging past the weeks every answer carries: ask Mealie for the week and
-  // the one before it (for Copy Last Week), by the rule the phone uses too.
+  // the one before it (for Copy last week), by the rule the phone uses too.
   const shownRange = { start: viewedWeekDates[0], end: viewedWeekDates[6] };
   const weekHeld = mealieWeekHeld({ source, mealie }, shownRange);
   const wantedRange = mealieRangeWanted({ source, mealie }, shownRange);
@@ -277,9 +281,9 @@ export default function MealPlannerModal({
   const showToast = useCallback((message: string, undo?: () => void, error?: boolean) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ message, undo, error });
-    // One that can be undone stays long enough to read and decide, as the
-    // phone's does: the window takes back with Undo where the phone asks first.
-    toastTimerRef.current = setTimeout(() => setToast(null), error ? 6000 : undo ? 12000 : 4000);
+    // One that can be undone stays as long as every Undo does: the window
+    // takes back with Undo where the phone asks first.
+    toastTimerRef.current = setTimeout(() => setToast(null), error ? 6000 : undo ? UNDO_WINDOW_MS : 4000);
   }, []);
 
   useEffect(() => {
@@ -291,8 +295,8 @@ export default function MealPlannerModal({
   // the hub holds.
   useEffect(() => {
     if (!saveError) return;
-    showToast(t(mealSaveFailedKey(saveError, onMealie)), undefined, true);
-  }, [saveError, onMealie, showToast, t]);
+    showToast(mealSaveFailedText(saveError, onMealie, t, tCore), undefined, true);
+  }, [saveError, onMealie, showToast, t, tCore]);
 
   const selectMeal = useCallback((id: string) => {
     setSelectedMealId(id);
@@ -405,7 +409,7 @@ export default function MealPlannerModal({
     // and only for the dinners nobody has planned, so nothing is replaced.
     // The phone's Suggest fills the same dinners.
     if (onMealie) {
-      // The phone asks first; here, as with Clear Week, the toast's Undo
+      // The phone asks first; here, as with Clear week, the toast's Undo
       // takes back exactly what it added.
       const ask = mealieSuggestCells(plan, viewedWeekDates, slots);
       if (ask.kind === 'no-dinners') {
@@ -436,7 +440,7 @@ export default function MealPlannerModal({
     }
     if (savedMeals.length === 0) return;
     // Suggest replaces the week, hand-picked meals included: Undo puts back
-    // what the week held, as it does after Copy Last Week.
+    // what the week held, as it does after Copy last week.
     const before = [...weekPlan];
     // Picked once, then placed: the edit runs for the window and again for
     // the save, and a fresh pick each time showed one week and saved another.
@@ -598,7 +602,7 @@ export default function MealPlannerModal({
   } else if (onMealie && status.state === 'unreachable') {
     gridReplacement = (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 p-10 text-center" role="status">
-        <span className="w-11 h-11 rounded-full bg-hs-warning/10 text-hs-warning flex items-center justify-center">
+        <span className="w-11 h-11 rounded-full bg-hs-warning/10 text-hs-warning-ink flex items-center justify-center">
           <TriangleAlert className="w-5 h-5" aria-hidden />
         </span>
         <p className="text-sm font-semibold text-hs-text-body">{tCore(mealieProblemTitleKey(unreachableProblem))}</p>
@@ -612,18 +616,20 @@ export default function MealPlannerModal({
     // will not.
     const fix = status.problem === 'token' || status.problem === 'setup' ? status.problem : null;
     gridNotice = (
-      <div className="mx-5 mt-3 flex items-start gap-2.5 rounded-lg border border-hs-warning/30 bg-hs-warning/10 px-3 py-2.5" role="status">
-        <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0 text-hs-warning" aria-hidden />
-        <div className="flex-1 min-w-0 text-xs leading-[17px]">
-          <p className="font-semibold text-hs-warning">{tCore(mealieProblemTitleKey(fix ?? 'unreachable'))}</p>
-          <p className="text-hs-text-muted">
-            {lastUpdated
-              ? (fix ? t(`mealPlannerModal.mealie.${fix}PausedSince`, { time: lastUpdated }) : tCore('mealie.paused.descriptionWithTime', { time: lastUpdated }))
-              : (fix ? t(`mealPlannerModal.mealie.${fix}Paused`) : tCore('mealie.paused.description'))}
-          </p>
-        </div>
-        {retryButton(onReload)}
-      </div>
+      <Notice
+        tone="warning"
+        icon={TriangleAlert}
+        role="status"
+        className="mx-5 mt-3"
+        title={tCore(mealieProblemTitleKey(fix ?? 'unreachable'))}
+        action={retryButton(onReload)}
+      >
+        <p className="text-hs-text-muted">
+          {lastUpdated
+            ? (fix ? t(`mealPlannerModal.mealie.${fix}PausedSince`, { time: lastUpdated, ...mealiePlaces(tCore) }) : tCore('mealie.paused.descriptionWithTime', { time: lastUpdated }))
+            : (fix ? t(`mealPlannerModal.mealie.${fix}Paused`, mealiePlaces(tCore)) : tCore('mealie.paused.description'))}
+        </p>
+      </Notice>
     );
   }
   // A week the copy does not hold: on its way from Mealie, or missing, when
@@ -670,28 +676,17 @@ export default function MealPlannerModal({
       icon={<span className="text-lg">&#127869;</span>}
       subtitle={subtitle}
       maxWidth="max-w-[1340px]"
-      headerActions={
-        <div className="flex items-center gap-2">
-          {onMealie && plannerUrl && (
-            <a
-              href={plannerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card transition"
-            >
-              {tCore('mealie.openMealie')}
-              <ExternalLink className="w-3 h-3" aria-hidden />
-            </a>
-          )}
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold rounded bg-amber-500 text-black hover:bg-amber-400 transition"
-          >
-            {t('mealPlannerModal.doneButton')}
-          </button>
-        </div>
-      }
-      hideFooter
+      headerActions={onMealie && plannerUrl ? (
+        <a
+          href={plannerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card transition"
+        >
+          {tCore('mealie.openMealie')}
+          <ExternalLink className="w-3 h-3" aria-hidden />
+        </a>
+      ) : undefined}
       onClose={onClose}
     >
       <div ref={bodyRef} className="flex flex-1 min-h-0">
@@ -705,7 +700,7 @@ export default function MealPlannerModal({
                 onClick={() => setSidebarTab(tab)}
                 className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                   sidebarTab === tab
-                    ? 'text-amber-500 border-amber-500'
+                    ? 'text-hs-meal border-hs-meal'
                     : 'text-hs-text-faint border-transparent hover:text-hs-text-muted'
                 }`}
               >
@@ -761,7 +756,7 @@ export default function MealPlannerModal({
           ))}
         </div>
 
-        {/* ── Week Grid ── */}
+        {/* ── Week grid ── */}
         <WeekGrid
           plan={weekPlan}
           savedMeals={allMeals}
@@ -837,28 +832,19 @@ export default function MealPlannerModal({
 
       {/* ── Toast ── */}
       {toast && (
-        <div
+        <Toast
           data-keeps-meal-popover
-          role={toast.error ? 'alert' : 'status'}
-          className={`fixed bottom-7 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2.5 px-4 py-2 rounded-lg bg-hs-card border text-xs font-medium shadow-xl ${
-            toast.error ? 'border-hs-danger/50 text-hs-danger' : 'border-hs-border-strong text-hs-text-muted'
-          }`}
-        >
-          <span>{toast.message}</span>
-          {toast.undo && (
-            <button
-              type="button"
-              onClick={() => {
-                toast.undo?.();
-                setToast(null);
-                if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-              }}
-              className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500 text-black"
-            >
-              {t('mealPlannerModal.toast.undoButton')}
-            </button>
-          )}
-        </div>
+          tone={toast.error ? 'danger' : 'neutral'}
+          message={toast.message}
+          action={toast.undo ? {
+            label: t('mealPlannerModal.toast.undoButton'),
+            onClick: () => {
+              toast.undo?.();
+              setToast(null);
+              if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+            },
+          } : undefined}
+        />
       )}
     </CRUDModalShell>
     </MealVotesProvider>
@@ -875,7 +861,7 @@ function MealieSourcePill({ href, lastUpdated }: { href?: string; lastUpdated: s
   const tCore = useTranslate('core');
   const body = (
     <>
-      <span className="w-4 h-4 rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center">
+      <span className="w-4 h-4 rounded-full bg-hs-meal-hover text-hs-meal flex items-center justify-center">
         <CookingPot className="w-2.5 h-2.5" strokeWidth={2.4} aria-hidden />
       </span>
       {tCore('mealie.pill.label')}

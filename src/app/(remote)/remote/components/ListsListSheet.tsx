@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList, type TodoRepeat } from '@/types/todos';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { DANGER_BUTTON, FIELD_SELECT, GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
+import { confirmsBefore } from '@/lib/todo-actions';
+import { DANGER_BUTTON, FIELD_SELECT, GHOST_BUTTON, HELPER_TEXT, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
 import BottomSheet from './BottomSheet';
 import ColorSwatchRow from './ColorSwatchRow';
 import ConfirmSheet from './ConfirmSheet';
+import PrimaryButton from './PrimaryButton';
 import { shareOrCopyText } from './share-text';
 import type { ListPatch, TodoListAction } from '../hooks/useTodoLists';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 interface ListsListSheetProps {
   list: TodoList;
@@ -22,6 +25,7 @@ interface ListsListSheetProps {
 /** The sheet behind the gear: rename, colour, repeat, tidy up, share, delete. */
 export default function ListsListSheet({ list, onSave, onAction, onDelete, onClose }: ListsListSheetProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const [name, setName] = useState(list.name);
   const [color, setColor] = useState(list.color ?? '');
@@ -29,9 +33,19 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
   const [repeatDay, setRepeatDay] = useState(list.repeatDay ?? 0);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  /** A tidy-up action waiting on its question. */
+  const [confirmAction, setConfirmAction] = useState<TodoListAction | null>(null);
   const [busy, setBusy] = useState(false);
 
   const days = getLocalizedDayNames(locale);
+  const doneCount = list.items.filter((it) => it.completed).length;
+
+  // The same rule as the editor's list window: dropping the done items asks
+  // first, unticking does not. With nothing done there is nothing to ask about.
+  const runAction = (action: TodoListAction) => {
+    if (confirmsBefore(action) && doneCount > 0) setConfirmAction(action);
+    else onAction(action);
+  };
 
   const save = async () => {
     const clean = name.trim();
@@ -111,10 +125,10 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
 
         <span style={SHEET_LABEL}>{t('lists.listSheet.tidyLabel')}</span>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="press-scale" style={{ ...GHOST_BUTTON, marginTop: 0, flex: 1 }} onClick={() => onAction('uncheck-all')}>
+          <button type="button" className="press-scale" style={{ ...GHOST_BUTTON, marginTop: 0, flex: 1 }} onClick={() => runAction('uncheck-all')}>
             {t('lists.listSheet.uncheckAll')}
           </button>
-          <button type="button" className="press-scale" style={{ ...GHOST_BUTTON, marginTop: 0, flex: 1 }} onClick={() => onAction('clear-completed')}>
+          <button type="button" className="press-scale" style={{ ...GHOST_BUTTON, marginTop: 0, flex: 1 }} onClick={() => runAction('clear-completed')}>
             {t('lists.listSheet.removeDone')}
           </button>
           <button
@@ -123,24 +137,36 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
             style={{ ...GHOST_BUTTON, marginTop: 0, flex: 1, color: shareState === 'copied' ? 'var(--hs-success)' : GHOST_BUTTON.color }}
             onClick={() => void share()}
           >
-            {shareState === 'copied' ? t('lists.share.copied') : t('lists.share.button')}
+            {shareState === 'copied' ? tCore('status.copied') : t('lists.share.button')}
           </button>
         </div>
 
-        <button type="submit" className="press-btn" style={{ ...PRIMARY_BUTTON, marginTop: 18 }} disabled={!name.trim() || busy}>
+        <PrimaryButton type="submit" style={{ marginTop: 18 }} disabled={!name.trim()} busy={busy}>
           {t('lists.listSheet.save')}
-        </button>
+        </PrimaryButton>
         <button type="button" className="press-scale" style={DANGER_BUTTON} onClick={() => setConfirmDelete(true)}>
           {t('lists.listSheet.delete')}
         </button>
       </form>
 
+      {confirmAction && (
+        <ConfirmSheet
+          {...sheetQuestion(buildDeleteConfirm({
+            verb: 'remove',
+            question: tCore('lists.removeDoneTitle', { count: doneCount, name: list.name }),
+            consequence: tCore('lists.removeDoneBody'),
+          }, tCore))}
+          onConfirm={() => {
+            setConfirmAction(null);
+            onAction(confirmAction);
+          }}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
       {confirmDelete && (
         <ConfirmSheet
-          zIndex={210}
-          title={t('lists.listSheet.confirmDelete.title', { name: list.name })}
-          description={t('lists.listSheet.confirmDelete.description')}
-          confirmLabel={t('lists.listSheet.delete')}
+          {...sheetQuestion(buildDeleteConfirm({ verb: 'delete', name: list.name, consequence: t('lists.listSheet.confirmDelete.description') }, tCore))}
           onConfirm={() => {
             setConfirmDelete(false);
             // Close first: the list is removed from the tab optimistically,

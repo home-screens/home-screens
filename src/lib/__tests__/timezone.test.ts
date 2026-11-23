@@ -5,14 +5,18 @@ import {
   localISODate,
   localISODateTime,
   formatTimeInTZ,
+  formatTimeOfDay,
   formatDateInTZ,
   parseDateInTZ,
+  toTZWallTime,
   listTimezoneValues,
   isKnownTimezone,
   canonicalTimezone,
   sameTimezone,
   COMMON_TIMEZONES,
 } from '@/lib/timezone';
+import { formatEventTime } from '@/lib/calendar-utils';
+import { NO_VALUE } from '@/lib/constants';
 
 describe('createTZDate', () => {
   it('returns a Date close to now when no timezone is provided', () => {
@@ -153,108 +157,73 @@ function walk(dir: string): string[] {
   });
 }
 
-describe('formatTimeInTZ', () => {
-  it('returns "—" (em dash) for an invalid/NaN Date', () => {
-    const nanDate = new Date('not-a-date');
-    expect(formatTimeInTZ(nanDate, { locale: 'en-US', hour12: true })).toBe('—');
+describe('formatTimeOfDay', () => {
+  const LOCALES = ['en-US', 'de-DE', 'fr-FR', 'es-ES', 'nl-NL', 'pt-BR', 'da-DK'];
+  // 08:05 in Berlin on a winter morning.
+  const morning = new Date('2024-01-15T07:05:00Z');
+
+  it('writes 08:05 in every shipped language in 24-hour mode', () => {
+    for (const locale of LOCALES) {
+      expect(formatTimeOfDay(morning, { timeFormat: '24h', locale, timezone: 'Europe/Berlin' }), locale).toBe('08:05');
+    }
   });
 
-  it('returns "—" for NaN Date even when timezone and options are provided', () => {
-    const nanDate = new Date(NaN);
-    expect(formatTimeInTZ(nanDate, { timezone: 'America/Chicago', locale: 'en-US', hour12: false })).toBe('—');
+  it('writes the language day period in 12-hour mode', () => {
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'Europe/Berlin' })).toBe('8:05 AM');
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'Europe/Berlin', pad: true })).toBe('08:05 AM');
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'de-DE', timezone: 'Europe/Berlin' })).toBe('8:05 vorm.');
   });
 
-  it('formats a valid date with a specific timezone', () => {
-    // Use a known UTC instant: 2024-01-15T12:30:00Z (noon UTC)
-    const date = new Date('2024-01-15T12:30:00Z');
-    const result = formatTimeInTZ(date, { timezone: 'America/New_York', locale: 'en-US', hour12: true });
-
-    // New York is UTC-5 in January, so 12:30 UTC → 7:30 AM ET
-    expect(result).toMatch(/7:30/);
-    expect(result).toMatch(/AM/);
+  it('matches formatEventTime on a shifted Date, in every language and both modes', () => {
+    const wall = toTZWallTime(morning, 'Europe/Berlin');
+    for (const locale of LOCALES) {
+      for (const timeFormat of ['12h', '24h'] as const) {
+        expect(formatTimeOfDay(morning, { timeFormat, locale, timezone: 'Europe/Berlin' })).toBe(formatEventTime(wall, timeFormat, locale));
+      }
+    }
   });
 
-  it('formats a valid date without timezone (uses system default)', () => {
-    const date = new Date('2024-06-15T18:45:00Z');
-    const result = formatTimeInTZ(date, { locale: 'en-US', hour12: true });
-
-    // Should return a formatted string, not "—"
-    expect(result).not.toBe('—');
-    expect(result).toMatch(/\d{1,2}:\d{2}/);
+  it('labels a forecast hour without minutes only in 12-hour mode', () => {
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'UTC', hourOnly: true })).toBe('7 AM');
+    expect(formatTimeOfDay(morning, { timeFormat: '24h', locale: 'de-DE', timezone: 'UTC', hourOnly: true })).toBe('07:05');
   });
 
-  it('falls back gracefully for an invalid timezone (does NOT throw)', () => {
-    const date = new Date('2024-01-15T12:30:00Z');
-    const result = formatTimeInTZ(date, { timezone: 'Invalid/Timezone_Zone', locale: 'en-US', hour12: true });
-
-    // Should still format, just without timezone override
-    expect(result).not.toBe('—');
-    expect(result).toMatch(/\d{1,2}:\d{2}/);
-  });
-
-  it('passes through custom Intl options (hour12: false)', () => {
-    const date = new Date('2024-01-15T15:30:00Z');
-    const result = formatTimeInTZ(date, { timezone: 'UTC', locale: 'en-US', hour12: false });
-
-    // With hour12: false and UTC, should show 15:30 (no AM/PM)
-    expect(result).toMatch(/15:30/);
-    expect(result).not.toMatch(/AM|PM/);
-  });
-
-  it('passes through custom Intl options (second display)', () => {
-    const date = new Date('2024-01-15T12:30:45Z');
-    const result = formatTimeInTZ(date, { timezone: 'UTC', locale: 'en-US', hour12: true }, { second: '2-digit' });
-
-    // Should include seconds
-    expect(result).toMatch(/45/);
-  });
-
-  it('correctly applies timezone for dates across different hemispheres', () => {
-    // 2024-07-15T00:00:00Z — midnight UTC
+  it('reads the instant in the zone it is given', () => {
+    // Sydney is UTC+10 in July, so midnight UTC is 10:00.
     const date = new Date('2024-07-15T00:00:00Z');
-
-    const sydney = formatTimeInTZ(date, { timezone: 'Australia/Sydney', locale: 'en-US', hour12: true });
-    // Sydney is UTC+10 in July (AEST, no DST), so midnight UTC → 10:00 AM
-    expect(sydney).toMatch(/10:00/);
-    expect(sydney).toMatch(/AM/);
+    expect(formatTimeOfDay(date, { timeFormat: '24h', locale: 'en-US', timezone: 'Australia/Sydney' })).toBe('10:00');
+    expect(formatTimeOfDay(date, { timeFormat: '12h', locale: 'en-US', timezone: 'America/New_York' })).toBe('8:00 PM');
   });
 
-  it('honors the locale argument when caller opts into 24h time (proving the tag flows through Intl)', () => {
-    // Regression guard for the en-US literal cutover. With an explicit
-    // `hour12: false` the German short time is "17:30" while the en-US
-    // form would still emit "17:30" too — that proves nothing.
-    // Instead, drop hour12 entirely so each locale picks its convention:
-    // de-DE uses 24h, en-US uses 12h with " AM/PM". Comparing the two
-    // outputs (rather than asserting an exact string) keeps the test
-    // resilient to ICU version drift while still proving the locale
-    // flowed end-to-end.
-    const date = new Date('2024-07-15T15:30:00Z');
-    const de = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false });
-    const en = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'en-US', hour12: false });
-    // Both should hit the locale-default 24h path with Berlin = UTC+2
-    // in July, so 15:30 UTC → 17:30 Berlin. The exact separator/spacing
-    // can differ between locales (de-DE may include narrow no-break
-    // spaces, en-US uses ASCII colons), so assert the digit pattern
-    // and the locale-divergence rather than exact string equality.
-    expect(de).toMatch(/17:30/);
-    expect(en).toMatch(/17:30/);
-    // Now read the user-facing weekday format — that one IS locale-
-    // sensitive in every locale, so we can compare distinct outputs.
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      hour: 'numeric',
-      minute: '2-digit',
-    };
-    const deLong = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false }, dateOptions);
-    const enLong = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'en-US', hour12: false }, dateOptions);
-    expect(deLong).not.toBe(enLong);
+  it('reads the Date as it is with no zone, and with one this runtime does not know', () => {
+    const local = new Date(2024, 0, 15, 20, 5);
+    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK' })).toBe('20:05');
+    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK', timezone: 'Not/A_Zone' })).toBe('20:05');
+  });
+
+  it('writes the no-value mark for an invalid Date', () => {
+    expect(formatTimeOfDay(new Date(NaN), { timeFormat: '24h', locale: 'en-US', timezone: 'UTC' })).toBe(NO_VALUE);
+  });
+});
+
+describe('formatTimeInTZ', () => {
+  it('is formatTimeOfDay for a ClockFormat', () => {
+    const date = new Date('2024-01-15T12:30:00Z');
+    expect(formatTimeInTZ(date, { timezone: 'America/New_York', locale: 'en-US', hour12: true })).toBe('7:30 AM');
+    expect(formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false })).toBe('13:30');
+    expect(formatTimeInTZ(new Date('2024-01-15T07:05:00Z'), { timezone: 'UTC', locale: 'da-DK', hour12: false })).toBe('07:05');
+  });
+
+  it('writes the no-value mark for an invalid Date', () => {
+    expect(formatTimeInTZ(new Date('not-a-date'), { locale: 'en-US', hour12: true })).toBe(NO_VALUE);
+    expect(formatTimeInTZ(new Date(NaN), { timezone: 'America/Chicago', locale: 'en-US', hour12: false })).toBe(NO_VALUE);
   });
 });
 
 describe('formatDateInTZ', () => {
-  it('returns "—" (em dash) for an invalid/NaN Date', () => {
+  it('writes the no-value mark for an invalid/NaN Date', () => {
     const nan = new Date('not-a-date');
-    expect(formatDateInTZ(nan, 'UTC', { weekday: 'long' })).toBe('—');
+    expect(formatDateInTZ(nan, 'UTC', { weekday: 'long' })).toBe(NO_VALUE);
   });
 
   it('formats a date in a specific timezone (en-US default)', () => {
@@ -276,8 +245,8 @@ describe('formatDateInTZ', () => {
   it('falls back gracefully when the timezone is invalid (does NOT throw)', () => {
     const date = new Date('2024-07-15T12:30:00Z');
     const result = formatDateInTZ(date, 'Not/A_Real_Zone', { weekday: 'long' });
-    // Should still format using the host TZ, not return "—".
-    expect(result).not.toBe('—');
+    // Should still format using the host TZ, not return the no-value mark.
+    expect(result).not.toBe(NO_VALUE);
     expect(result.length).toBeGreaterThan(0);
   });
 

@@ -8,7 +8,7 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import { PHOTO_SOURCE_MEDIA_PATH, isReady, photoSourceParams, type PhotoSourceUse } from '@/lib/photo-source';
 import type { MediaListItem, PhotoSource, SlideshowMediaTypes } from '@/types/config';
-import SourceModeToggle from '@/components/editor/SourceModeToggle';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import { ImmichSourceFields } from './ImmichSourceFields';
 import { ICloudSourceFields } from './ICloudSourceFields';
 import { OneDriveSourceFields } from './OneDriveSourceFields';
@@ -18,6 +18,7 @@ import PickedPicturesFields from './PickedPicturesFields';
 import UnsplashCollectionsFields from './UnsplashCollectionsFields';
 import PreviewStrip from './PreviewStrip';
 import ArtSourceFields from './ArtSourceFields';
+import FieldHint from '@/components/ui/FieldHint';
 
 type Library = Extract<PhotoSource, { kind: 'library' }>;
 type Immich = Extract<PhotoSource, { kind: 'immich' }>;
@@ -76,13 +77,13 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
       };
       return (
         <>
-          <SourceModeToggle
-            testIdPrefix="library-mode"
+          <SegmentedControl
+            label={t('photoSources.modes.label')}
             value={mode}
             onChange={(next) => void switchTo(next)}
             options={[
-              { id: 'folder', label: t('photoSources.modes.folder') },
-              { id: 'pictures', label: t('photoSources.modes.pictures') },
+              { value: 'folder', label: t('photoSources.modes.folder'), testId: 'library-mode-folder' },
+              { value: 'pictures', label: t('photoSources.modes.pictures'), testId: 'library-mode-pictures' },
             ]}
           />
           {mode === 'pictures'
@@ -104,13 +105,13 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
       };
       return (
         <>
-          <SourceModeToggle
-            testIdPrefix="immich-mode"
+          <SegmentedControl
+            label={t('photoSources.modes.label')}
             value={mode}
             onChange={(next) => void switchTo(next)}
             options={[
-              { id: 'filters', label: t('photoSources.modes.filters') },
-              { id: 'pictures', label: t('photoSources.modes.pictures') },
+              { value: 'filters', label: t('photoSources.modes.filters'), testId: 'immich-mode-filters' },
+              { value: 'pictures', label: t('photoSources.modes.pictures'), testId: 'immich-mode-pictures' },
             ]}
           />
           {mode === 'pictures'
@@ -146,14 +147,14 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
       };
       return (
         <>
-          <SourceModeToggle
-            testIdPrefix="unsplash-mode"
+          <SegmentedControl
+            label={t('photoSources.modes.label')}
             value={mode}
             onChange={(next) => void switchTo(next)}
             options={[
-              { id: 'words', label: t('photoSources.modes.words') },
-              { id: 'collections', label: t('photoSources.modes.collections') },
-              { id: 'pictures', label: t('photoSources.modes.pictures') },
+              { value: 'words', label: t('photoSources.modes.words'), testId: 'unsplash-mode-words' },
+              { value: 'collections', label: t('photoSources.modes.collections'), testId: 'unsplash-mode-collections' },
+              { value: 'pictures', label: t('photoSources.modes.pictures'), testId: 'unsplash-mode-pictures' },
             ]}
           />
           {mode === 'pictures' && (
@@ -168,9 +169,9 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
     }
     case 'nasa':
       return (
-        <p className="text-[10px] leading-relaxed text-hs-text-faint">
+        <FieldHint>
           {t(use === 'background' ? 'photoSources.nasa.backgroundInfo' : 'photoSources.nasa.streamInfo')}
-        </p>
+        </FieldHint>
       );
     case 'art':
       return <ArtSourceFields use={use} source={source} onChange={onChange} />;
@@ -212,13 +213,13 @@ function UnsplashWordsFields({ source, count, ready, use, onChange }: {
         value={source.query}
         placeholder={t('photoSources.unsplash.searchWordsPlaceholder')}
         onChange={(query) => onChange({ ...source, query })}
+        hint={t(use === 'background' ? 'photoSources.unsplash.searchHelpBackground' : 'photoSources.unsplash.searchHelp')}
       />
-      <p className="-mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t(use === 'background' ? 'photoSources.unsplash.searchHelpBackground' : 'photoSources.unsplash.searchHelp')}</p>
       {answered && failure?.status === 429 && (
-        <p className="text-[10px] leading-relaxed text-hs-warning" data-testid="unsplash-words-limit">{t('photoSources.unsplash.rateLimited')}</p>
+        <p className="text-[10px] leading-relaxed text-hs-warning-ink" data-testid="unsplash-words-limit">{t('photoSources.unsplash.rateLimited')}</p>
       )}
       {answered && data !== null && data.length === 0 && !failure && (
-        <p className="text-[10px] leading-relaxed text-hs-warning" data-testid="unsplash-words-empty">{t('photoSources.unsplash.empty')}</p>
+        <p className="text-[10px] leading-relaxed text-hs-warning-ink" data-testid="unsplash-words-empty">{t('photoSources.unsplash.empty')}</p>
       )}
       <PreviewStrip urls={(data ?? []).slice(0, 4).map((item) => item.url)} />
     </>

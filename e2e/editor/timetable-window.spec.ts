@@ -232,7 +232,7 @@ test('a bell time is edited on the school, which is what everybody at it shares'
 test('a subject added from the palette joins the shared list and becomes the brush', async ({ page, request, sandboxDir }) => {
   const window = await openWindow(page, request, sandboxDir);
 
-  await window.getByRole('button', { name: '+ Subject' }).click();
+  await window.getByRole('button', { name: 'Add subject' }).click();
   const saved = savedOnce(page);
   await window.getByLabel('Short').fill('Bio');
   await window.getByRole('button', { name: 'Add', exact: true }).click();
@@ -351,7 +351,7 @@ test('with nobody in Family the panel says where to start and the window stays s
   await selectModule(page, request, buildModuleInstance('timetable'));
 
   await expect(page.getByText('Nobody is in Family yet. Add people on the Family page, then give them a timetable here.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Open Family' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Manage family' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Edit timetables' })).toBeDisabled();
   // Nothing below the picker can be set for people who are not there yet.
   await expect(page.getByRole('radiogroup', { name: 'Layout' })).toHaveAttribute('aria-disabled', 'true');
@@ -571,8 +571,8 @@ test('a timetable added by mistake can be taken away again', async ({ page, requ
     .toContain(E2E_TIMETABLE_MEMBER_IDS.leon);
 
   const saved = savedOnce(page);
-  await window.getByRole('button', { name: /^Remove .*timetable$/ }).click();
-  await page.getByRole('button', { name: 'Remove timetable' }).click();
+  await window.getByRole('button', { name: /^Delete .*timetable$/ }).click();
+  await page.getByRole('button', { name: 'Delete timetable' }).click();
   await saved;
 
   const { data } = await savedTimetables(request);
@@ -591,7 +591,7 @@ test('a school nobody is at can be removed, and one in use says who is there', a
 
   // The seeded school has somebody at it, so it cannot go, and the reason names
   // them rather than leaving a dead button.
-  const inUse = window.getByRole('button', { name: 'Remove Gymnasium am Rhein' });
+  const inUse = window.getByRole('button', { name: 'Delete Gymnasium am Rhein' });
   await expect(inUse).toBeDisabled();
   await expect(inUse).toHaveAttribute('title', /still in use by Leon/);
 });

@@ -61,7 +61,7 @@ describe('picking the days of a new chore on the phone', () => {
     const onSubmit = vi.fn<(data: Omit<ChoreDefinition, 'id'>) => void>();
     render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={onSubmit} onBack={() => {}} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Chore name...'), { target: { value: 'Vacuum' } });
+    fireEvent.change(screen.getByPlaceholderText('Chore name…'), { target: { value: 'Vacuum' } });
     fireEvent.change(screen.getByDisplayValue('Daily'), { target: { value: 'weekly' } });
 
     expect(dayRow()).toEqual([false, false, false, false, false, false, false]);
@@ -71,7 +71,7 @@ describe('picking the days of a new chore on the phone', () => {
     expect(dayRow()).toEqual([false, false, true, false, false, true, false]);
 
     fireEvent.click(screen.getByRole('button', { name: /Ava/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Add Chore' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add chore' }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0][0]).toMatchObject({ name: 'Vacuum', frequency: 'weekly', daysOfWeek: [2, 5] });
@@ -86,11 +86,11 @@ describe('picking the days of a new chore on the phone', () => {
     const onSubmit = vi.fn();
     render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={onSubmit} onBack={() => {}} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Chore name...'), { target: { value: 'Vacuum' } });
+    fireEvent.change(screen.getByPlaceholderText('Chore name…'), { target: { value: 'Vacuum' } });
     fireEvent.change(screen.getByDisplayValue('Daily'), { target: { value: 'weekly' } });
     fireEvent.click(screen.getByRole('button', { name: /Ava/ }));
 
-    const submit = screen.getByRole('button', { name: 'Add Chore' });
+    const submit = screen.getByRole('button', { name: 'Add chore' });
     expect(submit.hasAttribute('disabled')).toBe(true);
     expect(screen.getByText('Select at least one day')).toBeTruthy();
 
@@ -126,8 +126,8 @@ describe('the rest of the chore form copy', () => {
     };
     render(<ChoreFormOverlay initial={chore} members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onDelete={vi.fn()} onBack={() => {}} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete Chore' }));
-    const sheet = screen.getByText('Delete "Make your bed"?').parentElement!;
+    fireEvent.click(screen.getByRole('button', { name: 'Delete chore' }));
+    const sheet = screen.getByText('Delete “Make your bed”?').parentElement!;
     expect(sheet.textContent).toContain('Tickets the kids have already earned for it stay on their cards.');
     expect(sheet.textContent).not.toContain('completion history');
   });

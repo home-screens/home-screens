@@ -10,6 +10,8 @@ import { moonTimesForDay } from '@/lib/moon-times';
 import { moonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
 import { formatNumber } from '@/i18n/formatters';
+import { NO_VALUE } from '@/lib/constants';
+import { formatTimeOfDay } from '@/lib/timezone';
 import {
   windFootline, feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount, precipitationReading,
   airQualityLevel, airQualityPosition, uvLevel, uvRestOfDay, pressureTrend, pressurePosition, type Sentence as SentenceKey,
@@ -17,7 +19,7 @@ import {
 import type { FullscreenWeatherCard } from '@/types/config';
 import { resolveWeatherCards } from '@/lib/fullscreen-weather-cards';
 import { floorEase, type WeatherViewProps } from './weather-view-utils';
-import { hoursWithin, nowcastVerdict, tzHour, weekRange, cachedFormat, HOURLY_RAIN_SHOWN_PCT, DAILY_RAIN_SHOWN_PCT } from './weather-view-utils';
+import { hoursWithin, nowcastVerdict, tzHour, weekRange, HOURLY_RAIN_SHOWN_PCT, DAILY_RAIN_SHOWN_PCT } from './weather-view-utils';
 import { RangeBar, dayName, weekdayShort } from './weather-parts';
 import {
   Card, CardLabel, BigValue, Unit, Sentence, Compass, SunArc, Gauge, ScaleBar,
@@ -180,9 +182,9 @@ export function Hero({ p, compact, land }: { p: WeatherViewProps; compact?: bool
   const today = p.forecast[0];
   const showTime = p.config.showTime !== false;
   const time = showTime
-    ? cachedFormat(p.locale, { hour: 'numeric', minute: '2-digit', hour12: p.timeFormat !== '24h', timeZone: p.timezone }).format(p.now)
+    ? clockTime(p, p.now)
     : null;
-  const temp = now ? Math.round(now.temp) : '--';
+  const temp = now ? Math.round(now.temp) : NO_VALUE;
   // The portrait hero is the page's sky. On the phone the temperature sits
   // a quarter of the way down and the first card nearly halfway; a wall that
   // cannot scroll keeps a share of that, so the hero claims a quarter of
@@ -240,7 +242,7 @@ export function Hero({ p, compact, land }: { p: WeatherViewProps; compact?: bool
 export function HourlyCard({ p, count, style }: { p: WeatherViewProps; count: number; style?: React.CSSProperties }) {
   const { s, u } = p.scale;
   const hrs = hoursWithin(p.hourly, 36).slice(0, count);
-  const fmt = cachedFormat(p.locale, { hour: 'numeric', hour12: p.timeFormat !== '24h', timeZone: p.timezone });
+  const hourText = (h: { time: string }) => formatTimeOfDay(new Date(h.time), { timeFormat: p.timeFormat, locale: p.locale, timezone: p.timezone, hourOnly: true }).replace(' ', '');
   return (
     <Card u={u} testId="fsw-hours" style={{ flex: 'none', ...style }}>
       <CardLabel icon={Clock} s={s}>{t(p, 'hourly')}</CardLabel>
@@ -250,7 +252,7 @@ export function HourlyCard({ p, count, style }: { p: WeatherViewProps; count: nu
           const pop = h.precipProbability ?? 0;
           return (
             <div key={h.time} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: u * .5, lineHeight: 1.1, minWidth: 0 }}>
-              <div style={{ fontSize: s * 2.8, fontWeight: i === 0 ? 700 : 500, whiteSpace: 'nowrap' }}>{i === 0 ? t(p, 'now') : fmt.format(new Date(h.time)).replace(' ', '')}</div>
+              <div style={{ fontSize: s * 2.8, fontWeight: i === 0 ? 700 : 500, whiteSpace: 'nowrap' }}>{i === 0 ? t(p, 'now') : hourText(h)}</div>
               <div style={{ height: s * 5.4, display: 'flex', alignItems: 'center' }}><Icon size={s * 5.2} /></div>
               <div style={{ fontSize: s * 2, color: '#7dd3fc', fontWeight: 600, height: s * 2, lineHeight: `${s * 2}px`, marginTop: -u * .5 }}>{pop >= HOURLY_RAIN_SHOWN_PCT ? `${Math.round(pop)}%` : ''}</div>
               <div style={{ fontSize: s * 3.5, fontWeight: 500 }}>{Math.round(h.temp)}°</div>

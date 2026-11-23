@@ -1,11 +1,13 @@
 'use client';
 
 import { dismissToast, useRemoteToast, useToastFloor } from '../remote-toast';
+import { REMOTE_LAYERS } from './remote-layers';
 
 /**
  * Renders the current remote toast just above the tab bar. Tap to dismiss.
  * `role="status"` keeps it polite for screen readers — these are outcomes,
- * not interruptions.
+ * not interruptions. On the top layer, over every sheet, so an error is never
+ * painted under the sheet it is about (a folder name that could not be kept).
  *
  * `raisedBy` lifts it further when a tab pins its own bar above the tab bar
  * (the Lists tab's add bar), so an error never lands on top of the field
@@ -23,8 +25,8 @@ export default function RemoteToast({ raisedBy = 0 }: { raisedBy?: number }) {
     <div
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed left-0 right-0 z-[90] flex justify-center px-5"
-      style={{ bottom }}
+      className="pointer-events-none fixed left-0 right-0 flex justify-center px-5"
+      style={{ bottom, zIndex: REMOTE_LAYERS.toast }}
     >
       {toast?.action ? (
         // A toast with a button: the message still closes it, the button acts.

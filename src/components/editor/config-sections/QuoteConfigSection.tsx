@@ -1,11 +1,13 @@
 'use client';
 
 import RefreshIntervalSlider from './RefreshIntervalSlider';
-import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance } from '@/types/config';
+import ColorPicker from '@/components/ui/ColorPicker';
+import { useTranslate } from '@/i18n';
 
 export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{ refreshIntervalMs?: number; accentColor?: string }>(mod, screenId);
 
   return (
@@ -22,7 +24,9 @@ export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         max={1440}
         step={60}
       />
-      <AccentColorPicker
+      <ColorPicker
+        label={t('accentColorPicker.label')}
+        swatches="accent-or-none"
         value={c.accentColor ?? '#000000'}
         onChange={(v) => set({ accentColor: v })}
       />

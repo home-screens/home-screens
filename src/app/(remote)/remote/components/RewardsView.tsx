@@ -3,7 +3,7 @@
 import type { FamilyMember } from '@/types/family';
 
 import { useState, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
-import { Lock, Plus, Minus } from 'lucide-react';
+import { ChevronRight, Lock, Plus, Minus } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -22,7 +22,9 @@ import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
 import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, redeemGoalEffect, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
-import { GROUP_HEADING, REMOTE_ACCENT } from './remote-styles';
+import { GROUP_HEADING } from './remote-styles';
+import SegmentedTabs from './SegmentedTabs';
+import IconButton from './IconButton';
 import { asksForCode } from '@/lib/grown-up-code';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { useGrownUpStatus, useGrownUpUnlock } from '@/hooks/useGrownUp';
@@ -282,21 +284,6 @@ export default function RewardsView({
   const handleAdjustMany = (memberIds: string[], amount: number, reason: string) =>
     sendAdjustment({ memberIds, amount, reason });
 
-  // ── Inner nav colors ──
-  const viewColors: Record<InnerView, string> = {
-    redeem: selectedColor,
-    rewards: REMOTE_ACCENT,
-    balances: '#4ade80',
-    history: '#a78bfa',
-  };
-
-  const navLabels: Record<InnerView, string> = {
-    redeem: t('rewardsView.nav.redeem'),
-    rewards: t('rewardsView.nav.rewards'),
-    balances: t('rewardsView.nav.balances'),
-    history: t('rewardsView.nav.history'),
-  };
-
   // ── Render ──
   return (
     <div>
@@ -317,36 +304,17 @@ export default function RewardsView({
         </div>
       )}
 
-      {/* Inner toggle: Redeem / Manage / History */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 14, padding: '0 2px' }}>
-        {(isAdmin ? ['redeem', 'rewards', 'balances', 'history'] as InnerView[] : ['redeem', 'history'] as InnerView[]).map((v) => (
-          <button
-            key={v}
-            onClick={() => setInnerView(v)}
-            style={{
-              fontSize: 13,
-              fontWeight: innerView === v ? 600 : 500,
-              color: innerView === v ? viewColors[v] : 'var(--hs-text-faint)',
-              // The underline sits under a 17px word; the padding is what makes
-              // the tab a thumb-sized target without a taller-looking tab bar.
-              minHeight: 44,
-              paddingTop: 10,
-              paddingBottom: 8,
-              cursor: 'pointer',
-              background: 'none',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
-              borderBottomStyle: 'solid',
-              borderBottomWidth: 2,
-              borderBottomColor: innerView === v ? viewColors[v] : 'transparent',
-              transition: 'all 0.15s',
-            }}
-          >
-            {navLabels[v]}
-          </button>
-        ))}
-      </div>
+      {/* Inner pages: Redeem, Rewards, Balances, History */}
+      <SegmentedTabs
+        ariaLabel={t('choresTab.subNav.rewards')}
+        value={innerView}
+        onChange={setInnerView}
+        style={{ marginBottom: 14 }}
+        tabs={(isAdmin ? ['redeem', 'rewards', 'balances', 'history'] as const : ['redeem', 'history'] as const).map((v) => ({
+          id: v,
+          label: t(`rewardsView.nav.${v}`),
+        }))}
+      />
 
       {innerView === 'redeem' && (
         <RedeemSection
@@ -449,7 +417,8 @@ export default function RewardsView({
             title={t('rewardsView.redeem.confirmTitle', { name: redeemTarget.reward.name })}
             description={description}
             confirmLabel={confirmLabel}
-            confirmColor={selectedColor}
+            memberColor={selectedMember?.color}
+            tone="primary"
             onConfirm={handleRedeem}
             onCancel={() => setRedeemTarget(null)}
           />
@@ -477,7 +446,7 @@ function failureKey(err: unknown, fallback: keyof typeof REWARD_ERROR_KEYS): key
 
 /** Each line's dictionary and key: `core` holds the sentences the wall and the editor say too. */
 const REWARD_ERROR_KEYS = {
-  failed: ['remote', 'rewardsView.saveFailed'],
+  failed: ['core', 'refusals.saveFailed'],
   unreachable: ['core', 'refusals.hubUnreachable'],
   conflict: ['remote', 'rewardsView.changedElsewhere'],
   redeemRefused: ['remote', 'rewardsView.redeem.refused'],
@@ -688,7 +657,7 @@ function RewardsManageSection({
   return (
     <>
       <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
+        <ChoreIcon value="lucide:gem" bare size={14} color="currentColor" />
         {t('rewardsView.manage.heading')}
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-border-strong)', fontWeight: 500, textTransform: 'none' as const, letterSpacing: 0 }}>
           {rewards.length === 1
@@ -747,7 +716,7 @@ function RewardsManageSection({
                   : t('rewardsView.manage.disabled')}
             </div>
           </div>
-          <div style={{ color: 'var(--hs-border-strong)', fontSize: 18 }}>›</div>
+          <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--hs-border-strong)', flex: 'none' }} />
         </button>
       ))}
 
@@ -797,7 +766,7 @@ function BalancesSection({
   return (
     <>
       <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
+        <ChoreIcon value="lucide:gem" bare size={14} color="currentColor" />
         {t('rewardsView.balances.heading')}
       </div>
 
@@ -840,49 +809,24 @@ function BalancesSection({
               return ticketWords(t, n, 'rewardsView');
             })()}
           </div>
-          {/* Minus and plus sit a finger-width apart: side by side at 32px they
-              were one mis-tap away from taking a ticket instead of giving one. */}
-          <button
-            className="press-scale-xs"
+          {/* Minus and plus sit a finger-width apart: side by side they were
+              one mis-tap away from taking a ticket instead of giving one. */}
+          <IconButton
+            framed
             onClick={() => onAdjust(member.id, -1)}
             disabled={(data?.balances[member.id] ?? 0) <= 0}
-            aria-label={t('rewardsView.balances.adjustDownAriaLabel', { name: member.name })}
-            style={{
-              opacity: (data?.balances[member.id] ?? 0) <= 0 ? 0.4 : 1,
-              width: 40,
-              height: 40,
-              marginRight: 8,
-              borderRadius: 10,
-              border: '1px solid var(--hs-border)',
-              background: 'var(--hs-bg-panel)',
-              color: 'var(--hs-text-muted)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            label={t('rewardsView.balances.adjustDownAriaLabel', { name: member.name })}
+            style={{ marginRight: 8 }}
           >
-            <Minus size={16} />
-          </button>
-          <button
-            className="press-scale-xs"
+            <Minus size={16} aria-hidden="true" />
+          </IconButton>
+          <IconButton
+            framed
             onClick={() => onAdjust(member.id, 1)}
-            aria-label={t('rewardsView.balances.adjustUpAriaLabel', { name: member.name })}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              border: '1px solid var(--hs-border)',
-              background: 'var(--hs-bg-panel)',
-              color: 'var(--hs-text-muted)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            label={t('rewardsView.balances.adjustUpAriaLabel', { name: member.name })}
           >
-            <Plus size={16} />
-          </button>
+            <Plus size={16} aria-hidden="true" />
+          </IconButton>
         </div>
       ))}
       <button

@@ -9,7 +9,7 @@ import TemplateFlow from './TemplateFlow';
  * "Choose a template" button in front of the shared TemplateFlow. Used from
  * the empty-canvas placeholder and the first-run checklist, so a new user
  * reaches the template catalog from the two places they are actually
- * looking instead of the "+ ˅ > From Template…" menu between the screen tabs.
+ * looking instead of the "+ ˅ > From template…" menu between the screen tabs.
  *
  * `replaceEmptyScreenId` is the screen the user is standing on: when it is
  * still empty once the template lands it is dropped in the same edit, so

@@ -394,8 +394,8 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 ## Backup & Restore
 
-- **Save a backup** (under **Save or restore a file** in **Settings > Backups & data**) in the editor, or **Backup All Data** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
-- **Import** replaces everything the uploaded file carries (available in both the editor and the remote); a section the file leaves out, such as the icons, is kept as it is
+- **Save a backup** (under **Save or restore a file** in **Settings > Backups & data**) in the editor, or **Back up everything** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
+- **Restore from a file** in the editor, or **Restore a backup** in the remote's Settings sheet, replaces everything the uploaded file carries; a section the file leaves out, such as the icons, is kept as it is
 - **Automatic backups** save a backup on the hub by themselves on a schedule, keep the newest ones, and can send each one somewhere else ([details](#automatic-backups))
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
 
@@ -409,7 +409,7 @@ Switch on **Back up by itself** under **Settings > Backups & data > Automatic ba
 - **Pictures**: leave them out (the default), only the ones your screens use, or everything in your picture library. Pictures make every backup much bigger, and a card writes a little slower every time it is filled, so a weekly backup is plenty for pictures in most homes. If a backup with pictures would not fit, it is saved without them and the page says how much room they needed.
 - **Include my keys and connected accounts**: your keys, always locked with a backup password, because these backups can leave your home. It needs an editor password (Settings > Security) and a backup password, which you choose once and Home Screens keeps on the hub. Until both are set, backups are saved without your keys and the page says so. Write the backup password down somewhere safe: you need it to put the keys back on another hub.
 
-**Back up now** saves one straight away. Under **Backups on this hub** each backup has **Download**, **Restore** and **Remove**. Restore works like **Restore from a file**, and the backup stays in the list afterwards. A backup with keys offers **Use the saved backup password**, so you do not have to type it.
+**Back up now** saves one straight away. Under **Backups on this hub** each backup has **Download**, **Restore** and **Delete**. Restore works like **Restore from a file**, and the backup stays in the list afterwards. A backup with keys offers **Use the saved backup password**, so you do not have to type it.
 
 If a backup does not work, the page says why and when it tries again: an hour later, up to three times a day. The editor shows a notice, and the family remote shows one too, saying to open Settings on a computer.
 

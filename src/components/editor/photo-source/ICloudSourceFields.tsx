@@ -8,10 +8,11 @@ import { ICloudLinkImportBridge, ICLOUD_IMPORT_FOLDER } from '@/components/edito
 import { PHOTO_SOURCE_MEDIA_PATH, photoSourceParams } from '@/lib/photo-source';
 import type { MediaListItem, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 type ICloudSource = Extract<PhotoSource, { kind: 'icloud' }>;
 
-/** How long "Checking the album..." stands before it says a big album takes a while. */
+/** How long "Checking the album…" stands before it says a big album takes a while. */
 const SLOW_CHECK_MS = 8_000;
 
 interface Props {
@@ -82,9 +83,9 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
           onPaste={(e) => { const pasted = e.clipboardData.getData('text').trim(); if (pasted) { e.preventDefault(); setDraft(pasted); onChange({ kind: 'icloud', albumUrl: pasted }); } }}
         />
       </form>
-      <p className="text-[10px] text-hs-text-faint leading-relaxed">
+      <FieldHint>
         {t('photoSources.icloud.albumHelp')}
-      </p>
+      </FieldHint>
 
       {/* Wrong-link bridge: a photo link can't play live, but it CAN be
           saved: offer that instead of failing silently. */}
@@ -105,16 +106,16 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
       )}
 
       {linkKind === 'album' && checking && (
-        <p className="text-[10px] text-hs-text-faint" data-testid="icloud-checking">
+        <FieldHint data-testid="icloud-checking">
           {t(slow ? 'photoSources.icloud.checkingSlow' : 'photoSources.icloud.checking')}
-        </p>
+        </FieldHint>
       )}
 
       {/* The hub could not read the album: iCloud was slow, busy or out of
           reach. That says nothing about the link, so it is not blamed; the
           "check the link" hint below is for an album that read as empty. */}
       {linkKind === 'album' && !checking && noAnswer && (
-        <p className="text-[10px] text-hs-warning" data-testid="icloud-no-answer">
+        <p className="text-[10px] text-hs-warning-ink" data-testid="icloud-no-answer">
           {t('photoSources.icloud.noAnswer')}{' '}
           <button type="button" onClick={refetch} className="text-hs-accent hover:text-hs-accent-hover">
             {t('photoSources.icloud.tryAgain')}
@@ -139,16 +140,16 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
             ))}
           </div>
         ) : (
-          <p className="text-[10px] text-hs-warning">
+          <p className="text-[10px] text-hs-warning-ink">
             {t('photoSources.icloud.noItemsFound')}
           </p>
         )
       )}
 
       {mediaTypes !== 'photos' && (
-        <p className="text-[10px] text-hs-text-faint leading-relaxed">
+        <FieldHint>
           {t('photoSources.icloud.videoHint')}
-        </p>
+        </FieldHint>
       )}
     </div>
   );

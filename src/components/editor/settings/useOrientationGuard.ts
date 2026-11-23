@@ -17,7 +17,7 @@ interface CanvasResize {
   from: CanvasSize;
   /** The canvas the edit would leave. */
   to: CanvasSize;
-  /** Writes the edit. Runs at once, or after Switch Anyway / Scale to Fit. */
+  /** Writes the edit. Runs at once, or after Switch anyway / Scale to fit. */
   apply: () => void;
   /** Runs when the user backs out of the prompt instead. */
   revert?: () => void;

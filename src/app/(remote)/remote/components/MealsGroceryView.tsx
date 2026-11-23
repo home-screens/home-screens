@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { ChevronRight, ShoppingCart } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import type { TodoList, TodoListItem } from '@/types/todos';
 import { groceryExtrasItems } from '@/lib/grocery-wall';
@@ -10,6 +11,8 @@ import { groceryShareText } from '@/lib/shopping-list';
 import { useLocale, useTranslate } from '@/i18n';
 import type { ShownWeek } from '@/lib/meal-plan-words';
 import { shareOrCopyText } from './share-text';
+import TickRow from './TickRow';
+import EmptyState from './EmptyState';
 
 interface MealsGroceryViewProps {
   groceryList: GroceryList;
@@ -32,65 +35,12 @@ interface MealsGroceryViewProps {
 /** One line of the grocery list: a meal's ingredient, or something on the family's other list. */
 function GroceryRow({ name, amount, checked, onToggle }: { name: string; amount?: string; checked: boolean; onToggle: () => void }) {
   return (
-    <button
-      onClick={onToggle}
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '11px 12px',
-        minHeight: 44,
-        marginBottom: 4,
-        borderRadius: 10,
-        border: '1px solid var(--hs-border)',
-        background: 'var(--hs-bg-panel)',
-        cursor: 'pointer',
-        opacity: checked ? 0.45 : 1,
-        transition: 'all 0.15s',
-        textAlign: 'left' as const,
-        color: 'inherit',
-        fontFamily: 'inherit',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-    >
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 6,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          background: checked ? 'var(--hs-success)' : 'transparent',
-          border: checked ? 'none' : '2px solid var(--hs-text-faint)',
-          transition: 'all 0.15s',
-        }}
-      >
-        {checked && (
-          <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>
-        )}
-      </div>
-
-      <span
-        style={{
-          flex: 1,
-          fontSize: 14,
-          fontWeight: 500,
-          color: checked ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
-          textDecoration: checked ? 'line-through' : 'none',
-        }}
-      >
-        {name}
-      </span>
-
-      {amount && (
-        <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-          {amount}
-        </span>
-      )}
-    </button>
+    <TickRow
+      label={name}
+      checked={checked}
+      onToggle={onToggle}
+      trailing={amount ? <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>{amount}</span> : undefined}
+    />
   );
 }
 
@@ -121,9 +71,11 @@ function GroceryExtrasGroup({ group, onOpenList }: { group: ExtrasGroup; onOpenL
           <button
             type="button"
             onClick={() => onOpenList(list.id)}
-            style={{ marginLeft: 'auto', minHeight: 44, padding: '0 4px', border: 0, background: 'none', color: 'var(--hs-accent)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
+            className="press-scale-sm"
+            style={{ marginLeft: 'auto', minHeight: 44, padding: '0 4px', border: 0, background: 'none', color: 'var(--hs-accent)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 2 }}
           >
-            {t('mealsGrocery.openInLists')} &rsaquo;
+            {t('mealsGrocery.openInLists')}
+            <ChevronRight size={15} aria-hidden="true" />
           </button>
         )}
       </div>
@@ -213,7 +165,9 @@ function GroceryBody({
             {t(itemsCountKey, { checked: groceryStats.checked, total: groceryStats.total })}
           </span>
           <button
+            type="button"
             onClick={handleShare}
+            className="press-btn"
             style={{
               padding: '6px 14px',
               minHeight: 44,
@@ -229,7 +183,7 @@ function GroceryBody({
             }}
           >
             {shareLabel === 'copied'
-              ? t('mealsGrocery.shareCopiedButton')
+              ? tCore('status.copied')
               : t('mealsGrocery.shareButton')}
           </button>
         </div>
@@ -262,14 +216,7 @@ function GroceryBody({
       </div>
 
       {groceryStats.total === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {t('mealsGrocery.empty.title')}
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-            {t('mealsGrocery.empty.description')}
-          </p>
-        </div>
+        <EmptyState icon={ShoppingCart} title={t('mealsGrocery.empty.title')} body={t('mealsGrocery.empty.description')} style={{ paddingTop: 48 }} />
       )}
 
       {Array.from(groceryList.entries()).map(([catKey, { items }]) => {

@@ -4,15 +4,18 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
+import { settingsPlaceText } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
 import type { SystemStats } from '@/lib/system-stats-types';
 import ConfirmSheet from './ConfirmSheet';
-import FamilyManager from '@/components/family/FamilyManager';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { ChevronLeft, ImagePlus, Users } from 'lucide-react';
+import FormOverlay from './FormOverlay';
+import PhoneFamilyManager from '@/components/family/PhoneFamilyManager';
+import { ChevronRight, ImagePlus, Users } from 'lucide-react';
 import CustomIconsOverlay from './CustomIconsOverlay';
 import SlideUpSheet from './SlideUpSheet';
-import { useBackGesture } from '../hooks/useBackGesture';
+import PhoneSwitch from './PhoneSwitch';
+import PrimaryButton from './PrimaryButton';
+import { segmentStyle } from './remote-styles';
 import { fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
 import { formatIconBytes } from '@/lib/custom-icons';
 import { lacksCustomIcons, summarizeBundle } from '@/lib/backup-summary';
@@ -49,42 +52,20 @@ interface SettingsSheetProps {
 
 /**
  * The full-screen Family screen. Opened from the Settings sheet's Family row
- * and from the Lists tab's item sheet when the roster is empty; the latter
- * sits over a bottom sheet, so it passes a higher `zIndex`.
+ * and from the Lists tab's item sheet when the roster is empty: over a sheet
+ * either way, so it is on the rung over one.
  */
-export function FamilySettingsView({ onBack, zIndex = 120 }: { onBack: () => void; zIndex?: number }) {
+export function FamilySettingsView({ onBack }: { onBack: () => void }) {
   const t = useTranslate('core');
   const tRemote = useTranslate('remote');
-  const ref = useFocusTrap<HTMLDivElement>();
-  // The Back gesture is this screen's Back button, as on every form: without
-  // it the gesture left the remote altogether (see `useBackGesture`).
-  useBackGesture(() => {
-    onBack();
-    return false;
-  });
-  return <div
-    ref={ref}
-    role="dialog"
-    aria-modal="true"
-    aria-label={t('family.title')}
-    onKeyDown={(e) => {
-      // Escape goes back, unless it came from a form or sheet opened on top.
-      if (e.key !== 'Escape' || (e.target as HTMLElement).closest('[role="dialog"]') !== e.currentTarget) return;
-      e.stopPropagation();
-      onBack();
-    }}
-    style={{ zIndex }}
-    className="fixed inset-0 flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]"
-  >
-    <header className="flex w-full max-w-[640px] items-center gap-3 border-b border-hs-border p-4 pt-[max(16px,env(safe-area-inset-top))]">
-      <button className="flex min-h-12 min-w-12 items-center gap-1 text-sm text-hs-text-muted" onClick={onBack}><ChevronLeft size={20} />{t('actions.back')}</button>
-      <h2 className="flex-1 pr-16 text-center text-lg font-bold text-hs-text-primary">{t('family.title')}</h2>
-    </header>
-    <div className="w-full max-w-[640px] flex-1 overflow-y-auto p-5">
-      <p className="mb-5 text-sm text-hs-text-muted">{tRemote('settingsSheet.family.description')}</p>
-      <FamilyManager variant="mobile" />
-    </div>
-  </div>;
+  // A full-screen form like every other: Back, the Back gesture and Escape
+  // all come from FormOverlay.
+  return (
+    <FormOverlay title={t('family.title')} onBack={onBack} layer="sheetOverSheet">
+      <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: 1.45, color: 'var(--hs-text-muted)' }}>{tRemote('settingsSheet.family.description')}</p>
+      <PhoneFamilyManager />
+    </FormOverlay>
+  );
 }
 
 function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {
@@ -127,9 +108,7 @@ function PowerRow({
         <div className="text-[15px] font-medium text-hs-text-primary">{label}</div>
         <div className="text-xs text-hs-text-faint mt-0.5">{description}</div>
       </div>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-      </svg>
+      <ChevronRight className="w-4 h-4 text-hs-text-faint shrink-0" strokeWidth={2} aria-hidden="true" />
     </button>
   );
 }
@@ -157,7 +136,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   // Which power action is waiting on its confirm sheet, if any.
   const [confirmPower, setConfirmPower] = useState<PowerAction | null>(null);
 
-  // Restore state machine: idle → confirming → busy → done/invalid-file/restore-failed
+  // Restore state machine: idle → confirming (the question is open) → busy → done/invalid-file/restore-failed
   const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'done-without-keys' | 'invalid-file' | 'restore-failed'>('idle');
   const restoreDataRef = useRef<string | null>(null);
   /** True when the selected bundle carried keys this sheet chose not to apply. */
@@ -167,7 +146,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   /** Pictures and their size in the chosen zip, for the confirming line. */
   const restorePicturesRef = useRef<{ count: number; bytes: number } | null>(null);
   const restoreInputRef = useRef<HTMLInputElement>(null);
-  const restoreTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -200,7 +178,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       setConfirmPower(null);
       setRestoreState('idle');
       restoreDataRef.current = null;
-      clearTimeout(restoreTimerRef.current);
       setTheme(getThemeChoice());
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- fetchStats and loading are intentionally excluded; we want to trigger on open, not re-trigger when stats load
@@ -216,13 +193,15 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     setPictureBackupChoice(next);
   };
 
+  /** A good file is in hand: ask before it replaces anything, as every other replace on the phone does. */
   const armRestore = (data: Record<string, unknown>) => {
     restoreDataRef.current = JSON.stringify(data);
     setRestoreState('confirming');
-    restoreTimerRef.current = setTimeout(() => {
-      setRestoreState('idle');
-      restoreDataRef.current = null;
-    }, 5000);
+  };
+
+  const cancelRestore = () => {
+    setRestoreState('idle');
+    restoreDataRef.current = null;
   };
 
   const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,7 +256,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
 
   const handleRestoreConfirm = async () => {
     if (!restoreDataRef.current) return;
-    clearTimeout(restoreTimerRef.current);
     setRestoreState('busy');
     try {
       const res = await editorFetch('/api/backup', {
@@ -341,8 +319,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
                 <span className="text-hs-text-muted">{t('settingsSheet.system.uptimeLabel')}</span>
                 <span className="text-hs-text-primary font-medium">{formatUptime(stats.os.uptime)}</span>
               </div>
-              <UsageBar used={stats.memory.used} total={stats.memory.total} label={t('settingsSheet.system.memoryLabel')} color="#3b82f6" />
-              <UsageBar used={stats.disk.used} total={stats.disk.total} label={t('settingsSheet.system.diskLabel')} color="#22c55e" />
+              <UsageBar used={stats.memory.used} total={stats.memory.total} label={t('settingsSheet.system.memoryLabel')} color="var(--hs-accent)" />
+              <UsageBar used={stats.disk.used} total={stats.disk.total} label={t('settingsSheet.system.diskLabel')} color="var(--hs-success)" />
             </div>
           ) : null}
         </div>
@@ -353,12 +331,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             {(['light', 'dark', 'system'] as const).map((opt) => (
               <button
                 key={opt}
+                type="button"
+                aria-pressed={themeChoice === opt}
                 onClick={() => { setTheme(opt); setThemeChoice(opt); }}
-                className={`flex-1 py-2.5 text-[13px] font-medium rounded-lg transition-colors min-h-[44px] ${
-                  themeChoice === opt
-                    ? 'bg-hs-accent text-white'
-                    : 'bg-hs-card text-hs-text-muted'
-                }`}
+                style={segmentStyle(themeChoice === opt)}
               >
                 {opt === 'system' ? t('settingsSheet.theme.system') : opt === 'light' ? t('settingsSheet.theme.light') : t('settingsSheet.theme.dark')}
               </button>
@@ -381,33 +357,23 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             description={tCore('customIcons.settingsRow.description', { count: icons.length })}
             onClick={() => setIconsOpen(true)}
             iconBg="bg-hs-warning/[0.12]"
-            iconColor="text-hs-warning"
+            iconColor="text-hs-warning-ink"
             icon={<ImagePlus size={18} />}
           />
           {/* Above the Backup row it changes: read top to bottom, the row
               downloaded before anyone reached a switch placed under it. The
               whole row toggles, not just the knob. */}
           {iconSummary && iconSummary.count > 0 && (
-            <button
-              type="button"
-              role="switch"
-              aria-checked={includeIcons}
-              onClick={() => { setIncludeIcons(!includeIcons); setIncludeCustomIcons(!includeIcons); }}
-              className="w-full flex items-center gap-3 py-3 text-left min-h-[52px]"
-            >
-              <div className="w-9 shrink-0" aria-hidden />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-hs-text-primary">{tCore('customIcons.backup.include')}</div>
-                <div className="text-xs text-hs-text-muted mt-0.5">
-                  {includeIcons
-                    ? tCore('customIcons.backup.adds', { size: formatIconBytes(iconSummary.bytes) })
-                    : tCore('customIcons.backup.leftOutWhenOff')}
-                </div>
-              </div>
-              <span aria-hidden className={`relative w-[46px] h-7 rounded-full shrink-0 transition-colors ${includeIcons ? 'bg-hs-success' : 'bg-hs-border-strong'}`}>
-                <span className={`absolute top-[3px] left-[3px] w-[22px] h-[22px] rounded-full bg-white transition-transform ${includeIcons ? 'translate-x-[18px]' : ''}`} />
-              </span>
-            </button>
+            <PhoneSwitch
+              checked={includeIcons}
+              onChange={(next) => { setIncludeIcons(next); setIncludeCustomIcons(next); }}
+              label={tCore('customIcons.backup.include')}
+              description={includeIcons
+                ? tCore('customIcons.backup.adds', { size: formatIconBytes(iconSummary.bytes) })
+                : tCore('customIcons.backup.leftOutWhenOff')}
+              // In line with the rows' words, past the space their icons take.
+              style={{ minHeight: 52, padding: '12px 0 12px 48px' }}
+            />
           )}
           {pictureSummary && pictureSummary.all.count > 0 && (
             <button
@@ -428,9 +394,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
                     : `${tCore(pictureChoice === 'used' ? 'pictureBackup.phoneUsed' : 'pictureBackup.phoneAll')} · ${formatIconBytes(pictureSummary[pictureChoice].bytes)}`}
                 </div>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
+              <ChevronRight className="w-4 h-4 text-hs-text-faint shrink-0" strokeWidth={2} aria-hidden="true" />
             </button>
           )}
           <button
@@ -439,7 +403,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             disabled={backupBusy || (backupDone && !backupIconsLeftOut && !backupPicturesLeftOut)}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning">
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning-ink">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
@@ -452,21 +416,19 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.backup.description')}</div>
               )}
               {!backupBusy && backupDone && backupIconsLeftOut && (
-                <div role="status" className="text-xs text-hs-warning mt-0.5">{tCore('customIcons.backup.leftOut')}</div>
+                <div role="status" className="text-xs text-hs-warning-ink mt-0.5">{tCore('customIcons.backup.leftOut')}</div>
               )}
               {!backupBusy && backupDone && !backupIconsLeftOut && backupPicturesLeftOut && (
-                <div role="status" className="text-xs text-hs-warning mt-0.5">{tCore('pictureBackup.leftOut')}</div>
+                <div role="status" className="text-xs text-hs-warning-ink mt-0.5">{tCore('pictureBackup.leftOut')}</div>
               )}
             </div>
             {!backupBusy && !backupDone && (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
+              <ChevronRight className="w-4 h-4 text-hs-text-faint shrink-0" strokeWidth={2} aria-hidden="true" />
             )}
           </button>
 
           <button
-            onClick={restoreState === 'confirming' ? handleRestoreConfirm : () => restoreInputRef.current?.click()}
+            onClick={() => restoreInputRef.current?.click()}
             disabled={restoreState === 'busy' || restoreState === 'done' || restoreState === 'done-without-keys'}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
@@ -479,41 +441,26 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             </div>
             <div className="flex-1 min-w-0">
               <div className={`text-[15px] font-medium ${
-                restoreState === 'confirming' ? 'text-hs-danger animate-pulse'
-                : restoreState === 'done' || restoreState === 'done-without-keys' ? 'text-hs-success'
+                restoreState === 'done' || restoreState === 'done-without-keys' ? 'text-hs-success'
                 : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-hs-danger'
                 : 'text-hs-text-primary'
               }`}>
-                {restoreState === 'confirming' ? t('settingsSheet.data.restore.confirmingLabel')
-                : restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
+                {restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
                 : restoreState === 'done' ? t('settingsSheet.data.restore.doneLabel')
                 : restoreState === 'done-without-keys' ? t('settingsSheet.data.restore.doneWithoutKeysLabel')
                 : restoreState === 'invalid-file' ? t('settingsSheet.data.restore.invalidFileLabel')
                 : restoreState === 'restore-failed' ? t('settingsSheet.data.restore.failedLabel')
                 : t('settingsSheet.data.restore.label')}
               </div>
-              {restoreState === 'idle' && (
+              {(restoreState === 'idle' || restoreState === 'confirming') && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.idleDescription')}</div>
-              )}
-              {restoreState === 'confirming' && (
-                <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.confirmingDescription')}</div>
-              )}
-              {restoreState === 'confirming' && restoreLacksIconsRef.current && (
-                <div className="text-xs text-hs-warning mt-1">{tCore('customIcons.backup.restoreNoIcons')}</div>
-              )}
-              {restoreState === 'confirming' && restorePicturesRef.current && (
-                <div className="text-xs text-hs-text-muted mt-1">
-                  {tCore('pictureBackup.restoreConfirm', { count: restorePicturesRef.current.count, size: formatIconBytes(restorePicturesRef.current.bytes) })}
-                </div>
               )}
               {restoreState === 'done-without-keys' && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.doneWithoutKeysDescription')}</div>
               )}
             </div>
-            {restoreState === 'idle' && (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
+            {(restoreState === 'idle' || restoreState === 'confirming') && (
+              <ChevronRight className="w-4 h-4 text-hs-text-faint shrink-0" strokeWidth={2} aria-hidden="true" />
             )}
           </button>
           <input
@@ -524,13 +471,13 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             onChange={handleRestoreFile}
           />
           {missingIcons > 0 && (restoreState === 'done' || restoreState === 'done-without-keys') && (
-            <p role="status" className="text-sm text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
+            <p role="status" className="text-sm text-hs-warning-ink border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
               {tCore('customIcons.backup.missing')}
             </p>
           )}
           {missingPictures > 0 && (restoreState === 'done' || restoreState === 'done-without-keys') && (
-            <p role="status" className="text-sm text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
-              {tCore('pictureBackup.restoreMissing')}
+            <p role="status" className="text-sm text-hs-warning-ink border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
+              {tCore('pictureBackup.phoneRestoreMissing', { place: settingsPlaceText(tCore, 'media') })}
             </p>
           )}
         </div>
@@ -540,7 +487,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
 
           {/* An update finished that the wall only picks up after a restart.
               Parents may never open the editor, so the phone says it too; the
-              button asks through the same confirm as Reboot Device below. */}
+              button asks through the same confirm as Restart everything below. */}
           {stats?.restartNeeded && (
             <div
               data-testid="remote-restart-needed"
@@ -548,13 +495,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             >
               <div className="text-[15px] font-semibold text-hs-text-primary">{t('settingsSheet.power.restartNeeded.title')}</div>
               <div className="text-[13px] text-hs-text-muted mt-1">{t('settingsSheet.power.restartNeeded.description')}</div>
-              <button
-                type="button"
-                onClick={() => setConfirmPower('reboot')}
-                className="mt-3 w-full min-h-[48px] rounded-xl bg-hs-accent text-white text-[15px] font-bold active:scale-[0.97]"
-              >
+              <PrimaryButton onClick={() => setConfirmPower('reboot')} style={{ marginTop: 12 }}>
                 {t('settingsSheet.power.restartNeeded.button')}
-              </button>
+              </PrimaryButton>
             </div>
           )}
 
@@ -591,13 +534,26 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       {open && familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
       {open && iconsOpen && <CustomIconsOverlay onBack={() => setIconsOpen(false)} />}
 
+      {restoreState === 'confirming' && (
+        <ConfirmSheet
+          title={t('settingsSheet.data.restore.confirmTitle')}
+          description={[
+            t('settingsSheet.data.restore.confirmingDescription'),
+            restoreLacksIconsRef.current && tCore('customIcons.backup.restoreNoIcons'),
+            restorePicturesRef.current && tCore('pictureBackup.restoreConfirm', { count: restorePicturesRef.current.count, size: formatIconBytes(restorePicturesRef.current.bytes) }),
+          ].filter(Boolean).join(' ')}
+          confirmLabel={t('settingsSheet.data.restore.confirmButton')}
+          onConfirm={() => void handleRestoreConfirm()}
+          onCancel={cancelRestore}
+        />
+      )}
+
       {confirmPower && (
         <ConfirmSheet
-          zIndex={110}
           title={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmTitle`)}
           description={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmBody`)}
           confirmLabel={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmButton`)}
-          confirmColor={confirmPower === 'reboot' ? undefined : 'var(--hs-accent)'}
+          tone={confirmPower === 'reboot' ? 'danger' : 'primary'}
           onConfirm={() => void sendPower(confirmPower)}
           onCancel={() => setConfirmPower(null)}
         />

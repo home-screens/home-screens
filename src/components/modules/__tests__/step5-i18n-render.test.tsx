@@ -185,7 +185,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('en-US', <GarbageDayModule config={garbageConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('Collection Schedule');
+      expect(container.textContent).toContain('Collection schedule');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
 

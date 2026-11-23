@@ -20,7 +20,17 @@ export interface ProgressData {
    * event never arrives.
    */
   restartNeeded?: boolean;
+  /**
+   * Set when the window itself, not the install, ran into trouble: the
+   * stream dropped for good, never opened, or the start request failed. The
+   * window says each in the household's words (`upgradeModal.errors.*`);
+   * `message` and `error` then carry nothing.
+   */
+  notice?: UpgradeNotice;
 }
+
+/** What went wrong on the window's side of an update. */
+export type UpgradeNotice = 'connectionLost' | 'noStream' | 'startFailed';
 
 export type StepState = 'done' | 'active' | 'pending' | 'error';
 
@@ -73,7 +83,7 @@ export function getStepState(
   const stepIdx = steps.indexOf(step);
   const activeIdx = steps.indexOf(activeStep);
 
-  // Only mark steps done if actually visited — unvisited steps must not show as complete.
+  // Only mark steps done if actually visited: unvisited steps must not show as complete.
   if (done) return visitedSteps.has(step) ? 'done' : 'pending';
 
   // If activeStep is not in the visible steps list (e.g. internal-only steps
@@ -89,27 +99,7 @@ export function getStepState(
 }
 
 // ---------------------------------------------------------------------------
-// Step labels (shared constant)
-// ---------------------------------------------------------------------------
-
-export const STEP_LABELS: Record<string, string> = {
-  preflight: 'Pre-flight checks',
-  backup: 'Back up configuration',
-  download: 'Download update',
-  migrate: 'Migrate configuration',
-  deploy: 'Install update',
-  'setup-system': 'Apply system configuration',
-  restart: 'Restart service',
-  cleanup: 'Finalize',
-  // Legacy git-based steps (shown for fallback upgrades)
-  fetch: 'Download latest code',
-  checkout: 'Switch to new version',
-  install: 'Install dependencies',
-  build: 'Build application',
-};
-
-// ---------------------------------------------------------------------------
-// useUpgradeStream — SSE connection + upgrade trigger
+// useUpgradeStream: SSE connection + upgrade trigger
 // ---------------------------------------------------------------------------
 
 /**
@@ -141,13 +131,13 @@ function finishAfterRestart(ctx: StreamContext): void {
   ctx.setProgress({
     step: 'complete',
     progress: 100,
-    message: 'Server restarted. Reconnecting...',
+    message: '',
     restartNeeded: ctx.progressRef.current.restartNeeded === true,
   });
   ctx.setDone(true);
 }
 
-/** Progress events — step transitions. */
+/** Progress events: step transitions. */
 function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
   try {
     const data = JSON.parse(event.data) as ProgressData & { type: string };
@@ -184,7 +174,7 @@ function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
       data.step !== 'complete' &&
       ctx.steps.includes(data.step)
     ) {
-      // Only update activeStep for visible steps — hidden steps like
+      // Only update activeStep for visible steps; hidden steps like
       // 'stash'/'cleanup' would make indexOf return -1 and break the
       // accordion state.
       ctx.setActiveStep(data.step);
@@ -202,7 +192,7 @@ function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
   }
 }
 
-/** Output events — streaming log lines accumulated per step. */
+/** Output events: streaming log lines accumulated per step. */
 function handleOutputEvent(
   setStepLogs: Dispatch<SetStateAction<Record<string, string>>>,
   markEvent: () => void,
@@ -225,16 +215,9 @@ function giveUpReconnecting(ctx: StreamContext): void {
   ctx.giveUpTimer.current = null;
   ctx.es.close();
   ctx.setReconnecting(false);
-  const currentActive = ctx.activeStepRef.current;
-  const stepLabel = STEP_LABELS[currentActive] || currentActive;
   ctx.setFailed(true);
-  ctx.setProgress({
-    step: 'error',
-    progress: 0,
-    message: `Connection lost during "${stepLabel}"`,
-    error:
-      'The server connection was lost unexpectedly. The upgrade may still be running — check server logs and try refreshing the page.',
-  });
+  // The window names the step it lost sight of: the active step stays put.
+  ctx.setProgress({ step: 'error', progress: 0, message: '', notice: 'connectionLost' });
 }
 
 /**
@@ -261,13 +244,7 @@ function handleStreamError(ctx: StreamContext): void {
   } else if (!ctx.hasSeenRealStep.current) {
     ctx.es.close();
     ctx.setFailed(true);
-    ctx.setProgress({
-      step: 'error',
-      progress: 0,
-      message: 'Failed to connect to upgrade stream',
-      error:
-        'Could not establish a connection to monitor the upgrade. Try refreshing the page.',
-    });
+    ctx.setProgress({ step: 'error', progress: 0, message: '', notice: 'noStream' });
   } else if (current.step === 'complete' || current.step === 'error') {
     ctx.es.close();
   } else if (ctx.giveUpTimer.current === null) {
@@ -299,25 +276,14 @@ async function triggerUpgrade(
       body: JSON.stringify({ tag: targetTag }),
     });
     if (!res.ok) {
-      const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
       ctx.es.close();
       ctx.setFailed(true);
-      ctx.setProgress({
-        step: 'error',
-        progress: 0,
-        message: 'Failed to start upgrade',
-        error: body.error || `Server returned ${res.status}`,
-      });
+      ctx.setProgress({ step: 'error', progress: 0, message: '', notice: 'startFailed' });
     }
   } catch {
     ctx.es.close();
     ctx.setFailed(true);
-    ctx.setProgress({
-      step: 'error',
-      progress: 0,
-      message: 'Failed to start upgrade',
-      error: 'Could not connect to server',
-    });
+    ctx.setProgress({ step: 'error', progress: 0, message: '', notice: 'startFailed' });
   }
 }
 
@@ -331,7 +297,7 @@ export function useUpgradeStream(
   const [progress, setProgress] = useState<ProgressData>({
     step: firstStep,
     progress: 0,
-    message: 'Starting...',
+    message: '',
   });
   const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
@@ -395,7 +361,7 @@ export function useUpgradeStream(
     setStepDurations((d) => (d[step] != null ? d : { ...d, [step]: Date.now() - startedAt }));
   }, [done]);
 
-  // Connect SSE and trigger upgrade. Deliberately ONE mount-only effect —
+  // Connect SSE and trigger upgrade. Deliberately ONE mount-only effect:
   // the EventSource lifecycle (open, wire handlers, trigger, close on
   // unmount) is a single resource; the handler bodies live in the named
   // module-level functions above.
@@ -470,7 +436,7 @@ export function useUpgradeStream(
 }
 
 // ---------------------------------------------------------------------------
-// useWaitForServer — poll for server availability after upgrade completes
+// useWaitForServer: poll for server availability after upgrade completes
 // ---------------------------------------------------------------------------
 
 export function useWaitForServer(done: boolean): string | null {
@@ -507,7 +473,7 @@ export function useWaitForServer(done: boolean): string | null {
           // Poll /api/system/version which returns { upgradeRunning }.
           // The OLD server (still alive during nohup delay) returns
           // upgradeRunning: true. The NEW server starts fresh with
-          // upgradeRunning: false — so we only reload once the new
+          // upgradeRunning: false, so we only reload once the new
           // server is confirmed ready.
           const res = await editorFetch('/api/system/version', { cache: 'no-store' });
           if (res.ok) {
@@ -517,12 +483,12 @@ export function useWaitForServer(done: boolean): string | null {
               window.location.reload();
               return;
             }
-            // Old server still running — update message
+            // Old server still running: update message
             serverResponded = true;
             say('waitingOld', elapsed);
           }
         } catch {
-          // Server not responding yet — expected during restart
+          // Server not responding yet, expected during restart
           serverResponded = false;
         }
         await new Promise((r) => setTimeout(r, 2000));

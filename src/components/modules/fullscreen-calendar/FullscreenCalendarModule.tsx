@@ -58,6 +58,9 @@ import {
   FULLSCREEN_CALENDAR_VIEW_ORDER, livePick, offersPersonPicker, personEventCounts, wallPeopleChoices, wallSwitchedConfig, wallViewChoices,
 } from '@/lib/calendar-wall-switch';
 import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
+import { ModuleLoadingState, ModuleNotUpdatingState } from '../ModuleStates';
+import { fullscreenStateStyle } from '../shared/FullscreenStateShell';
+import { FullscreenStateContext } from '../shared/fullscreen-state-context';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
 // (potentially hundreds of) event blocks from reconciling on those frames —
@@ -127,35 +130,11 @@ export function selectVisibleEvents(
   });
 }
 
-// ─── Skeleton loading ───
-
-function SkeletonLoading({ scale }: { scale: CalendarScale }) {
-  const rows = [0.7, 0.5, 0.85, 0.6, 0.4, 0.75];
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: scale.bu * 1.2,
-      padding: `${scale.bu * 3}px ${scale.bu * 2}px`,
-    }}>
-      {rows.map((w, i) => (
-        <div key={i} className="fsc-skeleton" style={{
-          height: scale.bu * 3,
-          width: `${w * 100}%`,
-          borderRadius: scale.bu * 0.4,
-          background: 'var(--cal-border)',
-        }} />
-      ))}
-    </div>
-  );
-}
-
 // ─── Empty state ───
 
-function EmptyState({ scale, emptyKey, t, fetchFailed }: { scale: CalendarScale; emptyKey: string; t: TranslateFn; fetchFailed?: boolean }) {
-  // A failed fetch with nothing kept is an outage, not a free day — it must
-  // never render the same wording as a genuinely empty calendar.
-  const label = fetchFailed ? t('fullscreen-calendar.cantLoadEvents') : t(emptyKey);
+/** A window with nothing in it: an ordinary quiet week, never an outage (that is the not-updating state). */
+function EmptyState({ scale, emptyKey, t }: { scale: CalendarScale; emptyKey: string; t: TranslateFn }) {
+  const label = t(emptyKey);
   return (
     <div style={{
       display: 'flex',
@@ -211,7 +190,7 @@ interface FullscreenCalendarModuleProps {
 
 export default function FullscreenCalendarModule({
   config: savedConfig,
-  style: _style,
+  style,
   events: rawEventsRaw,
   timezone,
   timeFormat: savedTimeFormat,
@@ -231,6 +210,7 @@ export default function FullscreenCalendarModule({
   moduleId,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const timeFormat = householdTimeFormat(savedTimeFormat, locale);
   const rawEvents = useMemo(() => rawEventsRaw ?? [], [rawEventsRaw]);
@@ -445,7 +425,7 @@ export default function FullscreenCalendarModule({
   // not an outage.
   const status = calendarStatusView({
     calendarSetup, calendarLoading, calendarStatus, failingSources, hasLiveSource,
-    timezone, timeFormat, locale, now, today, t,
+    timezone, timeFormat, locale, now, today, t, tCore,
   });
   const neverLoaded = status.kind === 'cantLoad';
 
@@ -672,12 +652,19 @@ export default function FullscreenCalendarModule({
             style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
           />
         ) : isLoading ? (
-          <SkeletonLoading scale={scale} />
-        ) : neverLoaded || peopleUnavailable || !hasContent ? (
+          <FullscreenStateContext.Provider value>
+            <ModuleLoadingState style={fullscreenStateStyle(style, theme, dims)} message={t('calendar.loadingEvents')} />
+          </FullscreenStateContext.Provider>
+        ) : neverLoaded || peopleUnavailable ? (
           // A fetch that has never succeeded is an outage even when the view
           // has settings-derived content (people rows, meals/chores): drawing
-          // every person with zero events would read as a free week.
-          <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} fetchFailed={neverLoaded || peopleUnavailable} />
+          // every person with zero events would read as a free week. It
+          // never takes the same words as a genuinely empty calendar.
+          <FullscreenStateContext.Provider value>
+            <ModuleNotUpdatingState style={fullscreenStateStyle(style, theme, dims)} />
+          </FullscreenStateContext.Provider>
+        ) : !hasContent ? (
+          <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} />
         ) : (
           <DaySheetContext.Provider value={daySheet.opener}>
             <AnimatePresence mode="wait">
@@ -814,6 +801,9 @@ function HeaderLookAheadArrows({ look, scale }: { look: LookAhead; scale: Calend
 
 // ─── CSS Custom Properties (injected into component scope) ───
 
+/** Lucide's chevron-right as a CSS mask, so the chevron a row draws by CSS matches the ones drawn as icons. */
+const CHEVRON_MASK = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E")`;
+
 const cssTokens = `
 .fsc-root {
   --cal-transition-fast: 150ms ease-out;
@@ -826,7 +816,7 @@ const cssTokens = `
 
 /* Smooth theme transitions */
 .fsc-root,
-.fsc-root *:not(.fsc-skeleton):not(.fsc-view-motion) {
+.fsc-root *:not(.fsc-view-motion) {
   transition:
     background-color 800ms ease-in-out,
     color 400ms ease-in-out,
@@ -852,16 +842,6 @@ ${heldPulseKeyframes('fsc-today-pulse', { rest: 0, peak: 1, periodMs: 4000 })}
   pointer-events: none;
   will-change: opacity;
   animation: fsc-today-pulse 4s linear infinite;
-}
-
-/* Skeleton shimmer */
-@keyframes fsc-shimmer {
-  0%   { opacity: 0.5; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.5; }
-}
-.fsc-skeleton {
-  animation: fsc-shimmer 1.5s ease-in-out infinite;
 }
 
 /* Reduced motion */
@@ -964,18 +944,21 @@ ${heldPulseKeyframes('fsc-today-pulse', { rest: 0, peak: 1, periodMs: 4000 })}
   padding-right: 1.6em !important;
 }
 .fsc-root[data-tap-events] .fsc-tap-row::after {
-  content: '›';
+  content: '';
   position: absolute;
-  right: 0.55em;
+  right: 0.3em;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1.2em;
-  line-height: 1;
+  width: 1em;
+  height: 1em;
+  background: currentColor;
+  -webkit-mask: ${CHEVRON_MASK} center / contain no-repeat;
+  mask: ${CHEVRON_MASK} center / contain no-repeat;
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* Hide scrollbars — kiosk display, no manual scroll */
+/* Hide scrollbars: kiosk display, no manual scroll */
 .fsc-root,
 .fsc-root * {
   scrollbar-width: none;

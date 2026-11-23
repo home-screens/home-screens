@@ -24,10 +24,10 @@ test('Defaults › Calendar: adding an iCal feed checks the link, then persists 
   await page.route('**/api/calendar/check', (route) => route.fulfill({ json: { ok: true, eventCount: 3 } }));
   await page.goto('/editor/settings?section=defaults&page=calendar');
 
-  // ICalFeedManager keeps the fields behind a "+ Add Feed" reveal, and the
+  // ICalFeedManager keeps the fields behind a "Add feed" reveal, and the
   // "Add" button stays disabled until BOTH a name and a URL are present — so
   // the plan's "fill URL, click Add" is not enough on its own.
-  await page.getByRole('button', { name: '+ Add Feed' }).click();
+  await page.getByRole('button', { name: 'Add feed' }).click();
 
   await autosaved(page, async () => {
     await page.getByPlaceholder('Feed name (e.g. Work, Sports)').fill('Work');
@@ -62,7 +62,7 @@ test('Defaults › Calendar: a slower health fetch cannot wipe the badge the lin
   });
 
   await page.goto('/editor/settings?section=defaults&page=calendar');
-  await page.getByRole('button', { name: '+ Add Feed' }).click();
+  await page.getByRole('button', { name: 'Add feed' }).click();
   await autosaved(page, async () => {
     await page.getByPlaceholder('Feed name (e.g. Work, Sports)').fill('Work');
     await page.getByPlaceholder('https://example.com/calendar.ics').fill('https://example.com/feed.ics');
@@ -85,15 +85,15 @@ test('Defaults › Calendar: a link that is not a calendar stays in the form wit
     route.fulfill({ json: { ok: false, error: 'Could not reach the link (HTTP 404)', messageKey: 'linkHttpError', messageParams: { status: 404 } } }),
   );
   await page.goto('/editor/settings?section=defaults&page=calendar');
-  await page.getByRole('button', { name: '+ Add Feed' }).click();
+  await page.getByRole('button', { name: 'Add feed' }).click();
   await page.getByPlaceholder('Feed name (e.g. Work, Sports)').fill('Soccer');
   await page.getByPlaceholder('https://example.com/calendar.ics').fill('https://example.com/not-a-calendar');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
 
   // Inline, plain-language, and nothing saved.
   const check = page.getByTestId('ical-link-check');
-  await expect(check).toContainText('Could not reach the link (HTTP 404)');
-  await expect(check).toContainText('Check the link ends in .ics or starts with webcal://');
+  await expect(check).toContainText("Couldn't open that link (the server answered 404)");
+  await expect(check).toContainText('A calendar link usually ends in .ics or starts with webcal://.');
   await expect(page.getByPlaceholder('https://example.com/calendar.ics')).toHaveValue('https://example.com/not-a-calendar');
   expect((await getConfig(request)).settings.calendar.icalSources ?? []).toHaveLength(0);
 

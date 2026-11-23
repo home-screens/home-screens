@@ -19,7 +19,7 @@ describe('resolveTimerTargets', () => {
     // 'all' rather than an enumerated list: the displays array is a
     // page-load snapshot, so the broadcast keyword also covers displays
     // adopted after the page loaded, and the running card gets the
-    // translated "On all displays" label.
+    // translated "On every wall" label.
     expect(resolveTimerTargets(['kitchen', 'main'], displays)).toBe('all');
   });
 

@@ -57,7 +57,7 @@ test('the module menu reaches the module behind and reorders the stack', async (
   expect(await selectedHeight(page)).toBe(400);
 
   await page.locator('[data-module-id="front"]').click({ button: 'right' });
-  await page.getByTestId('module-context-menu').getByRole('menuitem', { name: 'Send to Back' }).click();
+  await page.getByTestId('module-context-menu').getByRole('menuitem', { name: 'Send to back' }).click();
   await expect.poll(async () => {
     const mods = (await getConfig(request)).screens[0].modules;
     const z = Object.fromEntries(mods.map((m) => [m.id, m.zIndex]));

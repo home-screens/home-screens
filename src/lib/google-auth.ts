@@ -36,7 +36,7 @@ interface DeviceCodeResponse {
 export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   const clientId = await store.getClientId();
   if (!clientId) {
-    throw new SetupError('Google Calendar Client ID is not configured. Add it in Settings → API keys.', 'key', 'Google Calendar', 'integrations');
+    throw new SetupError('Google Calendar Client ID is not configured. Add it in Settings > API keys.', 'key', 'Google Calendar', 'integrations');
   }
 
   const start = await requestDeviceCodeGrant(DEVICE_CODE_URL, {

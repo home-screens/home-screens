@@ -44,7 +44,12 @@ vi.mock('../useLiveConfig', () => ({
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
 vi.mock('../useBootWarmup', () => ({ useBootWarmup: () => {} }));
-vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
+// PaginationDots names its dots through the dictionary: read them in English.
+vi.mock('@/i18n', async () => {
+  const { lookupKey } = await import('@/i18n/fallback');
+  const core = (await import('@/translations/en-US/core.json')).default;
+  return { useTranslate: () => (key: string, vars?: Record<string, string | number>) => lookupKey(core, key, vars) ?? key };
+});
 vi.mock('../useBackgroundRotation', () => ({ useBackgroundRotation: () => ({}) }));
 vi.mock('@/hooks/useDisplayCommands', () => ({
   useDisplayCommands: () => {},

@@ -6,6 +6,9 @@ import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 import { useForecastDaysSent, useForecastHoursSent } from '@/stores/preview-weather-store';
+import Notice from '@/components/ui/Notice';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 interface Props {
   /** The source the module actually reads, after `global` is resolved. */
@@ -31,6 +34,7 @@ interface Props {
  */
 export function ForecastDaysHint({ provider, requested, unit = 'days', followsHousehold, onPickOpenMeteo }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const daysSent = useForecastDaysSent(provider);
   const hoursSent = useForecastHoursSent(provider);
   const sent = unit === 'hours' ? hoursSent : daysSent;
@@ -40,17 +44,14 @@ export function ForecastDaysHint({ provider, requested, unit = 'days', followsHo
   const strings = unit === 'hours' ? 'configSections.weather.forecastHours' : 'configSections.weather.forecastDays';
   if (requested <= sent) {
     return (
-      <p className="text-xs text-hs-text-muted" data-testid={`forecast-${unit}-hint`}>
+      <FieldHint data-testid={`forecast-${unit}-hint`}>
         {t(`${strings}.sends`, { source, count: sent })}
-      </p>
+      </FieldHint>
     );
   }
 
   return (
-    <div
-      className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs"
-      data-testid={`forecast-${unit}-capped`}
-    >
+    <Notice tone="warning" size="sm" testId={`forecast-${unit}-capped`}>
       <p className="text-hs-text-body">{t(`${strings}.capped`, { source, count: sent })}</p>
       {/* The free key's three-day cap is a days limit; its two days of hours are the usual 48. */}
       {provider === 'weatherapi' && unit === 'days' && (
@@ -66,9 +67,9 @@ export function ForecastDaysHint({ provider, requested, unit = 'days', followsHo
           href={settingsPath({ kind: 'defaults', page: 'weather' })}
           className="mt-1.5 block font-medium text-hs-accent hover:underline"
         >
-          {t('configSections.weather.forecastDays.changeHousehold')}
+          {t('configSections.weather.forecastDays.changeHousehold', { place: settingsPlaceText(tCore, 'weather') })}
         </Link>
       )}
-    </div>
+    </Notice>
   );
 }

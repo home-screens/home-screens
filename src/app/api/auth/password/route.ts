@@ -31,8 +31,9 @@ export async function POST(request: NextRequest) {
   try {
     const ip = getClientIP(request);
     if (limiter.isLimited(ip)) {
+      const minutes = Math.max(1, Math.ceil(limiter.retryAfterMs(ip) / 60_000));
       return NextResponse.json(
-        { error: 'Too many failed attempts. Try again later.' },
+        { error: 'Too many failed attempts. Try again later.', retryAfterMinutes: minutes },
         { status: 429 },
       );
     }

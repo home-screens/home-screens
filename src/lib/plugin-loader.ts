@@ -102,7 +102,7 @@ export async function loadDevPlugin(url: string, { renderOnly = false }: { rende
   }
   if (!registered && !renderOnly) {
     // Non-fatal — proxy features won't work but the plugin will still render
-    log.warn(`Failed to register dev plugin "${manifest.id}" server-side — pluginFetch will not work`);
+    log.warn(`Failed to register dev plugin "${manifest.id}" server-side, so pluginFetch will not work`);
   }
 
   // 5. Migrate configs if dev plugin version changed. Skipped when step 4 failed,
@@ -114,7 +114,7 @@ export async function loadDevPlugin(url: string, { renderOnly = false }: { rende
     const migrated = await migratePluginConfigs(manifest, prev.manifest.version);
     if (!migrated) {
       log.warn(
-        `Config migration for dev plugin "${manifest.id}" did not run — module configs may still use the ${prev.manifest.version} shape`,
+        `Config migration for dev plugin "${manifest.id}" did not run, so module configs may still use the ${prev.manifest.version} shape`,
       );
     }
   }
@@ -361,7 +361,7 @@ async function loadDevOverrides(
       const installed = installedPlugins.find((p) => p.id === pluginId);
       if (!installed) {
         usePluginStore.getState().setError(pluginId, {
-          message: `Could not load the dev version from ${dev.url} — ${message}`,
+          message: `Could not load the dev version from ${dev.url}: ${message}`,
           phase: 'load',
         });
         continue;
@@ -374,7 +374,7 @@ async function loadDevOverrides(
         .plugins.has(`plugin:${installed.moduleType}`);
       if (registered) {
         usePluginStore.getState().setError(pluginId, {
-          message: `Dev version at ${dev.url} isn't responding — using installed v${installed.version} instead. Remove it from the Developer tab if you're done developing.`,
+          message: `Dev version at ${dev.url} isn't responding, so the installed v${installed.version} is used instead. Remove it from the Developer tab if you're done developing.`,
           phase: 'load',
         });
       }
@@ -804,7 +804,7 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
   if (Number.isFinite(declaredLen) && declaredLen > MAX_TRANSLATION_BYTES) {
     log.warn(
       `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
-      + `(declared ${declaredLen}B) — skipping.`,
+      + `(declared ${declaredLen}B), skipping.`,
     );
     return null;
   }
@@ -817,7 +817,7 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
     const text = await res.text();
     if (text.length > MAX_TRANSLATION_BYTES) {
       log.warn(
-        `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B — skipping.`,
+        `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B, skipping.`,
       );
       return null;
     }
@@ -845,7 +845,7 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
       try { await reader.cancel(); } catch { /* ignore */ }
       log.warn(
         `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
-        + `(read ${received}B before abort) — skipping.`,
+        + `(read ${received}B before abort), skipping.`,
       );
       return null;
     }
@@ -929,7 +929,7 @@ export async function loadPluginTranslations(
       }
       if (!isDictionary(json)) {
         log.warn(
-          `translations payload for ${manifest.id} (${tag}) is not a JSON object — skipping`,
+          `translations payload for ${manifest.id} (${tag}) is not a JSON object, skipping`,
         );
         continue;
       }

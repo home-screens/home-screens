@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ChevronRight, ExternalLink, ShoppingCart } from 'lucide-react';
+import { Check, ChevronRight, ExternalLink, ShoppingCart } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { shortNameList } from '@/lib/grocery-utils';
 import {
@@ -17,14 +17,14 @@ import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList'
 import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatList, useLocale, useTranslate } from '@/i18n';
-import { mealSaveFailedKey } from './save-failed-words';
+import { mealSaveFailedText } from './save-failed-words';
 import { mealieProblemBody, mealieProblemTitleKey } from './mealie-problem-words';
 
 const linkButton =
   'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-hs-border-strong bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors whitespace-nowrap';
 const primaryButton =
-  'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md bg-amber-500 text-black hover:bg-amber-400 transition-colors whitespace-nowrap';
-const lineButton = 'ml-auto shrink-0 px-2 font-semibold text-hs-warning hover:underline';
+  'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md bg-hs-meal text-hs-on-meal hover:opacity-90 transition-colors whitespace-nowrap';
+const lineButton = 'ml-auto shrink-0 px-2 font-semibold text-hs-warning-ink hover:underline';
 
 /**
  * The Grocery tab while the plan lives in Mealie: the family's Mealie
@@ -52,7 +52,7 @@ export function MealieGrocery({
     const words = mealieShoppingErrorWords(failure);
     if (!words) return;
     if (words.key === 'saveFailed') {
-      onError(t(mealSaveFailedKey({ problem: words.reason }, false)));
+      onError(mealSaveFailedText({ problem: words.reason }, false, t, tCore));
       return;
     }
     if (words.key === 'noConnection') {
@@ -82,7 +82,7 @@ export function MealieGrocery({
     const connection = shopping.problem === 'connection';
     return (
       <div data-testid="mealie-grocery" data-state={failed ? 'failed' : 'no-lists'} className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-3">
-        <span className="w-11 h-11 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+        <span className="w-11 h-11 rounded-full bg-hs-meal-soft text-hs-meal flex items-center justify-center">
           <ShoppingCart className="w-5 h-5" aria-hidden />
         </span>
         <p className="text-sm font-semibold text-hs-text-body">
@@ -142,10 +142,10 @@ export function MealieGrocery({
         <span
           aria-hidden
           className={`w-4.5 h-4.5 rounded border-2 flex items-center justify-center text-[10px] shrink-0 transition ${
-            item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-hs-border-strong'
+            item.checked ? 'bg-hs-success border-hs-success text-hs-on-success' : 'border-hs-border-strong'
           } ${waiting ? 'border-dashed opacity-50' : ''}`}
         >
-          {item.checked && '✓'}
+          {item.checked && <Check className="w-3 h-3" strokeWidth={3} aria-hidden />}
         </span>
         <span className="flex-1 min-w-0">
           <span className={`block text-sm font-medium break-words ${item.checked ? 'line-through text-hs-text-faint' : 'text-hs-text-secondary'}`}>
@@ -211,7 +211,7 @@ export function MealieGrocery({
               {tCore('mealie.grocery.addButton')}
             </button>
           </form>
-          <div role="status" data-testid="mealie-grocery-added" className="flex items-center min-h-5 mt-1 mb-2 text-[11px] text-emerald-500">
+          <div role="status" data-testid="mealie-grocery-added" className="flex items-center min-h-5 mt-1 mb-2 text-[11px] text-hs-success">
             {added && (
               <>
                 <span className="min-w-0 truncate">{lineWords(mealieShoppingAddedWords(added))}</span>
@@ -247,10 +247,10 @@ export function MealieGrocery({
                   )}
                 </div>
                 <div className="h-1 bg-hs-card rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-300" style={{ width: `${(got / total) * 100}%` }} />
+                  <div className="h-full rounded-full bg-hs-success transition-all duration-300" style={{ width: `${(got / total) * 100}%` }} />
                 </div>
                 {shopping.stale && (
-                  <p role="status" data-testid="mealie-grocery-stale" className="mt-2 text-xs text-hs-warning">
+                  <p role="status" data-testid="mealie-grocery-stale" className="mt-2 text-xs text-hs-warning-ink">
                     {shopping.fetchedAt
                       ? tCore(`mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: formatTime(shopping.fetchedAt) })
                       : tCore(mealieProblemTitleKey(shopping.problem))}

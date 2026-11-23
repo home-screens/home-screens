@@ -3,13 +3,16 @@
 import { useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import StatusDot from '@/components/ui/StatusDot';
+import { ConfiguredStatus } from '@/components/ui/StatusDot';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import Notice from '@/components/ui/Notice';
 // Type only, so nothing of the server's store reaches the editor bundle.
 import type { SecretKey } from '@/lib/secrets';
+import FieldHint from '@/components/ui/FieldHint';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('secret-field');
 
@@ -83,6 +86,7 @@ export default function SecretField({
   removeQuestion,
 }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [value, setValue] = useState(savedValue ?? '');
   // Typed in since the box last showed what is saved: a new saved value
   // (the page learning it, or a save) never overwrites an edit in progress.
@@ -106,7 +110,7 @@ export default function SecretField({
       try {
         verdict = await validate(value.trim());
       } catch {
-        verdict = { ok: false, message: t('common.networkError'), allowAnyway: true };
+        verdict = { ok: false, message: tCore('refusals.unreachable'), allowAnyway: true };
       }
       if (!verdict.ok) {
         setSaveStatus('idle');
@@ -124,7 +128,7 @@ export default function SecretField({
       const data = await res.json();
       if (!res.ok) {
         setSaveStatus('error');
-        setErrorMsg(data.error ?? t('common.saveError'));
+        setErrorMsg(refusalSentence(data, tCore) ?? tCore('refusals.saveFailed'));
         return;
       }
       setSaveStatus('saved');
@@ -135,7 +139,7 @@ export default function SecretField({
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
       setSaveStatus('error');
-      setErrorMsg(t('common.networkError'));
+      setErrorMsg(tCore('refusals.hubUnreachable'));
     }
   }
 
@@ -160,7 +164,7 @@ export default function SecretField({
         <span className="text-xs text-hs-text-muted">{label}</span>
         <div className="flex items-center gap-2 shrink-0">
           {badge}
-          <StatusDot configured={status} />
+          <ConfiguredStatus configured={status} />
           {status && (
             <button
               onClick={handleDelete}
@@ -188,17 +192,16 @@ export default function SecretField({
           disabled={!value.trim() || value.trim() === savedValue || saveStatus === 'saving' || saveStatus === 'checking'}
         >
           {saveStatus === 'saving'
-            ? t('settings.shared.secretField.savingButton')
+            ? tCore('status.saving')
             : saveStatus === 'checking'
               ? (checkingLabel ?? t('settings.shared.secretField.checkingButton'))
               : t('settings.shared.secretField.saveButton')}
         </Button>
       </div>
       {check && (
-        <div data-testid={`secret-check-${secretKey}`} className="mt-1.5 rounded-md bg-hs-warning/10 border border-hs-warning/30 px-2.5 py-2 text-xs text-hs-warning space-y-1">
-          <p className="font-medium">{check.message}</p>
+        <Notice tone="warning" testId={`secret-check-${secretKey}`} className="mt-1.5" title={check.message}>
           {check.detail && (
-            <details className="text-hs-warning/80">
+            <details className="mt-1">
               <summary className="cursor-pointer">{t('settings.shared.secretField.detailsToggle')}</summary>
               <pre className="mt-1 whitespace-pre-wrap break-all font-mono text-[11px]">{check.detail}</pre>
             </details>
@@ -207,12 +210,12 @@ export default function SecretField({
             <button
               type="button"
               onClick={() => handleSave(true)}
-              className="text-xs font-medium underline decoration-dashed underline-offset-2 hover:text-hs-text-primary"
+              className="mt-1 text-xs font-medium underline decoration-dashed underline-offset-2 hover:text-hs-text-primary"
             >
               {t('settings.shared.secretField.saveAnyway')}
             </button>
           )}
-        </div>
+        </Notice>
       )}
       {saveStatus === 'saved' && (
         <span className="text-xs text-hs-success">
@@ -222,7 +225,7 @@ export default function SecretField({
       {saveStatus === 'error' && (
         <span className="text-xs text-hs-danger">{errorMsg}</span>
       )}
-      {helpText && <p className={`text-xs text-hs-text-faint ${helpTextClassName}`}>{helpText}</p>}
+      {helpText && <FieldHint className={helpTextClassName}>{helpText}</FieldHint>}
     </div>
   );
 }

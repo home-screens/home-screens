@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { getSupplementalHolidays } from '@/lib/supplemental-holidays';
 import { isoDateInTZ } from '@/lib/timezone';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import type { CountdownEvent } from '@/types/config';
 import { useFormattingLocale, useLocale, useTranslate } from '@/i18n';
 import { localizedHolidayCountries } from '@/lib/holiday-countries';
+import { CHECKBOX_CLASS, MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface HolidayInfo {
   id: string;
@@ -55,7 +55,6 @@ export default function HolidayPickerModal({
 }: HolidayPickerModalProps) {
   const t = useTranslate('editor');
   const locale = useLocale();
-  const tCore = useTranslate('core');
   const [countries, setCountries] = useState<Country[]>([]);
   const [country, setCountry] = useState(initialCountry ?? '');
   const formattingLocale = useFormattingLocale();
@@ -178,91 +177,79 @@ export default function HolidayPickerModal({
 
   return (
     <ModalFrame
-      label={t('holidayPickerModal.title')}
+      labelledBy="holiday-picker-title"
       onClose={onClose}
-      className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-md flex flex-col max-h-[80vh]"
+      className="w-full max-w-md"
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
-        <h2 className="text-sm font-semibold text-hs-text-primary">{t('holidayPickerModal.title')}</h2>
-        <button
-          onClick={onClose}
-          aria-label={t('modal.closeAriaLabel')}
-          className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
-        >
-          &times;
-        </button>
-      </div>
+      <ModalPanel>
+        <ModalHeader titleId="holiday-picker-title" title={t('holidayPickerModal.title')} onClose={onClose} />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {/* Country selector */}
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-hs-text-muted">{t('holidayPickerModal.countryLabel')}</span>
-          <select
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-sm text-hs-text-primary"
-          >
-            <option value="">{t('holidayPickerModal.countryPlaceholder')}</option>
-            {localizedHolidayCountries(countries, locale).map((c) => (
-              <option key={c.countryCode} value={c.countryCode}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {loading && <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.loadingHolidays')}</p>}
-
-        {!loading && holidays.length > 0 && (
-          <>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-hs-text-muted">
-                {t('holidayPickerModal.selectionCount', {
-                  selected: selectedIds.size,
-                  total: holidays.length,
-                })}
-              </span>
-              <button onClick={toggleAll} className="text-xs text-hs-accent hover:text-hs-accent-hover">
-                {allSelected
-                  ? t('holidayPickerModal.deselectAll')
-                  : t('holidayPickerModal.selectAll')}
-              </button>
-            </div>
-            <div className="space-y-1">
-              {holidays.map((h) => (
-                <label
-                  key={h.id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-hs-card cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(h.id)}
-                    onChange={() => toggleHoliday(h.id)}
-                    className="accent-hs-accent"
-                  />
-                  <span className="text-sm text-hs-text-body flex-1">{h.title}</span>
-                  <span className="text-xs text-hs-text-faint">{formatHolidayDay(h.start, thisYear, formattingLocale)}</span>
-                </label>
+        <ModalBody className="space-y-3">
+          {/* Country selector */}
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-hs-text-muted">{t('holidayPickerModal.countryLabel')}</span>
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className={MODAL_INPUT_CLASS}
+            >
+              <option value="">{t('holidayPickerModal.countryPlaceholder')}</option>
+              {localizedHolidayCountries(countries, locale).map((c) => (
+                <option key={c.countryCode} value={c.countryCode}>
+                  {c.name}
+                </option>
               ))}
-            </div>
-          </>
-        )}
+            </select>
+          </label>
 
-        {error && (
-          <p className="text-xs text-hs-danger">{error}</p>
-        )}
+          {loading && <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.loadingHolidays')}</p>}
 
-        {!loading && !error && country && holidays.length === 0 && (
-          <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.noHolidays')}</p>
-        )}
-      </div>
+          {!loading && holidays.length > 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-hs-text-muted">
+                  {t('holidayPickerModal.selectionCount', {
+                    selected: selectedIds.size,
+                    total: holidays.length,
+                  })}
+                </span>
+                <button onClick={toggleAll} className="text-xs text-hs-accent hover:text-hs-accent-hover">
+                  {allSelected
+                    ? t('holidayPickerModal.deselectAll')
+                    : t('holidayPickerModal.selectAll')}
+                </button>
+              </div>
+              <div className="space-y-1">
+                {holidays.map((h) => (
+                  <label
+                    key={h.id}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-hs-card cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(h.id)}
+                      onChange={() => toggleHoliday(h.id)}
+                      className={CHECKBOX_CLASS}
+                    />
+                    <span className="text-sm text-hs-text-body flex-1">{h.title}</span>
+                    <span className="text-xs text-hs-text-faint">{formatHolidayDay(h.start, thisYear, formattingLocale)}</span>
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
 
-      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
-        <Button size="sm" variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
-        <Button size="sm" onClick={handleConfirm} disabled={selectedIds.size === 0}>
-          {addLabel}
-        </Button>
-      </div>
+          {error && (
+            <p className="text-xs text-hs-danger">{error}</p>
+          )}
+
+          {!loading && !error && country && holidays.length === 0 && (
+            <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.noHolidays')}</p>
+          )}
+        </ModalBody>
+
+        <ModalFooter onCancel={onClose} primary={{ label: addLabel, onClick: handleConfirm, disabled: selectedIds.size === 0 }} />
+      </ModalPanel>
     </ModalFrame>
   );
 }

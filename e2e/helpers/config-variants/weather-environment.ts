@@ -168,7 +168,7 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
   {
     type: 'air-quality', name: 'hide-aqi', kind: 'networked', stubKey: 'air-quality',
     config: { showAQI: false, showPollutants: true },
-    expect: lacks('PM2.5', 'Air Quality Index'),
+    expect: lacks('PM2.5', 'Air quality index'),
   },
 
   // ================= RAIN-MAP (loads external tiles regardless of config) =================

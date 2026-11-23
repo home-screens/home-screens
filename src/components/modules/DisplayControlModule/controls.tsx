@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
 import type { LayoutProps } from './types';
 import { HoldConfirmButton } from '@/components/modules/shared/HoldConfirmButton';
+import { NO_VALUE } from '@/lib/constants';
 
 // Icons shared by every layout. `size` is the rendered box in px.
 const iconProps = (size: number) => ({
@@ -278,7 +279,7 @@ export function BrightnessSlider({
         >
           <span>{t('display-control.brightness')}</span>
           <span data-testid="display-control-brightness" className="font-semibold tabular-nums text-hs-text-primary">
-            {known ? `${shown}%` : '–'}
+            {known ? `${shown}%` : NO_VALUE}
           </span>
         </div>
       )}
@@ -290,7 +291,7 @@ export function BrightnessSlider({
         )}
         {!m.showCaption && (
           <span data-testid="display-control-brightness" className="sr-only">
-            {known ? `${shown}%` : '–'}
+            {known ? `${shown}%` : NO_VALUE}
           </span>
         )}
         {/* The painted track is a sibling, not the input's own background, so

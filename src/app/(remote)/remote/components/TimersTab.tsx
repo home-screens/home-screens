@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pause, Play, Plus, Pencil, SkipForward, Square, Check } from 'lucide-react';
+import { Pause, Play, Plus, Pencil, SkipForward, Square, Check, Timer } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { formatQuickName, formatRemaining } from '@/components/display/timer-views/shared';
 import type { Routine, TimerView } from '@/types/timers';
@@ -9,9 +9,14 @@ import { useDisplayTarget } from '../display-target';
 import { useTimersData } from '../hooks/useTimersData';
 import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, QUICK_TIMER_PRESETS_SEC, routineTotalSec, secondsFromFields } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
+import PrimaryButton from './PrimaryButton';
+import { ACCENT_SOFT_BUTTON, toggleChipStyle } from './remote-styles';
 import RoutineFormOverlay from './RoutineFormOverlay';
 import TimerViewThumb from './TimerViewThumb';
 import Glyph from '@/components/ui/Glyph';
+import TabHeader from './TabHeader';
+import { LoadFailed } from './RetryButton';
+import EmptyState from './EmptyState';
 
 const MAX_QUICK_SEC = 240 * 60;
 
@@ -24,14 +29,6 @@ export const TIMER_VIEW_LABEL_KEYS: Record<TimerView, string> = {
   cascade: 'timers.viewCascade',
   path: 'timers.viewPath',
 };
-
-/** Pill-toggle style shared by every chip on the timer surfaces (targets, views, sound, wait-for-tap). */
-export const timerChipClass = (active: boolean) =>
-  `px-3 min-h-[40px] rounded-full text-[13px] font-semibold border ${
-    active
-      ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-      : 'bg-transparent border-hs-border-strong text-hs-text-faint'
-  }`;
 
 export default function TimersTab() {
   const t = useTranslate('remote');
@@ -116,22 +113,20 @@ export default function TimersTab() {
   };
 
   return (
-    <div className="pb-32">
-      <header className="px-5 pt-6 pb-2 flex items-center justify-between">
-        <h1 className="text-[22px] font-bold text-hs-text-primary">{t('timers.title')}</h1>
-      </header>
+    <div>
+      <TabHeader title={t('timers.title')} />
 
       {error && (
         <button
           onClick={() => setError(null)}
-          className="mx-5 mb-3 w-[calc(100%-2.5rem)] text-left px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-[13px]"
+          className="mb-3 w-full text-left px-4 py-3 rounded-xl bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-[13px]"
         >
           {error}
         </button>
       )}
 
       {running && step && (
-        <section className="mx-5 mb-4 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
+        <section className="mb-4 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
           <div className="flex items-center gap-3">
             <div className="text-[34px] leading-none"><Glyph value={step.icon} fallback="⏱️" /></div>
             <div className="min-w-0 flex-1">
@@ -158,7 +153,7 @@ export default function TimersTab() {
               data-testid="timer-ack"
               data-tone={ackLabel.tone}
               className={`mt-2 text-[12px] ${
-                ackLabel.tone === 'missing' ? 'text-hs-warning' : 'text-hs-text-faint'
+                ackLabel.tone === 'missing' ? 'text-hs-warning-ink' : 'text-hs-text-faint'
               }`}
             >
               {ackLabel.text}
@@ -207,7 +202,7 @@ export default function TimersTab() {
             )}
             <button
               onClick={() => void control('cancel')}
-              className="min-h-[44px] rounded-xl bg-red-500/10 text-red-400 text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
+              className="min-h-[44px] rounded-xl bg-hs-danger/10 text-hs-danger text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
             >
               <Square className="w-4 h-4" /> {t('timers.stop')}
             </button>
@@ -218,7 +213,7 @@ export default function TimersTab() {
       {displays.length > 0 && (
         <section
           data-testid="timer-target-picker"
-          className="mx-5 mb-4 flex items-center gap-1.5 flex-wrap"
+          className="mb-4 flex items-center gap-1.5 flex-wrap"
         >
           <span className="text-[12px] font-semibold text-hs-text-faint mr-0.5">
             {/* Chips only scope the NEXT start — they can't move a running
@@ -228,7 +223,8 @@ export default function TimersTab() {
           <button
             onClick={() => setTargetIds([])}
             aria-pressed={targetIds.length === 0}
-            className={timerChipClass(targetIds.length === 0)}
+            className="press-scale-sm"
+            style={toggleChipStyle(targetIds.length === 0)}
           >
             {t('timers.allDisplays')}
           </button>
@@ -237,7 +233,8 @@ export default function TimersTab() {
               key={d.id}
               onClick={() => toggleTarget(d.id)}
               aria-pressed={targetIds.includes(d.id)}
-              className={timerChipClass(targetIds.includes(d.id))}
+              className="press-scale-sm"
+              style={toggleChipStyle(targetIds.includes(d.id))}
             >
               {d.name}
             </button>
@@ -245,7 +242,7 @@ export default function TimersTab() {
         </section>
       )}
 
-      <section className="mx-5 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
+      <section className="p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
         <h2 className="text-[15px] font-bold text-hs-text-primary">{t('timers.quickTimer')}</h2>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {QUICK_TIMER_PRESETS_SEC.map((sec) => (
@@ -283,13 +280,14 @@ export default function TimersTab() {
             className="w-20 min-h-[44px] px-2 text-center rounded-xl bg-hs-hover text-hs-text-primary text-[14px] outline-none focus:ring-2 focus:ring-hs-accent"
           />
           <span className="text-[12px] font-semibold text-hs-text-faint">{t('timers.secUnit')}</span>
-          <button
+          <PrimaryButton
+            compact
             onClick={handleCustomStart}
             disabled={customTotalSec === null || (customMinutes === '' && customSeconds === '')}
-            className="flex-1 min-h-[44px] px-5 rounded-xl bg-hs-accent text-white text-[14px] font-bold active:scale-[0.97] disabled:opacity-40"
+            style={{ flex: 1, padding: '0 20px' }}
           >
             {t('timers.start')}
-          </button>
+          </PrimaryButton>
         </div>
         {/* Something is typed and Start is off: say why, as the routine form does. */}
         {customTotalSec === null && (customMinutes !== '' || customSeconds !== '') && (
@@ -304,7 +302,8 @@ export default function TimersTab() {
                 key={view}
                 onClick={() => setQuickView(view)}
                 aria-pressed={quickView === view}
-                className={`${timerChipClass(quickView === view)} inline-flex items-center gap-1.5`}
+                className="press-scale-sm"
+                style={{ ...toggleChipStyle(quickView === view), gap: 6 }}
               >
                 <TimerViewThumb view={view} />
                 {t(TIMER_VIEW_LABEL_KEYS[view])}
@@ -314,42 +313,33 @@ export default function TimersTab() {
           <button
             onClick={() => setQuickSound((v) => !v)}
             aria-pressed={quickSound}
-            className={`${timerChipClass(quickSound)} shrink-0`}
+            className="press-scale-sm"
+            style={{ ...toggleChipStyle(quickSound), flexShrink: 0 }}
           >
             {t('timers.sound')}
           </button>
         </div>
       </section>
 
-      <section className="mx-5 mt-5">
+      <section className="mt-5">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-bold text-hs-text-primary">{t('timers.routines')}</h2>
           {routinesLoaded && (
             <button
+              type="button"
               onClick={() => setEditing('new')}
-              className="min-h-[36px] px-3 rounded-xl bg-hs-accent/15 text-hs-accent text-[13px] font-bold flex items-center gap-1 active:scale-[0.97]"
+              className="press-scale-sm min-h-[44px] px-3 rounded-xl text-[13px] flex items-center gap-1"
+              style={ACCENT_SOFT_BUTTON}
             >
               <Plus className="w-4 h-4" /> {t('timers.newRoutine')}
             </button>
           )}
         </div>
 
-        {routinesError && (
-          <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong">
-            <p className="text-[13px] text-hs-text-faint">{tc('timer.routinesLoadError')}</p>
-            <button
-              onClick={() => void retryRoutines()}
-              className="mt-3 min-h-[40px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
-            >
-              {t('timers.retry')}
-            </button>
-          </div>
-        )}
+        {routinesError && <LoadFailed message={tc('timer.routinesLoadError')} onRetry={retryRoutines} />}
 
         {routinesLoaded && routines.length === 0 && (
-          <p className="mt-3 text-[13px] text-hs-text-faint leading-relaxed">
-            {t('timers.emptyHint')}
-          </p>
+          <EmptyState icon={Timer} title={t('timers.emptyTitle')} body={t('timers.emptyHint')} testId="timers-no-routines" style={{ padding: '24px 16px 8px' }} />
         )}
 
         <div className="mt-3 flex flex-col gap-2.5">
@@ -372,16 +362,17 @@ export default function TimersTab() {
                 <button
                   onClick={() => setEditing(routine)}
                   aria-label={t('timers.editRoutine')}
-                  className="w-10 h-10 rounded-xl bg-hs-hover text-hs-text-faint flex items-center justify-center active:scale-[0.97]"
+                  className="w-11 h-11 rounded-xl bg-hs-hover text-hs-text-faint flex items-center justify-center active:scale-[0.97]"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button
+                <PrimaryButton
+                  compact
                   onClick={() => requestStart(() => void startRoutine(routine.id))}
-                  className="min-h-[40px] px-4 rounded-xl bg-hs-accent text-white text-[14px] font-bold flex items-center gap-1.5 active:scale-[0.97]"
+                  style={{ padding: '0 16px', gap: 6 }}
                 >
                   <Play className="w-4 h-4" /> {t('timers.start')}
-                </button>
+                </PrimaryButton>
               </div>
             );
           })}

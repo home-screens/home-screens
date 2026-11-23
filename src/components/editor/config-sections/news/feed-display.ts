@@ -9,6 +9,7 @@ import type { NewsFeedSource } from '@/types/config';
 import type { NewsFeedError, NewsFeedResult } from '@/lib/news/types';
 import { findPresetByUrl, type NewsPreset } from '@/lib/news-presets';
 import { sourceKind } from '@/lib/news/sources';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Mirrors `MAX_FEEDS_PER_REQUEST` in `/api/news`; more than this is refused. */
 export const NEWS_MAX_FEEDS = 12;
@@ -72,10 +73,10 @@ const KNOWN_ERRORS: ReadonlySet<string> = new Set<NewsFeedError>([
   'empty-url', 'blocked-url', 'no-location', 'unreachable', 'timeout', 'http-error', 'not-a-feed', 'too-many-feeds',
 ]);
 
-/** A friendly sentence for a failed feed. */
-export function feedErrorMessage(error: NewsFeedError | string | undefined, status: number | undefined, t: TranslateFn): string {
+/** A friendly sentence for a failed feed. `t` reads `editor`, `tCore` reads `core` (for where the location is set). */
+export function feedErrorMessage(error: NewsFeedError | string | undefined, status: number | undefined, t: TranslateFn, tCore: TranslateFn): string {
   if (error === 'http-error' && status) return t(`${NEWS_KEY}.feedError.http-error`, { status });
-  if (error && KNOWN_ERRORS.has(error)) return t(`${NEWS_KEY}.feedError.${error}`);
+  if (error && KNOWN_ERRORS.has(error)) return t(`${NEWS_KEY}.feedError.${error}`, { place: settingsPlaceText(tCore, 'location') });
   return t(`${NEWS_KEY}.feedError.failed`);
 }
 
@@ -88,8 +89,9 @@ export function feedCheckSummary(
   fallbackName: string,
   now: number,
   t: TranslateFn,
+  tCore: TranslateFn,
 ): { ok: boolean; text: string } {
-  if (!result.ok) return { ok: false, text: feedErrorMessage(result.error, result.status, t) };
+  if (!result.ok) return { ok: false, text: feedErrorMessage(result.error, result.status, t, tCore) };
   const title = result.title?.trim() || fallbackName;
   const count = result.items.length;
   if (count === 0) return { ok: true, text: t(`${NEWS_KEY}.feedCheckNoStories`, { title }) };

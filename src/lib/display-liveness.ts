@@ -41,10 +41,10 @@ export type HeartbeatPillKind = HeartbeatState | 'never';
 
 export interface HeartbeatPill {
   kind: HeartbeatPillKind;
-  /** Background, border and text classes for the pill itself. */
-  pillClass: string;
-  /** The small dot in front of the words. */
-  dotClass: string;
+  /** The pill's `StatusPill` tone, which its dot shares. */
+  tone: 'success' | 'warning' | 'neutral';
+  /** False for a display never heard from: its pill has no outline. */
+  bordered: boolean;
 }
 
 /**
@@ -54,14 +54,14 @@ export interface HeartbeatPill {
  * that went away; its words are the caller's ("Offline", with no time).
  */
 export function heartbeatPill(lastSeen: number | null | undefined, now = Date.now()): HeartbeatPill {
-  if (!lastSeen) return { kind: 'never', pillClass: 'bg-hs-card border-transparent text-hs-text-muted', dotClass: 'bg-hs-card' };
+  if (!lastSeen) return { kind: 'never', tone: 'neutral', bordered: false };
   switch (heartbeatState(lastSeen, now)) {
     case 'online':
-      return { kind: 'online', pillClass: 'bg-hs-success/10 border-hs-success/30 text-hs-success', dotClass: 'bg-hs-success' };
+      return { kind: 'online', tone: 'success', bordered: true };
     case 'idle':
-      return { kind: 'idle', pillClass: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning', dotClass: 'bg-hs-warning' };
+      return { kind: 'idle', tone: 'warning', bordered: true };
     case 'offline':
-      return { kind: 'offline', pillClass: 'bg-hs-card border-hs-border-strong text-hs-text-muted', dotClass: 'bg-hs-card' };
+      return { kind: 'offline', tone: 'neutral', bordered: true };
   }
 }
 
@@ -91,7 +91,7 @@ export interface BrightnessReport {
  * in, neither sets the number nor blocks it, because a command sent now
  * would not reach it either. An answering display that has not reported a
  * level yet is skipped the same way. The phone's brightness card and the
- * wall's Display Control both read this, so "All displays" with one wall
+ * wall's Display Control both read this, so "Every wall" with one wall
  * switched off shows the level of the walls that are on.
  */
 export function agreedBrightness(reports: ReadonlyArray<BrightnessReport>, now = Date.now()): number | null {

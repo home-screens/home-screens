@@ -1,5 +1,6 @@
 import type { EventOwner } from '@/lib/calendar-people';
 import { GlyphPrefix } from '@/components/ui/Glyph';
+import { MemberBadge } from './MemberBadge';
 
 /**
  * The marker in front of an event: the calendar's color dot, or, with name
@@ -30,21 +31,17 @@ export function EventMarker({ owner, color, size, tagSize, reserve, style, class
     return <span aria-hidden="true" className={className} style={{ width: diameter, height: diameter, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...style }}>{dot}</span>;
   }
   return (
-    <span
+    <MemberBadge
       data-event-marker="tag"
       data-name-tag={owner.id}
       aria-label={owner.name}
       className={className}
-      style={{
-        width: diameter, height: diameter, borderRadius: '50%', background: owner.color, color: '#fff',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        fontWeight: 700, lineHeight: 1, letterSpacing: '0.01em',
-        fontSize: typeof diameter === 'number' ? diameter * (owner.initials.length > 2 ? 0.36 : 0.46) : `calc(${diameter} * ${owner.initials.length > 2 ? 0.36 : 0.46})`,
-        ...style,
-      }}
-    >
-      {owner.initials}
-    </span>
+      initials={owner.initials}
+      color={owner.color}
+      size={diameter}
+      fontSize={typeof diameter === 'number' ? diameter * 0.46 : `calc(${diameter} * 0.46)`}
+      style={{ letterSpacing: '0.01em', ...style }}
+    />
   );
 }
 

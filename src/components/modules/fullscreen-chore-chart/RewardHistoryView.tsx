@@ -16,6 +16,8 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { useRealClock } from '@/hooks/useTZClock';
 import FitList from './FitList';
 import { useAutoClose } from '../shared/useAutoClose';
+import { WallButton } from '../shared/WallButton';
+import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import { splitGroupsAt } from './rewards/historyLayout';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
@@ -328,6 +330,7 @@ export function RewardHistoryView({
     <div
       data-testid="fcc-history"
       data-variant={variant}
+      {...BROWSE_HOLD_ATTR}
       onPointerDown={resetIdleTimer}
       style={{
         height: '100%',
@@ -352,7 +355,7 @@ export function RewardHistoryView({
           </div>
         </div>
         {onBack && (
-          <button
+          <WallButton
             data-testid="fcc-history-back"
             onClick={onBack}
             style={{
@@ -377,7 +380,7 @@ export function RewardHistoryView({
           >
             <ArrowLeft size={22 * k} strokeWidth={2.5} aria-hidden="true" />
             {backLabel}
-          </button>
+          </WallButton>
         )}
       </div>
 

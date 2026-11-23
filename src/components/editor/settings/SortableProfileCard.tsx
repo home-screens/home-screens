@@ -21,11 +21,15 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle from '@/components/ui/Toggle';
 import ScheduleWindowFields from '@/components/editor/ScheduleWindowFields';
-import { useFormattingLocale, type TranslateFn } from '@/i18n';
+import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
 import { describeSchedule } from '@/lib/schedule-summary';
 import { EVERY_DAY } from '@/lib/schedule';
 import { computeWeekSegments } from '@/lib/schedule-timeline';
 import type { ModuleSchedule, Profile } from '@/types/config';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusPill from '@/components/ui/StatusPill';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 /* ─── Sortable screen row (inside profile) ──── */
 
@@ -71,7 +75,7 @@ function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove, t }:
       <span className="flex-1 text-sm text-hs-text-secondary truncate">
         {screenName}
         {screenEnabled === false && (
-          <span className="ml-1 text-[10px] text-hs-warning/70">
+          <span className="ml-1 text-[10px] text-hs-warning-ink/70">
             {t('settings.profilesPage.card.disabledLabel')}
           </span>
         )}
@@ -116,6 +120,7 @@ export default function SortableProfileCard({
 }: ProfileCardProps) {
   const { config, selectedDisplayId, updateProfile, removeProfile } = useEditorStore();
   const formattingLocale = useFormattingLocale();
+  const tCore = useTranslate('core');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
@@ -260,7 +265,7 @@ export default function SortableProfileCard({
                 if (e.key === 'Escape') setRenamingId(null);
               }}
               autoFocus
-              className="w-40 rounded border border-hs-border-strong bg-hs-panel px-2 py-0.5 text-sm text-hs-text-body outline-none focus:border-hs-accent"
+              className={`w-40 ${SETTINGS_INPUT_SM_CLASS}`}
             />
             <button type="button" onClick={commitRename} className="text-hs-success hover:text-hs-success/80">
               <Check className="w-3.5 h-3.5" />
@@ -299,14 +304,14 @@ export default function SortableProfileCard({
             <span className="flex items-center gap-2 min-w-0 max-w-full">
               <span className="text-sm font-medium text-hs-text-body truncate">{profile.name}</span>
               {activeProfileId === profile.id && (
-                <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">
+                <StatusPill tone="info" size="sm">
                   {t('settings.profilesPage.card.activeBadge')}
-                </span>
+                </StatusPill>
               )}
               {profile.schedule && (
-                <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">
+                <StatusPill tone="success" size="sm">
                   {t('settings.profilesPage.card.scheduledBadge')}
-                </span>
+                </StatusPill>
               )}
             </span>
             {/* "3 screens · Mon to Fri, 6:00 AM to 9:00 AM". Collapsed cards
@@ -337,11 +342,9 @@ export default function SortableProfileCard({
         <button
           onClick={async (e) => {
             e.stopPropagation();
-            const ok = await useConfirmStore.getState().confirm({
-              title: t('settings.profilesPage.deleteDialog.title'),
-              message: t('settings.profilesPage.deleteDialog.message', { name: profile.name }),
-              confirmLabel: t('settings.profilesPage.deleteDialog.confirm'),
-            });
+            const ok = await useConfirmStore.getState().confirm(
+              buildDeleteConfirm({ verb: 'delete', name: profile.name, consequence: tCore('confirm.cantUndo') }, tCore),
+            );
             if (ok) {
               removeProfile(profile.id);
             }
@@ -401,7 +404,7 @@ export default function SortableProfileCard({
                     <span className="truncate">
                       {screen.name}
                       {screen.enabled === false && (
-                        <span className="ml-1 text-[10px] text-hs-warning/70">
+                        <span className="ml-1 text-[10px] text-hs-warning-ink/70">
                           {t('settings.profilesPage.card.disabledLabel')}
                         </span>
                       )}
@@ -412,15 +415,15 @@ export default function SortableProfileCard({
             )}
 
             {includedScreens.length === 0 && (
-              <p className="text-xs text-hs-warning mt-1">
+              <p className="text-xs text-hs-warning-ink mt-1">
                 {t('settings.profilesPage.card.noScreensWarning')}
               </p>
             )}
 
             {includedScreens.length > 1 && (
-              <p className="text-[10px] text-hs-text-faint mt-2">
+              <FieldHint className="mt-2">
                 {t('settings.profilesPage.card.dragHelp')}
-              </p>
+              </FieldHint>
             )}
           </div>
 
@@ -451,7 +454,7 @@ export default function SortableProfileCard({
                   onChange={(checked) => setSchedule({ invert: checked || undefined })}
                 />
                 {neverActive && (
-                  <p data-testid="profile-schedule-never" className="-mt-1.5 text-[11px] text-hs-warning">
+                  <p data-testid="profile-schedule-never" className="-mt-1.5 text-[11px] text-hs-warning-ink">
                     {t('scheduleEditor.neverShows')}
                   </p>
                 )}

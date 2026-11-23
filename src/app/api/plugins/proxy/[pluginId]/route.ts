@@ -201,7 +201,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   const allowedDomains = manifest.allowedDomains ?? [];
   if (allowedDomains.length === 0) {
     return NextResponse.json(
-      { error: 'Plugin has no allowedDomains declared — proxy requests denied' },
+      { error: 'Plugin has no allowedDomains declared: proxy requests denied' },
       { status: 403 },
     );
   }

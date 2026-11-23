@@ -67,8 +67,8 @@ export function NewsFiltersFields({ config: c, set }: NewsFiltersFieldsProps) {
         label={t('configSections.news.preserveOrder')}
         checked={c.preserveOrder === true}
         onChange={(v) => set({ preserveOrder: v })}
+        description={t('configSections.news.preserveOrderHint')}
       />
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.news.preserveOrderHint')}</p>
       <LabeledSelect
         label={t('configSections.news.tapAction')}
         value={c.tapAction ?? 'qr'}

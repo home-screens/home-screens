@@ -27,8 +27,11 @@ interface AssigneeDotProps {
 
 /**
  * One member's mark on a wall-chart chore row. The disc itself is
- * `MemberDot`, shared with the card chore chart; this adds the wall's own
- * interaction, which is a plain tap in both directions.
+ * `MemberDot`, shared with the card chore chart; this adds the full-screen
+ * chart's own interaction, which is a plain tap in both directions, not the
+ * press-and-hold the card chart and the kids' page use to un-tick
+ * (`useHoldToUncheck`). A mistaken un-tick is taken back with the Undo on the
+ * chart's toast.
  */
 export default function AssigneeDot({
   memberId,

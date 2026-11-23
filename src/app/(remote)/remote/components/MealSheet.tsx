@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
 import type { MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
 import type { MealieProblem } from '@/lib/meal-sources';
@@ -20,13 +20,14 @@ import { mealHasRecipe } from '@/lib/meal-recipe';
 import { guardAfterRowRemoved } from '@/lib/sheet-tap-guard';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealTimeChip from '@/components/meals/MealTimeChip';
+import IconButton from './IconButton';
 import MealThumb from './MealThumb';
 import TallSheet from './TallSheet';
 import RecipeWallButton from './RecipeWallButton';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import { MealiePausedNotice } from './MealsMealieStatus';
 import { formatShownMinutes } from './meals-shared';
-import { SECTION_HEADING } from './remote-styles';
+import { DANGER_BUTTON, SECTION_HEADING } from './remote-styles';
 
 interface MealSheetProps {
   date: string;
@@ -84,33 +85,8 @@ const LINE_BUTTON: CSSProperties = {
   fontFamily: 'inherit',
 };
 
-/** The 36 px move and remove buttons, the size routine steps use. */
-function MiniButton({ label, disabled, onClick, children }: { label: string; disabled?: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        border: 'none',
-        background: 'var(--hs-bg-hover)',
-        color: 'var(--hs-text-faint)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 'none',
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.3 : 1,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
+/** The move and remove buttons on a course row: 44 px, on a quiet fill. */
+const STEP_BUTTON = { background: 'var(--hs-bg-hover)', color: 'var(--hs-text-faint)', borderRadius: 8 } as const;
 
 /**
  * One sheet for a whole planned meal: the main dish with Change, the courses
@@ -139,6 +115,7 @@ export default function MealSheet({
 }: MealSheetProps) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -160,7 +137,7 @@ export default function MealSheet({
   const mainName = main?.name ?? planned.customText?.trim() ?? null;
   const mainShown = mealShownMinutes(main);
   const mainTag = main?.tags?.[0];
-  const mainMeta = [mainShown ? formatShownMinutes(mainShown, t) : null, main && mainTag ? mealTagLabel(main, mainTag) : null].filter(Boolean).join(' · ');
+  const mainMeta = [mainShown ? formatShownMinutes(mainShown, t) : null, main && mainTag ? mealTagLabel(main, mainTag, tCore) : null].filter(Boolean).join(' · ');
   const courses = (planned.courses ?? []).map((course, index) => {
     const meal = course.mealId ? byId.get(course.mealId) ?? null : null;
     return { course, index, meal, name: meal?.name ?? course.customText?.trim() ?? t('mealsPlan.slot.mealFallback') };
@@ -169,28 +146,29 @@ export default function MealSheet({
   const locked: CSSProperties | undefined = paused ? { opacity: 0.45, pointerEvents: 'none' } : undefined;
 
   return (
-    <TallSheet label={t('mealSheet.ariaLabel', { slot: slotLabel, date: dateLabel })} onClose={onClose} testId="meal-sheet" guardTaps>
-      <div style={{ padding: '4px 16px 12px', borderBottom: '1px solid var(--hs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flex: 'none' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', lineHeight: '24px' }}>
-            <span aria-hidden style={{ width: 3, height: 18, borderRadius: 2, background: SLOT_META[slot].color, flex: 'none' }} />
-            {slotLabel}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, lineHeight: '18px' }}>
-            {dateLabel}
-            {fromMealie && (
-              <>
-                {' · '}
-                <b style={{ color: 'var(--hs-text-muted)', fontWeight: 600 }}>{t('mealSheet.savesToMealie')}</b>
-              </>
-            )}
-          </div>
-        </div>
-        <button type="button" onClick={onClose} style={LINE_BUTTON}>
-          {t('mealSheet.done')}
-        </button>
-      </div>
-
+    <TallSheet
+      label={t('mealSheet.ariaLabel', { slot: slotLabel, date: dateLabel })}
+      title={(
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span aria-hidden style={{ width: 3, height: 18, borderRadius: 2, background: SLOT_META[slot].color, flex: 'none' }} />
+          {slotLabel}
+        </span>
+      )}
+      subtitle={(
+        <>
+          {dateLabel}
+          {fromMealie && (
+            <>
+              {' · '}
+              <b style={{ color: 'var(--hs-text-muted)', fontWeight: 600 }}>{t('mealSheet.savesToMealie')}</b>
+            </>
+          )}
+        </>
+      )}
+      onClose={onClose}
+      testId="meal-sheet"
+      guardTaps
+    >
       <div ref={bodyRef} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '14px 16px 16px', flex: 1, minHeight: 0 }}>
         {main && (
           <div style={{ marginBottom: 14 }}>
@@ -226,6 +204,7 @@ export default function MealSheet({
               </div>
               <button
                 type="button"
+                className="press-scale-sm"
                 style={LINE_BUTTON}
                 onClick={() => onPick({ date, slot, pick: 'main' })}
                 aria-label={t('mealSheet.changeAriaLabel', { meal: mainName })}
@@ -236,6 +215,7 @@ export default function MealSheet({
           ) : (
             <button
               type="button"
+              className="press-scale"
               onClick={() => onPick({ date, slot, pick: 'main' })}
               style={{
                 width: '100%',
@@ -276,6 +256,7 @@ export default function MealSheet({
               >
                 <button
                   type="button"
+                  className="press-scale"
                   onClick={() => onPick({ date, slot, pick: 'swap', kind: course.kind, index })}
                   aria-label={t('mealSheet.swapAriaLabel', { kind: kindLabel, meal: name })}
                   style={{
@@ -305,15 +286,15 @@ export default function MealSheet({
                   </span>
                 </button>
                 <div style={{ display: 'flex', gap: 4, flex: 'none' }}>
-                  <MiniButton label={t('mealSheet.moveUp', { meal: name })} disabled={index === 0} onClick={() => onMoveCourse(index, index - 1)}>
+                  <IconButton style={STEP_BUTTON} label={t('mealSheet.moveUp', { meal: name })} disabled={index === 0} onClick={() => onMoveCourse(index, index - 1)}>
                     <ArrowUp size={16} strokeWidth={2} aria-hidden />
-                  </MiniButton>
-                  <MiniButton label={t('mealSheet.moveDown', { meal: name })} disabled={index === courses.length - 1} onClick={() => onMoveCourse(index, index + 1)}>
+                  </IconButton>
+                  <IconButton style={STEP_BUTTON} label={t('mealSheet.moveDown', { meal: name })} disabled={index === courses.length - 1} onClick={() => onMoveCourse(index, index + 1)}>
                     <ArrowDown size={16} strokeWidth={2} aria-hidden />
-                  </MiniButton>
-                  <MiniButton label={t('mealSheet.remove', { meal: name })} onClick={() => { guardAfterRowRemoved(); onRemoveCourse(index); }}>
+                  </IconButton>
+                  <IconButton style={STEP_BUTTON} label={t('mealSheet.remove', { meal: name })} onClick={() => { guardAfterRowRemoved(); onRemoveCourse(index); }}>
                     <X size={16} strokeWidth={2} aria-hidden />
-                  </MiniButton>
+                  </IconButton>
                 </div>
               </div>
             );
@@ -324,6 +305,7 @@ export default function MealSheet({
                 <button
                   key={kind}
                   type="button"
+                  className="press-scale-sm"
                   onClick={() => onPick({ date, slot, pick: 'add', kind })}
                   style={{
                     minHeight: 44,
@@ -374,7 +356,7 @@ export default function MealSheet({
               value={time}
               onChange={onSetTime}
               slot={slot}
-              variant="darker"
+              variant="phone"
               align="right"
               timeFormat={timeFormat}
             />
@@ -390,22 +372,10 @@ export default function MealSheet({
       <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)', flex: 'none', background: 'var(--hs-bg-body)', borderRadius: 0 }}>
         <button
           type="button"
+          className="press-scale"
           onClick={onClear}
           disabled={!!paused}
-          style={{
-            width: '100%',
-            padding: 12,
-            minHeight: 44,
-            borderRadius: 10,
-            border: '1px solid var(--hs-border)',
-            background: 'var(--hs-bg-panel)',
-            color: 'var(--hs-danger)',
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: paused ? 'default' : 'pointer',
-            fontFamily: 'inherit',
-            opacity: paused ? 0.45 : 1,
-          }}
+          style={{ ...DANGER_BUTTON, marginTop: 0, cursor: paused ? 'default' : 'pointer', opacity: paused ? 0.45 : 1 }}
         >
           {t(`mealSheet.clear.${slot}`)}
         </button>

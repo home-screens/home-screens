@@ -25,6 +25,7 @@ export default function MealsSettingsWeekStartSection({ weekStartDay, onChange }
               key={day}
               type="button"
               onClick={() => onChange(day)}
+              className="press-scale-sm"
               style={{
                 padding: '12px',
                 minHeight: 48,

@@ -442,7 +442,7 @@ export function useStatusReporter(
   }, [currentScreenIndex, currentScreenId, screenCount, displayState, profileId, profileScheduled, displayId, enabled, brightness]);
 
   // Same immediacy for the two facts the remote confirms against that live
-  // outside React props: the alert count (Send Alert / Clear alerts) and the
+  // outside React props: the alert count (Send alert / Clear alerts) and the
   // timer session on screen ("Showing on Kitchen").
   useEffect(() => {
     if (!enabled) return;

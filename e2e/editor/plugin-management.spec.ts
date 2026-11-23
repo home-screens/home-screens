@@ -6,7 +6,7 @@ import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { pluginModule, seedFixturePlugin, FIXTURE_PLUGIN_ID } from '../helpers/fixture-plugin';
 
 const SECRET_KEY = 'apiKey';
-const SECRET_LABEL = 'API Key';
+const SECRET_LABEL = 'API key';
 const SECRET_VALUE = 'sk-e2e-test-value';
 
 // ---------------------------------------------------------------------------

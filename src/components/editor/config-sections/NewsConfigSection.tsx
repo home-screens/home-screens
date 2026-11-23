@@ -110,6 +110,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {usesAccent && (
         <ColorPicker
           label={t('configSections.fullscreen-news.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? ''}
           onChange={(v) => set({ accentColor: v || undefined })}
         />

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   describeJoinFailure,
+  joinFailureCode,
   ipv4Args,
   isOwnProfile,
   isPredecessorProfile,
@@ -232,5 +233,17 @@ describe('describeJoinFailure', () => {
     expect(describeJoinFailure("Error: Connection activation failed: Device disconnected by user.\nHint: use 'journalctl -xe' to get more details."))
       .toBe('Connection activation failed: Device disconnected by user.');
     expect(describeJoinFailure('')).toBe('Connection failed');
+  });
+});
+
+describe('joinFailureCode', () => {
+  it('names the causes the editor can say in the household language', () => {
+    expect(joinFailureCode('Error: Connection activation failed: Secrets were required, but not provided')).toBe('wifi.wrongPassword');
+    expect(joinFailureCode('Error: Connection activation failed: The Wi-Fi network could not be found')).toBe('wifi.notFound');
+    expect(joinFailureCode('Error: Timeout expired (45 seconds)')).toBe('wifi.timedOut');
+  });
+
+  it('has no code for a failure it cannot name', () => {
+    expect(joinFailureCode('Error: Connection activation failed: Device disconnected by user.')).toBeNull();
   });
 });

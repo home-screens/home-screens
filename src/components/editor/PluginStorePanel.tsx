@@ -2,11 +2,14 @@
 
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, ExternalLink, FileText, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
-import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
+import { Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, ExternalLink, FileText, PackageSearch, Download, Settings2 } from 'lucide-react';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
+import Notice from '@/components/ui/Notice';
+import IconButton from '@/components/ui/IconButton';
+import Spinner, { LoadingLine } from '@/components/ui/Spinner';
 import PluginInstallPreview, { resolveRepoUrl } from '@/components/editor/PluginInstallPreview';
 import PluginReleaseNotesModal from '@/components/editor/PluginReleaseNotesModal';
-import BetaBadge from '@/components/editor/PluginBetaBadge';
+import StatusPill from '@/components/ui/StatusPill';
 import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
 import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
 import PluginTarballModal from '@/components/editor/PluginTarballModal';
@@ -21,6 +24,9 @@ import type { RegistryPlugin, RegistryPluginVersion, InstalledPlugin, PluginRegi
 import type { DevPlugin } from '@/lib/plugin-loader';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { CHECKBOX_CLASS, MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('plugin-store');
 
@@ -116,16 +122,14 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const msg = data.detail
-          ? `${data.error}: ${data.detail}`
-          : (data.error ?? t('settings.pluginStorePanel.errors.requestFailed', { status: res.status }));
-        throw new Error(msg);
+        throw new Error(refusalSentence(data, tCore) ?? tCore('refusals.failed'));
       }
       onDone?.(await res.json().catch(() => ({})));
       await fetchData();
       usePluginStore.getState().loadPlugins('editor');
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : t('settings.pluginStorePanel.errors.actionFailed'));
+      // Every error thrown above is already in the household's words.
+      setActionError(err instanceof Error ? err.message : tCore('refusals.failed'));
     } finally {
       setActionInProgress(null);
     }
@@ -227,22 +231,13 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
       closable={!actionInProgress}
       className="w-full max-w-2xl"
     >
-      <div className="w-full h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
-        <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 id="plugin-store-title" className="text-lg font-semibold text-hs-text-primary">{t('settings.pluginStorePanel.title')}</h2>
-          <div className="flex items-center gap-2">
-            <EscHint />
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={!!actionInProgress}
-              aria-label={t('modal.closeAriaLabel')}
-              className="p-1 rounded hover:bg-hs-card disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-            >
-              <X className="w-5 h-5 text-hs-text-muted" />
-            </button>
-          </div>
-        </div>
+      <ModalPanel className="h-[80vh]">
+        <ModalHeader
+          titleId="plugin-store-title"
+          title={t('settings.pluginStorePanel.title')}
+          onClose={onClose}
+          closable={!actionInProgress}
+        />
 
         {/* Tabs */}
         <div className="flex gap-1 px-5 pt-3">
@@ -278,23 +273,20 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
         {/* Error banner */}
         {actionError && (
-          <div className="mx-5 mt-2 px-3 py-2 text-xs text-hs-danger bg-hs-danger/10 border border-hs-danger/30 rounded-lg flex items-center justify-between">
-            <span>{actionError}</span>
-            <button
-              type="button"
-              onClick={() => setActionError(null)}
-              aria-label={t('settings.pluginStorePanel.dismissErrorAriaLabel')}
-              className="text-hs-danger hover:text-hs-danger ml-2"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <Notice
+            tone="danger"
+            role="alert"
+            className="mx-5 mt-2"
+            action={<IconButton label={t('settings.pluginStorePanel.dismissErrorAriaLabel')} tone="neutral" onClick={() => setActionError(null)} />}
+          >
+            {actionError}
+          </Notice>
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 py-3">
+        <ModalBody className="py-3">
           {loading ? (
-            <p className="text-sm text-hs-text-faint mt-8 text-center">{tCore('loading')}</p>
+            <LoadingLine align="center" className="mt-8" />
           ) : tab === 'browse' ? (
             <BrowseTab
               plugins={filteredRegistry}
@@ -332,8 +324,8 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           ) : tab === 'developer' && advancedMode ? (
             <DeveloperTab onError={setActionError} />
           ) : null}
-        </div>
-      </div>
+        </ModalBody>
+      </ModalPanel>
 
       {/* Install confirmation modal */}
       {confirmPlugin && (
@@ -417,7 +409,7 @@ function BrowseTab({
           placeholder={t('settings.pluginStorePanel.browse.searchPlaceholder')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
+          className={`flex-1 ${MODAL_INPUT_CLASS}`}
         />
         <Button variant="secondary" size="sm" onClick={onInstallFromUrl}>
           {t('settings.pluginStorePanel.browse.installFromUrlButton')}
@@ -428,7 +420,7 @@ function BrowseTab({
           type="checkbox"
           checked={showBeta}
           onChange={(e) => onShowBetaChange(e.target.checked)}
-          className="accent-hs-accent"
+          className={CHECKBOX_CLASS}
         />
         {t('settings.pluginStorePanel.beta.showToggleLabel')}
       </label>
@@ -464,7 +456,7 @@ function BrowseTab({
                       <CheckCircle className="w-3.5 h-3.5 text-hs-accent-hover" />
                     </span>
                   )}
-                  {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
+                  {isBeta && <StatusPill tone="info" size="sm">{t('settings.pluginStorePanel.beta.badge')}</StatusPill>}
                   <span className="text-xs text-hs-text-faint">{latest?.version}</span>
                 </div>
                 <p className="text-xs text-hs-text-muted mt-0.5">{plugin.description}</p>
@@ -585,18 +577,18 @@ function InstalledTab({
                 <span className="text-sm font-medium text-hs-text-primary" title={plugin.id}>{matchingRegistryEntry?.name ?? plugin.id}</span>
                 <span className="text-xs text-hs-text-muted">v{plugin.version}</span>
                 {plugin.source === 'external' && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-hs-warning rounded">
+                  <StatusPill tone="warning" size="sm">
                     {t('settings.pluginStorePanel.installed.externalBadge')}
-                  </span>
+                  </StatusPill>
                 )}
                 {isBeta && (
-                  <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
+                  <StatusPill tone="info" size="sm">{t('settings.pluginStorePanel.beta.badge')}</StatusPill>
                 )}
               </div>
               {error && (
                 <div className="flex items-center gap-1 mt-1">
-                  <AlertTriangle className="w-3 h-3 text-hs-warning" />
-                  <span className="text-xs text-hs-warning">{error.message}</span>
+                  <AlertTriangle className="w-3 h-3 text-hs-warning-ink" />
+                  <span className="text-xs text-hs-warning-ink">{error.message}</span>
                 </div>
               )}
             </div>
@@ -839,12 +831,12 @@ function UpdateRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
-          {showBetaBadge && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
+          {showBetaBadge && <StatusPill tone="info" size="sm">{t('settings.pluginStorePanel.beta.badge')}</StatusPill>}
           <span className="text-xs text-hs-text-faint">
             v{plugin.version} → v{target?.version}
           </span>
         </div>
-        {hint && <p className="text-xs text-hs-text-muted mt-0.5">{hint}</p>}
+        {hint && <FieldHint className="mt-0.5">{hint}</FieldHint>}
         {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
       </div>
       <Button
@@ -917,9 +909,9 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
         <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">
           {t('settings.pluginStorePanel.developer.loadFromUrlLabel')}
         </label>
-        <p className="text-[11px] text-hs-text-muted mb-2">
+        <FieldHint className="mb-2">
           {t('settings.pluginStorePanel.developer.loadFromUrlHelp')}
-        </p>
+        </FieldHint>
         <div className="flex gap-2">
           <input
             type="text"
@@ -927,7 +919,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
             onChange={(e) => setDevUrl(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLoad()}
             placeholder="http://localhost:5173"
-            className="flex-1 px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
+            className={`flex-1 ${MODAL_INPUT_CLASS}`}
           />
           <Button
             variant="secondary"
@@ -936,7 +928,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
             onClick={handleLoad}
           >
             {devLoading
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ? <Spinner />
               : t('settings.pluginStorePanel.developer.loadButton')}
           </Button>
         </div>
@@ -949,27 +941,24 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
           </h3>
           <div className="space-y-2">
             {[...devPlugins].map(([id, dev]) => (
-              <div key={id} className="flex items-center gap-3 p-3 rounded-lg border border-amber-800/50 bg-amber-950/20">
+              <div key={id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-warning/30 bg-hs-warning/10">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <Code2 className="w-3.5 h-3.5 text-hs-warning" />
+                    <Code2 className="w-3.5 h-3.5 text-hs-warning-ink" />
                     <span className="text-sm font-medium text-hs-text-primary">{dev.manifest.name}</span>
-                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-hs-warning rounded">
+                    <StatusPill tone="warning" size="sm">
                       {t('settings.pluginStorePanel.developer.devBadge')}
-                    </span>
+                    </StatusPill>
                     <span className="text-xs text-hs-text-faint">v{dev.manifest.version}</span>
                   </div>
                   <p className="text-[11px] text-hs-text-faint mt-0.5 truncate">{dev.url}</p>
                 </div>
-                <button
-                  type="button"
+                <IconButton
+                  size="md"
                   onClick={() => handleUnload(id)}
-                  className="p-1 text-hs-text-muted hover:text-hs-danger"
                   title={t('settings.pluginStorePanel.developer.unloadTitle')}
-                  aria-label={t('settings.pluginStorePanel.developer.unloadAriaLabel', { name: dev.manifest.name })}
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                  label={t('settings.pluginStorePanel.developer.unloadAriaLabel', { name: dev.manifest.name })}
+                />
               </div>
             ))}
           </div>
@@ -1013,7 +1002,6 @@ function InstallConfirmModal({
   includeBeta: boolean;
 }) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const latest = latestVersion(plugin, APP_VERSION, { includeBeta });
   const isBeta = resolveChannel(plugin, latest) === 'beta';
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
@@ -1044,48 +1032,55 @@ function InstallConfirmModal({
   const isWorking = actionInProgress === plugin.id;
 
   return (
-    <div className="fixed inset-0 z-nested flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-hs-text-primary mb-3">
-          {t('settings.pluginStorePanel.installConfirm.heading')}
-          {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
-        </h3>
-
-        <PluginInstallPreview
-          name={plugin.name}
-          description={plugin.description}
-          author={plugin.author}
-          version={latest?.version ?? '?'}
-          license={plugin.license}
-          repo={plugin.repo}
-          verified={plugin.verified}
-          permissions={manifestPermissions}
-          secrets={manifestSecrets}
-          requiresConnection={requiresConnection}
+    <ModalFrame
+      labelledBy="plugin-install-confirm-title"
+      onClose={onCancel}
+      closable={!isWorking}
+      backdropClassName="bg-black/50"
+      className="w-full max-w-md"
+    >
+      <ModalPanel>
+        <ModalHeader
+          titleId="plugin-install-confirm-title"
+          title={t('settings.pluginStorePanel.installConfirm.heading')}
+          subtitle={isBeta ? <StatusPill tone="info" size="sm">{t('settings.pluginStorePanel.beta.badge')}</StatusPill> : undefined}
+          onClose={onCancel}
+          closable={!isWorking}
         />
 
-        {isBeta && (
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-hs-warning">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            {t('settings.pluginStorePanel.beta.installWarning')}
-          </p>
-        )}
+        <ModalBody>
+          <PluginInstallPreview
+            name={plugin.name}
+            description={plugin.description}
+            author={plugin.author}
+            version={latest?.version ?? '?'}
+            license={plugin.license}
+            repo={plugin.repo}
+            verified={plugin.verified}
+            permissions={manifestPermissions}
+            secrets={manifestSecrets}
+            requiresConnection={requiresConnection}
+          />
 
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="secondary" size="sm" onClick={onCancel} disabled={isWorking}>
-            {tCore('actions.cancel')}
-          </Button>
-          <Button
-            size="sm"
-            disabled={!latest || isWorking}
-            onClick={() => latest && onConfirm(plugin.id, latest.version)}
-          >
-            {isWorking
+          {isBeta && (
+            <Notice tone="warning" icon={AlertTriangle} className="mt-3">
+              {t('settings.pluginStorePanel.beta.installWarning')}
+            </Notice>
+          )}
+        </ModalBody>
+
+        <ModalFooter
+          onCancel={onCancel}
+          cancelDisabled={isWorking}
+          primary={{
+            label: isWorking
               ? t('settings.pluginStorePanel.browse.installingButton')
-              : t('settings.pluginStorePanel.browse.installButton')}
-          </Button>
-        </div>
-      </div>
-    </div>
+              : t('settings.pluginStorePanel.browse.installButton'),
+            disabled: !latest || isWorking,
+            onClick: () => { if (latest) onConfirm(plugin.id, latest.version); },
+          }}
+        />
+      </ModalPanel>
+    </ModalFrame>
   );
 }

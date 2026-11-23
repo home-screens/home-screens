@@ -5,6 +5,8 @@ import GoogleSignInButton from '@/components/ui/GoogleSignInButton';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import type { GooglePhotosImport } from '@/hooks/useGooglePhotosImport';
 import { useTranslate } from '@/i18n';
+import Spinner from '@/components/ui/Spinner';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * Signing in to Google Photos once links come back to the hub: Google's
@@ -24,13 +26,10 @@ export default function GooglePhotosSignIn({ google, intro = true }: {
     return (
       <div>
         <p className="mt-2 mb-2.5 flex items-center gap-2 text-xs text-hs-text-muted">
-          <span
-            aria-hidden="true"
-            className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-hs-border-strong border-t-hs-accent-hover"
-          />
+          <Spinner />
           {t('configSections.googlePhotosImport.hosted.finishOnGoogle')}
         </p>
-        <p className="text-[11px] leading-[1.45] text-hs-text-muted">
+        <FieldHint>
           {t('configSections.googlePhotosImport.hosted.comesBack')}{' '}
           <button
             type="button"
@@ -39,7 +38,7 @@ export default function GooglePhotosSignIn({ google, intro = true }: {
           >
             {t('configSections.googlePhotosImport.hosted.pasteInstead')}
           </button>
-        </p>
+        </FieldHint>
       </div>
     );
   }
@@ -47,9 +46,9 @@ export default function GooglePhotosSignIn({ google, intro = true }: {
   if (signInStep === 'paste') {
     return (
       <div>
-        <p className="mt-0.5 text-[11px] leading-[1.45] text-hs-text-muted">
+        <FieldHint className="mt-0.5">
           {t('configSections.googlePhotosImport.hosted.pasteIntro')}
-        </p>
+        </FieldHint>
         <input
           type="text"
           value={pasted}
@@ -76,9 +75,9 @@ export default function GooglePhotosSignIn({ google, intro = true }: {
   return (
     <div>
       {intro && (
-        <p className="mt-0.5 mb-2.5 text-[11px] leading-[1.45] text-hs-text-muted">
+        <FieldHint className="mt-0.5 mb-2.5">
           {t('configSections.googlePhotosImport.hosted.intro')}
-        </p>
+        </FieldHint>
       )}
       <GoogleSignInButton
         size="sm"

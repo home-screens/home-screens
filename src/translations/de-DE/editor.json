@@ -41,10 +41,6 @@
     "apiKey": "API-Schlüssel",
     "resolution": "Auflösung",
     "orientation": "Ausrichtung",
-    "saveFailed": "Speichern fehlgeschlagen",
-    "saveError": "Speichern fehlgeschlagen",
-    "networkError": "Netzwerkfehler",
-    "serverUnreachable": "Server nicht erreichbar",
     "typographySizes": {
       "small": "Klein",
       "medium": "Mittel",
@@ -74,9 +70,6 @@
     "icon": "Symbol",
     "days": "Tage"
   },
-  "modal": {
-    "closeAriaLabel": "Dialog schließen"
-  },
   "page": {
     "loading": "Lädt…",
     "tooNarrowMessage": "Der Editor benötigt einen Bildschirm von mindestens {minWidth}px Breite.",
@@ -93,14 +86,14 @@
       "changedElsewhere": "Woanders geändert",
       "changedElsewhereHint": "Dieses Layout wurde in einem anderen Editor oder am Handy geändert. Neu laden, um es zu sehen.",
       "reloadButton": "Neu laden",
-      "previewTitle": "Diesen Screen in einem Fenster in Display-Form öffnen",
+      "previewTitle": "Diesen Bildschirm in einem Fenster in Display-Form öffnen",
       "conflict": {
         "title": "Dieses Layout wurde woanders geändert.",
         "hint": "Jemand hat aus einem anderen Editor oder vom Handy gespeichert, während du bearbeitet hast. Lade die Änderungen oder behalte deine und überschreibe sie.",
         "loadTheirs": "Änderungen laden",
         "keepMine": "Meine behalten"
       },
-      "savedToDisplay": "Auf {name} gespeichert"
+      "savedToDisplay": "Für das Display „{name}“ gespeichert"
     },
     "loadError": {
       "title": "Home Screens konnte deine gespeicherte Einrichtung nicht öffnen",
@@ -111,7 +104,7 @@
     }
   },
   "canvas": {
-    "noScreenSelected": "Kein Screen ausgewählt",
+    "noScreenSelected": "Kein Bildschirm ausgewählt",
     "ghostCoordinatesAriaLabel": "Ablageposition {x}, {y}",
     "undoTitle": "Rückgängig (Cmd+Z)",
     "undoAriaLabel": "Rückgängig",
@@ -131,10 +124,10 @@
       "body": "Ziehe ein Modul aus der Liste links hierher oder starte mit einer Vorlage.",
       "chooseTemplate": "Vorlage wählen"
     },
-    "dotsGuide": "Hier erscheinen die Screen-Punkte",
+    "dotsGuide": "Hier erscheinen die Bildschirmpunkte",
     "pinnedGhost": {
-      "tag": "Auf jedem Screen, von {screen}",
-      "title": "Liegt auf {screen}. Klicke, um es dort zu bearbeiten."
+      "tag": "Auf jedem Bildschirm, vom Bildschirm „{screen}“",
+      "title": "Liegt auf dem Bildschirm „{screen}“. Klicke, um es dort zu bearbeiten."
     },
     "moduleMenu": {
       "selectBehind": "Modul dahinter auswählen",
@@ -145,7 +138,7 @@
       "title": "Das Display {name} hat noch keine Bildschirme",
       "body": "Ein Bildschirm ist eine Seite im Wechsel. Fang mit einem leeren an oder übernimm, was schon auf einem anderen Display ist.",
       "addScreen": "Bildschirm hinzufügen",
-      "copyFrom": "Bildschirme von {name} übernehmen"
+      "copyFrom": "Bildschirme vom Display „{name}“ übernehmen"
     },
     "zoomFit": "Anpassen",
     "zoomHint": "Strg+Scrollen zum Zoomen, Scrollen zum Verschieben",
@@ -154,7 +147,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
     "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
-    "everyScreenTitle": "Erscheint auf jedem Screen dieses Displays, über den Modulen des jeweiligen Screens",
+    "everyScreenTitle": "Erscheint auf jedem Bildschirm dieses Displays, über den Modulen des jeweiligen Bildschirms",
     "conditionMetTitle": "Bedingungen erfüllt, wird auf dem Display angezeigt",
     "conditionUnmetTitle": "Bedingungen nicht erfüllt, auf dem Display ausgeblendet",
     "conditionMetTitleEditor": "Bedingungen erfüllt, würde gerade angezeigt",
@@ -171,7 +164,7 @@
       "conditionTimeMet": "Zu dieser Zeit sichtbar",
       "conditionTimeUnmet": "Zu dieser Zeit ausgeblendet",
       "background": "Läuft im Hintergrund",
-      "everyScreen": "Auf jedem Screen",
+      "everyScreen": "Auf jedem Bildschirm",
       "lookShowing": "Aussehen: {name}",
       "looksShowing": "Aussehen: {name}",
       "lookNone": "Kein Aussehen passt",
@@ -185,7 +178,7 @@
     "lookWaitingTitle": "Ein Aussehen wartet auf einen Wert, der noch nicht veröffentlicht wurde."
   },
   "displaySwitcher": {
-    "title": "Welches Display bearbeitest du gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
+    "title": "Welches Display bearbeitest du gerade? (Einstellungs-Überschreibungen liegen unter {place}.)",
     "label": "Welches Display bearbeitest du gerade?",
     "onNow": "jetzt an",
     "lastSeen": "zuletzt gesehen {time}",
@@ -200,12 +193,11 @@
     "disabledIndicatorAriaLabel": "Deaktiviert",
     "disabledBadge": "Aus",
     "stickyBadge": "Bleibt",
-    "screenOptionsTitle": "Screen-Optionen",
-    "screenOptionsAriaLabel": "Optionen für {name}",
+    "screenOptionsTitle": "Bildschirmoptionen",
+    "screenOptionsAriaLabel": "Optionen für den Bildschirm „{name}“",
     "deleteTabAriaLabel": "{name} löschen",
-    "deleteConfirmTitle": "„{name}“ löschen?",
     "deleteConfirmDetail": {
-      "zero": "Dieser Screen ist leer. Du kannst das rückgängig machen.",
+      "zero": "Dieser Bildschirm ist leer. Du kannst das rückgängig machen.",
       "one": "{count} Modul und seine Einstellungen verschwinden mit. Du kannst das rückgängig machen.",
       "other": "{count} Module und ihre Einstellungen verschwinden mit. Du kannst das rückgängig machen."
     },
@@ -213,16 +205,16 @@
     "scrollLeftTitle": "Tabs nach links scrollen",
     "scrollRightAriaLabel": "Tabs nach rechts scrollen",
     "scrollRightTitle": "Tabs nach rechts scrollen",
-    "addScreenAriaLabel": "Screen hinzufügen",
+    "addScreenAriaLabel": "Bildschirm hinzufügen",
     "addMenu": {
-      "blank": "Leerer Screen",
+      "blank": "Leerer Bildschirm",
       "fromTemplate": "Aus Vorlage …",
       "fromFile": "Aus Datei …"
     },
     "contextMenu": {
       "moveLeft": "Nach links verschieben",
       "moveRight": "Nach rechts verschieben",
-      "exportThisScreen": "Diesen Screen exportieren",
+      "exportThisScreen": "Diesen Bildschirm exportieren",
       "enable": "Einschalten",
       "disable": "Ausschalten",
       "rename": "Umbenennen",
@@ -234,9 +226,9 @@
     "opensOnlyBadge": "Beim Öffnen",
     "opensOnlyTooltip": "erscheint nur, wenn er geöffnet wird",
     "deleteConfirmOpeners": {
-      "zero": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf verschwindet auch, und dieser Screen ist leer. Du kannst das rückgängig machen.",
-      "one": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf, das Modul dieses Screens und seine Einstellungen verschwinden. Du kannst das rückgängig machen.",
-      "other": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf, die {count} Module dieses Screens und ihre Einstellungen verschwinden. Du kannst das rückgängig machen."
+      "zero": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf verschwindet auch, und dieser Bildschirm ist leer. Du kannst das rückgängig machen.",
+      "one": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf, das Modul dieses Bildschirms und seine Einstellungen verschwinden. Du kannst das rückgängig machen.",
+      "other": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf, die {count} Module dieses Bildschirms und ihre Einstellungen verschwinden. Du kannst das rückgängig machen."
     },
     "orphanedBadge": "Nichts öffnet ihn",
     "orphanedTooltip": "erscheint nur, wenn er geöffnet wird, und nichts öffnet ihn",
@@ -260,10 +252,10 @@
       "move": "bewegen",
       "go": "öffnen"
     },
-    "settingsHint": "Suchst du eine Einstellung? Wähle ein Modul für seine Einstellungen oder klicke auf eine leere Stelle des Screens für die Einstellungen des Screens. Haushaltseinstellungen findest du unter „Einstellungen“."
+    "settingsHint": "Suchst du eine Einstellung? Wähle ein Modul für seine Einstellungen oder klicke auf eine leere Stelle des Bildschirms für die Einstellungen des Bildschirms. Haushaltseinstellungen findest du unter „Einstellungen“."
   },
   "screenSettings": {
-    "sectionTitle": "Screen-Einstellungen",
+    "sectionTitle": "Bildschirmeinstellungen",
     "moduleCountSingular": "{count} Modul",
     "moduleCountPlural": "{count} Module",
     "durationLabel": "Wie lange dieser Bildschirm zu sehen ist",
@@ -277,18 +269,18 @@
     "inheritsHintAfter": " lang gezeigt, genau wie deine anderen Bildschirme.",
     "overrideButton": "Eine andere Zeit einstellen",
     "resetButton": "Zurück zur üblichen Zeit",
-    "rotationTurn": "Kommt mit den anderen Screens an die Reihe",
+    "rotationTurn": "Kommt mit den anderen Bildschirmen an die Reihe",
     "rotationOpened": "Erscheint nur, wenn er geöffnet wird",
-    "rotationOpenedHelp": "Nichts zeigt diesen Screen, bis etwas ihn öffnet. Für einen Knopf, der ihn öffnet, wähle ein Modul auf einem anderen Screen und nutze dessen Bereich „Öffnen-Knopf“.",
-    "rotationOpenedBy": "Geöffnet von {names}. Sonst zeigt nichts diesen Screen.",
-    "openerName": "{module} auf {screen}",
-    "openersTurn": "{names} öffnet diesen Screen. Mit eigener Reihe bleibt er {seconds} Sekunden, dann geht die Rotation weiter.",
-    "openersStay": "{names} öffnet diesen Screen. Mit eigener Reihe bleibt er, bis jemand weitergeht.",
+    "rotationOpenedHelp": "Nichts zeigt diesen Bildschirm, bis etwas ihn öffnet. Für einen Knopf, der ihn öffnet, wähle ein Modul auf einem anderen Bildschirm und nutze dessen Bereich „Öffnen-Knopf“.",
+    "rotationOpenedBy": "Geöffnet von: {names}. Sonst zeigt nichts diesen Bildschirm.",
+    "openerName": "{module} auf dem Bildschirm „{screen}“",
+    "openersTurn": "{names} öffnet diesen Bildschirm. Mit eigener Reihe bleibt er {seconds} Sekunden, dann geht die Rotation weiter.",
+    "openersStay": "{names} öffnet diesen Bildschirm. Mit eigener Reihe bleibt er, bis jemand weitergeht.",
     "goBackAfterLabel": "Zurück nach",
     "goBackAfterUnit": "Minuten ohne Berührung",
     "goBackAfterHelp": "Jede Berührung startet die Zählung neu. Solange eine Rezeptkarte offen ist, wartet die Zählung, bis zu 10 Minuten. 0 bleibt, bis jemand auf Zurück tippt.",
-    "rotationOrphaned": "Nichts öffnet diesen Screen, also erscheint er nie. Gib einem Modul auf einem anderen Screen einen Öffnen-Knopf dafür, oder lass ihn mit den anderen an die Reihe kommen.",
-    "switchedOff": "Dieser Screen ist ausgeschaltet, also zeigt ihn nichts.",
+    "rotationOrphaned": "Nichts öffnet diesen Bildschirm, also erscheint er nie. Gib einem Modul auf einem anderen Bildschirm einen Öffnen-Knopf dafür, oder lass ihn mit den anderen an die Reihe kommen.",
+    "switchedOff": "Dieser Bildschirm ist ausgeschaltet, also zeigt ihn nichts.",
     "switchOn": "Einschalten",
     "openedOnlyWhen": "Seine Öffnen-Knöpfe erscheinen nur {when}.",
     "openedOnlyConditions": "Seine Öffnen-Knöpfe erscheinen nur, solange die Bedingungen unten passen.",
@@ -521,25 +513,6 @@
       "searchPlaceholder": "Einstellungen durchsuchen…",
       "noResults": "Keine Einstellungen gefunden",
       "matchingFields": "Passende Einstellungen",
-      "navLabels": {
-        "calendar": "Kalender",
-        "weather": "Wetter",
-        "location": "Standort & Sprache",
-        "data": "Backups & Daten",
-        "integrations": "API-Schlüssel",
-        "media": "Bilder & Videos",
-        "icons": "Eigene Icons",
-        "meals": "Mahlzeiten",
-        "network": "Netzwerk",
-        "security": "Sicherheit",
-        "stats": "Status",
-        "system": "System & Updates",
-        "displays": "Displays",
-        "screen": "Bildschirm",
-        "automation": "Automatisierung",
-        "phone": "Auf dem Handy",
-        "family": "Familie"
-      },
       "groups": {
         "screen": "Bildschirm",
         "content": "Inhalte",
@@ -553,7 +526,7 @@
     "overrideRow": {
       "override": "Überschreiben",
       "resetToDefault": "Auf Standard zurücksetzen",
-      "overriddenForDisplay": "Überschrieben für {name}. Standard: ",
+      "overriddenForDisplay": "Für das Display „{name}“ überschrieben. Standard: ",
       "overriddenWithoutDisplay": "Überschrieben. Standard: ",
       "overriddenSuffix": ". Bearbeiten unter ",
       "overriddenSuffixEnd": ".",
@@ -613,13 +586,12 @@
       "status": {
         "lookingUp": "Wird gesucht …",
         "found": "{name} gefunden.",
-        "error": "Fehler: {message}",
-        "lookupFailed": "Standort konnte nicht gefunden werden",
+        "lookupFailed": "Dieser Ort wurde nicht gefunden. Prüf die Schreibweise und versuch es noch einmal.",
         "detecting": "Erkennen …",
         "detected": "{name} gefunden.",
         "detectedViaIp": "{name} über deine Internetverbindung gefunden.",
         "detectedCoords": "{lat}, {lon} gefunden.",
-        "detectFailed": "Fehler: Standort konnte nicht erkannt werden",
+        "detectFailed": "Dein Standort ließ sich nicht ermitteln. Gib stattdessen deinen Ort ein.",
         "zoneSet": "Die Zeitzone steht jetzt passend dazu auf {zone}.",
         "notFound": "Kein Ort mit diesem Namen gefunden. Versuch es mit einem Ort in der Nähe."
       },
@@ -640,7 +612,7 @@
         "button": "Hub auf {zone} stellen",
         "settingButton": "Wird geändert…",
         "success": "Die Uhr des Hubs passt jetzt zu deinen Bildschirmen.",
-        "error": "Die Uhr des Hubs konnte nicht geändert werden."
+        "error": "Die Uhr von Home Screens konnte nicht gestellt werden. Versuch es noch einmal."
       }
     },
     "calendarPage": {
@@ -662,7 +634,6 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console.",
         "copyCode": "Code kopieren",
-        "codeCopied": "Kopiert!",
         "googleOnly": "Nur Google",
         "pausedExplanation": "Google ist gerade nicht verbunden, deshalb aktualisieren sich diese Kalender nicht mehr. Melde dich oben erneut an, um sie zurückzuholen.",
         "stillUsedByPhotos": "Auf diesem Hub getrennt. Der Google-Fotos-Import nutzt noch dieselbe Google-Anmeldung, deshalb zeigt dein Google-Konto Home Screens weiter als verbundene App an, bis du auch Google Fotos trennst.",
@@ -670,7 +641,6 @@
         "removeTitle": "{name} entfernen",
         "credentialsSetupPrefix": "Füge deine Google-Anmeldung auf der Seite ",
         "credentialsSetupSuffix": " zuerst hinzu.",
-        "settingsIntegrationsLink": "Einstellungen → API-Schlüssel",
         "hosted": {
           "codeIntroPart1": "Öffne auf deinem Handy oder Computer ",
           "codeIntroPart2": " und gib diesen Code ein:",
@@ -705,7 +675,7 @@
         "connecting": "Verbinden…",
         "connectFailed": "Verbindung zu iCloud fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut.",
         "addAccount": "iCloud-Konto hinzufügen",
-        "helpText": "Melde dich mit einem App-Passwort an, nicht mit deinem normalen Apple-Passwort. Erstelle eines auf account.apple.com unter Anmeldung und Sicherheit → App-spezifische Passwörter."
+        "helpText": "Melde dich mit einem App-Passwort an, nicht mit deinem normalen Apple-Passwort. Erstelle eines auf account.apple.com unter Anmeldung und Sicherheit > App-spezifische Passwörter."
       },
       "holidays": {
         "heading": "Gesetzliche Feiertage",
@@ -732,12 +702,11 @@
           "icloudNotICloudUrl": "Die Kalenderadresse ist kein iCloud-Link",
           "icloudUnreachable": "iCloud ist nicht erreichbar",
           "linkBlocked": "Dieser Link kann nicht verwendet werden. Prüfe ihn und versuche es erneut.",
-          "linkHttpError": "Der Link ist nicht erreichbar (HTTP {status})",
+          "linkHttpError": "Der Link ließ sich nicht öffnen (der Server antwortete mit {status}). Prüf den Link.",
           "linkInvalid": "Der Link ist keine gültige Webadresse",
-          "linkUnreachable": "Der Link ist nicht erreichbar",
+          "linkUnreachable": "Der Link ist nicht erreichbar. Prüf ihn und deine Verbindung.",
           "linkUnreadable": "Der Link lieferte keinen lesbaren Kalender"
-        },
-        "holidays": "Feiertage"
+        }
       },
       "people": {
         "heading": "Wem gehören die Kalender?",
@@ -785,7 +754,7 @@
         "length60": "1 Stunde",
         "length90": "1½ Stunden",
         "length120": "2 Stunden",
-        "wallSwitch": "Die Wand darf Termine hinzufügen, ändern und entfernen",
+        "wallSwitch": "Das Display darf Termine hinzufügen, ändern und entfernen",
         "wallHelp": "Nur in den Kalendern, die oben angehakt sind. Vor dem Entfernen wird nachgefragt. Jedes Display kann das auf seiner eigenen Seite ausschalten."
       }
     },
@@ -809,9 +778,9 @@
         "thirtyDays": "30 Tage"
       },
       "alerts": {
-        "exportBackupFailed": "Backup konnte nicht exportiert werden.",
+        "exportBackupFailed": "Das Backup konnte nicht erstellt werden. Versuch es noch einmal.",
         "invalidBackupFile": "Ungültige Backup-Datei.",
-        "restoreBackupFailed": "Dieses Backup konnte nicht wiederhergestellt werden.",
+        "restoreBackupFailed": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal.",
         "credentialsExportFailedTitle": "Schlüssel konnten nicht mitgesichert werden",
         "credentialsExportFailed": "Deine Schlüssel und Konten konnten diesem Backup nicht hinzugefügt werden. Den Rest trotzdem herunterladen?",
         "credentialsExportFailedConfirm": "Trotzdem herunterladen",
@@ -870,8 +839,7 @@
         "restoreStatus": {
           "restoring": "Wird wiederhergestellt …",
           "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
-          "error": "Fehler: {error}",
-          "failed": "Backup konnte nicht wiederhergestellt werden"
+          "failed": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal."
         },
         "kinds": {
           "lastStable": "Letzte Einstellungen vor dem Ausprobieren von Vorabversionen",
@@ -903,7 +871,7 @@
       "restore": {
         "completeTitle": "Wiederherstellung abgeschlossen",
         "signInAgain": "Dieses Backup enthielt dein Editor-Passwort. Melde dich erneut mit dem Passwort aus diesem Backup an.",
-        "ipRulesNotRestored": "Deine Netzwerkadress-Regeln bleiben ausgeschaltet, weil dieses Gerät nicht auf der wiederhergestellten Liste steht. Du kannst sie in den Einstellungen wieder einschalten.",
+        "ipRulesNotRestored": "Deine Netzwerkadress-Regeln bleiben ausgeschaltet, weil dieses Gerät nicht auf der wiederhergestellten Liste steht. Du kannst sie unter {place} wieder einschalten.",
         "loginNotRestored": "Das Editor-Passwort aus diesem Backup war nicht verwendbar, das Passwort auf diesem Gerät bleibt unverändert.",
         "plaintextTitle": "Dieses Backup enthält deine Schlüssel",
         "plaintextMessage": "Es enthält deine API-Schlüssel, verbundenen Konten und dein Editor-Passwort. Beim Wiederherstellen werden die auf diesem Gerät ersetzt.",
@@ -912,7 +880,8 @@
         "damagedKeys": "Die Schlüssel in dieser Datei sind beschädigt und nicht lesbar. Alles andere kannst du trotzdem wiederherstellen.",
         "reloadFailed": "Dein Backup wurde wiederhergestellt, aber der Editor konnte nicht neu laden. Lade die Seite neu, um es zu sehen.",
         "finished": "Wiederherstellung abgeschlossen. Alles aus dieser Sicherung ist wieder da.",
-        "savedPasswordWrong": "Das gespeicherte Backup-Passwort öffnet dieses Backup nicht. Gib das Passwort ein, mit dem es erstellt wurde."
+        "savedPasswordWrong": "Das gespeicherte Backup-Passwort öffnet dieses Backup nicht. Gib das Passwort ein, mit dem es erstellt wurde.",
+        "restoreAnyway": "Trotzdem wiederherstellen"
       },
       "description": "Alles sichern, wiederherstellen oder mit einer Vorlage neu anfangen.",
       "restoreConfirm": {
@@ -979,10 +948,9 @@
         "runRefused": {
           "busy": "Gerade wird schon ein Backup gespeichert. Versuch es gleich noch einmal.",
           "updating": "Gerade wird ein Update installiert. Versuch es noch einmal, wenn es fertig ist.",
-          "failed": "Der Hub war nicht erreichbar, deshalb konnte das Backup nicht starten."
+          "failed": "Home Screens war nicht erreichbar, deshalb konnte das Backup nicht starten. Prüf die Verbindung und versuch es noch einmal."
         },
         "loadFailed": "Deine automatischen Backups konnten nicht geladen werden. Lade die Seite neu, um es noch einmal zu versuchen.",
-        "saveFailed": "Speichern hat nicht geklappt. Versuch es noch einmal.",
         "offsite": {
           "heading": "Eine Kopie an einen anderen Ort schicken",
           "description": "Ein Backup auf diesem Hub ist verloren, wenn die Speicherkarte des Hubs kaputtgeht. Schick deshalb jedes Backup zusätzlich an einen anderen Ort."
@@ -1034,8 +1002,7 @@
             "username_required": "Gib den Benutzernamen ein, mit dem du dich bei deinem Netzwerkspeicher anmeldest.",
             "password_required": "Gib das Passwort ein, mit dem du dich bei deinem Netzwerkspeicher anmeldest.",
             "password_too_long": "Dieses Passwort ist zu lang.",
-            "not_set_up": "Richte zuerst einen Netzwerkordner ein.",
-            "failed": "Speichern hat nicht geklappt. Versuch es noch einmal."
+            "not_set_up": "Richte zuerst einen Netzwerkordner ein."
           },
           "removeConfirm": {
             "title": "Keine Backups mehr hierhin schicken?",
@@ -1066,7 +1033,6 @@
           "lastFetched": "Zuletzt abgeholt: {when}",
           "notFetched": "Noch nicht abgeholt",
           "copy": "Kopieren",
-          "copied": "Kopiert",
           "warning": "Jeder mit diesem Link kann dein neuestes Backup herunterladen, also behalte ihn für dich. Er funktioniert nur bei dir zu Hause, außer du hast deinen Hub von außen erreichbar gemacht.",
           "makeNew": "Neuen Link erstellen",
           "remove": "Link entfernen",
@@ -1105,8 +1071,7 @@
           },
           "removeConfirm": {
             "title": "Dieses Backup löschen?",
-            "message": "Gespeichert am {when}. Es wird von diesem Hub gelöscht. Kopien, die schon an einen anderen Ort geschickt wurden, bleiben dort.",
-            "confirm": "Löschen"
+            "message": "Gespeichert am {when}. Es wird von diesem Hub gelöscht. Kopien, die schon an einen anderen Ort geschickt wurden, bleiben dort."
           }
         }
       }
@@ -1133,8 +1098,6 @@
         "testStatus": {
           "success": "Funktioniert! Aktuelle Temperatur: {temp}°",
           "connectedNoData": "Verbunden, aber keine Daten erhalten",
-          "failed": "Fehlgeschlagen: {message}",
-          "unknownError": "Unbekannter Fehler",
           "rejectedKey": "{provider} hat den gespeicherten Schlüssel abgelehnt. Entferne ihn und füge ihn erneut ein.",
           "failedPlain": "Von {provider} konnte kein Wetter geladen werden.",
           "successDays": {
@@ -1301,7 +1264,7 @@
         "activeProfileLabel": "Aktives Profil",
         "noActiveProfile": "Keines",
         "screensLabel": "Bildschirme",
-        "overridesHeading": "Überschreibungen für {name}",
+        "overridesHeading": "Überschreibungen für das Display „{name}“",
         "withOverridesPart1": "{name} verwendet die ",
         "defaultsLink": "Standardwerte",
         "withOverridesPart2": " für alles außer:",
@@ -1324,7 +1287,7 @@
           "fullscreenTheme": "Design",
           "sleep": "Schlafen & Dimmen",
           "alerts": "Hinweis-Overlay",
-          "calendarWallEntry": "Termine an dieser Wand hinzufügen"
+          "calendarWallEntry": "Termine an diesem Display hinzufügen"
         },
         "chipValues": {
           "pauseOn": "An",
@@ -1354,26 +1317,25 @@
         "displayIdHelpPart1": "Wird in der Adresse dieses Displays ",
         "displayIdHelpPart2": " verwendet. Kann nicht geändert werden, ohne den Pi neu zu konfigurieren.",
         "dangerZoneHeading": "Gefahrenbereich",
-        "dangerZoneMainHelp": "Das Hauptdisplay ist das, was dieser Pi selbst anzeigt, und kann deshalb nicht entfernt werden. Beim Entfernen hätten seine Bildschirme kein Zuhause mehr.",
-        "dangerZoneRemovableHelp": "Beim Entfernen eines Displays wird es nicht mehr ausgeliefert und seine Bildschirme werden gelöscht. Dieser Pi kann hier wieder auftauchen und auf das Hinzufügen warten.",
-        "removeButton": "{name} entfernen",
-        "removeConfirm": "Display „{name}“ entfernen? Dadurch werden seine Bildschirme gelöscht."
+        "dangerZoneMainHelp": "Das Hauptdisplay ist das, was dieser Pi selbst anzeigt, und kann deshalb nicht gelöscht werden. Beim Löschen hätten seine Bildschirme kein Zuhause mehr.",
+        "dangerZoneRemovableHelp": "Beim Löschen eines Displays wird es nicht mehr ausgeliefert, und seine Bildschirme werden gelöscht. Dieser Pi kann hier wieder auftauchen und darauf warten, hinzugefügt zu werden.",
+        "removeButton": "{name} löschen",
+        "removeConfirmMessage": "Dabei werden auch die Bildschirme dieses Displays gelöscht. Dieser Pi kann hier wieder auftauchen und darauf warten, hinzugefügt zu werden.",
+        "removeConfirmButton": "Display löschen"
       },
       "profile": {
         "activeProfileLabel": "Aktives Profil",
         "noneOption": "Keines",
-        "helpPart1": "Welches Profil auf {name} aktuell angezeigt wird. Profildefinitionen leben unter ",
-        "helpLink": "Standardwerte → Automatisierung",
+        "helpPart1": "Welches Profil das Display „{name}“ gerade zeigt. Profildefinitionen liegen unter ",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Standardwerte → Bildschirm",
         "bannerPart1": "Die Einstellungen hier zeigen den ",
         "bannerEmphasisDefault": "Standardwert",
         "bannerPart2": " aus ",
         "bannerPart3": " an. Klicke bei einer Einstellung auf ",
         "bannerEmphasisOverride": "Überschreiben",
-        "bannerPart4": ", um sie nur für {name} zu ändern.",
+        "bannerPart4": ", um sie nur für das Display „{name}“ zu ändern.",
         "canvasHeading": "Anzeigefläche",
         "perDisplayBadge": "Pro Display",
         "resolutionHelp": "Module werden für diese Größe angeordnet. Jedes Display hat seine eigene Auflösung; sie gilt nicht für die anderen.",
@@ -1397,25 +1359,23 @@
         "footer": {
           "overrideCountSingular": "{count} Anzeige-Überschreibung",
           "overrideCountPlural": "{count} Anzeige-Überschreibungen",
-          "activeForDisplay": " aktiv für {name}.",
+          "activeForDisplay": " aktiv für das Display „{name}“.",
           "clearAllButton": "Anzeige-Überschreibungen löschen",
           "clearAllTitle": "Setzt jede Überschreibung auf dieser Seite auf die Vorgabe zurück."
         }
       },
       "sleep": {
         "label": "Schlafen & Dimmen",
-        "defaultsLabel": "Standardwerte → Bildschirm",
         "infoPart1": "Schlafen und Dimmen werden gemeinsam überschrieben. Schalte die Überschreibung ein, um eine dieser Einstellungen für dieses Display zu ändern. Die Vorgabe liegt unter ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Hinweis-Overlay",
-        "defaultsLabel": "Standardwerte → Bildschirm",
         "infoPart1": "Die Hinweis-Einstellungen werden gemeinsam überschrieben. Schalte die Überschreibung ein, um eine davon für dieses Display zu ändern. Die Vorgabe liegt unter ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
-        "overrideForButton": "Für {name} überschreiben",
+        "overrideForButton": "Für das Display „{name}“ überschreiben",
         "usingDefaultPart1": "Verwendet den Standard von ",
         "usingDefaultPart2": "."
       },
@@ -1430,15 +1390,14 @@
         "unreportedHint": "Dieses Display hat der Zentrale noch nicht mitgeteilt, welche Software es nutzt.",
         "needsSetupBody": "Dieses Display wurde eingerichtet, bevor es automatische Updates gab. Führe das einmalig darauf aus, danach hält es sich selbst aktuell.",
         "copy": "Kopieren",
-        "copied": "Kopiert",
         "needsSetupTitle": "Automatische Updates einschalten",
         "connectLabel": "Verbinde dich damit",
         "runLabel": "Dann führe das aus",
         "connectUnknown": "Verbinde dich von einem Terminal aus mit dem Pi dieses Displays (der Benutzername ist {user}) und führe dann aus:"
       },
       "calendar": {
-        "wallEntryLabel": "Termine an dieser Wand hinzufügen, ändern und entfernen",
-        "wallEntryToggle": "An dieser Wand erlauben",
+        "wallEntryLabel": "Termine an diesem Display hinzufügen, ändern und entfernen",
+        "wallEntryToggle": "An diesem Display erlauben",
         "defaultsLabel": "Kalender"
       }
     },
@@ -1498,7 +1457,7 @@
         "bright": "Hell",
         "dim": "Gedimmt",
         "off": "Aus",
-        "idleNote": "+ dimmt nach {minutes} ruhigen Minuten, jederzeit"
+        "idleNote": "Dimmt außerdem nach {minutes} ruhigen Minuten, jederzeit"
       },
       "disabledHelp": "Schalte das ein, um Zeiten festzulegen. Im Moment bleibt das Display Tag und Nacht hell.",
       "powerSectionTitle": "Wenn ausgeschaltet",
@@ -1510,13 +1469,11 @@
       "upload": "Hochladen",
       "dropzone": "Ziehe Bilder oder Videos hierher oder klicke zum Auswählen, so viele du magst",
       "saveInto": "Speichern in",
-      "uploadFailedWithStatus": "Hochladen fehlgeschlagen ({status})",
       "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Wähle auf dem iPhone unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
-      "uploadFailed": "Hochladen fehlgeschlagen",
       "loadFailed": "Deine Bilder und Videos konnten nicht geladen werden",
       "tryAgain": "Erneut versuchen",
       "allFolders": "Alle Bilder & Videos",
-      "topLevel": "Bibliothek (oberste Ebene)",
+      "topLevel": "Oberste Ebene (kein Ordner)",
       "allKinds": "Alle Arten",
       "images": "Bilder",
       "videos": "Videos",
@@ -1535,7 +1492,7 @@
         "rotatingFolderLast": "Wechselnder Hintergrund auf '{name}' (sein letztes Bild)"
       },
       "selected": "{count} ausgewählt",
-      "empty": "Noch nichts hier. Lade ein paar Bilder oder Videos hoch",
+      "empty": "Noch nichts hier. Lade ein paar Bilder oder Videos hoch.",
       "deleteTitle": {
         "one": "1 Datei löschen?",
         "other": "{count} Dateien löschen?"
@@ -1545,7 +1502,7 @@
         "other": "Die Dateien sind dann endgültig von diesem Hub verschwunden. Diashows machen mit ihren übrigen Bildern weiter, und Dateien, die ein Bildschirm braucht, bleiben erhalten, damit kein Bildschirm leer wird."
       },
       "deleteConfirm": "Löschen",
-      "refused": "{file} wird noch verwendet und wurde nicht gelöscht",
+      "refused": "{file} wird noch verwendet und wurde nicht gelöscht.",
       "keptLast": "{file} wurde behalten: Es ist das letzte Bild der Diashow auf '{name}'.",
       "loading": "Deine Bilder und Videos werden geladen",
       "emptyFiltered": "Nichts passt zu diesem Filter",
@@ -1622,8 +1579,7 @@
       "deleteFolderTitle": "Den Ordner {name} löschen?",
       "deleteFolderMessage": "Nur ein leerer Ordner kann gelöscht werden.",
       "folderDeleted": "Ordner {name} gelöscht",
-      "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden",
-      "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst."
+      "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden"
     },
     "iconsPage": {
       "description": "Bilder, die deine Familie hinzugefügt hat. Verwende sie für Mahlzeiten, Aufgaben, Belohnungen, Personen, Routinen und Bildschirm-Icons.",
@@ -1701,7 +1657,7 @@
         "urlPlaceholder": "z. B. http://192.168.1.50:2283",
         "urlHelp": "Die Basis-URL deiner Immich-Instanz.",
         "apiKeyPlaceholder": "Füge deinen Immich-API-Schlüssel ein",
-        "apiKeyHelp": "Erstelle unter Immich → Account Settings → API Keys."
+        "apiKeyHelp": "Erstelle ihn unter Immich > Account Settings > API Keys."
       },
       "mealie": {
         "name": "Mealie",
@@ -1724,7 +1680,7 @@
         "couldNotCheck": "Prüfen nicht möglich",
         "removeConfirm": {
           "title": "Essensplan nicht mehr zeigen?",
-          "message": "Dein Essensplan kommt aus Mealie. Ohne Adresse und Token können Wand und Handy ihn nicht zeigen, bis du sie wieder einträgst oder den Essensplan unter Einstellungen > Mahlzeiten auf Home Screens zurückstellst.",
+          "message": "Dein Essensplan kommt aus Mealie. Ohne Adresse und Token können Display und Handy ihn nicht zeigen, bis du sie wieder einträgst oder den Essensplan unter {place} auf Home Screens zurückstellst.",
           "confirmLabel": "Entfernen"
         },
         "result": {
@@ -1824,7 +1780,6 @@
         "heading": "Gerätename",
         "placeholder": "home-screens",
         "saveButton": "Speichern",
-        "savingButton": "Speichert …",
         "successMessage": "Gerätename aktualisiert",
         "defaultErrorMessage": "Gerätename konnte nicht aktualisiert werden"
       },
@@ -1859,7 +1814,7 @@
         "scanButton": "Suchen",
         "scanningButton": "Suche läuft …",
         "scanCooldownButton": "Suchen ({seconds}s)",
-        "defaultScanError": "Suche fehlgeschlagen",
+        "defaultScanError": "Die Netzwerksuche hat nicht geklappt. Versuch es noch einmal.",
         "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
         "badges": {
           "connected": "Verbunden",
@@ -1880,7 +1835,7 @@
         "cancelButton": "Abbrechen",
         "connectButton": "Verbinden",
         "connectingButton": "Wird verbunden …",
-        "defaultConnectError": "Verbindung fehlgeschlagen",
+        "defaultConnectError": "Die Verbindung mit diesem Netzwerk hat nicht geklappt. Prüf das Passwort und versuch es noch einmal.",
         "savedPasswordPlaceholder": "Leer lassen, um das gespeicherte Passwort zu verwenden"
       },
       "managementWarning": {
@@ -1916,7 +1871,7 @@
       "savedNetworks": {
         "heading": "Gespeicherte Netzwerke",
         "loading": "Gespeicherte Netzwerke werden geladen …",
-        "loadError": "Gespeicherte Netzwerke konnten nicht geladen werden",
+        "loadError": "Die gespeicherten Netzwerke konnten nicht geladen werden. Versuch es noch einmal.",
         "empty": "Keine gespeicherten WLAN-Netzwerke.",
         "showPasswords": "Passwörter anzeigen",
         "hidePasswords": "Passwörter verbergen",
@@ -1925,8 +1880,8 @@
         "autoConnect": "Automatisch verbinden",
         "forgetPrompt": "Vergessen?",
         "forgetButton": "Vergessen",
-        "forgetConfirmYes": "Ja",
-        "forgetConfirmNo": "Nein",
+        "forgetConfirmYes": "Vergessen",
+        "forgetConfirmNo": "Behalten",
         "forgettingButton": "Wird entfernt …",
         "onAdapter": "über {device}",
         "forgetError": "Das Netzwerk konnte nicht entfernt werden. Prüfe, ob das Gerät noch erreichbar ist, und versuche es noch einmal."
@@ -1946,13 +1901,11 @@
         "dnsLabel": "DNS-Server",
         "dnsPlaceholder": "8.8.8.8",
         "removeDnsAriaLabel": "DNS-Server entfernen",
-        "addDnsButton": "+ DNS-Server hinzufügen",
+        "addDnsButton": "DNS-Server hinzufügen",
         "dhcpHint": "Per DHCP zugewiesen",
         "managementInterfaceHint": "Änderungen an dieser Schnittstelle werden automatisch zurückgesetzt, wenn die Verbindung verloren geht.",
-        "applyButton": "Anwenden",
-        "applyingButton": "Wird angewendet …",
         "successMessage": "Einstellungen angewendet",
-        "defaultErrorMessage": "IP-Einstellungen konnten nicht angewendet werden"
+        "defaultErrorMessage": "Die Adresseinstellungen konnten nicht geändert werden. Versuch es noch einmal."
       },
       "diagnostics": {
         "heading": "Diagnose",
@@ -1973,11 +1926,11 @@
           "latencyMs": "{ms} ms"
         },
         "unavailable": "Diagnose ist auf diesem Gerät nicht verfügbar.",
-        "requestFailed": "Diagnose-Anfrage fehlgeschlagen",
+        "requestFailed": "Die Prüfung hat nicht geklappt. Versuch es noch einmal.",
         "testButton": "Verbindung testen",
         "testingButton": "Wird getestet …"
       },
-      "description": "Das WLAN und die Adresse, die dieses Display verwendet."
+      "description": "Das WLAN und die Netzwerkadresse, die dieses Gerät nutzt."
     },
     "mealsPage": {
       "loading": "Mahlzeiten-Einstellungen werden geladen …",
@@ -2010,10 +1963,8 @@
         "none": "Keine"
       },
       "status": {
-        "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
-        "networkLoad": "Netzwerkfehler beim Laden der Mahlzeiten-Einstellungen.",
-        "saveFailed": "Mahlzeiten-Einstellungen konnten nicht gespeichert werden.",
-        "networkSave": "Netzwerkfehler beim Speichern der Mahlzeiten-Einstellungen.",
+        "loadFailed": "Die Mahlzeiten-Einstellungen konnten nicht geladen werden. Versuch es noch einmal.",
+        "networkLoad": "Home Screens war nicht erreichbar, deshalb konnten die Mahlzeiten-Einstellungen nicht geladen werden. Prüf die Verbindung und versuch es noch einmal.",
         "unableToLoad": "Mahlzeiten-Einstellungen können nicht geladen werden."
       },
       "slots": {
@@ -2049,11 +2000,11 @@
     },
     "systemPage": {
       "loading": "System-Informationen werden geladen …",
-      "loadFailed": "System-Informationen konnten nicht geladen werden",
+      "loadFailed": "Die Systemdetails konnten nicht geladen werden. Versuch es noch einmal.",
       "advanced": {
         "heading": "Erweitert",
         "toggleLabel": "Erweiterte Optionen anzeigen",
-        "help": "Zeigt entwicklerseitige Steuerelemente: Test-Builds, Build-Details und Plugin-Entwicklermodus.",
+        "help": "Zeigt die zusätzlichen Steuerelemente: Test-Builds, Build-Details und den Plugin-Entwicklermodus.",
         "autoUpdateNote": "Automatische Updates laufen weiter, auch wenn diese Optionen ausgeblendet sind."
       },
       "version": {
@@ -2068,9 +2019,9 @@
         "nightlyBuildBadge": "Test-Build"
       },
       "upgradeInProgress": {
-        "title": "Aktualisierung läuft",
-        "help": "Eine Aktualisierung läuft gerade. Wenn sie hängen zu bleiben scheint, kannst du sie abbrechen.",
-        "cancelButton": "Aktualisierung abbrechen"
+        "title": "Ein Update läuft",
+        "help": "Wenn es festzuhängen scheint, kannst du es stoppen.",
+        "cancelButton": "Update stoppen"
       },
       "updateAvailable": {
         "updateTitle": "Update verfügbar: v{version}",
@@ -2178,27 +2129,27 @@
         "cannotRead": "Kann deine aktuellen Einstellungen nicht lesen"
       },
       "upgradeDialog": {
-        "title": "Aktualisieren",
-        "message": "Auf {tag} aktualisieren? Der Server startet neu und du verlierst kurz die Verbindung.",
+        "title": "Auf {tag} aktualisieren?",
+        "message": "Home Screens startet zum Abschließen neu, und das Display bleibt ein bis zwei Minuten leer.",
         "confirm": "Aktualisieren"
       },
       "rollbackDialog": {
         "title": "Zurück zu {tag}?",
-        "message": "Home Screens startet neu und die Wand ist ein paar Sekunden leer. Einstellungen, die du seitdem geändert hast, funktionieren in {tag} möglicherweise nicht. Vorher wird ein Schnappschuss deiner aktuellen Einrichtung gespeichert, du kannst also zurück.",
+        "message": "Home Screens startet neu, und das Display bleibt ein paar Sekunden leer. Einstellungen, die du seitdem geändert hast, funktionieren in {tag} möglicherweise nicht. Vorher wird ein Schnappschuss deiner aktuellen Einrichtung gespeichert, du kannst also zurück.",
         "confirm": "Zurück zu {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "Ganzes Gerät neu starten",
-        "rebootMessage": "Möchtest du das System wirklich neu starten? Du verlierst kurz die Verbindung.",
-        "rebootConfirm": "Neu starten",
-        "restartTitle": "Home Screens neu starten",
-        "restartMessage": "Möchtest du den Dienst wirklich neu starten? Du verlierst kurz die Verbindung.",
+        "rebootTitle": "Das ganze Gerät neu starten?",
+        "rebootMessage": "Das Gerät geht aus und wieder an. Das Display bleibt ein bis zwei Minuten dunkel.",
+        "rebootConfirm": "Gerät neu starten",
+        "restartTitle": "Home Screens neu starten?",
+        "restartMessage": "Home Screens lädt neu, das dauert ein paar Sekunden. Nichts, was du eingerichtet hast, geht verloren.",
         "restartConfirm": "Neu starten"
       },
       "cancelUpgradeDialog": {
-        "title": "Aktualisierung abbrechen",
-        "message": "Bist du sicher? Die laufende Aktualisierung wird beendet. Möglicherweise musst du sie danach erneut starten.",
-        "confirm": "Aktualisierung abbrechen"
+        "title": "Update stoppen?",
+        "message": "Home Screens bleibt auf der Version, die es jetzt hat. Du kannst das Update danach noch einmal starten.",
+        "confirm": "Update stoppen"
       },
       "actions": {
         "heading": "Wenn etwas hängt",
@@ -2207,10 +2158,9 @@
         "help": "Home Screens neu zu starten lädt die App neu und dauert ein paar Sekunden. Das Gerät neu zu starten dauert ein bis zwei Minuten."
       },
       "powerStatus": {
-        "restartScheduled": "Dienst-Neustart geplant. Die Seite wird gleich neu geladen …",
-        "rebootScheduled": "System-Neustart geplant. Das Display kommt in Kürze wieder online …",
-        "processing": "Wird verarbeitet …",
-        "unknownError": "Unbekannter Fehler"
+        "restartScheduled": "Home Screens startet neu. Diese Seite lädt gleich neu…",
+        "rebootScheduled": "Das Gerät startet neu. Das Display ist in ein bis zwei Minuten wieder da…",
+        "processing": "Einen Moment…"
       },
       "description": "Home Screens aktuell halten und zurückgehen, wenn ein Update Ärger macht."
     },
@@ -2253,11 +2203,6 @@
         "screenCountPlural": "{count} Bildschirme",
         "summaryScheduled": "{screens} · {when}",
         "summaryManual": "{screens} · nur wenn du es auswählst"
-      },
-      "deleteDialog": {
-        "title": "Profil löschen",
-        "message": "„{name}“ löschen?",
-        "confirm": "Löschen"
       },
       "nameSuggestions": {
         "morning": "Schulmorgen",
@@ -2311,12 +2256,7 @@
         "copyToDisplayLabel": "Auf ein anderes Display kopieren",
         "copyToDisplayPlaceholder": "Display auswählen…",
         "copyToDisplayHelp": "Kopiert diese Regel auf ein anderes Display. Den dort gezeigten Bildschirm musst du noch auswählen.",
-        "copiedNotice": "Auf {name} kopiert."
-      },
-      "deleteDialog": {
-        "title": "Regel löschen",
-        "message": "„{name}“ löschen?",
-        "confirm": "Löschen"
+        "copiedNotice": "Auf das Display „{name}“ kopiert."
       }
     },
     "sharedStatePage": {
@@ -2338,7 +2278,7 @@
           "one": "{count} Wert von deinen Erweiterungen verfügbar",
           "other": "{count} Werte von deinen Erweiterungen verfügbar"
         },
-        "truncationNote": "Nur die ersten {count} werden angezeigt. Suche, um mehr zu finden",
+        "truncationNote": "Nur die ersten {count} werden angezeigt. Suche, um mehr zu finden.",
         "collapseGroup": "{producer} einklappen",
         "expandGroup": "{producer} ausklappen",
         "noProviders": "Noch nichts zum Teilen verfügbar. Werte kommen von Erweiterungen, die sie teilen (wie Home Assistant). Sobald eine Erweiterung eingerichtet ist, erscheinen ihre Werte hier.",
@@ -2385,7 +2325,7 @@
       "revokeSessions": {
         "button": "Alle abmelden",
         "warning": "Alle Angemeldeten werden abgemeldet, auch du auf diesem Gerät.",
-        "confirmButton": "Bestätigen",
+        "confirmButton": "Alle abmelden",
         "revoking": "Wird abgemeldet …",
         "cancel": "Abbrechen",
         "success": "Alle sind abgemeldet. Weiter zur Anmeldung …",
@@ -2397,17 +2337,16 @@
         "reveal": "Anzeigen",
         "hide": "Verbergen",
         "copy": "Kopieren",
-        "copied": "Kopiert!",
         "regenerateButton": "Neuen Schlüssel erstellen",
         "regenerating": "Wird erzeugt …",
-        "regenerateConfirm": "Bestätigen",
+        "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Jedes Display lädt einmal neu, um den neuen Schlüssel zu übernehmen.",
         "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden",
         "errorCopy": "Kopieren fehlgeschlagen; bitte manuell auswählen und kopieren",
         "phoneHintIntro": "Um ein Display vom Telefon aus zu steuern, setze ein Lesezeichen auf einen Link wie diesen:",
         "phoneHintOutro": "Zeige den Schlüssel oben zuerst an, damit der Link ihn enthält. Tausche sleep gegen wake, reload, next-screen oder prev-screen, um die anderen Befehle zu bekommen.",
-        "phoneHintDisplayNote": "Dieser zeigt auf {name}. Tausche {display} gegen die ID eines anderen Displays, um auf dieses zu zielen."
+        "phoneHintDisplayNote": "Dieser zeigt auf das Display „{name}“. Tausche {display} gegen die ID eines anderen Displays, um auf dieses zu zielen."
       },
       "ipAllowlist": {
         "heading": "Zugelassene Netzwerke",
@@ -2437,7 +2376,6 @@
           "saveAnyway": "Trotzdem speichern",
           "cancel": "Abbrechen"
         },
-        "saveButton": "Änderungen speichern",
         "lockedOutHintPart1": "Falls du dich aussperrst, bearbeite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " auf dem Gerät, um das abzuschalten.",
@@ -2473,11 +2411,10 @@
       },
       "errors": {
         "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
-        "setFailed": "Passwort konnte nicht festgelegt werden",
-        "changeFailed": "Passwort konnte nicht geändert werden",
-        "disableFailed": "Anmeldung konnte nicht deaktiviert werden",
-        "passwordTooShort": "Das Passwort braucht mindestens {count} Zeichen.",
-        "invalidAddress": "„{entry}“ ist keine Netzwerkadresse. Versuch es mit einer wie 192.168.1.0/24."
+        "setFailed": "Das Passwort konnte nicht festgelegt werden. Versuch es noch einmal.",
+        "changeFailed": "Das Passwort konnte nicht geändert werden. Versuch es noch einmal.",
+        "disableFailed": "Das Passwort konnte nicht ausgeschaltet werden. Versuch es noch einmal.",
+        "passwordTooShort": "Das Passwort braucht mindestens {count} Zeichen."
       },
       "success": {
         "passwordSet": "Passwort festgelegt! Die Anmeldung ist jetzt aktiviert.",
@@ -2490,13 +2427,12 @@
         "heading": "Erweiterter Netzwerkzugriff",
         "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke."
       },
-      "grownUpPointerPrefix": "Soll die Wand fragen, bevor Kinder Tickets ausgeben? Dafür gibt es den ",
+      "grownUpPointerPrefix": "Soll das Display fragen, bevor Kinder Tickets ausgeben? Dafür gibt es den ",
       "grownUpPointerSuffix": " auf der Seite Familie."
     },
     "shared": {
       "secretField": {
         "removeButton": "Entfernen",
-        "savingButton": "…",
         "saveButton": "Speichern",
         "savedSuccess": "Erfolgreich gespeichert",
         "checkingButton": "Wird geprüft…",
@@ -2542,7 +2478,6 @@
       "loading": "Einstellungen werden geladen…",
       "loadFailed": "Einstellungen konnten nicht geladen werden. Schließen und erneut öffnen, um es noch einmal zu versuchen.",
       "saveButton": "Speichern",
-      "savingButton": "…",
       "savedSuccess": "Erfolgreich gespeichert",
       "toggleTitle": "Plugin-Einstellungen",
       "toggleAriaLabel": "Plugin-Einstellungen für {id}"
@@ -2558,8 +2493,13 @@
       "deviceCodeIntro": "Öffne diesen Link und gib den Code ein:",
       "devicePolling": "Warte auf deine Bestätigung…",
       "cancelButton": "Abbrechen",
-      "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "errorGeneric": "Die Anmeldung hat nicht geklappt. Prüf deine Eingaben und versuch es noch einmal.",
       "popupBlocked": "Dein Browser hat das Anmeldefenster blockiert. Erlaube Pop-ups für diese Seite und versuche es erneut.",
+      "popup": {
+        "closeWindow": "Du kannst dieses Fenster jetzt schließen.",
+        "failedTitle": "Die Anmeldung hat nicht geklappt",
+        "failedBody": "Geh zurück zum Editor und versuch es noch einmal."
+      },
       "garmin": {
         "intro": "Melde dich mit deinem Garmin Connect-Konto an.",
         "emailPlaceholder": "E-Mail",
@@ -2578,10 +2518,6 @@
         "installed": "Installiert",
         "updates": "Updates",
         "developer": "Entwickler"
-      },
-      "errors": {
-        "actionFailed": "Aktion fehlgeschlagen",
-        "requestFailed": "Anfrage fehlgeschlagen ({status})"
       },
       "browse": {
         "searchPlaceholder": "Plugins durchsuchen …",
@@ -2606,7 +2542,7 @@
         "uninstallAriaLabel": "{id} deinstallieren",
         "uninstallConfirm": {
           "title": "{name} deinstallieren?",
-          "message": "Es verschwindet von jedem Screen, der es zeigt. Auch die gespeicherten Einstellungen und die Anmeldung werden gelöscht.",
+          "message": "Es verschwindet von jedem Bildschirm, der es zeigt. Auch die gespeicherten Einstellungen und die Anmeldung werden gelöscht.",
           "confirmLabel": "Deinstallieren"
         }
       },
@@ -2640,18 +2576,18 @@
         "loadFromUrlLabel": "Aus URL laden",
         "loadFromUrlHelp": "Gib die URL deines Entwicklungs-Servers ein (z. B. http://localhost:5173). Das Plugin lädt bei Änderungen automatisch neu.",
         "loadButton": "Laden",
-        "loadFailed": "Dev-Plugin konnte nicht geladen werden",
+        "loadFailed": "Das Plugin ließ sich von dieser Adresse nicht laden. Prüf, ob sein Dev-Server läuft.",
         "devPluginsHeading": "Dev-Plugins",
         "devBadge": "Dev",
         "unloadTitle": "Entladen",
         "unloadAriaLabel": "{name} entladen",
         "tipsHeading": "Tipps",
         "tips": {
-          "localStorage": "Dev-Plugins werden nur im localStorage gespeichert – sie bleiben nicht über Browser hinweg erhalten",
+          "localStorage": "Dev-Plugins werden nur im localStorage gespeichert – sie bleiben nicht über Browser hinweg erhalten.",
           "autoReload": "Das Plugin lädt automatisch neu, wenn sich das Bundle ändert (alle 2 Sekunden geprüft)",
           "sourcemapsPart1": "Source Maps werden unterstützt – füge ",
           "sourcemapsPart2": " zu deiner Vite-Konfiguration hinzu",
-          "devOverrides": "Dev-Plugins überschreiben installierte Versionen mit dem gleichen Modultyp"
+          "devOverrides": "Dev-Plugins überschreiben installierte Versionen mit dem gleichen Modultyp."
         }
       },
       "installConfirm": {
@@ -2660,7 +2596,7 @@
     },
     "statsSection": {
       "loadingStats": "Statistiken werden geladen…",
-      "failedToLoad": "Statistiken konnten nicht geladen werden",
+      "failedToLoad": "Der Status konnte nicht geladen werden. Versuch es noch einmal.",
       "configurationTitle": "Konfiguration",
       "screens": "Bildschirme",
       "modules": "Module",
@@ -2688,7 +2624,7 @@
       "temperature": "Temperatur",
       "displayPrograms": "Programme des Displays",
       "programsChecked": "Programme geprüft",
-      "noHardwareStats": "Für diese Anzeige wurden noch keine Hardware-Daten gemeldet. Installieren Sie home-screens-reporter.timer auf dem zugehörigen Pi.",
+      "noHardwareStats": "Für dieses Display wurden noch keine Hardware-Daten gemeldet. Installiere home-screens-reporter.timer auf seinem Pi.",
       "storageTitle": "Speicher",
       "used": "Belegt",
       "free": "frei",
@@ -2734,7 +2670,7 @@
       "telemetryItem4": "Anzahl der Bildschirme, Module und Profile",
       "telemetryItem5": "Verwendete Modultypen (z. B. Uhr, Wetter)",
       "telemetryItem6": "Wetteranbieter und Übergangseffekt",
-      "telemetryItem7": "Ob Ruhemodus, Warnungen und Authentifizierung aktiviert sind",
+      "telemetryItem7": "Ob Ruhemodus, Hinweise und Authentifizierung aktiviert sind",
       "telemetryItem8": "Ob Kalender-Integrationen konfiguriert sind",
       "telemetryItem9": "Installierte Plug-ins (Marketplace-Namen und Versionen; Plug-ins von außerhalb des Marketplace werden gezählt, aber nie benannt)",
       "telemetryDisclaimer": "Wir erfassen niemals: IP-Adressen, Standort, Kalendereinträge, API-Schlüssel, Modulinhalte, Hostnamen oder andere personenbezogene Daten. Der gesamte Code ist Open Source und kann überprüft werden.",
@@ -2744,9 +2680,14 @@
       "dataBackups": "Konfigurations-Backups",
       "dataConfiguration": "Konfiguration",
       "noAppData": "Noch keine App-Daten.",
-      "displayTitle": "Anzeige",
+      "displayTitle": "Display-Status",
       "offline": "Offline",
-      "switchDisplay": "Anzeige wechseln",
+      "displayStates": {
+        "active": "Aktiv",
+        "dimmed": "Gedimmt",
+        "asleep": "Schläft"
+      },
+      "switchDisplay": "Display wechseln",
       "screen": "Bildschirm",
       "indexOf": "{index} von {total}",
       "profile": "Profil",
@@ -2754,45 +2695,45 @@
       "notChromium": "Anderer Browser",
       "lastSeen": "Zuletzt gesehen",
       "timeAgo": "vor {age}",
-      "noDisplayPrefix": "Keine Anzeige verbunden. Öffne",
-      "noDisplayForNamePrefix": "Keine Anzeige verbunden für {name}. Öffne",
+      "noDisplayPrefix": "Kein Display verbunden. Öffne",
+      "noDisplayForNamePrefix": "Das Display „{name}“ ist nicht verbunden. Öffne",
       "noDisplayOpenSuffix": "zum Starten.",
-      "displayHardwareTitle": "Anzeige-Hardware",
+      "displayHardwareTitle": "Display-Hardware",
       "webglUnavailable": "WebGL nicht verfügbar",
       "cpuCoresLabel": "CPU-Kerne",
       "deviceMemoryLabel": "Gerätespeicher",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "Browser-Informationen werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden.",
-      "noBrowserStatsForName": "Browser-Informationen werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden für {name}.",
+      "noBrowserStats": "Browser-Informationen meldet das Display. Kein Display verbunden.",
+      "noBrowserStatsForName": "Browser-Informationen meldet das Display. Das Display „{name}“ ist nicht verbunden.",
       "description": "Wie es deinen Displays und diesem Gerät gerade geht."
     },
     "displaysIndex": {
-      "breadcrumb": "Anzeigen",
-      "heroNew": "Home Screens auf mehreren Anzeigen verwenden",
+      "breadcrumb": "Displays",
+      "heroNew": "Home Screens auf mehreren Displays verwenden",
       "heroExisting": {
-        "one": "{count} Anzeige in diesem Zuhause",
-        "other": "{count} Anzeigen in diesem Zuhause"
+        "one": "{count} Display in diesem Zuhause",
+        "other": "{count} Displays in diesem Zuhause"
       },
-      "emptyDescriptionPrefix": "Steuern Sie mehrere Bildschirme von diesem Pi aus (ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV), jeder mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub (der Pi, auf dem Home Screens läuft und der alle Anzeigen bedient); zusätzliche Anzeigen können günstige Pi Zeros mit ",
+      "emptyDescriptionPrefix": "Steuere mehrere Displays von diesem Pi aus (ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV), jedes mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub (der Pi, auf dem Home Screens läuft und der alle Displays bedient); weitere Displays können günstige Pi Zeros mit ",
       "emptyDescriptionSuffix": " sein.",
-      "populatedDescriptionPrefix": "Klicken Sie auf eine Anzeige, um ihre eigenen Einstellungen zu bearbeiten. Alles andere verwendet die gemeinsamen ",
+      "populatedDescriptionPrefix": "Klick auf ein Display, um seine eigenen Einstellungen zu bearbeiten. Alles andere verwendet die gemeinsamen ",
       "populatedDescriptionSuffix": ".",
       "defaultsLink": "Standardwerte",
       "refreshHeartbeatsTitle": "Heartbeats aktualisieren",
-      "addDisplay": "Anzeige hinzufügen",
-      "emptyTitle": "Diese Installation läuft im Einzelanzeige-Modus",
-      "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht hinzugefügt; Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
+      "addDisplay": "Display hinzufügen",
+      "emptyTitle": "Diese Installation läuft mit nur einem Display",
+      "emptyParagraphPart1": "Dein aktuelles Setup zählt als ein Display, ist hier aber noch nicht hinzugefügt. Mehrere Displays sind optional, damit bestehende Installationen unverändert bleiben, bis du ausdrücklich ein zweites hinzufügst. Sobald du dein erstes Display hinzufügst, wird das aktuelle Layout dieses Pi zu einem Display namens ",
       "emptyParagraphPart2": " und läuft genauso weiter wie heute.",
       "mainLabel": "Main",
-      "emptyBullet1Prefix": "Klicken Sie oben auf ",
-      "emptyBullet1Suffix": ", um einen neuen Bildschirm hinzuzufügen. Geben Sie ihm einen Namen, eine Auflösung und Drehung, und gestalten Sie sein Layout im Editor.",
+      "emptyBullet1Prefix": "Klick oben auf ",
+      "emptyBullet1Suffix": ", um ein neues Display hinzuzufügen. Gib ihm einen Namen, eine Auflösung und eine Drehung, und gestalte sein Layout im Editor.",
       "emptyBullet2": "Oder flashe einen weiteren Pi mit {command}. Sobald er bootet, erscheint er unten als {label}, und ein Klick fügt ihn hinzu.",
-      "unadoptedLabel": "Anzeige, die auf das Hinzufügen wartet",
+      "unadoptedLabel": "Display, das auf das Hinzufügen wartet",
       "unadoptedWaiting": {
-        "one": "{count} Anzeige wartet auf das Hinzufügen",
-        "other": "{count} Anzeigen warten auf das Hinzufügen"
+        "one": "{count} Display wartet auf das Hinzufügen",
+        "other": "{count} Displays warten auf das Hinzufügen"
       },
-      "unadoptedHintPrefix": "Diese Pis sind mit dem Hub verbunden, aber noch nicht hinzugefügt. Klicken Sie auf ",
+      "unadoptedHintPrefix": "Diese Pis sind mit dem Hub verbunden, aber noch nicht hinzugefügt. Klick auf ",
       "unadoptedHintSuffix": ", um ihnen Bildschirme zuzuweisen.",
       "adoptStrong": "Hinzufügen",
       "adoptButton": "Hinzufügen",
@@ -2800,7 +2741,7 @@
       "reportedDimensions": "{width}×{height} gemeldet",
       "reportedFrom": "von {address}",
       "multipleClientsHeading": "{count} Clients melden sich mit dieser ID",
-      "multipleClientsParagraphPrefix": "Zwei oder mehr Clients senden POSTs mit dieser Anzeige-ID. Überprüfen Sie die Quell-IPs oben, um herauszufinden, welches Gerät tatsächlich meldet; meistens eine doppelte ",
+      "multipleClientsParagraphPrefix": "Zwei oder mehr Clients senden POSTs mit dieser Display-ID. Prüf die Quell-IPs oben, um herauszufinden, welches Gerät tatsächlich meldet; meistens eine doppelte ",
       "multipleClientsParagraphSuffix": "-Installation, ein verirrter Browser-Tab oder ein Display, das auf die falsche Adresse zeigt.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
@@ -2812,33 +2753,32 @@
         "other": "{count} Bildschirme"
       },
       "currentScreenLabel": "Zeigt {name}",
-      "multipleClientsCardHeading": "{count} verschiedene Clients melden für diese Anzeige",
+      "multipleClientsCardHeading": "{count} verschiedene Clients melden für dieses Display",
       "tabsSuffix": "×{count} Tabs",
-      "formEditTitle": "Anzeige bearbeiten",
+      "formEditTitle": "Display bearbeiten",
       "formAdoptTitle": "{id} hinzufügen",
-      "formAddTitle": "Anzeige hinzufügen",
+      "formAddTitle": "Display hinzufügen",
       "formNameLabel": "Name",
       "formNamePlaceholder": "Küchen-Touchscreen",
       "formIdLabel": "ID",
       "formIdHint": "(wird in der URL verwendet: /display/<id>)",
       "formIdPlaceholder": "küche",
-      "formIdLocked": "Die ID ist auf die der meldenden Anzeige festgelegt.",
-      "formReportedViewport": "(von Anzeige gemeldet: {width} × {height})",
+      "formIdLocked": "Die ID ist auf die des meldenden Displays festgelegt.",
+      "formReportedViewport": "(vom Display gemeldet: {width} × {height})",
       "formWidth": "Breite",
       "formHeight": "Höhe",
-      "formResolutionHint": "Stelle hier die Auflösung des Monitors ein, auf dem diese Anzeige läuft. Module werden für diese Größe angeordnet, wenn du die Bildschirme dieser Anzeige bearbeitest.",
+      "formResolutionHint": "Stelle hier die Auflösung des Monitors ein, auf dem dieses Display läuft. Module werden für diese Größe angeordnet, wenn du die Bildschirme dieses Displays bearbeitest.",
       "formRotationNormal": "Normal (Querformat)",
       "formRotation90": "90° im Uhrzeigersinn (Hochformat)",
       "formRotation180": "180° (umgekehrt)",
       "formRotation270": "270° im Uhrzeigersinn (Hochformat)",
       "formRotationHint": "Legt fest, wie herum die Anzeigefläche steht. Breite und Höhe oben werden automatisch getauscht, sodass die längere Kante zur gewählten Drehung passt.",
       "formCancel": "Abbrechen",
-      "formSaveChanges": "Änderungen speichern",
-      "formAddDisplay": "Anzeige hinzufügen",
+      "formAddDisplay": "Display hinzufügen",
       "formErrorName": "Name ist erforderlich",
       "formErrorId": "Die ID darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten (z. B. „kitchen“)",
       "formErrorIdReserved": "„{id}“ hat beim Senden von Befehlen an Displays bereits eine besondere Bedeutung. Bitte wähle eine andere ID, z. B. „kitchen“ oder „bedroom-tv“",
-      "formErrorIdTaken": "Eine Anzeige mit der ID „{id}“ existiert bereits",
+      "formErrorIdTaken": "Es gibt schon ein Display mit der ID „{id}“",
       "formErrorWidth": "Die Breite muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Bildschirme sind 1080 oder 1920 breit.",
       "formErrorHeight": "Die Höhe muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Bildschirme sind 1080 oder 1920 hoch.",
       "softwareUpdateWaiting": "Update steht an",
@@ -2873,11 +2813,7 @@
       "description": "Zwei Adressen, beide lassen sich auf jedem Handy oder Tablet im WLAN zu Hause öffnen. Nichts zu installieren.",
       "open": "Öffnen",
       "chores": {
-        "heading": "Kinder: Aufgaben abhaken",
         "needsChoreChart": "Füge einer Ansicht eine Aufgabentafel hinzu, um das einzuschalten."
-      },
-      "remote": {
-        "heading": "Eltern: Familien-Fernbedienung"
       },
       "password": {
         "label": "Passwort für die Familien-Fernbedienung verlangen",
@@ -2904,8 +2840,8 @@
         "saved": "Gespeichert"
       },
       "grownUp": {
-        "heading": "Eltern-Code für die Wand",
-        "description": "Vier Ziffern, nach denen die Wand fragt, bevor sie etwas tut, das du unten anhakst. So können kleine Hände nicht allein Tickets ausgeben. Ein Schloss für dein Heimnetz ist das nicht, dafür gibt es das Passwort unter „Sicherheit“.",
+        "heading": "Erwachsenen-Code für das Display",
+        "description": "Vier Ziffern, nach denen das Display fragt, bevor es etwas tut, das du unten anhakst. So können kleine Hände nicht allein Tickets ausgeben. Ein Schloss für dein Heimnetz ist das nicht, dafür gibt es das Passwort unter „Sicherheit“.",
         "notSet": "Noch kein Code.",
         "isSet": "Ein Code ist festgelegt.",
         "set": "Code festlegen",
@@ -2945,7 +2881,9 @@
           "one": "1 Minute",
           "other": "{count} Minuten"
         },
-        "unlockHint": "Nach dem richtigen Code fragt die Wand, an der er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt."
+        "unlockHint": "Nach dem richtigen Code fragt das Display, an dem er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt.",
+        "removeConfirmTitle": "Erwachsenen-Code entfernen?",
+        "removeConfirmMessage": "Das Display fragt dann nicht mehr danach, bevor es etwas tut, das du angehakt hast. Du kannst jederzeit einen neuen Code festlegen."
       }
     },
     "touchAlignment": {
@@ -3007,7 +2945,7 @@
       "pattern-paper": "Papier"
     },
     "sourceNotSetUp": "Noch nicht eingerichtet.",
-    "sourceSetUpLink": "{source} in den Einstellungen einrichten",
+    "sourceSetUpLink": "{source} unter {place} einrichten",
     "pickToRotate": "Klicke auf die Hintergründe, die beim Wechseln dabei sein sollen. Noch keiner ausgewählt.",
     "modeFixed": "Fester Hintergrund",
     "modeRotating": "Wechselt zwischen den gewählten Quellen",
@@ -3056,31 +2994,28 @@
     "eveningFromSunset": "Sonnenuntergang",
     "eveningFromTime": "Feste Uhrzeit",
     "eveningUntil": "Bis",
-    "eveningSunsetHint": "Für den Sonnenuntergang muss dein Ort in den Einstellungen stehen. Ohne ihn beginnt der Abend um 20 Uhr."
+    "eveningSunsetHint": "Für den Sonnenuntergang muss dein Ort unter {place} stehen. Ohne ihn beginnt der Abend um 20 Uhr."
   },
   "imageBrowserModal": {
-    "title": "Bildersammlung",
-    "allPhotos": "Alle Fotos",
+    "allPhotos": "Alle Bilder",
     "newFolderPlaceholder": "Ordnername",
-    "newFolderConfirm": "OK",
-    "newFolderButton": "+ Neuer Ordner",
+    "newFolderConfirm": "Anlegen",
+    "newFolderButton": "Neuer Ordner",
     "deleteFolderButton": "Ordner löschen",
-    "uploadButton": "Fotos hochladen",
+    "uploadButton": "Bilder hochladen",
     "uploadingButton": "Lädt hoch …",
-    "loadingImages": "Bilder werden geladen …",
-    "emptyPhotos": "Noch keine Fotos. Lade welche hoch!",
-    "photoCountSingular": "{count} Foto",
-    "photoCountPlural": "{count} Fotos",
-    "confirmSelectImage": "Bild auswählen",
+    "loadingImages": "Bilder werden geladen…",
+    "emptyPhotos": "Noch keine Bilder. Lade welche hoch!",
+    "photoCountSingular": "{count} Bild",
+    "photoCountPlural": "{count} Bilder",
+    "confirmSelectImage": "Dieses Bild verwenden",
     "confirmUseFolder": "Diesen Ordner verwenden",
-    "confirmSelectVideo": "Video auswählen",
+    "confirmSelectVideo": "Dieses Video verwenden",
     "videoCountSingular": "{count} Video",
     "videoCountPlural": "{count} Videos",
-    "titleVideos": "Videobibliothek",
     "uploadVideosButton": "Videos hochladen",
     "allVideos": "Alle Videos",
     "titleFolder": "Ordner wählen",
-    "allMedia": "Alle Fotos & Videos",
     "uploadMediaButton": "Hochladen"
   },
   "icloudImport": {
@@ -3110,7 +3045,6 @@
   },
   "choreChartModal": {
     "title": "Aufgabentafel",
-    "subtitleMembersChores": "{members} Mitglieder · {chores} Aufgaben",
     "loadError": "Aufgaben konnten nicht geladen werden. Änderungen werden nicht gespeichert.",
     "chores": {
       "columnTitle": "Aufgaben",
@@ -3119,12 +3053,7 @@
       "empty": "Noch keine Aufgaben",
       "addMembersFirst": "Füge zuerst Familienmitglieder hinzu",
       "editAriaLabel": "{name} bearbeiten",
-      "deleteAriaLabel": "{name} löschen",
-      "deleteConfirm": {
-        "title": "Aufgabe löschen",
-        "message": "„{name}“ löschen?",
-        "confirmLabel": "Löschen"
-      }
+      "deleteAriaLabel": "{name} löschen"
     },
     "choreForm": {
       "namePlaceholder": "Name der Aufgabe…",
@@ -3135,14 +3064,13 @@
       "assignToLabel": "Wer macht's?",
       "weeklyScheduleLabel": "Wochenplan",
       "addSubmit": "Aufgabe hinzufügen",
-      "saveSubmit": "Speichern",
       "grabRulesNote": "Wie viele Aufgaben sich eine Person schnappen darf und wie lange eine geschnappte Aufgabe gilt, legst du für die ganze Familie unter „Bonus“ in der Aufgabenliste fest."
     },
     "preview": {
       "columnTitleNew": "Neue Aufgabe",
       "columnTitleEdit": "Aufgabe bearbeiten",
       "columnTitleSchedule": "Wochenplan",
-      "placeholder": "Füge Mitglieder und Aufgaben hinzu, um den Wochenplan zu sehen",
+      "placeholder": "Füge Personen und Aufgaben hinzu, um den Wochenplan zu sehen",
       "todayLabel": "Heute ({day})",
       "noChores": "Keine Aufgaben",
       "weeklyTotalsHeading": "Wochensumme",
@@ -3154,25 +3082,6 @@
       "hint": "{count} alltägliche Aufgaben, nach Tageszeit sortiert",
       "headerButton": "Vorschläge",
       "columnTitle": "Aufgabenvorschläge"
-    },
-    "members": {
-      "columnTitle": "Familienmitglieder",
-      "empty": "Noch keine Mitglieder",
-      "addButton": "Mitglied hinzufügen",
-      "addSubmit": "Mitglied hinzufügen",
-      "saveSubmit": "Speichern",
-      "editAriaLabel": "{name} bearbeiten",
-      "deleteAriaLabel": "{name} löschen",
-      "deleteConfirm": {
-        "title": "Mitglied entfernen",
-        "message": "„{name}“ entfernen? Damit verschwindet das Mitglied auch aus allen Aufgaben.",
-        "confirmLabel": "Entfernen"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Name…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Eigene Farbe wählen"
     }
   },
   "todoListModal": {
@@ -3185,14 +3094,9 @@
     "itemTextLabel": "Eintrag",
     "itemDoneLabel": "Erledigt: {text}",
     "removeItemLabel": "{text} entfernen",
-    "addPlaceholder": "Etwas hinzufügen...",
+    "addPlaceholder": "Etwas hinzufügen…",
     "uncheckAll": "Alle abwählen",
-    "removeDone": "Erledigte entfernen",
-    "removeDoneConfirm": {
-      "title": "Erledigte entfernen",
-      "message": "{count} erledigte Einträge aus \"{name}\" entfernen?",
-      "confirmLabel": "Entfernen"
-    }
+    "removeDone": "Erledigte entfernen"
   },
   "notesBoardModal": {
     "title": "Familiennotizen",
@@ -3220,7 +3124,7 @@
     "pin": "Oben anpinnen",
     "important": "Wichtig",
     "post": "Aufhängen",
-    "postHint": "Geht auch mit Strg+Enter (am Mac mit Cmd+Enter)",
+    "postHint": "Geht auch mit Strg+Enter (am Mac mit Cmd+Enter).",
     "onWall": "An der Wand",
     "empty": "Gerade hängt nichts an der Wand. Schreib oben eine Notiz, dann erscheint sie ein paar Sekunden später.",
     "rowTextLabel": "Notiz von {name}",
@@ -3244,9 +3148,8 @@
     "postAgain": "Wieder aufhängen",
     "delete": "Löschen",
     "deleteConfirm": {
-      "title": "Notiz löschen",
-      "message": "Diese Notiz ist dann endgültig weg. Sie kann nicht wieder aufgehängt werden.",
-      "confirmLabel": "Löschen"
+      "title": "Diese Notiz löschen?",
+      "message": "Diese Notiz ist dann endgültig weg. Sie kann nicht wieder aufgehängt werden."
     },
     "loadError": "Die Notizen konnten nicht geladen werden. Schließe das Fenster und öffne es noch einmal."
   },
@@ -3254,7 +3157,6 @@
     "title": "Mahlzeitenplaner",
     "loading": "Mahlzeiten werden geladen…",
     "subtitleMealsPlanned": "{meals} Mahlzeiten · {planned} eingeplant",
-    "doneButton": "Fertig",
     "newMealName": "Neue Mahlzeit",
     "tabs": {
       "library": "Bibliothek",
@@ -3283,15 +3185,15 @@
       "courseRemoved": "Aus dieser Mahlzeit entfernt",
       "saveFailed": "Diese Änderung wurde nicht gespeichert. Versuch es noch einmal.",
       "mealieSaveFailed": "Mealie hat diese Änderung nicht übernommen. Prüfe, ob es läuft, und versuch es dann noch einmal.",
-      "mealieTokenSaveFailed": "Mealie lässt Home Screens nicht rein, deshalb wurde diese Änderung nicht gespeichert. Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
-      "mealieSetupSaveFailed": "Home Screens kann dieses Mealie nicht nutzen, deshalb wurde diese Änderung nicht gespeichert. Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
-      "mealieNotConnectedSaveFailed": "Mealie ist nicht verbunden, deshalb wurde diese Änderung nicht gespeichert. Trag Adresse und Token unter Einstellungen > API-Schlüssel ein."
+      "mealieTokenSaveFailed": "Mealie lässt Home Screens nicht rein, deshalb wurde diese Änderung nicht gespeichert. Erstell in Mealie ein neues Token und füg es unter {place} ein.",
+      "mealieSetupSaveFailed": "Home Screens kann dieses Mealie nicht nutzen, deshalb wurde diese Änderung nicht gespeichert. Prüfe unter {place} die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
+      "mealieNotConnectedSaveFailed": "Mealie ist nicht verbunden, deshalb wurde diese Änderung nicht gespeichert. Trag Adresse und Token unter {place} ein."
     },
     "library": {
       "searchPlaceholder": "Mahlzeiten suchen…",
       "noMealsMatch": "Keine passenden Mahlzeiten",
       "noMealsYet": "Noch keine Mahlzeiten",
-      "addNewMealButton": "+ Neue Mahlzeit",
+      "addNewMealButton": "Mahlzeit hinzufügen",
       "filters": {
         "all": "Alle",
         "favorites": "Favoriten",
@@ -3318,12 +3220,12 @@
       "ingredientNamePlaceholder": "Name der Zutat",
       "amountPlaceholder": "Menge",
       "categoryPlaceholder": "Kategorie",
-      "addIngredientButton": "+ Zutat hinzufügen",
+      "addIngredientButton": "Zutat hinzufügen",
       "recipeUrlLabel": "Rezept-Link",
       "recipeUrlPlaceholder": "https://…",
       "notesLabel": "Notizen",
-      "saveChangesButton": "Änderungen speichern",
-      "deleteButton": "Löschen"
+      "deleteButton": "Löschen",
+      "removeIngredient": "Diese Zutat entfernen"
     },
     "grocery": {
       "itemsCount": "{checked} von {total} Artikeln",
@@ -3408,9 +3310,9 @@
       "subtitleDates": "Mahlzeiten vom {range}: {planned}",
       "subtitleHouseholdDates": "Haushalt {household} · Mahlzeiten vom {range}: {planned}",
       "tryAgain": "Noch einmal versuchen",
-      "notConnectedBody": "Der Essensplan soll aus Mealie kommen, aber Adresse oder Token von Mealie sind nicht gespeichert. Trag sie unter Einstellungen > API-Schlüssel ein oder stell den Essensplan unter Einstellungen > Mahlzeiten wieder auf Home Screens.",
-      "tokenRefusedBody": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es unter Einstellungen > API-Schlüssel.",
-      "setupBody": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
+      "notConnectedBody": "Der Essensplan soll aus Mealie kommen, aber Adresse oder Token von Mealie sind nicht gespeichert. Trag sie unter {place} ein oder stell den Essensplan unter {mealsPlace} wieder auf Home Screens.",
+      "tokenRefusedBody": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es unter {place}.",
+      "setupBody": "Prüfe unter {place} die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
       "weekLoading": "Die Woche vom {range} wird aus Mealie geholt…",
       "weekFailed": "Wir konnten die Woche vom {range} nicht aus Mealie holen.",
       "libraryNote": "Die Rezepte liegen in Mealie. Klick eins an, um es hier zu sehen.",
@@ -3432,12 +3334,12 @@
         "connectionBody": "Prüf die Verbindung dieses Computers und versuch es dann noch einmal."
       },
       "ingredientsFailed": "Mealie hat die Zutaten nicht geschickt. Öffne das Rezept in Mealie, um sie zu sehen.",
-      "tokenFix": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
-      "tokenPaused": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert.",
-      "tokenPausedSince": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert. Das ist der Plan von {time}.",
-      "setupFix": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
-      "setupPaused": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert.",
-      "setupPausedSince": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert. Das ist der Plan von {time}."
+      "tokenFix": "Erstell in Mealie ein neues Token und füg es unter {place} ein.",
+      "tokenPaused": "Erstell in Mealie ein neues Token und füg es unter {place} ein. Bis dahin ist Planen pausiert.",
+      "tokenPausedSince": "Erstell in Mealie ein neues Token und füg es unter {place} ein. Bis dahin ist Planen pausiert. Das ist der Plan von {time}.",
+      "setupFix": "Prüfe unter {place} die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
+      "setupPaused": "Prüfe unter {place} die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert.",
+      "setupPausedSince": "Prüfe unter {place} die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert. Das ist der Plan von {time}."
     },
     "popover": {
       "savesToMealie": "Wird in Mealie gespeichert",
@@ -3472,7 +3374,7 @@
   },
   "timetableModal": {
     "title": "Stundenpläne",
-    "autosaveHint": "Änderungen werden sofort gespeichert",
+    "autosaveHint": "Änderungen werden sofort gespeichert.",
     "done": "Fertig",
     "loadError": "Die Stundenpläne konnten nicht geladen werden. Schließe das Fenster und öffne es noch einmal.",
     "saveConflict": "Jemand anderes hat die Stundenpläne gespeichert, während dieses Fenster offen war, deshalb haben wir seine geladen. Deine letzte Änderung ist nicht gespeichert: mach sie noch einmal.",
@@ -3495,13 +3397,12 @@
       "withTimetable": "Stundenpläne",
       "without": "In deiner Familie, noch kein Stundenplan",
       "none": "Kein Stundenplan",
-      "add": "+ Hinzufügen",
       "footer": "Namen und Farben kommen aus Familie. Zum Anlegen oder Umbenennen bitte {link}.",
       "footerLink": "Familie öffnen"
     },
     "fromFamily": "aus Familie",
     "school": "Schule",
-    "addSchoolLink": "+ Schule anlegen",
+    "addSchoolLink": "Schule anlegen",
     "class": "Klasse",
     "weeks": "Wochen",
     "weeksSame": "Jede Woche gleich",
@@ -3510,7 +3411,6 @@
     "showIcons": "Symbole der Fächer zeigen",
     "paintWith": "Malen mit",
     "clear": "Löschen",
-    "addSubject": "+ Fach",
     "noSubjects": "Noch keine Fächer, also gibt es nichts zum Malen. Leg das erste an.",
     "lunchBrush": "Mittagspause",
     "grid": {
@@ -3541,8 +3441,8 @@
       "period": "{number}. Stunde",
       "start": "Beginn",
       "end": "Ende",
-      "addPeriod": "+ Stunde",
-      "addBreak": "+ Pause",
+      "addPeriod": "Stunde",
+      "addBreak": "Pause",
       "breakName": "Name der Pause",
       "breakDefault": "Pause",
       "minutes": {
@@ -3563,7 +3463,7 @@
       "holidays": "Schulferien",
       "holidaysNone": "Keine",
       "holidaysHelp": "{area}: Wähle aus, wonach sich die Ferien deiner Schule richten. Bleibt es bei Keine, werden Ferien nicht beachtet.",
-      "holidayNoCountry": "Lege dein Land unter Einstellungen > Kalender fest, dann gibt es eine Liste mit Gegenden. Oder schreib ein Kürzel wie DE-NW hinein.",
+      "holidayNoCountry": "Lege dein Land unter {place} fest, dann gibt es eine Liste mit Gegenden. Oder schreib ein Kürzel wie DE-NW hinein.",
       "holidayPublicOnly": "{area}: Wähle aus, wo deine Schule ist. Für dein Land gibt es keine Schulferientermine, deshalb kommen nur die gesetzlichen Feiertage als freie Tage an.",
       "holidayNoneForCountry": "Für dein Land haben wir keine Ferientermine. Freie Tage kannst du trotzdem selbst unten unter \"{section}\" eintragen.",
       "holidayRegionWord": "Gegend",
@@ -3573,12 +3473,11 @@
         "schoolHolidaysUnavailable": "Wir haben keine Ferientermine für diese Gegend bekommen. Versuch es später noch einmal."
       },
       "holidayRegionPlaceholder": "Kürzel der Gegend, zum Beispiel {example}",
-      "remove": "{name} entfernen",
+      "remove": "{name} löschen",
       "removeBlocked": "Diese Schule wird noch von {names} genutzt. Wechsle zuerst auf eine andere Schule, dann kann sie weg.",
       "removeConfirm": {
-        "title": "Diese Schule entfernen?",
-        "message": "Die Zeiten und besonderen Tage von {name} gehen mit.",
-        "confirmLabel": "Schule entfernen"
+        "message": "Die Zeiten und besonderen Tage dieser Schule gehen mit.",
+        "confirmLabel": "Schule löschen"
       }
     },
     "weekCycle": {
@@ -3591,7 +3490,7 @@
     },
     "specialDays": {
       "title": "Tage, die anders sind",
-      "add": "+ Tag hinzufügen",
+      "add": "Tag hinzufügen",
       "date": "Datum",
       "name": "Wie heißt der Tag?",
       "nameDefault": "Besonderer Tag",
@@ -3614,16 +3513,14 @@
         "other": "{count} Personen"
       },
       "nothing": "Nichts",
-      "add": "+ Fach hinzufügen",
+      "add": "Fach hinzufügen",
       "newCode": "Neu",
       "newName": "Neues Fach",
       "note": "Die Farben kommen von den üblichen Heftfarben.",
       "footerNote": "Ändere eine Farbe oder ein Mitnehmen einmal, und die Karte von jedem Kind zieht mit.",
-      "remove": "{name} entfernen",
+      "remove": "{name} löschen",
       "removeConfirm": {
-        "title": "Fach entfernen",
-        "message": "„{name}“ entfernen? Es verschwindet aus jedem Stundenplan, der es benutzt.",
-        "confirmLabel": "Entfernen"
+        "message": "Das Fach verschwindet aus jedem Stundenplan, der es benutzt."
       }
     },
     "import": {
@@ -3667,7 +3564,7 @@
       "unknownHelp": "Das sieht nach {subject} aus, deshalb wird es dorthin gelegt und nicht als zweites Fach angelegt. Wähle ein anderes oder lege es neu an.",
       "unknownHelpMaybe": "Das könnte {subject} sein. Wähle das, wähle etwas anderes, oder leg es neu an.",
       "sync": "Mit der Tabelle abgleichen",
-      "syncHelp": "Schaut jede Stunde in die Tabelle und bringt die Wand auf den neuesten Stand. Ein Stundenplan ändert sich etwa zweimal im Jahr, einmal importieren reicht meistens.",
+      "syncHelp": "Schaut jede Stunde in die Tabelle und bringt das Display auf den neuesten Stand. Ein Stundenplan ändert sich etwa zweimal im Jahr, einmal importieren reicht meistens.",
       "cancel": "Abbrechen",
       "apply": {
         "zero": "Importieren",
@@ -3733,7 +3630,7 @@
       "checking": "Wird nachgesehen …",
       "lastChecked": "Zuletzt nachgesehen {when}. Der nächste Blick kommt innerhalb einer Stunde.",
       "neverChecked": "Noch nicht nachgesehen. Der erste Blick kommt innerhalb einer Stunde.",
-      "failed": "Beim letzten Blick, {when}, konnten wir die Tabelle nicht lesen. Auf der Wand steht weiter die Woche, die wir schon hatten.",
+      "failed": "Beim letzten Blick, {when}, konnten wir die Tabelle nicht lesen. Auf dem Display steht weiter die Woche, die wir schon hatten.",
       "yoursNow": "Diese Woche gehört jetzt dir. Sie ändert sich nur noch, wenn du neu importierst.",
       "checkNow": "Jetzt nachsehen",
       "tryNow": "Jetzt versuchen",
@@ -3742,7 +3639,7 @@
       "importAgain": "Noch einmal importieren",
       "openSheet": "Tabelle öffnen",
       "sync": "Mit der Tabelle abgleichen",
-      "syncOnHelp": "Schaut jede Stunde in die Tabelle und bringt die Wand auf den neuesten Stand. Ersetzt wird nur diese Woche.",
+      "syncOnHelp": "Schaut jede Stunde in die Tabelle und bringt das Display auf den neuesten Stand. Ersetzt wird nur diese Woche.",
       "syncOffHelp": "Wenn du das einschaltest, wird diese Woche durch die aus der Tabelle ersetzt.",
       "syncFailingHelp": "Bleibt an. Wir versuchen es jede Stunde weiter.",
       "stopped": "{name} folgt der Tabelle nicht mehr. Du hast diese Woche selbst geändert, deshalb haben wir den stündlichen Blick ausgeschaltet, statt deine Eingaben zu überschreiben.",
@@ -3755,7 +3652,7 @@
       "subtitle": "Arbeiten, Dinge zum Mitnehmen und Stunden, die ausfallen",
       "add": "Termin eintragen",
       "emptyTitle": "Nichts Besonderes geplant",
-      "emptyBody": "Trag eine Arbeit ein, etwas zum Mitnehmen oder eine Stunde, die ausfällt. Es erscheint am Abend davor auf der Wand.",
+      "emptyBody": "Trag eine Arbeit ein, etwas zum Mitnehmen oder eine Stunde, die ausfällt. Es erscheint am Abend davor auf dem Display.",
       "railTitle": "Termine zeigen für",
       "everyone": "Alle",
       "kindTest": "Arbeit",
@@ -3783,7 +3680,7 @@
       "cancel": "Abbrechen",
       "save": "Eintragen",
       "saveChange": "Speichern",
-      "wallFrom": "Auf der Wand ab {weekday} Abend",
+      "wallFrom": "Auf dem Display ab {weekday} Abend",
       "edit": "Ändern",
       "remove": "Entfernen",
       "rowOff": "Schluss um {time}",
@@ -3791,14 +3688,14 @@
       "rowAllOff": "keine Stunde mehr",
       "today": "Heute",
       "tomorrow": "Morgen",
-      "footerNote": "Ein Termin steht am Abend davor und am Tag selbst auf der Wand. Zwei Wochen später verschwindet er von selbst.",
+      "footerNote": "Ein Termin steht am Abend davor und am Tag selbst auf dem Display. Zwei Wochen später verschwindet er von selbst.",
       "needsPerson": "Wähle zuerst aus, für wen der Termin ist."
     },
     "removeTimetable": {
-      "title": "Diesen Stundenplan entfernen?",
+      "title": "Diesen Stundenplan löschen?",
       "message": "Bei {name} bleibt alles andere. Nur die Schulwoche geht weg.",
-      "confirmLabel": "Stundenplan entfernen",
-      "action": "Stundenplan von {name} entfernen"
+      "confirmLabel": "Stundenplan löschen",
+      "action": "Stundenplan von {name} löschen"
     }
   },
   "propertyPanel": {
@@ -3856,19 +3753,18 @@
       "sendToBack": "Nach hinten",
       "duplicate": "Duplizieren",
       "delete": "Modul löschen",
-      "confirmDeleteTitle": "„{name}“ löschen?",
       "confirmDeleteDetail": "Du kannst das rückgängig machen."
     },
     "visibility": {
       "enabledLabel": "Auf Display anzeigen",
       "enabledHelp": "Wenn das aus ist, erscheint das Modul nie auf dem Display. Es bleibt aber hier, damit du es wieder einschalten kannst.",
-      "everyScreenLabel": "Auf jedem Screen anzeigen",
-      "everyScreenHelp": "Zeigt dieses Modul auf jedem Screen dieses Displays, über allem, was dort liegt, und hält es an Ort und Stelle, während die Screens wechseln.",
+      "everyScreenLabel": "Auf jedem Bildschirm anzeigen",
+      "everyScreenHelp": "Zeigt dieses Modul auf jedem Bildschirm dieses Displays, über allem, was dort liegt, und hält es an Ort und Stelle, während die Bildschirme wechseln.",
       "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
       "backgroundProviderHelp": "Stellt anderen Modulen Werte bereit. Diese Kopie ist nie auf dem Bildschirm zu sehen. Soll das Modul auch angezeigt werden, füge eine zweite Kopie ohne diese Einstellung hinzu.",
       "backgroundProviderObsoleteHint": "Dieses Plugin teilt seine Daten jetzt automatisch. Diese versteckte Kopie wird nicht mehr benötigt und kann gelöscht werden."
     },
-    "screenSettingsLink": "Screen-Einstellungen",
+    "screenSettingsLink": "Bildschirmeinstellungen",
     "whatIsThis": "Was ist das?",
     "editingDisplay": "Bearbeitet wird",
     "collapseTitle": "Einstellungsbereich ausblenden",
@@ -3877,26 +3773,25 @@
       "label": "Öffnet",
       "none": "Nichts",
       "andMore": "und {count} weitere",
-      "help": "Fügt in der unteren Ecke des Moduls einen Knopf mit dem Namen dieses Screens hinzu. Ein Tipp darauf am Touch-Display zeigt den Screen.",
-      "sectionTitle": "Einen Screen öffnen",
-      "opensOnTap": "{name} (öffnet sich per Tipp)",
+      "help": "Fügt in der unteren Ecke des Moduls einen Knopf mit dem Namen dieses Bildschirms hinzu. Ein Tipp darauf am Touch-Display zeigt den Bildschirm.",
+      "sectionTitle": "Einen Bildschirm öffnen",
       "offBadge": "{name} (aus)",
       "holds": "Zeigt {what}",
-      "targetOff": "Der Knopf ist ausgeblendet, solange dieser Screen ausgeschaltet ist.",
+      "targetOff": "Der Knopf ist ausgeblendet, solange dieser Bildschirm ausgeschaltet ist.",
       "goBackAfterLabel": "Zurück nach",
-      "inRotationHint": "{name} kommt mit den anderen Screens an die Reihe, ein Tipp zeigt ihn also für die üblichen {seconds} Sekunden, dann geht die Rotation weiter. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
-      "inRotationStaysHint": "{name} kommt mit den anderen Screens an die Reihe und bleibt, bis jemand weitergeht. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
-      "openScreenSettings": "Seine Screen-Einstellungen öffnen",
+      "inRotationHint": "{name} kommt mit den anderen Bildschirmen an die Reihe, ein Tipp zeigt ihn also für die üblichen {seconds} Sekunden, dann geht die Rotation weiter. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "inRotationStaysHint": "{name} kommt mit den anderen Bildschirmen an die Reihe und bleibt, bis jemand weitergeht. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "openScreenSettings": "Seine Bildschirmeinstellungen öffnen",
       "groupOpened": "Erscheint nur, wenn geöffnet",
       "groupRotation": "In der Rotation",
       "keepOut": "Erscheint nur, wenn er geöffnet wird",
-      "addTwinScreen": "Screen „{name}“ hinzufügen",
-      "addTwinHelp": "Legt einen Screen „{name}“ an, der nur erscheint, wenn er geöffnet wird, und richtet diesen Knopf darauf.",
+      "addTwinScreen": "Bildschirm „{name}“ hinzufügen",
+      "addTwinHelp": "Legt einen Bildschirm „{name}“ an, der nur erscheint, wenn er geöffnet wird, und richtet diesen Knopf darauf.",
       "offShort": "Aus",
       "theme": "Im Design „{theme}“",
-      "tapOff": "„Am Display antippen“ ist für dieses Modul aus, also zeigt das Display keinen Knopf.",
+      "tapOff": "„Am Display antippen“ ist für dieses Modul aus, deshalb zeigt das Display keinen Knopf.",
       "orphaned": "Nichts öffnet {name} mehr, also erscheint er nie. Wähle ihn wieder aus oder lass ihn mit den anderen an die Reihe kommen.",
-      "twinAdded": "{name} hinzugefügt. Er erscheint nur, wenn er geöffnet wird; öffne unten seine Screen-Einstellungen, um ihn zu gestalten.",
+      "twinAdded": "{name} hinzugefügt. Er erscheint nur, wenn er geöffnet wird; öffne unten seine Bildschirmeinstellungen, um ihn zu gestalten.",
       "twinScreenName": {
         "fullscreen-meal-planner": "Rezeptbuch",
         "fullscreen-calendar": "Kalender",
@@ -3911,7 +3806,7 @@
       "turnOnTap": "„Am Display antippen“ einschalten",
       "switchOn": "Einschalten",
       "onlyWhen": "Der Knopf erscheint nur {when}.",
-      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen.",
+      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Bildschirms passen.",
       "openWith": "Öffnen per",
       "openWithButton": "Knopf",
       "openWithCard": "Tipp auf das Modul",
@@ -3926,33 +3821,33 @@
     "passwordLabel": "Gerätepasswort",
     "passwordPlaceholder": "Passwort",
     "allowButton": "Erlauben",
-    "workingButton": "Wird eingerichtet...",
+    "workingButton": "Wird eingerichtet…",
     "wrongPassword": "Dieses Passwort hat nicht funktioniert.",
     "tooManyTries": "Zu viele Versuche. Warte {minutes} Minuten und versuche es erneut.",
-    "genericError": "Das konnte nicht eingerichtet werden. Versuche es erneut."
+    "genericError": "Das ließ sich nicht einrichten. Versuch es noch einmal."
   },
   "upgradeModal": {
-    "titleUpgrade": "Aktualisierung auf {tag}",
-    "titleRollback": "Zurücksetzen auf {tag}",
+    "titleUpgrade": "Update auf {tag}",
+    "titleRollback": "Zurück zu {tag}",
     "stepLabels": {
-      "preflight": "Vorabprüfungen",
-      "backup": "Konfiguration sichern",
-      "download": "Update herunterladen",
-      "migrate": "Konfiguration migrieren",
-      "deploy": "Update installieren",
-      "setup-system": "Systemkonfiguration anwenden",
-      "restart": "Dienst neu starten",
+      "preflight": "Prüfen",
+      "backup": "Backup speichern",
+      "download": "Update holen",
+      "migrate": "Deine Einstellungen anpassen",
+      "deploy": "Installieren",
+      "setup-system": "Gerät einrichten",
+      "restart": "Neu starten",
       "cleanup": "Abschließen",
-      "fetch": "Neuesten Code herunterladen",
-      "checkout": "Auf neue Version wechseln",
-      "install": "Abhängigkeiten installieren",
-      "build": "Anwendung bauen"
+      "fetch": "Update holen",
+      "checkout": "Version wechseln",
+      "install": "Installieren",
+      "build": "Vorbereiten"
     },
     "warning": {
-      "installing": "Update wird installiert – Seite nicht schließen und Gerät nicht ausschalten",
-      "inProgress": "Diese Seite nicht schließen und das Gerät nicht ausschalten"
+      "installing": "Das Update wird installiert. Lass diese Seite offen und das Gerät eingeschaltet.",
+      "inProgress": "Lass diese Seite offen und das Gerät eingeschaltet."
     },
-    "successDefault": "Aktualisierung abgeschlossen!",
+    "successDefault": "Das Update ist fertig.",
     "successRollback": "Zurück zu {tag} hat geklappt!",
     "restartNeeded": "Noch ein Schritt: Das Gerät muss neu gestartet werden, um das Update abzuschließen. Sobald die Seite neu geladen ist, kannst du das hier tun.",
     "reload": {
@@ -3970,9 +3865,19 @@
     },
     "console": {
       "live": "Live",
-      "waiting": "Warten auf Ausgabe...",
+      "waiting": "Warte auf die ersten Zeilen…",
       "stillWorking": "Läuft noch, seit {duration} nichts Neues",
-      "reconnecting": "Verbindung unterbrochen, verbinde neu..."
+      "reconnecting": "Verbindung verloren. Sie wird wiederhergestellt…"
+    },
+    "stopButton": "Update stoppen",
+    "errors": {
+      "connectionLost": "Verbindung verloren bei „{step}“",
+      "connectionLostHelp": "Das Update läuft vielleicht noch. Warte eine Minute und lade diese Seite dann neu.",
+      "noStream": "Das Update ließ sich nicht verfolgen",
+      "noStreamHelp": "Lade diese Seite neu, um zu sehen, wie es läuft.",
+      "startFailed": "Das Update ist nicht gestartet",
+      "startFailedHelp": "Versuch es gleich noch einmal. Wenn das immer wieder passiert, starte zuerst Home Screens neu.",
+      "stoppedAt": "Angehalten bei „{step}“"
     }
   },
   "holidayPickerModal": {
@@ -3988,8 +3893,8 @@
     "addCountSingular": "{count} Feiertag hinzufügen",
     "addCountPlural": "{count} Feiertage hinzufügen",
     "errors": {
-      "loadCountries": "Länder konnten nicht geladen werden",
-      "loadHolidays": "Feiertage konnten nicht geladen werden"
+      "loadCountries": "Die Länderliste konnte nicht geladen werden. Versuch es noch einmal.",
+      "loadHolidays": "Die Feiertage konnten nicht geladen werden. Versuch es noch einmal."
     }
   },
   "layoutExportModal": {
@@ -4017,7 +3922,7 @@
     "applyVisualLabel": "Auch die Zeiten aus diesem Layout übernehmen",
     "visualSummary": "Jeder Bildschirm ist {seconds} Sekunden lang zu sehen.",
     "visualSummaryWithTransition": "Jeder Bildschirm ist {seconds} Sekunden lang zu sehen, mit dem Übergang {transition} dazwischen.",
-    "saveError": "Speichern fehlgeschlagen – prüfe deine Verbindung und versuche es erneut.",
+    "saveError": "Das Layout konnte nicht hinzugefügt werden. Prüf die Verbindung und versuch es noch einmal.",
     "importButton": "Diese Bildschirme hinzufügen",
     "savedAt": "Gespeichert am {date}",
     "screenPillSingular": "{name} · {count} Modul",
@@ -4027,7 +3932,6 @@
   },
   "layoutImport": {
     "alerts": {
-      "invalidLayoutFile": "Ungültige Layout-Datei:\n{errors}",
       "invalidJsonFile": "Diese Datei ist kein Layout, das Home Screens lesen kann."
     }
   },
@@ -4044,7 +3948,7 @@
     "installingMessage": "Wird heruntergeladen und installiert …",
     "doneButton": "Fertig",
     "tryAgainButton": "Erneut versuchen",
-    "installFailed": "Installation fehlgeschlagen",
+    "installFailed": "Das Plugin konnte nicht installiert werden. Versuch es noch einmal.",
     "pluginFallbackName": "Plugin"
   },
   "externalUpdateModal": {
@@ -4060,7 +3964,7 @@
     "updatedToVersion": "Auf v{version} aktualisiert.",
     "doneButton": "Fertig",
     "tryAgainButton": "Erneut versuchen",
-    "updateFailed": "Aktualisierung fehlgeschlagen"
+    "updateFailed": "Das Plugin konnte nicht aktualisiert werden. Versuch es noch einmal."
   },
   "fontFamilyPicker": {
     "label": "Schriftart",
@@ -4071,7 +3975,6 @@
     "styleRegular": "Kontur",
     "styleBrands": "Marken",
     "chooseTitle": "Symbol auswählen",
-    "searchPlaceholder": "Über 1.900 Symbole nach Name oder Stichwort suchen…",
     "loadingCatalog": "Gesamter Katalog wird geladen…",
     "iconCount": {
       "one": "{count} Symbol",
@@ -4114,13 +4017,14 @@
       "rotationSeconds": "Wechsel (Sekunden)",
       "timeAware": "Tageszeitabhängige Inhalte",
       "weatherAware": "Wetterabhängige Inhalte",
-      "weatherAwareLocationWarning": "Lege deinen Standort unter Einstellungen > Wetter fest, um wetterabhängige Inhalte zu aktivieren.",
+      "weatherAwareLocationWarning": "Lege deinen Standort unter {place} fest, um wetterabhängige Inhalte zu aktivieren.",
       "showCategoryLabel": "Kategorie-Bezeichnung anzeigen",
       "accentColor": "Akzentfarbe",
       "customEntriesCount": "Eigene Einträge ({count})",
       "newEntryPlaceholder": "Neuer Affirmationstext …",
       "attributionPlaceholder": "Quelle (optional)",
-      "addEntry": "Eintrag hinzufügen"
+      "addEntry": "Eintrag hinzufügen",
+      "removeEntry": "Diese Zeile entfernen"
     },
     "air-quality": {
       "showAQI": "AQI anzeigen",
@@ -4134,7 +4038,7 @@
       "viewMonth": "Monatsraster",
       "viewMultiWeek": "Mehrwochenraster",
       "viewRolling": "Laufende Wochen",
-      "googleAuthExpired": "Anmeldung bei Google Kalender abgelaufen. Bitte unter Einstellungen → Kalender erneut anmelden.",
+      "googleAuthExpired": "Die Anmeldung bei Google Kalender ist abgelaufen. Melde dich unter {place} neu an.",
       "sources": "Quellen",
       "allSources": "Alle Quellen",
       "googleCalendar": "Google Kalender",
@@ -4190,7 +4094,7 @@
       "legendFooter": "Unten im Kalender"
     },
     "chore-chart": {
-      "viewBoard": "Board (Spalte je Person)",
+      "viewBoard": "Board (eine Spalte pro Person)",
       "viewStarChart": "Star Chart (Wochenraster)",
       "viewToday": "Heute (nach Tageszeit)",
       "viewProgress": "Fortschritt (Ringe)",
@@ -4201,20 +4105,25 @@
       "showTickets": "Tickets anzeigen",
       "showStreaks": "Serien anzeigen",
       "showTimeOfDay": "Tageszeit anzeigen",
-      "tapToComplete": "Tippen zum Abhaken (Display)",
       "accentColor": "Akzentfarbe",
-      "membersCount": "{count} Personen",
-      "choresCount": "{count} Aufgaben",
       "editChoreChart": "Aufgabenplan bearbeiten",
       "viewRewardsStore": "Belohnungs-Shop",
       "storeLayout": "Shop-Layout",
       "storeLayoutList": "Liste",
       "storeLayoutTiles": "Kacheln",
       "storeLayoutPriceList": "Preisliste",
-      "tapToRedeem": "Zum Einlösen tippen"
+      "membersCount": {
+        "one": "{count} Person",
+        "other": "{count} Personen"
+      },
+      "choresCount": {
+        "one": "{count} Aufgabe",
+        "other": "{count} Aufgaben"
+      }
     },
     "timezoneUseDisplay": "Display-Einstellung verwenden ({timezone})",
     "timezoneUseDisplayNoZone": "Display-Einstellung verwenden",
+    "tapOnWall": "Am Display antippen",
     "clock": {
       "viewClassic": "Klassisch (zentriert)",
       "viewDigital": "Digital (7-Segment-LED)",
@@ -4286,7 +4195,8 @@
       "precisionDaysHoursMinutes": "Tage + Stunden + Minuten",
       "precisionDaysHoursMinutesSeconds": "Tage + Stunden + Minuten + Sekunden",
       "timezone": "Zeitzone",
-      "customExamplesHeading": "Ein paar zum Übernehmen:"
+      "customExamplesHeading": "Ein paar zum Übernehmen:",
+      "removeZone": "{name} entfernen"
     },
     "countdown": {
       "viewAll": "Alle Ereignisse (gestapelt)",
@@ -4318,7 +4228,8 @@
       "repeatYearly": "Jährlich wiederholen",
       "holidayRecurringInfo": "Jährlich wiederkehrend · {date}",
       "clear": "Löschen",
-      "setBackground": "Hintergrund festlegen …"
+      "setBackground": "Hintergrund festlegen …",
+      "removeEvent": "Diesen Countdown entfernen"
     },
     "dad-joke": {
       "showDividers": "Trennlinien anzeigen"
@@ -4359,7 +4270,7 @@
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",
       "legacyHint": "Es gibt nur ein Display, also wird genau dieses gesteuert.",
-      "dockMissingThere": "Auf {display} öffnet ein Knopf den Bildschirm mit demselben Namen. {display} hat keinen Bildschirm namens {names}, deshalb sind diese Knöpfe blass und tun dort nichts.",
+      "dockMissingThere": "Auf dem Display „{display}“ öffnet ein Knopf den Bildschirm mit demselben Namen. Dieses Display hat keinen Bildschirm namens {names}, deshalb sind diese Knöpfe dort blass und tun nichts.",
       "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
       "compact": "Nur Symbole, keine Wörter",
       "dockHint": "Ein Knopf pro Bildschirm dieses Displays. Antippen springt direkt zu dem Bildschirm.",
@@ -4513,7 +4424,7 @@
       "accentColor": "Akzentfarbe",
       "weekStartsOn": "Woche beginnt am",
       "weekProgress": "Wochensterne",
-      "weekProgressChips": "In den Mitgliederkarten",
+      "weekProgressChips": "Auf der Karte jeder Person",
       "weekProgressStrip": "Familienleiste",
       "weekProgressGrid": "Sterne-Raster",
       "weekProgressOff": "Aus",
@@ -4524,13 +4435,9 @@
       "showTickets": "Tickets anzeigen",
       "showStreaks": "Serien anzeigen",
       "showTimeOfDay": "Tageszeit anzeigen",
-      "tapToComplete": "Tippen zum Abhaken (Display)",
-      "membersCount": "{count} Personen",
-      "choresCount": "{count} Aufgaben",
-      "editChoreChart": "Aufgabenplan bearbeiten",
       "viewRewardHistory": "Belohnungsverlauf (Tag für Tag)",
       "viewRewardTotals": "Belohnungsverlauf (Summen)",
-      "viewRewardSpotlight": "Belohnungsverlauf (Im Rampenlicht)",
+      "viewRewardSpotlight": "Belohnungsverlauf (im Rampenlicht)",
       "celebration": "Feier",
       "celebrationLabel": "Wenn jemand alle Aufgaben geschafft hat",
       "celebrationOff": "Aus",
@@ -4567,11 +4474,10 @@
       "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
-      "interactive": "Antippen an der Wand",
       "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, ein Rezept Schritt für Schritt durchgehen, das Abendessen bewerten, im Rezeptbuch suchen, lange Ansichten scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es.",
       "recipeCountHint": {
-        "one": "{count} von {meals} Mahlzeiten hat ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „Essensplan bearbeiten“ oder am Handy hinzu.",
-        "other": "{count} von {meals} Mahlzeiten haben ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „Essensplan bearbeiten“ oder am Handy hinzu."
+        "one": "{count} von {meals} Mahlzeiten hat ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „{button}“ oder am Handy hinzu.",
+        "other": "{count} von {meals} Mahlzeiten haben ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „{button}“ oder am Handy hinzu."
       },
       "recipeCountAll": {
         "one": "Die eine gespeicherte Mahlzeit hat ein Rezept.",
@@ -4598,8 +4504,7 @@
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
       "clockBackground": "Uhr-Hintergrund",
-      "interactive": "Antippen an der Wand",
-      "interactiveHint": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Seitlich wischen wechselt weiter den Screen.",
+      "interactiveHint": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Seitlich wischen wechselt weiter den Bildschirm.",
       "interactiveHintCard": "Auf einem Touch-Display zeigt ein Tipp Zurück, Pause und Weiter und aus welchem Album das Foto ist. Über das Foto wischen zeigt das nächste."
     },
     "garbage-day": {
@@ -4614,7 +4519,7 @@
       "dayLabel": "{label}-Tag",
       "frequency": "Häufigkeit",
       "knownDateLabel": "Ein bekannter {label}-Termin",
-      "knownDateHelp": "Wähle ein beliebiges Datum, an dem {label} abgeholt wurde oder wird",
+      "knownDateHelp": "Wähle einen beliebigen Tag, an dem {label} abgeholt wurde oder wird.",
       "iconColor": "Symbolfarbe",
       "customCategoryName": "Eigener Kategoriename",
       "defaultCustomLabel": "Gartenabfall",
@@ -4624,7 +4529,7 @@
       "name": "Name",
       "defaultName": "Freund",
       "weatherAware": "Wetterabhängige Begrüßung",
-      "locationRequired": "Lege deinen Standort unter Einstellungen > Wetter fest, um wetterabhängige Begrüßungen zu aktivieren."
+      "locationRequired": "Lege deinen Standort unter {place} fest, um wetterabhängige Begrüßungen zu aktivieren."
     },
     "history": {
       "cycleEventsSeconds": "Ereignis-Wechsel (Sekunden)",
@@ -4682,18 +4587,15 @@
     "image": {
       "imageSource": "Bildquelle",
       "tabUrl": "URL",
-      "tabLibrary": "Bibliothek",
       "imageUrl": "Bild-URL",
-      "browseLibrary": "Bibliothek durchsuchen …",
+      "browseLibrary": "Deine Bilder durchsuchen…",
       "uploadImage": "Bild hochladen",
       "uploading": "Lädt hoch …",
-      "uploadFailed": "Hochladen fehlgeschlagen",
       "preview": "Vorschau",
       "altText": "Alternativtext"
     },
     "video": {
       "videoSource": "Videoquelle",
-      "tabLibrary": "Bibliothek",
       "tabUrl": "URL",
       "videoUrl": "Video-URL",
       "chooseVideo": "Video",
@@ -4706,8 +4608,7 @@
       "loop": "Wiederholt abspielen",
       "maxDurationSeconds": "Stoppen nach (Sekunden, 0 = weiterlaufen)",
       "uploading": "Lädt hoch …",
-      "uploadFailed": "Hochladen fehlgeschlagen",
-      "browseLibrary": "Bibliothek durchsuchen …",
+      "browseLibrary": "Deine Videos durchsuchen…",
       "urlHint": "Du kannst einen YouTube-Link oder einen direkten Videolink (MP4/WebM) einfügen.",
       "icloudLinkDetected": "Das ist ein iCloud-Fotolink, der nicht direkt abgespielt werden kann. Speichere seine Videos in deiner Mediathek und nutze sie von dort.",
       "icloudNoVideos": "Dieser Link enthält keine Videos."
@@ -4715,7 +4616,7 @@
     "googlePhotosImport": {
       "importButton": "Aus Google Fotos importieren",
       "checking": "Wird geprüft…",
-      "credentialsNeeded": "Um aus Google Fotos zu importieren, füge unter Einstellungen → API-Schlüssel eine Client-ID und ein Client-Geheimnis für den Google-Fotos-Import hinzu.",
+      "credentialsNeeded": "Um aus Google Fotos zu importieren, füge unter {place} eine Client-ID und ein Client-Geheimnis für den Google-Fotos-Import hinzu.",
       "signInIntro": "Melde dich mit Google an und füge dann den Code ein, den du am Ende erhältst.",
       "pastePlaceholder": "Code oder Link hier einfügen",
       "finishSignIn": "Anmeldung abschließen",
@@ -4741,7 +4642,7 @@
       "failedNote": "{failed} konnten nicht gespeichert werden.",
       "disconnect": "Google Fotos trennen",
       "stillUsedByCalendar": "Auf diesem Hub getrennt. Google Kalender nutzt noch dieselbe Google-Anmeldung, deshalb zeigt dein Google-Konto Home Screens weiter als verbundene App an, bis du auch die Verbindung zu Google Kalender trennst.",
-      "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "genericError": "Mit Google Fotos ist etwas schiefgelaufen. Versuch es noch einmal.",
       "hosted": {
         "intro": "Wähle Fotos in Google Fotos aus, dann speichert Home Screens sie hier.",
         "finishOnGoogle": "Schließe die Anmeldung im Google-Tab ab.",
@@ -4765,7 +4666,6 @@
       "showFamilyRatings": "Familienbewertungen anzeigen",
       "accentColor": "Akzentfarbe",
       "sharedSettingsPrefix": "Mahlzeiten-Slots, Wochenbeginn, Zeitformat und Standard-Servierzeiten werden verwaltet unter",
-      "sharedSettingsLink": "Einstellungen → Mahlzeiten",
       "sharedSettingsSuffix": "damit all deine Mahlzeiten-Module synchron bleiben.",
       "savedMealsCount": "{count} gespeicherte Mahlzeiten",
       "plannedCount": "{count} geplant",
@@ -4778,7 +4678,6 @@
       "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
-      "interactive": "Antippen an der Wand",
       "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, das Abendessen bewerten, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es.",
       "wallAdd": "An der Wand hinzufügen",
       "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
@@ -4832,12 +4731,12 @@
       "feedMoveUp": "{name} nach oben",
       "feedMoveDown": "{name} nach unten",
       "feedRemove": "{name} entfernen",
-      "feedLabel": "Name auf der Anzeige",
+      "feedLabel": "Name auf dem Display",
       "feedLabelPlaceholder": "Leer lassen, um den eigenen Namen der Quelle zu verwenden",
       "feedMaxItems": "Max. Meldungen aus dieser Quelle",
       "feedMaxItemsPlaceholder": "Keine Grenze",
       "feedHomeNetwork": "Heimnetzwerk",
-      "feedHomeNetworkHint": "Erlaubt der Anzeige, einen Feed von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst gehosteten Reader.",
+      "feedHomeNetworkHint": "Erlaubt dem Display, einen Feed von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst gehosteten Reader.",
       "feedCheck": "Prüfen",
       "feedChecking": "Wird geprüft …",
       "feedCheckResult": "{title} · {count} Meldungen · neueste {ago}",
@@ -4846,7 +4745,7 @@
       "feedError": {
         "empty-url": "Diese Quelle hat keinen Link.",
         "blocked-url": "Dieser Link kann nicht verwendet werden. Prüfe ihn und versuche es erneut.",
-        "no-location": "Lege zuerst deinen Standort in den Einstellungen fest.",
+        "no-location": "Lege zuerst unter {place} deinen Standort fest.",
         "unreachable": "Diese Quelle war nicht erreichbar. Prüfe den Link und deine Verbindung.",
         "timeout": "Diese Quelle hat zu lange nicht geantwortet. Versuche es gleich noch einmal.",
         "http-error": "Diese Quelle hat mit einem Fehler geantwortet ({status}).",
@@ -4892,7 +4791,7 @@
       "addCustomInvalid": "Füge einen Link ein, der mit http:// oder https:// beginnt",
       "addLocalButton": "Lokale Nachrichten hinzufügen",
       "addLocalHint": "Zeigt Meldungen über {place}.",
-      "addLocalNoLocation": "Lege zuerst deinen Standort in den Einstellungen fest",
+      "addLocalNoLocation": "Lege zuerst unter {place} deinen Standort fest",
       "addLocalAlready": "Lokale Nachrichten sind schon in der Liste",
       "addTopicLabel": "Wörter, denen du folgen möchtest",
       "addTopicPlaceholder": "Raketenstarts",
@@ -4953,7 +4852,7 @@
     },
     "qr-code": {
       "modeCustom": "Benutzerdefiniert (URL / Text)",
-      "modeWifi": "WiFi-Passwort",
+      "modeWifi": "WLAN-Passwort",
       "authWPA": "WPA / WPA2 / WPA3",
       "authWEP": "WEP",
       "authNone": "Keine (offen)",
@@ -4961,7 +4860,7 @@
       "networkName": "Netzwerkname (SSID)",
       "encryption": "Verschlüsselung",
       "password": "Passwort",
-      "passwordPlaceholder": "WiFi-Passwort",
+      "passwordPlaceholder": "WLAN-Passwort",
       "hiddenNetwork": "Verstecktes Netzwerk",
       "showNetworkName": "Netzwerknamen anzeigen",
       "showPassword": "Passwort anzeigen",
@@ -4979,7 +4878,7 @@
         "button": "Nur zeigen, wenn Regen wahrscheinlich ist",
         "active": "Diese Karte erscheint nur, wenn heute Regen wahrscheinlich ist.",
         "edit": "Unter Bedingungen ändern",
-        "needsLocation": "Lege zuerst in den Einstellungen deinen Standort fest, damit das Display die Vorhersage kennt."
+        "needsLocation": "Lege zuerst unter {place} deinen Standort fest, damit das Display die Vorhersage kennt."
       },
       "styleDark": "Dunkel",
       "styleStandard": "Standard",
@@ -5074,7 +4973,7 @@
       "favoriteTeams": "Meine Teams",
       "favoriteTeamsSearch": "Team suchen",
       "favoriteTeamsLoading": "Teams werden geladen",
-      "favoriteTeamsError": "Teams konnten nicht geladen werden",
+      "favoriteTeamsError": "Die Teams konnten nicht geladen werden. Versuch es noch einmal.",
       "favoriteTeamsHelp": "Spiele dieser Teams kommen zuerst. Das erste Team bekommt den obersten Platz.",
       "favoriteTeamsHelpTeam": "Das erste Team wird zuerst gezeigt; bei mehreren wechseln sie sich ab.",
       "favoriteTeamsHidden": "Liga ist aus",
@@ -5170,7 +5069,6 @@
       "dividers": "Trennlinien",
       "accentColor": "Akzentfarbe",
       "colorCyclePalette": "Farbwechsel-Palette",
-      "addColor": "+ Hinzufügen",
       "sections": {
         "typography": "Typografie",
         "features": "Funktionen",
@@ -5210,7 +5108,7 @@
         "glow": "Leuchten / Puls",
         "outline": "Kontur",
         "shadow": "Schlagschatten",
-        "3d": "3D / Extrudiert",
+        "3d": "3D / extrudiert",
         "neon": "Neon",
         "wave": "Welle (pro Zeichen)",
         "bounce": "Springen (pro Zeichen)",
@@ -5245,13 +5143,13 @@
       "stateTokensHint": "Füge {example} ein, um einen Live-Wert eines Hintergrundmoduls anzuzeigen.",
       "stateTokenUnknown": "Kein Modul auf diesem Display veröffentlicht {keys} bisher. Diese Platzhalter zeigen '–', bis ein Modul sie veröffentlicht.",
       "stateTokenFiltersHint": "Füge |round:1 hinzu, um Zahlen zu runden, oder |default:Text, um festzulegen, was vor dem ersten Wert angezeigt wird.",
-      "stateTokenPreview": "Live-Vorschau"
+      "stateTokenPreview": "Live-Vorschau",
+      "removeColor": "Diese Farbe entfernen"
     },
     "timetable": {
       "show": "Wessen Woche gezeigt wird",
       "showMember": "{name} anzeigen",
       "noTimetable": "Kein Stundenplan",
-      "add": "+ Hinzufügen",
       "addFor": "Stundenplan für {name} anlegen",
       "fromFamily": "Aus Familie",
       "manageFamily": "Familie bearbeiten",
@@ -5268,7 +5166,6 @@
       "showStartTimes": "Anfangszeiten anzeigen",
       "nextWeekFromFriday": "Ab Freitag die nächste Woche zeigen",
       "noFamily": "In Familie ist noch niemand. Lege auf der Seite Familie Personen an und gib ihnen hier einen Stundenplan.",
-      "openFamily": "Familie öffnen",
       "view": "Ansicht",
       "viewWeek": "Woche",
       "viewDay": "Tag",
@@ -5287,7 +5184,7 @@
       "list": "Liste",
       "pickAList": "Liste wählen",
       "listsUnavailable": "Deine Listen konnten nicht geladen werden",
-      "editItems": "Einträge bearbeiten",
+      "editItems": "Liste bearbeiten",
       "newList": "Neue Liste",
       "newListName": "Name der neuen Liste",
       "newListPlaceholder": "Einkäufe",
@@ -5300,8 +5197,7 @@
       "completedHidden": "Ausgeblendet",
       "showDueDates": "Fälligkeit anzeigen",
       "showAssignees": "Zeigen, für wen",
-      "interactive": "Tippen zum Abhaken (Touchscreen)",
-      "wallAdd": "An der Wand hinzufügen (Touchscreen)",
+      "wallAdd": "An der Wand hinzufügen",
       "wallAddHelp": "Eine Zeile zum Hinzufügen unter der Liste. Alle an der Wand können etwas hinzufügen; ändern und löschen geht weiter auf dem Handy."
     },
     "todoist": {
@@ -5309,7 +5205,6 @@
       "checking": "Wird geprüft …",
       "connected": "Verbunden",
       "notConfigured": "Nicht konfiguriert.",
-      "settingsIntegrationsLink": "Einstellungen → API-Schlüssel",
       "title": "Name der Liste",
       "viewMode": "Ansicht",
       "groupByLabel": "Gruppieren nach",
@@ -5322,7 +5217,6 @@
       "showLabels": "Labels anzeigen",
       "showProject": "Projekt anzeigen",
       "showNoDueDate": "Aufgaben ohne Datum anzeigen",
-      "tapToComplete": "Tippen zum Abhaken (Touchscreen)",
       "maxTasks": "Max. Aufgaben",
       "viewModes": {
         "list": "Liste",
@@ -5348,7 +5242,8 @@
       "newRouteLabel": "Arbeit",
       "labelPlaceholder": "Beschriftung",
       "originPlaceholder": "Startadresse",
-      "destinationPlaceholder": "Zieladresse"
+      "destinationPlaceholder": "Zieladresse",
+      "removeRoute": "Diese Route entfernen"
     },
     "weather": {
       "hideWhenNoAlerts": "Ausblenden, wenn keine Warnungen vorliegen",
@@ -5416,7 +5311,7 @@
         },
         "weatherApiFree": "Ein kostenloser WeatherAPI-Schlüssel liefert 3 Tage. Bezahlte Pläne liefern mehr.",
         "useOpenMeteo": "Open-Meteo für dieses Modul verwenden",
-        "changeHousehold": "Oder die Wetterquelle in den Einstellungen ändern"
+        "changeHousehold": "Oder die Wetterquelle unter {place} ändern"
       },
       "forecastHours": {
         "sends": {
@@ -5519,7 +5414,7 @@
       "eventsOnDay": "Termine an diesem Tag",
       "hasEvents": "Hat mindestens einen Termin",
       "noEvents": "Hat keine Termine",
-      "hasMatchingEvent": "Hat einen passenden Termin...",
+      "hasMatchingEvent": "Hat einen passenden Termin…",
       "background": "Hintergrund",
       "noChange": "Keine Änderung",
       "backgroundAuto": "Automatisch (aus den Terminfarben des Tages)",
@@ -5564,12 +5459,12 @@
       "ruleCountOne": "1 Regel",
       "ruleCountOther": "{count} Regeln",
       "addEvents": "Beim Tippen auf einen Tag Termine hinzufügen",
-      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter Einstellungen > Kalender eingeschaltet sein.",
+      "addEventsHelp": "Zeigt „Termin hinzufügen“, wenn auf einen Tag getippt wird, und „Ändern“ und „Entfernen“ bei einem Termin. Dafür muss das Hinzufügen unter {place} eingeschaltet sein.",
       "wallViews": "Ansichten an der Wand wechseln",
       "wallViewsOwn": "Ansicht dieses Kalenders",
-      "wallViewsHint": "Bis zu vier Knöpfe unter der Überschrift. Eine Minute nach dem letzten Tippen zeigt die Wand wieder „{view}“.",
+      "wallViewsHint": "Bis zu vier Knöpfe unter der Überschrift. Eine Minute nach dem letzten Tippen zeigt das Display wieder „{view}“.",
       "wallViewsFull": "Mehr als vier gehen nicht. Nimm einen Haken weg, um einen anderen zu setzen.",
-      "wallSwitchShortCard": "Die Wand zeigt diese Knöpfe nur auf Karten, die mindestens {min} Pixel hoch sind. Diese ist {height} Pixel hoch."
+      "wallSwitchShortCard": "Das Display zeigt diese Knöpfe nur auf einem Modul, das mindestens {min} Pixel hoch ist. Dieses ist {height} Pixel hoch."
     },
     "fullscreen-weather": {
       "view": "Ansicht",
@@ -5646,7 +5541,7 @@
     },
     "calendarPeople": {
       "showNameTags": "Namensschilder",
-      "nameTagsHint": "Zeigt die Initialen jeder Person an ihren Terminen. Personen kommen aus Einstellungen > Familie; wessen Kalender welcher ist, wird unter Einstellungen > Kalender > Personen festgelegt. Gemeinsame Kalender behalten einen einfachen Punkt.",
+      "nameTagsHint": "Zeigt die Initialen jeder Person an ihren Terminen. Personen kommen aus {familyPlace}, und wessen Kalender welcher ist, wird unter {calendarPlace} festgelegt. Gemeinsame Kalender behalten einen einfachen Punkt.",
       "nameTagsNoOwners": "Noch niemand hat einen Kalender, also gibt es nichts zu beschriften.",
       "matchCalendars": "Kalender Personen zuordnen",
       "legendMode": "Legende zeigt",
@@ -5667,7 +5562,7 @@
       "peopleFilterStaleGroup": "Eine entfernte Gruppe",
       "peopleFilterClear": "Alle anzeigen",
       "showOnePerson": "Eine Person zeigen",
-      "showOnePersonHint": "Ein Knopf an einer Wand mit Touchscreen, der die Termine einer Person oder Gruppe zeigt, dazu die gemeinsamen Familientermine. Nach einer Minute sind wieder alle zu sehen.",
+      "showOnePersonHint": "Ein Knopf auf einem Touch-Display, der die Termine einer Person oder Gruppe zeigt, dazu die gemeinsamen Familientermine. Nach einer Minute sind wieder alle zu sehen.",
       "showOnePersonNeedsPeople": "Dafür brauchen mindestens zwei Personen einen eigenen Kalender."
     },
     "calendarDayNotes": {
@@ -5736,7 +5631,7 @@
       "filterAll": "Alle Notizen",
       "filterPinned": "Nur angepinnte",
       "filterImportant": "Nur wichtige",
-      "manageNotes": "Notizen verwalten",
+      "manageNotes": "Notizen bearbeiten",
       "stepSeconds": "Sekunden pro Notiz",
       "tickerSpeed": "Tempo der Laufschrift (Sekunden pro Notiz)",
       "viewChalkboard": "Kreidetafel",
@@ -5762,14 +5657,17 @@
       "doneLowercase": "fertig",
       "feedNamePlaceholder": "Feed-Name",
       "newFeedNamePlaceholder": "Feed-Name (z. B. Arbeit, Sport)",
-      "addFeed": "+ Feed hinzufügen",
+      "addFeed": "Feed hinzufügen",
       "helpText": "Füge ICS-/iCal-Feed-URLs aus Google Kalender, Apple Calendar, Outlook, Nextcloud oder einem anderen Dienst hinzu, der .ics-Feeds bereitstellt.",
       "checking": "Link wird geprüft…",
-      "checkFailedHint": "Prüfe, ob der Link auf .ics endet oder mit webcal:// beginnt",
+      "checkFailedHint": "Ein Kalenderlink endet meist auf .ics oder beginnt mit webcal://.",
       "addAnyway": "Trotzdem hinzufügen",
       "checkUnavailable": "Der Link konnte gerade nicht geprüft werden",
       "homeNetwork": "Heimnetzwerk",
-      "homeNetworkHint": "Erlaubt der Anzeige, einen Kalender von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst betriebenen Kalenderserver."
+      "homeNetworkHint": "Erlaubt dem Display, einen Kalender von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst betriebenen Kalenderserver.",
+      "removeFeed": "{name} entfernen",
+      "removeConfirmMessage": "Die Termine daraus werden nicht mehr angezeigt. Du kannst den Link jederzeit wieder hinzufügen.",
+      "removeConfirmButton": "Kalender entfernen"
     },
     "orientation": {
       "title": "Module könnten außerhalb des Bildschirms liegen",
@@ -5785,7 +5683,6 @@
   },
   "accentColorPicker": {
     "label": "Akzentfarbe",
-    "customColor": "Benutzerdefinierte Farbe",
     "presets": {
       "none": "Keine",
       "purple": "Lila",
@@ -5795,13 +5692,12 @@
       "amber": "Bernstein",
       "orange": "Orange",
       "red": "Rot",
-      "pink": "Pink",
-      "custom": "Benutzerdefiniert"
+      "pink": "Pink"
     }
   },
   "templatePicker": {
     "title": "Vorlagen",
-    "loadFailed": "„{name}“ konnte nicht geladen werden",
+    "loadFailed": "„{name}“ konnte nicht geladen werden. Versuch es noch einmal.",
     "categories": {
       "All": "Alle",
       "Dashboard": "Übersicht",
@@ -5871,7 +5767,6 @@
       "other": "Du hast seit {count} Tagen kein Backup erstellt."
     },
     "downloading": "Wird heruntergeladen…",
-    "backupNow": "Jetzt sichern",
     "dismiss": "Schließen",
     "autoFailed": "Das automatische Backup hat nicht geklappt.",
     "autoNotSent": "Dein Backup wurde gespeichert, konnte aber nicht an deinen Netzwerkordner geschickt werden.",
@@ -5954,7 +5849,7 @@
       "waitingForKeys": "wartet auf {keys}",
       "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
       "conditionsNotMet": "die Bedingungen treffen nicht zu",
-      "seeLiveValues": "Jede Bedingung zeigt, was das Display gerade sieht, und alle Werte stehen unter Einstellungen > Automatisierung > Geteilte Werte."
+      "seeLiveValues": "Jede Bedingung zeigt, was das Display gerade sieht, und alle Werte stehen unter {place}."
     },
     "time": {
       "fromLabel": "Von",
@@ -5970,9 +5865,9 @@
       "whenUnknownShow": "Bildschirm weiter anzeigen"
     },
     "screenOpened": {
-      "enableHelp": "Diesen Screen nur öffnen lassen, solange Live-Werte deiner verbundenen Dienste passen (zum Beispiel ist der nächste Kalendertermin weniger als eine Stunde entfernt).",
-      "noConditionsHint": "Noch keine Bedingungen. Der Screen lässt sich jederzeit öffnen, bis du eine hinzufügst.",
-      "allMustMatchHint": "Alle Bedingungen müssen passen, damit sich der Screen öffnen lässt.",
+      "enableHelp": "Diesen Bildschirm nur öffnen lassen, solange Live-Werte deiner verbundenen Dienste passen (zum Beispiel ist der nächste Kalendertermin weniger als eine Stunde entfernt).",
+      "noConditionsHint": "Noch keine Bedingungen. Der Bildschirm lässt sich jederzeit öffnen, bis du eine hinzufügst.",
+      "allMustMatchHint": "Alle Bedingungen müssen passen, damit sich der Bildschirm öffnen lässt.",
       "whenUnknownHide": "Nicht öffnen lassen",
       "whenUnknownShow": "Öffnen lassen"
     },
@@ -6007,14 +5902,12 @@
   "phoneSurfaces": {
     "surfaces": {
       "chores": {
-        "name": "Aufgaben abhaken",
         "audience": "Für Kinder",
         "description": "Die heutigen Aufgaben und Belohnungen. Mehr lässt sich hier nicht ändern."
       },
       "remote": {
-        "name": "Familien-Fernbedienung",
-        "audience": "Für Eltern",
-        "description": "Aufgaben anlegen, Mahlzeiten planen, Fotos hinzufügen und Displays steuern."
+        "audience": "Für Erwachsene",
+        "description": "Aufgaben anlegen, Mahlzeiten planen, Fotos hinzufügen und das Display steuern."
       }
     },
     "chips": {
@@ -6044,10 +5937,9 @@
         "lists": "Listen auf dem Handy",
         "notes": "Notizen am Handy"
       },
-      "lede": "Mit der Handykamera scannen oder die Adresse eintippen. Funktioniert auf jedem Gerät im WLAN zu Hause.",
-      "passwordHint": "Unter Einstellungen, Bereich Sicherheit, könnt ihr ein Passwort verlangen.",
-      "copyLink": "Link kopieren",
-      "copied": "Kopiert"
+      "lede": "Mit der Handykamera scannen oder die Adresse eintippen. Funktioniert auf jedem Handy oder Tablet im WLAN zu Hause.",
+      "passwordHint": "Unter {place} kannst du ein Passwort verlangen.",
+      "copyLink": "Link kopieren"
     }
   },
   "firstRun": {
@@ -6084,8 +5976,8 @@
     "failedTitle": "Anmeldung konnte nicht abgeschlossen werden",
     "backToEditor": "Zurück zum Editor",
     "calendarConnectedTitle": "Home Screens kann jetzt Termine hinzufügen",
-    "calendarConnectedBody": "Geh zurück zu Einstellungen > Kalender und wähle aus, in welche Kalender Termine kommen.",
-    "calendarReadOnlyBody": "Das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ war nicht angehakt. Melde dich unter Einstellungen > Kalender noch einmal an und setz den Haken."
+    "calendarConnectedBody": "Geh zurück zu {place} und wähle aus, in welche Kalender Termine kommen.",
+    "calendarReadOnlyBody": "Das Kästchen bei „Termine in allen Ihren Kalendern ansehen und bearbeiten“ war nicht angehakt. Melde dich unter {place} noch einmal an und setz den Haken."
   },
   "conditionSummary": {
     "always": "immer",
@@ -6102,7 +5994,6 @@
     "noneOf": "keine von {n}"
   },
   "deviceSignIn": {
-    "hubUnreachable": "Home Screens war nicht erreichbar. Prüfe die Verbindung und versuche es erneut.",
     "codeExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut."
   },
   "photoSources": {
@@ -6137,8 +6028,8 @@
       "empty": "Hier gibt es noch keine Fotos.",
       "loadFailed": "Die Fotos aus Immich konnten nicht geladen werden.",
       "unreachable": "Dein Immich-Server ist nicht erreichbar.",
-      "unreachableHelp": "Prüfe, ob er eingeschaltet ist und ob die Adresse unter Einstellungen > API-Schlüssel stimmt.",
-      "keyRejected": "Dein Immich-Schlüssel wurde nicht angenommen. Prüfe ihn unter Einstellungen > API-Schlüssel.",
+      "unreachableHelp": "Prüfe, ob er eingeschaltet ist und ob die Adresse unter {place} stimmt.",
+      "keyRejected": "Dein Immich-Schlüssel wurde nicht angenommen. Prüfe ihn unter {place}.",
       "needsSetup": "Immich braucht zuerst seine Adresse und seinen Schlüssel, dann kannst du es hier durchsuchen.",
       "copyHint": "Eine Kopie kommt in den Immich-Ordner deiner Bibliothek. So bleibt das Bild auch zu sehen, wenn Immich aus ist.",
       "favoritesEmpty": "Noch keine Favoriten. Tippe in Immich bei einem Foto auf das Herz, dann erscheint es hier.",
@@ -6175,7 +6066,7 @@
     },
     "onedrive": {
       "checking": "OneDrive-Verbindung wird geprüft…",
-      "credentialsNeeded": "Trage zuerst deine Microsoft Application ID unter Einstellungen, API-Schlüssel ein.",
+      "credentialsNeeded": "Trage zuerst unter {place} deine Microsoft Application ID ein.",
       "signIn": "Mit Microsoft anmelden",
       "waiting": "Warte darauf, dass du die Anmeldung abschließt",
       "enterCode": "Gib diesen Code ein auf",
@@ -6193,7 +6084,7 @@
       "emptyFolder": "Keine Unterordner in diesem Ordner",
       "useThisFolder": "Diesen Ordner verwenden",
       "capNote": "Wenn der Ordnerbaum mehr als {cap} Fotos enthält, nutzt die Diashow eine Zufallsauswahl von {cap}.",
-      "loadFailed": "OneDrive-Ordner konnten nicht geladen werden.",
+      "loadFailed": "Deine OneDrive-Ordner konnten nicht geladen werden. Versuch es noch einmal.",
       "folderNotFound": "Ordner nicht gefunden. Wähle einen anderen Ordner.",
       "noPhotos": "Noch keine Fotos in diesem Ordner",
       "signInDeclined": "Anmeldung wurde abgebrochen",
@@ -6204,11 +6095,11 @@
     "sourceLabel": "Fotoquelle",
     "needsFreeKey": "braucht einen kostenlosen Schlüssel",
     "needsSettingUp": "muss noch eingerichtet werden",
-    "keyMissing": "Diese Quelle ist noch nicht eingerichtet, deshalb kommen keine neuen Bilder dazu. Richte sie unter Einstellungen > API-Schlüssel ein oder wähle eine andere Quelle.",
-    "keyMissingBackground": "Diese Quelle ist noch nicht eingerichtet, deshalb behält der Bildschirm sein letztes Bild. Richte sie unter Einstellungen > API-Schlüssel ein oder wähle eine andere Quelle.",
+    "keyMissing": "Diese Quelle ist noch nicht eingerichtet, deshalb kommen keine neuen Bilder dazu. Richte sie unter {place} ein oder wähle eine andere Quelle.",
+    "keyMissingBackground": "Diese Quelle ist noch nicht eingerichtet, deshalb behält der Bildschirm sein letztes Bild. Richte sie unter {place} ein oder wähle eine andere Quelle.",
     "photosPerRefresh": "Fotos pro Aktualisierung",
     "kinds": {
-      "library": "Bibliothek",
+      "library": "Bilder & Videos",
       "immich": "Immich",
       "icloud": "Geteiltes iCloud-Album",
       "onedrive": "OneDrive",
@@ -6218,7 +6109,6 @@
     },
     "library": {
       "folder": "Ordner",
-      "topLevel": "Alle Fotos (oberste Ebene)",
       "browse": "Durchsuchen …",
       "photoCount": {
         "one": "{count} Foto",
@@ -6315,7 +6205,7 @@
       },
       "streamInfo": "Landschaften, Seestücke, Stadtansichten und Stillleben aus Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
       "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke.",
-      "addFilter": "+ Filter hinzufügen",
+      "addFilter": "Filter hinzufügen…",
       "filters": "Eingrenzen",
       "removeFilter": "Filter entfernen: {filter}",
       "period": "Zeitraum",
@@ -6405,7 +6295,7 @@
     "picker": {
       "tabs": {
         "builtin": "Mitgeliefert",
-        "library": "Lokal",
+        "library": "Bilder & Videos",
         "immich": "Immich",
         "unsplash": "Unsplash",
         "nasa": "NASA",
@@ -6419,7 +6309,7 @@
       "loadFailed": "Weitere Bilder konnten nicht geladen werden. Versuch es noch einmal.",
       "tryAgain": "Erneut versuchen",
       "notSetUp": "Noch nicht eingerichtet",
-      "openApiKeys": "Einstellungen > API-Schlüssel öffnen",
+      "openApiKeys": "{place} öffnen",
       "favorite": "Favorit",
       "unsupportedFormat": "Dieses Bild hat ein Format, das das Display nicht zeigen kann. Nimm ein anderes."
     },
@@ -6428,7 +6318,7 @@
       "colors": "Farben",
       "patterns": "Muster",
       "dayPictures": "Tagesbilder",
-      "sidebarNote": "Diese Bilder sind bei Home Screens dabei",
+      "sidebarNote": "Diese Bilder sind bei Home Screens dabei.",
       "copyHint": "Ist bei Home Screens dabei und deshalb immer da."
     },
     "background": {
@@ -6446,7 +6336,7 @@
     "google": {
       "add": "Aus Google Fotos hinzufügen",
       "signInToAdd": "Anmelden und aus Google Fotos hinzufügen",
-      "needsSetup": "Google Fotos muss erst unter Einstellungen > API-Schlüssel eingerichtet werden",
+      "needsSetup": "Google Fotos muss erst unter {place} eingerichtet werden",
       "openAgain": "Google Fotos erneut öffnen",
       "cancel": "Abbrechen",
       "adding": "Wird zu „{folder}“ hinzugefügt: {done} von {total}",
@@ -6468,6 +6358,7 @@
       "openGoogle": "Google Fotos öffnen"
     },
     "modes": {
+      "label": "Bilder auswählen nach",
       "folder": "Ordner",
       "pictures": "Bilder",
       "filters": "Filter",

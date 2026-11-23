@@ -288,6 +288,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       <CalendarGroup label={groups.look}>
         <ColorPicker
           label={t('configSections.calendar.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? DEFAULT_CALENDAR_ACCENT}
           onChange={(v) => set({ accentColor: v })}
           defaultValue={DEFAULT_CALENDAR_ACCENT}

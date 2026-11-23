@@ -10,6 +10,7 @@ import {
   type TouchAlignmentMode,
 } from '@/lib/touch-matrix';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface TouchAlignmentControlProps {
   /** The saved `touchMatrix`; unset means touch follows the screen rotation. */
@@ -77,9 +78,9 @@ export default function TouchAlignmentControl({ value, onChange }: TouchAlignmen
           className={`${INPUT_CLASS} mt-2 tabular-nums`}
         />
       )}
-      <p className="text-[11px] text-hs-text-faint mt-1.5">
+      <FieldHint className="mt-1.5">
         {mode === 'custom' ? t('settings.touchAlignment.customHelp') : t('settings.touchAlignment.help')}
-      </p>
+      </FieldHint>
     </>
   );
 }

@@ -17,6 +17,9 @@ interface LabeledInputProps {
   /** For a field that saves once typing is done rather than per keystroke. */
   onBlur?: () => void;
   onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+  /** The help line under the box (see `LabeledField`). */
+  hint?: React.ReactNode;
+  hintTestId?: string;
 }
 
 export default function LabeledInput({
@@ -32,9 +35,11 @@ export default function LabeledInput({
   fieldClassName,
   onBlur,
   onPaste,
+  hint,
+  hintTestId,
 }: LabeledInputProps) {
   return (
-    <LabeledField label={label} className={fieldClassName}>
+    <LabeledField label={label} className={fieldClassName} hint={hint} hintTestId={hintTestId}>
       <input
         type={type}
         value={value}

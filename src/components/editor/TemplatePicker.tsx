@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { TEMPLATE_CATALOG, TEMPLATE_CATEGORIES, loadTemplate, getDisplayOrientation } from '@/lib/templates';
 import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
@@ -9,8 +8,8 @@ import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveDimensions } from '@/lib/editor-multi-display';
 import { useTranslate } from '@/i18n';
-import Button from '@/components/ui/Button';
-import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
+import Notice from '@/components/ui/Notice';
 
 interface TemplatePickerProps {
   onSelect: (layout: LayoutExport) => void;
@@ -57,16 +56,8 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
   return (
     <ModalFrame labelledBy="template-picker-title" onClose={onClose} className="w-full max-w-2xl">
-      <div className="w-full h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
-        <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 id="template-picker-title" className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
-          <div className="flex items-center gap-2">
-            <EscHint />
-            <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary" aria-label={tCore('actions.close')}>
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+      <ModalPanel className="h-[80vh]">
+        <ModalHeader titleId="template-picker-title" title={tEditor('templatePicker.title')} onClose={onClose} />
 
         {/* Category tabs */}
         <div className="flex gap-1 px-5 pt-3 pb-2 overflow-x-auto">
@@ -86,12 +77,8 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
         </div>
 
         {/* Grid */}
-        <div className="flex-1 overflow-y-auto px-5 py-3">
-          {error && (
-            <div className="mb-3 rounded-md bg-hs-danger/10 border border-hs-danger/30 px-3 py-2 text-xs text-hs-danger">
-              {error}
-            </div>
-          )}
+        <ModalBody className="py-3">
+          {error && <Notice tone="danger" role="alert" className="mb-3">{error}</Notice>}
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((template) => (
               <button
@@ -139,12 +126,10 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
               </button>
             ))}
           </div>
-        </div>
+        </ModalBody>
 
-        <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
-          <Button variant="secondary" onClick={onClose}>{tCore('actions.close')}</Button>
-        </div>
-      </div>
+        <ModalFooter onCancel={onClose} cancelLabel={tCore('actions.close')} />
+      </ModalPanel>
     </ModalFrame>
   );
 }

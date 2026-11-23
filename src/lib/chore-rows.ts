@@ -1,7 +1,6 @@
 import type { FamilyGroup } from '@/types/family';
 import type { ChoreTimeOfDay } from '@/types/config';
 import type { ResolvedAssignment } from '@/lib/chore-assignments';
-import { memberInitials, memberNameStem } from '@/lib/family-avatar';
 
 /**
  * How a chore chart turns today's assignments into rows.
@@ -91,42 +90,4 @@ export const CHORE_TIME_ORDER: readonly ChoreTimeOfDay[] = ['morning', 'afternoo
  */
 export function mergeChoreRows(groups: ReadonlyMap<ChoreTimeOfDay, ChoreRow[]>): ChoreRow[] {
   return CHORE_TIME_ORDER.flatMap((time) => groups.get(time) ?? []);
-}
-
-/**
- * The shortest unique initials for each member: the one letter every member
- * dot shows when it is unique, extended to two or three characters only
- * where two names collide ("Sam" and "Sarah" become "Sam" and "Sar"). The
- * extension grows from the name's first letter on, so "* Ava" and "🌟 Ava"
- * extend like "Ava" and a symbol never takes a slot.
- */
-export function getUniqueInitials(memberList: { id: string; name: string }[]): Map<string, string> {
-  const result = new Map<string, string>();
-  const prefixOf = (name: string, len: number) =>
-    memberInitials(name) + memberNameStem(name).slice(1, len).join('');
-  let remaining = [...memberList];
-
-  for (let len = 1; len <= 3 && remaining.length > 0; len++) {
-    const groups = new Map<string, typeof remaining>();
-    for (const m of remaining) {
-      const prefix = prefixOf(m.name, len);
-      const group = groups.get(prefix) ?? [];
-      group.push(m);
-      groups.set(prefix, group);
-    }
-
-    const next: typeof remaining = [];
-    for (const [prefix, group] of groups) {
-      if (group.length === 1) {
-        result.set(group[0].id, prefix);
-      } else {
-        next.push(...group);
-      }
-    }
-    remaining = next;
-  }
-  for (const m of remaining) {
-    result.set(m.id, prefixOf(m.name, 3));
-  }
-  return result;
 }

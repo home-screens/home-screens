@@ -14,7 +14,7 @@ import {
   FIXTURE_PLUGIN_TYPE,
   FIXTURE_STATE_KEY,
 } from '../helpers/fixture-plugin';
-import { UNKNOWN_VALUE_PLACEHOLDER } from '@/lib/shared-state-template';
+import { NO_VALUE } from '@/lib/constants';
 import type { ModuleInstance, ModuleVisibility } from '@/types/config';
 
 /**
@@ -282,14 +282,14 @@ test('the Text module resolves state tokens, filters, and template variables, en
   // Plugin published flag=on → token resolves; {{time}} → HH:MM; unknown key → en dash.
   await expect(tokens).toContainText('flag=[on]');
   await expect(tokens).toContainText(/time=\[\d{2}:\d{2}\]/);
-  await expect(tokens).toContainText(`missing=[${UNKNOWN_VALUE_PLACEHOLDER}]`);
+  await expect(tokens).toContainText(`missing=[${NO_VALUE}]`);
 
   // Filters: an unpublished key with default: renders the fallback text; an
   // unrecognized filter renders the whole token literally (visible typo);
   // round on an unpublished key still falls back to the placeholder.
   await expect(tokens).toContainText('fb=[none]');
   await expect(tokens).toContainText('typo=[{plugin:e2e-fixture:missing|oops}]');
-  await expect(tokens).toContainText(`rounded=[${UNKNOWN_VALUE_PLACEHOLDER}]`);
+  await expect(tokens).toContainText(`rounded=[${NO_VALUE}]`);
 
   // A double-brace variable with templateVariables off is passed through untouched.
   await expect(page.locator('[data-module-id="literal"]')).toContainText('literal=[{{time}}]');
@@ -585,7 +585,7 @@ test('the weather keys stay off the bus without a location', async ({ page, requ
   await expect(page.getByText('ANCHOR')).toBeVisible();
   // Nothing is fetched, so the key is unknown: the gate hides, the token
   // shows the unknown placeholder, and it stays that way.
-  await expect(page.getByText(`Chance ${UNKNOWN_VALUE_PLACEHOLDER}`)).toBeVisible();
+  await expect(page.getByText(`Chance ${NO_VALUE}`)).toBeVisible();
   await page.waitForTimeout(1_500);
   await expect(page.getByText('RAIN LIKELY')).toHaveCount(0);
 });

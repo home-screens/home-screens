@@ -61,12 +61,6 @@ describe('WeatherSunView', () => {
     const { container } = renderView(<WeatherSunView {...viewProps()} />);
     expect(container.querySelector('[data-weather-sun-mode]')?.getAttribute('data-weather-sun-mode')).toBe('stacked');
   });
-
-  it('asks for a location when there are no coordinates', () => {
-    stubBox(640, 360);
-    renderView(<WeatherSunView {...viewProps({ latitude: undefined, longitude: undefined })} />);
-    expect(screen.getByText('Location not set')).toBeTruthy();
-  });
 });
 
 describe('WeatherSunView stacked floor', () => {

@@ -225,14 +225,14 @@ describe('LocationSection hub-clock offer', () => {
     expect(offer()).not.toBeNull();
   });
 
-  it("surfaces the device's own words when the change fails", async () => {
+  it('says a failed change in its own words, never the device English', async () => {
     putResponse = { status: 500, body: { ok: false, error: 'Failed to set time zone: read-only' } };
     renderSection('Europe/Berlin');
     await waitFor(() => expect(offer()).not.toBeNull());
 
     await clickMatch();
 
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('read-only'));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe("Couldn't change the clock on Home Screens. Try again."));
     expect(offer()).not.toBeNull();
   });
 });

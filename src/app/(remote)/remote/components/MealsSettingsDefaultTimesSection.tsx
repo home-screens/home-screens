@@ -5,6 +5,7 @@ import { SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } fr
 import { useTranslate } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
 import { SECTION_HEADING } from './remote-styles';
+import ChipButton from './ChipButton';
 
 interface MealsSettingsDefaultTimesSectionProps {
   enabledSlots: MealSlotType[];
@@ -55,25 +56,15 @@ export default function MealsSettingsDefaultTimesSection({
                   {slotLabel}
                 </span>
                 {currentTime && (
-                  <button
-                    type="button"
+                  // A 44 px target; the negative margin keeps the row its height.
+                  <ChipButton
                     onClick={() => onSetTime(slot, undefined)}
-                    style={{
-                      minHeight: 28,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--hs-border)',
-                      background: 'transparent',
-                      color: 'var(--hs-text-muted)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                    aria-label={t('mealsSettings.defaultTimes.clearAriaLabel', { name: slotLabel })}
+                    ariaLabel={t('mealsSettings.defaultTimes.clearAriaLabel', { name: slotLabel })}
+                    style={{ margin: '-8px 0' }}
+                    chipStyle={{ padding: '0 12px', border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 12 }}
                   >
                     {t('mealsSettings.defaultTimes.clear')}
-                  </button>
+                  </ChipButton>
                 )}
               </div>
               <input
@@ -102,9 +93,10 @@ export default function MealsSettingsDefaultTimesSection({
                       key={preset}
                       type="button"
                       onClick={() => onSetTime(slot, preset)}
+                      className="press-scale-sm"
                       style={{
                         padding: '8px',
-                        minHeight: 36,
+                        minHeight: 44,
                         borderRadius: 6,
                         border: isSelected ? `1px solid ${meta.color}` : '1px solid var(--hs-border)',
                         background: isSelected ? withAlpha(meta.color, 0.08) : 'var(--hs-bg-body)',

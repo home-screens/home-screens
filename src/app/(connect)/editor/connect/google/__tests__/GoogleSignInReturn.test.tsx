@@ -11,6 +11,7 @@ import { render, cleanup, waitFor, fireEvent, act } from '@testing-library/react
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';
+import enUSCore from '@/translations/en-US/core.json';
 
 const routerReplace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: routerReplace }) }));
@@ -18,7 +19,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: routerReplace }
 import GoogleSignInReturn from '../GoogleSignInReturn';
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>{children}</I18nProvider>;
+  return <I18nProvider locale="en-US" blob={{ core: enUSCore, editor: enUSEditor }}>{children}</I18nProvider>;
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -80,7 +81,7 @@ describe('GoogleSignInReturn', () => {
     expect(view.getByText('Import from Google Photos').tagName).toBe('STRONG');
   });
 
-  it("passes on the hub's own words when something else went wrong", async () => {
+  it("says it in the household's words, not the hub's English, when something else went wrong", async () => {
     fetchMock.mockResolvedValue(jsonResponse({
       error: "Couldn't reach the Home Screens sign-in helper. Try again in a few minutes.",
     }, 400));
@@ -89,7 +90,8 @@ describe('GoogleSignInReturn', () => {
     const view = render(<GoogleSignInReturn />, { wrapper: Wrapper });
 
     expect(await outcomeOf(view)).toBe('failed');
-    expect(view.getByText("Couldn't reach the Home Screens sign-in helper. Try again in a few minutes.")).toBeTruthy();
+    expect(view.getByText(enUSEditor.configSections.googlePhotosImport.genericError)).toBeTruthy();
+    expect(view.queryByText("Couldn't reach the Home Screens sign-in helper. Try again in a few minutes.")).toBeNull();
   });
 
   it('says the sign-in was cancelled, and sends nothing, when the family said no on Google', async () => {

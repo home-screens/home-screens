@@ -33,7 +33,7 @@ export const UNSPLASH_IDEAS = [
 
 /**
  * Unsplash in the same layout as every other tab: ideas where folders sit,
- * a search box above the grid, select then confirm. Select Image copies the
+ * a search box above the grid, select then confirm. Use this picture copies the
  * photo into the library's `unsplash` folder and tells Unsplash it was
  * downloaded, as their guidelines ask; the photographer is named on the tile
  * and in the footer.

@@ -89,8 +89,18 @@ export function deleteListRequest(listId: string): TodoWriteRequest {
  * an item still to do and puts a ticked one back (`addItemIfNew`). The wall
  * always gets that; the phone asks for it.
  */
-export function addItemRequest(listId: string, text: string, { ifNew = false }: { ifNew?: boolean } = {}): TodoWriteRequest {
-  return { url: itemsUrl(listId), method: 'POST', body: ifNew ? { text, ifNew: true } : { text } };
+export function addItemRequest(
+  listId: string,
+  text: string,
+  { ifNew = false, dueDate, assigneeIds }: { ifNew?: boolean; dueDate?: string; assigneeIds?: string[] } = {},
+): TodoWriteRequest {
+  // Due day and people only from a session (the phone putting back an item it
+  // just deleted); the wall's adds are words only.
+  const extra = {
+    ...(dueDate ? { dueDate } : {}),
+    ...(assigneeIds && assigneeIds.length > 0 ? { assigneeIds } : {}),
+  };
+  return { url: itemsUrl(listId), method: 'POST', body: ifNew ? { text, ifNew: true, ...extra } : { text, ...extra } };
 }
 
 export function updateItemRequest(listId: string, itemId: string, patch: TodoItemPatch): TodoWriteRequest {

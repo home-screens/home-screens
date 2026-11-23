@@ -21,8 +21,12 @@ export default function ArtModeFields({ screenId, artMode }: { screenId: string;
   return (
     <PropertyGroup title={t('screenSettings.artModeGroup')} accent={2}>
       <div className="space-y-2" data-testid="art-mode-fields">
-        <Toggle label={t('screenSettings.artModeToggle')} checked={!!artMode} onChange={(on) => save(on ? {} : undefined)} />
-        <p className="text-[10px] leading-relaxed text-hs-text-faint">{t('screenSettings.artModeHint')}</p>
+        <Toggle
+          label={t('screenSettings.artModeToggle')}
+          checked={!!artMode}
+          onChange={(on) => save(on ? {} : undefined)}
+          description={t('screenSettings.artModeHint')}
+        />
         {artMode && (
           <>
             <LabeledSelect
@@ -48,8 +52,8 @@ export default function ArtModeFields({ screenId, artMode }: { screenId: string;
                 label={t('screenSettings.artModeHideDots')}
                 checked={!!artMode.hideDots}
                 onChange={(on) => save({ ...(hours ? { from: artMode.from, until: artMode.until } : {}), ...(on ? { hideDots: true } : {}) })}
+                description={t('screenSettings.artModeHideDotsHint')}
               />
-              <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t('screenSettings.artModeHideDotsHint')}</p>
             </div>
           </>
         )}

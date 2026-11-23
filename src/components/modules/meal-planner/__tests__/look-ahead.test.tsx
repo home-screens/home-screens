@@ -88,11 +88,11 @@ describe('meal planner look-ahead arrows', () => {
     const { getByTestId, queryByTestId, container } = wrap(
       <FullscreenMealPlannerModule config={{ view: 'week' } as FullscreenMealPlannerConfig} style={{ ...DEFAULT_MODULE_STYLE }} screenId="s1" moduleId="m1" />,
     );
-    expect(getByTestId('fmp-week-title').textContent).toBe('This Week\'s Meals');
+    expect(getByTestId('fmp-week-title').textContent).toBe("This week's meals");
     expect(queryByTestId('look-ahead-words')).toBeNull();
 
     fireEvent.click(getByTestId('look-ahead-forward'));
-    expect(getByTestId('fmp-week-title').textContent).not.toBe('This Week\'s Meals');
+    expect(getByTestId('fmp-week-title').textContent).not.toBe("This week's meals");
     expect(getByTestId('look-ahead-words').textContent).toBe('Next week');
     expect(container.textContent).toContain('Kung Pao Chicken');
     expect(container.textContent).not.toContain('Taco Night');
@@ -103,7 +103,7 @@ describe('meal planner look-ahead arrows', () => {
     const { queryByTestId, container } = wrap(
       <FullscreenMealPlannerModule config={{ view: 'week', interactive: false } as FullscreenMealPlannerConfig} style={{ ...DEFAULT_MODULE_STYLE }} screenId="s1" moduleId="m1" />,
     );
-    expect(container.textContent).toContain('This Week\'s Meals');
+    expect(container.textContent).toContain("This week's meals");
     expect(queryByTestId('look-ahead-bar')).toBeNull();
   });
 });

@@ -3,6 +3,8 @@
 import { useId } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
+import { NO_VALUE } from '@/lib/constants';
+import { formatTimeOfDay } from '@/lib/timezone';
 import type { WeatherViewProps } from './weather-view-utils';
 
 /**
@@ -287,8 +289,8 @@ export const AQ_GRADIENT = 'linear-gradient(90deg, #60a5fa, #4ade80, #facc15, #f
 
 /** Clock time in the household's format and the display's zone. */
 export function clockTime(p: WeatherViewProps, d: Date | null | undefined): string {
-  if (!d) return '--';
+  if (!d) return NO_VALUE;
   // A no-break space before the AM or PM: "Moonrise: 2:00 PM" must never
   // wrap between the time and its half of the day in a narrow card.
-  return new Intl.DateTimeFormat(p.locale, { hour: 'numeric', minute: '2-digit', hour12: p.timeFormat !== '24h', timeZone: p.timezone }).format(d).replace(/\s/g, '\u00a0');
+  return formatTimeOfDay(d, { timeFormat: p.timeFormat, locale: p.locale, timezone: p.timezone }).replace(/\s/g, '\u00a0');
 }

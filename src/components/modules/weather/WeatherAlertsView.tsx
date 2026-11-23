@@ -4,6 +4,7 @@ import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { activeAlerts, alertExpiresMs } from '@/lib/weather/derive';
+import { formatDateInTZ, formatTimeOfDay } from '@/lib/timezone';
 import type { WeatherViewProps } from './types';
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
@@ -44,14 +45,8 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, timezone, ti
             // An alert with no end time is still in force (see activeAlerts);
             // it shows its severity alone rather than a made-up date.
             const expiresMs = alertExpiresMs(alert.expires);
-            const expiresStr = expiresMs === undefined ? null : new Date(expiresMs).toLocaleString(locale, {
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: timeFormat !== '24h',
-              ...(timezone ? { timeZone: timezone } : {}),
-            });
+            const expiresAt = expiresMs === undefined ? null : new Date(expiresMs);
+            const expiresStr = expiresAt && `${formatDateInTZ(expiresAt, timezone, { month: 'short', day: 'numeric' }, locale)}, ${formatTimeOfDay(expiresAt, { timeFormat, locale, timezone })}`;
             const severityLabel = t(`weather.severity.${alert.severity}`);
 
             return (

@@ -13,6 +13,7 @@ import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import { formatPrecipAmount } from '@/lib/weather/condition-sentences';
 import type { WeatherViewProps } from './types';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 
 export default function WeatherTableView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
@@ -28,9 +29,7 @@ export default function WeatherTableView({ config, forecast, units, timezone, sc
 
   return (
     <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      {config.showTitle !== false && (
-        <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
-      )}
+      {config.showTitle !== false && <ModuleTitleRow title={t('weather.forecast')} />}
       {days.length === 0 ? (
         <WeatherEmptyState message={t('weather.noForecastData')} />
       ) : (

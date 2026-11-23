@@ -46,6 +46,23 @@ The same domain is often edited from two or three places: the editor, `/remote`,
 - **Components both surfaces render go in `src/components/<domain>/`** (`family/`, `meals/`, `timetable/`), not inside `src/app/(remote)/remote/components/` where the editor cannot reach them.
 - **Markup usually should not be shared.** The phone is touch-sized and inline-styled against the `remote` dictionary; the editor is not a touch surface, uses Tailwind, reads the `editor` dictionary, and its fields carry `data-field-id` for the settings search. One component serving both takes the styling system, density, dictionary and save model as parameters, which costs more than it saves. Share the rules underneath instead.
 
+### UI building blocks
+Each surface draws from its own shared pieces; a hand-written copy is how they drift. Reach for these first, and extend one rather than writing a near-copy.
+- **Editor** (`src/components/ui/` unless named):
+  - Windows: `ModalFrame` with `ModalPanel` / `ModalHeader` / `ModalBody` / `ModalFooter` (`editor/CRUDModalShell.tsx` for list windows); questions through `useConfirmStore().confirm`, always with `confirmLabel` and `variant`.
+  - Feedback: `Toast` (one `ToastStack` in the editor layout), `Notice` for a tinted box, `StatusDot`, `StatusPill`, `IconButton`, `Spinner` / `LoadingLine`.
+  - Fields: `FieldHint` for a help line (`hint` on `LabeledField` / `LabeledInput` / `LabeledSelect` / `Slider`), the tiers in `input-classes.ts` (`INPUT_CLASS` in the property panel, `SETTINGS_INPUT_CLASS` / `SETTINGS_INPUT_SM_CLASS` on Settings pages, `MODAL_INPUT_CLASS` in windows) with `CHECKBOX_CLASS` for every checkbox and radio, `Toggle` (with `description`) or `Switch`, `SegmentedControl` for pick-one, `ColorPicker` with `swatches` for an accent.
+  - Headings: `SettingsSectionHeading` / `SettingsSubHeading` (`editor/settings/shared/SettingsPanel.tsx`), `SectionHeading` for property-panel groups.
+  - Colours are `hs-*` tokens only; no Tailwind palette classes.
+- **Phone** (`src/app/(remote)/remote/components/`):
+  - Overlays: every sheet through `SheetFrame` (`BottomSheet`, `TallSheet`, `ConfirmSheet` with its `tone`), full-screen forms through `FormOverlay`, stacked by name from `REMOTE_LAYERS` (`remote-layers.ts`), never a number.
+  - Actions: `PrimaryButton` for every save, add or send (amber with dark ink), `SaveDeleteFooter` under a form, `DANGER_BUTTON` for a delete, `IconButton`, `ChipButton`, `PhoneSwitch`, `PersonChip`, `PhoneIconPicker` (`src/components/custom-icons/`).
+  - Pages: `TabHeader` (with `GearButton`), `SegmentedTabs`, `EmptyState`, `LoadFailed` (`RetryButton.tsx`), `TickRow`, `PhoneSpinner`, `showToast` (`remote-toast.ts`).
+  - Colours from `remote-styles.ts` or `var(--hs-*)`: `REMOTE_ACCENT` is the amber fill, `REMOTE_ACCENT_INK` amber as words or a thin line, `REMOTE_ON_ACCENT` ink on amber, `selectedPillStyle` / `toggleChipStyle` for a chosen chip.
+- **Wall** (`src/components/modules/shared/`): `WallButton` for every tap target, `useWallSheet` / `WallOverlay` for a sheet, `FullscreenStateShell` / `fullscreenStateStyle` for a full-screen module's loading, setup and empty states, `ModuleTitleRow`, `MemberBadge`, `WallNotice`.
+- **Rules in `src/lib/`**: `formatTimeOfDay` (`timezone.ts`) for any time of day, `UNDO_WINDOW_MS` (`undo-window.ts`), `NO_VALUE` (`constants.ts`) for a missing value, `memberInitials` (one letter) / `getUniqueInitials` (where a dot stands alone with no name) and `memberInk` for ink on a person's colour (`family-avatar.ts`), `buildDeleteConfirm` and its Delete / Remove / Clear verb rule (`delete-confirmations.ts`), `settingsPlaceText` (`settings-route.ts`) for a "Settings > Calendar" path. Words follow `src/translations/GLOSSARY.md`.
+- Guard tests enforce the drift-prone parts: `src/__tests__/{phone,editor,shared}-ui-guards.test.ts` (phone layers, colours and amber buttons; editor palette classes, full-screen layers and switches; spinners, text glyph icons and em-dashes everywhere), `theme-token-names.test.ts` and `modules/shared/__tests__/wall-button-ratchet.test.ts`. Each failure names the piece to use; an allowlist entry needs a reason.
+
 ### API auth tiers
 Every route under `src/app/api/` opens with one guard, usually through the `withAuth` / `withDisplayAuth` / `withMediaTokenAuth` wrappers in `src/lib/api-utils.ts` or a factory in `src/lib/route-factories.ts`, and picking the wrong one is the easiest security mistake to make:
 - `requireSession` (`src/lib/auth.ts`, wrapped by `withAuth`): a logged-in editor or phone user. Rejects display bearer tokens. Use for anything that writes config or family data.

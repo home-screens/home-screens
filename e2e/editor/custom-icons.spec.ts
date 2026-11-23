@@ -39,8 +39,8 @@ test('the Your icons page adds, renames and removes pictures', async ({ page, re
   await expect(tiles.nth(0).getByRole('button', { name: /Rename/ })).toBeFocused();
 
   await tiles.nth(1).hover();
-  await tiles.nth(1).getByRole('button', { name: /Remove icon/ }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Remove' }).click();
+  await tiles.nth(1).getByRole('button', { name: /Delete icon/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(tiles).toHaveCount(1);
 
   const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: Array<{ name: string }> };

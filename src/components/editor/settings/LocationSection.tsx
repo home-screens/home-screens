@@ -15,6 +15,10 @@ import { formatDuration, type UnitValue } from '@/lib/duration-format';
 import { formatTimeInTZ, isKnownTimezone, isPlaceTimezone, sameTimezone, timezoneLabel } from '@/lib/timezone';
 import { suggestHouseholdZone, zoneGapMinutes, type ZoneSuggestion } from '@/lib/zone-suggestion';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('location');
 
@@ -88,6 +92,7 @@ export default function LocationSection({ values, onChange }: Props) {
   const locale = useFormattingLocale();
   const uiLocale = useLocale();
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const hour12 = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat)) === '12h';
   // The hub's zone as the config load reported it, until `/api/time` answers.
   const loadedHubZone = useEditorStore((s) => s.hubTimezone);
@@ -235,13 +240,13 @@ export default function LocationSection({ values, onChange }: Props) {
         setNeedsSudo(true);
       } else {
         setDeviceStatus({
-          message: data.error ?? t('settings.locationPage.hubClock.error'),
+          message: refusalSentence(data, tCore) ?? t('settings.locationPage.hubClock.error'),
           kind: 'error',
           forZone: zone,
         });
       }
     } catch {
-      setDeviceStatus({ message: t('common.serverUnreachable'), kind: 'error', forZone: zone });
+      setDeviceStatus({ message: tCore('refusals.unreachable'), kind: 'error', forZone: zone });
     } finally {
       setSettingDeviceZone(false);
     }
@@ -270,7 +275,7 @@ export default function LocationSection({ values, onChange }: Props) {
         setLocationStatus({
           message: err.code === 'location_not_found'
             ? t('settings.locationPage.status.notFound')
-            : t('settings.locationPage.status.error', { message: err.error }),
+            : refusalSentence(err, tCore) ?? t('settings.locationPage.status.lookupFailed'),
           kind: 'error',
         });
       }
@@ -391,13 +396,13 @@ export default function LocationSection({ values, onChange }: Props) {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.locationPage.heading')}
-      </h3>
+      </SettingsSectionHeading>
       <div className="space-y-3">
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.locationPage.description')}
-        </p>
+        </FieldHint>
 
         <div className="space-y-2" data-field-id="location.query">
           <label htmlFor={queryFieldId} className="text-xs text-hs-text-muted">
@@ -437,10 +442,10 @@ export default function LocationSection({ values, onChange }: Props) {
             )}
           </p>
           {lat.trim() !== '' && lon.trim() !== '' && hasValidLocation(Number(lat), Number(lon)) && (
-            <p className="text-xs text-hs-text-faint">
+            <FieldHint>
               {locationName ? `${locationName}: ` : ''}
               {lat}, {lon}
-            </p>
+            </FieldHint>
           )}
         </div>
 
@@ -465,31 +470,23 @@ export default function LocationSection({ values, onChange }: Props) {
           {zoneUnset ? (
             // Warning-colored, unlike the optional hub-clock line in Clock
             // check: this one is wrong on every screen until it is answered.
-            <div
-              className="mt-2.5 rounded-lg border border-hs-warning/45 bg-hs-warning/10 px-3.5 py-3"
-              data-testid="timezone-unset"
-            >
-              <p className="flex items-center gap-2 text-sm font-semibold text-hs-text-primary">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-hs-warning" aria-hidden="true" />
-                {t('settings.locationPage.timezoneUnset.title')}
-              </p>
-              <p id={tzHelpId} className="mt-1 text-xs text-hs-text-body">
-                {unsetExplanation()}
-              </p>
-              {suggestion && (
-                <Button
-                  variant="warning"
-                  className="mt-2.5"
-                  onClick={() => onChange({ timezone: suggestion.timezone })}
-                >
+            <Notice
+              tone="warning"
+              className="mt-2.5"
+              testId="timezone-unset"
+              title={t('settings.locationPage.timezoneUnset.title')}
+              action={suggestion && (
+                <Button variant="warning" size="sm" onClick={() => onChange({ timezone: suggestion.timezone })}>
                   {suggestionButtonLabel(suggestion)}
                 </Button>
               )}
-            </div>
+            >
+              <p id={tzHelpId}>{unsetExplanation()}</p>
+            </Notice>
           ) : (
-            <p id={tzHelpId} className="text-xs text-hs-text-faint mt-1">
+            <FieldHint id={tzHelpId} className="mt-1">
               {t('settings.locationPage.timezoneHelp')}
-            </p>
+            </FieldHint>
           )}
         </div>
 
@@ -523,9 +520,9 @@ export default function LocationSection({ values, onChange }: Props) {
               zone={serverInfo ? zoneWords(serverInfo.timezone) : ''}
             />
           </div>
-          <p className="text-xs text-hs-text-muted mt-2">
+          <FieldHint className="mt-2">
             {zoneUnset ? t('settings.locationPage.clockCheck.adviceUnset') : t('settings.locationPage.clockCheck.advice')}
-          </p>
+          </FieldHint>
 
           {/* The hub's own clock is a separate thing from the zone above, and
               an image-flashed Pi runs UTC because nobody ever chose. This is
@@ -629,7 +626,7 @@ function ClockCell({ label, time, zone, home = false }: { label: string; time: s
       <p className={`text-base tabular-nums mt-0.5 ${home ? 'font-semibold text-hs-text-primary' : 'text-hs-text-body'}`}>
         {time ?? <span className="text-hs-text-faint">...</span>}
       </p>
-      <p className="text-[11px] text-hs-text-faint truncate">{zone}</p>
+      <FieldHint className="truncate">{zone}</FieldHint>
     </div>
   );
 }

@@ -13,7 +13,7 @@ Every answer here starts with what to check in the editor or on the phone, then 
 ## Find your symptom
 
 - [The screen is still black after the first boot](#i-flashed-the-sd-card-but-the-screen-is-still-black-after-5-minutes)
-- [WiFi did not connect on first boot](#wi-fi-did-not-connect-on-first-boot)
+- [Wi-Fi did not connect on first boot](#wi-fi-did-not-connect-on-first-boot)
 - [I cannot find the Pi on my network](#i-cannot-find-my-pi-on-the-network)
 - [The display is blank or shows a faint address](#display-is-blank)
 - [A module says Needs setup or Location not set](#a-module-says-needs-setup)
@@ -22,7 +22,7 @@ Every answer here starts with what to check in the editor or on the phone, then 
 - [The calendar is not syncing](#calendar-not-syncing)
 - [The picture is sideways or upside down](#the-picture-is-sideways-or-upside-down)
 - [The family remote says Waiting for display](#the-remote-says-waiting-for-display)
-- [The display shows a WiFi icon](#display-shows-a-wi-fi-icon-at-the-bottom)
+- [The display shows a Wi-Fi icon](#display-shows-a-wi-fi-icon-at-the-bottom)
 - [The mouse cursor is showing on a touchscreen](#cursor-visible-on-touchscreen)
 - [Taps land in the wrong place on a touchscreen](#taps-land-in-the-wrong-place)
 - [An update failed](#upgrade-failed)
@@ -43,13 +43,13 @@ Every answer here starts with what to check in the editor or on the phone, then 
 3. **The card.** Flash it again with a fresh download of the image. A bad write is common with cheap or old cards.
 4. **Wait a little longer.** On a slow card the first boot can take up to 5 minutes. If you saw the rainbow splash and then black, it is probably still working.
 
-### WiFi did not connect on first boot
+### Wi-Fi did not connect on first boot
 
 If you used `wifi.txt` and the Pi never came online:
 
 1. Put the card back in your computer. Is `wifi.txt` still there? Then the Pi could not use it. Check the name first: it must be exactly `wifi.txt`, not `wifi.txt.txt`, which Windows likes to create. Then check the `SSID=` and `PASSWORD=` lines for typos; the password must be at least 8 characters. The Pi tries the file again on every boot, so fix it, put the card back, and boot.
 2. Is `wifi.txt` gone? Then the Pi saved the network and is trying to join it. A wrong password looks like this. Boot with a cable, or write a new `wifi.txt` with the right password; the Pi replaces the saved one.
-3. **Use a cable for now.** Plug in a network cable, boot, and set up WiFi from the editor's **Settings > Network** page.
+3. **Use a cable for now.** Plug in a network cable, boot, and set up Wi-Fi from the editor's **Settings > Network** page.
 
 ### I cannot find my Pi on the network
 
@@ -104,7 +104,7 @@ Some modules cannot show anything until they have one thing from you, and say so
 - **Location not set** on weather, moon, sunrise, air quality or rain map: open **Settings > Location & language**, type your town or zip code, and click **Look up**. The message links there from the editor. See [Weather](/docs/weather).
 - **Needs setup** on a weather provider card: that provider wants a key. Open the card on **Settings > Weather** and paste one, or leave Open-Meteo as the default; it needs none.
 - **No calendars picked yet** on a calendar module: no calendar is connected. See [Calendars](/docs/calendars).
-- **Add a key** on traffic, Todoist, Immich or OneDrive: the service needs a key on **Settings > API keys**. See [API keys](/docs/calendars#api-keys).
+- **No Todoist key yet** (or the same for another service) on Todoist, Immich or OneDrive, or **Traffic needs a Google Maps or TomTom key** on traffic: the service needs a key on **Settings > API keys**. See [API keys](/docs/calendars#api-keys).
 - **The chore chart or meal planner is empty:** they need people, chores and meals, which are added from the family remote on a phone. See [Chores and rewards](/docs/chores) and [Meals](/docs/meals).
 
 ---
@@ -115,7 +115,7 @@ Some modules cannot show anything until they have one thing from you, and say so
 
 1. **The key.** Modules that pull from a service with a key (Immich, OneDrive, Todoist, traffic) show whether the key is set on **Settings > API keys**. Weather keys are on the provider's card under **Settings > Weather**. Stocks and news need no key.
 2. **The refresh interval.** Every module that fetches data has one in its settings. A long interval means slow updates; that is not a fault.
-3. **Is the Pi online?** **Settings > Status** shows the display's last check-in, and the wall shows a WiFi icon in the corner when it has lost the network.
+3. **Is the Pi online?** **Settings > Status** shows the display's last check-in, and the wall shows a Wi-Fi icon in the corner when it has lost the network.
 
 **If you are comfortable with a terminal**
 
@@ -195,15 +195,15 @@ The phone can reach the Pi but the display has not checked in.
 
 ---
 
-## Display shows a WiFi icon at the bottom
+## Display shows a Wi-Fi icon at the bottom
 
-A WiFi-off icon in the lower corner means the display has lost its network. It appears after a few seconds offline and clears as soon as the network is back.
+A Wi-Fi-off icon in the lower corner means the display has lost its network. It appears after a few seconds offline and clears as soon as the network is back.
 
 1. Check the router or access point, and that the Pi is in range. Mesh networks and weak signal cause most drops.
 2. **Settings > Network** in the editor shows the connection and lets you pick another network.
 3. A cable is the most reliable fix for a display that keeps dropping.
 
-**If you are comfortable with a terminal**, see [WiFi keeps disconnecting](#wi-fi-keeps-disconnecting) below.
+**If you are comfortable with a terminal**, see [Wi-Fi keeps disconnecting](#wi-fi-keeps-disconnecting) below.
 
 ---
 
@@ -239,16 +239,16 @@ This setting covers the screen plugged into the device that runs Home Screens. A
 
 1. **Roll back.** **Settings > System & updates**, under **If an update caused trouble**, lists earlier versions. Pick the one you were on. Rolling back downloads that release again, so it needs an internet connection and takes about as long as an update. Your settings are saved before every update, so they come through intact.
 2. **Check the space.** **Settings > Status** shows storage. An update needs a little free space to download and unpack.
-3. **Try again.** A dropped connection during the download is the most common cause. **Check for Updates** again.
+3. **Try again.** A dropped connection during the download is the most common cause. **Check for updates** again.
 
 **If you are comfortable with a terminal**
 
-4. **The update stops and asks for the device password.** The account that runs Home Screens has to be able to use `sudo` without a password prompt, and this device is not set up that way. Type the device password into the box (on the pre-built image it is `screens` unless you changed it) and the update carries on. You only do this once, and it also unblocks WiFi and name changes in Settings. Older versions cannot ask, so on those sign in over SSH (user `hs`, password `screens` on the pre-built image) and run:
+4. **The update stops and asks for the device password.** The account that runs Home Screens has to be able to use `sudo` without a password prompt, and this device is not set up that way. Type the device password into the box (on the pre-built image it is `screens` unless you changed it) and the update carries on. You only do this once, and it also unblocks Wi-Fi and name changes in Settings. Older versions cannot ask, so on those sign in over SSH (user `hs`, password `screens` on the pre-built image) and run:
    ```bash
    echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/010_$USER-nopasswd
    sudo chmod 0440 /etc/sudoers.d/010_$USER-nopasswd
    ```
-   Type the account password when `sudo` asks, then **Check for Updates** again. Earlier pre-built images did not include this for `hs`.
+   Type the account password when `sudo` asks, then **Check for updates** again. Earlier pre-built images did not include this for `hs`.
 5. Drive the same steps by hand. Home Screens installs to `/opt/home-screens/current` and runs pre-built releases, so there is nothing to compile:
    ```bash
    cd /opt/home-screens/current
@@ -300,7 +300,7 @@ One Pi can drive several displays. The extra Pis only run a browser, so a Pi Zer
 
 ## How do I update or roll back?
 
-**Settings > System & updates**. **Check for Updates** installs the latest release; the list under **If an update caused trouble** goes back to any earlier one. Both need an internet connection. More in the [FAQ](/docs/faq#how-do-i-update-to-the-latest-version).
+**Settings > System & updates**. **Check for updates** installs the latest release; the list under **If an update caused trouble** goes back to any earlier one. Both need an internet connection. More in the [FAQ](/docs/faq#how-do-i-update-to-the-latest-version).
 
 ---
 
@@ -347,18 +347,18 @@ A running hub answers with its version, for example `{"ok":true,"version":"1.13.
 3. If a password is set and the session seems stuck, clear the browser's cookies for the site.
 4. The server should be listening on all interfaces (`0.0.0.0`), not just `127.0.0.1`.
 
-### WiFi keeps disconnecting
+### Wi-Fi keeps disconnecting
 
 1. The installer sets up a connectivity watchdog that recovers on its own. Check it is active: `systemctl list-timers | grep wifi`.
 2. See whether NetworkManager thinks it is online: `nmcli general status` and `nmcli device wifi list`.
-3. The Broadcom WiFi driver on the Pi can be flaky; look for firmware errors: `dmesg | grep brcmfmac | tail -20`.
+3. The Broadcom Wi-Fi driver on the Pi can be flaky; look for firmware errors: `dmesg | grep brcmfmac | tail -20`.
 4. Restart the connection if it is stuck: `sudo nmcli device disconnect wlan0 && sudo nmcli device connect wlan0`.
 
-The installer applies WiFi hardening (infinite reconnect retries, disabled MAC randomization, disabled IPv6 on WiFi, masked suspend). See [Networking > WiFi reliability](/docs/networking#wi-fi-reliability).
+The installer applies Wi-Fi hardening (infinite reconnect retries, disabled MAC randomization, disabled IPv6 on Wi-Fi, masked suspend). See [Networking > Wi-Fi reliability](/docs/networking#wi-fi-reliability).
 
-### Connecting to WiFi fails with "key-mgmt: property is missing"
+### Connecting to Wi-Fi fails with "key-mgmt: property is missing"
 
-On releases before 1.15, **Connect** under **Settings > Network > WiFi** failed with `802-11-wireless-security.key-mgmt: property is missing` whenever the Pi already had a saved entry for that network: reconnecting to your own network, retyping its password, or joining it from a USB adapter. The cause is a bug in the `nmcli` that ships with Raspberry Pi OS Trixie (NetworkManager 1.50 to 1.54.3), which rebuilds a reused saved entry without its security type. Update Home Screens; 1.15 creates its own saved entry per network and adapter and never reuses one. If you cannot update yet, join from a terminal instead:
+On releases before 1.15, **Connect** under **Settings > Network > Available Wi-Fi networks** failed with `802-11-wireless-security.key-mgmt: property is missing` whenever the Pi already had a saved entry for that network: reconnecting to your own network, retyping its password, or joining it from a USB adapter. The cause is a bug in the `nmcli` that ships with Raspberry Pi OS Trixie (NetworkManager 1.50 to 1.54.3), which rebuilds a reused saved entry without its security type. Update Home Screens; 1.15 creates its own saved entry per network and adapter and never reuses one. If you cannot update yet, join from a terminal instead:
 
 ```bash
 sudo nmcli connection add type wifi ifname wlan0 con-name "HomeNet (wlan0)" ssid "HomeNet" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "your-password"

@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button';
 import PhoneSurfaceQrCode from '@/components/editor/PhoneSurfaceQrCode';
 import PasswordModal from '@/components/editor/settings/SecuritySection/PasswordModal';
 import { CopyLinkButton } from '@/components/editor/PhoneSurfaceLinks';
+import FieldHint from '@/components/ui/FieldHint';
 
 const log = logger('phone-settings');
 
@@ -102,7 +103,7 @@ export default function PhoneSection() {
         <div className="mt-3 flex items-center justify-between gap-4 border-t border-hs-border pt-3">
           <div>
             <div className="text-[12.5px] text-hs-text-body">{t('settings.phonePage.print.label')}</div>
-            <div className="mt-0.5 text-[11px] text-hs-text-faint">{t('settings.phonePage.print.description')}</div>
+            <FieldHint className="mt-0.5">{t('settings.phonePage.print.description')}</FieldHint>
           </div>
           <Button size="sm" disabled={!origin} onClick={() => window.print()}>
             <Printer className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
@@ -140,6 +141,7 @@ function SurfaceRow({
   disabledNote?: string;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const isKid = surface === 'chores';
   const Icon = isKid ? ListChecks : Smartphone;
 
@@ -171,7 +173,7 @@ function SurfaceRow({
             className={`h-4 w-4 ${disabled ? 'text-hs-text-muted' : isKid ? 'text-hs-kid' : 'text-hs-accent-hover'}`}
             aria-hidden="true"
           />
-          {t(`settings.phonePage.${surface}.heading`)}
+          {tCore(`launcher.${surface}.title`)}
         </p>
         <p
           className={`mb-1.5 font-mono text-[11.5px] ${
@@ -185,10 +187,10 @@ function SurfaceRow({
         </p>
 
         {disabled ? (
-          <p className="flex items-center gap-1.5 text-[11.5px] text-hs-text-faint">
+          <FieldHint className="flex items-center gap-1.5">
             <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
             {disabledNote}
-          </p>
+          </FieldHint>
         ) : (
           <div className="flex gap-1.5">
             <CopyLinkButton surface={surface} origin={origin} />
@@ -215,6 +217,7 @@ function SurfaceRow({
  */
 function PrintableCodes({ origin, includeChores }: { origin: string; includeChores: boolean }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const surfaces: PhoneSurface[] = includeChores ? ['chores', 'remote'] : ['remote'];
 
   return (
@@ -242,7 +245,7 @@ function PrintableCodes({ origin, includeChores }: { origin: string; includeChor
           <PhoneSurfaceQrCode surface={surface} origin={origin} size={150} />
           <div>
             <p style={{ fontSize: 17, fontWeight: 600, margin: '0 0 4px' }}>
-              {t(`settings.phonePage.${surface}.heading`)}
+              {tCore(`launcher.${surface}.title`)}
             </p>
             <p style={{ fontFamily: UI_MONO_STACK, fontSize: 14, margin: '0 0 6px' }}>
               {phoneSurfaceLabel(surface, origin)}

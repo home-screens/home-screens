@@ -16,6 +16,13 @@ export const DEFAULT_DISPLAY_HEIGHT = 1920;
  */
 export const DISPLAY_BACKGROUND = '#000';
 
+/**
+ * What the wall writes where a value is missing: a time that never comes
+ * today, a score before kickoff, a stat a feed left out. One mark everywhere,
+ * so an empty cell never reads as an em-dash on one card and "--" on the next.
+ */
+export const NO_VALUE = '–';
+
 // Orientation-agnostic resolution presets.
 // `short` is the smaller dimension, `long` is the larger.
 // Portrait: width = short, height = long.  Landscape: width = long, height = short.
@@ -202,9 +209,12 @@ export const DIVIDER = {
   strong: ink(0.15),
 } as const;
 
+/** The stored accent that means "no accent" for the modules that can draw without one. */
+export const NO_ACCENT_COLOR = '#000000';
+
 /** Check whether a user-configured accent color is actually set (not the default black). */
 export function hasAccentColor(color: string | undefined): color is string {
-  return !!color && color !== '#000000';
+  return !!color && color !== NO_ACCENT_COLOR;
 }
 
 /**
@@ -216,7 +226,7 @@ export function resolveAccent(config: { accentColor?: string }): {
   hasAccent: boolean;
   gradientStyle: React.CSSProperties;
 } {
-  const accentColor = config.accentColor ?? '#000000';
+  const accentColor = config.accentColor ?? NO_ACCENT_COLOR;
   const hasAccent = hasAccentColor(accentColor);
   const gradientStyle: React.CSSProperties = hasAccent
     ? { background: `linear-gradient(135deg, ${withAlpha(accentColor, 0.08)}, ${withAlpha(accentColor, 0.03)})` }

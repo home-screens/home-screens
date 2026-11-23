@@ -116,7 +116,7 @@ export function rememberRecipeWall(displayId: string): void {
  * selection means All, the default. Selecting every chip also collapses to
  * 'all': `displays` is a page-load snapshot, so the broadcast keyword keeps
  * displays adopted after load covered, and the running card shows the
- * translated "On all displays" label instead of an id list. Ids are NOT
+ * translated "On every wall" label instead of an id list. Ids are NOT
  * checked against the live registry — a display deleted after page load can
  * still be addressed, in which case the session simply matches no display.
  */

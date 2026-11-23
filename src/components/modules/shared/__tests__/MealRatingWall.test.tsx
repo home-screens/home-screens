@@ -66,8 +66,8 @@ describe('Rate Dinner on the wall', () => {
   it("opens tonight's dinner after the Today view has turned to tomorrow", () => {
     // 19:45: dinner at 18:00 is "over" for the views, which lead with tomorrow.
     show(<WallRateDinnerButton size={28} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
-    const dialog = screen.getByRole('dialog', { name: 'Rate Dinner' });
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
+    const dialog = screen.getByRole('dialog', { name: 'Rate dinner' });
     expect(dialog.textContent).toContain('Thursday, January 1');
     expect(dialog.textContent).toContain('Soup');
     expect(dialog.textContent).not.toContain('Pasta');
@@ -75,7 +75,7 @@ describe('Rate Dinner on the wall', () => {
 
   it("opens last night's dinner the next morning, not one nobody has eaten", () => {
     show(<WallRateDinnerButton size={28} />, { now: '2026-01-02T08:00:00' });
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
     const dialog = screen.getByRole('dialog');
     expect(dialog.textContent).toContain('Thursday, January 1');
     expect(dialog.textContent).toContain('Soup');
@@ -84,21 +84,21 @@ describe('Rate Dinner on the wall', () => {
 
   it('says so when no dinner was planned', () => {
     show(<WallRateDinnerButton size={28} />, { now: '2026-01-05T20:00:00' });
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
     expect(screen.getByRole('dialog').textContent).toContain(core.mealRatings.noDinner);
     expect(screen.queryByTestId('meal-rating-member')).toBeNull();
   });
 
   it('names a typed-in dish as the reason it has no stars', () => {
     show(<WallRateDinnerButton size={28} />, { now: '2026-01-03T20:00:00' });
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
     expect(screen.getByRole('dialog').textContent).toContain('There is no recipe to rate for Leftovers, because it was only typed in.');
     expect(screen.queryByTestId('meal-rating-dish')).toBeNull();
   });
 
   it('names every typed-in dish beside the ones that can be rated', () => {
     show(<WallRateDinnerButton size={28} />, { now: '2026-01-04T20:00:00' });
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
     expect(screen.getByRole('dialog').textContent).toContain('There are no recipes to rate for Garlic bread and Ice cream, because they were only typed in.');
     expect(screen.getAllByTestId('meal-rating-dish')).toHaveLength(1);
   });
@@ -106,7 +106,7 @@ describe('Rate Dinner on the wall', () => {
   it('does not close on the second tap of a double tap, and closes on a later one', () => {
     vi.useFakeTimers();
     show(<WallRateDinnerButton size={28} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Rate Dinner' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rate dinner' }));
     act(() => { vi.advanceTimersByTime(DOUBLE_TAP_MS - 50); });
     fireEvent.click(screen.getByRole('dialog'));
     expect(screen.queryByRole('dialog')).not.toBeNull();

@@ -27,9 +27,9 @@ test('exporting a screen subset downloads only those screens and re-imports them
   }));
   await page.goto(DATA_PAGE);
 
-  // Open the export modal (primary "Export Layout" button on the Share section).
-  await page.getByRole('button', { name: 'Export Layout' }).click();
-  await expect(page.getByRole('heading', { name: 'Export Layout' })).toBeVisible();
+  // Open the export modal (primary "Export layout" button on the Share section).
+  await page.getByRole('button', { name: 'Export layout' }).click();
+  await expect(page.getByRole('heading', { name: 'Export layout' })).toBeVisible();
 
   // Every screen starts selected; deselect Bravo and Charlie so only Alpha ships.
   await page.locator('label', { hasText: 'Bravo' }).getByRole('checkbox').uncheck();
@@ -97,7 +97,7 @@ test('the add-screen menu imports a single screen from a file without replacing 
   };
 
   await page.getByRole('button', { name: 'Add screen' }).click();
-  await page.getByRole('button', { name: 'From File…' }).click();
+  await page.getByRole('button', { name: 'From file…' }).click();
 
   await page.locator('input[type="file"][accept=".json"]').first().setInputFiles({
     name: 'guest-screen.json',

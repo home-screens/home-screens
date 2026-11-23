@@ -15,7 +15,7 @@ type WallSource = Extract<PhotoSource, { kind: 'wall' }>;
  * patterns) as a rotation source: the row's checkbox puts the group in the
  * rotation, and the tiles pick which of its walls take part. A click on a
  * tile only ever changes that; the screen's own fixed picture is chosen in
- * the Image Library.
+ * the Pictures & videos window.
  */
 export default function WallSourceGroup({ group, source, onChange }: {
   group: StarterRotationGroup;
@@ -74,7 +74,7 @@ export default function WallSourceGroup({ group, source, onChange }: {
                   </span>
                 )}
               </span>
-              {/* The name under the tile, as the Image Library prints it: Midnight and Ocean look alike at this size. */}
+              {/* The name under the tile, as the Pictures & videos window prints it: Midnight and Ocean look alike at this size. */}
               <span className={`mt-0.5 block truncate text-[9px] leading-tight ${marked ? 'text-hs-text-body' : 'text-hs-text-faint'}`} aria-hidden="true">{name}</span>
             </button>
           );

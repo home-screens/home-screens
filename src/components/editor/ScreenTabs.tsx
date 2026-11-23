@@ -11,7 +11,7 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
 import { isRotationOff } from '@/lib/resolve-screen-duration';
@@ -222,7 +222,7 @@ export default function ScreenTabs() {
               }
             }}
           >
-            +
+            <Plus className="w-3.5 h-3.5" aria-hidden />
             <ChevronDown className="w-3 h-3" />
           </button>
         </div>
@@ -361,7 +361,7 @@ export default function ScreenTabs() {
         </div>
       )}
 
-      {/* Hidden file input backing "From File…" */}
+      {/* Hidden file input backing "From file…" */}
       <input
         ref={layoutInputRef}
         type="file"

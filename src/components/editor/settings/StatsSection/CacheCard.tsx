@@ -13,6 +13,7 @@ import { ThinBar } from './shared/ThinBar';
 import { percentColor, shortenUrl } from './shared/formatters';
 import { formatShortDuration } from '@/lib/duration-format';
 import type { SemanticColor } from './shared/types';
+import { NO_VALUE } from '@/lib/constants';
 
 export function CacheCard({
   displayStatus,
@@ -62,9 +63,9 @@ export function CacheCard({
               <div className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.statsSection.hitRate')}</div>
               <div className={`text-[34px] font-semibold leading-none mt-1 tabular-nums ${
                 hitRateColor === 'success' ? 'text-hs-success' :
-                hitRateColor === 'warning' ? 'text-hs-warning' : 'text-hs-danger'
+                hitRateColor === 'warning' ? 'text-hs-warning-ink' : 'text-hs-danger'
               }`}>
-                {hitRate > 0 ? hitRate.toFixed(1) : '—'}
+                {hitRate > 0 ? hitRate.toFixed(1) : NO_VALUE}
                 {hitRate > 0 && <span className="text-hs-text-faint text-lg">%</span>}
               </div>
               <div className="text-[11px] text-hs-text-faint mt-1.5 font-mono tabular-nums">
@@ -125,7 +126,7 @@ export function CacheCard({
                       <td className="px-2 py-1.5 text-right">
                         <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
                           d.stale
-                            ? 'bg-hs-warning/20 text-hs-warning'
+                            ? 'bg-hs-warning/20 text-hs-warning-ink'
                             : 'bg-hs-success/20 text-hs-success'
                         }`}>
                           {d.stale ? t('settings.statsSection.cacheStaleLabel') : t('settings.statsSection.cacheFreshLabel')}

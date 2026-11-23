@@ -20,8 +20,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { TIMETABLE_LIMITS, type DayKey, type TimetableSubject } from '@/types/timetables';
-import { PROSE_CLASS } from './prose';
 import { subjectTint } from './SubjectPalette';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** A lesson's details. An empty string clears the field; a missing one leaves it alone. */
 export interface CellDetailsPatch {
@@ -195,9 +195,9 @@ export default function CellDetails({
             className={MODAL_INPUT_CLASS}
           />
         </label>
-        <p className={`mb-2.5 mt-1 ${PROSE_CLASS} text-hs-text-faint`}>
+        <FieldHint className="mb-2.5 mt-1">
           {t('timetableModal.cell.courseHint')}
-        </p>
+        </FieldHint>
 
         <div className="border-t border-hs-border pt-2.5">
           <div className="flex items-center gap-2">
@@ -231,12 +231,9 @@ export default function CellDetails({
             </button>
           </div>
           {nothingToCopy && (
-            <p
-              data-testid="cell-details-copy-hint"
-              className={`mt-1.5 ${PROSE_CLASS} text-hs-text-faint`}
-            >
+            <FieldHint data-testid="cell-details-copy-hint" className="mt-1.5">
               {t('timetableModal.cell.copyNeedsValue')}
-            </p>
+            </FieldHint>
           )}
         </div>
       </div>

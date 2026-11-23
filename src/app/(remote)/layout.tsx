@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next';
+import type { Viewport } from 'next';
 import '@/app/globals.css';
 import { readConfig } from '@/lib/config';
 import { I18nProvider, resolveShippedLocale } from '@/i18n';
@@ -9,10 +9,12 @@ import { hubTimezone } from '@/lib/household-day';
 import { settingsTimeFormat } from '@/lib/clock-time';
 import { HouseholdClockProvider } from './remote/household-clock';
 import { GrownUpSheetLayer } from './remote/components/GrownUpSheet';
+import { pageMetadata } from '@/lib/page-title';
 
-export const metadata: Metadata = {
-  title: 'Remote Control',
-};
+// The kids' page (/chores) shares this layout and names itself.
+export function generateMetadata() {
+  return pageMetadata('remote');
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
 };
 
 // Reads `data/config.json` to pick up the current `config.settings.locale`,
-// which is mutable at runtime — so the layout must opt out of static
+// which is mutable at runtime, so the layout must opt out of static
 // pre-rendering or a build-time snapshot would freeze the locale until
 // the next deploy.
 export const dynamic = 'force-dynamic';
@@ -39,7 +41,7 @@ export default async function RemoteLayout({ children }: { children: React.React
   // Inline the dictionaries rather than letting the provider fetch them after
   // mount. `translate()` returns the key itself on a miss, so a post-mount
   // fetch renders the whole surface as raw keys until it lands. That covers
-  // /chores too — it shares this layout — which is the one that matters most:
+  // /chores too (it shares this layout), which is the one that matters most:
   // a kid reading `chores.markDone` has no way to know it is a loading state.
   // ~48 KB for the three namespaces, against the 188 KB the editor layout
   // already inlines.

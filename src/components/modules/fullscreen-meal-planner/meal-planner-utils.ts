@@ -28,7 +28,7 @@ export interface MealPlannerViewProps {
   /** Canvas is wider than tall; the today and menu-board views re-flow. */
   landscape: boolean;
   /**
-   * The next meal's photo fills the module behind a dark scrim (Next Meal
+   * The next meal's photo fills the module behind a dark scrim (Next meal
    * view only), so the view draws its text light and leaves out the big
    * picture. Only true once the photo has loaded: light text on the theme's
    * own background would not read.
@@ -57,6 +57,9 @@ const REF_S = 10.8;
 export function px(s: number, n: number): number {
   return (s * n) / REF_S;
 }
+
+/** The base size, in canvas pixels, every full-screen meal empty state (`FamilyEmptyState`) is drawn at. */
+export const EMPTY_STATE_PX = 44;
 
 /**
  * The "Back to today" button and the scroll bar of a list a finger scrolls

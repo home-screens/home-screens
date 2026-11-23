@@ -160,6 +160,12 @@ const PEOPLE_ROSTER = [
   { id: 'p2', name: 'Beta Person', color: '#059669' },
   { id: 'p3', name: 'Quiet Person', color: '#2563eb' },
 ];
+/** The same roster with Alpha and Alma sharing a first letter: a tag that stands alone must grow until the two differ. */
+const COLLIDING_ROSTER = [
+  { id: 'p1', name: 'Alpha Person', color: '#db2777' },
+  { id: 'p2', name: 'Alma Person', color: '#059669' },
+  { id: 'p3', name: 'Quiet Person', color: '#2563eb' },
+];
 const PEOPLE_GROUPS = [{ id: 'g-kids', name: 'Kids', memberIds: ['p1'] }];
 /** A configured feed for each id below: only calendars that still exist give their owner a row. */
 const icalStub = (id: string) => ({ id, type: 'ical', name: id, url: `https://example.com/${id}.ics`, color: BLUE, enabled: true });
@@ -1295,12 +1301,14 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
   // nothing; 'src-shared' belongs to nobody. Kids = Alpha only, so a group
   // filter proves the roster expansion and not just a member id.
   {
+    // Two first names that start alike: each tag grows past the shared
+    // letters, so the two people never read the same.
     type: 'fullscreen-calendar', name: 'name-tags', kind: 'networked', stubKey: 'calendar',
-    stubBody: PEOPLE_EVENTS, familyMembers: PEOPLE_ROSTER, familyGroups: PEOPLE_GROUPS, settings: PEOPLE_SETTINGS,
+    stubBody: PEOPLE_EVENTS, familyMembers: COLLIDING_ROSTER, familyGroups: PEOPLE_GROUPS, settings: PEOPLE_SETTINGS,
     config: { view: 'agenda', showNameTags: true },
     expect: async (mod) => {
-      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p1"]')).toHaveText('AP');
-      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p2"]')).toHaveText('BP');
+      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p1"]')).toHaveText('Alp');
+      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p2"]')).toHaveText('Alm');
       await expect(mod.locator('[data-event-id="ps3"] [data-event-marker="tag"]')).toHaveCount(0);
     },
   },
@@ -1311,7 +1319,8 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => {
       const key = mod.locator('[role="list"][aria-label="Calendar sources"]');
       await expect(key.locator('[data-legend-kind="group"]')).toContainText('Kids');
-      await expect(key.locator('[data-legend-kind="group"]')).toContainText('AP');
+      // Alpha's one-letter dot, then the group's name.
+      await expect(key.locator('[data-legend-kind="group"]')).toHaveText('AKids');
       await expect(key.locator('[data-legend-kind="person"]')).toContainText('Beta Person');
       await expect(key.locator('[data-legend-kind="everyone"]')).toContainText('Everyone');
       await expect(key).not.toContainText('Alpha Person');
@@ -1332,7 +1341,8 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     stubBody: PEOPLE_EVENTS, familyMembers: PEOPLE_ROSTER, familyGroups: PEOPLE_GROUPS, settings: PEOPLE_SETTINGS,
     config: { viewMode: 'agenda', showNameTags: true },
     expect: async (mod) => {
-      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p1"]')).toHaveText('AP');
+      // A first letter nobody else on the roster shares is the whole tag.
+      await expect(mod.locator('[data-event-marker="tag"][data-name-tag="p1"]')).toHaveText('A');
       await expect(mod.locator('[data-event-id="ps3"] [data-event-marker="tag"]')).toHaveCount(0);
     },
   },

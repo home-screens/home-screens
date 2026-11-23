@@ -35,10 +35,14 @@ import {
   type PictureBackupChoice,
   type PictureBackupSummary,
 } from '@/lib/picture-backup';
-import { settingsHref } from '@/lib/settings-route';
+import { settingsHref, settingsPlaceText } from '@/lib/settings-route';
 import { refreshCustomIcons } from '@/hooks/useCustomIcons';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { describeConfigBackup, LAST_STABLE_BACKUP } from '@/lib/config-backup-label';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import { refusalSentence } from '@/lib/hub-request';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
@@ -82,7 +86,7 @@ class RestoreRefused extends Error {
   }
 }
 
-/** "Could not restore that backup.", followed by why when the hub said. */
+/** "Couldn't restore that backup. Try again.", followed by why when the hub said. */
 function restoreFailureText(err: unknown, summary: string): string {
   return err instanceof RestoreRefused && err.reason ? `${summary}\n\n${err.reason}` : summary;
 }
@@ -226,6 +230,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         ? t('settings.dataPage.configBackups.restoreDialog.message', { what, when })
         : t('settings.dataPage.configBackups.restoreDialog.messageNoDate', { what }),
       confirmLabel: t('settings.dataPage.configBackups.restoreDialog.confirm'),
+      variant: 'danger',
     });
     if (!ok) return;
     setRestoreStatus({
@@ -246,7 +251,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       } else {
         const data = await res.json();
         setRestoreStatus({
-          message: t('settings.dataPage.configBackups.restoreStatus.error', { error: data.error }),
+          message: refusalSentence(data, tCore) ?? t('settings.dataPage.configBackups.restoreStatus.failed'),
           kind: 'error',
         });
       }
@@ -256,7 +261,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         kind: 'error',
       });
     }
-  }, [t]);
+  }, [t, tCore]);
 
   const handleReminderChange = useCallback((updates: Partial<BackupReminderSettings>) => {
     const current: BackupReminderSettings = { ...resolveBackupReminder(reminder), ...updates };
@@ -280,6 +285,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         const proceed = await useConfirmStore.getState().confirm({
           message: t('settings.dataPage.alerts.iconsExportFailed'),
           confirmLabel: t('settings.dataPage.alerts.credentialsExportFailedConfirm'),
+          variant: 'primary',
         });
         if (!proceed) return;
       }
@@ -300,6 +306,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             title: t('settings.dataPage.alerts.credentialsExportFailedTitle'),
             message: t('settings.dataPage.alerts.credentialsExportFailed'),
             confirmLabel: t('settings.dataPage.alerts.credentialsExportFailedConfirm'),
+            variant: 'primary',
           });
           if (!proceed) return;
         }
@@ -363,7 +370,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     if (result.missingIcons) notices.push(tCore('customIcons.backup.missing'));
     if (result.missingPictures) notices.push(tCore('pictureBackup.restoreMissing'));
     if (credentials?.skipped.includes('auth.ipRestrictAccess')) {
-      notices.push(t('settings.dataPage.restore.ipRulesNotRestored'));
+      notices.push(t('settings.dataPage.restore.ipRulesNotRestored', { place: settingsPlaceText(tCore, 'security') }));
     }
     if (credentials?.skipped.includes('auth')) {
       notices.push(t('settings.dataPage.restore.loginNotRestored'));
@@ -478,6 +485,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           const ok = await useConfirmStore.getState().confirm({
             message: tCore('pictureBackup.restoreConfirm', { count: staged.pictures.count, size: formatIconBytes(staged.pictures.bytes, formattingLocale) }),
             confirmLabel: tCore('pictureBackup.restoreConfirmButton'),
+            variant: 'danger',
           });
           if (!ok) return;
         }
@@ -513,7 +521,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     if (lacksIcons) {
       const ok = await useConfirmStore.getState().confirm({
         message: tCore('customIcons.backup.restoreNoIcons'),
-        confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
+        confirmLabel: t('settings.dataPage.restore.restoreAnyway'),
+        variant: 'danger',
       });
       if (!ok) return;
     }
@@ -607,7 +616,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     if (summary.usesCustomIcons && !summary.hasCustomIcons) {
       const ok = await useConfirmStore.getState().confirm({
         message: tCore('customIcons.backup.restoreNoIcons'),
-        confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
+        confirmLabel: t('settings.dataPage.restore.restoreAnyway'),
+        variant: 'danger',
       });
       if (!ok) return;
     }
@@ -648,7 +658,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                       setIncludeIcons(e.target.checked);
                       setIncludeCustomIcons(e.target.checked);
                     }}
-                    className="accent-hs-accent mt-0.5"
+                    className={`${CHECKBOX_CLASS} mt-0.5`}
                   />
                   <span>
                     <span className="block text-xs text-hs-text-body">
@@ -671,7 +681,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                           value={choice}
                           checked={pictureChoice === choice}
                           onChange={() => choosePictures(choice)}
-                          className="accent-hs-accent mt-0.5"
+                          className={`${CHECKBOX_CLASS} mt-0.5`}
                         />
                         <span className="block text-xs text-hs-text-body">
                           {tCore(`pictureBackup.${choice}`)}
@@ -684,9 +694,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                       </label>
                     );
                   })}
-                  <p className="text-xs text-hs-text-faint pl-6">{tCore('pictureBackup.help')}</p>
+                  <FieldHint className="pl-6">{tCore('pictureBackup.help')}</FieldHint>
                   {pictureSummary.missing > 0 && (
-                    <p className="text-xs text-hs-warning pl-6">
+                    <p className="text-xs text-hs-warning-ink pl-6">
                       {tCore('pictureBackup.missingNow', { count: pictureSummary.missing })}{' '}
                       <a href={settingsHref({ kind: 'defaults', page: 'media' })} className="underline">{tCore('pictureBackup.openLibrary')}</a>
                     </p>
@@ -707,7 +717,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                     setIncludeCredentials(e.target.checked);
                     if (!e.target.checked) setProtectCredentials(false);
                   }}
-                  className="accent-hs-accent mt-0.5"
+                  className={`${CHECKBOX_CLASS} mt-0.5`}
                 />
                 <span>
                   <span className="block text-xs text-hs-text-body">
@@ -731,19 +741,16 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                       type="checkbox"
                       checked={protectCredentials}
                       onChange={(e) => setProtectCredentials(e.target.checked)}
-                      className="accent-hs-accent mt-0.5"
+                      className={`${CHECKBOX_CLASS} mt-0.5`}
                     />
                     <span className="text-xs text-hs-text-body">
                       {t('settings.dataPage.fullBackup.protectLabel')}
                     </span>
                   </label>
                   {!protectCredentials && (
-                    <p
-                      className="text-xs text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-md px-2.5 py-2"
-                      role="status"
-                    >
+                    <Notice tone="warning" role="status">
                       {t('settings.dataPage.fullBackup.plaintextWarning')}
-                    </p>
+                    </Notice>
                   )}
                 </div>
               )}
@@ -782,9 +789,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           </SettingsPanelPart>
 
           <SettingsPanelPart heading={t('settings.dataPage.backupReminder.heading')}>
-            <p className="text-xs text-hs-text-faint mb-3">
+            <FieldHint className="mb-3">
               {t('settings.dataPage.backupReminder.description')}
-            </p>
+            </FieldHint>
             <div className="space-y-3" data-field-id="data.backupReminderEnabled">
               <Toggle
                 label={t('settings.dataPage.backupReminder.enableLabel')}
@@ -797,7 +804,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                   <select
                     value={reminder.intervalDays ?? BACKUP_REMINDER_DEFAULTS.intervalDays}
                     onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
-                    className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
+                    className={SETTINGS_INPUT_SM_CLASS}
                   >
                     {intervalOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -805,13 +812,13 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                   </select>
                 </label>
               )}
-              <p className="text-xs text-hs-text-faint">
+              <FieldHint>
                 {lastBackupDate
                   ? t('settings.dataPage.backupReminder.lastBackup', {
                       date: formatDateInTZ(new Date(lastBackupDate), timezone, { dateStyle: 'medium' }, formattingLocale),
                     })
                   : t('settings.dataPage.backupReminder.noBackups')}
-              </p>
+              </FieldHint>
             </div>
           </SettingsPanelPart>
         </SettingsPanel>
@@ -830,9 +837,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         >
           <div>
             {configBackups.length === 0 ? (
-              <p className="text-xs text-hs-text-faint">
+              <FieldHint>
                 {t('settings.dataPage.configBackups.empty')}
-              </p>
+              </FieldHint>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {configBackups.map((b) => {
@@ -905,9 +912,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         {/* Layouts and templates: the screens' look, without the family's data */}
         <SettingsPanel title={t('settings.dataPage.groups.layouts.title')} description={t('settings.dataPage.groups.layouts.description')}>
           <SettingsPanelPart heading={t('settings.dataPage.shareLayout.heading')}>
-            <p className="text-xs text-hs-text-faint mb-3">
+            <FieldHint className="mb-3">
               {t('settings.dataPage.shareLayout.description')}
-            </p>
+            </FieldHint>
             <div className="flex items-center gap-3">
               <Button
                 variant="secondary"
@@ -927,9 +934,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           </SettingsPanelPart>
 
           <SettingsPanelPart heading={t('settings.dataPage.templates.heading')}>
-            <p className="text-xs text-hs-text-faint mb-3">
+            <FieldHint className="mb-3">
               {t('settings.dataPage.templates.description')}
-            </p>
+            </FieldHint>
             <Button
               variant="secondary"
               onClick={() => setShowTemplatePicker(true)}

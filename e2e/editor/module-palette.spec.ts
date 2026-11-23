@@ -47,7 +47,7 @@ test('searching a category name keeps that whole category and drops the others',
 test('collapsing a category hides its modules until it is re-expanded', async ({ page }) => {
   await expect(page.getByTestId('palette-clock')).toBeVisible();
 
-  const header = page.getByRole('button', { name: /Time & Date/ });
+  const header = page.getByRole('button', { name: /Time & date/ });
   await header.click();
   await expect(page.getByTestId('palette-clock')).toHaveCount(0);
 

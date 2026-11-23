@@ -18,7 +18,7 @@ import MealsSettingsWeekStartSection from './MealsSettingsWeekStartSection';
 import MealsSettingsTimeFormatSection from './MealsSettingsTimeFormatSection';
 import MealsSettingsDefaultTimesSection from './MealsSettingsDefaultTimesSection';
 import MealsSettingsPlanSourceSection from './MealsSettingsPlanSourceSection';
-import { REMOTE_ACCENT } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 import TallSheet from './TallSheet';
 
 interface MealsSettingsSheetProps {
@@ -43,40 +43,7 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, mealieC
   } = useMealsSettingsDraft(settings, onSave, onClose);
 
   return (
-    <TallSheet label={t('mealsSettings.ariaLabel')} onClose={onClose} zIndex={200}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '4px 16px 12px',
-          borderBottom: '1px solid var(--hs-border)',
-        }}
-      >
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>
-          {t('mealsSettings.title')}
-        </h3>
-        <button
-          onClick={onClose}
-          style={{
-            minWidth: 44,
-            minHeight: 44,
-            padding: '4px 12px',
-            fontSize: 13,
-            fontWeight: 600,
-            borderRadius: 8,
-            border: '1px solid var(--hs-border)',
-            background: 'transparent',
-            color: 'var(--hs-text-muted)',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-          aria-label={t('mealsSettings.cancelAriaLabel')}
-        >
-          {tCore('actions.cancel')}
-        </button>
-      </div>
-
+    <TallSheet label={t('mealsSettings.ariaLabel')} title={t('mealsSettings.title')} onClose={onClose}>
       <div style={{ overflow: 'auto', padding: '16px 16px 80px', flex: 1 }}>
         <MealsSettingsPlanSourceSection
           planSource={draft.planSource}
@@ -138,28 +105,9 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, mealieC
             {saveError}
           </div>
         )}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          style={{
-            width: '100%',
-            padding: '14px',
-            minHeight: 48,
-            borderRadius: 10,
-            border: 'none',
-            background: saving ? 'var(--hs-text-faint)' : REMOTE_ACCENT,
-            color: '#000',
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: saving ? 'wait' : 'pointer',
-            fontFamily: 'inherit',
-            opacity: saving ? 0.8 : 1,
-            transition: 'background 0.15s, opacity 0.15s',
-          }}
-        >
-          {saving ? t('mealsSettings.save.saving') : t('mealsSettings.save.submit')}
-        </button>
+        <PrimaryButton onClick={handleSave} busy={saving} style={{ marginTop: 0 }}>
+          {tCore('actions.save')}
+        </PrimaryButton>
       </div>
     </TallSheet>
   );

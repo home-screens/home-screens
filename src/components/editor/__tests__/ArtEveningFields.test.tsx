@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';
+import enUSCore from '@/translations/en-US/core.json';
 
 const updateScreen = vi.hoisted(() => vi.fn());
 vi.mock('@/stores/editor-store', () => ({ useEditorStore: (pick: (state: { updateScreen: typeof updateScreen }) => unknown) => pick({ updateScreen }) }));
@@ -12,7 +13,7 @@ vi.mock('@/stores/editor-store', () => ({ useEditorStore: (pick: (state: { updat
 import EveningLightFields from '../EveningLightFields';
 import ArtModeFields from '../ArtModeFields';
 
-const wrap = (ui: React.ReactElement) => <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>{ui}</I18nProvider>;
+const wrap = (ui: React.ReactElement) => <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>{ui}</I18nProvider>;
 beforeEach(() => updateScreen.mockReset());
 afterEach(cleanup);
 
@@ -25,7 +26,7 @@ describe('EveningLightFields', () => {
     view.unmount();
 
     render(wrap(<EveningLightFields screenId="s1" eveningLight={{ from: 'sunset', until: '07:00' }} />));
-    expect(screen.getByText('Sunset needs your town in Settings. Without it, evening starts at 8 PM.')).toBeTruthy();
+    expect(screen.getByText('Sunset needs your town in Settings > Location & language. Without it, evening starts at 8 PM.')).toBeTruthy();
     fireEvent.click(screen.getByRole('switch'));
     expect(updateScreen).toHaveBeenLastCalledWith('s1', { eveningLight: undefined });
   });

@@ -95,7 +95,7 @@ describe('one rewards poll for the ticket count and the Rewards view', () => {
     await openTab(false);
     expect(rewardReads()).toBe(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rewards' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Rewards' }));
     await act(async () => {});
 
     expect(screen.getByText('Movie night')).toBeTruthy();
@@ -104,7 +104,7 @@ describe('one rewards poll for the ticket count and the Rewards view', () => {
 
   it('polls the rewards once per round with both on screen', async () => {
     await openTab(false);
-    fireEvent.click(screen.getByRole('button', { name: 'Rewards' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Rewards' }));
     await act(async () => {});
     const before = rewardReads();
 
@@ -118,7 +118,7 @@ describe('one rewards poll for the ticket count and the Rewards view', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(rewardReads()).toBe(0);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rewards' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Rewards' }));
     await act(async () => {});
 
     expect(rewardReads()).toBe(1);

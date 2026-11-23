@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { eventBus } from '@/lib/event-bus';
 import { useEditorStore } from '@/stores/editor-store';
@@ -30,8 +30,11 @@ import IntegrationSettingsLink, { type BackgroundIntegration } from './Integrati
 import BackgroundShadeFields from './BackgroundShadeFields';
 import BackgroundEffectsFields from './BackgroundEffectsFields';
 import EveningLightFields from './EveningLightFields';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
+import Notice from '@/components/ui/Notice';
+import { settingsPlaceText } from '@/lib/settings-route';
 
-const FIELD_CLASS = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
+const FIELD_CLASS = `mt-0.5 block ${INPUT_CLASS}`;
 
 /** The rotate route's answer to a forced refresh (see `GET /api/backgrounds/rotate`). */
 interface RotateAnswer {
@@ -91,7 +94,7 @@ const untickedKey = (screenId: string, source: Pick<PhotoSource, 'kind'> & { gro
   `${screenId}:${source.kind}${source.group ? `:${source.group}` : ''}`;
 
 /**
- * A screen's background: one picture chosen in the Image Library (the same
+ * A screen's background: one picture chosen in the Pictures & videos window (the same
  * window every single-picture spot opens, with the backgrounds that ship
  * with Home Screens as its first tab), or a rotation through any of the
  * sources listed under Sources, one row per kind, each with the same fields
@@ -99,6 +102,7 @@ const untickedKey = (screenId: string, source: Pick<PhotoSource, 'kind'> & { gro
  */
 export default function BackgroundPicker() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config, selectedDisplayId, selectedScreenId, updateScreen, updateScreenRotation, pickScreenBackground } = useEditorStore();
   const { status: secretStatus } = useSecretStatus();
   const [picking, setPicking] = useState(false);
@@ -196,7 +200,7 @@ export default function BackgroundPicker() {
           {t('backgroundPicker.sourceNotSetUp')}{' '}
           {integration && (
             <IntegrationSettingsLink integration={integration}>
-              {t('backgroundPicker.sourceSetUpLink', { source: t(`photoSources.kinds.${kind}`) })}
+              {t('backgroundPicker.sourceSetUpLink', { source: t(`photoSources.kinds.${kind}`), place: settingsPlaceText(tCore, 'integrations') })}
             </IntegrationSettingsLink>
           )}
         </>
@@ -255,20 +259,24 @@ export default function BackgroundPicker() {
       </PropertyGroup>
 
       {missingPath && (
-        <div className="rounded-md border border-hs-danger/40 bg-hs-danger/10 px-2.5 py-2 space-y-1.5" data-testid="background-missing">
-          <div className="text-[10px] text-hs-text-faint">{t('backgroundPicker.missing.label')}</div>
+        <Notice
+          tone="danger"
+          size="sm"
+          icon={AlertTriangle}
+          testId="background-missing"
+          title={t('backgroundPicker.missing.note')}
+          action={
+            <>
+              <Button size="sm" onClick={() => setPicking(true)}>{t('backgroundPicker.missing.pickAnother')}</Button>
+              <Button size="sm" onClick={() => updateScreen(screenId, { backgroundImage: '' })}>
+                {t('backgroundPicker.missing.useSolid')}
+              </Button>
+            </>
+          }
+        >
+          <div className="mt-1 text-[10px] text-hs-text-faint">{t('backgroundPicker.missing.label')}</div>
           <div className="font-mono text-[11px] text-hs-text-body break-all">{missingPath}</div>
-          <p className="text-[11px] text-hs-danger flex gap-1.5">
-            <span aria-hidden="true">⚠</span>
-            <span>{t('backgroundPicker.missing.note')}</span>
-          </p>
-          <div className="flex gap-2 pt-0.5">
-            <Button size="sm" onClick={() => setPicking(true)}>{t('backgroundPicker.missing.pickAnother')}</Button>
-            <Button size="sm" onClick={() => updateScreen(screenId, { backgroundImage: '' })}>
-              {t('backgroundPicker.missing.useSolid')}
-            </Button>
-          </div>
-        </div>
+        </Notice>
       )}
 
       <PropertyGroup

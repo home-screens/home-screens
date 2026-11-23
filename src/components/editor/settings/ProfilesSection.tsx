@@ -19,6 +19,8 @@ import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import SortableProfileCard from './SortableProfileCard';
 import { logger } from '@/lib/logger';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
 
 const log = logger('profiles');
 
@@ -130,13 +132,13 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
   return (
     <section>
       {!embedded && (
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.profilesPage.heading')}
-        </h3>
+        </SettingsSectionHeading>
       )}
-      <p className="text-xs text-hs-text-faint mb-4">
+      <FieldHint className="mb-4">
         {t('settings.profilesPage.description')}
-      </p>
+      </FieldHint>
 
       {isMultiDisplay && !embedded && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
@@ -147,7 +149,7 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
               onChange={(e) => setSelectedDisplay(e.target.value || null)}
-              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -155,9 +157,9 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-hs-text-faint mt-1.5">
+            <FieldHint className="mt-1.5">
               {t('settings.profilesPage.displayPicker.help')}
-            </p>
+            </FieldHint>
           </label>
         </div>
       )}
@@ -178,9 +180,9 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-          <p className="text-xs text-hs-text-faint mt-1">
+          <FieldHint className="mt-1">
             {t('settings.profilesPage.active.help')}
-          </p>
+          </FieldHint>
         </label>
       )}
 
@@ -209,9 +211,9 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
           appear only once a second profile existed, which is after the point
           where someone needed to know it. */}
       {profiles.length > 0 && (
-        <p className="text-xs text-hs-text-faint mt-2">
+        <FieldHint className="mt-2">
           {t('settings.profilesPage.priority.help')}
-        </p>
+        </FieldHint>
       )}
 
       <div className="flex items-center gap-3 mt-4">

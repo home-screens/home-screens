@@ -169,7 +169,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, anchor
             color: 'var(--cal-text-tertiary)',
             marginBottom: scale.bu * 0.3,
           }}>
-            {t('fullscreen-calendar.allDay')}
+            {t('calendar.allDay')}
           </div>
           {allDayEvs.map(ev => {
             const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;

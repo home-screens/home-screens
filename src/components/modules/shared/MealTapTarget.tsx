@@ -1,11 +1,13 @@
 'use client';
 
 import { lazy, Suspense, useState, type CSSProperties, type ReactNode } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type { RecipeTapAction, SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { recipeTapOpens } from '@/lib/meal-recipe';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
 import type { MealServingRef } from './MealRecipeContext';
+import { WallButton } from './WallButton';
 
 // Lazy so qrcode.react is only fetched/parsed after the first tap — most
 // displays run with tapRecipeAction 'off' and never pay for it.
@@ -83,13 +85,13 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
 
   return (
     <>
-      <button
-        type="button"
+      <WallButton
+        row
         aria-label={t('meal-planner.openRecipeAria', { name: meal.name })}
         onClick={() => setOverlay(opensAs)}
-        className={className}
+        // The ground as a class, so the row's pressed tint can show over it.
+        className={className ? `bg-transparent ${className}` : 'bg-transparent'}
         style={{
-          background: 'none',
           border: 0,
           padding: 0,
           margin: 0,
@@ -101,14 +103,13 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
         }}
       >
         {children}
-        <span
+        <ChevronRight
+          size="1.1em"
           aria-hidden="true"
           data-testid="meal-chevron"
-          style={{ fontSize: '1.1em', lineHeight: 1, opacity: 0.4, marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }}
-        >
-          ›
-        </span>
-      </button>
+          style={{ opacity: 0.4, marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }}
+        />
+      </WallButton>
       {overlay === 'card' && (
         <Suspense fallback={null}>
           <RecipeCard meal={meal} at={serving} onClose={() => setOverlay(null)} />

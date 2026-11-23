@@ -5,9 +5,10 @@ import { readConfig } from '@/lib/config';
 import { I18nProvider, resolveShippedLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { buildLocaleBlob } from '@/i18n/server-blob';
+import { PRODUCT_NAME } from '@/lib/page-title';
 
 export const metadata: Metadata = {
-  title: 'Home Display',
+  title: PRODUCT_NAME,
 };
 
 export const viewport: Viewport = {
@@ -18,7 +19,7 @@ export const viewport: Viewport = {
 };
 
 // Reads `data/config.json` to build the inlined locale blob, which is
-// mutable at runtime — so the layout must opt out of static pre-rendering
+// mutable at runtime, so the layout must opt out of static pre-rendering
 // or the kiosk would ship the wrong locale until the next deploy.
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export const dynamic = 'force-dynamic';
  * paint resolves every translation without a `/api/i18n` round-trip.
  * That matters here in a way it does not for the editor:
  *
- *   - The display is a kiosk renderer, not an interactive surface — any
+ *   - The display is a kiosk renderer, not an interactive surface: any
  *     post-mount fetch shows up as visible English-then-localized
  *     flicker (FOUC).
  *   - The display is run on a Pi behind a single hub; fetching the same
@@ -47,7 +48,7 @@ export default async function DisplayLayout({ children }: { children: React.Reac
   return (
     <I18nProvider locale={locale} formattingLocale={formattingLocale} blob={blob}>
       {/* Inside the provider so `useLocale()` (captured by SDK.translate)
-          sees the active locale, not the default — and before {children}
+          sees the active locale, not the default, and before {children}
           so its layout effect installs the SDK before plugins load. */}
       <PluginGlobals />
       {children}

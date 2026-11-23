@@ -115,7 +115,7 @@ describe('a stream dropped mid-install', () => {
     expect(stream.closed).toBe(false);
     expect(inProgressBadge()).not.toBeNull();
     expect(failedBadge()).toBeNull();
-    expect(reconnectingLine()?.textContent).toContain('Connection lost, reconnecting...');
+    expect(reconnectingLine()?.textContent).toContain('Lost the connection. Getting it back…');
     await wait(45_000);
     expect(quietLine()).toBeNull();
     expect(reconnectingLine()).not.toBeNull();
@@ -191,7 +191,7 @@ describe('a stream dropped mid-install', () => {
     expect(failedBadge()).not.toBeNull();
     expect(stream.closed).toBe(true);
     expect(reconnectingLine()).toBeNull();
-    expect(screen.getByText('Connection lost during "Apply system configuration"')).toBeTruthy();
+    expect(screen.getByText('Lost the connection during “Setting up the device”')).toBeTruthy();
   });
 
   it('still fails at once when nothing was ever heard', async () => {

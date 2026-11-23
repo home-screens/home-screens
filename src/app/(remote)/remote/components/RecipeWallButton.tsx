@@ -9,14 +9,14 @@ import { rememberRecipeWall, type DisplayTargetValue } from '../display-target';
 import { useShowRecipeOnWall, type WallNotices } from '../hooks/useShowRecipeOnWall';
 import BottomSheet from './BottomSheet';
 import { SheetRow } from './PhotoFolderSheets';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 
 /** How long the button keeps its tick after the hub took the recipe. */
 const SENT_MS = 2_000;
 
 const IDLE: CSSProperties = { border: '1px solid var(--hs-border-strong)', background: 'var(--hs-bg-hover)', color: 'var(--hs-text-secondary)' };
-const SENT: CSSProperties = { border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.6)}`, background: withAlpha(REMOTE_ACCENT, 0.14), color: REMOTE_ACCENT };
+const SENT: CSSProperties = { border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.6)}`, background: withAlpha(REMOTE_ACCENT, 0.14), color: REMOTE_ACCENT_INK };
 
 interface RecipeWallButtonProps {
   meal: SavedMeal;
@@ -108,7 +108,7 @@ export default function RecipeWallButton({ meal, notices, variant = 'icon', styl
     {/* On the page itself: the meal sheet this button can sit in is a
         dialog of its own, and a sheet inside it would be held to its box. */}
     {asking && createPortal(
-      <BottomSheet title={t('mealsTab.showOnWall.pickTitle')} onClose={() => setAsking(false)} zIndex={210} testId="recipe-wall-picker">
+      <BottomSheet title={t('mealsTab.showOnWall.pickTitle')} onClose={() => setAsking(false)} layer="sheetOverSheet" testId="recipe-wall-picker">
         <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--hs-text-muted)', margin: '-6px 0 12px' }}>
           {t('mealsTab.showOnWall.pickHint')}
         </p>

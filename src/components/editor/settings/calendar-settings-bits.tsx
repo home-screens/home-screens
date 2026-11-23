@@ -5,9 +5,11 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import { useEditorStore } from '@/stores/editor-store';
 import { useCalendarFetchQuery } from '../useCalendarFetchQuery';
+import { SettingsSectionHeading, SettingsSubHeading } from './shared/SettingsPanel';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarSourceStatus } from '@/types/config';
+import StatusPill from '@/components/ui/StatusPill';
 
 /**
  * Shared pieces of the Defaults > Calendar page: the three area cards, the
@@ -23,7 +25,7 @@ function sourceHealthMessage(status: CalendarSourceStatus, t: TranslateFn): stri
 
 /**
  * One of the page's three areas, in the idiom the other Defaults pages use:
- * a small uppercase label above a neutral card, with the area's one-line
+ * the shared section heading above a neutral card, with the area's one-line
  * description as the card's first line.
  */
 export function SettingsArea({ title, description, children, testId }: {
@@ -34,7 +36,7 @@ export function SettingsArea({ title, description, children, testId }: {
 }) {
   return (
     <section data-testid={testId}>
-      <h3 className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">{title}</h3>
+      <SettingsSectionHeading>{title}</SettingsSectionHeading>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 px-4 py-4">
         {description && <p className="mb-4 text-[13px] text-hs-text-faint leading-relaxed">{description}</p>}
         {children}
@@ -57,7 +59,7 @@ export function SourceBlock({ title, aside, right, first, children, testId }: {
   return (
     <div data-testid={testId} className={first ? '' : 'mt-4 pt-4 border-t border-hs-border-strong'}>
       <div className="flex items-center gap-2 mb-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-hs-text-secondary">{title}</h4>
+        <SettingsSubHeading>{title}</SettingsSubHeading>
         {aside && <span className="text-xs text-hs-text-faint truncate">{aside}</span>}
         {right && <span className="ml-auto flex items-center gap-3">{right}</span>}
       </div>
@@ -184,19 +186,15 @@ export function SourceHealthBadge({ status }: { status: CalendarSourceStatus | u
   const since = status.fetchedAt != null ? formatRelativeTime(new Date(), new Date(status.fetchedAt), { locale }) : null;
   if (status.ok) {
     return (
-      <span data-source-health="ok" className="shrink-0 whitespace-nowrap rounded-full bg-hs-success/10 px-2 py-0.5 text-[11px] font-semibold text-hs-success">
+      <StatusPill tone="success" data-source-health="ok">
         {since ? t('settings.calendarPage.health.updated', { time: since }) : t('settings.calendarPage.health.updatedNow')}
-      </span>
+      </StatusPill>
     );
   }
   return (
-    <span
-      data-source-health="failing"
-      title={sourceHealthMessage(status, t)}
-      className="shrink-0 whitespace-nowrap rounded-full bg-hs-warning/10 px-2 py-0.5 text-[11px] font-semibold text-hs-warning"
-    >
+    <StatusPill tone="warning" data-source-health="failing" title={sourceHealthMessage(status, t)}>
       {t('settings.calendarPage.health.notUpdating')}
-    </span>
+    </StatusPill>
   );
 }
 

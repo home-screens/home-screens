@@ -19,6 +19,8 @@ import type {
   TransitionEffect,
 } from '@/types/config';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
 
 interface DisplayOverrideFieldsProps {
   config: ScreenConfiguration;
@@ -41,6 +43,7 @@ const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
  */
 export default function DisplayOverrideFields({ config, display }: DisplayOverrideFieldsProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   // Selector-scoped: an unscoped `useEditorStore()` re-renders this card on
   // every store write (including each save's isSaving flip), which is enough
   // to interrupt typing in the sibling canvas inputs.
@@ -50,7 +53,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
   const settings = config.settings;
 
   // Resolve once per render — every OverrideRow shares this label.
-  const DEFAULTS_LABEL = t('settings.perDisplayPage.display.defaultsLabel');
+  const DEFAULTS_LABEL = defaultsPlaceText(t, tCore, 'screen');
 
   // Translated transition labels, falling back to the registry English name
   // when a plugin introduces an effect not listed in the default tree.
@@ -87,9 +90,9 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
     <>
       {/* Rotation & transitions — inheritable */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+        <SettingsSectionHeading>
           {t('settings.perDisplayPage.display.rotationAndTransitionsHeading')}
-        </div>
+        </SettingsSectionHeading>
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}
@@ -359,9 +362,9 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
 
       {/* Appearance — inheritable */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+        <SettingsSectionHeading>
           {t('settings.perDisplayPage.display.appearanceHeading')}
-        </div>
+        </SettingsSectionHeading>
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label={t('settings.defaultDisplayPage.fields.cursorHideLabel')}

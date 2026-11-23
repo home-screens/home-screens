@@ -7,8 +7,10 @@ import { useLibraryImportJob, type LibraryImportJobStatus } from '@/hooks/useLib
 import { useGooglePickerSession } from '@/hooks/useGooglePickerSession';
 import { useICloudImport } from '@/hooks/useICloudImport';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD } from './remote-styles';
+import { GHOST_BUTTON, HELPER_TEXT, SHEET_FIELD, primaryButtonStyle } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 import type { PhotoKind } from './photo-words';
+import PhoneSpinner from './PhoneSpinner';
 
 /** The kinds a finished import brought in, for "They'll show on Kitchen". */
 export function importedKinds(job: LibraryImportJobStatus): PhotoKind[] {
@@ -24,11 +26,7 @@ const TEXT: React.CSSProperties = { fontSize: 14, color: 'var(--hs-text-muted)',
 function Working({ label }: { label: string }) {
   return (
     <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 600, color: 'var(--hs-text-primary)', minHeight: 48 }}>
-      <span
-        aria-hidden="true"
-        className="animate-spin"
-        style={{ width: 18, height: 18, border: '2.5px solid var(--hs-border-strong)', borderTopColor: 'var(--hs-accent)', borderRadius: '50%', flex: 'none' }}
-      />
+      <PhoneSpinner />
       {label}
     </div>
   );
@@ -48,7 +46,7 @@ function ImportResult({ job, whereTheyShow }: { job: LibraryImportJobStatus; whe
         </div>
       )}
       {job.skipped > 0 && <p style={{ ...TEXT, marginTop: 6 }}>{tCore('imports.alreadyHere', { count: job.skipped })}</p>}
-      {unsaved > 0 && <p style={{ ...TEXT, marginTop: 6, color: 'var(--hs-warning)' }}>{t('photosTab.imports.couldNotAdd', { count: unsaved })}</p>}
+      {unsaved > 0 && <p style={{ ...TEXT, marginTop: 6, color: 'var(--hs-warning-ink)' }}>{t('photosTab.imports.couldNotAdd', { count: unsaved })}</p>}
       {job.done === 0 && job.skipped === 0 && unsaved === 0 && <p style={TEXT}>{tCore('imports.nothingFound')}</p>}
     </div>
   );
@@ -124,10 +122,10 @@ export function PhotoGoogleSheet({
         <ImportResult job={importJob.job} whereTheyShow={whereTheyShow} />
       ) : error || startError ? (
         <>
-          <p style={{ ...TEXT, color: 'var(--hs-warning)' }} data-testid="photo-import-error">{error ?? startError}</p>
-          <button type="button" onClick={begin} className="press-btn" style={{ ...PRIMARY_BUTTON, marginTop: 16 }}>
+          <p style={{ ...TEXT, color: 'var(--hs-warning-ink)' }} data-testid="photo-import-error">{error ?? startError}</p>
+          <PrimaryButton onClick={begin} style={{ marginTop: 16 }}>
             {t('photosTab.imports.tryAgain')}
-          </button>
+          </PrimaryButton>
         </>
       ) : session ? (
         <>
@@ -139,7 +137,7 @@ export function PhotoGoogleSheet({
             onClick={() => setOpened(true)}
             data-testid="photo-google-open"
             className="press-btn"
-            style={{ ...PRIMARY_BUTTON, marginTop: 16, textDecoration: 'none' }}
+            style={{ ...primaryButtonStyle(), marginTop: 16, textDecoration: 'none' }}
           >
             {t('photosTab.imports.googleOpen')}
           </a>
@@ -204,20 +202,13 @@ export function PhotoICloudSheet({
             style={{ ...SHEET_FIELD, marginTop: 14 }}
           />
           {errorKey && (
-            <p style={{ ...TEXT, marginTop: 10, color: 'var(--hs-warning)' }} data-testid="photo-import-error">
+            <p style={{ ...TEXT, marginTop: 10, color: 'var(--hs-warning-ink)' }} data-testid="photo-import-error">
               {t(`photosTab.imports.icloudErrors.${errorKey}`)}
             </p>
           )}
-          <button
-            type="button"
-            onClick={() => void start(url, folder)}
-            disabled={!canStart}
-            data-testid="photo-icloud-start"
-            className="press-btn"
-            style={{ ...PRIMARY_BUTTON, marginTop: 16, opacity: canStart ? 1 : 0.4 }}
-          >
+          <PrimaryButton onClick={() => void start(url, folder)} disabled={!canStart} data-testid="photo-icloud-start" style={{ marginTop: 16 }}>
             {t('photosTab.imports.icloudAdd')}
-          </button>
+          </PrimaryButton>
         </>
       )}
       <button type="button" onClick={onClose} className="press-scale" style={GHOST_BUTTON}>

@@ -1,19 +1,23 @@
 'use client';
 
+import { Heart, Plus, Search, UtensilsCrossed } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import { formatShownMinutes } from './meals-shared';
 import { FamilyMealSummary } from '@/components/meals/meal-votes';
 import MealRateButton from './MealRatingSheet';
-import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel, type LibraryFilter } from '@/lib/meal-constants';
-import { mealShownMinutes } from '@/lib/meal-dish-rules';
+import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, type LibraryFilter } from '@/lib/meal-constants';
+import { mealShownMinutes, mealTagLabel } from '@/lib/meal-dish-rules';
 import { mealHasRecipe } from '@/lib/meal-recipe';
 import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 import RecipeWallButton from './RecipeWallButton';
 import Glyph from '@/components/ui/Glyph';
-import { CARD, COMPACT_FIELD, REMOTE_ACCENT, selectedPillStyle } from './remote-styles';
+import { CARD, COMPACT_FIELD, REMOTE_ACCENT, REMOTE_ON_ACCENT } from './remote-styles';
+import { REMOTE_LAYERS } from './remote-layers';
+import ChipButton from './ChipButton';
+import EmptyState from './EmptyState';
 import { withAlpha } from '@/lib/hex-color';
 
 interface MealsLibraryViewProps {
@@ -75,31 +79,19 @@ export default function MealsLibraryView({
         }}
       />
 
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' as const, paddingBottom: 12 }}>
+      {/* The chips' 44 px targets carry their own 4 px above and below. */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' as const, margin: '-4px 0 0', paddingBottom: 8 }}>
         {LIBRARY_FILTERS.map((tag) => {
-          const isActive = filterTag === tag;
           const label = t(`mealsTab.library.filters.${tag}`);
           return (
-            <button
+            <ChipButton
               key={tag}
+              selected={filterTag === tag}
               onClick={() => setFilterTag(tag)}
-              aria-label={t('mealsTab.library.filterByAriaLabel', { label })}
-              aria-pressed={isActive}
-              style={{
-                padding: '6px 14px',
-                minHeight: 36,
-                fontSize: 12,
-                fontWeight: 600,
-                borderRadius: 999,
-                ...selectedPillStyle(isActive),
-                cursor: 'pointer',
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-                fontFamily: 'inherit',
-              }}
+              ariaLabel={t('mealsTab.library.filterByAriaLabel', { label })}
             >
               {label}
-            </button>
+            </ChipButton>
           );
         })}
       </div>
@@ -113,18 +105,16 @@ export default function MealsLibraryView({
       )}
 
       {filteredMeals.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {savedMeals.length === 0
-              ? t('mealsTab.library.empty.titleNoMeals')
-              : t('mealsTab.library.empty.titleNoMatches')}
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-            {savedMeals.length === 0
-              ? t('mealsTab.library.empty.hintNoMeals')
-              : t('mealsTab.library.empty.hintNoMatches')}
-          </p>
-        </div>
+        <EmptyState
+          icon={savedMeals.length === 0 ? UtensilsCrossed : Search}
+          title={savedMeals.length === 0
+            ? t('mealsTab.library.empty.titleNoMeals')
+            : t('mealsTab.library.empty.titleNoMatches')}
+          body={savedMeals.length === 0
+            ? t('mealsTab.library.empty.hintNoMeals')
+            : t('mealsTab.library.empty.hintNoMatches')}
+          style={{ paddingTop: 48 }}
+        />
       ) : (
         filteredMeals.map((meal) => (
           <div
@@ -143,6 +133,7 @@ export default function MealsLibraryView({
             <button
               type="button"
               onClick={() => openEditMealForm(meal)}
+              className="press-scale"
               style={{
                 flex: 1,
                 minWidth: 0,
@@ -189,7 +180,7 @@ export default function MealsLibraryView({
                           color: 'var(--hs-text-muted)',
                         }}
                       >
-                        {formatTagLabel(tag)}
+                        {mealTagLabel(meal, tag, tCore)}
                       </span>
                     ))}
                   </div>
@@ -203,13 +194,13 @@ export default function MealsLibraryView({
             <button
               type="button"
               onClick={() => toggleFavorite(meal.id)}
+              className="press-scale-xs"
               aria-label={meal.isFavorite
                 ? t('mealsTab.library.favoriteRemoveAriaLabel')
                 : t('mealsTab.library.favoriteAddAriaLabel')}
               style={{
-                fontSize: 20,
                 flexShrink: 0,
-                color: meal.isFavorite ? 'var(--hs-danger)' : 'var(--hs-border-strong)',
+                color: meal.isFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)',
                 cursor: 'pointer',
                 padding: 4,
                 minWidth: 44,
@@ -219,17 +210,18 @@ export default function MealsLibraryView({
                 justifyContent: 'center',
                 border: 'none',
                 background: 'transparent',
-                fontFamily: 'inherit',
               }}
             >
-              {meal.isFavorite ? '♥' : '♡'}
+              <Heart size={22} strokeWidth={2} fill={meal.isFavorite ? 'currentColor' : 'none'} aria-hidden />
             </button>
           </div>
         ))
       )}
 
       <button
+        type="button"
         onClick={openNewMealForm}
+        className="press-scale-sm"
         aria-label={t('mealsTab.library.fabAriaLabel')}
         style={{
           position: 'fixed',
@@ -239,20 +231,17 @@ export default function MealsLibraryView({
           height: 52,
           borderRadius: 16,
           background: REMOTE_ACCENT,
-          color: '#000',
-          fontSize: 28,
-          fontWeight: 300,
+          color: REMOTE_ON_ACCENT,
           border: 'none',
           cursor: 'pointer',
           boxShadow: `0 4px 20px ${withAlpha(REMOTE_ACCENT, 0.3)}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 50,
-          fontFamily: 'inherit',
+          zIndex: REMOTE_LAYERS.pageChrome,
         }}
       >
-        +
+        <Plus size={28} strokeWidth={2} aria-hidden />
       </button>
 
       {form.editingMeal !== null && (

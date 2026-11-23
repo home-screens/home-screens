@@ -1,6 +1,7 @@
 export { TeamLogo } from '../shared/TeamLogo';
 import { PaginationDots } from '../shared/PaginationDots';
 import { useTranslate } from '@/i18n';
+import { NO_VALUE } from '@/lib/constants';
 
 /**
  * The favorite marker: a thin strip in the favorite team's own color along
@@ -44,7 +45,7 @@ export function isWinner(
 
 /** A dash before kickoff, and for a score ESPN left out, rather than a made-up 0. */
 export function formatScore(game: { state: string }, score: number | null): string {
-  return game.state === 'pre' || score === null ? '–' : String(score);
+  return game.state === 'pre' || score === null ? NO_VALUE : String(score);
 }
 
 /** The words a status label needs from the dictionary (`sports.final`, `sports.inProgress`). */

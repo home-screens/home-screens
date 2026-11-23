@@ -1,7 +1,7 @@
 import type { WordEntry } from './types';
 
 /**
- * da-DK "Word of the Day" seed list — 732 entries (2 × 366) so the
+ * da-DK "Word of the Day" seed list: 732 entries (2 × 366) so the
  * selection cycle in word-of-day-data.ts covers two full years without
  * a repeat. Kept alphabetized (æ, ø, å sidst, dansk stil): presentation
  * order comes from the year-seeded shuffle, so storage order is purely

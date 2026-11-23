@@ -4,6 +4,7 @@ import SecretField from '@/components/editor/settings/shared/SecretField';
 import { useEditorData } from '@/hooks/useEditorData';
 import type { PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 export default function PluginSecretsSection({
   pluginId,
@@ -29,7 +30,7 @@ export default function PluginSecretsSection({
   // and taking the boxes away for that would drop what is being typed in
   // the next one. A read that fails shows the boxes as not set.
   if (!data && !error) {
-    return <p className="text-xs text-hs-text-faint">{t('settings.pluginSecrets.loading')}</p>;
+    return <FieldHint>{t('settings.pluginSecrets.loading')}</FieldHint>;
   }
 
   if (visibleSecrets.length === 0) return null;
@@ -49,7 +50,7 @@ export default function PluginSecretsSection({
               t('settings.pluginSecrets.enterPlaceholder', { label: decl.label.toLowerCase() })
             }
             badge={decl.required && !configured ? (
-              <span className="text-xs text-hs-warning">{t('settings.pluginSecrets.requiredBadge')}</span>
+              <span className="text-xs text-hs-warning-ink">{t('settings.pluginSecrets.requiredBadge')}</span>
             ) : undefined}
             helpText={decl.description}
             helpTextClassName="mt-1.5"

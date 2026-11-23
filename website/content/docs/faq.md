@@ -34,7 +34,7 @@ Home Screens ships with **anonymous telemetry on by default**. It sends one mess
 
 The report itself carries no location and no network address, and it never contains your calendar events, notes, photos, file names, display names, or API keys. Sending it does reveal where the request came from to the server that receives it, the same as any website you visit.
 
-Disable it at any time in **Settings > Status > Anonymous Telemetry**, which shows the same list, so you can always check it against this page. Everything else (your config, meals, chores, photos, calendars) stays on your Pi.
+Disable it at any time in **Settings > Status > Anonymous telemetry**, which shows the same list, so you can always check it against this page. Everything else (your config, meals, chores, photos, calendars) stays on your Pi.
 
 If you sign in with Google using Home Screens' own app, the sign-in, and each renewal of its keys (at most about once an hour), pass through Home Screens' sign-in helper at auth.homescreens.dev, which keeps nothing; your events and photos come straight from Google to your Pi. The [privacy policy](/privacy) has the details.
 
@@ -56,7 +56,7 @@ That's it. See [What to buy](/docs/what-to-buy) for the shopping list and [Insta
 
 Yes. Home Screens runs on any machine with **Node.js 22+**. You can run it on a laptop, desktop, NUC, or any Linux/macOS/Windows server. The Raspberry Pi is just the most common deployment target for a dedicated wall display.
 
-There is also a community Docker image for a home server, with any browser on your network as the display. Updating, restarting, WiFi and network settings, turning the screen off, screen rotation and hardware stats don't work inside Docker. The setup steps and the full list of limits are in the [README](https://github.com/home-screens/home-screens#running-in-docker-community-limited).
+There is also a community Docker image for a home server, with any browser on your network as the display. Updating, restarting, Wi-Fi and network settings, turning the screen off, screen rotation and hardware stats don't work inside Docker. The setup steps and the full list of limits are in the [README](https://github.com/home-screens/home-screens#running-in-docker-community-limited).
 
 ### What display orientation is supported?
 
@@ -70,7 +70,7 @@ The same page sets the resolution. On the Pi that runs Home Screens it is both t
 
 ### How do I update to the latest version?
 
-Go to **Settings > System & updates** and click **Check for Updates**, then **Update Now**. The update downloads a pre-built release from GitHub, swaps it in, and restarts. No build step is needed on the Pi.
+Go to **Settings > System & updates** and click **Check for updates**, then **Update now**. The update downloads a pre-built release from GitHub, swaps it in, and restarts. No build step is needed on the Pi.
 
 Some updates change parts of the Pi's own setup that only take effect after the whole device restarts. When one does, the page says **Restart to finish the update** and offers **Restart now**. The family remote's Settings sheet shows the same note.
 
@@ -84,23 +84,23 @@ Going back downloads that version from GitHub and installs it the same way an up
 
 ### How do I backup my configuration?
 
-Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, timers and school timetables. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. **Pictures** decides whether your picture library comes too: only the pictures and videos your screens use, everything in the library, or none, with the size shown beside each. A backup with pictures is a zip file. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Backup All Data**.
+Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, timers and school timetables. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. **Pictures** decides whether your picture library comes too: only the pictures and videos your screens use, everything in the library, or none, with the size shown beside each. A backup with pictures is a zip file. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Back up everything**.
 
 Your API keys and connected accounts are left out unless you ask for them. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file. You will need an editor password set first (Settings > Security). See [Backing up your keys](/docs/configuration#backing-up-your-keys) for what that covers and what happens if you forget the password.
 
-**Backup Reminder** on the same page nags you when you have not backed up in a while; pick how many days under **Remind after**.
+**Backup reminder** on the same page nags you when you have not backed up in a while; pick how many days under **Remind after**.
 
 ### Can Home Screens back up by itself?
 
-Yes. Under **Settings > Backups & data > Automatic backups**, switch on **Back up by itself** and pick how often and at what time. The hub keeps the newest few backups (**Keep the last**) and lists them with **Download**, **Restore** and **Remove**.
+Yes. Under **Settings > Backups & data > Automatic backups**, switch on **Back up by itself** and pick how often and at what time. The hub keeps the newest few backups (**Keep the last**) and lists them with **Download**, **Restore** and **Delete**.
 
 A backup that stays on the hub is lost if the hub's memory card fails, so send each one somewhere else too: a **Storage folder**, which is a network share on a NAS, Windows PC or Mac (SMB) or a folder on Nextcloud or other WebDAV storage, or a **Private download link** that a home server or NAS fetches on its own schedule. Until a copy has left the hub, the backup reminder keeps reminding you. NFS and SFTP are not built in: NFS needs the hub to mount the share with administrator rights, so point a NAS task at the download link instead. [All the details](/docs/configuration#automatic-backups).
 
-**Share Layout** exports just the screens and modules, with no personal data such as keys or location, which is safe to share with others.
+**Share layout** exports just the screens and modules, with no personal data such as keys or location, which is safe to share with others.
 
 ### How do I restore a backup?
 
-Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Restore from a file**. Pick a backup you saved earlier, a zip or a plain file. (Do not confuse this with **Import Layout** under **Share Layout**, which only brings in screens and modules.) Your configuration is replaced with the backup's contents, and any pictures in the backup are put back into your library. If a backup made without pictures points at ones this hub does not have, the Pictures & videos page lists them under Missing. The family remote's gear has **Restore Backup** too.
+Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Restore from a file**. Pick a backup you saved earlier, a zip or a plain file. (Do not confuse this with **Import layout** under **Share layout**, which only brings in screens and modules.) Your configuration is replaced with the backup's contents, and any pictures in the backup are put back into your library. If a backup made without pictures points at ones this hub does not have, the Pictures & videos page lists them under Missing. The family remote's gear has **Restore a backup** too.
 
 If the backup has a password on its keys, you are asked for it. If you cannot remember it, choose **Restore without my keys** and everything else still comes back.
 
@@ -204,7 +204,7 @@ Whichever provider you pick, set your location first at **Settings > Location & 
 
 The **Photo Slideshow**, the **Full-Screen Photo Viewer** and a screen's rotating background all offer the same seven photo sources (a rotating background also takes the walls that come with Home Screens, and can mix any number of sources at once):
 
-- **Library** (your library): a folder of photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link, or a few pictures chosen one by one; manage them under **Settings > Pictures & videos**
+- **Pictures & videos** (your library): a folder of photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link, or a few pictures chosen one by one; manage them under **Settings > Pictures & videos**
 - **[Immich](https://immich.app)**: a self-hosted Google Photos alternative; show photos from your Immich library filtered by albums, people (face recognition), people to leave out and favorites, or picked one by one
 - **iCloud shared album**: paste a public shared album link from Apple Photos; no account or API key needed
 - **OneDrive**: photos straight from a folder and its subfolders in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
@@ -212,7 +212,7 @@ The **Photo Slideshow**, the **Full-Screen Photo Viewer** and a screen's rotatin
 - **NASA picture of the day**: the newest Astronomy Pictures of the Day
 - **Paintings from museums**: landscapes, seascapes, city views and still lifes from open museum collections; no account or API key needed (see [Paintings from museums](/docs/backgrounds#paintings-from-museums))
 
-To put one picture somewhere (a background, the Image module, a countdown), the **Image Library** has tabs for your library, Immich, Unsplash, NASA and museum paintings (the Art tab), and copies the picture you pick into your library. See [Choosing a picture](/docs/backgrounds#image-library).
+To put one picture somewhere (a background, the Image module, a countdown), the **Pictures & videos** window has tabs for your library, Immich, Unsplash, NASA and museum paintings (the Art tab), and copies the picture you pick into your library. See [Choosing a picture](/docs/backgrounds#choosing-a-picture).
 
 To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings > API Keys page; [these are the boxes to tick](/docs/backgrounds#immich-key). To use OneDrive, save the **Application (client) ID** from a free Microsoft app registration and sign in once from the module, the steps are in [OneDrive photos](/docs/modules#one-drive-photos). iCloud shared albums need no setup, just a shared album link with the public website option enabled.
 

@@ -148,7 +148,7 @@ export function createModuleSlice(
     // pins it in place.
     //
     // A full-screen module has one place to be: the whole canvas. It has no
-    // Position & Size fields, so one that was dragged or resized could only
+    // Position & size fields, so one that was dragged or resized could only
     // be put back with undo. Moving or resizing it lands it filling the
     // canvas, which changes nothing for one that already does and is the way
     // back for one an older version let out of place.
@@ -172,7 +172,7 @@ export function createModuleSlice(
           // Drag drops raise the module above anything it now overlaps.
           // Without this, a module dropped onto a larger one vanishes
           // behind it with only the selection ring left. Deliberate
-          // layering (Send to Back, then nudge via the typed X/Y fields or
+          // layering (Send to back, then nudge via the typed X/Y fields or
           // arrow keys) doesn't pass the flag and stays put.
           if (!opts?.raiseOnOverlap) return moved;
           const order = stackOrder(moved);

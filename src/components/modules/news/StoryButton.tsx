@@ -2,10 +2,12 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import type { NewsDisplayItem } from '@/lib/news/types';
+import { WallButton } from '@/components/modules/shared/WallButton';
 
 /**
- * A story row is a real <button> only when tapping does something; otherwise
- * a plain div, so read-only displays never expose focusable rows.
+ * A story row is a real button only when tapping does something (a row that
+ * tints under the finger); otherwise a plain div, so read-only displays never
+ * expose focusable rows.
  */
 export function StoryButton({
   item, onTap, className, style, children, label,
@@ -22,8 +24,8 @@ export function StoryButton({
     return <div data-news-story className={className} style={style}>{children}</div>;
   }
   return (
-    <button
-      type="button"
+    <WallButton
+      row
       data-news-story
       onClick={() => onTap(item)}
       aria-label={label ?? item.title}
@@ -31,6 +33,6 @@ export function StoryButton({
       style={{ color: 'inherit', font: 'inherit', ...style }}
     >
       {children}
-    </button>
+    </WallButton>
   );
 }

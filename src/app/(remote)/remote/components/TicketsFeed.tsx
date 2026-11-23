@@ -77,7 +77,7 @@ export default function TicketsFeed({
     const text = row.delta > 0 ? `+${row.delta}` : row.delta < 0 ? `\u2212${-row.delta}` : '0';
     if (row.kind === 'earned') return { color: 'var(--hs-success)', text };
     if (row.kind === 'spent') return { color: 'var(--hs-text-faint)', text };
-    return { color: '#fbbf24', text };
+    return { color: 'var(--hs-warning-ink)', text };
   };
   const titleOf = (row: TicketLedgerRow): string => {
     if (row.title) return row.title;
@@ -103,7 +103,7 @@ export default function TicketsFeed({
         {([
           ['earned', answer ? (answer.summary.earned > 0 ? `+${answer.summary.earned}` : '0') : '', 'var(--hs-success)'],
           ['spent', answer ? (answer.summary.spent > 0 ? `\u2212${answer.summary.spent}` : '0') : '', 'var(--hs-text-muted)'],
-          ['adjusted', answer ? (answer.summary.adjusted > 0 ? `+${answer.summary.adjusted}` : answer.summary.adjusted < 0 ? `\u2212${-answer.summary.adjusted}` : '0') : '', '#fbbf24'],
+          ['adjusted', answer ? (answer.summary.adjusted > 0 ? `+${answer.summary.adjusted}` : answer.summary.adjusted < 0 ? `\u2212${-answer.summary.adjusted}` : '0') : '', 'var(--hs-warning-ink)'],
         ] as const).map(([key, value, tileColor]) => (
           <div key={key} data-testid={`tickets-tile-${key}`} style={{ background: 'var(--hs-bg-card)', borderRadius: 14, padding: '12px 12px 10px', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: tileColor, fontVariantNumeric: 'tabular-nums', minHeight: 27 }}>{value || ' '}</div>

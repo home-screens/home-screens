@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { errorWithDetail } from '@/lib/hub-request';
+import { refusalSentence } from '@/lib/hub-request';
 import { useLibraryImportJob, type LibraryImportJobStatus } from '@/hooks/useLibraryImportJob';
 import { useGooglePickerSession } from '@/hooks/useGooglePickerSession';
 import { useGoogleApps } from '@/hooks/useGoogleApps';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('google-photos-import');
 
 interface PickerStatus {
   connected: boolean;
@@ -22,7 +25,7 @@ const SIGN_IN_POLL_LIMIT_MS = 10 * 60_000;
  * Everything "add from Google Photos" needs, for any library folder: the
  * sign-in (Home Screens' own app or the household's, with the paste-a-code
  * fallback), opening Google Photos' own picker, and the download into
- * `folder`. Shared by a slideshow's settings card, the Image Library's Local
+ * `folder`. Shared by a slideshow's settings card, the Pictures & videos window's library
  * tab and the Pictures & videos page, so the three can't drift.
  *
  * Google's Picker API only shares hand-picked items with short-lived URLs,
@@ -42,6 +45,7 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
   onImported?: (job: LibraryImportJobStatus) => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { apps, loading: appsLoading } = useGoogleApps();
   const hosted = apps?.photos?.mode === 'hosted';
   // With the switch on, sign-in links bring people back here on their own.
@@ -110,7 +114,7 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
       // The address this editor is on, so the sign-in can come back to it.
       const res = await editorFetch(`/api/google-picker/auth?origin=${encodeURIComponent(window.location.origin)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(errorWithDetail(data));
+      if (!res.ok) throw new Error(refusalSentence(data, tCore) ?? t('configSections.googlePhotosImport.genericError'));
       window.open(data.url, '_blank', 'noopener');
       // A link without this hub's address ends on the copy-a-code page.
       setSignInStep(data.returnsToHub ? 'waiting' : 'paste');
@@ -130,7 +134,7 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
         body: JSON.stringify({ code: pasted }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(errorWithDetail(data));
+      if (!res.ok) throw new Error(refusalSentence(data, tCore) ?? t('configSections.googlePhotosImport.genericError'));
       setPasted('');
       setSignInStep('start');
       await refreshStatus();
@@ -148,7 +152,9 @@ export function useGooglePhotosImport({ folder, active = true, onImported }: {
       const data = await openSession();
       window.open(data.pickerUri, '_blank', 'noopener');
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('configSections.googlePhotosImport.genericError'));
+      // Google's reason is English; the panel says it in the household's words.
+      log.debug('Google Photos picking session failed:', err);
+      setError(t('configSections.googlePhotosImport.genericError'));
       // A dead grant is the most likely cause: the status endpoint checks the
       // token, so re-checking drops the panel back to sign-in.
       void refreshStatus();

@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { withDisplayId } from '@/lib/display-dispatch';
 import { useTranslate } from '@/i18n';
 import { useCommand, usePendingCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
 import { showToast } from '../remote-toast';
+import { toggleChipStyle } from './remote-styles';
 
 interface ProfileSwitcherProps {
   profiles: Array<{ id: string; name: string }>;
@@ -99,13 +101,10 @@ export default function ProfileSwitcher({ profiles, activeProfile, scheduled, di
               onClick={() => switchProfile(p.id)}
               disabled={state === 'pending'}
               aria-pressed={isActive}
-              className={`shrink-0 px-[18px] py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
-                isActive
-                  ? 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/25'
-                  : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
-              }`}
+              className="press-scale-sm shrink-0"
+              style={{ ...toggleChipStyle(isActive), gap: 6 }}
             >
-              {isActive && <span className="mr-1">&#10003;</span>}
+              {isActive && <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={3} aria-hidden="true" />}
               {p.name}
             </button>
           );

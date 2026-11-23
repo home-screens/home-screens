@@ -24,11 +24,14 @@ import type {
   FullscreenMealPlannerConfig,
 } from '@/types/config';
 import { useDensityOptions } from './option-hooks';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 type Config = Partial<FullscreenMealPlannerConfig>;
 
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
@@ -69,22 +72,24 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           under the choice, before the wall shows an empty page. */}
       {(view === 'recipes' || view === 'recipe') && mealData.source !== 'mealie' && (() => {
         // Which meals are missing, by name, and where a recipe is added: the
-        // Edit Meal Plan button below is right here, the phone is the other way.
+        // Edit meal plan button below is right here, the phone is the other way.
         const without = mealData.savedMeals.filter((meal): boolean => !mealHasRecipe(meal)).map((meal) => meal.name);
         const named = without.length > 2
           ? [...without.slice(0, 2), t('configSections.fullscreen-meal-planner.andMore', { count: without.length - 2 })]
           : without;
         const missing = formatList(named, formattingLocale);
         return (
-          <p className="text-[11px] text-hs-text-muted leading-relaxed -mt-2" data-testid="fullscreen-meal-planner-recipe-count">
+          <FieldHint className="-mt-2" data-testid="fullscreen-meal-planner-recipe-count">
             {without.length === 0
               ? t('configSections.fullscreen-meal-planner.recipeCountAll', { count: mealData.savedMeals.length })
               : t('configSections.fullscreen-meal-planner.recipeCountHint', {
                 count: mealData.savedMeals.length - without.length,
                 meals: mealData.savedMeals.length,
                 missing,
+                // The button's own words, so the hint can never name it differently.
+                button: t('configSections.meal-planner.editMealPlan'),
               })}
-          </p>
+          </FieldHint>
         );
       })()}
 
@@ -146,38 +151,36 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
             ]}
           />
           {c.tapRecipeAction === 'card' && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.fullscreen-meal-planner.tapRecipeActionCardHint')}
-            </p>
+            </FieldHint>
           )}
           {c.tapRecipeAction === 'iframe' && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.fullscreen-meal-planner.tapRecipeActionIframeHint')}
-            </p>
+            </FieldHint>
           )}
           {(c.tapRecipeAction === 'qr' || c.tapRecipeAction === 'iframe') && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.fullscreen-meal-planner.tapRecipeActionNoLinkHint')}
-            </p>
+            </FieldHint>
           )}
         </>
       )}
 
       {/* Every view follows it: ticking the grocery list, opening and stepping through recipes, rating dinner, searching the recipe book and scrolling on the wall */}
       <Toggle
-        label={t('configSections.fullscreen-meal-planner.interactive')}
+        label={t('configSections.tapOnWall')}
         checked={c.interactive !== false}
         onChange={(v) => set({ interactive: v })}
+        description={t('configSections.fullscreen-meal-planner.interactiveHint')}
       />
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.fullscreen-meal-planner.interactiveHint')}
-      </p>
       {/* The grocery view's Add button needs taps (groceryCardAdds), the same as the small card's row. */}
       {view === 'grocery' && c.interactive !== false && (
         <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
       )}
 
-      {/* Accent Color */}
+      {/* Accent color */}
       <FullscreenAccentPicker
         label={t('configSections.fullscreen-meal-planner.accentColor')}
         value={c.accentColor}
@@ -187,11 +190,11 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Shared meal settings, then the phone, then the plan: the same order
           and words as the small planner's panel. */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
+      <FieldHint>
         {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
-        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</Link>{' '}
+        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{settingsPlaceText(tCore, 'meals')}</Link>{' '}
         {t('configSections.meal-planner.sharedSettingsSuffix')}
-      </p>
+      </FieldHint>
       <PhoneSurfaceLinks context="meals" />
 
       <MealPlanLauncher meals={meals} accentColor={accentColor} countKeyPrefix="fullscreen-meal-planner" open={showModal} onOpenChange={setShowModal} />

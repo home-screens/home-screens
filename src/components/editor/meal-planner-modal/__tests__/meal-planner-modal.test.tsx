@@ -358,7 +358,7 @@ describe('courses without Mealie', () => {
     // Detail shows the dish in the meal, follows it to the new one, and back on Undo.
     expect(screen.getByDisplayValue('Tacos')).toBeTruthy();
     fireEvent.click(within(screen.getByTestId('meal-popover')).getByRole('button', { name: 'Change' }));
-    fireEvent.click(within(screen.getByRole('dialog', { name: 'Choose a Meal' })).getByText('Pizza'));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Choose a meal' })).getByText('Pizza'));
     expect(edits[0]({ savedMeals: library, plan: PLAN }).plan![0].mealId).toBe('pizza');
     expect(screen.getByDisplayValue('Pizza')).toBeTruthy();
     const changed = screen.getByRole('status');
@@ -396,7 +396,7 @@ describe('courses without Mealie', () => {
       { wrapper: Wrapper },
     );
     fireEvent.click(document.querySelector('[data-meal-cell="2026-09-22|breakfast"] > div') as HTMLElement);
-    const picker = screen.getByRole('dialog', { name: 'Choose a Meal' });
+    const picker = screen.getByRole('dialog', { name: 'Choose a meal' });
     const heading = within(picker).getByText('Breakfast');
     const pancakes = within(picker).getByRole('button', { name: /Pancakes/ });
     const elseHeading = within(picker).getByText('Everything else');
@@ -415,7 +415,7 @@ describe('courses without Mealie', () => {
       { wrapper: Wrapper },
     );
     fireEvent.click(dinnerCell());
-    const box = within(screen.getByRole('dialog', { name: 'Choose a Meal' })).getByRole('textbox');
+    const box = within(screen.getByRole('dialog', { name: 'Choose a meal' })).getByRole('textbox');
     fireEvent.change(box, { target: { value: 'pancakes' } });
     fireEvent.keyDown(box, { key: 'Enter' });
     expect(edits[0]({ savedMeals: library, plan: [] }).plan).toEqual([{ date: '2026-09-21', slot: 'dinner', mealId: 'pancakes' }]);

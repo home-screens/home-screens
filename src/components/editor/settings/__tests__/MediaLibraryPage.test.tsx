@@ -96,6 +96,8 @@ const BLOB = {
       library: {
         fileExists: '{name} already in that folder',
         folderNotEmpty: 'not-empty',
+        replaceKind: 'needs to end in {ext}',
+        badType: 'cannot show {name}',
       },
     },
   },
@@ -181,7 +183,7 @@ function mockApi(
       const body = init.body as FormData;
       if (body.get('replace')) {
         return fail.includes(String(body.get('replace')))
-          ? jsonRes({ error: 'The new file needs to end in .jpg like the one it replaces' }, 400)
+          ? jsonRes({ error: 'The new file needs to end in .jpg like the one it replaces', code: 'library.replaceKind', params: { ext: '.jpg' } }, 400)
           : jsonRes({ path: '/api/backgrounds/serve?file=x' });
       }
       return jsonRes({ paths: ['/x'] }, 201);
@@ -915,7 +917,7 @@ describe('MediaLibraryPage upload', () => {
   it('surfaces the server error inline and keeps the panel open on failure', async () => {
     await renderLoaded();
     editorFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (init?.method === 'POST') return jsonRes({ error: 'Invalid file type: c.gif' }, 400);
+      if (init?.method === 'POST') return jsonRes({ error: 'Invalid file type: c.gif', code: 'library.badType', params: { name: 'c.gif' } }, 400);
       if (url === '/api/backgrounds/inventory') return jsonRes(seedInventory());
       return jsonRes({});
     });

@@ -4,18 +4,18 @@
     "saveFailed": "That didn't save. Try again.",
     "failed": "Something went wrong. Try again.",
     "lists": {
-      "nameRequired": "Give the list a name",
-      "nameTooLong": "List names can be up to {max} characters",
-      "textRequired": "Type something first",
-      "textTooLong": "Items can be up to {max} characters",
-      "badDate": "That is not a day we recognize",
-      "badColor": "Pick a color from the list",
-      "listGone": "That list is gone",
-      "itemGone": "That item is gone",
-      "tooManyLists": "You can have up to {max} lists",
-      "tooManyItems": "A list can hold up to {max} items",
+      "nameRequired": "Give the list a name.",
+      "nameTooLong": "List names can be up to {max} characters.",
+      "textRequired": "Type something first.",
+      "textTooLong": "Items can be up to {max} characters.",
+      "badDate": "That is not a day we recognize.",
+      "badColor": "Pick a color from the list.",
+      "listGone": "That list is gone.",
+      "itemGone": "That item is gone.",
+      "tooManyLists": "You can have up to {max} lists.",
+      "tooManyItems": "A list can hold up to {max} items.",
       "orderChanged": "The list changed while you were moving things. Try again.",
-      "wallAddOff": "Adding from the wall is turned off for this list",
+      "wallAddOff": "Adding from the wall is turned off for this list.",
       "badRequest": "That change couldn't be understood. Reload the page and try again."
     },
     "notes": {
@@ -31,7 +31,7 @@
       "revision": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",
       "badRequest": "That change couldn't be understood. Reload the page and try again.",
       "nameTooLong": "Names can have up to {max} characters.",
-      "tooManyMembers": "You can add people when the family has fewer than {max} members.",
+      "tooManyMembers": "A family can have up to {max} people.",
       "tooManyGroups": "You can have up to {max} groups.",
       "groupNameTooLong": "Group names can have up to {max} characters.",
       "groupNameTaken": "You already have a group called {name}.",
@@ -53,7 +53,12 @@
       "badName": "That folder name can't be used. Try one made of letters and numbers.",
       "tooDeep": "Folders can only go {max} levels deep.",
       "folderExists": "There's already a folder called {name} here.",
-      "folderNotEmpty": "That folder still has files in it. Move or delete them first."
+      "folderNotEmpty": "That folder still has files in it. Move or delete them first.",
+      "badType": "{name} isn't a kind of picture or video Home Screens can show.",
+      "tooBig": "{name} is too big. Pictures can be up to 10 MB and videos up to 200 MB.",
+      "tooBigAll": "That is too much to upload at once. Videos can be up to 200 MB.",
+      "svgNoSize": "{name} has no size information. Add a viewBox to the SVG and try again.",
+      "replaceKind": "The new file needs to end in {ext}, like the one it replaces."
     },
     "calendarWrite": {
       "titleRequired": "Give the event a name.",
@@ -78,6 +83,57 @@
       "notAllowed": "This calendar can't be changed from Home Screens.",
       "signInNeeded": "The calendar needs you to sign in again. It's in Settings > Calendar.",
       "unreachable": "Couldn't reach the calendar, so nothing changed yet. Try again in a minute."
+    },
+    "unreachable": "Couldn't reach Home Screens. Check the connection and try again.",
+    "power": {
+      "notManaged": "Home Screens can't restart itself on this device. Turn the whole thing off and on again instead."
+    },
+    "network": {
+      "addressNeeded": "Type the address for this connection.",
+      "badAddress": "That address isn't one Home Screens understands. Use four numbers with dots, like 192.168.1.50.",
+      "prefixNeeded": "Type the prefix, the number after the slash, like 24.",
+      "badPrefix": "The prefix is a number from 1 to 32, like 24.",
+      "gatewayNeeded": "Type the gateway address. It is usually your router, like 192.168.1.1.",
+      "badGateway": "That gateway address isn't one Home Screens understands. Use four numbers with dots, like 192.168.1.1.",
+      "badDns": "One of the DNS servers isn't an address Home Screens understands. Use four numbers with dots, like 1.1.1.1.",
+      "changePending": "Another network change is still waiting to be confirmed. Wait for it to finish or go back, then try again.",
+      "badHostname": "That name can't be used. Use letters, numbers and hyphens, up to 63 characters."
+    },
+    "wifi": {
+      "badName": "That network name can't be used. Check it and try again.",
+      "badPassword": "Wi-Fi passwords are 8 to 63 characters. Check it and try again.",
+      "passwordNeeded": "This network needs a password.",
+      "wrongPassword": "The Wi-Fi password wasn't accepted. Check it and try again.",
+      "notFound": "That network couldn't be found. Check the name and that it's in range.",
+      "timedOut": "The network didn't answer in time. Try again in a moment."
+    },
+    "allowlist": {
+      "badEntry": "“{entry}” is not a network address. Try one like 192.168.1.0/24."
+    },
+    "timezone": {
+      "unknown": "That time zone isn't one Home Screens knows. Pick one from the list."
+    },
+    "plugins": {
+      "needsNewerHost": "This version of the plugin needs a newer Home Screens. Update Home Screens first.",
+      "downloadFailed": "Couldn't download the plugin. Check the internet connection and try again.",
+      "badLink": "That link can't be used. Paste the full https link to the plugin.",
+      "blockedLink": "That link points inside your home network, so Home Screens won't download from it.",
+      "needsVersion": "That link needs a version number. Type which version to install.",
+      "notAPlugin": "That link isn't a Home Screens plugin. Check that it points at the plugin's .tar.gz file.",
+      "alreadyInstalled": "That plugin is already installed. Update it from the plugin store instead."
+    },
+    "icloud": {
+      "signInRefused": "Couldn't sign in to iCloud. Double-check the Apple ID, and make sure the password is an app password created at account.apple.com; your regular Apple password won't work here."
+    },
+    "secrets": {
+      "todoistRefused": "Todoist didn't accept that token. Copy it again from Todoist and paste it here."
+    },
+    "pluginAuth": {
+      "credentialsNeeded": "Enter your email and password.",
+      "codeNeeded": "Enter the code you were sent.",
+      "wrongCode": "That code didn't work. Check it and try again.",
+      "expired": "This sign-in ran out. Start it again.",
+      "notApproved": "The sign-in wasn't approved. Start it again if you want to connect."
     }
   },
   "today": "Today",
@@ -91,7 +147,6 @@
     "add": "Add",
     "close": "Close",
     "back": "Back",
-    "confirm": "Confirm",
     "save": "Save",
     "done": "Done",
     "edit": "Edit",
@@ -100,15 +155,15 @@
     "name": "Name",
     "color": "Color",
     "icon": "Icon",
-    "label": "Label"
+    "label": "Label",
+    "ok": "OK"
   },
   "status": {
     "saving": "Saving…",
-    "uploadingCount": "Uploading {current} of {total}...",
+    "copied": "Copied",
+    "uploadingCount": "Uploading {current} of {total}…",
     "connected": "Connected",
-    "disabled": "Disabled",
-    "never": "Never",
-    "none": "None"
+    "disabled": "Disabled"
   },
   "relativeTime": {
     "justNow": "just now",
@@ -122,7 +177,7 @@
     "eyebrow": "Home Screens",
     "headline": "Nothing on this screen yet",
     "body": "On a phone or computer on your home Wi-Fi, open",
-    "hideHint": "Want a blank screen instead? Settings › Screen › Show this hint"
+    "hideHint": "Want a blank screen instead? Turn off the setup message in {place}."
   },
   "openedScreen": {
     "backTo": "Back to {name}",
@@ -132,6 +187,10 @@
     "paused": "Paused",
     "previousScreen": "Previous screen",
     "nextScreen": "Next screen",
+    "pause": "Stay on this screen (tap twice)",
+    "resume": "Start changing screens again",
+    "goTo": "Go to screen {number}",
+    "goToNamed": "Go to screen {number}: {name}",
     "resumesIn": "Resumes in {time} · tap to resume now",
     "tapToResume": "tap to resume",
     "minutes": "{count} min",
@@ -139,10 +198,9 @@
     "heldInPreview": "Rotation is held in the preview"
   },
   "displayNotFound": {
-    "notRegistered": "Display Not Added Yet",
+    "notRegistered": "Display not added yet",
     "adoptionLine1": "This display is connected to Home Screens but hasn't been added yet.",
-    "adoptionLine2": "Open the editor on the main Pi, go to",
-    "settingsLink": "Settings → Displays",
+    "adoptionLine2": "Open the Home Screens editor, go to",
     "andClick": "and click",
     "adoptLabel": "Add",
     "nextTo": "next to",
@@ -152,6 +210,7 @@
   },
   "login": {
     "checkingAuth": "Checking authentication…",
+    "title": "Sign in",
     "ipBlocked": "This device isn't allowed to sign in",
     "enterPasswordToContinue": "Enter your password to continue",
     "accessRestricted": "Access restricted",
@@ -161,8 +220,8 @@
     "signingIn": "Signing in…",
     "unlock": "Unlock",
     "loading": "Loading…",
-    "backToDisplay": "Back to display",
-    "loginFailed": "Login failed",
+    "backToDisplay": "Back to the wall",
+    "loginFailed": "That didn't sign you in. Try again.",
     "unreachable": "Can't reach Home Screens",
     "errors": {
       "wrongPassword": "That password isn't right.",
@@ -174,28 +233,27 @@
     "forgotPassword": {
       "link": "Forgot the password?",
       "title": "Resetting the password",
-      "body": "Whoever set this device up can clear the password. On the device (plug in a keyboard), or from another computer using a terminal, run:",
+      "body": "Whoever set up Home Screens can clear the password. On the computer Home Screens runs on (plug in a keyboard), or from another computer using a terminal, run:",
       "fallback": "If that command isn't there, deleting the file {file} in the Home Screens folder does the same thing.",
-      "after": "Home Screens then opens without a password, and you can set a new one in Settings."
+      "after": "Home Screens then opens without a password, and you can set a new one in {place}."
     }
   },
   "errors": {
     "fetchFailed": "Couldn't connect to load this data",
-    "loadImagesFailed": "Failed to load images",
-    "uploadFailed": "Upload failed",
-    "uploadFailedFor": "Upload failed for {name}",
-    "createFolderFailed": "Failed to create folder",
-    "deleteFolderFailed": "Failed to delete folder",
-    "deleteImageFailed": "Failed to delete photo",
+    "loadImagesFailed": "Couldn't load the pictures. Try again.",
+    "uploadFailed": "That didn't upload. Try again.",
+    "uploadFailedFor": "{name} didn't upload. Try again.",
+    "createFolderFailed": "Couldn't make that folder. Try again.",
+    "deleteFolderFailed": "Couldn't delete that folder. Try again.",
+    "deleteImageFailed": "Couldn't delete that photo. Try again.",
     "googleExpired": "Your Google connection has expired. Please sign in again.",
     "googleDisconnectFailed": "Couldn't disconnect Google. Check your internet connection and try again.",
     "googleStatusFailed": "Couldn't check your Google connection. Refresh the page and try again.",
-    "deviceFlowFailed": "Failed to start device flow",
-    "codeExpired": "Code expired. Please try again.",
-    "authorizationFailed": "Authorization failed",
-    "startSignInFailed": "Failed to start sign-in",
-    "deleteImageInUse": "This photo is still showing on a screen, so it can't be deleted",
-    "deleteImageInUseOn": "This photo is still used on {where}, so it can't be deleted"
+    "deviceFlowFailed": "Couldn't start the sign-in. Try again.",
+    "codeExpired": "That code ran out. Start the sign-in again.",
+    "authorizationFailed": "That sign-in didn't work. Try again.",
+    "deleteImageInUse": "This photo is still showing on a screen, so it can't be deleted.",
+    "deleteImageInUseOn": "This photo is still used on {where}, so it can't be deleted."
   },
   "days": {
     "sunday": "Sunday",
@@ -223,11 +281,11 @@
       "vegan": "Vegan",
       "comfort": "Comfort",
       "spicy": "Spicy",
-      "kid-friendly": "Kid-Friendly",
-      "meal-prep": "Meal-Prep",
-      "gluten-free": "Gluten-Free",
-      "dairy-free": "Dairy-Free",
-      "batch-cook": "Batch-Cook"
+      "kid-friendly": "Kid-friendly",
+      "meal-prep": "Meal-prep",
+      "gluten-free": "Gluten-free",
+      "dairy-free": "Dairy-free",
+      "batch-cook": "Batch-cook"
     },
     "ingredientCategories": {
       "produce": "Produce",
@@ -243,9 +301,9 @@
     "grocery": {
       "categoryLabels": {
         "produce": "Produce",
-        "dairy": "Dairy & Eggs",
-        "meat": "Meat & Seafood",
-        "seafood": "Meat & Seafood",
+        "dairy": "Dairy & eggs",
+        "meat": "Meat & seafood",
+        "seafood": "Meat & seafood",
         "bakery": "Bakery",
         "pantry": "Pantry",
         "frozen": "Frozen",
@@ -299,14 +357,14 @@
     "heading": "Where do you want to go?",
     "remote": {
       "title": "Family remote",
-      "body": "Chores, meals, timers, and the displays"
+      "body": "Chores, meals, timers, and the wall"
     },
     "chores": {
       "title": "Kids' chores",
       "body": "Check off today's chores"
     },
     "display": {
-      "title": "Display",
+      "title": "The wall",
       "body": "See what the wall shows"
     },
     "editor": {
@@ -316,7 +374,6 @@
     "editorAddressHint": "Open this address on a laptop to design your screens:",
     "editorAddressLabel": "Editor address",
     "copy": "Copy",
-    "copied": "Copied",
     "openEditor": "Open the editor"
   },
   "alerts": {
@@ -330,11 +387,9 @@
     "color": "Color",
     "emptyTitle": "No one here yet",
     "emptyDescription": "Add the people in your household. They will be available in chores, rewards, calendars and school timetables.",
-    "loadFailed": "Could not load your family.",
-    "saveFailed": "Could not save your family.",
+    "loadFailed": "Couldn't load your family. Check the connection and try again.",
     "retry": "Try again",
     "saved": "Family saved.",
-    "saving": "Saving…",
     "removeTitle": "Remove {name}?",
     "removeDescription": "Removing {name} clears their chore assignments, schedules, completion history, ticket balance, reward access and meal ratings, and forgets which calendars are theirs. Chores with no one left are deleted. This cannot be undone.",
     "remove": "Remove person",
@@ -373,7 +428,6 @@
         "other": "{count} chores go to {name}. They stay in your list, and any with nobody else on them wait for you to pick someone."
       },
       "saved": "Groups saved.",
-      "saveFailed": "Could not save your groups.",
       "limit": "You can have up to {count} groups.",
       "hint": "Groups are used by the calendar's color key and its \"show only\" filter. A chore can go to a group too. Rewards still assign to people."
     }
@@ -429,14 +483,14 @@
       },
       "dropHint": "Drop pictures here",
       "empty": "No icons yet. Add a picture to use it for meals, chores and more.",
-      "tapHint": "Tap a picture to rename or remove it.",
+      "tapHint": "Tap a picture to rename or delete it.",
       "usedByList": "Used by: {list}."
     },
     "detail": {
       "added": "Added {date} · {size}",
       "usedBy": "Used by",
       "save": "Save",
-      "remove": "Remove icon",
+      "remove": "Delete icon",
       "rename": "Rename"
     },
     "kinds": {
@@ -448,13 +502,11 @@
       "screen": "Screen"
     },
     "remove": {
-      "title": "Remove {name}?",
       "inUse": {
         "one": "It is used in {count} place, which will switch to a standard icon.",
         "other": "It is used in {count} places, which will switch to a standard icon."
       },
       "notUsed": "Nothing is using it.",
-      "confirm": "Remove",
       "keep": "Keep it"
     },
     "settingsRow": {
@@ -483,7 +535,7 @@
     "heading": "Pictures",
     "off": "Leave them out",
     "used": "Only the ones your screens use",
-    "all": "Everything in your picture library",
+    "all": "Everything in Pictures & videos",
     "help": "Backgrounds, slideshow folders and videos on your screens. A backup with pictures is saved as a zip file.",
     "files": {
       "one": "{count} file",
@@ -496,32 +548,33 @@
     "openLibrary": "Open Pictures & videos",
     "leftOut": "Saved, but your pictures could not be added. Try again to include them.",
     "restoreConfirm": {
-      "one": "This backup holds {count} picture ({size}). A picture already on this hub with the same name is replaced; nothing is removed.",
-      "other": "This backup holds {count} pictures and videos ({size}). A picture already on this hub with the same name is replaced; nothing is removed."
+      "one": "This backup holds {count} picture ({size}). A picture already on Home Screens with the same name is replaced; nothing is removed.",
+      "other": "This backup holds {count} pictures and videos ({size}). A picture already on Home Screens with the same name is replaced; nothing is removed."
     },
     "restoreConfirmButton": "Restore",
     "restoreMissing": "Some screens use pictures that were not in this backup. Open Pictures & videos to see which.",
+    "phoneRestoreMissing": "Some screens use pictures that were not in this backup. See which ones on the computer in {place}.",
     "phoneRow": "Pictures in the backup",
     "phoneUsed": "Only the ones on screen",
-    "phoneAll": "Your whole library",
+    "phoneAll": "All your photos and videos",
     "phoneOff": "Left out"
   },
   "noTimezone": {
     "title": "No time zone yet.",
-    "body": "Your screens use the hub's clock ({zone}), so times can be off.",
+    "body": "Your screens use the clock on Home Screens ({zone}), so times can be off.",
     "action": "Pick time zone"
   },
   "routeError": {
     "title": "This page can't load right now",
     "body": "Home Screens is having trouble reading its saved data. It will try again on its own in a moment.",
-    "help": "If this doesn't go away, a grown-up can open Home Screens on a computer and put back a backup in Settings.",
+    "help": "If this doesn't go away, a grown-up can open Home Screens on a computer and put back a backup in {place}.",
     "retry": "Try again"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serving time {time}, click to change",
     "servingTimeTitle": "Serving time: {time}",
     "setServingTime": "Set serving time",
-    "setTime": "+ Set time",
+    "setTime": "Set time",
     "setMealTime": "Set meal time",
     "servingTime": "Serving time",
     "clearTime": "Clear time"
@@ -539,9 +592,9 @@
     "saveError": "Your rating was not saved. Check the connection and tap a star to try again.",
     "loadError": "Ratings could not be refreshed.",
     "loading": "Loading ratings…",
-    "noMembers": "Add family members in Settings > Family to start rating.",
+    "noMembers": "Add family members in {place} to start rating.",
     "rate": "Rate meal",
-    "dinner": "Rate Dinner",
+    "dinner": "Rate dinner",
     "close": "Done",
     "hint": "Each person has one rating per recipe. Rate it again to update your vote; the family average uses everyone’s current vote.",
     "noDinner": "No dinner is planned for this day.",
@@ -554,7 +607,8 @@
   "chores": {
     "changedElsewhere": "Someone else changed the chores. Your last change wasn't saved. Please try it again.",
     "coverage": "Coverage: {covered} of 7 days",
-    "holdToUncheck": "Press and hold to un-check"
+    "holdToUncheck": "Press and hold to un-check",
+    "deleteBody": "The chore goes away. Tickets the kids have already earned for it stay on their cards."
   },
   "rewards": {
     "redeem": {
@@ -569,7 +623,7 @@
       "other": "{count} were already here."
     },
     "nothingFound": "There's nothing in that album to add.",
-    "googleWaiting": "Waiting for your picks..."
+    "googleWaiting": "Waiting for your picks…"
   },
   "mealie": {
     "grocery": {
@@ -700,7 +754,6 @@
       "one": "Too many tries. Try again in {count} second.",
       "other": "Too many tries. Try again in {count} seconds."
     },
-    "offline": "Couldn't reach the hub. Try again.",
     "unlocked": {
       "one": "Unlocked for 1 more minute",
       "other": "Unlocked for {count} more minutes"
@@ -732,5 +785,40 @@
     "everyTimePastFuture": "Every time, past and future",
     "askBody": "Change just this day, or every time it happens?",
     "everyTimeFromFirst": "Every time it happens, from the first one"
+  },
+  "notice": {
+    "title": "Notice"
+  },
+  "settingsPages": {
+    "calendar": "Calendar",
+    "weather": "Weather",
+    "location": "Location & language",
+    "data": "Backups & data",
+    "integrations": "API keys",
+    "media": "Pictures & videos",
+    "icons": "Your icons",
+    "meals": "Meals",
+    "network": "Network",
+    "security": "Security",
+    "stats": "Status",
+    "system": "System & updates",
+    "displays": "Displays",
+    "screen": "Screen",
+    "automation": "Automation",
+    "phone": "On your phone",
+    "family": "Family"
+  },
+  "confirm": {
+    "deleteTitle": "Delete “{name}”?",
+    "removeTitle": "Remove “{name}”?",
+    "clearTitle": "Clear “{name}”?",
+    "cantUndo": "This can't be undone."
+  },
+  "lists": {
+    "removeDoneTitle": {
+      "one": "Remove 1 done item from “{name}”?",
+      "other": "Remove {count} done items from “{name}”?"
+    },
+    "removeDoneBody": "They come off the list for good."
   }
 }

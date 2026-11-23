@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import ModalFrame from '@/components/ui/ModalFrame';
 import Button from '@/components/ui/Button';
-import { RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Trash2, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format-bytes';
 import { extensionOf, fileNameOf, folderOf, serveUrlFor, typeTagOf } from '@/lib/media-paths';
 import type { MediaInventoryItem } from '@/lib/media-inventory';
@@ -103,9 +103,9 @@ export default function MediaViewer({
             onClick={onClose}
             aria-label={t('settings.mediaPage.viewer.close')}
             data-testid="media-viewer-close"
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-full text-lg text-hs-text-muted hover:bg-white/10 hover:text-hs-text-body"
+            className="ml-auto flex h-7 w-7 items-center justify-center rounded text-hs-text-muted hover:bg-white/10 hover:text-hs-text-body"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
 
@@ -116,9 +116,9 @@ export default function MediaViewer({
               onClick={(e) => { e.stopPropagation(); onStep(-1); }}
               aria-label={t('settings.mediaPage.viewer.previous')}
               data-testid="media-viewer-prev"
-              className="absolute left-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-xl text-white hover:bg-black/70"
+              className="absolute left-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
             >
-              ‹
+              <ChevronLeft className="h-5 w-5" aria-hidden />
             </button>
           )}
           {item.kind === 'video' ? (
@@ -148,9 +148,9 @@ export default function MediaViewer({
               onClick={(e) => { e.stopPropagation(); onStep(1); }}
               aria-label={t('settings.mediaPage.viewer.next')}
               data-testid="media-viewer-next"
-              className="absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-xl text-white hover:bg-black/70"
+              className="absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
             >
-              ›
+              <ChevronRight className="h-5 w-5" aria-hidden />
             </button>
           )}
         </div>

@@ -18,7 +18,7 @@ function mount() {
 async function ask() {
   let answer: boolean | undefined;
   await act(async () => {
-    void useConfirmStore.getState().confirm({ title: 'Delete chore?', message: 'It goes for good.', confirmLabel: 'Delete' })
+    void useConfirmStore.getState().confirm({ title: 'Delete chore?', message: 'It goes for good.', confirmLabel: 'Delete', variant: 'danger' })
       .then((value) => { answer = value; });
   });
   return () => answer;
@@ -78,9 +78,29 @@ describe('ConfirmModal', () => {
     mount();
     await ask();
     let second: boolean | undefined;
-    await act(async () => { second = await useConfirmStore.getState().confirm('Another?'); });
+    await act(async () => { second = await useConfirmStore.getState().confirm({ message: 'Another?', confirmLabel: 'Go on', variant: 'primary' }); });
     expect(second).toBe(false);
     expect(screen.getByText('It goes for good.')).toBeTruthy();
+  });
+
+  it('names itself after its title', async () => {
+    mount();
+    await ask();
+    expect(screen.getByRole('dialog', { name: 'Delete chore?' })).toBeTruthy();
+  });
+
+  it('draws an alert with a translated title and one OK in the main colour', async () => {
+    mount();
+    let done = false;
+    await act(async () => {
+      void useConfirmStore.getState().alert('The backup could not be read.').then(() => { done = true; });
+    });
+    expect(screen.getByRole('dialog', { name: 'Notice' })).toBeTruthy();
+    const ok = screen.getByRole('button', { name: 'OK' });
+    expect(ok.className).toContain('bg-hs-accent');
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    await act(async () => { fireEvent.click(ok); });
+    expect(done).toBe(true);
   });
 
   it('cancels on a click on the backdrop', async () => {

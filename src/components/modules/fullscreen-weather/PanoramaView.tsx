@@ -16,6 +16,7 @@ import { tempColor } from '@/lib/weather/temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars, DayTallBands, PrecipLegendHeader } from './weather-parts';
 import { HourlyRows } from './HourlyView';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
+import { NO_VALUE } from '@/lib/constants';
 
 /**
  * The flagship view, in two arrangements of the same parts.
@@ -208,7 +209,7 @@ function Hero({ p, wide, stacked }: { p: WeatherViewProps; wide?: boolean; stack
       fontSize: landscape ? s * 17 : s * 20,
       lineHeight: .84, fontWeight: 200, letterSpacing: '-.055em',
     }}>
-      {now ? Math.round(now.temp) : '--'}
+      {now ? Math.round(now.temp) : NO_VALUE}
       <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
     </div>
   );

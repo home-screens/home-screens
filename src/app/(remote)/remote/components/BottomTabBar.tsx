@@ -1,61 +1,24 @@
 'use client';
 
+import { Calendar, CircleCheck, Clock, ImageIcon, List, Server, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
-import { NOTE_ICON_PATH } from '@/components/notes/NoteGlyph';
+import { NoteIcon } from '@/components/notes/NoteGlyph';
+import { REMOTE_LAYERS } from './remote-layers';
 
 interface Tab {
   id: string;
   labelKey: string;
-  svgPath: string;
+  icon: LucideIcon;
 }
 
-const CONTROL_TAB: Tab = {
-  id: 'control',
-  labelKey: 'tabs.control',
-  svgPath: 'M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7',
-};
-
-const TIMERS_TAB: Tab = {
-  id: 'timers',
-  labelKey: 'tabs.timers',
-  svgPath: 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z',
-};
-
-const CHORES_TAB: Tab = {
-  id: 'chores',
-  labelKey: 'tabs.chores',
-  svgPath: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-};
-
-const LISTS_TAB: Tab = {
-  id: 'lists',
-  labelKey: 'tabs.lists',
-  svgPath: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
-};
-
-const CALENDAR_TAB: Tab = {
-  id: 'calendar',
-  labelKey: 'tabs.calendar',
-  svgPath: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
-};
-
-const NOTES_TAB: Tab = {
-  id: 'notes',
-  labelKey: 'tabs.notes',
-  svgPath: NOTE_ICON_PATH,
-};
-
-const MEALS_TAB: Tab = {
-  id: 'meals',
-  labelKey: 'tabs.meals',
-  svgPath: 'M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265zm-3 0a.375.375 0 11-.53 0L9 2.845l.265.265zm6 0a.375.375 0 11-.53 0L15 2.845l.265.265z',
-};
-
-const PHOTOS_TAB: Tab = {
-  id: 'photos',
-  labelKey: 'tabs.photos',
-  svgPath: 'm2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z',
-};
+const CONTROL_TAB: Tab = { id: 'control', labelKey: 'tabs.control', icon: Server };
+const TIMERS_TAB: Tab = { id: 'timers', labelKey: 'tabs.timers', icon: Clock };
+const CHORES_TAB: Tab = { id: 'chores', labelKey: 'tabs.chores', icon: CircleCheck };
+const LISTS_TAB: Tab = { id: 'lists', labelKey: 'tabs.lists', icon: List };
+const CALENDAR_TAB: Tab = { id: 'calendar', labelKey: 'tabs.calendar', icon: Calendar };
+const NOTES_TAB: Tab = { id: 'notes', labelKey: 'tabs.notes', icon: NoteIcon };
+const MEALS_TAB: Tab = { id: 'meals', labelKey: 'tabs.meals', icon: UtensilsCrossed };
+const PHOTOS_TAB: Tab = { id: 'photos', labelKey: 'tabs.photos', icon: ImageIcon };
 
 interface BottomTabBarProps {
   activeTab: string;
@@ -85,7 +48,7 @@ export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps)
   const fontSize = `clamp(10px, min(3.2vw, (100vw - ${tabs.length * TAB_ROOM_PX}px) / ${(letters * LETTER_EM).toFixed(2)}), 12px)`;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">
+    <nav style={{ zIndex: REMOTE_LAYERS.pageChrome }} className="fixed bottom-0 left-0 right-0 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-center">
         {tabs.map((tab, i) => {
           const label = labels[i];
@@ -93,15 +56,13 @@ export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps)
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`flex-auto min-w-[44px] max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 px-0.5 transition-colors ${
+              className={`press-btn flex-auto min-w-[44px] max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 px-0.5 transition-colors ${
                 activeTab === tab.id ? 'text-hs-accent' : 'text-hs-text-faint'
               }`}
               aria-label={label}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d={tab.svgPath} />
-              </svg>
+              <tab.icon className="w-6 h-6" strokeWidth={1.8} aria-hidden="true" />
               {/* Each tab is as wide as its word plus an equal share of the
                   room left over (`flex-auto`, not `flex-1`, which would make
                   seven equal tabs and squeeze "Mahlzeiten" or

@@ -23,7 +23,7 @@ interface DisplayHeroProps {
 
 const STATE_BADGE = {
   active: 'bg-hs-success/[0.12] text-hs-success border-hs-success/25',
-  dimmed: 'bg-hs-warning/[0.12] text-hs-warning border-hs-warning/25',
+  dimmed: 'bg-hs-warning/[0.12] text-hs-warning-ink border-hs-warning/25',
   asleep: 'bg-hs-text-faint/[0.12] text-hs-text-muted border-hs-text-faint/25',
   offline: 'bg-hs-text-faint/[0.12] text-hs-text-muted border-hs-text-faint/25',
 } as const;

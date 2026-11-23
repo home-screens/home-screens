@@ -16,7 +16,7 @@
 
 import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
+import { INPUT_CLASS, CHECKBOX_CLASS } from '@/components/ui/input-classes';
 import ScheduleWindowFields from '@/components/editor/ScheduleWindowFields';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
@@ -30,6 +30,8 @@ import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
 import { SHARED_STATE_KEY_RE, type ProvidedStateKey, type SharedStateEntry } from '@/lib/shared-state-types';
 import type { LoadedPlugin, StateKeyDescriptor } from '@/types/plugins';
 import type { ModuleSchedule, VisibilityCondition } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusPill from '@/components/ui/StatusPill';
 
 /** Stable empty map so an absent `plugins` prop doesn't re-create one per render. */
 const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
@@ -383,13 +385,13 @@ export function SourceKeyInput({
                     className={`cursor-pointer px-2 py-1 ${i === highlight ? 'bg-hs-hover' : ''}`}
                   >
                     <div className="text-xs text-hs-text-muted">{o.primary}</div>
-                    <div className="font-mono text-[10px] text-hs-text-dim">{o.secondary}</div>
+                    <div className="font-mono text-[10px] text-hs-text-faint">{o.secondary}</div>
                   </li>
                 </Fragment>
               );
             })}
             {searching && (
-              <li role="presentation" className="px-2 py-1 text-[10px] text-hs-text-dim">
+              <li role="presentation" className="px-2 py-1 text-[10px] text-hs-text-faint">
                 {t('visibilityConditions.searchingHint')}
               </li>
             )}
@@ -397,7 +399,7 @@ export function SourceKeyInput({
               <li
                 role="presentation"
                 data-testid="key-search-no-results"
-                className="px-2 py-1 text-[10px] text-hs-text-dim"
+                className="px-2 py-1 text-[10px] text-hs-text-faint"
               >
                 {t('visibilityConditions.searchNoResults')}
               </li>
@@ -410,13 +412,13 @@ export function SourceKeyInput({
                 else on the page says so. */}
             <li
               role="presentation"
-              className="mt-0.5 border-t border-hs-border-strong px-2 pt-1 text-[10px] text-hs-text-dim"
+              className="mt-0.5 border-t border-hs-border-strong px-2 pt-1 text-[10px] text-hs-text-faint"
             >
               {t('visibilityConditions.addOnHint')}
             </li>
             <li
               role="presentation"
-              className="px-2 pb-0.5 pt-0.5 text-[10px] text-hs-text-dim"
+              className="px-2 pb-0.5 pt-0.5 text-[10px] text-hs-text-faint"
             >
               {t('visibilityConditions.sourceKeyHint')}
             </li>
@@ -427,7 +429,7 @@ export function SourceKeyInput({
         <span className="text-[10px] text-hs-danger">{t('visibilityConditions.sourceKeyInvalid')}</span>
       )}
       {liveEntry && (
-        <span className="text-[10px] text-hs-text-dim">
+        <span className="text-[10px] text-hs-text-faint">
           {t(liveState?.source === 'editor'
             ? 'visibilityConditions.liveValueLabelEditor'
             : 'visibilityConditions.liveValueLabel')}{' '}
@@ -448,7 +450,7 @@ export function SourceKeyInput({
           {liveEntry.staleAt !== undefined && (
             <>
               {' · '}
-              <span className="text-hs-warning">
+              <span className="text-hs-warning-ink">
                 {t('visibilityConditions.liveValueStale')}
               </span>
             </>
@@ -456,10 +458,10 @@ export function SourceKeyInput({
         </span>
       )}
       {unknown && !liveEntry && !withinPickGrace && (
-        <span className="text-[10px] text-hs-warning">
+        <span className="text-[10px] text-hs-warning-ink">
           {unknownKeyHint ?? t('visibilityConditions.sourceKeyUnknown')}
           {healthNote && (
-            <span className="text-hs-text-dim">
+            <span className="text-hs-text-faint">
               {' · '}
               {t('visibilityConditions.providerHealthNote', {
                 plugin: healthNote.pluginName,
@@ -636,25 +638,16 @@ export function ConditionVerdictChip({
   source?: SharedStateSource | null;
   t: TranslateFn;
 }) {
-  const className =
-    verdict === 'met'
-      ? 'bg-hs-success/15 text-hs-success border-hs-success/30'
-      : verdict === 'unmet'
-        ? 'bg-amber-600/15 text-amber-500 border-amber-600/30'
-        : 'bg-hs-hover text-hs-text-dim border-hs-border-strong';
+  const tone = verdict === 'met' ? 'success' : verdict === 'unmet' ? 'warning' : 'neutral';
   // Only met/unmet carry the "on the display" claim; unknown is source-neutral.
   const titleKey =
     source === 'editor' && (verdict === 'met' || verdict === 'unmet')
       ? `visibilityConditions.verdicts.${verdict}TitleEditor`
       : `visibilityConditions.verdicts.${verdict}Title`;
   return (
-    <span
-      data-condition-verdict={verdict}
-      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${className}`}
-      title={t(titleKey)}
-    >
+    <StatusPill tone={tone} size="sm" data-condition-verdict={verdict} title={t(titleKey)}>
       {t(`visibilityConditions.verdicts.${verdict}`)}
-    </span>
+    </StatusPill>
   );
 }
 
@@ -836,13 +829,13 @@ function ConditionEditor({
             condition.equals ?? condition.notEquals,
             liveState?.entries[condition.sourceKey]?.value,
           ) && (
-            <p className="text-[10px] text-hs-warning">
+            <p className="text-[10px] text-hs-warning-ink">
               {t('visibilityConditions.caseMismatchWarning', {
                 value: liveState!.entries[condition.sourceKey]!.value,
               })}
             </p>
           )}
-          <p className="text-[10px] text-hs-text-dim">{t('visibilityConditions.valueListHint')}</p>
+          <FieldHint>{t('visibilityConditions.valueListHint')}</FieldHint>
         </div>
       )}
 
@@ -864,9 +857,10 @@ function ConditionEditor({
                 value={condition.above}
                 onCommit={(above) => onChange({ ...condition, above })}
               />
-              <label className="flex items-center gap-1 text-[10px] text-hs-text-dim">
+              <label className="flex items-center gap-1 text-[10px] text-hs-text-faint">
                 <input
                   type="checkbox"
+                  className={CHECKBOX_CLASS}
                   checked={condition.aboveInclusive ?? false}
                   onChange={(e) => onChange({ ...condition, aboveInclusive: e.target.checked })}
                 />
@@ -879,9 +873,10 @@ function ConditionEditor({
                 value={condition.below}
                 onCommit={(below) => onChange({ ...condition, below })}
               />
-              <label className="flex items-center gap-1 text-[10px] text-hs-text-dim">
+              <label className="flex items-center gap-1 text-[10px] text-hs-text-faint">
                 <input
                   type="checkbox"
+                  className={CHECKBOX_CLASS}
                   checked={condition.belowInclusive ?? false}
                   onChange={(e) => onChange({ ...condition, belowInclusive: e.target.checked })}
                 />
@@ -890,11 +885,11 @@ function ConditionEditor({
             </div>
           </div>
           {descriptor?.currentValue !== undefined && (
-            <p className="text-[10px] text-hs-text-dim">
+            <FieldHint>
               {t('visibilityConditions.currentValueHint', {
                 value: `${descriptor.currentValue}${descriptor.unit ? ` ${descriptor.unit}` : ''}`,
               })}
-            </p>
+            </FieldHint>
           )}
         </div>
       )}

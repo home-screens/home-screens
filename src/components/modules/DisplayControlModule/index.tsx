@@ -120,7 +120,7 @@ export default function DisplayControlModule({
   // target is this display: no hub round trip, so the tap lands at once, the
   // same path a tap on the dots takes. Another display gets a `goto-screen`
   // by name, since ids differ per display and the hub refuses a broadcast
-  // of it; "All displays" is this display locally plus every other one by name.
+  // of it; "Every wall" is this display locally plus every other one by name.
   const rotation = useRotation();
   // The dock's own list when it has one, else the rotation (resolveDockButtons).
   // Aimed at one other display, a tile that display has no screen of the same

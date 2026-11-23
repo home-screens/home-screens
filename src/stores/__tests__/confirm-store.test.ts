@@ -8,6 +8,8 @@ beforeEach(async () => {
   useConfirmStore = mod.useConfirmStore;
 });
 
+const QUESTION = { message: 'Continue?', confirmLabel: 'Continue', variant: 'primary' } as const;
+
 describe('confirm store', () => {
   it('starts in closed state', () => {
     const state = useConfirmStore.getState();
@@ -19,27 +21,23 @@ describe('confirm store', () => {
     useConfirmStore.getState().confirm({
       title: 'Delete?',
       message: 'Are you sure?',
+      confirmLabel: 'Delete',
       variant: 'danger',
     });
 
     const state = useConfirmStore.getState();
     expect(state.open).toBe(true);
-    expect(state.isAlert).toBe(false);
-    expect(state.options.title).toBe('Delete?');
-    expect(state.options.message).toBe('Are you sure?');
-    expect(state.options.variant).toBe('danger');
-  });
-
-  it('confirm() accepts a string shorthand', () => {
-    useConfirmStore.getState().confirm('Are you sure?');
-
-    const state = useConfirmStore.getState();
-    expect(state.open).toBe(true);
-    expect(state.options.message).toBe('Are you sure?');
+    expect(state.options).toMatchObject({
+      kind: 'confirm',
+      title: 'Delete?',
+      message: 'Are you sure?',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
   });
 
   it('confirm() resolves to true when respond(true) is called', async () => {
-    const promise = useConfirmStore.getState().confirm('Continue?');
+    const promise = useConfirmStore.getState().confirm(QUESTION);
     useConfirmStore.getState().respond(true);
 
     const result = await promise;
@@ -48,7 +46,7 @@ describe('confirm store', () => {
   });
 
   it('confirm() resolves to false when respond(false) is called', async () => {
-    const promise = useConfirmStore.getState().confirm('Continue?');
+    const promise = useConfirmStore.getState().confirm(QUESTION);
     useConfirmStore.getState().respond(false);
 
     const result = await promise;
@@ -56,15 +54,13 @@ describe('confirm store', () => {
     expect(useConfirmStore.getState().open).toBe(false);
   });
 
-  it('alert() opens as an alert with default title', () => {
+  it('alert() opens as an alert, leaving its words to the dialog', () => {
     useConfirmStore.getState().alert('Something happened');
 
     const state = useConfirmStore.getState();
     expect(state.open).toBe(true);
-    expect(state.isAlert).toBe(true);
-    expect(state.options.title).toBe('Notice');
-    expect(state.options.message).toBe('Something happened');
-    expect(state.options.confirmLabel).toBe('OK');
+    // No English here: ConfirmModal says "Notice" and "OK" from the dictionary.
+    expect(state.options).toEqual({ kind: 'alert', title: undefined, message: 'Something happened' });
   });
 
   it('alert() accepts a custom title', () => {
@@ -84,7 +80,7 @@ describe('confirm store', () => {
   });
 
   it('respond() clears the resolve callback', () => {
-    useConfirmStore.getState().confirm('Test');
+    useConfirmStore.getState().confirm(QUESTION);
     expect(useConfirmStore.getState().resolve).not.toBeNull();
 
     useConfirmStore.getState().respond(true);

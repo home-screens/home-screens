@@ -179,7 +179,7 @@ describe('clearPlanWeek', () => {
 });
 
 /* The phone cleared the week again before putting it back, so a meal
- * planned between Clear Week and Undo was lost; the editor kept it. */
+ * planned between Clear week and Undo was lost; the editor kept it. */
 describe('undoClearWeek', () => {
   it('puts the cleared week back on top of whatever is planned now', () => {
     const cleared = [entry('2026-09-14', 'm-1'), entry('2026-09-15', 'm-2')];

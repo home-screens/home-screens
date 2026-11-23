@@ -1,8 +1,9 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { REMOTE_ACCENT } from './remote-styles';
+import { DANGER_BUTTON } from './remote-styles';
 import BottomSheet from './BottomSheet';
+import { confirmAnswerColors } from './ConfirmSheet';
 
 export interface EventChoice {
   id: string;
@@ -12,8 +13,6 @@ export interface EventChoice {
   /** `primary` is the safe, highlighted choice; `danger` and `dangerFill` remove. */
   tone: 'primary' | 'plain' | 'danger' | 'dangerFill';
 }
-
-const DANGER = '#f87171';
 
 function choiceStyle(tone: EventChoice['tone']): CSSProperties {
   const base: CSSProperties = {
@@ -34,17 +33,19 @@ function choiceStyle(tone: EventChoice['tone']): CSSProperties {
     border: '1px solid transparent',
   };
   switch (tone) {
-    case 'primary': return { ...base, background: REMOTE_ACCENT, color: '#111' };
+    case 'primary': return { ...base, ...confirmAnswerColors('primary') };
     case 'plain': return { ...base, background: 'var(--hs-bg-hover)', color: 'var(--hs-text-primary)' };
-    case 'danger': return { ...base, background: 'transparent', color: DANGER, borderColor: 'rgba(248,113,113,0.45)' };
-    case 'dangerFill': return { ...base, background: DANGER, color: '#fff' };
+    // The quiet red of every phone delete (`DANGER_BUTTON`), and the full red of a confirm sheet's answer.
+    case 'danger': return { ...base, background: DANGER_BUTTON.background, color: 'var(--hs-danger)' };
+    case 'dangerFill': return { ...base, ...confirmAnswerColors('danger') };
   }
 }
 
 /**
  * A question with two or three answers that each say what they touch: "Just
  * this day" or "Every time" when saving or removing one day of a repeating
- * event. A plain `ConfirmSheet` answers yes or no; this answers which.
+ * event. A plain `ConfirmSheet` answers yes or no; this answers which. On
+ * the `confirm` layer with it, over the form that asked.
  */
 export default function EventChoiceSheet({ title, description, choices, cancelLabel, onPick, onCancel, testId }: {
   title: string;
@@ -56,7 +57,7 @@ export default function EventChoiceSheet({ title, description, choices, cancelLa
   testId?: string;
 }) {
   return (
-    <BottomSheet title={title} onClose={onCancel} zIndex={210} testId={testId}>
+    <BottomSheet title={title} onClose={onCancel} layer="confirm" testId={testId}>
       <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', lineHeight: 1.5, margin: '0 0 16px' }}>{description}</p>
       {choices.map((choice) => (
         <button

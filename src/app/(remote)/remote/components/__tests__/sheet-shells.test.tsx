@@ -10,7 +10,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react';
 
 vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
-vi.mock('@/components/family/FamilyManager', () => ({ default: () => <button type="button">a member</button> }));
+vi.mock('@/components/family/PhoneFamilyManager', () => ({ default: () => <button type="button">a member</button> }));
 vi.mock('../CustomIconsOverlay', () => ({ default: () => null }));
 vi.mock('@/hooks/useCustomIcons', () => ({ useCustomIcons: () => ({ icons: [], loaded: true }), refreshCustomIcons: vi.fn() }));
 
@@ -25,7 +25,7 @@ afterEach(cleanup);
 describe('TallSheet', () => {
   it('is a labelled modal dialog that takes focus and closes on Escape', () => {
     const onClose = vi.fn();
-    render(<TallSheet label="Meal settings" onClose={onClose}><button type="button">Save</button></TallSheet>);
+    render(<TallSheet label="Meal settings" title="Meal Settings" onClose={onClose}><button type="button">Save</button></TallSheet>);
     const dialog = screen.getByRole('dialog', { name: 'Meal settings' });
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(document.activeElement).toBe(dialog);
@@ -36,7 +36,7 @@ describe('TallSheet', () => {
   it('leaves Escape to a dialog nested inside it', () => {
     const onClose = vi.fn();
     render(
-      <TallSheet label="Dinner" onClose={onClose}>
+      <TallSheet label="Dinner" title="Dinner" onClose={onClose}>
         <div role="dialog" aria-label="Serving time"><button type="button">6:00</button></div>
       </TallSheet>,
     );
@@ -46,7 +46,7 @@ describe('TallSheet', () => {
 
   it('closes from the dimmed area', () => {
     const onClose = vi.fn();
-    const { container } = render(<TallSheet label="Dinner" onClose={onClose}><span>body</span></TallSheet>);
+    const { container } = render(<TallSheet label="Dinner" title="Dinner" onClose={onClose}><span>body</span></TallSheet>);
     fireEvent.click(container.querySelector('[role="dialog"]')!.previousElementSibling!);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -118,9 +118,10 @@ describe('the Family screen', () => {
   it('goes back on the Back gesture instead of leaving the remote', () => {
     const onBack = vi.fn();
     render(<FamilySettingsView onBack={onBack} />);
-    expect((window.history.state as { hsSheet?: string } | null)?.hsSheet).toBeTruthy();
+    expect((window.history.state as { hsSheets?: string[] } | null)?.hsSheets?.length).toBeTruthy();
     act(() => { window.history.back(); });
-    act(() => { vi.advanceTimersByTime(10); });
+    // FormOverlay hands back after its slide-out.
+    act(() => { vi.advanceTimersByTime(300); });
     expect(onBack).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe('/remote');
   });
@@ -129,6 +130,7 @@ describe('the Family screen', () => {
     const onBack = vi.fn();
     render(<FamilySettingsView onBack={onBack} />);
     fireEvent.keyDown(screen.getByRole('button', { name: 'a member' }), { key: 'Escape' });
+    act(() => { vi.advanceTimersByTime(300); });
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 });

@@ -46,6 +46,8 @@ import {
   withoutSchool,
 } from './use-timetable-draft';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 interface SchoolsTabProps {
   data: TimetableData;
@@ -180,12 +182,12 @@ export default function SchoolsTab({
    */
   const removeSchool = async () => {
     if (!selected || attending.length > 0) return;
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('timetableModal.schools.removeConfirm.title'),
-      message: t('timetableModal.schools.removeConfirm.message', { name: selected.name }),
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'delete',
+      name: selected.name,
+      consequence: t('timetableModal.schools.removeConfirm.message'),
       confirmLabel: t('timetableModal.schools.removeConfirm.confirmLabel'),
-      variant: 'danger',
-    });
+    }, tCore));
     if (!ok) return;
     const next = data.schools.find((school) => school.id !== selected.id);
     update((current) => withoutSchool(current, selected.id));
@@ -268,7 +270,7 @@ export default function SchoolsTab({
               {chosenTemplate && (
                 <p className="text-[11px] tabular-nums text-hs-text-muted">{summaryOf(chosenTemplate)}</p>
               )}
-              <p className={`${PROSE_CLASS} text-hs-text-faint`}>{t('timetableModal.schools.startFromHelp')}</p>
+              <FieldHint>{t('timetableModal.schools.startFromHelp')}</FieldHint>
             </div>
             <div className="flex items-center gap-1.5">
               <Button size="sm" variant="primary" className="flex-1" disabled={!name.trim()} onClick={create}>
@@ -374,13 +376,13 @@ export default function SchoolsTab({
                 ]}
               />
               {letters && (
-                <p className={`${PROSE_CLASS} text-hs-text-faint`}>
+                <FieldHint>
                   {t('timetableModal.weekCycle.help', {
                     number: isoWeekNumber(dateInZone(new Date(), timezone)),
                     thisLetter: letters.thisLetter,
                     nextLetter: letters.nextLetter,
                   })}
-                </p>
+                </FieldHint>
               )}
             </div>
 

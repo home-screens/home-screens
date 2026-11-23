@@ -4,15 +4,14 @@ import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { ArrowUp, RotateCcw, Check, X, Info } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { formatShortDuration } from '@/lib/duration-format';
-import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import SudoPasswordPrompt from './SudoPasswordPrompt';
+import StatusPill from '@/components/ui/StatusPill';
 import { useTranslate } from '@/i18n';
 import {
   useUpgradeStream,
   useWaitForServer,
   getStepState,
-  STEP_LABELS,
   type StepState,
 } from './useUpgradeStream';
 
@@ -186,16 +185,14 @@ function UpgradeAttempt({
   const consoleStep = pinnedStep ?? activeStep;
   const isLive = consoleStep === activeStep && !done && !failed;
 
-  // Translate step IDs via dictionary; fall back to the imported English
-  // STEP_LABELS (or the raw ID for unknown plugin-introduced steps). t()
-  // returns the raw key path on miss, so we compare to detect a miss
-  // explicitly — `|| fallback` would silently render the dotted-path key.
+  // Translate step IDs via the dictionary; a step it does not know shows its
+  // raw ID. t() returns the raw key path on a miss, so we compare to detect
+  // one explicitly: `|| fallback` would silently render the dotted-path key.
   const stepLabel = useCallback(
     (step: string) => {
       const key = `upgradeModal.stepLabels.${step}`;
       const result = t(key);
-      if (result !== key) return result;
-      return STEP_LABELS[step] ?? step;
+      return result !== key ? result : step;
     },
     [t],
   );
@@ -245,23 +242,30 @@ function UpgradeAttempt({
     ? t('upgradeModal.successRollback', { tag: targetTag })
     : t('upgradeModal.successDefault');
 
+  // The line over the bar and the box under the steps, in the household's
+  // words. The hub's own progress sentences are English; the step's name
+  // says the same thing. A failure the window ran into itself is a notice.
+  const notice = progress.notice;
+  const statusLine = done
+    ? finishedLine
+    : notice === 'connectionLost' ? t('upgradeModal.errors.connectionLost', { step: stepLabel(activeStep) })
+      : notice === 'noStream' ? t('upgradeModal.errors.noStream')
+        : notice === 'startFailed' ? t('upgradeModal.errors.startFailed')
+          : failed ? t('upgradeModal.errors.stoppedAt', { step: stepLabel(activeStep) })
+            : `${stepLabel(activeStep)}…`;
+  const failureDetail = notice === 'connectionLost' ? t('upgradeModal.errors.connectionLostHelp')
+    : notice === 'noStream' ? t('upgradeModal.errors.noStreamHelp')
+      : notice === 'startFailed' ? t('upgradeModal.errors.startFailedHelp')
+        : progress.error;
+
   const HeaderIcon = isRollback ? RotateCcw : ArrowUp;
 
   const statusBadge = failed ? (
-    <span className="flex items-center gap-1.5 text-[11.5px] font-semibold px-3 py-1 rounded-full bg-hs-danger/10 text-hs-danger border border-hs-danger/30">
-      <X size={11} strokeWidth={3} />
-      {t('upgradeModal.status.failed')}
-    </span>
+    <StatusPill tone="danger" icon={X}>{t('upgradeModal.status.failed')}</StatusPill>
   ) : done ? (
-    <span className="flex items-center gap-1.5 text-[11.5px] font-semibold px-3 py-1 rounded-full bg-hs-success/10 text-hs-success border border-hs-success/30">
-      <Check size={11} strokeWidth={3} />
-      {t('upgradeModal.status.complete')}
-    </span>
+    <StatusPill tone="success" icon={Check}>{t('upgradeModal.status.complete')}</StatusPill>
   ) : (
-    <span className="flex items-center gap-1.5 text-[11.5px] font-semibold px-3 py-1 rounded-full bg-hs-accent-soft text-hs-accent-hover border border-hs-accent-ring">
-      <span className="w-[7px] h-[7px] rounded-full bg-hs-accent-hover animate-pulse" />
-      {t('upgradeModal.status.inProgress')}
-    </span>
+    <StatusPill tone="info" dot="pulse">{t('upgradeModal.status.inProgress')}</StatusPill>
   );
 
   return (
@@ -274,37 +278,37 @@ function UpgradeAttempt({
       closable={done || failed}
       className="w-full max-w-[880px]"
     >
-      <div className="bg-hs-panel border border-hs-border-strong rounded-2xl w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b border-hs-border-strong flex items-center gap-4 flex-shrink-0">
-          <div className="w-10 h-10 rounded-[10px] bg-hs-accent-soft border border-hs-accent-ring flex items-center justify-center text-hs-accent-hover flex-shrink-0">
-            <HeaderIcon size={18} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 id="upgrade-modal-title" className="text-[17px] font-semibold text-hs-text-primary truncate">
-              {headerTitle}
-            </h2>
-            {currentVersion && (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="font-mono text-[11px] px-2 py-px rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary">
-                  v{currentVersion}
-                </span>
-                <span className="text-hs-text-faint text-xs">&#10142;</span>
-                <span className="font-mono text-[11px] px-2 py-px rounded-md bg-hs-accent-soft border border-hs-accent-ring text-hs-accent-hover">
-                  {targetTag}
-                </span>
-              </div>
-            )}
-          </div>
-          {statusBadge}
-        </div>
+      <ModalPanel className="overflow-hidden">
+        <ModalHeader
+          titleId="upgrade-modal-title"
+          icon={
+            <div className="w-8 h-8 rounded-lg bg-hs-accent-soft border border-hs-accent-ring flex items-center justify-center text-hs-accent-hover flex-shrink-0">
+              <HeaderIcon size={16} aria-hidden />
+            </div>
+          }
+          title={headerTitle}
+          subtitle={currentVersion ? (
+            <span className="flex items-center gap-2">
+              <span className="font-mono text-[11px] px-2 py-px rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary">
+                v{currentVersion}
+              </span>
+              <span className="text-hs-text-faint text-xs" aria-hidden>&#10142;</span>
+              <span className="font-mono text-[11px] px-2 py-px rounded-md bg-hs-accent-soft border border-hs-accent-ring text-hs-accent-hover">
+                {targetTag}
+              </span>
+            </span>
+          ) : undefined}
+          actions={statusBadge}
+          onClose={onClose}
+          closable={done || failed}
+          closeBlockedHint={t('upgradeModal.warning.inProgress')}
+        />
 
         {/* Overall progress */}
         <div className="px-6 pt-4 pb-3.5 border-b border-hs-border flex-shrink-0">
           <div className="flex items-baseline justify-between mb-2">
             <span className="text-[13px] text-hs-text-secondary truncate mr-3">
-              {/* The server words its progress in English; the finished
-                  state has its own line in every language. */}
-              {done ? finishedLine : progress.message}
+              {statusLine}
             </span>
             <span
               className={`text-[13px] font-mono font-semibold flex-shrink-0 ${
@@ -416,7 +420,7 @@ function UpgradeAttempt({
               {reconnectingLine && (
                 <p
                   data-testid="upgrade-console-reconnecting"
-                  className="px-4 pb-3 -mt-2 text-[11.5px] leading-[1.7] font-mono text-hs-warning flex items-center gap-2"
+                  className="px-4 pb-3 -mt-2 text-[11.5px] leading-[1.7] font-mono text-hs-warning-ink flex items-center gap-2"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse flex-shrink-0" aria-hidden />
                   {reconnectingLine}
@@ -433,9 +437,10 @@ function UpgradeAttempt({
           </div>
         ) : (
           failed &&
-          progress.error && (
+          failureDetail && (
             <div className="px-6 py-3 border-t border-hs-border bg-hs-danger/10 flex-shrink-0">
-              <p className="text-xs text-hs-danger font-mono break-all">{progress.error}</p>
+              {/* The window's own words read as a sentence; the hub's error is a log line. */}
+              <p className={`text-xs text-hs-danger ${notice ? '' : 'font-mono break-all'}`}>{failureDetail}</p>
             </div>
           )
         )}
@@ -453,40 +458,25 @@ function UpgradeAttempt({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-t border-hs-border-strong flex-shrink-0">
-          {!done && !failed && (
-            <>
-              <p className="text-xs text-hs-warning/70 truncate">
-                {cancelBlocked
-                  ? t('upgradeModal.warning.installing')
-                  : t('upgradeModal.warning.inProgress')}
-              </p>
-              <Button variant="danger" size="sm" onClick={handleCancel} disabled={cancelBlocked}>
-                {tCore('actions.cancel')}
-              </Button>
-            </>
-          )}
-          {done && (
-            <>
-              <p className="text-xs text-hs-success flex items-center gap-1.5 truncate">
-                <Check size={12} strokeWidth={3} className="flex-shrink-0" />
+        {!done && !failed && (
+          <ModalFooter
+            hint={<span className="text-hs-warning-ink">{cancelBlocked ? t('upgradeModal.warning.installing') : t('upgradeModal.warning.inProgress')}</span>}
+            primary={{ label: t('upgradeModal.stopButton'), onClick: handleCancel, disabled: cancelBlocked, variant: 'danger' }}
+          />
+        )}
+        {done && (
+          <ModalFooter
+            hint={
+              <span className="text-hs-success flex items-center gap-1.5">
+                <Check size={12} strokeWidth={3} className="flex-shrink-0" aria-hidden />
                 {reloadStatus || finishedLine}
-              </p>
-              <Button variant="primary" onClick={onComplete}>
-                {t('upgradeModal.doneButton')}
-              </Button>
-            </>
-          )}
-          {failed && (
-            <>
-              <span />
-              <Button variant="secondary" onClick={onClose}>
-                {tCore('actions.close')}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+              </span>
+            }
+            primary={{ label: t('upgradeModal.doneButton'), onClick: onComplete }}
+          />
+        )}
+        {failed && <ModalFooter onCancel={onClose} cancelLabel={tCore('actions.close')} />}
+      </ModalPanel>
     </ModalFrame>
   );
 }

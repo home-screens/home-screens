@@ -13,6 +13,7 @@ import {
 } from '@/lib/templates';
 import type { TemplateMeta } from '@/lib/templates';
 import { getAllModuleDefinitions } from '@/lib/module-registry';
+import editorWords from '@/translations/en-US/editor.json';
 
 // ---------------------------------------------------------------------------
 // getDisplayOrientation
@@ -44,7 +45,6 @@ describe('loadTemplate', () => {
   const template: TemplateMeta = {
     id: 'test-template',
     name: 'Test',
-    description: 'A test template',
     category: 'Dashboard',
     portrait: 'test-portrait.json',
     landscape: 'test-landscape.json',
@@ -189,9 +189,11 @@ describe('TEMPLATE_CATALOG data integrity', () => {
     }
   });
 
-  it('all template descriptions are non-empty strings', () => {
+  it('every template has a name and a description in the editor dictionary', () => {
+    const words = editorWords.templatePicker.templates as Record<string, { name?: string; description?: string }>;
     for (const t of TEMPLATE_CATALOG) {
-      expect(t.description.trim().length, `${t.id}: description should be non-empty`).toBeGreaterThan(0);
+      expect(words[t.id]?.name?.trim(), `${t.id}: templatePicker.templates.${t.id}.name`).toBeTruthy();
+      expect(words[t.id]?.description?.trim(), `${t.id}: templatePicker.templates.${t.id}.description`).toBeTruthy();
     }
   });
 });

@@ -15,6 +15,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { DOCK_PALETTE, dockTileColor, dominantModuleType } from '@/lib/screen-dock';
 import type { DockCapacity } from '@/components/modules/DisplayControlModule/metrics';
 import type { DockButton, Screen } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 const KEY = 'configSections.display-control';
 
@@ -76,12 +77,12 @@ export function DockButtonsList({ value, onChange, screens, capacity, compact }:
       />
       {value === undefined ? (
         <>
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">{t(`${KEY}.dockButtonsEvery`)}</p>
+          <FieldHint>{t(`${KEY}.dockButtonsEvery`)}</FieldHint>
           <FitHint capacity={capacity} count={enabledCount} compact={compact} everyScreen />
         </>
       ) : (
         <>
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">{t(`${KEY}.dockButtonsHelp`)}</p>
+          <FieldHint>{t(`${KEY}.dockButtonsHelp`)}</FieldHint>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={chosen.map((b) => b.screenId)} strategy={verticalListSortingStrategy}>
               <ul className="space-y-1" aria-label={t(`${KEY}.dockButtons`)}>
@@ -318,8 +319,8 @@ function FitHint({ capacity, count, compact, everyScreen = false }: { capacity: 
   }
   if (!compact && !capacity.names) parts.push(t(`${KEY}.dockFitShort`));
   return (
-    <p data-testid="dock-fit-hint" data-warn={warn ? 'true' : 'false'} className={`text-[11px] leading-relaxed ${warn ? 'text-hs-warning' : 'text-hs-text-faint'}`}>
+    <FieldHint data-testid="dock-fit-hint" data-warn={warn ? 'true' : 'false'} tone={warn ? 'warning' : undefined}>
       {parts.join(' ')}
-    </p>
+    </FieldHint>
   );
 }

@@ -10,7 +10,7 @@ import PicturePicker from './picture-picker/PicturePicker';
 
 /**
  * A day-look rule's picture: what it is now, with Choose a picture and
- * Remove. Choosing opens the Image Library on the day art that ships with
+ * Remove. Choosing opens the Pictures & videos window on the day art that ships with
  * Home Screens, or on the library's `calendar-art` folder when the rule holds
  * one of the household's own pictures; any tab works, so a picture from
  * Immich, Unsplash or NASA can be day art too. Stores a URL in

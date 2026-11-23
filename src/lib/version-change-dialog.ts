@@ -16,8 +16,8 @@ export interface VersionChangeDialogKeys {
   titleKey: string;
   messageKey: string;
   confirmKey: string;
-  /** Confirm-button style. A step backwards is not the primary action. */
-  variant?: 'primary';
+  /** Confirm-button style. A step backwards is not the primary action: it can leave newer settings unreadable. */
+  variant: 'primary' | 'danger';
 }
 
 /** `isDowngrade` comes from `/api/system/version`: the offer is older than what runs. */
@@ -31,6 +31,7 @@ export function versionChangeDialogKeys(direction: VersionChangeDirection): Vers
       titleKey: 'settings.systemPage.rollbackDialog.title',
       messageKey: 'settings.systemPage.rollbackDialog.message',
       confirmKey: 'settings.systemPage.rollbackDialog.confirm',
+      variant: 'danger',
     };
   }
   return {

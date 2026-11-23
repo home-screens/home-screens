@@ -15,13 +15,16 @@ import {
   buildAvailableGroups,
   buildPreviewRuns,
 } from '@/lib/state-key-suggestions';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
+import { INPUT_CLASS, SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 import { resolveModuleLabel } from '@/lib/module-registry';
 import { collectKeyReferences, type StateKeyReference } from '@/lib/state-demand';
 import { pluginDisplayName, pluginIdFromStateKey } from '@/lib/provider-health-hint';
 import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleType } from '@/types/config';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
 
 /**
  * Settings → Shared state: the bus inspector, split into two sub-tabs both
@@ -133,14 +136,14 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
 
   return (
     <div>
-      <p className="text-xs text-hs-text-faint mb-4">
+      <FieldHint className="mb-4">
         {t('settings.sharedStatePage.description')}
-      </p>
+      </FieldHint>
 
       {/* Four states, most-alive first: values from the editor's own bus; a
           fresh display report; a display that reported once but went quiet
           (rows keep its last values, so say since when); never reported. */}
-      <p className="text-[11px] text-hs-text-faint mb-4" data-state-source={liveState.source ?? 'none'}>
+      <FieldHint className="mb-4" data-state-source={liveState.source ?? 'none'}>
         {liveState.source === 'editor'
           ? t('settings.sharedStatePage.editorValuesHint')
           : liveState.source === 'display' && liveState.reportedAt !== null
@@ -156,34 +159,34 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                   }),
                 })
               : t('settings.sharedStatePage.noReportHint')}
-      </p>
+      </FieldHint>
 
       {unhealthy.length > 0 && (
         <div className="mb-4 space-y-2" data-testid="provider-health-banner">
           {unhealthy.map(([pluginId, entry]) => (
-            <div
+            <Notice
               key={pluginId}
+              tone="warning"
               data-provider-health={pluginId}
-              className="rounded-lg border border-amber-600/40 bg-amber-600/[0.08] px-3 py-2.5"
+              title={
+                <span className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <span>{pluginDisplayName(pluginId, plugins)}</span>
+                  <span className="text-[11px] font-normal text-hs-text-faint shrink-0">
+                    {t('settings.sharedStatePage.providerHealthSince', {
+                      time: formatRelativeTime(now, Math.min(entry.since, now), { locale: formattingLocale }),
+                    })}
+                  </span>
+                </span>
+              }
             >
-              <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                <span className="text-xs font-medium text-amber-500">
-                  {pluginDisplayName(pluginId, plugins)}
-                </span>
-                <span className="text-[11px] text-hs-text-faint shrink-0">
-                  {t('settings.sharedStatePage.providerHealthSince', {
-                    time: formatRelativeTime(now, Math.min(entry.since, now), { locale: formattingLocale }),
-                  })}
-                </span>
-              </div>
               <p className="mt-1 text-[11px] text-hs-text-muted">{entry.message}</p>
-            </div>
+            </Notice>
           ))}
         </div>
       )}
 
       {rows.length === 0 ? (
-        <p className="text-xs text-hs-text-faint">{t('settings.sharedStatePage.emptyHint')}</p>
+        <FieldHint>{t('settings.sharedStatePage.emptyHint')}</FieldHint>
       ) : (
         <div className="space-y-2">
           {rows.map((row) => (
@@ -193,7 +196,7 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
               data-state-status={row.status}
               className={`rounded-lg border px-3 py-2.5 ${
                 row.status === 'missing'
-                  ? 'border-hs-danger/40 bg-hs-danger/[0.06]'
+                  ? 'border-hs-danger/30 bg-hs-danger/10'
                   : row.status === 'unreferenced'
                     ? 'border-hs-border bg-hs-panel/40 opacity-60'
                     : 'border-hs-border-strong bg-hs-hover'
@@ -232,7 +235,7 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                     {row.entry.staleAt !== undefined && (
                       <>
                         {' · '}
-                        <span className="text-hs-warning">
+                        <span className="text-hs-warning-ink">
                           {t('visibilityConditions.liveValueStale')}
                         </span>
                       </>
@@ -274,7 +277,7 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                 const pid = pluginIdFromStateKey(row.key);
                 const health = pid ? liveState.providerHealth?.[pid] : undefined;
                 return (
-                  <p className="mt-1.5 text-[11px] text-hs-text-dim">
+                  <FieldHint className="mt-1.5">
                     {t('settings.sharedStatePage.neverPublishedDetail')}
                     {health && (
                       <>
@@ -285,7 +288,7 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                         })}
                       </>
                     )}
-                  </p>
+                  </FieldHint>
                 );
               })()}
             </div>
@@ -381,9 +384,9 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
 
   return (
     <div>
-      <p className="text-xs text-hs-text-faint mb-3">
+      <FieldHint className="mb-3">
         {t('settings.sharedStatePage.available.description')}
-      </p>
+      </FieldHint>
 
       {groups.length > 0 && (
         <p
@@ -405,15 +408,15 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
       />
 
       {noProviders ? (
-        <p className="text-xs text-hs-warning">{t('settings.sharedStatePage.available.noProviders')}</p>
+        <p className="text-xs text-hs-warning-ink">{t('settings.sharedStatePage.available.noProviders')}</p>
       ) : groups.length === 0 ? (
-        <p className="text-xs text-hs-text-faint" data-testid="shared-state-available-empty">
+        <FieldHint data-testid="shared-state-available-empty">
           {searching
             ? t('visibilityConditions.searchingHint')
             : noMatches
               ? t('settings.sharedStatePage.available.noMatches')
               : ''}
-        </p>
+        </FieldHint>
       ) : (
         <div className="space-y-2.5">
           {groups.map((g) => {
@@ -454,7 +457,7 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
                 {!isCollapsed && (
                   <div className="px-3.5 pb-3.5 pt-2.5">
                     {g.truncated && (
-                      <p className="mb-2.5 flex items-center gap-1.5 text-[11px] text-amber-500">
+                      <p className="mb-2.5 flex items-center gap-1.5 text-[11px] text-hs-warning-ink">
                         <TriangleAlert className="w-3.5 h-3.5 shrink-0" />
                         {t('settings.sharedStatePage.available.truncationNote', {
                           count: BROWSE_SEARCH_LIMIT,
@@ -476,7 +479,7 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
                               className="rounded-lg border border-hs-border-strong bg-hs-hover px-3 py-2.5"
                             >
                               <div className="text-xs text-hs-text-body">{row.primary}</div>
-                              <code className="mt-0.5 block font-mono text-[11px] text-hs-text-dim break-all">
+                              <code className="mt-0.5 block font-mono text-[11px] text-hs-text-faint break-all">
                                 {row.secondary}
                               </code>
                             </div>
@@ -508,7 +511,7 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
       )}
 
       {searching && groups.length > 0 && (
-        <p className="mt-2 text-[11px] text-hs-text-dim">{t('visibilityConditions.searchingHint')}</p>
+        <FieldHint className="mt-2">{t('visibilityConditions.searchingHint')}</FieldHint>
       )}
     </div>
   );
@@ -541,9 +544,9 @@ export default function SharedStateSection({ embedded = false }: SharedStateSect
   return (
     <section>
       {!embedded && (
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.sharedStatePage.heading')}
-        </h3>
+        </SettingsSectionHeading>
       )}
       {/* Plain-language explainer — this is the most jargon-prone surface in
           settings, so lead with what shared state IS before the two tabs. */}
@@ -567,7 +570,7 @@ export default function SharedStateSection({ embedded = false }: SharedStateSect
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
               onChange={(e) => setSelectedDisplay(e.target.value || null)}
-              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>

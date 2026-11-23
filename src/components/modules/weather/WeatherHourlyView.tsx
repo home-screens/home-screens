@@ -1,7 +1,6 @@
 'use client';
 
 import { Droplets, Wind } from 'lucide-react';
-import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import { WeatherStat } from '../WeatherStat';
@@ -10,6 +9,7 @@ import { CurrentConditionsHeader } from './CurrentConditionsHeader';
 import { windChipUnit } from './CurrentWeatherStats';
 import { HourColumn } from './HourColumn';
 import type { WeatherViewProps } from './types';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 
 /**
  * The narrowest an hour column is drawn, in em of the view's size: its widest
@@ -38,9 +38,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, units, tim
 
   return (
     <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      {config.showTitle !== false && (
-        <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.hourlyForecast')}</h2>
-      )}
+      {config.showTitle !== false && <ModuleTitleRow title={t('fullscreen-weather.cards.hourly')} />}
       {hours.length === 0 ? (
         <WeatherEmptyState />
       ) : (

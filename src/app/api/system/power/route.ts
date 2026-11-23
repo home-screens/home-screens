@@ -32,7 +32,7 @@ function restartService(): NextResponse {
     const result = isSystemdService();
     if (!result) {
       return NextResponse.json(
-        { error: 'Service not managed by systemd. Restart manually.' },
+        { error: 'Service not managed by systemd. Restart manually.', code: 'power.notManaged' },
         { status: 400 },
       );
     }

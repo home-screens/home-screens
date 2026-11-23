@@ -25,7 +25,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // 1. Validate hostname
   const hostnameResult = validateHostname(hostname);
   if (!hostnameResult.valid) {
-    return NextResponse.json({ error: hostnameResult.error }, { status: 400 });
+    return NextResponse.json({ error: hostnameResult.error, code: 'network.badHostname' }, { status: 400 });
   }
 
   const sudo = await requireSudo();

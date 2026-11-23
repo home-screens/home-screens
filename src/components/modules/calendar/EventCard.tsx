@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import { ChevronRight } from 'lucide-react';
 import {
   parseEventWallTime, formatEventTime, formatEventTimeCompact, gridPillTimeLabel, eventEndLabel, isAllDayEvent, eventKindLabel, eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
@@ -143,7 +144,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         </p>
         {tapDetails && (
           // A size down from the full card's chevron, so it never makes the row taller than its title.
-          <span aria-hidden="true" data-testid="event-chevron" className="shrink-0" style={{ fontSize: '1em', lineHeight: 1, opacity: 0.4 }}>›</span>
+          <ChevronRight size="1em" aria-hidden="true" data-testid="event-chevron" className="shrink-0" style={{ opacity: 0.4 }} />
         )}
       </ContentCard>
     );
@@ -242,7 +243,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       {tapDetails && (
         // Rows that open a detail overlay say so: a muted chevron at the
         // right edge, only when a tap actually opens something.
-        <span aria-hidden="true" data-testid="event-chevron" className="shrink-0 self-center" style={{ fontSize: '1.2em', lineHeight: 1, opacity: 0.4 }}>›</span>
+        <ChevronRight size="1.2em" aria-hidden="true" data-testid="event-chevron" className="shrink-0 self-center" style={{ opacity: 0.4 }} />
       )}
     </ContentCard>
   );

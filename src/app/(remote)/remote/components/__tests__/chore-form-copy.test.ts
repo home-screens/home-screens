@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { LOCALES } from '@/i18n/manifest';
 import en from '@/translations/en-US/remote.json';
+import core from '@/translations/en-US/core.json';
 
 /**
  * Deleting a chore removes the chore and nothing else: the rows in
@@ -11,7 +12,8 @@ import en from '@/translations/en-US/remote.json';
  * assertions are what stops that sentence coming back.
  */
 describe('the delete-a-chore confirmation', () => {
-  const description: string = en.choresManage.choreDelete.description;
+  // One sentence for the phone and the editor alike.
+  const description: string = core.chores.deleteBody;
 
   it('does not promise to remove anything but the chore', () => {
     const lower = description.toLowerCase();

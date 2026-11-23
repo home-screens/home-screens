@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState, type CSSProperties } from 'react';
-import { ChevronRight, ExternalLink, Plus, ShoppingCart } from 'lucide-react';
+import { ChevronRight, ExternalLink, ShoppingCart } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { shortNameList } from '@/lib/grocery-utils';
 import {
@@ -17,19 +17,22 @@ import { useLocale, useTranslate, formatList } from '@/i18n';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList';
 import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
-import { CenterMessage } from './MealieRecipeParts';
 import { useCopyTime } from '@/components/meals/useCopyTime';
-import { mealieProblemDescription, mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
+import { mealieProblemDescription, mealieProblemWords, mealieSaveFailedWords, useHomeCopyClock } from './MealsMealieStatus';
+import { RetryButton } from './RetryButton';
+import EmptyState from './EmptyState';
+import TickRow from './TickRow';
+import SquareAddButton, { SQUARE_ADD_SIZE } from './SquareAddButton';
 import { openOutside } from './meals-shared';
 import { shareOrCopyText } from './share-text';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ON_ACCENT, chipCountStyle, toggleChipStyle } from './remote-styles';
 
-/** The warning colour of the theme in use: amber in the dark theme, a darker amber that reads on the light one. */
-const WARN = 'var(--hs-warning)';
+/** Warning words: the theme's amber ink, deeper in the light theme so it reads on near-white. */
+const WARN_INK = 'var(--hs-warning-ink)';
 /** A text button inside a status line (Undo). */
 const lineButton: CSSProperties = {
   flex: 'none', minHeight: 44, padding: '0 12px', marginLeft: 'auto', border: 'none', background: 'none',
-  color: WARN, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+  color: WARN_INK, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
 };
 
 /**
@@ -123,7 +126,7 @@ export default function MealsMealieGroceryView({
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 24px',
         minHeight: 44, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
         ...(primary
-          ? { border: 'none', background: REMOTE_ACCENT, color: '#000' }
+          ? { border: 'none', background: REMOTE_ACCENT, color: REMOTE_ON_ACCENT }
           : { border: '1px solid var(--hs-border)', background: 'var(--hs-bg-panel)', color: 'var(--hs-text-body)' }),
       }}
     >
@@ -145,20 +148,21 @@ export default function MealsMealieGroceryView({
     const words = mealieProblemWords(shopping.problem === 'connection' ? null : shopping.problem);
     return (
       <div data-testid="mealie-grocery" data-state="failed" style={{ paddingBottom: 80 }}>
-        <CenterMessage
-          icon={<ShoppingCart size={24} strokeWidth={2} />}
+        <EmptyState
+          icon={ShoppingCart}
           title={connection ? tCore('mealie.connection.title') : tCore(`${words}.title`)}
-          description={connection
+          body={connection
             ? t('mealie.grocery.connectionDescription')
             : shopping.problem === 'unreachable' ? tCore('mealie.grocery.unreachableDescription') : mealieProblemDescription(shopping.problem === 'connection' ? null : shopping.problem, t, tCore)}
-          padding="56px 16px 48px"
-        >
-          {/* Trying again is what anyone can do; Open Mealie asks a grown-up to sign in. */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <RetryButton onRetry={shopping.retry} style={{ padding: '0 18px', background: REMOTE_ACCENT, color: '#000' }} />
-            {!connection && openButton(false)}
-          </div>
-        </CenterMessage>
+          style={{ padding: '56px 16px 48px' }}
+          action={(
+            // Trying again is what anyone can do; Open Mealie asks a grown-up to sign in.
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <RetryButton onRetry={shopping.retry} style={{ background: REMOTE_ACCENT, color: REMOTE_ON_ACCENT }} />
+              {!connection && openButton(false)}
+            </div>
+          )}
+        />
       </div>
     );
   }
@@ -166,14 +170,13 @@ export default function MealsMealieGroceryView({
   if (!list) {
     return (
       <div data-testid="mealie-grocery" data-state="no-lists" style={{ paddingBottom: 80 }}>
-        <CenterMessage
-          icon={<ShoppingCart size={24} strokeWidth={2} />}
+        <EmptyState
+          icon={ShoppingCart}
           title={tCore('mealie.grocery.noListsTitle')}
-          description={tCore('mealie.grocery.noListsDescription')}
-          padding="56px 16px 48px"
-        >
-          {openButton(true)}
-        </CenterMessage>
+          body={tCore('mealie.grocery.noListsDescription')}
+          style={{ padding: '56px 16px 48px' }}
+          action={openButton(true)}
+        />
       </div>
     );
   }
@@ -187,53 +190,17 @@ export default function MealsMealieGroceryView({
 
   const itemRow = (item: ShoppingItem) => {
     const detail = [item.note, item.recipes.length ? forRecipes(item.recipes) : ''].filter(Boolean).join(' · ');
-    const waiting = shopping.pending.has(item.id);
     return (
-      <button
+      <TickRow
         key={item.id}
-        type="button"
-        data-testid="mealie-grocery-item"
-        data-checked={item.checked ? 'true' : 'false'}
-        role="checkbox"
-        aria-checked={item.checked}
-        aria-busy={waiting || undefined}
-        onClick={() => shopping.toggle(item)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', minHeight: 44,
-          marginBottom: 4, borderRadius: 10, border: '1px solid var(--hs-border)', background: 'var(--hs-bg-panel)',
-          cursor: 'pointer', opacity: item.checked ? 0.45 : 1, transition: 'opacity 0.15s', textAlign: 'left',
-          color: 'inherit', fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent',
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            width: 22, height: 22, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: item.checked ? 'var(--hs-success)' : 'transparent',
-            border: item.checked ? 'none' : `2px ${waiting ? 'dashed' : 'solid'} var(--hs-text-faint)`,
-            // Still on its way to Mealie: not shown as done yet.
-            opacity: waiting ? 0.5 : 1,
-          }}
-        >
-          {item.checked && <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>}
-        </span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span
-            style={{
-              display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.3,
-              color: item.checked ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
-              textDecoration: item.checked ? 'line-through' : 'none', overflowWrap: 'anywhere',
-            }}
-          >
-            {item.text}
-          </span>
-          {detail && (
-            <span style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {detail}
-            </span>
-          )}
-        </span>
-      </button>
+        testId="mealie-grocery-item"
+        label={item.text}
+        detail={detail || undefined}
+        checked={item.checked}
+        // Still on its way to Mealie: not shown as done yet.
+        pending={shopping.pending.has(item.id)}
+        onToggle={() => shopping.toggle(item)}
+      />
     );
   };
 
@@ -255,25 +222,11 @@ export default function MealsMealieGroceryView({
                 aria-pressed={on}
                 aria-label={t('mealie.grocery.listLeft', { list: l.name, count: l.left })}
                 onClick={() => shopping.choose(l.id)}
-                style={{
-                  flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 44, padding: '0 14px',
-                  borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                  border: `1px solid ${on ? `color-mix(in srgb, ${WARN} 55%, transparent)` : 'var(--hs-border)'}`,
-                  background: on ? `color-mix(in srgb, ${WARN} 12%, transparent)` : 'var(--hs-bg-panel)',
-                  color: on ? WARN : 'var(--hs-text-muted)',
-                }}
+                className="press-scale-sm"
+                style={{ ...toggleChipStyle(on), flex: 'none', gap: 7 }}
               >
                 {l.name}
-                <span
-                  aria-hidden
-                  style={{
-                    fontSize: 11, padding: '1px 7px', borderRadius: 99,
-                    background: on ? `color-mix(in srgb, ${WARN} 18%, transparent)` : 'var(--hs-bg-card)',
-                    color: on ? WARN : 'var(--hs-text-faint)',
-                  }}
-                >
-                  {l.left}
-                </span>
+                <span aria-hidden style={chipCountStyle(on)}>{l.left}</span>
               </button>
             );
           })}
@@ -285,7 +238,7 @@ export default function MealsMealieGroceryView({
           <>
             <span style={{ minWidth: 0 }}>{lineWords(mealieShoppingNoticeWords(notice))}</span>
             {notice.kind === 'picked' && (
-              <button type="button" onClick={notice.undo} style={lineButton}>{tCore('mealie.grocery.undo')}</button>
+              <button type="button" onClick={notice.undo} className="press-scale-sm" style={lineButton}>{tCore('mealie.grocery.undo')}</button>
             )}
           </>
         )}
@@ -303,24 +256,17 @@ export default function MealsMealieGroceryView({
             enterKeyHint="done"
             disabled={busy}
             style={{
-              flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: '1px solid var(--hs-border)',
+              flex: 1, minWidth: 0, height: SQUARE_ADD_SIZE, borderRadius: 12, border: '1px solid var(--hs-border)',
               background: 'var(--hs-bg-input)', color: 'var(--hs-text-body)', fontSize: 16, padding: '0 12px',
               fontFamily: 'inherit', outline: 'none',
             }}
           />
-          <button
-            type="submit"
-            className="press-btn"
+          <SquareAddButton
             disabled={!canAdd}
-            aria-label={tCore('mealie.grocery.addButton')}
-            style={{
-              width: 44, height: 44, flex: 'none', borderRadius: 10, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: draft.trim() ? REMOTE_ACCENT : 'var(--hs-bg-card)', color: draft.trim() ? '#000' : 'var(--hs-text-faint)',
-              cursor: draft.trim() && !shopping.adding ? 'pointer' : 'default', opacity: shopping.adding ? 0.6 : 1,
-            }}
-          >
-            <Plus size={20} strokeWidth={2.4} aria-hidden />
-          </button>
+            idle={!draft.trim()}
+            busy={shopping.adding}
+            label={tCore('mealie.grocery.addButton')}
+          />
         </form>
         <div role="status" data-testid="mealie-grocery-added" style={{ display: 'flex', alignItems: 'center', minHeight: added?.undo ? 44 : 18, margin: '4px 2px 6px', fontSize: 12, color: 'var(--hs-success)' }}>
           {added && (
@@ -328,17 +274,17 @@ export default function MealsMealieGroceryView({
               <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {lineWords(mealieShoppingAddedWords(added))}
               </span>
-              {added.undo && <button type="button" onClick={added.undo} style={lineButton}>{tCore('mealie.grocery.undo')}</button>}
+              {added.undo && <button type="button" onClick={added.undo} className="press-scale-sm" style={lineButton}>{tCore('mealie.grocery.undo')}</button>}
             </>
           )}
         </div>
 
         {total === 0 ? (
-          <CenterMessage
-            icon={<ShoppingCart size={24} strokeWidth={2} />}
+          <EmptyState
+            icon={ShoppingCart}
             title={tCore('mealie.grocery.emptyTitle', { list: list.name })}
-            description={tCore('mealie.grocery.emptyDescription')}
-            padding="40px 16px"
+            body={tCore('mealie.grocery.emptyDescription')}
+            style={{ padding: '40px 16px' }}
           />
         ) : (
           <>
@@ -351,13 +297,14 @@ export default function MealsMealieGroceryView({
                 <button
                   type="button"
                   onClick={share}
+                  className="press-btn"
                   style={{
                     padding: '6px 14px', minHeight: 44, fontSize: 13, fontWeight: 600, borderRadius: 8,
                     border: '1px solid var(--hs-border)', background: 'var(--hs-bg-panel)',
                     color: shared ? 'var(--hs-success)' : 'var(--hs-text-muted)', cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  {shared ? t('mealsGrocery.shareCopiedButton') : t('mealsGrocery.shareButton')}
+                  {shared ? tCore('status.copied') : t('mealsGrocery.shareButton')}
                 </button>
               </div>
               <div style={{ height: 6, background: 'var(--hs-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
@@ -369,6 +316,7 @@ export default function MealsMealieGroceryView({
                   <button
                     type="button"
                     onClick={openMealie}
+                    className="press-scale-sm"
                     aria-label={tCore('mealie.grocery.openListAria', { list: list.name })}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, padding: 0, border: 'none', background: 'none',
@@ -381,7 +329,7 @@ export default function MealsMealieGroceryView({
                 )}
               </div>
               {shopping.stale && (
-                <p role="status" data-testid="mealie-grocery-stale" style={{ margin: '6px 0 0', fontSize: 12, color: WARN }}>
+                <p role="status" data-testid="mealie-grocery-stale" style={{ margin: '6px 0 0', fontSize: 12, color: WARN_INK }}>
                   {copyTime
                     ? tCore(`mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: copyTime })
                     : tCore(`${mealieProblemWords(shopping.problem)}.title`)}
@@ -415,6 +363,7 @@ export default function MealsMealieGroceryView({
                   type="button"
                   data-testid="mealie-grocery-cart"
                   aria-expanded={cartOpen}
+                  className="press-scale"
                   onClick={() => setCartOpen((open) => !open)}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: 12, minHeight: 48, marginBottom: 8,

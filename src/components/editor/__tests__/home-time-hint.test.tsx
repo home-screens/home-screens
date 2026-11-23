@@ -99,11 +99,11 @@ describe('the no time zone banner', () => {
     return <NoTimezoneBanner zone={useEditorHouseholdZone()} />;
   }
 
-  it("shows while no zone is saved, naming the hub's clock and linking to the picker", () => {
+  it('shows while no zone is saved, naming the clock it uses and linking to the picker', () => {
     household(undefined);
     render(<Banner />, { wrapper: Wrapper });
     const banner = screen.getByTestId('no-timezone-banner');
-    expect(banner.textContent).toContain("No time zone yet. Your screens use the hub's clock (UTC), so times can be off.");
+    expect(banner.textContent).toContain('No time zone yet. Your screens use the clock on Home Screens (UTC), so times can be off.');
     const link = screen.getByRole('link', { name: 'Pick time zone' });
     expect(link.getAttribute('href')).toBe('/editor/settings?section=defaults&page=location&highlight=location.timezone');
   });

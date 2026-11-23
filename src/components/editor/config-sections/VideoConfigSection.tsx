@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { isSessionExpired } from '@/lib/editor-fetch';
-import { uploadLibraryFiles } from '@/lib/library-client';
+import { uploadLibraryFiles, uploadFailureText } from '@/lib/library-client';
 import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -16,6 +16,7 @@ import { detectICloudSource } from '@/lib/icloud-parse';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { useObjectFitOptions } from './option-hooks';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** Pull the `file` param back out of a serve URL (upload responses return URLs). */
 function fileParamOf(url: string): string | null {
@@ -28,6 +29,7 @@ function fileParamOf(url: string): string | null {
 
 export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const OBJECT_FIT_OPTIONS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<{
@@ -78,11 +80,11 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         // It would upload fine and then play as a black box on the wall.
         setUploadError(t('settings.mediaPage.wontPlay', { name: picked.name }));
       } else {
-        setUploadError(error?.message || t('configSections.video.uploadFailed'));
+        setUploadError(error ? uploadFailureText(error, tCore, tCore('errors.uploadFailed')) : tCore('errors.uploadFailed'));
       }
     } catch (err) {
       // An expired session is already on its way to the login page.
-      if (!isSessionExpired(err)) setUploadError(t('configSections.video.uploadFailed'));
+      if (!isSessionExpired(err)) setUploadError(tCore('errors.uploadFailed'));
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -105,7 +107,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               source === 'file' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
-            {t('configSections.video.tabLibrary')}
+            {tCore('settingsPages.media')}
           </button>
           <button
             onClick={() => set({ source: 'url' })}
@@ -135,7 +137,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               onSaved={(job) => handleICloudSaved(job.videoFiles ?? [])}
             />
           ) : (
-            <p className="text-[10px] text-hs-text-faint">{t('configSections.video.urlHint')}</p>
+            <FieldHint>{t('configSections.video.urlHint')}</FieldHint>
           )}
         </div>
       ) : (
@@ -166,7 +168,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       )}
 
       {showMovHint && (
-        <p className="text-[10px] text-hs-text-faint">{t('configSections.video.movHint')}</p>
+        <FieldHint>{t('configSections.video.movHint')}</FieldHint>
       )}
 
       <LabeledSelect
@@ -182,7 +184,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         onChange={(v) => set({ muted: !v })}
       />
       {!muted && (
-        <p className="text-[10px] text-hs-text-faint">{t('configSections.video.soundHint')}</p>
+        <FieldHint>{t('configSections.video.soundHint')}</FieldHint>
       )}
 
       <Toggle

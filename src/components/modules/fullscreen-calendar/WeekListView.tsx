@@ -22,7 +22,8 @@ import { DayArtLayer } from '../shared/DayArtLayer';
 import { CountdownPill, EventProgressBar, EVENT_TIME_TEXT, eventAriaLabel } from './list-view-bits';
 import { formatMealTime, getMealSlotLabelKey, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner } from '@/lib/calendar-people';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
+import { MemberBadge } from '../shared/MemberBadge';
 import { EventMarker } from '../shared/EventMarker';
 import { weekMealLabels, type DayExtras, type ExtrasIndex } from '@/lib/calendar-extras';
 import type { MealSlotType, TimeFormat } from '@/types/config';
@@ -256,6 +257,8 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLab
   };
   const chores = day.chores;
   const avatarSize = fontSize * 1.3;
+  // The stack has no names beside it, so two people never share a letter.
+  const initials = useMemo(() => getUniqueInitials(Object.entries(members).map(([id, m]) => ({ id, name: m.name }))), [members]);
   return (
     <div data-day-extras="" style={{ marginTop: hasEvents ? scale.bu * 0.5 : 0, borderTop: hasEvents ? '1px solid var(--cal-border-subtle)' : undefined, paddingTop: hasEvents ? scale.bu * 0.3 : 0 }}>
       {day.meals.map((meal) => {
@@ -299,14 +302,14 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLab
             {chores.memberIds.map((id, i) => {
               const m = members[id];
               return (
-                <span key={id} style={{
-                  width: avatarSize, height: avatarSize, borderRadius: '50%',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  background: m?.color ?? EVERYONE_COLOR, color: memberInk(m?.color ?? EVERYONE_COLOR), fontSize: fontSize * 0.55, fontWeight: 700,
-                  border: '1.5px solid var(--cal-bg)', marginLeft: i === 0 ? 0 : -avatarSize * 0.3,
-                }}>
-                  {memberInitials(m?.name ?? '', { max: 2 })}
-                </span>
+                <MemberBadge
+                  key={id}
+                  initials={initials.get(id) ?? memberInitials(m?.name ?? '')}
+                  color={m?.color ?? EVERYONE_COLOR}
+                  size={avatarSize}
+                  fontSize={fontSize * 0.55}
+                  style={{ border: '1.5px solid var(--cal-bg)', marginLeft: i === 0 ? 0 : -avatarSize * 0.3 }}
+                />
               );
             })}
           </span>
@@ -447,7 +450,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
               letterSpacing: '0.04em',
               fontSize: fontSize * 0.7,
             }}>
-              {kindLabel ?? t('fullscreen-calendar.allDay')}
+              {kindLabel ?? t('calendar.allDay')}
             </span>
           ) : (
             timeLabel

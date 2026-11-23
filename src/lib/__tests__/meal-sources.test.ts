@@ -13,7 +13,7 @@ const LOCAL = { source: 'local' as const, mealie: null };
 
 describe('mealieRangeWanted', () => {
   /* The phone asked for the week in view only, so paging back to the first
-   * week of the copy never brought in the week before it, and Copy Last Week
+   * week of the copy never brought in the week before it, and Copy last week
    * stayed hidden. */
   it('asks for the week before too, at the edge of the copy', () => {
     expect(mealieRangeWanted(fromMealie('ok'), { start: '2026-09-14', end: '2026-09-20' }))

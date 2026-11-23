@@ -6,6 +6,9 @@ import Button from '@/components/ui/Button';
 import { useLocale, useTranslate, type TranslateFn } from '@/i18n';
 import { relativeTimeFormatter } from '@/i18n/formatters';
 import type { DiagnosticsResult } from '@/lib/network-types';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import StatusDot from '@/components/ui/StatusDot';
+import Spinner from '@/components/ui/Spinner';
 
 /* ─── Helpers ──────────────────────────────── */
 
@@ -35,16 +38,6 @@ function formatLastRun(lastRun: string | null, t: TranslateFn, locale: string): 
 
 /* ─── Sub-components ───────────────────────── */
 
-function StatusDot({ reachable }: { reachable: boolean }) {
-  return (
-    <span
-      className={`inline-block w-2 h-2 rounded-full shrink-0 ${
-        reachable ? 'bg-hs-success' : 'bg-red-500'
-      }`}
-    />
-  );
-}
-
 function HostRow({
   label,
   ip,
@@ -69,7 +62,7 @@ function HostRow({
   }
   return (
     <div className="flex items-center gap-2">
-      <StatusDot reachable={reachable} />
+      <StatusDot tone={reachable ? 'success' : 'danger'} />
       <span className="text-sm text-hs-text-primary">
         {label}{' '}
         <span className="text-hs-text-muted text-xs">({ip})</span>
@@ -85,6 +78,7 @@ function HostRow({
 
 export default function DiagnosticsSection() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useLocale();
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<DiagnosticsResult | null>(null);
@@ -103,26 +97,26 @@ export default function DiagnosticsSection() {
         setError(t('settings.networkPage.diagnostics.requestFailed'));
       }
     } catch {
-      setError(t('common.serverUnreachable'));
+      setError(tCore('refusals.unreachable'));
     } finally {
       setRunning(false);
     }
-  }, [t]);
+  }, [t, tCore]);
 
   const watchdog = result?.watchdog;
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.networkPage.diagnostics.heading')}
-      </h3>
+      </SettingsSectionHeading>
 
       <div className="bg-hs-card rounded-lg border border-hs-border p-4 space-y-3">
         {/* Watchdog status — shown when we have a result */}
         {watchdog !== undefined && (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <StatusDot reachable={watchdog.active} />
+              <StatusDot tone={watchdog.active ? 'success' : 'danger'} />
               <span className="text-sm text-hs-text-primary">
                 {t('settings.networkPage.diagnostics.watchdog.label')}{' '}
                 <span className={watchdog.active ? 'text-hs-success' : 'text-hs-text-muted'}>
@@ -184,25 +178,7 @@ export default function DiagnosticsSection() {
           >
             {running ? (
               <span className="flex items-center gap-1.5">
-                <svg
-                  className="w-3.5 h-3.5 animate-spin"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
+                <Spinner />
                 {t('settings.networkPage.diagnostics.testingButton')}
               </span>
             ) : (

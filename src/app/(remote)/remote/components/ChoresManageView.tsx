@@ -16,10 +16,12 @@ import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { buildChoreAssigneeLine, buildChoreSummaryLine, getChoreRotationSummaryKey, grabRulesSummary } from '@/components/modules/chore-chart/chore-form-presentation';
 import { DEFAULT_CHORE_ICON, regularBeforeBonus } from '@/lib/chore-constants';
 import { STARTER_CHORE_COUNT } from '@/lib/starter-chores';
-import FamilyManager from '@/components/family/FamilyManager';
+import PhoneFamilyManager from '@/components/family/PhoneFamilyManager';
 import ChoreFormOverlay from './ChoreFormOverlay';
 import StarterChoresOverlay from './StarterChoresOverlay';
-import { ACCENT_HEADING, REMOTE_ACCENT } from './remote-styles';
+import { ACCENT_HEADING, REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
+import SegmentedTabs from './SegmentedTabs';
+import PrimaryButton from './PrimaryButton';
 import { withAlpha } from '@/lib/hex-color';
 
 // ── Main Exported Component ───────────────────────────────────────
@@ -87,65 +89,20 @@ export default function ChoresManageView({
 
   return (
     <div>
-      {/* Inner tabs: Members / Chores */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 2,
-          padding: 3,
-          background: 'var(--hs-bg-card)',
-          borderRadius: 10,
-          marginBottom: 16,
-        }}
-      >
-        {(['chores', 'members'] as const).map((tab) => {
-          const isActive = section === tab;
-          const count = tab === 'members' ? members.length : chores.length;
-          return (
-            <button
-              key={tab}
-              onClick={() => setSection(tab)}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                minHeight: 40,
-                fontSize: 13,
-                fontWeight: 600,
-                borderRadius: 8,
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                background: isActive ? 'var(--hs-bg-hover)' : 'transparent',
-                color: isActive ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              {t(`choresManage.tabs.${tab}`)}
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: 20,
-                  height: 20,
-                  padding: '0 6px',
-                  borderRadius: 999,
-                  background: 'var(--hs-bg-hover)',
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Inner tabs: Chores / Family */}
+      <SegmentedTabs
+        ariaLabel={t('choresTab.subNav.manage')}
+        value={section}
+        onChange={setSection}
+        style={{ marginBottom: 16 }}
+        tabs={(['chores', 'members'] as const).map((tab) => ({
+          id: tab,
+          label: t(`choresManage.tabs.${tab}`),
+          count: tab === 'members' ? members.length : chores.length,
+        }))}
+      />
 
-      {section === 'members' && <FamilyManager variant="mobile" chores={chores} onChanged={onFamilyChanged} />}
+      {section === 'members' && <PhoneFamilyManager chores={chores} onChanged={onFamilyChanged} />}
 
       {section === 'chores' && (
         <div>
@@ -173,7 +130,7 @@ export default function ChoresManageView({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                <ListChecks size={24} color={REMOTE_ACCENT} />
+                <ListChecks size={24} color={REMOTE_ACCENT_INK} />
               </div>
               <h4 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)' }}>
                 {t('choresManage.starter.cardTitle')}
@@ -183,30 +140,18 @@ export default function ChoresManageView({
                   ? t('choresManage.starter.cardNoMembers')
                   : t('choresManage.starter.cardDescription', { count: STARTER_CHORE_COUNT })}
               </p>
-              <button
-                className="press-btn"
+              <PrimaryButton
                 data-testid="starter-open"
                 onClick={() => {
                   if (members.length === 0) { setSection('members'); return; }
                   setOverlay({ type: 'starter' });
                 }}
-                style={{
-                  width: '100%',
-                  minHeight: 48,
-                  padding: 14,
-                  borderRadius: 12,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: REMOTE_ACCENT,
-                }}
+                style={{ marginTop: 0 }}
               >
                 {members.length === 0
                   ? t('choresManage.starter.cardNoMembersButton')
                   : t('choresManage.starter.cardButton')}
-              </button>
+              </PrimaryButton>
             </div>
           )}
 
@@ -296,7 +241,7 @@ export default function ChoresManageView({
                   <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                     &rarr;{' '}
                     {/* A chore nobody has is a thing to fix, so it does not sit in the same quiet grey. */}
-                    <span style={choreAssigneeIds(chore, groups).length === 0 ? { color: 'var(--hs-warning)' } : undefined}>
+                    <span style={choreAssigneeIds(chore, groups).length === 0 ? { color: 'var(--hs-warning-ink)' } : undefined}>
                       {buildChoreAssigneeLine({ chore, members, groups, unknownLabel: tModules('chore-chart.unknownAssignee'), nobodyLabel: tModules('chore-chart.choreSummary.nobody') })}
                     </span>
                     {rotationLabel && (
@@ -351,7 +296,7 @@ export default function ChoresManageView({
                 onClick={() => setOverlay({ type: 'starter' })}
                 style={{
                   background: 'none', border: 'none', padding: '8px 12px', minHeight: 44,
-                  color: REMOTE_ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                  color: REMOTE_ACCENT_INK, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
                 {t('choresManage.starter.link')}

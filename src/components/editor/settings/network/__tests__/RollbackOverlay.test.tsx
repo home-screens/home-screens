@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
 /**
- * Render-time i18n contract test for `<RollbackOverlay>`.
+ * Render-time i18n contract test for `<RollbackOverlay>`, which draws in a
+ * portal on `document.body` like every editor window.
  *
  * RollbackOverlay's internal `status: 'polling' | 'confirmed' | 'reverted'`
  * union renders three distinct sub-trees, each calling 3-4 dictionary
@@ -60,12 +61,12 @@ describe('RollbackOverlay i18n', () => {
       () => new Promise(() => { /* never resolves */ }),
     );
 
-    const { container } = renderOverlay();
+    renderOverlay();
 
     // The polling sub-tree should be rendered with translated copy.
-    expect(container.textContent).toContain('Verifying connectivity...');
+    expect(document.body.textContent).toContain('Verifying connectivity…');
     // No raw dotted-path key may leak through any of the three sub-trees.
-    expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
+    expect(document.body.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
   });
 
   it('renders translated copy for status=reverted (fetch reports no pending rollback)', async () => {
@@ -73,16 +74,16 @@ describe('RollbackOverlay i18n', () => {
       new Response(JSON.stringify({ pending: false }), { status: 200 }),
     );
 
-    const { container } = renderOverlay();
+    renderOverlay();
 
     await act(async () => {
       await flushPromises();
       await flushPromises();
     });
 
-    expect(container.textContent).toContain('Change reverted');
-    expect(container.textContent).toContain('Dismiss');
-    expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
+    expect(document.body.textContent).toContain('Change reverted');
+    expect(document.body.textContent).toContain('Dismiss');
+    expect(document.body.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
   });
 
   it('renders translated copy for status=confirmed (fetch reports pending rollback then accepts confirmation)', async () => {
@@ -99,15 +100,15 @@ describe('RollbackOverlay i18n', () => {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     });
 
-    const { container } = renderOverlay();
+    renderOverlay();
 
     await act(async () => {
       await flushPromises();
       await flushPromises();
     });
 
-    expect(container.textContent).toContain('Connection confirmed!');
-    expect(container.textContent).toContain('Dismiss');
-    expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
+    expect(document.body.textContent).toContain('Connection confirmed!');
+    expect(document.body.textContent).toContain('Dismiss');
+    expect(document.body.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
   });
 });

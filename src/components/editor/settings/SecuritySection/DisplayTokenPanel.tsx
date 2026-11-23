@@ -9,6 +9,8 @@ import { useCopyFlash } from '@/hooks/useCopyFlash';
 import { useEditorStore } from '@/stores/editor-store';
 import { findMainDisplay } from '@/lib/display-filter';
 import type { DisplayNode } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import { SettingsSubHeading } from '@/components/editor/settings/shared/SettingsPanel';
 
 /**
  * The address a phone bookmark points at. `/api/display/<command>` takes the
@@ -48,6 +50,7 @@ interface DisplayTokenPanelProps {
 /** Reveal/copy/regenerate panel for the display auth token. */
 export default function DisplayTokenPanel({ token, onTokenChange }: DisplayTokenPanelProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const origin = useOrigin();
   const displays = useEditorStore((s) => s.config?.displays);
   const exampleTarget = findMainDisplay(displays);
@@ -78,7 +81,7 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
         setTokenStatus(t('settings.securityPage.displayToken.errorRegenerate'));
       }
     } catch {
-      setTokenStatus(t('common.networkError'));
+      setTokenStatus(tCore('refusals.unreachable'));
     } finally {
       setTokenRegenerating(false);
     }
@@ -86,12 +89,12 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
 
   return (
     <div className="mt-4 pt-4 border-t border-hs-border">
-      <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
+      <SettingsSubHeading className="mb-2">
         {t('settings.securityPage.displayToken.heading')}
-      </h4>
-      <p className="text-xs text-hs-text-faint mb-2">
+      </SettingsSubHeading>
+      <FieldHint className="mb-2">
         {t('settings.securityPage.displayToken.description')}
-      </p>
+      </FieldHint>
       <div className="flex items-center gap-2">
         {/* Addressed by test id, not by its classes: this panel holds more
             than one <code>, and styling is not an address. */}
@@ -113,7 +116,7 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
         </Button>
         <Button variant="secondary" size="sm" onClick={handleCopyToken}>
           {tokenCopied
-            ? t('settings.securityPage.displayToken.copied')
+            ? tCore('status.copied')
             : t('settings.securityPage.displayToken.copy')}
         </Button>
       </div>
@@ -129,7 +132,7 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
           </Button>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-hs-warning">
+            <span className="text-xs text-hs-warning-ink">
               {t('settings.securityPage.displayToken.regenerateWarning')}
             </span>
             <Button
@@ -162,27 +165,27 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
         )}
       </div>
       <div className="mt-3 space-y-1.5">
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.securityPage.displayToken.phoneHintIntro')}
-        </p>
+        </FieldHint>
         <code
           data-testid="display-key-bookmark-url"
           className="block text-[11px] bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-hs-text-secondary font-mono break-all select-all"
         >
           {displayCommandExample(origin, tokenRevealed ? token : KEY_PLACEHOLDER, displays)}
         </code>
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.securityPage.displayToken.phoneHintOutro')}
-        </p>
+        </FieldHint>
         {/* Only worth saying once there is more than one display to aim at:
             the link can only name one of them. */}
         {exampleTarget && (displays?.length ?? 0) > 1 && (
-          <p className="text-xs text-hs-text-faint">
+          <FieldHint>
             {t('settings.securityPage.displayToken.phoneHintDisplayNote', {
               name: exampleTarget.name,
               display: exampleTarget.id,
             })}
-          </p>
+          </FieldHint>
         )}
       </div>
     </div>

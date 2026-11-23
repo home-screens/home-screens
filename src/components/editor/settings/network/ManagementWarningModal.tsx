@@ -1,7 +1,7 @@
 'use client';
 
-import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
+import Notice from '@/components/ui/Notice';
 import { useTranslate } from '@/i18n';
 
 /* ─── Props ────────────────────────────────── */
@@ -31,30 +31,25 @@ export default function ManagementWarningModal({
 
   return (
     <ModalFrame labelledBy="management-warning-title" onClose={onCancel} className="w-full max-w-md">
-      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 id="management-warning-title" className="text-lg font-semibold text-hs-text-primary mb-3">
-          {t('settings.networkPage.managementWarning.heading')}
-        </h2>
+      <ModalPanel>
+        <ModalHeader titleId="management-warning-title" title={t('settings.networkPage.managementWarning.heading')} onClose={onCancel} />
 
-        <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
-          <p className="text-sm text-hs-warning">{warning}</p>
-        </div>
+        <ModalBody>
+          <Notice tone="warning">{warning}</Notice>
 
-        {autoRevert && (
-          <p className="text-sm text-hs-text-muted mb-5">
-            {t('settings.networkPage.managementWarning.autoRevertHint')}
-          </p>
-        )}
+          {autoRevert && (
+            <p className="mt-4 text-sm text-hs-text-muted">
+              {t('settings.networkPage.managementWarning.autoRevertHint')}
+            </p>
+          )}
+        </ModalBody>
 
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>
-            {t('settings.networkPage.managementWarning.cancelButton')}
-          </Button>
-          <Button variant="danger" onClick={onProceed}>
-            {t('settings.networkPage.managementWarning.proceedButton')}
-          </Button>
-        </div>
-      </div>
+        <ModalFooter
+          onCancel={onCancel}
+          cancelLabel={t('settings.networkPage.managementWarning.cancelButton')}
+          primary={{ label: t('settings.networkPage.managementWarning.proceedButton'), onClick: onProceed, variant: 'danger' }}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

@@ -1,4 +1,7 @@
 {
+  "loadFailed": {
+    "retry": "Réessayer"
+  },
   "refusals": {
     "dayNotes": {
       "textRequired": "Une note du jour a besoin de quelques mots.",
@@ -37,18 +40,17 @@
     "hubDisconnected": "Home Screens est injoignable"
   },
   "connectionBanner": {
-    "unreachable": "Impossible de joindre Home Screens. Vérifie que ce téléphone est sur le Wi-Fi de la maison et que le Pi principal est allumé.",
+    "unreachable": "Impossible de joindre Home Screens. Vérifie que ce téléphone est sur le Wi-Fi de la maison et que Home Screens est allumé.",
     "restarting": "Home Screens redémarre. Reconnexion dans environ 20 secondes…",
-    "rebooting": "L'appareil redémarre. Reconnexion dans environ une minute…"
+    "rebooting": "Home Screens redémarre. Reconnexion dans environ une minute…"
   },
   "backupReminder": {
     "daysAgoSingular": "Tu n'as pas fait de sauvegarde depuis {n} jour.",
     "daysAgoPlural": "Tu n'as pas fait de sauvegarde depuis {n} jours.",
-    "backupButton": "Sauvegarder",
-    "savingButton": "Enregistrement…",
+    "backupButton": "Sauvegarder maintenant",
     "dismissAriaLabel": "Fermer",
-    "autoFailed": "La sauvegarde automatique n'a pas fonctionné. Ouvre les Réglages sur un ordinateur pour voir pourquoi.",
-    "autoNotSent": "Ta sauvegarde a été enregistrée, mais n'a pas pu être envoyée dans ton dossier de stockage. Ouvre les Réglages sur un ordinateur pour voir pourquoi."
+    "autoFailed": "La sauvegarde automatique n'a pas fonctionné. Ouvre les Paramètres sur un ordinateur pour voir pourquoi.",
+    "autoNotSent": "Ta sauvegarde a été enregistrée, mais n'a pas pu être envoyée dans ton dossier de stockage. Ouvre les Paramètres sur un ordinateur pour voir pourquoi."
   },
   "updateAvailable": {
     "message": "Mise à jour disponible : v{version}",
@@ -64,14 +66,14 @@
     "updatedTimeAgo": "Mis à jour {ago}",
     "lastSeenTimeAgo": "Vu pour la dernière fois {ago}",
     "screenIndex": "Écran {current} sur {total}",
-    "waiting": "En attente de l'affichage…",
-    "unreachable": "Affichage injoignable",
-    "notConnectedTitle": "Cet affichage ne s’est pas encore connecté",
+    "waiting": "En attente du mur…",
+    "unreachable": "Impossible de joindre le mur",
+    "notConnectedTitle": "Ce mur ne s’est pas encore connecté",
     "notConnectedHint": "Vérifie qu'il est allumé, ou ouvre Home Screens sur un ordinateur pour terminer sa configuration.",
-    "theDisplay": "L'écran",
-    "allHeading": "Tous les écrans",
+    "theDisplay": "Le mur",
+    "allHeading": "Tous les murs",
     "rowNotConnected": "Pas encore connecté",
-    "pickOneHint": "Choisis un écran pour changer sa page ou son profil.",
+    "pickOneHint": "Choisis un mur pour changer son écran ou son profil.",
     "controlsPaused": "Les commandes sont en pause jusqu'à ce qu'il se reconnecte."
   },
   "screenControls": {
@@ -79,12 +81,12 @@
     "nextAriaLabel": "Écran suivant"
   },
   "quickActions": {
-    "wakeDisplay": "Réveiller l'affichage",
-    "sleepDisplay": "Mettre en veille",
+    "wakeDisplay": "Réveiller le mur",
+    "sleepDisplay": "Mettre le mur en veille",
     "sendAlert": "Envoyer une alerte",
     "waitingFor": "En attente de {name}…",
-    "waitingForAll": "En attente des écrans…",
-    "waitingForUnnamed": "En attente de l'écran…"
+    "waitingForAll": "En attente des murs…",
+    "waitingForUnnamed": "En attente du mur…"
   },
   "brightnessCard": {
     "label": "Luminosité",
@@ -98,7 +100,7 @@
   },
   "displayPicker": {
     "targeting": "Envoyer à",
-    "allLabel": "Tous les écrans"
+    "allLabel": "Tous les murs"
   },
   "mobileColorPicker": {
     "colorLabel": "Couleur",
@@ -127,7 +129,7 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (tout est fait)",
     "history": {
-      "editingPrefix": "Vous cochez le ",
+      "editingPrefix": "Tu coches le ",
       "editingNote": "La liste affichée est celle d'aujourd'hui : les tâches ajoutées récemment peuvent sembler oubliées.",
       "lockedMessage": "Demande à un grand pour ajouter les tâches que tu as manquées.",
       "editingSuffix": ". Les tickets comptent quand même pour aujourd'hui."
@@ -141,7 +143,6 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Cocher : {chore}",
     "choreAriaLabelCompleted": "Fait : {chore}",
-    "saveFailed": "Échec de l'enregistrement. Réessaie.",
     "dayToggle": {
       "ariaLabel": "Jour à afficher",
       "yesterday": "Hier",
@@ -197,8 +198,7 @@
       "title": "La remettre en jeu ?",
       "description": "« {chore} » redevient libre. Les tickets déjà gagnés avec cette tâche ne sont pas perdus."
     },
-    "loadError": "Impossible de charger tes tâches. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer",
+    "loadError": "Impossible de charger tes tâches. Vérifie que Home Screens est allumé et réessaie.",
     "goalLine": {
       "moreToGoSingular": "encore {n} ticket",
       "moreToGoPlural": "encore {n} tickets",
@@ -236,7 +236,7 @@
   "choresManage": {
     "tabs": {
       "chores": "Tâches",
-      "members": "Membres"
+      "members": "Famille"
     },
     "chores": {
       "editAriaLabel": "Modifier {name}",
@@ -258,20 +258,14 @@
       "weeklyScheduleLabel": "Planning hebdomadaire",
       "rotationLabel": "Qui s'en occupe ?",
       "addSubmit": "Ajouter la tâche",
-      "saveSubmit": "Enregistrer la tâche",
       "deleteButton": "Supprimer la tâche",
       "grabRulesNote": "Le nombre de tâches qu'une personne peut prendre, et jusqu'à quand elles lui restent réservées, se règlent pour toute la famille, sous Bonus dans l'onglet Gérer."
-    },
-    "choreDelete": {
-      "title": "Supprimer « {name} » ?",
-      "description": "La tâche disparaît. Les tickets que les enfants ont déjà gagnés pour elle restent sur leur carte.",
-      "confirmLabel": "Supprimer la tâche"
     },
     "starter": {
       "cardTitle": "Commence avec des tâches toutes prêtes",
       "cardDescription": "{count} tâches du quotidien, classées par moment de la journée. Choisis celles qui se font chez toi, tu pourras tout changer plus tard.",
       "cardButton": "Choisir dans la liste",
-      "cardNoMembers": "Ajoute d'abord les membres de ta famille, puis choisis leurs tâches.",
+      "cardNoMembers": "Ajoute d'abord les personnes de la maison, puis choisis leurs tâches.",
       "cardNoMembersButton": "Ajouter des membres",
       "writeYourOwn": "Créer ma propre tâche",
       "link": "Ajouter des tâches toutes prêtes"
@@ -306,14 +300,12 @@
         "confirmLabel": "Vider la semaine"
       },
       "deleteMeal": {
-        "title": "Supprimer « {name} » ?",
         "description": "Cela le retirera aussi de tous les créneaux prévus.",
         "descriptionPlanned": "Ce repas est prévu : {days}. Le supprimer le retire aussi du planning.",
         "moreDays": {
           "one": "{count} autre jour",
           "other": "{count} autres jours"
-        },
-        "confirmLabel": "Supprimer le repas"
+        }
       },
       "suggestWeek": {
         "title": "Remplacer les repas de cette semaine ?",
@@ -368,8 +360,7 @@
         "kid-friendly": "Pour enfants"
       }
     },
-    "loadError": "Impossible de charger tes repas. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer",
+    "loadError": "Impossible de charger tes repas. Vérifie que Home Screens est allumé et réessaie.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -407,15 +398,12 @@
     }
   },
   "mealForm": {
-    "titleNew": "Ajouter un repas",
+    "titleNew": "Nouveau repas",
     "titleEdit": "Modifier le repas",
-    "saveSubmit": "Enregistrer le repas",
-    "saveChangesSubmit": "Enregistrer les modifications",
-    "savingSubmit": "Enregistrement…",
+    "addSubmit": "Ajouter le repas",
     "deleteButton": "Supprimer le repas",
     "nameLabel": "Nom du repas",
     "namePlaceholder": "ex. Poulet sauté",
-    "emojiSelectAriaLabel": "Sélectionner {emoji}",
     "prepTimeLabel": "Temps de prépa",
     "cookTimeLabel": "Temps de cuisson",
     "minPlaceholder": "min",
@@ -428,8 +416,8 @@
     "ingredientNamePlaceholder": "Nom",
     "ingredientAmountPlaceholder": "Quantité",
     "removeIngredientAriaLabel": "Retirer l'ingrédient",
-    "addIngredientButton": "+ Ajouter un ingrédient",
-    "recipeUrlLabel": "URL de la recette",
+    "addIngredientButton": "Ajouter un ingrédient",
+    "recipeUrlLabel": "Lien de la recette",
     "recipeUrlPlaceholder": "https://…",
     "notesLabel": "Notes",
     "notesPlaceholder": "Notes sur ce repas…",
@@ -452,7 +440,7 @@
       "addMealsButton": "Ajouter des repas"
     },
     "slot": {
-      "addMeal": "+ Ajouter un repas",
+      "addMeal": "Ajouter un repas",
       "planSlotAriaLabel": "Planifier {slot} pour {day}",
       "mealFallback": "repas",
       "changeMealAriaLabel": "Changer {meal} pour {slot}",
@@ -463,7 +451,8 @@
     },
     "picker": {
       "title": "Choisir un repas",
-      "emptyLibrary": "Aucun repas enregistré pour l'instant. Tape celui de ce soir ci-dessus, ou enregistre ceux que tu cuisines souvent.",
+      "emptyLibraryTitle": "Aucun repas enregistré pour l'instant",
+      "emptyLibrary": "Tape celui de ce soir ci-dessus, ou enregistre ceux que tu cuisines souvent.",
       "typePlaceholder": "Cherche ou tape un repas",
       "searchLabel": "Chercher dans tes repas ou en taper un",
       "subtitle": "{slot} · {day}"
@@ -473,7 +462,6 @@
     "itemsCountSingular": "{checked} sur {total} article",
     "itemsCountPlural": "{checked} sur {total} articles",
     "shareButton": "Partager",
-    "shareCopiedButton": "Copié !",
     "autoGeneratedHint": "Généré automatiquement à partir des repas de cette semaine",
     "autoGeneratedHintDates": "Généré automatiquement à partir des repas de la semaine du {range}",
     "shareHeading": "Liste de courses",
@@ -496,10 +484,9 @@
   "mealsSettings": {
     "ariaLabel": "Paramètres des repas",
     "title": "Paramètres des repas",
-    "cancelAriaLabel": "Annuler et fermer",
     "slots": {
       "heading": "Créneaux de repas",
-      "description": "Quels repas planifies-tu ? Cela change ce qu'affichent l'écran et l'éditeur.",
+      "description": "Quels repas planifies-tu ? Cela change ce qu'affichent le mur et l'éditeur.",
       "toggleAriaLabelEnabled": "{label}, activé",
       "toggleAriaLabelDisabled": "{label}, désactivé"
     },
@@ -523,28 +510,22 @@
       "clearAriaLabel": "Vider l'heure par défaut pour {name}",
       "timeInputAriaLabel": "Heure par défaut pour {name}"
     },
-    "save": {
-      "saving": "Enregistrement…",
-      "submit": "Enregistrer les paramètres",
-      "saveFailed": "Échec de l'enregistrement. Réessaie.",
-      "networkError": "Erreur réseau. Réessaie."
-    },
     "planSource": {
       "heading": "Ton planning des repas est dans",
       "homeScreens": "Home Screens",
       "mealie": "Mealie",
-      "notConnectedNote": "Mealie est une appli de recettes à part, que certaines familles utilisent. Si c'est ton cas, connecte-la dans les Réglages sur l'ordinateur. Sinon, rien à faire ici.",
+      "notConnectedNote": "Mealie est une appli de recettes à part, que certaines familles utilisent. Si c'est ton cas, connecte-la dans les Paramètres sur l'ordinateur. Sinon, rien à faire ici.",
       "connectedNote": "Mealie est connecté au foyer « {household} ». Choisis-le pour planifier avec les recettes et le planning que tu y gardes.",
       "connectedNoteNoName": "Mealie est connecté. Choisis-le pour planifier avec les recettes et le planning que tu y gardes.",
       "onNote": "Avec Mealie, les repas viennent de Mealie, ici et sur le mur, et ce que tu planifies ici est enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
-      "switchingToMealieNote": "Après l'enregistrement, les repas viendront de Mealie ici et sur l'écran, et ce que tu planifies ici sera enregistré dans Mealie. Ton planning Home Screens est gardé et revient si tu changes d'avis.",
-      "switchingToHomeNote": "Après l'enregistrement, le téléphone et l'écran reviendront au planning Home Screens que tu avais avant. Rien ne change dans Mealie."
+      "switchingToMealieNote": "Après l'enregistrement, les repas viendront de Mealie ici et sur le mur, et ce que tu planifies ici sera enregistré dans Mealie. Ton planning Home Screens est gardé et revient si tu changes d'avis.",
+      "switchingToHomeNote": "Après l'enregistrement, le téléphone et le mur reviendront au planning Home Screens que tu avais avant. Rien ne change dans Mealie."
     }
   },
   "rewardForm": {
-    "titleAdd": "Ajouter une récompense",
+    "titleNew": "Nouvelle récompense",
     "titleEdit": "Modifier la récompense",
-    "saveButton": "Enregistrer la récompense",
+    "addSubmit": "Ajouter la récompense",
     "deleteButton": "Supprimer la récompense",
     "iconLabel": "Icône",
     "nameLabel": "Nom",
@@ -559,8 +540,7 @@
     "availableToLabel": "Disponible pour",
     "everyone": "Tout le monde",
     "deleteConfirm": {
-      "title": "Supprimer la récompense",
-      "description": "Supprimer « {name} » ? Les récompenses déjà données restent dans l'historique.",
+      "description": "Les récompenses déjà données restent dans l'historique.",
       "goalClears": {
         "one": "Cet objectif sera effacé.",
         "other": "Leurs objectifs seront effacés."
@@ -582,7 +562,7 @@
     "titleLabel": "Titre",
     "titlePlaceholder": "Facultatif",
     "messageLabel": "Message",
-    "messagePlaceholder": "Que doit afficher l'écran ?",
+    "messagePlaceholder": "Que doit afficher le mur ?",
     "durationLabel": "Durée",
     "duration10s": "10 s",
     "duration30s": "30 s",
@@ -594,10 +574,10 @@
     "sentButton": "Envoyée !",
     "failedButton": "Non envoyé, réessaie",
     "clearOnDisplay": "Effacer les alertes sur {name}",
-    "clearOnAll": "Effacer les alertes sur tous les écrans",
+    "clearOnAll": "Effacer les alertes sur tous les murs",
     "clearingButton": "Effacement…",
     "showingNow": "({count} affichées)",
-    "clearOnUnnamed": "Effacer les alertes sur l'écran"
+    "clearOnUnnamed": "Effacer les alertes sur le mur"
   },
   "rewardsView": {
     "changedElsewhere": "Quelqu'un d'autre a modifié les récompenses. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
@@ -642,8 +622,8 @@
       "countPlural": "{n} récompenses",
       "everyone": "Tout le monde",
       "disabled": "Désactivée",
-      "memberCountSingular": "{n} membre",
-      "memberCountPlural": "{n} membres",
+      "memberCountSingular": "{n} personne",
+      "memberCountPlural": "{n} personnes",
       "addButton": "Ajouter une récompense"
     },
     "balances": {
@@ -651,7 +631,6 @@
       "adjustDownAriaLabel": "Retirer un ticket à {name}",
       "adjustUpAriaLabel": "Ajouter un ticket à {name}"
     },
-    "saveFailed": "Échec de l'enregistrement. Réessaie.",
     "goal": {
       "heading": "Objectif",
       "pick": "Choisis quelque chose pour lequel économiser",
@@ -726,8 +705,8 @@
     "closeAriaLabel": "Fermer les paramètres",
     "system": {
       "heading": "Système",
-      "errorFailedToLoad": "Échec du chargement",
-      "hostLabel": "Nom de l'appareil",
+      "errorFailedToLoad": "Impossible de charger ces informations. Réessaie.",
+      "hostLabel": "Nom sur le réseau",
       "uptimeLabel": "Temps de fonctionnement",
       "memoryLabel": "Mémoire",
       "diskLabel": "Disque"
@@ -741,48 +720,49 @@
     "data": {
       "heading": "Données",
       "backup": {
-        "label": "Sauvegarder toutes les données",
+        "label": "Tout sauvegarder",
         "savedLabel": "Sauvegarde enregistrée",
         "busyLabel": "Téléchargement…",
-        "description": "Téléchargez les tâches, les repas, les récompenses et les images de votre famille"
+        "description": "Télécharge les tâches, les repas, les récompenses et les images de ta famille"
       },
       "restore": {
-        "label": "Restaurer la sauvegarde",
-        "confirmingLabel": "Appuie à nouveau pour restaurer",
+        "label": "Restaurer une sauvegarde",
         "busyLabel": "Restauration…",
         "doneLabel": "Restauré",
         "invalidFileLabel": "Fichier de sauvegarde invalide",
-        "failedLabel": "Échec de la restauration",
-        "idleDescription": "Téléverse un fichier de sauvegarde depuis cet appareil",
-        "confirmingDescription": "Cela remplacera toutes les données existantes",
+        "failedLabel": "Impossible de restaurer cette sauvegarde. Réessaie.",
+        "idleDescription": "Envoie un fichier de sauvegarde depuis ce téléphone",
+        "confirmingDescription": "Tout ce qui est sur Home Screens est remplacé par le contenu de la sauvegarde.",
         "doneWithoutKeysLabel": "Restauré, sans les clés",
-        "doneWithoutKeysDescription": "Vos clés et vos comptes n'ont pas changé. Ajoutez-les depuis l'éditeur."
+        "doneWithoutKeysDescription": "Tes clés et tes comptes n'ont pas changé. Ajoute-les depuis l'éditeur.",
+        "confirmTitle": "Restaurer cette sauvegarde ?",
+        "confirmButton": "Restaurer"
       }
     },
     "power": {
       "heading": "Alimentation",
       "restartService": {
         "label": "Redémarrer Home Screens",
-        "description": "Corrige la plupart des soucis. Rien de ce que vous avez réglé n'est perdu.",
+        "description": "Corrige la plupart des soucis. Rien de ce que tu as réglé n'est perdu.",
         "confirmTitle": "Redémarrer Home Screens ?",
-        "confirmBody": "Les écrans s'éteignent un instant et cette télécommande se reconnecte dans environ 20 secondes.",
+        "confirmBody": "Le mur devient vide un instant et cette télécommande se reconnecte dans environ 20 secondes.",
         "confirmButton": "Redémarrer"
       },
       "reboot": {
-        "label": "Redémarrer l'appareil",
-        "description": "Redémarrage complet du système",
-        "confirmTitle": "Redémarrer l'appareil ?",
+        "label": "Tout redémarrer",
+        "description": "Éteint et rallume tout. Ça prend environ une minute.",
+        "confirmTitle": "Tout redémarrer ?",
         "confirmBody": "Tout s'arrête pendant le redémarrage. Cette télécommande se reconnecte dans environ une minute.",
-        "confirmButton": "Redémarrer l'appareil"
+        "confirmButton": "Tout redémarrer"
       },
       "restartNeeded": {
         "title": "Redémarrer pour terminer la mise à jour",
-        "description": "Une partie de la dernière mise à jour ne prend effet qu'après le redémarrage de l'appareil.",
+        "description": "Une partie de la dernière mise à jour ne prend effet qu'après un redémarrage complet.",
         "button": "Redémarrer maintenant"
       }
     },
     "family": {
-      "description": "Gérez les personnes de votre foyer."
+      "description": "Gère les personnes de ta famille."
     }
   },
   "photosTab": {
@@ -825,13 +805,12 @@
     "addButton": "Ajouter des photos et des vidéos",
     "addFromGoogle": "Google Photos",
     "addFromICloud": "Lien iCloud",
-    "space": "Les photos et vidéos occupent {size}. Il reste {free} sur le hub.",
+    "space": "Les photos et vidéos occupent {size}. Il reste {free} sur Home Screens.",
     "spaceNoFree": "Les photos et vidéos occupent {size}.",
-    "spaceLow": "Presque plein : il ne reste que {free} sur le hub. Supprime les photos dont tu n'as plus besoin pour faire de la place.",
+    "spaceLow": "Presque plein : il ne reste que {free} sur Home Screens. Supprime les photos dont tu n'as plus besoin pour faire de la place.",
     "emptyTitle": "Rien dans {folder} pour l'instant",
     "emptyHint": "Ajoute des photos ou des vidéos depuis ce téléphone.",
     "loadFailed": "Impossible de charger tes photos.",
-    "tryAgain": "Réessayer",
     "showsOn": {
       "one": "Elle s'affichera sur {walls}.",
       "other": "Elles s'afficheront sur {walls}."
@@ -989,14 +968,14 @@
         "gone": "Cet album n'est plus partagé. Partage-le à nouveau dans l'app Photos et colle le nouveau lien.",
         "busy": "Des photos sont encore en cours d'ajout. Réessaie dans une minute.",
         "tooMany": "C'est trop d'un coup. Partage moins de photos et réessaie.",
-        "lost": "Le hub a redémarré pendant l'ajout. Réessaie.",
+        "lost": "Home Screens a redémarré pendant l'ajout. Réessaie.",
         "unreachable": "Impossible de joindre iCloud. Réessaie."
       },
       "progress": "Ajout de {done} sur {total}",
       "nothingPicked": "Rien n'a été choisi.",
       "busy": "Des photos sont encore en cours d'ajout. Réessaie dans une minute.",
       "tooMany": "C'est trop d'un coup. Choisis-en moins et réessaie.",
-      "lost": "Le hub a redémarré pendant l'ajout. Réessaie.",
+      "lost": "Home Screens a redémarré pendant l'ajout. Réessaie.",
       "tryAgain": "Réessayer",
       "couldNotAdd": {
         "one": "{count} n'a pas pu être ajoutée.",
@@ -1010,9 +989,9 @@
       "hide": "Ne plus afficher",
       "about": "À propos de ce tableau",
       "nextSent": "Un nouveau tableau arrive.",
-      "hidden": "Vous ne verrez plus {title}.",
+      "hidden": "Tu ne verras plus {title}.",
       "undo": "Annuler",
-      "failed": "Cela n’a pas fonctionné. Réessayez."
+      "failed": "Ça n’a pas fonctionné. Réessaie."
     }
   },
   "slideshowControls": {
@@ -1023,7 +1002,7 @@
     "play": "Reprendre le diaporama"
   },
   "choresKidView": {
-    "notConfigured": "Aucune tâche pour l'instant. Demande à un grand d'ajouter un tableau de tâches à l'écran.",
+    "notConfigured": "Aucune tâche pour l'instant. Demande à un grand d'ajouter un tableau de tâches au mur.",
     "grownUpsLink": "Pour les grands : ouvrir la télécommande famille"
   },
   "timers": {
@@ -1035,7 +1014,8 @@
     "routines": "Routines",
     "newRoutine": "Nouvelle routine",
     "editRoutine": "Modifier la routine",
-    "emptyHint": "Une routine est un minuteur étape par étape, comme une routine du matin : s'habiller, se brosser les dents, faire son lit. Créez-en une et lancez-la sur l'écran.",
+    "emptyTitle": "Aucune routine pour l'instant",
+    "emptyHint": "Une routine est un minuteur étape par étape, comme une routine du matin : s'habiller, se brosser les dents, faire son lit. Crées-en une et lance-la sur le mur.",
     "stepCount": "Étape {current} sur {total}",
     "pause": "Pause",
     "resume": "Reprendre",
@@ -1043,9 +1023,7 @@
     "stop": "Arrêter",
     "addMinute": "+1 min",
     "done": "Terminé !",
-    "save": "Enregistrer",
     "deleteRoutine": "Supprimer",
-    "reallyDelete": "Vraiment supprimer ?",
     "routineName": "Nom",
     "routineNamePlaceholder": "Routine du matin",
     "routineIcon": "Icône",
@@ -1064,15 +1042,12 @@
     "removeStep": "Retirer l'étape",
     "addStep": "Ajouter une étape",
     "minutesShort": "{minutes} min",
-    "retry": "Réessayer",
-    "onAllDisplays": "Sur tous les écrans",
+    "onAllDisplays": "Sur tous les murs",
     "onDisplay": "Sur {name}",
     "showOn": "Envoyer à",
-    "allDisplays": "Tous les écrans",
+    "allDisplays": "Tous les murs",
     "showOnNext": "Prochain minuteur sur",
-    "onDisplays": "Sur {count} écrans",
-    "soundOn": "Son activé",
-    "soundOff": "Son coupé",
+    "onDisplays": "Sur {count} murs",
     "minUnit": "min",
     "secUnit": "s",
     "stepSeconds": "Secondes",
@@ -1080,16 +1055,19 @@
     "quickNameClock": "Minuteur de {time}",
     "secondsShort": "{seconds} s",
     "showingOn": "Affiché sur {names}",
-    "showingOnDisplay": "Affiché sur l'écran",
-    "waitingForDisplay": "En attente qu'un écran le prenne…",
-    "notShowing": "Aucun écran ne l'affiche encore. Vérifie qu'un écran est allumé.",
+    "showingOnDisplay": "Affiché sur le mur",
+    "waitingForDisplay": "En attente qu'un mur l'affiche…",
+    "notShowing": "Aucun mur ne l'affiche encore. Vérifie que le mur est allumé.",
     "whyNoSave": {
       "name": "Donne un nom à la routine pour l'enregistrer.",
       "stepName": "Donne un nom à chaque étape pour enregistrer.",
       "stepLength": "Chaque étape doit durer au moins {seconds} secondes."
     },
     "quickTooShort": "Un minuteur doit durer au moins {seconds} secondes.",
-    "stepLimit": "Une routine peut avoir jusqu'à {count} étapes."
+    "stepLimit": "Une routine peut avoir jusqu'à {count} étapes.",
+    "deleteConfirm": {
+      "description": "La routine et ses étapes disparaissent pour de bon. Impossible de revenir en arrière."
+    }
   },
   "lists": {
     "title": "Listes",
@@ -1160,19 +1138,18 @@
       "save": "Enregistrer",
       "delete": "Supprimer la liste",
       "confirmDelete": {
-        "title": "Supprimer {name} ?",
         "description": "Tout ce qui est sur cette liste part avec elle. Impossible de revenir en arrière."
       }
     },
     "share": {
       "button": "Partager",
-      "copied": "Copié !",
       "nothingOpen": "Tout est fait !"
     },
-    "loadError": "Impossible de charger tes listes. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer",
+    "loadError": "Impossible de charger tes listes. Vérifie que Home Screens est allumé et réessaie.",
     "alreadyOnList": "{item} est déjà sur la liste",
-    "putBack": "{item} est de retour sur la liste"
+    "putBack": "{item} est de retour sur la liste",
+    "deleted": "Élément retiré de la liste : {item}.",
+    "undo": "Annuler"
   },
   "formOverlay": {
     "discard": {
@@ -1184,9 +1161,9 @@
   },
   "feedback": {
     "alertSent": "Alerte envoyée à {name}",
-    "alertSentAll": "Alerte envoyée à tous les écrans",
+    "alertSentAll": "Alerte envoyée à tous les murs",
     "alertsCleared": "Alertes effacées sur {name}",
-    "alertsClearedAll": "Alertes effacées sur tous les écrans",
+    "alertsClearedAll": "Alertes effacées sur tous les murs",
     "noConfirm": "{name} n'a pas répondu. Il est peut-être éteint ou hors ligne.",
     "profileSwitched": "{name} affiche maintenant le profil {profile}",
     "profileCleared": "{name} affiche toutes les pages",
@@ -1195,41 +1172,40 @@
     "profileKeptAfterSchedule": "{name} restera sur le profil {profile} à la fin de sa programmation",
     "profileFailed": "Impossible de changer le profil sur {name}",
     "hubBack": "Home Screens est de retour",
-    "alertSentUnnamed": "Alerte envoyée à l'écran",
-    "alertsClearedUnnamed": "Alertes effacées sur l'écran"
+    "alertSentUnnamed": "Alerte envoyée au mur",
+    "alertsClearedUnnamed": "Alertes effacées sur le mur"
   },
   "tabNotSetUp": {
     "chores": {
       "title": "Pas encore de tableau de tâches",
-      "body": "Les tâches apparaîtront ici dès qu'un tableau de tâches sera sur l'un de vos écrans."
+      "body": "Les tâches apparaîtront ici dès qu'un tableau de tâches sera sur l'un de tes écrans."
     },
     "lists": {
       "title": "Pas encore de liste",
-      "body": "Les listes apparaîtront ici dès qu'une liste de tâches sera sur l'un de vos écrans."
+      "body": "Les listes apparaîtront ici dès qu'une liste de tâches sera sur l'un de tes écrans."
     },
     "meals": {
       "title": "Pas encore de planificateur de repas",
-      "body": "Les repas apparaîtront ici dès qu'un planificateur de repas sera sur l'un de vos écrans."
+      "body": "Les repas apparaîtront ici dès qu'un planificateur de repas sera sur l'un de tes écrans."
     },
     "photos": {
       "title": "Pas encore de diaporama",
-      "body": "Les photos apparaîtront ici dès qu'un diaporama sera sur l'un de vos écrans."
+      "body": "Les photos apparaîtront ici dès qu'un diaporama sera sur l'un de tes écrans."
     },
-    "howTo": "Ajoutez-le depuis un ordinateur : ouvrez {url} et posez-le sur un écran.",
+    "howTo": "Ajoute-le depuis un ordinateur : ouvre {url} et pose-le sur un écran.",
     "notes": {
       "title": "Pas encore de tableau de notes",
-      "body": "Les notes apparaîtront ici dès qu'un tableau de notes sera sur l'un de vos écrans."
+      "body": "Les notes apparaîtront ici dès qu'un tableau de notes sera sur l'un de tes écrans."
     },
     "dayNotes": {
       "title": "Aucun calendrier n'affiche encore les notes du jour",
-      "body": "Les notes du jour apparaissent dans un calendrier. Ajoutez un calendrier sur l'un de vos écrans, ou activez « Notes du jour » dans ses réglages."
+      "body": "Les notes du jour apparaissent dans un calendrier. Ajoute un calendrier sur l'un de tes écrans, ou active « Notes du jour » dans ses réglages."
     }
   },
   "choreSettings": {
     "title": "Paramètres des tâches",
     "grabbingHeading": "Prendre des tâches bonus",
     "letGoHint": "Un adulte peut toujours libérer une tâche prise par quelqu'un : touche le bouton ••• à côté de la tâche dans l'onglet Aujourd'hui.",
-    "save": "Enregistrer",
     "changeAriaLabel": "Modifier la façon de prendre les tâches bonus"
   },
   "atHome": {
@@ -1241,7 +1217,7 @@
       "board": "Tableau",
       "calendar": "Calendrier"
     },
-    "boardToCalendar": "Quelque chose pour un jour précis ? Mets-le dans le calendrier",
+    "boardToCalendar": "Quelque chose pour un jour précis ? Mets-le dans le calendrier.",
     "onWall": {
       "zero": "Rien sur le mur",
       "one": "{count} sur le mur",
@@ -1296,7 +1272,6 @@
       "body": "Écris une note ci-dessous et elle apparaîtra sur le mur quelques secondes plus tard. Les notes s'en vont toutes seules après la durée choisie."
     },
     "loadError": "Impossible de charger les notes.",
-    "retry": "Réessayer",
     "editAria": "Modifier la note de {name}",
     "dayNotes": {
       "sub": "Les notes du jour s'affichent sur les calendriers du mur",
@@ -1319,7 +1294,6 @@
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",
     "savesToMealie": "Enregistré dans Mealie",
-    "done": "Terminé",
     "mainDish": "Plat principal",
     "change": "Changer",
     "changeAriaLabel": "Changer {meal}",
@@ -1371,7 +1345,6 @@
     "timeAndOrderKeptHere": "Home Screens garde cette heure et l'ordre des plats. Mealie n'a de place pour aucun des deux, ils n'y apparaîtront donc pas."
   },
   "mealPicker": {
-    "cancel": "Annuler",
     "swap": {
       "side": "Changer l'accompagnement",
       "dessert": "Changer le dessert",
@@ -1401,22 +1374,22 @@
       "updated": "· Mis à jour : {time}"
     },
     "notConnected": {
-      "description": "Le planning des repas doit venir de Mealie, mais l'adresse ou le jeton de Mealie n'est pas enregistré. Ajoute-les sur l'ordinateur dans Réglages > Clés API, ou remets le planning sur Home Screens dans les réglages des repas."
+      "description": "Le planning des repas doit venir de Mealie, mais l'adresse ou le jeton de Mealie n'est pas enregistré. Ajoute-les sur l'ordinateur dans {place}, ou remets le planning sur Home Screens dans les réglages des repas."
     },
     "tokenRefused": {
-      "description": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le sur l'ordinateur dans Réglages > Clés API."
+      "description": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le sur l'ordinateur dans {place}."
     },
     "setup": {
-      "description": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour."
+      "description": "Vérifie l'adresse de Mealie sur l'ordinateur dans {place}. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour."
     },
     "connection": {
       "description": "Vérifie que ce téléphone est connecté, puis réessaie."
     },
     "paused": {
-      "tokenDescription": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause.",
-      "tokenDescriptionWithTime": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}.",
-      "setupDescription": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause.",
-      "setupDescriptionWithTime": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause. Voici le planning de {time}."
+      "tokenDescription": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans {place}. En attendant, la planification est en pause.",
+      "tokenDescriptionWithTime": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans {place}. En attendant, la planification est en pause. Voici le planning de {time}.",
+      "setupDescription": "Vérifie l'adresse de Mealie sur l'ordinateur dans {place}. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause.",
+      "setupDescriptionWithTime": "Vérifie l'adresse de Mealie sur l'ordinateur dans {place}. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause. Voici le planning de {time}."
     },
     "saveFailed": {
       "token": "Mealie ne laisse pas entrer Home Screens, donc ça n'a pas été enregistré.",
@@ -1506,9 +1479,9 @@
     "changed": "C'est modifié. Le changement apparaît sur le mur dans quelques secondes.",
     "removed": "Retiré du calendrier {calendar}.",
     "offTitle": "L'ajout d'événements est désactivé",
-    "offBody": "On peut l'activer dans Réglages > Calendrier. Les notes du jour marchent comme d'habitude.",
+    "offBody": "On peut l'activer dans {place}. Les notes du jour marchent comme d'habitude.",
     "signInTitle": "L'ajout d'événements demande encore une étape",
-    "signInBody": "Pour ajouter des événements, il faut se reconnecter une fois de plus à Google. C'est dans Réglages > Calendrier.",
+    "signInBody": "Pour ajouter des événements, il faut se reconnecter une fois de plus à Google. C'est dans {place}.",
     "justThisDay": "Ce jour-là seulement",
     "everyTime": "Toutes les fois",
     "keepIt": "Le garder",
@@ -1517,7 +1490,6 @@
       "title": "Modifier {title}"
     },
     "removeAsk": {
-      "title": "Retirer {title} ?",
       "body": "L'événement disparaît du calendrier {calendar} pour tout le monde : ici, sur le mur et dans {app}."
     },
     "form": {
@@ -1551,12 +1523,11 @@
       "placeOptional": "(si tu veux)",
       "placePlaceholder": "Ajouter un lieu",
       "add": "Ajouter au calendrier",
-      "save": "Enregistrer",
       "remove": "Retirer",
       "fromWall": "Commencé sur le mur {wall} pour le {day}.",
       "changedElsewhere": "Quelqu'un vient de modifier cet événement, voici donc la dernière version. Refais ta modification, puis enregistre.",
       "repeatsNote": "{title} se répète. Quand tu enregistres, tu choisis ce jour-là ou toutes les fois.",
-      "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans Réglages > Calendrier."
+      "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans {place}."
     }
   }
 }

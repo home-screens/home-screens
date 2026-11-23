@@ -178,6 +178,19 @@ export function buildUpArgs(uuid: string): string[] {
 }
 
 /**
+ * The refusal code for a join failure the editor can say in the household's
+ * language (`refusals.wifi.*`), or null for one it cannot name. The same
+ * three causes `describeJoinFailure` puts in English.
+ */
+export function joinFailureCode(raw: string): 'wifi.wrongPassword' | 'wifi.notFound' | 'wifi.timedOut' | null {
+  const text = raw.replace(/\s+/g, ' ').trim();
+  if (/Secrets were required|secrets were required|key-mgmt: property is missing/i.test(text)) return 'wifi.wrongPassword';
+  if (/could not be found|No network with SSID|not found/i.test(text)) return 'wifi.notFound';
+  if (/Timeout|timed out|timeout expired/i.test(text)) return 'wifi.timedOut';
+  return null;
+}
+
+/**
  * Turn nmcli's activation failure into a sentence a parent can act on. nmcli
  * prints its own hints ("use 'journalctl -xe ...'", "cannot ask without
  * '--ask'") that mean nothing on a settings page; the three failures a
@@ -185,16 +198,13 @@ export function buildUpArgs(uuid: string): string[] {
  * first error sentence.
  */
 export function describeJoinFailure(raw: string): string {
+  switch (joinFailureCode(raw)) {
+    case 'wifi.wrongPassword': return 'The password was not accepted. Check it and try again.';
+    case 'wifi.notFound': return 'That network could not be found. Check the name and that it is in range.';
+    case 'wifi.timedOut': return 'The network did not answer in time. Try again in a moment.';
+    case null: break;
+  }
   const text = raw.replace(/\s+/g, ' ').trim();
-  if (/Secrets were required|secrets were required|key-mgmt: property is missing/i.test(text)) {
-    return 'The password was not accepted. Check it and try again.';
-  }
-  if (/could not be found|No network with SSID|not found/i.test(text)) {
-    return 'That network could not be found. Check the name and that it is in range.';
-  }
-  if (/Timeout|timed out|timeout expired/i.test(text)) {
-    return 'The network did not answer in time. Try again in a moment.';
-  }
   // Keep the first "Error: ..." sentence, dropping nmcli's journalctl hint
   const error = text.match(/Error:\s*([^.]+)\.?/);
   if (error) return error[1].trim() + '.';

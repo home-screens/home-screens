@@ -195,10 +195,10 @@ describe('TodoModule all-done state', () => {
 describe('TodoModule empty states', () => {
   it('asks for a list when none is picked or the picked one is gone', () => {
     const none = renderStatic({ listId: undefined });
-    expect(none.container.textContent).toContain('Pick a list in the editor');
+    expect(none.container.textContent).toContain('Pick a list in the editor and it shows here');
     none.unmount();
     const gone = renderStatic({ listId: 'deleted' });
-    expect(gone.container.textContent).toContain('Pick a list in the editor');
+    expect(gone.container.textContent).toContain('Pick a list in the editor and it shows here');
   });
 
   it('says the list is empty when it has no items', () => {

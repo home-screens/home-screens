@@ -166,7 +166,7 @@ describe('DisplayControlModule integration', () => {
 
     // All displays disagree → dash again.
     fireEvent.click(screen.getByRole('button', { name: 'Kitchen' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'All displays' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Every wall' }));
     expect(screen.getByTestId('display-control-brightness').textContent).toBe('–');
   });
 

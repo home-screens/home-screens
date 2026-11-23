@@ -280,7 +280,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     await page.goto('/display/ghost-populated');
 
     // The fallback identifies itself and echoes the offending id in the heading.
-    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
+    await expect(page.getByText('Display not added yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'ghost-populated' })).toBeVisible();
 
     // Because the hub reports OTHER registered displays, DisplayNotFound arms
@@ -307,7 +307,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
 
     await page.goto('/display/ghost-legacy');
 
-    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
+    await expect(page.getByText('Display not added yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'ghost-legacy' })).toBeVisible();
 
     // With an empty registry the hub has no default to fall back to, so
@@ -322,7 +322,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     await putConfig(request, lifecycleConfig());
     await page.goto('/display/office');
 
-    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
+    await expect(page.getByText('Display not added yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'office' })).toBeVisible();
 
     // Adopt 'office' the way the editor store does: write it into
@@ -335,7 +335,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     // then filters to the now-registered display and mounts ScreenRotator.
     // Generous timeout covers one 5s poll + the cache turnover with headroom.
     await expect(page.getByText('OFFICE', { exact: true })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Display Not Added Yet')).toHaveCount(0);
+    await expect(page.getByText('Display not added yet')).toHaveCount(0);
     await expectRotatorModule(page);
   });
 

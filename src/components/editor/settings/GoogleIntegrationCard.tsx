@@ -5,12 +5,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import SecretField, { type SecretCheck, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
+import { Switch } from '@/components/ui/Toggle';
 import { getStatusInfo } from './shared/integration-status';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import { hostedSignInOn, type GoogleAppsStatus } from '@/lib/google-apps';
 import { googleAppPreference } from '@/lib/google-app-choice';
 import { settingsPath } from '@/lib/settings-route';
 import { useEditorStore } from '@/stores/editor-store';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
 
 function GoogleIcon() {
   return (
@@ -59,7 +62,7 @@ function GoogleBand({
           {t('settings.integrationsPage.google.stepByStep')}
         </a>
       </div>
-      <p className="mt-0.5 max-w-[640px] text-xs text-hs-text-faint">{help}</p>
+      <FieldHint className="mt-0.5 max-w-[640px]">{help}</FieldHint>
     </div>
   );
 }
@@ -389,32 +392,19 @@ function HostedGoogleCard({
             // The switch: on, the saved app signs the household in; off, Home
             // Screens' app does and the details stay saved. No switch until
             // there is something to switch to.
-            <button
-              type="button"
-              role="switch"
-              aria-checked={preference === 'own'}
-              aria-label={t('settings.integrationsPage.google.ownApp.title')}
+            <Switch
+              checked={preference === 'own'}
+              ariaLabel={t('settings.integrationsPage.google.ownApp.title')}
               disabled={switching}
-              onClick={() => void flipApp()}
-              data-testid="google-own-app-switch"
-              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-                preference === 'own' ? 'bg-hs-accent' : 'bg-hs-card'
-              }`}
-            >
-              <span
-                className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-                  preference === 'own' ? 'translate-x-[18px]' : 'translate-x-[3px]'
-                }`}
-              />
-            </button>
+              onChange={() => void flipApp()}
+              testId="google-own-app-switch"
+            />
           )}
         </div>
         {ownOpen && (
           <div className="pb-4" data-testid="google-own-app">
             {callout && (
-              <p className="mb-4 rounded-lg border border-hs-warning/35 bg-hs-warning/10 px-3 py-2.5 text-xs text-hs-warning">
-                {callout}
-              </p>
+              <Notice tone="warning" className="mb-4">{callout}</Notice>
             )}
             {/* Saved but switched off: dimmed so the eye lands on the switch, still editable. */}
             <div className={ownSaved && preference === 'hosted' ? 'opacity-60' : undefined} data-testid="google-own-app-fields">

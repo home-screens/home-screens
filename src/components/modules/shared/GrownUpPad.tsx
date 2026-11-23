@@ -50,7 +50,7 @@ export function GrownUpPad({ why, onUnlocked, onCancel }: GrownUpPadProps) {
   const wrong = state.kind === 'wrong';
   const message = wrong ? t('grownUp.wrong')
     : state.kind === 'waiting' ? t('grownUp.tooMany', { count: state.secondsLeft })
-    : state.kind === 'offline' ? t('grownUp.offline')
+    : state.kind === 'offline' ? t('refusals.unreachable')
     : '';
 
   const keyStyle: CSSProperties = {

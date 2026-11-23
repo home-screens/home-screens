@@ -204,7 +204,7 @@ describe('Live Photos in a library folder', () => {
   });
 
   it('lists every file in the library itself, the clip included', async () => {
-    // The Image Library is where a family sees, moves and deletes files, so a
+    // The Pictures & videos page is where a family sees, moves and deletes files, so a
     // clip that belongs to a picture is still a file there.
     await fs.writeFile(path.join(library, 'trips', 'lib1.jpg'), 'x');
     await fs.writeFile(path.join(library, 'trips', 'lib1.live.mov'), 'x');

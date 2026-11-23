@@ -14,7 +14,7 @@ test.beforeEach(async ({ request }) => {
 test('the Meals tab library lists a seeded meal', async ({ page }) => {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
 
   await expect(page.getByText('Spaghetti Night')).toBeVisible();
 });
@@ -22,7 +22,7 @@ test('the Meals tab library lists a seeded meal', async ({ page }) => {
 test('favoriting a meal round-trips to meals.json', async ({ page, request }) => {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
   await expect(page.getByText('Spaghetti Night')).toBeVisible();
 
   // exact: the outer meal-card button's accessible name also contains this text.
@@ -44,7 +44,7 @@ async function openMealsSettings(page: import('@playwright/test').Page) {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: 'Open meal settings' }).click();
-  await expect(page.getByRole('heading', { name: 'Meal Settings' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Meal settings' })).toBeVisible();
 }
 
 test('switching the meal time format persists to meals.json and drives the UI on reload', async ({ page, request }) => {
@@ -53,7 +53,7 @@ test('switching the meal time format persists to meals.json and drives the UI on
   // Seed defaults are 12-hour; switch to 24-hour. The button's accessible name
   // is "24-hour 18:30" (label + sample), so match on the label substring.
   await page.getByRole('button', { name: '24-hour' }).click();
-  await page.getByRole('button', { name: 'Save Settings' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   // A successful settings-only PUT round-trips to disk...
   await expect
@@ -64,7 +64,7 @@ test('switching the meal time format persists to meals.json and drives the UI on
     .toBe('24h');
 
   // ...and closes the sheet.
-  await expect(page.getByRole('heading', { name: 'Meal Settings' })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Meal settings' })).toBeHidden();
 
   // Reload so settings come fresh from disk, then reopen: the 24-hour option is
   // now the selected one, proving the persisted value drives the UI.
@@ -96,7 +96,7 @@ test('time format follows the global setting until overridden', async ({ page, r
 
   // Picking 12-hour stores an explicit override that wins over the global.
   await page.getByRole('button', { name: '12-hour' }).click();
-  await page.getByRole('button', { name: 'Save Settings' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect.poll(async () =>
     (await (await request.get('/api/meals/data')).json()).settings.timeFormat,
   ).toBe('12h');
@@ -112,7 +112,7 @@ test('toggling a meal slot on persists to meals.json', async ({ page, request })
   // The toggle flips to the enabled label immediately (optimistic draft state).
   await expect(page.getByRole('button', { name: 'Snack, enabled' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Save Settings' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => {
@@ -137,12 +137,18 @@ test("the meal form marks an emoji from outside its grid, shows each row's aisle
   });
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
   await page.getByTestId('library-card').filter({ hasText: 'Pot Pie' }).getByText('Pot Pie').click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
+  await expect(page.getByText('Edit meal')).toBeVisible();
 
-  await expect(page.getByRole('button', { name: 'Select 🥟' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('[aria-pressed="true"][aria-label^="Select "]')).toHaveCount(1);
+  // The chooser row names the emoji; opened, its grid leads with it, marked,
+  // and nothing else in the grid is.
+  const chooser = page.getByRole('button', { name: 'Icon: 🥟', exact: true });
+  await chooser.click();
+  const picker = chooser.locator('..');
+  await expect(picker.getByRole('button', { name: '🥟', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(picker.locator('[aria-pressed="true"]')).toHaveCount(1);
+  await chooser.click();
 
   // The aisle each row lands in on the grocery list, not "Other" for every row.
   const aisles = page.locator('select').filter({ has: page.getByRole('option', { name: 'Produce', exact: true }) });
@@ -151,7 +157,7 @@ test("the meal form marks an emoji from outside its grid, shows each row's aisle
   await expect(aisles.nth(1)).toHaveValue('meat');
   await expect(aisles.nth(2)).toHaveValue('other');
 
-  await page.getByRole('button', { name: '+ Add ingredient' }).click();
+  await page.getByRole('button', { name: 'Add ingredient' }).click();
   await expect(page.getByPlaceholder('Name', { exact: true }).nth(3)).toBeFocused();
   await page.keyboard.type('Limes');
   await expect(aisles.nth(3)).toHaveValue('produce');

@@ -22,7 +22,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Features
 
-- **46 built-in modules**: clock (18 views), calendar (6 views), weather (14 views), countdown, dad jokes, text (rich with gradient/marquee), image, video (library file, direct URL, or YouTube link), quote, to-do list (5 views), family notes board (22 views, including chalkboard, letterboard, neon and newspaper looks), sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow (photos, videos, or both), QR code (custom + WiFi), year progress, traffic/commute, sports scores (15 leagues, your teams first), air quality, todoist, rain map, multi-month calendar, garbage day, standings (15 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (7 views), chore chart (7 views), school timetable (2 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 6 fullscreen modules: fullscreen calendar (9 views), fullscreen weather (8 views), fullscreen news (2 views), fullscreen chore chart (5 views), fullscreen meal planner (7 views), and fullscreen photo viewer
+- **46 built-in modules**: clock (18 views), calendar (6 views), weather (14 views), countdown, dad jokes, text (rich with gradient/marquee), image, video (library file, direct URL, or YouTube link), quote, to-do list (5 views), family notes board (22 views, including chalkboard, letterboard, neon and newspaper looks), sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow (photos, videos, or both), QR code (custom + Wi-Fi), year progress, traffic/commute, sports scores (15 leagues, your teams first), air quality, todoist, rain map, multi-month calendar, garbage day, standings (15 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (7 views), chore chart (7 views), school timetable (2 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 6 fullscreen modules: fullscreen calendar (9 views), fullscreen weather (8 views), fullscreen news (2 views), fullscreen chore chart (5 views), fullscreen meal planner (7 views), and fullscreen photo viewer
 - **Drag-and-drop editor**: visually arrange modules on a configurable canvas
 - **Multi-screen rotation**: cycle through screens with 7 transition effects, or none
 - **Multi-display hub-and-spoke**: one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
@@ -38,7 +38,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Google Calendar, iCloud + iCal**: display events from Google Calendar (sign in with a short code, no Google setup needed), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed, and once you turn it on, add, change and remove Google and iCloud events from your phone or the wall
 - **Background management**: upload images and videos, choose a picture from the walls that come with Home Screens, Unsplash, NASA, museum paintings or an Immich library in one Image Library, import hand-picked photos from Google Photos, and rotate a screen's background through any mix of those, an iCloud shared album, a OneDrive folder or Home Screens' own collection of paintings
 - **Per-module styling**: opacity, blur, colors, fonts, border radius, padding
-- **System management**: upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
+- **System management**: upgrade, rollback, backup/restore, power control, and network settings (Wi-Fi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk**: one-command setup with boot splash, auto-login, display orientation, and optional burn-in protection that shifts the picture a few pixels each minute
 - **Password-protected editor**: optional authentication for the configuration interface
 - **Multi-language UI**: ships in 7 languages (English, German, French, Spanish, Dutch, Brazilian Portuguese, and Danish); date and number formatting can be locked to a separate locale
@@ -114,7 +114,7 @@ Then open `http://<your-server>:3000/editor`.
 **What doesn't work in Docker.** These settings only make sense on a Raspberry Pi and will fail or do nothing:
 - Update, roll back, and automatic updates
 - Restart and reboot
-- WiFi, hostname and network settings
+- Wi-Fi, hostname and network settings
 - Turning the screen off, and screen rotation (set these on the device showing the display)
 - Hardware stats
 

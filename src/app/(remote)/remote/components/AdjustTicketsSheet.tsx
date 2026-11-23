@@ -7,7 +7,7 @@ import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { ticketWords } from './ticket-words';
 import BottomSheet from './BottomSheet';
 import { FIELD } from './remote-styles';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import PersonChip from './PersonChip';
 
 /** The most a reason may say; the hub cuts it here too. */
 export const REASON_MAX_CHARS = 80;
@@ -105,24 +105,15 @@ export default function AdjustTicketsSheet({
         {members.map((member) => {
           const on = picked.includes(member.id);
           return (
-            <button
+            <PersonChip
               key={member.id}
-              type="button"
-              className="press-scale"
+              member={member}
+              selected={on}
               onClick={() => togglePicked(member.id)}
               aria-pressed={on}
               data-testid={`adjust-member-${member.id}`}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', minHeight: 44, borderRadius: 999,
-                border: `2px solid ${on ? member.color : 'transparent'}`,
-                background: on ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'var(--hs-bg-card)',
-                color: on ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}
-            >
-              <span style={{ width: 18, height: 18, borderRadius: '50%', background: member.color, color: memberInk(member.color), fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{memberInitials(member.name)}</span>
-              {member.name}
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums' }}>· {balances[member.id] ?? 0}</span>
-            </button>
+              trailing={<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums' }}>· {balances[member.id] ?? 0}</span>}
+            />
           );
         })}
       </div>
@@ -172,7 +163,7 @@ export default function AdjustTicketsSheet({
         style={{
           width: '100%', minHeight: 50, borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'default',
           background: canSubmit ? (giving ? 'var(--hs-success)' : 'var(--hs-danger)') : 'var(--hs-bg-card)',
-          color: canSubmit ? '#111' : 'var(--hs-text-faint)',
+          color: canSubmit ? (giving ? 'var(--hs-on-success)' : 'var(--hs-on-danger)') : 'var(--hs-text-faint)',
         }}
       >
         {label}

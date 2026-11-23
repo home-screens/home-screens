@@ -32,12 +32,15 @@ export interface UseHoldToUncheckResult {
 }
 
 /**
- * Press-and-hold to un-check, shared by every surface where a finished chore
- * can be undone by a passer-by: the kid tablet, and the wall where five kids
- * walk past a hallway kiosk all day. A tap is how a sibling "accidentally"
- * undoes someone else's work, and un-checking also debits tickets that may
- * already be spent; a hold is deliberate. Checking a chore off stays an
- * instant tap.
+ * Press-and-hold to un-check, for the chore surfaces where a finished chore
+ * can be undone by a passer-by: the card chore chart on the wall (its views
+ * and its bonus rows) and the kids' page (whose chore rows the phone shares).
+ * A tap is how a sibling "accidentally" undoes someone else's work, and
+ * un-checking also debits tickets that may already be spent; a hold is
+ * deliberate. Checking a chore off stays an instant tap. The full-screen
+ * chore chart is the exception on
+ * purpose: its dots take a plain tap both ways, and an Undo on its toast takes
+ * a mistaken un-tick back (`AssigneeDot`).
  *
  * One hold at a time, and it belongs to the pointer that began it.
  *

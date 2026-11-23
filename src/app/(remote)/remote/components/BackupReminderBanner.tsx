@@ -1,6 +1,8 @@
 'use client';
 
+import { X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import IconButton from './IconButton';
 import type { BackupReminderKind } from '@/lib/backup-reminder';
 
 interface BackupReminderBannerProps {
@@ -50,28 +52,23 @@ export default function BackupReminderBanner({
     : t('backupReminder.daysAgoPlural', { n: days });
 
   return (
-    <div className="mx-4 mt-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3">
+    <div className="mx-4 mt-2 rounded-xl border border-hs-warning/20 bg-hs-warning/[0.06] px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] text-hs-warning" data-testid="backup-reminder-banner">{message}</div>
+        <div className="text-[13px] text-hs-warning-ink" data-testid="backup-reminder-banner">{message}</div>
       </div>
       {!autoFailed && (
         <button
           onClick={onBackup}
           disabled={busy}
-          className="shrink-0 rounded-lg bg-amber-600 active:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
+          className="press-btn shrink-0 min-h-[44px] -my-2 rounded-lg bg-hs-warning text-hs-on-warning text-xs font-medium px-3 disabled:opacity-50"
         >
-          {busy ? t('backupReminder.savingButton') : t('backupReminder.backupButton')}
+          {busy ? tCore('status.saving') : t('backupReminder.backupButton')}
         </button>
       )}
-      <button
-        onClick={onDismiss}
-        className="shrink-0 text-hs-text-faint active:text-hs-text-secondary transition-colors p-1"
-        aria-label={t('backupReminder.dismissAriaLabel')}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {/* A full-size target; the negative margin keeps the banner its height. */}
+      <IconButton label={t('backupReminder.dismissAriaLabel')} onClick={onDismiss} style={{ margin: '-10px -12px -10px -6px', color: 'var(--hs-text-faint)' }}>
+        <X size={16} strokeWidth={2} aria-hidden="true" />
+      </IconButton>
     </div>
   );
 }

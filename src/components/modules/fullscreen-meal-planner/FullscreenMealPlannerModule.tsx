@@ -10,9 +10,13 @@ import { useAuthImageState } from '@/components/display/useAuthImage';
 import MealPhotoBackdrop from './MealPhotoBackdrop';
 import type { FullscreenMealPlannerConfig, SavedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { DEFAULT_ACCENT_COLOR, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead, fromISODate, toISODate } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead, fromISODate, planHasDrawnMeal, toISODate } from '@/lib/meal-constants';
+import FamilyEmptyState from '../FamilyEmptyState';
+import { ModuleLoadingState } from '../ModuleStates';
+import { fullscreenStateStyle } from '../shared/FullscreenStateShell';
+import { FullscreenStateContext } from '../shared/fullscreen-state-context';
 import { mealLookAhead } from '@/lib/look-ahead';
-import type { MealPlannerViewProps } from './meal-planner-utils';
+import { EMPTY_STATE_PX, px, type MealPlannerViewProps } from './meal-planner-utils';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
 import MenuBoardView from './MenuBoardView';
@@ -45,7 +49,7 @@ interface FullscreenMealPlannerModuleProps {
 
 export default function FullscreenMealPlannerModule({
   config,
-  style: _style,
+  style,
   timezone,
   fullscreenTheme,
   screenId,
@@ -83,6 +87,11 @@ export default function FullscreenMealPlannerModule({
   const landscape = dims.w > dims.h;
 
   const slots = settings.enabledSlots;
+  // The card's rule for a plan with nothing in it (`planHasDrawnMeal`). Week
+  // says so per week, and the recipe, grocery and recipe book views draw
+  // their own; the rest show the card's empty state.
+  const planEmpty = (view === 'today' || view === 'next-meal' || view === 'menu-board')
+    && data !== null && !planHasDrawnMeal(fullPlan, slots, savedMeals);
   const defaultTimes = settings.defaultSlotTimes;
 
   // Today's meal being served now, by its serving time (`currentMealSlot`).
@@ -144,7 +153,7 @@ export default function FullscreenMealPlannerModule({
     return { mealCount: count, textLength: length };
   }, [view, todayISO, nowMinutes, fullPlan, plan, shownWeek, savedMeals, slots, defaultTimes, next]);
 
-  // Next Meal over the dish's photo: the backdrop and the light text only
+  // Next meal over the dish's photo: the backdrop and the light text only
   // once the photo is in, never light text on the theme's own background.
   const showEmoji = config.showEmoji ?? true;
   const backdrop = useAuthImageState(mealPhotoSrc(showEmoji ? next?.meal ?? null : null, 'full'));
@@ -239,23 +248,32 @@ export default function FullscreenMealPlannerModule({
       {mealie.state === 'unreachable' && view !== 'grocery' && view !== 'recipes' ? (
         // The plan is in Mealie and Mealie never answered: say so rather than
         // "nothing planned", which would be wrong.
-        <div
-          data-testid="fmp-mealie-unreachable"
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: s * 1.5, textAlign: 'center', padding: pad }}
-        >
-          <span style={{ fontSize: s * 10, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{tCore(mealieTitleKey(mealieWords(mealie.problem)))}</span>
-          <span style={{ fontSize: s * 2, color: 'var(--fmp-text-3)', maxWidth: '80%', lineHeight: 1.3 }}>{t(`meal-planner.${mealieWords(mealie.problem)}Hint`)}</span>
+        <div data-testid="fmp-mealie-unreachable" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
+          <FamilyEmptyState
+            icon={<>&#127869;</>}
+            title={tCore(mealieTitleKey(mealieWords(mealie.problem)))}
+            hint={t(`meal-planner.${mealieWords(mealie.problem)}Hint`)}
+            fontSize={px(s, EMPTY_STATE_PX)}
+          />
         </div>
       ) : data === null ? (
         // Until the first answer the plan is unknown, not empty: the views
         // would say "No meals planned" on every load of a slow Pi.
-        <div
-          data-testid={error ? 'module-not-updating' : 'fmp-loading'}
-          aria-live="polite"
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fmp-text-2)', fontSize: s * 2.2, textAlign: 'center', padding: pad }}
-        >
-          {t(error ? 'common.notUpdating' : 'meal-planner.loading')}
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <FullscreenStateContext.Provider value>
+            <ModuleLoadingState style={fullscreenStateStyle(style, theme, dims)} message={t('meal-planner.loading')} error={error} />
+          </FullscreenStateContext.Provider>
+        </div>
+      ) : planEmpty ? (
+        // Nothing planned anywhere: the card's words and the phone's address,
+        // not a bare line.
+        <div data-testid="fmp-plan-empty" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
+          <FamilyEmptyState
+            icon={<>&#127869;</>}
+            title={t('meal-planner.noMealsPlannedYet')}
+            hint={t('meal-planner.planFromPhoneHint')}
+            fontSize={px(s, EMPTY_STATE_PX)}
+          />
         </div>
       ) : (
         <div

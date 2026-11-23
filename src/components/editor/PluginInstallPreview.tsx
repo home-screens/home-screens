@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle, ExternalLink, Shield } from 'lucide-react';
 import type { PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import { useCopyFlash } from '@/hooks/useCopyFlash';
+import Notice from '@/components/ui/Notice';
 
 const PERMISSION_KEYS: Record<PluginPermission, string> = {
   network: 'settings.pluginInstallPreview.permissions.network',
@@ -69,6 +70,7 @@ export default function PluginInstallPreview({
   sha256,
 }: PluginInstallPreviewProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const repoUrl = resolveRepoUrl(repo);
   const { copied, copy } = useCopyFlash();
   return (
@@ -105,31 +107,15 @@ export default function PluginInstallPreview({
       </div>
 
       {external && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50">
-          <AlertTriangle className="w-4 h-4 text-hs-warning shrink-0 mt-0.5" />
-          <div>
-            <div className="text-xs font-medium text-hs-warning">
-              {t('settings.pluginInstallPreview.external.heading')}
-            </div>
-            <p className="text-[11px] text-hs-warning/80 mt-0.5">
-              {t('settings.pluginInstallPreview.external.message')}
-            </p>
-          </div>
-        </div>
+        <Notice tone="warning" icon={AlertTriangle} title={t('settings.pluginInstallPreview.external.heading')}>
+          {t('settings.pluginInstallPreview.external.message')}
+        </Notice>
       )}
 
       {!external && verified === false && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50">
-          <AlertTriangle className="w-4 h-4 text-hs-warning shrink-0 mt-0.5" />
-          <div>
-            <div className="text-xs font-medium text-hs-warning">
-              {t('settings.pluginInstallPreview.unverified.heading')}
-            </div>
-            <p className="text-[11px] text-hs-warning/80 mt-0.5">
-              {t('settings.pluginInstallPreview.unverified.message')}
-            </p>
-          </div>
-        </div>
+        <Notice tone="warning" icon={AlertTriangle} title={t('settings.pluginInstallPreview.unverified.heading')}>
+          {t('settings.pluginInstallPreview.unverified.message')}
+        </Notice>
       )}
 
       {permissions && permissions.length > 0 && (
@@ -162,7 +148,7 @@ export default function PluginInstallPreview({
                 <span className="w-1 h-1 rounded-full bg-hs-text-faint" />
                 {s.label}
                 {s.required && (
-                  <span className="text-[10px] text-hs-warning">
+                  <span className="text-[10px] text-hs-warning-ink">
                     {t('settings.pluginInstallPreview.secretRequired')}
                   </span>
                 )}
@@ -195,7 +181,7 @@ export default function PluginInstallPreview({
               aria-label={t('settings.pluginInstallPreview.sha256CopyAriaLabel')}
             >
               {copied
-                ? t('phoneSurfaces.dialog.copied')
+                ? tCore('status.copied')
                 : t('settings.pluginInstallPreview.sha256CopyButton')}
             </button>
           </div>

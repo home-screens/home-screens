@@ -39,7 +39,7 @@ export default function TodayView({
   const day = lead?.date ?? todayISO;
   const tomorrow = day !== todayISO;
   const heroSlot = lead?.slot ?? activeOrder[0] ?? 'dinner';
-  const heroLabel = t(`fullscreen-meal-planner.heroLabels.${lead?.now ? 'now' : 'upNext'}`);
+  const heroLabel = lead?.now ? t('fullscreen-meal-planner.heroLabels.now') : t('common.upNext');
   const { meal: heroMeal, planned: heroPlanned, name: heroName, courses: heroCourses, notes: heroNotes } = resolveMealWithEntry(day, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
 
@@ -165,7 +165,7 @@ export default function TodayView({
         )}
       </div>
 
-      {/* Also Today */}
+      {/* Also today */}
       {!heroAlone && (
         <div style={{
           flex: 1, minHeight: shrinkTo, minWidth: 0,

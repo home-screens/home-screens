@@ -35,12 +35,16 @@ import DayCompleteOverlay, { type DayCompleteEvent } from './DayCompleteOverlay'
 import { detectDayComplete } from '@/lib/chore-celebration';
 import { rememberCelebrated, wasCelebratedToday } from '@/lib/celebrated-today';
 import { resolveSavingsGoal } from '@/lib/reward-rules';
+import { WallButton } from '@/components/modules/shared/WallButton';
+import { ModuleLoadingState, ModuleNotUpdatingState } from '../ModuleStates';
+import { fullscreenStateStyle } from '../shared/FullscreenStateShell';
 
 const EMPTY_GOALS: Record<string, string> = {};
 import type { RewardDefinition } from '@/lib/reward-data';
 import { RewardHistoryView, type RewardHistoryVariant } from './RewardHistoryView';
-import { type ChoreRow, buildChoreRows, getUniqueInitials, mergeChoreRows } from '@/lib/chore-rows';
+import { type ChoreRow, buildChoreRows, mergeChoreRows } from '@/lib/chore-rows';
 import { getOrientation } from '@/lib/orientation';
+import { getUniqueInitials } from '@/lib/family-avatar';
 import { getCurrentTimeOfDay } from '@/components/modules/chore-chart/types';
 import {
   type ToggleParams,
@@ -138,7 +142,7 @@ interface Section {
 
 export default function FullscreenChoreChartModule({
   config,
-  style: _style,
+  style,
   fullscreenTheme,
   timezone,
 }: FullscreenChoreChartModuleProps) {
@@ -232,7 +236,7 @@ export default function FullscreenChoreChartModule({
     }
   }, [recentRedemptions, members, t]);
 
-  // ── Rewards Store view switching ──
+  // ── Rewards store view switching ──
   const [showRewardsOverride, setShowRewardsOverride] = useState(false);
 
   const effectiveView = showRewardsOverride ? 'rewards-store' : (config.view ?? 'chores');
@@ -775,7 +779,7 @@ export default function FullscreenChoreChartModule({
   );
 
   const rewardsButton = config.showRewardsButton && (
-    <button
+    <WallButton
       onClick={() => setShowRewardsOverride(true)}
       style={{
         display: 'inline-flex',
@@ -796,19 +800,18 @@ export default function FullscreenChoreChartModule({
       }}
     >
       <Star size={22 * tc} fill="currentColor" /> {t('fullscreen-chore-chart.rewardsButton')}
-    </button>
+    </WallButton>
   );
 
   // "No chores today" is a day off. A household with no members or no chores
   // at all is a fresh install, and that needs to say where chores come from,
   // at a size that reads across the room.
+  // Not arrived yet, or could not be read: the shared states every card
+  // shows, at the size every full-screen module draws them.
+  const stateStyle = fullscreenStateStyle(style, theme, dims);
   const pendingState = (failed: boolean) => (
-    <div
-      data-testid={failed ? 'module-not-updating' : 'fcc-loading'}
-      aria-live="polite"
-      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fcc-text-2)', fontSize: 40 * tc, textAlign: 'center', padding: pad }}
-    >
-      {t(failed ? 'common.notUpdating' : 'chore-chart.loading')}
+    <div style={{ flex: 1, minHeight: 0 }}>
+      {failed ? <ModuleNotUpdatingState style={stateStyle} /> : <ModuleLoadingState style={stateStyle} message={t('chore-chart.loading')} />}
     </div>
   );
   // The store and the history are drawn from the rewards read too, so "not

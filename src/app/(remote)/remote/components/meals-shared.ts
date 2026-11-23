@@ -1,6 +1,7 @@
 import type { MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
 import { toISODate, fromISODate, type ResolvedPlanEntry } from '@/lib/meal-constants';
 import { splitMinutes } from '@/lib/meal-dish-rules';
+import type { ConfirmTone } from './ConfirmSheet';
 
 /**
  * One day of the week the Meals tab shows: its date and its `dayIndex`
@@ -31,7 +32,7 @@ export interface MealsPlace {
   week: string | null;
 }
 
-/** The place an address keeps. Anything missing or not understood is This Week. */
+/** The place an address keeps. Anything missing or not understood is This week. */
 export function readMealsPlace(search: string): MealsPlace {
   const params = new URLSearchParams(search);
   const view = MEALS_SUB_VIEWS.find((v) => v === params.get('meals')) ?? 'week';
@@ -39,7 +40,7 @@ export function readMealsPlace(search: string): MealsPlace {
   return { view, week: week && toISODate(fromISODate(week)) === week ? week : null };
 }
 
-/** Write `place` into `url`, leaving This Week out. True when the address changed. */
+/** Write `place` into `url`, leaving This week out. True when the address changed. */
 export function writeMealsPlace(url: URL, place: MealsPlace): boolean {
   const before = url.search;
   if (place.view === 'week') url.searchParams.delete('meals');
@@ -57,8 +58,8 @@ export interface MealsConfirmAction {
   title: string;
   description: string;
   confirmLabel: string;
-  /** The answer button's colour; red, for something that removes meals, unless given. */
-  confirmColor?: string;
+  /** The answer button's tone: `danger` (red, the default) for something that removes meals. */
+  tone?: ConfirmTone;
   onConfirm: () => void;
 }
 

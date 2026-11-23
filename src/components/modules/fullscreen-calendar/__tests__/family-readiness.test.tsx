@@ -24,11 +24,11 @@ function Calendar({ view, state, ready = false }: { view: FullscreenCalendarConf
 describe('per-person calendar readiness', () => {
   it.each(['family-grid', 'free-time'] as const)('holds %s until roster ownership is ready, so source rows never flash', (view) => {
     const { container, rerender } = render(<Calendar view={view} state="loading" />, { wrapper: I18nWrapper });
-    expect(container.querySelector('.fsc-skeleton')).not.toBeNull();
+    expect(container.querySelector('[data-testid="module-loading"]')).not.toBeNull();
     expect(screen.queryByText('School calendar')).toBeNull();
     expect(container.querySelector('[data-event-id="class"]')).toBeNull();
     rerender(<Calendar view={view} ready />);
-    expect(container.querySelector('.fsc-skeleton')).toBeNull();
+    expect(container.querySelector('[data-testid="module-loading"]')).toBeNull();
     expect(screen.getAllByText('Alex').length).toBeGreaterThan(0);
     expect(screen.queryByText('School calendar')).toBeNull();
     expect(container.querySelector('[data-event-id="class"]')).not.toBeNull();
@@ -36,14 +36,14 @@ describe('per-person calendar readiness', () => {
 
   it('shows an unavailable state after a cold roster failure instead of suggesting free time', () => {
     const { container } = render(<Calendar view="free-time" state="failed" />, { wrapper: I18nWrapper });
-    expect(screen.getByText("Can't load events right now")).toBeTruthy();
+    expect(screen.getByTestId('module-not-updating').textContent).toBe('Not updating right now');
     expect(container.querySelector('[data-free-gap]')).toBeNull();
     expect(container.querySelector('[data-event-id="class"]')).toBeNull();
   });
 
   it('renders ordinary calendar views while the family request is pending', () => {
     const { container } = render(<Calendar view="week-list" state="loading" />, { wrapper: I18nWrapper });
-    expect(container.querySelector('.fsc-skeleton')).toBeNull();
+    expect(container.querySelector('[data-testid="module-loading"]')).toBeNull();
     expect(container.querySelector('[data-event-id="class"]')).not.toBeNull();
   });
 });

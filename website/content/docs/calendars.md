@@ -32,7 +32,7 @@ Three ways to get events onto the wall. Pasting a calendar link is the quickest 
    - **Apple iCloud:** in the Calendar app, right-click the calendar, choose **Share Calendar**, and turn on **Public Calendar**.
    - **Outlook / Microsoft 365:** open Settings, then **Shared calendars**, then **Publish a calendar**, and copy the ICS link.
    - **Schools, sports teams, holidays:** look for "subscribe", "iCal" or "ICS" on their calendar page.
-2. In the editor, open **Settings > Calendar** and click **Add Feed** under **iCal / ICS Feeds**.
+2. In the editor, open **Settings > Calendar** and click **Add feed** under **iCal / ICS feeds**.
 3. Paste the link, give it a name and a colour, and save.
 
 Repeat for each calendar. Every calendar module shows all of them together, and each feed can be switched off with its tick box without deleting it.
@@ -96,17 +96,17 @@ The same list drives three options on both calendar modules, under **What shows*
 
 To write one, open the family remote on a phone, tap **Notes**, then **Calendar** at the top (the Board page has a link to it too). The page lists today and the six days after it; the arrows move a week at a time, up to a year ahead. Tap **Add a note for this day** to write one, or tap a note to change it or remove it; a removed note can be put back with **Undo** for a few seconds. A note is up to 60 characters, and a day holds up to three, each its own line on the wall. A note shows once its day is on a calendar: a calendar that shows this week does not show next week's notes yet.
 
-Where the notes go depends on the view: under the date in the daily columns, the week grid, the schedule and the family grid; on their own lines under the day number in the month, multi-week and rolling grids (they take their room before the events are counted, so "+2 more" stays true); as the first rows under the day's heading in the agenda and the week list, where a day with only notes still gets its heading; beside the date on the full-screen calendar's Day and Free Time views, with tomorrow's at the top of Free Time's Tomorrow list; and under the date and in the Tomorrow list on Up Next.
+Where the notes go depends on the view: under the date in the daily columns, the week grid, the schedule and the family grid; on their own lines under the day number in the month, multi-week and rolling grids (they take their room before the events are counted, so "+2 more" stays true); as the first rows under the day's heading in the agenda and the week list, where a day with only notes still gets its heading; beside the date on the full-screen calendar's Day timeline and Free time views, with tomorrow's at the top of Free time's Tomorrow list; and under the date and in the Tomorrow list on Up next.
 
 Each calendar module has a **Day notes** switch under **What shows**, on unless you turn it off. Notes from days that have passed stay on their day for six weeks, then are tidied away. They live in `data/day-notes.json` and are included in backups.
 
 ## Public holidays
 
-**Public Holidays** adds a country's holidays to every calendar module. Pick the country and they appear alongside your own events, styled a little differently so they are easy to tell apart.
+**Public holidays** adds a country's holidays to every calendar module. Pick the country and they appear alongside your own events, styled a little differently so they are easy to tell apart.
 
 ## How much to show
 
-**Days Ahead** at the top of the page is the furthest any calendar module looks. A module can narrow it further in its own settings, but not widen it.
+**Days ahead** at the top of the page is the furthest any calendar module looks. A module can narrow it further in its own settings, but not widen it.
 
 If all-day events crowd out the rest of the day, set **All-day events** to **Title only** in a Calendar module's settings (Daily and Agenda views). Each all-day event then takes a single line, and timed events keep every detail. Tapping a one-line event on a touchscreen still opens its place and description.
 
@@ -148,7 +148,7 @@ With Home Screens' own Google app, adding to Google calendars comes later, once 
 
 ### Adding events with your own Google app {% #own-app-add-events %}
 
-Google gives the "View and edit events" permission only to its web sign-in, not to the short code, so adding events signs in the way the Google Photos import does. If you already set up your own app for Google Photos, there is nothing to add. Otherwise, make the **Web application** credential described under [Use your own Google app](/docs/backgrounds#use-your-own-google-app) for Google Photos, and save it as the **Web sign-in Client ID** and **Secret** under **Settings > API keys**.
+Google gives the "View and edit events" permission only to its web sign-in, not to the short code, so adding events signs in the way the Google Photos import does. If you already set up your own app for Google Photos, there is nothing to add. Otherwise, make the **Web application** credential described under [Use your own Google app](/docs/backgrounds#use-your-own-google-app) for Google Photos, and save it as the **Web sign-in client ID** and **Web sign-in client secret** under **Settings > API keys**.
 
 ## API keys {% #api-keys %}
 

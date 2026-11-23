@@ -47,6 +47,7 @@ export default function MealsSettingsTimeFormatSection({
         <button
           type="button"
           onClick={() => onChange(undefined)}
+          className="press-scale"
           style={formatBtnStyle(timeFormat === undefined)}
           aria-pressed={timeFormat === undefined}
         >
@@ -63,6 +64,7 @@ export default function MealsSettingsTimeFormatSection({
               key={fmt}
               type="button"
               onClick={() => onChange(fmt)}
+              className="press-scale"
               style={formatBtnStyle(isSelected)}
               aria-pressed={isSelected}
             >

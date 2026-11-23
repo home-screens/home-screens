@@ -38,6 +38,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // The wall keyboard's key back to the letters reads "abc" on phone
   // keyboards in every shipped language.
   'modules|wallKeyboard.lettersKey',
+  // The one-word answer to a notice: "OK" is the everyday word in every
+  // shipped language.
+  'core|actions.ok',
   // Apple's product name, which every shipped language keeps as-is (the
   // three choices beneath it are translated words).
   'editor|common.livePhotos',
@@ -96,7 +99,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.profilesPage.card.summaryScheduled',
   // "{name} ({count})": an opener already named and localized, with how many.
   'editor|screenSettings.openerNameCount',
-  'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
   'editor|configSections.clock.elapsedFormat',
@@ -150,7 +152,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // A loanword in every shipped locale but French, and a brand name.
   'editor|iconPicker.tabEmoji',
   'editor|iconPicker.tabFontAwesome',
-  'editor|imageBrowserModal.newFolderConfirm',
   'editor|imageBrowserModal.uploadMediaButton',
   'editor|imageBrowserModal.videoCountSingular',
   'editor|installFromUrlModal.pluginFallbackName',
@@ -230,8 +231,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.securityPage.ipAllowlist.lockedOutHintCode',
   'editor|settings.sharedStatePage.displayPicker.optionLabel',
   'editor|settings.sidebar.displays',
-  'editor|settings.sidebar.navLabels.displays',
-  'editor|settings.sidebar.navLabels.stats',
+  'core|settingsPages.displays',
+  'core|settingsPages.stats',
   'editor|settings.statsSection.cacheTtl',
   'editor|settings.statsSection.cacheUrl',
   'editor|settings.statsSection.deviceMemoryGb',
@@ -366,6 +367,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|chore-chart.choreForm.kindBonus',
     // "Person" is the same word in Danish (a label beside an icon's use).
     'core|customIcons.kinds.person',
+    // "Person" is the same word in Danish (who a reward is for).
+    'remote|rewardsView.manage.memberCountSingular',
     // Wall names that are the same word in Danish.
     'editor|backgroundPicker.starters.pattern-diagonal',
     'editor|backgroundPicker.starters.sand',
@@ -400,6 +403,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.mars',
     'editor|photoSources.nasa.ideas.saturn',
     'editor|photoSources.nasa.ideas.jupiter',
+    // The English is now sentence case, so this language's own words match it.
+    'editor|configSections.video.uploadVideo',
   ]),
   'de-DE': new Set([
     // The calendar apps by their own names, as this language already writes them.
@@ -515,6 +520,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.mars',
     'editor|photoSources.nasa.ideas.saturn',
     'editor|photoSources.nasa.ideas.jupiter',
+    // The English is now sentence case, so this language's own words match it.
+    'editor|configSections.date.viewBanner',
   ]),
   'es-ES': new Set([
     // The calendar apps by their own names, as this language already writes them.
@@ -566,10 +573,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|backgroundPicker.shadeColorLabel',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|registry.categories.personal',
-    'editor|settings.dataPage.configBackups.restoreStatus.error',
-    'editor|settings.locationPage.status.error',
     'editor|settings.networkPage.interfaces.heading',
-    'editor|settings.networkPage.savedNetworks.forgetConfirmNo',
     'editor|settings.statsSection.sourceHub',
     'editor|settings.statsSection.sourceReporter',
     'editor|settings.systemPage.changelog.heading',
@@ -606,6 +610,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.aurora',
     'editor|photoSources.picker.tabs.library',
     'editor|photoSources.picker.ideas',
+    // The English is now sentence case, so this language's own words match it.
+    'core|meal.tags.meal-prep',
+    'editor|configSections.date.viewBanner',
   ]),
   'fr-FR': new Set([
     // Standings column abbreviations, the 7D chart caption and "Final": the
@@ -806,6 +813,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.unsplash.ideas.nature',
     'editor|photoSources.nasa.ideas.mars',
     'editor|photoSources.nasa.ideas.jupiter',
+    // The English is now sentence case, so this language's own words match it.
+    'core|meal.tags.meal-prep',
   ]),
   'nl-NL': new Set([
     // "Letters" is the Dutch word too: what the wall keyboard's abc key goes back to.
@@ -915,7 +924,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.statsSection.sourceReporter',
     'editor|settings.statsSection.throttling',
     'editor|settings.systemPage.changelog.heading',
-    'editor|settings.systemPage.upgradeDialog.title',
     'editor|settings.systemPage.version.branchLabel',
     'editor|visibilityConditions.matchEquals',
     'modules|affirmations.categories.compliments',
@@ -1092,6 +1100,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
     // Photo sources: the same words in this language.
     'editor|photoSources.picker.tabs.library',
+    // The English is now sentence case, so this language's own words match it.
+    'modules|qr-code.name',
+    'editor|configSections.clock.viewFlip',
+    'editor|configSections.date.viewBanner',
+    'editor|configSections.text.effectOptions.fade-in',
   ]),
 };
 
@@ -1220,7 +1233,7 @@ describe('registry module labels', () => {
  * than raise it when a new copy appears.
  */
 const REPEATED_SENTENCE_MIN_WORDS = 5;
-const REPEATED_SENTENCE_BASELINE = 62;
+const REPEATED_SENTENCE_BASELINE = 59;
 
 function repeatedSentences(): Map<string, string[]> {
   const entriesByText = new Map<string, Set<string>>();

@@ -6,6 +6,8 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
 
 interface ProfileSubtabProps {
   config: ScreenConfiguration;
@@ -32,6 +34,7 @@ interface ProfileSubtabProps {
  */
 export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { updateDisplay, saveConfig } = useEditorStore();
   const profilePool = display.profiles ?? config.profiles ?? [];
   const activeProfileId = display.activeProfile ?? config.settings.activeProfile ?? '';
@@ -60,16 +63,16 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
               </option>
             ))}
           </select>
-          <p className="text-[11px] text-hs-text-faint mt-1.5">
+          <FieldHint className="mt-1.5">
             {t('settings.perDisplayPage.profile.helpPart1', { name: display.name })}
             <Link
               href={settingsHref({ kind: 'defaults', page: 'automation' })}
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
-              {t('settings.perDisplayPage.profile.helpLink')}
+              {defaultsPlaceText(t, tCore, 'automation')}
             </Link>
             {t('settings.perDisplayPage.profile.helpPart2')}
-          </p>
+          </FieldHint>
         </label>
       </div>
     </div>

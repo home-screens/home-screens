@@ -14,6 +14,8 @@ import { getLocation } from '@/lib/location';
 import { hasRainLikelyCondition, withRainLikelyCondition, RAIN_LIKELY_THRESHOLD } from '@/lib/rain-map-visibility';
 import { PANEL_SECTION_CONDITIONS, revealPanelSection } from '@/components/editor/panel-section-reveal';
 import type { ModuleInstance } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * The one-click way to hide the radar on dry days. It writes an ordinary
@@ -25,6 +27,7 @@ import type { ModuleInstance } from '@/types/config';
  */
 function RainLikelyShortcut({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const updateModule = useEditorStore((s) => s.updateModule);
   const hasLocation = useEditorStore((s) => getLocation(s.config?.settings) !== null);
   const active = hasRainLikelyCondition(mod.visibility);
@@ -43,20 +46,20 @@ function RainLikelyShortcut({ mod, screenId }: { mod: ModuleInstance; screenId: 
       </p>
       {active ? (
         <>
-          <p className="mt-1 text-hs-text-muted">{t('configSections.rain-map.rainLikely.active')}</p>
+          <FieldHint className="mt-1">{t('configSections.rain-map.rainLikely.active')}</FieldHint>
           <button type="button" onClick={openConditions} className="mt-1 font-medium text-hs-accent hover:underline">
             {t('configSections.rain-map.rainLikely.edit')}
           </button>
         </>
       ) : hasLocation ? (
         <>
-          <p className="mt-1 text-hs-text-muted">{t('configSections.rain-map.rainLikely.help', { percent: RAIN_LIKELY_THRESHOLD })}</p>
+          <FieldHint className="mt-1">{t('configSections.rain-map.rainLikely.help', { percent: RAIN_LIKELY_THRESHOLD })}</FieldHint>
           <Button variant="primary" size="sm" className="mt-2" onClick={add}>
             {t('configSections.rain-map.rainLikely.button')}
           </Button>
         </>
       ) : (
-        <p className="mt-1 text-hs-text-muted">{t('configSections.rain-map.rainLikely.needsLocation')}</p>
+        <FieldHint className="mt-1">{t('configSections.rain-map.rainLikely.needsLocation', { place: settingsPlaceText(tCore, 'location') })}</FieldHint>
       )}
     </div>
   );
@@ -129,7 +132,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         options={MAP_STYLE_OPTIONS}
       />
       <RefreshIntervalSlider value={c.refreshIntervalMs} onChange={(ms) => set({ refreshIntervalMs: ms })} fetchKey="rain-map" fallbackMs={600_000} unit="minutes" min={5} max={30} step={5} />
-      <p className="text-xs text-hs-text-faint">{t('configSections.rain-map.locationHelp')}</p>
+      <FieldHint>{t('configSections.rain-map.locationHelp')}</FieldHint>
     </>
   );
 }

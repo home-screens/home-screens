@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
@@ -134,8 +135,9 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
           onClick={onClose}
           aria-label={t('meal-planner.closeRecipe')}
           style={{
-            fontSize: '1.4rem',
-            lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: '#fff',
             backgroundColor: 'rgba(255,255,255,0.12)',
             border: 'none',
@@ -145,7 +147,7 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
             cursor: 'pointer',
           }}
         >
-          &#10005;
+          <X size={22} aria-hidden="true" />
         </button>
       </div>
       {/* White background so a frame blocked by X-Frame-Options is visibly

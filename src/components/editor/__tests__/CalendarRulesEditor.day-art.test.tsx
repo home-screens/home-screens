@@ -87,12 +87,12 @@ describe('two day rules with picture backgrounds', () => {
     expect(name(cards[0])).toMatch(/halloween/i);
     expect(name(card2)).not.toMatch(/halloween/i);
 
-    // Pick birthday on card 2, in the Image Library its field opens.
+    // Pick birthday on card 2, in the Pictures & videos window its field opens.
     await act(async () => {
       fireEvent.click(picker!.querySelector('[data-testid="day-art-choose"]')!);
     });
     await act(async () => {
-      // The Image Library opens over the page, not inside the card.
+      // The Pictures & videos window opens over the page, not inside the card.
       fireEvent.click(document.querySelector('[data-testid="starter-picture-birthday"]')!);
     });
     await act(async () => {

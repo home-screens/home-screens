@@ -51,7 +51,22 @@ describe('meal planner before its first fetch settles', () => {
         timezone="America/Chicago"
       />,
     );
-    expect(getByTestId('fmp-loading').textContent).toBe('Loading meals…');
+    expect(getByTestId('module-loading').textContent).toBe('Loading meals…');
     expect(container.textContent).not.toMatch(/No (upcoming )?meals planned/);
+  });
+});
+
+describe('full-screen meal planner with nothing planned anywhere', () => {
+  it.each(['today', 'menu-board', 'next-meal'] as const)('shows the card\'s empty state with the phone address (%s)', (view) => {
+    fetchState.result = [{ savedMeals: [], plan: [] }, null, Date.now()];
+    const { getByTestId, container } = wrap(
+      <FullscreenMealPlannerModule
+        config={{ view } as FullscreenMealPlannerConfig}
+        style={{ ...DEFAULT_MODULE_STYLE }}
+        timezone="America/Chicago"
+      />,
+    );
+    expect(getByTestId('fmp-plan-empty').textContent).toContain(enUSModules['meal-planner'].noMealsPlannedYet);
+    expect(container.textContent).toContain('/remote');
   });
 });

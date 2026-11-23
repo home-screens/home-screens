@@ -16,6 +16,8 @@ import { useHiddenRowCount } from './useHiddenRowCount';
 import { useWallOverlayScale } from './useWallOverlayScale';
 import { WallOverlay } from './WallOverlay';
 import { wallPressProps } from './wallPress';
+import { MemberBadge } from './MemberBadge';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 /** A rating dialog nobody touches closes itself, like every sheet over the wall. */
@@ -25,7 +27,7 @@ const STARS = [1, 2, 3, 4, 5] as const;
 /**
  * A recipe's family average as five stars and "4.5 · 3" (the average and how
  * many people voted), in the type size the view gives it. Draws nothing for
- * a recipe nobody has rated, or on a module with Show Family Ratings off.
+ * a recipe nobody has rated, or on a module with Show family ratings off.
  */
 export function FamilyMealStars({ meal, size = 24, compact = false, style }: {
   meal: SavedMeal | null;
@@ -93,7 +95,7 @@ function pillStyle(size: number | string): CSSProperties {
 }
 
 /**
- * "Rate Dinner" on a meal view. It always means the last dinner the family
+ * "Rate dinner" on a meal view. It always means the last dinner the family
  * sat down to (`dinnerRatingDate`), whichever day the view is showing, so it
  * never offers a dinner nobody has eaten yet. Nothing on a module with Show
  * Family Ratings off.
@@ -212,7 +214,7 @@ function WallRatingDialog({ title, subtitle, meals, note, named = false, onClose
   const people = meals.length === 0 ? null
     : voting.roster === 'loading' ? <p role="status" style={words}>{t('mealRatings.loading')}</p>
     : voting.roster === 'failed' ? <p role="alert" style={words}>{t('mealRatings.loadError')}</p>
-    : members.length === 0 ? <p style={words}>{t('mealRatings.noMembers')}</p>
+    : members.length === 0 ? <p style={words}>{t('mealRatings.noMembers', { place: settingsPlaceText(t, 'family') })}</p>
     : (
       <>
         <div style={label}>{t('mealRatings.who')}</div>
@@ -234,15 +236,11 @@ function WallRatingDialog({ title, subtitle, meals, note, named = false, onClose
                   background: on ? 'color-mix(in srgb, var(--fmp-accent) 12%, var(--fmp-surface))' : 'var(--fmp-surface)',
                 }}
               >
-                <span aria-hidden="true" style={{
-                  width: P(88), height: P(88), borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: member.color || 'var(--fmp-border)', color: memberInk(member.color), fontSize: P(40), fontWeight: 700,
-                }}>
+                <MemberBadge aria-hidden="true" initials={memberInitials(member.name)} color={member.color} size={P(88)} fontSize={P(40)} style={{ overflow: 'hidden' }}>
                   {member.emoji
                     ? <ChoreIcon value={member.emoji} size={P(50)} color={memberInk(member.color)} bare fallback={memberInitials(member.name)} />
-                    : memberInitials(member.name)}
-                </span>
+                    : undefined}
+                </MemberBadge>
                 <span style={{ fontSize: P(28), fontWeight: 600, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</span>
               </button>
             );

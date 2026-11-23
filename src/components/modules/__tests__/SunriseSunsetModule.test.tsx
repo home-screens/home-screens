@@ -186,7 +186,7 @@ describe('SunriseSunsetModule circle view — sky theme', () => {
       .toEqual(stars(container).map((s) => [s.getAttribute('cx'), s.getAttribute('cy')]));
 
     // sky theme forces the dark window on: stars and dark labels render even with
-    // Show Astro Dark off (Minnesota-style mid-latitude August has a dark window)
+    // Show astro dark off (Minnesota-style mid-latitude August has a dark window)
     const forced = renderModule(new Date('2026-08-18T12:00:00+02:00'), { theme: 'sky' });
     expect(stars(forced.container)).toHaveLength(30);
     expect(forced.container.textContent).toContain('Dark begins');

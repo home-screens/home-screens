@@ -1,12 +1,12 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslate } from '@/i18n';
-import { REMOTE_ACCENT } from './remote-styles';
-import { withAlpha } from '@/lib/hex-color';
+import { ACCENT_SOFT_BUTTON } from './remote-styles';
 
 interface MealsWeekNavProps {
-  /** Either "This Week" or the viewed date range */
+  /** Either "This week" or the viewed date range */
   weekLabel: string;
   isCurrentWeek: boolean;
   navigateWeek: (direction: -1 | 1) => void;
@@ -20,7 +20,7 @@ interface MealsWeekNavProps {
 function arrowStyle(disabled: boolean): CSSProperties {
   return {
     width: 44, height: 44, flex: 'none', borderRadius: 10, border: '1px solid var(--hs-border)',
-    background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 20, cursor: disabled ? 'default' : 'pointer',
+    background: 'transparent', color: 'var(--hs-text-muted)', cursor: disabled ? 'default' : 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
     opacity: disabled ? 0.35 : 1,
   };
@@ -29,7 +29,7 @@ function arrowStyle(disabled: boolean): CSSProperties {
 /**
  * The week arrows of the Meals tab and the Notes tab's Calendar page. The
  * arrows never move: the way back to today sits beside the label, between
- * them, so a second tap on › never lands on it.
+ * them, so a second tap on the next arrow never lands on it.
  */
 export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, jumpToToday, prevDisabled = false, nextDisabled = false }: MealsWeekNavProps) {
   const t = useTranslate('remote');
@@ -37,12 +37,14 @@ export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, j
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
       <button
+        type="button"
         onClick={() => navigateWeek(-1)}
         aria-label={t('mealsTab.weekNav.prevAriaLabel')}
         disabled={prevDisabled}
+        className="press-scale-sm"
         style={arrowStyle(prevDisabled)}
       >
-        ‹
+        <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
       </button>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--hs-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
@@ -50,24 +52,24 @@ export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, j
         </span>
         {!isCurrentWeek && (
           <button
+            type="button"
             onClick={jumpToToday}
-            style={{
-              flex: 'none', minHeight: 44, padding: '0 12px', borderRadius: 10, border: 'none',
-              background: withAlpha(REMOTE_ACCENT, 0.12), color: REMOTE_ACCENT,
-              fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}
+            className="press-scale-sm"
+            style={{ ...ACCENT_SOFT_BUTTON, flex: 'none', minHeight: 44, padding: '0 12px', borderRadius: 10, fontSize: 12 }}
           >
             {t('mealsTab.weekNav.todayButton')}
           </button>
         )}
       </div>
       <button
+        type="button"
         onClick={() => navigateWeek(1)}
         aria-label={t('mealsTab.weekNav.nextAriaLabel')}
         disabled={nextDisabled}
+        className="press-scale-sm"
         style={arrowStyle(nextDisabled)}
       >
-        ›
+        <ChevronRight size={20} strokeWidth={2} aria-hidden="true" />
       </button>
     </div>
   );

@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { Eraser, Sandwich } from 'lucide-react';
+import { Eraser, Plus, Sandwich } from 'lucide-react';
 import { subjectIcon } from '@/components/timetable/subject-icons';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -119,8 +119,9 @@ export default function SubjectPalette({
         {adding ? (
           codeBox
         ) : (
-          <Button size="sm" variant="primary" onClick={() => setAdding(true)}>
-            {t('timetableModal.addSubject')}
+          <Button size="sm" variant="primary" className="inline-flex items-center gap-1" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('timetableModal.subjects.add')}
           </Button>
         )}
       </div>
@@ -185,7 +186,8 @@ export default function SubjectPalette({
           disabled={subjects.length >= TIMETABLE_LIMITS.maxSubjects}
           className={`${CHIP_CLASS} border border-dashed border-hs-border-strong text-hs-text-muted hover:text-hs-text-body disabled:opacity-50`}
         >
-          {t('timetableModal.addSubject')}
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          {t('timetableModal.subjects.add')}
         </button>
       )}
     </div>

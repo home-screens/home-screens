@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   extractSharedStateKeys,
   resolveSharedStateTokens,
-  UNKNOWN_VALUE_PLACEHOLDER,
 } from '@/lib/shared-state-template';
+import { NO_VALUE } from '@/lib/constants';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 
 function states(entries: Record<string, string>): ReadonlyMap<string, SharedStateEntry> {
@@ -57,7 +57,7 @@ describe('resolveSharedStateTokens', () => {
 
   it('renders the en-dash placeholder for unknown keys', () => {
     const out = resolveSharedStateTokens('Battery: {plugin:ha:sensor.battery}%', states({}));
-    expect(out).toBe(`Battery: ${UNKNOWN_VALUE_PLACEHOLDER}%`);
+    expect(out).toBe(`Battery: ${NO_VALUE}%`);
   });
 
   it('substitutes an empty published value as empty, not as the placeholder', () => {
@@ -99,7 +99,7 @@ describe('token filters', () => {
   });
 
   it('round on an unpublished key falls through to the placeholder', () => {
-    expect(resolveSharedStateTokens('{k|round:1}', states({}))).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+    expect(resolveSharedStateTokens('{k|round:1}', states({}))).toBe(NO_VALUE);
   });
 
   it('default: replaces the placeholder for unpublished keys only', () => {

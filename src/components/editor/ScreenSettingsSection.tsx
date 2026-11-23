@@ -17,6 +17,11 @@ import PropertyGroup from './PropertyGroup';
 import ArtModeFields from './ArtModeFields';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
 import { ScreenVisibilitySection } from './ScreenVisibilitySection';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Button from '@/components/ui/Button';
+import Notice from '@/components/ui/Notice';
+import StatusPill from '@/components/ui/StatusPill';
 
 /**
  * Shown in the right property panel when a screen is selected but no module
@@ -109,16 +114,17 @@ export default function ScreenSettingsSection() {
         {screen.enabled === false && (
           // A switched-off screen's own settings say so first, with the way
           // back on: the only other control is in the tab's menu.
-          <div className="flex items-center justify-between gap-2 rounded-md border border-hs-warning/35 bg-hs-warning/10 px-3 py-2" data-testid="screen-switched-off">
-            <span className="text-xs text-hs-warning">{t('screenSettings.switchedOff')}</span>
-            <button
-              type="button"
-              onClick={() => updateScreen(screen.id, { enabled: undefined })}
-              className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors"
-            >
-              {t('screenSettings.switchOn')}
-            </button>
-          </div>
+          <Notice
+            tone="warning"
+            testId="screen-switched-off"
+            action={
+              <Button size="sm" variant="warning" onClick={() => updateScreen(screen.id, { enabled: undefined })}>
+                {t('screenSettings.switchOn')}
+              </Button>
+            }
+          >
+            {t('screenSettings.switchedOff')}
+          </Notice>
         )}
 
         <PropertyGroup title={t('fields.rotation')} accent={1}>
@@ -129,7 +135,7 @@ export default function ScreenSettingsSection() {
                   id={`screen-rotation-${mode}`}
                   type="radio"
                   name="screen-rotation-mode"
-                  className="mt-0.5"
+                  className={`${CHECKBOX_CLASS} mt-0.5`}
                   checked={opened === (mode === 'opened')}
                   onChange={() => handleRotationMode(mode)}
                 />
@@ -140,17 +146,17 @@ export default function ScreenSettingsSection() {
           {opened ? (
             <div className="ml-6 space-y-3">
               {opened && (screen.schedule || (screen.visibility?.conditions.length ?? 0) > 0) && (
-                <p className="text-[11px] text-hs-text-faint leading-relaxed" data-testid="screen-opened-gated">
+                <FieldHint data-testid="screen-opened-gated">
                   {screen.schedule
                     ? t('screenSettings.openedOnlyWhen', { when: describeSchedule(screen.schedule, t, formattingLocale, config.settings.timeFormat).short })
                     : t('screenSettings.openedOnlyConditions')}
-                </p>
+                </FieldHint>
               )}
-              <p className={`text-xs ${hasOpener ? 'text-hs-text-dim' : 'text-hs-warning'}`} data-testid="screen-rotation-opened-help">
+              <FieldHint tone={hasOpener ? undefined : 'warning'} data-testid="screen-rotation-opened-help">
                 {openers.length > 0
                   ? t('screenSettings.rotationOpenedBy', { names: openerNamesJoined })
                   : hasOpener ? t('screenSettings.rotationOpenedHelp') : t('screenSettings.rotationOrphaned')}
-              </p>
+              </FieldHint>
               <div>
                 <label htmlFor="screen-go-back-after" className="block text-xs text-hs-text-muted mb-1.5">
                   {t('screenSettings.goBackAfterLabel')}
@@ -164,17 +170,17 @@ export default function ScreenSettingsSection() {
               </div>
             </div>
           ) : openers.length > 0 ? (
-            <p className="ml-6 text-xs text-hs-text-dim mb-3" data-testid="screen-rotation-openers">
+            <FieldHint className="ml-6 mb-3" data-testid="screen-rotation-openers">
               {rotationOff || (isOverridden && overrideMs === 0)
                 ? t('screenSettings.openersStay', { names: openerNamesJoined })
                 : t('screenSettings.openersTurn', { names: openerNamesJoined, seconds: isOverridden ? savedSeconds : defaultSec })}
-            </p>
+            </FieldHint>
           ) : null}
           {opened ? null : rotationOff ? (
             <>
-              <p className="text-xs text-hs-text-muted" data-testid="screen-rotation-off">
+              <FieldHint data-testid="screen-rotation-off">
                 {t('screenSettings.rotationOffHint')}
-              </p>
+              </FieldHint>
               {/* An override saved before rotation went off is ignored now,
                   but it is still there and would come back with rotation;
                   the reset stays so it can be cleared without a detour. */}
@@ -190,13 +196,13 @@ export default function ScreenSettingsSection() {
             </>
           ) : !isOverridden ? (
             <>
-              <p className="text-xs text-hs-text-muted">
+              <FieldHint>
                 {t('screenSettings.inheritsHintBefore')}
                 <strong className="text-hs-text-secondary">
                   {t('screenSettings.inheritsHintValue', { seconds: defaultSec })}
                 </strong>
                 {t('screenSettings.inheritsHintAfter')}
-              </p>
+              </FieldHint>
               <button
                 type="button"
                 onClick={handleOverride}
@@ -220,24 +226,24 @@ export default function ScreenSettingsSection() {
                   value={draft ?? savedSeconds}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
                   onBlur={() => setDraft(null)}
-                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-20 ${tooShort ? 'border-hs-warning' : 'border-hs-border-strong'}`}
+                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-20 focus:outline-none focus:border-hs-accent ${tooShort ? 'border-hs-warning' : 'border-hs-border-strong'}`}
                 />
                 <span className="text-xs text-hs-text-muted">{t('screenSettings.secondsUnit')}</span>
                 {isSticky && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-hs-warning/15 text-hs-warning border border-hs-warning/35 px-2 py-0.5 rounded-full">
+                  <StatusPill tone="warning" size="sm">
                     {t('screenSettings.stickyBadge')}
-                  </span>
+                  </StatusPill>
                 )}
               </div>
               {tooShort && (
-                <p className="text-[11px] text-hs-warning mt-2 flex gap-1.5" data-testid="screen-duration-short-warning">
+                <p className="text-[11px] text-hs-warning-ink mt-2 flex gap-1.5" data-testid="screen-duration-short-warning">
                   <span aria-hidden="true">⚠</span>
                   <span>{t('screenSettings.shortDurationWarning', { seconds: shortSeconds })}</span>
                 </p>
               )}
-              <p className="text-[11px] text-hs-text-faint mt-2">
+              <FieldHint className="mt-2">
                 {t('screenSettings.stickyHint')}
-              </p>
+              </FieldHint>
               <button
                 type="button"
                 onClick={handleReset}

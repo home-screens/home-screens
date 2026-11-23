@@ -5,6 +5,10 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusPill from '@/components/ui/StatusPill';
 
 /* ─── Constants ────────────────────────────── */
 
@@ -47,6 +51,7 @@ export default function WifiScanSection({
   onNetworkClick,
 }: WifiScanSectionProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [scanResults, setScanResults] = useState<WifiNetwork[]>([]);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
@@ -76,7 +81,7 @@ export default function WifiScanSection({
         setScanError(errData?.error ?? t('settings.networkPage.wifiScan.defaultScanError'));
       }
     } catch {
-      setScanError(t('common.serverUnreachable'));
+      setScanError(tCore('refusals.unreachable'));
     } finally {
       setScanning(false);
 
@@ -93,7 +98,7 @@ export default function WifiScanSection({
         });
       }, 1000);
     }
-  }, [selectedWifiIface, cooldownRemaining, t]);
+  }, [selectedWifiIface, cooldownRemaining, t, tCore]);
 
   /* ── Cleanup cooldown timer on unmount ─────── */
 
@@ -116,9 +121,9 @@ export default function WifiScanSection({
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.networkPage.wifiScan.heading')}
-      </h3>
+      </SettingsSectionHeading>
 
       {/* Controls row */}
       <div className="flex items-center gap-3 mb-3">
@@ -126,7 +131,7 @@ export default function WifiScanSection({
           <select
             value={selectedWifiIface}
             onChange={(e) => handleIfaceChange(e.target.value)}
-            className="rounded-md bg-hs-input border border-hs-border text-sm text-hs-text-primary px-2 py-1"
+            className={SETTINGS_INPUT_SM_CLASS}
           >
             {wifiInterfaces.map((iface) => (
               <option key={iface.device} value={iface.device}>
@@ -182,14 +187,14 @@ export default function WifiScanSection({
               {/* Badges */}
               <div className="flex items-center gap-2 shrink-0">
                 {network.inUse && (
-                  <span className="text-[10px] uppercase tracking-wider bg-hs-success/20 text-hs-success px-1.5 py-0.5 rounded">
+                  <StatusPill tone="success" size="sm">
                     {t('settings.networkPage.wifiScan.badges.connected')}
-                  </span>
+                  </StatusPill>
                 )}
                 {!network.inUse && network.saved && (
-                  <span className="text-[10px] uppercase tracking-wider bg-hs-accent/20 text-hs-accent px-1.5 py-0.5 rounded">
+                  <StatusPill tone="info" size="sm">
                     {t('settings.networkPage.wifiScan.badges.saved')}
-                  </span>
+                  </StatusPill>
                 )}
 
                 {/* Signal percentage */}
@@ -218,9 +223,9 @@ export default function WifiScanSection({
           ))}
         </div>
       ) : !scanning && scanResults.length === 0 && !scanError ? (
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.networkPage.wifiScan.emptyHint')}
-        </p>
+        </FieldHint>
       ) : null}
     </section>
   );

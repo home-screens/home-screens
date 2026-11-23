@@ -135,7 +135,7 @@ test.describe('screen search', () => {
 
   test('opening search closes the add-screen menu, and vice versa', async ({ page }) => {
     await page.getByLabel('Add screen').click();
-    const addMenu = page.getByText('Blank Screen');
+    const addMenu = page.getByText('Blank screen');
     await expect(addMenu).toBeVisible();
     await page.getByTestId('screen-search-button').click();
     await expect(addMenu).toHaveCount(0);
@@ -143,7 +143,7 @@ test.describe('screen search', () => {
 
     await page.getByLabel('Add screen').click();
     await expect(page.getByTestId('screen-search-popover')).toHaveCount(0);
-    await expect(page.getByText('Blank Screen')).toBeVisible();
+    await expect(page.getByText('Blank screen')).toBeVisible();
   });
 
   test('shows a plain no-match message naming the query', async ({ page }) => {
@@ -180,11 +180,11 @@ test.describe('screen search across displays', () => {
 
   test('a tab context menu opened before the switch does not survive it', async ({ page }) => {
     await activeTab(page).click({ button: 'right' });
-    await expect(page.getByText('Move Left')).toBeVisible();
+    await expect(page.getByText('Move left')).toBeVisible();
     await page.keyboard.press('ControlOrMeta+k');
     await page.keyboard.type('clock');
     await page.keyboard.press('Enter');
     await expect(activeTab(page)).toHaveText(/Clocks/);
-    await expect(page.getByText('Move Left')).toHaveCount(0);
+    await expect(page.getByText('Move left')).toHaveCount(0);
   });
 });

@@ -10,6 +10,8 @@ import type { PluginAuth } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('plugin-auth-ui');
 
@@ -35,6 +37,7 @@ export default function PluginAuthSection({
   auth: PluginAuth;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [status, setStatus] = useState<AuthStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -78,13 +81,14 @@ export default function PluginAuthSection({
   }, [fetchStatus, cleanupPopupWatch]);
 
   // --- OAuth2 device_code ---
-  // The provider's own wording for a sign-in that ended comes through the
-  // hub's `error`; the words for the hub itself going quiet are ours.
+  // A sign-in that ended is said in our words: the hub's refusal code when it
+  // names one, else the generic line. The provider's own English stays in the
+  // hub's log.
   const deviceSignIn = useDeviceCodeSignIn({
     start: async () => {
       const res = await editorFetch(`${base}/start`, { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? t('settings.pluginAuth.errorGeneric'));
+      if (!res.ok) throw new Error(refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric'));
       return {
         userCode: data.userCode,
         verificationUrl: data.verificationUrl,
@@ -97,12 +101,12 @@ export default function PluginAuthSection({
       const data = await res.json();
       if (data.status === 'connected') return { status: 'connected' };
       if (data.status === 'pending') return { status: 'pending', slowDown: data.slowDown === true };
-      return { status: 'ended', message: data.error ?? t('settings.pluginAuth.errorGeneric') };
+      return { status: 'ended', message: refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric') };
     },
     onConnected: fetchStatus,
     words: {
       codeExpired: t('deviceSignIn.codeExpired'),
-      hubUnreachable: t('deviceSignIn.hubUnreachable'),
+      hubUnreachable: tCore('refusals.unreachable'),
     },
   });
 
@@ -124,7 +128,7 @@ export default function PluginAuthSection({
       const res = await editorFetch(`${base}/start`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
+        setError(refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric'));
         setBusy(false);
         return;
       }
@@ -149,7 +153,7 @@ export default function PluginAuthSection({
           fetchStatus();
         } else if (msg.type === 'plugin-auth-error') {
           cleanupPopupWatch();
-          setError(msg.error ?? t('settings.pluginAuth.errorGeneric'));
+          setError(t('settings.pluginAuth.errorGeneric'));
           setBusy(false);
         }
       };
@@ -167,7 +171,7 @@ export default function PluginAuthSection({
       log.debug('Auth-code connect failed:', err);
       setBusy(false);
     }
-  }, [base, fetchStatus, t, cleanupPopupWatch, resetTransient]);
+  }, [base, fetchStatus, t, cleanupPopupWatch, resetTransient, tCore]);
 
   const startDeviceSignIn = deviceSignIn.start;
   const connectDevice = useCallback(async () => {
@@ -182,14 +186,14 @@ export default function PluginAuthSection({
     try {
       const res = await editorFetch(`${base}/start`, { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
+      if (!res.ok) setError(refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric'));
       await fetchStatus();
     } catch (err) {
       log.debug('Client-credentials connect failed:', err);
     } finally {
       setBusy(false);
     }
-  }, [base, fetchStatus, t, resetTransient]);
+  }, [base, fetchStatus, t, resetTransient, tCore]);
 
   // --- Garmin sign-in ---
   const signInGarmin = useCallback(async () => {
@@ -206,7 +210,7 @@ export default function PluginAuthSection({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
+        setError(refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric'));
         return;
       }
       if (data.status === 'mfa_required') {
@@ -222,7 +226,7 @@ export default function PluginAuthSection({
     } finally {
       setBusy(false);
     }
-  }, [base, email, password, fetchStatus, t]);
+  }, [base, email, password, fetchStatus, t, tCore]);
 
   const submitMfa = useCallback(async () => {
     if (!mfaCode.trim()) return;
@@ -243,13 +247,13 @@ export default function PluginAuthSection({
         return;
       }
       // still mfa_required (wrong code) or error
-      setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
+      setError(refusalSentence(data, tCore) ?? t('settings.pluginAuth.errorGeneric'));
     } catch (err) {
       log.debug('MFA submit failed:', err);
     } finally {
       setBusy(false);
     }
-  }, [base, mfaCode, fetchStatus, t]);
+  }, [base, mfaCode, fetchStatus, t, tCore]);
 
   const disconnect = useCallback(async () => {
     resetTransient();
@@ -285,7 +289,7 @@ export default function PluginAuthSection({
 
   // ── Rendering ──────────────────────────────────────────────
   if (status === null) {
-    return <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.loading')}</p>;
+    return <FieldHint>{t('settings.pluginAuth.loading')}</FieldHint>;
   }
 
   if (status.connected) {
@@ -293,14 +297,14 @@ export default function PluginAuthSection({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-sm text-hs-text-body">
-            <StatusDot configured />
+            <StatusDot tone="success" />
             {t('settings.pluginAuth.connectedLabel')}
           </span>
           <Button variant="ghost" size="sm" onClick={disconnect} disabled={busy}>
             {t('settings.pluginAuth.disconnectButton')}
           </Button>
         </div>
-        <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.autoRenewNote')}</p>
+        <FieldHint>{t('settings.pluginAuth.autoRenewNote')}</FieldHint>
       </div>
     );
   }
@@ -312,7 +316,7 @@ export default function PluginAuthSection({
     <div className="space-y-3">
       {auth.type === 'garmin' ? (
         <div className="space-y-2">
-          <p className="text-xs text-hs-text-muted">{t('settings.pluginAuth.garmin.intro')}</p>
+          <FieldHint>{t('settings.pluginAuth.garmin.intro')}</FieldHint>
           {!mfaRequired ? (
             <>
               <input
@@ -342,7 +346,7 @@ export default function PluginAuthSection({
             </>
           ) : (
             <>
-              <p className="text-xs text-hs-text-muted">{t('settings.pluginAuth.garmin.mfaSent')}</p>
+              <FieldHint>{t('settings.pluginAuth.garmin.mfaSent')}</FieldHint>
               <input
                 type="text"
                 inputMode="numeric"
@@ -359,9 +363,9 @@ export default function PluginAuthSection({
         </div>
       ) : auth.flow === 'device_code' && deviceSignIn.code ? (
         <div className="space-y-2">
-          <p className="text-xs text-hs-text-muted">
+          <FieldHint>
             {t('settings.pluginAuth.deviceCodeIntro')}
-          </p>
+          </FieldHint>
           <DeviceCodeLink
             url={deviceSignIn.code.verificationUrl}
             className="block text-xs text-hs-accent underline break-all"
@@ -373,7 +377,7 @@ export default function PluginAuthSection({
             labelClassName="font-sans text-xs tracking-normal text-hs-text-faint group-hover:text-hs-accent"
           />
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.devicePolling')}</p>
+            <FieldHint>{t('settings.pluginAuth.devicePolling')}</FieldHint>
             <Button variant="ghost" size="sm" onClick={deviceSignIn.cancel}>
               {t('settings.pluginAuth.cancelButton')}
             </Button>
@@ -383,7 +387,7 @@ export default function PluginAuthSection({
         <div className="space-y-2">
           {auth.type === 'oauth2' && auth.flow === 'authorization_code' && (
             <div className="space-y-1">
-              <p className="text-xs text-hs-text-muted">{t('settings.pluginAuth.redirectUriLabel')}</p>
+              <FieldHint>{t('settings.pluginAuth.redirectUriLabel')}</FieldHint>
               <code className="block text-[11px] text-hs-text-body bg-hs-card border border-hs-border-strong rounded-md px-2 py-1.5 break-all">
                 {redirectUri}
               </code>

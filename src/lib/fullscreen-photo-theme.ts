@@ -102,13 +102,13 @@ export function autoClockBackdropColor(theme: FullscreenThemeTokens): string {
   return theme.isDark ? '#000000' : '#ffffff';
 }
 
-/** The Clock Background percentage the backdrop draws when the module sets none. */
+/** The Clock background percentage the backdrop draws when the module sets none. */
 export function defaultClockBackdrop(theme: FullscreenThemeTokens, color: string | undefined): number {
   return Math.round(BACKDROP_SHAPE[resolveBackdrop(theme, color).light ? 'light' : 'dark'].bottom * 100);
 }
 
 /**
- * The clock overlay's backdrop and text. The Clock Background percentage is
+ * The clock overlay's backdrop and text. The Clock background percentage is
  * how solid the bottom edge is. Below the backdrop's own strength the fade
  * keeps its shape and only thins; above it the middle of the fade climbs as
  * well, so 100 is a solid band behind the clock rather than a solid edge

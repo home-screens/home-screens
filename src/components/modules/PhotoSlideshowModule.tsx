@@ -8,7 +8,9 @@ import { usePhotoList, DEFAULT_SLIDE_INTERVAL_MS } from './shared/usePhotoList';
 import { SlideLayer, KEN_BURNS_CSS } from './shared/SlideImage';
 import type { LayerIndex } from './shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
-import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
+import { emptyStateFor, normalizePhotoSource, defaultPhotoSource, PHOTO_EMPTY_KEYS } from '@/lib/photo-source';
+import { Images } from 'lucide-react';
+import FamilyEmptyState from './FamilyEmptyState';
 import PhotoCredit from './shared/PhotoCredit';
 import { PhotoControls, photoAlbumName } from './shared/PhotoControls';
 
@@ -23,32 +25,25 @@ interface PhotoSlideshowModuleProps {
   boxSize?: PictureBox;
 }
 
-/** What an empty slideshow says, by why it is empty (`emptyStateFor`). */
-const EMPTY_MESSAGE: Record<PhotoSourceEmptyReason, string> = {
-  addPhotos: 'photo-slideshow.empty',
-  pickPictures: 'photo-slideshow.emptyPicked',
-  checkFilters: 'photo-slideshow.emptyImmich',
-  checkLink: 'photo-slideshow.emptyICloud',
-  checkFolder: 'photo-slideshow.emptyOneDrive',
-  checkSearch: 'photo-slideshow.emptyUnsplash',
-  checkArt: 'photo-slideshow.emptyArt',
-  tryLater: 'photo-slideshow.emptyNasa',
-};
-
 export default function PhotoSlideshowModule({ config, style, screenId, moduleId, boxSize }: PhotoSlideshowModuleProps) {
   const t = useTranslate('modules');
   const playVideos = !!(screenId && moduleId);
 
   const { data, error, items, batch, advance, controls, position, sources, activeLayer, layerReady, layerFailed } = usePhotoList('photo-slideshow', config, { moduleId, playVideos });
 
-  const gate = moduleGate({
-    style, data, error,
-    loadingMessage: t('photo-slideshow.loading'),
-    // Say where the fix is (a bad iCloud link, an empty OneDrive folder,
-    // search words that found nothing) instead of a generic "no photos".
-    empty: items.length === 0 && t(EMPTY_MESSAGE[emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'))]),
-  });
+  const gate = moduleGate({ style, data, error, loadingMessage: t('photo-slideshow.loading') });
   if (gate) return gate;
+  if (items.length === 0) {
+    // Say where the fix is (the phone for an empty library, a bad iCloud
+    // link, an empty OneDrive folder, search words that found nothing) in the
+    // words the full-screen photo uses, instead of a generic "no photos".
+    const keys = PHOTO_EMPTY_KEYS[emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'))];
+    return (
+      <ModuleWrapper style={style}>
+        <FamilyEmptyState icon={<Images size="1em" strokeWidth={1.75} aria-hidden="true" />} title={t(keys.title)} hint={t(keys.hint)} />
+      </ModuleWrapper>
+    );
+  }
 
   // Cut (never animate) when either neighbor of the transition is a video:
   // a transition would run two decoders at once, which Pi hardware can't

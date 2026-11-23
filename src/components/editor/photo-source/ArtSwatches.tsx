@@ -1,6 +1,7 @@
 'use client';
 
 import LabeledField from '@/components/ui/LabeledField';
+import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
 
 export interface ArtSwatch<T extends string> {
   value: T;
@@ -19,9 +20,10 @@ export default function ArtSwatches<T extends string>({ label, options, value, o
   onChange: (value: T) => void;
   testId: string;
 }) {
+  const values = options.map((option) => option.value);
   return (
     <LabeledField label={label} as="div">
-      <div className="flex gap-2" role="radiogroup" aria-label={label} data-testid={testId}>
+      <div className="flex gap-2" role="radiogroup" aria-label={label} data-testid={testId} onKeyDown={radioGroupKeyDown(values, value, onChange)}>
         {options.map((option) => {
           const chosen = option.value === value;
           return (
@@ -30,6 +32,7 @@ export default function ArtSwatches<T extends string>({ label, options, value, o
               type="button"
               role="radio"
               aria-checked={chosen}
+              tabIndex={radioTabIndex(values, value, option.value)}
               data-value={option.value}
               onClick={() => onChange(option.value)}
               className="flex w-12 flex-col items-center gap-1 text-[10px] leading-tight text-hs-text-muted hover:text-hs-text-body"

@@ -6,6 +6,7 @@ import type { CalendarOverride } from '@/types/config';
 import { CALENDAR_NAME_MAX, type CalendarLook } from '@/lib/calendar-overrides';
 import Button from '@/components/ui/Button';
 import CalendarColorChoice from './CalendarColorChoice';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
 
 /**
  * The pencil and the strip under a Google or iCloud calendar's row in
@@ -70,7 +71,7 @@ export function CalendarLookStrip({ own, override, onChange, onDone }: {
         maxLength={CALENDAR_NAME_MAX}
         aria-label={t('settings.calendarPage.appearance.nameFor', { name: own.name })}
         data-testid="calendar-look-name"
-        className="w-full rounded border border-hs-border-strong bg-hs-input px-2 py-1 text-[13px] text-hs-text-body"
+        className={`w-full ${SETTINGS_INPUT_SM_CLASS}`}
       />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <CalendarColorChoice

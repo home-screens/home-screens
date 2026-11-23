@@ -6,14 +6,14 @@ import { Star } from 'lucide-react';
 import type { MealSettings, PlannedMeal, SavedMeal } from '@/types/config';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { fromISODate, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { dinnerRatingChoices, dinnerRatingMeals } from '@/lib/meal-ratings';
-import { withAlpha } from '@/lib/hex-color';
 import { FamilyMealSummary, useDinnerRatingNote, useMealVoting } from '@/components/meals/meal-votes';
 import BottomSheet from './BottomSheet';
-import { COMPACT_FIELD, REMOTE_ACCENT } from './remote-styles';
+import { COMPACT_FIELD, REMOTE_ACCENT_INK, SHEET_LABEL } from './remote-styles';
+import PersonChip from './PersonChip';
 import { type MealsWeekDay } from './meals-shared';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 const STARS = [1, 2, 3, 4, 5] as const;
 const NOTE: CSSProperties = { fontSize: 14, lineHeight: 1.45, color: 'var(--hs-text-muted)', margin: 0 };
@@ -31,38 +31,21 @@ export function MealRatingBoard({ meals, named = false }: { meals: SavedMeal[]; 
 
   if (voting.roster === 'loading') return <p role="status" style={NOTE}>{t('mealRatings.loading')}</p>;
   if (voting.roster === 'failed') return <p role="alert" style={NOTE}>{t('mealRatings.loadError')}</p>;
-  if (members.length === 0) return <p style={NOTE}>{t('mealRatings.noMembers')}</p>;
+  if (members.length === 0) return <p style={NOTE}>{t('mealRatings.noMembers', { place: settingsPlaceText(t, 'family') })}</p>;
 
   return (
     <div data-testid="meal-rating-board">
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--hs-text-muted)', marginBottom: 8 }}>{t('mealRatings.who')}</div>
+      <div style={{ ...SHEET_LABEL, marginTop: 0 }}>{t('mealRatings.who')}</div>
       <div role="group" aria-label={t('mealRatings.who')} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {members.map((member) => {
-          const on = member.id === memberId;
-          return (
-            <button
-              key={member.id}
-              type="button"
-              aria-pressed={on}
-              onClick={() => voting.choose(member.id)}
-              className="press-scale"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, maxWidth: '100%', padding: '5px 14px 5px 6px', borderRadius: 999,
-                border: `1px solid ${on ? REMOTE_ACCENT : 'var(--hs-border-strong)'}`,
-                background: on ? withAlpha(REMOTE_ACCENT, 0.16) : 'var(--hs-bg-hover)',
-                color: 'var(--hs-text-body)', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              }}
-            >
-              <span aria-hidden="true" style={{
-                width: 32, height: 32, borderRadius: '50%', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: member.color || 'var(--hs-border-strong)', color: memberInk(member.color), fontSize: 14, fontWeight: 700,
-              }}>
-                {memberInitials(member.name)}
-              </span>
-              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</span>
-            </button>
-          );
-        })}
+        {members.map((member) => (
+          <PersonChip
+            key={member.id}
+            member={member}
+            selected={member.id === memberId}
+            aria-pressed={member.id === memberId}
+            onClick={() => voting.choose(member.id)}
+          />
+        ))}
       </div>
 
       {meals.map((meal) => {
@@ -91,7 +74,7 @@ export function MealRatingBoard({ meals, named = false }: { meals: SavedMeal[]; 
                     style={{
                       width: 52, height: 52, padding: 0, border: 'none', borderRadius: 12, background: 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: memberId ? 'pointer' : 'default',
-                      color: filled ? '#f59e0b' : 'var(--hs-border-strong)',
+                      color: filled ? 'var(--hs-warning)' : 'var(--hs-border-strong)',
                     }}
                   >
                     <Star size={36} strokeWidth={1.6} fill={filled ? 'currentColor' : 'none'} aria-hidden="true" />
@@ -112,7 +95,7 @@ export function MealRatingBoard({ meals, named = false }: { meals: SavedMeal[]; 
                       e.currentTarget.closest('section')?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
                       void voting.rate(meal.id, null);
                     }}
-                    style={{ minHeight: 44, padding: '0 10px', border: 'none', background: 'transparent', color: REMOTE_ACCENT, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    style={{ minHeight: 44, padding: '0 10px', border: 'none', background: 'transparent', color: REMOTE_ACCENT_INK, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                   >
                     {t('mealRatings.clear')}
                   </button>
@@ -161,7 +144,7 @@ export default function MealRateButton({ meal, variant = 'icon', style }: { meal
       {/* On the page itself: the meal sheet this button can sit in is a
           dialog of its own, and a sheet inside it would be held to its box. */}
       {open && createPortal(
-        <BottomSheet title={label} onClose={() => setOpen(false)} zIndex={210} testId="meal-rating-sheet">
+        <BottomSheet title={label} onClose={() => setOpen(false)} layer="sheetOverSheet" testId="meal-rating-sheet">
           <MealRatingBoard meals={[meal]} />
         </BottomSheet>,
         document.body,
@@ -171,7 +154,7 @@ export default function MealRateButton({ meal, variant = 'icon', style }: { meal
 }
 
 /**
- * "Rate Dinner", from the button in the Meals header: a day's dinner and its
+ * "Rate dinner", from the button in the Meals header: a day's dinner and its
  * board, in a sheet over whichever tab is open. It opens on the last dinner
  * the family sat down to, and the list holds the days of the week the tab is
  * showing, with last night in front on the week's first morning
@@ -202,12 +185,12 @@ export function DinnerRatingSheet({ weekDates, todayISO, nowMinutes, plan, meals
 
   return (
     <BottomSheet title={t('mealRatings.dinner')} onClose={onClose} testId="dinner-rating-sheet">
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--hs-text-muted)', marginBottom: 14 }}>
-        {tModules(getMealSlotLabelKey('dinner'))}
+      <label style={{ display: 'block', marginBottom: 14 }}>
+        <span style={{ ...SHEET_LABEL, marginTop: 0 }}>{tModules(getMealSlotLabelKey('dinner'))}</span>
         <select
           value={date}
           onChange={(e) => setPicked(e.target.value)}
-          style={{ ...COMPACT_FIELD, display: 'block', minHeight: 44, marginTop: 6, background: 'var(--hs-bg-body)' }}
+          style={{ ...COMPACT_FIELD, display: 'block', minHeight: 44, background: 'var(--hs-bg-body)' }}
         >
           {choices.days.map((day) => (
             <option key={day} value={day}>

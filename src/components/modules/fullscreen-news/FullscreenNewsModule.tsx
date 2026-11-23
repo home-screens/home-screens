@@ -20,6 +20,7 @@ import {
 } from './news-canvas';
 import StoryView from './StoryView';
 import FrontPageView from './FrontPageView';
+import { FullscreenStateShell, fullscreenStateStyle } from '../shared/FullscreenStateShell';
 
 interface FullscreenNewsModuleProps {
   config: FullscreenNewsConfig;
@@ -71,13 +72,11 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
   });
 
   const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
-  const stateStyle = { ...style, textColor: theme.text };
   // Every pre-content state sits on the theme ground at a canvas-relative
-  // base size, so the shared state cards scale with the display.
+  // type size, so the shared state cards scale with the display.
+  const stateStyle = fullscreenStateStyle(style, theme, dims);
   const stateShell = (content: ReactNode) => (
-    <div ref={containerRef} data-fullscreen-news-view={view} className="w-full h-full" style={{ ...themeGround, fontSize: Math.min(dims.w, dims.h) * 0.026 }}>
-      {content}
-    </div>
+    <FullscreenStateShell theme={theme} containerRef={containerRef} data-fullscreen-news-view={view}>{content}</FullscreenStateShell>
   );
 
   // "Nothing configured yet" is answered before the gate, so a module with no

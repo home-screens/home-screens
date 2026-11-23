@@ -4,8 +4,11 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { logger } from '@/lib/logger';
-import { deleteLibraryImage, usageNames, type DirectoryInfo, invalidateLibraryReads, uploadLibraryFiles } from '@/lib/library-client';
+import { deleteLibraryImage, usageNames, type DirectoryInfo, invalidateLibraryReads, uploadLibraryFiles, uploadFailureText } from '@/lib/library-client';
+import { buildLibraryDeleteConfirm } from '@/lib/delete-confirmations';
+import { useConfirmStore } from '@/stores/confirm-store';
 import type { MediaListItem } from '@/types/config';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('useImageLibrary');
 
@@ -47,6 +50,8 @@ interface UseImageLibraryReturn {
   /** Uploads every picked file into the selected folder and resolves with
    *  the serve URLs that landed, so a picker can select what it just added. */
   handleUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<string[]>;
+  /** Asks first, in the same words as Settings > Pictures & videos: a
+   *  family photo is never one stray click from gone. */
   handleDeleteImage: (imageUrl: string) => Promise<void>;
   handleCreateFolder: () => Promise<void>;
   handleDeleteFolder: () => Promise<void>;
@@ -146,7 +151,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     const hadSuccess = uploaded.length > 0;
     // A video the wall cannot play stayed behind: say which, and why.
     const notes = unplayable.map((name) => tEditor('settings.mediaPage.wontPlay', { name }));
-    if (error) notes.push(error.message ?? t('errors.uploadFailed'));
+    if (error) notes.push(uploadFailureText(error, t, t('errors.uploadFailedFor', { name: error.file })));
     if (notes.length > 0) setError(notes.join(' '));
 
     setUploading(false);
@@ -162,6 +167,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
   }, [selectedDir, fetchImages, fetchDirectories, t, tEditor]);
 
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
+    if (!(await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm(1, tEditor)))) return;
     setDeletingImage(imageUrl);
     try {
       const res = await deleteLibraryImage(imageUrl);
@@ -184,7 +190,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       if (!isSessionExpired(err)) setError(t('errors.deleteImageFailed'));
     }
     setDeletingImage(null);
-  }, [fetchDirectories, t]);
+  }, [fetchDirectories, t, tEditor]);
 
   const handleCreateFolder = useCallback(async () => {
     if (!newFolderName.trim()) return;
@@ -206,7 +212,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setSelectedDir(data.path);
       } else {
         const data = await res.json();
-        setError(data.error || t('errors.createFolderFailed'));
+        setError(refusalSentence(data, t) ?? t('errors.createFolderFailed'));
       }
     } catch {
       setError(t('errors.createFolderFailed'));
@@ -232,7 +238,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         invalidateLibraryReads();
       } else {
         const data = await res.json();
-        setError(data.error || t('errors.deleteFolderFailed'));
+        setError(refusalSentence(data, t) ?? t('errors.deleteFolderFailed'));
       }
     } catch {
       setError(t('errors.deleteFolderFailed'));

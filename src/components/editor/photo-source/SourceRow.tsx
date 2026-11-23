@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * One source in a rotating background's Sources list: a checkbox that puts
@@ -44,7 +46,7 @@ export default function SourceRow({ id, label, checked, disabled, onCheck, note,
             checked={checked}
             disabled={disabled}
             onChange={(e) => onCheck(e.target.checked)}
-            className="rounded border-hs-border-strong"
+            className={CHECKBOX_CLASS}
           />
           <span className="truncate">{label}</span>
         </label>
@@ -61,7 +63,7 @@ export default function SourceRow({ id, label, checked, disabled, onCheck, note,
           <Chevron size={11} aria-hidden="true" />
         </button>
       </div>
-      {note && <p className="ml-5 text-[10px] leading-relaxed text-hs-text-faint" data-testid={`source-note-${id}`}>{note}</p>}
+      {note && <FieldHint className="ml-5" data-testid={`source-note-${id}`}>{note}</FieldHint>}
       {open && children && <div id={panelId} className="ml-5 space-y-2 pt-1">{children}</div>}
     </div>
   );

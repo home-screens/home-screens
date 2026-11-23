@@ -1,15 +1,15 @@
-import type { Metadata } from 'next';
 import { readConfig } from '@/lib/config';
 import { I18nProvider } from '@/i18n';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { pageMetadata } from '@/lib/page-title';
 
-export const metadata: Metadata = {
-  title: 'Login — Home Screens',
-};
+export function generateMetadata() {
+  return pageMetadata('signIn');
+}
 
 // Reads `data/config.json` for `config.settings.locale` so the login page
-// renders in the active language. Opt out of static prerender — the locale
+// renders in the active language. Opt out of static prerender: the locale
 // changes at runtime.
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const locale = config?.settings?.locale ?? DEFAULT_LOCALE;
   // Inline the dictionary rather than letting the provider fetch it after
   // mount. `translate()` returns the key itself on a miss, and while the
-  // login page is checking auth its entire content is one string — so a
+  // login page is checking auth its entire content is one string, so a
   // post-mount fetch renders a blank screen with the literal
   // `login.checkingAuth` centered on it until the request lands. There is no
   // surrounding chrome to hide it behind, and the wait is longest on the Pi.

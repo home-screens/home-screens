@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey } from '@/lib/meal-constants';
@@ -355,7 +356,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
               <span style={{ ...SECTION_LABEL, fontSize: P(19) }}>{t(getMealCourseLabelKey(c.kind))}</span>
               <span style={{ fontSize: P(28), fontWeight: 500, color: 'var(--fmp-text-2)' }}>
                 {c.name}
-                {opens && <span aria-hidden="true" style={{ color: 'var(--fmp-text-3)', marginLeft: P(6) }}>&#8250;</span>}
+                {opens && <ChevronRight size="0.9em" aria-hidden="true" style={{ color: 'var(--fmp-text-3)', marginLeft: P(6), display: 'inline-block', verticalAlign: '-0.1em' }} />}
               </span>
             </>
           );
@@ -539,7 +540,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
         <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {done > 0 ? t('meal-planner.recipe.ingredientsReady', { done, total }) : total}
         </span>
-        <span aria-hidden="true" style={{ color: 'var(--fmp-text-3)' }}>&#8250;</span>
+        <ChevronRight size="1em" aria-hidden="true" style={{ color: 'var(--fmp-text-3)', flexShrink: 0, alignSelf: 'center' }} />
       </>
     );
     if (m) return <div style={style}>{inner}</div>;
@@ -719,7 +720,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
           ...buttonBase, width: '30%', border: '2px solid var(--fmp-border)', background: 'var(--fmp-surface)',
           fontSize: P(36), fontWeight: 600, color: 'var(--fmp-text-2)', opacity: atStart ? 0.45 : 1,
         }}>
-          <span aria-hidden="true" style={{ fontSize: P(52), lineHeight: 1, marginTop: -P(6) }}>&#8249;</span>
+          <ChevronLeft size={P(44)} strokeWidth={2.5} aria-hidden="true" />
           {t('meal-planner.recipe.back')}
         </button>
         <button type="button" {...wallPressProps} data-testid={tid('recipe-next', m)} onClick={nextStep} disabled={atEnd} style={{
@@ -727,7 +728,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
           opacity: atEnd ? 0.45 : 1,
         }}>
           {t('meal-planner.recipe.nextStep')}
-          <span aria-hidden="true" style={{ fontSize: P(54), lineHeight: 1, marginTop: -P(6) }}>&#8250;</span>
+          <ChevronRight size={P(44)} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </div>
     );

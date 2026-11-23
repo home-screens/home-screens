@@ -1,5 +1,6 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { formatRemaining, formatStepLength, pillStyle, stepWindow, type TimerViewProps } from './shared';
 import Glyph from '@/components/ui/Glyph';
 
@@ -142,8 +143,9 @@ export default function RingTimerView({
                   {chip.label}
                 </div>
                 {isDone ? (
-                  <div style={{ fontSize: 24 * s, fontWeight: 700, color: '#34d399' }}>
-                    ✓ {t('actions.done')}
+                  <div style={{ fontSize: 24 * s, fontWeight: 700, color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.3em' }}>
+                    <Check size="1em" strokeWidth={3} aria-hidden="true" />
+                    {t('actions.done')}
                   </div>
                 ) : (
                   <div style={{ fontSize: 24 * s, fontWeight: 500, color: 'rgba(255,255,255,0.4)' }}>

@@ -117,10 +117,10 @@ export function useMealsData() {
       return true;
     } catch (err) {
       if (isSessionExpired(err)) return false;
-      setSaveError(err instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : t('mealsSettings.save.saveFailed'));
+      setSaveError(err instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : tCore('refusals.saveFailed'));
       return false;
     }
-  }, [t, tCore]);
+  }, [tCore]);
 
   const groceryRef = useRef(groceryChecked);
   groceryRef.current = groceryChecked;

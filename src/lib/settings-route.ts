@@ -15,6 +15,8 @@
  * tests don't need any DOM.
  */
 
+import type { TranslateFn } from '@/i18n/types';
+
 /**
  * Canonical list of every Defaults page id, in sidebar render order.
  * Mirrors `PAGE_META` in `SettingsSidebar.tsx` but lives here so the route
@@ -192,6 +194,31 @@ export function settingsHref(route: SettingsRoute, options?: SettingsHrefOptions
  */
 export function settingsPath(route: SettingsRoute, options?: SettingsHrefOptions): string {
   return `/editor/settings${settingsHref(route, options)}`;
+}
+
+/** The pages a "where to find it" line can name: every Defaults page, plus the displays list. */
+export type SettingsPlacePage = DefaultPageId | 'displays';
+
+/** Between the steps of a place, on every surface and in every locale: "Settings > Calendar". */
+export const PLACE_SEPARATOR = ' > ';
+
+/** Steps already in words, joined into one place: "Defaults > Screen". */
+export function placeText(steps: readonly string[]): string {
+  return steps.join(PLACE_SEPARATOR);
+}
+
+/**
+ * Where a setting lives, in words, for a line that sends someone there:
+ * "Settings > Calendar", or "Settings > Automation > Shared state" with a
+ * step inside the page. Built from the page names the sidebar shows
+ * (`core` `settingsPages.*`), so renaming a page renames every hint that
+ * points at it. The wall and the phone load `core` too, so they can say it.
+ *
+ * `tCore` reads the `core` dictionary; `steps` are already in words (a
+ * section heading, a field label).
+ */
+export function settingsPlaceText(tCore: TranslateFn, page: SettingsPlacePage, ...steps: string[]): string {
+  return placeText([tCore('actions.settings'), tCore(`settingsPages.${page}`), ...steps]);
 }
 
 /** The panel if it is valid for that page, otherwise undefined. */

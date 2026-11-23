@@ -16,7 +16,7 @@ test('Defaults › Weather: switching units persists to the shared config', asyn
   await page.goto('/editor/settings?section=defaults&page=weather');
   await expect(page.getByText('Units')).toBeVisible();
 
-  await page.getByRole('button', { name: /^Metric/ }).click();
+  await page.getByRole('radio', { name: /^Metric/ }).click();
 
   await expect
     .poll(async () => (await getConfig(request)).settings.weather.units)
@@ -219,7 +219,7 @@ test.describe('Defaults › Location', () => {
 
 test('Defaults › Screen: a custom resolution pick survives a tab switch', async ({ page, request }) => {
   // 1080×1920 is an exact preset match, so nothing but the user's explicit
-  // "Custom..." pick keeps the width/height inputs on screen.
+  // "Custom…" pick keeps the width/height inputs on screen.
   await putConfig(request, baseConfig());
   await page.goto('/editor/settings?section=defaults&page=screen');
 

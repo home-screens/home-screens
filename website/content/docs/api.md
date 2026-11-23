@@ -245,7 +245,7 @@ Jumps the display straight to a specific screen, the command behind "show the ca
 
 **Body:** `{ "screen": "calendar", "displayId": "kitchen" }` (`displayId` optional)
 
-`screen` is a screen **id or name**, matched against the display's own screens by id first and then by name, case-insensitively. A screen the display does not have answers `404 { "error": "No screen called \"Nope\" on this display" }`, a switched-off screen answers `409 { "error": "Night is switched off" }`, and a screen that shows only when opened answers `409 { "error": "Recipe Book is outside its hours right now" }` outside its schedule, so a phone shortcut or an automation can show why nothing happened. Asking for a screen that is already up starts its **Go back after** time again. A screen in the rotation is jumped to; one outside it (a screen that shows only when opened, or one left out by the active profile) is shown the way a dock button shows it: for its **Go back after** time with a back chip, or for one turn. A screen that shows only when opened but is outside its own schedule or conditions right now is ignored on the display. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
+`screen` is a screen **id or name**, matched against the display's own screens by id first and then by name, case-insensitively. A screen the display does not have answers `404 { "error": "No screen called \"Nope\" on this display" }`, a switched-off screen answers `409 { "error": "Night is switched off" }`, and a screen that shows only when opened answers `409 { "error": "Recipe book is outside its hours right now" }` outside its schedule, so a phone shortcut or an automation can show why nothing happened. Asking for a screen that is already up starts its **Go back after** time again. A screen in the rotation is jumped to; one outside it (a screen that shows only when opened, or one left out by the active profile) is shown the way a dock button shows it: for its **Go back after** time with a back chip, or for one turn. A screen that shows only when opened but is outside its own schedule or conditions right now is ignored on the display. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
 
 **Response:** `{ "ok": true, "command": "goto-screen", "screen": "calendar" }`
 
@@ -644,7 +644,7 @@ While the plan lives in Mealie (`settings.planSource` is `"mealie"`), the answer
 
 ### PUT /api/meals/data
 
-Partial update, every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session. Each saved meal needs an `id` and a `name`, and each of its `ingredients` is an object with a `name` (and optional `amount` and `category`), never a bare string; anything else returns `400` with a plain message. Only meals with an ingredient or notes appear in the Recipe Book.
+Partial update, every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session. Each saved meal needs an `id` and a `name`, and each of its `ingredients` is an object with a `name` (and optional `amount` and `category`), never a bare string; anything else returns `400` with a plain message. Only meals with an ingredient or notes appear in the recipe book.
 
 The entire read-modify-write cycle runs inside the meal-data store queue, so cross-surface writers (editor settings sheet, `/remote`, grocery checks) cannot interleave and silently lose each other's edits.
 
@@ -827,7 +827,7 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 
 ### POST /api/mealie/shopping/items
 
-Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the Wall** on, and at most 80 characters; otherwise `403`.
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
 
 ### PATCH /api/mealie/shopping/items/:itemId
 

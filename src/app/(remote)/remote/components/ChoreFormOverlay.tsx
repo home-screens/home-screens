@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Check, Users, X } from 'lucide-react';
+import { Check, Plus, Users, X } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type {
   ChoreBonusClaim,
@@ -14,21 +14,22 @@ import type {
 import { getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { groupMembers } from '@/lib/family-groups';
-import FamilyManager from '@/components/family/FamilyManager';
+import PhoneFamilyManager from '@/components/family/PhoneFamilyManager';
 import { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
-import IconPicker from '@/components/modules/chore-chart/IconPicker';
+import PhoneIconPicker from '@/components/custom-icons/PhoneIconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_STEPS_MAX_CHARS, comesBackHintKey, describeStepsCount } from '@/components/modules/chore-chart/chore-form-presentation';
-import { FIELD, FIELD_LABEL, FIELD_SELECT, REMOTE_ACCENT } from './remote-styles';
+import { FIELD, FIELD_LABEL, FIELD_SELECT, REMOTE_ACCENT, REMOTE_ACCENT_INK, REMOTE_ON_ACCENT } from './remote-styles';
 import { CHORE_CLAIMS, CHORE_COMES_BACK, CHORE_FREQUENCIES, CHORE_KINDS, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
-import { MemberFace } from './MemberPills';
+import { MemberFace } from './PersonChip';
 import SaveDeleteFooter from './SaveDeleteFooter';
 import ConfirmSheet from './ConfirmSheet';
 import { ChoiceList, Segmented } from './chore-choice-controls';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 const SUB_LABEL_STYLE = { fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)', margin: '0 0 6px' } as const;
 
@@ -90,7 +91,7 @@ function ScheduleRow({ testId, name, color, days, dayNames, removeLabel, onToggl
                 fontSize: 13, fontWeight: 700, flexShrink: 0,
                 border: isOn ? 'none' : '1px solid var(--hs-border)',
                 background: isOn ? color : 'var(--hs-bg-panel)',
-                color: isOn ? '#fff' : 'var(--hs-text-faint)',
+                color: isOn ? memberInk(color) : 'var(--hs-text-faint)',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
@@ -210,7 +211,7 @@ export default function ChoreFormOverlay({
         onBack={onBack}
         footer={
           <SaveDeleteFooter
-            saveLabel={isEdit ? t('choresManage.choreForm.saveSubmit') : t('choresManage.choreForm.addSubmit')}
+            saveLabel={isEdit ? undefined : t('choresManage.choreForm.addSubmit')}
             canSave={canSave}
             onSave={handleSubmit}
             notice={touched && validationHintKind ? tModules(`chore-chart.choreForm.validation.${validationHintKind}`) : null}
@@ -269,12 +270,11 @@ export default function ChoreFormOverlay({
           )}
         </div>
 
-        <IconPicker
+        <PhoneIconPicker
           value={emoji}
           onChange={setEmoji}
-          icons={CHORE_ICONS}
+          choices={{ kind: 'icons', names: CHORE_ICONS }}
           label={t('choresManage.choreForm.iconLabel')}
-          variant="mobile"
           suggestedName={name}
         />
 
@@ -338,7 +338,7 @@ export default function ChoreFormOverlay({
           </div>
         )}
 
-        {members.length === 0 && <div style={{ marginBottom: 24 }}><FamilyManager variant="mobile" /></div>}
+        {members.length === 0 && <div style={{ marginBottom: 24 }}><PhoneFamilyManager /></div>}
 
         {isBonus && (
           <div style={{ marginBottom: 24 }}>
@@ -407,7 +407,7 @@ export default function ChoreFormOverlay({
                             background: isPicked ? REMOTE_ACCENT : 'transparent',
                           }}
                         >
-                          {isPicked && <Check size={14} color="white" strokeWidth={3} />}
+                          {isPicked && <Check size={14} color={REMOTE_ON_ACCENT} strokeWidth={3} />}
                         </div>
                         <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {group.name}
@@ -417,7 +417,7 @@ export default function ChoreFormOverlay({
                     );
                   })}
                 </div>
-                <p style={{ fontSize: 12, color: goesToNobody ? 'var(--hs-warning)' : 'var(--hs-text-faint)', margin: '0 0 14px' }}>
+                <p style={{ fontSize: 12, color: goesToNobody ? 'var(--hs-warning-ink)' : 'var(--hs-text-faint)', margin: '0 0 14px' }}>
                   {tModules(goesToNobody ? 'chore-chart.choreForm.emptyGroupNote' : isBonus ? 'chore-chart.choreForm.groupsHintBonus' : 'chore-chart.choreForm.groupsHint')}
                 </p>
                 <div style={SUB_LABEL_STYLE}>{tModules('chore-chart.choreForm.peopleLabel')}</div>
@@ -460,7 +460,7 @@ export default function ChoreFormOverlay({
                         background: isAssigned ? m.color : 'transparent',
                       }}
                     >
-                      {isAssigned && <Check size={14} color="white" strokeWidth={3} />}
+                      {isAssigned && <Check size={14} color={memberInk(m.color)} strokeWidth={3} />}
                     </div>
                     <div
                       style={{
@@ -502,7 +502,7 @@ export default function ChoreFormOverlay({
                   key={group.id}
                   testId={`schedule-group-${group.id}`}
                   name={group.name}
-                  color={REMOTE_ACCENT}
+                  color={REMOTE_ACCENT_INK}
                   days={groupSchedule[group.id] ?? []}
                   dayNames={dayNamesShort}
                   removeLabel={tModules('chore-chart.choreForm.removeFromSchedule', { name: group.name })}
@@ -541,7 +541,7 @@ export default function ChoreFormOverlay({
               })}
             </div>
             {goesToNobody && (
-              <p style={{ fontSize: 12, color: 'var(--hs-warning)', margin: '8px 0 0' }}>
+              <p style={{ fontSize: 12, color: 'var(--hs-warning-ink)', margin: '8px 0 0' }}>
                 {tModules('chore-chart.choreForm.emptyGroupNote')}
               </p>
             )}
@@ -553,6 +553,7 @@ export default function ChoreFormOverlay({
                     type="button"
                     className="press-scale-xs"
                     onClick={() => addGroupToSchedule(group.id)}
+                    aria-label={tModules('chore-chart.choreForm.addToSchedule', { name: group.name })}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
                       padding: '8px 12px', minHeight: 44, borderRadius: 10, maxWidth: '100%',
@@ -561,7 +562,7 @@ export default function ChoreFormOverlay({
                       color: 'var(--hs-text-faint)', fontSize: 13, cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>+</span>
+                    <Plus size={14} aria-hidden />
                     <Users size={14} aria-hidden />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</span>
                   </button>
@@ -572,15 +573,17 @@ export default function ChoreFormOverlay({
                     type="button"
                     className="press-scale-xs"
                     onClick={() => addMemberToSchedule(m.id)}
+                    aria-label={tModules('chore-chart.choreForm.addToSchedule', { name: m.name })}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '8px 12px', minHeight: 44, borderRadius: 10,
+                      padding: '8px 12px', minHeight: 44, borderRadius: 10, maxWidth: '100%',
                       background: 'var(--hs-bg-panel)',
                       border: '1px dashed var(--hs-border)',
                       color: 'var(--hs-text-faint)', fontSize: 13, cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>+</span> {m.name}
+                    <Plus size={14} aria-hidden />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
                   </button>
                 ))}
               </div>
@@ -590,7 +593,7 @@ export default function ChoreFormOverlay({
               {scheduleDays.length < 7 && (
                 <>
                   {' · '}
-                  <span style={{ color: 'var(--hs-warning)', fontSize: 12 }}>
+                  <span style={{ color: 'var(--hs-warning-ink)', fontSize: 12 }}>
                     {tModules('chore-chart.choreForm.coverageUncovered', {
                       days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
                     })}
@@ -698,9 +701,7 @@ export default function ChoreFormOverlay({
 
       {showConfirm && onDelete && (
         <ConfirmSheet
-          title={t('choresManage.choreDelete.title', { name })}
-          description={t('choresManage.choreDelete.description')}
-          confirmLabel={t('choresManage.choreDelete.confirmLabel')}
+          {...sheetQuestion(buildDeleteConfirm({ verb: 'delete', name, consequence: tCore('chores.deleteBody') }, tCore))}
           onConfirm={() => { onDelete(); }}
           onCancel={() => setShowConfirm(false)}
         />

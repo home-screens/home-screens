@@ -51,7 +51,7 @@ describe('PhotoSourceEntryFields', () => {
   it('library: Pictures mode keeps the folder, and leaving it with picks asks first', async () => {
     let onChange = renderEntry({ kind: 'library', folder: 'kids' });
     await settle();
-    expect(screen.getByTestId('library-mode-folder').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('library-mode-folder').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('library-mode-pictures'));
     expect(onChange).toHaveBeenCalledWith({ kind: 'library', folder: 'kids', pictures: [] });
     expect(confirm.confirm).not.toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe('PhotoSourceEntryFields', () => {
     cleanup();
     onChange = renderEntry({ kind: 'library', folder: '', pictures: ['kids/a.jpg', 'kids/b.jpg'] });
     await settle();
-    expect(screen.getByTestId('library-mode-pictures').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('library-mode-pictures').getAttribute('aria-checked')).toBe('true');
     confirm.answer = false;
     fireEvent.click(screen.getByTestId('library-mode-folder'));
     await settle();
@@ -87,14 +87,14 @@ describe('PhotoSourceEntryFields', () => {
   it('Immich: picked photos sit beside the filters, which come back when the picks are dropped', async () => {
     let onChange = renderEntry({ kind: 'immich', albumIds: ['a1'], favoritesOnly: true });
     await settle();
-    expect(screen.getByTestId('immich-mode-filters').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('immich-mode-filters').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('immich-mode-pictures'));
     expect(onChange).toHaveBeenCalledWith({ kind: 'immich', albumIds: ['a1'], favoritesOnly: true, assetIds: [] });
 
     cleanup();
     onChange = renderEntry({ kind: 'immich', albumIds: ['a1'], assetIds: ['x1'] });
     await settle();
-    expect(screen.getByTestId('immich-mode-pictures').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('immich-mode-pictures').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('immich-mode-filters'));
     await settle();
     expect(confirm.confirm).toHaveBeenCalledWith(expect.objectContaining({
@@ -106,7 +106,7 @@ describe('PhotoSourceEntryFields', () => {
   it('Unsplash: a list that exists is the mode; words and collections survive a trip through Pictures', async () => {
     let onChange = renderEntry({ kind: 'unsplash', query: 'lake' });
     await settle();
-    expect(screen.getByTestId('unsplash-mode-words').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('unsplash-mode-words').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('unsplash-mode-collections'));
     await settle();
     expect(onChange).toHaveBeenCalledWith({ kind: 'unsplash', query: 'lake', collections: [] });
@@ -118,7 +118,7 @@ describe('PhotoSourceEntryFields', () => {
     cleanup();
     onChange = renderEntry({ kind: 'unsplash', query: 'lake', collections: ['c1'], photoIds: ['p1'] });
     await settle();
-    expect(screen.getByTestId('unsplash-mode-pictures').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('unsplash-mode-pictures').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('unsplash-mode-collections'));
     await settle();
     expect(confirm.confirm).toHaveBeenCalledTimes(1);
@@ -128,7 +128,7 @@ describe('PhotoSourceEntryFields', () => {
     cleanup();
     onChange = renderEntry({ kind: 'unsplash', query: '', collections: ['c1', 'c2'] });
     await settle();
-    expect(screen.getByTestId('unsplash-mode-collections').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('unsplash-mode-collections').getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByTestId('unsplash-mode-words'));
     await settle();
     expect(confirm.confirm).toHaveBeenLastCalledWith(expect.objectContaining({

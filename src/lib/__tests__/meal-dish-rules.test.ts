@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import type { SavedMeal } from '@/types/config';
+import type { TranslateFn } from '@/i18n/types';
+import { lookupKey } from '@/i18n/fallback';
+import coreWords from '@/translations/en-US/core.json';
+import deCore from '@/translations/de-DE/core.json';
 import { buildSavedMeal, mealFormFields, dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, pickerEnterChoice, pickerMealGroups, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
 
 const meal = (id: string, extra: Partial<SavedMeal> = {}): SavedMeal => ({ id, name: id, ...extra });
@@ -51,10 +55,19 @@ describe('splitMinutes', () => {
 });
 
 describe('mealTagLabel', () => {
-  it('dresses up the family own tags and leaves Mealie names as typed', () => {
-    expect(mealTagLabel(meal('tacos'), 'kid-friendly')).toBe('Kid-Friendly');
-    expect(mealTagLabel(meal('tacos'), 'healthy')).toBe('Healthy');
-    expect(mealTagLabel(meal(RECIPE), 'Kid friendly')).toBe('Kid friendly');
+  const words = (dict: object): TranslateFn => ((key: string) => lookupKey(dict as never, key) ?? key) as TranslateFn;
+  const tCore = words(coreWords);
+
+  it('reads a fixed tag in the family language and leaves Mealie names as typed', () => {
+    expect(mealTagLabel(meal('tacos'), 'kid-friendly', tCore)).toBe('Kid-friendly');
+    expect(mealTagLabel(meal('tacos'), 'healthy', tCore)).toBe('Healthy');
+    expect(mealTagLabel(meal('tacos'), 'kid-friendly', words(deCore))).toBe('Kinderfreundlich');
+    expect(mealTagLabel(meal(RECIPE), 'Kid friendly', tCore)).toBe('Kid friendly');
+  });
+
+  it('knows a fixed tag however it was saved, and shows any other tag as typed', () => {
+    expect(mealTagLabel(meal('tacos'), 'Batch Cook', tCore)).toBe('Batch-cook');
+    expect(mealTagLabel(meal('tacos'), 'grandma recipe', tCore)).toBe('grandma recipe');
   });
 });
 

@@ -2,7 +2,7 @@ import { addDays, differenceInMinutes, startOfDay } from 'date-fns';
 import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, ScheduleStartAnchor, TimeFormat, WeekStartDay } from '@/types/config';
 import { formatDateSync, relativeTimeFormatter } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
-import { isoDateInTZ, parseDateInTZ, toTZWallTime } from '@/lib/timezone';
+import { formatTimeOfDay, isoDateInTZ, parseDateInTZ, toTZWallTime } from '@/lib/timezone';
 
 /** Clamp a multi-week grid's weeksToShow to its 2-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
@@ -250,13 +250,11 @@ export function eventsForDay<T extends { start: string; end: string; allDay?: bo
  * constant-width ("20:05"); 12h defaults to the unpadded "8:05 AM" that
  * list surfaces have always shown, with `pad` opting stacked grid pills
  * into zero-padded "08:05 AM" so every prefix renders at the same width.
- * `trim()` drops the trailing space for locales whose day-period token
- * renders empty (e.g. locales without AM/PM); no shipped locale renders an
- * empty day period today, so it is defensive only.
+ * `date` is already the wall reading (a shifted Date), so this is
+ * `formatTimeOfDay` with no zone.
  */
 export function formatEventTime(date: Date, timeFormat: TimeFormat, locale: string, pad = false): string {
-  const pattern = timeFormat === '24h' ? 'HH:mm' : pad ? 'hh:mm a' : 'h:mm a';
-  return formatDateSync(date, pattern, { locale }).trim();
+  return formatTimeOfDay(date, { timeFormat, locale, pad });
 }
 
 /**

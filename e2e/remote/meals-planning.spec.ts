@@ -80,11 +80,11 @@ test('adding a saved meal round-trips to meals.json', async ({ page, request }) 
   await seedMeals(request, { savedMeals: [], plan: [], force: true });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
 
   await page.getByRole('button', { name: 'Add new meal' }).click();
-  await page.getByPlaceholder('e.g. Chicken Stir Fry').fill('Sunday Roast');
-  await page.getByRole('button', { name: 'Save Meal' }).click();
+  await page.getByPlaceholder('e.g. Chicken stir fry').fill('Sunday Roast');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Add meal' }).click();
 
   await expect
     .poll(async () => (await getMealData(request)).savedMeals.map((m) => m.name))
@@ -101,11 +101,11 @@ test('assigning a saved meal to a dinner slot round-trips', async ({ page, reque
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
 
   // Pick the first empty dinner slot of the visible week, then choose the meal.
   await page.getByRole('button', { name: /Plan Dinner for/ }).first().click();
-  await expect(page.getByText('Choose a Meal')).toBeVisible();
+  await expect(page.getByText('Choose a meal')).toBeVisible();
   await page.getByRole('button', { name: /Spaghetti Night/ }).click();
 
   await expect
@@ -125,7 +125,7 @@ test('changing the week start day round-trips', async ({ page, request }) => {
 
   await page.getByRole('button', { name: 'Open meal settings' }).click();
   await page.getByRole('button', { name: 'Monday', exact: true }).click();
-  await page.getByRole('button', { name: 'Save Settings' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => (await getMealData(request)).settings.weekStartDay)
@@ -139,10 +139,10 @@ test('the grocery list is generated from planned meals and check-off round-trips
   const week = await groceryWeekKey(request);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Grocery' }).click();
+  await page.getByRole('tab', { name: 'Grocery' }).click();
 
   // The list is auto-derived from this week's planned meals' ingredients.
-  const item = page.getByRole('button', { name: /Tortillas/ });
+  const item = page.getByRole('checkbox', { name: /Tortillas/ });
   await expect(item).toBeVisible();
   await item.click();
 
@@ -168,9 +168,9 @@ test('a grocery tick stays on the week it was made on', async ({ page, request }
   const nextWeek = await groceryWeekKey(request, 7);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Grocery' }).click();
+  await page.getByRole('tab', { name: 'Grocery' }).click();
 
-  await page.getByRole('button', { name: /Tortillas/ }).click();
+  await page.getByRole('checkbox', { name: /Tortillas/ }).click();
   await expect.poll(async () => groceryTicks(request, thisWeek)).toContain('tortillas');
   await expect(page.getByText('1 of 2 items')).toBeVisible();
 
@@ -188,10 +188,10 @@ test('unchecking a grocery item round-trips', async ({ page, request }) => {
   await seedMeals(request, { ...mealWithIngredients(), groceryChecked: { [week]: ['tortillas'] } });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Grocery' }).click();
+  await page.getByRole('tab', { name: 'Grocery' }).click();
 
   // Tapping an already-checked item clears it — POST /api/meals/grocery toggles.
-  await page.getByRole('button', { name: /Tortillas/ }).click();
+  await page.getByRole('checkbox', { name: /Tortillas/ }).click();
 
   await expect
     .poll(async () => groceryTicks(request, week))
@@ -205,15 +205,15 @@ test('the grocery list groups items by ingredient category', async ({ page, requ
   await seedMeals(request, { ...mealWithIngredients(), groceryChecked: {} });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Grocery' }).click();
+  await page.getByRole('tab', { name: 'Grocery' }).click();
 
   // Category headers come from core.meal.grocery.categoryLabels.*.
   await expect(page.getByText('Bakery')).toBeVisible();
-  await expect(page.getByText('Meat & Seafood')).toBeVisible();
+  await expect(page.getByText('Meat & seafood')).toBeVisible();
   // Items land under their category. Names are re-cased to leading-caps only,
   // so "Ground Beef" renders as "Ground beef".
-  await expect(page.getByRole('button', { name: /Tortillas/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Ground beef/ })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: /Tortillas/ })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: /Ground beef/ })).toBeVisible();
 });
 
 // ── Saved meals: edit + delete ────────────────────────────────────────
@@ -225,14 +225,14 @@ test('editing a saved meal round-trips to meals.json', async ({ page, request })
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
 
   // Tapping a library card reopens the same MealFormOverlay in edit mode.
   await page.getByRole('button', { name: '🌮 Taco Tuesday', exact: true }).click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
+  await expect(page.getByText('Edit meal')).toBeVisible();
 
-  await page.getByPlaceholder('e.g. Chicken Stir Fry').fill('Taco Wednesday');
-  await page.getByRole('button', { name: 'Save Changes' }).click();
+  await page.getByPlaceholder('e.g. Chicken stir fry').fill('Taco Wednesday');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => (await getMealData(request)).savedMeals.map((m) => m.name))
@@ -249,16 +249,16 @@ test('deleting a saved meal removes it and clears its planned slots', async ({ p
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
 
   await page.getByRole('button', { name: '🍔 Sloppy Joes', exact: true }).click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
+  await expect(page.getByText('Edit meal')).toBeVisible();
 
-  // The overlay footer's "Delete Meal" opens a confirm sheet whose confirm
+  // The overlay footer's "Delete meal" opens a confirm sheet whose confirm
   // button carries the same label; scope to the sheet to tell them apart.
-  await page.getByRole('button', { name: 'Delete Meal', exact: true }).click();
-  await expect(page.getByText('Delete "Sloppy Joes"?')).toBeVisible();
-  await confirmSheet(page).getByRole('button', { name: 'Delete Meal', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete meal', exact: true }).click();
+  await expect(page.getByText('Delete “Sloppy Joes”?')).toBeVisible();
+  await confirmSheet(page).getByRole('button', { name: 'Delete', exact: true }).click();
 
   await expect
     .poll(async () => {
@@ -281,7 +281,7 @@ test('removing a planned meal from a slot round-trips', async ({ page, request }
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
 
   // A filled slot is a button labelled "Change <meal> for <slot>". Tapping it
   // opens the meal sheet (the dish, its courses and the serving time). Its
@@ -319,7 +319,7 @@ test('week navigation shows the plan slice for the viewed week', async ({ page, 
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
 
   // Current week: only this week's meal is in the visible slice.
   await expect(page.getByText('This Week Supper')).toBeVisible();
@@ -352,7 +352,7 @@ test('a plan edit leaves a meal added elsewhere alone', async ({ page, request }
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
 
   // Another surface (the editor modal, a second phone) adds a meal after this
   // page loaded. Its copy of the library is now one meal short.
@@ -389,7 +389,7 @@ test('a slot planned from an older copy lands next to what another phone planned
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
 
   // The other phone saves first; its write moves the revision this page holds.
   await seedMeals(request, { plan: [{ slot: 'lunch', mealId: 'meal-1', date: localDate(0) }] });
@@ -414,7 +414,7 @@ test('a library edit leaves a meal planned elsewhere alone', async ({ page, requ
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
 
   // Another surface plans that meal for tonight while this page sits on the
   // Library tab holding an empty plan.
@@ -423,9 +423,9 @@ test('a library edit leaves a meal planned elsewhere alone', async ({ page, requ
   });
 
   await page.getByRole('button', { name: '🌮 Taco Tuesday', exact: true }).click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
-  await page.getByPlaceholder('e.g. Chicken Stir Fry').fill('Taco Wednesday');
-  await page.getByRole('button', { name: 'Save Changes' }).click();
+  await expect(page.getByText('Edit meal')).toBeVisible();
+  await page.getByPlaceholder('e.g. Chicken stir fry').fill('Taco Wednesday');
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => {

@@ -17,7 +17,8 @@ const HOUR = 60 * 60 * 1000;
 const t: TranslateFn = ((key: string, params?: Record<string, unknown>) =>
   params ? `${key}(${Object.entries(params).map(([k, v]) => `${k}=${v}`).join(',')})` : key) as TranslateFn;
 
-const base = { timezone: TZ, timeFormat: '12h' as const, locale: 'en-US', now: NOW, today: TODAY, t };
+const base = { timezone: TZ, timeFormat: '12h' as const, locale: 'en-US', now: NOW, today: TODAY, t, tCore: t };
+const CALENDAR_PLACE = 'actions.settings > settingsPages.calendar';
 
 const source = (over: Partial<CalendarSourceStatus>): CalendarSourceStatus =>
   ({ id: 'a', name: 'School', ok: false, fetchedAt: null, ...over });
@@ -57,7 +58,7 @@ describe('calendarStatusView', () => {
     const view = calendarStatusView({
       ...base, ...healthy, calendarSetup: 'noSources', calendarStatus: { error: 'boom', updatedAt: null },
     });
-    expect(view).toMatchObject({ kind: 'setup', setup: 'noSources', title: 'calendar.noSourcesYet', hint: 'calendar.noSourcesYetHint' });
+    expect(view).toMatchObject({ kind: 'setup', setup: 'noSources', title: 'calendar.noSourcesYet', hint: `calendar.noSourcesYetHint(place=${CALENDAR_PLACE})` });
   });
 
   it('shows the sign-in card when every source the module uses needs a Google sign-in', () => {

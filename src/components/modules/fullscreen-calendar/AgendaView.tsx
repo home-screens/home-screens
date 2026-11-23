@@ -201,7 +201,7 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                 }}>
-                  {kindLabel ?? t('fullscreen-calendar.allDay')}
+                  {kindLabel ?? t('calendar.allDay')}
                 </div>
                 <div className="flex items-center gap-1.5" style={{
                   fontSize: fontSize * 1.2,

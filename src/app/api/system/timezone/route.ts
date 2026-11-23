@@ -37,7 +37,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // spelling it out again here: when the two drifted, the page offered a
   // button the API then refused.
   if (typeof timezone !== 'string' || !isKnownTimezone(timezone)) {
-    return NextResponse.json({ error: 'Unknown timezone' }, { status: 400 });
+    return NextResponse.json({ error: 'Unknown timezone', code: 'timezone.unknown' }, { status: 400 });
   }
 
   const sudo = await requireSudo();

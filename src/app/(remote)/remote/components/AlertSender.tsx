@@ -8,6 +8,8 @@ import { useDisplayTarget } from '../display-target';
 import { displayCommandRequest } from '@/lib/display-dispatch';
 import { showToast } from '../remote-toast';
 import SlideUpSheet from './SlideUpSheet';
+import PrimaryButton from './PrimaryButton';
+import { SHEET_LABEL } from './remote-styles';
 import { ALERT_DURATION_CHOICES_MS, defaultAlertDurationMs, nearestAlertDurationChoice } from '@/lib/alert-defaults';
 
 interface AlertSenderProps {
@@ -41,7 +43,7 @@ const SENT_HOLD_MS = 900;
 // component so they re-render on locale change.
 const ALERT_TYPES = [
   { value: 'info', labelKey: 'typeInfo', activeBg: 'bg-hs-accent/[0.15]', activeText: 'text-hs-accent-hover', activeBorder: 'border-hs-accent/30' },
-  { value: 'warning', labelKey: 'typeWarning', activeBg: 'bg-hs-warning/[0.15]', activeText: 'text-hs-warning', activeBorder: 'border-hs-warning/30' },
+  { value: 'warning', labelKey: 'typeWarning', activeBg: 'bg-hs-warning/[0.15]', activeText: 'text-hs-warning-ink', activeBorder: 'border-hs-warning/30' },
   { value: 'urgent', labelKey: 'typeUrgent', activeBg: 'bg-hs-danger/[0.15]', activeText: 'text-hs-danger', activeBorder: 'border-hs-danger/30' },
 ] as const;
 
@@ -157,7 +159,7 @@ export default function AlertSender({ open, onClose, targetName, targetUnnamed =
         </div>
 
         <div>
-          <label htmlFor="alert-title" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.titleLabel')}</label>
+          <label htmlFor="alert-title" style={{ ...SHEET_LABEL, marginTop: 0 }}>{t('alertSender.titleLabel')}</label>
           <input
             id="alert-title"
             type="text"
@@ -169,7 +171,7 @@ export default function AlertSender({ open, onClose, targetName, targetUnnamed =
         </div>
 
         <div>
-          <label htmlFor="alert-message" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.messageLabel')}</label>
+          <label htmlFor="alert-message" style={{ ...SHEET_LABEL, marginTop: 0 }}>{t('alertSender.messageLabel')}</label>
           <textarea
             id="alert-message"
             placeholder={t('alertSender.messagePlaceholder')}
@@ -181,7 +183,7 @@ export default function AlertSender({ open, onClose, targetName, targetUnnamed =
         </div>
 
         <div>
-          <span className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.durationLabel')}</span>
+          <span style={{ ...SHEET_LABEL, marginTop: 0 }}>{t('alertSender.durationLabel')}</span>
           {/* The chips share the row, each as wide as its word plus an even
               share of what is left; a row that scrolled sideways cut the
               last chip at the edge of the phone in the longer languages. */}
@@ -203,19 +205,20 @@ export default function AlertSender({ open, onClose, targetName, targetUnnamed =
           </div>
         </div>
 
-        <button
+        {/* Sent and failed tint the button itself for a moment, on top of the shared look. */}
+        <PrimaryButton
           onClick={send}
           disabled={!canSend}
-          className={`w-full py-3.5 min-h-[48px] rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 ${
-            state === 'success'
-              ? 'bg-hs-success text-white'
-              : state === 'error'
-                ? 'bg-hs-danger text-white'
-                : 'bg-hs-accent active:bg-hs-accent-hover text-white'
-          }`}
+          busy={state === 'pending'}
+          busyLabel={t('alertSender.sendingButton')}
+          style={{
+            marginTop: 0,
+            ...(state === 'success' ? { background: 'var(--hs-success)', color: 'var(--hs-on-success)', opacity: 1 } : {}),
+            ...(state === 'error' ? { background: 'var(--hs-danger)', color: 'var(--hs-on-danger)', opacity: 1 } : {}),
+          }}
         >
-          {state === 'pending' ? t('alertSender.sendingButton') : state === 'success' ? t('alertSender.sentButton') : state === 'error' ? t('alertSender.failedButton') : t('alertSender.sendButton')}
-        </button>
+          {state === 'success' ? t('alertSender.sentButton') : state === 'error' ? t('alertSender.failedButton') : t('alertSender.sendButton')}
+        </PrimaryButton>
 
         <button
           onClick={clearAlerts}

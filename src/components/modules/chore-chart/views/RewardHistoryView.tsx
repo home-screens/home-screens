@@ -12,6 +12,7 @@ import { useTranslate } from '@/i18n';
 import { useRealClock } from '@/hooks/useTZClock';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { resolveHistoryLimit } from '../layout';
+import { WallButton } from '../../shared/WallButton';
 
 interface RewardHistoryViewProps {
   config: ChoreChartConfig;
@@ -75,8 +76,7 @@ export function RewardHistoryView({
         >
           <span style={{ opacity: TEXT_OPACITY.secondary }}>{t('chore-chart.rewardHistory')}</span>
           {onBack && (
-            <button
-              type="button"
+            <WallButton
               data-testid="history-back"
               onClick={onBack}
               className="inline-flex items-center rounded-full"
@@ -84,7 +84,7 @@ export function RewardHistoryView({
             >
               <ArrowLeft size="0.95em" strokeWidth={2.4} aria-hidden="true" />
               {backLabel}
-            </button>
+            </WallButton>
           )}
         </div>
       )}

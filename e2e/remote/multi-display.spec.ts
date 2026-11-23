@@ -34,11 +34,11 @@ async function drainEnvelope(
   return res.json();
 }
 
-test('the display picker lists every registered display plus All displays', async ({ page, request }) => {
+test('the display picker lists every registered display plus Every wall', async ({ page, request }) => {
   await putConfig(request, multiDisplayConfig());
   await page.goto('/remote');
 
-  await expect(page.getByRole('button', { name: 'All displays', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Every wall', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Main', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Kitchen', exact: true })).toBeVisible();
 });
@@ -53,7 +53,7 @@ test('selecting a display scopes commands to only that display queue', async ({ 
   await drainTypes(request, 'main');
 
   await page.getByRole('button', { name: 'Kitchen', exact: true }).click();
-  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  const sleepButton = page.getByRole('button', { name: 'Put the wall to sleep' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();
 
@@ -71,9 +71,9 @@ test('broadcasting with All fans a command out to every display', async ({ page,
   await drainTypes(request, 'kitchen');
   await drainTypes(request, 'main');
 
-  // 'All displays' is the default target when displays exist; click it to be explicit.
-  await page.getByRole('button', { name: 'All displays', exact: true }).click();
-  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  // 'Every wall' is the default target when displays exist; click it to be explicit.
+  await page.getByRole('button', { name: 'Every wall', exact: true }).click();
+  const sleepButton = page.getByRole('button', { name: 'Put the wall to sleep' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();
 
@@ -154,7 +154,7 @@ test.describe('timer display targets', () => {
     return (await res.json()).session?.targets;
   }
 
-  test('timers broadcast to all displays by default, ignoring the global picker', async ({ page, request }) => {
+  test('timers broadcast to every wall by default, ignoring the global picker', async ({ page, request }) => {
     await putConfig(request, multiDisplayConfig());
     await page.goto('/remote');
     // Park the GLOBAL picker on one display first (from the Control tab, where
@@ -163,7 +163,7 @@ test.describe('timer display targets', () => {
     await page.getByRole('button', { name: 'Timers', exact: true }).click();
 
     await expect(
-      page.getByTestId('timer-target-picker').getByRole('button', { name: 'All displays' }),
+      page.getByTestId('timer-target-picker').getByRole('button', { name: 'Every wall' }),
     ).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByRole('button', { name: '30 sec', exact: true }).click();
@@ -177,7 +177,7 @@ test.describe('timer display targets', () => {
 
     const picker = page.getByTestId('timer-target-picker');
     await picker.getByRole('button', { name: 'Kitchen' }).click();
-    await expect(picker.getByRole('button', { name: 'All displays' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(picker.getByRole('button', { name: 'Every wall' })).toHaveAttribute('aria-pressed', 'false');
 
     await page.getByRole('button', { name: '30 sec', exact: true }).click();
     await expect.poll(() => sessionTargets(request), { timeout: 5000 }).toEqual(['kitchen']);
@@ -191,9 +191,9 @@ test.describe('timer display targets', () => {
     await page.getByRole('button', { name: '30 sec', exact: true }).click();
 
     // Nothing has reported the session yet: the card waits rather than
-    // claiming "On all displays" as if that were an acknowledgement.
+    // claiming "On every wall" as if that were an acknowledgement.
     const ack = page.getByTestId('timer-ack');
-    await expect(ack).toHaveText('Waiting for a display to pick it up…');
+    await expect(ack).toHaveText('Waiting for a wall to pick it up…');
 
     const res = await request.get('/api/timers/session');
     const sessionId = (await res.json()).session.id as string;
@@ -212,10 +212,10 @@ test.describe('timer display targets', () => {
     await page.getByRole('button', { name: 'Control', exact: true }).click();
     await page.getByRole('button', { name: 'Timers', exact: true }).click();
     await expect(picker.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'true');
-    await expect(picker.getByRole('button', { name: 'All displays' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(picker.getByRole('button', { name: 'Every wall' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('tapping All displays clears a chip selection', async ({ page, request }) => {
+  test('tapping Every wall clears a chip selection', async ({ page, request }) => {
     await putConfig(request, multiDisplayConfig());
     await page.goto('/remote');
     await page.getByRole('button', { name: 'Timers', exact: true }).click();
@@ -223,7 +223,7 @@ test.describe('timer display targets', () => {
     const picker = page.getByTestId('timer-target-picker');
     await picker.getByRole('button', { name: 'Kitchen' }).click();
     await picker.getByRole('button', { name: 'Main' }).click();
-    await picker.getByRole('button', { name: 'All displays' }).click();
+    await picker.getByRole('button', { name: 'Every wall' }).click();
     await expect(picker.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'false');
     await expect(picker.getByRole('button', { name: 'Main' })).toHaveAttribute('aria-pressed', 'false');
 

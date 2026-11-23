@@ -9,6 +9,8 @@ import { formatBytes } from '@/lib/format-bytes';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { setToastFloor } from '../remote-toast';
 import { REMOTE_ACCENT } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
+import { REMOTE_LAYERS } from './remote-layers';
 import { withAlpha } from '@/lib/hex-color';
 
 /** What the panel under the picture says about one file, worked out by the tab. */
@@ -28,9 +30,6 @@ interface PhotoViewerProps {
   index: number;
   onStep: (delta: 1 | -1) => void;
   onClose: () => void;
-  /** Back was pressed: true when something open over the viewer took it (a
-   *  sheet it opened closed), so the viewer stays. */
-  onBackGesture?: () => boolean;
   facts: (item: MediaInventoryItem) => PhotoFacts;
   onMove: (item: MediaInventoryItem) => void;
   onDelete: (item: MediaInventoryItem) => void;
@@ -108,7 +107,6 @@ export default function PhotoViewer({
   index,
   onStep,
   onClose,
-  onBackGesture,
   facts,
   onMove,
   onDelete,
@@ -122,14 +120,12 @@ export default function PhotoViewer({
   const item = items[index];
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Back closes the viewer (or first a sheet opened over it) instead of
-  // leaving the remote, like every phone's own photo viewer.
+  // Back closes the viewer instead of leaving the remote, like every phone's
+  // own photo viewer. A sheet opened over it holds its own entry, so Back
+  // closes that first.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  const onBackGestureRef = useRef(onBackGesture);
-  onBackGestureRef.current = onBackGesture;
   const { release } = useBackGesture(() => {
-    if (onBackGestureRef.current?.()) return true;
     onCloseRef.current();
     return false;
   });
@@ -214,7 +210,7 @@ export default function PhotoViewer({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 80,
+        zIndex: REMOTE_LAYERS.form,
         background: '#000',
         color: '#f5f5f5',
         display: 'flex',
@@ -317,17 +313,15 @@ export default function PhotoViewer({
           </div>
         )}
 
-        <button
-          type="button"
+        <PrimaryButton
           onClick={() => onShowOnWall(item)}
           disabled={busy}
           data-testid="photo-viewer-show"
-          className="press-btn"
-          style={{ ...ACTION, width: '100%', marginTop: 16, background: 'var(--hs-accent)', color: '#fff', border: 'none', opacity: busy ? 0.5 : 1 }}
+          style={{ marginTop: 16, gap: 8 }}
         >
           <MonitorUp size={18} aria-hidden="true" />
           {t('photosTab.showOnWall')}
-        </button>
+        </PrimaryButton>
 
         {(info.canMove || info.canDelete) && (
           <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>

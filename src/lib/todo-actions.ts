@@ -179,6 +179,15 @@ function applyRepeatInput(
 
 export type TodoListAction = 'uncheck-all' | 'clear-completed';
 
+/**
+ * Whether a list's tidy-up action asks before it runs, on the phone and in the
+ * editor alike. Dropping the done items takes them off for good, so it asks;
+ * unticking everything can be ticked back, so it does not.
+ */
+export function confirmsBefore(action: TodoListAction): boolean {
+  return action === 'clear-completed';
+}
+
 export interface UpdateListInput {
   name?: unknown;
   color?: unknown;

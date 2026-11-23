@@ -219,7 +219,7 @@ describe('NewsConfigSection — local news', () => {
     chooseAddKind(view, 'local');
     const button = view.getByRole('button', { name: 'Add local news' }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
-    expect(view.getByText('Set your location in Settings first')).toBeTruthy();
+    expect(view.getByText('Set your location in Settings > Location & language first')).toBeTruthy();
   });
 
   it('adds the local source once a location exists', () => {
@@ -233,14 +233,14 @@ describe('NewsConfigSection — local news', () => {
 });
 
 describe('NewsConfigSection — view options', () => {
-  it('offers Max Items in every view, and the timer for the three views that page', () => {
+  it('offers Max items in every view, and the timer for the three views that page', () => {
     const list = renderSection();
-    expect(list.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+    expect(list.getByRole('slider', { name: /^Max items/ })).toBeTruthy();
     // List and Cards turn a page on the timer Headline moves a story on.
     const turn = list.getByRole('slider', { name: /^Next page every \(seconds\)/ });
     fireEvent.change(turn, { target: { value: '20' } });
     expect(moduleState.set).toHaveBeenCalledWith({ rotateIntervalMs: 20_000 });
-    expect(list.queryByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeNull();
+    expect(list.queryByRole('slider', { name: /^Rotate headlines \(seconds\)/ })).toBeNull();
     cleanup();
 
     moduleState.config = { feeds: [BBC], view: 'cards' };
@@ -249,14 +249,14 @@ describe('NewsConfigSection — view options', () => {
 
     moduleState.config = { feeds: [BBC], view: 'headline' };
     const headline = renderSection();
-    expect(headline.getByRole('slider', { name: /^Rotate Headlines \(seconds\)/ })).toBeTruthy();
-    expect(headline.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+    expect(headline.getByRole('slider', { name: /^Rotate headlines \(seconds\)/ })).toBeTruthy();
+    expect(headline.getByRole('slider', { name: /^Max items/ })).toBeTruthy();
     cleanup();
 
     for (const view of ['ticker', 'compact']) {
       moduleState.config = { feeds: [BBC], view };
       const still = renderSection();
-      expect(still.getByRole('slider', { name: /^Max Items/ })).toBeTruthy();
+      expect(still.getByRole('slider', { name: /^Max items/ })).toBeTruthy();
       expect(still.queryByRole('slider', { name: /\(seconds\)$/ })).toBeNull();
       cleanup();
     }
@@ -266,7 +266,7 @@ describe('NewsConfigSection — view options', () => {
     const shown = (config: Record<string, unknown>) => {
       moduleState.config = { feeds: [BBC], ...config };
       const view = renderSection();
-      const there = view.queryByText('Accent Color') !== null;
+      const there = view.queryByText('Accent color') !== null;
       cleanup();
       return there;
     };

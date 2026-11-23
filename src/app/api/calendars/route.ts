@@ -12,7 +12,7 @@ export const GET = withAuth(async () => {
     const tokens = await loadTokens();
     let reason = 'Not authenticated with Google';
     if (!tokens) {
-      reason = 'No Google tokens found. Please sign in with Google in Settings → Calendar.';
+      reason = 'No Google tokens found. Please sign in with Google in Settings > Calendar.';
     } else if (!tokens.refresh_token) {
       reason = 'Google did not provide a refresh token. Try revoking access at myaccount.google.com/permissions, then sign in again.';
     } else {

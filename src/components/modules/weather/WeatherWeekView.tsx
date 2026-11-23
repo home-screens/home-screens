@@ -11,7 +11,8 @@ import { dayMonthPattern, formatDateSync } from '@/i18n';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { ForecastDay } from '@/lib/weather';
 import type { WeekRange } from '../fullscreen-weather/weather-view-utils';
-import { RAIN_COLOR, RAIN_SHOWN_PCT, RangeBar, ViewTitle, useViewBox } from './chart-parts';
+import { RAIN_COLOR, RAIN_SHOWN_PCT, RangeBar, useViewBox } from './chart-parts';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 import { dayLabel } from './day-label';
 import { getLocalizedConditionLabel } from './condition-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
@@ -84,9 +85,10 @@ export default function WeatherWeekView({ config, hourly, forecast, units, timez
             overflowing would hide the very overflow the fit loop looks for. */}
         <div ref={contentRef} className="h-full flex flex-col">
           {config.showTitle !== false && (
-            <ViewTitle right={days.length > 0 ? `${Math.round(scale.weekMin)}° – ${Math.round(scale.weekMax)}°` : undefined}>
-              {t('fullscreen-weather.sections.outlook', { days: days.length })}
-            </ViewTitle>
+            <ModuleTitleRow
+              title={t('fullscreen-weather.sections.outlook', { days: days.length })}
+              right={days.length > 0 ? `${Math.round(scale.weekMin)}° – ${Math.round(scale.weekMax)}°` : undefined}
+            />
           )}
           {days.length === 0 ? (
             <WeatherEmptyState message={t('weather.noForecastData')} />

@@ -1,5 +1,6 @@
 'use client';
 
+import { X } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig} from '@/types/config';
@@ -119,7 +120,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
                         {earned ? (
                           day.isToday ? '🌟' : '⭐'
                         ) : isPast && assigned ? (
-                          <span style={{ opacity: 0.15 }}>&times;</span>
+                          <X size="0.8em" strokeWidth={2.5} aria-hidden="true" style={{ opacity: 0.15, display: 'inline-block', verticalAlign: 'middle' }} />
                         ) : (
                           ''
                         )}

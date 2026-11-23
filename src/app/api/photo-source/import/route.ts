@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/photo-source/import { kind, ref, folder? } -> { path, file, reused }
  *
- * Copy one picture picked in the Image Library into the media library, so
+ * Copy one picture picked in the Pictures & videos window into the media library, so
  * the wall never needs Immich, Unsplash or NASA to be up to show it. The hub
  * downloads it itself, under the import size cap, into the source's own
  * folder unless `folder` names another. Picking the same picture again

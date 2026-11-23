@@ -87,7 +87,7 @@ describe('ForecastDaysHint', () => {
   it('links to Settings only while the module follows the household source', () => {
     usePreviewWeatherStore.setState({ forecastDays: { weatherapi: 3 } });
     const { unmount } = render({ provider: 'weatherapi', requested: 7, followsHousehold: true });
-    expect(screen.getByRole('link', { name: 'Or change the weather source in Settings' }).getAttribute('href')).toContain('weather');
+    expect(screen.getByRole('link', { name: 'Or change the weather source in Settings > Weather' }).getAttribute('href')).toContain('weather');
     unmount();
 
     render({ provider: 'weatherapi', requested: 7, followsHousehold: false });

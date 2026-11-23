@@ -17,6 +17,7 @@
 import { useMemo, useState } from 'react';
 import { Backpack, CalendarDays, Check, Pencil, Plus, Sun, Trash2, Users, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import { formatClockTime } from '@/lib/clock-time';
@@ -30,6 +31,7 @@ import MemberDot from './MemberDot';
 import { PROSE_CLASS } from './prose';
 import { findSchool, findTimetable, makeNote, noteIsComplete, withNote, withoutNote } from './use-timetable-draft';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import IconButton from '@/components/ui/IconButton';
 
 interface DatesTabProps {
   data: TimetableData;
@@ -180,10 +182,10 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
     kind === 'test' ? <Pencil className="h-3 w-3" aria-hidden="true" /> : kind === 'bring' ? <Backpack className="h-3 w-3" aria-hidden="true" /> : <X className="h-3 w-3" aria-hidden="true" />;
   const kindClass = (kind: TimetableNote['kind']) =>
     kind === 'test'
-      ? 'bg-amber-400/20 text-amber-300'
+      ? 'bg-hs-warning/15 text-hs-warning-ink'
       : kind === 'bring'
         ? 'bg-hs-hover text-hs-text-body'
-        : 'bg-red-400/15 text-red-300';
+        : 'bg-hs-danger/15 text-hs-danger';
 
   // ---------------------------------------------------------------------
   // The form
@@ -327,7 +329,7 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
               {line && (
                 <span data-testid="timetable-note-dayline" className={`flex items-center gap-1.5 ${PROSE_CLASS} text-hs-text-muted`}>
                   {line.icon === 'sun'
-                    ? <Sun className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden="true" />
+                    ? <Sun className="h-3.5 w-3.5 shrink-0 text-hs-warning-ink" aria-hidden="true" />
                     : <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
                   {line.text}
                 </span>
@@ -335,29 +337,19 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
             </div>
 
             <span className="pt-1.5 text-xs text-hs-text-muted">{t('timetableModal.dates.what')}</span>
-            <div role="radiogroup" aria-label={t('timetableModal.dates.what')} className="inline-flex w-fit gap-0.5 rounded-lg border border-hs-border-strong bg-hs-card p-0.5">
-              {KINDS.map((kind) => {
-                const needsLessons = kind !== 'bring';
-                const disabled = needsLessons && facts !== null && !hasLessons;
-                const selected = draft.note.kind === kind;
-                return (
-                  <button
-                    key={kind}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    disabled={disabled}
-                    onClick={() => setKind(kind)}
-                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors ${
-                      selected ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-body'
-                    } disabled:cursor-not-allowed disabled:opacity-35`}
-                  >
-                    {kindIcon(kind)}
-                    {kindWord(kind)}
-                  </button>
-                );
-              })}
-            </div>
+            <SegmentedControl
+              fit="content"
+              label={t('timetableModal.dates.what')}
+              value={draft.note.kind}
+              onChange={setKind}
+              options={KINDS.map((kind) => ({
+                value: kind,
+                label: kindWord(kind),
+                icon: kindIcon(kind),
+                // A test or a day off belongs to a day with lessons.
+                disabled: kind !== 'bring' && facts !== null && !hasLessons,
+              }))}
+            />
 
             {draft.note.kind === 'test' && (
               <>
@@ -508,14 +500,11 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
                       >
                         <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
-                      <button
-                        type="button"
-                        aria-label={`${t('timetableModal.dates.remove')}: ${entry.member.name}, ${what}`}
+                      <IconButton
+                        icon={Trash2}
+                        label={`${t('timetableModal.dates.remove')}: ${entry.member.name}, ${what}`}
                         onClick={() => remove(entry)}
-                        className="rounded p-1 text-hs-text-muted transition-colors hover:bg-hs-hover hover:text-red-300"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      </button>
+                      />
                     </span>
                   </div>
                 </div>

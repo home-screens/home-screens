@@ -3,7 +3,7 @@
 /**
  * The phone's Settings sheet says when an update still needs the device to
  * restart, because the parents who manage the family from the phone may never
- * open the editor. Its button asks through the same confirm as Reboot Device.
+ * open the editor. Its button asks through the same confirm as Restart everything.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -85,7 +85,7 @@ describe('Settings sheet restart notice', () => {
     const notice = await screen.findByTestId('remote-restart-needed');
     expect(notice.textContent).toContain(copy.restartNeeded.title);
     expect(notice.textContent).toContain(copy.restartNeeded.description);
-    // Before the Reboot Device row in reading order.
+    // Before the Restart everything row in reading order.
     const rebootRow = screen.getByText(copy.reboot.label);
     expect(notice.compareDocumentPosition(rebootRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -114,6 +114,6 @@ describe('Settings sheet restart notice', () => {
     await renderSheet();
     const notice = await screen.findByTestId('remote-restart-needed');
     const button = within(notice).getByRole('button', { name: copy.restartNeeded.button });
-    expect(button.className).toMatch(/min-h-\[48px\]/);
+    expect(button.style.minHeight).toBe('48px');
   });
 });

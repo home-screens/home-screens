@@ -40,6 +40,17 @@ async function openSheet(row: Locator, page: Page): Promise<Locator> {
   return sheet;
 }
 
+// The list picked for other things to buy is a shared meal setting that
+// outlives the test. Put it back so a later grocery card on this worker
+// shows only its own meals, and the no-list case below starts with none.
+test.afterEach(async ({ request }) => {
+  const current = (await (await request.get('/api/meals/data')).json()) as { settings: Record<string, unknown> };
+  if (current.settings.groceryExtrasListId === undefined) return;
+  const settings = { ...current.settings };
+  delete settings.groceryExtrasListId;
+  expect((await request.put('/api/meals/data', { data: { settings } })).ok()).toBe(true);
+});
+
 test('to-do card: type on the wall, Add, see it land, and Undo takes it off', async ({ page, request, sandboxDir }) => {
   seedTodos(sandboxDir);
   const todo = buildModuleInstance('todo', { listId: E2E_TODO_LIST_ID, interactive: true, wallAdd: true });

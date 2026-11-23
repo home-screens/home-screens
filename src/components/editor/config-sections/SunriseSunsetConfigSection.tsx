@@ -6,6 +6,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, SunriseSunsetTheme, SunriseSunsetView } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 type SunriseSunsetConfigType = {
   view?: SunriseSunsetView;
@@ -55,7 +56,7 @@ export function SunriseSunsetConfigSection({ mod, screenId }: { mod: ModuleInsta
       {!skySelected && (
         <Toggle label={t('configSections.sunrise-sunset.showAstroDark')} checked={!!c.showAstroDark} onChange={(v) => set({ showAstroDark: v })} />
       )}
-      <p className="text-xs text-hs-text-faint">{t('configSections.sunrise-sunset.locationHint')}</p>
+      <FieldHint>{t('configSections.sunrise-sunset.locationHint')}</FieldHint>
     </>
   );
 }

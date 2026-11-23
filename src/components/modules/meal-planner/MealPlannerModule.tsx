@@ -130,7 +130,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
     );
   };
 
-  // Rate Dinner means the last dinner the family sat down to, which on the
+  // Rate dinner means the last dinner the family sat down to, which on the
   // first morning of a week nobody has planned yet is last week's: the button
   // stays under the empty state too, as the full-screen Week keeps it.
   const rateDinner = interactive && config.showFamilyRatings !== false

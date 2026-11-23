@@ -12,6 +12,7 @@ import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleType, ScreenConfiguration } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 const POPOVER_WIDTH = 420;
 
@@ -209,7 +210,7 @@ function ScreenSearchPopover({
       </div>
 
       {!trimmed ? (
-        <p className="px-3 pb-3 pt-2.5 text-xs text-hs-text-faint">{t('screenSearch.hint')}</p>
+        <FieldHint className="px-3 pb-3 pt-2.5">{t('screenSearch.hint')}</FieldHint>
       ) : results.length === 0 ? (
         <div data-testid="screen-search-empty" className="px-4 py-7 text-center">
           <p className="text-[13px] text-hs-text-muted">{t('screenSearch.noResults', { query: trimmed })}</p>

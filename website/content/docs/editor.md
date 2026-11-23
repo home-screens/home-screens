@@ -81,11 +81,11 @@ Categories in the palette are collapsible. Click a category header to expand or 
 - **Click** a module on the canvas to select it
 - **Drag** a selected module to reposition it
 - **Resize** by selecting the module first, then dragging the small square handle at its bottom-right corner. That handle is the only way to resize, and it appears only while the module is selected. Modules can't be made smaller than 40 × 40
-- **Delete** by selecting the module and pressing `Delete` or `Backspace`, or clicking **Delete Module** at the bottom of the Property Panel. Either way you'll be asked to confirm first
+- **Delete** by selecting the module and pressing `Delete` or `Backspace`, or clicking **Delete module** at the bottom of the Property Panel. Either way you'll be asked to confirm first
 - **Keyboard**: with a module selected, the arrow keys nudge it one pixel (hold `Shift` for one grid step), `Cmd+D` / `Ctrl+D` duplicates it, and `Escape` deselects it. The shortcuts stay quiet while you are typing in a field or a dialog is open
 - Position and size can also be set precisely using the X, Y, W, H fields in the Property Panel
 
-When modules overlap, a plain click keeps whatever is selected. **Alt-click** (Option-click on a Mac) the same spot to cycle through the modules stacked under it, so a covered module is always reachable, or right-click a module and choose **Select the module behind**. That right-click menu also has **Bring to Front**, **Send to Back**, **Duplicate**, **Hide on display** (the same switch as the Visibility section), and **Delete Module**. The Bring to Front and Send to Back buttons near the bottom of the Property Panel do the same, each disabled once the module is already at that end of the stack. Dropping a dragged module raises it above anything it lands on; typed X/Y values and arrow nudges keep the layering you chose.
+When modules overlap, a plain click keeps whatever is selected. **Alt-click** (Option-click on a Mac) the same spot to cycle through the modules stacked under it, so a covered module is always reachable, or right-click a module and choose **Select the module behind**. That right-click menu also has **Bring to front**, **Send to back**, **Duplicate**, **Hide on display** (the same switch as the Visibility section), and **Delete module**. The Bring to front and Send to back buttons near the bottom of the Property Panel do the same, each disabled once the module is already at that end of the stack. Dropping a dragged module raises it above anything it lands on; typed X/Y values and arrow nudges keep the layering you chose.
 
 While you drag, the module's edges and center snap to its neighbours and alignment guides appear, so lining modules up needs no arithmetic.
 
@@ -97,10 +97,10 @@ Select a module to open its settings in the **Property Panel** on the right. Rel
 
 The panel has two operating states:
 
-- **Module selected**: collapsible sections in this order: **Position & Size**, **Style**, **Module settings** (the module's own options), then for plugins **Connection** and **Secrets**, then **Open a screen**, and finally **Visibility**, **Schedule**, and **Conditions**. A **Delete Module** button sits at the bottom. The Background picker is hidden while a module is selected, so the panel stays focused on the module's own fields.
+- **Module selected**: collapsible sections in this order: **Position & size**, **Style**, **Module settings** (the module's own options), then for plugins **Connection** and **Secrets**, then **Open a screen**, and finally **Visibility**, **Schedule**, and **Conditions**. A **Delete module** button sits at the bottom. The Background picker is hidden while a module is selected, so the panel stays focused on the module's own fields.
 - **No module selected**: the panel shows **Screen settings** (the screen's name and module count, a rotation-duration override, and a schedule and conditions for the screen itself), followed by the Background picker for the current screen and **Background effects** (the shade and the picture adjustments, see the [Backgrounds guide](/docs/backgrounds#shading-a-background)). You can set rotation, screen schedules and conditions, and backgrounds without first dropping a module on the canvas.
 
-The six full-screen modules (full-screen calendar, weather, news, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & Size or Style sections at all. They sit in their own palette group, **Full-Screen Views**, and are framed on the canvas with a tinted border and their name.
+The six full-screen modules (full-screen calendar, weather, news, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & size or Style sections at all. They sit in their own palette group, **Full-screen views**, and are framed on the canvas with a tinted border and their name.
 
 ### Module Settings
 
@@ -109,10 +109,10 @@ Each module type has its own configuration options. For example:
 - **Clock**: toggle 24-hour format, seconds, date display
 - **Countdown**: add/remove events with labels and dates
 - **To-Do**: add/edit/check off items
-- **Notes**: **Manage notes** opens the **Family notes** window to post notes, change them, take them down and post them again, the same things the phone's Notes tab does (see [Notes](/docs/notes#4-write-notes-from-the-editor))
+- **Notes**: **Edit notes** opens the **Family notes** window to post notes, change them, take them down and post them again, the same things the phone's Notes tab does (see [Notes](/docs/notes#4-write-notes-from-the-editor))
 - **News**: pick the feeds it shows, from the built-in list or your own links (see [News](/docs/news))
 - **Stock Ticker**: enter comma-separated stock symbols
-- **Display Control**: pick layout (Bar / Pad / Panel / Arrows / Dock), default target (self / all / specific display), allow runtime retargeting; the Dock layout adds **Also show Sleep and Brightness** and **Also show Timers**, and the Panel layout adds **Also show Timers**
+- **Display Control**: pick layout (Bar / Pad / Panel / Arrows / Dock), default target (self / all / specific display), allow runtime retargeting; the Dock layout adds **Also show sleep and brightness** and **Also show timers**, and the Panel layout adds **Also show timers**
 
 See the [Module Reference](/docs/module-reference) for all available options.
 
@@ -124,29 +124,29 @@ Every module can be styled except the full-screen ones and Display Control, whic
 
 - **Corner rounding**: round the corners (0–50)
 - **Space inside**: add room between the module's edge and its content (0–64)
-- **Border Width**: draw an outline around the module (0–4)
+- **Border width**: draw an outline around the module (0–4)
 
 **Effects**
 
 - **Solid**: how see-through the module is, from 0 (invisible) to 1 (fully solid), in steps of 0.05
 - **Frosted glass**: blur whatever is behind the module (0–40)
-- **Shadow Size**: drop a soft shadow behind the module (0–48)
+- **Shadow size**: drop a soft shadow behind the module (0–48)
 
 **Color**
 
 - **Background**: set the module's background (supports transparency via rgba)
-- **Border Color**: the color of the outline set by Border Width
-- **Text Color**: set the text color
+- **Border color**: the color of the outline set by Border width
+- **Text color**: set the text color
 
-The sticky note has no Background or Text Color here: its paper colour is the note's own **Note Color** setting, and its ink is always dark so it reads on any paper.
+The sticky note has no Background or Text color here: its paper colour is the note's own **Note color** setting, and its ink is always dark so it reads on any paper.
 
-The Notes module's eight material views (Chalkboard, Letterboard, Whiteboard, Fridge, Notebook, Receipt, Neon and Headline) bring their own surface, colours and lettering, so while one is picked there is no Background, Text Color, Border Color, Border Width, Frosted glass or Font Family here. Everything else, such as Text size, corner rounding, space inside, Solid and Shadow Size, still works. The fourteen other Notes views take every setting.
+The Notes module's eight material views (Chalkboard, Letterboard, Whiteboard, Fridge, Notebook, Receipt, Neon and Headline) bring their own surface, colours and lettering, so while one is picked there is no Background, Text color, Border color, Border width, Frosted glass or Font family here. Everything else, such as Text size, Corner rounding, Space inside, Solid and Shadow size, still works. The fourteen other Notes views take every setting.
 
 **Text**
 
 - **Text size**: a percent of the size the module shows on its own, from 10% to 450%. The clock, date, countdown, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, notes board, school timetable and multi-month calendar fit their text to their box, so 100% is that fitted size and the slider makes it smaller or larger from there. Every other module's 100% is its base size. A module that was given a pixel size in an older version shows that size as a percent of what it shows on its own, so nothing changes until you move the slider
 - **Text thickness**: make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back. The title always stays at its normal weight
-- **Font Family**: choose from available fonts
+- **Font family**: choose from available fonts
 
 A module's title is set under **Module settings > Title**, not here: **The module's own title** (for modules that have one), **My own words**, or **No title**. With **My own words** you type the **Title words** and can set a **Title size** (8–72); the title is centered on the module card above its content and cut off with an ellipsis when it is too long to fit.
 
@@ -158,15 +158,15 @@ The display can rotate through multiple screens automatically. Most screen actio
 
 ### Adding a Screen
 
-Click the **+** button in the Screen Tabs and choose **Blank Screen** to start from scratch, **From Template…** to start from a pre-built layout, or **From File…** to bring in a layout someone shared with you (or one you exported earlier) as new screens on the current display. Importing this way only adds screens; the ones you already have are left alone. Each screen has its own set of modules and background.
+Click the **+** button in the screen tabs and choose **Blank screen** to start from scratch, **From template…** to start from a pre-built layout, or **From file…** to bring in a layout someone shared with you (or one you exported earlier) as new screens on the current display. Importing this way only adds screens; the ones you already have are left alone. Each screen has its own set of modules and background.
 
 ### Enabling and Disabling a Screen
 
-Right-click a screen tab to open the context menu and choose **Disable** or **Enable**. Disabled screens remain fully configurable in the editor but are excluded from display rotation: the display skips them entirely.
+Right-click a screen tab to open the context menu and choose **Switch off** or **Switch on**. Switched-off screens remain fully configurable in the editor but are excluded from display rotation: the display skips them entirely.
 
-- Disabled tabs appear dimmed with a **⊘** icon next to the name
+- Switched-off tabs show a crossed-out **Off** pill next to the name
 - Profile screen lists show an amber "(disabled)" label for disabled screens
-- Setting a screen to disabled is non-destructive: all modules and settings are preserved and the screen can be re-enabled at any time
+- Switching a screen off is non-destructive: all modules and settings are preserved and the screen can be switched on again at any time
 
 This is useful for temporarily hiding a screen (e.g., a seasonal or holiday screen) without deleting it.
 
@@ -176,11 +176,11 @@ Right-click a screen tab to open the context menu and choose **Rename**, or doub
 
 ### Reordering Screens
 
-Drag screen tabs left or right to reorder them. You can also right-click a tab and choose **Move Left** or **Move Right** from the context menu. Screen order determines the rotation sequence on the display.
+Drag screen tabs left or right to reorder them. You can also right-click a tab and choose **Move left** or **Move right** from the context menu. Screen order determines the rotation sequence on the display.
 
 ### Exporting a Single Screen
 
-Right-click a screen tab and choose **Export This Screen** to save just that screen's layout to a file. Useful for sharing one screen with someone else without handing over your whole configuration.
+Right-click a screen tab and choose **Export this screen** to save just that screen's layout to a file. Useful for sharing one screen with someone else without handing over your whole configuration.
 
 ### Removing a Screen
 
@@ -204,7 +204,7 @@ The global rotation interval lives in **Settings > Screen > Rotation & appearanc
 
 Any screen can have its own time. Click an empty area of the canvas, then under **Screen settings** click **Use a different time** and set it, or reset to go back to the shared default. A screen with its own time shows a small pill on its tab (for example `10s`) so you can see it at a glance.
 
-Setting a screen's time to **0** makes it **sticky**: the wall stays on that screen until something moves it along (the family remote, a Display Control module, or a swipe). The tab shows an amber `0s` pill as a warning. Useful for a dinner timer or a guest-mode photo frame.
+Setting a screen's time to **0** makes it **sticky**: the wall stays on that screen until something moves it along (the family remote, a Display Control module, or a swipe). The tab shows an amber **Stays** pill. Useful for a dinner timer or a guest-mode photo frame.
 
 ### Screen Transitions
 
@@ -212,9 +212,9 @@ Screen transitions control the visual effect when cycling between screens. There
 
 - **Fade**: smooth opacity crossfade (default)
 - **Slide**: horizontal slide left/right
-- **Slide Up**: vertical slide upward
+- **Slide up**: vertical slide upward
 - **Zoom**: scale in/out
-- **3D Flip**: 3D card flip
+- **3D flip**: 3D card flip
 - **Blur**: blur out and in
 - **Crossfade (overlap)**: overlapping crossfade
 - **None (instant)**: instant switch with no animation
@@ -227,11 +227,11 @@ Click an empty area of the canvas to deselect any module; the **Background** sec
 
 ### Choose a background
 
-1. Under **Picture**, click **Choose a picture**. The **Image Library** opens
-2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Local** (your own library, with **Upload Photos**), **Immich**, **Unsplash** or **NASA**
-3. Click a picture, then **Select Image**. **None** removes the background
+1. Under **Picture**, click **Choose a picture**. The **Pictures & videos** window opens
+2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Pictures & videos** (your own library, with **Upload pictures**), **Immich**, **Unsplash** or **NASA**
+3. Click a picture, then **Use this picture**. **None** removes the background
 
-A picture from Immich, Unsplash or NASA is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Local** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#image-library) for every tab.
+A picture from Immich, Unsplash or NASA is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Pictures & videos** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#choosing-a-picture) for every tab.
 
 ### Rotating backgrounds
 
@@ -272,11 +272,11 @@ Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most
 - **Touch alignment** (on the Rotation & appearance tab, next to the rotation), for a touchscreen plugged into this display. Taps follow the screen rotation by default; pick **Leave touch as it is** if they already land in the right place, or enter six numbers of your own if they land mirrored or a little off. See [Taps land in the wrong place](/docs/troubleshooting#taps-land-in-the-wrong-place).
 - **Sleep & dimming** is grouped into four sections, inactivity dimming ("Dim after a few quiet minutes"), the daily schedules ("Dim in the evening" and "Turn off overnight"), the dimmed appearance, and what happens while the screen is turned off, with a 24-hour preview bar showing when the display will be bright, dimmed, or off. Turn the inactivity toggle off to keep full brightness all day while a schedule handles the night.
 - **Dim and sleep schedules** support overnight spans, `23:00–06:00` works and wraps past midnight as you'd expect.
-- **After a wake-up, stay on for** (shown when a schedule is on), how long the display stays awake when someone touches it or wakes it from the remote during a scheduled dim or sleep window, before the schedule takes over again. Defaults to 5 minutes; set it to the minimum for the old behavior of going right back to sleep.
+- **After a wake-up, stay on for (minutes)** (shown when a schedule is on), how long the display stays awake when someone touches it or wakes it from the remote during a scheduled dim or sleep window, before the schedule takes over again. Defaults to 5 minutes; set it to the minimum for the old behavior of going right back to sleep.
 - **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (no clock, the display still dims).
 - **Switch the screen's power off too** (under "While turned off") cuts the screen's power whenever the display is asleep, instead of only painting it black. It works on Raspberry Pi displays set up by the installer, and it follows every way a display can go to sleep: the overnight schedule, idle time, the remote, and rules. The screen takes a few seconds to come back when someone wakes it. Leave it off if your screen does not come back on by itself after losing its signal.
-- **Screen dots** (on by default), the row of dots at the bottom of the display that shows which screen is up and lets you tap to jump to another. Turning it off also removes Touchscreen Pause and the progress line, since both live on the dots, so their settings are hidden while no display shows dots. The editor stops drawing the dots outline on the canvas too.
-- **Touchscreen Pause** (on by default, needs Screen dots), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
+- **Screen dots** (on by default), the row of dots at the bottom of the display that shows which screen is up and lets you tap to jump to another. Turning it off also removes **Allow pause on touchscreen** and the progress line, since both live on the dots, so their settings are hidden while no display shows dots. The editor stops drawing the dots outline on the canvas too.
+- **Allow pause on touchscreen** (on by default, needs Screen dots), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
 - **Swipe to change screens** (on by default), flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.
 - **Theme** sets the color scheme used by the full-screen modules, not the editor.
 - **Protect the screen from burn-in** (off by default) moves everything on the display a few pixels once a minute, so nothing sits on the same spot for long. Turn it on for an OLED or any other screen that can burn in; you will not notice it from across the room, and it steps rather than glides so a Raspberry Pi has nothing extra to draw. The picture is enlarged by about one percent so its edges stay filled while it moves. The Full-Screen Photo Viewer's clock also drifts a little inside its own band, a pixel a minute, since a clock is the thing most likely to leave a mark. A Display Control dock does the same inside its module, a little up and down and further side to side when the module is wider than the dock needs.
@@ -298,12 +298,12 @@ Which provider to pick, and which need a key, is covered on the [Weather](/docs/
 
 ### Calendar
 
-Three areas. **What to show** has **Days Ahead**, the furthest any calendar module looks, and **Hide events you declined** (Google only). **Where events come from** lists the ways in, and every calendar and feed in use shows **Updated** or **Not updating** beside it, so a source that quietly broke is visible here:
+Three areas. **What to show** has **Days ahead**, the furthest any calendar module looks, and **Hide events you declined** (Google only). **Where events come from** lists the ways in, and every calendar and feed in use shows **Updated** or **Not updating** beside it, so a source that quietly broke is visible here:
 
 - **Google Calendar**: **Sign in with Google**, type the short code at google.com/device on your phone or computer, then tick the calendars you want. Nothing has to be set up on the API keys page first.
 - **iCloud Calendar**: **Add iCloud account** with an app-specific password, pick calendars, and optionally **Birthdays** from your contacts.
-- **iCal / ICS Feeds**: **Add Feed**, paste the link, name it, pick a colour.
-- **Public Holidays** for a country.
+- **iCal / ICS feeds**: **Add feed**, paste the link, name it, pick a colour.
+- **Public holidays** for a country.
 
 **Whose calendars?** says which calendars belong to each person in your family list. The full-screen calendar's family grid and free time views use it, and so do the calendar modules' **Name tags**, their colour key when it lists people or groups, and **Show only these people**.
 
@@ -315,7 +315,7 @@ The people in your home, each with a name, a colour and an optional icon, and **
 
 ### Meals
 
-The household's meal-planner settings: **Meal Slots**, **Week Starts On**, **Time Format** and **Default Serving Times**. They are the same settings the family remote shows, and every meal planner module follows them. See [Meals](/docs/meals).
+The household's meal-planner settings: **Meal slots**, **Week starts on**, **Time format** and **Default serving times**. They are the same settings the family remote shows, and every meal planner module follows them. See [Meals](/docs/meals).
 
 ### On your phone
 
@@ -348,7 +348,7 @@ The editor has no password until you set one. Once set, it covers the editor and
 
 #### Allowed networks
 
-Two switches over one list of network ranges (most home networks are `192.168.1.0/24`). **Let these networks in without the password** skips the login for devices on them; **Only allow these networks** blocks everything else, apart from the login page. Your own address is shown above the list, and turning on the second switch without your address in the list gets a **You may lock yourself out** warning with **Save anyway**.
+Two switches over one list of network ranges (most home networks are `192.168.1.0/24`). **Let displays on these networks in without the key** lets a display on them show the wall without its display key (the editor and the family remote still ask for the password); **Only allow these networks** blocks everything else, apart from the login page. Your own address is shown above the list, and turning on the second switch without your address in the list gets a **You may lock yourself out** warning with **Save anyway**.
 
 Two things to know: addresses with colons (IPv6) never match, so add the IPv4 range and connect over IPv4; and behind a reverse proxy the check reads the proxy's forwarded-for header, so make sure the proxy sets it rather than passing a client's own through.
 
@@ -357,24 +357,24 @@ Two things to know: addresses with colons (IPv6) never match, so add the IPv4 ra
 The page is in four parts:
 
 - **Save or restore a file**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. **Restore from a file** puts a backup back; a locked backup asks for its password and offers **Restore without my keys**. **Backup reminder** is here too: **Remind me if I haven't backed up**, with **Remind after** a number of days.
-- **Automatic backups**: **Back up by itself** saves a backup on the hub every day, week or month at the **Time** you pick, keeps the last few (**Keep the last**), and can carry **Pictures** and your keys (locked with a backup password the hub keeps). **Back up now** saves one straight away. **Send a copy somewhere else** sends each one to a **Storage folder** (a network share on a NAS, Windows PC or Mac, or Nextcloud and other WebDAV storage) or offers a **Private download link** for a home server to fetch. **Backups on this hub** lists them with **Download**, **Restore** and **Remove** ([details](/docs/configuration#automatic-backups)).
+- **Automatic backups**: **Back up by itself** saves a backup on the hub every day, week or month at the **Time** you pick, keeps the last few (**Keep the last**), and can carry **Pictures** and your keys (locked with a backup password the hub keeps). **Back up now** saves one straight away. **Send a copy somewhere else** sends each one to a **Storage folder** (a network share on a NAS, Windows PC or Mac, or Nextcloud and other WebDAV storage) or offers a **Private download link** for a home server to fetch. **Backups on this hub** lists them with **Download**, **Restore** and **Delete** ([details](/docs/configuration#automatic-backups)).
 - **Undo an update** lists the snapshots taken before every update, each with **Download** and **Restore**. Nothing to set up.
-- **Layouts and templates**: **Export Layout** writes only screens and modules, with no personal data, and is the safe one to hand to someone else. **Import Layout** brings one in as new screens. **Browse Templates** starts a screen from a ready-made layout while keeping your settings.
+- **Layouts and templates**: **Export layout** writes only screens and modules, with no personal data, and is the safe one to hand to someone else. **Import layout** brings one in as new screens. **Browse templates** starts a screen from a ready-made layout while keeping your settings.
 
 ### Status
 
-A live page: the display's state, current screen and last check-in; **Storage** and **Memory**; **CPU & Thermal** (Pi model, load, throttling and temperature, from the hub itself or a display's reporter); **Home Screens Data**; **Configuration** counts with a **Module breakdown**; **Integrations**; and **Saved data**, the display's cache, behind **Show details**. **CPU & Thermal** is the first place to look if the display feels sluggish; it says whether the Pi is throttled by heat or a weak power supply. It also lists **Display programs**, the versions of the programs the wall runs, and under **Programs checked**, when Home Screens last looked for newer ones.
+A live page: the display's state, current screen and last check-in; **Storage** and **Memory**; **CPU & thermal** (Pi model, load, throttling and temperature, from the hub itself or a display's reporter); **Home Screens Data**; **Configuration** counts with a **Module breakdown**; **Integrations**; and **Saved data**, the display's cache, behind **Show details**. **CPU & thermal** is the first place to look if the display feels sluggish; it says whether the Pi is throttled by heat or a weak power supply. It also lists **Display programs**, the versions of the programs the wall runs, and under **Programs checked**, when Home Screens last looked for newer ones.
 
-**Diagnostics bundle** exports a redacted archive for bug reports. **Anonymous Telemetry** holds the **Send anonymous usage data** switch and **What we collect**, the list of exactly what is sent.
+**Diagnostics bundle** exports a redacted archive for bug reports. **Anonymous telemetry** holds the **Send anonymous usage data** switch and **What we collect**, the list of exactly what is sent.
 
 ### System & updates
 
-- **Version** says **You're on version** so-and-so, with a **Release candidate**, **Beta build** or **Test build** tag when that is what is running. **Check for Updates** looks for a newer release and offers **Update Now**; the update downloads a pre-built release, swaps it in and restarts, with no build step on the Pi.
+- **Version** says **You're on version** so-and-so, with a **Release candidate**, **Beta build** or **Test build** tag when that is what is running. **Check for updates** looks for a newer release and offers **Update now**; the update downloads a pre-built release, swaps it in and restarts, with no build step on the Pi.
 - **Restart to finish the update** shows after an update that changed part of the Pi's own setup, such as the program that starts the wall or a new program the wall runs. Those only take effect after the device restarts, so until then the page says so and offers **Restart now**, which asks the same question as **Restart the whole device**. It goes away by itself once the device has restarted. Automatic updates never restart the device on their own: when one of them changed something like this, it restarts the screen instead once the new version is up, which is enough, and the note does not appear. After an update you started yourself the note waits here, and on the family remote, until someone restarts.
 - **Which updates to get**: **Normal** (tested releases only), **Early access** (release candidates, finished and lightly tested), **Beta** (feature complete, still being shaken out) or, with **Show advanced options** on, **Test builds** (a fresh build from the latest code most nights; things break). Each choice also sees everything below it. Test builds can change your saved settings in ways a normal release can't read, so a copy from before your first test build is kept on the Backups & data page.
 - **Automatic updates** (with **Show advanced options** on): **Install updates automatically** installs any new version of the updates you picked, once a day at the **Time of day** you choose (4:00 AM unless you change it, in the time zone set on **Location & language**). The screen restarts, which takes about a minute. It only ever moves forward, only installs ready-made releases, and never tries a version again after it failed to start; the display goes back to the version it had instead. **Last check** and **Next check** say what it did and when it looks again. Hiding the advanced options does not switch it off.
-- **Update Notification**: **Notify me when an update is available** shows a note in the editor and on the family remote. Off by default; a dismissed note stays dismissed for that release only.
-- **Changelog**: **View Changelog** for each release's notes.
+- **Update notification**: **Notify me when an update is available** shows a note in the editor and on the family remote. Off by default; a dismissed note stays dismissed for that release only.
+- **Changelog**: **View changelog** for each release's notes.
 - **If an update caused trouble** lists earlier versions with **Go back to this** on each. Going back downloads that release again, so it needs an internet connection; older versions may not understand newer settings.
 - **If something seems stuck**: **Restart Home Screens** (a few seconds) and **Restart the whole device** (a minute or two).
 - **Advanced**: **Show advanced options** reveals the **Test builds** choice and the commit and branch under the version here, and the Developer tab in the Plugins panel.
@@ -422,11 +422,11 @@ This is useful for showing a commute module only on weekday mornings or a sports
 
 ## Open a screen
 
-Every module can carry a button in its bottom corner that opens another screen of the same display. Pick the screen under **Open a screen > Opens**; the button takes that screen's name, filled in the card's own text colour, with the full-screen module's icon when the screen holds one and an arrow otherwise. A module with **Tap on the Wall** switched off draws no button, and the section says so. The list holds every screen of the display the button can open, so never the module's own screen and never one that is switched off. On a touch display a tap on the button shows that screen. This is how a small meal planner opens a full-screen Recipe Book, or a small calendar opens the full-screen calendar: make a screen holding the full-screen module in the view you want, and point the button at it. Deleting the screen removes the button, and the delete question says so.
+Every module can carry a button in its bottom corner that opens another screen of the same display. Pick the screen under **Open a screen > Opens**; the button takes that screen's name, filled in the card's own text colour, with the full-screen module's icon when the screen holds one and an arrow otherwise. A module with **Tap on the wall** switched off draws no button, and the section says so. The list holds every screen of the display the button can open, so never the module's own screen and never one that is switched off. On a touch display a tap on the button shows that screen. This is how a small meal planner opens a full-screen Recipe book, or a small calendar opens the full-screen calendar: make a screen holding the full-screen module in the view you want, and point the button at it. Deleting the screen removes the button, and the delete question says so.
 
 **Open it with** picks how a tap gets there. **The button** is the pill described above. **A tap on the card** draws no button: a tap anywhere on the card opens the screen, and a small arrow in the card's corner shows that it can be tapped. A sideways swipe that starts on the card still changes screens. It is offered only for cards that use no taps of their own (weather, clock, date, countdown, text, picture and the other cards that only show things); a calendar, a list, a chore chart, a meal planner, the news or a photo card keeps its button, so one touch never means two things. Together with the one-click **Add a Weather screen** below, this is how a weather card opens the full forecast with a tap.
 
-When the display has both kinds, the list is in two groups, screens that show only when opened and screens in the rotation. Under the list the section says what the picked screen shows and which full-screen theme it is drawn in. For a Meal Planner, Calendar, Weather, Chore Chart, News or Photo Slideshow with no full-screen twin on the display yet, the section offers a one-click screen (**Add a Recipe Book screen** for the meal planner, then Calendar, Weather, Chores, News and Photos): it makes that screen with the full-screen module on it, keeps it out of the rotation, and points the button at it. **Open its screen settings** takes you to that screen's tab and its Rotation settings; select the full-screen module there to style it. If the picked screen still takes its turn in the rotation, the **Shows only when opened** switch right there keeps it out of the rotation, and the screen's own Rotation group follows. Pointing the button away from a screen that shows only when opened, so that nothing opens it any more, makes the section warn with **Pick it again** and **Let it take its turn**, and that screen's tab says **Nothing opens it**. A click on the button on the canvas opens this section. When the target is switched off, outside its hours or behind conditions, or the module's **Tap on the Wall** is off, the section says so (with a button to put it right) and the canvas draws the button dimmed. Deleting a screen shows a toast with **Undo**.
+When the display has both kinds, the list is in two groups, screens that show only when opened and screens in the rotation. Under the list the section says what the picked screen shows and which full-screen theme it is drawn in. For a Meal Planner, Calendar, Weather, Chore Chart, News or Photo Slideshow with no full-screen twin on the display yet, the section offers a one-click screen (**Add a Recipe book screen** for the meal planner, then Calendar, Weather, Chores, News and Photos): it makes that screen with the full-screen module on it, keeps it out of the rotation, and points the button at it. **Open its screen settings** takes you to that screen's tab and its Rotation settings; select the full-screen module there to style it. If the picked screen still takes its turn in the rotation, the **Shows only when opened** switch right there keeps it out of the rotation, and the screen's own Rotation group follows. Pointing the button away from a screen that shows only when opened, so that nothing opens it any more, makes the section warn with **Pick it again** and **Let it take its turn**, and that screen's tab says **Nothing opens it**. A click on the button on the canvas opens this section. When the target is switched off, outside its hours or behind conditions, or the module's **Tap on the wall** is off, the section says so (with a button to put it right) and the canvas draws the button dimmed. Deleting a screen shows a toast with **Undo**.
 
 Pair it with **Shows only when opened** on the target screen (see [Screens that show only when opened](/docs/profiles#screens-that-show-only-when-opened)) so that screen never takes a turn of its own. The button's section then shows that screen's **Go back after**, the number of minutes it stays with nobody touching it before the display returns to where it was (two unless you change it; whole or half minutes, up to a day). It is the screen's own number, the same one its Screen settings show, so a dock button, a rule or a phone command that opens the screen waits the same time. Any touch on the screen starts the count again. An open recipe card keeps the screen up until the card closes, at most ten minutes. Set it to **0** to stay until someone taps Back. If the picked screen still takes its turn in the rotation, the section says so: a tap then shows it for its usual time and the rotation carries on.
 

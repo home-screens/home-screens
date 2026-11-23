@@ -3,7 +3,7 @@
 // tab (SharedStateSection): the search+static merge that produces the
 // KeySuggestion rows both surfaces render, plus the producer-grouping and
 // per-category preview math the browse tab layers on top. Lives here rather
-// than in either component so the two surfaces share one exported contract —
+// than in either component so the two surfaces share one exported contract:
 // a structural re-declaration of the suggestion shape would drift silently.
 
 import type { TranslateFn } from '@/i18n';
@@ -51,7 +51,7 @@ export function buildSuggestions(
     if (seen.has(d.key)) continue;
     seen.add(d.key);
     const live = d.currentValue !== undefined
-      ? ` — ${d.currentValue}${d.unit ? ` ${d.unit}` : ''}`
+      ? `: ${d.currentValue}${d.unit ? ` ${d.unit}` : ''}`
       : '';
     out.push({
       key: d.key,
@@ -119,14 +119,14 @@ export interface AvailableGroup {
  * Rows are bucketed by sub-header (not just left in input order) before
  * flattening: a plugin's own result order commonly interleaves domains (e.g.
  * Home Assistant returning a paired binary_sensor + switch per capability,
- * sorted by feature name) — without bucketing, the render's "print a header
+ * sorted by feature name); without bucketing, the render's "print a header
  * when the sub-head changes from the previous row" check would fire on
  * nearly every row instead of once per group.
  *
  * `requestLimit` is the per-plugin cap the caller actually asked the search
  * layer for (the combobox's default cap, BROWSE_SEARCH_LIMIT for the browse
  * tab). It is passed in rather than read from a constant so cap detection
- * stays honest about which limit produced `searched` — a producer at exactly
+ * stays honest about which limit produced `searched`: a producer at exactly
  * this many raw hits is flagged `truncated`.
  */
 export function buildAvailableGroups(

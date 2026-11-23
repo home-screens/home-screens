@@ -16,9 +16,13 @@ import { conditionsVerdict, verdictStatesFor } from '@/lib/condition-verdicts';
 import { validateDisplayRules } from '@/lib/display-filter';
 import ConditionTreeEditor, { ConditionVerdictChip } from '@/components/editor/ConditionTreeEditor';
 import Toggle from '@/components/ui/Toggle';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
-import type { TranslateFn } from '@/i18n';
+import { INPUT_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import type { DisplayRule, RuleAction, VisibilityCondition } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import StatusPill from '@/components/ui/StatusPill';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 /**
  * Seconds input that commits on blur/Enter — mirrors the condition inputs'
@@ -130,6 +134,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
 
   // Ticking wall clock (display timezone) so a `time` condition's verdict
   // stays live; only ticks when the rule has a time condition.
+  const tCore = useTranslate('core');
   const householdTimezone = useEditorHouseholdTimezone();
   const now = useConditionClock(rule.when, householdTimezone);
 
@@ -204,7 +209,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 if (e.key === 'Escape') setRenaming(false);
               }}
               autoFocus
-              className="w-40 rounded border border-hs-border-strong bg-hs-panel px-2 py-0.5 text-sm text-hs-text-body outline-none focus:border-hs-accent"
+              className={`w-40 ${SETTINGS_INPUT_SM_CLASS}`}
             />
             <button type="button" onClick={commitRename} className="text-hs-success hover:text-hs-success/80">
               <Check className="w-3.5 h-3.5" />
@@ -223,9 +228,9 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
               {rule.name}
             </span>
             {!enabled && (
-              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint bg-hs-card px-1.5 py-0.5 rounded shrink-0">
+              <StatusPill tone="neutral" size="sm">
                 {t('settings.rulesPage.card.offBadge')}
-              </span>
+              </StatusPill>
             )}
             {verdict && <ConditionVerdictChip verdict={verdict} source={liveState.states ? liveState.source : 'editor'} t={t} />}
           </button>
@@ -247,11 +252,9 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
         <button
           onClick={async (e) => {
             e.stopPropagation();
-            const ok = await useConfirmStore.getState().confirm({
-              title: t('settings.rulesPage.deleteDialog.title'),
-              message: t('settings.rulesPage.deleteDialog.message', { name: rule.name }),
-              confirmLabel: t('settings.rulesPage.deleteDialog.confirm'),
-            });
+            const ok = await useConfirmStore.getState().confirm(
+              buildDeleteConfirm({ verb: 'delete', name: rule.name, consequence: tCore('confirm.cantUndo') }, tCore),
+            );
             if (ok) removeRule(rule.id);
           }}
           className="text-hs-text-faint hover:text-hs-danger transition-colors shrink-0"
@@ -277,15 +280,14 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
             </span>
             <div className="space-y-2">
               {rule.when.length === 0 && (
-                <p className="text-xs text-hs-warning">
+                <p className="text-xs text-hs-warning-ink">
                   {t('settings.rulesPage.card.noConditionsHint')}
                 </p>
               )}
               {validationError && (
-                <div className="rounded border border-hs-danger/40 bg-hs-danger/10 p-2 space-y-1">
-                  <p className="text-xs text-hs-danger">{t('settings.rulesPage.card.invalidHint')}</p>
-                  <p className="text-[10px] text-hs-text-dim">{validationError}</p>
-                </div>
+                <Notice tone="danger" size="sm" title={t('settings.rulesPage.card.invalidHint')}>
+                  <FieldHint>{validationError}</FieldHint>
+                </Notice>
               )}
               <ConditionTreeEditor
                 conditions={rule.when}
@@ -297,9 +299,9 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 t={t}
               />
               {rule.when.length > 1 && (
-                <p className="text-[10px] text-hs-text-dim">
+                <FieldHint>
                   {t('settings.rulesPage.card.allMustMatchHint')}
-                </p>
+                </FieldHint>
               )}
             </div>
           </div>
@@ -344,7 +346,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                     ))}
                   </select>
                   {action.screenId === '' && (
-                    <p className="text-[10px] text-hs-warning mt-0.5">
+                    <p className="text-[10px] text-hs-warning-ink mt-0.5">
                       {t('settings.rulesPage.card.screenMissingWarning')}
                     </p>
                   )}
@@ -383,23 +385,23 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                     sensor keeps a bedroom display lit all night. The sibling
                     `wake` action documents its own cap; this one was silent. */}
                 {action.mode === 'while' && (
-                  <p className="text-[10px] text-hs-text-dim">
+                  <FieldHint>
                     {t('settings.rulesPage.card.modeWhileSleepHint')}
-                  </p>
+                  </FieldHint>
                 )}
               </>
             )}
 
             {action.kind === 'wake' && (
-              <p className="text-[10px] text-hs-text-dim">
+              <FieldHint>
                 {t('settings.rulesPage.card.wakeSleepHint')}
-              </p>
+              </FieldHint>
             )}
 
             {action.kind === 'sleep' && (
-              <p className="text-[10px] text-hs-text-dim">
+              <FieldHint>
                 {t('settings.rulesPage.card.sleepHint')}
-              </p>
+              </FieldHint>
             )}
 
             <SecondsField
@@ -408,9 +410,9 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
               allowEmpty
               onCommit={(cooldownSeconds) => updateRule(rule.id, { cooldownSeconds })}
             />
-            <p className="text-[10px] text-hs-text-dim">
+            <FieldHint>
               {t('settings.rulesPage.card.cooldownHelp')}
-            </p>
+            </FieldHint>
           </div>
 
           {/* Copy this rule to another display. Shown only in multi-display
@@ -448,9 +450,9 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                   {t('settings.rulesPage.card.copiedNotice', { name: copiedTo })}
                 </p>
               )}
-              <p className="text-[10px] text-hs-text-dim">
+              <FieldHint>
                 {t('settings.rulesPage.card.copyToDisplayHelp')}
-              </p>
+              </FieldHint>
             </div>
           )}
         </div>

@@ -16,7 +16,7 @@ export interface RouteErrorText {
 export const ROUTE_ERROR_ENGLISH: RouteErrorText = {
   title: "This page can't load right now",
   body: 'Home Screens is having trouble reading its saved data. It will try again on its own in a moment.',
-  help: "If this doesn't go away, a grown-up can open Home Screens on a computer and put back a backup in Settings.",
+  help: "If this doesn't go away, a grown-up can open Home Screens on a computer and put back a backup in Settings > Backups & data.",
   retry: 'Try again',
 };
 

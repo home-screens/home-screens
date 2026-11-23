@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Heart, Plus } from 'lucide-react';
 import { FamilyMealSummary } from '@/components/meals/meal-votes';
 import type { SavedMeal } from '@/types/config';
 import { LIBRARY_FILTERS, type LibraryFilter, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
@@ -93,7 +94,7 @@ export default function SidebarLibrary({
             onClick={() => setFilter(f)}
             className={`shrink-0 px-2.5 py-1 text-xs rounded-full border transition-colors ${
               filter === f
-                ? 'bg-amber-500/10 border-amber-500/50 text-amber-500'
+                ? 'bg-hs-meal-soft border-hs-meal-ring text-hs-meal'
                 : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
             }`}
           >
@@ -142,7 +143,7 @@ export default function SidebarLibrary({
                 key={meal.id}
                 onClick={() => onSelectMeal(meal.id)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border-1.5 border-transparent hover:bg-hs-card transition cursor-pointer ${
-                  isSelected ? 'bg-amber-500/8 border-amber-500/20' : ''
+                  isSelected ? 'bg-hs-meal-soft border-hs-meal-ring' : ''
                 }`}
               >
                 <span className="text-2xl w-8 text-center shrink-0">
@@ -164,13 +165,14 @@ export default function SidebarLibrary({
                     e.stopPropagation();
                     onToggleFavorite(meal.id);
                   }}
-                  className="shrink-0 flex items-center justify-center min-w-[28px] min-h-[28px] text-base transition-colors"
+                  className={`shrink-0 flex items-center justify-center min-w-[28px] min-h-[28px] transition-colors ${
+                    meal.isFavorite ? 'text-hs-danger' : 'text-hs-text-faint hover:text-hs-text-muted'
+                  }`}
+                  aria-pressed={!!meal.isFavorite}
+                  aria-label={t('mealPlannerModal.mealie.favorite')}
+                  title={t('mealPlannerModal.mealie.favorite')}
                 >
-                  {meal.isFavorite ? (
-                    <span className="text-hs-danger">&#9829;</span>
-                  ) : (
-                    <span className="text-hs-text-faint hover:text-hs-text-muted">&#9825;</span>
-                  )}
+                  <Heart className="w-4 h-4" fill={meal.isFavorite ? 'currentColor' : 'none'} aria-hidden />
                 </button>
               </div>
             );
@@ -182,9 +184,10 @@ export default function SidebarLibrary({
       <div className="px-4 py-2.5 border-t border-hs-border-strong">
         <button
           type="button"
-          className="w-full py-2.5 text-sm font-semibold border border-dashed border-hs-border-strong rounded-lg text-hs-text-faint hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/8 transition"
+          className="flex w-full items-center justify-center gap-1.5 py-2.5 text-sm font-semibold border border-dashed border-hs-border-strong rounded-lg text-hs-text-faint hover:border-hs-meal hover:text-hs-meal hover:bg-hs-meal-soft transition"
           onClick={onAddMeal}
         >
+          <Plus className="h-4 w-4" aria-hidden="true" />
           {t('mealPlannerModal.library.addNewMealButton')}
         </button>
       </div>

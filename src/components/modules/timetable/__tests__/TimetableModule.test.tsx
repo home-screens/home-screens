@@ -343,7 +343,7 @@ describe('TimetableModule', () => {
     // every module the palette lists.
     const empty = text(container.querySelector('[data-testid="module-empty-state"]'));
     expect(empty).toContain('School Timetable');
-    expect(empty).toContain("Pick whose week to show in this module's settings.");
+    expect(empty).toContain('Pick a person in the editor and their week shows here');
   });
 
   it('says where a timetable is entered when nobody picked has one', () => {

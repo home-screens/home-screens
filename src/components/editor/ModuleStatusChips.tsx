@@ -2,12 +2,23 @@
 
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
-import { describeModuleStatus, STATUS_CHIP_CLASS } from '@/lib/module-status';
+import { describeModuleStatus, type ModuleStatusTone } from '@/lib/module-status';
 import { useStateKeyLabel } from '@/hooks/useStateKeyLabel';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
 import type { ScheduleClock } from '@/lib/schedule';
+import StatusPill from '@/components/ui/StatusPill';
+import type { StatusTone } from '@/components/ui/StatusDot';
+import FieldHint from '@/components/ui/FieldHint';
+
+/** A module's status in the shared pill tones: hidden is a problem, waiting needs a look. */
+const CHIP_TONE: Record<ModuleStatusTone, StatusTone> = {
+  off: 'danger',
+  waiting: 'warning',
+  active: 'info',
+  background: 'neutral',
+};
 
 /**
  * The readable version of the canvas's corner badges: "Hidden",
@@ -52,17 +63,18 @@ export default function ModuleStatusChips({
   return (
     <div className={compact ? 'flex gap-1' : 'space-y-1.5'} data-testid="module-status-chips">
       {shown.map((status) => (
-        <div key={status.key}>
-          <span
-            className={`inline-flex max-w-full items-center gap-1 rounded border px-1.5 py-0.5 ${
-              compact ? 'text-[10px]' : 'text-[11px]'
-            } ${STATUS_CHIP_CLASS[status.tone]}`}
-          >
-            <status.icon className="h-3 w-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">{status.label}</span>
+        // min-w-0 lets a long label shorten with an ellipsis inside the
+        // canvas row instead of running past the selected module.
+        <div key={status.key} className="min-w-0">
+          {/* On the canvas the chip sits on the module's own picture, so it
+              gets a solid panel-coloured backing to read over anything. */}
+          <span className={`inline-flex max-w-full rounded-full${compact ? ' bg-hs-panel' : ''}`}>
+            <StatusPill tone={CHIP_TONE[status.tone]} size={compact ? 'sm' : 'md'} icon={status.icon} className="max-w-full">
+              <span className="min-w-0 truncate">{status.label}</span>
+            </StatusPill>
           </span>
           {withDetail && (
-            <p className="mt-1 text-[11px] leading-relaxed text-hs-text-faint">{status.detail}</p>
+            <FieldHint className="mt-1">{status.detail}</FieldHint>
           )}
         </div>
       ))}

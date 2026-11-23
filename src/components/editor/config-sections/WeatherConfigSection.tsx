@@ -25,7 +25,7 @@ const VIEW_REQUIRES: Partial<Record<WeatherView, 'minutely' | 'alerts'>> = {
 /**
  * The settings each view reads, so the panel offers a toggle only where it
  * changes the wall. Built from what the view components read: a toggle shown
- * for a view that ignores it (Dew Point on Week ahead, Humidity on the written
+ * for a view that ignores it (Dew point on Week ahead, Humidity on the written
  * forecast) is a control that does nothing.
  */
 type Field =

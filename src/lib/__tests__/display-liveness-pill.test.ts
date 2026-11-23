@@ -14,9 +14,9 @@ describe('heartbeatPill', () => {
     for (const never of [null, undefined, 0]) {
       const pill = heartbeatPill(never, NOW);
       expect(pill.kind).toBe('never');
-      expect(pill.pillClass).toMatch(/border-transparent/);
+      expect(pill.bordered).toBe(false);
     }
-    expect(heartbeatPill(NOW - IDLE_WITHIN_MS, NOW).pillClass).toMatch(/border-hs-border-strong/);
-    expect(heartbeatPill(null, NOW).dotClass).toBe(heartbeatPill(NOW - IDLE_WITHIN_MS, NOW).dotClass);
+    expect(heartbeatPill(NOW - IDLE_WITHIN_MS, NOW).bordered).toBe(true);
+    expect(heartbeatPill(null, NOW).tone).toBe(heartbeatPill(NOW - IDLE_WITHIN_MS, NOW).tone);
   });
 });

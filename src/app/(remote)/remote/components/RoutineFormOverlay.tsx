@@ -1,18 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { uuid } from '@/lib/uuid';
+import { withAlpha } from '@/lib/hex-color';
 import { DEFAULT_TIMER_SOUND, MAX_STEP_SEC, MAX_STEPS, MIN_STEP_SEC, secondsFromFields } from '@/lib/timer-logic';
 import type { Routine, RoutineStep, TimerView } from '@/types/timers';
 import FormOverlay from './FormOverlay';
+import SaveDeleteFooter from './SaveDeleteFooter';
+import ConfirmSheet from './ConfirmSheet';
 import { useFormDirty } from '@/hooks/useFormDirty';
-import { TIMER_VIEW_LABEL_KEYS, timerChipClass } from './TimersTab';
+import { TIMER_VIEW_LABEL_KEYS } from './TimersTab';
 import TimerViewThumb from './TimerViewThumb';
 import Glyph from '@/components/ui/Glyph';
-import PhoneCustomIconSection from '@/components/custom-icons/PhoneCustomIconSection';
-import { isCustomIconValue } from '@/lib/custom-icons';
+import PhoneIconPicker, { PhoneIconChoicesPanel } from '@/components/custom-icons/PhoneIconPicker';
+import { FIELD, FIELD_LABEL, HELPER_TEXT, REMOTE_ACCENT, REMOTE_ACCENT_INK, toggleChipStyle } from './remote-styles';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 const ROUTINE_EMOJI = ['🚀', '🌞', '🌙', '🪥', '👕', '🛏️', '🎒', '📚', '🧹', '🍽️', '🛁', '🧸', '⚽', '🎨', '🐶', '⏱️'];
 
@@ -31,10 +35,29 @@ function newStep(): RoutineStep {
 /** A step's two boxes (min / sec) as seconds: short steps ("30 seconds of tidying") need no decimal minutes. */
 const stepSecondsFrom = (minText: string, secText: string) => secondsFromFields(minText, secText, { min: MIN_STEP_SEC, max: MAX_STEP_SEC });
 
+/** A square 44 px button on a step: move it, or take it out. */
+const STEP_BUTTON: CSSProperties = {
+  width: 44,
+  height: 44,
+  flexShrink: 0,
+  borderRadius: 10,
+  border: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'var(--hs-bg-hover)',
+  color: 'var(--hs-text-muted)',
+  cursor: 'pointer',
+};
+
+const NUMBER_FIELD: CSSProperties = { ...FIELD, width: 72, padding: '0 8px', textAlign: 'center', fontSize: 15 };
+const UNIT: CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)' };
+
 /**
  * Create/edit one routine. Steps are the heart of it: each has an emoji
- * (picked from a tap-to-open grid — no free-text field to strand users in),
- * a name, a min/sec length, and an optional "wait for a Done tap" hold.
+ * (picked from a tap-to-open grid, never a free-text field to strand users
+ * in), a name, a min/sec length, and an optional "wait for a Done tap" hold.
+ * Built like the chore form: the same fields, labels and footer.
  */
 export default function RoutineFormOverlay({
   routine,
@@ -48,6 +71,7 @@ export default function RoutineFormOverlay({
   onDelete?: () => Promise<boolean>;
 }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [name, setName] = useState(routine?.name ?? '');
   const [icon, setIcon] = useState(routine?.icon ?? '🚀');
   const [view, setView] = useState<TimerView>(routine?.view ?? 'ring');
@@ -117,131 +141,76 @@ export default function RoutineFormOverlay({
   };
 
   return (
-    <FormOverlay
-      title={routine ? t('timers.editRoutine') : t('timers.newRoutine')}
-      dirty={dirty}
-      onBack={onClose}
-      footer={
-        <>
-        {whyNoSave && (
-          <p role="status" data-testid="routine-why-no-save" className="pt-2 text-center text-[12.5px] text-hs-text-muted">
-            {whyNoSave}
-          </p>
-        )}
-        <div className="flex gap-2">
-          {onDelete && (
-            <button
-              onClick={() => {
-                if (!confirmDelete) {
-                  setConfirmDelete(true);
-                  return;
-                }
-                void onDelete();
-              }}
-              className={`min-h-[48px] px-4 rounded-xl text-[14px] font-bold active:scale-[0.97] ${
-                confirmDelete ? 'bg-red-500 text-white' : 'bg-red-500/10 text-red-400'
-              }`}
-            >
-              {confirmDelete ? t('timers.reallyDelete') : t('timers.deleteRoutine')}
-            </button>
-          )}
-          <button
-            onClick={() => void handleSave()}
-            disabled={!valid || saving}
-            className="flex-1 min-h-[48px] rounded-xl bg-hs-accent text-white text-[15px] font-bold active:scale-[0.97] disabled:opacity-40"
-          >
-            {t('timers.save')}
-          </button>
-        </div>
-        </>
-      }
-    >
-      <div className="px-5 pb-6 flex flex-col gap-5">
-        <label className="block">
-          <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.routineName')}</span>
+    <>
+      <FormOverlay
+        title={routine ? t('timers.editRoutine') : t('timers.newRoutine')}
+        dirty={dirty}
+        onBack={onClose}
+        footer={
+          <SaveDeleteFooter
+            canSave={valid}
+            busy={saving}
+            onSave={() => void handleSave()}
+            notice={whyNoSave}
+            deleteLabel={onDelete ? t('timers.deleteRoutine') : undefined}
+            onDelete={() => setConfirmDelete(true)}
+          />
+        }
+      >
+        <div style={{ marginBottom: 24 }}>
+          <label htmlFor="routine-name" style={FIELD_LABEL}>{t('timers.routineName')}</label>
           <input
+            id="routine-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={60}
             placeholder={t('timers.routineNamePlaceholder')}
-            className="mt-1.5 w-full min-h-[46px] px-3 rounded-xl bg-hs-hover text-hs-text-primary text-[15px] placeholder:text-hs-text-faint outline-none focus:ring-2 focus:ring-hs-accent"
+            style={FIELD}
           />
-        </label>
-
-        <div>
-          <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.routineIcon')}</span>
-          <div className="mt-1.5">
-            <PhoneCustomIconSection value={icon} onPick={setIcon} accent="var(--hs-accent)" suggestedName={name} />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {ROUTINE_EMOJI.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => setIcon(emoji)}
-                aria-pressed={icon === emoji}
-                className={`w-11 h-11 rounded-xl text-[22px] flex items-center justify-center border ${
-                  icon === emoji ? 'bg-hs-accent/15 border-hs-accent' : 'bg-hs-hover border-transparent'
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div>
-          <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.viewLabel')}</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-2">
+        <PhoneIconPicker
+          value={icon}
+          onChange={setIcon}
+          choices={{ kind: 'emoji', emoji: ROUTINE_EMOJI }}
+          label={t('timers.routineIcon')}
+          suggestedName={name}
+        />
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={FIELD_LABEL}>{t('timers.viewLabel')}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {(Object.keys(TIMER_VIEW_LABEL_KEYS) as TimerView[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                aria-pressed={view === v}
-                className={`min-h-[44px] px-2 rounded-xl text-[13px] font-semibold border inline-flex items-center justify-center gap-2 ${
-                  view === v
-                    ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-                    : 'bg-hs-hover border-transparent text-hs-text-primary'
-                }`}
-              >
+              <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v} className="press-scale" style={{ ...toggleChipStyle(view === v), borderRadius: 12 }}>
                 <TimerViewThumb view={v} />
                 {t(TIMER_VIEW_LABEL_KEYS[v])}
               </button>
             ))}
           </div>
+          {/* Named "Sound", on or off by its look, as on the Timers tab. */}
+          <button type="button" onClick={() => setSound((v) => !v)} aria-pressed={sound} className="press-scale" style={{ ...toggleChipStyle(sound), marginTop: 10 }}>
+            {t('timers.sound')}
+          </button>
         </div>
 
         <div>
-          <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.sound')}</span>
-          <div className="mt-1.5">
-            <button
-              onClick={() => setSound((v) => !v)}
-              aria-pressed={sound}
-              className={`px-3 min-h-[40px] rounded-full text-[13px] font-semibold border ${
-                sound
-                  ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-                  : 'bg-transparent border-hs-border-strong text-hs-text-faint'
-              }`}
-            >
-              {sound ? t('timers.soundOn') : t('timers.soundOff')}
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.steps')}</span>
-          <div className="mt-1.5 flex flex-col gap-3">
+          <div style={FIELD_LABEL}>{t('timers.steps')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {steps.map((step, index) => (
-              <div key={step.id} className="p-3 bg-hs-card border border-hs-border-strong rounded-[14px]">
-                <div className="flex gap-2">
+              <div key={step.id} style={{ padding: 12, background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border)', borderRadius: 14 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button
+                    type="button"
                     onClick={() => setPickingIconFor((cur) => (cur === step.id ? null : step.id))}
                     aria-label={t('timers.stepIcon')}
                     aria-expanded={pickingIconFor === step.id}
-                    className={`w-14 min-h-[44px] shrink-0 rounded-xl text-[22px] flex items-center justify-center border ${
-                      pickingIconFor === step.id
-                        ? 'bg-hs-accent/15 border-hs-accent'
-                        : 'bg-hs-hover border-transparent'
-                    }`}
+                    style={{
+                      ...STEP_BUTTON,
+                      width: 56,
+                      fontSize: 22,
+                      border: `1px solid ${pickingIconFor === step.id ? REMOTE_ACCENT_INK : 'transparent'}`,
+                      background: pickingIconFor === step.id ? withAlpha(REMOTE_ACCENT, 0.15) : 'var(--hs-bg-hover)',
+                    }}
                   >
                     <Glyph value={step.icon || '⏱️'} fallback="⏱️" />
                   </button>
@@ -250,54 +219,34 @@ export default function RoutineFormOverlay({
                     onChange={(e) => updateStep(step.id, { label: e.target.value })}
                     maxLength={60}
                     placeholder={t('timers.stepNamePlaceholder')}
-                    className="flex-1 min-w-0 min-h-[44px] px-3 rounded-xl bg-hs-hover text-hs-text-primary text-[14px] placeholder:text-hs-text-faint outline-none focus:ring-2 focus:ring-hs-accent"
+                    style={{ ...FIELD, flex: 1, minWidth: 0, minHeight: 44, padding: '0 12px', fontSize: 15 }}
                   />
                   {/* Up here beside the name, where every phone has room for
                       it: in the time row it was pushed out of the card. */}
                   <button
+                    type="button"
                     onClick={() => setSteps((prev) => prev.filter((s) => s.id !== step.id))}
                     disabled={steps.length === 1}
                     aria-label={t('timers.removeStep')}
-                    className="w-9 h-9 shrink-0 self-center rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center disabled:opacity-30"
+                    style={{ ...STEP_BUTTON, background: withAlpha('var(--hs-danger)', 0.12), color: 'var(--hs-danger)', opacity: steps.length === 1 ? 0.3 : 1 }}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 size={16} />
                   </button>
                 </div>
 
                 {pickingIconFor === step.id && (
-                  <div className="mt-2">
-                  <PhoneCustomIconSection
-                    value={step.icon}
-                    accent="var(--hs-accent)"
-                    suggestedName={step.label}
-                    onPick={(picked) => { updateStep(step.id, { icon: picked }); setPickingIconFor(null); }}
-                  />
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {(STEP_EMOJI.includes(step.icon) || isCustomIconValue(step.icon) ? STEP_EMOJI : [step.icon, ...STEP_EMOJI]).map(
-                      (emoji) => (
-                        <button
-                          key={emoji}
-                          onClick={() => {
-                            updateStep(step.id, { icon: emoji });
-                            setPickingIconFor(null);
-                          }}
-                          aria-pressed={step.icon === emoji}
-                          className={`w-11 h-11 rounded-xl text-[22px] flex items-center justify-center border ${
-                            step.icon === emoji
-                              ? 'bg-hs-accent/15 border-hs-accent'
-                              : 'bg-hs-hover border-transparent'
-                          }`}
-                        >
-                          {emoji}
-                        </button>
-                      ),
-                    )}
-                  </div>
+                  <div style={{ marginTop: 10 }}>
+                    <PhoneIconChoicesPanel
+                      value={step.icon}
+                      choices={{ kind: 'emoji', emoji: STEP_EMOJI }}
+                      suggestedName={step.label}
+                      onPick={(picked) => { updateStep(step.id, { icon: picked }); setPickingIconFor(null); }}
+                    />
                   </div>
                 )}
 
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -306,9 +255,9 @@ export default function RoutineFormOverlay({
                       value={step.minutesText}
                       onChange={(e) => updateStep(step.id, { minutesText: e.target.value })}
                       aria-label={t('timers.stepMinutes')}
-                      className="w-16 min-h-[44px] px-2 text-center rounded-xl bg-hs-hover text-hs-text-primary text-[14px] outline-none focus:ring-2 focus:ring-hs-accent"
+                      style={NUMBER_FIELD}
                     />
-                    <span className="text-[12px] font-semibold text-hs-text-faint">{t('timers.minUnit')}</span>
+                    <span style={UNIT}>{t('timers.minUnit')}</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -317,43 +266,46 @@ export default function RoutineFormOverlay({
                       value={step.secondsText}
                       onChange={(e) => updateStep(step.id, { secondsText: e.target.value })}
                       aria-label={t('timers.stepSeconds')}
-                      className="w-16 min-h-[44px] px-2 text-center rounded-xl bg-hs-hover text-hs-text-primary text-[14px] outline-none focus:ring-2 focus:ring-hs-accent"
+                      style={NUMBER_FIELD}
                     />
-                    <span className="text-[12px] font-semibold text-hs-text-faint">{t('timers.secUnit')}</span>
+                    <span style={UNIT}>{t('timers.secUnit')}</span>
                   </div>
-                  <div className="flex gap-1">
+                  <div style={{ display: 'flex', gap: 4 }}>
                     <button
+                      type="button"
                       onClick={() => moveStep(index, -1)}
                       disabled={index === 0}
                       aria-label={t('timers.moveUp')}
-                      className="w-9 h-9 rounded-lg bg-hs-hover text-hs-text-faint flex items-center justify-center disabled:opacity-30"
+                      style={{ ...STEP_BUTTON, opacity: index === 0 ? 0.3 : 1 }}
                     >
-                      <ArrowUp className="w-4 h-4" />
+                      <ArrowUp size={16} />
                     </button>
                     <button
+                      type="button"
                       onClick={() => moveStep(index, 1)}
                       disabled={index === steps.length - 1}
                       aria-label={t('timers.moveDown')}
-                      className="w-9 h-9 rounded-lg bg-hs-hover text-hs-text-faint flex items-center justify-center disabled:opacity-30"
+                      style={{ ...STEP_BUTTON, opacity: index === steps.length - 1 ? 0.3 : 1 }}
                     >
-                      <ArrowDown className="w-4 h-4" />
+                      <ArrowDown size={16} />
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-2">
-                  <button
-                    onClick={() => updateStep(step.id, { waitForTap: !step.waitForTap })}
-                    aria-pressed={!!step.waitForTap}
-                    className={timerChipClass(!!step.waitForTap)}
-                  >
-                    {t('timers.waitForTap')}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => updateStep(step.id, { waitForTap: !step.waitForTap })}
+                  aria-pressed={!!step.waitForTap}
+                  className="press-scale"
+                  style={{ ...toggleChipStyle(!!step.waitForTap), marginTop: 10 }}
+                >
+                  {t('timers.waitForTap')}
+                </button>
               </div>
             ))}
           </div>
           <button
+            type="button"
             onClick={() =>
               setSteps((prev) =>
                 prev.length >= MAX_STEPS
@@ -362,17 +314,34 @@ export default function RoutineFormOverlay({
               )
             }
             disabled={atStepLimit}
-            className="mt-3 w-full min-h-[44px] rounded-xl border border-dashed border-hs-border-strong text-hs-text-faint text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
+            className="press-scale"
+            style={{
+              marginTop: 12, width: '100%', minHeight: 48, borderRadius: 12, border: '2px dashed var(--hs-border)',
+              background: 'transparent', color: 'var(--hs-text-faint)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              cursor: atStepLimit ? 'default' : 'pointer', opacity: atStepLimit ? 0.4 : 1,
+            }}
           >
-            <Plus className="w-4 h-4" /> {t('timers.addStep')}
+            <Plus size={16} /> {t('timers.addStep')}
           </button>
           {atStepLimit && (
-            <p role="status" className="mt-2 text-center text-[12.5px] text-hs-text-muted">
+            <p role="status" style={{ ...HELPER_TEXT, textAlign: 'center' }}>
               {t('timers.stepLimit', { count: MAX_STEPS })}
             </p>
           )}
         </div>
-      </div>
-    </FormOverlay>
+      </FormOverlay>
+
+      {confirmDelete && (
+        <ConfirmSheet
+          {...sheetQuestion(buildDeleteConfirm({ verb: 'delete', name: routine?.name ?? '', consequence: t('timers.deleteConfirm.description') }, tCore))}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            void onDelete?.();
+          }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+    </>
   );
 }

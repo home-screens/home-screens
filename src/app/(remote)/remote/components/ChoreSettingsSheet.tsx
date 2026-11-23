@@ -6,7 +6,8 @@ import { GRAB_HOLD_CHOICES, GRAB_LIMIT_CHOICES } from '@/lib/chore-bonus';
 import { useTranslate } from '@/i18n';
 import BottomSheet from './BottomSheet';
 import { ChoiceList } from './chore-choice-controls';
-import { ACCENT_HEADING, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
+import { ACCENT_HEADING, FIELD_LABEL } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 
 /**
  * The household's chore settings, from the Manage tab. Works on a draft and
@@ -85,19 +86,9 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
           {tCore('refusals.saveFailed')}
         </p>
       )}
-      <button
-        type="button"
-        className="press-btn"
-        onClick={save}
-        disabled={saving}
-        style={{
-          width: '100%', minHeight: 48, padding: 14, borderRadius: 12, border: 'none',
-          fontSize: 15, fontWeight: 700, color: '#fff', background: REMOTE_ACCENT,
-          cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
-        }}
-      >
-        {t('choreSettings.save')}
-      </button>
+      <PrimaryButton onClick={save} busy={saving} style={{ marginTop: 0 }}>
+        {tCore('actions.save')}
+      </PrimaryButton>
       <button
         type="button"
         onClick={onClose}

@@ -85,7 +85,7 @@ export function screenBackgroundSrc(
 }
 
 /**
- * What picking a background by hand does to a screen, from the Image Library
+ * What picking a background by hand does to a screen, from the Pictures & videos window
  * or an upload: the picture becomes the screen's own, and rotation stops. A
  * rotating screen would paint over the choice within the hour, which reads
  * as "it didn't save".

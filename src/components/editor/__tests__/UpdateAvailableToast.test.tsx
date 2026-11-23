@@ -81,8 +81,8 @@ describe('UpdateAvailableToast', () => {
     mocks.shouldShow = false;
     mocks.latestVersion = null;
     renderToast();
-    // "Update Now" button should not be present
-    expect(screen.queryByText('Update Now')).toBeNull();
+    // "Update now" button should not be present
+    expect(screen.queryByText('Update now')).toBeNull();
   });
 
   it('renders message and buttons when shouldShow is true', () => {
@@ -94,8 +94,8 @@ describe('UpdateAvailableToast', () => {
     // Version number appears in the translated message "Update available: v1.6.0"
     expect(screen.getByText(/1\.6\.0/)).toBeTruthy();
 
-    // "Update Now" button
-    expect(screen.getByText('Update Now')).toBeTruthy();
+    // "Update now" button
+    expect(screen.getByText('Update now')).toBeTruthy();
 
     // Dismiss button (aria-label="Dismiss")
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeTruthy();
@@ -117,7 +117,7 @@ describe('UpdateAvailableToast', () => {
     mocks.latestTag = 'v1.6.0';
     renderToast();
 
-    fireEvent.click(screen.getByText('Update Now'));
+    fireEvent.click(screen.getByText('Update now'));
 
     expect(mocks.routerPush).toHaveBeenCalledTimes(1);
     const url: string = mocks.routerPush.mock.calls[0][0];

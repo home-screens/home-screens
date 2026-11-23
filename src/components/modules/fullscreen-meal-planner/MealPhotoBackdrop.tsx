@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The next meal's photo behind the full-screen Next Meal view: one still
+ * The next meal's photo behind the full-screen Next meal view: one still
  * picture and one plain vertical scrim, darker behind the name. No blur, no
  * fade, no animation: each full-screen animated layer costs a Pi 4 about a
  * quarter of its GPU in portrait, and a still layer costs nothing once drawn.

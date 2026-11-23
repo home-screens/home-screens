@@ -7,6 +7,12 @@ import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import type { IpAllowlistData } from './types';
 import { cidrFault, type CidrFault } from '@/lib/cidr';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import IconButton from '@/components/ui/IconButton';
+import { refusalSentence } from '@/lib/hub-request';
 
 const ENTRY_FAULT_KEY: Record<CidrFault, string> = {
   format: 'invalidCidr',
@@ -101,9 +107,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
       }
       if (!res.ok) {
         setIpStatus({
-          message: data.code === 'invalid_address' && typeof data.entry === 'string'
-            ? t('settings.securityPage.errors.invalidAddress', { entry: data.entry })
-            : data.error || t('common.saveFailed'),
+          message: refusalSentence(data, tCore) ?? tCore('refusals.saveFailed'),
           kind: 'error',
         });
         return;
@@ -117,7 +121,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
       setTimeout(() => setIpStatus(null), 2000);
     } catch {
       setIpStatus({
-        message: t('common.networkError'),
+        message: tCore('refusals.hubUnreachable'),
         kind: 'error',
       });
     } finally {
@@ -127,9 +131,9 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
 
   return (
     <div className="mt-6 pt-6 border-t border-hs-border">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.securityPage.ipAllowlist.heading')}
-      </h3>
+      </SettingsSectionHeading>
 
       <div className="space-y-4">
         {/* Toggles */}
@@ -139,10 +143,8 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
             checked={ipBypassAuth}
             onChange={(v) => { setIpBypassAuth(v); setIpDirty(true); }}
             disabled={ipAllowlist.length === 0}
+            description={t('settings.securityPage.ipAllowlist.bypassAuth.help')}
           />
-          <p className="text-xs text-hs-text-faint">
-            {t('settings.securityPage.ipAllowlist.bypassAuth.help')}
-          </p>
         </div>
 
         <div data-field-id="security.ipAllowlistRestrictAccess">
@@ -151,16 +153,14 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
             checked={ipRestrictAccess}
             onChange={(v) => { setIpRestrictAccess(v); setIpDirty(true); }}
             disabled={ipAllowlist.length === 0}
+            description={t('settings.securityPage.ipAllowlist.restrictAccess.help')}
           />
-          <p className="text-xs text-hs-text-faint">
-            {t('settings.securityPage.ipAllowlist.restrictAccess.help')}
-          </p>
         </div>
 
         {ipAllowlist.length === 0 && (
-          <p className="text-xs text-hs-text-faint">
+          <FieldHint>
             {t('settings.securityPage.ipAllowlist.emptyHint')}
-          </p>
+          </FieldHint>
         )}
 
         {/* Entry list */}
@@ -170,14 +170,10 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
               <code className="flex-1 text-xs bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-hs-text-secondary font-mono">
                 {entry}
               </code>
-              <button
-                type="button"
+              <IconButton
                 onClick={() => handleRemoveIpEntry(i)}
-                className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors px-1"
-                aria-label={t('settings.securityPage.ipAllowlist.removeAriaLabel', { entry })}
-              >
-                ✕
-              </button>
+                label={t('settings.securityPage.ipAllowlist.removeAriaLabel', { entry })}
+              />
             </div>
           ))}
         </div>
@@ -190,7 +186,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
             onChange={(e) => { setIpNewEntry(e.target.value); setIpEntryError(null); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddIpEntry(); } }}
             placeholder={t('settings.securityPage.ipAllowlist.addPlaceholder')}
-            className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-1.5 font-mono focus:outline-none focus:border-hs-accent"
+            className={`flex-1 font-mono ${SETTINGS_INPUT_SM_CLASS}`}
           />
           <Button variant="secondary" size="sm" onClick={handleAddIpEntry}>
             {t('settings.securityPage.ipAllowlist.addButton')}
@@ -200,19 +196,16 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
 
         {/* Caller IP info */}
         {ipCallerIp && (
-          <p className="text-xs text-hs-text-faint">
+          <FieldHint>
             {t('settings.securityPage.ipAllowlist.callerIpLabel')}
             <code className="text-hs-text-secondary font-mono">{ipCallerIp}</code>
-          </p>
+          </FieldHint>
         )}
 
         {/* Lockout warning dialog */}
         {ipLockoutConfirm && (
-          <div className="rounded-lg bg-hs-warning/10 border border-hs-warning/30 px-4 py-3">
-            <p className="text-sm text-hs-warning font-medium">
-              {t('settings.securityPage.ipAllowlist.lockoutWarning.title')}
-            </p>
-            <p className="text-xs text-hs-text-muted mt-1">
+          <Notice tone="warning" title={t('settings.securityPage.ipAllowlist.lockoutWarning.title')}>
+            <p className="text-hs-text-muted mt-1">
               {t('settings.securityPage.ipAllowlist.lockoutWarning.messagePart1')}
               {ipCallerIp}
               {t('settings.securityPage.ipAllowlist.lockoutWarning.messagePart2')}
@@ -227,7 +220,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
                 {t('settings.securityPage.ipAllowlist.lockoutWarning.cancel')}
               </Button>
             </div>
-          </div>
+          </Notice>
         )}
 
         {/* Save button */}
@@ -235,7 +228,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
           <Button variant="primary" size="sm" onClick={() => handleSaveIpAllowlist(false)} disabled={ipSaving}>
             {ipSaving
               ? tCore('status.saving')
-              : t('settings.securityPage.ipAllowlist.saveButton')}
+              : tCore('actions.save')}
           </Button>
         )}
 
@@ -249,15 +242,15 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
           </p>
         )}
 
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.securityPage.ipAllowlist.lockedOutHintPart1')}
           <code className="text-hs-text-faint">
             {t('settings.securityPage.ipAllowlist.lockedOutHintCode')}
           </code>
           {t('settings.securityPage.ipAllowlist.lockedOutHintPart2')}
-        </p>
-        <p className="text-xs text-hs-text-faint">
-          <strong className="text-hs-warning">
+        </FieldHint>
+        <FieldHint>
+          <strong className="text-hs-warning-ink">
             {t('settings.securityPage.ipAllowlist.ipv4Warning.strong')}
           </strong>
           {t('settings.securityPage.ipAllowlist.ipv4Warning.part1')}
@@ -269,13 +262,13 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
             {t('settings.securityPage.ipAllowlist.ipv4Warning.linkLocal')}
           </code>
           {t('settings.securityPage.ipAllowlist.ipv4Warning.part2')}
-        </p>
-        <p className="text-xs text-hs-text-faint">
-          <strong className="text-hs-warning">
+        </FieldHint>
+        <FieldHint>
+          <strong className="text-hs-warning-ink">
             {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.strong')}
           </strong>
           {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.part1')}
-        </p>
+        </FieldHint>
       </div>
     </div>
   );

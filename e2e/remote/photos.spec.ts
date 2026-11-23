@@ -214,7 +214,7 @@ test('Back closes a sheet over the viewer, then the viewer, and stays on the rem
 
   // Closed by its own button, the viewer gives its history step back, so a
   // later Back has no leftover viewer step to land on.
-  const ownStep = () => page.evaluate(() => (window.history.state as { hsSheet?: string } | null)?.hsSheet ?? null);
+  const ownStep = () => page.evaluate(() => (window.history.state as { hsSheets?: string[] } | null)?.hsSheets ?? null);
   await tiles(page).first().click();
   await expect.poll(ownStep).not.toBeNull();
   await viewer.getByTestId('photo-viewer-close').click();

@@ -391,7 +391,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Every screen something may show right now: the switched-on screens, less
   // any that show only when opened whose schedule or conditions say not now.
   // The dock's tiles, the open buttons and the phone's command all read it,
-  // so an evening-only Recipe Book has no door in the morning.
+  // so an evening-only Recipe book has no door in the morning.
   const openableScreens = useMemo(
     () => enabledScreens.filter((s) => !showsOnlyWhenOpened(s) || isScreenInRotation(s, now, screenStates)),
     [enabledScreens, now, screenStates],

@@ -1,23 +1,26 @@
 import type { CSSProperties } from 'react';
 import { ink } from '@/lib/constants';
 import type { NoteAuthor } from './shared';
-import { memberInitials } from '@/lib/family-avatar';
+import { MemberBadge } from '../shared/MemberBadge';
 
 /** The letter's size as a share of the bubble, the chore chart's proportion. */
 const LETTER = 0.64;
 
 const BUBBLE_CLASS = 'inline-flex items-center justify-center rounded-full shrink-0 font-extrabold';
 
+// The bubble's own font is the letter's size, so the box is drawn in its
+// ems: `em` base ems across, whatever type it sits in.
+const letterSize = (em: number) => `${em * LETTER}em`;
+const BUBBLE_SIZE = `${1 / LETTER}em`;
+
 function bubbleBox(em: number): CSSProperties {
-  // The span's own font is the letter's size, so the box is drawn in its
-  // ems: `em` base ems across, whatever type it sits in.
-  return { fontSize: `${em * LETTER}em`, width: `${1 / LETTER}em`, height: `${1 / LETTER}em`, lineHeight: 1 };
+  return { fontSize: letterSize(em), width: BUBBLE_SIZE, height: BUBBLE_SIZE, lineHeight: 1 };
 }
 
 /**
- * The author's initial in their colour with dark ink, sized in ems so it
- * follows the fitted type. A note with no author, or one whose author has
- * left the family, gets the neutral bubble with a question mark.
+ * The author's initials on their colour, in the ink that reads on it, sized
+ * in ems so it follows the fitted type. A note with no author, or one whose
+ * author has left the family, gets the neutral bubble with a question mark.
  */
 export function AuthorBubble({ author, em = 0.93, style }: {
   author: NoteAuthor;
@@ -26,22 +29,16 @@ export function AuthorBubble({ author, em = 0.93, style }: {
   style?: CSSProperties;
 }) {
   return (
-    <span
+    <MemberBadge
       data-testid="notes-author"
       data-author={author.id ?? 'someone'}
-      className={BUBBLE_CLASS}
       title={author.name}
-      style={{
-        ...bubbleBox(em),
-        backgroundColor: author.color ?? ink(0.25),
-        // Dark on the member's colour: chip ink, not card ink. The neutral
-        // bubble is a faint fill of the card's ink, so its mark is card ink.
-        color: author.color ? '#111' : ink(1),
-        ...style,
-      }}
-    >
-      {author.color ? memberInitials(author.name) : '?'}
-    </span>
+      initials={author.initials}
+      color={author.color}
+      fontSize={letterSize(em)}
+      size={BUBBLE_SIZE}
+      style={{ fontWeight: 800, ...style }}
+    />
   );
 }
 

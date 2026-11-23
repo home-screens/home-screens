@@ -1,14 +1,14 @@
 'use client';
 
-import { useTranslate } from '@/i18n';
+import type { LucideIcon } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 
 export interface ChoreAction {
   id: string;
   label: string;
   hint?: string;
-  /** A short mark drawn in the square before the label. */
-  mark: string;
+  /** The mark drawn in the square before the label. */
+  icon: LucideIcon;
   onSelect: () => void;
 }
 
@@ -23,7 +23,6 @@ export default function ChoreActionSheet({ title, subtitle, actions, onClose }: 
   actions: ChoreAction[];
   onClose: () => void;
 }) {
-  const tCore = useTranslate('core');
   // guardTaps: a double tap on a choice must not reach the chore row the menu covered.
   return (
     <BottomSheet title={title} onClose={onClose} testId="chore-action-sheet" guardTaps>
@@ -41,8 +40,8 @@ export default function ChoreActionSheet({ title, subtitle, actions, onClose }: 
             color: 'var(--hs-text-body)', textAlign: 'left', cursor: 'pointer',
           }}
         >
-          <span aria-hidden style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--hs-bg-card)', fontWeight: 700 }}>
-            {action.mark}
+          <span aria-hidden style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--hs-bg-card)' }}>
+            <action.icon size={16} strokeWidth={2.5} aria-hidden />
           </span>
           <span style={{ minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 15, fontWeight: 600 }}>{action.label}</span>
@@ -50,13 +49,6 @@ export default function ChoreActionSheet({ title, subtitle, actions, onClose }: 
           </span>
         </button>
       ))}
-      <button
-        type="button"
-        onClick={onClose}
-        style={{ width: '100%', minHeight: 44, marginTop: 4, border: 'none', background: 'none', color: 'var(--hs-text-faint)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
-      >
-        {tCore('actions.cancel')}
-      </button>
     </BottomSheet>
   );
 }

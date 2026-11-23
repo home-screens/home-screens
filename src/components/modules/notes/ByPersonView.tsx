@@ -34,7 +34,7 @@ function personRows(all: readonly Note[], roster: readonly FamilyMember[], ctx: 
   }
   const rows: PersonRow[] = roster.map((member) => {
     const theirs = byAuthor.get(member.id) ?? [];
-    return { author: { id: member.id, name: member.name, color: member.color }, newest: theirs[0] ?? null, count: theirs.length };
+    return { author: authorOf({ authorId: member.id }, ctx.members, ctx.t), newest: theirs[0] ?? null, count: theirs.length };
   });
   if (someone.length > 0) {
     rows.push({ author: authorOf({}, ctx.members, ctx.t), newest: someone[0], count: someone.length });

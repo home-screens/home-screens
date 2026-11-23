@@ -81,7 +81,7 @@ test('Suggest in the planner window fills only the empty dinners in Mealie, and 
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);
   await selectModule(page, request, buildModuleInstance('meal-planner'));
-  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await page.getByRole('button', { name: 'Edit meal plan' }).click();
   // The window's own week, not the canvas behind it, which shows the plan first.
   await expect(page.locator('[data-meal-cell]').getByText('Harvest Chili')).toBeVisible();
 
@@ -103,11 +103,11 @@ test("the planner window's picker narrows to a Mealie cookbook", async ({ page, 
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);
   await selectModule(page, request, buildModuleInstance('meal-planner'));
-  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await page.getByRole('button', { name: 'Edit meal plan' }).click();
   await expect(page.locator('[data-meal-cell]').getByText('Harvest Chili')).toBeVisible();
 
   await page.getByRole('button', { name: /^Plan Lunch for / }).first().click();
-  const picker = page.getByRole('dialog', { name: 'Choose a Meal' });
+  const picker = page.getByRole('dialog', { name: 'Choose a meal' });
   await expect(picker.getByRole('textbox', { name: 'Search recipes in Mealie' })).toBeVisible();
   await picker.getByRole('button', { name: 'Weeknight dinners' }).click();
   await expect(picker.getByText('2 recipes in Weeknight dinners')).toBeVisible();
@@ -139,7 +139,7 @@ test("the planner window's Grocery tab ticks and adds to the Mealie list, and it
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);
   await selectModule(page, request, buildModuleInstance('meal-planner'));
-  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await page.getByRole('button', { name: 'Edit meal plan' }).click();
   await page.getByRole('button', { name: 'Grocery', exact: true }).click();
 
   const grocery = page.getByTestId('mealie-grocery');
@@ -170,7 +170,7 @@ test("the planner window's Detail tab hearts a Mealie recipe in Mealie", async (
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);
   await selectModule(page, request, buildModuleInstance('meal-planner'));
-  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await page.getByRole('button', { name: 'Edit meal plan' }).click();
   await expect(page.locator('[data-meal-cell]').getByText('Harvest Chili')).toBeVisible();
 
   // The Library opens on Favorites; a search finds the rest.

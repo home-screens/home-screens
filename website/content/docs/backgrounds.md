@@ -18,16 +18,16 @@ The **Background** section appears in the editor's right sidebar only when no mo
 
 ---
 
-## Choosing a picture: the Image Library {% #image-library %}
+## Choosing a picture: the Pictures & videos window {% #choosing-a-picture %}
 
-Every place that takes one picture opens the same window, the **Image Library**: a screen's background, the Image module, a Countdown event's picture, the Full-Screen Photo Viewer's single photo, and a calendar day rule's picture. Its tabs are the places a picture can come from:
+Every place that takes one picture opens the same window, **Pictures & videos**: a screen's background, the Image module, a Countdown event's picture, the Full-Screen Photo Viewer's single photo, and a calendar day rule's picture. Its tabs are the places a picture can come from:
 
 - **Built-in**: the pictures that ship with Home Screens. Only a screen background and a day rule have this tab, and it comes first.
-- **Local**: your own library on the Pi, folder by folder, with **Upload Photos**, **Add from an iCloud link** and **Add from Google Photos**.
+- **Pictures & videos**: your own library on the Pi, folder by folder, with **Upload pictures**, **Add from an iCloud link** and **Add from Google Photos**.
 - **Immich**, **Unsplash** and **NASA**: browse them right here.
 - **Art**: landscapes, seascapes, city views and still lifes from open museum collections, found by a word. It needs no key. See [Paintings from museums](#paintings-from-museums).
 
-Each tab works the same way: collections down the side (folders, albums, ideas), pictures in the middle, and you click one to choose it, then **Select Image**. A tab whose service isn't set up yet still shows, with a small lock and a line pointing to **Settings > API keys**.
+Each tab works the same way: collections down the side (folders, albums, ideas), pictures in the middle, and you click one to choose it, then **Use this picture**. A tab whose service isn't set up yet still shows, with a small lock and a line pointing to **Settings > API keys**.
 
 A picture from Immich, Unsplash, NASA or the Art tab is copied into your library, into a folder named after where it came from (`immich`, `unsplash`, `nasa`, `art`), so the wall never needs that service to be up to show it. Picking the same picture again uses the copy you already have.
 
@@ -41,7 +41,7 @@ The **Built-in** tab, when you choose a screen's background, holds a set of wall
 - **Colors**: eighteen gradients, from deep and moody (Midnight, Ember, Ink) to soft and light (Cloud, Sand, Sage, Blush).
 - **Patterns**: four quiet textures (Dots, Grid, Diagonal, and a light Paper) for a wall with a little texture behind your modules.
 
-Pick one and click **Select Image** to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
+Pick one and click **Use this picture** to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
 
 ---
 
@@ -49,10 +49,10 @@ Pick one and click **Select Image** to use it. If auto-rotation was on for the s
 
 To set a background in the editor:
 
-1. Select the screen you want to customize using the **Screen Tabs** at the top
+1. Select the screen you want to customize using the screen tabs at the top
 2. Click an empty part of the canvas to deselect any module
 3. Open the **Background** section in the right sidebar. **Picture** shows the screen's background now and where it lives
-4. Click **Choose a picture**, find one on any tab, and click **Select Image**
+4. Click **Choose a picture**, find one on any tab, and click **Use this picture**
 5. Click **None** to remove the background
 
 The picture fills the whole screen without being stretched; a landscape photo on a portrait wall is cropped at the sides.
@@ -77,10 +77,10 @@ Next to the shade, under **Background effects**, four sliders adjust the picture
 
 ## Uploading custom images
 
-1. Click **Choose a picture** in the **Background** section (or open the Image Library from any module that takes a picture)
-2. Switch to the **Local** tab and pick the folder to upload into
-3. Click **Upload Photos** and select one or more files from your computer
-4. Click the new picture, then **Select Image**
+1. Click **Choose a picture** in the **Background** section (or open the Pictures & videos window from any module that takes a picture)
+2. Switch to the **Pictures & videos** tab and pick the folder to upload into
+3. Click **Upload pictures** and select one or more files from your computer
+4. Click the new picture, then **Use this picture**
 
 To upload many pictures at once, or drag files in, use **Settings > Pictures & videos** (see [Managing your library](#managing-your-library)). Videos go into the same library and are used by the Video module and slideshows; a screen background is always a still picture.
 
@@ -94,7 +94,7 @@ To upload many pictures at once, or drag files in, use **Settings > Pictures & v
 
 ## Folders
 
-The Image Library's **Local** tab lists every folder in your library, and its imports (an iCloud link, Google Photos) and uploads go into the folder you have selected. Pictures copied from Immich, Unsplash, NASA and the Art tab land in their own `immich`, `unsplash`, `nasa` and `art` folders, next to `google-photos` and `icloud-imports`.
+The Pictures & videos window's **Pictures & videos** tab lists every folder in your library, and its imports (an iCloud link, Google Photos) and uploads go into the folder you have selected. Pictures copied from Immich, Unsplash, NASA and the Art tab land in their own `immich`, `unsplash`, `nasa` and `art` folders, next to `google-photos` and `icloud-imports`.
 
 ---
 
@@ -112,7 +112,7 @@ A file that is in use cannot be deleted, but it can be **replaced**: the swap bu
 
 Folders are managed here too: **New folder** makes one (inside the folder you are looking at, or at the top level), and a folder you have opened offers **Rename** and **Delete folder**. Only an empty folder can be deleted. Tick files and pick **Move to** to move them into another folder. Renaming a folder or moving files updates every screen, day rule, module and slideshow that pointed at them, so nothing on the wall goes blank. Use the search box to find a file by name, the sort menu to order by name, newest or largest, **Select all** to tick everything in view, and shift-click to tick a range.
 
-Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The Image Library's Local tab and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
+Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The Pictures & videos window's **Pictures & videos** tab and the phone's **Photos** tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
 
 ### Live Photos
 
@@ -127,11 +127,11 @@ Both halves have to be in the same folder, with the video named after its photo 
 
 The `.live` part is what makes a pair. A photo and a video that only share a name stay two separate files.
 
-The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and the Image Library, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone plays as the plain video it is.
+The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and in the Pictures & videos window, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone plays as the plain video it is.
 
 If two pictures in one folder share a name with different extensions, say `beach.jpg` and `beach.png`, there is no telling which of them `beach.live.mov` belongs to, so neither takes it and it plays on its own.
 
-What happens to the movement is set per module, under **Live Photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-screen Photo showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
+What happens to the movement is set per module, under **Live photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-screen Photo showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
 
 ---
 
@@ -143,23 +143,23 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 
 1. Create a free account at [unsplash.com/developers](https://unsplash.com/developers)
 2. Create a new application to get an **Access Key**
-3. In the editor, go to **Settings > API keys** and paste the key into **Access Key** on the Unsplash card
+3. In the editor, go to **Settings > API keys** and paste the key into **Access key** on the Unsplash card
 
 ### Choosing a photo
 
-1. Open the Image Library (for a background: **Choose a picture** in the **Background** section) and switch to the **Unsplash** tab
+1. Open the Pictures & videos window (for a background: **Choose a picture** in the **Background** section) and switch to the **Unsplash** tab
 2. Click an idea on the left (Nature, Mountains, Ocean, Forest, Sky, Space, City, Flowers, Seasons, Holidays, Birthday, Abstract), or type your own words in the search box
-3. Click a photo, check the photographer's name at the bottom, and click **Select Image**. **Show more** loads the next 30
+3. Click a photo, check the photographer's name at the bottom, and click **Use this picture**. **Show more** loads the next 30
 
 The photo is saved into your library's `unsplash` folder, up to 2560 pixels wide, and the wall shows that copy, so Unsplash is never contacted again for it. When you are choosing a screen's background, searches ask for photos shaped like your display.
 
-Unsplash can also feed a Photo Slideshow or Full-Screen Photo Viewer directly, and a rotating background: choose **Unsplash** as the **Photo Source** and type the search words. A slideshow shows Unsplash's own photos with each photographer's name in a corner, as Unsplash asks, and takes up to 30 fresh photos an hour.
+Unsplash can also feed a Photo Slideshow or Full-Screen Photo Viewer directly, and a rotating background: choose **Unsplash** as the **Photo source** and type the search words. A slideshow shows Unsplash's own photos with each photographer's name in a corner, as Unsplash asks, and takes up to 30 fresh photos an hour.
 
 ---
 
 ## NASA pictures
 
-NASA offers two image sources, both on the **NASA** tab of the Image Library. Neither needs a key or any setup.
+NASA offers two image sources, both on the **NASA** tab of the Pictures & videos window. Neither needs a key or any setup.
 
 ### Picture of the day
 
@@ -175,17 +175,17 @@ The picture you select is saved into your library's `nasa` folder. Some archive 
 Some NASA images include embedded timestamps, watermarks, or overlay text that cannot be removed. Preview the thumbnail before selecting.
 {% /callout %}
 
-As a **Photo Source**, NASA shows the newest pictures of the day in a slideshow, or the newest one as a rotating background.
+As a **Photo source**, NASA shows the newest pictures of the day in a slideshow, or the newest one as a rotating background.
 
 ---
 
 ## Paintings from museums {% #paintings-from-museums %}
 
-**Paintings from museums** is a Photo Source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup.
+**Paintings from museums** is a photo source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup.
 
 The paintings come from a collection that ships with Home Screens: several thousand landscapes, seascapes, city views and still lifes from museums around the world, all in the public domain. The collection is made for a family room. Only those four subjects are in it, and every painting was looked at before it was added, to keep nudes and violent scenes out. Drawings, prints and digital works are left out too. New releases of Home Screens can add more paintings.
 
-Nothing is filtered at first. Choose **+ Add filter** to narrow the paintings down; each filter you add shows as its own field, with a cross to take it away again:
+Nothing is filtered at first. Choose **Add a filter…** to narrow the paintings down; each filter you add shows as its own field, with a cross to take it away again:
 
 - **Subject** picks landscapes, seascapes, cityscapes or still life.
 - **Period** takes a first and a last year, either of which can be left empty. A painting with no year on record is left out once a period is set.
@@ -199,7 +199,7 @@ For a rotating background, **On the screen** says how a painting sits behind you
 - **Framed on a wall** (the default) hangs the painting in a mat and a frame on a coloured wall, as large as the screen allows and in the middle of it. Choose the **Wall color** (charcoal, warm white, sage, or a soft colour taken from the painting), the **Mat** (cream, white, charcoal, or none) and the **Frame** (black, oak, gold or white).
 - **In a mat** shows the painting in a mat that fills the screen. The mat can be cream, white, charcoal, or a soft colour taken from the painting.
 - **Whole painting on a soft blur** shows the whole painting over a darkened, blurred copy of itself when its shape differs from the screen's.
-- **Fill the screen** crops the painting's edges to fill the screen.
+- **Fill the screen (crops edges)** crops the painting's edges to fill the screen.
 - **Whole painting on a dark wall** shows the whole painting with dark bars where it doesn't reach.
 
 A framed or matted painting has a cut edge where the mat meets it and a soft shadow in the opening. **Canvas texture** lays a faint weave over the painting; switch it off for a flat picture. **Slow drift**, for a painting that fills the screen, lets it grow and slide a little over its first minute, too slowly to catch, and then hold still. It is off unless you switch it on.
@@ -225,7 +225,7 @@ When a wall is showing a painting, the **Photos** tab of the [family remote](/do
 
 ### The Art tab
 
-To choose one painting, open the **Art** tab of the Image Library. Pick an idea down the side (Impressionism, Dutch Golden Age, Landscapes, Still life, Louvre, Rijksmuseum and more) or type a word above the pictures.
+To choose one painting, open the **Art** tab of the Pictures & videos window. Pick an idea down the side (Impressionism, Dutch Golden Age, Landscapes, Still life, Louvre, Rijksmuseum and more) or type a word above the pictures.
 
 This tab searches Wikidata and Wikimedia Commons as you go, so it reaches many more paintings than the collection the wall draws from. It keeps to the same four subjects, leaves out paintings that are tagged or titled as nudes and scans too small for a wall, but nobody has looked at these one by one. You see each picture before you choose it, and only the one you choose is ever shown.
 
@@ -235,13 +235,13 @@ The painting you select is saved into your library's `art` folder, named after i
 
 ## Immich integration
 
-[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can pick photos from your Immich library in the Image Library, and use Immich as the photo source for slideshows and rotating backgrounds.
+[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can pick photos from your Immich library in the Pictures & videos window, and use Immich as the photo source for slideshows and rotating backgrounds.
 
 ### Setup
 
 1. Install and configure an Immich server on your network
 2. In Immich, go to **Account Settings > API Keys** and create a new key (see [which boxes to tick](#immich-key) below)
-3. In the editor, go to **Settings > API keys** and fill in **Server URL** (e.g. `http://192.168.1.50:2283`) and **API Key** on the Immich card
+3. In the editor, go to **Settings > API keys** and fill in **Server URL** (e.g. `http://192.168.1.50:2283`) and **API key** on the Immich card
 
 ### Which boxes to tick on the key {% #immich-key %}
 
@@ -259,10 +259,10 @@ A key with only `asset.read` and `asset.view` still puts photos on the wall. Whe
 
 ### Choosing a photo
 
-1. Open the Image Library (for a background: **Choose a picture** in the **Background** section) and switch to the **Immich** tab
+1. Open the Pictures & videos window (for a background: **Choose a picture** in the **Background** section) and switch to the **Immich** tab
 2. Pick **All photos**, **Favorites**, an album, or a person on the left. Only people you have named in Immich are listed
 3. Photos show newest first, 60 at a time; **Show more** loads the next 60. Only still pictures are shown
-4. Click a photo and then **Select Image**
+4. Click a photo and then **Use this picture**
 
 The photo is copied into your library's `immich` folder, so it keeps showing even if Immich is off. If your key can't see albums or people, a note sits where that list would be and says which box to tick. If Immich can't be reached, the tab says so and offers **Try again**.
 
@@ -280,8 +280,8 @@ iCloud shared albums work without an Apple account or API key, all you need is t
 
 ### Using it
 
-- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The hub fetches the photos from Apple and passes them to the display. The first time the hub reads an album Apple can take up to a minute to answer, so give a new link a moment; after that the hub keeps the album's list and looks for new photos in the background. A rotating background only uses still photos; any videos in the album are skipped.
-- **Importing into your library**: **Add from an iCloud link** downloads everything a link contains into a folder. It is on the Image Library's **Local** tab (into the selected folder) and on **Settings > Pictures & videos**. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
+- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo source** and paste the link. The hub fetches the photos from Apple and passes them to the display. The first time the hub reads an album Apple can take up to a minute to answer, so give a new link a moment; after that the hub keeps the album's list and looks for new photos in the background. A rotating background only uses still photos; any videos in the album are skipped.
+- **Importing into your library**: **Add from an iCloud link** downloads everything a link contains into a folder. It is on the Pictures & videos window's **Pictures & videos** tab (into the selected folder) and on **Settings > Pictures & videos**. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
 
@@ -293,7 +293,7 @@ Google no longer lets apps read your photo library directly, but it does let you
 
 Nothing to set up first: Home Screens brings its own Google app.
 
-1. Select a Photo Slideshow, or a Full-Screen Photo Viewer in slideshow mode, with its **Photo Source** set to **Library folder**. Under the folder, click **Sign in with Google**
+1. Select a Photo Slideshow, or a Full-Screen Photo Viewer in slideshow mode, with its **Photo source** set to **Pictures & videos**. Under the folder, click **Sign in with Google**
 2. A Google tab opens. Pick your account and approve; the tab comes straight back to your hub, says Google Photos is connected, and the editor moves on by itself. If your hub lives on a public web address, you land on a Home Screens page with a code instead: click **Didn't come back? Paste a code** in the editor, paste it, and click **Finish sign-in**
 3. Click **Choose photos**: Google Photos opens with its own photo picker
 4. Pick the photos you want and confirm; the import starts on its own and shows progress as it saves
@@ -302,7 +302,7 @@ Home Screens only ever sees the photos you pick; the permission it asks for cann
 
 When it finishes, the module automatically points at the `google-photos` folder. To add more photos later, run the import again and pick more, existing photos are skipped, new ones are added.
 
-**Add from Google Photos** does the same from the Image Library's **Local** tab and from **Settings > Pictures & videos**, into the folder you choose there. If you haven't signed in yet, both offer **Sign in to add from Google Photos** right where the button would be.
+**Add from Google Photos** does the same from the Pictures & videos window's **Pictures & videos** tab and from **Settings > Pictures & videos**, into the folder you choose there. If you haven't signed in yet, both offer **Sign in to add from Google Photos** right where the button would be.
 
 Photos are saved as high-quality display-sized copies (up to 4096 pixels on the long edge), which keeps imports fast and light on the SD card. Imports are capped at 2000 photos at a time.
 
@@ -331,7 +331,7 @@ A rotating background changes the picture behind a screen every so often, drawn 
 1. Click an empty part of the canvas to deselect any module
 2. Open the **Background** section in the right sidebar and find **Sources**
 3. Tick a source. Its settings open underneath; the chevron on the right hides or shows them
-4. Fill in what that source needs. **Colors** and **Patterns** show their walls as tiles: click the ones you want in the rotation. **Library** takes a **Folder** (**Browse...** opens a **Pick a folder** window that only chooses; adding and deleting pictures stays on **Settings > Pictures & videos**), or switch it to **Pictures** and click the pictures you want. A folder that holds only videos says so, since a background needs a still picture. **Immich** takes **Filters** (any of your albums and people, people to leave out, favorites only) or **Pictures** you pick one by one. **iCloud shared album** takes the album's link. **OneDrive** takes a folder. **Unsplash** takes **Words**, **Collections** or **Pictures** you pick. **NASA picture of the day** needs nothing
+4. Fill in what that source needs. **Colors** and **Patterns** show their walls as tiles: click the ones you want in the rotation. **Pictures & videos** takes a **Folder** (**Browse…** opens a **Pick a folder** window that only chooses; adding and deleting pictures stays on **Settings > Pictures & videos**), or switch it to **Pictures** and click the pictures you want. A folder that holds only videos says so, since a background needs a still picture. **Immich** takes **Filters** (any of your albums and people, people to leave out, favorites only) or **Pictures** you pick one by one. **iCloud shared album** takes the album's link. **OneDrive** takes a folder. **Unsplash** takes **Words**, **Collections** or **Pictures** you pick. **NASA picture of the day** needs nothing
 5. Set **New picture every** at the bottom
 
 In a **Pictures** mode, everything you have picked is listed as small tiles above the grid, whichever folder, album or search the grid is showing. Click one to take it out.
@@ -360,7 +360,7 @@ These are the same source settings the Photo Slideshow and Full-Screen Photo Vie
 Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi picks one of the ticked sources at random, fetches a picture from it, and the wall switches to it. A source that answers nothing (an empty folder, a search with no results, a service that is away) passes its turn to the next one; when none can answer, the screen keeps what it has and the sources are left alone for five minutes before they are asked again. The refresh arrow next to **Sources** (**Refresh now**) saves your edits and fetches a new picture straight away, a few seconds apart at most; when no source can answer, the note next to the status line names the one that didn't and why (it didn't answer, or it had no pictures for these settings). When the picture already showing is the only one your sources have, the note says **Only one picture to show**.
 
 - **Colors** and **Patterns** show one of the walls you picked. They are files the wall already has, so nothing is downloaded.
-- **Library** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
+- **Pictures & videos** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
 - **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. A collection is checked with Unsplash when you add it and before it is drawn from, so a mistyped id reads "Couldn't find this collection" instead of putting random photos on the wall. Download tracking is triggered per the Unsplash API terms.
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
 - **Paintings from museums** takes a random painting from the collection that matches the filters you chose (subject, period, artist and shape), fitted to your screen as set under **On the screen**.

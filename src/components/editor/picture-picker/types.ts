@@ -1,4 +1,4 @@
-/** The picture chosen in a tab, waiting for Select Image. */
+/** The picture chosen in a tab, waiting for Use this picture. */
 export interface PickerSelection {
   /** Which tile is chosen, for its highlight. */
   key: string;
@@ -12,7 +12,7 @@ export interface PickerSelection {
 export interface PickerTabProps {
   selection: PickerSelection | null;
   onSelect: (selection: PickerSelection | null) => void;
-  /** True while Select Image is copying the chosen picture into the library. */
+  /** True while Use this picture is copying the chosen picture into the library. */
   copying: boolean;
 }
 

@@ -6,15 +6,20 @@ import { formatAge } from '@/lib/time-format';
 import type { DisplayNode } from '@/types/config';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { SectionIcon } from './shared/SectionIcon';
-import { PulseDot } from './shared/PulseDot';
-import type { SemanticColor } from './shared/types';
+import StatusPill from '@/components/ui/StatusPill';
+import type { StatusTone } from '@/components/ui/StatusDot';
+
+/** How the pill reads for what a display last said it was doing. */
+const DISPLAY_STATE: Record<DisplayStatus['displayState'], { tone: StatusTone; key: string }> = {
+  active: { tone: 'success', key: 'settings.statsSection.displayStates.active' },
+  dimmed: { tone: 'warning', key: 'settings.statsSection.displayStates.dimmed' },
+  asleep: { tone: 'neutral', key: 'settings.statsSection.displayStates.asleep' },
+};
 
 interface DisplayCardProps {
   displayStatus: DisplayStatus | null;
   displayConnected: boolean;
   displayState: DisplayStatus['displayState'] | undefined;
-  stateColor: SemanticColor;
-  stateLabel: string;
   statusAge: number | null;
   isMultiDisplay: boolean;
   displays: DisplayNode[];
@@ -27,8 +32,6 @@ export function DisplayCard({
   displayStatus,
   displayConnected,
   displayState,
-  stateColor,
-  stateLabel,
   statusAge,
   isMultiDisplay,
   displays,
@@ -48,23 +51,13 @@ export function DisplayCard({
             {t('settings.statsSection.displayTitle')}
           </span>
           {displayConnected && displayState ? (
-            <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full border ml-1 capitalize whitespace-nowrap ${
-              stateColor === 'success'
-                ? 'text-hs-success bg-hs-success/15 border-hs-success/30'
-                : stateColor === 'warning'
-                  ? 'text-hs-warning bg-hs-warning/15 border-hs-warning/30'
-                  : 'text-hs-danger bg-hs-danger/15 border-hs-danger/30'
-            }`}>
-              {displayState === 'active' ? <PulseDot /> : (
-                <span className={`w-2 h-2 rounded-full ${stateColor === 'warning' ? 'bg-hs-warning' : 'bg-hs-danger'}`} />
-              )}
-              {stateLabel}
-            </span>
+            <StatusPill tone={DISPLAY_STATE[displayState].tone} dot={displayState === 'active' ? 'pulse' : true} className="ml-1">
+              {t(DISPLAY_STATE[displayState].key)}
+            </StatusPill>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full border ml-1 text-hs-text-faint bg-hs-card border-hs-border-strong whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-hs-text-faint" />
+            <StatusPill tone="neutral" dot className="ml-1">
               {t('settings.statsSection.offline')}
-            </span>
+            </StatusPill>
           )}
         </div>
         {isMultiDisplay && (

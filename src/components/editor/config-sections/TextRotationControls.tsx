@@ -8,6 +8,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useTranslate } from '@/i18n';
 import type { ConfigControlsProps } from './config-controls';
 import type { TextConfig, TextRevealOnRotation } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 export function TextRotationControls({ config: c, set }: ConfigControlsProps<TextConfig>) {
   const t = useTranslate('editor');
@@ -29,9 +30,9 @@ export function TextRotationControls({ config: c, set }: ConfigControlsProps<Tex
       <Toggle label={t('configSections.text.slideshow')} checked={rotationOn} onChange={(v) => set({ rotationEnabled: v })} />
       {rotationOn && (
         <>
-          <p className="text-[10px] text-hs-text-faint pl-1 leading-relaxed">
+          <FieldHint className="pl-1">
             {t('configSections.text.slidesHintPrefix')} <span className="font-mono text-hs-text-muted">---</span> {t('configSections.text.slidesHintSuffix')}
-          </p>
+          </FieldHint>
           <Slider
             label={t('configSections.text.interval')}
             value={c.rotationIntervalMs ?? 5000}

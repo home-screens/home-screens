@@ -235,7 +235,7 @@ export default function TimetableModule({ config, style, timezone, timeFormat: s
   // timetable in, so say so instead of saying the wrong thing.
   if (!snapshot || rosterLoading || (rosterError && members.length === 0)) {
     return (
-      <ModuleLoadingState style={style} message={t('timetable.name')} error={error ?? rosterError} />
+      <ModuleLoadingState style={style} message={t('timetable.loading')} error={error ?? rosterError} />
     );
   }
   if (cards.length === 0) {

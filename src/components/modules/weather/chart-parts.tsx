@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { useMemo } from 'react';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useTranslate } from '@/i18n';
@@ -35,16 +34,6 @@ export function useSunTimes(latitude?: number, longitude?: number, timezone?: st
 export function useViewBox(): [(el: HTMLDivElement | null) => void, { width: number; height: number; landscape: boolean }] {
   const [attach, box] = useElementBox<HTMLDivElement>();
   return [attach, { width: box.width, height: box.height, landscape: box.width > box.height }];
-}
-
-/** Title row: the view's heading on the left, a small note on the right. */
-export function ViewTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-[1em] shrink-0 mb-[0.35em]">
-      <h2 className="font-semibold truncate" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{children}</h2>
-      {right != null && <span className="shrink-0 whitespace-nowrap" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>{right}</span>}
-    </div>
-  );
 }
 
 /** "chance of rain" with its swatch, for the charts that draw rain bars. */

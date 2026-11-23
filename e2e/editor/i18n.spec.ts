@@ -43,12 +43,12 @@ import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures'
  * English. That gap is closed: `translation-coverage.test.ts` now holds every
  * locale at zero untranslated values, so either string would work.)
  *
- * Each value below is the locale's `settings.sidebar.navLabels.location`,
+ * Each value below is the locale's `core` `settingsPages.location`,
  * which is now the single source for the sidebar row, the breadcrumb and the
  * page's own H1; they used to be three separate strings per locale, and
  * da-DK had already drifted ("Placering & sprog" as the title against
  * "Placering og sprog" in the nav). Each value is verified to (a) exist in
- * that locale's `src/translations/<locale>/editor.json` and (b) differ from
+ * that locale's `src/translations/<locale>/core.json` and (b) differ from
  * the en-US string
  * (so a silent fallback to English fails the assertion). en-US is included so
  * the loop covers every manifest locale by construction: adding a locale to

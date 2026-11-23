@@ -77,7 +77,7 @@ test.describe('rotation sources', () => {
     await page.route('**/api/photo-source/media*', (route) => json(route, []));
     await openSources(page, request);
 
-    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Library' }).check());
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Pictures & videos' }).check());
     await autosaved(page, async () => page.getByTestId('library-mode-pictures').click());
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '', pictures: [] }]);
     await expect(page.getByTestId('source-note-library')).toHaveText('Pick some pictures');

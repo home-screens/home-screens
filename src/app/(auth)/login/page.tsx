@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslate } from '@/i18n';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import { RESET_COMMAND, AUTH_FILE } from '@/lib/password-reset';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * Turn a login failure into a sentence in the reader's language.
@@ -184,7 +185,7 @@ function LoginForm() {
               <p className="text-xs text-hs-text-faint">
                 {t('login.forgotPassword.fallback', { file: AUTH_FILE })}
               </p>
-              <p className="text-xs text-hs-text-faint">{t('login.forgotPassword.after')}</p>
+              <p className="text-xs text-hs-text-faint">{t('login.forgotPassword.after', { place: settingsPlaceText(t, 'security') })}</p>
             </div>
           </details>
         )}

@@ -33,19 +33,21 @@ function firstGrapheme(text: string): string {
 }
 
 /**
- * The letters for a member's dot: the first letter of each word, up to `max`
- * of them (one by default, two for the calendar's name tags). "Ella" is E,
- * "Mary Ann" is M or MA, "🌟 Mia" is M. Letters are whole code points, never
- * the first UTF-16 unit, so an emoji in front of a name cannot leave half a
- * surrogate pair in the dot. A name with no letter at all, like "🦄", shows
- * its first whole character; an empty name shows "?".
+ * The letter for a member's dot: the first letter of the name, on every
+ * surface. "Ella" is E, "Mary Ann" is M, "🌟 Mia" is M. Letters are whole
+ * code points, never the first UTF-16 unit, so an emoji in front of a name
+ * cannot leave half a surrogate pair in the dot. A name with no letter at
+ * all, like "🦄", shows its first whole character; an empty name shows "?".
+ *
+ * Where the dot stands alone, with no name beside it (a column of chore
+ * dots, an event's name tag, a note's bubble), draw `getUniqueInitials`
+ * over the roster instead, so two people never share a letter.
  */
-export function memberInitials(name: string, { max = 1 }: { max?: number } = {}): string {
+export function memberInitials(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) return '?';
-  const letters = trimmed.split(/\s+/).map(firstLetter).filter(Boolean);
-  if (letters.length === 0) return firstGrapheme(trimmed).toLocaleUpperCase();
-  return letters.slice(0, Math.max(1, max)).join('');
+  const letter = trimmed.split(/\s+/).map(firstLetter).find(Boolean);
+  return letter ?? firstGrapheme(trimmed).toLocaleUpperCase();
 }
 
 /**
@@ -60,12 +62,70 @@ export function memberNameStem(name: string): string[] {
 }
 
 /**
+ * The shortest unique initials for each member of a roster: the one letter
+ * every member dot shows when it is unique, extended to two or three
+ * characters only where two names collide ("Sam" and "Sarah" become "Sam"
+ * and "Sar"). The extension grows from the name's first letter on, so
+ * "* Ava" and "🌟 Ava" extend like "Ava" and a symbol never takes a slot.
+ */
+export function getUniqueInitials(memberList: readonly { id: string; name: string }[]): Map<string, string> {
+  const result = new Map<string, string>();
+  const prefixOf = (name: string, len: number) =>
+    memberInitials(name) + memberNameStem(name).slice(1, len).join('');
+  let remaining = [...memberList];
+
+  for (let len = 1; len <= 3 && remaining.length > 0; len++) {
+    const groups = new Map<string, typeof remaining>();
+    for (const m of remaining) {
+      const prefix = prefixOf(m.name, len);
+      const group = groups.get(prefix) ?? [];
+      group.push(m);
+      groups.set(prefix, group);
+    }
+
+    const next: typeof remaining = [];
+    for (const [prefix, group] of groups) {
+      if (group.length === 1) {
+        result.set(group[0].id, prefix);
+      } else {
+        next.push(...group);
+      }
+    }
+    remaining = next;
+  }
+  for (const m of remaining) {
+    result.set(m.id, prefixOf(m.name, 3));
+  }
+  return result;
+}
+
+/**
+ * Theme colours that can stand in for a person's or a chart's colour (the
+ * phone draws a chart with no accent of its own in the theme's amber), each
+ * with the ink that reads on it in both themes. A `var()` cannot be measured
+ * where the ink is picked, so the pair is named here.
+ */
+const THEME_COLOR_INK: Record<string, string> = {
+  '--hs-warning': 'var(--hs-on-warning)',
+  '--hs-warning-ink': 'var(--hs-on-warning-ink)',
+  '--hs-meal': 'var(--hs-on-meal)',
+  '--hs-success': 'var(--hs-on-success)',
+  '--hs-danger': 'var(--hs-on-danger)',
+};
+
+const CSS_VAR = /^var\(\s*(--[\w-]+)\s*[,)]/;
+
+/**
  * The ink for text drawn on a member's colour. The member palette is mostly
  * pastel, so the pick has to flip to dark on amber, mint and the pinks while
  * staying white on the saturated blue, red and green people expect; the YIQ
  * rule the calendar's pills use does exactly that, and it keeps a person's
- * dot and their calendar events agreeing. Anything unparseable gets white.
+ * dot and their calendar events agreeing. A theme colour written as `var()`
+ * (`var(--hs-warning-ink)`) gets its theme's own ink; anything else that
+ * cannot be read gets white.
  */
 export function memberInk(color: string | undefined): string {
+  const token = color?.trim().match(CSS_VAR)?.[1];
+  if (token && THEME_COLOR_INK[token]) return THEME_COLOR_INK[token];
   return pickPillTextColor(color);
 }

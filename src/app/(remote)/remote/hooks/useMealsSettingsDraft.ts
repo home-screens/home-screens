@@ -23,7 +23,7 @@ export function useMealsSettingsDraft(
   onSave: (next: MealSettings) => Promise<boolean>,
   onClose: () => void,
 ) {
-  const t = useTranslate('remote');
+  const tCore = useTranslate('core');
 
   // Local working copy so the user can cancel without persisting partial edits.
   // Sync draft ONLY on mount (not on every settings prop change) — otherwise a
@@ -56,10 +56,10 @@ export function useMealsSettingsDraft(
       if (ok) {
         onClose();
       } else {
-        setSaveError(t('mealsSettings.save.saveFailed'));
+        setSaveError(tCore('refusals.saveFailed'));
       }
     } catch {
-      setSaveError(t('mealsSettings.save.networkError'));
+      setSaveError(tCore('refusals.hubUnreachable'));
     } finally {
       setSaving(false);
     }

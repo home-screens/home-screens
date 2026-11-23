@@ -34,7 +34,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   const appVersion = await getPackageVersion().catch(() => undefined);
   if (!isVersionCompatible(versionEntry, appVersion)) {
     return NextResponse.json(
-      { error: 'This plugin version needs a newer Home Screens. Update Home Screens first.' },
+      { error: 'This plugin version needs a newer Home Screens. Update Home Screens first.', code: 'plugins.needsNewerHost' },
       { status: 400 },
     );
   }
@@ -46,13 +46,13 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (err) {
     const detail = err instanceof Error ? err.message : 'network error';
     return NextResponse.json(
-      { error: 'Failed to download plugin', detail: `Could not reach ${versionEntry.downloadUrl} — ${detail}` },
+      { error: 'Failed to download plugin', code: 'plugins.downloadFailed', detail: `Could not reach ${versionEntry.downloadUrl}: ${detail}` },
       { status: 502 },
     );
   }
   if (!res.ok) {
     return NextResponse.json(
-      { error: 'Failed to download plugin', detail: `${versionEntry.downloadUrl} returned HTTP ${res.status}` },
+      { error: 'Failed to download plugin', code: 'plugins.downloadFailed', detail: `${versionEntry.downloadUrl} returned HTTP ${res.status}` },
       { status: 502 },
     );
   }
@@ -63,13 +63,13 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (err) {
     const detail = err instanceof Error ? err.message : 'network error';
     return NextResponse.json(
-      { error: 'Failed to download plugin', detail: `Could not reach ${versionEntry.downloadUrl} — ${detail}` },
+      { error: 'Failed to download plugin', code: 'plugins.downloadFailed', detail: `Could not reach ${versionEntry.downloadUrl}: ${detail}` },
       { status: 502 },
     );
   }
   if (!bytes) {
     return NextResponse.json(
-      { error: 'Failed to download plugin', detail: `${versionEntry.downloadUrl} is too big to be a plugin` },
+      { error: 'Failed to download plugin', code: 'plugins.downloadFailed', detail: `${versionEntry.downloadUrl} is too big to be a plugin` },
       { status: 502 },
     );
   }
@@ -100,7 +100,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   });
 }, 'Failed to uninstall plugin');
 
-/** Update a plugin — enable/disable or clear previousVersion after migration */
+/** Update a plugin: enable/disable or clear previousVersion after migration */
 export const PATCH = withAuth(async (request: NextRequest) => {
   const body = await parseJsonBody<{
     pluginId?: string;

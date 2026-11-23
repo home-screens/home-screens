@@ -5,6 +5,7 @@ import type { FamilyMember } from '@/types/family';
 import React from 'react';
 import { Ticket } from 'lucide-react';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { WallButton } from '@/components/modules/shared/WallButton';
 
 
 interface MemberPickerProps {
@@ -46,7 +47,7 @@ export default function MemberPicker({ members, balances, selectedId, onSelect, 
         const balance = balances[member.id] ?? 0;
 
         return (
-          <button
+          <WallButton
             key={member.id}
             data-testid="fcc-store-chip"
             onClick={() => onSelect(member.id)}
@@ -108,7 +109,7 @@ export default function MemberPicker({ members, balances, selectedId, onSelect, 
               <Ticket size={balanceSize} strokeWidth={2} aria-hidden="true" />
               {balance}
             </span>
-          </button>
+          </WallButton>
         );
       })}
     </div>

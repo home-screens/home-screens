@@ -9,7 +9,7 @@
  * third number that can disagree with them.
  */
 
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
@@ -24,6 +24,7 @@ import {
 import NameInput from './NameInput';
 import { PROSE_CLASS } from './prose';
 import { addIsoDays, mondayOf } from '@/lib/iso-date';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface BellTimesEditorProps {
   school: TimetableSchool;
@@ -233,10 +234,12 @@ export default function BellTimesEditor({ school, onChange }: BellTimesEditorPro
       </div>
 
       <div className="flex items-center gap-1.5">
-        <Button size="sm" onClick={addPeriod} disabled={full}>
+        <Button size="sm" className="inline-flex items-center gap-1" onClick={addPeriod} disabled={full}>
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           {t('timetableModal.schools.addPeriod')}
         </Button>
-        <Button size="sm" onClick={addBreak} disabled={full}>
+        <Button size="sm" className="inline-flex items-center gap-1" onClick={addBreak} disabled={full}>
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           {t('timetableModal.schools.addBreak')}
         </Button>
       </div>
@@ -280,7 +283,7 @@ export default function BellTimesEditor({ school, onChange }: BellTimesEditorPro
             </div>
           </div>
         </div>
-        <p className={`${PROSE_CLASS} text-hs-text-faint`}>{t('timetableModal.schools.careHelp')}</p>
+        <FieldHint>{t('timetableModal.schools.careHelp')}</FieldHint>
       </div>
     </div>
   );

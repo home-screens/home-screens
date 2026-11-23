@@ -385,7 +385,7 @@ function migrateStep(progress: number): PipelineStep {
         await writeConfig(migrated);
         emitOutput('migrate', `Ran ${migrationsRun.length} migration(s): ${migrationsRun.join(', ')}`);
       } else {
-        emitOutput('migrate', 'Schema is up to date — no migration needed');
+        emitOutput('migrate', 'Schema is up to date, no migration needed');
       }
       // The family fold otherwise waits for the first family read, which a
       // device updated twice in a row may never make.
@@ -438,7 +438,7 @@ function restartStep(progress: number, scheduled = false): PipelineStep {
       const restart = parseResult(restartOut);
       if (restart.method === 'systemctl') {
         emit({ step: 'restart', progress: 95, message: 'Server will restart momentarily...' });
-        emitOutput('restart', 'Server restart scheduled — client will reconnect automatically');
+        emitOutput('restart', 'Server restart scheduled, the client will reconnect automatically');
       }
     },
   };

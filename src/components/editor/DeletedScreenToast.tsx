@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Undo2, X } from 'lucide-react';
+import { Undo2 } from 'lucide-react';
+import Toast from '@/components/ui/Toast';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
-
-/** How long the toast stays: long enough to read and reach for Undo. */
-const DELETED_TOAST_MS = 8_000;
 
 /**
  * After a screen is deleted, the "You can undo this" the question promised,
@@ -21,7 +20,7 @@ const DELETED_TOAST_MS = 8_000;
 export default function DeletedScreenToast({ name, history, onDone }: { name: string; history: readonly unknown[]; onDone: () => void }) {
   const t = useTranslate('editor');
   useEffect(() => {
-    const timer = setTimeout(onDone, DELETED_TOAST_MS);
+    const timer = setTimeout(onDone, UNDO_WINDOW_MS);
     return () => clearTimeout(timer);
   }, [history, onDone]);
   useEffect(
@@ -29,30 +28,20 @@ export default function DeletedScreenToast({ name, history, onDone }: { name: st
     [history, onDone],
   );
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999]" role="status" data-testid="deleted-screen-toast">
-      <div className="flex items-center gap-3 rounded-lg border border-hs-border-strong bg-hs-panel/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
-        <span className="text-sm text-hs-text-body">{t('screenTabs.deletedToast', { name })}</span>
-        <button
-          type="button"
-          onClick={() => {
-            const store = useEditorStore.getState();
-            if (store._past === history) store.undo();
-            onDone();
-          }}
-          className="flex items-center gap-1.5 rounded-md bg-hs-accent hover:bg-hs-accent-hover text-white text-xs font-medium px-3 py-1.5 transition-colors"
-        >
-          <Undo2 className="w-3.5 h-3.5" aria-hidden />
-          {t('screenTabs.undoDelete')}
-        </button>
-        <button
-          type="button"
-          onClick={onDone}
-          className="text-hs-text-faint hover:text-hs-text-secondary transition-colors p-0.5"
-          aria-label={t('screenTabs.dismissDeleted')}
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
+    <Toast
+      testId="deleted-screen-toast"
+      message={t('screenTabs.deletedToast', { name })}
+      action={{
+        label: t('screenTabs.undoDelete'),
+        icon: Undo2,
+        onClick: () => {
+          const store = useEditorStore.getState();
+          if (store._past === history) store.undo();
+          onDone();
+        },
+      }}
+      onDismiss={onDone}
+      dismissLabel={t('screenTabs.dismissDeleted')}
+    />
   );
 }

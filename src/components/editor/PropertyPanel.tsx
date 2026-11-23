@@ -103,6 +103,7 @@ import {
 
 // Shared input classes — single source of truth lives in ui/input-classes.ts
 import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 export { INPUT_CLASS, NESTED_INPUT_CLASS };
 
 /**
@@ -417,10 +418,9 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
               // 100 is stored as absent. The pixel field goes back to the base
               // in the same edit, so the percent is the one number that matters.
               onChange={(v) => set({ textScale: v === 100 ? undefined : v, fontSize: basePx })}
+              hint={t('propertyPanel.fields.textScaleHint')}
+              hintTestId="font-size-hint"
             />
-            <p data-testid="font-size-hint" className="text-[11px] text-hs-text-dim mt-1">
-              {t('propertyPanel.fields.textScaleHint')}
-            </p>
           </div>
           {!isPlugin && (
             <div
@@ -680,7 +680,7 @@ export default function PropertyPanel({
   const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
   const moduleLabel = resolveModuleLabel(selectedModule.type, t);
   // The full-screen planner's one-line description names its week; its
-  // Recipe Book view is a different thing and says so.
+  // Recipe book view is a different thing and says so.
   const moduleDescription = selectedModule.type === 'fullscreen-meal-planner' && selectedModule.config.view === 'recipes'
     ? t('registry.viewDescriptions.fullscreen-meal-planner.recipes')
     : resolveModuleDescription(selectedModule.type, t);
@@ -735,7 +735,7 @@ export default function PropertyPanel({
             />
           </div>
           {isPlugin && !loadedPlugin && (
-            <p className="text-xs text-hs-warning mb-2">{t('propertyPanel.pluginNotLoaded')}</p>
+            <p className="text-xs text-hs-warning-ink mb-2">{t('propertyPanel.pluginNotLoaded')}</p>
           )}
         </div>
 
@@ -863,7 +863,6 @@ export default function PropertyPanel({
             setTimeout(() => revealPanelSection(PANEL_SECTION_SCREEN_SETTINGS), 60);
           };
           const actionClass = 'text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors';
-          const helpClass = 'text-[11px] text-hs-text-faint leading-relaxed';
           return (
             <AccordionSection id={PANEL_SECTION_OPEN_BUTTON} title={t('propertyPanel.openButton.sectionTitle')} defaultOpen={!!selectedModule.openButtonScreen} badge={badge}>
               <div className="space-y-2">
@@ -895,7 +894,7 @@ export default function PropertyPanel({
                       ...(next ? {} : { openWith: undefined }),
                     });
                   }}
-                  className="w-full px-2 py-1.5 text-sm bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
+                  className={INPUT_CLASS}
                 >
                   <option value="">{t('propertyPanel.openButton.none')}</option>
                   {bothGroups ? (
@@ -926,18 +925,18 @@ export default function PropertyPanel({
                       />
                     </LabeledField>
                     {!canOpenWithCard(selectedModule.type) && (
-                      <p className={helpClass} data-testid="open-with-takes-taps">{t('propertyPanel.openButton.openWithTakesTaps')}</p>
+                      <FieldHint data-testid="open-with-takes-taps">{t('propertyPanel.openButton.openWithTakesTaps')}</FieldHint>
                     )}
                   </div>
                 )}
-                <p id={`module-open-button-help-${selectedModule.id}`} className={helpClass}>
+                <FieldHint id={`module-open-button-help-${selectedModule.id}`}>
                   {target && openWith(selectedModule) === 'card'
                     ? t('propertyPanel.openButton.openWithCardHelp', { name: target.name })
                     : t('propertyPanel.openButton.help')}
-                </p>
+                </FieldHint>
                 {orphaned?.moduleId === selectedModule.id && orphaned.screenId !== target?.id && (
                   <div className="space-y-1.5" data-testid="open-button-orphaned">
-                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.orphaned', { name: orphaned.name })}</p>
+                    <p className="text-xs text-hs-warning-ink">{t('propertyPanel.openButton.orphaned', { name: orphaned.name })}</p>
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         type="button"
@@ -975,7 +974,7 @@ export default function PropertyPanel({
                     >
                       {t('propertyPanel.openButton.addTwinScreen', { name: twinName })}
                     </button>
-                    <p className={helpClass}>{t('propertyPanel.openButton.addTwinHelp', { name: twinName })}</p>
+                    <FieldHint>{t('propertyPanel.openButton.addTwinHelp', { name: twinName })}</FieldHint>
                   </div>
                 )}
                 {added && target && (
@@ -984,19 +983,19 @@ export default function PropertyPanel({
                   </p>
                 )}
                 {contents && target && (
-                  <p className="text-xs text-hs-text-muted" data-testid="open-button-target-holds">
+                  <FieldHint data-testid="open-button-target-holds">
                     {t('propertyPanel.openButton.holds', { what: contents })}
-                  </p>
+                  </FieldHint>
                 )}
                 {targetTheme && target && (
-                  <p className="text-xs text-hs-text-muted flex items-center gap-2" data-testid="open-button-target-theme">
+                  <FieldHint className="flex items-center gap-2" data-testid="open-button-target-theme">
                     <span aria-hidden className="inline-block h-3.5 w-3.5 rounded-full border border-hs-border-strong" style={{ background: `linear-gradient(135deg, ${targetTheme.bg} 50%, ${targetTheme.text} 50%)` }} />
                     <span>{t('propertyPanel.openButton.theme', { theme: targetThemeName })}</span>
-                  </p>
+                  </FieldHint>
                 )}
                 {tapOff && target && (
                   <div className="space-y-1.5" data-testid="open-button-tap-off">
-                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.tapOff')}</p>
+                    <FieldHint tone="warning">{t('propertyPanel.openButton.tapOff')}</FieldHint>
                     <button
                       type="button"
                       className={actionClass}
@@ -1008,18 +1007,18 @@ export default function PropertyPanel({
                 )}
                 {targetOff && target && (
                   <div className="space-y-1.5" data-testid="open-button-target-off">
-                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.targetOff')}</p>
+                    <FieldHint tone="warning">{t('propertyPanel.openButton.targetOff')}</FieldHint>
                     <button type="button" className={actionClass} onClick={() => updateScreen(target.id, { enabled: undefined })}>
                       {t('propertyPanel.openButton.switchOn')}
                     </button>
                   </div>
                 )}
                 {(gatedBySchedule || gatedByConditions) && target && config && (
-                  <p className="text-xs text-hs-text-muted" data-testid="open-button-gated">
+                  <FieldHint data-testid="open-button-gated">
                     {gatedBySchedule
                       ? t('propertyPanel.openButton.onlyWhen', { when: describeSchedule(target.schedule, t, formattingLocale, config.settings.timeFormat).short })
                       : t('propertyPanel.openButton.onlyConditions')}
-                  </p>
+                  </FieldHint>
                 )}
                 {target && opened && (
                   <div className="pt-1 space-y-3">
@@ -1043,11 +1042,11 @@ export default function PropertyPanel({
                 )}
                 {target && !opened && (
                   <div className="pt-1 space-y-2" data-testid="open-button-in-rotation-hint">
-                    <p className={helpClass}>
+                    <FieldHint>
                       {turnSeconds > 0
                         ? t('propertyPanel.openButton.inRotationHint', { name: target.name, seconds: turnSeconds, home: currentScreen.name })
                         : t('propertyPanel.openButton.inRotationStaysHint', { name: target.name, home: currentScreen.name })}
-                    </p>
+                    </FieldHint>
                     {/* The screen's rotation choice, flipped from here so the
                         whole setup lives in one section; the screen's own
                         Rotation group mirrors it. */}
@@ -1070,53 +1069,39 @@ export default function PropertyPanel({
 
         <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={false}>
           <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>
-            <label htmlFor={`module-enabled-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm">
-              <input
-                id={`module-enabled-toggle-${selectedModule.id}`}
-                type="checkbox"
-                className="mt-0.5"
-                checked={selectedModule.enabled !== false}
-                aria-describedby={`module-enabled-help-${selectedModule.id}`}
-                onChange={(e) =>
-                  updateModule(selectedScreenId, selectedModule.id, {
-                    // Omit the field entirely when re-enabling so configs stay clean.
-                    enabled: e.target.checked ? undefined : false,
-                  })
-                }
-              />
-              <span className="block">{t('propertyPanel.visibility.enabledLabel')}</span>
-            </label>
-            <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
-              {t('propertyPanel.visibility.enabledHelp')}
-            </p>
+            <Toggle
+              id={`module-enabled-toggle-${selectedModule.id}`}
+              label={t('propertyPanel.visibility.enabledLabel')}
+              checked={selectedModule.enabled !== false}
+              onChange={(on) =>
+                updateModule(selectedScreenId, selectedModule.id, {
+                  // Omit the field entirely when re-enabling so configs stay clean.
+                  enabled: on ? undefined : false,
+                })
+              }
+              description={t('propertyPanel.visibility.enabledHelp')}
+            />
             {/* Drawn once above the rotating canvas, so it cannot also be a
                 hidden background copy: the two switches are exclusive. Turning
                 one on clears the other, and a switch hides only while the
                 other is on and its own flag is off, so a config carrying both
                 (hand-edited) still shows both and either can be cleared. */}
             {(selectedModule.backgroundProvider !== true || selectedModule.showOnEveryScreen === true) && (
-              <>
-                <label htmlFor={`module-every-screen-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
-                  <input
-                    id={`module-every-screen-toggle-${selectedModule.id}`}
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={selectedModule.showOnEveryScreen === true}
-                    aria-describedby={`module-every-screen-help-${selectedModule.id}`}
-                    onChange={(e) =>
-                      updateModule(selectedScreenId, selectedModule.id, {
-                        // Omit the field entirely when off so configs stay clean.
-                        showOnEveryScreen: e.target.checked ? true : undefined,
-                        ...(e.target.checked ? { backgroundProvider: undefined } : {}),
-                      })
-                    }
-                  />
-                  <span className="block">{t('propertyPanel.visibility.everyScreenLabel')}</span>
-                </label>
-                <p id={`module-every-screen-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
-                  {t('propertyPanel.visibility.everyScreenHelp')}
-                </p>
-              </>
+              <div className="mt-3">
+                <Toggle
+                  id={`module-every-screen-toggle-${selectedModule.id}`}
+                  label={t('propertyPanel.visibility.everyScreenLabel')}
+                  checked={selectedModule.showOnEveryScreen === true}
+                  onChange={(on) =>
+                    updateModule(selectedScreenId, selectedModule.id, {
+                      // Omit the field entirely when off so configs stay clean.
+                      showOnEveryScreen: on ? true : undefined,
+                      ...(on ? { backgroundProvider: undefined } : {}),
+                    })
+                  }
+                  description={t('propertyPanel.visibility.everyScreenHelp')}
+                />
+              </div>
             )}
             {(() => {
               // Plugins that export a stateProvider publish automatically —
@@ -1134,33 +1119,26 @@ export default function PropertyPanel({
                 if (!isStateProducerType(selectedModule.type)) return null;
               }
               return (
-                <>
-                  <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
-                    <input
-                      id={`module-bg-provider-toggle-${selectedModule.id}`}
-                      type="checkbox"
-                      className="mt-0.5"
-                      checked={isFlagged}
-                      aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
-                      onChange={(e) =>
-                        updateModule(selectedScreenId, selectedModule.id, {
-                          // Omit the field entirely when off so configs stay clean.
-                          backgroundProvider: e.target.checked ? true : undefined,
-                          ...(e.target.checked ? { showOnEveryScreen: undefined } : {}),
-                        })
-                      }
-                    />
-                    <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
-                  </label>
-                  <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
-                    {t('propertyPanel.visibility.backgroundProviderHelp')}
-                  </p>
+                <div className="mt-3">
+                  <Toggle
+                    id={`module-bg-provider-toggle-${selectedModule.id}`}
+                    label={t('propertyPanel.visibility.backgroundProviderLabel')}
+                    checked={isFlagged}
+                    onChange={(on) =>
+                      updateModule(selectedScreenId, selectedModule.id, {
+                        // Omit the field entirely when off so configs stay clean.
+                        backgroundProvider: on ? true : undefined,
+                        ...(on ? { showOnEveryScreen: undefined } : {}),
+                      })
+                    }
+                    description={t('propertyPanel.visibility.backgroundProviderHelp')}
+                  />
                   {hasStateProvider && isFlagged && (
-                    <p className="text-xs text-hs-warning mt-1 ml-6">
+                    <p className="text-xs text-hs-warning-ink mt-1">
                       {t('propertyPanel.visibility.backgroundProviderObsoleteHint')}
                     </p>
                   )}
-                </>
+                </div>
               );
             })()}
           </PropertyGroup>

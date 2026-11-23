@@ -50,13 +50,13 @@ test('the switcher offers All screens, never toggles off silently, and says what
   expect((await getConfig(request)).settings.activeProfile).toBe('p1');
 
   await chips.getByRole('button', { name: 'Evening' }).click();
-  await expect(page.getByTestId('remote-toast')).toHaveText('The display switched to Evening');
+  await expect(page.getByTestId('remote-toast')).toHaveText('The wall switched to Evening');
   await expect(chips.getByRole('button', { name: /Evening/ })).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBe('p2');
 
   // "All screens" is the explicit way to run with no profile.
   await chips.getByRole('button', { name: 'All screens' }).click();
-  await expect(page.getByTestId('remote-toast')).toHaveText('The display is showing all screens');
+  await expect(page.getByTestId('remote-toast')).toHaveText('The wall is showing all screens');
   await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBeUndefined();
 });
 
@@ -75,7 +75,7 @@ test('a heartbeat reporting no profile beats the page-load profile', async ({ pa
   await expect(chips.getByRole('button', { name: 'Morning' })).toHaveAttribute('aria-pressed', 'false');
 
   await chips.getByRole('button', { name: 'Morning' }).click();
-  await expect(page.getByTestId('remote-toast')).toHaveText('The display switched to Morning');
+  await expect(page.getByTestId('remote-toast')).toHaveText('The wall switched to Morning');
   await expect(chips.getByRole('button', { name: /Morning/ })).toHaveAttribute('aria-pressed', 'true');
 });
 
@@ -92,7 +92,7 @@ test('a scheduled profile is shown as running, and a pick waits for it', async (
     .toHaveText('Morning is on a schedule right now. What you pick here starts when it ends.');
 
   await chips.getByRole('button', { name: 'All screens' }).click();
-  await expect(page.getByTestId('remote-toast')).toHaveText('The display will show all screens when Morning ends');
+  await expect(page.getByTestId('remote-toast')).toHaveText('The wall will show all screens when Morning ends');
   await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBeUndefined();
   await expect(chips.getByRole('button', { name: /Morning/ })).toHaveAttribute('aria-pressed', 'true');
 });

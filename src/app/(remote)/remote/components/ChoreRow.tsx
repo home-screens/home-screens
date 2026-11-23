@@ -1,12 +1,13 @@
 'use client';
 
-import { Check, ChevronDown, ChevronUp, Lock, MoreHorizontal } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Lock, Minus, MoreHorizontal } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { useLongPress } from '@/hooks/useLongPress';
 import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useTranslate } from '@/i18n';
 import { ticketWords } from './ticket-words';
+import { memberInk } from '@/lib/family-avatar';
 
 /** Minimal shape the row renders from — the parent's assignment carries more fields. */
 export interface ChoreRowAssignment {
@@ -121,10 +122,10 @@ export default function ChoreRow({
       style={{
         width: 28, height: 28, borderRadius: 8, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: '2px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)', fontWeight: 700,
+        border: '2px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)',
       }}
     >
-      –
+      <Minus size={14} strokeWidth={2.5} aria-hidden />
     </div>
   ) : readOnly ? (
     // Locked chip: kid-viewing-past — visually distinct, not interactive
@@ -180,7 +181,7 @@ export default function ChoreRow({
           }}
         />
       )}
-      {done && <Check size={16} color="white" strokeWidth={2.5} style={{ position: 'relative' }} />}
+      {done && <Check size={16} color={memberInk(checkedColor)} strokeWidth={2.5} style={{ position: 'relative' }} />}
     </div>
   );
 

@@ -12,9 +12,9 @@ Plan the week's dinners on your phone, see them on the wall, and take the grocer
 
 ## 1. Put a meal planner on a screen
 
-In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, a **list**, the **grocery list**, and your **Recipe Book**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, the next meal, the next meal's **recipe**, the grocery list, or a **recipe book**.
+In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, a **list**, the **grocery list**, and your **Recipe book**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, the next meal, the next meal's **recipe**, the grocery list, or a **recipe book**.
 
-The planner is empty until you add meals, which you do on a phone or in the editor with **Edit Meal Plan** in the module's settings (**Edit Meal Planner** on the Full-Screen Meal Planner).
+The planner is empty until you add meals, which you do on a phone or in the editor with **Edit meal plan** in the module's settings (the Full-Screen Meal Planner has it too).
 
 On a touchscreen, the week and the list have arrows at the top (or a sideways swipe) to see next week's plan, and back: eight weeks either way, or, while the plan lives in Mealie, three weeks ahead and one back. **Back to this week** comes straight back, and a minute after the last touch the planner slides back to this week on its own. The week your meal plan starts on is its own setting, apart from the calendars'.
 
@@ -26,7 +26,7 @@ Open the family remote (Settings > On your phone shows the address), tap **Meals
 
 ## 3. Plan the week
 
-Under **Plan**, tap a day and a slot and pick a meal from the library, or type one in ("Tacos") for a night that does not need a saved meal. Three shortcuts fill a week fast: **Copy Last Week**, **Suggest** (random picks from the library), and **Clear**.
+Under **Plan**, tap a day and a slot and pick a meal from the library, or type one in ("Tacos") for a night that does not need a saved meal. Three shortcuts fill a week fast: **Copy last week**, **Suggest** (random picks from the library), and **Clear**.
 
 **Week** shows the result, and arrows move to other weeks. The wall updates a few seconds after you save.
 
@@ -46,13 +46,13 @@ A meal saved as a side, dessert or drink (its **Kind of dish**) says so in the l
 
 Everyone in the family can give a recipe one to five stars. Each person has one rating per recipe: rate it again to change your mind, or choose **Clear my rating** to take it back. Wherever the recipe shows, it carries the family's average and how many people voted.
 
-- **On the phone**, **Rate Dinner** at the top of the Meals tab opens the last dinner the family sat down to: tonight's from the time it is served, and last night's until then. On the first morning of a week that is the night before the week began, and the list of days starts with it. Pick who is rating, then tap the stars for each dish. To rate any other recipe, use the star button on it in the **Library**, or open a planned meal.
-- **On a touch wall**, a meal planner with touch switched on shows **Rate Dinner** too, and a recipe's card has a **Rate meal** button.
+- **On the phone**, **Rate dinner** at the top of the Meals tab opens the last dinner the family sat down to: tonight's from the time it is served, and last night's until then. On the first morning of a week that is the night before the week began, and the list of days starts with it. Pick who is rating, then tap the stars for each dish. To rate any other recipe, use the star button on it in the **Library**, or open a planned meal.
+- **On a touch wall**, a meal planner with touch switched on shows **Rate dinner** too, and a recipe's card has a **Rate meal** button.
 - **In the editor**, the meal planner window shows each recipe's rating and lets you set one.
 
 A dish that was only typed into the plan ("Eating out") has no recipe to rate. Ratings work for [Mealie](#mealie) recipes as well; the stars are kept in Home Screens and are not sent to Mealie.
 
-Ratings use the people under **Settings > Family**, so add your family there first. To keep the stars off one screen, switch off **Show Family Ratings** in that meal planner's settings. Nothing is deleted, and the phone can still rate.
+Ratings use the people under **Settings > Family**, so add your family there first. To keep the stars off one screen, switch off **Show family ratings** in that meal planner's settings. Nothing is deleted, and the phone can still rate.
 
 ## 4. The grocery list
 
@@ -60,7 +60,7 @@ Ratings use the people under **Settings > Family**, so add your family there fir
 
 Meal ingredients come from the meals: to change one, change the meal in the library. For the things no meal needs (paper towels, dog food), pick one of your lists under **Other things to buy** in **Settings > Meals**. What is still on that list shows at the end of the grocery list, as **Also on Shopping**, on the phone and on the wall, and **Open in Lists** takes you to it.
 
-Put the list on the wall with the **Grocery List** view of either Meal Planner module. On a touchscreen anyone can tick things off right there, and the ticks are the same ones the phone shows. With **Add on the Wall** switched on in either Meal Planner's settings, an **Add** row under the list (a button by the list's name on the full-screen one) opens the wall's keyboard: what you type goes on the list you picked for other things to buy (you can pick it right there too).
+Put the list on the wall with the **Grocery list** view of either Meal Planner module. On a touchscreen anyone can tick things off right there, and the ticks are the same ones the phone shows. With **Add on the wall** switched on in either Meal Planner's settings, an **Add** row under the list (a button by the list's name on the full-screen one) opens the wall's keyboard: what you type goes on the list you picked for other things to buy (you can pick it right there too).
 
 ## Settings
 
@@ -88,7 +88,7 @@ From then on:
 - Each recipe shows its whole time from Mealie, prep plus cooking.
 - Changes made in Mealie reach the wall within about two minutes.
 - The **Grocery** tab on the phone and in the editor's meal planner shows your Mealie shopping list, sorted by the labels you set up in Mealie. Check things off as you shop and they are checked off in Mealie too; changes made in the Mealie app show up within about half a minute. Things checked off before you opened the tab fold away at the bottom, and anything put back on the list comes back up to its aisle.
-- The **Grocery List** view on the wall shows that same Mealie list, and ticks made on a touchscreen go to Mealie too. With **Add on the Wall** on, its **Add** puts what you type on that Mealie list, with **Undo** while the sheet is open.
+- The **Grocery list** view on the wall shows that same Mealie list, and ticks made on a touchscreen go to Mealie too. With **Add on the wall** on, its **Add** puts what you type on that Mealie list, with **Undo** while the sheet is open.
 - Type something in the box at the top of the Grocery tab ("milk") and it goes on the list in Mealie, with **Undo** for a few seconds in case it went on the wrong list. Something already on the list isn't added twice, and something checked off is put back instead.
 - If you keep more than one list in Mealie, pick the one you shop from at the top of the Grocery tab. It is one choice for the whole family: the phone, the editor and voice ("what's on the grocery list?") all use that list, and the tab says so with an **Undo**. Until anyone picks, it is the list you made first.
 
@@ -100,19 +100,19 @@ Mealie 2.0 or newer is needed. Only want the meals on your calendar? Mealie 3.29
 
 The **Recipe** view of the Full-Screen Meal Planner shows the next meal's recipe big enough to cook from: the ingredients and the numbered steps, from Mealie or from the ingredients and notes saved with a meal. A long recipe turns its pages by itself; on a touchscreen, **Next step** moves through the steps and keeps the screen from moving on while you cook.
 
-On a touchscreen, tapping a meal can do more too (*Tap Meal to Open Recipe* in the module's settings): **Show recipe card** opens the same recipe on a card over the wall, with a QR code to take it along on your phone when the meal has a recipe link. **Show QR code** shows just the code, and **Open recipe on display** opens a meal's recipe link right there; a meal with no link but with ingredients or notes opens the recipe card instead. A new meal planner opens the recipe card.
+On a touchscreen, tapping a meal can do more too (*Tap meal to open recipe* in the module's settings): **Show recipe card** opens the same recipe on a card over the wall, with a QR code to take it along on your phone when the meal has a recipe link. **Show QR code** shows just the code, and **Open recipe on display** opens a meal's recipe link right there; a meal with no link but with ingredients or notes opens the recipe card instead. A new meal planner opens the recipe card.
 
 The recipe card is made for cooking along: tap an ingredient to tick it off as it goes in, and step through with **Next step** or tap a page's dot. Once you tick an ingredient or tap a step, the screen stays awake and the card stays open until an hour goes by with nobody touching it. A card nobody uses closes after 10 minutes.
 
 ### A recipe book on the wall
 
-For a kitchen that cooks from the wall instead of a cookbook, the **Recipe book** view of the Full-Screen Meal Planner shows every recipe as a tile with its photo and cooking time. Chips across the top pick Favorites, Recently made, All, or one of your cookbooks or categories. Without Mealie the chips are your own filters (Favorites, the kinds of dish and your tags), and only those with a recipe behind them show; **Quick** means tagged quick or ready in half an hour or less, prep and cook together. Only saved meals with ingredients or notes are in the book, and the editor's panel for the Recipe Book view says how many that is and names the ones without. Tap the search box and a keyboard comes up on the wall, in your household's language, and the words search the whole book; tap a recipe and it opens on the recipe card. To open the book from a small Meal Planner on another screen, use its **Open a screen** button (see [Open a screen](/docs/editor#open-a-screen)). On a touchscreen, the heart on each photo and on the recipe card makes the recipe a favorite, in Mealie when you use it. The tiles scroll with a finger and go back to the top on their own a minute later.
+For a kitchen that cooks from the wall instead of a cookbook, the **Recipe book** view of the Full-Screen Meal Planner shows every recipe as a tile with its photo and cooking time. Chips across the top pick Favorites, Recently made, All, or one of your cookbooks or categories. Without Mealie the chips are your own filters (Favorites, the kinds of dish and your tags), and only those with a recipe behind them show; **Quick** means tagged quick or ready in half an hour or less, prep and cook together. Only saved meals with ingredients or notes are in the book, and the editor's panel for the Recipe book view says how many that is and names the ones without. Tap the search box and a keyboard comes up on the wall, in your household's language, and the words search the whole book; tap a recipe and it opens on the recipe card. To open the book from a small Meal Planner on another screen, use its **Open a screen** button (see [Open a screen](/docs/editor#open-a-screen)). On a touchscreen, the heart on each photo and on the recipe card makes the recipe a favorite, in Mealie when you use it. The tiles scroll with a finger and go back to the top on their own a minute later.
 
-With Mealie connected the book is Mealie's recipes, even if you plan meals in Home Screens. Recipes added, changed or deleted in Mealie show up on the wall by themselves within a couple of minutes, once nobody is using the book; tap the chip that is already lit to see them right away. Without Mealie it is the meals in your library that have ingredients or notes, and a meal saved on a phone shows up within a few seconds. The small Meal Planner's **Recipe Book** view lists the same recipes in a narrow column, and opens the whole book over the screen to search.
+With Mealie connected the book is Mealie's recipes, even if you plan meals in Home Screens. Recipes added, changed or deleted in Mealie show up on the wall by themselves within a couple of minutes, once nobody is using the book; tap the chip that is already lit to see them right away. Without Mealie it is the meals in your library that have ingredients or notes, and a meal saved on a phone shows up within a few seconds. The small Meal Planner's **Recipe book** view lists the same recipes in a narrow column, and opens the whole book over the screen to search.
 
 ### Send a recipe to the wall from your phone
 
-Searching is quickest on a phone. In Meals on the phone, every recipe in the **Library** has a wall button, and a planned meal's sheet has **Show on the wall**: the recipe opens on the wall picked at the top of the remote, on the same card you would get by tapping it there. With **All displays** picked in a home with more than one wall, the phone asks which wall the first time and remembers your answer for recipes. Sent it to the wrong place? Tap **Take it down** in the message that follows.
+Searching is quickest on a phone. In Meals on the phone, every recipe in the **Library** has a wall button, and a planned meal's sheet has **Show on the wall**: the recipe opens on the wall picked at the top of the remote, on the same card you would get by tapping it there. With **Every wall** picked in a home with more than one wall, the phone asks which wall the first time and remembers your answer for recipes. Sent it to the wrong place? Tap **Take it down** in the message that follows.
 
 ## Next steps
 

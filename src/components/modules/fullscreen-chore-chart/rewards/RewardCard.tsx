@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { clampLines } from '@/components/modules/shared/clampLines';
+import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { Ticket } from 'lucide-react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -83,6 +84,8 @@ export default function RewardCard({ reward, balance, isGoal = false, allowTouch
   return (
     <Tag
       data-testid="fcc-reward-card"
+      // A card that can be spent looks pressed the moment a finger lands.
+      {...(tappable ? { ...wallPressProps, type: 'button' as const } : {})}
       onClick={tappable ? () => onRedeem(reward) : undefined}
       style={{
         display: 'flex',

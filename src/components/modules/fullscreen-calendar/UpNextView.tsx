@@ -101,7 +101,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
     >
     <div
       ref={rootRef}
-      aria-label={t('fullscreen-calendar.viewLabels.upNext')}
+      aria-label={t('common.upNext')}
       style={{
         height: '100%', padding: `${scale.bu * 2.5}px ${pad}px 0`,
         // Landscape has barely half the vertical room of portrait at the same
@@ -160,7 +160,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
                 {glyph && <span aria-hidden="true"><Glyph value={glyph} /></span>}
                 <span>{ev.title}</span>
                 <span style={{ ...EVENT_TIME_TEXT, fontSize: fontSize * 0.9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {kind ?? t('fullscreen-calendar.allDay')}
+                  {kind ?? t('calendar.allDay')}
                 </span>
               </div>
             );
@@ -398,7 +398,7 @@ function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 2, minWidth: 0 }}>
         <span style={{ ...EVENT_TIME_TEXT, fontSize: fontSize * 2, width: fontSize * 9, flexShrink: 0, whiteSpace: 'nowrap' }}>
-          {allDay ? eventKindLabel(ev, start.getFullYear(), t, 'fullscreen-calendar') ?? t('fullscreen-calendar.allDay') : startLabel}
+          {allDay ? eventKindLabel(ev, start.getFullYear(), t, 'fullscreen-calendar') ?? t('calendar.allDay') : startLabel}
         </span>
         <span style={{ fontSize: fontSize * 2.5, fontWeight: 600, color: 'var(--cal-text-primary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <GlyphPrefix value={glyph} />{ev.title}

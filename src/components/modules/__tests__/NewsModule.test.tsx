@@ -6,6 +6,7 @@ import { DEFAULT_MODULE_STYLE, type NewsConfig, type ModuleStyle } from '@/types
 import type { NewsResponse } from '@/lib/news/types';
 import { installResizeObserverStub, I18nWrapper as Wrapper } from './helpers/harness';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
 installResizeObserverStub();
 
@@ -107,8 +108,14 @@ describe('NewsModule', () => {
     expect(overlay).toBeTruthy();
     expect(overlay!.querySelector('svg')).toBeTruthy();
     expect(screen.getByText('Scan to read on your phone')).toBeTruthy();
+    // A tap within a double tap of opening is the tap that opened it.
+    fireEvent.click(overlay!);
+    expect(container.querySelector('[data-news-overlay]')).toBeTruthy();
+    const later = Date.now() + DOUBLE_TAP_MS;
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(later);
     fireEvent.click(overlay!);
     expect(container.querySelector('[data-news-overlay]')).toBeNull();
+    clock.mockRestore();
   });
 
   it('details overlay shows the summary, and a story without a link says so', () => {

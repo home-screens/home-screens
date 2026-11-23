@@ -7,6 +7,7 @@ import { useIndexListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, TrafficConfig } from '@/types/config';
+import IconButton from '@/components/ui/IconButton';
 
 export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Partial<TrafficConfig>>(mod, screenId);
@@ -46,7 +47,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
               placeholder={t('configSections.traffic.labelPlaceholder')}
               className={`flex-1 ${NESTED_INPUT_CLASS}`}
             />
-            <button onClick={() => removeRoute(idx)} className="text-hs-danger text-xs px-1">x</button>
+            <IconButton label={t('configSections.traffic.removeRoute')} onClick={() => removeRoute(idx)} />
           </div>
           <input
             type="text"

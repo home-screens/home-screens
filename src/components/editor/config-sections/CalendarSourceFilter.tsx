@@ -9,6 +9,7 @@ import type { ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import { calendarLook } from '@/lib/calendar-overrides';
 import { settingsPath } from '@/lib/settings-route';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
 
 // Stable fallbacks for the store selectors below. A literal `?? []` inside a
 // zustand selector mints a new array per snapshot when the key is absent,
@@ -139,7 +140,7 @@ export function CalendarSourceFilter({
             type="radio"
             checked={allSelected}
             onChange={() => onChange(undefined)}
-            className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+            className={CHECKBOX_CLASS}
           />
           <span className="text-sm text-hs-text-body">{t(`${keyPrefix}.allSources`)}</span>
         </label>
@@ -149,7 +150,7 @@ export function CalendarSourceFilter({
               type="checkbox"
               checked={allSelected || sourceFilter.includes(src.id)}
               onChange={() => toggleSource(src.id)}
-              className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+              className={CHECKBOX_CLASS}
             />
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: src.color }} />
             <span className="text-sm text-hs-text-body truncate">{src.name}</span>

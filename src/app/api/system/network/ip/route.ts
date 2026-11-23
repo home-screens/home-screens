@@ -106,38 +106,38 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // 3. Validate manual-mode fields
   if (method === 'manual') {
     if (!address) {
-      return NextResponse.json({ error: 'address is required for manual mode' }, { status: 400 });
+      return NextResponse.json({ error: 'address is required for manual mode', code: 'network.addressNeeded' }, { status: 400 });
     }
     const addrResult = validateIPv4(address);
     if (!addrResult.valid) {
-      return NextResponse.json({ error: `address: ${addrResult.error}` }, { status: 400 });
+      return NextResponse.json({ error: `address: ${addrResult.error}`, code: 'network.badAddress' }, { status: 400 });
     }
 
     if (prefix === undefined || prefix === null) {
-      return NextResponse.json({ error: 'prefix is required for manual mode' }, { status: 400 });
+      return NextResponse.json({ error: 'prefix is required for manual mode', code: 'network.prefixNeeded' }, { status: 400 });
     }
     const prefixResult = validateCIDRPrefix(prefix);
     if (!prefixResult.valid) {
-      return NextResponse.json({ error: `prefix: ${prefixResult.error}` }, { status: 400 });
+      return NextResponse.json({ error: `prefix: ${prefixResult.error}`, code: 'network.badPrefix' }, { status: 400 });
     }
 
     if (!gateway) {
-      return NextResponse.json({ error: 'gateway is required for manual mode' }, { status: 400 });
+      return NextResponse.json({ error: 'gateway is required for manual mode', code: 'network.gatewayNeeded' }, { status: 400 });
     }
     const gatewayResult = validateIPv4(gateway);
     if (!gatewayResult.valid) {
-      return NextResponse.json({ error: `gateway: ${gatewayResult.error}` }, { status: 400 });
+      return NextResponse.json({ error: `gateway: ${gatewayResult.error}`, code: 'network.badGateway' }, { status: 400 });
     }
 
     if (dns !== undefined && !Array.isArray(dns)) {
-      return NextResponse.json({ error: 'dns must be an array of IP addresses' }, { status: 400 });
+      return NextResponse.json({ error: 'dns must be an array of IP addresses', code: 'network.badDns' }, { status: 400 });
     }
     if (dns && Array.isArray(dns)) {
       for (let i = 0; i < dns.length; i++) {
         const dnsResult = validateIPv4(dns[i]);
         if (!dnsResult.valid) {
           return NextResponse.json(
-            { error: `dns[${i}]: ${dnsResult.error}` },
+            { error: `dns[${i}]: ${dnsResult.error}`, code: 'network.badDns' },
             { status: 400 },
           );
         }
@@ -158,7 +158,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // 5. Reject if a rollback is already in progress
   if (isManagement && hasActiveRollback()) {
     return NextResponse.json(
-      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.' },
+      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.', code: 'network.changePending' },
       { status: 409 },
     );
   }

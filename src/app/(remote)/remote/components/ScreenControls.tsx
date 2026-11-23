@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { useTranslate } from '@/i18n';
 
@@ -27,14 +28,12 @@ export default function ScreenNav({ status, onNav, disabled = false }: ScreenNav
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
         aria-label={t('screenControls.prevAriaLabel')}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
+        <ChevronLeft className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
       </button>
 
       {/* The dot strip must never widen the page: `min-w-0 overflow-hidden`
           keeps it inside the viewport, and past MAX_DOTS the dots are dropped
-          entirely — the hero already says "Screen X of Y". */}
+          entirely: the hero already says "Screen X of Y". */}
       <div className="flex-1 min-w-0 overflow-hidden flex justify-center gap-2">
         {screenCount <= MAX_DOTS && Array.from({ length: screenCount }, (_, i) => (
           <div
@@ -54,9 +53,7 @@ export default function ScreenNav({ status, onNav, disabled = false }: ScreenNav
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
         aria-label={t('screenControls.nextAriaLabel')}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-        </svg>
+        <ChevronRight className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
       </button>
     </div>
   );

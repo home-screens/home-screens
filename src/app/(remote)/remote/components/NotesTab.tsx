@@ -14,9 +14,13 @@ import ConfirmSheet from './ConfirmSheet';
 import NotesSheet from './NotesSheet';
 import { readRememberedAuthor, rememberAuthor } from './notes-author';
 import { DANGER_BUTTON, GHOST_BUTTON } from './remote-styles';
-import { NOTE_ICON_PATH, NoteGlyph } from '@/components/notes/NoteGlyph';
+import { NoteIcon } from '@/components/notes/NoteGlyph';
 import DayNotesPage from './DayNotesPage';
 import TabNotSetUp from './TabNotSetUp';
+import TabHeader from './TabHeader';
+import SegmentedTabs from './SegmentedTabs';
+import { LoadFailed } from './RetryButton';
+import EmptyState from './EmptyState';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 
@@ -75,7 +79,7 @@ const MARK_SOON: CSSProperties = {
   ...MARK,
   padding: '2px 6px',
   background: 'color-mix(in srgb, var(--hs-warning) 18%, transparent)',
-  color: 'var(--hs-warning)',
+  color: 'var(--hs-warning-ink)',
 };
 
 /** The author's initial in their colour with dark ink; a dashed ring for Someone. */
@@ -104,8 +108,8 @@ function AuthorBubble({ member }: { member: FamilyMember | undefined }) {
 export type NotesPage = 'board' | 'calendar';
 
 const PAGE_ICONS: Record<NotesPage, React.ReactNode> = {
-  board: <NoteGlyph strokeWidth={1.8} style={{ width: 16, height: 16 }} />,
-  calendar: <CalendarDays size={16} strokeWidth={1.8} aria-hidden="true" />,
+  board: <NoteIcon size={16} strokeWidth={1.8} />,
+  calendar: <CalendarDays size={16} strokeWidth={1.8} />,
 };
 
 /**
@@ -123,43 +127,19 @@ export default function NotesTab({ page, onPageChange, boardReady, calendarReady
   const t = useTranslate('remote');
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 12px' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-          {t('notes.title')}
-        </h2>
-      </div>
-      <div role="tablist" aria-label={t('notes.title')} style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--hs-bg-panel)', borderRadius: 10, marginBottom: 14 }}>
-        {(['board', 'calendar'] as const).map((p) => (
-          <button
-            key={p}
-            type="button"
-            role="tab"
-            aria-selected={page === p}
-            data-testid={`notes-page-${p}`}
-            onClick={() => onPageChange(p)}
-            style={{
-              flex: 1,
-              minHeight: 44,
-              padding: '8px 6px',
-              fontSize: 13,
-              fontWeight: 600,
-              borderRadius: 8,
-              border: 'none',
-              cursor: 'pointer',
-              background: page === p ? 'var(--hs-border)' : 'transparent',
-              color: page === p ? 'var(--hs-text-primary)' : 'var(--hs-text-faint)',
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-            }}
-          >
-            {PAGE_ICONS[p]}
-            {t(`notes.pages.${p}`)}
-          </button>
-        ))}
-      </div>
+      <TabHeader title={t('notes.title')} />
+      <SegmentedTabs
+        ariaLabel={t('notes.title')}
+        value={page}
+        onChange={onPageChange}
+        style={{ marginBottom: 14 }}
+        tabs={(['board', 'calendar'] as const).map((p) => ({
+          id: p,
+          label: t(`notes.pages.${p}`),
+          icon: PAGE_ICONS[p],
+          testId: `notes-page-${p}`,
+        }))}
+      />
       {page === 'board'
         ? (boardReady ? <NotesBoard onOpenCalendar={calendarReady ? () => onPageChange('calendar') : undefined} /> : <TabNotSetUp kind="notes" />)
         : (calendarReady ? <DayNotesPage /> : <TabNotSetUp kind="dayNotes" />)}
@@ -215,35 +195,11 @@ function NotesBoard({ onOpenCalendar }: {
   return (
     <div>
       {!loaded && loadError ? (
-        <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="notes-load-error">
-          <p className="text-[13px] text-hs-text-faint">{t('notes.loadError')}</p>
-          <button
-            type="button"
-            onClick={() => void api.retry()}
-            className="mt-3 min-h-[44px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
-          >
-            {t('notes.retry')}
-          </button>
-        </div>
+        <LoadFailed testId="notes-load-error" message={t('notes.loadError')} onRetry={api.retry} />
       ) : !loaded ? null : (
         <>
           {live.length === 0 && gone.length === 0 ? (
-            <div data-testid="notes-empty" style={{ textAlign: 'center', padding: '64px 24px 0' }}>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.6}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                style={{ width: 44, height: 44, display: 'block', margin: '0 auto 14px', color: 'var(--hs-border-strong)' }}
-              >
-                <path d={NOTE_ICON_PATH} />
-              </svg>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--hs-text-body)' }}>{t('notes.empty.title')}</div>
-              <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginTop: 6, lineHeight: 1.45 }}>{t('notes.empty.body')}</div>
-            </div>
+            <EmptyState testId="notes-empty" icon={NoteIcon} title={t('notes.empty.title')} body={t('notes.empty.body')} />
           ) : (
             <div data-testid="notes-on-wall" style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
               {t('notes.onWall', { count: live.length })}
@@ -380,7 +336,7 @@ function NotesBoard({ onOpenCalendar }: {
                             className="press-scale"
                             data-testid="notes-delete"
                             onClick={() => setDeletingId(note.id)}
-                            style={{ ...DANGER_BUTTON, marginTop: 0, minHeight: 44, flex: 1, fontSize: 14, fontWeight: 600 }}
+                            style={{ ...DANGER_BUTTON, marginTop: 0, minHeight: 44, flex: 1 }}
                           >
                             {t('notes.delete')}
                           </button>

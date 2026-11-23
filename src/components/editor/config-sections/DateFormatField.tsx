@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import LabeledField from '@/components/ui/LabeledField';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** Three patterns that cover the shapes people ask for, shown with today's
  *  date next to them so "EEEE" stops being a guess. */
@@ -86,7 +87,7 @@ export default function DateFormatField({
           "what do I type" to a format that works. */}
       {showCustom && (
         <div className="mt-1 border-t border-hs-border pt-2" data-testid={`${testIdPrefix}-format-examples`}>
-          <p className="text-[11px] text-hs-text-faint mb-1">{words.examplesHeading}</p>
+          <FieldHint className="mb-1">{words.examplesHeading}</FieldHint>
           {CUSTOM_DATE_EXAMPLES.map((pattern) => (
             <button
               key={pattern}

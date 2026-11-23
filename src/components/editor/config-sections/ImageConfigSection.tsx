@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { uploadLibraryFiles } from '@/lib/library-client';
+import { uploadLibraryFiles, uploadFailureText } from '@/lib/library-client';
 import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -15,6 +15,7 @@ import { useObjectFitOptions } from './option-hooks';
 
 export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const OBJECT_FIT_OPTIONS = useObjectFitOptions();
 
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
@@ -36,7 +37,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     setUploadError(null);
     const { uploaded, error } = await uploadLibraryFiles([file], '');
     if (uploaded[0]) set({ src: uploaded[0] });
-    else if (error) setUploadError(error.message ?? t('configSections.image.uploadFailed'));
+    else if (error) setUploadError(uploadFailureText(error, tCore, tCore('errors.uploadFailed')));
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -61,7 +62,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               tab === 'library' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
-            {t('configSections.image.tabLibrary')}
+            {tCore('settingsPages.media')}
           </button>
         </div>
       </div>

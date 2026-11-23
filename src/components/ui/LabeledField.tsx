@@ -1,6 +1,7 @@
 'use client';
 
 import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from 'react';
+import FieldHint from './FieldHint';
 
 interface LabeledFieldProps {
   label: string;
@@ -15,24 +16,54 @@ interface LabeledFieldProps {
    * and screen readers keep the association.
    */
   as?: 'label' | 'div';
+  /**
+   * The help line under the control, drawn as a `FieldHint`. A single-element
+   * child is pointed at it with `aria-describedby`, so it is read out with
+   * the control.
+   */
+  hint?: ReactNode;
+  /** Forwarded to the help line, for tests that read it. */
+  hintTestId?: string;
 }
 
-export default function LabeledField({ label, children, className, as: Tag = 'label' }: LabeledFieldProps) {
+export default function LabeledField({ label, children, className, as: Tag = 'label', hint, hintTestId }: LabeledFieldProps) {
   const id = useId();
+  const hintId = `${id}-hint`;
+  const hasHint = hint !== undefined && hint !== null && hint !== false;
+  const describedBy = hasHint ? { 'aria-describedby': hintId } : {};
+  const hintLine = hasHint ? <FieldHint id={hintId} data-testid={hintTestId}>{hint}</FieldHint> : null;
+  const classes = `flex flex-col gap-0.5${className ? ` ${className}` : ''}`;
+
   if (Tag === 'div') {
     return (
-      <div className={`flex flex-col gap-0.5${className ? ` ${className}` : ''}`}>
+      <div className={classes}>
         <label htmlFor={id} className="text-xs text-hs-text-muted">{label}</label>
         {isValidElement(children)
-          ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+          ? cloneElement(children as ReactElement<{ id?: string }>, { id, ...describedBy })
           : children}
+        {hintLine}
       </div>
     );
   }
+  const control = hasHint && isValidElement(children)
+    ? cloneElement(children as ReactElement<Record<string, unknown>>, describedBy)
+    : children;
+  if (!hintLine) {
+    return (
+      <label className={classes}>
+        <span className="text-xs text-hs-text-muted">{label}</span>
+        {control}
+      </label>
+    );
+  }
+  // The hint sits outside the <label> so it is not read as part of the name.
   return (
-    <label className={`flex flex-col gap-0.5${className ? ` ${className}` : ''}`}>
-      <span className="text-xs text-hs-text-muted">{label}</span>
-      {children}
-    </label>
+    <div className={classes}>
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-hs-text-muted">{label}</span>
+        {control}
+      </label>
+      {hintLine}
+    </div>
   );
 }

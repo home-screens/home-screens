@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Plus } from 'lucide-react';
 import { useLocale, useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
-import ModalPortal from '@/components/ui/ModalPortal';
+import SheetFrame from './SheetFrame';
 import PhoneCustomIconReviewSheet from '@/components/custom-icons/PhoneCustomIconReviewSheet';
 import {
   deleteCustomIcon,
@@ -14,7 +14,6 @@ import {
   useCustomIcons,
 } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
-import SheetPanel from '@/components/ui/SheetPanel';
 import { isSessionExpired } from '@/lib/editor-fetch';
 import {
   ACCEPT_ATTRIBUTE,
@@ -27,12 +26,15 @@ import {
 import { customIconUseCount, customIconUseRows } from '@/lib/custom-icon-usage';
 import { formatDateInTZ } from '@/lib/timezone';
 import { useHouseholdTimezone } from '../household-clock';
-import { FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
+import { DANGER_BUTTON, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 /**
  * The phone's "Your icons" page: every picture the family added, how much
  * room is left, which ones are in use, and rename or remove for each.
- * Reached from Settings and from a picker's Manage link.
+ * Reached from Settings and from a picker's Manage link. Settings is a
+ * sheet, so the page always takes the rung over one.
  */
 export default function CustomIconsOverlay({ onBack }: { onBack: () => void }) {
   const t = useTranslate('core');
@@ -54,7 +56,7 @@ export default function CustomIconsOverlay({ onBack }: { onBack: () => void }) {
 
   return (
     <>
-      <FormOverlay title={t('customIcons.page.title')} onBack={onBack} zIndex={120}>
+      <FormOverlay title={t('customIcons.page.title')} onBack={onBack} layer="sheetOverSheet">
         <div style={{ margin: '4px 0 18px' }}>
           <div style={{ height: 8, borderRadius: 4, background: 'var(--hs-bg-card)', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${Math.max(share * 100, bytes ? 1.5 : 0)}%`, borderRadius: 4, background: share > 0.8 ? 'var(--hs-warning)' : REMOTE_ACCENT }} />
@@ -75,7 +77,7 @@ export default function CustomIconsOverlay({ onBack }: { onBack: () => void }) {
             className="press-scale-sm"
             style={{ ...TILE, background: 'transparent', border: '2px dashed var(--hs-border-strong)', color: 'var(--hs-text-muted)', justifyContent: 'center', minHeight: 94 }}
           >
-            <span style={{ fontSize: 24, fontWeight: 300, lineHeight: 1 }}>+</span>
+            <Plus size={24} strokeWidth={1.75} aria-hidden />
             <span style={{ fontSize: 12 }}>{t('customIcons.add')}</span>
           </button>
           {icons.map((icon) => (
@@ -178,10 +180,11 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
   if (confirming) {
     return (
       <ConfirmSheet
-        zIndex={140}
-        title={t('customIcons.remove.title', { name: icon.name })}
-        description={uses ? t('customIcons.remove.inUse', { count: uses }) : t('customIcons.remove.notUsed')}
-        confirmLabel={t('customIcons.remove.confirm')}
+        {...sheetQuestion(buildDeleteConfirm({
+          verb: 'delete',
+          name: icon.name,
+          consequence: uses ? t('customIcons.remove.inUse', { count: uses }) : t('customIcons.remove.notUsed'),
+        }, t))}
         cancelLabel={t('customIcons.remove.keep')}
         icon={
           <img src={icon.url} alt="" style={{ width: 56, height: 56, objectFit: 'contain', display: 'inline-block' }} />
@@ -193,87 +196,85 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
   }
 
   return (
-    <ModalPortal>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 130, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
-        <SheetPanel
-          onClose={busy ? undefined : onClose}
-          aria-label={icon.name}
-          onClick={(event) => event.stopPropagation()}
+    // Drawn at the end of the page, over the Your icons page it is opened from.
+    <SheetFrame
+      layer="sheetOverSheet"
+      portal
+      label={icon.name}
+      title={icon.name}
+      onClose={busy ? undefined : onClose}
+      handle
+      bottomGap={24}
+      panelStyle={{
+        background: 'var(--hs-bg-panel)', borderRadius: '20px 20px 0 0', borderTop: '1px solid var(--hs-border-strong)',
+        padding: '0 18px', maxHeight: '85dvh', overflowY: 'auto', color: 'var(--hs-text-primary)',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14 }}>
+        <div
           style={{
-            width: '100%', background: 'var(--hs-bg-panel)', borderRadius: '20px 20px 0 0', borderTop: '1px solid var(--hs-border-strong)',
-            padding: '10px 18px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '85dvh', overflowY: 'auto', color: 'var(--hs-text-primary)',
+            width: 84, height: 84, borderRadius: 16, flexShrink: 0, border: '1px solid var(--hs-border-strong)',
+            background: 'repeating-conic-gradient(var(--hs-bg-card) 0 25%, var(--hs-bg-input) 0 50%) 0 0 / 16px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <div style={{ width: 40, height: 5, borderRadius: 3, background: 'var(--hs-border-strong)', margin: '0 auto 14px' }} />
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14 }}>
-            <div
-              style={{
-                width: 84, height: 84, borderRadius: 16, flexShrink: 0, border: '1px solid var(--hs-border-strong)',
-                background: 'repeating-conic-gradient(var(--hs-bg-card) 0 25%, var(--hs-bg-input) 0 50%) 0 0 / 16px 16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <img src={icon.url} alt="" style={{ width: 68, height: 68, objectFit: 'contain' }} />
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
-              {t('customIcons.detail.added', {
-                // The day it was added at home, as the rest of the phone counts days.
-                date: formatDateInTZ(new Date(icon.createdAt), timezone, { month: 'short', day: 'numeric' }, locale),
-                size: formatIconBytes(icon.bytes, locale),
-              })}
-              {icon.animated && <div style={{ marginTop: 4 }}>▶ {t('customIcons.moving')}</div>}
-            </div>
-          </div>
-
-          <label htmlFor="custom-icon-rename" style={FIELD_LABEL}>{t('customIcons.review.nameLabel')}</label>
-          <input
-            id="custom-icon-rename"
-            type="text"
-            value={name}
-            maxLength={32}
-            onChange={(event) => setName(event.target.value)}
-            style={{
-              width: '100%', minHeight: 48, padding: '12px 16px', marginBottom: 14, background: 'var(--hs-bg-input)',
-              border: '1px solid var(--hs-border)', borderRadius: 12, color: 'var(--hs-text-primary)', fontSize: 16, outline: 'none',
-            }}
-          />
-
-          {rows.length > 0 && (
-            <>
-              <div style={FIELD_LABEL}>{t('customIcons.detail.usedBy')}</div>
-              <ul style={{ listStyle: 'none', margin: '0 0 16px', padding: 0, border: '1px solid var(--hs-border)', borderRadius: 12, overflow: 'hidden' }}>
-                {rows.map((row, i) => (
-                  <li
-                    key={`${row.kind}-${row.name}-${i}`}
-                    style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 14px', fontSize: 14, borderTop: i ? '1px solid var(--hs-border)' : undefined }}
-                  >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {row.kind === 'screen' ? t('customIcons.page.usedIn', { count: row.count ?? 1 }) : row.name}
-                    </span>
-                    <span style={{ color: 'var(--hs-text-faint)', flexShrink: 0 }}>{t(`customIcons.kinds.${row.kind}`)}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          <button type="button" disabled={busy} onClick={() => void save()} style={{ ...SHEET_BUTTON, background: REMOTE_ACCENT, color: '#000' }}>
-            {t('customIcons.detail.save')}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setConfirming(true)}
-            style={{ ...SHEET_BUTTON, marginTop: 8, background: 'color-mix(in srgb, var(--hs-danger) 14%, transparent)', color: 'var(--hs-danger)' }}
-          >
-            {t('customIcons.detail.remove')}
-          </button>
-        </SheetPanel>
+          <img src={icon.url} alt="" style={{ width: 68, height: 68, objectFit: 'contain' }} />
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
+          {t('customIcons.detail.added', {
+            // The day it was added at home, as the rest of the phone counts days.
+            date: formatDateInTZ(new Date(icon.createdAt), timezone, { month: 'short', day: 'numeric' }, locale),
+            size: formatIconBytes(icon.bytes, locale),
+          })}
+          {icon.animated && <div style={{ marginTop: 4 }}>▶ {t('customIcons.moving')}</div>}
+        </div>
       </div>
-    </ModalPortal>
+
+      <label htmlFor="custom-icon-rename" style={FIELD_LABEL}>{t('customIcons.review.nameLabel')}</label>
+      <input
+        id="custom-icon-rename"
+        type="text"
+        value={name}
+        maxLength={32}
+        onChange={(event) => setName(event.target.value)}
+        style={{
+          width: '100%', minHeight: 48, padding: '12px 16px', marginBottom: 14, background: 'var(--hs-bg-input)',
+          border: '1px solid var(--hs-border)', borderRadius: 12, color: 'var(--hs-text-primary)', fontSize: 16, outline: 'none',
+        }}
+      />
+
+      {rows.length > 0 && (
+        <>
+          <div style={FIELD_LABEL}>{t('customIcons.detail.usedBy')}</div>
+          <ul style={{ listStyle: 'none', margin: '0 0 16px', padding: 0, border: '1px solid var(--hs-border)', borderRadius: 12, overflow: 'hidden' }}>
+            {rows.map((row, i) => (
+              <li
+                key={`${row.kind}-${row.name}-${i}`}
+                style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 14px', fontSize: 14, borderTop: i ? '1px solid var(--hs-border)' : undefined }}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {row.kind === 'screen' ? t('customIcons.page.usedIn', { count: row.count ?? 1 }) : row.name}
+                </span>
+                <span style={{ color: 'var(--hs-text-faint)', flexShrink: 0 }}>{t(`customIcons.kinds.${row.kind}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <PrimaryButton busy={busy} onClick={() => void save()} style={{ marginTop: 0 }}>
+        {t('customIcons.detail.save')}
+      </PrimaryButton>
+      <button
+        type="button"
+        className="press-scale"
+        disabled={busy}
+        onClick={() => setConfirming(true)}
+        style={{ ...DANGER_BUTTON, marginTop: 8 }}
+      >
+        {t('customIcons.detail.remove')}
+      </button>
+    </SheetFrame>
   );
 }
 
-const SHEET_BUTTON: CSSProperties = {
-  width: '100%', minHeight: 50, borderRadius: 12, border: 'none', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-};

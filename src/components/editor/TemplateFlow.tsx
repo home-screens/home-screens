@@ -8,7 +8,7 @@ import LayoutImportModal from './LayoutImportModal';
 /**
  * The one start-from-template flow: the catalog, then the import
  * confirmation. Every entry point (the empty-canvas placeholder, the
- * first-run checklist, the screen tabs' "From Template…", Settings > Backups
+ * first-run checklist, the screen tabs' "From template…", Settings > Backups
  * & data) renders this rather than wiring the two modals itself, so they all
  * behave the same — including replacing the empty screen the user is
  * standing on instead of leaving it blank beside the imported one.

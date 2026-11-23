@@ -102,7 +102,7 @@ export function deriveCalendarState(
   // today's, since its all-day test is `start < date + 1 day`.
   const today = startOfDay(wallNow);
 
-  // A holiday both a calendar and Public Holidays list is one thing today.
+  // A holiday both a calendar and Public holidays list is one thing today.
   for (const ev of dropDuplicateHolidays(events)) {
     const allDay = isAllDayEvent(ev);
 

@@ -37,7 +37,7 @@ export default function PhotoMoveSheet({
 }) {
   const t = useTranslate('remote');
   return (
-    <BottomSheet title={title} onClose={onClose} zIndex={210} testId="photo-move-sheet">
+    <BottomSheet title={title} onClose={onClose} testId="photo-move-sheet">
       {folders.map((folder) => {
         const here = folder.path === current;
         const walls = wallsFor(folder);

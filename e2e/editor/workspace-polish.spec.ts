@@ -265,7 +265,7 @@ test.describe('background picker', () => {
     await expect(page.getByRole('button', { name: 'Upload Background' })).toHaveCount(0);
     await expect(page.getByRole('checkbox', { name: 'Colors' })).toBeEnabled();
     await expect(page.getByRole('checkbox', { name: 'Patterns' })).toBeEnabled();
-    await expect(page.getByRole('checkbox', { name: 'Library' })).toBeEnabled();
+    await expect(page.getByRole('checkbox', { name: 'Pictures & videos' })).toBeEnabled();
     await expect(page.getByRole('checkbox', { name: 'iCloud shared album' })).toBeEnabled();
     await expect(page.getByRole('checkbox', { name: 'NASA picture of the day' })).toBeEnabled();
     // Keyed sources wait for their key, and say where it goes.
@@ -347,7 +347,7 @@ test.describe('background picker', () => {
     await expect(page.getByTestId('background-mode')).toHaveText('Rotating between the selected sources');
 
     await page.getByTestId('background-choose').click();
-    const library = page.getByRole('dialog', { name: 'Image Library' });
+    const library = page.getByRole('dialog', { name: 'Pictures & videos' });
     await library.getByTestId('builtin-group-theme').click();
     await library.getByTestId('starter-picture-theme-aurora').click();
     await autosaved(page, async () => library.getByTestId('picker-confirm').click());
@@ -378,7 +378,7 @@ test.describe('background picker', () => {
     await page.goto('/editor');
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
 
-    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Library' }).check());
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Pictures & videos' }).check());
     let rotation = (await getConfig(request)).screens[0].backgroundRotation!;
     expect(rotation.sources).toEqual([{ kind: 'library', folder: '' }]);
     expect(rotation.intervalMinutes).toBe(60);
@@ -392,7 +392,7 @@ test.describe('background picker', () => {
 
     // A background is a still picture: no video choice, no per-refresh count.
     await expect(page.locator('select:has(option[value="videos"])')).toHaveCount(0);
-    await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
+    await expect(page.getByRole('slider', { name: 'Photos per refresh' })).toHaveCount(0);
   });
 
   test('groups the shipped walls, folds a group, and opens a ticked group again on the next visit', async ({ page, request }) => {
@@ -494,12 +494,12 @@ test.describe('dialogs close the way dialogs close', () => {
     // The Data page has its own "Templates" section heading, so scope to the dialog.
     const dialog = page.getByRole('dialog', { name: 'Templates' });
 
-    await page.getByRole('button', { name: 'Browse Templates' }).click();
+    await page.getByRole('button', { name: 'Browse templates' }).click();
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Browse Templates' }).click();
+    await page.getByRole('button', { name: 'Browse templates' }).click();
     await expect(dialog).toBeVisible();
     await page.getByTestId('modal-backdrop').click({ position: { x: 5, y: 5 } });
     await expect(dialog).toHaveCount(0);

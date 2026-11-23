@@ -14,6 +14,8 @@ import { logger } from '@/lib/logger';
 import { RESET_COMMAND, AUTH_FILE } from '@/lib/password-reset';
 import Link from 'next/link';
 import { settingsPath } from '@/lib/settings-route';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
 
 const log = logger('security');
 
@@ -80,7 +82,7 @@ export default function SecuritySection() {
   if (loading) {
     return (
       <section>
-        <p className="text-xs text-hs-text-faint">{t('settings.securityPage.loading')}</p>
+        <FieldHint>{t('settings.securityPage.loading')}</FieldHint>
       </section>
     );
   }
@@ -96,16 +98,12 @@ export default function SecuritySection() {
         <div
           className={`rounded-lg border px-3 py-2.5 ${
             status?.authEnabled
-              ? 'border-hs-success/35 bg-hs-success/[0.07]'
+              ? 'border-hs-success/30 bg-hs-success/10'
               : 'border-hs-border-strong bg-hs-card/50'
           }`}
         >
           <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                status?.authEnabled ? 'bg-hs-success' : 'bg-hs-card'
-              }`}
-            />
+            <StatusDot tone={status?.authEnabled ? 'success' : 'neutral'} />
             <span className={`text-sm font-medium ${status?.authEnabled ? 'text-hs-success' : 'text-hs-text-secondary'}`}>
               {status?.authEnabled
                 ? t('settings.securityPage.status.enabled')
@@ -121,9 +119,9 @@ export default function SecuritySection() {
 
         {!status?.authEnabled && (
           <div className="space-y-3">
-            <p className="text-xs text-hs-text-faint">
+            <FieldHint>
               {t('settings.securityPage.setup.description')}
-            </p>
+            </FieldHint>
             <Button variant="primary" size="sm" onClick={() => setModal('set')}>
               {t('settings.securityPage.setup.setPasswordButton')}
             </Button>
@@ -191,16 +189,16 @@ export default function SecuritySection() {
 
         {/* Same advice /login carries, worded the same way: this page is the
             one you cannot reach once you are locked out. */}
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.securityPage.forgotPasswordHint', {
             command: RESET_COMMAND,
             file: AUTH_FILE,
           })}
-        </p>
+        </FieldHint>
       </div>
 
       {/* The other lock people look for here: the one kids meet at the wall. */}
-      <p className="mt-6 text-xs text-hs-text-faint" data-testid="security-grown-up-pointer">
+      <FieldHint className="mt-6" data-testid="security-grown-up-pointer">
         {t('settings.securityPage.grownUpPointerPrefix')}
         <Link
           href={settingsPath({ kind: 'defaults', page: 'family' }, { highlight: 'family.grownUpCode' })}
@@ -209,7 +207,7 @@ export default function SecuritySection() {
           {t('settings.familyPage.grownUp.heading')}
         </Link>
         {t('settings.securityPage.grownUpPointerSuffix')}
-      </p>
+      </FieldHint>
 
       {modal && (
         <PasswordModal

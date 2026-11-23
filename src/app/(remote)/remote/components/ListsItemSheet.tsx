@@ -7,8 +7,9 @@ import type { FamilyMember } from '@/types/family';
 import { classifyDue } from '@/lib/todo-due-labels';
 import { addIsoDays } from '@/lib/iso-date';
 import BottomSheet from './BottomSheet';
-import { DANGER_BUTTON, GHOST_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, personChipStyle, segmentStyle } from './remote-styles';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { DANGER_BUTTON, GHOST_BUTTON, HELPER_TEXT, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
+import PersonChip from './PersonChip';
+import PrimaryButton from './PrimaryButton';
 
 type DueMode = 'none' | 'today' | 'tomorrow' | 'pick';
 
@@ -107,29 +108,7 @@ export default function ListsItemSheet({ item, todayISO, members, onSave, onDele
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="group" aria-labelledby="todo-who-label">
             {members.map((m) => {
               const on = assigneeIds.includes(m.id);
-              return (
-                <button key={m.id} type="button" aria-pressed={on} onClick={() => toggleAssignee(m.id)} style={personChipStyle(on)}>
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: '50%',
-                      background: m.color,
-                      color: memberInk(m.color),
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 11,
-                      fontWeight: 800,
-                      flex: 'none',
-                    }}
-                  >
-                    {memberInitials(m.name)}
-                  </span>
-                  {m.name}
-                </button>
-              );
+              return <PersonChip key={m.id} member={m} selected={on} aria-pressed={on} onClick={() => toggleAssignee(m.id)} />;
             })}
           </div>
         ) : (
@@ -143,9 +122,9 @@ export default function ListsItemSheet({ item, todayISO, members, onSave, onDele
           </div>
         )}
 
-        <button type="submit" className="press-btn" style={{ ...PRIMARY_BUTTON, marginTop: 22 }} disabled={!text.trim()}>
+        <PrimaryButton type="submit" style={{ marginTop: 22 }} disabled={!text.trim()}>
           {t('lists.itemSheet.save')}
-        </button>
+        </PrimaryButton>
         <button type="button" className="press-scale" style={DANGER_BUTTON} onClick={onDelete}>
           {t('lists.itemSheet.delete')}
         </button>

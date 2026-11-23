@@ -101,7 +101,7 @@ export const FULLSCREEN_WEATHER_VARIANTS: ConfigVariant[] = [
     config: { view: 'panorama', showStatRail: false },
     expect: async (mod) => {
       await expect(mod).toBeVisible();
-      await expect(mod).not.toContainText('UV Index');
+      await expect(mod).not.toContainText('UV index');
     },
   },
   {

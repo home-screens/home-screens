@@ -9,17 +9,29 @@ import { UI_SANS_STACK } from '@/lib/font-registry';
  *
  * Three field and label sets live side by side on purpose, because the pages
  * they belong to were each signed off with their own: `FIELD` / `FIELD_LABEL`
- * (chore, reward and routine forms), `SHEET_FIELD` / `SHEET_LABEL` (the
- * sheets on Lists and Notes) and `COMPACT_FIELD` / `COMPACT_LABEL` (meal
- * forms, which are denser). Making them one is a change to how those pages
- * look, not a tidy-up.
+ * (chore, reward, routine, event and family forms), `SHEET_FIELD` /
+ * `SHEET_LABEL` (the bottom sheets: Lists, Notes, Send alert, Rate dinner)
+ * and `COMPACT_FIELD` / `COMPACT_LABEL` (meal forms, which are denser).
+ * Making them one is a change to how those pages look, not a tidy-up.
  */
 
 /**
- * The phone's one accent: the amber of a lit chip, a save button, a section
- * heading. Tints of it go through `withAlpha`, never a hex suffix.
+ * The phone's one accent as a fill: the amber of a save button, a switch that
+ * is on, a chosen chip's wash. Tints of it go through `withAlpha`, never a hex
+ * suffix. As words or a thin line on the page it is `REMOTE_ACCENT_INK`.
  */
 export const REMOTE_ACCENT = '#f59e0b';
+
+/** Ink on an amber fill (a save button): dark, so it reads on amber in both themes. */
+export const REMOTE_ON_ACCENT = 'var(--hs-on-warning)';
+
+/**
+ * Amber as words, an icon or a thin line on the page (a chosen chip's label
+ * and edge, an amber heading, a chosen ring): the theme's amber ink, which is
+ * a deeper amber in the light theme so small words still read on near-white.
+ * Solid fills and soft washes stay `REMOTE_ACCENT`.
+ */
+export const REMOTE_ACCENT_INK = 'var(--hs-warning-ink)';
 
 /**
  * The border, wash and ink of a chip or option button: amber when it is the
@@ -29,9 +41,44 @@ export const REMOTE_ACCENT = '#f59e0b';
  */
 export function selectedPillStyle(selected: boolean, idleColor = 'var(--hs-text-faint)'): React.CSSProperties {
   return {
-    border: `1px solid ${selected ? REMOTE_ACCENT : 'var(--hs-border)'}`,
+    border: `1px solid ${selected ? REMOTE_ACCENT_INK : 'var(--hs-border)'}`,
     background: selected ? withAlpha(REMOTE_ACCENT, 0.15) : 'var(--hs-bg-panel)',
-    color: selected ? REMOTE_ACCENT : idleColor,
+    color: selected ? REMOTE_ACCENT_INK : idleColor,
+  };
+}
+
+/** The small count inside a chip (a list's open items, a folder's pictures): amber with its chip when chosen. */
+export function chipCountStyle(selected: boolean): React.CSSProperties {
+  return {
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '1px 6px',
+    borderRadius: 8,
+    background: selected ? withAlpha(REMOTE_ACCENT, 0.22) : 'var(--hs-bg-card)',
+    color: selected ? REMOTE_ACCENT_INK : 'var(--hs-text-muted)',
+  };
+}
+
+/**
+ * A 44 px pill that is on or off, or the picked one of a few (a timer look,
+ * Sound, Wait for a Done tap, the walls a timer shows on, a new event's
+ * calendar): amber when on, like every chosen chip. An icon or a colour dot
+ * may sit beside its label. Spacing around it stays with the caller.
+ */
+export function toggleChipStyle(on: boolean): React.CSSProperties {
+  return {
+    minHeight: 44,
+    padding: '0 14px',
+    borderRadius: 999,
+    fontSize: 13,
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    ...selectedPillStyle(on, 'var(--hs-text-muted)'),
   };
 }
 
@@ -101,19 +148,58 @@ export const HIT_TARGET: React.CSSProperties = {
 
 export const SEGMENT_ROW: React.CSSProperties = { display: 'flex', gap: 6 };
 
+/** One choice in a row of a few (a list's repeat, a note's life): lit in amber like every chosen chip. */
 export function segmentStyle(on: boolean): React.CSSProperties {
   return {
     flex: 1,
-    minHeight: 40,
+    minHeight: 44,
     borderRadius: 10,
-    border: `1px solid ${on ? 'var(--hs-accent)' : 'var(--hs-border-strong)'}`,
-    background: on ? 'var(--hs-accent)' : 'var(--hs-bg-input)',
-    color: on ? '#fff' : 'var(--hs-text-muted)',
+    ...selectedPillStyle(on, 'var(--hs-text-muted)'),
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
     fontFamily: 'inherit',
     padding: '0 6px',
+  };
+}
+
+/** The round mark beside each answer in a pick-one list: an amber ring when chosen. */
+export function radioRingStyle(on: boolean): React.CSSProperties {
+  return {
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    flexShrink: 0,
+    boxSizing: 'border-box',
+    border: on ? `6px solid ${REMOTE_ACCENT_INK}` : '2px solid var(--hs-border-strong)',
+  };
+}
+
+/** The track of an on/off switch: amber when on, the one on colour every phone switch uses. */
+export function switchTrackStyle(on: boolean): React.CSSProperties {
+  return {
+    position: 'relative',
+    flex: 'none',
+    width: 46,
+    height: 28,
+    borderRadius: 14,
+    background: on ? REMOTE_ACCENT : 'var(--hs-border-strong)',
+    transition: 'background 0.15s',
+  };
+}
+
+/** The knob that slides along `switchTrackStyle`. */
+export function switchKnobStyle(on: boolean): React.CSSProperties {
+  return {
+    position: 'absolute',
+    top: 3,
+    left: on ? 21 : 3,
+    width: 22,
+    height: 22,
+    borderRadius: '50%',
+    background: '#fff',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+    transition: 'left 0.15s',
   };
 }
 
@@ -132,11 +218,26 @@ const BUTTON_BASE: React.CSSProperties = {
   border: 'none',
 };
 
-export const PRIMARY_BUTTON: React.CSSProperties = {
-  ...BUTTON_BASE,
-  background: 'var(--hs-accent)',
-  color: '#fff',
-};
+/** What the phone's main button is doing: ready to press, not pressable yet, or working. */
+export type PrimaryButtonState = 'ready' | 'disabled' | 'busy';
+
+/**
+ * The phone's one "do it" button (save, add, send) in each of its states:
+ * amber with dark ink when it can be pressed, grey when it cannot yet, and a
+ * quieter amber while it works. `PrimaryButton` draws it with its busy words;
+ * spread this only where the button is not a `<button>` (a link drawn as one).
+ */
+export function primaryButtonStyle(state: PrimaryButtonState = 'ready'): React.CSSProperties {
+  if (state === 'disabled') {
+    return { ...BUTTON_BASE, background: 'var(--hs-text-faint)', color: 'var(--hs-text-muted)', opacity: 0.5, cursor: 'default' };
+  }
+  return {
+    ...BUTTON_BASE,
+    background: REMOTE_ACCENT,
+    color: REMOTE_ON_ACCENT,
+    ...(state === 'busy' ? { opacity: 0.7, cursor: 'progress' } : {}),
+  };
+}
 
 export const GHOST_BUTTON: React.CSSProperties = {
   ...BUTTON_BASE,
@@ -146,11 +247,31 @@ export const GHOST_BUTTON: React.CSSProperties = {
   fontSize: 14,
 };
 
+/**
+ * A quiet amber action beside the page's main one: an amber wash with amber
+ * words (Timers' New routine, Meals' back to this week). Size, shape and
+ * spacing stay with the caller.
+ */
+export const ACCENT_SOFT_BUTTON: React.CSSProperties = {
+  border: 'none',
+  background: withAlpha(REMOTE_ACCENT, 0.12),
+  color: REMOTE_ACCENT_INK,
+  fontWeight: 700,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+};
+
+/**
+ * The quiet red button that deletes, removes or clears something: under a
+ * form's save, at the foot of a sheet. Every delete on the phone that is not
+ * a confirm sheet's own answer looks like this.
+ */
 export const DANGER_BUTTON: React.CSSProperties = {
   ...BUTTON_BASE,
-  background: 'transparent',
+  background: withAlpha('var(--hs-danger)', 0.12),
   color: 'var(--hs-danger)',
-  border: '1px solid color-mix(in srgb, var(--hs-danger) 35%, transparent)',
+  fontSize: 14,
+  fontWeight: 600,
 };
 
 export function swatchStyle(color: string, on: boolean): React.CSSProperties {
@@ -165,24 +286,6 @@ export function swatchStyle(color: string, on: boolean): React.CSSProperties {
     outline: on ? '3px solid var(--hs-text-primary)' : 'none',
     outlineOffset: 2,
     flex: 'none',
-  };
-}
-
-export function personChipStyle(on: boolean): React.CSSProperties {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 36,
-    padding: '0 12px 0 8px',
-    borderRadius: 18,
-    border: `1px solid ${on ? 'var(--hs-text-primary)' : 'var(--hs-border-strong)'}`,
-    background: on ? 'var(--hs-bg-card)' : 'var(--hs-bg-input)',
-    color: 'var(--hs-text-body)',
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: 'inherit',
   };
 }
 
@@ -249,5 +352,5 @@ export const ACCENT_HEADING: React.CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
-  color: REMOTE_ACCENT,
+  color: REMOTE_ACCENT_INK,
 };

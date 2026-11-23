@@ -8,6 +8,7 @@ import { settingsPath } from '@/lib/settings-route';
 import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import Notice from '@/components/ui/Notice';
 
 /**
  * Rendered by PropertyPanel above the config section of every module whose
@@ -40,10 +41,7 @@ export function LocationStatusRow({ mod }: { mod: ModuleInstance }) {
   }
 
   return (
-    <div
-      className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs"
-      data-testid="location-status-row"
-    >
+    <Notice tone="warning" size="sm" testId="location-status-row">
       <p className="text-hs-text-body">{t('configSections.locationRow.notSet')}</p>
       <Link
         href={settingsPath({ kind: 'defaults', page: 'location' })}
@@ -51,6 +49,6 @@ export function LocationStatusRow({ mod }: { mod: ModuleInstance }) {
       >
         {t('configSections.locationRow.setUp')}
       </Link>
-    </div>
+    </Notice>
   );
 }

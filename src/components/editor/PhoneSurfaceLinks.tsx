@@ -5,7 +5,7 @@ import { ChevronRight, Copy, ListChecks, ListTodo, Check, Images, MessageSquareT
 import type { LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useCopyFlash } from '@/hooks/useCopyFlash';
 import {
   SURFACES_BY_CONTEXT,
@@ -15,6 +15,8 @@ import {
   type PhoneSurface,
 } from '@/lib/phone-surfaces';
 import PhoneSurfaceQrCode from './PhoneSurfaceQrCode';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Icon per context+surface pairing, so the chip reads as its feature. */
 const CHIP_ICONS: Record<PhoneContext, Partial<Record<PhoneSurface, LucideIcon>>> = {
@@ -114,39 +116,29 @@ function PhoneSurfaceDialog({ context, onClose }: { context: PhoneContext; onClo
       // across the two-card width reads as a layout bug, not a choice.
       className={`w-full ${surfaces.length > 1 ? 'max-w-md' : 'max-w-64'}`}
     >
-      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-4">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <h2 id="phone-surface-dialog-title" className="text-sm font-semibold text-hs-text-primary">
-              {t(`phoneSurfaces.dialog.title.${context}`)}
-            </h2>
-            <p className="mt-0.5 text-xs text-hs-text-muted">{t('phoneSurfaces.dialog.lede')}</p>
+      <ModalPanel>
+        <ModalHeader titleId="phone-surface-dialog-title" title={t(`phoneSurfaces.dialog.title.${context}`)} onClose={onClose} />
+        <ModalBody>
+          <p className="mb-3 text-xs text-hs-text-muted">{t('phoneSurfaces.dialog.lede')}</p>
+
+          <div className={`grid gap-2.5 ${surfaces.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {surfaces.map((surface) => (
+              <PhoneSurfaceDialogCard key={surface} surface={surface} context={context} origin={origin} />
+            ))}
           </div>
-          <button
-            onClick={onClose}
-            aria-label={tCore('actions.close')}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-lg leading-none text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body"
-          >
-            &times;
-          </button>
-        </div>
 
-        <div className={`grid gap-2.5 ${surfaces.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          {surfaces.map((surface) => (
-            <PhoneSurfaceDialogCard key={surface} surface={surface} context={context} origin={origin} />
-          ))}
-        </div>
-
-        <p className="mt-3 border-t border-hs-border pt-2.5 text-[11px] text-hs-text-faint">
-          {t('phoneSurfaces.dialog.passwordHint')}
-        </p>
-      </div>
+          <FieldHint className="mt-3 border-t border-hs-border pt-2.5">
+            {t('phoneSurfaces.dialog.passwordHint', { place: settingsPlaceText(tCore, 'security') })}
+          </FieldHint>
+        </ModalBody>
+      </ModalPanel>
     </ModalFrame>
   );
 }
 
 function PhoneSurfaceDialogCard({ surface, context, origin }: { surface: PhoneSurface; context: PhoneContext; origin: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const isKid = surface === 'chores';
 
   return (
@@ -156,7 +148,7 @@ function PhoneSurfaceDialogCard({ surface, context, origin }: { surface: PhoneSu
       }`}
     >
       <p className="text-xs font-semibold text-hs-text-body">
-        {t(`phoneSurfaces.surfaces.${surface}.name`)}
+        {tCore(`launcher.${surface}.title`)}
       </p>
       <p className="mb-2 text-[10px] text-hs-text-faint">
         {t(`phoneSurfaces.surfaces.${surface}.audience`)}
@@ -184,6 +176,7 @@ function PhoneSurfaceDialogCard({ surface, context, origin }: { surface: PhoneSu
  */
 export function CopyLinkButton({ surface, context, origin }: { surface: PhoneSurface; context?: PhoneContext; origin: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { copied, copy } = useCopyFlash();
 
   const handleCopy = useCallback(() => {
@@ -201,7 +194,7 @@ export function CopyLinkButton({ surface, context, origin }: { surface: PhoneSur
       ) : (
         <Copy className="h-3 w-3" aria-hidden="true" />
       )}
-      {copied ? t('phoneSurfaces.dialog.copied') : t('phoneSurfaces.dialog.copyLink')}
+      {copied ? tCore('status.copied') : t('phoneSurfaces.dialog.copyLink')}
     </button>
   );
 }

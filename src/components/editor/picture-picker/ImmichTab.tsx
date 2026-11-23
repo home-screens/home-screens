@@ -13,17 +13,19 @@ import SetupHint from './SetupHint';
 import { usePickerBrowse } from './usePickerBrowse';
 import { importPicture } from './import-picture';
 import type { PickerTabProps } from './types';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 interface ConnectionStatus { reachable: boolean; authenticated: boolean; version?: string }
 
 /**
  * The household's Immich library: All photos, Favorites, every album and
  * every named person down the side like folders, newest first in the grid,
- * 60 at a time. Still pictures only. Select Image copies the photo into the
+ * 60 at a time. Still pictures only. Use this picture copies the photo into the
  * library's `immich` folder, so the wall never needs Immich up to show it.
  */
 export default function ImmichTab({ selection, onSelect, copying }: PickerTabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [collection, setCollection] = useState('all');
   const connection = useEditorData<ConnectionStatus>('/api/immich/validate');
   const connected = connection.data?.authenticated === true;
@@ -38,14 +40,14 @@ export default function ImmichTab({ selection, onSelect, copying }: PickerTabPro
     return (
       <div className="flex-1">
         <SetupHint
-          text={`${t('photoSources.immich.unreachable')} ${t('photoSources.immich.unreachableHelp')}`}
+          text={`${t('photoSources.immich.unreachable')} ${t('photoSources.immich.unreachableHelp', { place: settingsPlaceText(tCore, 'integrations') })}`}
           action={{ label: t('photoSources.picker.tryAgain'), onClick: connection.refetch }}
         />
       </div>
     );
   }
   if (!connected) {
-    return <div className="flex-1"><SetupHint text={t('photoSources.immich.keyRejected')} /></div>;
+    return <div className="flex-1"><SetupHint text={t('photoSources.immich.keyRejected', { place: settingsPlaceText(tCore, 'integrations') })} /></div>;
   }
 
   const albumsHidden = missingImmichPermission(albums.failure);

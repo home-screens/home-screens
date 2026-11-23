@@ -249,7 +249,7 @@ test('the install confirmation preview surfaces the plugin\'s requested permissi
 
   // InstallConfirmModal renders PluginInstallPreview. The plugin is not on disk,
   // so its manifest fetch 404s and the registry-declared permissions are shown.
-  await expect(page.getByRole('heading', { name: 'Install Plugin' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Install plugin' })).toBeVisible();
   await expect(page.getByText('What this plugin can do')).toBeVisible();
   await expect(page.getByText('Network access')).toBeVisible();
   await expect(page.getByText('Secret storage')).toBeVisible();
@@ -370,7 +370,7 @@ test('uninstalling removes the plugin files, its installed entry, and its palett
   expect(installed.plugins.find((p) => p.id === FIXTURE_PLUGIN_ID)).toBeUndefined();
 
   // The palette entry disappears once the store reloads without the plugin.
-  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(dialog).toBeHidden();
   await page.getByPlaceholder('Search modules…').fill('E2E Fixture');
   await expect(page.getByTestId(`palette-${FIXTURE_PLUGIN_TYPE}`)).toBeHidden();
@@ -666,11 +666,11 @@ test('the install confirmation modal badges and warns for a beta version', async
   await dialog.getByLabel('Show beta plugins').check();
   await dialog.getByRole('button', { name: 'Install', exact: true }).click();
 
-  const heading = page.getByRole('heading', { name: 'Install Plugin' });
-  await expect(heading).toBeVisible();
-  // Badge sits inside the modal heading; scope to it so it can't match a
-  // leftover Beta badge on a Browse row underneath.
-  await expect(heading.getByText('Beta', { exact: true })).toBeVisible();
+  const confirm = page.getByRole('dialog', { name: 'Install plugin' });
+  await expect(confirm.getByRole('heading', { name: 'Install plugin' })).toBeVisible();
+  // Badge sits in the confirm's header beside its title; scope to the confirm
+  // so it can't match a leftover Beta badge on a Browse row underneath.
+  await expect(confirm.getByText('Beta', { exact: true })).toBeVisible();
   await expect(page.getByText('Beta versions are still being tested and may have problems.')).toBeVisible();
 });
 

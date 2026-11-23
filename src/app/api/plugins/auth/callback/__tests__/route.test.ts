@@ -6,9 +6,13 @@ import { NextRequest } from 'next/server';
 
 let tmpDir: string;
 let origCwd: () => string;
+const REPO = process.cwd();
 
 beforeEach(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-auth-callback-'));
+  // The page reads its words from the dictionaries under the working folder.
+  await fs.mkdir(path.join(tmpDir, 'src'), { recursive: true });
+  await fs.symlink(path.join(REPO, 'src', 'translations'), path.join(tmpDir, 'src', 'translations'));
   origCwd = process.cwd;
   process.cwd = () => tmpDir;
   vi.resetModules();
@@ -66,13 +70,27 @@ describe('GET /api/plugins/auth/callback', () => {
     const { GET } = await import('../route');
     const res = await GET(req('?code=abc&state=bogus'));
     const html = await res.text();
-    expect(html).toContain('Sign-in failed');
+    expect(html).toContain('That sign-in didn&#39;t work');
     expect(html).not.toContain('plugin-auth-success');
   });
 
   it('renders a failure page when the provider returns an error', async () => {
     const { GET } = await import('../route');
     const res = await GET(req('?error=access_denied'));
-    expect(await res.text()).toContain('Sign-in failed');
+    const html = await res.text();
+    expect(html).toContain('That sign-in didn&#39;t work');
+    expect(html).toContain('plugin-auth-error');
+    // The reason goes to the opener, not onto the page as words.
+    expect(html).not.toContain('<p>access_denied</p>');
+  });
+
+  it("speaks the household's language", async () => {
+    await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data', 'config.json'), JSON.stringify({ settings: { locale: 'de-DE' } }));
+    const { GET } = await import('../route');
+    const html = await (await GET(req('?error=access_denied'))).text();
+    expect(html).toContain('<html lang="de-DE">');
+    expect(html).toContain('Die Anmeldung hat nicht geklappt');
+    expect(html).toContain('Geh zurück zum Editor');
   });
 });

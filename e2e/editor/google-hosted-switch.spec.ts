@@ -73,7 +73,7 @@ base.describe('on by default', () => {
       await expect(page.getByText(/Switching apps signs Google out/)).toBeVisible();
       // The details stay, dimmed and still editable.
       await expect(page.getByTestId('google-own-app-fields')).toHaveClass(/opacity-60/);
-      await expect(page.getByTestId('google-own-app-fields').getByText('Calendar Client ID')).toBeVisible();
+      await expect(page.getByTestId('google-own-app-fields').getByText('Calendar client ID')).toBeVisible();
       expect((await (await request.get('/api/secrets')).json()).google_client_id).toBe(true);
 
       // The Calendar page follows the hub's answer.

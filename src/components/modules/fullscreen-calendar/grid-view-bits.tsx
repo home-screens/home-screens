@@ -17,6 +17,7 @@ import { clampStyle, dayCellFill, dayDecorFor, resolveTodayHighlight } from './v
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import type { CalendarScale, CalendarViewProps } from './view-support';
 import type { FullscreenCalendarConfig, TimeFormat } from '@/types/config';
+import { WallButton } from '../shared/WallButton';
 
 /**
  * The day cell the fullscreen day-grids share (month, rolling weeks):
@@ -291,9 +292,9 @@ export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName =
       {overflow > 0 && (dayTap ? (
         // At the event titles' size, as the mockup draws it: the line it
         // replaces was a quiet footnote, the pill is something to tap.
-        <button type="button" {...dayTap} style={moreButtonStyle(fontSize * 0.55, scale)}>
+        <WallButton {...dayTap} style={moreButtonStyle(fontSize * 0.55, scale)}>
           {t('fullscreen-calendar.moreCount', { count: overflow })}
-        </button>
+        </WallButton>
       ) : (
         <div style={{
           fontSize: fontSize * 0.5,

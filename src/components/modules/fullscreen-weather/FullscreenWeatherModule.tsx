@@ -15,7 +15,8 @@ import { forecastFromToday } from '@/lib/weather/daily';
 import { activeAlerts } from '@/lib/weather/derive';
 import { isoDateInTZ } from '@/lib/timezone';
 import { LocationRequired } from '../LocationRequired';
-import { ModuleSetupState } from '../ModuleStates';
+import { ModuleEmptyState, ModuleLoadingState } from '../ModuleStates';
+import { FullscreenStateShell, fullscreenStateStyle } from '../shared/FullscreenStateShell';
 import { useLoadingStalled } from '@/hooks/useLoadingStalled';
 import type { FetchError } from '@/lib/fetch-error';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
@@ -232,11 +233,39 @@ export default function FullscreenWeatherModule({
     latitude != null && longitude != null ? { lat: latitude, lon: longitude } : null,
   ) ?? '';
 
-  if (locationMissing) {
-    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
-  }
-  if (waiting && weatherError?.kind === 'setup') {
-    return <ModuleSetupState style={style} error={weatherError} />;
+  // The sky the screen is painted on, drawn behind the states as well, so
+  // their ink (white on the living sky) sits on the ground it was chosen for.
+  const skyLayer = skyMode === 'living' ? (
+    <LivingSky scene={scene} moonPhase={moonPhase} moonPlace={config.view === 'forecast' ? 'hero' : 'header'} />
+  ) : skyMode === 'still' ? (
+    <div
+      data-testid="fsw-sky"
+      data-scene="still"
+      style={{ position: 'absolute', inset: 0, zIndex: 0, background: skyBackground(skyCondition, theme.isDark) }}
+    />
+  ) : null;
+
+  // Every state before there is weather to draw sits on the theme ground at
+  // a canvas-relative type size, in the words every weather card uses.
+  const hasData = hourly.length > 0 || forecast.length > 0;
+  if (locationMissing || !hasData) {
+    const stateStyle = fullscreenStateStyle(style, theme, dims);
+    return (
+      <FullscreenStateShell theme={theme} backdrop={skyLayer} containerRef={containerRef} data-testid="fullscreen-weather" data-view={config.view}>
+        <div style={{ height: '100%', textShadow: skyMode === 'living' ? LIVING_TEXT_SHADOW : undefined }}>
+        {locationMissing ? (
+          <LocationRequired style={stateStyle} locationSettingsHref={locationSettingsHref} />
+        ) : waiting ? (
+          // Still waiting, waiting too long, or a setup problem. An answer
+          // with nothing in it is not loading, and saying so for ever reads
+          // as a hung screen, so it has its own line below.
+          <ModuleLoadingState style={stateStyle} message={t('fullscreen-weather.loading')} error={weatherError} stalled={stalled} />
+        ) : (
+          <ModuleEmptyState style={stateStyle} message={t('weather.noWeatherData')} />
+        )}
+        </div>
+      </FullscreenStateShell>
+    );
   }
 
   const viewProps: WeatherViewProps = {
@@ -259,8 +288,7 @@ export default function FullscreenWeatherModule({
     ['--fsw-text-shadow' as string]: skyMode === 'living' ? LIVING_TEXT_SHADOW : 'none',
   };
 
-  const { s, u } = scale;
-  const hasData = hourly.length > 0 || forecast.length > 0;
+  const { u } = scale;
 
   return (
     <div
@@ -277,15 +305,7 @@ export default function FullscreenWeatherModule({
         ...themeVars,
       }}
     >
-      {skyMode === 'living' ? (
-        <LivingSky scene={scene} moonPhase={moonPhase} moonPlace={config.view === 'forecast' ? 'hero' : 'header'} />
-      ) : skyMode === 'still' ? (
-        <div
-          data-testid="fsw-sky"
-          data-scene="still"
-          style={{ position: 'absolute', inset: 0, zIndex: 0, background: skyBackground(skyCondition, theme.isDark) }}
-        />
-      ) : null}
+      {skyLayer}
 
       {/*
         Two boxes, not one. The outer carries the canvas padding; the inner is
@@ -313,15 +333,7 @@ export default function FullscreenWeatherModule({
         // measuring.
         overflow: 'hidden',
       }}>
-        {!hasData ? (
-          <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: theme.textMuted, fontSize: s * 2.2 }} aria-live="polite">
-            {/* Three states, as the standard module tells them apart: still
-                waiting, waiting too long, and an answer with nothing in it.
-                The last is not loading, and saying so for ever reads as a
-                hung screen. */}
-            {!waiting ? t('weather.noWeatherData') : weatherError || stalled ? t('weather.notUpdating') : t('fullscreen-weather.loading')}
-          </div>
-        ) : config.view === 'almanac' ? (
+        {config.view === 'almanac' ? (
           <AlmanacView {...viewProps} />
         ) : config.view === 'ambient' ? (
           <AmbientView {...viewProps} />

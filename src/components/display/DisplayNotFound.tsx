@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { setDisplayToken, displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
+import { WallButton } from '@/components/modules/shared/WallButton';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 interface DisplayNotFoundProps {
   displayId: string;
@@ -232,7 +234,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
         >
           {t('displayNotFound.adoptionLine1')}{' '}
           {t('displayNotFound.adoptionLine2')}{' '}
-          <strong>{t('displayNotFound.settingsLink')}</strong>,{' '}
+          <strong>{settingsPlaceText(t, 'displays')}</strong>,{' '}
           {t('displayNotFound.andClick')} <strong>{t('displayNotFound.adoptLabel')}</strong>{' '}
           {t('displayNotFound.nextTo')}{' '}
           <code
@@ -290,8 +292,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
             <div style={{ fontSize: 13, color: '#a3a3a3', marginBottom: 12, lineHeight: 1.5 }}>
               {t('displayNotFound.recoveryNotice', { seconds: Math.ceil(msRemaining / 1000) })}
             </div>
-            <button
-              type="button"
+            <WallButton
               onClick={goToDefault}
               style={{
                 display: 'inline-block',
@@ -309,7 +310,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
               }}
             >
               {t('displayNotFound.goToDefault')}
-            </button>
+            </WallButton>
           </div>
         )}
       </div>

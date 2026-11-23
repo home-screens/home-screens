@@ -98,6 +98,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <ColorPicker
         label={t('configSections.text.accentColor')}
+        swatches="accent"
         value={(c.accentColor as string) || '#ffffff'}
         onChange={(v) => set({ accentColor: v })}
       />

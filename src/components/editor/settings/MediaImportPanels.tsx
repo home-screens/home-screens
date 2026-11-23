@@ -7,6 +7,7 @@ import { useICloudImport } from '@/hooks/useICloudImport';
 import { useGooglePhotosImport } from '@/hooks/useGooglePhotosImport';
 import { GooglePhotosAction, GooglePhotosProgress } from '@/components/editor/photo-source/GooglePhotosAdd';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 const PANEL_CLASS = 'mb-4 flex flex-col gap-2.5 rounded-[10px] border border-hs-border-strong bg-hs-card p-3';
 
@@ -47,7 +48,7 @@ export function ICloudImportSheet({ initialFolder, directories, onImported }: {
   return (
     <div className={PANEL_CLASS} data-testid="media-icloud-panel">
       <p className="text-xs font-semibold text-hs-text-primary">{tCore('imports.icloudTitle')}</p>
-      <p className="text-[11px] leading-[1.45] text-hs-text-muted">{t('photoSources.import.icloudIntro')}</p>
+      <FieldHint>{t('photoSources.import.icloudIntro')}</FieldHint>
       <div className="flex gap-1.5">
         <input
           type="url"
@@ -78,7 +79,7 @@ export function ICloudImportSheet({ initialFolder, directories, onImported }: {
               ].filter(Boolean).join(' ')}
         </p>
       )}
-      {errorKey && <p className="text-[11px] text-hs-warning">{t(`icloudImport.errors.${errorKey}`)}</p>}
+      {errorKey && <p className="text-[11px] text-hs-warning-ink">{t(`icloudImport.errors.${errorKey}`)}</p>}
     </div>
   );
 }
@@ -99,9 +100,9 @@ export function GooglePhotosImportSheet({ initialFolder, directories, onImported
   return (
     <div className={PANEL_CLASS} data-testid="media-google-panel">
       <p className="text-xs font-semibold text-hs-text-primary">{t('photoSources.google.add')}</p>
-      <p className="text-[11px] leading-[1.45] text-hs-text-muted">
+      <FieldHint>
         {google.connected ? t('photoSources.import.googleIntro') : t('photoSources.import.googleSignInIntro')}
-      </p>
+      </FieldHint>
       {google.connected && <SaveInto value={folder} onChange={setFolder} directories={directories} />}
       <div><GooglePhotosAction google={google} label={t('photoSources.import.openGoogle')} /></div>
       <GooglePhotosProgress google={google} folderLabel={folder || t('settings.mediaPage.topLevel')} />

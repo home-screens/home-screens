@@ -26,7 +26,6 @@ import { formatList, useFormattingLocale, useTranslate } from '@/i18n';
 import type { TimetableData, TimetableSchool, TimetableWeek, WeekLetter } from '@/types/timetables';
 import DatesTab, { upcomingNoteCount } from './DatesTab';
 import ImportView from './ImportView';
-import { PROSE_CLASS } from './prose';
 import SchoolsTab from './SchoolsTab';
 import SubjectsTab from './SubjectsTab';
 import TimetablesTab from './TimetablesTab';
@@ -50,6 +49,8 @@ import {
   withWeeksAB,
   type TimetableBrush,
 } from './use-timetable-draft';
+import Notice from '@/components/ui/Notice';
+import FieldHint, { FieldSurfaceProvider } from '@/components/ui/FieldHint';
 
 const TABS = ['timetables', 'schools', 'subjects', 'dates'] as const;
 type TabKey = (typeof TABS)[number];
@@ -71,7 +72,8 @@ interface PendingSchool {
   mode: 'start' | 'move';
 }
 
-const BANNER_CLASS = `mx-4 mt-3 rounded-lg border px-3 py-2 ${PROSE_CLASS}`;
+/** Where the window's notices sit: under the header, inset like the body. */
+const BANNER_CLASS = 'mx-4 mt-3';
 
 interface TimetableModalProps {
   /** Open on this person, so the panel's "+ Add" lands where it was clicked. */
@@ -88,9 +90,9 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
 
   const draft = useTimetableDraft({
     loadFailed: t('timetableModal.loadError'),
-    saveFailed: t('common.saveError'),
+    saveFailed: tCore('refusals.saveFailed'),
     unreachable: tCore('refusals.hubUnreachable'),
-    refusal: (error) => (error instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(error, t) ?? t('common.saveError')),
+    refusal: (error) => (error instanceof HubUnreachableError ? tCore('refusals.hubUnreachable') : refusalSentence(error, t) ?? tCore('refusals.saveFailed')),
   });
   const data = draft.data ?? EMPTY_TIMETABLE_DATA;
 
@@ -165,7 +167,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
     draft.update((current) => addTimetable(current, forMember, school));
   };
 
-  /** The "+ Add a school" beside a person's School box: their week is waiting. */
+  /** The "Add a school" beside a person's School box: their week is waiting. */
   const addSchoolFor = (forMember: string) => {
     setSelectedMemberId(forMember);
     setPending({ memberId: forMember, mode: 'move' });
@@ -305,7 +307,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
       const before = JSON.stringify(findTimetable(data, forMember)?.weeks ?? null);
       // A refused save keeps its draft and banner. Never reload over it.
       if (!await draft.flushNow()) return null;
-      await checkSheetNow(editorFetch, forMember, t('common.saveError'));
+      await checkSheetNow(editorFetch, forMember, tCore('refusals.failed'));
       const next = await draft.reload();
       if (!next) return null;
       return JSON.stringify(findTimetable(next, forMember)?.weeks ?? null) === before ? 'unchanged' : 'changed';
@@ -374,6 +376,8 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
       closable={!checkingSheet}
       onClose={() => void close()}
     >
+      {/* Every screen in this window teaches, so its notes read at the prose tier. */}
+      <FieldSurfaceProvider surface="prose">
       <fieldset
         disabled={checkingSheet}
         aria-busy={checkingSheet}
@@ -381,80 +385,82 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
         onPointerDownCapture={(event) => { if (checkingSheetRef.current) event.stopPropagation(); }}
       >
       {draft.loadError && (
-        <div role="alert" className={`${BANNER_CLASS} border-hs-danger/30 bg-hs-danger/10 text-hs-danger`}>
-          {draft.loadError}
-        </div>
+        <Notice tone="danger" role="alert" className={BANNER_CLASS}>{draft.loadError}</Notice>
       )}
       {draft.saveError && !draft.conflict && (
-        <div
+        <Notice
+          tone="danger"
           role="alert"
-          className={`${BANNER_CLASS} flex flex-wrap items-center gap-2 border-hs-danger/30 bg-hs-danger/10 text-hs-danger`}
-        >
-          <span className="min-w-0 flex-1">{draft.saveError}</span>
-          {closeRefused && (
+          className={BANNER_CLASS}
+          action={closeRefused && (
             <Button size="sm" onClick={onClose}>
               {t('timetableModal.closeAnyway')}
             </Button>
           )}
-        </div>
+        >
+          {draft.saveError}
+        </Notice>
       )}
       {/* The other document is already in the draft by the time this is drawn,
           so there is nothing left to refresh and nothing to compare: the
           banner used to send a household off to check an edit that had been
           thrown away, behind a button that implied they still had a choice. */}
       {draft.conflict && (
-        <div
-          role="alert"
-          className={`${BANNER_CLASS} flex items-center gap-2 border-hs-danger/30 bg-hs-danger/10 text-hs-danger`}
-        >
-          <span className="flex-1">{t('timetableModal.saveConflict')}</span>
-        </div>
+        <Notice tone="danger" role="alert" className={BANNER_CLASS}>{t('timetableModal.saveConflict')}</Notice>
       )}
       {pending && (
-        <div
-          role="status"
-          className={`${BANNER_CLASS} flex items-center gap-2 border-hs-accent/30 bg-hs-accent/10 text-hs-text-body`}
-        >
-          <span className="flex-1">
+        <Notice tone="info" role="status" className={BANNER_CLASS}>
+          <span className="text-hs-text-body">
             {t(pending.mode === 'start' ? 'timetableModal.schoolFirst' : 'timetableModal.schoolForMember', {
               name: members.find((member) => member.id === pending.memberId)?.name ?? '',
             })}
           </span>
-        </div>
+        </Notice>
       )}
+      {/* Undo used to be its only control, so a household that was happy
+          with the change kept the bar at the top of the window for the rest
+          of the session: it has an OK beside it. */}
       {stoppedFollowing && (
-        <div
+        <Notice
+          tone="warning"
           role="status"
-          className={`${BANNER_CLASS} flex items-center gap-2 border-hs-warning/30 bg-hs-warning/10 text-hs-text-body`}
+          className={BANNER_CLASS}
+          action={
+            <>
+              <Button
+                size="sm"
+                onClick={() => {
+                  draft.update((current) => withSheetSync(current, stoppedFollowing, true));
+                  setStoppedFollowing(null);
+                }}
+              >
+                {t('timetableModal.source.undo')}
+              </Button>
+              <Button size="sm" onClick={() => setStoppedFollowing(null)}>
+                {t('timetableModal.source.stoppedAck')}
+              </Button>
+            </>
+          }
         >
-          <span className="flex-1">
+          <span className="text-hs-text-body">
             {t('timetableModal.source.stopped', {
               name: members.find((member) => member.id === stoppedFollowing)?.name ?? '',
             })}
           </span>
-          <Button
-            size="sm"
-            onClick={() => {
-              draft.update((current) => withSheetSync(current, stoppedFollowing, true));
-              setStoppedFollowing(null);
-            }}
-          >
-            {t('timetableModal.source.undo')}
-          </Button>
-          {/* Undo used to be its only control, so a household that was happy
-              with the change kept the bar at the top of the window for the
-              rest of the session. */}
-          <Button size="sm" onClick={() => setStoppedFollowing(null)}>
-            {t('timetableModal.source.stoppedAck')}
-          </Button>
-        </div>
+        </Notice>
       )}
       {cycleTurnedOff && (
-        <div
+        <Notice
+          tone="warning"
           role="status"
-          className={`${BANNER_CLASS} flex items-center gap-2 border-hs-warning/30 bg-hs-warning/10 text-hs-text-body`}
+          className={BANNER_CLASS}
+          action={
+            <Button size="sm" onClick={() => setWeekCycle(cycleTurnedOff.schoolId, cycleTurnedOff.previous)}>
+              {t('timetableModal.source.undo')}
+            </Button>
+          }
         >
-          <span className="flex-1">
+          <span className="text-hs-text-body">
             {t('timetableModal.weekCycle.turnedOff', {
               names: formatList(
                 cycleTurnedOff.memberIds.map(
@@ -464,10 +470,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
               ),
             })}
           </span>
-          <Button size="sm" onClick={() => setWeekCycle(cycleTurnedOff.schoolId, cycleTurnedOff.previous)}>
-            {t('timetableModal.source.undo')}
-          </Button>
-        </div>
+        </Notice>
       )}
 
       {!draft.loaded ? (
@@ -593,7 +596,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
           </div>
 
           <div className="flex items-center gap-3 border-t border-hs-border-strong px-5 py-3">
-            <p className={`flex-1 ${PROSE_CLASS} text-hs-text-faint`}>{footerNote()}</p>
+            <FieldHint className="flex-1">{footerNote()}</FieldHint>
             <Button size="sm" variant="primary" onClick={() => void close()}>
               {t('timetableModal.done')}
             </Button>
@@ -601,6 +604,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
         </>
       )}
       </fieldset>
+      </FieldSurfaceProvider>
     </CRUDModalShell>
   );
 }

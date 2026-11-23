@@ -25,6 +25,7 @@ import AlertFormFields, {
 import type { DisplayState } from '@/lib/settings-form';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import SettingsTabBar from './shared/SettingsTabBar';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * The Screen page's tab set, mirroring AutomationSection's URL-driven
@@ -164,7 +165,7 @@ export default function ScreenSection({
             {t('settings.defaultDisplayPage.descriptionPart2')}
           </p>
           {isMultiDisplay && (
-            <p className="text-xs text-hs-text-faint mt-2">
+            <FieldHint className="mt-2">
               {t('settings.defaultDisplayPage.multiDisplayNotePart1')}
               <strong className="text-hs-text-secondary">
                 {t('settings.defaultDisplayPage.multiDisplayNotePerDisplay')}
@@ -172,7 +173,7 @@ export default function ScreenSection({
               {t('settings.defaultDisplayPage.multiDisplayNotePart2')}
               <em>{t('settings.defaultDisplayPage.multiDisplayNotePerDisplaySection')}</em>
               {t('settings.defaultDisplayPage.multiDisplayNotePart3')}
-            </p>
+            </FieldHint>
           )}
         </>
       }
@@ -216,9 +217,9 @@ export default function ScreenSection({
           via SLEEP_OVERRIDE_FIELDS. */}
       {panel === 'sleep' && (
         <div>
-          <p className="text-xs text-hs-text-faint mb-3">
+          <FieldHint className="mb-3">
             {t('settings.defaultSleepPage.description')}
-          </p>
+          </FieldHint>
           <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
             <SleepFormFields values={sleepValues} onChange={onSleepChange} />
           </div>
@@ -231,9 +232,9 @@ export default function ScreenSection({
           is a per-display operation on the Overrides subtab. */}
       {panel === 'alerts' && (
         <div>
-          <p className="text-xs text-hs-text-faint mb-3">
+          <FieldHint className="mb-3">
             {t('settings.defaultAlertsPage.description')}
-          </p>
+          </FieldHint>
           <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
             <AlertFormFields values={alertValues} onChange={onAlertsChange} />
           </div>

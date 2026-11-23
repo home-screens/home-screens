@@ -8,9 +8,9 @@ import type { PickerBrowse } from './usePickerBrowse';
 import type { BrowseTile } from './types';
 
 /**
- * The grid every browsed source shares, drawn like the Local tab's: three
+ * The grid every browsed source shares, drawn like the library tab's: three
  * square tiles across, a blue border on the chosen one, Show more at the
- * bottom. Clicking a tile chooses it; Select Image in the footer copies it.
+ * bottom. Clicking a tile chooses it; Use this picture in the footer copies it.
  */
 export default function RemoteGrid({ browse, selectedKey, copying, onChoose, empty, failed, caption }: {
   browse: PickerBrowse;

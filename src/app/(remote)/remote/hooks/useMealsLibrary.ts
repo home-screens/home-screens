@@ -17,6 +17,7 @@ import type { MealEdit } from '@/lib/meal-client';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useMealForm } from './useMealForm';
 import type { MealsConfirmAction } from '../components/meals-shared';
+import { buildDeleteConfirm, sheetQuestion } from '@/lib/delete-confirmations';
 
 interface MealsLibraryParams {
   savedMeals: SavedMeal[];
@@ -53,6 +54,7 @@ export function useMealsLibrary({
   todayISO,
 }: MealsLibraryParams) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
 
   const form = useMealForm();
@@ -89,11 +91,13 @@ export function useMealsLibrary({
     const entries = plannedEntriesOfMeal(plan, mealToDelete.id);
     const days = formatPlannedDays(entries.map((p) => p.date), todayISO, locale, (count) => t('mealsTab.confirm.deleteMeal.moreDays', { count }));
     setConfirmAction({
-      title: t('mealsTab.confirm.deleteMeal.title', { name: mealToDelete.name }),
-      description: days
-        ? t('mealsTab.confirm.deleteMeal.descriptionPlanned', { days })
-        : t('mealsTab.confirm.deleteMeal.description'),
-      confirmLabel: t('mealsTab.confirm.deleteMeal.confirmLabel'),
+      ...sheetQuestion(buildDeleteConfirm({
+        verb: 'delete',
+        name: mealToDelete.name,
+        consequence: days
+          ? t('mealsTab.confirm.deleteMeal.descriptionPlanned', { days })
+          : t('mealsTab.confirm.deleteMeal.description'),
+      }, tCore)),
       onConfirm: async () => {
         const next = removeSavedMeal(savedMeals, plan, mealToDelete.id);
         setSavedMeals(next.savedMeals);

@@ -20,6 +20,7 @@ import {
 import type { LivePhotoMotion, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import { MediaTypesFields } from '@/components/editor/config-sections/MediaTypesFields';
 import PhotoSourceEntryFields from './PhotoSourceEntryFields';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** What the source block writes back: any of these fields, merged into the owner's config. */
 export interface PhotoSourcePatch {
@@ -48,6 +49,7 @@ export default function PhotoSourceFields({ use, value, onChange }: {
   onChange: (patch: PhotoSourcePatch) => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { status } = useSecretStatus();
   const source = normalizePhotoSource(value.photoSource) ?? defaultPhotoSource('library');
   // Walls are picked as tiles in a background's Sources list, never from a select.
@@ -72,8 +74,8 @@ export default function PhotoSourceFields({ use, value, onChange }: {
         options={kinds.map((kind) => ({ value: kind, label: optionLabel(kind) }))}
       />
       {!isReady(source.kind, status, use) && (
-        <p className="-mt-1 text-[10px] leading-relaxed text-hs-warning" data-testid="photo-source-key-missing">
-          {t(use === 'background' ? 'photoSources.keyMissingBackground' : 'photoSources.keyMissing')}
+        <p className="-mt-1 text-[10px] leading-relaxed text-hs-warning-ink" data-testid="photo-source-key-missing">
+          {t(use === 'background' ? 'photoSources.keyMissingBackground' : 'photoSources.keyMissing', { place: settingsPlaceText(tCore, 'integrations') })}
         </p>
       )}
 
@@ -98,10 +100,9 @@ export default function PhotoSourceFields({ use, value, onChange }: {
               { value: 'twice', label: t('common.livePhotosTwice') },
               { value: 'loop', label: t('common.livePhotosLoop') },
             ]}
+            hint={t('common.livePhotosHint')}
+            hintTestId="live-photos-hint"
           />
-          <p className="-mt-1 text-[11px] leading-relaxed text-hs-text-faint" data-testid="live-photos-hint">
-            {t('common.livePhotosHint')}
-          </p>
         </>
       )}
 

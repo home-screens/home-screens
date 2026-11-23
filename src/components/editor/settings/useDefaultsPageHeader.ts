@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
-import type { DefaultPageId } from '@/lib/settings-route';
+import type { TranslateFn } from '@/i18n';
+import { placeText, type DefaultPageId } from '@/lib/settings-route';
 
 /**
  * Docs target for each Defaults page's "Learn more" link. A page with no
@@ -31,6 +32,15 @@ const PAGE_DOCS: Partial<Record<DefaultPageId, string>> = {
   stats: `${DOCS_BASE}/troubleshooting`,
 };
 
+/**
+ * A Defaults page as a place, "Defaults > Screen": the page's breadcrumb, and
+ * the link a per-display page shows back to the page it overrides. `t` reads
+ * `editor`, `tCore` reads `core`.
+ */
+export function defaultsPlaceText(t: TranslateFn, tCore: TranslateFn, page: DefaultPageId): string {
+  return placeText([t('settings.sidebar.defaults'), tCore(`settingsPages.${page}`)]);
+}
+
 export interface DefaultsPageHeader {
   breadcrumb: string;
   heading: string;
@@ -56,9 +66,10 @@ export function useDefaultsPageHeader(
   headingOverride?: string,
 ): DefaultsPageHeader {
   const t = useTranslate('editor');
-  const label = t(`settings.sidebar.navLabels.${page}`);
+  const tCore = useTranslate('core');
+  const label = tCore(`settingsPages.${page}`);
   return {
-    breadcrumb: `${t('settings.sidebar.defaults')} → ${label}`,
+    breadcrumb: defaultsPlaceText(t, tCore, page),
     heading: headingOverride ?? label,
     docsHref: PAGE_DOCS[page],
   };

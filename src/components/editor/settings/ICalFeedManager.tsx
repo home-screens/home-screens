@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { uuid } from '@/lib/uuid';
 import { editorFetch } from '@/lib/editor-fetch';
 import { CALENDAR_COLOR_PALETTE } from '@/lib/calendar-color';
@@ -11,6 +12,12 @@ import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
 import CalendarColorChoice from './CalendarColorChoice';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import IconButton from '@/components/ui/IconButton';
+import { useConfirmStore } from '@/stores/confirm-store';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 interface ICalFeedManagerProps {
   icalSources: ICalSource[];
@@ -103,9 +110,17 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
     });
   }
 
-  function removeICalSource(id: string) {
-    onChange({ icalSources: icalSources.filter(s => s.id !== id) });
-    if (editingId === id) setEditingId(null);
+  /** A feed is something the household set up, so removing one asks first. */
+  async function removeICalSource(source: ICalSource) {
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'remove',
+      name: source.name,
+      consequence: t('modals.icalFeeds.removeConfirmMessage'),
+      confirmLabel: t('modals.icalFeeds.removeConfirmButton'),
+    }, tCore));
+    if (!ok) return;
+    onChange({ icalSources: icalSources.filter(s => s.id !== source.id) });
+    if (editingId === source.id) setEditingId(null);
   }
 
   function toggleICalSource(id: string) {
@@ -136,7 +151,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                     type="checkbox"
                     checked={source.enabled}
                     onChange={() => toggleICalSource(source.id)}
-                    className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+                    className={CHECKBOX_CLASS}
                   />
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -153,12 +168,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                   >
                     {editingId === source.id ? t('modals.icalFeeds.doneLowercase') : t('modals.icalFeeds.editLowercase')}
                   </button>
-                  <button
-                    onClick={() => removeICalSource(source.id)}
-                    className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
-                  >
-                    &times;
-                  </button>
+                  <IconButton label={t('modals.icalFeeds.removeFeed', { name: source.name })} onClick={() => void removeICalSource(source)} />
                 </div>
                 {editingId === source.id && (
                   <div className="px-3 pb-3 space-y-2">
@@ -166,24 +176,22 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                       type="text"
                       value={source.name}
                       onChange={(e) => updateICalSource(source.id, { name: e.target.value })}
-                      className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+                      className={`w-full ${SETTINGS_INPUT_SM_CLASS}`}
                       placeholder={t('modals.icalFeeds.feedNamePlaceholder')}
                     />
                     <input
                       type="text"
                       value={source.url}
                       onChange={(e) => updateICalSource(source.id, { url: e.target.value })}
-                      className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
+                      className={`w-full font-mono ${SETTINGS_INPUT_SM_CLASS}`}
                       placeholder="https://example.com/calendar.ics"
                     />
                     <Toggle
                       label={t('modals.icalFeeds.homeNetwork')}
                       checked={source.homeNetwork === true}
                       onChange={(v) => updateICalSource(source.id, { homeNetwork: v || undefined })}
+                      description={t('modals.icalFeeds.homeNetworkHint')}
                     />
-                    <p className="text-[11px] text-hs-text-faint leading-relaxed">
-                      {t('modals.icalFeeds.homeNetworkHint')}
-                    </p>
                     <div className="flex items-center gap-2.5">
                       <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
                       <CalendarColorChoice
@@ -200,12 +208,16 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
         )}
 
         {showAddForm ? (
-          <div className="rounded-md bg-hs-card border border-hs-border-strong p-3 space-y-2">
+          // A form, so Enter in either box adds the feed like the Add button.
+          <form
+            className="rounded-md bg-hs-card border border-hs-border-strong p-3 space-y-2"
+            onSubmit={(e) => { e.preventDefault(); void checkAndAdd(); }}
+          >
             <input
               type="text"
               value={newFeedName}
               onChange={(e) => setNewFeedName(e.target.value)}
-              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+              className={`w-full ${SETTINGS_INPUT_SM_CLASS}`}
               placeholder={t('modals.icalFeeds.newFeedNamePlaceholder')}
               autoFocus
             />
@@ -213,22 +225,19 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
               type="text"
               value={newFeedUrl}
               onChange={(e) => { setNewFeedUrl(e.target.value); setLinkCheck({ state: 'idle' }); }}
-              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
+              className={`w-full font-mono ${SETTINGS_INPUT_SM_CLASS}`}
               placeholder="https://example.com/calendar.ics"
             />
             <Toggle
               label={t('modals.icalFeeds.homeNetwork')}
               checked={newFeedHomeNetwork}
               onChange={(v) => { setNewFeedHomeNetwork(v); setLinkCheck({ state: 'idle' }); }}
+              description={t('modals.icalFeeds.homeNetworkHint')}
             />
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
-              {t('modals.icalFeeds.homeNetworkHint')}
-            </p>
             {linkCheck.state === 'failed' && (
-              <div data-testid="ical-link-check" className="rounded-md bg-hs-warning/10 border border-hs-warning/30 px-2.5 py-2 text-xs text-hs-warning space-y-0.5">
-                <p className="font-medium">{linkCheck.message}</p>
-                {!linkCheck.unverified && <p className="text-hs-warning/80">{t('modals.icalFeeds.checkFailedHint')}</p>}
-              </div>
+              <Notice tone="warning" testId="ical-link-check" title={linkCheck.message}>
+                {!linkCheck.unverified && <p>{t('modals.icalFeeds.checkFailedHint')}</p>}
+              </Notice>
             )}
             <div className="flex items-center gap-2.5">
               <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
@@ -240,32 +249,33 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
             </div>
             <div className="flex items-center gap-2 pt-1">
               <Button
+                type="submit"
                 variant="primary"
                 size="sm"
-                onClick={checkAndAdd}
                 disabled={!newFeedName.trim() || !newFeedUrl.trim() || linkCheck.state === 'checking'}
               >
                 {linkCheck.state === 'checking' ? t('modals.icalFeeds.checking') : tCore('actions.add')}
               </Button>
               {linkCheck.state === 'failed' && (
-                <Button variant="secondary" size="sm" onClick={() => addICalSource()}>
+                <Button type="button" variant="secondary" size="sm" onClick={() => addICalSource()}>
                   {t('modals.icalFeeds.addAnyway')}
                 </Button>
               )}
-              <Button variant="secondary" size="sm" onClick={closeAddForm}>
+              <Button type="button" variant="secondary" size="sm" onClick={closeAddForm}>
                 {tCore('actions.cancel')}
               </Button>
             </div>
-          </div>
+          </form>
         ) : (
-          <Button variant="secondary" size="sm" onClick={() => setShowAddForm(true)}>
+          <Button variant="secondary" size="sm" className="inline-flex items-center gap-1" onClick={() => setShowAddForm(true)}>
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             {t('modals.icalFeeds.addFeed')}
           </Button>
         )}
 
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('modals.icalFeeds.helpText')}
-        </p>
+        </FieldHint>
       </div>
     </SourceBlock>
   );

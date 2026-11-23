@@ -5,6 +5,9 @@ import { validateLayoutExport } from '@/lib/layout-export';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import type { LayoutExport } from '@/types/layout-export';
+import { logger } from '@/lib/logger';
+
+const log = logger('layout-import');
 
 /**
  * Shared "pick a layout .json off disk" plumbing for every place that offers
@@ -29,11 +32,10 @@ export function useLayoutFileImport(onLayout: (layout: LayoutExport) => void) {
         const data = JSON.parse(reader.result as string);
         const validation = validateLayoutExport(data);
         if (!validation.valid) {
-          useConfirmStore.getState().alert(
-            t('layoutImport.alerts.invalidLayoutFile', {
-              errors: validation.errors.join('\n'),
-            }),
-          );
+          // The validator's reasons are for whoever made the file; the family
+          // reads one plain sentence in their own language.
+          log.warn('Layout file refused:', validation.errors.join('; '));
+          useConfirmStore.getState().alert(t('layoutImport.alerts.invalidJsonFile'));
           return;
         }
         onLayout(data as LayoutExport);

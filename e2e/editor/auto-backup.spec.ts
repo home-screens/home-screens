@@ -104,9 +104,9 @@ test.describe('Defaults › Backups & data › Automatic backups', () => {
     // The copy is still there after the restore.
     await expect(copy).toHaveCount(1);
 
-    await copy.getByRole('button', { name: 'Remove' }).click();
+    await copy.getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('Copies already sent somewhere else stay where they are.', { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: 'Remove', exact: true }).last().click();
+    await page.getByRole('button', { name: 'Delete', exact: true }).last().click();
     await expect(copy).toHaveCount(0);
     expect((await (await request.get('/api/backup/auto')).json()).copies).toEqual([]);
   });
@@ -145,7 +145,7 @@ test.describe('Defaults › Backups & data › Automatic backups', () => {
       // The editor toast says so on the next load, and leads to Settings.
       await page.goto('/editor');
       await expect(page.getByTestId('backup-reminder-message')).toHaveText('Your backup was saved but could not be sent to your storage folder.');
-      await page.getByRole('link', { name: 'See why' }).click();
+      await page.getByRole('button', { name: 'See why' }).click();
       await expect(page).toHaveURL(/page=data/);
     } finally {
       await dav.close();

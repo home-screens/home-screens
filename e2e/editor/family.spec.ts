@@ -97,7 +97,7 @@ test('Settings Family creates a group, keeps it in sync when someone leaves, and
   expect(family.groups).toEqual([expect.objectContaining({ name: 'Kids', memberIds: ['alex', 'sam'] })]);
 
   await manager.getByRole('button', { name: 'Remove Sam?' }).click();
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Remove person' }).click();
+  await page.getByRole('dialog', { name: 'Remove Sam?' }).getByRole('button', { name: 'Remove person' }).click();
   await expect(manager.getByRole('status')).toHaveText('Family saved.');
   await expect(groups.getByTestId('family-group')).toContainText('Alex');
   await expect(groups.getByTestId('family-group')).not.toContainText('Sam');
@@ -105,7 +105,7 @@ test('Settings Family creates a group, keeps it in sync when someone leaves, and
   expect(family.groups[0].memberIds).toEqual(['alex']);
 
   await groups.getByRole('button', { name: 'Remove Kids?' }).click();
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Remove group' }).click();
+  await page.getByRole('dialog', { name: 'Remove Kids?' }).getByRole('button', { name: 'Remove group' }).click();
   await expect(manager.getByRole('status')).toHaveText('Groups saved.');
   await expect(groups.getByTestId('family-group')).toHaveCount(0);
   family = await (await request.get('/api/family')).json();
@@ -142,7 +142,7 @@ test('Settings Family: a group chore follows the group, and removing the group s
   await expect.poll(owing).toEqual(['Alex', 'Sam']);
 
   await groups.getByRole('button', { name: 'Remove Kids?' }).click();
-  const sheet = page.getByRole('alertdialog');
+  const sheet = page.getByRole('dialog', { name: 'Remove Kids?' });
   await expect(sheet).toContainText('1 chore goes to Kids');
   await sheet.getByRole('button', { name: 'Remove group' }).click();
   await expect(manager.getByRole('status')).toHaveText('Groups saved.');

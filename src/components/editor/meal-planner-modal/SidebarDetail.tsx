@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { Heart, Plus } from 'lucide-react';
 import { MealRatingControl } from './MealRatingControl';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
@@ -8,10 +9,12 @@ import { MEAL_TAGS, MEAL_DIFFICULTIES, DEFAULT_MEAL_EMOJI } from '@/lib/meal-con
 import { searchFoodEmojis } from '@/lib/meal-emoji-words';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
+import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
 import { buildSavedMeal, mealFormFields } from '@/lib/meal-dish-rules';
 import { useTranslate } from '@/i18n';
 import Glyph from '@/components/ui/Glyph';
 import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
+import IconButton from '@/components/ui/IconButton';
 
 /** All selectable categories for ingredient editing (includes seafood, which the grocery list merges into meat) */
 const INGREDIENT_CATEGORIES: GroceryCategory[] = [
@@ -130,11 +133,14 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           </div>
           <button
             type="button"
-            className="text-xl transition-colors"
+            className="transition-colors"
             style={{ color: meal.isFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}
             onClick={() => onToggleFavorite(meal.id)}
+            aria-pressed={!!meal.isFavorite}
+            aria-label={t('mealPlannerModal.mealie.favorite')}
+            title={t('mealPlannerModal.mealie.favorite')}
           >
-            {meal.isFavorite ? '♥' : '♡'}
+            <Heart className="w-5 h-5" fill={meal.isFavorite ? 'currentColor' : 'none'} aria-hidden />
           </button>
         </div>
 
@@ -170,7 +176,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 type="button"
                 className={`aspect-square rounded border-2 text-2xl flex items-center justify-center transition ${
                   emoji === e
-                    ? 'border-amber-500 bg-amber-500/10'
+                    ? 'border-hs-meal bg-hs-meal-soft'
                     : 'border-transparent bg-hs-card hover:bg-hs-hover hover:border-hs-border-strong'
                 }`}
                 onClick={() => setEmoji(emoji === e ? '' : e)}
@@ -186,7 +192,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           </div>
         </div>
 
-        {/* Prep Time / Cook Time */}
+        {/* Prep time / Cook time */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className={labelClass}>{t('mealPlannerModal.detail.prepTimeLabel')}</label>
@@ -227,9 +233,9 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
               {MEAL_DIFFICULTIES.map((level) => {
                 const isActive = difficulty === level;
                 const colorMap = {
-                  easy: 'border-emerald-500 bg-emerald-500/8 text-emerald-500',
-                  medium: 'border-amber-500 bg-amber-500/8 text-amber-500',
-                  hard: 'border-hs-danger bg-hs-danger/8 text-hs-danger',
+                  easy: 'border-hs-success bg-hs-success/10 text-hs-success',
+                  medium: 'border-hs-warning bg-hs-warning/10 text-hs-warning-ink',
+                  hard: 'border-hs-danger bg-hs-danger/10 text-hs-danger',
                 };
                 return (
                   <button
@@ -251,7 +257,12 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
         </div>
         <div>
           <label className={labelClass}>{t('mealPlannerModal.detail.kindLabel')}</label>
-          <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t('mealPlannerModal.detail.kindLabel')}>
+          <div
+            className="flex flex-wrap gap-1"
+            role="radiogroup"
+            aria-label={t('mealPlannerModal.detail.kindLabel')}
+            onKeyDown={radioGroupKeyDown(COURSE_KINDS, kind, setKind)}
+          >
             {COURSE_KINDS.map((k) => {
               const isActive = kind === k;
               return (
@@ -260,8 +271,9 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   type="button"
                   role="radio"
                   aria-checked={isActive}
+                  tabIndex={radioTabIndex(COURSE_KINDS, kind, k)}
                   className={`px-2.5 py-1.5 text-xs font-semibold rounded border transition ${
-                    isActive ? 'border-amber-500 bg-amber-500/8 text-amber-500' : 'border-hs-border-strong bg-hs-card text-hs-text-faint'
+                    isActive ? 'border-hs-meal bg-hs-meal-soft text-hs-meal' : 'border-hs-border-strong bg-hs-card text-hs-text-faint'
                   }`}
                   onClick={() => setKind(k)}
                 >
@@ -284,7 +296,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   type="button"
                   className={`px-3 py-1 text-xs font-semibold rounded-full border transition cursor-pointer ${
                     isActive
-                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
+                      ? 'border-hs-meal-ring bg-hs-meal-soft text-hs-meal'
                       : 'border-hs-border-strong text-hs-text-faint hover:border-hs-text-faint'
                   }`}
                   onClick={() => toggleTag(tag)}
@@ -312,13 +324,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   value={ingredient.name}
                   onChange={(e) => updateIngredient(index, 'name', e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="w-7 h-7 rounded border border-hs-border-strong text-hs-text-faint hover:text-hs-danger hover:border-hs-danger hover:bg-hs-danger/8 flex items-center justify-center transition"
-                  onClick={() => removeIngredient(index)}
-                >
-                  &times;
-                </button>
+                <IconButton size="md" label={t('mealPlannerModal.detail.removeIngredient')} onClick={() => removeIngredient(index)} />
               </div>
               <div className="flex gap-2 mt-1.5">
                 <input
@@ -353,14 +359,15 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           ))}
           <button
             type="button"
-            className="w-full py-2 text-xs font-semibold border border-dashed border-hs-border-strong rounded-md text-hs-text-faint hover:border-hs-border-strong hover:text-hs-text-muted transition"
+            className="flex w-full items-center justify-center gap-1 py-2 text-xs font-semibold border border-dashed border-hs-border-strong rounded-md text-hs-text-faint hover:border-hs-border-strong hover:text-hs-text-muted transition"
             onClick={addIngredient}
           >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             {t('mealPlannerModal.detail.addIngredientButton')}
           </button>
         </div>
 
-        {/* Recipe URL */}
+        {/* Recipe link */}
         <div className="mb-4">
           <label className={labelClass}>{t('mealPlannerModal.detail.recipeUrlLabel')}</label>
           <input
@@ -387,7 +394,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       {/* Pinned footer */}
       <div className="px-4 py-2.5 border-t border-hs-border-strong flex gap-2">
         <Button variant="primary" className="flex-1" onClick={handleSave} disabled={!assembled}>
-          {t('mealPlannerModal.detail.saveChangesButton')}
+          {tCore('actions.save')}
         </Button>
         <Button variant="danger" onClick={() => onDelete(meal.id)}>
           {t('mealPlannerModal.detail.deleteButton')}

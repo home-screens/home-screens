@@ -87,7 +87,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       </LabeledField>
 
-      {/* Date Format (only for minimal view) */}
+      {/* Date format (only for minimal view) */}
       {has('dateFormat') && (
         <DateFormatField
           label={t('configSections.date.dateFormat')}
@@ -106,12 +106,12 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       )}
 
-      {/* Show Day Name */}
+      {/* Show day name */}
       {has('showDayName') && (
         <Toggle label={t('configSections.date.showDayName')} checked={c.showDayName !== false} onChange={(v) => set({ showDayName: v })} />
       )}
 
-      {/* Show Year */}
+      {/* Show year */}
       {has('showYear') && (
         <Toggle label={t('configSections.date.showYear')} checked={!!c.showYear} onChange={(v) => set({ showYear: v })} />
       )}
@@ -124,10 +124,11 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         <Toggle label={t('configSections.date.showDayOfYear')} checked={!!c.showDayOfYear} onChange={(v) => set({ showDayOfYear: v })} />
       )}
 
-      {/* Accent Color */}
+      {/* Accent color */}
       {has('accentColor') && (
         <ColorPicker
           label={t('configSections.date.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? '#22d3ee'}
           onChange={(v) => set({ accentColor: v })}
         />

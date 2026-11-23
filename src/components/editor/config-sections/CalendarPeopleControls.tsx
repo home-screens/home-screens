@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useTranslate } from '@/i18n';
-import { settingsPath } from '@/lib/settings-route';
+import { settingsPath, settingsPlaceText } from '@/lib/settings-route';
 import { hasPeopleFilter, resolvePeopleFilterMembers } from '@/lib/family-groups';
 import { livePersonSources } from '@/lib/calendar-source-refs';
 import type { CalendarLegendMode, CalendarPeopleFilter as PeopleFilterValue } from '@/types/config';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * The roster as the calendar sections see it: every family member, every
@@ -29,10 +31,6 @@ export function useCalendarRoster() {
   return { members, groups, owners, loading };
 }
 
-function Hint({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs leading-relaxed text-hs-text-muted">{children}</p>;
-}
-
 function MatchCalendarsLink() {
   const t = useTranslate('editor');
   return (
@@ -45,13 +43,14 @@ function MatchCalendarsLink() {
 /** Name tags toggle with the "who" rule stated under it; explains the empty roster instead of hiding. */
 export function NameTagsToggle({ checked, onChange, owners }: { checked: boolean; onChange: (next: boolean) => void; owners: FamilyMember[] }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <div className="flex flex-col gap-1" data-field-id="showNameTags">
       <Toggle label={t('configSections.calendarPeople.showNameTags')} checked={checked} onChange={onChange} />
-      <Hint>
-        {owners.length > 0 ? t('configSections.calendarPeople.nameTagsHint') : t('configSections.calendarPeople.nameTagsNoOwners')}
+      <FieldHint>
+        {owners.length > 0 ? t('configSections.calendarPeople.nameTagsHint', { familyPlace: settingsPlaceText(tCore, 'family'), calendarPlace: settingsPlaceText(tCore, 'calendar') }) : t('configSections.calendarPeople.nameTagsNoOwners')}
         {' '}<MatchCalendarsLink />
-      </Hint>
+      </FieldHint>
     </div>
   );
 }
@@ -66,11 +65,11 @@ export function ShowOnePersonToggle({ checked, onChange, owners }: { checked: bo
   return (
     <div className="flex flex-col gap-1" data-field-id="showOnePerson">
       <Toggle label={t('configSections.calendarPeople.showOnePerson')} checked={checked} onChange={onChange} />
-      <Hint>
+      <FieldHint>
         {owners.length >= 2 ? t('configSections.calendarPeople.showOnePersonHint') : (
           <>{t('configSections.calendarPeople.showOnePersonNeedsPeople')} <MatchCalendarsLink /></>
         )}
-      </Hint>
+      </FieldHint>
     </div>
   );
 }
@@ -90,7 +89,7 @@ export function LegendModeSelect({ value, onChange, owners, groups }: {
   return (
     <div className="flex flex-col gap-1" data-field-id="legendMode">
       <LabeledSelect label={t('configSections.calendarPeople.legendMode')} value={shown} onChange={onChange} options={options} />
-      {!hasOwners && <Hint>{t('configSections.calendarPeople.legendModeNeedsPeople')} <MatchCalendarsLink /></Hint>}
+      {!hasOwners && <FieldHint>{t('configSections.calendarPeople.legendModeNeedsPeople')} <MatchCalendarsLink /></FieldHint>}
     </div>
   );
 }
@@ -139,7 +138,6 @@ export function CalendarPeopleFilter({ value, onChange, members, groups, owners 
   const toggle = (key: 'memberIds' | 'groupIds', id: string, checked: boolean) =>
     update({ ...filter, [key]: checked ? [...filter[key], id] : filter[key].filter((existing) => existing !== id) });
 
-  const checkbox = 'rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0';
   const row = 'flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover';
   const heading = 'px-3 pt-1.5 text-[11px] font-semibold text-hs-text-faint';
 
@@ -147,14 +145,14 @@ export function CalendarPeopleFilter({ value, onChange, members, groups, owners 
     <div className="flex flex-col gap-1" data-field-id="peopleFilter">
       <span className="text-xs text-hs-text-muted">{t('configSections.calendarPeople.peopleFilter')}</span>
       {owners.length === 0 && groups.length === 0 && !active ? (
-        <Hint>{t('configSections.calendarPeople.peopleFilterEmpty')} <MatchCalendarsLink /></Hint>
+        <FieldHint>{t('configSections.calendarPeople.peopleFilterEmpty')} <MatchCalendarsLink /></FieldHint>
       ) : (
         <>
           <div className="rounded-md bg-hs-card border border-hs-border-strong max-h-56 overflow-y-auto">
             {groups.length > 0 && <div className={heading}>{t('configSections.calendarPeople.peopleFilterGroups')}</div>}
             {groups.map((group) => (
               <label key={group.id} className={row}>
-                <input type="checkbox" className={checkbox} checked={filter.groupIds.includes(group.id)} onChange={(event) => toggle('groupIds', group.id, event.target.checked)} />
+                <input type="checkbox" className={CHECKBOX_CLASS} checked={filter.groupIds.includes(group.id)} onChange={(event) => toggle('groupIds', group.id, event.target.checked)} />
                 <Stack members={members.filter((member) => group.memberIds.includes(member.id))} />
                 <span className="text-sm text-hs-text-body truncate">{group.name}</span>
               </label>
@@ -162,20 +160,20 @@ export function CalendarPeopleFilter({ value, onChange, members, groups, owners 
             {members.length > 0 && <div className={heading}>{t('configSections.calendarPeople.peopleFilterPeople')}</div>}
             {members.map((member) => (
               <label key={member.id} className={row}>
-                <input type="checkbox" className={checkbox} checked={filter.memberIds.includes(member.id)} onChange={(event) => toggle('memberIds', member.id, event.target.checked)} />
+                <input type="checkbox" className={CHECKBOX_CLASS} checked={filter.memberIds.includes(member.id)} onChange={(event) => toggle('memberIds', member.id, event.target.checked)} />
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: member.color }} aria-hidden="true" />
                 <span className="text-sm text-hs-text-body truncate">{member.name}</span>
               </label>
             ))}
             {staleGroups.map((id) => (
               <label key={`stale-group-${id}`} className={row} data-stale-selection="group">
-                <input type="checkbox" className={checkbox} checked onChange={() => toggle('groupIds', id, false)} />
+                <input type="checkbox" className={CHECKBOX_CLASS} checked onChange={() => toggle('groupIds', id, false)} />
                 <span className="text-sm italic text-hs-text-muted truncate">{t('configSections.calendarPeople.peopleFilterStaleGroup')}</span>
               </label>
             ))}
             {staleMembers.map((id) => (
               <label key={`stale-member-${id}`} className={row} data-stale-selection="member">
-                <input type="checkbox" className={checkbox} checked onChange={() => toggle('memberIds', id, false)} />
+                <input type="checkbox" className={CHECKBOX_CLASS} checked onChange={() => toggle('memberIds', id, false)} />
                 <span className="text-sm italic text-hs-text-muted truncate">{t('configSections.calendarPeople.peopleFilterStaleMember')}</span>
               </label>
             ))}
@@ -183,19 +181,19 @@ export function CalendarPeopleFilter({ value, onChange, members, groups, owners 
           {active && (
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">
               <label className="flex items-center gap-2.5 py-1 cursor-pointer">
-                <input type="checkbox" className={checkbox} checked={filter.includeShared !== false} onChange={(event) => update({ ...filter, includeShared: event.target.checked })} />
+                <input type="checkbox" className={CHECKBOX_CLASS} checked={filter.includeShared !== false} onChange={(event) => update({ ...filter, includeShared: event.target.checked })} />
                 <span className="text-sm text-hs-text-body">{t('configSections.calendarPeople.includeShared')}</span>
               </label>
               <button type="button" className="text-xs text-hs-accent hover:underline" onClick={() => onChange(undefined)}>{t('configSections.calendarPeople.peopleFilterClear')}</button>
             </div>
           )}
-          <Hint>
+          <FieldHint>
             {!active
               ? t('configSections.calendarPeople.peopleFilterHint')
               : chosen.length === 0
                 ? t('configSections.calendarPeople.peopleFilterNobody')
                 : t(filter.includeShared !== false ? 'configSections.calendarPeople.peopleFilterShowingShared' : 'configSections.calendarPeople.peopleFilterShowing', { names: chosen.map((member) => member.name).join(', ') })}
-          </Hint>
+          </FieldHint>
         </>
       )}
     </div>

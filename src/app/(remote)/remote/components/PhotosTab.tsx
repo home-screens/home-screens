@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Folder, FolderInput, Images, Link2, Monitor, MoreHorizontal, Plus, Trash2, TriangleAlert } from 'lucide-react';
+import { CloudUpload, Folder, FolderInput, Images, Link2, Monitor, MoreHorizontal, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import {
@@ -24,6 +24,12 @@ import { usePhotoLibrary } from '../hooks/usePhotoLibrary';
 import { usePhotoUploads, type UploadRun } from '../hooks/usePhotoUploads';
 import { useSendToWall } from '../hooks/useSendToWall';
 import ConfirmSheet from './ConfirmSheet';
+import TabHeader from './TabHeader';
+import ChipButton from './ChipButton';
+import PrimaryButton from './PrimaryButton';
+import { LoadFailed } from './RetryButton';
+import EmptyState from './EmptyState';
+import PhoneSpinner from './PhoneSpinner';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer, { type PhotoFacts } from './PhotoViewer';
 import PhotoMoveSheet from './PhotoMoveSheet';
@@ -31,7 +37,8 @@ import { PhotoFolderMenu, PhotoFolderNameSheet } from './PhotoFolderSheets';
 import PhotoUploadCard from './PhotoUploadCard';
 import { PhotoGoogleSheet, PhotoICloudSheet } from './PhotoImportSheets';
 import { usePhotoWords, type PhotoKind } from './photo-words';
-import { HIT_TARGET } from './remote-styles';
+import { HIT_TARGET, chipCountStyle, selectedPillStyle } from './remote-styles';
+import { REMOTE_LAYERS } from './remote-layers';
 
 /** Free space on the hub below which the space line turns into a warning. */
 const LOW_SPACE_BYTES = 1024 ** 3;
@@ -67,22 +74,6 @@ function aloneKind(use: MediaUse): 'screen' | 'dayRule' | 'module' | 'other' {
 function kindsOf(entries: ReadonlyArray<{ kind: PhotoKind }>): PhotoKind[] {
   return [...new Set(entries.map((entry) => entry.kind))];
 }
-
-const PILL: React.CSSProperties = {
-  height: 36,
-  padding: '0 14px',
-  borderRadius: 18,
-  border: '1px solid var(--hs-border-strong)',
-  background: 'var(--hs-bg-panel)',
-  color: 'var(--hs-text-body)',
-  fontSize: 14,
-  fontWeight: 600,
-  fontFamily: 'inherit',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  cursor: 'pointer',
-};
 
 const TEXT_BUTTON: React.CSSProperties = {
   minWidth: 86,
@@ -544,21 +535,12 @@ export default function PhotosTab({ directory }: { directory: string }) {
   if (!inventory) {
     return (
       <div data-testid="photos-tab">
-        <Header title={t('photosTab.header')} />
+        <TabHeader title={t('photosTab.header')} />
         {loadFailed ? (
-          <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="photos-load-error">
-            <p className="text-[13px] text-hs-text-faint">{t('photosTab.loadFailed')}</p>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              className="mt-3 min-h-[40px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
-            >
-              {t('photosTab.tryAgain')}
-            </button>
-          </div>
+          <LoadFailed testId="photos-load-error" message={t('photosTab.loadFailed')} onRetry={refresh} />
         ) : (
           <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-hs-border-strong border-t-hs-text-secondary rounded-full animate-spin" />
+            <PhoneSpinner size={24} tone="quiet" />
           </div>
         )}
       </div>
@@ -576,7 +558,8 @@ export default function PhotosTab({ directory }: { directory: string }) {
   return (
     <div data-testid="photos-tab">
       {selecting ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, padding: '0 0 8px' }}>
+        // The tab heading's own box, so picking photos does not move the page.
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, padding: '8px 0 12px' }}>
           <button type="button" onClick={stopSelecting} style={{ ...TEXT_BUTTON, textAlign: 'left' }} data-testid="photos-select-cancel">
             {tCore('actions.cancel')}
           </button>
@@ -593,18 +576,14 @@ export default function PhotosTab({ directory }: { directory: string }) {
           </button>
         </div>
       ) : (
-        <Header title={t('photosTab.header')}>
-          <button
-            type="button"
-            onClick={startSelecting}
-            disabled={selectDisabled}
-            data-testid="photos-select"
-            className="press-scale-sm"
-            style={{ ...PILL, opacity: selectDisabled ? 0.45 : 1, cursor: selectDisabled ? 'default' : 'pointer' }}
-          >
-            {t('photosTab.select')}
-          </button>
-        </Header>
+        <TabHeader
+          title={t('photosTab.header')}
+          actions={(
+            <ChipButton onClick={startSelecting} disabled={selectDisabled} testId="photos-select">
+              {t('photosTab.select')}
+            </ChipButton>
+          )}
+        />
       )}
 
       {!selecting && (
@@ -639,35 +618,22 @@ export default function PhotosTab({ directory }: { directory: string }) {
                     height: 36,
                     padding: '0 10px 0 12px',
                     borderRadius: 18,
-                    border: `1px solid ${on ? 'var(--hs-accent)' : 'var(--hs-border-strong)'}`,
-                    background: on ? 'var(--hs-accent)' : 'var(--hs-bg-panel)',
-                    color: on ? '#fff' : 'var(--hs-text-body)',
+                    ...selectedPillStyle(on, 'var(--hs-text-body)'),
                     fontSize: 14,
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
                   }}
                 >
                   {f.onWall && (
-                    <Monitor size={14} style={{ color: on ? '#fff' : 'var(--hs-success)', flex: 'none' }} aria-label={t('photosTab.onWall')} />
+                    <Monitor size={14} style={{ color: 'var(--hs-success)', flex: 'none' }} aria-label={t('photosTab.onWall')} />
                   )}
                   {f.parent && (
-                    <span style={{ color: on ? 'rgba(255,255,255,0.72)' : 'var(--hs-text-faint)', fontWeight: 500, marginRight: -4 }}>
+                    <span style={{ color: 'var(--hs-text-faint)', fontWeight: 500, marginRight: -4 }}>
                       {f.parent}/
                     </span>
                   )}
                   {f.path ? f.name : mainFolder}
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: '1px 6px',
-                      borderRadius: 8,
-                      background: on ? 'rgba(255,255,255,0.22)' : 'var(--hs-bg-card)',
-                      color: on ? '#fff' : 'var(--hs-text-muted)',
-                    }}
-                  >
-                    {f.images + f.videos}
-                  </span>
+                  <span style={chipCountStyle(on)}>{f.images + f.videos}</span>
                 </span>
               </button>
             );
@@ -786,50 +752,29 @@ export default function PhotosTab({ directory }: { directory: string }) {
                 : undefined}
             />
           )}
-          <button
-            type="button"
+          <PrimaryButton
             onClick={() => fileInputRef.current?.click()}
             data-testid="photos-add"
-            className="press-btn"
-            style={{
-              width: '100%',
-              minHeight: 52,
-              borderRadius: 12,
-              border: 'none',
-              background: 'var(--hs-accent)',
-              color: '#fff',
-              fontSize: 15,
-              fontWeight: 700,
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              cursor: 'pointer',
-            }}
+            style={{ minHeight: 52, marginTop: 0, gap: 8 }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-            </svg>
+            <CloudUpload size={20} strokeWidth={2} aria-hidden="true" />
             {t('photosTab.addButton')}
-          </button>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 10 }}>
+          </PrimaryButton>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', columnGap: 8, marginTop: 6 }}>
             {googleConnected && (
-              <button type="button" onClick={() => setSheet({ kind: 'google' })} data-testid="photos-add-google" className="press-scale-sm" style={PILL}>
-                <Images size={16} aria-hidden="true" />
+              <ChipButton onClick={() => setSheet({ kind: 'google' })} testId="photos-add-google" icon={<Images size={16} aria-hidden="true" />}>
                 {t('photosTab.addFromGoogle')}
-              </button>
+              </ChipButton>
             )}
-            <button type="button" onClick={() => setSheet({ kind: 'icloud' })} data-testid="photos-add-icloud" className="press-scale-sm" style={PILL}>
-              <Link2 size={16} aria-hidden="true" />
+            <ChipButton onClick={() => setSheet({ kind: 'icloud' })} testId="photos-add-icloud" icon={<Link2 size={16} aria-hidden="true" />}>
               {t('photosTab.addFromICloud')}
-            </button>
+            </ChipButton>
           </div>
           {lowSpace ? (
             <div
               data-testid="photos-space"
               data-low="true"
-              style={{ display: 'flex', gap: 7, alignItems: 'flex-start', fontSize: 12, fontWeight: 600, lineHeight: 1.4, color: 'var(--hs-warning)', margin: '10px 0 12px' }}
+              style={{ display: 'flex', gap: 7, alignItems: 'flex-start', fontSize: 12, fontWeight: 600, lineHeight: 1.4, color: 'var(--hs-warning-ink)', margin: '10px 0 12px' }}
             >
               <TriangleAlert size={16} style={{ marginTop: 1, flex: 'none' }} aria-hidden="true" />
               <span>{t('photosTab.spaceLow', { free: formatBytes(storage.freeBytes!, locale) })}</span>
@@ -856,13 +801,13 @@ export default function PhotosTab({ directory }: { directory: string }) {
       />
 
       {visible.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '36px 24px 6px' }} data-testid="photos-empty">
-          <Images size={44} style={{ color: 'var(--hs-border-strong)', margin: '0 auto' }} strokeWidth={1.6} aria-hidden="true" />
-          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--hs-text-body)', marginTop: 12 }}>
-            {t('photosTab.emptyTitle', { folder: folderLabel(currentPath) })}
-          </div>
-          <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginTop: 6, lineHeight: 1.45 }}>{t('photosTab.emptyHint')}</div>
-        </div>
+        <EmptyState
+          testId="photos-empty"
+          icon={Images}
+          title={t('photosTab.emptyTitle', { folder: folderLabel(currentPath) })}
+          body={t('photosTab.emptyHint')}
+          style={{ padding: '36px 24px 6px' }}
+        />
       ) : (
         <PhotoGrid
           items={visible}
@@ -882,7 +827,8 @@ export default function PhotosTab({ directory }: { directory: string }) {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 60,
+            // One above the tab bar, which it stands in for while picking.
+            zIndex: REMOTE_LAYERS.pageChrome + 1,
             background: 'var(--hs-bg-body)',
             borderTop: '1px solid var(--hs-border-subtle)',
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -922,11 +868,6 @@ export default function PhotosTab({ directory }: { directory: string }) {
           index={viewIndex}
           onStep={stepViewer}
           onClose={closeViewer}
-          onBackGesture={() => {
-            if (!sheet) return false;
-            setSheet(null);
-            return true;
-          }}
           facts={factsFor}
           onMove={(item) => setSheet({ kind: 'move', request: { paths: [item.path], from: 'viewer' } })}
           onDelete={(item) => setSheet({ kind: 'delete', paths: [item.path], from: 'viewer' })}
@@ -1005,7 +946,6 @@ export default function PhotosTab({ directory }: { directory: string }) {
           confirmLabel={t('photosTab.deleteFolderButton')}
           onConfirm={() => void runDeleteFolder()}
           onCancel={() => setSheet(null)}
-          zIndex={220}
         />
       )}
       {sheet?.kind === 'google' && (
@@ -1026,15 +966,6 @@ export default function PhotosTab({ directory }: { directory: string }) {
           onClose={() => { setSheet(null); void refresh(); }}
         />
       )}
-    </div>
-  );
-}
-
-function Header({ title, children }: { title: string; children?: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, padding: '0 0 8px' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>{title}</h2>
-      {children}
     </div>
   );
 }
@@ -1122,7 +1053,6 @@ function DeleteConfirm({
       confirmLabel={one ? tCore('actions.delete') : t('photosTab.deleteManyButton', { what })}
       onConfirm={onConfirm}
       onCancel={onCancel}
-      zIndex={220}
       settleMs={300}
     />
   );

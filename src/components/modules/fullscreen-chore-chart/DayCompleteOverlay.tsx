@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Flame } from 'lucide-react';
+import { Check, Flame } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { FullscreenChoreCelebration } from '@/types/config';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
@@ -10,6 +10,7 @@ import { CELEBRATION_MS } from '@/lib/chore-celebration';
 import { playTimerSound } from '@/components/display/timer-views/timer-sounds';
 import { useFormattingLocale, useTranslate, formatList } from '@/i18n';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { useWallSheet } from '@/components/modules/shared/useWallSheet';
 
 export interface DayCompleteEvent {
   /** Stable for the card's life: a kid joining the card changes its names, not its key. */
@@ -57,11 +58,12 @@ export default function DayCompleteOverlay({ event, kind, k, tc, sound, onDone }
   const { members } = event;
   const lead = members[0];
   const names = formatList(members.map((m) => m.name), locale);
+  const memberIds = members.map((m) => m.id).join(' ');
 
-  useEffect(() => {
-    const id = setTimeout(() => onDone(false), CELEBRATION_MS);
-    return () => clearTimeout(id);
-  }, [onDone, event]);
+  // It holds the chart while it is up and goes when its time runs out, the
+  // wait starting over when a kid joins the card. A tap clears it, except the
+  // second tap of the double tap that ticked the last chore.
+  const { settled } = useWallSheet({ onClose: () => onDone(false), autoCloseMs: CELEBRATION_MS, restartKey: `${event.id}:${memberIds}` });
 
   // A chime only when the setting says so: the kitchen wall is quiet by default.
   // Once per card: a kid joining the card already up does not ring it again.
@@ -106,9 +108,9 @@ export default function DayCompleteOverlay({ event, kind, k, tc, sound, onDone }
   const shared = {
     'data-testid': 'fcc-day-complete',
     'data-celebration': kind,
-    'data-member': members.map((m) => m.id).join(' '),
+    'data-member': memberIds,
     role: 'status' as const,
-    onClick: () => onDone(true),
+    onClick: settled(() => onDone(true)),
   };
 
   if (kind === 'simple') {
@@ -168,7 +170,7 @@ export default function DayCompleteOverlay({ event, kind, k, tc, sound, onDone }
           boxShadow: `0 0 ${120 * k}px color-mix(in srgb, ${lead.color} 35%, transparent)`,
         }}
       >
-        ✓
+        <Check size="1em" strokeWidth={3.5} aria-hidden="true" />
       </div>
       <div style={{ marginTop: 90 * k, fontSize: 110 * tc, fontWeight: 800, letterSpacing: '-0.02em', textAlign: 'center', padding: `0 ${40 * k}px` }}>
         {t('fullscreen-chore-chart.celebration.allDone', { name: names })}

@@ -1,6 +1,6 @@
 'use client';
 
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK, radioRingStyle } from './remote-styles';
 
 /**
  * The two pickers the chore screens on the phone share: a two-way switch and
@@ -28,10 +28,11 @@ export function Segmented<T extends string>({ value, options, onChange, testId, 
             role="radio"
             aria-checked={on}
             onClick={() => onChange(opt.value)}
+            className="press-scale-sm"
             style={{
-              minHeight: 40, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+              minHeight: 44, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
               background: on ? `color-mix(in srgb, ${REMOTE_ACCENT} 22%, var(--hs-bg-panel))` : 'transparent',
-              color: on ? REMOTE_ACCENT : 'var(--hs-text-faint)',
+              color: on ? REMOTE_ACCENT_INK : 'var(--hs-text-faint)',
               transition: 'all 0.15s',
             }}
           >
@@ -63,19 +64,14 @@ export function ChoiceList<T extends string>({ value, options, onChange, testId,
             role="radio"
             aria-checked={on}
             onClick={() => onChange(opt.value)}
+            className="press-btn"
             style={{
               width: '100%', display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', minHeight: 48,
               background: 'var(--hs-bg-panel)', border: 'none', color: 'inherit', textAlign: 'left' as const, cursor: 'pointer',
               borderBottom: i < options.length - 1 ? '1px solid var(--hs-border)' : 'none',
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 1, boxSizing: 'border-box',
-                border: on ? `6px solid ${REMOTE_ACCENT}` : '2px solid var(--hs-border-strong)',
-              }}
-            />
+            <span aria-hidden style={{ ...radioRingStyle(on), marginTop: 1 }} />
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{opt.label}</span>
               {opt.hint && <span style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>{opt.hint}</span>}

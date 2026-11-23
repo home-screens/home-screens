@@ -46,7 +46,7 @@ Go back to the editor with **Editor** in the top left. The weather module fills 
 
 ## 4. Add a calendar
 
-Open **Settings > Calendar**. Under **iCal / ICS Feeds**, click **Add Feed** and paste a calendar link. Google Calendar, Apple, Outlook and most others hand out one of these links from their sharing settings; the [Calendars](/docs/calendars) page shows where to find it for each, and covers signing in with Google or iCloud instead.
+Open **Settings > Calendar**. Under **iCal / ICS feeds**, click **Add feed** and paste a calendar link. Google Calendar, Apple, Outlook and most others hand out one of these links from their sharing settings; the [Calendars](/docs/calendars) page shows where to find it for each, and covers signing in with Google or iCloud instead.
 
 Give the feed a name and a colour. The calendar module on your screen shows the next few days of events as soon as the feed loads.
 
@@ -60,11 +60,11 @@ The chart is empty until it knows your family. That part is done from a phone, i
 
 ## 6. Hand it to the family
 
-Open **Settings > On your phone**. It shows two addresses with QR codes: **Kids: check off chores** and **Parents: family remote**. Scan them with the phones in the house, or click **Print** and stick the codes on the fridge next to the display.
+Open **Settings > On your phone**. It shows two addresses with QR codes: **Kids' chores** and **Family remote**. Scan them with the phones in the house, or click **Print** and stick the codes on the fridge next to the display.
 
-{% screenshot name="settings-phone" caption="Two addresses, both open on any phone on your home WiFi. Nothing to install." /%}
+{% screenshot name="settings-phone" caption="Two addresses, both open on any phone on your home Wi-Fi. Nothing to install." /%}
 
-The same page has **Ask for a password on the family remote**. Turn it on once you are happy with the setup, so guests on your WiFi cannot change things. The kids' page stays open on purpose.
+The same page has **Ask for a password on the family remote**. Turn it on once you are happy with the setup, so guests on your Wi-Fi cannot change things. The kids' page stays open on purpose.
 
 ## What you have now
 

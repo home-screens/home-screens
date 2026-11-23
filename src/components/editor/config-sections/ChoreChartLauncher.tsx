@@ -11,15 +11,13 @@ import { useRefetchOnClose } from '@/hooks/useRefetchOnClose';
 
 /**
  * The foot of both chore chart panels: how many people and chores there are,
- * the Edit Chore Chart button, where the phone pages live, and the chore
+ * the Edit chore chart button, where the phone pages live, and the chore
  * window. The counts are read again when the window closes.
  */
-export default function ChoreChartLauncher({ weekStartDay, accentColor, keyPrefix }: {
+export default function ChoreChartLauncher({ weekStartDay, accentColor }: {
   weekStartDay: 'sunday' | 'monday';
   /** The accent the window is drawn in: the module's own. */
   accentColor: string;
-  /** Whose strings to use. */
-  keyPrefix: 'chore-chart' | 'fullscreen-chore-chart';
 }) {
   const t = useTranslate('editor');
   const [open, setOpen] = useState(false);
@@ -31,16 +29,16 @@ export default function ChoreChartLauncher({ weekStartDay, accentColor, keyPrefi
     <>
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{t(`configSections.${keyPrefix}.membersCount`, { count: members.length })}</span>
+          <span>{t('configSections.chore-chart.membersCount', { count: members.length })}</span>
           <span>&middot;</span>
-          <span>{t(`configSections.${keyPrefix}.choresCount`, { count: data?.chores?.length ?? 0 })}</span>
+          <span>{t('configSections.chore-chart.choresCount', { count: data?.chores?.length ?? 0 })}</span>
         </div>
         <Button
           variant="primary"
           className="w-full text-xs"
           onClick={() => setOpen(true)}
         >
-          {t(`configSections.${keyPrefix}.editChoreChart`)}
+          {t('configSections.chore-chart.editChoreChart')}
         </Button>
       </div>
 

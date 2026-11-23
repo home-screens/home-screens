@@ -12,8 +12,12 @@ export function MoonPhaseConfigSection({ mod, screenId }: { mod: ModuleInstance;
   return (
     <>
       <Toggle label={t('configSections.moon-phase.showIllumination')} checked={c.showIllumination !== false} onChange={(v) => set({ showIllumination: v })} />
-      <Toggle label={t('configSections.moon-phase.showMoonTimes')} checked={c.showMoonTimes !== false} onChange={(v) => set({ showMoonTimes: v })} />
-      <p className="text-xs text-hs-text-faint">{t('configSections.moon-phase.locationHelp')}</p>
+      <Toggle
+        label={t('configSections.moon-phase.showMoonTimes')}
+        checked={c.showMoonTimes !== false}
+        onChange={(v) => set({ showMoonTimes: v })}
+        description={t('configSections.moon-phase.locationHelp')}
+      />
     </>
   );
 }

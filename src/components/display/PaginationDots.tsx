@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Screen } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import {
@@ -12,6 +13,7 @@ import {
   PAGINATION_PROGRESS_W_PX,
   PAGINATION_PROGRESS_H_PX,
 } from '@/lib/constants';
+import { WallButton } from '@/components/modules/shared/WallButton';
 
 export interface RotationProgress {
   /** Epoch ms the current dwell was armed (useScreenRotationTimer). */
@@ -105,7 +107,7 @@ export default function PaginationDots({
   };
 
   const compact = screens.length > MAX_DOTS;
-  const activeLabel = paused ? 'Resume rotation' : 'Pause rotation (double-tap)';
+  const activeLabel = paused ? t('pagination.resume') : t('pagination.pause');
 
   const hitTarget: React.CSSProperties = {
     position: 'relative',
@@ -193,8 +195,7 @@ export default function PaginationDots({
         }}
       >
         {paused && showPausePill && (
-          <button
-            type="button"
+          <WallButton
             data-testid="pause-pill"
             onClick={onResume}
             style={{
@@ -234,7 +235,7 @@ export default function PaginationDots({
             </span>
             <span style={{ fontWeight: 600 }}>{t('pagination.paused')}</span>
             {resumeText && <span style={{ color: '#9aa0ab' }}>{resumeText}</span>}
-          </button>
+          </WallButton>
         )}
         {flashedName && (
           <span
@@ -258,14 +259,14 @@ export default function PaginationDots({
         )}
         {compact ? (
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }} data-testid="pagination-compact">
-            <button
+            <WallButton
               onClick={() => tap((activeIndex - 1 + screens.length) % screens.length)}
               aria-label={t('pagination.previousScreen')}
-              style={{ ...hitTarget, fontSize: 22, lineHeight: 1 }}
+              style={hitTarget}
             >
-              ‹
-            </button>
-            <button
+              <ChevronLeft size={20} aria-hidden="true" />
+            </WallButton>
+            <WallButton
               onClick={() => tap(activeIndex)}
               aria-label={activeLabel}
               aria-current="true"
@@ -283,14 +284,14 @@ export default function PaginationDots({
                 {activeIndex + 1} / {screens.length}
               </span>
               {paused && pauseGlyph}
-            </button>
-            <button
+            </WallButton>
+            <WallButton
               onClick={() => tap((activeIndex + 1) % screens.length)}
               aria-label={t('pagination.nextScreen')}
-              style={{ ...hitTarget, fontSize: 22, lineHeight: 1 }}
+              style={hitTarget}
             >
-              ›
-            </button>
+              <ChevronRight size={20} aria-hidden="true" />
+            </WallButton>
             {progressLine}
           </div>
         ) : (
@@ -320,11 +321,11 @@ export default function PaginationDots({
                 );
               }
               return (
-                <button
+                <WallButton
                   key={s.id}
                   onClick={() => tap(i)}
                   aria-label={
-                    isActive ? activeLabel : `Go to screen ${i + 1}${s.name ? `: ${s.name}` : ''}`
+                    isActive ? activeLabel : s.name ? t('pagination.goToNamed', { number: i + 1, name: s.name }) : t('pagination.goTo', { number: i + 1 })
                   }
                   aria-current={isActive ? 'true' : undefined}
                   style={{ ...hitTarget, width: PAGINATION_HIT_PX }}
@@ -342,7 +343,7 @@ export default function PaginationDots({
                       }}
                     />
                   )}
-                </button>
+                </WallButton>
               );
             })}
             {progressLine}

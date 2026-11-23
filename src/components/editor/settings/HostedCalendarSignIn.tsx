@@ -4,6 +4,8 @@ import Button from '@/components/ui/Button';
 import GoogleSignInButton from '@/components/ui/GoogleSignInButton';
 import { useTranslate } from '@/i18n';
 import { DeviceCodeLink, useDeviceCodeCopy } from '../DeviceCodeParts';
+import FieldHint from '@/components/ui/FieldHint';
+import Spinner from '@/components/ui/Spinner';
 
 interface Props {
   userCode: string | null;
@@ -52,10 +54,7 @@ export default function HostedCalendarSignIn({
         </div>
         <div className="flex items-center gap-2 text-xs text-hs-text-muted">
           {polling && (
-            <span
-              aria-hidden="true"
-              className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-hs-border-strong border-t-hs-accent-hover"
-            />
+            <Spinner />
           )}
           {t('settings.calendarPage.google.hosted.waiting')}
           <button
@@ -78,9 +77,9 @@ export default function HostedCalendarSignIn({
         disabled={polling}
       />
       {error && <p className="mt-2 text-xs text-hs-danger">{error}</p>}
-      <p className="mt-2.5 text-xs text-hs-text-faint">
+      <FieldHint className="mt-2.5">
         {t('settings.calendarPage.google.hosted.help')}
-      </p>
+      </FieldHint>
     </div>
   );
 }

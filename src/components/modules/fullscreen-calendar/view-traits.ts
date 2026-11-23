@@ -179,11 +179,11 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
   },
   'up-next': {
     icon: Zap,
-    labelKey: 'fullscreen-calendar.viewLabels.upNext',
+    labelKey: 'common.upNext',
     emptyKey: 'fullscreen-calendar.noUpcomingEvents',
     isTimeGrid: false, isListView: false, isPersonView: false, isSingleDay: true,
     weather: { days: false, events: true },
-    headerTitle: ({ t }) => t('fullscreen-calendar.headerUpNext'),
+    headerTitle: ({ t }) => t('common.upNext'),
     // The up-next hero can sit on any future day (its feed is forward-
     // unbounded), so its legend scopes to everything from today on.
     legendWindow: ({ today }) => ({ start: today, end: addDays(today, 366) }),

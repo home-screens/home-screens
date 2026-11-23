@@ -3,6 +3,8 @@
 import Button from '@/components/ui/Button';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { NetworkInterface } from '@/lib/network-types';
+import StatusDot from '@/components/ui/StatusDot';
+import StatusPill from '@/components/ui/StatusPill';
 
 /* ─── Helpers ──────────────────────────────── */
 
@@ -64,22 +66,18 @@ export default function InterfaceCard({
     <div className="rounded-lg bg-hs-card border border-hs-border p-3">
       {/* Primary line */}
       <div className="flex items-center gap-2">
-        <span
-          className={`w-2 h-2 rounded-full shrink-0 ${
-            isConnected ? 'bg-hs-success' : 'bg-hs-text-faint'
-          }`}
-        />
+        <StatusDot tone={isConnected ? 'success' : 'neutral'} />
         <span className="text-sm text-hs-text-primary font-mono">
           {iface.device}
         </span>
-        <span className="text-sm text-hs-text-faint">&mdash;</span>
+        <span className="text-sm text-hs-text-faint" aria-hidden="true">·</span>
         <span className={`text-sm ${isConnected ? 'text-hs-text-body' : 'text-hs-text-muted'}`}>
           {getStateLabel(iface, t)}
         </span>
         {iface.isManagementInterface && (
-          <span className="text-[10px] uppercase tracking-wider bg-hs-warning/20 text-hs-warning px-1.5 py-0.5 rounded shrink-0">
+          <StatusPill tone="warning" size="sm">
             {t('settings.networkPage.interface.managementBadge')}
-          </span>
+          </StatusPill>
         )}
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
           {canConfigureIP && onToggleIPSettings && (

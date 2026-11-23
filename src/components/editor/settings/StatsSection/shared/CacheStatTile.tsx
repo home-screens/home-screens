@@ -7,7 +7,7 @@ export function CacheStatTile({ label, value, tone = 'neutral' }: {
 }) {
   const valueClass =
     tone === 'success' ? 'text-hs-success' :
-    tone === 'warning' ? 'text-hs-warning' : 'text-hs-text-body';
+    tone === 'warning' ? 'text-hs-warning-ink' : 'text-hs-text-body';
   return (
     <div className="flex items-baseline justify-between gap-2 px-3 py-2 rounded-md border border-hs-border-strong min-w-0">
       <span className="text-[11px] text-hs-text-faint uppercase tracking-wider truncate">

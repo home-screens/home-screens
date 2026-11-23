@@ -15,6 +15,7 @@ import Button from '@/components/ui/Button';
 import OverviewSubtab from './OverviewSubtab';
 import OverridesSubtab from './OverridesSubtab';
 import SettingsTabBar from '../shared/SettingsTabBar';
+import StatusPill from '@/components/ui/StatusPill';
 
 /**
  * Top-level "drill-down" page for one display.
@@ -166,15 +167,12 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
             <code className="text-[11px] text-hs-text-faint font-mono">{display.id}</code>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border ${status.pillClass}`}
-            >
-              <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dotClass}`} />
+            <StatusPill tone={status.tone} bordered={status.bordered} dot>
               {/* Never heard from: the word alone, since there is no time to give. */}
               {status.kind === 'never' || !lastSeen
                 ? statusLabel('offline', t)
                 : <>{statusLabel(status.kind, t)} · {formatLastSeen(lastSeen, locale)}</>}
-            </span>
+            </StatusPill>
             {dims && (
               <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full tabular-nums">
                 {dims.width}×{dims.height}

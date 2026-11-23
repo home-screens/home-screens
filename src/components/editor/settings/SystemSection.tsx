@@ -5,7 +5,8 @@ import { ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ChangelogModal from './ChangelogModal';
 import AutoUpdateSection from './AutoUpdateSection';
-import Toggle from '@/components/ui/Toggle';
+import Toggle, { Switch } from '@/components/ui/Toggle';
+import FieldHint from '@/components/ui/FieldHint';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatDateInTZ } from '@/lib/timezone';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
@@ -13,6 +14,11 @@ import { UPDATE_CHANNELS, classifyVersion, compareSemver, type UpdateChannel } f
 import { isDowngradeBlocked, lowestUnmetFloor } from '@/lib/update-policy';
 import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useSystemActions, type PowerSource, type PowerState } from './useSystemActions';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import Notice from '@/components/ui/Notice';
+import StatusDot from '@/components/ui/StatusDot';
+import StatusPill from '@/components/ui/StatusPill';
 
 interface Props {
   onUpgrade: (tag: string, currentVersion: string | null) => void;
@@ -24,6 +30,7 @@ const VISIBLE_ROLLBACK_TAGS = 3;
 
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const timezone = useEditorHouseholdTimezone();
   const [showAllTags, setShowAllTags] = useState(false);
@@ -148,9 +155,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   return (
     <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       <section data-field-id="system.version">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.systemPage.version.heading')}
-        </h3>
+        </SettingsSectionHeading>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-hs-text-primary text-sm flex items-center gap-2 flex-wrap">
@@ -158,12 +165,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
               {/* A prerelease build says so next to its number, so a bug
                   report screenshot from a test build is readable at a glance. */}
               {versionInfo.currentChannel !== 'stable' && (
-                <span
-                  data-testid="system-build-badge"
-                  className="text-[10px] uppercase tracking-wider bg-hs-warning/20 text-hs-warning px-1.5 py-0.5 rounded"
-                >
+                <StatusPill tone="warning" size="sm" data-testid="system-build-badge">
                   {t(`settings.systemPage.version.${versionInfo.currentChannel}BuildBadge`)}
-                </span>
+                </StatusPill>
               )}
             </p>
             {/* The commit hash and the git branch are build details, and
@@ -193,75 +197,51 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         </div>
 
         {versionInfo.upgradeRunning && (
-          <div className="mt-3 rounded-lg bg-hs-warning/20 border border-hs-warning/30 p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-hs-warning font-medium">
-                  {t('settings.systemPage.upgradeInProgress.title')}
-                </p>
-                <p className="text-xs text-hs-warning/70 mt-0.5">
-                  {t('settings.systemPage.upgradeInProgress.help')}
-                </p>
-              </div>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleCancelUpgrade}
-              >
+          <Notice
+            tone="warning"
+            className="mt-3"
+            title={t('settings.systemPage.upgradeInProgress.title')}
+            action={
+              <Button variant="danger" size="sm" onClick={handleCancelUpgrade}>
                 {t('settings.systemPage.upgradeInProgress.cancelButton')}
               </Button>
-            </div>
-          </div>
+            }
+          >
+            {t('settings.systemPage.upgradeInProgress.help')}
+          </Notice>
         )}
 
         {versionInfo.updateAvailable && versionInfo.latest && (
-          <div
-            data-testid="system-update-banner"
-            className={`mt-3 rounded-lg border p-3 ${
-              bannerIsWarning
-                ? 'bg-hs-warning/20 border-hs-warning/30'
-                : 'bg-hs-accent-soft border-hs-accent/30'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className={`text-sm font-medium ${
-                  bannerIsWarning ? 'text-hs-warning' : 'text-hs-accent-hover'
-                }`}>
-                  {bannerTitle}
-                </p>
-                <p className={`text-xs mt-0.5 ${
-                  bannerIsWarning ? 'text-hs-warning/70' : 'text-hs-accent-hover/70'
-                }`}>
-                  {bannerLine}
-                </p>
-              </div>
+          <Notice
+            tone={bannerIsWarning ? 'warning' : 'info'}
+            testId="system-update-banner"
+            className="mt-3"
+            title={bannerTitle}
+            action={
               <Button
-                variant="primary"
+                variant={bannerIsWarning ? 'warning' : 'primary'}
                 size="sm"
                 onClick={() => handleUpgrade(`v${versionInfo.latest}`)}
               >
                 {bannerButton}
               </Button>
-            </div>
-          </div>
+            }
+          >
+            {bannerLine}
+          </Notice>
         )}
 
         {withheld && (
-          <div
-            data-testid="system-update-withheld"
-            className="mt-3 rounded-lg border p-3 bg-hs-warning/20 border-hs-warning/30"
-          >
-            <p className="text-sm font-medium text-hs-warning">{withheld.title}</p>
-            <p className="text-xs mt-0.5 text-hs-warning/70">{withheld.line}</p>
-          </div>
+          <Notice tone="warning" testId="system-update-withheld" className="mt-3" title={withheld.title}>
+            {withheld.line}
+          </Notice>
         )}
 
         {/* No resolved release means the lookup never got an answer (GitHub
             unreachable, no tags), which is not the same as being current. */}
         {!versionInfo.updateAvailable && !withheld && versionInfo.latest !== null && (
           <p className="text-xs text-hs-success/80 mt-2 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
+            <StatusDot tone="success" size="sm" />
             {t('settings.systemPage.upToDate')}
           </p>
         )}
@@ -330,9 +310,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           behind advanced mode, except that a device already on them keeps
           the option visible so it can always be switched off. */}
       <section data-field-id="system.updateChannel">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.systemPage.channel.heading')}
-        </h3>
+        </SettingsSectionHeading>
         <div role="radiogroup" aria-label={t('settings.systemPage.channel.heading')} className="space-y-2">
           {offeredChannels.map((option: UpdateChannel) => {
             const selected = channel === option;
@@ -351,7 +331,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   value={option}
                   checked={selected}
                   onChange={() => handleSetChannel(option)}
-                  className="accent-hs-accent mt-0.5"
+                  className={`${CHECKBOX_CLASS} mt-0.5`}
                 />
                 <span className="min-w-0">
                   <span className="block text-sm text-hs-text-primary">
@@ -366,7 +346,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           })}
         </div>
         {channel === 'nightly' && (
-          <p className="mt-2 text-xs text-hs-warning" role="note">
+          <p className="mt-2 text-xs text-hs-warning-ink" role="note">
             {t('settings.systemPage.channel.nightlyWarning')}
             {autoUpdate.enabled && <> {t('settings.systemPage.channel.nightlyAutoUpdateNote')}</>}
           </p>
@@ -388,14 +368,14 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         />
       )}
 
-      {/* Update Notification */}
+      {/* Update notification */}
       <section data-field-id="system.updateNotification">
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.systemPage.updateNotification.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint mb-3">
+        </SettingsSectionHeading>
+        <FieldHint className="mb-3">
           {t('settings.systemPage.updateNotification.description')}
-        </p>
+        </FieldHint>
         <Toggle
           label={t('settings.systemPage.updateNotification.enableLabel')}
           checked={updateNotificationEnabled}
@@ -403,18 +383,15 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         />
         {updateNotifSaveError && (
           <p className="text-xs text-hs-danger mt-2" role="alert">
-            {t('common.saveFailed')}
+            {tCore('refusals.saveFailed')}
           </p>
         )}
       </section>
 
       {/* Changelog */}
       <section data-field-id="system.changelog">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
-            {t('settings.systemPage.changelog.heading')}
-          </h3>
-          {!showChangelog && (
+        <SettingsSectionHeading
+          trailing={!showChangelog && (
             <button
               onClick={handleOpenChangelog}
               className="text-xs text-hs-accent hover:text-hs-accent-hover"
@@ -422,14 +399,16 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
               {t('settings.systemPage.changelog.viewButton')}
             </button>
           )}
-        </div>
+        >
+          {t('settings.systemPage.changelog.heading')}
+        </SettingsSectionHeading>
 
         {showChangelog && (
           <div className="space-y-1.5 max-h-64 overflow-y-auto">
             {releases.length === 0 ? (
-              <p className="text-xs text-hs-text-faint">
+              <FieldHint>
                 {t('settings.systemPage.changelog.empty')}
-              </p>
+              </FieldHint>
             ) : (
               releases.map((r) => (
                 <button
@@ -455,12 +434,12 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Version History / Rollback */}
       {versionInfo.tags.length > 0 && (
         <section data-field-id="system.rollback">
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          <SettingsSectionHeading>
             {t('settings.systemPage.history.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
+          </SettingsSectionHeading>
+          <FieldHint className="mb-3">
             {t('settings.systemPage.history.help')}
-          </p>
+          </FieldHint>
           <div className="space-y-1 max-h-40 overflow-y-auto">
             {visibleTags.map((tagInfo) => {
               const isCurrent = tagInfo.version === versionInfo.current;
@@ -482,9 +461,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-hs-text-primary font-mono">{tagInfo.tag}</span>
                     {isCurrent && (
-                      <span className="text-[10px] uppercase tracking-wider bg-hs-accent/30 text-hs-accent-hover px-1.5 py-0.5 rounded">
+                      <StatusPill tone="info" size="sm">
                         {t('settings.systemPage.history.currentBadge')}
-                      </span>
+                      </StatusPill>
                     )}
                   </div>
                   {!isCurrent && blockedText && (
@@ -495,7 +474,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   {!isCurrent && !blockedText && (
                     <button
                       onClick={() => handleRollback(tagInfo.tag)}
-                      className="text-xs text-hs-text-muted hover:text-hs-warning transition-colors"
+                      className="text-xs text-hs-text-muted hover:text-hs-warning-ink transition-colors"
                     >
                       {t('settings.systemPage.history.rollback')}
                     </button>
@@ -518,18 +497,18 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             </button>
           )}
           {showAllTags && (
-            <p className="mt-2 text-xs text-hs-text-faint">
+            <FieldHint className="mt-2">
               {t('settings.systemPage.history.olderWarning')}
-            </p>
+            </FieldHint>
           )}
         </section>
       )}
 
       {/* System Actions */}
       <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.systemPage.actions.heading')}
-        </h3>
+        </SettingsSectionHeading>
         <div className="flex items-center gap-3">
           <Button
             variant="secondary"
@@ -551,40 +530,30 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </Button>
         </div>
         {powerStatusFor('actions')}
-        <p className="text-xs text-hs-text-faint mt-2">
+        <FieldHint className="mt-2">
           {t('settings.systemPage.actions.help')}
-        </p>
+        </FieldHint>
       </section>
 
       {/* Advanced mode */}
       <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.systemPage.advanced.heading')}
-        </h3>
-        <div className="flex items-start justify-between gap-4">
+        </SettingsSectionHeading>
+        <div className="flex items-start justify-between gap-4" data-field-id="system.advancedMode">
           <div>
             <p className="text-sm text-hs-text-primary">{t('settings.systemPage.advanced.toggleLabel')}</p>
-            <p className="text-xs text-hs-text-faint mt-0.5">
+            <FieldHint id="system-advanced-help" className="mt-0.5">
               {t('settings.systemPage.advanced.help')}
               {autoUpdate.enabled && <> {t('settings.systemPage.advanced.autoUpdateNote')}</>}
-            </p>
+            </FieldHint>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={advancedMode}
-            onClick={handleToggleAdvanced}
-            data-field-id="system.advancedMode"
-            className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                advancedMode ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          <Switch
+            checked={advancedMode}
+            onChange={() => void handleToggleAdvanced()}
+            ariaLabel={t('settings.systemPage.advanced.toggleLabel')}
+            describedBy="system-advanced-help"
+          />
         </div>
       </section>
 
@@ -617,9 +586,9 @@ function PowerStatusLine({
   switch (state.status) {
     case 'pending':
       return (
-        <p className="text-xs text-hs-text-faint mt-2">
+        <FieldHint className="mt-2">
           {t('settings.systemPage.powerStatus.processing')}
-        </p>
+        </FieldHint>
       );
     case 'ok':
       return (

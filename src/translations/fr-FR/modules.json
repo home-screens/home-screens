@@ -110,7 +110,7 @@
   "garbage-day": {
     "header": "Calendrier de collecte",
     "nextDay": "{day} prochain",
-    "emptyState": "Définis les jours de collecte dans les paramètres du module",
+    "emptyState": "Définis les jours de collecte dans l'éditeur et ils s'afficheront ici",
     "labels": {
       "trash": "Ordures",
       "recycling": "Recyclage",
@@ -129,7 +129,6 @@
     "moreCount": "+{count} de plus",
     "fromTime": "À partir de {time}",
     "untilTime": "Jusqu'à {time}",
-    "cantLoadEvents": "Impossible de charger les événements pour le moment",
     "loadingEvents": "Chargement des événements…",
     "weekOf": "Semaine du {date}",
     "legendLabel": "Sources du calendrier",
@@ -139,9 +138,9 @@
     "sourcesNotUpdating": "Certains calendriers ne se mettent plus à jour",
     "notUpdatingSince": "Plus de mise à jour depuis {time}",
     "signInAgain": "Le calendrier doit se reconnecter",
-    "signInAgainHint": "Ouvrez Réglages › Calendrier sur un ordinateur et connectez Google Agenda.",
+    "signInAgainHint": "Ouvre {place} sur un ordinateur et connecte Google Agenda.",
     "noSourcesYet": "Aucun calendrier choisi pour l'instant",
-    "noSourcesYetHint": "Choisissez les calendriers à afficher dans Réglages › Calendrier.",
+    "noSourcesYetHint": "Choisis les calendriers à afficher dans {place}",
     "savedShort": "enregistré",
     "holiday": "Jour férié",
     "birthday": "Anniversaire",
@@ -153,7 +152,7 @@
       },
       "toTime": "jusqu'à {time}",
       "openDay": "Voir tous les événements du {date}",
-      "empty": "Rien de prévu ce jour-là pour l'instant.",
+      "empty": "Rien de prévu ce jour-là pour l'instant",
       "addEvent": "Ajouter un événement"
     },
     "eventForm": {
@@ -164,7 +163,6 @@
       "typeOnPhone": "Écrire sur ton téléphone",
       "handoffBody": "Vise ce code avec l'appareil photo de ton téléphone : il ouvre un nouvel événement pour le {day}.",
       "backToKeyboard": "Retour au clavier du mur",
-      "allDay": "Toute la journée",
       "repeats": "Répétition",
       "howOften": "À quelle fréquence ?",
       "repeatNote": "L'événement revient jusqu'à ce qu'on le modifie ou le retire. Pour l'arrêter à une date, fais-le sur ton téléphone.",
@@ -201,12 +199,12 @@
       "agenda": "Agenda",
       "week": "Semaine",
       "multiWeek": "Semaines",
-      "rolling": "Glissant",
+      "rolling": "Dès aujourd'hui",
       "month": "Mois"
     },
     "wallSwitch": {
       "viewsLabel": "Vues",
-      "sheetEyebrow": "Voir une seule personne",
+      "sheetEyebrow": "Afficher une seule personne",
       "sheetTitle": "Le calendrier de qui ?",
       "allPeople": {
         "one": "{count} personne",
@@ -216,11 +214,10 @@
         "one": "{count} personne",
         "other": "{count} personnes"
       },
-      "showEveryone": "Montrer tout le monde"
+      "showEveryone": "Afficher tout le monde"
     }
   },
   "fullscreen-calendar": {
-    "allDay": "Toute la journée",
     "noEvents": "Aucun événement",
     "noEventsThisMonth": "Aucun événement ce mois-ci",
     "noEventsThisWeek": "Aucun événement cette semaine",
@@ -237,9 +234,8 @@
       "dayTimeline": "Jour",
       "agenda": "Agenda",
       "familyGrid": "Famille",
-      "upNext": "À suivre",
       "freeTime": "Temps libre",
-      "rolling": "Glissant"
+      "rolling": "Dès aujourd'hui"
     },
     "zones": {
       "morning": "Matin",
@@ -263,7 +259,6 @@
     },
     "fromTime": "À partir de {time}",
     "untilTime": "Jusqu'à {time}",
-    "cantLoadEvents": "Impossible de charger les événements pour le moment",
     "weekOf": "Semaine du {date}",
     "weekNumber": "Semaine {number}",
     "holiday": "Jour férié",
@@ -271,7 +266,6 @@
     "birthdayWithAge": "Anniversaire · {age} ans",
     "birthdayShort": "anniv.",
     "birthdayAgeShort": "{age} ans",
-    "headerUpNext": "À suivre",
     "headerFreeTime": "Temps libre",
     "everyone": "Tout le monde",
     "thisWeekCount": {
@@ -329,14 +323,13 @@
       "chores": "Corvées",
       "choresDone": "{done} corvées sur {total} faites"
     },
-    "peopleHint": "Ajoutez des personnes dans Réglages > Calendrier pour donner une ligne à chacun."
+    "peopleHint": "Ajoute des personnes dans {place} pour donner une ligne à chacun."
   },
   "weather": {
     "tomorrowShort": "Dem.",
     "feelsLike": "Ressenti {temp}",
     "feelsShort": "Ressenti {temp}",
     "highLow": "Max:{high} Min:{low}",
-    "hourlyForecast": "Prévisions horaires",
     "forecast": "Prévisions",
     "weatherAlerts": "Alertes météo",
     "alertCount": "({count})",
@@ -344,7 +337,6 @@
     "alertSeverityExpires": "{severity} · Expire {expires}",
     "noWeatherData": "Aucune donnée météo",
     "noForecastData": "Aucune donnée de prévision",
-    "setLocationInSettings": "Définis ton lieu dans les paramètres",
     "next60Minutes": "Les 60 prochaines minutes",
     "noPrecipitationExpected": "Aucune précipitation prévue",
     "stoppingInMin": "S'arrête dans {minutes} min",
@@ -372,7 +364,6 @@
       "Unknown": "Inconnue"
     },
     "loading": "Récupération des prévisions…",
-    "notUpdating": "La météo ne se met pas à jour",
     "notAvailableForSource": "Non disponible avec ta source météo",
     "rightNow": "En ce moment",
     "sunrise": "Lever du soleil"
@@ -512,11 +503,11 @@
       "emptyHint": "Les repas enregistrés avec des ingrédients ou des notes apparaissent ici. Ajoute-les dans Repas sur ton téléphone.",
       "problemHint": {
         "mealieUnreachable": "Les recettes reviendront toutes seules dès que Mealie répondra.",
-        "mealieNotConnected": "Connecte-le dans les Réglages sur l'ordinateur pour afficher ses recettes.",
-        "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher ses recettes.",
-        "mealieSetup": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher ses recettes."
+        "mealieNotConnected": "Connecte-le dans les Paramètres sur l'ordinateur pour afficher ses recettes.",
+        "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Paramètres sur l'ordinateur pour afficher ses recettes.",
+        "mealieSetup": "Vérifie Mealie dans les Paramètres sur l'ordinateur pour afficher ses recettes."
       },
-      "fewRecipesHint": "Les repas avec des ingrédients ou des notes apparaissent ici. Ajoutez-les depuis le téléphone.",
+      "fewRecipesHint": "Les repas avec des ingrédients ou des notes apparaissent ici. Ajoute-les depuis le téléphone.",
       "countInBook": {
         "one": "{count} dans le livre",
         "other": "{count} dans le livre"
@@ -574,9 +565,9 @@
     },
     "withCourses": "avec {dishes}",
     "mealieUnreachableHint": "Le planning des repas reviendra dès que Mealie répondra.",
-    "mealieNotConnectedHint": "Connecte-le dans les Réglages sur l'ordinateur pour afficher le planning.",
-    "mealieTokenRefusedHint": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher le planning.",
-    "mealieSetupHint": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher le planning.",
+    "mealieNotConnectedHint": "Connecte-le dans les Paramètres sur l'ordinateur pour afficher le planning.",
+    "mealieTokenRefusedHint": "Enregistre un nouveau jeton Mealie dans les Paramètres sur l'ordinateur pour afficher le planning.",
+    "mealieSetupHint": "Vérifie Mealie dans les Paramètres sur l'ordinateur pour afficher le planning.",
     "recipe": {
       "prep": "Préparation",
       "cook": "Cuisson",
@@ -623,9 +614,9 @@
       "localEmptyHint": "Planifie des repas avec des ingrédients pour remplir cette liste.",
       "problemHint": {
         "mealieUnreachable": "La liste reviendra toute seule dès que Mealie répondra.",
-        "mealieNotConnected": "Connecte-le dans les Réglages sur l'ordinateur pour afficher la liste.",
-        "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher la liste.",
-        "mealieSetup": "Vérifie Mealie dans les Réglages sur l'ordinateur pour afficher la liste."
+        "mealieNotConnected": "Connecte-le dans les Paramètres sur l'ordinateur pour afficher la liste.",
+        "mealieTokenRefused": "Enregistre un nouveau jeton Mealie dans les Paramètres sur l'ordinateur pour afficher la liste.",
+        "mealieSetup": "Vérifie Mealie dans les Paramètres sur l'ordinateur pour afficher la liste."
       },
       "alsoOn": "Aussi sur {list}"
     }
@@ -671,7 +662,7 @@
   },
   "openButton": {
     "open": "Ouvrir {name}",
-    "unavailable": "Masqué sur l’écran en ce moment : cet écran est hors de ses heures ou de ses conditions."
+    "unavailable": "Masqué sur le mur en ce moment : cet écran est hors de ses heures ou de ses conditions."
   },
   "lookAhead": {
     "thisWeek": "Cette semaine",
@@ -754,8 +745,7 @@
     "noUpcomingMeals": "Aucun repas à venir prévu",
     "mealsPlannedCount": "{filled} repas sur {total} prévus",
     "heroLabels": {
-      "now": "Maintenant",
-      "upNext": "Ensuite"
+      "now": "Maintenant"
     },
     "nextMealLabels": {
       "now": "Maintenant",
@@ -774,7 +764,6 @@
     "familyProgress": "Progression de la famille",
     "starChart": "Tableau d'étoiles",
     "chores": "Tâches",
-    "thisWeek": "Cette semaine",
     "dayOff": "Jour de repos !",
     "dayOffList": "Jour de repos : {names}",
     "noChoresToday": "Aucune tâche aujourd'hui",
@@ -810,7 +799,7 @@
       "anytime": "À tout moment"
     },
     "iconPicker": {
-      "filter": "Filtrer les icônes...",
+      "filter": "Filtrer les icônes…",
       "noMatch": "Aucune icône correspondante",
       "none": "Aucun",
       "clear": "Effacer"
@@ -865,7 +854,7 @@
       "home": "Maison",
       "key": "Clé",
       "lightbulb": "Lumière",
-      "wifi": "WiFi",
+      "wifi": "Wi-Fi",
       "toilet": "Toilettes",
       "soap": "Savon",
       "paw-print": "Soin animal",
@@ -957,6 +946,7 @@
       "groupMemberNote": "Dans {group}",
       "emptyGroupNote": "Il n'y a encore personne dans le groupe choisi, donc personne ne reçoit cette tâche tant que tu n'y ajoutes personne.",
       "removeFromSchedule": "Retirer {name} du planning",
+      "addToSchedule": "Ajouter {name} au planning",
       "validation": {
         "enterName": "Saisis un nom de tâche",
         "addPersonToSchedule": "Ajoute au moins une personne au planning",
@@ -1123,7 +1113,6 @@
       "other": "{name}, {count} jours"
     },
     "bestStreakNone": "aucune pour l’instant",
-    "thisWeek": "Cette semaine",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
@@ -1177,8 +1166,7 @@
       },
       "confirmCancel": "Annuler",
       "confirmYes": "Oui !",
-      "errorGeneric": "Quelque chose a mal tourné",
-      "errorOffline": "Connexion impossible",
+      "errorOffline": "Impossible de dépenser les tickets. Home Screens ne répond pas, alors touche de nouveau Oui dans un instant.",
       "addFromPhoneHint": "Ajoute des récompenses depuis un téléphone : ouvre {url} et touche Tâches",
       "moreTickets": {
         "one": "Encore {count} ticket",
@@ -1264,8 +1252,8 @@
     "noGames": "Aucun match trouvé",
     "today": "Aujourd'hui",
     "tomorrow": "Demain",
-    "pickTeam": "Choisis ton équipe dans les réglages du module",
-    "teamLeagueOff": "Active la ligue de ton équipe dans les réglages du module",
+    "pickTeam": "Choisis une équipe dans l'éditeur et ses matchs s'afficheront ici",
+    "teamLeagueOff": "Active la ligue de ton équipe dans l'éditeur et ses matchs s'afficheront ici",
     "unavailable": "Les scores font une petite pause",
     "last": "Dernier :",
     "win": "V",
@@ -1316,10 +1304,9 @@
     "name": "Liste de tâches",
     "defaultTitle": "À faire",
     "noTasksYet": "Ajoute des choses sur ton téléphone et elles apparaîtront ici",
-    "tapHint": "Touchez une case pour la cocher",
     "noListsYet": "Pas encore de liste. Crée-en une sur ton téléphone.",
-    "pickAList": "Choisis une liste dans l'éditeur",
-    "upNext": "À suivre",
+    "pickAList": "Choisis une liste dans l'éditeur et elle s'affichera ici",
+    "tapHint": "Touche une case pour la cocher",
     "allDone": "Tout est fait",
     "andMore": "et {n} de plus",
     "nLeft": "{n} à faire",
@@ -1347,17 +1334,7 @@
   },
   "fullscreen-photo": {
     "noPhotosYetFolderHint": "ou choisis un dossier dans l'éditeur",
-    "noPhotoSelected": "Aucune photo sélectionnée",
-    "noPhotoSelectedHint": "Choisis une photo dans le panneau de l'éditeur.",
-    "noPhotosYet": "Aucune photo pour l'instant",
-    "noPhotosYetHint": "Ajoute des photos depuis ton téléphone sur",
-    "noPhotosYetHintICloud": "Vérifiez le lien de l'album dans l'éditeur et assurez-vous que « Site web public » est activé pour l'album.",
-    "noPhotosYetHintOneDrive": "Vérifiez le dossier OneDrive dans l'éditeur.",
-    "noPhotosYetHintImmich": "Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
-    "noPhotosYetHintUnsplash": "Essayez d'autres mots de recherche dans l'éditeur.",
-    "noPhotosYetHintNasa": "La NASA n'envoie pas d'images pour le moment. Elles reviendront d'elles-mêmes.",
-    "noPhotosYetHintArt": "Essayez d'assouplir un filtre dans l'éditeur.",
-    "noPhotosYetHintPicked": "Choisissez des photos dans l'éditeur."
+    "noPhotoSelectedHint": "Choisis une photo dans l'éditeur et elle s'affichera ici"
   },
   "dad-joke": {
     "loading": "Chargement de la blague…"
@@ -1371,8 +1348,8 @@
     "noEvents": "Aucun événement trouvé",
     "yearsAgo": {
       "one": "il y a {count} an",
-      "other": "il y a {count} ans",
-      "many": "il y a {count} ans"
+      "many": "il y a {count} ans",
+      "other": "il y a {count} ans"
     }
   },
   "word-of-day": {
@@ -1462,8 +1439,8 @@
     "empty": "Aucune tâche à afficher",
     "taskCount": {
       "one": "{count} tâche",
-      "other": "{count} tâches",
-      "many": "{count} tâches"
+      "many": "{count} tâches",
+      "other": "{count} tâches"
     },
     "recurringTooltip": "Récurrente",
     "completeAriaLabel": "Terminer : {content}",
@@ -1477,7 +1454,6 @@
       "overdue": "En retard",
       "today": "Aujourd'hui",
       "tomorrow": "Demain",
-      "thisWeek": "Cette semaine",
       "upcoming": "À venir",
       "noDate": "Sans date",
       "noLabel": "Sans étiquette"
@@ -1489,8 +1465,8 @@
       "tomorrow": "Demain",
       "daysOverdue": {
         "one": "{count} j de retard",
-        "other": "{count} j de retard",
-        "many": "{count} j de retard"
+        "many": "{count} j de retard",
+        "other": "{count} j de retard"
       }
     },
     "focus": {
@@ -1498,14 +1474,14 @@
       "allCaughtUp": "Tu es à jour !",
       "taskRemaining": {
         "one": "tâche restante",
-        "other": "tâches restantes",
-        "many": "tâches restantes"
+        "many": "tâches restantes",
+        "other": "tâches restantes"
       }
     },
     "taskCountAtLeast": {
       "one": "{count}+ tâche",
-      "other": "{count}+ tâches",
-      "many": "{count}+ tâches"
+      "many": "{count}+ tâches",
+      "other": "{count}+ tâches"
     },
     "moreGroups": {
       "one": "et {count} groupe de plus",
@@ -1514,15 +1490,7 @@
   },
   "photo-slideshow": {
     "loading": "Chargement des photos…",
-    "empty": "Aucune photo trouvée",
-    "emptyICloud": "Pas encore de photos. Vérifiez le lien de l'album et assurez-vous que « Site web public » est activé.",
-    "emptyOneDrive": "Pas encore de photos. Vérifiez le dossier OneDrive dans l'éditeur.",
-    "emptyImmich": "Pas encore de photos. Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
-    "emptyUnsplash": "Pas encore de photos. Essayez d'autres mots de recherche dans l'éditeur.",
-    "emptyNasa": "Aucune image de la NASA pour le moment. Elles reviendront d'elles-mêmes.",
-    "emptyArt": "Aucun tableau trouvé. Essayez d'assouplir un filtre dans l'éditeur.",
-    "photoCredit": "{name} / {source}",
-    "emptyPicked": "Aucune photo choisie pour l'instant. Choisissez-en quelques-unes dans l'éditeur."
+    "photoCredit": "{name} / {source}"
   },
   "video": {
     "name": "Vidéo",
@@ -1551,7 +1519,7 @@
   "qr-code": {
     "name": "Code QR",
     "empty": "Ajoute un lien ou ton Wi-Fi dans l'éditeur et il s'affichera ici",
-    "scanToConnect": "Scannez pour vous connecter",
+    "scanToConnect": "Scanne pour te connecter",
     "tooLong": "C'est trop de texte pour un seul code QR. Raccourcis-le dans l'éditeur et il s'affichera ici"
   },
   "display-control": {
@@ -1565,29 +1533,30 @@
     "ariaNext": "Écran suivant",
     "holdSub": "maintenir 1 seconde",
     "holdShort": "maintenir",
-    "keepHolding": "Maintenez pour mettre en veille",
+    "keepHolding": "Maintiens pour mettre en veille",
     "wake": "Réveiller",
     "wakeSub": "rallume l'écran",
     "controls": "Contrôle",
-    "thisDisplay": "Cet affichage",
-    "thisDisplayTag": "cet affichage",
-    "allDisplays": "Tous les affichages",
+    "thisDisplay": "Ce mur",
+    "thisDisplayTag": "ce mur",
+    "allDisplays": "Tous les murs",
     "brightnessValue": "Luminosité {percent} %",
     "brightnessUnknown": "Luminosité, pas encore signalée",
     "dockEmpty": "Pas encore d'écrans",
     "unnamedScreen": "Écran {number}",
     "goTo": "Aller à {name}",
     "timers": "Minuteurs",
-    "timersEyebrow": "Sur cet affichage",
+    "timersEyebrow": "Démarre sur ce mur",
     "routines": "Routines",
     "quickTimer": "Minuteur rapide",
-    "noRoutines": "Créez des routines sur le téléphone, dans Minuteurs.",
+    "noRoutines": "Crée des routines sur le téléphone, dans Minuteurs",
     "start": "Démarrer",
-    "timerStartFailed": "Le minuteur n'a pas démarré. Réessayez.",
+    "timerStartFailed": "Le minuteur n'a pas démarré. Réessaie.",
     "timersPreview": "Ceci n'est qu'un aperçu, un appui ici ne lance aucun minuteur."
   },
   "timetable": {
     "name": "Emploi du temps",
+    "loading": "Chargement des emplois du temps…",
     "today": "Aujourd'hui",
     "free": "libre",
     "lunch": "Midi",
@@ -1607,7 +1576,7 @@
     "abLegend": "{day} {periods} : semaine A {subjectA}, semaine B {subjectB}",
     "holidayLine": "{holiday}, retour à l'école le {date}",
     "holidayBrief": "{holiday}, retour le {date}",
-    "pickWho": "Indiquez dans les réglages du module de qui afficher la semaine.",
+    "pickWho": "Choisis une personne dans l'éditeur et sa semaine s'affichera ici",
     "noTimetableYet": "Pas encore d'emploi du temps. Un adulte peut l'ajouter dans l'éditeur.",
     "tomorrow": "Demain",
     "startsWord": "début",
@@ -1630,8 +1599,10 @@
     "locationNotSet": "Lieu non défini",
     "pluginNotAvailable": "Plug-in non disponible : {name}",
     "moduleFailed": "Cet élément n’a pas pu être affiché.",
-    "setLocationLink": "Indiquer votre lieu",
+    "setLocationLink": "Indique ton lieu",
+    "setLocationInEditor": "Définis ton lieu dans l'éditeur",
     "notUpdating": "Pas de mise à jour pour le moment",
+    "upNext": "À suivre",
     "setup": {
       "needsKey": "Pas encore de clé {service}",
       "keyNotWorking": "La clé {service} ne fonctionne pas",
@@ -1644,12 +1615,27 @@
     "moreBelow": {
       "one": "{count} de plus en dessous",
       "other": "{count} de plus en dessous"
+    },
+    "photoEmpty": {
+      "noPhotos": "Aucune photo pour l'instant",
+      "nonePicked": "Aucune image choisie pour l'instant",
+      "noPaintings": "Aucun tableau trouvé",
+      "noneFromNasa": "Aucune image de la NASA pour le moment",
+      "hint": {
+        "addPhotos": "Ajoute des photos depuis un téléphone : ouvre {url} et touche Photos",
+        "pickPictures": "Choisis des images dans l'éditeur et elles s'afficheront ici",
+        "checkFilters": "Vérifie l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur",
+        "checkLink": "Vérifie le lien de l'album dans l'éditeur et assure-toi que « Site web public » est activé pour l'album",
+        "checkFolder": "Vérifie le dossier OneDrive dans l'éditeur",
+        "checkSearch": "Essaie d'autres mots de recherche dans l'éditeur",
+        "checkArt": "Essaie d'assouplir un filtre dans l'éditeur",
+        "tryLater": "Elles reviendront d'elles-mêmes"
+      }
     }
   },
   "event-detail": {
     "close": "Fermer",
     "happeningNow": "En ce moment",
-    "allDay": "Toute la journée",
     "holiday": "Jour férié",
     "birthday": "Anniversaire",
     "birthdayWithAge": "Anniversaire · {age} ans",
@@ -1765,9 +1751,9 @@
         "fair": "Convenable pour sortir.",
         "moderate": "Les personnes sensibles devraient se ménager dehors.",
         "poor": "Mieux vaut limiter le temps dehors.",
-        "veryPoor": "Restez à l’intérieur si possible."
+        "veryPoor": "Mieux vaut rester à l’intérieur si possible."
       },
-      "nothingToShow": "Votre source météo n’envoie pas les détails de cette vue."
+      "nothingToShow": "La source météo n’envoie pas les détails de cette vue."
     },
     "moon": {
       "new": "Nouvelle lune",
@@ -1801,19 +1787,19 @@
     "andMore": "et {n} de plus",
     "count": {
       "one": "{count} note",
-      "other": "{count} notes",
-      "many": "{count} notes"
+      "many": "{count} notes",
+      "other": "{count} notes"
     },
     "countLabel": {
       "one": "note sur le tableau",
-      "other": "notes sur le tableau",
-      "many": "notes sur le tableau"
+      "many": "notes sur le tableau",
+      "other": "notes sur le tableau"
     },
     "important": "Importante",
     "importantCount": {
       "one": "{count} importante",
-      "other": "{count} importantes",
-      "many": "{count} importantes"
+      "many": "{count} importantes",
+      "other": "{count} importantes"
     },
     "pinned": "Épinglées",
     "new": "Récentes",
@@ -1828,7 +1814,7 @@
     "byline": "Par {name}",
     "importantLead": "Important :",
     "receiptTotal": "Total",
-    "receiptThanks": "Merci de votre lecture",
+    "receiptThanks": "Merci d'avoir lu",
     "receiptSummary": "Épinglées {pinned} · Importantes {important}",
     "pinnedOne": "Épinglée"
   },

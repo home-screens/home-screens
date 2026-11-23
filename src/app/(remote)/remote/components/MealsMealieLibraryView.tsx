@@ -17,10 +17,14 @@ import { noteMealieRecipeCount, useMealieRecipeCount } from '../hooks/useMealieR
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import MealThumb from './MealThumb';
 import RecipeWallButton from './RecipeWallButton';
-import { mealieSaveFailedWords, mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
-import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
+import { mealieSaveFailedWords, mealieSearchFailedWords } from './MealsMealieStatus';
+import { RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
+import { RetryButton } from './RetryButton';
+import EmptyState from './EmptyState';
+import ChipButton from './ChipButton';
 import { formatShownMinutes, openOutside } from './meals-shared';
 import { CARD } from './remote-styles';
+import { mealiePlaces } from '@/components/meals/mealie-places';
 
 /**
  * The Library while the plan lives in Mealie: a window onto Mealie's recipes,
@@ -92,9 +96,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
     body = <RecipeSkeletonRows count={4} square={64} radius={10} card />;
   } else if (search.error) {
     body = (
-      <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={tCore(failed.title)} description={t(failed.description)} padding="48px 16px">
-        <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
-      </CenterMessage>
+      <EmptyState icon={CloudOff} title={tCore(failed.title)} body={t(failed.description, mealiePlaces(tCore))} action={<RetryButton onRetry={search.retry} />} style={{ paddingTop: 48 }} />
     );
   } else if (search.items.length === 0) {
     const [title, description] = shortcut.kind === 'search'
@@ -104,7 +106,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
         : shortcut.kind === 'recent'
           ? [t('mealie.search.noRecentTitle'), t('mealie.search.noRecentDescription')]
           : [t('mealie.library.emptyTitle'), t('mealie.library.emptyDescription')];
-    body = <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={title} description={description} padding="48px 16px" />;
+    body = <EmptyState icon={Search} title={title} body={description} style={{ paddingTop: 48 }} />;
   } else {
     body = search.items.map((meal) => {
       const shown = mealShownMinutes(meal);
@@ -169,8 +171,10 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
           <button
             type="button"
             onClick={() => openOutside(mealieLink(baseUrl))}
+            className="press-scale-sm"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', minHeight: 32, padding: 0,
+              // 44 tall for a finger; the negative margin keeps the line its height.
+              display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', minHeight: 44, margin: '-6px 0', padding: 0,
               border: 'none', background: 'transparent', color: 'var(--hs-accent-hover, var(--hs-accent))',
               fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flex: 'none',
             }}
@@ -190,25 +194,25 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
         filter={shortcut.kind === 'favorites' || shortcut.kind === 'recent' ? shortcut.kind : 'all'}
         searching={!!typed}
         onFilter={choose}
-        style={{ paddingBottom: 12 }}
+        style={{ paddingBottom: 8 }}
       >
-        <FilterChip active={shortcut.kind === 'all'} onClick={() => choose('all')}>
+        <ChipButton selected={shortcut.kind === 'all'} onClick={() => choose('all')}>
           {t('mealsTab.library.filters.all')}
-        </FilterChip>
+        </ChipButton>
         {categories.map((c) => (
-          <FilterChip key={c.slug} active={shortcut.kind === 'category' && shortcut.slug === c.slug} onClick={() => choose({ category: c.slug })}>
+          <ChipButton key={c.slug} selected={shortcut.kind === 'category' && shortcut.slug === c.slug} onClick={() => choose({ category: c.slug })}>
             {c.name}
-          </FilterChip>
+          </ChipButton>
         ))}
         {cookbooks.map((c) => (
-          <FilterChip
+          <ChipButton
             key={`cookbook-${c.slug}`}
-            active={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
+            selected={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
             onClick={() => choose({ cookbook: c.slug })}
             icon={<BookOpen size={13} strokeWidth={2} aria-hidden />}
           >
             {c.name}
-          </FilterChip>
+          </ChipButton>
         ))}
       </RecipeShortcutChips>
       {body}
@@ -217,7 +221,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
       {!search.loading && search.hasMore && search.moreFailed && (
         <div data-testid="mealie-library-more-failed" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '12px 16px 4px', textAlign: 'center' }}>
           <span style={{ fontSize: 13, color: 'var(--hs-text-muted)' }}>{t('mealie.library.moreFailed')}</span>
-          <RetryButton onRetry={search.retryMore} style={{ padding: '0 18px' }} />
+          <RetryButton onRetry={search.retryMore} />
         </div>
       )}
       <div ref={endRef} aria-hidden style={{ height: 1 }} />
@@ -235,6 +239,7 @@ function LibraryHeart({ meal, onFailed }: { meal: SavedMeal; onFailed: (err: unk
       type="button"
       data-testid="mealie-library-heart"
       onClick={toggle}
+      className="press-scale-xs"
       aria-pressed={isFavorite}
       aria-label={t(isFavorite ? 'mealsTab.library.favoriteRemoveAriaLabel' : 'mealsTab.library.favoriteAddAriaLabel')}
       style={{

@@ -7,6 +7,7 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { PHOTO_SOURCE_MEDIA_PATH, photoSourceParams } from '@/lib/photo-source';
 import { useTranslate } from '@/i18n';
 import type { MediaListItem } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** The collection id in a pasted Unsplash address (`unsplash.com/collections/<id>/<slug>`), or the text as typed. */
 export function parseCollectionId(raw: string): string {
@@ -36,7 +37,7 @@ export default function UnsplashCollectionsFields({ collections, ready, onChange
   };
   return (
     <div className="space-y-2" data-testid="unsplash-collections">
-      <p className="text-[10px] leading-relaxed text-hs-text-faint">{t('photoSources.unsplash.collectionsHelp')}</p>
+      <FieldHint>{t('photoSources.unsplash.collectionsHelp')}</FieldHint>
       {collections.map((id) => (
         <CollectionRow key={id} id={id} ready={ready} onRemove={() => onChange(collections.filter((c) => c !== id))} />
       ))}

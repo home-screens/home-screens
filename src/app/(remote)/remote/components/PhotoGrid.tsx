@@ -5,6 +5,7 @@ import { Check, Lock, Play } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import type { MediaInventoryItem } from '@/lib/media-inventory';
 import { TILE_THUMBNAIL_WIDTH, serveUrlFor } from '@/lib/media-paths';
+import { REMOTE_ACCENT, REMOTE_ON_ACCENT } from './remote-styles';
 
 interface PhotoGridProps {
   items: readonly MediaInventoryItem[];
@@ -114,12 +115,12 @@ function PhotoGrid({ items, selecting, selected, usedAlone, onOpen, onToggle }: 
                   height: 26,
                   borderRadius: '50%',
                   border: '2px solid #fff',
-                  background: on ? 'var(--hs-accent)' : 'rgba(0,0,0,0.25)',
+                  background: on ? REMOTE_ACCENT : 'rgba(0,0,0,0.25)',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.45)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#fff',
+                  color: REMOTE_ON_ACCENT,
                 }}
               >
                 {on && <Check size={15} strokeWidth={3} />}
@@ -128,7 +129,8 @@ function PhotoGrid({ items, selecting, selected, usedAlone, onOpen, onToggle }: 
             {on && (
               <span
                 aria-hidden="true"
-                style={{ position: 'absolute', inset: 0, borderRadius: 8, boxShadow: 'inset 0 0 0 3px var(--hs-accent)', pointerEvents: 'none' }}
+                // The fixed amber, not the page ink: the ring sits on the photo, not on the theme's background.
+                style={{ position: 'absolute', inset: 0, borderRadius: 8, boxShadow: `inset 0 0 0 3px ${REMOTE_ACCENT}`, pointerEvents: 'none' }}
               />
             )}
           </button>

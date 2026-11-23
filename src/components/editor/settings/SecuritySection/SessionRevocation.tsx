@@ -14,6 +14,7 @@ interface RevokeStatus {
 /** "Log out all devices" confirm-then-revoke flow. Redirects to /login on success. */
 export default function SessionRevocation() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   const [revokeConfirm, setRevokeConfirm] = useState(false);
   const [revoking, setRevoking] = useState(false);
@@ -39,7 +40,7 @@ export default function SessionRevocation() {
       }
     } catch {
       setRevokeStatus({
-        message: t('common.networkError'),
+        message: tCore('refusals.unreachable'),
         kind: 'error',
       });
     } finally {
@@ -60,7 +61,7 @@ export default function SessionRevocation() {
         </Button>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-hs-warning">
+          <span className="text-xs text-hs-warning-ink">
             {t('settings.securityPage.revokeSessions.warning')}
           </span>
           <Button

@@ -51,6 +51,7 @@ function SlotCard({
   recipeTapMode: RecipeTapMode;
 }) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const mealMinutes = useMealMinutes();
   const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
@@ -129,7 +130,7 @@ function SlotCard({
                       className="rounded-full px-1.5 py-px"
                       style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
                     >
-                      {mealTagLabel(meal, tag)}
+                      {mealTagLabel(meal, tag, tCore)}
                     </span>
                   ))}
                 </div>

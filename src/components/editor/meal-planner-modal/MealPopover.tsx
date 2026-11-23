@@ -12,6 +12,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
+import FieldHint from '@/components/ui/FieldHint';
 
 const POPOVER_WIDTH = 360;
 const GAP = 8;
@@ -76,6 +77,7 @@ export default function MealPopover({
 }: MealPopoverProps) {
   const t = useTranslate('editor');
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const dishTime = useDishTime();
   const linkToMealie = useMealieLink();
@@ -143,7 +145,7 @@ export default function MealPopover({
   const courses = entry.courses ?? [];
   const onMealie = source === 'mealie';
   const mainTag = mainMeal?.tags?.[0];
-  const mainMeta = [dishTime(mainMeal), mainMeal && mainTag ? mealTagLabel(mainMeal, mainTag) : null].filter(Boolean).join(' · ');
+  const mainMeta = [dishTime(mainMeal), mainMeal && mainTag ? mealTagLabel(mainMeal, mainTag, tCore) : null].filter(Boolean).join(' · ');
   const mealieLink = onMealie && mainMeal?.recipeUrl ? linkToMealie(mainMeal.recipeUrl) : undefined;
   const addKinds = courseKindsToAdd(entry, !!mainName);
   const usual = defaultTimes[slot];
@@ -303,7 +305,7 @@ export default function MealPopover({
             value={time.value}
             onChange={onSetTime}
             slot={slot}
-            variant="dark"
+            variant="editor"
             accentColor={accentColor}
             compact
             align="right"
@@ -312,9 +314,9 @@ export default function MealPopover({
           </span>
         </div>
         {onMealie && (
-          <p className="mt-1.5 text-[11px] leading-[15px] text-hs-text-faint">
+          <FieldHint className="mt-1.5">
             {t(courses.length > 1 ? 'mealPlannerModal.popover.timeAndOrderKeptHere' : 'mealPlannerModal.popover.timeKeptHere')}
-          </p>
+          </FieldHint>
         )}
       </div>
 

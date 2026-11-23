@@ -65,12 +65,12 @@ export default function SportsModule({ config, style, timezone, timeFormat }: Sp
 
   if (view === 'team') {
     if (favorites.length === 0) {
-      return <ModuleEmptyState style={style} message={t('sports.pickTeam')} />;
+      return <ModuleEmptyState style={style} type="sports" message={t('sports.pickTeam')} />;
     }
     // Teams whose league is switched off are not fetched (sportsTeamUrl), so
     // with none left there is nothing to wait for.
     if (enabledFavorites(favorites, config.leagues ?? DEFAULT_SPORTS_LEAGUES).length === 0) {
-      return <ModuleEmptyState style={style} message={t('sports.teamLeagueOff')} />;
+      return <ModuleEmptyState style={style} type="sports" message={t('sports.teamLeagueOff')} />;
     }
     const cards = teamData?.cards ?? [];
     const gate = moduleGate({

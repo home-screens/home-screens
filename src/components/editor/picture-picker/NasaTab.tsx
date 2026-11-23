@@ -27,7 +27,7 @@ export const NASA_IDEAS = [
 /**
  * NASA: the Astronomy Picture of the Day (30 days at a time, newest first,
  * then Show more for the 30 before), and NASA's image library by idea or
- * search. Neither needs a key. Select Image copies into the `nasa` folder.
+ * search. Neither needs a key. Use this picture copies into the `nasa` folder.
  */
 export default function NasaTab({ selection, onSelect, copying }: PickerTabProps) {
   const t = useTranslate('editor');

@@ -13,6 +13,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { isMaterialView, NOTES_HEADING_VIEWS } from '@/lib/notes-rules';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, NotesConfig, NotesFilter, NotesView } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 // Which views read which field, from the NotesConfig JSDoc. The editor shows
 // only the controls the chosen view honours.
@@ -74,7 +75,7 @@ export function NotesConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         options={VIEWS}
       />
       {isMaterialView(view) && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.notes.materialHelp')}</p>
+        <FieldHint>{t('configSections.notes.materialHelp')}</FieldHint>
       )}
 
       {/* Whether the heading shows is the Title picker's choice at the top of
@@ -143,7 +144,7 @@ export function NotesConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         </>
       )}
 
-      {/* Notes are family data: written here with Manage notes, or on a phone in the Notes tab. */}
+      {/* Notes are family data: written here with Edit notes, or on a phone in the Notes tab. */}
       <PhoneSurfaceLinks context="notes" />
 
       {showModal && <NotesBoardModal onClose={() => setShowModal(false)} />}

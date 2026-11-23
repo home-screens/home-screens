@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { lookupKey } from '@/i18n/fallback';
-import { buildModuleDeleteConfirm, buildScreenDeleteConfirm } from '@/lib/delete-confirmations';
+import { buildDeleteConfirm, buildModuleDeleteConfirm, buildScreenDeleteConfirm } from '@/lib/delete-confirmations';
 import editor from '@/translations/en-US/editor.json';
 import core from '@/translations/en-US/core.json';
 import type { Dictionary } from '@/i18n/types';
@@ -90,5 +90,31 @@ describe('one verb for one action', () => {
     const source = readFileSync('src/components/editor/ScreenTabs.tsx', 'utf8');
     expect(source).not.toContain('actions.remove');
     expect(source.match(/buildScreenDeleteConfirm\(/g) ?? []).toHaveLength(2);
+  });
+});
+
+describe('buildDeleteConfirm', () => {
+  it('asks with the verb, quotes the name in curly quotes, and answers with the same verb', () => {
+    expect(buildDeleteConfirm({ verb: 'delete', name: 'Kitchen', consequence: 'Its 4 modules go with it.' }, tCore)).toEqual({
+      title: 'Delete “Kitchen”?',
+      message: 'Its 4 modules go with it.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    expect(buildDeleteConfirm({ verb: 'remove', name: 'School', consequence: 'x' }, tCore).title).toBe('Remove “School”?');
+    expect(buildDeleteConfirm({ verb: 'clear', name: 'Breakfast', consequence: 'x' }, tCore).confirmLabel).toBe('Clear');
+  });
+
+  it('takes a whole question for something with no name, and a fuller answer when given', () => {
+    const built = buildDeleteConfirm({ verb: 'remove', question: 'Remove 3 done items?', consequence: 'x', confirmLabel: 'Remove items' }, tCore);
+    expect(built.title).toBe('Remove 3 done items?');
+    expect(built.confirmLabel).toBe('Remove items');
+  });
+
+  it('has a shared title for every verb', () => {
+    for (const verb of ['delete', 'remove', 'clear'] as const) {
+      expect(lookupKey(core as Dictionary, `confirm.${verb}Title`), verb).toContain('“{name}”');
+      expect(lookupKey(core as Dictionary, `actions.${verb}`), verb).toBeTruthy();
+    }
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useId } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
@@ -14,13 +14,14 @@ export default function ConfirmModal() {
 }
 
 function ConfirmDialog() {
-  const { options, isAlert, choices, respond, respondChoice } = useConfirmStore();
+  const { options, respond, respondChoice } = useConfirmStore();
   const tCore = useTranslate('core');
+  const choosing = options.kind === 'choose';
 
   const dismiss = useCallback(() => {
-    if (choices) respondChoice(null);
+    if (choosing) respondChoice(null);
     else respond(false);
-  }, [choices, respond, respondChoice]);
+  }, [choosing, respond, respondChoice]);
 
   const trapRef = useFocusTrap<HTMLDivElement>();
 
@@ -67,41 +68,45 @@ function ConfirmDialog() {
 
   // After the trap hands focus back: when that had nowhere to go (the menu
   // item that opened the dialog is gone), the caller's fallback takes it.
-  const returnFocus = options.returnFocus;
+  const returnFocus = options.kind === 'confirm' ? options.returnFocus : undefined;
   useEffect(() => () => {
     if (returnFocus instanceof HTMLElement && returnFocus.isConnected
       && (!document.activeElement || document.activeElement === document.body)) returnFocus.focus();
   }, [returnFocus]);
 
-  const variant = options.variant ?? 'danger';
+  // An alert is the one dialog whose words come from here, not the caller.
+  const title = options.kind === 'alert' ? options.title ?? tCore('notice.title') : options.title;
+  const titleId = useId();
+  const messageId = useId();
 
   return (
     <div
       className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60"
       role="dialog"
       aria-modal="true"
-      aria-label={options.title ?? tCore('actions.confirm')}
+      aria-labelledby={title ? titleId : messageId}
+      aria-describedby={title ? messageId : undefined}
       // A click on the dimmed backdrop dismisses, as in every other window.
       onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
     >
       {/* Focusable itself, so a click on its text keeps focus in the dialog. */}
       <div ref={trapRef} tabIndex={-1} className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-sm shadow-2xl outline-none">
-        {options.title && (
+        {title && (
           <div className="px-5 pt-4 pb-0">
-            <h3 className="text-sm font-semibold text-hs-text-primary">{options.title}</h3>
+            <h3 id={titleId} className="text-sm font-semibold text-hs-text-primary">{title}</h3>
           </div>
         )}
         <div className="px-5 py-4">
           {/* Callers separate paragraphs with blank lines (a restore's notices, a refusal and its reason). */}
-          <p className="text-sm text-hs-text-secondary leading-relaxed whitespace-pre-line">{options.message}</p>
+          <p id={messageId} className="text-sm text-hs-text-secondary leading-relaxed whitespace-pre-line">{options.message}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 pb-4">
-          {choices ? (
+          {options.kind === 'choose' ? (
             <>
               <Button variant="secondary" size="sm" onClick={() => respondChoice(null)}>
                 {tCore('actions.cancel')}
               </Button>
-              {choices.map((choice) => (
+              {options.choices.map((choice) => (
                 <Button
                   key={choice.value}
                   variant={choice.variant ?? 'secondary'}
@@ -112,15 +117,17 @@ function ConfirmDialog() {
                 </Button>
               ))}
             </>
+          ) : options.kind === 'alert' ? (
+            <Button variant="primary" size="sm" onClick={() => respond(true)}>
+              {tCore('actions.ok')}
+            </Button>
           ) : (
             <>
-              {!isAlert && (
-                <Button variant="secondary" size="sm" onClick={() => respond(false)}>
-                  {options.cancelLabel ?? tCore('actions.cancel')}
-                </Button>
-              )}
-              <Button variant={variant} size="sm" onClick={() => respond(true)}>
-                {options.confirmLabel ?? tCore('actions.confirm')}
+              <Button variant="secondary" size="sm" onClick={() => respond(false)}>
+                {options.cancelLabel ?? tCore('actions.cancel')}
+              </Button>
+              <Button variant={options.variant} size="sm" onClick={() => respond(true)}>
+                {options.confirmLabel}
               </Button>
             </>
           )}

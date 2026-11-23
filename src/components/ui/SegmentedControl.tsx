@@ -1,11 +1,17 @@
 'use client';
 
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
 
 export interface SegmentedOption<T extends string> {
   value: T;
   label: string;
+  /** Drawn before the label, such as a small lucide icon. Hidden from screen readers by the caller. */
+  icon?: ReactNode;
+  /** This one option cannot be chosen right now; the others still can. */
+  disabled?: boolean;
+  /** Forwarded as `data-testid` on the option's button. */
+  testId?: string;
 }
 
 interface SegmentedControlProps<T extends string> {
@@ -26,6 +32,12 @@ interface SegmentedControlProps<T extends string> {
    */
   id?: string;
   disabled?: boolean;
+  /**
+   * `equal` (the default) fills the row and shares it evenly. `content` makes
+   * the track only as wide as its options, for a short choice inside a wider
+   * row (a length, a kind).
+   */
+  fit?: 'equal' | 'content';
   /** Extra classes for the track. */
   className?: string;
 }
@@ -35,9 +47,9 @@ interface SegmentedControlProps<T extends string> {
  *
  * It picks a value rather than turning one thing on, so the options carry
  * `aria-checked` radio semantics instead of `aria-pressed`, and arrow keys
- * move between them the way they do in any radio group. Segments share the
- * width evenly and wrap instead of truncating, so the longest translation
- * still reads in a narrow column.
+ * move between them the way they do in any radio group, stepping over an
+ * option that is switched off. Segments wrap instead of truncating, so the
+ * longest translation still reads in a narrow column.
  */
 export default function SegmentedControl<T extends string>({
   value,
@@ -46,18 +58,29 @@ export default function SegmentedControl<T extends string>({
   label,
   id,
   disabled = false,
+  fit = 'equal',
   className,
 }: SegmentedControlProps<T>) {
   const trackRef = useRef<HTMLDivElement>(null);
   const current = options.findIndex((option) => option.value === value);
+  const pickable = (index: number) => !options[index]?.disabled;
 
   const selectAt = (index: number) => {
     const option = options[index];
-    if (!option || disabled) return;
+    if (!option || disabled || option.disabled) return;
     if (option.value !== value) onChange(option.value);
     // Keyboard movement selects and focuses in one step. The buttons keep
     // their positions across the re-render, so index is a safe handle.
     trackRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[index]?.focus();
+  };
+
+  /** The next option that can be chosen, walking `step` at a time and wrapping. */
+  const nextPickable = (from: number, step: 1 | -1) => {
+    for (let i = 1; i <= options.length; i++) {
+      const at = (from + step * i + options.length) % options.length;
+      if (pickable(at)) return at;
+    }
+    return from;
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -67,25 +90,29 @@ export default function SegmentedControl<T extends string>({
       case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
-        selectAt((from + 1) % options.length);
+        selectAt(nextPickable(from, 1));
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
-        selectAt((from - 1 + options.length) % options.length);
+        selectAt(nextPickable(from, -1));
         break;
       case 'Home':
         event.preventDefault();
-        selectAt(0);
+        selectAt(nextPickable(options.length - 1, 1));
         break;
       case 'End':
         event.preventDefault();
-        selectAt(options.length - 1);
+        selectAt(nextPickable(0, -1));
         break;
       default:
         break;
     }
   };
+
+  // Arrow keys move inside a radio group, Tab moves past it, so only one
+  // option is a tab stop: the chosen one, else the first that can be chosen.
+  const tabStop = current >= 0 && pickable(current) ? current : options.findIndex((_, i) => pickable(i));
 
   return (
     <div
@@ -96,7 +123,8 @@ export default function SegmentedControl<T extends string>({
       aria-disabled={disabled || undefined}
       onKeyDown={handleKeyDown}
       className={clsx(
-        'flex w-full rounded-md border border-hs-border bg-hs-card p-0.5',
+        'rounded-md border border-hs-border bg-hs-card p-0.5',
+        fit === 'content' ? 'inline-flex w-fit max-w-full flex-wrap' : 'flex w-full',
         disabled && 'opacity-50',
         className,
       )}
@@ -109,20 +137,23 @@ export default function SegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={checked}
-            // Arrow keys move inside a radio group, Tab moves past it, so only
-            // one option is a tab stop. An unrecognised value leaves the first.
-            tabIndex={checked || (current < 0 && index === 0) ? 0 : -1}
-            disabled={disabled}
+            tabIndex={index === tabStop ? 0 : -1}
+            disabled={disabled || option.disabled}
+            data-testid={option.testId}
             onClick={() => selectAt(index)}
             className={clsx(
-              'flex-1 rounded px-2 py-1 text-xs leading-tight transition-colors',
+              'rounded py-1 text-xs leading-tight transition-colors',
+              fit === 'content' ? 'px-3' : 'flex-1 px-2',
+              option.icon !== undefined && 'inline-flex items-center justify-center gap-1.5',
               'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hs-accent',
               'disabled:cursor-not-allowed',
+              option.disabled && 'opacity-40',
               checked
                 ? 'bg-hs-hover text-hs-text-primary'
                 : 'text-hs-text-faint hover:text-hs-text-secondary',
             )}
           >
+            {option.icon}
             {option.label}
           </button>
         );

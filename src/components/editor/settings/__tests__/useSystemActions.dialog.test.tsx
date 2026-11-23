@@ -99,16 +99,16 @@ describe('confirming a version change', () => {
     expect(`${title} ${message} ${confirmLabel}`).not.toMatch(/upgrade/i);
   });
 
-  it('still says upgrade when the offer is a newer version', async () => {
+  it('asks to update when the offer is a newer version', async () => {
     mocks.version.isDowngrade = false;
     const actions = await mountActions();
 
     await act(async () => { await actions.current.handleUpgrade('v1.14.0'); });
 
     const { title, message, confirmLabel } = dialog();
-    expect(title).toBe('Upgrade');
-    expect(confirmLabel).toBe('Upgrade');
-    expect(message).toContain('v1.14.0');
+    expect(title).toBe('Update to v1.14.0?');
+    expect(confirmLabel).toBe('Update');
+    expect(message).not.toMatch(/upgrade|server/i);
   });
 
   it('gives a version-history row the same going-back copy', async () => {

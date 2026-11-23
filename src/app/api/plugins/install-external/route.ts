@@ -79,7 +79,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     validateExternalUrl(tarballUrl);
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Invalid URL' },
+      { error: err instanceof Error ? err.message : 'Invalid URL', code: 'plugins.badLink' },
       { status: 400 },
     );
   }
@@ -90,7 +90,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Invalid URL';
     return NextResponse.json(
-      { error: `This URL has a {version} placeholder — enter which version to install. (${msg})` },
+      { error: `This URL has a {version} placeholder. Enter which version to install. (${msg})`, code: 'plugins.needsVersion' },
       { status: 400 },
     );
   }
@@ -122,23 +122,24 @@ export const POST = withAuth(async (request: NextRequest) => {
       case 'blocked':
       case 'not-allowed': {
         const why = guardError ?? BLOCKED_ADDRESS;
-        return NextResponse.json({ error: checkedHop > 0 ? `Redirect blocked: ${why}` : why }, { status: 400 });
+        return NextResponse.json({ error: checkedHop > 0 ? `Redirect blocked: ${why}` : why, code: 'plugins.blockedLink' }, { status: 400 });
       }
       case 'too-many-redirects':
         return NextResponse.json({ error: `${displayUrl} returned too many redirects.` }, { status: 502 });
       case 'invalid-url':
         // Before any check ran, it is the typed address that cannot be read.
-        if (checkedHop < 0) return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+        if (checkedHop < 0) return NextResponse.json({ error: 'Invalid URL', code: 'plugins.badLink' }, { status: 400 });
         return NextResponse.json({ error: `${displayUrl} returned an invalid redirect Location.` }, { status: 502 });
       case 'too-large':
         return NextResponse.json(
-          { error: `${displayUrl} is too big to be a plugin (over ${MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024)} MB). Check that the URL points at a tarball.` },
+          { error: `${displayUrl} is too big to be a plugin (over ${MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024)} MB). Check that the URL points at a tarball.`, code: 'plugins.notAPlugin' },
           { status: 502 },
         );
       default:
         return NextResponse.json(
           {
             error: `Could not download from ${displayUrl}`,
+            code: 'plugins.downloadFailed',
             detail: result.reason === 'timeout' ? 'it took too long to answer' : 'it could not be reached',
           },
           { status: 502 },
@@ -147,7 +148,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   }
   if (result.status < 200 || result.status >= 300) {
     return NextResponse.json(
-      { error: `${displayUrl} returned HTTP ${result.status}. Check that the URL points at a tarball.` },
+      { error: `${displayUrl} returned HTTP ${result.status}. Check that the URL points at a tarball.`, code: 'plugins.notAPlugin' },
       { status: 502 },
     );
   }
@@ -168,6 +169,6 @@ export const POST = withAuth(async (request: NextRequest) => {
     const msg = err instanceof Error ? err.message : 'Install failed';
     // Collisions → 409; validation errors → 400
     const status = /already installed/i.test(msg) ? 409 : 400;
-    return NextResponse.json({ error: msg }, { status });
+    return NextResponse.json({ error: msg, code: status === 409 ? 'plugins.alreadyInstalled' : 'plugins.notAPlugin' }, { status });
   }
 }, 'Failed to install external plugin');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, type CSSProperties } from 'react';
-import { CalendarDays, ChevronRight, Info, Repeat, Smartphone, Trash2 } from 'lucide-react';
+import { CalendarDays, ChevronRight, Info, Repeat, Smartphone } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { addIsoDays } from '@/lib/iso-date';
 import { formatEventTime } from '@/lib/calendar-utils';
@@ -21,9 +21,13 @@ import {
 } from '@/lib/calendar-write';
 import type { CalendarEntryInfo, EntryCalendar } from '@/lib/calendar-event-writes';
 import { useHouseholdClockFormat, useHouseholdToday } from '../household-clock';
+import { withAlpha } from '@/lib/hex-color';
 import FormOverlay from './FormOverlay';
 import EventRepeatSheet from './EventRepeatSheet';
-import { FIELD, FIELD_LABEL, selectedPillStyle } from './remote-styles';
+import PhoneSwitch from './PhoneSwitch';
+import SaveDeleteFooter from './SaveDeleteFooter';
+import { FIELD, FIELD_LABEL, toggleChipStyle } from './remote-styles';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** The calendar this phone put its last event on, offered first next time while it still takes events. */
 const LAST_CALENDAR_KEY = 'hs.calendarTab.lastCalendar';
@@ -58,16 +62,6 @@ function defaultStart(date: string, today: string): string {
   return fromMinutes(Math.min(23 * 60, (now.getHours() + 1) * 60));
 }
 
-const SWITCH: (on: boolean) => CSSProperties = (on) => ({
-  width: 51, height: 31, borderRadius: 16, position: 'relative', flex: 'none', border: 0, padding: 0,
-  background: on ? 'var(--hs-accent)' : '#404040', transition: 'background 0.15s',
-});
-
-const KNOB: (on: boolean) => CSSProperties = (on) => ({
-  position: 'absolute', top: 2, left: on ? 22 : 2, width: 27, height: 27, borderRadius: '50%', background: '#fff',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.4)', transition: 'left 0.15s',
-});
-
 const NOTE: CSSProperties = {
   display: 'flex', gap: 10, padding: '12px 14px', borderRadius: 12, fontSize: 13.5, lineHeight: 1.45, marginBottom: 18,
 };
@@ -86,7 +80,7 @@ export interface EventFormSubmit {
  * picked for a new event and shown, not picked, on a change: an edit never
  * moves an event.
  */
-export default function EventFormOverlay({ mode, entry, date, initial, repeat, calendar, fromWall, notice, busy, onSubmit, onRemove, onClose }: {
+export default function EventFormOverlay({ mode, entry, date, initial, repeat, calendar, fromWall, notice, saving, removing, onSubmit, onRemove, onClose }: {
   mode: 'new' | 'change';
   entry: CalendarEntryInfo;
   /** The day tapped (new) or the day the event is on (change). */
@@ -100,7 +94,10 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   /** Opened from a wall's "Type on your phone" code: that wall's name. */
   fromWall?: string;
   notice?: 'changedElsewhere' | null;
-  busy: boolean;
+  /** The hub is saving this form: the save button says so. */
+  saving: boolean;
+  /** The hub is removing this event: nothing can be pressed, and the save button keeps its words. */
+  removing: boolean;
   onSubmit: (value: EventFormSubmit) => void;
   onRemove?: () => void;
   onClose: () => void;
@@ -150,7 +147,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
     }
   }, [draft, entry.timezone]);
   const problemText = problem && problem.code !== 'calendarWrite.titleRequired' ? refusalSentence(problem, tCore) : null;
-  const canSave = !busy && !problem && (mode === 'new' ? Boolean(calendarId) : dirty);
+  const canSave = !saving && !removing && !problem && (mode === 'new' ? Boolean(calendarId) : dirty);
 
   const nextDay = !draft.allDay && endsNextDay(draft.startTime ?? '', draft.endTime ?? '');
   const minutes = !draft.allDay ? draftMinutes(draft.startTime ?? '', draft.endTime ?? '') : null;
@@ -171,30 +168,17 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   };
 
   const footer = (
-    <div style={{ display: 'flex', gap: 10 }}>
-      {mode === 'change' && onRemove && (
-        <button
-          type="button"
-          className="press-scale"
-          data-testid="event-form-remove"
-          disabled={busy}
-          onClick={onRemove}
-          style={{ minHeight: 48, borderRadius: 12, padding: '0 18px', border: '1px solid rgba(248,113,113,0.35)', background: 'transparent', color: '#f87171', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit' }}
-        >
-          <Trash2 size={18} aria-hidden="true" />{t('calendarTab.form.remove')}
-        </button>
-      )}
-      <button
-        type="button"
-        className="press-scale"
-        data-testid="event-form-save"
-        disabled={!canSave}
-        onClick={submit}
-        style={{ flex: 1, minHeight: 48, borderRadius: 12, background: 'var(--hs-accent)', color: '#fff', fontSize: 15, fontWeight: 700, border: 0, opacity: canSave ? 1 : 0.5, fontFamily: 'inherit' }}
-      >
-        {mode === 'new' ? t('calendarTab.form.add') : t('calendarTab.form.save')}
-      </button>
-    </div>
+    <SaveDeleteFooter
+      saveLabel={mode === 'new' ? t('calendarTab.form.add') : undefined}
+      canSave={canSave}
+      busy={saving}
+      deleting={removing}
+      onSave={submit}
+      deleteLabel={mode === 'change' && onRemove ? t('calendarTab.form.remove') : undefined}
+      onDelete={onRemove}
+      saveTestId="event-form-save"
+      deleteTestId="event-form-remove"
+    />
   );
 
   const label = (key: string) => <span style={FIELD_LABEL}>{t(key)}</span>;
@@ -202,7 +186,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
 
   return (
     <FormOverlay title={mode === 'new' ? t('calendarTab.form.newTitle') : t('calendarTab.form.changeTitle')} dirty={dirty} onBack={onClose} footer={footer}>
-      <div style={{ padding: '20px 16px 120px' }} data-testid="event-form" data-mode={mode}>
+      <div data-testid="event-form" data-mode={mode}>
         {fromWall && (
           <div style={{ ...NOTE, background: 'var(--hs-bg-panel)', border: '1px solid var(--hs-border-strong)', color: 'var(--hs-text-body)' }}>
             <Smartphone size={18} aria-hidden="true" style={{ flex: 'none', marginTop: 1, color: 'var(--hs-text-muted)' }} />
@@ -210,7 +194,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
           </div>
         )}
         {notice === 'changedElsewhere' && (
-          <div role="status" data-testid="event-form-changed" style={{ ...NOTE, background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+          <div role="status" data-testid="event-form-changed" style={{ ...NOTE, background: withAlpha('var(--hs-warning)', 0.1), border: `1px solid ${withAlpha('var(--hs-warning)', 0.35)}`, color: 'var(--hs-warning-ink)' }}>
             <Info size={18} aria-hidden="true" style={{ flex: 'none', marginTop: 1 }} />
             <span>{t('calendarTab.form.changedElsewhere')}</span>
           </div>
@@ -252,12 +236,13 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
           />
         </label>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, minHeight: 44 }}>
-          <span style={{ fontSize: 15, fontWeight: 600 }}>{t('calendarTab.form.allDay')}</span>
-          <button type="button" role="switch" aria-checked={draft.allDay} aria-label={t('calendarTab.form.allDay')} data-testid="event-form-all-day" onClick={() => set({ allDay: !draft.allDay })} style={SWITCH(draft.allDay)}>
-            <span aria-hidden="true" style={KNOB(draft.allDay)} />
-          </button>
-        </div>
+        <PhoneSwitch
+          checked={draft.allDay}
+          onChange={(allDay) => set({ allDay })}
+          label={t('calendarTab.form.allDay')}
+          testId="event-form-all-day"
+          style={{ marginTop: 12 }}
+        />
 
         {draft.allDay ? (
           <label style={{ display: 'block', marginTop: 14 }}>
@@ -285,7 +270,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
               <label>
                 <span style={FIELD_LABEL}>
                   {t('calendarTab.form.ends')}
-                  {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: '#f59e0b', marginLeft: 6 }}>{t('calendarTab.form.nextDay')}</span>}
+                  {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--hs-warning-ink)', marginLeft: 6 }}>{t('calendarTab.form.nextDay')}</span>}
                 </span>
                 <input
                   type="time"
@@ -295,7 +280,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
                     if (!e.target.value) return;
                     set({ endTime: e.target.value });
                   }}
-                  style={{ ...FIELD, ...(problem?.code === 'calendarWrite.endsWhenItStarts' ? { borderColor: '#f87171' } : {}) }}
+                  style={{ ...FIELD, ...(problem?.code === 'calendarWrite.endsWhenItStarts' ? { borderColor: 'var(--hs-danger)' } : {}) }}
                 />
               </label>
             </div>
@@ -306,7 +291,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
             )}
           </>
         )}
-        {problemText && <p role="alert" style={{ fontSize: 12.5, color: '#f87171', marginTop: 8 }}>{problemText}</p>}
+        {problemText && <p role="alert" style={{ fontSize: 12.5, color: 'var(--hs-danger)', marginTop: 8 }}>{problemText}</p>}
 
         <div style={gap}>
           {label('calendarTab.form.repeats')}
@@ -335,7 +320,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
                   className="press-scale"
                   data-calendar={c.id}
                   onClick={() => setCalendarId(c.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, padding: '0 14px', borderRadius: 20, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', ...selectedPillStyle(c.id === calendarId, 'var(--hs-text-muted)') }}
+                  style={{ ...toggleChipStyle(c.id === calendarId), fontSize: 14 }}
                 >
                   <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: c.color }} />{c.name}
                 </button>
@@ -361,7 +346,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
         </label>
         {mode === 'new' && entry.calendars.length === 0 && (
           <p style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'var(--hs-text-faint)', marginTop: 12 }}>
-            <CalendarDays size={16} aria-hidden="true" />{t('calendarTab.form.noCalendars')}
+            <CalendarDays size={16} aria-hidden="true" />{t('calendarTab.form.noCalendars', { place: settingsPlaceText(tCore, 'calendar') })}
           </p>
         )}
       </div>

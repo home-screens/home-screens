@@ -10,7 +10,7 @@
  * module's text size still moves it, by the square root of its step, because
  * the cell, not the screen, is what runs out: a name has to fit across a
  * seventh of the wall. It never passes a quarter of the cell's width or a
- * fifth of its height, so 4X Large still leaves room for the day and a few
+ * fifth of its height, so 4X large still leaves room for the day and a few
  * names, and it never drops below the size the text setting alone gave.
  */
 

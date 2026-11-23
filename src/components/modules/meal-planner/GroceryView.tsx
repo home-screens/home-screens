@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { Check } from 'lucide-react';
 import type { MealPlannerConfig } from '@/types/config';
 import { DIVIDER, TEXT_OPACITY, hasAccentColor, ink } from '@/lib/constants';
 import { wallGroceryFlatRows, type WallGroceryGroup, type WallGroceryItem } from '@/lib/grocery-wall';
 import { useTranslate } from '@/i18n';
 import FamilyEmptyState from '../FamilyEmptyState';
+import { ModuleLoadingBody } from '../ModuleStates';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
 import { wallRowPress } from '../shared/wallPress';
 import { useGroceryPaging } from '../shared/useGroceryPaging';
@@ -208,7 +210,8 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   if (grocery.state === 'loading') {
-    return <FamilyEmptyState icon={<>&#129530;</>} title={t('meal-planner.loading')} hint="" fontSize={fontSize} />;
+    // Loading looks like loading, not like an empty list.
+    return <div className="h-full" style={{ fontSize }}><ModuleLoadingBody message={t('meal-planner.loading')} /></div>;
   }
   if (grocery.state === 'failed') {
     // The real problem, as the plan views and the recipe book name it, with a hint about the list.
@@ -222,7 +225,7 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
   if (grocery.listName) {
     return (
       <FamilyEmptyState
-        icon={done ? <>&#10003;</> : <>&#129530;</>}
+        icon={done ? <Check size="1em" strokeWidth={2.5} /> : <>&#129530;</>}
         title={done ? t('meal-planner.grocery.mealieDone', { list: grocery.listName }) : tCore('mealie.grocery.emptyTitle', { list: grocery.listName })}
         hint={t('meal-planner.grocery.mealieEmptyHint')}
         fontSize={fontSize}
@@ -231,7 +234,7 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
   }
   return (
     <FamilyEmptyState
-      icon={done ? <>&#10003;</> : <>&#129530;</>}
+      icon={done ? <Check size="1em" strokeWidth={2.5} /> : <>&#129530;</>}
       title={t(done ? 'meal-planner.grocery.localDone' : 'meal-planner.grocery.localEmpty')}
       hint={t(done ? 'meal-planner.grocery.localDoneHint' : 'meal-planner.grocery.localEmptyHint')}
       fontSize={fontSize}

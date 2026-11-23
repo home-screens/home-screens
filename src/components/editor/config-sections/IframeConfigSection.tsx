@@ -64,7 +64,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       />
 
       {c.sandboxEnabled && (
-        <LabeledField label={t('configSections.iframe.sandboxPermissions')}>
+        <LabeledField label={t('configSections.iframe.sandboxPermissions')} hint={t('configSections.iframe.sandboxHelp')}>
           <input
             type="text"
             value={c.sandbox || ''}
@@ -78,15 +78,12 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             </span>
           )}
           {sandboxResult && sandboxResult.unknownTokens.length > 0 && (
-            <span className="text-[10px] text-hs-warning mt-0.5">
+            <span className="text-[10px] text-hs-warning-ink mt-0.5">
               {sandboxResult.unknownTokens.length > 1
                 ? t('configSections.iframe.unknownTokensPlural', { tokens: sandboxResult.unknownTokens.join(', ') })
                 : t('configSections.iframe.unknownTokensSingular', { tokens: sandboxResult.unknownTokens.join(', ') })}
             </span>
           )}
-          <span className="text-[10px] text-hs-text-faint mt-0.5">
-            {t('configSections.iframe.sandboxHelp')}
-          </span>
         </LabeledField>
       )}
     </>

@@ -35,7 +35,7 @@ test('kid view lists today\'s chores without the Manage view', async ({ page }) 
   // used it last, and the name pill alone never said so.
   await expect(page.getByRole('heading', { name: 'Avery\u2019s chores' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Avery', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Manage', exact: true })).toBeHidden();
+  await expect(page.getByRole('tab', { name: 'Manage', exact: true })).toBeHidden();
 });
 
 test('kid can check off a chore and it persists', async ({ page, request }) => {
@@ -62,7 +62,7 @@ test('kid can check off a chore and it persists', async ({ page, request }) => {
 test('admin view on /remote shows the Manage view', async ({ page }) => {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Manage', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Manage', exact: true })).toBeVisible();
 });
 
 test('the Manage view offers the starter list and adds the picked chores to the group', async ({ page, request, sandboxDir }) => {
@@ -79,7 +79,7 @@ test('the Manage view offers the starter list and adds the picked chores to the 
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Manage', exact: true }).click();
+  await page.getByRole('tab', { name: 'Manage', exact: true }).click();
   await expect(page.getByText('Start with ready-made chores')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Write your own' })).toBeVisible();
   await page.getByTestId('starter-open').click();
@@ -140,7 +140,7 @@ test('/chores shows the empty state when no chore module is configured', async (
   // fridge QR code, so it has to speak to the kid and point the grown-up at
   // the phone surface, not at "modules" and "the editor".
   await expect(
-    page.getByText('No chores yet. Ask a grown-up to add a chore chart to the display.'),
+    page.getByText('No chores yet. Ask a grown-up to add a chore chart to the wall.'),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Grown-ups: open the family remote' })).toHaveAttribute('href', '/remote');
 });
@@ -164,7 +164,7 @@ test('kid redeems a reward and the balance decrements with a history entry', asy
   const before = ((await readRewards()).balances as Record<string, number>)['m-kr'] ?? 0;
 
   await page.goto('/chores');
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
 
   // Redeem is the default kid rewards view; the reward is affordable (5 ≥ 2).
   const redeemed = page.waitForResponse(
@@ -182,7 +182,7 @@ test('kid redeems a reward and the balance decrements with a history entry', asy
     .toContain('Movie Night');
 
   // The redemption also shows up in the kid-facing History tab.
-  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
   await expect(page.getByText('Movie Night')).toBeVisible();
 });
 
@@ -195,7 +195,7 @@ test('an unaffordable reward is shown disabled in the kid view', async ({ page, 
   await request.post('/api/rewards/data', { data: { memberId: 'm-af', amount: 3 } }); // well below cost
 
   await page.goto('/chores');
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
 
   // Cost outstrips the balance, so the row renders as a disabled button.
   const rewardBtn = page.getByRole('button', { name: /Theme Park Day/ });
@@ -220,8 +220,8 @@ test('kid sees a previously-redeemed reward in the History tab', async ({ page, 
   expect(redeemed.ok()).toBe(true);
 
   await page.goto('/chores');
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
 
   // History is Pip's own ticket feed: the reward as a spent row with its cost.
   const feed = page.getByTestId('tickets-feed');
@@ -331,7 +331,7 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
   await expect(page.getByText('Set the table')).toBeHidden();
 
   // Kids get a Yesterday/Today toggle, not the 90-day strip.
-  await expect(page.getByRole('button', { name: 'Yesterday', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Yesterday', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /View .*, /i })).toHaveCount(0);
 
   // The grown-up strip on /remote summarizes progress as an aggregate
@@ -427,7 +427,7 @@ test('the week line shows the stars, and a second finished day in a row is a str
 
   // The run ends today, so it is not shown beside yesterday.
   await page.getByTestId('day-complete-close').click();
-  await page.getByRole('button', { name: 'Yesterday' }).click();
+  await page.getByRole('tab', { name: 'Yesterday' }).click();
   await expect(line).toHaveCount(0);
 });
 
@@ -473,7 +473,7 @@ test('kid picks something to save for and sees the bar on Rewards and Today', as
   const balance = ((await (await request.get('/api/rewards')).json()).balances as Record<string, number>)['m-goal'] ?? 0;
 
   await page.goto('/chores');
-  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
   await expect(page.getByTestId('savings-goal-empty')).toBeVisible();
   await page.getByTestId('savings-goal-empty').click();
 
@@ -488,7 +488,7 @@ test('kid picks something to save for and sees the bar on Rewards and Today', as
   await expect.poll(async () => ((await (await request.get('/api/rewards')).json()).goals ?? {})['m-goal']).toBe('rw-lego');
 
   // Today carries one line for it, and a tap goes back to Rewards.
-  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await page.getByRole('tab', { name: 'Today', exact: true }).click();
   const line = page.getByTestId('today-goal-line');
   await expect(line).toContainText('Lego set');
   await line.click();

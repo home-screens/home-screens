@@ -28,6 +28,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
+import StatusDot from '@/components/ui/StatusDot';
 
 const DOCS_URL = 'https://homescreens.dev/docs';
 const GITHUB_URL = 'https://github.com/home-screens/home-screens';
@@ -126,41 +127,41 @@ interface SettingsSidebarProps {
  * dual-maintenance risk where the sidebar array and the route parser's
  * canonical list could silently drift out of sync.
  *
- * The `labelKey` is a key under `editor.settings.sidebar.navLabels`; the
- * `group` names a key under `editor.settings.sidebar.groups`. Both are
- * resolved per render via `useTranslate('editor')` so a locale change
- * re-flows the sidebar without remounting. Grouping is display-only —
+ * A page's label is `core` `settingsPages.<id>`, the name every "where to
+ * find it" line uses too; the `group` names a key under
+ * `editor.settings.sidebar.groups`. Both are resolved per render so a
+ * locale change re-flows the sidebar without remounting. Grouping is display-only:
  * the flat `DEFAULT_PAGE_IDS` order (which already lists group members
  * consecutively) stays the routing source of truth.
  */
 type SidebarGroup = 'screen' | 'content' | 'automation' | 'admin';
 
-const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; group: SidebarGroup }> = {
-  screen: { labelKey: 'screen', icon: Monitor, group: 'screen' },
-  location: { labelKey: 'location', icon: MapPin, group: 'screen' },
-  weather: { labelKey: 'weather', icon: CloudSun, group: 'content' },
-  calendar: { labelKey: 'calendar', icon: Calendar, group: 'content' },
-  family: { labelKey: 'family', icon: Users, group: 'content' },
-  meals: { labelKey: 'meals', icon: UtensilsCrossed, group: 'content' },
+const PAGE_META: Record<DefaultPageId, { icon: LucideIcon; group: SidebarGroup }> = {
+  screen: { icon: Monitor, group: 'screen' },
+  location: { icon: MapPin, group: 'screen' },
+  weather: { icon: CloudSun, group: 'content' },
+  calendar: { icon: Calendar, group: 'content' },
+  family: { icon: Users, group: 'content' },
+  meals: { icon: UtensilsCrossed, group: 'content' },
   // Sits with the feature pages it points at, not down in Maintenance beside
   // the footer's external links: /chores and /remote are first-party surfaces,
   // and a named row here is what makes them turn up in the sidebar search.
-  phone: { labelKey: 'phone', icon: Smartphone, group: 'content' },
+  phone: { icon: Smartphone, group: 'content' },
   // API keys sit with Content, not Maintenance — the keys exist to unlock
   // content sources (photos, todo lists, traffic), so users hunting for
   // "why is my photo module empty" find them next to the feature pages.
-  integrations: { labelKey: 'integrations', icon: KeyRound, group: 'content' },
+  integrations: { icon: KeyRound, group: 'content' },
   // The shared media library (everything uploaded to this hub) sits with
   // the feature pages that consume it (photos, backgrounds, videos).
-  media: { labelKey: 'media', icon: Images, group: 'content' },
+  media: { icon: Images, group: 'content' },
   // The household's own icons, uploaded here or from any icon picker.
-  icons: { labelKey: 'icons', icon: ImagePlus, group: 'content' },
-  automation: { labelKey: 'automation', icon: Zap, group: 'automation' },
-  security: { labelKey: 'security', icon: Shield, group: 'admin' },
-  network: { labelKey: 'network', icon: Wifi, group: 'admin' },
-  system: { labelKey: 'system', icon: Server, group: 'admin' },
-  data: { labelKey: 'data', icon: Database, group: 'admin' },
-  stats: { labelKey: 'stats', icon: Activity, group: 'admin' },
+  icons: { icon: ImagePlus, group: 'content' },
+  automation: { icon: Zap, group: 'automation' },
+  security: { icon: Shield, group: 'admin' },
+  network: { icon: Wifi, group: 'admin' },
+  system: { icon: Server, group: 'admin' },
+  data: { icon: Database, group: 'admin' },
+  stats: { icon: Activity, group: 'admin' },
 };
 
 /**
@@ -170,11 +171,11 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; gro
  * at call time so the visible string follows the active locale.
  */
 function buildDefaultPages(
-  t: TranslateFn,
+  tCore: TranslateFn,
 ): { id: DefaultPageId; label: string; icon: LucideIcon; group: SidebarGroup }[] {
   return DEFAULT_PAGE_IDS.map((id) => ({
     id,
-    label: t(`settings.sidebar.navLabels.${PAGE_META[id].labelKey}`),
+    label: tCore(`settingsPages.${id}`),
     icon: PAGE_META[id].icon,
     group: PAGE_META[id].group,
   }));
@@ -199,14 +200,14 @@ function groupPages(
 }
 
 /** Map a heartbeat lastSeen (ms epoch) to one of the three status colors. */
-function statusDotClass(lastSeen: number | null): string {
+function statusDotTone(lastSeen: number | null): 'success' | 'warning' | 'neutral' {
   switch (heartbeatState(lastSeen)) {
     case 'online':
-      return 'bg-hs-success ring-2 ring-hs-success/20';
+      return 'success';
     case 'idle':
-      return 'bg-hs-warning';
+      return 'warning';
     case 'offline':
-      return 'bg-hs-text-faint';
+      return 'neutral';
   }
 }
 
@@ -216,7 +217,8 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   const isMultiDisplay = displays.length > 0;
 
   const t = useTranslate('editor');
-  const defaultPages = useMemo(() => buildDefaultPages(t), [t]);
+  const tCore = useTranslate('core');
+  const defaultPages = useMemo(() => buildDefaultPages(tCore), [tCore]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -493,7 +495,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
                 : 'text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover border-transparent'
             }`}
           >
-            <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${statusDotClass(lastSeen)}`} />
+            <StatusDot tone={statusDotTone(lastSeen)} size="sm" />
             <span className="flex-1 min-w-0 truncate text-left">{display.name}</span>
             {dimensions && (
               <span className="text-[10px] text-hs-text-faint tabular-nums">{dimensions}</span>

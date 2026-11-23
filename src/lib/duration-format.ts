@@ -1,6 +1,6 @@
 /**
  * Shared duration-formatting machinery — the reusable half of the Clock
- * module's Elapsed (Since/Until) view, extracted so the Countdown module can
+ * module's Elapsed (since/until) view, extracted so the Countdown module can
  * render the same curated set of unit styles.
  *
  * Two independent, curated axes — both single-select, deliberately not

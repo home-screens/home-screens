@@ -53,7 +53,7 @@ export function MealMetaPills({ meal, showPrepTime, showDifficulty, showTags, sh
       )}
       {tags.map((tag) => (
         <span key={tag} style={pillStyle}>
-          {mealTagLabel(meal, tag)}
+          {mealTagLabel(meal, tag, tCore)}
         </span>
       ))}
     </div>

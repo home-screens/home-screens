@@ -64,7 +64,7 @@ test('a single tap on a dot navigates to that screen, moves aria-current, and re
 
   // The tap navigated to C and moved the active marker onto C's dot.
   await expect(page.getByText(C, { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Pause rotation (double-tap)' }))
+  await expect(page.getByRole('button', { name: 'Stay on this screen (tap twice)' }))
     .toHaveAttribute('aria-current', 'true');
 
   // "Did not advance early": A's pre-tap deadline was ~300ms after the tap; a

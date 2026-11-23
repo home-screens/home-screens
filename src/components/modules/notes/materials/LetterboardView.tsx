@@ -5,7 +5,6 @@ import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useStepper } from '../useStepper';
 import { PinGlyph, ageOf, authorOf } from '../shared';
 import type { MaterialViewProps } from './types';
-import { memberInitials } from '@/lib/family-avatar';
 
 const FELT = '#171717';
 const GROOVE = '#262626';
@@ -140,6 +139,8 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
             data-author={author.id ?? 'someone'}
             title={author.name}
             className="shrink-0"
+            // A letterboard's own cream tile, not the person's colour, so its
+            // ink is the board's dark letter rather than `memberInk`.
             style={{
               background: '#f4f1ea',
               color: '#111',
@@ -148,7 +149,7 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
               boxShadow: '0 0.09em 0.09em rgba(0, 0, 0, 0.6)',
             }}
           >
-            {author.color ? memberInitials(author.name) : '?'}
+            {author.initials}
           </span>
         )}
         {credit && <span className="truncate">{credit}</span>}

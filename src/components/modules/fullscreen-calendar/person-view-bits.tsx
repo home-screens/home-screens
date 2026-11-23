@@ -1,7 +1,9 @@
 'use client';
 
-import type { TranslateFn } from '@/i18n';
+import { useTranslate, type TranslateFn } from '@/i18n';
+import { settingsPlaceText } from '@/lib/settings-route';
 import type { PersonRow } from '@/lib/calendar-people';
+import { MemberBadge } from '../shared/MemberBadge';
 
 /**
  * Shared presentation atoms for the person views (family grid, free time):
@@ -11,26 +13,18 @@ import type { PersonRow } from '@/lib/calendar-people';
  */
 
 /** Avatar circle for a person row: initials on the person's color. Callers
- *  pre-scale `fontSize` for their density; 3+-letter initials (the
- *  source-name fallback rows) shrink a step so they still fit the circle. */
+ *  pre-scale `fontSize` for their density; longer initials (two names that
+ *  share a letter) shrink a step inside the circle (`MemberBadge`). */
 export function PersonAvatar({ row, size, fontSize }: { row: PersonRow; size: number; fontSize: number }) {
-  return (
-    <span aria-hidden="true" style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      background: row.color, color: '#fff',
-      fontSize: row.initials.length > 2 ? fontSize * 0.7 : fontSize, fontWeight: 700,
-    }}>
-      {row.initials}
-    </span>
-  );
+  return <MemberBadge aria-hidden="true" initials={row.initials} color={row.color} size={size} fontSize={fontSize} />;
 }
 
-/** "Add people in Settings" hint under a person view with nobody configured. */
+/** "Add people in Settings > Family" hint under a person view with nobody configured. */
 export function PeopleHint({ fontSize, padding, t }: { fontSize: number; padding: string; t: TranslateFn }) {
+  const tCore = useTranslate('core');
   return (
     <div data-people-hint="" style={{ flexShrink: 0, padding, fontSize: fontSize * 1.05, color: 'var(--cal-text-tertiary)' }}>
-      {t('fullscreen-calendar.peopleHint')}
+      {t('fullscreen-calendar.peopleHint', { place: settingsPlaceText(tCore, 'family') })}
     </div>
   );
 }

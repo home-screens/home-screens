@@ -385,7 +385,7 @@ describe('NotesBoardModal', () => {
 
     fireEvent.click(screen.getByTestId('notes-modal-delete'));
     await settle();
-    expect(useConfirmStore.getState().options.title).toBe('Delete note');
+    expect(useConfirmStore.getState().options.title).toBe('Delete this note?');
     act(() => useConfirmStore.getState().respond(false));
     await settle();
     expect(writes).toEqual([]);

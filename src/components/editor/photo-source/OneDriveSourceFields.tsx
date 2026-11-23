@@ -13,6 +13,9 @@ import { formatNumber } from '@/i18n/formatters';
 import { ONEDRIVE_MAX_SAMPLE } from '@/lib/onedrive-shared';
 import { PHOTO_SOURCE_MEDIA_PATH, photoSourceParams } from '@/lib/photo-source';
 import type { PhotoSource } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** How many photos the preview strip shows. */
 const PREVIEW_COUNT = 4;
@@ -58,6 +61,7 @@ interface TrailEntry {
  */
 export function OneDriveSourceFields({ source, count, onChange }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const [status, setStatus] = useState<OneDriveStatus | null>(null);
   const [checking, setChecking] = useState(true);
@@ -95,7 +99,7 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
       if (!res.ok) {
         throw new Error(t(data?.code === 'credentials_missing'
           ? 'photoSources.onedrive.credentialsNeeded'
-          : 'photoSources.onedrive.signInFailed'));
+          : 'photoSources.onedrive.signInFailed', { place: settingsPlaceText(tCore, 'integrations') }));
       }
       return {
         userCode: data.userCode,
@@ -123,7 +127,7 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
     onConnected: refreshStatus,
     words: {
       codeExpired: t('photoSources.onedrive.signInExpired'),
-      hubUnreachable: t('deviceSignIn.hubUnreachable'),
+      hubUnreachable: tCore('refusals.unreachable'),
     },
   });
 
@@ -184,9 +188,9 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
 
   if (!status?.credentialsConfigured) {
     return (
-      <p className="text-[11px] text-hs-text-muted leading-relaxed">
-        {t('photoSources.onedrive.credentialsNeeded')}
-      </p>
+      <FieldHint>
+        {t('photoSources.onedrive.credentialsNeeded', { place: settingsPlaceText(tCore, 'integrations') })}
+      </FieldHint>
     );
   }
 
@@ -202,14 +206,14 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
             className="group flex flex-wrap items-baseline gap-x-2 text-left text-lg font-semibold text-hs-text-primary tracking-widest cursor-pointer"
             labelClassName="text-[10px] font-normal tracking-normal text-hs-text-faint group-hover:text-hs-accent"
           />
-          <p className="text-[11px] text-hs-text-muted">
+          <FieldHint>
             {t('photoSources.onedrive.enterCode')}{' '}
             <DeviceCodeLink
               url={signIn.code.verificationUrl}
               short
               className="text-hs-accent hover:text-hs-accent-hover"
             />
-          </p>
+          </FieldHint>
           <button onClick={signIn.cancel} className="text-[10px] text-hs-text-faint hover:text-hs-text-muted">
             {t('photoSources.onedrive.cancel')}
           </button>
@@ -221,7 +225,7 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
         <Button size="sm" variant="primary" onClick={signIn.start} disabled={signIn.busy}>
           {t('photoSources.onedrive.signIn')}
         </Button>
-        {signIn.error && <p className="text-[11px] text-hs-warning leading-relaxed">{signIn.error}</p>}
+        {signIn.error && <p className="text-[11px] text-hs-warning-ink leading-relaxed">{signIn.error}</p>}
       </div>
     );
   }
@@ -229,7 +233,7 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full flex-shrink-0 bg-hs-success" />
+        <StatusDot tone="success" />
         <span className="text-xs text-hs-text-muted truncate">
           {status.account
             ? t('photoSources.onedrive.connectedAs', { account: status.account })
@@ -268,10 +272,10 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
           )}
           {foldersLoading && <p className="text-[11px] text-hs-text-muted">{t('photoSources.onedrive.loadingFolders')}</p>}
           {foldersFailed === 'notfound' && (
-            <p className="text-[11px] text-hs-warning">{t('photoSources.onedrive.folderNotFound')}</p>
+            <p className="text-[11px] text-hs-warning-ink">{t('photoSources.onedrive.folderNotFound')}</p>
           )}
           {foldersFailed === 'load' && (
-            <p className="text-[11px] text-hs-warning">
+            <p className="text-[11px] text-hs-warning-ink">
               {t('photoSources.onedrive.loadFailed')}{' '}
               <button onClick={() => setReloadBump((n) => n + 1)} className="text-hs-accent hover:text-hs-accent-hover">
                 {t('photoSources.onedrive.retry')}
@@ -281,7 +285,7 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
           {!foldersLoading && !foldersFailed && foldersData && (
             <>
               {foldersData.subfolders.length === 0 ? (
-                <p className="text-[11px] text-hs-text-faint">{t('photoSources.onedrive.emptyFolder')}</p>
+                <FieldHint>{t('photoSources.onedrive.emptyFolder')}</FieldHint>
               ) : (
                 <div className="flex flex-col gap-1">
                   {foldersData.subfolders.map((sub) => (
@@ -300,11 +304,11 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
                   subfolders can hold a far bigger tree, so flag both. */}
               {(foldersData.subfolders.length > 0
                 || (foldersData.folder.childCount ?? 0) > ONEDRIVE_MAX_SAMPLE) && (
-                <p className="text-[10px] text-hs-text-faint leading-relaxed">
+                <FieldHint>
                   {t('photoSources.onedrive.capNote', {
                     cap: formatNumber(ONEDRIVE_MAX_SAMPLE, { locale: formattingLocale }),
                   })}
-                </p>
+                </FieldHint>
               )}
               <Button
                 size="sm"
@@ -361,11 +365,11 @@ export function OneDriveSourceFields({ source, count, onChange }: Props) {
               ))}
             </div>
           ) : (
-            <p className="text-[10px] text-hs-text-faint">{t('photoSources.onedrive.noPhotos')}</p>
+            <FieldHint>{t('photoSources.onedrive.noPhotos')}</FieldHint>
           ))}
         </>
       )}
-      {error && <p className="text-[11px] text-hs-warning leading-relaxed">{error}</p>}
+      {error && <p className="text-[11px] text-hs-warning-ink leading-relaxed">{error}</p>}
     </div>
   );
 }

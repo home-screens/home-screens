@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, type CSSProperties } from 'react';
+import { Copy, Plus, Shuffle, Trash2, UtensilsCrossed } from 'lucide-react';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import type { MealieProblem } from '@/lib/meal-sources';
 import {
@@ -19,6 +20,8 @@ import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
 import { withAlpha } from '@/lib/hex-color';
 import { REMOTE_ACCENT } from './remote-styles';
+import EmptyState from './EmptyState';
+import PrimaryButton from './PrimaryButton';
 
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -106,60 +109,54 @@ export default function MealsPlanView({
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button
+          type="button"
           onClick={suggestRandom}
           disabled={suggestOff}
+          className="press-btn"
           style={actionStyle(suggestOff)}
           aria-label={t(fromMealie ? 'mealsPlan.actions.suggestMealieAriaLabel' : 'mealsPlan.actions.suggestAriaLabel')}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
+          <Shuffle size={14} strokeWidth={2} aria-hidden />
           {t('mealsPlan.actions.suggest')}
         </button>
         {(hasPreviousWeek || paused) && (
           <button
+            type="button"
             onClick={copyLastWeek}
             disabled={!!paused}
+            className="press-btn"
             style={actionStyle(!!paused)}
             aria-label={t('mealsPlan.actions.copyLastWeekAriaLabel')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <Copy size={14} strokeWidth={2} aria-hidden />
             {t('mealsPlan.actions.copyLastWeek')}
           </button>
         )}
         <button
+          type="button"
           onClick={clearAllPlan}
           disabled={clearOff}
+          className="press-btn"
           style={actionStyle(clearOff)}
           aria-label={t('mealsPlan.actions.clearAriaLabel')}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          <Trash2 size={14} strokeWidth={2} aria-hidden />
           {t('mealsPlan.actions.clear')}
         </button>
       </div>
 
       {!fromMealie && savedMeals.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>{t('mealsPlan.empty.title')}</p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            {t('mealsPlan.empty.description')}
-          </p>
-          <button
-            onClick={() => setSubView('library')}
-            style={{
-              padding: '10px 24px',
-              minHeight: 44,
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              background: REMOTE_ACCENT,
-              color: '#000',
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: 'inherit',
-            }}
-          >
-            {t('mealsPlan.empty.addMealsButton')}
-          </button>
-        </div>
+        <EmptyState
+          icon={UtensilsCrossed}
+          title={t('mealsPlan.empty.title')}
+          body={t('mealsPlan.empty.description')}
+          style={{ padding: '32px 16px 24px' }}
+          action={(
+            <PrimaryButton compact onClick={() => setSubView('library')}>
+              {t('mealsPlan.empty.addMealsButton')}
+            </PrimaryButton>
+          )}
+        />
       )}
 
       <div
@@ -199,7 +196,7 @@ export default function MealsPlanView({
                         gap: 8,
                         // Padding stays thin so the inner button can be the whole
                         // row: the old 10px inset left only a 20px strip of
-                        // "+ Add meal" actually tappable.
+                        // "Add meal" actually tappable.
                         padding: '3px 12px',
                         minHeight: 50,
                         borderRadius: 10,
@@ -212,6 +209,7 @@ export default function MealsPlanView({
                         <>
                           <button
                             type="button"
+                            className="press-scale"
                             onClick={() => onOpenMeal(date, slot)}
                             style={{
                               display: 'flex',
@@ -266,7 +264,7 @@ export default function MealsPlanView({
                               value={time}
                               onChange={(tt) => setSlotTime(date, slot, tt)}
                               slot={slot}
-                              variant="darker"
+                              variant="phone"
                               align="right"
                               timeFormat={timeFormat}
                             />
@@ -275,6 +273,7 @@ export default function MealsPlanView({
                       ) : (
                         <button
                           type="button"
+                          className="press-scale"
                           onClick={() => onPick({ date, slot, pick: 'main' })}
                           style={{
                             display: 'flex',
@@ -294,7 +293,10 @@ export default function MealsPlanView({
                           <div style={{ width: 3, height: 20, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.4, flexShrink: 0 }} />
                           <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>{slotLabel}</span>
                           {!paused && (
-                            <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginLeft: 'auto' }}>{t('mealsPlan.slot.addMeal')}</span>
+                            <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                              <Plus size={12} aria-hidden="true" />
+                              {t('mealsPlan.slot.addMeal')}
+                            </span>
                           )}
                         </button>
                       )}

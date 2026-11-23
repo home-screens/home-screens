@@ -29,6 +29,7 @@ import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
 import { openDayCellProps, openDayProps, useDaySheetOpener, type OpenDaySheet } from '../shared/useDaySheet';
 import { moreButtonStyle } from './grid-view-bits';
+import { WallButton } from '../shared/WallButton';
 
 // Chip metrics, shared by EventChip and the cell budget so a cell charges a
 // chip exactly what it draws: vertical padding (base units), the 1px gap
@@ -350,9 +351,9 @@ function PersonRowCells({ row, cells, count, days, today, thisWeek, now, ctx, ce
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
               </div>
             ) : dayTap ? (
-              <button type="button" {...dayTap} style={{ ...moreButtonStyle(fontSize * CHIP_MORE_FONT, scale), lineHeight: CHIP_MORE_LINE_HEIGHT, flexShrink: 0 }}>
+              <WallButton {...dayTap} style={{ ...moreButtonStyle(fontSize * CHIP_MORE_FONT, scale), lineHeight: CHIP_MORE_LINE_HEIGHT, flexShrink: 0 }}>
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
-              </button>
+              </WallButton>
             ) : (
               <div style={{ fontSize: fontSize * CHIP_MORE_FONT, lineHeight: CHIP_MORE_LINE_HEIGHT, fontWeight: 600, color: 'var(--cal-text-tertiary)', paddingLeft: scale.bu * 0.3 }}>
                 {t('fullscreen-calendar.moreCount', { count: hidden })}

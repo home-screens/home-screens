@@ -12,6 +12,7 @@ import { extractSharedStateKeys, resolveSharedStateTokens } from '@/lib/shared-s
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import type { ConfigControlsProps } from './config-controls';
 import type { TextConfig } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 export function TextContentFields({ config: c, set }: ConfigControlsProps<TextConfig>) {
   const t = useTranslate('editor');
@@ -69,13 +70,13 @@ export function TextContentFields({ config: c, set }: ConfigControlsProps<TextCo
           default Text UI stays uncluttered. */}
       {(providedKeys.length > 0 || referencedKeys.length > 0) && (
         <div className="space-y-1">
-          <p className="text-[10px] text-hs-text-dim">
+          <FieldHint>
             {t('configSections.text.stateTokensHint', { example: `{${providedKeys[0]?.key ?? 'plugin:id:key'}}` })}
-          </p>
+          </FieldHint>
           {referencedKeys.length > 0 && (
-            <p className="text-[10px] text-hs-text-faint">
+            <FieldHint>
               {t('configSections.text.stateTokenFiltersHint')}
-            </p>
+            </FieldHint>
           )}
           {providedKeys.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -93,15 +94,15 @@ export function TextContentFields({ config: c, set }: ConfigControlsProps<TextCo
             </div>
           )}
           {unknownKeys.length > 0 && (
-            <p className="text-[10px] text-hs-warning">
+            <p className="text-[10px] text-hs-warning-ink">
               {t('configSections.text.stateTokenUnknown', { keys: unknownKeys.join(', ') })}
             </p>
           )}
           {livePreview !== null && (
-            <p className="text-[10px] text-hs-text-dim" data-testid="text-token-preview">
+            <FieldHint data-testid="text-token-preview">
               <span className="text-hs-text-faint">{t('configSections.text.stateTokenPreview')}: </span>
               <span className="line-clamp-3 inline whitespace-pre-wrap break-words">{livePreview}</span>
-            </p>
+            </FieldHint>
           )}
         </div>
       )}

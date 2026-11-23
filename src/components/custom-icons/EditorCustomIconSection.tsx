@@ -1,11 +1,12 @@
 'use client';
 
-import { Play } from 'lucide-react';
+import { Play, Plus } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useCustomIcons } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
 import { ACCEPT_ATTRIBUTE, customIconValue, iconShapeWarning, parseCustomIconValue, type CustomIconEntry } from '@/lib/custom-icons';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import Notice from '@/components/ui/Notice';
 
 interface EditorCustomIconSectionProps {
   value: string | undefined;
@@ -56,7 +57,7 @@ export default function EditorCustomIconSection({ value, onPick, columns, showNa
           title={t('customIcons.add')}
           className={`${showNames ? 'h-[72px]' : 'aspect-square'} rounded border-2 border-dashed border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:border-hs-accent flex flex-col items-center justify-center gap-1 transition-colors`}
         >
-          <span className="text-xl leading-none font-light">+</span>
+          <Plus className="w-5 h-5" strokeWidth={1.75} aria-hidden />
           {showNames && <span className="text-[10px]">{t('customIcons.add')}</span>}
         </button>
         {shown.map((icon) => (
@@ -88,7 +89,7 @@ function Tile({ icon, selected, showName, onPick, movingLabel }: {
       aria-pressed={selected}
       className={`relative ${showName ? 'h-[72px] rounded-lg border' : 'aspect-square rounded border-2'} flex flex-col items-center justify-center gap-1 transition ${
         selected
-          ? showName ? 'border-hs-accent bg-hs-accent/10' : 'border-amber-500 bg-amber-500/10'
+          ? 'border-hs-accent bg-hs-accent/10'
           : `border-transparent ${showName ? '' : 'bg-hs-card'} hover:bg-hs-hover hover:border-hs-border-strong`
       }`}
     >
@@ -122,16 +123,13 @@ function ReviewPanel({ upload }: { upload: ReturnType<typeof useCustomIconUpload
       {state.step === 'uploading' && <p className="text-xs text-hs-text-muted" role="status">{t('customIcons.review.working')}</p>}
       {state.step === 'error' && (
         <>
-          <p
+          <Notice
             role="alert"
-            className={`text-xs rounded-md px-2.5 py-2 mb-2 border ${
-              state.code === 'library-full' || state.code === 'budget-full'
-                ? 'text-hs-warning border-hs-warning/40 bg-hs-warning/10'
-                : 'text-hs-danger border-hs-danger/40 bg-hs-danger/10'
-            }`}
+            tone={state.code === 'library-full' || state.code === 'budget-full' ? 'warning' : 'danger'}
+            className="mb-2"
           >
             {t(`customIcons.errors.${state.code}`)}
-          </p>
+          </Notice>
           <div className="flex gap-2">
             <button type="button" onClick={upload.pickAnother} className="text-xs px-3 py-1.5 rounded bg-hs-accent text-white">{t('customIcons.review.pickAnother')}</button>
             <button type="button" onClick={upload.cancel} className="text-xs px-3 py-1.5 rounded border border-hs-border-strong text-hs-text-body">{t('actions.cancel')}</button>
@@ -164,14 +162,14 @@ function ReviewPanel({ upload }: { upload: ReturnType<typeof useCustomIconUpload
             </div>
           </div>
           {shape && (
-            <div role="status" className="text-xs rounded-md px-2.5 py-2 mb-2 border text-hs-warning border-hs-warning/40 bg-hs-warning/10">
+            <Notice role="status" tone="warning" className="mb-2">
               {t(`customIcons.review.${shape}`)}
               {icon.square && (
                 <button type="button" disabled={busy} onClick={() => void upload.crop()} className="block mt-1.5 text-xs font-semibold underline">
                   {t('customIcons.review.crop')}
                 </button>
               )}
-            </div>
+            </Notice>
           )}
           <label className="block text-[11px] font-bold text-hs-text-muted uppercase tracking-wider mb-1" htmlFor="editor-custom-icon-name">
             {t('customIcons.review.nameLabel')}

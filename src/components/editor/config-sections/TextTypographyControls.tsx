@@ -10,6 +10,7 @@ import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import { useTranslate } from '@/i18n';
 import type { ConfigControlsProps } from './config-controls';
 import type { TextConfig, TextDecoration } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
 
 export function TextTypographyControls({ config: c, set }: ConfigControlsProps<TextConfig>) {
   const t = useTranslate('editor');
@@ -109,7 +110,7 @@ export function TextTypographyControls({ config: c, set }: ConfigControlsProps<T
           value={(c.icon as string) || undefined}
           onChange={(v) => set({ icon: v ?? '' })}
         />
-        <span className="text-[10px] text-hs-text-faint">{t('configSections.text.emojiHint')}</span>
+        <FieldHint>{t('configSections.text.emojiHint')}</FieldHint>
       </div>
     </>
   );

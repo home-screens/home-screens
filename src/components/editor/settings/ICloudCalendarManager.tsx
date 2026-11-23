@@ -13,6 +13,10 @@ import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
 import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import { logger } from '@/lib/logger';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('ICloudCalendarManager');
 
@@ -130,7 +134,7 @@ export default function ICloudCalendarManager({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setConnectError(data?.error ?? t('settings.calendarPage.icloud.connectFailed'));
+        setConnectError(refusalSentence(data, tCore) ?? t('settings.calendarPage.icloud.connectFailed'));
         return;
       }
       setAccounts((prev) => [...prev.filter((a) => a.id !== data.id), data]);
@@ -144,7 +148,7 @@ export default function ICloudCalendarManager({
     } finally {
       setConnecting(false);
     }
-  }, [newAppleId, newAppPassword, fetchAccountCalendars, t]);
+  }, [newAppleId, newAppPassword, fetchAccountCalendars, t, tCore]);
 
   const disconnectAccount = useCallback(async (accountId: string) => {
     setDisconnectFailedId(null);
@@ -242,7 +246,7 @@ export default function ICloudCalendarManager({
               type="checkbox"
               checked={source !== undefined}
               onChange={opts.onToggle}
-              className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+              className={CHECKBOX_CLASS}
             />
             <span
               className={`w-2.5 h-2.5 rounded-full shrink-0${opts.color ? '' : ' bg-hs-text-faint'}`}
@@ -278,7 +282,7 @@ export default function ICloudCalendarManager({
     <SourceBlock title={t('settings.calendarPage.icloud.heading')} testId="icloud-calendar-block">
       <div className="space-y-3">
         {accountsLoading ? (
-          <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.checkingAccounts')}</p>
+          <FieldHint>{t('settings.calendarPage.icloud.checkingAccounts')}</FieldHint>
         ) : (
           accounts.map((account, accountIndex) => {
             const cals = calendarsByAccount[account.id];
@@ -287,7 +291,7 @@ export default function ICloudCalendarManager({
               <div key={account.id} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-hs-success flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
+                    <StatusDot tone="success" size="sm" />
                     {account.appleId}
                   </span>
                   <button
@@ -298,17 +302,17 @@ export default function ICloudCalendarManager({
                   </button>
                 </div>
                 {disconnectFailedId === account.id && (
-                  <p className="text-xs text-hs-warning">{t('settings.calendarPage.icloud.disconnectFailed')}</p>
+                  <p className="text-xs text-hs-warning-ink">{t('settings.calendarPage.icloud.disconnectFailed')}</p>
                 )}
                 {!cals || cals.status === 'loading' ? (
-                  <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.loadingCalendars')}</p>
+                  <FieldHint>{t('settings.calendarPage.icloud.loadingCalendars')}</FieldHint>
                 ) : cals.status === 'error' ? (
                   // A failed listing (expired app password, iCloud down) is
                   // exactly when per-source health matters most: the picked
                   // calendars still exist in config, so show each with its
                   // cached status instead of only a generic error line.
                   <div className="space-y-2">
-                    <p className="text-xs text-hs-warning">{t('settings.calendarPage.icloud.calendarsError')}</p>
+                    <p className="text-xs text-hs-warning-ink">{t('settings.calendarPage.icloud.calendarsError')}</p>
                     {accountSources.length > 0 && (
                       <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
                         {accountSources.map((s) => {
@@ -328,7 +332,7 @@ export default function ICloudCalendarManager({
                     )}
                   </div>
                 ) : cals.calendars.length === 0 && !cals.birthdaysAvailable ? (
-                  <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.noCalendars')}</p>
+                  <FieldHint>{t('settings.calendarPage.icloud.noCalendars')}</FieldHint>
                 ) : (
                   <div className="space-y-1">
                     <span className="text-xs text-hs-text-muted">{t('settings.calendarPage.icloud.selectCalendars')}</span>
@@ -372,12 +376,16 @@ export default function ICloudCalendarManager({
         )}
 
         {showAddForm ? (
-          <div className="rounded-md bg-hs-card border border-hs-border-strong p-3 space-y-2">
+          // A form, so Enter in either box connects like the Connect button.
+          <form
+            className="rounded-md bg-hs-card border border-hs-border-strong p-3 space-y-2"
+            onSubmit={(e) => { e.preventDefault(); if (!connecting) void connectAccount(); }}
+          >
             <input
               type="text"
               value={newAppleId}
               onChange={(e) => setNewAppleId(e.target.value)}
-              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+              className={`w-full ${SETTINGS_INPUT_SM_CLASS}`}
               placeholder={t('settings.calendarPage.icloud.appleIdPlaceholder')}
               autoComplete="off"
               autoFocus
@@ -386,16 +394,16 @@ export default function ICloudCalendarManager({
               type="password"
               value={newAppPassword}
               onChange={(e) => setNewAppPassword(e.target.value)}
-              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
+              className={`w-full font-mono ${SETTINGS_INPUT_SM_CLASS}`}
               placeholder="xxxx-xxxx-xxxx-xxxx"
               autoComplete="new-password"
             />
             {connectError && <p className="text-xs text-hs-danger">{connectError}</p>}
             <div className="flex items-center gap-2 pt-1">
               <Button
+                type="submit"
                 variant="primary"
                 size="sm"
-                onClick={connectAccount}
                 disabled={connecting || !newAppleId.trim() || !newAppPassword.trim()}
               >
                 {connecting
@@ -403,6 +411,7 @@ export default function ICloudCalendarManager({
                   : t('settings.calendarPage.icloud.connect')}
               </Button>
               <Button
+                type="button"
                 variant="secondary"
                 size="sm"
                 onClick={() => { setShowAddForm(false); setNewAppleId(''); setNewAppPassword(''); setConnectError(null); }}
@@ -410,7 +419,7 @@ export default function ICloudCalendarManager({
                 {tCore('actions.cancel')}
               </Button>
             </div>
-          </div>
+          </form>
         ) : (
           !accountsLoading && (
             <Button variant="secondary" size="sm" onClick={() => setShowAddForm(true)}>
@@ -419,9 +428,9 @@ export default function ICloudCalendarManager({
           )
         )}
 
-        <p className="text-xs text-hs-text-faint">
+        <FieldHint>
           {t('settings.calendarPage.icloud.helpText')}
-        </p>
+        </FieldHint>
       </div>
     </SourceBlock>
   );

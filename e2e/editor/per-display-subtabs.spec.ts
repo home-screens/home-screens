@@ -52,10 +52,10 @@ test('Identity subtab: main display cannot be removed, others can', async ({ pag
   // "main" is the hub kiosk — removeDisplay hard-blocks it, so the button
   // renders visible-but-disabled.
   await page.goto('/editor/settings?section=display&id=main&subtab=overview');
-  await expect(page.getByRole('button', { name: /^Remove/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Delete Main', exact: true })).toBeDisabled();
 
   await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
-  await expect(page.getByRole('button', { name: /^Remove/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Delete Kitchen', exact: true })).toBeEnabled();
 });
 
 test('Profile subtab: setting the active profile persists per-display', async ({ page, request }) => {

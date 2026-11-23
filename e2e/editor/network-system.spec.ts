@@ -385,14 +385,14 @@ test.describe('Defaults › Network', () => {
     // WifiScan "Scanning wlan0" hint, so match the interface span exactly.)
     await expect(page.getByText('wlan0', { exact: true })).toBeVisible();
     await expect(page.getByText('Connected to "HomeNet" (192.168.1.50)')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'IP Settings' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'IP settings' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Disconnect' })).toBeVisible();
 
     // Device name section pre-filled from overview.
     await expect(page.getByRole('heading', { name: 'Device name' })).toBeVisible();
 
     // Diagnostics section renders its Test Connection button without error.
-    await expect(page.getByRole('button', { name: 'Test Connection' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Test connection' })).toBeVisible();
 
     assertNoRealSystemCall(stubs);
   });
@@ -465,7 +465,7 @@ test.describe('Defaults › Network', () => {
 
     await page.goto('/editor/settings?section=defaults&page=network');
 
-    await expect(page.getByRole('heading', { name: 'Saved Networks' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Saved networks' })).toBeVisible();
     // 'Cafe' is unique to the saved list (HomeNet also appears in interfaces/scan).
     await expect(page.getByText('Cafe', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Forget' }).first()).toBeVisible();
@@ -479,7 +479,7 @@ test.describe('Defaults › Network', () => {
 
     await page.goto('/editor/settings?section=defaults&page=network');
 
-    await page.getByRole('button', { name: 'Test Connection' }).click();
+    await page.getByRole('button', { name: 'Test connection' }).click();
 
     await expect(page.getByText('Gateway')).toBeVisible();
     await expect(page.getByText('Internet')).toBeVisible();
@@ -551,11 +551,11 @@ test.describe('Defaults › Network', () => {
     await page.goto('/editor/settings?section=defaults&page=network');
 
     // Open the IP panel for wlan0, switch to a static address, and apply.
-    await page.getByRole('button', { name: 'IP Settings' }).click();
-    await expect(page.getByRole('heading', { name: 'IP Settings (wlan0)' })).toBeVisible();
+    await page.getByRole('button', { name: 'IP settings' }).click();
+    await expect(page.getByRole('heading', { name: 'IP settings (wlan0)' })).toBeVisible();
     await page.getByRole('radio', { name: 'Static (manual)' }).check();
     await page.getByPlaceholder('192.168.1.50').fill('192.168.1.99');
-    await page.getByRole('button', { name: 'Apply' }).click();
+    await page.getByTestId('ip-settings-save').click();
 
     // The apply returned a rollbackId → the overlay mounts, polls confirm
     // (pending), then POSTs to confirm and cancel the auto-revert. The parent
@@ -583,11 +583,11 @@ test.describe('Defaults › Network', () => {
 
     await page.goto('/editor/settings?section=defaults&page=network');
 
-    await page.getByRole('button', { name: 'IP Settings' }).click();
-    await expect(page.getByRole('heading', { name: 'IP Settings (wlan0)' })).toBeVisible();
+    await page.getByRole('button', { name: 'IP settings' }).click();
+    await expect(page.getByRole('heading', { name: 'IP settings (wlan0)' })).toBeVisible();
     await page.getByRole('radio', { name: 'Static (manual)' }).check();
     await page.getByPlaceholder('192.168.1.50').fill('192.168.1.99');
-    await page.getByRole('button', { name: 'Apply' }).click();
+    await page.getByTestId('ip-settings-save').click();
 
     // The overlay's first poll sees pending:false — the server's signal that
     // the change already auto-reverted — so it takes the revert path and never
@@ -615,8 +615,8 @@ test.describe('Defaults › Network', () => {
     await expect(page.getByText('Cafe', { exact: true })).toBeVisible();
     // SAVED_NETWORKS lists HomeNet then Cafe → Cafe owns the second Forget button.
     await page.getByRole('button', { name: 'Forget' }).nth(1).click();
-    // Inline confirmation ("Forget?" with Yes/No).
-    await page.getByRole('button', { name: 'Yes' }).click();
+    // Inline confirmation ("Forget?" with Forget / Keep), in Cafe's row.
+    await page.getByText('Forget?').locator('..').getByRole('button', { name: 'Forget', exact: true }).click();
 
     // The DELETE resolved ok → Cafe drops out of the list.
     await expect(page.getByText('Cafe', { exact: true })).toBeHidden({ timeout: 15_000 });
@@ -679,8 +679,8 @@ test.describe('Defaults › System', () => {
     // machine running the suite.
     await notice.getByRole('button', { name: 'Restart now' }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('Restart the whole device')).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Reboot', exact: true })).toBeVisible();
+    await expect(dialog.getByText('Restart the whole device?')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Restart the device', exact: true })).toBeVisible();
     await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(dialog).toBeHidden();
 
@@ -765,7 +765,7 @@ test.describe('Defaults › System', () => {
     await expect(page.getByText('Update available: v1.3.0')).toBeVisible();
     // Present but deliberately NOT clicked — clicking would mount the upgrade
     // pipeline. Rendering is the smoke assertion.
-    await expect(page.getByRole('button', { name: 'Update Now' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Update now' })).toBeVisible();
 
     assertNoRealSystemCall(stubs);
   });
@@ -802,7 +802,7 @@ test.describe('Defaults › System', () => {
     await expect.poll(async () => (await getConfig(request)).settings.updateChannel).toBe('beta');
 
     // Advanced mode reveals Test builds; picking it warns in plain words.
-    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await page.locator('[data-field-id="system.advancedMode"]').getByRole('switch').click();
     const testBuilds = group.getByRole('radio', { name: /Test builds/ });
     await expect(testBuilds).toBeVisible();
     await expect(page.getByText(/Test builds can change your saved settings/)).toHaveCount(0);
@@ -816,8 +816,8 @@ test.describe('Defaults › System', () => {
 
     // Turning advanced mode back off must not strand the device on a channel
     // it can no longer see: the option stays while it is the one in use.
-    await page.locator('[data-field-id="system.advancedMode"]').click();
-    await expect(page.locator('[data-field-id="system.advancedMode"]')).toHaveAttribute('aria-checked', 'false');
+    await page.locator('[data-field-id="system.advancedMode"]').getByRole('switch').click();
+    await expect(page.locator('[data-field-id="system.advancedMode"]').getByRole('switch')).toHaveAttribute('aria-checked', 'false');
     await expect(testBuilds).toBeChecked();
 
     // Stepping back to Normal clears the warning, saves, and the option goes.
@@ -865,9 +865,9 @@ test.describe('Defaults › System', () => {
     await expect(banner.getByText('v2.0.0 needs v1.2.5 installed first. Update again after this one finishes.')).toBeVisible();
 
     // Pressing the button confirms the step's tag, not the newest.
-    await banner.getByRole('button', { name: 'Update Now' }).click();
+    await banner.getByRole('button', { name: 'Update now' }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('Upgrade to v1.2.5?')).toBeVisible();
+    await expect(dialog.getByText('Update to v1.2.5?')).toBeVisible();
     await dialog.getByRole('button', { name: 'Cancel' }).click();
 
     // The history list: the newest needs the step first, the old release
@@ -950,7 +950,7 @@ test.describe('Defaults › System', () => {
     const section = page.locator('[data-field-id="system.autoUpdate"]');
     await expect(section).toHaveCount(0);
 
-    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await page.locator('[data-field-id="system.advancedMode"]').getByRole('switch').click();
     await expect(section.getByText('Automatic updates')).toBeVisible();
     const toggle = section.getByRole('switch');
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -977,7 +977,7 @@ test.describe('Defaults › System', () => {
 
     // Hiding the advanced options hides the section; it does not switch
     // automatic updates off.
-    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await page.locator('[data-field-id="system.advancedMode"]').getByRole('switch').click();
     await expect(section).toHaveCount(0);
     await expect.poll(async () => (await getConfig(request)).settings.advancedMode).toBe(false);
     expect((await getConfig(request)).settings.autoUpdate).toEqual({ enabled: true, time: '05:30' });
@@ -1056,7 +1056,7 @@ test.describe('Defaults › System', () => {
     await dialog.getByRole('button', { name: 'Restart', exact: true }).click();
 
     await expect(
-      page.getByText('Service restart scheduled. The page will reload momentarily…'),
+      page.getByText('Home Screens is restarting. This page reloads in a moment…'),
     ).toBeVisible();
 
     // Prove the real systemctl never ran: the request was intercepted by our
@@ -1084,7 +1084,7 @@ test.describe('Defaults › System', () => {
     await dialog.getByRole('button', { name: 'Go back to v1.2.2' }).click();
 
     // The UpgradeModal replaces the settings page and renders its header.
-    await expect(page.getByRole('heading', { name: 'Rolling back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Going back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
     await expect
       .poll(() => stubs.posted['/api/system/rollback']?.length ?? 0, { timeout: 15_000 })
       .toBeGreaterThan(0);
@@ -1117,12 +1117,12 @@ test.describe('Defaults › System', () => {
     await page.getByRole('button', { name: 'Go back to this' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Go back to v1.2.2' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Rolling back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Going back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
     // Going back is not called an upgrade. The finished line sits in the
     // progress header and, until the reload countdown replaces it, in the
     // footer too, so take the first match rather than a strict one.
     await expect(page.getByText("You're back on v1.2.2.").first()).toBeVisible();
-    await expect(page.getByText('Upgrade complete!')).toHaveCount(0);
+    await expect(page.getByText('The update is done.')).toHaveCount(0);
     await expect(page.getByTestId('upgrade-restart-needed')).toHaveText(
       'One more step: restart the device to finish the update. You can do it here once the page reloads.',
     );

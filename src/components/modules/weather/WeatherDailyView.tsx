@@ -14,6 +14,7 @@ import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { formatPrecipAmount } from '@/lib/weather/condition-sentences';
 import type { WeatherViewProps } from './types';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 
 export default function WeatherDailyView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
@@ -51,9 +52,7 @@ export default function WeatherDailyView({ config, forecast, units, timezone, sc
     >
       {/* Natural-height stack: this is what gets measured against the box above. */}
       <div ref={contentRef} className="flex flex-col">
-        {config.showTitle !== false && (
-          <h2 className="font-semibold mb-[0.35em]" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
-        )}
+        {config.showTitle !== false && <ModuleTitleRow title={t('weather.forecast')} />}
         {days.length === 0 ? (
           <WeatherEmptyState message={t('weather.noForecastData')} />
         ) : (

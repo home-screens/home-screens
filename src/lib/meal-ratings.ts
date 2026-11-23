@@ -115,7 +115,7 @@ function clockMinutes(time: string): number {
 const DINNER: MealSlotType = 'dinner';
 
 /**
- * The day whose dinner "Rate Dinner" is about: the last dinner the family
+ * The day whose dinner "Rate dinner" is about: the last dinner the family
  * sat down to. That is tonight's from the minute it is served, and last
  * night's until then, so the button means the same dinner all evening and
  * the next morning. It never follows the day a view happens to lead with: a
@@ -136,7 +136,7 @@ export function dinnerRatingDate(
 }
 
 /**
- * The days the phone's Rate Dinner lists, and the one it opens on. The list
+ * The days the phone's Rate dinner lists, and the one it opens on. The list
  * is the week the Meals tab is showing; it opens on the last dinner the
  * family sat down to (`dinnerRatingDate`). On the week's first morning that
  * dinner was the day before the week began, so that day is added in front:

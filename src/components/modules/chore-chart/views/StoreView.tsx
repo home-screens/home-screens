@@ -14,7 +14,11 @@ import ChoreIcon from '../ChoreIcon';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { useRedeemReward } from '../../shared/useRedeemReward';
 import { useAutoClose } from '../../shared/useAutoClose';
-import { CHORE_STORE_IDLE_MS } from '@/lib/chore-constants';
+import { CHORE_SHEET_IDLE_MS, CHORE_STORE_IDLE_MS } from '@/lib/chore-constants';
+import { WallButton } from '../../shared/WallButton';
+import { WallNotice } from '../../shared/WallNotice';
+import { useWallSheet, type WallSheetOptions } from '../../shared/useWallSheet';
+import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 import type { MemberStats } from '../types';
 import {
   STORE_RAIL_EM,
@@ -116,7 +120,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
     const historyData = { members, allRedemptions: redemptions };
     const rows = Math.min(redemptions.length, resolveHistoryLimit(config.historyLimit));
     return (
-      <div className="h-full" onPointerDown={armIdle}>
+      <div className="h-full" {...BROWSE_HOLD_ATTR} onPointerDown={armIdle}>
         <RewardHistoryView
           config={config}
           data={historyData}
@@ -154,9 +158,8 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   );
 
   const chip = (member: FamilyMember, opts: { selected?: boolean; dim?: boolean; withBalance?: boolean; outlined?: boolean; onPick?: () => void; testId: string }) => (
-    <button
+    <WallButton
       key={member.id}
-      type="button"
       data-testid={opts.testId}
       aria-pressed={opts.selected}
       aria-label={member.name}
@@ -183,7 +186,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
           {balances[member.id] ?? 0}
         </span>
       )}
-    </button>
+    </WallButton>
   );
 
   const picker = showPicker && (
@@ -205,15 +208,14 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   const railBalanceLine = balanceLine && <div style={{ marginTop: '-0.55em' }}>{balanceLine}</div>;
 
   const pill = (reward: RewardDefinition, minHeight: number) => (
-    <button
-      type="button"
+    <WallButton
       data-testid="store-redeem"
       onClick={() => selected && redeem.ask(reward, selected, balances[selected.id] ?? 0)}
       className="flex shrink-0 items-center whitespace-nowrap rounded-full"
       style={{ minHeight, padding: '0 0.95em', fontSize: '0.72em', fontWeight: 800, background: accent, color: onAccent, border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
     >
       {t('fullscreen-chore-chart.rewardsStore.redeem')}
-    </button>
+    </WallButton>
   );
   const stillNeeded = (reward: RewardDefinition, style?: CSSProperties) => (
     <span className="shrink-0 whitespace-nowrap" style={{ fontSize: '0.66em', fontWeight: 600, opacity: 0.55, ...style }}>
@@ -285,17 +287,18 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
             const can = members.filter((m) => isRewardOfferedTo(reward, m.id) && canAffordReward(balances[m.id] ?? 0, reward));
             const tappable = allowTouch && can.length > 0;
             return (
-              <button
+              <WallButton
+                row
                 key={reward.id}
-                type="button"
                 {...{ [CHORE_ROW_ATTR]: '' }}
                 data-testid="store-reward"
                 disabled={!tappable}
                 onClick={tappable ? () => setChoosingFor(reward) : undefined}
-                className="flex w-full items-center text-left"
+                // The ground as a class, so the row's pressed tint can show over it.
+                className="flex w-full items-center bg-transparent text-left"
                 // `border: 'none'` goes ahead of the row style: placed after it, it
                 // painted over the divider, whose key keeps its spread position.
-                style={{ border: 'none', ...rowStyle(i), minHeight: allowTouch ? STORE_TAP_PX : undefined, boxSizing: 'border-box', background: 'none', color: 'inherit', font: 'inherit', cursor: tappable ? 'pointer' : 'default' }}
+                style={{ border: 'none', ...rowStyle(i), minHeight: allowTouch ? STORE_TAP_PX : undefined, boxSizing: 'border-box', color: 'inherit', font: 'inherit', cursor: tappable ? 'pointer' : 'default' }}
               >
                 {icon(reward, 1.2)}
                 <span className="min-w-0 flex-1 truncate" style={{ fontWeight: 500 }}>{reward.name}</span>
@@ -314,7 +317,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
                     : t('chore-chart.store.nobodyYet')}
                 </span>
                 {tappable && <ChevronRight size="0.9em" className="shrink-0" style={{ opacity: 0.4 }} aria-hidden="true" />}
-              </button>
+              </WallButton>
             );
           })}
         </div>
@@ -347,44 +350,34 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   // A short card gives the sheet less air and no big icon: the question, the
   // people and the buttons all matter more.
   const roomy = height >= 16 * fontSize;
-  // Bounded by the card: a short card scrolls the sheet's middle and keeps its
-  // buttons in view, so there is always a way out that can be reached.
-  const sheet = (content: ReactNode, buttons: ReactNode, testId: string) => (
-    <div data-testid={testId} className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(3px)', padding: roomy ? '0.6em' : '0.3em', borderRadius: 'inherit' }}>
-      {/* The sheet is its own dark surface, so it reads the same on a light card. */}
-      <div className="flex w-full flex-col text-center" style={{ background: '#1f2937', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '0.9em', padding: roomy ? '0.8em' : '0.55em', maxWidth: '34em', maxHeight: '100%', boxSizing: 'border-box' }}>
-        <div className="min-h-0" style={{ flex: '0 1 auto', overflowY: 'auto', scrollbarWidth: 'none', touchAction: 'pan-y' }}>{content}</div>
-        <div className="flex shrink-0" style={{ gap: '0.5em', paddingTop: '0.6em' }}>{buttons}</div>
-      </div>
-    </div>
-  );
   const sheetIcon = (reward: RewardDefinition) => roomy && reward.emoji && (
     <div className="flex justify-center" style={{ lineHeight: 1.1 }}>
       <ChoreIcon value={reward.emoji} size={Math.round(fontSize * 2)} color="currentColor" />
     </div>
   );
   const sheetButton = (label: ReactNode, onClick: () => void, primary: boolean, testId: string, disabled = false) => (
-    <button
-      type="button"
+    <WallButton
       data-testid={testId}
       onClick={onClick}
       disabled={disabled}
       className="flex flex-1 items-center justify-center rounded-full"
-      style={{ minHeight: 48, fontSize: '0.78em', fontWeight: 800, border: 'none', fontFamily: 'inherit', cursor: 'pointer', background: primary ? accent : 'rgba(255,255,255,0.1)', color: primary ? onAccent : '#fff', opacity: disabled ? 0.6 : 1 }}
+      style={{ minHeight: 48, fontSize: '0.78em', fontWeight: 800, border: 'none', fontFamily: 'inherit', cursor: 'pointer', background: primary ? accent : 'rgba(255,255,255,0.1)', color: primary ? onAccent : SHEET_TEXT, opacity: disabled ? 0.6 : 1 }}
     >
       {label}
-    </button>
+    </WallButton>
   );
+  // The notice's 26-unit text lands at the sheet's small 0.68em line.
+  const noticeP = (n: number) => (n * 0.68 * fontSize) / 26;
 
   const pending = redeem.pending;
+  const closeConfirm = () => { redeem.cancel(); setChoosingFor(null); };
   return (
-    <div data-testid="store-view" data-layout={layout} className="relative flex h-full min-h-0 flex-col" style={{ fontSize: `${fontSize}px` }}>
+    <div data-testid="store-view" data-layout={layout} {...BROWSE_HOLD_ATTR} className="relative flex h-full min-h-0 flex-col" style={{ fontSize: `${fontSize}px` }}>
       {config.showTitle !== false && (
         <div className="flex shrink-0 items-center justify-between" style={{ fontSize: '0.8em', fontWeight: 600, lineHeight: 1.5 }}>
           <span style={{ opacity: TEXT_OPACITY.secondary }}>{t('fullscreen-chore-chart.rewardsStore.title')}</span>
           {redemptions.length > 0 && (
-            <button
-              type="button"
+            <WallButton
               data-testid="store-history"
               onClick={() => setShowHistory(true)}
               className="inline-flex items-center rounded-full"
@@ -392,7 +385,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
             >
               <History size="0.95em" strokeWidth={2.2} aria-hidden="true" />
               {t('fullscreen-chore-chart.rewardsStore.history')}
-            </button>
+            </WallButton>
           )}
         </div>
       )}
@@ -416,8 +409,13 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
         </>
       )}
 
-      {choosingFor && !pending && sheet(
-        <>
+      {choosingFor && !pending && (
+        <StoreSheet
+          testId="store-who-sheet"
+          roomy={roomy}
+          sheet={{ onClose: () => setChoosingFor(null), autoCloseMs: CHORE_SHEET_IDLE_MS }}
+          buttons={sheetButton(t('chore-chart.store.notNow'), () => setChoosingFor(null), false, 'store-who-cancel')}
+        >
           {sheetIcon(choosingFor)}
           <div style={{ fontSize: '0.95em', fontWeight: 700, lineHeight: 1.2, margin: '0.2em 0 0.15em' }}>{t('chore-chart.store.whoFor', { reward: choosingFor.name })}</div>
           <div style={{ fontSize: '0.68em', opacity: 0.7, marginBottom: '0.6em' }}>{t('fullscreen-chore-chart.rewardsStore.rewardCost', { count: choosingFor.cost })}</div>
@@ -428,38 +426,44 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
               return chip(m, { dim: !ok, withBalance: true, outlined: true, onPick: ok ? () => redeem.ask(choosingFor, m, balances[m.id] ?? 0) : undefined, testId: 'store-who' });
             })}
           </div>
-        </>,
-        sheetButton(t('chore-chart.store.notNow'), () => setChoosingFor(null), false, 'store-who-cancel'),
-        'store-who-sheet',
+        </StoreSheet>
       )}
 
-      {allowTouch && pending && sheet(
-        <>
+      {allowTouch && pending && (
+        <StoreSheet
+          testId="store-confirm-sheet"
+          roomy={roomy}
+          sheet={{ ...redeem.sheet, onClose: closeConfirm }}
+          buttons={(
+            <>
+              {sheetButton(t('chore-chart.store.notNow'), closeConfirm, false, 'store-cancel')}
+              {sheetButton(
+                redeem.asksGrownUp
+                  ? <span className="inline-flex items-center" style={{ gap: '0.4em' }}><Lock size="1em" strokeWidth={2.8} aria-hidden="true" />{tCore('grownUp.ask')}</span>
+                  : t('fullscreen-chore-chart.rewardsStore.confirmYes'),
+                () => { void redeem.confirm().then(() => setChoosingFor(null)); },
+                true,
+                'store-confirm',
+                redeem.busy,
+              )}
+            </>
+          )}
+        >
           {sheetIcon(pending.reward)}
           <div style={{ fontSize: '0.95em', fontWeight: 700, lineHeight: 1.2, margin: '0.2em 0 0.15em' }}>{t('chore-chart.store.confirmTitle', { reward: pending.reward.name, member: pending.member.name })}</div>
           <div style={{ fontSize: '0.68em', opacity: 0.7 }}>
             {t('chore-chart.store.confirmBody', { count: pending.reward.cost, member: pending.member.name, left: ticketsAfterRedeeming(balances[pending.member.id] ?? 0, pending.reward) })}
           </div>
-          {redeem.error && <div data-testid="store-error" style={{ fontSize: '0.68em', color: '#fca5a5' }}>{redeem.error}</div>}
-        </>,
-        <>
-          {sheetButton(t('chore-chart.store.notNow'), () => { redeem.cancel(); setChoosingFor(null); }, false, 'store-cancel')}
-          {sheetButton(
-            redeem.asksGrownUp
-              ? <span className="inline-flex items-center" style={{ gap: '0.4em' }}><Lock size="1em" strokeWidth={2.8} aria-hidden="true" />{tCore('grownUp.ask')}</span>
-              : t('fullscreen-chore-chart.rewardsStore.confirmYes'),
-            () => { void redeem.confirm().then(() => setChoosingFor(null)); },
-            true,
-            'store-confirm',
-            redeem.busy,
+          {redeem.error && (
+            <div style={{ marginTop: '0.5em' }}>
+              <WallNotice tone="error" P={noticeP} surface={SHEET_SURFACE} text={SHEET_TEXT} testId="store-error">{redeem.error}</WallNotice>
+            </div>
           )}
-        </>,
-        'store-confirm-sheet',
+        </StoreSheet>
       )}
 
       {redeem.redeemed && (
-        <button
-          type="button"
+        <WallButton
           data-testid="store-redeemed"
           onClick={redeem.dismissRedeemed}
           className="absolute text-center"
@@ -469,8 +473,48 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
           <span className="block" style={{ fontWeight: 600, fontSize: '0.82em' }}>
             {t('fullscreen-chore-chart.rewardsStore.redeemedBody', { member: redeem.redeemed.memberName, reward: redeem.redeemed.rewardName, count: redeem.redeemed.cost })}
           </span>
-        </button>
+        </WallButton>
       )}
+    </div>
+  );
+}
+
+/** The sheet's own dark surface and ink, so it reads the same on a light card. */
+const SHEET_SURFACE = '#1f2937';
+const SHEET_TEXT = '#fff';
+
+/**
+ * A sheet over the card store (who it is for, are you sure), drawn inside the
+ * card. Bounded by the card: a short card scrolls the sheet's middle and keeps
+ * its buttons in view, so there is always a way out that can be reached. It
+ * holds the screen, closes by itself with nobody touching it, and a scrim tap
+ * closes it once it has settled (`useWallSheet`).
+ */
+function StoreSheet({ testId, roomy, sheet, buttons, children }: {
+  testId: string;
+  /** A tall card: more air around the sheet. */
+  roomy: boolean;
+  sheet: WallSheetOptions;
+  buttons: ReactNode;
+  children: ReactNode;
+}) {
+  const { touched, settled } = useWallSheet(sheet);
+  return (
+    <div
+      data-testid={testId}
+      onClick={settled(sheet.onClose)}
+      onPointerDown={touched}
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(3px)', padding: roomy ? '0.6em' : '0.3em', borderRadius: 'inherit' }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex w-full flex-col text-center"
+        style={{ background: SHEET_SURFACE, color: SHEET_TEXT, border: '1px solid rgba(255,255,255,0.16)', borderRadius: '0.9em', padding: roomy ? '0.8em' : '0.55em', maxWidth: '34em', maxHeight: '100%', boxSizing: 'border-box' }}
+      >
+        <div className="min-h-0" style={{ flex: '0 1 auto', overflowY: 'auto', scrollbarWidth: 'none', touchAction: 'pan-y' }}>{children}</div>
+        <div className="flex shrink-0" style={{ gap: '0.5em', paddingTop: '0.6em' }}>{buttons}</div>
+      </div>
     </div>
   );
 }

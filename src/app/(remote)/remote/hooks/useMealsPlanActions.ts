@@ -252,7 +252,7 @@ export function useMealsPlanActions({
           : t('mealie.suggest.confirmDescriptionDates', { count: empty.length, range }),
         confirmLabel: t('mealie.suggest.confirmLabel'),
         // Filling empty nights removes nothing: not the red of Clear.
-        confirmColor: 'var(--hs-accent)',
+        tone: 'primary',
         onConfirm: async () => {
           setConfirmAction(null);
           const result = await suggestFromMealie(empty);
@@ -274,7 +274,7 @@ export function useMealsPlanActions({
     }
     // Nothing in the library, nothing to pick from.
     if (savedMeals.length === 0) return;
-    // What the week held, for Undo, as Copy Last Week keeps it.
+    // What the week held, for Undo, as Copy last week keeps it.
     const before = weekPlan;
     const suggest = async () => {
       // Picked once, then placed: the edit runs for the screen and again for

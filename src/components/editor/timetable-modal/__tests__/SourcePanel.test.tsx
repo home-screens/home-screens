@@ -126,7 +126,7 @@ describe('SourcePanel', () => {
   it('keeps the saved week and says why when the last look at the sheet failed', () => {
     render({ lastCheckedAt: minutesAgo(120), lastError: 'sheetUnreachable' });
 
-    expect(screen.getByText('Could not check')).toBeTruthy();
+    expect(screen.getByText("Couldn't check")).toBeTruthy();
     expect(screen.getByText('Google did not answer. Try again in a minute.')).toBeTruthy();
     expect(screen.getByText(/still showing the week we already had/)).toBeTruthy();
 
@@ -221,7 +221,8 @@ describe('SourcePanel', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Check now' }));
     });
 
-    expect(screen.getByRole('alert').textContent).toBe('That sheet is not saved any more.');
+    // An error with no refusal code is said in the editor's words, never its English message.
+    expect(screen.getByRole('alert').textContent).toBe('Something went wrong. Try again.');
     expect(checked).toHaveBeenCalledTimes(1);
   });
 

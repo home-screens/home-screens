@@ -18,6 +18,7 @@ import { WeatherApiKeyMissingRow, WeatherSourceSelect, useModuleWeatherSource } 
 import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { ForecastDaysHint } from './ForecastDaysHint';
 import { useDensityOptions } from './option-hooks';
+import FieldHint from '@/components/ui/FieldHint';
 
 type Config = Partial<FullscreenWeatherConfig>;
 
@@ -141,10 +142,8 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
         value={c.skyLayer ?? 'living'}
         onChange={(v) => set({ skyLayer: v })}
         options={SKY_OPTIONS}
+        hint={t('configSections.fullscreen-weather.skyLayerHint')}
       />
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.fullscreen-weather.skyLayerHint')}
-      </p>
 
       <SectionHeading>{t('configSections.weather.sections.show')}</SectionHeading>
       <Toggle
@@ -162,9 +161,9 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
           the wall never shows one, so say so here instead of letting a
           household believe the wall will warn them. */}
       {!caps.alerts && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed" data-testid="fsw-alerts-hint">
+        <FieldHint data-testid="fsw-alerts-hint">
           {t('configSections.fullscreen-weather.showAlertsHint')}
-        </p>
+        </FieldHint>
       )}
 
       {/* Wide strip is Panorama's parts side by side and reads the same three flags. */}
@@ -188,9 +187,9 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
           {/* Only Pirate Weather returns minute-by-minute data today, so the
               strip stays hidden on every other source. Say so here rather than
               rendering an empty panel on the wall. */}
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          <FieldHint>
             {t('configSections.fullscreen-weather.showNowcastHint')}
-          </p>
+          </FieldHint>
         </>
       )}
 
@@ -248,6 +247,7 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
           {c.accentColor ? (
             <ColorPicker
               label={t('configSections.fullscreen-weather.accentColor')}
+              swatches="accent"
               value={c.accentColor}
               onChange={(v) => set({ accentColor: v })}
             />

@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import { ToastStack } from '@/components/ui/Toast';
 import PluginGlobals from '@/components/PluginGlobals';
 import PluginGlobalsEditor from '@/components/PluginGlobalsEditor';
 import EditorStateProviderLayer from '@/components/editor/EditorStateProviderLayer';
@@ -10,13 +10,14 @@ import { readConfig } from '@/lib/config';
 import { I18nProvider, resolveShippedLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { buildLocaleBlob } from '@/i18n/server-blob';
+import { pageMetadata } from '@/lib/page-title';
 
-export const metadata: Metadata = {
-  title: 'Home Screen Editor',
-};
+export function generateMetadata() {
+  return pageMetadata('editor');
+}
 
 // Reads `data/config.json` to pick up the current `config.settings.locale`,
-// which is mutable at runtime — so the layout must opt out of static
+// which is mutable at runtime, so the layout must opt out of static
 // pre-rendering or a build-time snapshot would freeze the locale until the
 // next deploy.
 export const dynamic = 'force-dynamic';
@@ -26,8 +27,8 @@ export const dynamic = 'force-dynamic';
  * pick up the active locale and inlines the editor's translation
  * dictionaries as a blob. The blob hydrates the loader cache before
  * first render so the initial paint resolves every `t(...)` call
- * synchronously — without it, the editor briefly flashes raw dotted
- * keys (`settings.sidebar.navLabels.calendar`) while the post-mount
+ * synchronously; without it, the editor briefly flashes raw dotted
+ * keys (`settings.calendarPage.google.heading`) while the post-mount
  * `/api/i18n/<locale>` round-trip is in flight.
  *
  * The blob covers the same namespaces the editor surface consumes
@@ -66,6 +67,9 @@ export default async function EditorLayout({ children }: { children: React.React
         <EditorAutoSave />
         {children}
         <ConfirmModal />
+        {/* Every editor toast (these two, a deleted screen's Undo, the meal
+            planner's) stacks here instead of claiming the same spot. */}
+        <ToastStack />
         <BackupReminderToast />
         <UpdateAvailableToast />
       </div>

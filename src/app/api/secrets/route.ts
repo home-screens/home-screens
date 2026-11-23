@@ -42,7 +42,7 @@ export const PUT = withAuth(async (request) => {
     const result = await validateTodoistToken(value);
     if (!result.valid) {
       return NextResponse.json(
-        { error: 'Invalid Todoist token; Todoist returned ' + result.status },
+        { error: 'Invalid Todoist token; Todoist returned ' + result.status, code: 'secrets.todoistRefused' },
         { status: 400 },
       );
     }

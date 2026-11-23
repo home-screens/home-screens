@@ -47,7 +47,7 @@ describe('SleepTimelinePreview', () => {
 
   it('shows the idle note only while idle dimming is on', () => {
     const { unmount } = renderPreview({ idleDimEnabled: true, dimAfterMinutes: 15 });
-    expect(screen.getByText('+ dims after 15 quiet minutes, any time')).toBeTruthy();
+    expect(screen.getByText('Also dims after 15 quiet minutes, any time')).toBeTruthy();
     unmount();
 
     renderPreview({ idleDimEnabled: false, dimAfterMinutes: 15 });

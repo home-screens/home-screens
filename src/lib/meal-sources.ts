@@ -229,7 +229,7 @@ export function mealieWeekHeld(merged: Pick<MergedMeals, 'source' | 'mealie'>, w
 
 /**
  * The days of Mealie's plan a surface showing `week` asks the hub for: the
- * week and the one before it (what Copy Last Week copies). Null when there is
+ * week and the one before it (what Copy last week copies). Null when there is
  * nothing to ask: the plan is Home Screens' own, the copy already holds those
  * days, or Mealie is not answering. Asked then, the hub would only wait on
  * Mealie again, and answer with no plan for days it has no copy of.

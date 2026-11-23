@@ -17,6 +17,7 @@ import {
   weatherProviderSecret,
   type WeatherProviderCaps,
 } from '@/lib/weather-providers';
+import Notice from '@/components/ui/Notice';
 
 /**
  * The sources a module may pick: every keyless one, plus each keyed one
@@ -80,7 +81,7 @@ export function useModuleWeatherSource(provider: WeatherProviderOption | undefin
 export function WeatherApiKeyMissingRow() {
   const t = useTranslate('editor');
   return (
-    <div className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs" data-testid="weather-api-key-row">
+    <Notice tone="warning" size="sm" testId="weather-api-key-row">
       <p className="text-hs-text-body">{t('configSections.weather.apiKeyMissing')}</p>
       <Link
         href={settingsPath({ kind: 'defaults', page: 'weather' })}
@@ -88,7 +89,7 @@ export function WeatherApiKeyMissingRow() {
       >
         {t('configSections.weather.addApiKey')}
       </Link>
-    </div>
+    </Notice>
   );
 }
 

@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import React from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';
+import enUSCore from '@/translations/en-US/core.json';
 
 const editorFetch = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch, isSessionExpired: () => false, sessionExpired: () => new Error('expired') }));
@@ -14,6 +15,7 @@ vi.mock('@/hooks/useSecretStatus', () => ({
 }));
 
 import PicturePicker from '../PicturePicker';
+import { useConfirmStore } from '@/stores/confirm-store';
 
 type Route = (url: string, init?: RequestInit) => { status?: number; body: unknown } | undefined;
 let routes: Route[] = [];
@@ -43,7 +45,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-const wrap = (ui: React.ReactElement) => <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>{ui}</I18nProvider>;
+const wrap = (ui: React.ReactElement) => <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>{ui}</I18nProvider>;
 const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 const tabNames = () => screen.queryAllByRole('tab').map((tab) => tab.textContent);
 
@@ -51,7 +53,7 @@ describe('PicturePicker tabs', () => {
   it('offers every source that picks one picture, Built-in first where the spot has built-ins', async () => {
     render(wrap(<PicturePicker mode="pick-image" builtIn="backgrounds" onClose={() => {}} />));
     await settle();
-    expect(tabNames()).toEqual(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
+    expect(tabNames()).toEqual(['Built-in', 'Pictures & videos', 'Immich', 'Unsplash', 'NASA', 'Art']);
     // No current picture: a spot with built-ins opens on them.
     expect(screen.getByTestId('picker-tab-builtin').getAttribute('aria-selected')).toBe('true');
   });
@@ -131,7 +133,7 @@ describe('PicturePicker Immich tab', () => {
     routes.push((url) => (url === '/api/immich/people' ? { body: [] } : undefined));
   };
 
-  it('lists albums like folders, browses one newest first, and copies the chosen photo on Select Image', async () => {
+  it('lists albums like folders, browses one newest first, and copies the chosen photo on "Use this picture"', async () => {
     immichReady();
     routes.push((url) => (url === '/api/immich/albums' ? { body: [{ id: 'a1', name: 'Summer trip', assetCount: 48 }] } : undefined));
     routes.push((url) => (url.startsWith('/api/photo-source/browse') ? { body: { items: [{ ref: 'abc-1', thumbUrl: '/t/1.jpg' }], nextPage: null } } : undefined));
@@ -203,7 +205,7 @@ describe('PicturePicker Immich tab', () => {
 });
 
 describe('PicturePicker Unsplash tab', () => {
-  it('searches an idea in English, names the photographer, and copies on Select Image', async () => {
+  it('searches an idea in English, names the photographer, and copies on "Use this picture"', async () => {
     secrets.status = { unsplash_access_key: true };
     routes.push((url) => (url.startsWith('/api/photo-source/browse')
       ? { body: { items: [{ ref: 'u1', thumbUrl: '/t/u1.jpg', credit: { name: 'Ana Ruiz' } }], nextPage: 2 } }
@@ -264,7 +266,7 @@ describe('PicturePicker Art tab', () => {
     expect(screen.queryByRole('combobox')).toBeNull();
   });
 
-  it('shows the credit when a painting is chosen and copies it on Select Image', async () => {
+  it('shows the credit when a painting is chosen and copies it on "Use this picture"', async () => {
     routes.push((url) => (url === '/api/photo-source/import' ? { status: 201, body: { path: '/api/backgrounds/serve?file=art%2Fart-Q1.jpg' } } : undefined));
     const onSelectImage = await openArt();
     fireEvent.click(document.querySelector('[data-ref="Q1"]')!);
@@ -284,5 +286,28 @@ describe('PicturePicker Art tab', () => {
     fireEvent.click(screen.getByTestId('picker-tab-art'));
     await settle();
     expect(screen.getByTestId('picker-setup-hint').textContent).toContain("isn't sending paintings right now");
+  });
+});
+
+describe('PicturePicker library delete', () => {
+  it('asks before a tile × deletes a picture, and deletes nothing on Cancel', async () => {
+    const OWN = '/api/backgrounds/serve?file=party.mp4';
+    routes.push((url) => (url === '/api/backgrounds?media=both' ? { body: [{ url: OWN, type: 'video' }] } : undefined));
+    render(wrap(<PicturePicker mode="pick-video" onClose={() => {}} />));
+    await settle();
+    await settle();
+    const tileDelete = () => screen.getByRole('button', { name: 'Delete' });
+    const deletes = () => calls.filter((c) => c.init?.method === 'DELETE');
+
+    await act(async () => { fireEvent.click(tileDelete()); });
+    expect(useConfirmStore.getState().options).toMatchObject({ kind: 'confirm', title: 'Delete 1 file?', variant: 'danger' });
+    await act(async () => { useConfirmStore.getState().respond(false); });
+    await settle();
+    expect(deletes()).toEqual([]);
+
+    await act(async () => { fireEvent.click(tileDelete()); });
+    await act(async () => { useConfirmStore.getState().respond(true); });
+    await settle();
+    expect(deletes()).toHaveLength(1);
   });
 });

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
@@ -9,7 +10,7 @@ import { BonusRows } from '../BonusRows';
 import { completionKey, choreAppliesToday, isChoreSkipped, resolveAssignee } from '../types';
 import { choreIconSize, choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
-import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
+import { DIVIDER, ink, NO_VALUE, TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
@@ -17,7 +18,8 @@ import { wallRowPress } from '../../shared/wallPress';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
-import { memberInitials } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials, memberInk } from '@/lib/family-avatar';
+import { MemberBadge } from '../../shared/MemberBadge';
 import { localDateFromIso } from '@/lib/iso-date';
 
 interface CompactViewProps {
@@ -59,6 +61,8 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   // Ticking is one tap; un-ticking takes a press and hold, the same gesture
   // the kid tablet asks for.
   const hold = useHoldToUncheck();
+  // A column's head has no name beside it, so two people never share a letter.
+  const initials = useMemo(() => getUniqueInitials(members), [members]);
   // Tappable boxes are fixed-size touch targets; read-only glyphs scale with the text.
   const columnWidth: string | number = allowTouch ? touchColumnPx(fontSize) : `${COLUMN_EM}em`;
 
@@ -126,7 +130,9 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
         <div className="flex-1" />
         {!aggregate && active.map((m) => (
           <span key={m.id} title={m.name} className="flex items-center justify-center" style={{ width: columnWidth }}>
-            {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} fallback={<span style={{ color: m.color }}>{memberInitials(m.name)}</span>} /> : <span style={{ color: m.color }}>{memberInitials(m.name)}</span>}
+            <MemberBadge initials={initials.get(m.id) ?? memberInitials(m.name)} color={m.color} fontSize="0.62em" size="1.7em">
+              {m.emoji ? <ChoreIcon value={m.emoji} size={Math.round(fontSize * 0.62)} color={memberInk(m.color)} bare fallback={initials.get(m.id) ?? memberInitials(m.name)} /> : undefined}
+            </MemberBadge>
           </span>
         ))}
       </div>
@@ -208,7 +214,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
             const stats = memberStats.get(m.id);
             return (
               <span key={m.id} style={{ width: allowTouch ? touchColumnPx(fontSize) : `${COLUMN_EM / 0.7}em`, textAlign: 'center', fontSize: '0.95em', fontVariantNumeric: 'tabular-nums' }}>
-                {stats ? `${stats.completed}/${stats.total}` : '—'}
+                {stats ? `${stats.completed}/${stats.total}` : NO_VALUE}
               </span>
             );
           })}

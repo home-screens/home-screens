@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
 import { Pin, TriangleAlert } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { Note } from '@/types/notes';
+import type { TimeFormat } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
 import { INK, ink } from '@/lib/constants';
 import { formatNoteAge } from '@/lib/notes-rules';
+import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
 import { MoreLine as SharedMoreLine } from '../shared/MoreLine';
 
 /**
@@ -38,8 +39,8 @@ export interface NotesContext {
   locale: string;
   /** The household's zone, for weekday ages and day headings. */
   timezone?: string;
-  /** The household's clock: true for 12-hour, false for 24-hour. */
-  hour12: boolean;
+  /** The household's clock. */
+  timeFormat: TimeFormat;
   t: TranslateFn;
   /** The fitted base font size in px, for the fit measurements. */
   fontPx: number;
@@ -52,12 +53,23 @@ export interface NoteAuthor {
   name: string;
   /** The member's colour; null draws the neutral bubble. */
   color: string | null;
+  /** The letters for the author's bubble, unique across the family; "?" for "Someone". */
+  initials: string;
 }
+
+/** Each roster's unique initials, worked out once per roster rather than once per note. */
+const rosterInitials = new WeakMap<ReadonlyMap<string, FamilyMember>, Map<string, string>>();
 
 export function authorOf(note: Pick<Note, 'authorId'>, members: ReadonlyMap<string, FamilyMember>, t: TranslateFn): NoteAuthor {
   const member = note.authorId ? members.get(note.authorId) : undefined;
-  if (!member) return { id: null, name: t('notes.someone'), color: null };
-  return { id: member.id, name: member.name, color: member.color };
+  if (!member) return { id: null, name: t('notes.someone'), color: null, initials: '?' };
+  // A bubble stands alone on its note, so two people never share its letters.
+  let initials = rosterInitials.get(members);
+  if (!initials) {
+    initials = getUniqueInitials([...members.values()]);
+    rosterInitials.set(members, initials);
+  }
+  return { id: member.id, name: member.name, color: member.color, initials: initials.get(member.id) ?? memberInitials(member.name) };
 }
 
 /** The note's age for the wall, or '' when the module hides ages. */
@@ -123,22 +135,6 @@ export function NoteMarks({ note, t, showPin = true, flag = true }: {
       {note.important && (flag ? <ImportantFlag t={t} /> : <WarnGlyph />)}
       {pin && <PinGlyph color={ink(0.55)} />}
     </span>
-  );
-}
-
-/** The title row of the views that have one: the title, and the count on the right. */
-export function NotesHeader({ title, showTitle, meta }: { title: string; showTitle: boolean; meta: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between shrink-0" style={{ marginBottom: '0.66em', gap: '0.5em' }}>
-      {showTitle && (
-        <h2 className="font-semibold truncate" style={{ fontSize: '1.2em', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-          {title}
-        </h2>
-      )}
-      <span className="ml-auto shrink-0 tabular-nums whitespace-nowrap" style={{ fontSize: '0.66em', color: ink(0.55) }}>
-        {meta}
-      </span>
-    </div>
   );
 }
 

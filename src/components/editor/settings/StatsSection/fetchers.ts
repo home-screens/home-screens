@@ -7,16 +7,17 @@ import type { SystemStats } from '@/lib/system-stats-types';
 
 export async function fetchStats(): Promise<
   | { ok: true; stats: SystemStats }
-  | { ok: false; error: string }
+  /** `unreachable` when the hub did not answer; the section says each in its own words. */
+  | { ok: false; error: 'failed' | 'unreachable' }
 > {
   try {
     const res = await editorFetch('/api/system/stats');
     if (res.ok) {
       return { ok: true, stats: (await res.json()) as SystemStats };
     }
-    return { ok: false, error: 'Failed to load system stats' };
+    return { ok: false, error: 'failed' };
   } catch {
-    return { ok: false, error: 'Failed to reach server' };
+    return { ok: false, error: 'unreachable' };
   }
 }
 

@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
-import { CloudOff, CookingPot, RotateCw } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { CloudOff, CookingPot } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n/types';
 import type { MealieProblem, MealieStatus } from '@/lib/meal-sources';
 import { useCopyTime, type CopyClock } from '@/components/meals/useCopyTime';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-clock';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
+import { RetryButton } from './RetryButton';
+import EmptyState from './EmptyState';
+import { mealiePlaces } from '@/components/meals/mealie-places';
 
 /** The household's day, zone and clock, which the phone says a copy's time in (`useCopyTime`). */
 export function useHomeCopyClock(todayISO: string): CopyClock {
@@ -58,7 +61,7 @@ export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; to
           height: 20,
           borderRadius: 99,
           background: withAlpha(REMOTE_ACCENT, 0.14),
-          color: REMOTE_ACCENT,
+          color: REMOTE_ACCENT_INK,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -74,47 +77,6 @@ export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; to
         </span>
       )}
     </div>
-  );
-}
-
-/** Try again, with the wait shown on the button while the hub asks. */
-export function RetryButton({ onRetry, style }: { onRetry: () => Promise<void> | void; style?: CSSProperties }) {
-  const t = useTranslate('remote');
-  const [busy, setBusy] = useState(false);
-  return (
-    <button
-      type="button"
-      className="press-btn"
-      disabled={busy}
-      onClick={async () => {
-        setBusy(true);
-        try {
-          await onRetry();
-        } finally {
-          setBusy(false);
-        }
-      }}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        minHeight: 44,
-        borderRadius: 12,
-        border: 'none',
-        background: 'var(--hs-bg-hover)',
-        color: 'var(--hs-text-primary)',
-        fontSize: 14,
-        fontWeight: 600,
-        cursor: busy ? 'wait' : 'pointer',
-        fontFamily: 'inherit',
-        opacity: busy ? 0.7 : 1,
-        ...style,
-      }}
-    >
-      <RotateCw size={15} strokeWidth={2} aria-hidden className={busy ? 'animate-spin' : undefined} />
-      {t('mealsTab.retry')}
-    </button>
   );
 }
 
@@ -156,15 +118,15 @@ export function MealiePausedNotice({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px' }}>
-        <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
+        <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT_INK, flex: 'none' }} />
         {tCore(`${mealieProblemWords(problem)}.title`)}
       </div>
       <p style={{ margin: '4px 0 10px 26px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>
         {copyTime
-          ? (fix ? t(`mealie.paused.${fix}DescriptionWithTime`, { time: copyTime }) : tCore('mealie.paused.descriptionWithTime', { time: copyTime }))
-          : (fix ? t(`mealie.paused.${fix}Description`) : tCore('mealie.paused.description'))}
+          ? (fix ? t(`mealie.paused.${fix}DescriptionWithTime`, { time: copyTime, ...mealiePlaces(tCore) }) : tCore('mealie.paused.descriptionWithTime', { time: copyTime }))
+          : (fix ? t(`mealie.paused.${fix}Description`, mealiePlaces(tCore)) : tCore('mealie.paused.description'))}
       </p>
-      <RetryButton onRetry={onRetry} style={{ marginLeft: 26, padding: '0 16px' }} />
+      <RetryButton onRetry={onRetry} style={{ marginLeft: 26 }} />
     </div>
   );
 }
@@ -185,7 +147,7 @@ export function mealieProblemWords(problem: MealieClientProblem | null): string 
  */
 export function mealieProblemDescription(problem: MealieClientProblem | null, t: TranslateFn, tCore: TranslateFn): string {
   const words = mealieProblemWords(problem);
-  return words === 'mealie.unreachable' ? tCore('mealie.unreachable.description') : t(`${words}.description`);
+  return words === 'mealie.unreachable' ? tCore('mealie.unreachable.description') : t(`${words}.description`, mealiePlaces(tCore));
 }
 
 /**
@@ -221,30 +183,14 @@ export function MealieUnreachable({ problem, onRetry }: { problem: MealieProblem
   const tCore = useTranslate('core');
   const words = mealieProblemWords(problem);
   return (
-    <div data-testid="mealie-unreachable" style={{ padding: '48px 16px', textAlign: 'center' }}>
-      <div
-        aria-hidden
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 99,
-          margin: '0 auto 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--hs-bg-panel)',
-          border: '1px solid var(--hs-border)',
-          color: 'var(--hs-text-muted)',
-        }}
-      >
-        <CloudOff size={24} strokeWidth={2} />
-      </div>
-      <p style={{ fontSize: 15, color: 'var(--hs-text-body)', fontWeight: 600, margin: '0 0 4px' }}>{tCore(`${words}.title`)}</p>
-      <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 20px', lineHeight: '19.5px' }}>
-        {mealieProblemDescription(problem, t, tCore)}
-      </p>
-      <RetryButton onRetry={onRetry} style={{ padding: '0 18px' }} />
-    </div>
+    <EmptyState
+      testId="mealie-unreachable"
+      icon={CloudOff}
+      title={tCore(`${words}.title`)}
+      body={mealieProblemDescription(problem, t, tCore)}
+      action={<RetryButton onRetry={onRetry} />}
+      style={{ paddingTop: 48 }}
+    />
   );
 }
 

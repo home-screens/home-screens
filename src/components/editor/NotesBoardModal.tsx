@@ -38,6 +38,9 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife } from '@/types/notes';
 import type { FamilyMember } from '@/types/family';
+import Notice from '@/components/ui/Notice';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 /** The author this editor last posted as. An empty string is a deliberate Nobody; no key is no pick yet. */
 const AUTHOR_KEY = 'hs-editor-notes-author';
@@ -290,7 +293,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const [important, setImportant] = useState(false);
   const draftRef = useRef<HTMLTextAreaElement>(null);
 
-  const saveFailed = t('common.saveError');
+  const saveFailed = tCore('refusals.saveFailed');
 
   const { data: notes, loaded, loadError: loadFailed, write } = useWriteSession<Note[], NotesWriteRequest>({
     initial: [],
@@ -397,12 +400,11 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   };
 
   const remove = async (id: string) => {
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('notesBoardModal.deleteConfirm.title'),
-      message: t('notesBoardModal.deleteConfirm.message'),
-      confirmLabel: t('notesBoardModal.deleteConfirm.confirmLabel'),
-      variant: 'danger',
-    });
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'delete',
+      question: t('notesBoardModal.deleteConfirm.title'),
+      consequence: t('notesBoardModal.deleteConfirm.message'),
+    }, tCore));
     if (!ok) return;
     void write((ns) => deleteNote({ notes: ns }, id).notes, deleteNoteRequest(id));
   };
@@ -427,14 +429,10 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     >
       <div data-testid="notes-modal" className="flex min-h-0 flex-1 flex-col">
         {loadError && (
-          <div role="alert" className="mx-4 mt-3 rounded-lg border border-hs-danger/30 bg-hs-danger/10 px-3 py-2 text-xs text-hs-danger">
-            {loadError}
-          </div>
+          <Notice tone="danger" role="alert" className="mx-4 mt-3">{loadError}</Notice>
         )}
         {error && (
-          <div role="alert" className="mx-4 mt-3 rounded-lg border border-hs-danger/30 bg-hs-danger/10 px-3 py-2 text-xs text-hs-danger">
-            {error}
-          </div>
+          <Notice tone="danger" role="alert" className="mx-4 mt-3">{error}</Notice>
         )}
 
         {!loaded ? (
@@ -559,7 +557,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
                   </button>
                   {goneOpen && (
                     <div id="notes-modal-gone" className="mt-1.5 space-y-1.5">
-                      <p className="text-[11px] text-hs-text-faint">{t('notesBoardModal.goneHelp')}</p>
+                      <FieldHint>{t('notesBoardModal.goneHelp')}</FieldHint>
                       <ul className="space-y-1">
                         {gone.map((note) => {
                           const author = membersById.get(note.authorId ?? '');

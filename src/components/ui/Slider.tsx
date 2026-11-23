@@ -1,5 +1,8 @@
 'use client';
 
+import { useId, type ReactNode } from 'react';
+import FieldHint from './FieldHint';
+
 interface SliderProps {
   label: string;
   value: number;
@@ -9,6 +12,10 @@ interface SliderProps {
   displayValue?: string;
   onChange: (value: number) => void;
   disabled?: boolean;
+  /** The help line under the slider, drawn as a `FieldHint` and read out with it. */
+  hint?: ReactNode;
+  /** Forwarded to the help line, for tests that read it. */
+  hintTestId?: string;
 }
 
 /** A reset button needs its own words: the visible text and an accessible name that says what it resets. */
@@ -16,8 +23,10 @@ type ResetProps =
   | { onReset?: undefined; resetLabel?: undefined; resetTitle?: undefined }
   | { onReset: () => void; resetLabel: string; resetTitle: string };
 
-export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled, onReset, resetLabel, resetTitle }: SliderProps & ResetProps) {
-  return (
+export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled, hint, hintTestId, onReset, resetLabel, resetTitle }: SliderProps & ResetProps) {
+  const hintId = useId();
+  const hasHint = hint !== undefined && hint !== null && hint !== false;
+  const slider = (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-hs-text-muted flex justify-between">
         <span>{label}</span>
@@ -32,6 +41,7 @@ export default function Slider({ label, value, min, max, step = 1, displayValue,
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           disabled={disabled}
+          aria-describedby={hasHint ? hintId : undefined}
           className="min-w-0 flex-1 accent-hs-accent disabled:cursor-not-allowed"
         />
         {onReset && (
@@ -48,5 +58,12 @@ export default function Slider({ label, value, min, max, step = 1, displayValue,
         )}
       </span>
     </label>
+  );
+  if (!hasHint) return slider;
+  return (
+    <div className="flex flex-col gap-0.5">
+      {slider}
+      <FieldHint id={hintId} data-testid={hintTestId}>{hint}</FieldHint>
+    </div>
   );
 }

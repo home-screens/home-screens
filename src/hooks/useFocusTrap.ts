@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const FOCUSABLE =
+export const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 interface FocusTrapOptions {
@@ -19,6 +19,11 @@ interface FocusTrapOptions {
    * hands focus back when it turns false.
    */
   active?: boolean;
+  /**
+   * A field inside that took focus as it mounted (`autoFocus`, a form opened
+   * to be written in) keeps it, instead of `focus` moving it on.
+   */
+  keepAutoFocus?: boolean;
 }
 
 const FIELDS = 'input:not([disabled]):not([type="hidden"]), textarea:not([disabled])';
@@ -27,16 +32,22 @@ const FIELDS = 'input:not([disabled]):not([type="hidden"]), textarea:not([disabl
  * Traps keyboard focus inside the referenced element while mounted (and
  * `active`). Restores focus to the previously-focused element afterwards.
  */
-export function useFocusTrap<T extends HTMLElement>({ focus = 'first', active = true }: FocusTrapOptions = {}) {
+export function useFocusTrap<T extends HTMLElement>({ focus = 'first', active = true, keepAutoFocus = false }: FocusTrapOptions = {}) {
   const ref = useRef<T>(null);
+  // What had focus before anything inside could take it: `autoFocus` runs
+  // before this hook's effect does, so by then focus is already inside.
+  const [opener] = useState<Element | null>(() => (typeof document === 'undefined' ? null : document.activeElement));
 
   useEffect(() => {
     const el = ref.current;
     if (!el || !active) return;
 
-    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const autoFocused = keepAutoFocus && el !== document.activeElement && el.contains(document.activeElement);
+    const previouslyFocused = (autoFocused ? opener : document.activeElement) as HTMLElement | null;
 
-    if (focus === 'container') {
+    if (autoFocused) {
+      // Already where it should be.
+    } else if (focus === 'container') {
       el.focus({ preventScroll: true });
     } else if (focus === 'field') {
       const field = el.querySelector<HTMLElement>(FIELDS);
@@ -78,7 +89,7 @@ export function useFocusTrap<T extends HTMLElement>({ focus = 'first', active = 
       el.removeEventListener('keydown', handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [focus, active]);
+  }, [focus, active, keepAutoFocus, opener]);
 
   return ref;
 }

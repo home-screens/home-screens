@@ -6,7 +6,6 @@ type TemplateOrientation = 'portrait' | 'landscape';
 export interface TemplateMeta {
   id: string;
   name: string;
-  description: string;
   category: string;
   portrait: string;   // filename for portrait variant
   landscape: string;   // filename for landscape variant
@@ -28,7 +27,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'family-dashboard',
     name: 'Family Dashboard',
-    description: "Clock, calendar, weather, today's chores, countdown, and greeting — a complete family hub.",
     category: 'Dashboard',
     portrait: 'family-dashboard.json',
     landscape: 'family-dashboard-landscape.json',
@@ -38,7 +36,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'weather-station',
     name: 'Weather Station',
-    description: 'Multiple weather views, rain map, sunrise/sunset, air quality, and moon phase.',
     category: 'Weather',
     portrait: 'weather-station.json',
     landscape: 'weather-station-landscape.json',
@@ -48,7 +45,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'minimal-clock',
     name: 'Minimal Clock',
-    description: 'A single large clock — clean and distraction-free.',
     category: 'Dashboard',
     portrait: 'minimal-clock.json',
     landscape: 'minimal-clock-landscape.json',
@@ -58,7 +54,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'info-board',
     name: 'Info Board',
-    description: 'News, stock ticker, word of the day, history, and quotes.',
     category: 'Finance',
     portrait: 'info-board.json',
     landscape: 'info-board-landscape.json',
@@ -68,7 +63,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'photo-frame',
     name: 'Photo Frame',
-    description: 'Full-screen photo slideshow — turn your display into a digital picture frame.',
     category: 'Media',
     portrait: 'photo-frame.json',
     landscape: 'photo-frame-landscape.json',
@@ -78,7 +72,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'sports-hub',
     name: 'Sports Hub',
-    description: 'Live scores and league standings.',
     category: 'Sports',
     portrait: 'sports-hub.json',
     landscape: 'sports-hub-landscape.json',
@@ -88,7 +81,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'productivity',
     name: 'Productivity',
-    description: 'Todoist tasks, calendar, countdown timer, and year progress.',
     category: 'Productivity',
     portrait: 'productivity.json',
     landscape: 'productivity-landscape.json',
@@ -98,7 +90,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'morning-dashboard',
     name: 'Morning Dashboard',
-    description: 'Weather, calendar, traffic, and a greeting to start your day.',
     category: 'Dashboard',
     portrait: 'morning-dashboard.json',
     landscape: 'morning-dashboard-landscape.json',
@@ -108,7 +99,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'kitchen-display',
     name: 'Kitchen Display',
-    description: 'Meal planner, clock, calendar, garbage day, and sticky notes for the kitchen.',
     category: 'Dashboard',
     portrait: 'kitchen-display.json',
     landscape: 'kitchen-display-landscape.json',
@@ -118,7 +108,6 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
     id: 'news-finance',
     name: 'News & Finance',
-    description: 'News headlines, stock prices, and crypto tracker.',
     category: 'Finance',
     portrait: 'news-finance.json',
     landscape: 'news-finance-landscape.json',

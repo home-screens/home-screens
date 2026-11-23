@@ -24,6 +24,7 @@ import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 import { useDensityOptions, useWeekStartOptions } from './option-hooks';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
+import FieldHint from '@/components/ui/FieldHint';
 
 const SHOW_DESCRIPTION_KEY = {
   'schedule': 'scheduleShowDescription',
@@ -157,7 +158,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* ── This view: every view-gated field, pooled ── */}
       <CalendarGroup label={viewLabel} when={viewLabel !== ''}>
         {isPersonView && (
-          <p className="text-xs text-hs-text-muted leading-relaxed">
+          <FieldHint>
             {peopleCount > 0
               ? t('configSections.fullscreen-calendar.peopleConfigured', { count: peopleCount })
               : t('configSections.fullscreen-calendar.peopleHint')}
@@ -165,7 +166,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             <Link href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
               {t('configSections.fullscreen-calendar.peopleLink')}
             </Link>
-          </p>
+          </FieldHint>
         )}
         {isTimeGrid && (
           <>

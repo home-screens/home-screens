@@ -16,7 +16,7 @@ import type { ScheduleClock } from '@/lib/schedule';
  * wrapper the ring would be capped by that wrapper's zIndex stacking
  * context — invisible whenever the selected module sits beneath an
  * overlapping one — and lifting the module itself would visually mask the
- * very z-order changes the Bring to Front / Send to Back buttons make.
+ * very z-order changes the Bring to front / Send to back buttons make.
  * The overlay ignores pointer events; only the resize handle is interactive.
  */
 export default function SelectionOverlay({

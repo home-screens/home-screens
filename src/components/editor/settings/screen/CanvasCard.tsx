@@ -1,12 +1,15 @@
 'use client';
 
 import Toggle from '@/components/ui/Toggle';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
-import { FieldHelp, FieldLabel, FieldRow } from '@/components/editor/settings/screen/FieldRow';
+import { FieldLabel, FieldRow } from '@/components/editor/settings/screen/FieldRow';
+import FieldHint from '@/components/ui/FieldHint';
 import TouchAlignmentControl from '@/components/editor/settings/shared/TouchAlignmentControl';
 import type { DisplayState } from '@/lib/settings-form';
 import { useTranslate } from '@/i18n';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
 
 interface CanvasCardProps {
   values: Pick<DisplayState, 'displayWidth' | 'displayHeight' | 'displayTransform' | 'touchMatrix'>;
@@ -86,30 +89,22 @@ export default function CanvasCard({
 
   return (
     <div className="mb-5">
-      <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+      <SettingsSectionHeading>
         {t('settings.defaultDisplayPage.canvas.heading')}
-      </div>
+      </SettingsSectionHeading>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <FieldRow fieldId="display.canvasOrientation">
           <FieldLabel>{t('common.orientation')}</FieldLabel>
-          <div className="flex rounded-md overflow-hidden border border-hs-border-strong">
-            {(['portrait', 'landscape'] as const).map((o) => (
-              <button
-                key={o}
-                type="button"
-                onClick={() => setOrientation(o)}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  orientation === o
-                    ? 'bg-hs-accent text-white'
-                    : 'bg-hs-card text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover'
-                }`}
-              >
-                {o === 'portrait'
-                  ? t('settings.defaultDisplayPage.canvas.orientationPortrait')
-                  : t('settings.defaultDisplayPage.canvas.orientationLandscape')}
-              </button>
-            ))}
-          </div>
+          {/* Radio semantics, so a screen reader hears which way the screen faces now. */}
+          <SegmentedControl
+            label={t('common.orientation')}
+            value={orientation}
+            onChange={setOrientation}
+            options={[
+              { value: 'portrait', label: t('settings.defaultDisplayPage.canvas.orientationPortrait') },
+              { value: 'landscape', label: t('settings.defaultDisplayPage.canvas.orientationLandscape') },
+            ]}
+          />
         </FieldRow>
 
         <FieldRow fieldId="display.canvasResolution">
@@ -170,9 +165,9 @@ export default function CanvasCard({
               />
             </div>
           )}
-          <FieldHelp>
+          <FieldHint className="mt-1.5">
             {t('settings.defaultDisplayPage.canvas.resolutionHelp')}
-          </FieldHelp>
+          </FieldHint>
         </FieldRow>
 
         <FieldRow fieldId="display.canvasFlip">
@@ -181,10 +176,8 @@ export default function CanvasCard({
             label={t('settings.defaultDisplayPage.canvas.flipToggle')}
             checked={flipped}
             onChange={(v) => setFlipped(v)}
+            description={t('settings.defaultDisplayPage.canvas.flipHelp')}
           />
-          <FieldHelp>
-            {t('settings.defaultDisplayPage.canvas.flipHelp')}
-          </FieldHelp>
         </FieldRow>
 
         <FieldRow fieldId="display.touchAlignment">

@@ -54,7 +54,9 @@ test('Defaults › Calendar: iCloud connect rejection shows the app-password mes
       return route.fulfill({
         status: 400,
         contentType: 'application/json',
-        body: JSON.stringify({ error: rejection }),
+        // The hub names the refusal by its code; the editor shows the
+        // dictionary sentence for it, never the hub's English `error`.
+        body: JSON.stringify({ error: 'iCloud sign-in failed', code: 'icloud.signInRefused' }),
       });
     }
     return route.continue();

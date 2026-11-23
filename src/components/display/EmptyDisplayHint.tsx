@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 import { UI_MONO_STACK, UI_SANS_STACK } from '@/lib/font-registry';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 interface EmptyDisplayHintProps {
   /**
@@ -118,7 +119,7 @@ export default function EmptyDisplayHint({ deliberatelyEmpty = false }: EmptyDis
 
       {deliberatelyEmpty && (
         <div style={{ fontSize: 'clamp(10px, 1.85vmin, 20px)', fontWeight: 300, opacity: 0.28 }}>
-          {t('emptyDisplay.hideHint')}
+          {t('emptyDisplay.hideHint', { place: settingsPlaceText(t, 'screen') })}
         </div>
       )}
     </div>

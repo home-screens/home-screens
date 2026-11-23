@@ -8,6 +8,7 @@ import type { CalendarEventEntry, CalendarOverride, ICalSource, ICloudSource } f
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
+import StatusPill from '@/components/ui/StatusPill';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import HostedCalendarSignIn from './HostedCalendarSignIn';
@@ -20,9 +21,13 @@ import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
 import { localizedHolidayCountries, type HolidayCountry } from '@/lib/holiday-countries';
-import { settingsPath } from '@/lib/settings-route';
+import { settingsPath, settingsPlaceText } from '@/lib/settings-route';
 import { configuredCalendarSourceIds, prunePersonSources } from '@/lib/calendar-source-refs';
 import { calendarLook, storedOverride, withCalendarOverride } from '@/lib/calendar-overrides';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { LoadingLine } from '@/components/ui/Spinner';
+import StatusDot from '@/components/ui/StatusDot';
 
 
 interface CalendarSettings {
@@ -47,6 +52,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
   const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides } = values;
 
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   // Every way a calendar leaves the list arrives here: a feed removed, a
   // Google calendar unpicked or signed out, an iCloud calendar unticked or
@@ -145,7 +151,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
   }, []);
 
   const googleBlock = googleLoading ? (
-    <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.google.checkingConnection')}</p>
+    <FieldHint>{t('settings.calendarPage.google.checkingConnection')}</FieldHint>
   ) : googleConnected ? (
     <>
       {googleCalendars.length > 0 ? (
@@ -170,7 +176,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
                       type="checkbox"
                       checked={shown}
                       onChange={() => toggleCalendar(cal.id)}
-                      className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+                      className={CHECKBOX_CLASS}
                     />
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -210,10 +216,10 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           })}
         </div>
       ) : (
-        <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.google.noCalendars')}</p>
+        <FieldHint>{t('settings.calendarPage.google.noCalendars')}</FieldHint>
       )}
       {combinedError && (
-        <p className="text-xs text-hs-warning">{combinedError}</p>
+        <p className="text-xs text-hs-warning-ink">{combinedError}</p>
       )}
     </>
   ) : googleMode === 'hosted' ? (
@@ -229,30 +235,30 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     />
   ) : !credentialsConfigured ? (
     <div className="space-y-2">
-      <p className="text-xs text-hs-text-muted">
+      <FieldHint>
         {t('settings.calendarPage.google.credentialsRequired')}
-      </p>
+      </FieldHint>
       {/* The destination has one name now, the one the sidebar uses. This
           used to read "Settings → Integrations" while the sidebar said "API
           keys" and the page's own H1 said "Integrations". */}
-      <p className="text-xs text-hs-text-faint">
+      <FieldHint>
         {t('settings.calendarPage.google.credentialsSetupPrefix')}
         <Link
           href={settingsPath({ kind: 'defaults', page: 'integrations' })}
           className="text-hs-accent hover:text-hs-accent-hover underline"
         >
-          {t('settings.sidebar.navLabels.integrations')}
+          {tCore('settingsPages.integrations')}
         </Link>
         {t('settings.calendarPage.google.credentialsSetupSuffix')}
-      </p>
+      </FieldHint>
     </div>
   ) : (
     <div className="space-y-3">
       {deviceFlow.userCode && deviceFlow.verificationUrl ? (
         <div className="space-y-3">
-          <p className="text-xs text-hs-text-muted">
+          <FieldHint>
             {t('settings.calendarPage.google.deviceCodeIntro')}
-          </p>
+          </FieldHint>
           <div className="flex items-center gap-3">
             <DeviceCodeLink
               url={deviceFlow.verificationUrl}
@@ -266,9 +272,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
               labelClassName="text-xs font-normal tracking-normal text-hs-text-faint group-hover:text-hs-accent"
             />
             {deviceFlow.deviceFlowPolling && (
-              <span className="text-xs text-hs-text-faint animate-pulse">
-                {t('settings.calendarPage.google.waitingForAuthorization')}
-              </span>
+              <LoadingLine label={t('settings.calendarPage.google.waitingForAuthorization')} />
             )}
             {/* The other three sign-ins could always be backed out of; this
                 one left the code up until it ran out. */}
@@ -296,18 +300,18 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         <div className="space-y-1.5">
           <p className="text-xs text-hs-danger">{deviceFlow.deviceFlowError}</p>
           {deviceFlow.clientIdHint && (
-            <p className="text-xs text-hs-text-faint">
+            <FieldHint>
               {t('settings.calendarPage.google.usingClientIdLabel')}{' '}
               <code className="text-hs-text-muted">{deviceFlow.clientIdHint}</code>
-            </p>
+            </FieldHint>
           )}
-          <p className="text-xs text-hs-text-faint">
+          <FieldHint>
             {t('settings.calendarPage.google.verifyCredentialsPart1')}
             <Link
               href={settingsPath({ kind: 'defaults', page: 'integrations' })}
               className="text-hs-accent hover:text-hs-accent-hover underline"
             >
-              {t('settings.calendarPage.google.settingsIntegrationsLink')}
+              {settingsPlaceText(tCore, 'integrations')}
             </Link>
             {t('settings.calendarPage.google.verifyCredentialsPart2')}
             <a
@@ -319,12 +323,12 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
               {t('settings.calendarPage.google.googleCloudConsoleLink')}
             </a>
             {t('settings.calendarPage.google.verifyCredentialsPart3')}
-          </p>
+          </FieldHint>
         </div>
       )}
-      <p className="text-xs text-hs-text-faint">
+      <FieldHint>
         {t('settings.calendarPage.google.signInHelp')}
-      </p>
+      </FieldHint>
     </div>
   );
 
@@ -353,8 +357,8 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
             label={t('settings.calendarPage.google.hideDeclinedLabel')}
             checked={hideDeclined}
             onChange={(v) => onChange({ hideDeclined: v })}
+            description={t('settings.calendarPage.google.googleOnly')}
           />
-          <p className="mt-1 text-[11px] text-hs-text-faint">{t('settings.calendarPage.google.googleOnly')}</p>
         </div>
       </SettingsArea>
 
@@ -370,7 +374,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           right={googleConnected && !googleLoading ? (
             <>
               <span className="text-xs text-hs-success flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
+                <StatusDot tone="success" size="sm" />
                 {t('settings.calendarPage.google.connected')}
               </span>
               <button
@@ -394,9 +398,9 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
                   failure sentences stacked inside every row. Rows carry the
                   last name we saw, the id underneath, and a way to remove
                   them, which iCal feeds have always had and these did not. */}
-              <p className="mb-2 text-[11px] text-hs-text-faint">
+              <FieldHint className="mb-2">
                 {t('settings.calendarPage.google.pausedExplanation')}
-              </p>
+              </FieldHint>
               <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
                 {missingGoogleIds.map((id) => {
                   const status = health.get(id);
@@ -410,9 +414,9 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
                           </code>
                         )}
                       </span>
-                      <span className="shrink-0 rounded bg-hs-warning/10 px-1.5 py-0.5 text-[11px] text-hs-warning">
+                      <StatusPill tone="warning">
                         {t('settings.calendarPage.google.pausedBadge')}
-                      </span>
+                      </StatusPill>
                       <button
                         type="button"
                         onClick={() => toggleCalendar(id)}
@@ -449,7 +453,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
             <select
               value={holidayCountry ?? ''}
               onChange={(e) => onChange({ holidayCountry: e.target.value || undefined })}
-              className="w-full rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+              className={`w-full ${SETTINGS_INPUT_SM_CLASS}`}
             >
               <option value="">{t('settings.calendarPage.holidays.none')}</option>
               {countryOptions.map((c) => (
@@ -458,9 +462,9 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
                 </option>
               ))}
             </select>
-            <p className="text-xs text-hs-text-faint">
+            <FieldHint>
               {t('settings.calendarPage.holidays.help')}
-            </p>
+            </FieldHint>
             {holidayCountry && <SourceHealthError status={health.get('holidays')} />}
           </div>
         </SourceBlock>

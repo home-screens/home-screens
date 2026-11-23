@@ -80,7 +80,7 @@ async function openBackgroundPicker(page: Page, request: APIRequestContext, scre
   await expect(page.getByTestId('editor-canvas')).toBeVisible();
   await expect(page.getByText('Select a module to edit')).toBeVisible();
   await page.getByTestId('background-choose').click();
-  const library = page.getByRole('dialog', { name: 'Image Library' });
+  const library = page.getByRole('dialog', { name: 'Pictures & videos' });
   await expect(library).toBeVisible();
   return library;
 }
@@ -93,7 +93,7 @@ test.describe('the Image Library from a screen background', () => {
   test('every source is a tab, the built-in backgrounds first', async ({ page, request }) => {
     const handle = await stubModuleData(page, { blockExternal: true });
     const library = await openBackgroundPicker(page, request);
-    await expect(library.getByRole('tab')).toHaveText(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
+    await expect(library.getByRole('tab')).toHaveText(['Built-in', 'Pictures & videos', 'Immich', 'Unsplash', 'NASA', 'Art']);
     await expect(library.getByTestId('picker-tab-builtin')).toHaveAttribute('aria-selected', 'true');
     // Every key is seeded, so nothing is locked.
     for (const id of ['immich', 'unsplash', 'nasa', 'art']) {
@@ -302,15 +302,15 @@ test.describe('the Image Library in its library-only modes', () => {
     await selectModule(page, request, buildModuleInstance('image'));
 
     // The image config defaults to the URL tab; switch to Library, then browse.
-    await page.getByRole('button', { name: 'Library', exact: true }).click();
-    await page.getByRole('button', { name: 'Browse Library...' }).click();
+    await page.getByRole('button', { name: 'Pictures & videos', exact: true }).click();
+    await page.getByRole('button', { name: 'Browse your pictures…' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Image Library' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pictures & videos' })).toBeVisible();
     await expect(page.locator('[data-media-type="video"]')).toHaveCount(0);
     // Pick the first thumbnail, then confirm.
     await page.locator('button:has(img[src*="beach.jpg"])').click();
     await autosaved(page, async () => {
-      await page.getByRole('button', { name: 'Select Image' }).click();
+      await page.getByRole('button', { name: 'Use this picture' }).click();
     });
 
     expect((await moduleConfig(request, 'image')).src).toBe(PICKED);
@@ -339,16 +339,16 @@ test.describe('the Image Library in its library-only modes', () => {
     );
 
     await selectModule(page, request, buildModuleInstance('video'));
-    await page.getByRole('button', { name: 'Browse Library...' }).click();
+    await page.getByRole('button', { name: 'Browse your videos…' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Video Library' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pictures & videos' })).toBeVisible();
     // Videos come from the library only, so there are no source tabs.
     await expect(page.getByRole('tab')).toHaveCount(0);
     // Images are filtered out of the pick-video grid; the video tile shows.
     await expect(page.locator('img[src*="beach.jpg"]')).toHaveCount(0);
     await page.locator('[data-media-type="video"] button:has(video)').click();
     await autosaved(page, async () => {
-      await page.getByRole('button', { name: 'Select Video' }).click();
+      await page.getByRole('button', { name: 'Use this video' }).click();
     });
 
     // Config stores the file PATH, not the token-bearing serve URL.
@@ -372,19 +372,19 @@ test.describe('the Image Library in its library-only modes', () => {
     );
 
     await selectModule(page, request, buildModuleInstance('photo-slideshow'));
-    await page.getByRole('button', { name: 'Browse...', exact: true }).click();
+    await page.getByRole('button', { name: 'Browse…', exact: true }).click();
 
     // The folder picker chooses a folder of the library, so it has no source
     // tabs, and only adds to the library: a tile carries no delete button here.
     await expect(page.getByRole('heading', { name: 'Pick a folder' })).toBeVisible();
     await expect(page.getByRole('dialog').getByRole('button', { name: 'Delete' })).toHaveCount(0);
     await expect(page.getByRole('tab')).toHaveCount(0);
-    await expect(page.getByText('All Photos & Videos').first()).toBeVisible();
+    await expect(page.getByText('All pictures & videos').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Upload', exact: true })).toBeVisible();
     await expect(page.locator('img[src*="beach.jpg"]')).toBeVisible();
     await expect(page.locator('[data-media-type="video"]')).toHaveCount(1);
     // Both media kinds are counted in the toolbar summary.
-    await expect(page.getByText('1 photo, 1 video')).toBeVisible();
+    await expect(page.getByText('1 picture, 1 video')).toBeVisible();
     expect(handle.externalHits).toEqual([]);
   });
 });

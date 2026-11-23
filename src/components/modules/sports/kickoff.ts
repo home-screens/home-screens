@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from 'date-fns';
-import { toTZWallTime } from '@/lib/timezone';
+import { formatTimeOfDay, toTZWallTime } from '@/lib/timezone';
 import type { TimeFormat } from '@/types/config';
 
 export interface KickoffFormatOptions {
@@ -39,8 +39,7 @@ export function formatKickoff(startTime: string, opts: KickoffFormatOptions): st
     }
   };
 
-  const time = format({ hour: 'numeric', minute: '2-digit', hourCycle: opts.timeFormat === '24h' ? 'h23' : 'h12' });
-  if (!time) return null;
+  const time = formatTimeOfDay(instant, { timeFormat: opts.timeFormat, locale: opts.locale, timezone: timeZone });
 
   // Both sides are wall-clock readings in the display timezone, so the
   // calendar-day difference is the one a person in that room would count.

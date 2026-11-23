@@ -7,6 +7,7 @@ import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { PluginSchemaFields } from './PluginConfigRenderer';
 import type { PluginConfigSchema } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * Plugin-level settings form (manifest `settingsSchema`), shown on the
@@ -25,6 +26,7 @@ export default function PluginSettingsSection({
   schema: PluginConfigSchema;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [values, setValues] = useState<Record<string, unknown> | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -62,7 +64,8 @@ export default function PluginSettingsSection({
     const result = await savePluginSettings(pluginId, values);
     if (!result.ok) {
       setSaveStatus('error');
-      setErrorMsg(result.error === 'network' ? t('common.networkError') : result.error || t('common.saveError'));
+      // The hub's English reason goes to plugin code through the SDK; people read ours.
+      setErrorMsg(tCore(result.error === 'network' ? 'refusals.hubUnreachable' : 'refusals.saveFailed'));
       return;
     }
     // Reflect what the server actually stored — the sanitizer drops keys
@@ -82,7 +85,7 @@ export default function PluginSettingsSection({
     );
   }
   if (values === null) {
-    return <p className="text-xs text-hs-text-faint">{t('settings.pluginSettings.loading')}</p>;
+    return <FieldHint>{t('settings.pluginSettings.loading')}</FieldHint>;
   }
 
   return (
@@ -103,7 +106,7 @@ export default function PluginSettingsSection({
           disabled={saveStatus === 'saving'}
         >
           {saveStatus === 'saving'
-            ? t('settings.pluginSettings.savingButton')
+            ? tCore('status.saving')
             : t('settings.pluginSettings.saveButton')}
         </Button>
         {saveStatus === 'saved' && (

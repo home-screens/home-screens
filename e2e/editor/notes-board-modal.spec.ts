@@ -6,7 +6,7 @@ import { selectModule } from '../helpers/editor';
 
 /**
  * The editor's own door to the family notes board: the Notes section's
- * "Manage notes" opens a modal that writes `/api/notes` directly, and every
+ * "Edit notes" opens a modal that writes `/api/notes` directly, and every
  * answer is handed to the canvas preview, so a change shows on the module
  * behind the modal without waiting for the next poll.
  */
@@ -14,7 +14,7 @@ import { selectModule } from '../helpers/editor';
 type BoardNote = { id: string; text: string; authorId?: string; pinned: boolean; important: boolean; life: string; expiresAt: string | null };
 
 async function openBoard(page: Page) {
-  await page.getByRole('button', { name: 'Manage notes' }).click();
+  await page.getByRole('button', { name: 'Edit notes' }).click();
   const modal = page.getByTestId('notes-modal');
   await expect(modal).toBeVisible();
   // The three seeded notes are all on the wall.
@@ -122,7 +122,7 @@ test.describe('Notes board modal (editor-side notes)', () => {
     await expect(modal.getByTestId('notes-modal-gone-toggle')).toHaveAttribute('aria-expanded', 'true');
     await goneRow.getByTestId('notes-modal-delete').click();
     const deleted = noteWrite(page, 'DELETE');
-    await page.getByRole('dialog', { name: 'Delete note' }).getByRole('button', { name: 'Delete', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Delete this note?' }).getByRole('button', { name: 'Delete', exact: true }).click();
     await deleted;
     await expect(modal.getByTestId('notes-modal-gone-toggle')).toBeHidden();
     board = (await (await request.get('/api/notes')).json()).notes as BoardNote[];

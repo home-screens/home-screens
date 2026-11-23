@@ -12,12 +12,11 @@ import { useHouseholdToday } from '../household-clock';
 import { showToast } from '../remote-toast';
 import DayNoteSheet, { dateOfIso, dayInWords } from './DayNoteSheet';
 import MealsWeekNav from './MealsWeekNav';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
+import { LoadFailed } from './RetryButton';
 import { addIsoDays } from '@/lib/iso-date';
-
-/** Yellow is the day note colour everywhere: the wall's line and these rows. */
-const NOTE_YELLOW = '#facc15';
+import { DAY_NOTE_YELLOW } from '@/components/modules/shared/DayNoteLine';
 
 const ROW: CSSProperties = {
   width: '100%',
@@ -44,7 +43,7 @@ const NOTE_ROW: CSSProperties = {
 };
 
 /** The note row's yellow edge: a straight bar the rounded row clips, as on the wall. */
-const NOTE_EDGE: CSSProperties = { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: NOTE_YELLOW };
+const NOTE_EDGE: CSSProperties = { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: DAY_NOTE_YELLOW };
 
 const EMPTY_ROW: CSSProperties = {
   ...ROW,
@@ -61,7 +60,7 @@ const TODAY_BADGE: CSSProperties = {
   padding: '2px 8px',
   borderRadius: 4,
   background: withAlpha(REMOTE_ACCENT, 0.12),
-  color: REMOTE_ACCENT,
+  color: REMOTE_ACCENT_INK,
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   marginLeft: 'auto',
@@ -152,18 +151,7 @@ export default function DayNotesPage({ events, sub, card, page: pageProp, onPage
   };
 
   if (!loaded && loadError) {
-    return (
-      <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="day-notes-load-error">
-        <p className="text-[13px] text-hs-text-faint">{t('notes.dayNotes.loadError')}</p>
-        <button
-          type="button"
-          onClick={() => void retry()}
-          className="mt-3 min-h-[44px] px-4 rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold active:scale-[0.97]"
-        >
-          {t('notes.retry')}
-        </button>
-      </div>
-    );
+    return <LoadFailed testId="day-notes-load-error" message={t('notes.dayNotes.loadError')} onRetry={retry} />;
   }
   if (!loaded) return null;
 
@@ -205,7 +193,7 @@ export default function DayNotesPage({ events, sub, card, page: pageProp, onPage
                   style={NOTE_ROW}
                 >
                   <span aria-hidden="true" style={NOTE_EDGE} />
-                  <span style={{ color: NOTE_YELLOW, fontSize: 17, display: 'flex' }}><NoteGlyph /></span>
+                  <span style={{ color: DAY_NOTE_YELLOW, fontSize: 17, display: 'flex' }}><NoteGlyph /></span>
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', hyphens: 'auto' }}>{note.text}</span>
                   <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
                 </button>

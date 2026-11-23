@@ -5,6 +5,8 @@ import Button from '@/components/ui/Button';
 import { useICloudImport } from '@/hooks/useICloudImport';
 import { detectICloudSource } from '@/lib/icloud-parse';
 import { useTranslate } from '@/i18n';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface Props {
   /** Library folder the import downloads into ('' = root). */
@@ -61,7 +63,7 @@ export default function ICloudImportPanel({ selectedDir, onImported, trailing, b
               onKeyDown={(e) => { if (e.key === 'Enter') start(url, selectedDir); }}
               placeholder={t('icloudImport.placeholder')}
               disabled={running}
-              className="flex-1 min-w-0 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body focus:outline-none focus:border-hs-accent"
+              className={`flex-1 min-w-0 ${INPUT_CLASS}`}
             />
             <Button
               size="sm"
@@ -91,18 +93,18 @@ export default function ICloudImportPanel({ selectedDir, onImported, trailing, b
             </p>
           )}
 
-          {errorKey && <p className="text-[11px] text-hs-warning">{t(`icloudImport.errors.${errorKey}`)}</p>}
+          {errorKey && <p className="text-[11px] text-hs-warning-ink">{t(`icloudImport.errors.${errorKey}`)}</p>}
 
           {showAlbumTip && (
-            <p className="text-[10px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('icloudImport.albumTip')}
-            </p>
+            </FieldHint>
           )}
 
           {!running && !finished && !errorKey && !showAlbumTip && (
-            <p className="text-[10px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('icloudImport.help')}
-            </p>
+            </FieldHint>
           )}
         </div>
       )}

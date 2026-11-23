@@ -46,10 +46,10 @@ function ruleCard(page: import('@playwright/test').Page, name: string) {
 test('adding a rule persists with a valid default action targeting the first screen', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig());
   await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
-  await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add rule' })).toBeVisible();
 
   await autosaved(page, async () => {
-    await page.getByRole('button', { name: 'Add Rule' }).click();
+    await page.getByRole('button', { name: 'Add rule' }).click();
   });
 
   await expect(ruleCard(page, 'Rule 1')).toBeVisible();
@@ -344,7 +344,7 @@ test('rules edit the selected display in multi-display mode', async ({ page, req
   // The display picker appears; switch to Kitchen and add a rule there.
   await page.getByLabel('Editing automation for').selectOption('kitchen');
   await autosaved(page, async () => {
-    await page.getByRole('button', { name: 'Add Rule' }).click();
+    await page.getByRole('button', { name: 'Add rule' }).click();
   });
 
   const saved = await getConfig(request);
@@ -391,7 +391,7 @@ test('a profile edit survives an immediate switch to the Rules tab', async ({ pa
 
   await page.getByRole('button', { name: 'Add a profile' }).click();
   await page.getByTestId('automation-tab-rules').click();
-  await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add rule' })).toBeVisible();
 
   await expect.poll(async () => {
     const saved = await getConfig(request);

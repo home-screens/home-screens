@@ -1,7 +1,8 @@
 'use client';
 
 import { editorFetch, isSessionExpired as isSessionExpiredError, sessionExpired } from '@/lib/editor-fetch';
-import { readJson, refusalMessage } from '@/lib/hub-request';
+import { readJson, refusalMessage, refusalSentence } from '@/lib/hub-request';
+import type { TranslateFn } from '@/i18n/types';
 import { refusalFromBody, type RefusalParams } from '@/lib/refusal';
 import type { MediaUse } from '@/lib/media-usage';
 import { displayCache } from '@/lib/display-cache';
@@ -224,8 +225,12 @@ export interface UploadOutcome {
   uploaded: string[];
   /** Videos held back because the wall cannot play them (see `isUnplayableVideo`), by name. */
   unplayable: string[];
-  /** The last failure: the hub's own sentence and status, or nulls when the request never got an answer. */
-  error: { message: string | null; status: number | null; file: string } | null;
+  /**
+   * The last failure: the hub's answer (a refusal code a surface phrases
+   * with `uploadFailureText`) and status, or nulls when the request never got
+   * an answer.
+   */
+  error: { body: unknown; status: number | null; file: string } | null;
 }
 
 interface UploadOptions {
@@ -270,7 +275,7 @@ export async function uploadLibraryFiles(
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[]; error?: string } | null;
       if (!res.ok) {
-        outcome.error = { message: data?.error ?? null, status: res.status, file: sent.name };
+        outcome.error = { body: data, status: res.status, file: sent.name };
       } else if (data?.path) {
         outcome.uploaded.push(data.path);
         const saved = libraryFileFromServeUrl(data.path);
@@ -280,11 +285,20 @@ export async function uploadLibraryFiles(
       }
     } catch (err) {
       if (isSessionExpiredError(err)) throw err;
-      outcome.error = { message: null, status: null, file: sent.name };
+      outcome.error = { body: null, status: null, file: sent.name };
     }
   }
   if (outcome.uploaded.length > 0) invalidateLibraryReads();
   return outcome;
+}
+
+/**
+ * Why an upload did not land, in the household's language: the hub's refusal
+ * (a file too big, a kind the library does not take) when it named one, else
+ * `fallback`. `tCore` reads `core`, which holds `refusals.library.*`.
+ */
+export function uploadFailureText(error: NonNullable<UploadOutcome['error']>, tCore: TranslateFn, fallback: string): string {
+  return refusalSentence(error.body, tCore) ?? fallback;
 }
 
 /** What deleting a batch of library files came to. */

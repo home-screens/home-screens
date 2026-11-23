@@ -7,6 +7,7 @@ import { settingsHref } from '@/lib/settings-route';
 import DisplayCanvasCard from './DisplayCanvasCard';
 import DisplayOverrideFields from './DisplayOverrideFields';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
+import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
 
 interface DisplaySubtabProps {
   config: ScreenConfiguration;
@@ -30,9 +31,10 @@ const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
  */
 export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   // Resolve once per render — the banner and every OverrideRow share this label.
-  const DEFAULTS_LABEL = t('settings.perDisplayPage.display.defaultsLabel');
+  const DEFAULTS_LABEL = defaultsPlaceText(t, tCore, 'screen');
 
   return (
     <>

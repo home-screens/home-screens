@@ -15,7 +15,8 @@ import { INK } from '@/lib/constants';
  * each view needs.
  */
 
-const YELLOW = '#facc15';
+/** The day note colour everywhere: the wall's note line and the phone's day note rows. */
+export const DAY_NOTE_YELLOW = '#facc15';
 const DEEP_YELLOW = '#ca8a04';
 
 /**
@@ -27,12 +28,12 @@ const DEEP_YELLOW = '#ca8a04';
 export function dayNoteColors(isDark: boolean): Record<string, string> {
   return isDark
     ? {
-        '--cal-note-bg': `color-mix(in srgb, ${YELLOW} 13%, transparent)`,
-        '--cal-note-edge': YELLOW,
-        '--cal-note-text': `color-mix(in srgb, ${YELLOW} 50%, var(--cal-text-primary))`,
+        '--cal-note-bg': `color-mix(in srgb, ${DAY_NOTE_YELLOW} 13%, transparent)`,
+        '--cal-note-edge': DAY_NOTE_YELLOW,
+        '--cal-note-text': `color-mix(in srgb, ${DAY_NOTE_YELLOW} 50%, var(--cal-text-primary))`,
       }
     : {
-        '--cal-note-bg': `color-mix(in srgb, ${YELLOW} 22%, transparent)`,
+        '--cal-note-bg': `color-mix(in srgb, ${DAY_NOTE_YELLOW} 22%, transparent)`,
         '--cal-note-edge': `color-mix(in srgb, ${DEEP_YELLOW} 85%, var(--cal-text-primary))`,
         '--cal-note-text': `color-mix(in srgb, ${DEEP_YELLOW} 55%, var(--cal-text-primary))`,
       };
@@ -40,9 +41,9 @@ export function dayNoteColors(isDark: boolean): Record<string, string> {
 
 const TONES = {
   module: {
-    background: `color-mix(in srgb, ${YELLOW} 15%, transparent)`,
-    edge: `color-mix(in srgb, ${YELLOW} 85%, ${INK})`,
-    color: `color-mix(in srgb, ${YELLOW} 45%, ${INK})`,
+    background: `color-mix(in srgb, ${DAY_NOTE_YELLOW} 15%, transparent)`,
+    edge: `color-mix(in srgb, ${DAY_NOTE_YELLOW} 85%, ${INK})`,
+    color: `color-mix(in srgb, ${DAY_NOTE_YELLOW} 45%, ${INK})`,
   },
   fullscreen: {
     background: 'var(--cal-note-bg)',

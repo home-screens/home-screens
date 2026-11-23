@@ -10,6 +10,7 @@ import enUSModules from '@/translations/en-US/modules.json';
 import deDEModules from '@/translations/de-DE/modules.json';
 import type { FamilyMember } from '@/types/family';
 import type { RewardDefinition } from '@/lib/reward-data';
+import { CHORE_SHEET_IDLE_MS } from '@/lib/chore-constants';
 
 /**
  * What the wall says when the hub refuses. The full-screen store and the
@@ -28,7 +29,7 @@ const displayFetch = vi.fn(async (url?: string) => {
 });
 vi.mock('@/lib/display-fetch', () => ({ displayFetch: (...args: unknown[]) => displayFetch(...(args as [string])) }));
 
-const { useRedeemReward } = await import('../useRedeemReward');
+const { useRedeemReward, REDEEM_IDLE_MS } = await import('../useRedeemReward');
 
 /** The calls the redeem itself made, without the store's read of the grown-up code. */
 const redeemCalls = () => displayFetch.mock.calls.filter(([url]) => url !== '/api/grown-up-code') as unknown as [string, RequestInit][];
@@ -65,7 +66,7 @@ describe('useRedeemReward refusals', () => {
       [404, "That reward isn't on offer any more."],
       [403, "That reward isn't on offer any more."],
       [409, "That person isn't in the family any more."],
-      [500, 'Something went wrong'],
+      [500, 'Something went wrong. Try again.'],
     ] as const) {
       answers = [json(status, { error: 'Insufficient point balance / Reward not found or disabled' })];
       const hook = setup();
@@ -116,10 +117,29 @@ describe('useRedeemReward refusals', () => {
     expect(hook.result.current.error).toBe('Diese Belohnung gibt es nicht mehr.');
   });
 
-  it('says "could not connect" when the hub cannot be reached', async () => {
+  it('says Home Screens is not answering when the hub cannot be reached', async () => {
     answers = [];
     const hook = setup();
     await askAndConfirm(hook, 12);
-    expect(hook.result.current.error).toBe('Could not connect');
+    expect(hook.result.current.error).toBe("Couldn't spend the tickets. Home Screens isn't answering, so tap Yes again in a moment.");
+  });
+});
+
+describe('useRedeemReward sheet', () => {
+  it('closes the sheet on its own like every chore sheet, but not while the spend is on its way', async () => {
+    const hook = setup();
+    act(() => hook.result.current.ask(movie, ada, 12));
+    expect(hook.result.current.sheet).toMatchObject({ autoCloseMs: REDEEM_IDLE_MS, paused: false });
+    expect(REDEEM_IDLE_MS).toBe(CHORE_SHEET_IDLE_MS);
+    let release: (r: Response) => void = () => {};
+    answers = [new Promise<Response>((resolve) => { release = resolve; }) as unknown as Response];
+    let done: Promise<void> = Promise.resolve();
+    act(() => { done = hook.result.current.confirm(); });
+    expect(hook.result.current.sheet.paused).toBe(true);
+    await act(async () => { release(json(200, { balances: { 'kid-1': 2 }, redemptions: [] })); await done; });
+    expect(hook.result.current.sheet.paused).toBe(false);
+    act(() => hook.result.current.ask(movie, ada, 12));
+    act(() => hook.result.current.sheet.onClose());
+    expect(hook.result.current.pending).toBeNull();
   });
 });

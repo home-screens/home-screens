@@ -17,10 +17,12 @@ export function CalendarDayNotesToggle({ checked, onChange }: { checked: boolean
   const none = data !== null && Object.keys(data.notes ?? {}).length === 0;
   return (
     <div className="flex flex-col gap-1" data-field-id="showDayNotes">
-      <Toggle label={t('configSections.calendarDayNotes.label')} checked={checked} onChange={onChange} />
-      <p className="text-xs leading-relaxed text-hs-text-muted">
-        {t(none ? 'configSections.calendarDayNotes.hintNone' : 'configSections.calendarDayNotes.hint')}
-      </p>
+      <Toggle
+        label={t('configSections.calendarDayNotes.label')}
+        checked={checked}
+        onChange={onChange}
+        description={t(none ? 'configSections.calendarDayNotes.hintNone' : 'configSections.calendarDayNotes.hint')}
+      />
     </div>
   );
 }

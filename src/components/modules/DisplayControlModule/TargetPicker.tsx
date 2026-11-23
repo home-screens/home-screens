@@ -32,7 +32,7 @@ export function displayLabel(d: { id: string; name: string }): string {
 
 /**
  * "Controls [Kitchen ⌄]" with a popover list of friendly display names, this
- * display marked, and "All displays" last. A custom list rather than a native
+ * display marked, and "Every wall" last. A custom list rather than a native
  * select so it renders at wall size and can be styled like the buttons.
  */
 export function TargetPicker({ value, onChange, options, selfId, onOpenChange, m }: TargetPickerProps) {

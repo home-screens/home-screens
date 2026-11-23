@@ -5,6 +5,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatBytes } from '@/lib/format-bytes';
 import { MAX_IMAGE_BYTES } from '@/lib/media-formats';
 import { PHONE_VIDEO_MAX_BYTES, type UploadFailure, type UploadRun } from '../hooks/usePhotoUploads';
+import PhoneSpinner from './PhoneSpinner';
 
 const CARD: React.CSSProperties = {
   borderRadius: 14,
@@ -41,11 +42,7 @@ export default function PhotoUploadCard({
     return (
       <div style={CARD} data-testid="photo-upload-progress" role="status">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)' }}>
-          <span
-            aria-hidden="true"
-            className="animate-spin"
-            style={{ width: 18, height: 18, border: '2.5px solid var(--hs-border-strong)', borderTopColor: 'var(--hs-accent)', borderRadius: '50%', flex: 'none' }}
-          />
+          <PhoneSpinner />
           {t('photosTab.upload.progress', { current: Math.min(run.current + 1, run.total), total: run.total })}
           <span style={{ marginLeft: 'auto', fontSize: 12.5, fontWeight: 600, color: 'var(--hs-text-faint)' }}>
             {t('photosTab.upload.left', { size: formatBytes(run.bytesLeft, locale) })}
@@ -83,7 +80,7 @@ export default function PhotoUploadCard({
             color: 'var(--hs-text-muted)',
           }}
         >
-          <div style={{ color: 'var(--hs-warning)', display: 'flex', gap: 10, alignItems: 'center', fontSize: 14, fontWeight: 700 }}>
+          <div style={{ color: 'var(--hs-warning-ink)', display: 'flex', gap: 10, alignItems: 'center', fontSize: 14, fontWeight: 700 }}>
             <TriangleAlert size={18} aria-hidden="true" />
             {t('photosTab.upload.failedHeading', { count: run.failures.length })}
             {added === 0 && <CloseButton onClose={onClose} label={t('photosTab.upload.close')} />}

@@ -50,7 +50,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     }
     const fault = cidrFault(entry);
     if (fault) {
-      return NextResponse.json({ error: `Invalid entry "${entry}": ${FAULT_WORDS[fault]}`, code: 'invalid_address', entry }, { status: 400 });
+      return NextResponse.json({ error: `Invalid entry "${entry}": ${FAULT_WORDS[fault]}`, code: 'allowlist.badEntry', params: { entry }, entry }, { status: 400 });
     }
   }
 

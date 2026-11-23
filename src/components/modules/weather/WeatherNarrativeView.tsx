@@ -14,6 +14,7 @@ import { getLocalizedConditionLabel } from './condition-label';
 import { useViewBox } from './chart-parts';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 
 /**
  * A box this many times wider than tall lays the days side by side. The
@@ -58,9 +59,7 @@ export default function WeatherNarrativeView({ config, forecast, units, timezone
             centre a short list and never go negative, so a tall one still
             overflows past the bottom edge where the fit loop sees it. */}
         <div ref={contentRef} className="flex flex-col my-auto">
-          {config.showTitle !== false && (
-            <h2 className="font-semibold mb-[0.35em] shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
-          )}
+          {config.showTitle !== false && <ModuleTitleRow title={t('weather.forecast')} />}
           {days.length === 0 ? (
             <WeatherEmptyState message={t('weather.noForecastData')} />
           ) : (

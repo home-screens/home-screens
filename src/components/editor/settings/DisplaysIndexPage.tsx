@@ -19,7 +19,7 @@ import {
 import { formatLastSeen } from '@/lib/time-format';
 import { heartbeatPill, type HeartbeatState } from '@/lib/display-liveness';
 import { settingsHref } from '@/lib/settings-route';
-import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
+import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, NO_VALUE } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
 import type {
   DisplayApiEntry,
@@ -29,6 +29,10 @@ import type {
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { resolveDisplaySoftwareState } from '@/lib/display-software-status';
 import { dashSlug } from '@/lib/slug';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import StatusPill from '@/components/ui/StatusPill';
 
 /**
  * Humanize the raw client address that `getClientIP` returned from the
@@ -189,6 +193,7 @@ interface DisplayFormProps {
 
 function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubmit, takenIds }: DisplayFormProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config } = useEditorStore();
   const [name, setName] = useState(initial?.name ?? '');
   const [id, setId] = useState(initial?.id ?? prefilledId ?? '');
@@ -225,10 +230,6 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
   const [transform, setTransform] = useState<'normal' | '90' | '180' | '270'>(initialTransform);
 
   const [error, setError] = useState<{ field: DisplayFormField; message: string } | null>(null);
-
-  /** Outline the field the message is about, so a four-digit typo is findable. */
-  const fieldBorder = (field: DisplayFormField) =>
-    (error?.field === field ? 'border-hs-danger' : 'border-hs-border-strong');
 
   /**
    * Change the rotation and auto-swap the dimensions if the new orientation
@@ -301,7 +302,10 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t('settings.displaysIndex.formNamePlaceholder')}
-          className={`mt-1 block w-full rounded-md bg-hs-panel border ${fieldBorder('name')} text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent`}
+          // The field the message is about gets the danger border, so a
+          // four-digit typo is findable.
+          aria-invalid={error?.field === 'name'}
+          className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
         />
       </label>
 
@@ -321,12 +325,13 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             setIdTouched(true);
           }}
           placeholder={t('settings.displaysIndex.formIdPlaceholder')}
-          className={`mt-1 block w-full rounded-md bg-hs-panel border ${fieldBorder('id')} text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent font-mono disabled:opacity-50`}
+          aria-invalid={error?.field === 'id'}
+          className={`mt-1 block w-full font-mono disabled:opacity-50 ${SETTINGS_INPUT_CLASS}`}
         />
         {prefilledId && !initial && (
-          <p className="text-[11px] text-hs-text-faint mt-1">
+          <FieldHint className="mt-1">
             {t('settings.displaysIndex.formIdLocked')}
-          </p>
+          </FieldHint>
         )}
       </label>
 
@@ -349,7 +354,8 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
               max={MAX_DISPLAY_DIMENSION}
               value={width}
               onChange={(e) => setWidth(Number(e.target.value) || 0)}
-              className={`mt-1 block w-full rounded-md bg-hs-panel border ${fieldBorder('width')} text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums`}
+              aria-invalid={error?.field === 'width'}
+              className={`mt-1 block w-full tabular-nums ${SETTINGS_INPUT_CLASS}`}
             />
           </label>
           <label className="block">
@@ -360,13 +366,14 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
               max={MAX_DISPLAY_DIMENSION}
               value={height}
               onChange={(e) => setHeight(Number(e.target.value) || 0)}
-              className={`mt-1 block w-full rounded-md bg-hs-panel border ${fieldBorder('height')} text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums`}
+              aria-invalid={error?.field === 'height'}
+              className={`mt-1 block w-full tabular-nums ${SETTINGS_INPUT_CLASS}`}
             />
           </label>
         </div>
-        <p className="text-[11px] text-hs-text-faint mt-2">
+        <FieldHint className="mt-2">
           {t('settings.displaysIndex.formResolutionHint')}
-        </p>
+        </FieldHint>
       </div>
 
       <label className="block">
@@ -376,28 +383,26 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
           onChange={(e) =>
             handleTransformChange(e.target.value as 'normal' | '90' | '180' | '270')
           }
-          className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+          className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
         >
           <option value="normal">{t('settings.displaysIndex.formRotationNormal')}</option>
           <option value="90">{t('settings.displaysIndex.formRotation90')}</option>
           <option value="180">{t('settings.displaysIndex.formRotation180')}</option>
           <option value="270">{t('settings.displaysIndex.formRotation270')}</option>
         </select>
-        <p className="text-[11px] text-hs-text-faint mt-1">
+        <FieldHint className="mt-1">
           {t('settings.displaysIndex.formRotationHint')}
-        </p>
+        </FieldHint>
       </label>
 
       {error && (
-        <div className="rounded-md bg-hs-danger/10 border border-hs-danger/30 px-3 py-2 text-xs text-hs-danger" role="alert">
-          {error.message}
-        </div>
+        <Notice tone="danger" role="alert">{error.message}</Notice>
       )}
 
       <div className="flex items-center gap-2 justify-end">
         <Button variant="secondary" onClick={onCancel}>{t('settings.displaysIndex.formCancel')}</Button>
         <Button variant="primary" onClick={handleSubmit}>
-          {initial ? t('settings.displaysIndex.formSaveChanges') : t('settings.displaysIndex.formAddDisplay')}
+          {initial ? tCore('actions.save') : t('settings.displaysIndex.formAddDisplay')}
         </Button>
       </div>
     </div>
@@ -602,7 +607,7 @@ export default function DisplaysIndexPage() {
                       );
                     }
                     return (
-                      <span key={i} className="text-hs-warning">
+                      <span key={i} className="text-hs-warning-ink">
                         {t('settings.displaysIndex.unadoptedLabel')}
                       </span>
                     );
@@ -628,18 +633,12 @@ export default function DisplaysIndexPage() {
       {/* Unadopted — unchanged from the mockup, which renders this block
           identically to the current implementation. */}
       {unadopted.length > 0 && (
-        <div className="rounded-lg border border-hs-warning/20 bg-hs-warning/[0.04] px-4 py-3.5">
-          <div className="flex items-center gap-2 mb-1">
-            <Monitor className="w-4 h-4 text-hs-warning" />
-            <span className="text-sm font-medium text-hs-warning">
-              {t('settings.displaysIndex.unadoptedWaiting', { count: unadopted.length })}
-            </span>
-          </div>
-          <p className="text-xs text-hs-text-faint mb-3 pl-6">
+        <Notice tone="warning" icon={Monitor} title={t('settings.displaysIndex.unadoptedWaiting', { count: unadopted.length })}>
+          <FieldHint className="mb-3">
             {t('settings.displaysIndex.unadoptedHintPrefix')}
             <strong>{t('settings.displaysIndex.adoptStrong')}</strong>
             {t('settings.displaysIndex.unadoptedHintSuffix')}
-          </p>
+          </FieldHint>
           <div className="space-y-2">
             {unadopted.map((un) => {
               const isAdopting = adoptingId === un.id;
@@ -662,10 +661,10 @@ export default function DisplaysIndexPage() {
                 <div
                   key={un.id}
                   data-testid={`unadopted-display-${un.id}`}
-                  className="rounded-md border border-hs-warning/20 bg-hs-warning/[0.03] px-3 py-2.5 flex items-start gap-3"
+                  className="rounded-md border border-hs-border-strong bg-hs-card px-3 py-2.5 flex items-start gap-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <code className="text-xs font-mono text-hs-warning">{un.id}</code>
+                    <code className="text-xs font-mono text-hs-warning-ink">{un.id}</code>
                     <div className="flex items-center gap-3 text-[11px] text-hs-text-faint mt-0.5 flex-wrap">
                       {un.lastSeen && <span>{t('settings.displaysIndex.lastSeenLabel', { time: formatLastSeen(un.lastSeen, locale) })}</span>}
                       {soleReporter && (
@@ -687,17 +686,14 @@ export default function DisplaysIndexPage() {
                       )}
                     </div>
                     {multipleReporters && (
-                      <div className="mt-2 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
-                        <div className="font-medium mb-1">
-                          {t('settings.displaysIndex.multipleClientsHeading', { count: viewports.length })}
-                        </div>
-                        <ul className="space-y-0.5 text-hs-text-muted">
+                      <Notice tone="warning" size="sm" className="mt-2" title={t('settings.displaysIndex.multipleClientsHeading', { count: viewports.length })}>
+                        <ul className="mt-1 space-y-0.5 text-hs-text-muted">
                           {viewports.map((v, i) => {
                             const addr = formatClientAddress(v.clientAddress);
                             return (
                               <li key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`} className="tabular-nums">
                                 {addr && (
-                                  <span className="font-mono text-hs-warning/80">{addr}</span>
+                                  <span className="font-mono text-hs-warning-ink/80">{addr}</span>
                                 )}
                                 {addr && <span className="text-hs-text-faint"> · </span>}
                                 {v.width}×{v.height}
@@ -711,7 +707,7 @@ export default function DisplaysIndexPage() {
                           <code className="mx-1">--display-id</code>
                           {t('settings.displaysIndex.multipleClientsParagraphSuffix')}
                         </p>
-                      </div>
+                      </Notice>
                     )}
                   </div>
                   <Button variant="secondary" onClick={() => setAdoptingId(un.id)}>
@@ -721,7 +717,7 @@ export default function DisplaysIndexPage() {
               );
             })}
           </div>
-        </div>
+        </Notice>
       )}
 
       {/* Auto-save status toast */}
@@ -732,7 +728,7 @@ export default function DisplaysIndexPage() {
             <span className={saveMessage === 'saved' ? 'text-hs-success' : 'text-hs-danger'}>
               {saveMessage === 'saved'
                 ? t('common.saved')
-                : t('common.saveFailed')}
+                : tCore('refusals.saveFailed')}
             </span>
           )}
         </div>
@@ -798,8 +794,8 @@ function DisplayCard({
 
   const pill = heartbeatPill(lastSeen);
   const status = {
-    className: pill.pillClass,
-    dot: pill.dotClass,
+    tone: pill.tone,
+    bordered: pill.bordered,
     // Never heard from: the word alone, since there is no time to give.
     label: pill.kind === 'never' || !lastSeen
       ? t('settings.perDisplayPage.header.statusOffline')
@@ -821,12 +817,9 @@ function DisplayCard({
           <div className="text-sm font-medium text-hs-text-primary truncate">{display.name}</div>
           <code className="text-[10px] text-hs-text-faint font-mono">{display.id}</code>
         </div>
-        <span
-          className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${status.className}`}
-        >
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dot}`} />
+        <StatusPill tone={status.tone} bordered={status.bordered} dot>
           {status.label}
-        </span>
+        </StatusPill>
       </div>
       <div className="flex items-center gap-3 text-[11px] text-hs-text-faint flex-wrap">
         {dimensions && <span className="tabular-nums">{dimensions}</span>}
@@ -846,26 +839,19 @@ function DisplayCard({
         {reporterIp ? (
           <span className="font-mono text-hs-text-faint">{reporterIp}</span>
         ) : (
-          <span className="font-mono text-hs-text-faint">—</span>
+          <span className="font-mono text-hs-text-faint">{NO_VALUE}</span>
         )}
         {(software.kind === 'outdated' || software.kind === 'needs-setup') && (
-          <span
-            data-testid="display-software-chip"
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-hs-warning/30 bg-hs-warning/[0.07] text-hs-warning"
-          >
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning" />
+          <StatusPill tone="warning" dot data-testid="display-software-chip">
             {software.kind === 'outdated'
               ? t('settings.displaysIndex.softwareUpdateWaiting')
               : t('settings.displaysIndex.softwareNeedsSetup')}
-          </span>
+          </StatusPill>
         )}
       </div>
       {multipleReporters && (
-        <div className="mt-3 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
-          <div className="font-medium mb-1">
-            {t('settings.displaysIndex.multipleClientsCardHeading', { count: reports.length })}
-          </div>
-          <ul className="space-y-0.5 text-hs-text-muted">
+        <Notice tone="warning" size="sm" className="mt-3" title={t('settings.displaysIndex.multipleClientsCardHeading', { count: reports.length })}>
+          <ul className="mt-1 space-y-0.5 text-hs-text-muted">
             {reports.map((v, i) => {
               const addr = formatClientAddress(v.clientAddress);
               return (
@@ -873,7 +859,7 @@ function DisplayCard({
                   key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`}
                   className="tabular-nums"
                 >
-                  {addr && <span className="font-mono text-hs-warning/80">{addr}</span>}
+                  {addr && <span className="font-mono text-hs-warning-ink/80">{addr}</span>}
                   {addr && <span className="text-hs-text-faint"> · </span>}
                   {v.width}×{v.height}
                   {v.count > 1 && <span className="text-hs-text-faint"> · {t('settings.displaysIndex.tabsSuffix', { count: v.count })}</span>}
@@ -882,7 +868,7 @@ function DisplayCard({
               );
             })}
           </ul>
-        </div>
+        </Notice>
       )}
     </button>
   );

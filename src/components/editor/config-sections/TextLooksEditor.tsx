@@ -35,6 +35,10 @@ import {
   replaceRuleAt,
   useExpandedRules,
 } from './RuleListCard';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import StatusPill from '@/components/ui/StatusPill';
+import type { StatusTone } from '@/components/ui/StatusDot';
 
 /**
  * The Text module's Looks list: rules whose When half is the Visibility
@@ -53,23 +57,26 @@ const DEFAULT_LOOK_FADE = 0.5;
 /** A look's header verdict: the engine's four, plus "always" for a rule with no conditions that sets nothing yet. */
 type PillVerdict = TextLookVerdict | 'always';
 
-const PILL_CLASS: Record<PillVerdict, string> = {
-  showing: 'bg-hs-success/15 text-hs-success border-hs-success/30',
-  unmet: 'bg-hs-hover text-hs-text-dim border-hs-border-strong',
-  unknown: 'bg-amber-600/15 text-amber-500 border-amber-600/30',
-  overruled: 'bg-hs-hover text-hs-text-dim border-dashed border-hs-border-strong',
-  always: 'bg-hs-hover text-hs-text-dim border-hs-border-strong',
+const PILL_TONE: Record<PillVerdict, StatusTone> = {
+  showing: 'success',
+  unmet: 'neutral',
+  unknown: 'warning',
+  overruled: 'neutral',
+  always: 'neutral',
 };
 
 function LookVerdictPill({ verdict, t }: { verdict: PillVerdict; t: TranslateFn }) {
   return (
-    <span
+    <StatusPill
+      tone={PILL_TONE[verdict]}
+      size="sm"
+      // Overruled: it matches, but a look above it already sets everything it sets.
+      className={verdict === 'overruled' ? 'border-dashed' : undefined}
       data-look-verdict={verdict}
-      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${PILL_CLASS[verdict]}`}
       title={t(`${KEY}.verdictTitles.${verdict}`)}
     >
       {t(`${KEY}.verdicts.${verdict}`)}
-    </span>
+    </StatusPill>
   );
 }
 
@@ -109,13 +116,12 @@ function LookFields({
       <RuleGroupLabel>{t(`${KEY}.when`)}</RuleGroupLabel>
       <div className="space-y-2">
         {look.when.length === 0 && (
-          <p className="text-xs text-hs-text-dim">{t(`${KEY}.noConditionsHint`)}</p>
+          <FieldHint>{t(`${KEY}.noConditionsHint`)}</FieldHint>
         )}
         {validationError && (
-          <div className="rounded border border-hs-danger/40 bg-hs-danger/10 p-2 space-y-1">
-            <p className="text-xs text-hs-danger">{t('visibilityConditions.invalidHint')}</p>
-            <p className="text-[10px] text-hs-text-dim">{validationError}</p>
-          </div>
+          <Notice tone="danger" size="sm" title={t('visibilityConditions.invalidHint')}>
+            <FieldHint>{validationError}</FieldHint>
+          </Notice>
         )}
         <ConditionTreeEditor
           conditions={look.when}
@@ -128,7 +134,7 @@ function LookFields({
           t={t}
         />
         {look.when.length > 1 && (
-          <p className="text-[10px] text-hs-text-dim">{t(`${KEY}.allMustMatchHint`)}</p>
+          <FieldHint>{t(`${KEY}.allMustMatchHint`)}</FieldHint>
         )}
       </div>
 
@@ -184,8 +190,8 @@ function LookFields({
               value={look.text}
               onChange={(v) => patch({ text: v })}
               placeholder={t(`${KEY}.wordsPlaceholder`)}
+              hint={t(`${KEY}.wordsHint`)}
             />
-            <p className="text-[10px] text-hs-text-dim">{t(`${KEY}.wordsHint`)}</p>
           </div>
         )}
         <Toggle
@@ -205,7 +211,7 @@ function LookFields({
           />
         )}
         {!lookSetsAnything(look) && (
-          <p className="text-[11px] text-hs-warning" data-look-sets-nothing="">{t(`${KEY}.nothingSetHint`)}</p>
+          <p className="text-[11px] text-hs-warning-ink" data-look-sets-nothing="">{t(`${KEY}.nothingSetHint`)}</p>
         )}
       </div>
     </>
@@ -347,12 +353,12 @@ export function TextLooksEditor({ looks, onChange }: {
 
   return (
     <div className="flex flex-col gap-2" data-text-looks="">
-      <p className="text-[11px] text-hs-text-muted">{t(`${KEY}.hint`)}</p>
+      <FieldHint>{t(`${KEY}.hint`)}</FieldHint>
       {providedKeys.length === 0 && !searchAvailable && (
-        <p className="text-xs text-hs-warning">{t('visibilityConditions.noProvidersHint')}</p>
+        <p className="text-xs text-hs-warning-ink">{t('visibilityConditions.noProvidersHint')}</p>
       )}
       {list.length === 0 && (
-        <p className="text-xs text-hs-text-dim">{t(`${KEY}.empty`)}</p>
+        <FieldHint>{t(`${KEY}.empty`)}</FieldHint>
       )}
       {list.map((look, i) => (
         <LookCard

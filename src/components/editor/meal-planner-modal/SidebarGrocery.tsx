@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Check } from 'lucide-react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 import {
   groceryListNeedsHeadings,
@@ -50,7 +51,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
           </div>
           <div className="h-1 bg-hs-card rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+              className="h-full rounded-full bg-hs-success transition-all duration-300"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -122,11 +123,11 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
                     <span
                       className={`w-4.5 h-4.5 rounded border-2 flex items-center justify-center text-[10px] shrink-0 transition ${
                         isChecked
-                          ? 'bg-emerald-500 border-emerald-500 text-white'
+                          ? 'bg-hs-success border-hs-success text-hs-on-success'
                           : 'border-hs-border-strong'
                       }`}
                     >
-                      {isChecked && '✓'}
+                      {isChecked && <Check className="w-3 h-3" strokeWidth={3} aria-hidden />}
                     </span>
 
                     {/* Item name */}

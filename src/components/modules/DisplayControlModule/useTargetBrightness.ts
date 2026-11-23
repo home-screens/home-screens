@@ -27,7 +27,7 @@ export type ReportedBrightness = Record<string, BrightnessReport>;
 /**
  * The value the target's displays agree on, by the rule the phone's
  * brightness card uses (`agreedBrightness`): a display that has stopped
- * answering is left out, so "All displays" with one wall unplugged still
+ * answering is left out, so "Every wall" with one wall unplugged still
  * shows the level of the others.
  *
  * "Now" is the newest heartbeat in the report, not this device's clock. The
@@ -63,7 +63,7 @@ async function fetchReported(legacy: boolean): Promise<ReportedBrightness> {
  * Brightness of whatever the module currently controls, read from the hub's
  * heartbeat store by the same rule as the family remote's brightness card.
  * `value` is the last value sent until the target confirms it, else the
- * reported value, else null (nothing reported yet, or "All displays"
+ * reported value, else null (nothing reported yet, or "Every wall"
  * disagreeing).
  *
  * `live` keeps polling every 5s (the kiosk); otherwise the report is read

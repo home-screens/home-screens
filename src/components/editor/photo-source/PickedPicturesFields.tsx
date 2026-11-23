@@ -15,6 +15,7 @@ import { usePickerBrowse } from '@/components/editor/picture-picker/usePickerBro
 import { PickGrid, PickTile } from '@/components/editor/PickTile';
 import type { BrowseTile } from '@/components/editor/picture-picker/types';
 import PickedStrip from './PickedStrip';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * The tile of every Unsplash photo this editor has picked or been told
@@ -27,7 +28,7 @@ const unsplashTiles = new Map<string, BrowseTile>();
 
 /**
  * Photos picked one by one from Immich or Unsplash, as a source: the same
- * pages the Image Library browses, with a tick on each chosen tile. Immich
+ * pages the Pictures & videos window browses, with a tick on each chosen tile. Immich
  * offers its albums and favorites to browse; Unsplash takes search words.
  * Every pick is also listed above the grid, whatever album or search the
  * grid is on. The picks are ids, downloaded when their turn comes, so
@@ -104,20 +105,20 @@ export default function PickedPicturesFields({ kind, ids, onChange, searchWords 
       ) : (
         <SearchBox value={query} placeholder={t('photoSources.unsplash.searchPlaceholder')} onSearch={setQuery} />
       )}
-      <p className="text-[10px] leading-relaxed text-hs-text-faint">
+      <FieldHint>
         {ids.length === 0 ? t('photoSources.picked.none') : t('photoSources.picked.count', { count: ids.length })}
         {' '}{t('photoSources.picked.help')}
-      </p>
+      </FieldHint>
       <PickedStrip items={picked} onRemove={toggle} />
       {browse.loading ? (
-        <p className="py-4 text-center text-xs text-hs-text-faint">{t('photoSources.picked.loading')}</p>
+        <FieldHint className="py-4 text-center">{t('photoSources.picked.loading')}</FieldHint>
       ) : browse.failure && browse.tiles.length === 0 ? (
         <p className="text-[10px] text-hs-danger">
           {browse.failure.status === 429 ? t('photoSources.unsplash.rateLimited') : t('photoSources.picker.loadFailed')}
           {' '}<button type="button" onClick={browse.retry} className="text-hs-accent hover:text-hs-accent-hover">{t('photoSources.onedrive.retry')}</button>
         </p>
       ) : browse.tiles.length === 0 ? (
-        <p className="text-[10px] text-hs-text-faint">{t(kind === 'immich' ? 'photoSources.immich.empty' : 'photoSources.unsplash.empty')}</p>
+        <FieldHint>{t(kind === 'immich' ? 'photoSources.immich.empty' : 'photoSources.unsplash.empty')}</FieldHint>
       ) : (
         <PickGrid scroll columns={3}>
           {browse.tiles.map((tile) => (

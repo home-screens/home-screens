@@ -29,6 +29,7 @@ import {
   buildModifyProfileArgs,
   buildUpArgs,
   describeJoinFailure,
+  joinFailureCode,
   isOwnProfile,
   isPredecessorProfile,
   isSecuredNetwork,
@@ -195,7 +196,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   // 1. Validate SSID
   const ssidResult = validateSSID(ssid);
   if (!ssidResult.valid) {
-    return NextResponse.json({ error: ssidResult.error }, { status: 400 });
+    return NextResponse.json({ error: ssidResult.error, code: 'wifi.badName' }, { status: 400 });
   }
 
   const sudo = await requireSudo();
@@ -205,7 +206,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (password !== undefined && password !== null) {
     const passResult = validateWPAPassword(password);
     if (!passResult.valid) {
-      return NextResponse.json({ error: passResult.error }, { status: 400 });
+      return NextResponse.json({ error: passResult.error, code: 'wifi.badPassword' }, { status: 400 });
     }
   }
 
@@ -231,7 +232,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   // 5. Reject if a rollback is already in progress
   if (isManagement && hasActiveRollback()) {
     return NextResponse.json(
-      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.' },
+      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.', code: 'network.changePending' },
       { status: 409 },
     );
   }
@@ -296,9 +297,14 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
     if (err instanceof PasswordRequiredError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json({ error: err.message, code: 'wifi.passwordNeeded' }, { status: 400 });
     }
     // The sentence names the likely cause; nmcli's own words ride as `detail`.
-    return errorResponse(err, describeJoinFailure(execErrorMessage(err, 'Connection failed')));
+    // A cause the editor can say in the household's language carries its code.
+    const raw = execErrorMessage(err, 'Connection failed');
+    const failure = errorResponse(err, describeJoinFailure(raw));
+    const code = joinFailureCode(raw);
+    if (!code) return failure;
+    return NextResponse.json({ ...(await failure.json()), code }, { status: failure.status });
   }
 }, 'Failed to connect to WiFi network');

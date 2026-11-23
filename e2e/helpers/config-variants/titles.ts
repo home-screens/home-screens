@@ -6,7 +6,7 @@ import { localDate } from '../dates';
 
 /**
  * `showTitle: false` rows — one per module that paints its own built-in
- * header ("Traffic", "Collection Schedule", "On This Day", ...). Each row
+ * header ("Traffic", "Collection schedule", "On this day", ...). Each row
  * asserts the module's content still renders while the header text is gone.
  * The default (`true` / omitted) is what the static matrix already renders.
  */
@@ -19,12 +19,12 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
   {
     type: 'garbage-day', name: 'hide-title', kind: 'network-free',
     config: { showTitle: false },
-    expect: lacks('Trash', 'Collection Schedule'),
+    expect: lacks('Trash', 'Collection schedule'),
   },
   {
     type: 'history', name: 'hide-title', kind: 'networked', stubKey: 'history',
     config: { showTitle: false },
-    expect: lacks('Apollo 11 lands on the Moon.', 'On This Day'),
+    expect: lacks('Apollo 11 lands on the Moon.', 'On this day'),
   },
   {
     // A distinctive header: the default "News" would also match the "BBC News"
@@ -78,27 +78,27 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
   {
     type: 'weather', name: 'hide-title', kind: 'networked', stubKey: 'weather',
     config: { view: 'hourly', showTitle: false },
-    expect: lacks('72°', 'Hourly Forecast'),
+    expect: lacks('72°', 'Hourly forecast'),
   },
   {
     type: 'chore-chart', name: 'hide-title', kind: 'local-data', seed: 'chores',
     config: { view: 'board', showTitle: false },
-    expect: lacks('Feed the dog', 'Family Chores'),
+    expect: lacks('Feed the dog', 'Family chores'),
   },
   {
     // Planned tonight and tomorrow night: late in the evening the view shows
-    // tomorrow, under "Tomorrow's Meals".
+    // tomorrow, under "Tomorrow's meals".
     type: 'meal-planner', name: 'hide-title', kind: 'local-data', seed: 'meals', seedData: DINNER_TONIGHT_AND_TOMORROW,
     config: { view: 'today', showTitle: false },
     expect: async (mod) => {
-      await lacks('Spaghetti Night', "Today's Meals")(mod);
-      await expect(mod).not.toContainText("Tomorrow's Meals");
+      await lacks('Spaghetti Night', "Today's meals")(mod);
+      await expect(mod).not.toContainText("Tomorrow's meals");
     },
   },
   {
     type: 'fullscreen-meal-planner', name: 'hide-title', kind: 'local-data', seed: 'meals',
     config: { view: 'week', showTitle: false },
-    expect: lacks('Spaghetti Night', "This Week's Meals"),
+    expect: lacks('Spaghetti Night', "This week's meals"),
   },
 ];
 
@@ -127,16 +127,16 @@ export const TITLE_VIEW_VARIANTS: ConfigVariant[] = [
   {
     type: 'chore-chart', name: 'hide-title-progress', kind: 'local-data', seed: 'chores',
     config: { view: 'progress', showTitle: false },
-    expect: lacks('Avery', 'Family Progress'),
+    expect: lacks('Avery', 'Family progress'),
   },
   {
     type: 'chore-chart', name: 'hide-title-star-chart', kind: 'local-data', seed: 'chores',
     config: { view: 'star-chart', showTitle: false },
-    expect: lacks('Avery', 'Star Chart'),
+    expect: lacks('Avery', 'Star chart'),
   },
   {
     // Planned tonight and tomorrow night: late in the evening the view shows
-    // tomorrow, under "Tomorrow's Meals".
+    // tomorrow, under "Tomorrow's meals".
     type: 'fullscreen-meal-planner', name: 'hide-title-today', kind: 'local-data', seed: 'meals',
     seedData: {
       savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝', prepTime: 25 }],
@@ -144,13 +144,13 @@ export const TITLE_VIEW_VARIANTS: ConfigVariant[] = [
     },
     config: { view: 'today', showTitle: false },
     expect: async (mod) => {
-      await lacks('Spaghetti Night', "Today's Meals")(mod);
-      await expect(mod).not.toContainText("Tomorrow's Meals");
+      await lacks('Spaghetti Night', "Today's meals")(mod);
+      await expect(mod).not.toContainText("Tomorrow's meals");
     },
   },
   {
     type: 'fullscreen-meal-planner', name: 'hide-title-menu-board', kind: 'local-data', seed: 'meals',
     config: { view: 'menu-board', showTitle: false },
-    expect: lacks('Spaghetti Night', "Today's Menu"),
+    expect: lacks('Spaghetti Night', "Today's menu"),
   },
 ];

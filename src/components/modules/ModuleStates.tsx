@@ -9,13 +9,16 @@ import { useTranslate } from '@/i18n';
 import ModuleWrapper from './ModuleWrapper';
 import { EditorSettingsLink } from './EditorSettingsLink';
 import { useModuleSurface } from './module-surface';
+import { useFullscreenState } from './shared/fullscreen-state-context';
 
+/** Three pulsing bars, in ems of the card's type, so a big-type card draws big bars. */
 function SkeletonBars() {
+  const bar = { height: '0.75em' };
   return (
-    <div className="flex flex-col gap-2.5 w-full max-w-[70%]" aria-hidden="true">
-      <div className="h-3 rounded-full bg-current opacity-[0.08] animate-pulse w-[85%]" />
-      <div className="h-3 rounded-full bg-current opacity-[0.06] animate-pulse w-full" style={{ animationDelay: '150ms' }} />
-      <div className="h-3 rounded-full bg-current opacity-[0.08] animate-pulse w-[60%]" style={{ animationDelay: '300ms' }} />
+    <div className="flex flex-col w-full max-w-[70%]" style={{ gap: '0.6em' }} aria-hidden="true">
+      <div className="rounded-full bg-current opacity-[0.08] animate-pulse w-[85%]" style={bar} />
+      <div className="rounded-full bg-current opacity-[0.06] animate-pulse w-full" style={{ ...bar, animationDelay: '150ms' }} />
+      <div className="rounded-full bg-current opacity-[0.08] animate-pulse w-[60%]" style={{ ...bar, animationDelay: '300ms' }} />
     </div>
   );
 }
@@ -68,21 +71,24 @@ export function ModuleSetupState({ style, error, message }: { style: ModuleStyle
 }
 
 /**
- * Quiet placeholder for a module whose data is not arriving right now. The
- * editor is where the person who can act on it is looking, so only there
- * the developer-facing detail is shown underneath.
+ * Quiet placeholder for a module whose data is not arriving right now, or
+ * never arrived: one wording on every card (`common.notUpdating`), sized in
+ * ems of the card's type like the empty and setup states. The editor is where
+ * the person who can act on it is looking, so only there the
+ * developer-facing detail is shown underneath.
  */
 export function ModuleNotUpdatingState({ style, error }: { style: ModuleStyle; error?: FetchError | null }) {
   const t = useTranslate('modules');
   const surface = useModuleSurface();
+  const roomy = useFullscreenState();
   return (
     <ModuleWrapper style={style}>
-      <div className="flex flex-col items-center justify-center gap-1 h-full px-4 text-center">
-        <p data-testid="module-not-updating" className="text-sm" style={{ opacity: TEXT_OPACITY.dim }}>
+      <div className="flex flex-col items-center justify-center h-full px-4 text-center" style={{ gap: '0.25em' }}>
+        <p data-testid="module-not-updating" style={{ fontSize: '0.875em', opacity: roomy ? TEXT_OPACITY.secondary : TEXT_OPACITY.dim }}>
           {t('common.notUpdating')}
         </p>
         {surface === 'editor' && error?.message && (
-          <p data-testid="module-error-detail" className="text-xs break-words" style={{ opacity: TEXT_OPACITY.tertiary }}>
+          <p data-testid="module-error-detail" className="break-words" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
             {error.message}
           </p>
         )}
@@ -97,27 +103,50 @@ export function ModuleNotUpdatingState({ style, error }: { style: ModuleStyle; e
  * A classified `setup` error renders the setup card; a `transient` error
  * renders a quiet "not updating" line. The developer-facing message is never
  * printed on the wall. A plain string error (plugins built against the
- * string contract) is shown as-is, muted.
+ * string contract) is shown as-is, muted. `stalled` is for data that has been
+ * on its way too long with no error to show: it reads "not updating" too.
  */
-export function ModuleLoadingState({ style, message, error }: { style: ModuleStyle; message: string; error?: FetchError | string | null }) {
+export function ModuleLoadingState({ style, message, error, stalled = false }: {
+  style: ModuleStyle;
+  message: string;
+  error?: FetchError | string | null;
+  stalled?: boolean;
+}) {
   if (error && typeof error !== 'string') {
     return error.kind === 'setup'
       ? <ModuleSetupState style={style} error={error} />
       : <ModuleNotUpdatingState style={style} error={error} />;
   }
+  if (stalled && !error) return <ModuleNotUpdatingState style={style} />;
   return (
     <ModuleWrapper style={style}>
-      <div className="flex items-center justify-center h-full px-4">
-        {error ? (
-          <p className="text-center text-sm" style={{ opacity: TEXT_OPACITY.dim }}>{error}</p>
-        ) : (
-          <div className="flex flex-col items-center gap-3 w-full">
-            <SkeletonBars />
-            <p className="text-center text-xs" style={{ opacity: TEXT_OPACITY.tertiary }} aria-live="polite">{message}</p>
-          </div>
-        )}
-      </div>
+      {error ? (
+        <div className="flex items-center justify-center h-full px-4">
+          <p className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>{error}</p>
+        </div>
+      ) : (
+        <ModuleLoadingBody message={message} />
+      )}
     </ModuleWrapper>
+  );
+}
+
+/**
+ * The loading state's body, without the card: the skeleton bars and the
+ * caption, in ems of the type around it. For a view that loads inside a
+ * card already drawn (the meal card's grocery list); everything else goes
+ * through `ModuleLoadingState`.
+ */
+export function ModuleLoadingBody({ message }: { message: string }) {
+  // Read across a room on a full-screen module, so a stronger ink there.
+  const roomy = useFullscreenState();
+  return (
+    <div className="flex items-center justify-center h-full px-4">
+      <div data-testid="module-loading" className="flex flex-col items-center w-full" style={{ gap: '0.75em' }}>
+        <SkeletonBars />
+        <p className="text-center" style={{ fontSize: '0.75em', opacity: roomy ? TEXT_OPACITY.secondary : TEXT_OPACITY.tertiary }} aria-live="polite">{message}</p>
+      </div>
+    </div>
   );
 }
 

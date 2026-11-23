@@ -35,7 +35,7 @@ const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 0)
 function renderFields(use: 'stream' | 'background', photoSource: PhotoSource, extra: Record<string, unknown> = {}) {
   const onChange = vi.fn();
   const view = render(wrap(<PhotoSourceFields use={use} value={{ photoSource, ...extra }} onChange={onChange} />));
-  const sourceSelect = () => screen.getByDisplayValue(/^Library|Immich|iCloud|OneDrive|Unsplash|NASA/) as HTMLSelectElement;
+  const sourceSelect = () => screen.getByDisplayValue(/^Pictures & videos|Immich|iCloud|OneDrive|Unsplash|NASA/) as HTMLSelectElement;
   return { onChange, view, sourceSelect };
 }
 
@@ -47,7 +47,7 @@ describe('PhotoSourceFields', () => {
     const { sourceSelect } = renderFields(use, { kind: 'library', folder: '' });
     await settle();
     expect(Array.from(sourceSelect().options).map((o) => o.text)).toEqual([
-      'Library',
+      'Pictures & videos',
       'Immich',
       'iCloud shared album',
       'OneDrive (needs setting up)',
@@ -77,12 +77,12 @@ describe('PhotoSourceFields', () => {
   it('has no per-refresh count for a library folder, which plays all of itself', async () => {
     renderFields('stream', { kind: 'library', folder: '' });
     await settle();
-    expect(labels()).not.toContain('Photos per Refresh');
+    expect(labels()).not.toContain('Photos per refresh');
     cleanup();
     secrets.status = { immich_url: true, immich_api_key: true };
     renderFields('stream', { kind: 'immich' }, { count: 80 });
     await settle();
-    expect(labels()).toContain('Photos per Refresh');
+    expect(labels()).toContain('Photos per refresh');
   });
 
   it('holds an Unsplash count to one request of 30', async () => {

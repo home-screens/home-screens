@@ -10,6 +10,11 @@ import { useStarterChoresPicker, type StarterSectionView } from '@/components/mo
 import { groupMembers } from '@/lib/family-groups';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
+import FieldHint from '@/components/ui/FieldHint';
+
+/** Sunday to Saturday, the weekly day a starter section can land on. */
+const WEEK_DAYS: readonly number[] = [0, 1, 2, 3, 4, 5, 6];
 
 /**
  * The starter chore list in the editor's chore chart window: the same rules
@@ -79,9 +84,9 @@ export default function StarterChoresPanel({
               </button>
             ))}
           </div>
-          <p className={`text-[11px] ${pickedCount > 0 && !hasSomeone ? 'text-hs-warning' : 'text-hs-text-faint'}`}>
+          <FieldHint tone={pickedCount > 0 && !hasSomeone ? 'warning' : undefined}>
             {tModules(pickedCount > 0 && !hasSomeone ? 'chore-chart.starter.whoNobody' : 'chore-chart.starter.whoHint')}
-          </p>
+          </FieldHint>
         </div>
 
         <div className="grid grid-cols-2 gap-x-3">
@@ -90,7 +95,7 @@ export default function StarterChoresPanel({
               {column.map((view) => (
                 <div key={view.section} data-testid={`starter-section-${view.section}`}>
                   <div className="flex items-baseline gap-2 mb-1.5">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-hs-warning">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-hs-warning-ink">
                       {tModules(`chore-chart.starter.sections.${view.section}`)}
                     </span>
                     <span className="flex-1 text-[11px] text-hs-text-faint">
@@ -108,11 +113,16 @@ export default function StarterChoresPanel({
                   </div>
                   {/* A weekly chore is due on the days it lists, so "once a week" is one day for the whole section. */}
                   {view.section === 'weekly' && (
-                    <div className="mb-1.5" role="radiogroup" aria-label={tModules('chore-chart.starter.weeklyDay')}>
+                    <div
+                      className="mb-1.5"
+                      role="radiogroup"
+                      aria-label={tModules('chore-chart.starter.weeklyDay')}
+                      onKeyDown={radioGroupKeyDown(WEEK_DAYS, picker.weeklyDay, picker.setWeeklyDay)}
+                    >
                       {/* Label above the row: beside seven buttons it wraps in this column, in every locale. */}
                       <div className="text-[11px] text-hs-text-faint mb-1">{tModules('chore-chart.starter.weeklyDay')}</div>
                       <div className="flex items-center gap-1">
-                      {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                      {WEEK_DAYS.map((d) => {
                         const on = picker.weeklyDay === d;
                         return (
                           <button
@@ -120,6 +130,7 @@ export default function StarterChoresPanel({
                             type="button"
                             role="radio"
                             aria-checked={on}
+                            tabIndex={radioTabIndex(WEEK_DAYS, picker.weeklyDay, d)}
                             aria-label={dayNamesShort[d]}
                             data-testid={`starter-weekly-day-${d}`}
                             onClick={() => picker.setWeeklyDay(d)}

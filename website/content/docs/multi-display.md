@@ -69,7 +69,7 @@ Each display has its own [profiles](/docs/profiles). Switching a profile from th
 
 ## The family remote
 
-Once there is more than one display, the family remote's Control tab gets a **Send to** row: pick a display, or **All displays** to send brightness, sleep, wake and alerts to every display at once. Changing screens and switching profiles work on one display at a time. Timers get their own **Send to** row for the same reason.
+Once there is more than one display, the family remote's Control tab gets a **Send to** row: pick a wall, or **Every wall** to send brightness, sleep, wake and alerts to every display at once. Changing screens and switching profiles work on one wall at a time. Timers get their own **Send to** row for the same reason.
 
 A **Display Control** module on a touchscreen can do the same from the wall, aimed at itself, another display by name, or all of them. See [Display Control](/docs/module-reference#display-control).
 

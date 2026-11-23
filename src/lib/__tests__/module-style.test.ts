@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
+import { buildModuleShadow, cardIsDark, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 
 describe('buildModuleShadow', () => {
@@ -150,5 +150,13 @@ describe('the one Text size control', () => {
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 1 }, base16)).toBe(10);
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 200 }, base16)).toBe(450);
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, textScale: Number.NaN, fontSize: 16 }, base16)).toBe(100);
+  });
+});
+
+describe('cardIsDark', () => {
+  it('reads a card as dark when its text is light, and as light when its text is dark', () => {
+    expect(cardIsDark({ textColor: '#ffffff' })).toBe(true);
+    expect(cardIsDark({ textColor: '#1c1917' })).toBe(false);
+    expect(cardIsDark({ textColor: 'not a colour' })).toBe(true);
   });
 });

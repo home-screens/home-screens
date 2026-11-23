@@ -1,5 +1,5 @@
 /**
- * Duration formatting for the Clock module's Elapsed (Since/Until) view.
+ * Duration formatting for the Clock module's Elapsed (since/until) view.
  *
  * The rendering half (format styles, decomposition, the `PRECISION_UNITS`
  * table) lives in `@/lib/duration-format` and is shared with the Countdown

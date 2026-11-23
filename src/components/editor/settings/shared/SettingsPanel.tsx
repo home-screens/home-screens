@@ -1,9 +1,10 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import StatusPill from '@/components/ui/StatusPill';
 
 /**
  * One part of a long settings page, drawn as its own panel: a title, a line
- * saying what it is for, and inside it the parts under the small uppercase
- * headings the other pages use for sections. Panels sit on the page, and the
+ * saying what it is for, and inside it the parts under the
+ * `SettingsSectionHeading` every other page uses for sections. Panels sit on the page, and the
  * rows inside them stay on cards: page, panel, card is the theme's own order
  * from darkest to lightest (see `globals.css`), so it reads the same in light.
  *
@@ -40,21 +41,62 @@ interface SettingsPanelPartProps extends HTMLAttributes<HTMLDivElement> {
 export function SettingsPanelPart({ heading, children, ...rest }: SettingsPanelPartProps) {
   return (
     <div {...rest}>
-      {heading && <h3 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-hs-text-secondary">{heading}</h3>}
+      {heading && <SettingsSectionHeading>{heading}</SettingsSectionHeading>}
       {children}
     </div>
   );
 }
 
+interface SettingsSectionHeadingProps extends HTMLAttributes<HTMLHeadingElement> {
+  children: ReactNode;
+  /** Drawn on the heading's right, such as a small "Show" link. */
+  trailing?: ReactNode;
+}
+
+/** The look of a Settings section heading, for a heading that lays out its own row (the Stats cards' icon row). */
+export const SETTINGS_SECTION_HEADING_CLASS = 'text-sm font-medium uppercase tracking-wider text-hs-text-secondary';
+
+/**
+ * The one heading over a section of a Settings page: small uppercase words in
+ * the secondary text colour. Every page, panel part and card group uses it,
+ * so section headings read the same moving down the settings sidebar.
+ */
+export function SettingsSectionHeading({ children, trailing, className, ...rest }: SettingsSectionHeadingProps) {
+  const heading = (
+    <h3
+      className={`${SETTINGS_SECTION_HEADING_CLASS}${trailing ? '' : ' mb-3'}${className ? ` ${className}` : ''}`}
+      {...rest}
+    >
+      {children}
+    </h3>
+  );
+  if (!trailing) return heading;
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3">
+      {heading}
+      {trailing}
+    </div>
+  );
+}
+
+/**
+ * The heading one level under a `SettingsSectionHeading`: a group inside a
+ * section, such as one kind of calendar source or one card of a form. It is
+ * smaller and quieter than the section heading, so the two levels read
+ * apart. It carries no margin; the caller adds the spacing its layout needs.
+ */
+export function SettingsSubHeading({ children, className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h4
+      className={`text-xs font-medium uppercase tracking-wider text-hs-text-muted${className ? ` ${className}` : ''}`}
+      {...rest}
+    >
+      {children}
+    </h4>
+  );
+}
+
 /** "On" or "Off" beside a panel title, for a part that can be switched off. */
 export function SettingsPanelState({ on, onLabel, offLabel }: { on: boolean; onLabel: string; offLabel: string }) {
-  return (
-    <span
-      className={`rounded-full border px-2 text-[10.5px] font-medium leading-[18px] ${
-        on ? 'border-hs-success/30 bg-hs-success/10 text-hs-success' : 'border-hs-border-strong text-hs-text-muted'
-      }`}
-    >
-      {on ? onLabel : offLabel}
-    </span>
-  );
+  return <StatusPill tone={on ? 'success' : 'neutral'}>{on ? onLabel : offLabel}</StatusPill>;
 }

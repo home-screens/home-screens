@@ -122,6 +122,7 @@ export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInst
       {c.accentColor ? (
         <ColorPicker
           label={t('configSections.fullscreen-news.accentColor')}
+          swatches="accent"
           value={c.accentColor}
           onChange={(v) => set({ accentColor: v })}
         />

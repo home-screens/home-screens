@@ -13,6 +13,8 @@ import { hasValidLocation } from '@/lib/location';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, AffirmationsView, AffirmationsCategory, CustomAffirmation } from '@/types/config';
+import IconButton from '@/components/ui/IconButton';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -73,7 +75,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
   return (
     <>
-      {/* View Mode */}
+      {/* View mode */}
       <ViewSelect
         value={c.view ?? 'elegant'}
         onChange={(v) => set({ view: v })}
@@ -118,10 +120,11 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         onChange={(v) => set({ showCategoryLabel: v })}
       />
 
-      {/* Accent Color */}
+      {/* Accent color */}
       {(c.view ?? 'elegant') !== 'minimal' && (
         <ColorPicker
           label={t('configSections.affirmations.accentColor')}
+          swatches="accent"
           value={c.accentColor ?? '#a78bfa'}
           onChange={(v) => set({ accentColor: v })}
         />
@@ -133,13 +136,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         {customEntries.map((entry) => (
           <div key={entry.id} className="flex items-start gap-1 text-xs bg-hs-card rounded p-1.5">
             <span className="flex-1 text-hs-text-secondary leading-snug">{entry.text}</span>
-            <button
-              type="button"
-              onClick={() => removeCustom(entry.id)}
-              className="text-hs-text-faint hover:text-hs-danger shrink-0"
-            >
-              &times;
-            </button>
+            <IconButton label={t('configSections.affirmations.removeEntry')} onClick={() => removeCustom(entry.id)} />
           </div>
         ))}
         <input
@@ -168,6 +165,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
 function WeatherAwareToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const lat = useEditorStore((s) => s.config?.settings?.latitude);
   const lon = useEditorStore((s) => s.config?.settings?.longitude);
   const hasLocation = hasValidLocation(lat, lon);
@@ -176,8 +174,8 @@ function WeatherAwareToggle({ checked, onChange }: { checked: boolean; onChange:
     <>
       <Toggle label={t('configSections.affirmations.weatherAware')} checked={checked} onChange={onChange} />
       {checked && !hasLocation && (
-        <p className="text-xs text-hs-warning">
-          {t('configSections.affirmations.weatherAwareLocationWarning')}
+        <p className="text-xs text-hs-warning-ink">
+          {t('configSections.affirmations.weatherAwareLocationWarning', { place: settingsPlaceText(tCore, 'location') })}
         </p>
       )}
     </>

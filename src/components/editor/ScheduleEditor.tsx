@@ -78,7 +78,7 @@ export function ScheduleEditor({ schedule, onChange, statusTitle, wording = 'sho
             {neverShows && (
               <p
                 data-testid="schedule-never-shows"
-                className="mt-1.5 text-[10px] text-amber-400 leading-relaxed"
+                className="mt-1.5 text-[10px] text-hs-warning-ink leading-relaxed"
               >
                 {t(wording === 'opened' ? 'scheduleEditor.opened.neverShows' : 'scheduleEditor.neverShows')}
               </p>

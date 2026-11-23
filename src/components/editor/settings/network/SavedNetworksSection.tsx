@@ -10,6 +10,9 @@ import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import type { SavedNetwork } from '@/lib/network-types';
 import { formatDateInTZ } from '@/lib/timezone';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
+import { refusalSentence } from '@/lib/hub-request';
 
 /* ─── Helpers ──────────────────────────────── */
 
@@ -38,6 +41,7 @@ interface SavedNetworksSectionProps {
 
 export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectionProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const timezone = useEditorHouseholdTimezone();
   const [networks, setNetworks] = useState<SavedNetwork[]>([]);
@@ -71,12 +75,12 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
           setError(t('settings.networkPage.savedNetworks.loadError'));
         }
       } catch {
-        setError(t('common.serverUnreachable'));
+        setError(tCore('refusals.unreachable'));
       } finally {
         setLoading(false);
       }
     },
-    [t],
+    [t, tCore],
   );
 
   useEffect(() => {
@@ -117,7 +121,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
         } else if (data.needsSudoPassword) {
           setSudoRetryId(connectionId);
         } else {
-          setForgetError(data.error ?? t('settings.networkPage.savedNetworks.forgetError'));
+          setForgetError(refusalSentence(data, tCore) ?? t('settings.networkPage.savedNetworks.forgetError'));
         }
       } catch {
         // The response never came back, which is what happens when the
@@ -128,18 +132,18 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
         setConfirmForgetId(null);
       }
     },
-    [t],
+    [t, tCore],
   );
 
   if (loading) {
     return (
       <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.networkPage.savedNetworks.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint">
+        </SettingsSectionHeading>
+        <FieldHint>
           {t('settings.networkPage.savedNetworks.loading')}
-        </p>
+        </FieldHint>
       </section>
     );
   }
@@ -147,9 +151,9 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   if (error) {
     return (
       <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.networkPage.savedNetworks.heading')}
-        </h3>
+        </SettingsSectionHeading>
         <p className="text-xs text-hs-danger">{error}</p>
       </section>
     );
@@ -158,32 +162,33 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   if (networks.length === 0) {
     return (
       <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.networkPage.savedNetworks.heading')}
-        </h3>
-        <p className="text-xs text-hs-text-faint">
+        </SettingsSectionHeading>
+        <FieldHint>
           {t('settings.networkPage.savedNetworks.empty')}
-        </p>
+        </FieldHint>
       </section>
     );
   }
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
-          {t('settings.networkPage.savedNetworks.heading')}
-        </h3>
-        <button
-          type="button"
-          onClick={() => setShowPasswords(!showPasswords)}
-          className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
-        >
-          {showPasswords
-            ? t('settings.networkPage.savedNetworks.hidePasswords')
-            : t('settings.networkPage.savedNetworks.showPasswords')}
-        </button>
-      </div>
+      <SettingsSectionHeading
+        trailing={
+          <button
+            type="button"
+            onClick={() => setShowPasswords(!showPasswords)}
+            className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
+          >
+            {showPasswords
+              ? t('settings.networkPage.savedNetworks.hidePasswords')
+              : t('settings.networkPage.savedNetworks.showPasswords')}
+          </button>
+        }
+      >
+        {t('settings.networkPage.savedNetworks.heading')}
+      </SettingsSectionHeading>
       {sudoRetryId && (
         <div className="mb-3">
           <SudoPasswordPrompt
@@ -224,7 +229,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
                 )}
               </div>
               {showPasswords && network.password && (
-                <div className="mt-1 text-xs font-mono text-hs-text-muted bg-hs-bg px-2 py-0.5 rounded inline-block">
+                <div className="mt-1 text-xs font-mono text-hs-text-muted bg-hs-input px-2 py-0.5 rounded inline-block">
                   {network.password}
                 </div>
               )}

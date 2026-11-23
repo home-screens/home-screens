@@ -110,7 +110,7 @@
   "garbage-day": {
     "header": "Afhentningsplan",
     "nextDay": "Næste {day}",
-    "emptyState": "Angiv afhentningsdage i modulets indstillinger",
+    "emptyState": "Angiv afhentningsdage i editoren, så vises de her",
     "labels": {
       "trash": "Skrald",
       "recycling": "Genbrug",
@@ -129,7 +129,6 @@
     "moreCount": "+{count} mere",
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
-    "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "loadingEvents": "Indlæser begivenheder…",
     "weekOf": "Ugen fra {date}",
     "legendLabel": "Kalenderkilder",
@@ -139,9 +138,9 @@
     "sourcesNotUpdating": "Nogle kalendere opdateres ikke",
     "notUpdatingSince": "Ikke opdateret siden {time}",
     "signInAgain": "Kalenderen skal logge ind igen",
-    "signInAgainHint": "Åbn Indstillinger › Kalender på en computer, og forbind Google Kalender.",
+    "signInAgainHint": "Åbn {place} på en computer, og forbind Google Kalender.",
     "noSourcesYet": "Ingen kalendere valgt endnu",
-    "noSourcesYetHint": "Vælg hvilke kalendere der skal vises under Indstillinger › Kalender.",
+    "noSourcesYetHint": "Vælg, hvilke kalendere der skal vises, under {place}",
     "savedShort": "gemt",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
@@ -153,7 +152,7 @@
       },
       "toTime": "til {time}",
       "openDay": "Se alt, der sker {date}",
-      "empty": "Der er ikke noget på denne dag endnu.",
+      "empty": "Der er ikke noget på denne dag endnu",
       "addEvent": "Tilføj begivenhed"
     },
     "eventForm": {
@@ -164,7 +163,6 @@
       "typeOnPhone": "Skriv på din telefon",
       "handoffBody": "Scan koden med telefonens kamera. Så åbner telefonen en ny begivenhed til {day}.",
       "backToKeyboard": "Tilbage til tastaturet på væggen",
-      "allDay": "Hele dagen",
       "repeats": "Gentages",
       "howOften": "Hvor tit?",
       "repeatNote": "Den fortsætter, indtil den bliver ændret eller fjernet. Skal den stoppe på en bestemt dato, så vælg det på din telefon.",
@@ -220,7 +218,6 @@
     }
   },
   "fullscreen-calendar": {
-    "allDay": "Hele dagen",
     "noEvents": "Ingen begivenheder",
     "noEventsThisMonth": "Ingen begivenheder denne måned",
     "noEventsThisWeek": "Ingen begivenheder denne uge",
@@ -237,7 +234,6 @@
       "dayTimeline": "Dag",
       "agenda": "Agenda",
       "familyGrid": "Familie",
-      "upNext": "Næste",
       "freeTime": "Fritid",
       "rolling": "Rullende"
     },
@@ -263,7 +259,6 @@
     },
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
-    "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "weekOf": "Ugen fra {date}",
     "weekNumber": "Uge {number}",
     "holiday": "Helligdag",
@@ -271,7 +266,6 @@
     "birthdayWithAge": "Fødselsdag · fylder {age}",
     "birthdayShort": "Fødselsdag",
     "birthdayAgeShort": "fylder {age}",
-    "headerUpNext": "Næste",
     "headerFreeTime": "Fritid",
     "everyone": "Alle",
     "thisWeekCount": {
@@ -329,14 +323,13 @@
       "chores": "Pligter",
       "choresDone": "{done} af {total} pligter klaret"
     },
-    "peopleHint": "Tilføj personer under Indstillinger > Kalender, så alle får deres egen række."
+    "peopleHint": "Tilføj personer under {place}, så alle får deres egen række."
   },
   "weather": {
     "tomorrowShort": "I mrg",
     "feelsLike": "Føles som {temp}",
     "feelsShort": "Føles {temp}",
     "highLow": "Maks:{high} Min:{low}",
-    "hourlyForecast": "Timeprognose",
     "forecast": "Prognose",
     "weatherAlerts": "Vejrvarsler",
     "alertCount": "({count})",
@@ -344,7 +337,6 @@
     "alertSeverityExpires": "{severity} · Udløber {expires}",
     "noWeatherData": "Ingen vejrdata",
     "noForecastData": "Ingen prognosedata",
-    "setLocationInSettings": "Angiv din placering under Indstillinger",
     "next60Minutes": "De næste 60 minutter",
     "noPrecipitationExpected": "Ingen nedbør forventet",
     "stoppingInMin": "Stopper om {minutes} min",
@@ -372,7 +364,6 @@
       "Unknown": "Ukendt"
     },
     "loading": "Henter vejrudsigten…",
-    "notUpdating": "Vejret opdaterer ikke",
     "notAvailableForSource": "Ikke tilgængeligt fra din vejrkilde",
     "rightNow": "Lige nu",
     "sunrise": "Solopgang"
@@ -668,7 +659,7 @@
   },
   "openButton": {
     "open": "Åbn {name}",
-    "unavailable": "Skjult på skærmen lige nu: den skærm er uden for sine tider eller betingelser."
+    "unavailable": "Skjult på væggen lige nu: den skærm er uden for sine tider eller betingelser."
   },
   "lookAhead": {
     "thisWeek": "Denne uge",
@@ -751,8 +742,7 @@
     "noUpcomingMeals": "Ingen kommende måltider planlagt",
     "mealsPlannedCount": "{filled} af {total} måltider planlagt",
     "heroLabels": {
-      "now": "Nu",
-      "upNext": "Næste"
+      "now": "Nu"
     },
     "nextMealLabels": {
       "now": "Nu",
@@ -771,7 +761,6 @@
     "familyProgress": "Familiens fremgang",
     "starChart": "Stjerneskema",
     "chores": "Pligter",
-    "thisWeek": "Denne uge",
     "dayOff": "Fridag!",
     "dayOffList": "Fridag: {names}",
     "noChoresToday": "Ingen pligter i dag",
@@ -807,7 +796,7 @@
       "anytime": "Når som helst"
     },
     "iconPicker": {
-      "filter": "Filtrér ikoner …",
+      "filter": "Filtrér ikoner…",
       "noMatch": "Ingen ikoner passer",
       "none": "Ingen",
       "clear": "Ryd"
@@ -862,7 +851,7 @@
       "home": "Hjem",
       "key": "Nøgle",
       "lightbulb": "Lys",
-      "wifi": "WiFi",
+      "wifi": "Wi-Fi",
       "toilet": "Toilet",
       "soap": "Sæbe",
       "paw-print": "Pasning",
@@ -954,6 +943,7 @@
       "groupMemberNote": "I {group}",
       "emptyGroupNote": "Der er endnu ingen i den gruppe, du har valgt, så ingen får pligten, før du tilføjer nogen.",
       "removeFromSchedule": "Fjern {name} fra skemaet",
+      "addToSchedule": "Føj {name} til skemaet",
       "validation": {
         "enterName": "Tilføj et navn på en pligt",
         "addPersonToSchedule": "Tilføj mindst én person til skemaet",
@@ -1120,7 +1110,6 @@
       "other": "{name}, {count} dage"
     },
     "bestStreakNone": "ingen endnu",
-    "thisWeek": "Denne uge",
     "tickets": "billetter",
     "ticketCount": "{count} billet",
     "ticketsCount": "{count} billetter",
@@ -1174,8 +1163,7 @@
       },
       "confirmCancel": "Annullér",
       "confirmYes": "Ja!",
-      "errorGeneric": "Noget gik galt",
-      "errorOffline": "Kunne ikke forbinde",
+      "errorOffline": "Billetterne blev ikke brugt. Home Screens svarer ikke, så tryk på Ja igen om lidt.",
       "addFromPhoneHint": "Tilføj belønninger fra en telefon: åbn {url} og tryk på Pligter",
       "moreTickets": {
         "one": "1 billet mere",
@@ -1261,8 +1249,8 @@
     "noGames": "Ingen kampe fundet",
     "today": "I dag",
     "tomorrow": "I morgen",
-    "pickTeam": "Vælg dit hold i modulets indstillinger",
-    "teamLeagueOff": "Slå dit holds liga til i modulets indstillinger",
+    "pickTeam": "Vælg et hold i editoren, så vises holdets kampe her",
+    "teamLeagueOff": "Slå dit holds liga til i editoren, så vises holdets kampe her",
     "unavailable": "Resultaterne holder en lille pause",
     "last": "Seneste:",
     "win": "V",
@@ -1315,8 +1303,7 @@
     "noTasksYet": "Tilføj ting på din telefon, så dukker de op her",
     "tapHint": "Tryk på en boks for at sætte flueben",
     "noListsYet": "Ingen lister endnu. Lav en på din telefon.",
-    "pickAList": "Vælg en liste i editoren",
-    "upNext": "Næste",
+    "pickAList": "Vælg en liste i editoren, så vises den her",
     "allDone": "Alt er gjort",
     "andMore": "og {n} mere",
     "nLeft": "{n} tilbage",
@@ -1344,17 +1331,7 @@
   },
   "fullscreen-photo": {
     "noPhotosYetFolderHint": "eller vælg en mappe i editoren",
-    "noPhotoSelected": "Intet billede valgt",
-    "noPhotoSelectedHint": "Vælg et billede i editorpanelet.",
-    "noPhotosYet": "Ingen billeder endnu",
-    "noPhotosYetHint": "Tilføj billeder fra din telefon på",
-    "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet.",
-    "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren.",
-    "noPhotosYetHintImmich": "Tjek Immich-albummet, personen og valget af favoritter i editoren.",
-    "noPhotosYetHintUnsplash": "Prøv andre søgeord i editoren.",
-    "noPhotosYetHintNasa": "NASA sender ikke billeder lige nu. De kommer selv tilbage.",
-    "noPhotosYetHintArt": "Prøv at løsne et filter i editoren.",
-    "noPhotosYetHintPicked": "Vælg nogle billeder i editoren."
+    "noPhotoSelectedHint": "Vælg et billede i editoren, så vises det her"
   },
   "dad-joke": {
     "loading": "Indlæser vittighed…"
@@ -1472,7 +1449,6 @@
       "overdue": "Forfaldne",
       "today": "I dag",
       "tomorrow": "I morgen",
-      "thisWeek": "Denne uge",
       "upcoming": "Kommende",
       "noDate": "Uden dato",
       "noLabel": "Uden label"
@@ -1506,15 +1482,7 @@
   },
   "photo-slideshow": {
     "loading": "Indlæser billeder…",
-    "empty": "Ingen billeder fundet",
-    "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til.",
-    "emptyOneDrive": "Endnu ingen billeder. Tjek OneDrive-mappen i editoren.",
-    "emptyImmich": "Ingen billeder endnu. Tjek Immich-albummet, personen og valget af favoritter i editoren.",
-    "emptyUnsplash": "Ingen billeder endnu. Prøv andre søgeord i editoren.",
-    "emptyNasa": "Ingen billeder fra NASA lige nu. De kommer selv tilbage.",
-    "emptyArt": "Ingen malerier fundet. Prøv at løsne et filter i editoren.",
-    "photoCredit": "{name} / {source}",
-    "emptyPicked": "Ingen billeder valgt endnu. Vælg nogle i editoren."
+    "photoCredit": "{name} / {source}"
   },
   "video": {
     "name": "Video",
@@ -1542,7 +1510,7 @@
   },
   "qr-code": {
     "name": "QR-kode",
-    "empty": "Tilføj et link eller dit wi-fi i editoren, så vises det her",
+    "empty": "Tilføj et link eller jeres Wi-Fi i editoren, så vises det her",
     "scanToConnect": "Scan for at forbinde",
     "tooLong": "Det er for meget tekst til én QR-kode. Gør den kortere i editoren, så vises den her"
   },
@@ -1561,25 +1529,26 @@
     "wake": "Væk",
     "wakeSub": "skærmen tændes igen",
     "controls": "Styrer",
-    "thisDisplay": "Dette display",
-    "thisDisplayTag": "dette display",
-    "allDisplays": "Alle displays",
+    "thisDisplay": "Denne væg",
+    "thisDisplayTag": "denne væg",
+    "allDisplays": "Alle vægge",
     "brightnessValue": "Lysstyrke {percent} %",
     "brightnessUnknown": "Lysstyrke, ikke meldt endnu",
     "dockEmpty": "Ingen skærme endnu",
     "unnamedScreen": "Skærm {number}",
     "goTo": "Gå til {name}",
     "timers": "Timere",
-    "timersEyebrow": "Starter på dette display",
+    "timersEyebrow": "Starter på denne væg",
     "routines": "Rutiner",
     "quickTimer": "Hurtig timer",
-    "noRoutines": "Lav rutiner på telefonen under Timere.",
+    "noRoutines": "Lav rutiner på telefonen under Timere",
     "start": "Start",
     "timerStartFailed": "Timeren startede ikke. Prøv igen.",
     "timersPreview": "Dette er en forhåndsvisning, så et tryk her starter ingen timer."
   },
   "timetable": {
     "name": "Skema",
+    "loading": "Indlæser skemaer…",
     "today": "I dag",
     "free": "fri",
     "lunch": "Frokost",
@@ -1599,7 +1568,7 @@
     "abLegend": "{day} {periods}: A-uge {subjectA}, B-uge {subjectB}",
     "holidayLine": "{holiday}, i skole igen {date}",
     "holidayBrief": "{holiday}, skole igen {date}",
-    "pickWho": "Vælg i modulindstillingerne, hvis uge der skal vises.",
+    "pickWho": "Vælg en person i editoren, så vises personens uge her",
     "noTimetableYet": "Der er ikke noget skema endnu. En voksen kan skrive det ind i editoren.",
     "tomorrow": "I morgen",
     "startsWord": "starter",
@@ -1623,7 +1592,9 @@
     "pluginNotAvailable": "Plugin ikke tilgængeligt: {name}",
     "moduleFailed": "Dette element kunne ikke vises.",
     "setLocationLink": "Angiv din placering",
+    "setLocationInEditor": "Angiv din placering i editoren",
     "notUpdating": "Opdaterer ikke lige nu",
+    "upNext": "Næste",
     "setup": {
       "needsKey": "Ingen {service}-nøgle endnu",
       "keyNotWorking": "{service}-nøglen virker ikke",
@@ -1636,12 +1607,27 @@
     "moreBelow": {
       "one": "{count} mere nedenfor",
       "other": "{count} mere nedenfor"
+    },
+    "photoEmpty": {
+      "noPhotos": "Ingen billeder endnu",
+      "nonePicked": "Ingen billeder valgt endnu",
+      "noPaintings": "Ingen malerier fundet",
+      "noneFromNasa": "Ingen billeder fra NASA lige nu",
+      "hint": {
+        "addPhotos": "Tilføj billeder fra en telefon: åbn {url}, og tryk på Billeder",
+        "pickPictures": "Vælg nogle billeder i editoren, så vises de her",
+        "checkFilters": "Tjek Immich-albummet, personen og valget af favoritter i editoren",
+        "checkLink": "Tjek albumlinket i editoren, og sørg for, at “Offentligt websted” er slået til for albummet",
+        "checkFolder": "Tjek OneDrive-mappen i editoren",
+        "checkSearch": "Prøv andre søgeord i editoren",
+        "checkArt": "Prøv et mindre strengt filter i editoren",
+        "tryLater": "De kommer selv tilbage"
+      }
     }
   },
   "event-detail": {
     "close": "Luk",
     "happeningNow": "I gang nu",
-    "allDay": "Hele dagen",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
     "birthdayWithAge": "Fødselsdag · fylder {age}",

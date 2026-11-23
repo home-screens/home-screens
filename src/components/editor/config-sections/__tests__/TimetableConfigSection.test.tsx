@@ -161,7 +161,7 @@ describe('TimetableConfigSection roster', () => {
 
     expect(screen.queryByRole('checkbox', { name: 'Show Lina' })).toBeNull();
     const add = screen.getByRole('button', { name: 'Add a timetable for Lina' });
-    expect(add.textContent).toBe('+ Add');
+    expect(add.textContent).toBe('Add');
     expect(add.getAttribute('aria-expanded')).toBe('false');
 
     fireEvent.click(add);
@@ -225,7 +225,7 @@ describe('TimetableConfigSection first run', () => {
     render(module({ memberIds: [], layout: 'side-by-side', detail: 'some' }));
 
     expect(screen.getByText(/Nobody is in Family yet/)).toBeTruthy();
-    const open = screen.getByRole('link', { name: 'Open Family' });
+    const open = screen.getByRole('link', { name: 'Manage family' });
     expect(open.getAttribute('href')).toContain('family');
 
     expect((screen.getByRole('button', { name: 'Edit timetables' }) as HTMLButtonElement).disabled).toBe(true);

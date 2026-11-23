@@ -707,9 +707,9 @@ describe('month and multi-week grid themes', () => {
     expect(todayCell.style.boxShadow).toContain('inset 0 0 0 1.5px');
     expect(todayCell.style.backgroundColor).toContain('rgba(59, 130, 246');
     const saturday = (queryByText('18') as HTMLElement).parentElement!.parentElement as HTMLElement;
-    expect(saturday.style.backgroundColor).toBe('rgba(255, 255, 255, 0.065)');
+    expect(saturday.getAttribute('style')).toContain(ink(0.065));
     const thursday = (queryByText('16') as HTMLElement).parentElement!.parentElement as HTMLElement;
-    expect(thursday.style.backgroundColor).toBe('rgba(255, 255, 255, 0.045)');
+    expect(thursday.getAttribute('style')).toContain(ink(0.045));
   });
 
   it('clean: bolds the first of the month with the month name and an accent hairline', () => {
@@ -1088,7 +1088,7 @@ describe('CalendarModule feed health', () => {
     );
     expect(getByTestId('calendar-setup-card').getAttribute('data-setup')).toBe('noSources');
     expect(getByText('No calendars picked yet')).not.toBeNull();
-    expect(getByText('Choose which calendars to show in Settings › Calendar.')).not.toBeNull();
+    expect(getByText('Choose which calendars to show in Settings > Calendar')).not.toBeNull();
   });
 
   it('draws the view with its day note when nothing is picked but a day in view has a note', () => {
@@ -1197,8 +1197,8 @@ describe('rolling view', () => {
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 1, gridTheme: 'clean' })} style={style} events={events} /></Wrapper>,
     );
     const cells = container.querySelectorAll('div.grid.flex-1 > div');
-    expect((cells[3] as HTMLElement).getAttribute('style')).toContain('0.065'); // Sat
-    expect((cells[1] as HTMLElement).getAttribute('style')).toContain('0.045'); // Thu
+    expect((cells[3] as HTMLElement).getAttribute('style')).toContain(ink(0.065)); // Sat
+    expect((cells[1] as HTMLElement).getAttribute('style')).toContain(ink(0.045)); // Thu
   });
 
   it('marks the month start when the window crosses a 1st', () => {

@@ -3192,7 +3192,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
       id: input.member.id,
       name: input.member.name,
       color: input.member.color,
-      initials: memberInitials(input.member.name, { max: 2 }),
+      initials: memberInitials(input.member.name),
     },
     className: timetable.className,
     detail,

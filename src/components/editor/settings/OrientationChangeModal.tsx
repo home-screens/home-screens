@@ -1,8 +1,8 @@
 'use client';
 
 import { useId } from 'react';
-import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
+import Notice from '@/components/ui/Notice';
 import { useTranslate } from '@/i18n';
 
 interface OrientationChangeModalProps {
@@ -25,37 +25,36 @@ export default function OrientationChangeModal({
   onCancel,
 }: OrientationChangeModalProps) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const titleId = useId();
 
   return (
     <ModalFrame
       labelledBy={titleId}
       onClose={onCancel}
-      className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl"
+      className="w-full max-w-md"
     >
-      <h2 id={titleId} className="text-lg font-semibold text-hs-text-primary mb-3">
-        {t('modals.orientation.title')}
-      </h2>
+      <ModalPanel>
+        <ModalHeader titleId={titleId} title={t('modals.orientation.title')} onClose={onCancel} />
 
-      <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
-        <p className="text-xs text-hs-warning">
-          {t('modals.orientation.warning', { offCanvasCount, totalModuleCount, newWidth, newHeight })}
-        </p>
-      </div>
+        <ModalBody>
+          <Notice tone="warning" className="mb-4">
+            {t('modals.orientation.warning', { offCanvasCount, totalModuleCount, newWidth, newHeight })}
+          </Notice>
 
-      <p className="text-sm text-hs-text-muted mb-5">
-        <strong className="text-hs-text-secondary">{t('modals.orientation.scaleToFit')}</strong>{' '}
-        {t('modals.orientation.scaleToFitDescription')}{' '}
-        <strong className="text-hs-text-secondary">{t('modals.orientation.switchAnyway')}</strong>{' '}
-        {t('modals.orientation.switchAnywayDescription')}
-      </p>
+          <p className="text-sm text-hs-text-muted">
+            <strong className="text-hs-text-secondary">{t('modals.orientation.scaleToFit')}</strong>{' '}
+            {t('modals.orientation.scaleToFitDescription')}{' '}
+            <strong className="text-hs-text-secondary">{t('modals.orientation.switchAnyway')}</strong>{' '}
+            {t('modals.orientation.switchAnywayDescription')}
+          </p>
+        </ModalBody>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="secondary" onClick={onCancel}>{tCore('actions.cancel')}</Button>
-        <Button variant="secondary" onClick={onSwitchAnyway}>{t('modals.orientation.switchAnyway')}</Button>
-        <Button variant="primary" onClick={onScaleToFit}>{t('modals.orientation.scaleToFit')}</Button>
-      </div>
+        <ModalFooter
+          onCancel={onCancel}
+          alternate={{ label: t('modals.orientation.switchAnyway'), onClick: onSwitchAnyway }}
+          primary={{ label: t('modals.orientation.scaleToFit'), onClick: onScaleToFit }}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react';
 import { Check } from 'lucide-react';
+import { NO_VALUE } from '@/lib/constants';
 
 interface MemberDotProps extends Omit<ComponentPropsWithoutRef<'div'>, 'color' | 'style'> {
   /** Diameter in px. The ring, the check and the initial are all fractions of it. */
@@ -57,7 +58,7 @@ export default function MemberDot({
         alignItems: 'center',
         justifyContent: 'center',
         ...(isSkipped
-          ? { border: `${ring}px dashed var(--hs-dot-skipped, #78716c)`, color: 'var(--hs-dot-skipped, #78716c)', fontSize: size * (initial ? (initial.length > 1 ? 0.34 : 0.42) : 0.5), fontWeight: 700, lineHeight: 1 }
+          ? { border: `${ring}px dashed var(--hs-text-faint)`, color: 'var(--hs-text-faint)', fontSize: size * (initial ? (initial.length > 1 ? 0.34 : 0.42) : 0.5), fontWeight: 700, lineHeight: 1 }
           : isCompleted
           ? { background: color }
           : {
@@ -71,7 +72,7 @@ export default function MemberDot({
         ...style,
       }}
     >
-      {isSkipped ? (initial || '–') : isCompleted ? <Check size={size * 0.55} color="white" strokeWidth={3} /> : initial}
+      {isSkipped ? (initial || NO_VALUE) : isCompleted ? <Check size={size * 0.55} color="white" strokeWidth={3} /> : initial}
       {children}
     </div>
   );

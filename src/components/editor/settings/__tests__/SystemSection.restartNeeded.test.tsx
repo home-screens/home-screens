@@ -186,7 +186,8 @@ describe('restart-to-finish notice', () => {
     const button = within(notice).getByRole('button', { name: copy.restartNeeded.button }) as HTMLButtonElement;
 
     await act(async () => { fireEvent.click(button); });
-    expect(within(notice).getByRole('alert').textContent).toBe('Power action failed');
+    // The hub's English is for its log; the notice says the editor's own words.
+    expect(within(notice).getByRole('alert').textContent).not.toContain('Power action failed');
     expect(button.disabled).toBe(false);
 
     await act(async () => { fireEvent.click(button); });

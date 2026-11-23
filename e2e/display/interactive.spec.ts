@@ -1302,7 +1302,7 @@ test.describe('fullscreen-meal-planner recipe tap', () => {
       screens: [makeScreen('s1', 'S1', [meal])],
     }));
 
-    // The dinner meal renders as the hero or in "Also Today"; either placement
+    // The dinner meal renders as the hero or in "Also today"; either placement
     // wraps the name in a MealTapTarget button.
     await display.module('fullscreen-meal-planner').getByText('Sheet Pan Salmon').click();
 

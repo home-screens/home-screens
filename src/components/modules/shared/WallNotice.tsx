@@ -12,17 +12,28 @@ const TONE_COLOR: Record<Exclude<WallNoticeTone, 'info'>, string> = { warning: '
  * One line inside a wall sheet saying what happened and what to do: a
  * warning ("Someone changed this event"), an error ("Couldn't add that. The
  * hub isn't answering") or quiet information ("This change is for Saturday
- * only"). Colours from the `--wt-*` variables (`wallTypingVars`).
+ * only"). The tone mixes toward the sheet's own ground and ink: the typing
+ * sheet's `--wt-*` variables (`wallTypingVars`) unless `surface` and `text`
+ * name others, as a chore store's sheet does.
  */
-export function WallNotice({ tone, P, icon, testId = 'wall-notice', children }: {
+export function WallNotice({
+  tone, P, icon, testId = 'wall-notice', surface = 'var(--wt-surface)', text, children,
+}: {
   tone: WallNoticeTone;
   P: (n: number) => number;
   /** In place of the tone's own icon. */
   icon?: ReactNode;
   testId?: string;
+  /** The sheet's ground behind the notice, as a CSS colour. */
+  surface?: string;
+  /** The sheet's ink, as a CSS colour. */
+  text?: string;
   children: ReactNode;
 }) {
   const hue = tone === 'info' ? null : TONE_COLOR[tone];
+  const ink = text ?? 'var(--wt-text)';
+  // Quiet information is the sheet's secondary ink.
+  const quiet = text ? `color-mix(in srgb, ${text} 75%, transparent)` : 'var(--wt-text-2)';
   const Icon = tone === 'warning' ? TriangleAlert : tone === 'error' ? CircleAlert : Info;
   return (
     <div
@@ -31,10 +42,10 @@ export function WallNotice({ tone, P, icon, testId = 'wall-notice', children }: 
       role={tone === 'info' ? 'status' : 'alert'}
       style={{
         display: 'flex', alignItems: 'flex-start', gap: P(18), padding: `${P(18)}px ${P(24)}px`, borderRadius: P(18),
-        fontSize: P(26), lineHeight: 1.4,
-        background: hue ? `color-mix(in srgb, ${hue} 16%, var(--wt-surface))` : 'color-mix(in srgb, var(--wt-text) 6%, var(--wt-surface))',
-        color: hue ? `color-mix(in srgb, ${hue} 55%, var(--wt-text))` : 'var(--wt-text-2)',
-        border: `1px solid ${hue ? `color-mix(in srgb, ${hue} 30%, transparent)` : 'color-mix(in srgb, var(--wt-text) 10%, transparent)'}`,
+        fontSize: P(26), lineHeight: 1.4, textAlign: 'left',
+        background: `color-mix(in srgb, ${hue ?? ink} ${hue ? 16 : 6}%, ${surface})`,
+        color: hue ? `color-mix(in srgb, ${hue} 55%, ${ink})` : quiet,
+        border: `1px solid color-mix(in srgb, ${hue ?? ink} ${hue ? 30 : 10}%, transparent)`,
       }}
     >
       <span style={{ flexShrink: 0, display: 'flex', marginTop: P(2) }}>

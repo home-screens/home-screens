@@ -16,7 +16,7 @@ export default function YourIconsPrompt() {
   return (
     <>
       <div className="mt-4 flex items-center gap-3 rounded-xl border border-hs-border bg-hs-panel px-4 py-3">
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning">
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning-ink">
           <ImagePlus size={18} />
         </div>
         <div className="flex-1 min-w-0 text-sm text-hs-text-body">{t('customIcons.photosPrompt')}</div>

@@ -6,9 +6,11 @@ import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
+import FamilyEmptyState from '../FamilyEmptyState';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { MealMetaPills } from '../shared/MealMetaPills';
+import { EMPTY_STATE_PX } from './meal-planner-utils';
 
 /**
  * The one-glance answer to "when's lunch?" from across the room: a badge,
@@ -25,7 +27,7 @@ export default function NextMealView({
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
 
-  // The meal is centred in the room above Rate Dinner, which sits at the
+  // The meal is centred in the room above Rate dinner, which sits at the
   // view's bottom edge, apart from it: under the dish it read as a button for
   // the lunch shown above it, and it opens the last dinner the family sat
   // down to. The meal's box is stamped for the fit loop, since a meal too
@@ -43,12 +45,11 @@ export default function NextMealView({
   );
 
   if (!next) {
+    // Meals were planned, but none is still to come: the empty state's shape
+    // with no phone hint, since nothing needs setting up.
     return frame(
-      <>
-        <span style={{ fontSize: P(200), lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-        <span style={{ fontSize: P(48), fontFamily: headerFont, lineHeight: 1.1 }}>{t('fullscreen-meal-planner.noUpcomingMeals')}</span>
-      </>,
-      { gap: P(30), color: 'var(--fmp-text-3)' },
+      <FamilyEmptyState icon={<>&#127869;</>} title={t('fullscreen-meal-planner.noUpcomingMeals')} fontSize={P(EMPTY_STATE_PX)} />,
+      { color: 'var(--fmp-text-2)' },
     );
   }
 

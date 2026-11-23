@@ -19,6 +19,9 @@ import { useEditorHouseholdNow } from '@/components/editor/useEditorHouseholdClo
 import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import { tileThumbnailUrl } from '@/lib/media-paths';
+import FieldHint from '@/components/ui/FieldHint';
+import IconButton from '@/components/ui/IconButton';
+import StatusPill from '@/components/ui/StatusPill';
 
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -108,7 +111,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         className={NESTED_INPUT_CLASS}
       />
 
-      {/* Show Past Events — only relevant for "all" view */}
+      {/* Show past events: only relevant for "all" view */}
       {view === 'all' && (
         <Toggle label={t('configSections.countdown.showPastEvents')} checked={!!c.showPastEvents} onChange={(v) => set({ showPastEvents: v })} />
       )}
@@ -117,10 +120,8 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         label={t('configSections.countdown.stayOnDay')}
         checked={!!c.stayUntilEndOfDay}
         onChange={(v) => set({ stayUntilEndOfDay: v })}
+        description={t('configSections.countdown.stayOnDayHelp')}
       />
-      <p className="text-[10px] text-hs-text-faint -mt-1">
-        {t('configSections.countdown.stayOnDayHelp')}
-      </p>
 
       {/* Max is 5.2, not 4: the Next view used to render at scale x 1.3, and
           migration v6 folded that multiplier into the stored value, so an
@@ -175,9 +176,9 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         </div>
       </div>
 
-      <p className="text-[10px] text-hs-text-faint -mt-1">
+      <FieldHint className="-mt-1">
         {t('configSections.countdown.backgroundImageHelp')}
-      </p>
+      </FieldHint>
 
       {/* Event list */}
       {events.map((ev) => {
@@ -186,7 +187,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
           <div key={ev.id} className="p-2 bg-hs-card rounded space-y-1">
             <div className="flex items-center gap-1">
               {isHoliday && (
-                <span className="text-[10px] bg-emerald-800 text-emerald-200 px-1 rounded shrink-0">{t('configSections.countdown.holidayBadge')}</span>
+                <StatusPill tone="success" size="sm">{t('configSections.countdown.holidayBadge')}</StatusPill>
               )}
               <input
                 type="text"
@@ -196,7 +197,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                 className={`flex-1 ${NESTED_INPUT_CLASS}`}
                 readOnly={isHoliday}
               />
-              <button onClick={() => removeEvent(ev.id)} className="text-hs-danger text-xs px-1">x</button>
+              <IconButton label={t('configSections.countdown.removeEvent')} onClick={() => removeEvent(ev.id)} />
             </div>
             {!isHoliday && (
               <>
@@ -223,9 +224,9 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
               </>
             )}
             {isHoliday && (
-              <p className="text-[10px] text-hs-text-faint">
+              <FieldHint>
                 {t('configSections.countdown.holidayRecurringInfo', { date: ev.date.slice(0, 10) })}
-              </p>
+              </FieldHint>
             )}
             {/* Background image picker */}
             <div className="flex items-center gap-1">

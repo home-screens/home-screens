@@ -191,7 +191,7 @@ function ChecklistItem({ done, label, note, children }: { done: boolean; label: 
         : <Circle className="w-4 h-4 mt-0.5 shrink-0 text-hs-text-faint" aria-hidden="true" />}
       <div className="min-w-0">
         <p className={`text-xs ${done ? 'text-hs-text-faint line-through' : 'text-hs-text-body'}`}>{label}</p>
-        {note && <p className="text-xs text-hs-warning mt-0.5">{note}</p>}
+        {note && <p className="text-xs text-hs-warning-ink mt-0.5">{note}</p>}
         {children && <div className="mt-1">{children}</div>}
       </div>
     </li>

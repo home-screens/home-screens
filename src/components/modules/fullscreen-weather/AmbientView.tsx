@@ -4,6 +4,7 @@ import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
 import { TopBar, AlertBand, weekdayShort } from './weather-parts';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
+import { NO_VALUE } from '@/lib/constants';
 
 /**
  * Read-from-across-the-room minimal. Temperature, condition, one supporting
@@ -37,7 +38,7 @@ export default function AmbientView(p: WeatherViewProps) {
 
   const temp = (
     <div data-testid="fsw-hero-temp" style={{ fontSize: landscape ? s * 27 : s * 32, fontWeight: 150, letterSpacing: '-.06em', lineHeight: .82 }}>
-      {now ? Math.round(now.temp) : '--'}
+      {now ? Math.round(now.temp) : NO_VALUE}
       <span style={{ fontSize: '.34em', verticalAlign: 'baseline', position: 'relative', top: '-1.12em', marginLeft: '-.03em', opacity: .34 }}>°</span>
     </div>
   );

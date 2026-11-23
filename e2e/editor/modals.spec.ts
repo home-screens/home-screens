@@ -26,7 +26,7 @@ test.describe('layout export / import / templates (Data settings page)', () => {
     await page.goto(DATA_PAGE);
 
     // Page button opens LayoutExportModal; the modal's "Export" fires the download.
-    await page.getByRole('button', { name: 'Export Layout' }).click();
+    await page.getByRole('button', { name: 'Export layout' }).click();
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Export', exact: true }).click();
 
@@ -61,7 +61,7 @@ test.describe('layout export / import / templates (Data settings page)', () => {
     }));
     await page.goto(DATA_PAGE);
 
-    await page.getByRole('button', { name: 'Browse Templates' }).click();
+    await page.getByRole('button', { name: 'Browse templates' }).click();
     // Template cards are buttons whose accessible name includes the template
     // name, category, and description — match on the name substring.
     await page.getByRole('button', { name: /Family Dashboard/ }).click();
@@ -138,9 +138,9 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
     // Select the module so its Config accordion (open by default) renders the
-    // "Edit Chore Chart" button.
+    // "Edit chore chart" button.
     await page.locator('[data-module-id="chore-chart-1"]').click();
-    await page.getByRole('button', { name: 'Edit Chore Chart' }).click();
+    await page.getByRole('button', { name: 'Edit chore chart' }).click();
 
     // Modal is open (its heading reads "Chore Chart" — distinct from the
     // palette entry and canvas module label of the same name).
@@ -178,7 +178,7 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await page.goto('/editor');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await page.locator('[data-module-id="chore-chart-1"]').click();
-    await page.getByRole('button', { name: 'Edit Chore Chart' }).click();
+    await page.getByRole('button', { name: 'Edit chore chart' }).click();
     await expect(page.getByRole('heading', { name: 'Chore Chart', exact: true })).toBeVisible();
 
     await page.getByTestId('starter-open').click();
@@ -199,7 +199,7 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await add.click();
     await saved;
     await expect(panel).toBeHidden();
-    await expect(page.getByText('2 members · 2 chores')).toBeVisible();
+    await expect(page.getByText('2 people · 2 chores')).toBeVisible();
 
     const data = await (await request.get('/api/chores/data')).json();
     const chores = data.chores as Array<{ name: string; assigneeIds: string[]; timeOfDay: string }>;
@@ -211,7 +211,7 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await page.getByTestId('starter-header-button').click();
     await expect(page.getByTestId('starter-brush-teeth')).toHaveAttribute('aria-disabled', 'true');
     // Opening the add form takes the column back.
-    await page.getByRole('button', { name: '+ Add Chore' }).click();
+    await page.getByRole('button', { name: 'Add chore', exact: true }).click();
     await expect(panel).toBeHidden();
   });
 
@@ -236,7 +236,7 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await page.goto('/editor');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await page.locator('[data-module-id="chore-chart-1"]').click();
-    await page.getByRole('button', { name: 'Edit Chore Chart' }).click();
+    await page.getByRole('button', { name: 'Edit chore chart' }).click();
     await expect(page.getByRole('heading', { name: 'Chore Chart', exact: true })).toBeVisible();
 
     // Open, titled, and inert: no add controls to type into yet.
@@ -247,7 +247,7 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     // The seeded chart is what appeared, i.e. the columns waited for real data
     // rather than rendering an empty chart first (the header counts what the
     // columns are showing).
-    await expect(page.getByText('1 members · 1 chores')).toBeVisible();
+    await expect(page.getByText('1 person · 1 chore')).toBeVisible();
   });
 });
 
@@ -276,8 +276,8 @@ test.describe('HolidayPickerModal (countdown module config)', () => {
     });
 
     await selectModule(page, request, buildModuleInstance('countdown'));
-    await page.getByRole('button', { name: 'Holidays...' }).click();
-    await expect(page.getByRole('heading', { name: 'Add Holidays' })).toBeVisible();
+    await page.getByRole('button', { name: 'Holidays…' }).click();
+    await expect(page.getByRole('heading', { name: 'Add holidays' })).toBeVisible();
 
     // Selecting a country triggers the holiday fetch; its rows are <label>s
     // wrapping a checkbox + the holiday title.
@@ -302,7 +302,7 @@ test.describe('Meal-planner editor modal', () => {
   // asserts the same meals.json round-trip via /api/meals/data.
   async function openMealModal(page: import('@playwright/test').Page, request: import('@playwright/test').APIRequestContext) {
     await selectModule(page, request, buildModuleInstance('meal-planner'));
-    await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+    await page.getByRole('button', { name: 'Edit meal plan' }).click();
     await expect(page.getByRole('heading', { name: 'Meal Planner', exact: true })).toBeVisible();
   }
 
@@ -317,16 +317,16 @@ test.describe('Meal-planner editor modal', () => {
     await openMealModal(page, request);
 
     // Library tab is default; "Add New Meal" creates a local pending meal and
-    // switches to the Detail tab, where "Save Changes" is the first persist.
+    // switches to the Detail tab, where "Save" is the first persist.
     const saved = page.waitForResponse(
       (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
     );
-    await page.getByRole('button', { name: '+ Add New Meal' }).click();
-    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole('button', { name: 'Add meal', exact: true }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
     await saved;
 
     // The pending meal persists under its default name.
-    await expect.poll(() => savedMealNames(request)).toContain('New Meal');
+    await expect.poll(() => savedMealNames(request)).toContain('New meal');
   });
 
   /* The modal's week actions each hand a whole new plan up through onUpdate.
@@ -349,7 +349,7 @@ test.describe('Meal-planner editor modal', () => {
     await page.getByRole('dialog').getByRole('button', { name: /^Plan / }).first().click();
     // The picker floats above the modal in its own overlay; scope to it so the
     // library list behind the scrim is not what gets clicked.
-    await expect(page.getByText('Choose a Meal')).toBeVisible();
+    await expect(page.getByText('Choose a meal')).toBeVisible();
     await page.getByRole('button', { name: /Pasta/ }).click();
     await saved;
 
@@ -376,7 +376,7 @@ test.describe('Meal-planner editor modal', () => {
     const saved = page.waitForResponse(
       (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
     );
-    await page.getByRole('button', { name: 'Copy Last Week' }).click();
+    await page.getByRole('button', { name: 'Copy last week' }).click();
     await saved;
 
     // The entry lands on the same weekday of this week, and last week keeps its
@@ -417,7 +417,7 @@ test.describe('Meal-planner editor modal', () => {
     const saved = page.waitForResponse(
       (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
     );
-    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
     await saved;
 
     await expect.poll(() => savedMealNames(request)).toContain('Pasta Bake');

@@ -8,8 +8,14 @@ import CustomIconSeed from '@/components/custom-icons/CustomIconSeed';
 import RemoteToast from '../remote/components/RemoteToast';
 import { readCustomIcons } from '@/lib/custom-icon-data';
 import { withUrls } from '@/lib/custom-icon-http';
+import { pageMetadata } from '@/lib/page-title';
 
 export const dynamic = 'force-dynamic';
+
+// Its own name, not the remote's: a kid's bookmark says what it opens.
+export function generateMetadata() {
+  return pageMetadata('chores');
+}
 
 export default async function ChoresPage() {
   const config = await readConfig();

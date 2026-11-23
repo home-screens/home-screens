@@ -5,6 +5,9 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate } from '@/i18n';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { refusalSentence } from '@/lib/hub-request';
 
 /* ─── Props ────────────────────────────────── */
 
@@ -20,6 +23,7 @@ export default function HostnameSection({
   onSaved,
 }: HostnameSectionProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [value, setValue] = useState(currentHostname);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -58,10 +62,10 @@ export default function HostnameSection({
       } else if (data.needsSudoPassword) {
         setNeedsSudo(true);
       } else {
-        setErrorMsg(data.error ?? t('settings.networkPage.hostname.defaultErrorMessage'));
+        setErrorMsg(refusalSentence(data, tCore) ?? t('settings.networkPage.hostname.defaultErrorMessage'));
       }
     } catch {
-      setErrorMsg(t('common.serverUnreachable'));
+      setErrorMsg(tCore('refusals.hubUnreachable'));
     } finally {
       setSaving(false);
     }
@@ -69,9 +73,9 @@ export default function HostnameSection({
 
   return (
     <section data-field-id="network.hostname">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.networkPage.hostname.heading')}
-      </h3>
+      </SettingsSectionHeading>
 
       <div className="flex items-center gap-2">
         <input
@@ -86,7 +90,7 @@ export default function HostnameSection({
             if (e.key === 'Enter' && isDirty) handleSave();
           }}
           placeholder={t('settings.networkPage.hostname.placeholder')}
-          className="bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary w-full font-mono"
+          className={`w-full font-mono ${SETTINGS_INPUT_CLASS}`}
           disabled={saving}
         />
         <Button
@@ -97,7 +101,7 @@ export default function HostnameSection({
           className="shrink-0"
         >
           {saving
-            ? t('settings.networkPage.hostname.savingButton')
+            ? tCore('status.saving')
             : t('settings.networkPage.hostname.saveButton')}
         </Button>
       </div>

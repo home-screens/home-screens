@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Info, RotateCcw } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface WholeBlockOverrideCardProps {
   /** Header label inside the rounded card (e.g. "Sleep schedule"). */
@@ -86,7 +87,7 @@ export default function WholeBlockOverrideCard({
           </div>
           {children}
           {!isForked && (
-            <p className="text-[11px] text-hs-text-faint mt-3">
+            <FieldHint className="mt-3">
               {t('settings.perDisplayPage.wholeBlockOverride.usingDefaultPart1')}
               <Link
                 href={defaultsHref}
@@ -95,7 +96,7 @@ export default function WholeBlockOverrideCard({
                 {defaultsLabel}
               </Link>
               {t('settings.perDisplayPage.wholeBlockOverride.usingDefaultPart2')}
-            </p>
+            </FieldHint>
           )}
         </div>
       </div>

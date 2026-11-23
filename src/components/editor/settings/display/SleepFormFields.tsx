@@ -6,6 +6,8 @@ import { useTranslate } from '@/i18n';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import SleepTimelinePreview from './SleepTimelinePreview';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { SettingsSubHeading } from '@/components/editor/settings/shared/SettingsPanel';
 
 export interface SleepFormValues {
   sleepEnabled: boolean;
@@ -85,7 +87,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
           onChange={(v) => onChange({ sleepEnabled: v })}
         />
       </div>
-      <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.enableHelp')}</p>
+      <FieldHint>{t('settings.sleepFormFields.enableHelp')}</FieldHint>
 
       {/* The timeline stays on screen while sleep is off, greyed out. Hiding
           it left the tab as a lone toggle with nothing to judge: the only way
@@ -102,7 +104,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               dimAfterMinutes={dimAfterMinutes}
             />
           </div>
-          <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.disabledHelp')}</p>
+          <FieldHint>{t('settings.sleepFormFields.disabledHelp')}</FieldHint>
         </>
       )}
 
@@ -117,9 +119,9 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
           {/* ── When nobody's using it ─────────────────────────────── */}
           <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
-            <p className="text-[11px] uppercase tracking-wider text-hs-text-faint">
+            <SettingsSubHeading>
               {t('settings.sleepFormFields.idleSectionTitle')}
-            </p>
+            </SettingsSubHeading>
             <div data-field-id="sleep.idleDimEnabled">
               <Toggle
                 label={t('settings.sleepFormFields.idleDimLabel')}
@@ -129,7 +131,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               />
             </div>
             {!idleDimEnabled && (
-              <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.idleDimOffHelp')}</p>
+              <FieldHint>{t('settings.sleepFormFields.idleDimOffHelp')}</FieldHint>
             )}
             {idleDimEnabled && (
               <>
@@ -155,7 +157,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                   />
                 </div>
                 {sleepAfterMinutes === 0 && (
-                  <p className="text-xs text-hs-text-faint -mt-1">{t('settings.sleepFormFields.sleepAfterHelp')}</p>
+                  <FieldHint className="-mt-1">{t('settings.sleepFormFields.sleepAfterHelp')}</FieldHint>
                 )}
               </>
             )}
@@ -163,9 +165,9 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
           {/* ── Every day at set times ─────────────────────────────── */}
           <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
-            <p className="text-[11px] uppercase tracking-wider text-hs-text-faint">
+            <SettingsSubHeading>
               {t('settings.sleepFormFields.scheduleSectionTitle')}
-            </p>
+            </SettingsSubHeading>
             <div data-field-id="sleep.dimScheduleEnabled">
               <Toggle
                 label={t('settings.sleepFormFields.dimScheduleLabel')}
@@ -229,9 +231,9 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                     className={TIME_INPUT_CLASS}
                   />
                 </label>
-                <p className="col-span-2 text-xs text-hs-text-faint">
+                <FieldHint className="col-span-2">
                   {t('settings.sleepFormFields.sleepScheduleHelp')}
-                </p>
+                </FieldHint>
               </div>
             )}
 
@@ -254,9 +256,9 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                     disabled={disabled}
                   />
                 </div>
-                <p className="text-xs text-hs-text-faint">
+                <FieldHint>
                   {t('settings.sleepFormFields.wakeHoldHelp')}
-                </p>
+                </FieldHint>
               </div>
             )}
           </div>
@@ -269,11 +271,11 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               brightness slider is truly inert in that state — remote dimming
               supplies its own level. */}
           <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
-            <p className="text-[11px] uppercase tracking-wider text-hs-text-faint">
+            <SettingsSubHeading>
               {t('settings.sleepFormFields.dimmedSectionTitle')}
-            </p>
+            </SettingsSubHeading>
             {!somethingDims && (
-              <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.nothingDimsNote')}</p>
+              <FieldHint>{t('settings.sleepFormFields.nothingDimsNote')}</FieldHint>
             )}
             {somethingDims && (
               <div data-field-id="sleep.dimBrightness">
@@ -301,7 +303,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                 <option value="off">{t('settings.sleepFormFields.screensaverOff')}</option>
               </select>
             </label>
-            <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.dimmedSectionHelp')}</p>
+            <FieldHint>{t('settings.sleepFormFields.dimmedSectionHelp')}</FieldHint>
           </div>
 
           {/* ── While turned off ───────────────────────────────────── */}
@@ -312,9 +314,9 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               it needs the kiosk's power agent and a screen that comes back
               from a signal loss on its own. */}
           <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
-            <p className="text-[11px] uppercase tracking-wider text-hs-text-faint">
+            <SettingsSubHeading>
               {t('settings.sleepFormFields.powerSectionTitle')}
-            </p>
+            </SettingsSubHeading>
             <div data-field-id="sleep.panelPowerOff">
               <Toggle
                 label={t('settings.sleepFormFields.panelPowerOffLabel')}
@@ -323,7 +325,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                 disabled={disabled}
               />
             </div>
-            <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.panelPowerOffHelp')}</p>
+            <FieldHint>{t('settings.sleepFormFields.panelPowerOffHelp')}</FieldHint>
           </div>
         </>
       )}

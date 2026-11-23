@@ -1,8 +1,7 @@
 'use client';
 
-import { ExternalLink, X } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import ModalFrame from '@/components/ui/ModalFrame';
+import { ExternalLink } from 'lucide-react';
+import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import ReleaseNotes from '@/components/ui/ReleaseNotes';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatDateInTZ } from '@/lib/timezone';
@@ -35,35 +34,25 @@ export default function ChangelogModal({ release, onClose }: Props) {
       onClose={onClose}
       className="w-full max-w-2xl"
     >
-      <div className="flex max-h-[85vh] w-full flex-col rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-hs-border-strong px-6 py-4">
-          <div>
-            <h2 className="font-mono text-base font-semibold text-hs-text-primary">{release.tag}</h2>
-            {published && !Number.isNaN(published.getTime()) && (
-              <p className="mt-0.5 text-xs text-hs-text-faint">
-                {formatDateInTZ(published, timezone, { year: 'numeric', month: 'long', day: 'numeric' }, locale)}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={tCore('actions.close')}
-            className="rounded p-1 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+      <ModalPanel>
+        <ModalHeader
+          titleId="changelog-title"
+          title={<span className="font-mono">{release.tag}</span>}
+          subtitle={published && !Number.isNaN(published.getTime())
+            ? formatDateInTZ(published, timezone, { year: 'numeric', month: 'long', day: 'numeric' }, locale)
+            : undefined}
+          onClose={onClose}
+        />
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <ModalBody>
           <ReleaseNotes
             markdown={release.body}
             emptyLabel={t('settings.systemPage.changelog.noNotes')}
           />
-        </div>
+        </ModalBody>
 
-        <div className="flex items-center justify-between gap-3 border-t border-hs-border-strong px-6 py-3">
-          {release.url ? (
+        <ModalFooter
+          start={release.url ? (
             <a
               href={release.url}
               target="_blank"
@@ -73,14 +62,11 @@ export default function ChangelogModal({ release, onClose }: Props) {
               <ExternalLink className="h-3.5 w-3.5" />
               {t('settings.systemPage.changelog.viewOnGitHub')}
             </a>
-          ) : (
-            <span />
-          )}
-          <Button size="sm" variant="secondary" onClick={onClose}>
-            {tCore('actions.close')}
-          </Button>
-        </div>
-      </div>
+          ) : undefined}
+          onCancel={onClose}
+          cancelLabel={tCore('actions.close')}
+        />
+      </ModalPanel>
     </ModalFrame>
   );
 }

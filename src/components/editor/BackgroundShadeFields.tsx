@@ -7,8 +7,9 @@ import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import PropertyGroup from './PropertyGroup';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 
-const fieldClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
+const fieldClass = `mt-0.5 block ${INPUT_CLASS}`;
 
 export default function BackgroundShadeFields({ screenId, shade }: { screenId: string; shade?: BackgroundShade }) {
   const t = useTranslate('editor');

@@ -1,8 +1,7 @@
 'use client';
 
-import { type ReactNode } from 'react';
-import ModalFrame from '@/components/ui/ModalFrame';
-import Button from '@/components/ui/Button';
+import { useId, type ReactNode } from 'react';
+import ModalFrame, { ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 
 interface CRUDModalShellProps {
@@ -11,6 +10,7 @@ interface CRUDModalShellProps {
   /** Beside the title: a count, or a line with its own pieces (the meal planner's source pill). */
   subtitle?: ReactNode;
   maxWidth?: string;
+  /** Before the ×: a link out (the meal planner's Open Mealie). Never a second way to close. */
   headerActions?: ReactNode;
   hideFooter?: boolean;
   /** Suspend Escape and backdrop-click while a save or other action is in
@@ -23,6 +23,11 @@ interface CRUDModalShellProps {
   children: ReactNode;
 }
 
+/**
+ * The big editor windows that manage family data (chores, meals, timetables,
+ * notes, lists): a tall panel with the shared header, the caller's body, and
+ * a Done in the footer.
+ */
 export default function CRUDModalShell({
   title,
   icon,
@@ -36,44 +41,37 @@ export default function CRUDModalShell({
   children,
 }: CRUDModalShellProps) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
+  const titleId = useId();
 
   return (
-    <ModalFrame labelledBy="crud-modal-title" onClose={onClose} closable={closable} className={`w-full ${maxWidth}`}>
-      <div className="bg-hs-panel border border-hs-border-strong rounded-xl w-full h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-hs-border-strong">
-          <div className="flex items-center gap-3">
-            {icon}
-            <h2 id="crud-modal-title" className="text-sm font-semibold text-hs-text-primary">{title}</h2>
-            {subtitle != null && subtitle !== '' && (
-              <span className="text-xs text-hs-text-muted">{subtitle}</span>
-            )}
-          </div>
-          {headerActions ?? (
-            <button
-              onClick={onClose}
-              disabled={!closable}
-              title={!closable ? closeBlockedHint : undefined}
-              aria-label={tCore('actions.close')}
-              className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-            >
-              &times;
-            </button>
-          )}
-        </div>
+    <ModalFrame labelledBy={titleId} onClose={onClose} closable={closable} className={`w-full ${maxWidth}`}>
+      <ModalPanel className="h-[85vh]">
+        <ModalHeader
+          titleId={titleId}
+          title={title}
+          icon={icon}
+          subtitle={subtitle}
+          actions={headerActions}
+          onClose={onClose}
+          closable={closable}
+          closeBlockedHint={closeBlockedHint}
+        />
 
         {children}
 
         {!hideFooter && (
-          <div className="flex items-center justify-end px-5 py-3 border-t border-hs-border-strong">
-            {/* Off whenever × is: closing then would drop work in progress (an open form, a save). */}
-            {!closable && closeBlockedHint && <span className="mr-3 text-xs text-hs-text-muted">{closeBlockedHint}</span>}
-            <Button size="sm" variant="primary" onClick={onClose} disabled={!closable} title={!closable ? closeBlockedHint : undefined}>
-              {t('modals.crud.done')}
-            </Button>
-          </div>
+          <ModalFooter
+            // Off whenever × is: closing then would drop work in progress (an open form, a save).
+            hint={!closable ? closeBlockedHint : undefined}
+            primary={{
+              label: t('modals.crud.done'),
+              onClick: onClose,
+              disabled: !closable,
+              title: !closable ? closeBlockedHint : undefined,
+            }}
+          />
         )}
-      </div>
+      </ModalPanel>
     </ModalFrame>
   );
 }

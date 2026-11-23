@@ -5,6 +5,8 @@ import AccordionSection from '@/components/editor/AccordionSection';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Toggle from '@/components/ui/Toggle';
+import FieldHint from '@/components/ui/FieldHint';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import type {
@@ -16,6 +18,8 @@ import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, ShowOnePersonTo
 import { canPickAnotherView, CARD_SWITCH_MIN_HEIGHT } from '@/lib/calendar-wall-switch';
 import { CalendarSourceFilter, type CalendarSource } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
+import Notice from '@/components/ui/Notice';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * Shared grouping shell for the two calendar config sections. Both modules
@@ -116,6 +120,7 @@ export function CalendarWhatShowsGroup({ keyPrefix, config: c, set, availableSou
   nameTags?: boolean;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const roster = useCalendarRoster();
   const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? EMPTY_IDS);
   const legendOptions: { value: CalendarLegendPlacement; label: string }[] = [
@@ -126,9 +131,7 @@ export function CalendarWhatShowsGroup({ keyPrefix, config: c, set, availableSou
   return (
     <CalendarGroup label={t(`${KEY}.whatShows`)}>
       {googleAuthError && googleCalendarIds.length > 0 && (
-        <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
-          {t('configSections.calendar.googleAuthExpired')}
-        </div>
+        <Notice tone="warning" size="sm">{t('configSections.calendar.googleAuthExpired', { place: settingsPlaceText(tCore, 'calendar') })}</Notice>
       )}
       <CalendarSourceFilter
         keyPrefix={keyPrefix}
@@ -209,9 +212,9 @@ export function CalendarTouchGroup<V extends string>({ keyPrefix, config: c, set
           <WallViewsPicker views={views} picked={c.wallViews} onChange={(next) => set({ wallViews: next })} />
           <ShowOnePersonToggle checked={c.showOnePerson === true} onChange={(v) => set({ showOnePerson: v })} owners={roster.owners} />
           {cardHeight !== undefined && cardHeight < CARD_SWITCH_MIN_HEIGHT && ((c.wallViews?.length ?? 0) > 0 || c.showOnePerson === true) && (
-            <p className="text-xs leading-relaxed text-hs-warning" data-testid="wall-switch-short-card">
+            <FieldHint tone="warning" data-testid="wall-switch-short-card">
               {t(`${KEY}.wallSwitchShortCard`, { min: CARD_SWITCH_MIN_HEIGHT, height: Math.round(cardHeight) })}
-            </p>
+            </FieldHint>
           )}
         </>
       )}
@@ -231,7 +234,6 @@ function WallViewsPicker<V extends string>({ views, picked, onChange }: { views:
   const full = !canPickAnotherView(home, picked, order);
   const toggle = (view: V, on: boolean) =>
     onChange(order.filter((v) => v !== home && (v === view ? on : ticked.has(v))));
-  const checkbox = 'rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0 disabled:opacity-60';
   return (
     <div className="flex flex-col gap-1" data-field-id="wallViews">
       <span className="text-xs text-hs-text-muted">{t(`${KEY}.wallViews`)}</span>
@@ -246,34 +248,36 @@ function WallViewsPicker<V extends string>({ views, picked, onChange }: { views:
               data-wall-view-option={view}
               className={`flex items-center gap-2.5 px-3 py-1.5 ${locked ? 'cursor-default' : 'cursor-pointer hover:bg-hs-hover'}`}
             >
-              <input type="checkbox" className={checkbox} checked={on} disabled={locked} onChange={(event) => toggle(view, event.target.checked)} />
+              <input type="checkbox" className={CHECKBOX_CLASS} checked={on} disabled={locked} onChange={(event) => toggle(view, event.target.checked)} />
               <span className={`text-sm truncate ${locked && !own ? 'text-hs-text-faint' : 'text-hs-text-body'}`}>{labelFor(view)}</span>
               {own && <span className="ml-auto text-[11px] text-hs-text-faint whitespace-nowrap">{t(`${KEY}.wallViewsOwn`)}</span>}
             </label>
           );
         })}
       </div>
-      <p className="text-xs leading-relaxed text-hs-text-muted">
+      <FieldHint>
         {full ? t(`${KEY}.wallViewsFull`) : t(`${KEY}.wallViewsHint`, { view: labelFor(home) })}
-      </p>
+      </FieldHint>
     </div>
   );
 }
 
 /**
  * "Add events from a day" and its help line, for every calendar module that
- * opens a day. `hintClassName` lets a section draw the line like its other hints.
+ * opens a day.
  */
-export function AddEventsToggle({ checked, onChange, hintClassName = '-mt-1 text-[11px] text-hs-text-faint' }: {
+export function AddEventsToggle({ checked, onChange }: {
   checked: boolean;
   onChange: (next: boolean) => void;
-  hintClassName?: string;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
-    <>
-      <Toggle label={t(`${KEY}.addEvents`)} checked={checked} onChange={onChange} />
-      <p className={hintClassName}>{t(`${KEY}.addEventsHelp`)}</p>
-    </>
+    <Toggle
+      label={t(`${KEY}.addEvents`)}
+      checked={checked}
+      onChange={onChange}
+      description={t(`${KEY}.addEventsHelp`, { place: settingsPlaceText(tCore, 'calendar') })}
+    />
   );
 }

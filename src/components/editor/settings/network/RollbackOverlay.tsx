@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Check, Undo2 } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
+import ModalFrame, { ModalBody, ModalPanel } from '@/components/ui/ModalFrame';
+import Spinner from '@/components/ui/Spinner';
 
 /* ─── Constants ────────────────────────────── */
 
 const POLL_INTERVAL_MS = 2000;
 const DEFAULT_TIMEOUT_MS = 60_000;
+const TITLE_ID = 'network-rollback-title';
 
 /* ─── Props ────────────────────────────────── */
 
@@ -94,69 +98,68 @@ export default function RollbackOverlay({
 
   const remainingSec = Math.ceil(remainingMs / 1000);
 
+  const done = status !== 'polling';
+  const dismissButton = (
+    <button
+      onClick={onDismiss}
+      className="text-sm text-hs-accent hover:text-hs-accent-hover"
+    >
+      {t('settings.networkPage.rollback.dismissButton')}
+    </button>
+  );
+
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-sm rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl text-center">
-        {status === 'polling' && (
-          <>
-            {/* Spinner */}
-            <div className="mx-auto mb-4 w-10 h-10 border-2 border-hs-accent border-t-transparent rounded-full animate-spin" />
-            <h2 className="text-lg font-semibold text-hs-text-primary mb-2">
-              {t('settings.networkPage.rollback.polling.heading')}
-            </h2>
-            <p className="text-sm text-hs-text-muted mb-1">
-              {t('settings.networkPage.rollback.polling.remaining', { seconds: remainingSec })}
-            </p>
-            <p className="text-xs text-hs-text-faint">
-              {t('settings.networkPage.rollback.polling.warning')}
-            </p>
-          </>
-        )}
+    // Nothing closes it while the hub decides whether the change stays: the
+    // page behind may be on its way out with the old connection.
+    <ModalFrame labelledBy={TITLE_ID} onClose={onDismiss} closable={done} className="w-full max-w-sm">
+      <ModalPanel>
+        <ModalBody className="py-6 text-center">
+          {status === 'polling' && (
+            <>
+              <Spinner size="lg" className="mx-auto mb-4 text-hs-accent" />
+              <h2 id={TITLE_ID} className="text-lg font-semibold text-hs-text-primary mb-2">
+                {t('settings.networkPage.rollback.polling.heading')}
+              </h2>
+              <p className="text-sm text-hs-text-muted mb-1" role="status">
+                {t('settings.networkPage.rollback.polling.remaining', { seconds: remainingSec })}
+              </p>
+              <p className="text-xs text-hs-text-faint">
+                {t('settings.networkPage.rollback.polling.warning')}
+              </p>
+            </>
+          )}
 
-        {status === 'confirmed' && (
-          <>
-            <div className="mx-auto mb-4 w-10 h-10 rounded-full bg-hs-success/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-hs-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-hs-success mb-2">
-              {t('settings.networkPage.rollback.confirmed.heading')}
-            </h2>
-            <p className="text-sm text-hs-text-muted mb-4">
-              {t('settings.networkPage.rollback.confirmed.message')}
-            </p>
-            <button
-              onClick={onDismiss}
-              className="text-sm text-hs-accent hover:text-hs-accent-hover"
-            >
-              {t('settings.networkPage.rollback.dismissButton')}
-            </button>
-          </>
-        )}
+          {status === 'confirmed' && (
+            <>
+              <div className="mx-auto mb-4 w-10 h-10 rounded-full bg-hs-success/20 flex items-center justify-center">
+                <Check className="w-6 h-6 text-hs-success" aria-hidden />
+              </div>
+              <h2 id={TITLE_ID} className="text-lg font-semibold text-hs-success mb-2">
+                {t('settings.networkPage.rollback.confirmed.heading')}
+              </h2>
+              <p className="text-sm text-hs-text-muted mb-4">
+                {t('settings.networkPage.rollback.confirmed.message')}
+              </p>
+              {dismissButton}
+            </>
+          )}
 
-        {status === 'reverted' && (
-          <>
-            <div className="mx-auto mb-4 w-10 h-10 rounded-full bg-hs-warning/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-hs-warning" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-hs-warning mb-2">
-              {t('settings.networkPage.rollback.reverted.heading')}
-            </h2>
-            <p className="text-sm text-hs-text-muted mb-4">
-              {t('settings.networkPage.rollback.reverted.message')}
-            </p>
-            <button
-              onClick={onDismiss}
-              className="text-sm text-hs-accent hover:text-hs-accent-hover"
-            >
-              {t('settings.networkPage.rollback.dismissButton')}
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+          {status === 'reverted' && (
+            <>
+              <div className="mx-auto mb-4 w-10 h-10 rounded-full bg-hs-warning/20 flex items-center justify-center">
+                <Undo2 className="w-6 h-6 text-hs-warning-ink" aria-hidden />
+              </div>
+              <h2 id={TITLE_ID} className="text-lg font-semibold text-hs-warning-ink mb-2">
+                {t('settings.networkPage.rollback.reverted.heading')}
+              </h2>
+              <p className="text-sm text-hs-text-muted mb-4">
+                {t('settings.networkPage.rollback.reverted.message')}
+              </p>
+              {dismissButton}
+            </>
+          )}
+        </ModalBody>
+      </ModalPanel>
+    </ModalFrame>
   );
 }

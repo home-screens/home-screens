@@ -19,22 +19,13 @@ import { SlideImage, SlideLayer, KEN_BURNS_CSS } from '../shared/SlideImage';
 import type { LayerIndex } from '../shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
-import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
+import { formatTimeOfDay } from '@/lib/timezone';
+import { emptyStateFor, normalizePhotoSource, defaultPhotoSource, PHOTO_EMPTY_KEYS } from '@/lib/photo-source';
 import PhotoCredit from '../shared/PhotoCredit';
 import { PhotoControls, photoAlbumName } from '../shared/PhotoControls';
-import { useSetupSentence } from '../ModuleStates';
+import { ModuleEmptyState, ModuleLoadingState, useSetupSentence } from '../ModuleStates';
+import { FullscreenStateShell, fullscreenStateStyle } from '../shared/FullscreenStateShell';
 import { useModuleSurface } from '../module-surface';
-
-/** The editor-side fix an empty source's wall names (`emptyStateFor`); an empty library folder shows the phone address instead. */
-const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> = {
-  pickPictures: 'fullscreen-photo.noPhotosYetHintPicked',
-  checkFilters: 'fullscreen-photo.noPhotosYetHintImmich',
-  checkLink: 'fullscreen-photo.noPhotosYetHintICloud',
-  checkFolder: 'fullscreen-photo.noPhotosYetHintOneDrive',
-  checkSearch: 'fullscreen-photo.noPhotosYetHintUnsplash',
-  checkArt: 'fullscreen-photo.noPhotosYetHintArt',
-  tryLater: 'fullscreen-photo.noPhotosYetHintNasa',
-};
 
 // ── Empty state ──────────────────────────────
 
@@ -47,27 +38,29 @@ function PhotoFrameIcon({ color }: { color: string }) {
 }
 
 /**
- * The wall's "no photos yet" screen. Sized for the 1080x1920 canvas in plain
- * px (the canvas is scaled as a whole in the editor, so vw would lie there):
- * readable from the couch, with the hub's real /remote address in a pill and
- * a QR code a phone can scan. Cloud sources get their own hint instead: their
- * fix is in the editor, not on a phone.
+ * The wall's "no photos yet" screen, in the words the slideshow card uses
+ * (`PHOTO_EMPTY_KEYS`). Sized for the 1080x1920 canvas in plain px (the
+ * canvas is scaled as a whole in the editor, so vw would lie there): readable
+ * from the couch. A hint that names the phone (`{url}`) gets the hub's real
+ * /remote address in a pill and a QR code a phone can scan; any other hint is
+ * a fix in the editor, said as written.
  */
-function NoPhotosYet({ theme, t, title, cloudHint, footer }: { theme: FullscreenThemeTokens; t: TranslateFn; title?: string; cloudHint: string | null; footer?: string }) {
+function NoPhotosYet({ theme, t, title, hint, footer }: { theme: FullscreenThemeTokens; t: TranslateFn; title: string; hint: string; footer?: string }) {
   const origin = useOrigin();
   const url = phoneSurfaceUrl('remote', origin);
+  const [before, after] = hint.split('{url}');
   return (
     <div className="flex flex-col items-center text-center" style={{ gap: 24, padding: '0 80px', color: theme.textMuted }}>
       <PhotoFrameIcon color={theme.textMuted} />
-      <p style={{ fontSize: 52, fontWeight: 600, lineHeight: 1.15, color: theme.text }}>{title ?? t('fullscreen-photo.noPhotosYet')}</p>
-      {cloudHint ? (
+      <p style={{ fontSize: 52, fontWeight: 600, lineHeight: 1.15, color: theme.text }}>{title}</p>
+      {after === undefined ? (
         <>
-          <p style={{ fontSize: 30, lineHeight: 1.35, maxWidth: 760 }}>{cloudHint}</p>
+          <p style={{ fontSize: 30, lineHeight: 1.35, maxWidth: 760 }}>{hint}</p>
           {footer && <p style={{ fontSize: 24, marginTop: 8 }}>{footer}</p>}
         </>
       ) : (
         <>
-          <p style={{ fontSize: 30, lineHeight: 1.35 }}>{t('fullscreen-photo.noPhotosYetHint')}</p>
+          {before.trim() && <p style={{ fontSize: 30, lineHeight: 1.35 }}>{before.trim()}</p>}
           <code
             data-testid="fullscreen-photo-remote-url"
             className="font-mono break-all"
@@ -75,6 +68,7 @@ function NoPhotosYet({ theme, t, title, cloudHint, footer }: { theme: Fullscreen
           >
             {phoneSurfaceLabel('remote', origin)}
           </code>
+          {after.trim() && <p style={{ fontSize: 30, lineHeight: 1.35 }}>{after.trim()}</p>}
           {/* A QR of a bare path is useless, so it waits for the origin. Always
               dark on white: that scans under every theme. */}
           {origin && (
@@ -114,10 +108,12 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
     : WANDER_REACH_X_PX;
   const wander = useWander(protect, reachX, WANDER_REACH_Y_PX);
 
-  const is12Hour = householdTimeFormat(timeFormat, locale) === '12h';
-  const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
-  const minutes = time.getMinutes().toString().padStart(2, '0');
-  const ampm = is12Hour ? (time.getHours() >= 12 ? 'PM' : 'AM') : null;
+  // "9:41 AM" splits into the big digits and a small day period, the way
+  // the news clock does; 24-hour time is the digits alone.
+  const clock = formatTimeOfDay(time, { timeFormat: householdTimeFormat(timeFormat, locale), locale });
+  const gap = clock.lastIndexOf(' ');
+  const digits = gap > 0 ? clock.slice(0, gap) : clock;
+  const ampm = gap > 0 ? clock.slice(gap + 1) : null;
   const dateStr = time.toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
@@ -152,7 +148,7 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
             className="font-light tracking-tight leading-none"
             style={{ color: textColor, fontSize: 'min(12vw, 96px)' }}
           >
-            {hours}:{minutes}
+            {digits}
           </span>
           {ampm !== null && (
             <span
@@ -191,7 +187,10 @@ interface FullscreenPhotoModuleProps {
   boxSize?: PictureBox;
 }
 
-export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, timeFormat, screenId, moduleId, boxSize }: FullscreenPhotoModuleProps) {
+/** The canvas the states are sized for until the box size is known: a portrait 1080p wall. */
+const DEFAULT_CANVAS: PictureBox = { w: 1080, h: 1920 };
+
+export default function FullscreenPhotoModule({ config, style, timezone, fullscreenTheme, timeFormat, screenId, moduleId, boxSize }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
   const setupSentence = useSetupSentence();
@@ -216,32 +215,25 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // leaves behind, and the clock overlay's backdrop and text.
   const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
 
+  // The pre-content states sit on the theme ground at a canvas-relative type
+  // size, as every full-screen module's do.
+  const stateStyle = fullscreenStateStyle(style, theme, boxSize ?? DEFAULT_CANVAS);
+
   if (isSinglePhoto) {
     if (!config.file) {
-      // Mode is set but no photo chosen yet
+      // Mode is set but no photo chosen yet: the placeholder every module
+      // that has nothing set up shows.
       return (
-        <div
-          ref={containerRef}
-          className="w-full h-full flex items-center justify-center"
-          style={{ ...themeGround, color: theme.textSecondary }}
-        >
-          <div className="text-center space-y-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-            </svg>
-            <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotoSelected')}</p>
-            <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-              {t('fullscreen-photo.noPhotoSelectedHint')}
-            </p>
-          </div>
-        </div>
+        <FullscreenStateShell theme={theme} containerRef={containerRef}>
+          <ModuleEmptyState style={stateStyle} type="fullscreen-photo" message={t('fullscreen-photo.noPhotoSelectedHint')} />
+        </FullscreenStateShell>
       );
     }
     if (failedFile === config.file) {
       // The file was deleted or cannot be read: say so instead of a bare ground.
       return (
         <div ref={containerRef} className="w-full h-full flex items-center justify-center" style={{ ...themeGround, color: theme.textSecondary }}>
-          <NoPhotosYet theme={theme} t={t} title={t('image.unavailable')} cloudHint={t('fullscreen-photo.noPhotoSelectedHint')} />
+          <NoPhotosYet theme={theme} t={t} title={t('image.unavailable')} hint={t('fullscreen-photo.noPhotoSelectedHint')} />
         </div>
       );
     }
@@ -273,35 +265,32 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   if ((data !== null && items.length === 0) || needsSetup) {
     // An empty library folder is filled from a phone; every other source's
     // fix is in the editor (a link, a folder, filters, search words or a
-    // key), so it gets its own hint instead of phone-upload advice.
-    const reason = emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'));
-    const cloudHint = needsSetup ? setupSentence(error!) : reason === 'addPhotos' ? null : t(CLOUD_HINT[reason]);
+    // key), in the words the slideshow card uses.
+    const keys = PHOTO_EMPTY_KEYS[emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'))];
     return (
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
         style={{ ...themeGround, color: theme.textSecondary }}
       >
-        <NoPhotosYet theme={theme} t={t} cloudHint={cloudHint} footer={needsSetup && surface !== 'editor' ? t('common.setup.finishInEditor') : undefined} />
+        <NoPhotosYet
+          theme={theme}
+          t={t}
+          title={t(needsSetup ? 'common.photoEmpty.noPhotos' : keys.title)}
+          hint={needsSetup ? setupSentence(error!) : t(keys.hint)}
+          footer={needsSetup && surface !== 'editor' ? t('common.setup.finishInEditor') : undefined}
+        />
       </div>
     );
   }
 
   if (data === null) {
+    // Still on its way, or a first read that failed and is being tried again
+    // ("Not updating right now"), as the slideshow card says it.
     return (
-      <div
-        ref={containerRef}
-        className="w-full h-full flex items-center justify-center"
-        style={themeGround}
-      >
-        {error ? (
-          // The first read failed and is being tried again: say so, as the
-          // slideshow card does, rather than spin with no words.
-          <p data-testid="module-not-updating" style={{ fontSize: 30, color: theme.textMuted }}>{t('common.notUpdating')}</p>
-        ) : (
-          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: theme.border, borderTopColor: theme.text }} />
-        )}
-      </div>
+      <FullscreenStateShell theme={theme} containerRef={containerRef}>
+        <ModuleLoadingState style={stateStyle} message={t('photo-slideshow.loading')} error={error} />
+      </FullscreenStateShell>
     );
   }
 

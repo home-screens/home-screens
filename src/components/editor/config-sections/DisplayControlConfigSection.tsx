@@ -15,6 +15,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { controlMetrics, dockCapacity, dockExtraTiles } from '@/components/modules/DisplayControlModule/metrics';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance, type DisplayControlConfig, type DisplayNode, type Screen } from '@/types/config';
 import { DockButtonsList } from './DockButtonsList';
+import FieldHint from '@/components/ui/FieldHint';
 
 // A frozen module-level empty array so the Zustand selector below returns a
 // referentially-stable value when no displays registry is configured (legacy
@@ -74,10 +75,8 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
         label={t('configSections.display-control.showTimers')}
         checked={c.showTimers === true}
         onChange={(v) => set({ showTimers: v })}
+        description={t('configSections.display-control.showTimersHint')}
       />
-      <p className="text-[11px] text-hs-text-faint">
-        {t('configSections.display-control.showTimersHint')}
-      </p>
     </>
   );
 
@@ -113,9 +112,9 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
 
       {c.layout === 'dock' && (
         <>
-          <p className="text-[11px] text-hs-text-faint">
+          <FieldHint>
             {t('configSections.display-control.dockHint')}
-          </p>
+          </FieldHint>
           <Toggle
             label={t('configSections.display-control.dockExtras')}
             checked={c.dockExtras === true}
@@ -156,12 +155,12 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
           ))}
         </select>
         {legacy && (
-          <p className="text-[11px] text-hs-text-faint mt-0.5">
+          <FieldHint className="mt-0.5">
             {t('configSections.display-control.legacyHint')}
-          </p>
+          </FieldHint>
         )}
         {elsewhere && missingThere.length > 0 && (
-          <p className="text-[11px] text-hs-warning mt-0.5" data-testid="dock-missing-there">
+          <p className="text-[11px] text-hs-warning-ink mt-0.5" data-testid="dock-missing-there">
             {t('configSections.display-control.dockMissingThere', {
               display: elsewhere.name.trim() || elsewhere.id,
               names: formatList(missingThere, locale, 'disjunction'),

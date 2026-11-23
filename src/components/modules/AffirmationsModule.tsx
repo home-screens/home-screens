@@ -136,7 +136,7 @@ function ElegantView({ entry, accentColor, showCategory, t }: { entry: Entry; ac
       </p>
       {entry.attribution && (
         <p className="font-light" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
-          &mdash; {entry.attribution}
+          &ndash; {entry.attribution}
         </p>
       )}
       <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
@@ -163,7 +163,7 @@ function CardView({ entry, accentColor, showCategory, t }: { entry: Entry; accen
       </p>
       {entry.attribution && (
         <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
-          &mdash; {entry.attribution}
+          &ndash; {entry.attribution}
         </p>
       )}
     </div>
@@ -183,7 +183,7 @@ function MinimalView({ entry, showCategory, t }: { entry: Entry; accentColor?: s
       </p>
       {entry.attribution && (
         <p className="font-light" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>
-          &mdash; {entry.attribution}
+          &ndash; {entry.attribution}
         </p>
       )}
     </div>
@@ -208,7 +208,7 @@ function TypewriterView({ entry, accentColor, showCategory, t }: { entry: Entry;
       </p>
       {done && entry.attribution && (
         <p className="font-light" style={{ fontSize: '0.7em', opacity: 0.5 }}>
-          &mdash; {entry.attribution}
+          &ndash; {entry.attribution}
         </p>
       )}
     </div>

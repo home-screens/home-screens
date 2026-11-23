@@ -62,7 +62,7 @@ import {
   LunchCell,
   type CardTokens,
 } from './cells';
-import { memberInk } from '@/lib/family-avatar';
+import { MemberBadge } from '../shared/MemberBadge';
 
 /** Row one holds the day names, so the model's first row is grid row two. */
 const FIRST_ROW = 2;
@@ -378,24 +378,14 @@ export default function WeekCard({
             flexShrink: 0,
           }}
         >
-          <span
+          <MemberBadge
             aria-hidden="true"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '1.7em',
-              height: '1.7em',
-              flexShrink: 0,
-              borderRadius: '50%',
-              fontSize: '0.88em',
-              fontWeight: 800,
-              background: model.member.color,
-              color: memberInk(model.member.color),
-            }}
-          >
-            {model.member.initials}
-          </span>
+            initials={model.member.initials}
+            color={model.member.color}
+            fontSize="0.88em"
+            size="1.7em"
+            style={{ fontWeight: 800 }}
+          />
           <span
             data-testid="timetable-name"
             style={{

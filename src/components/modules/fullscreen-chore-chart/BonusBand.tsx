@@ -2,7 +2,8 @@
 
 import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { type ReactNode } from 'react';
-import { useAutoClose } from '@/components/modules/shared/useAutoClose';
+import { useWallSheet } from '@/components/modules/shared/useWallSheet';
+import { WallButton } from '@/components/modules/shared/WallButton';
 import { CHORE_SHEET_IDLE_MS } from '@/lib/chore-constants';
 import { Check, Hand, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
@@ -11,7 +12,7 @@ import { useTranslate } from '@/i18n';
 import MemberDot from '../shared/MemberDot';
 import AssigneeDot from './AssigneeDot';
 import type { ToggleParams } from './helpers';
-import { memberInitials } from '@/lib/family-avatar';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** Portrait shows up to two rows of three; landscape one row of four, so the band never crowds the chores that count. */
 const MAX_TILES_PORTRAIT = 6;
@@ -255,12 +256,14 @@ function Sheet({ s, title, subtitle, points, onClose, children, testId, wide = f
   testId: string;
 }) {
   const t = useTranslate('modules');
-  // Closes after a spell with no touch, so a sheet never sits over the chart
-  // all day. Every touch inside it starts the wait again.
-  const touched = useAutoClose(onClose, CHORE_SHEET_IDLE_MS);
+  // Holds the chart while it is up and closes after a spell with no touch, so
+  // a sheet never sits over the chart all day. Every touch inside it starts
+  // the wait again, and the second tap of the double tap that opened it does
+  // not close it.
+  const { touched, settled } = useWallSheet({ onClose, autoCloseMs: CHORE_SHEET_IDLE_MS });
   return (
     <div
-      onClick={onClose}
+      onClick={settled(onClose)}
       onPointerDown={touched}
       style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 8, 7, 0.74)' }}
     >
@@ -301,13 +304,12 @@ function Sheet({ s, title, subtitle, points, onClose, children, testId, wide = f
           position: 'sticky', bottom: 0, marginTop: 26 * s, paddingBottom: 30 * s,
           backgroundColor: 'var(--fcc-bg)', backgroundImage: 'linear-gradient(var(--fcc-surface), var(--fcc-surface))',
         }}>
-          <button
-            type="button"
+          <WallButton
             onClick={onClose}
             style={{ minHeight: 56 * s, padding: `0 ${30 * s}px`, border: 'none', background: 'none', color: 'var(--fcc-text-2)', fontSize: 25 * s, fontWeight: 600, cursor: 'pointer' }}
           >
             {t('chore-chart.bonus.cancel')}
-          </button>
+          </WallButton>
         </div>
       </div>
     </div>
@@ -360,9 +362,8 @@ export function GrabPickerSheet({ item, memberMap, initialsMap, s, heldBy, onPic
           if (!member) return null;
           const held = heldBy(id);
           return (
-            <button
+            <WallButton
               key={id}
-              type="button"
               disabled={!!held}
               data-testid={`fcc-grab-pick-${id}`}
               onClick={() => onPick(id)}
@@ -380,7 +381,7 @@ export function GrabPickerSheet({ item, memberMap, initialsMap, s, heldBy, onPic
                   {t('chore-chart.bonus.hasOneNamed', { chore: held })}
                 </span>
               )}
-            </button>
+            </WallButton>
           );
         })}
       </div>
@@ -402,13 +403,13 @@ export function GrabbedSheet({ item, holder, s, onDone, onLetGo, onClose }: {
   return (
     <Sheet s={s} title={item.chore.name} subtitle={t('chore-chart.bonus.onIt', { name: holder.name })} points={item.chore.points} onClose={onClose} testId="fcc-grabbed-sheet">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 * s }}>
-        <button type="button" data-testid="fcc-grab-done" onClick={onDone} style={{ ...button, border: 'none', background: holder.color, color: '#0c0a09' }}>
+        <WallButton data-testid="fcc-grab-done" onClick={onDone} style={{ ...button, border: 'none', background: holder.color, color: memberInk(holder.color) }}>
           <Check size={34 * s} strokeWidth={3} />{t('chore-chart.bonus.didIt', { name: holder.name })}
-        </button>
+        </WallButton>
         {/* Outlined on the theme's own background, so it reads as a button on every theme. */}
-        <button type="button" data-testid="fcc-grab-let-go" onClick={onLetGo} style={{ ...button, background: 'var(--fcc-bg)', border: `${2 * s}px solid var(--fcc-border)`, color: 'var(--fcc-text)' }}>
+        <WallButton data-testid="fcc-grab-let-go" onClick={onLetGo} style={{ ...button, background: 'var(--fcc-bg)', border: `${2 * s}px solid var(--fcc-border)`, color: 'var(--fcc-text)' }}>
           {t('chore-chart.bonus.letGo')}
-        </button>
+        </WallButton>
       </div>
     </Sheet>
   );

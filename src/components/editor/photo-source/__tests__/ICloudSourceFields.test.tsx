@@ -64,7 +64,7 @@ describe('ICloudSourceFields wrong-link bridge', () => {
 
     const { view } = renderSection(ALBUM_LINK);
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
-    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album...');
+    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album…');
 
     // A dead link, or sharing turned off: the hub answers an empty album.
     await act(async () => { answer(jsonResponse([])); });
@@ -79,7 +79,7 @@ describe('ICloudSourceFields wrong-link bridge', () => {
 
     const { view } = renderSection(ALBUM_LINK);
     await act(async () => { await vi.advanceTimersByTimeAsync(7_999); });
-    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album...');
+    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album…');
 
     await act(async () => { await vi.advanceTimersByTimeAsync(1); });
     expect(view.getByTestId('icloud-checking').textContent).toBe('Still checking. A big album can take a minute.');

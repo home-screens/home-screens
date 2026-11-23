@@ -7,6 +7,11 @@ import WeatherProviderCard from './weather/WeatherProviderCard';
 import LabeledInput from '@/components/ui/LabeledInput';
 import { DEFAULT_RADAR_SERVER_URL, normalizeRadarServerUrl } from '@/lib/radar-server';
 import { useTranslate } from '@/i18n';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import Button from '@/components/ui/Button';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 
 interface WeatherSettings {
   provider: string;
@@ -41,69 +46,51 @@ export default function WeatherSection({ values, onChange }: Props) {
   return (
     <section>
 
-      {/* Units — top of the section */}
+      {/* Units, at the top of the section */}
       <div className="mb-6" data-field-id="weather.units">
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.weatherPage.unitsLabel')}
-        </div>
-        <div className="inline-flex rounded-lg border border-hs-border-strong bg-hs-card p-0.5">
-          <button
-            type="button"
-            onClick={() => onChange({ units: 'imperial' })}
-            className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
-              units === 'imperial'
-                ? 'bg-hs-accent-soft text-hs-accent-hover'
-                : 'text-hs-text-muted hover:text-hs-text-body'
-            }`}
-          >
-            {t('settings.weatherPage.imperialOption')}
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange({ units: 'metric' })}
-            className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
-              units === 'metric'
-                ? 'bg-hs-accent-soft text-hs-accent-hover'
-                : 'text-hs-text-muted hover:text-hs-text-body'
-            }`}
-          >
-            {t('settings.weatherPage.metricOption')}
-          </button>
-        </div>
+        </SettingsSectionHeading>
+        <SegmentedControl
+          value={units}
+          onChange={(next) => onChange({ units: next })}
+          label={t('settings.weatherPage.unitsLabel')}
+          fit="content"
+          options={[
+            { value: 'imperial', label: t('settings.weatherPage.imperialOption') },
+            { value: 'metric', label: t('settings.weatherPage.metricOption') },
+          ]}
+        />
       </div>
 
       {/* Location warning */}
       {!hasLocation && (
-        <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-6">
-          <p className="text-xs text-hs-warning">
-            {t('settings.weatherPage.locationWarning')}
-          </p>
-        </div>
+        <Notice tone="warning" className="mb-6">{t('settings.weatherPage.locationWarning')}</Notice>
       )}
 
       {/* Default provider has no key: weather modules are blank until fixed */}
       {defaultNeedsKey && defaultProvider && (
-        <div data-testid="weather-default-needs-key" className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2.5 mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="text-xs text-hs-warning flex-1 min-w-[16rem]">
-            {t('settings.weatherPage.defaultNeedsKey.message', { provider: weatherProviderName(defaultProvider.id) })}
-          </p>
-          <button
-            type="button"
-            onClick={() => onChange({ provider: 'open-meteo' })}
-            className="text-xs font-medium px-2.5 py-1 rounded-md text-hs-text-primary bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
-          >
-            {t('settings.weatherPage.defaultNeedsKey.useOpenMeteo')}
-          </button>
-        </div>
+        <Notice
+          tone="warning"
+          className="mb-6"
+          testId="weather-default-needs-key"
+          action={
+            <Button size="sm" variant="warning" onClick={() => onChange({ provider: 'open-meteo' })}>
+              {t('settings.weatherPage.defaultNeedsKey.useOpenMeteo')}
+            </Button>
+          }
+        >
+          {t('settings.weatherPage.defaultNeedsKey.message', { provider: weatherProviderName(defaultProvider.id) })}
+        </Notice>
       )}
 
       {/* Providers */}
       <div>
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.weatherPage.providersLabel')}
-        </div>
+        </SettingsSectionHeading>
         {loading ? (
-          <p className="text-xs text-hs-text-faint">{t('settings.weatherPage.loadingProviderStatus')}</p>
+          <FieldHint>{t('settings.weatherPage.loadingProviderStatus')}</FieldHint>
         ) : (
           WEATHER_PROVIDERS.map((p) => (
             <WeatherProviderCard
@@ -124,9 +111,9 @@ export default function WeatherSection({ values, onChange }: Props) {
       {/* Rain radar server: the rain map reads from LibreWXR's public
           instance unless a household points the hub at its own copy. */}
       <div className="mt-8" data-field-id="weather.radarServer">
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.weatherPage.radar.heading')}
-        </div>
+        </SettingsSectionHeading>
         <div className="max-w-[480px]">
           <LabeledInput
             label={t('settings.weatherPage.radar.serverLabel')}
@@ -137,13 +124,13 @@ export default function WeatherSection({ values, onChange }: Props) {
           />
         </div>
         {radarServerInvalid ? (
-          <p className="mt-1.5 text-xs text-hs-warning" data-testid="radar-server-invalid">
+          <p className="mt-1.5 text-xs text-hs-warning-ink" data-testid="radar-server-invalid">
             {t('settings.weatherPage.radar.invalid')}
           </p>
         ) : (
-          <p className="mt-1.5 max-w-[640px] text-xs text-hs-text-faint">
+          <FieldHint className="mt-1.5 max-w-[640px]">
             {t('settings.weatherPage.radar.help')}
-          </p>
+          </FieldHint>
         )}
       </div>
     </section>

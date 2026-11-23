@@ -1,13 +1,13 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Plus } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useCustomIcons } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
 import { ACCEPT_ATTRIBUTE, customIconValue, parseCustomIconValue, type CustomIconEntry } from '@/lib/custom-icons';
 import PhoneCustomIconReviewSheet from './PhoneCustomIconReviewSheet';
-import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/remote-styles';
+import { REMOTE_ACCENT, REMOTE_ACCENT_INK } from '@/app/(remote)/remote/components/remote-styles';
 
 /** Section heading inside a phone picker. The brighter of the two faint
  *  greys: the darker one measured 4.18:1 at this size, under the minimum. */
@@ -27,8 +27,6 @@ interface PhoneCustomIconSectionProps {
   /** The field's current value, to mark the picked icon. */
   value: string | undefined;
   onPick: (value: string) => void;
-  /** Border colour of the picked cell (the meal form's amber, for one). */
-  accent?: string;
   /** Name under every tile, for pickers whose built-in tiles carry names
    *  too (chores, rewards, people). Otherwise the picked one is named under
    *  the grid. */
@@ -43,11 +41,12 @@ interface PhoneCustomIconSectionProps {
  * the family has added. Picking a file opens the review sheet, and keeping
  * the picture picks it straight away.
  *
- * Touch-sized and inline-styled like the rest of /remote. The editor has its
- * own section (`EditorCustomIconSection`); they share the upload flow and the
- * rules, not the markup.
+ * Touch-sized and inline-styled like the rest of /remote, the picked tile in
+ * the phone's amber. The editor has its own section
+ * (`EditorCustomIconSection`); they share the upload flow and the rules, not
+ * the markup. Forms reach it through `PhoneIconPicker`.
  */
-export default function PhoneCustomIconSection({ value, onPick, accent = REMOTE_ACCENT, captions = false, suggestedName }: PhoneCustomIconSectionProps) {
+export default function PhoneCustomIconSection({ value, onPick, captions = false, suggestedName }: PhoneCustomIconSectionProps) {
   const t = useTranslate('core');
   const { icons, byId } = useCustomIcons();
   const upload = useCustomIconUpload((icon) => onPick(customIconValue(icon.id)), { suggestedName });
@@ -60,8 +59,8 @@ export default function PhoneCustomIconSection({ value, onPick, accent = REMOTE_
     aspectRatio: captions ? undefined : '1',
     height: tileHeight,
     borderRadius: 8,
-    border: isSelected ? `2px solid ${accent}` : '2px solid transparent',
-    background: isSelected ? `color-mix(in srgb, ${accent} 12%, transparent)` : 'var(--hs-bg-panel)',
+    border: isSelected ? `2px solid ${REMOTE_ACCENT_INK}` : '2px solid transparent',
+    background: isSelected ? `color-mix(in srgb, ${REMOTE_ACCENT} 12%, transparent)` : 'var(--hs-bg-panel)',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
@@ -85,7 +84,7 @@ export default function PhoneCustomIconSection({ value, onPick, accent = REMOTE_
           className="press-scale-sm"
           style={{ ...cell(false), background: 'transparent', border: '2px dashed var(--hs-border-strong)', color: 'var(--hs-text-muted)' }}
         >
-          <span aria-hidden style={{ fontSize: 22, fontWeight: 300, lineHeight: 1 }}>+</span>
+          <Plus size={22} strokeWidth={1.75} aria-hidden />
           <span aria-hidden style={{ fontSize: 10, lineHeight: 1 }}>{t('customIcons.addShort')}</span>
         </button>
         {icons.length === 0 ? (

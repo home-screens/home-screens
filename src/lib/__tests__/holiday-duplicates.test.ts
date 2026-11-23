@@ -9,7 +9,7 @@ function calendarHoliday(title: string, day = '2026-11-11', over: Partial<Calend
   return makeEvent({ id: `g-${title}-${day}`, title, start: day, end: nextDay(day), allDay: true, sourceId: 'us-holidays', ...over });
 }
 
-/** The same day from the Public Holidays feature. */
+/** The same day from the Public holidays feature. */
 function publicHoliday(title: string, day = '2026-11-11'): CalendarEvent {
   return makeEvent({ id: `holiday-US-${day}-${title}`, title, start: day, end: nextDay(day), allDay: true, sourceId: 'holidays', kind: 'holiday' });
 }

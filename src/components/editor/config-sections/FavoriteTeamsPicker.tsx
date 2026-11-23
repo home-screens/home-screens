@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -13,6 +13,8 @@ import { SPORTS_LEAGUES, leagueLabel, leagueWallCode, type TeamOption } from '@/
 import { MAX_FAVORITE_TEAMS, isFavoriteLeagueEnabled, parseTeamKey, teamKey } from '@/lib/sports-order';
 import { TeamLogo } from '@/components/modules/shared/TeamLogo';
 import type { ComboboxOption } from '@/lib/combobox-filter';
+import FieldHint from '@/components/ui/FieldHint';
+import IconButton from '@/components/ui/IconButton';
 
 interface TeamRowProps {
   teamKeyId: string;
@@ -54,14 +56,7 @@ function SortableTeamRow({ teamKeyId, name, logo, code, off, onRemove, removeLab
       <span className="text-xs text-hs-text-body truncate flex-1">{name}</span>
       <span className="text-[11px] text-hs-text-muted shrink-0">{code}</span>
       {off && <span className="text-[10px] italic text-hs-text-muted shrink-0">{hiddenLabel}</span>}
-      <button
-        type="button"
-        aria-label={removeLabel}
-        onClick={onRemove}
-        className="text-hs-text-muted hover:text-hs-text-body shrink-0"
-      >
-        <X size={14} />
-      </button>
+      <IconButton label={removeLabel} onClick={onRemove} />
     </li>
   );
 }
@@ -125,7 +120,7 @@ export function FavoriteTeamsPicker({ leagues, value, onChange, help }: Favorite
     <div className="space-y-1.5" data-field-id="favoriteTeams">
       <span className="text-xs text-hs-text-muted">{t('configSections.sports.favoriteTeams')}</span>
       {value.length >= MAX_FAVORITE_TEAMS ? (
-        <p className="text-[11px] text-hs-text-muted">{t('configSections.sports.favoriteTeamsLimit', { count: MAX_FAVORITE_TEAMS })}</p>
+        <FieldHint>{t('configSections.sports.favoriteTeamsLimit', { count: MAX_FAVORITE_TEAMS })}</FieldHint>
       ) : (
         <Combobox
           value=""
@@ -136,7 +131,7 @@ export function FavoriteTeamsPicker({ leagues, value, onChange, help }: Favorite
           noMatchText={t('common.noMatches')}
         />
       )}
-      <p className="text-[11px] text-hs-text-faint">{help}</p>
+      <FieldHint>{help}</FieldHint>
       {value.length > 0 && (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={value} strategy={verticalListSortingStrategy}>

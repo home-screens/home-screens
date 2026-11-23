@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 import SunCalc from 'suncalc';
-import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
+import { formatTimeOfDay, type TimeOfDayFormat } from '@/lib/timezone';
 import { moonTimesForDay } from '@/lib/moon-times';
 import { moonPhaseKey, type MoonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { moonShadowPath } from '@/lib/weather/moon-shape';
@@ -92,7 +92,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
   // The household's 12/24 choice, or its formatting language's own clock.
   // The locale is the real one either way: it used to be pinned to en-US,
   // which printed American times on a German wall.
-  const clock: ClockFormat = { timezone, locale, hour12: householdTimeFormat(timeFormat, locale) === '12h' };
+  const clock: TimeOfDayFormat = { timezone, locale, timeFormat: householdTimeFormat(timeFormat, locale) };
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
@@ -126,7 +126,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
             {moonTimes.rise && (
               <MetadataText size="sm">
                 <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.rise')}</span>{' '}
-                <span className="tabular-nums">{formatTimeInTZ(moonTimes.rise, clock)}</span>
+                <span className="tabular-nums">{formatTimeOfDay(moonTimes.rise, clock)}</span>
               </MetadataText>
             )}
             {moonTimes.rise && moonTimes.set && (
@@ -135,7 +135,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
             {moonTimes.set && (
               <MetadataText size="sm">
                 <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.set')}</span>{' '}
-                <span className="tabular-nums">{formatTimeInTZ(moonTimes.set, clock)}</span>
+                <span className="tabular-nums">{formatTimeOfDay(moonTimes.set, clock)}</span>
               </MetadataText>
             )}
           </div>

@@ -97,22 +97,22 @@ The `data/port.conf` file is preserved across upgrades and deployments, and upgr
 
 ## Network settings (Settings → Network)
 
-The editor has a **Network** page under **Settings** that configures WiFi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi, Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
+The editor has a **Network** page under **Settings** that configures Wi-Fi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi, Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
 
 Every network change that touches the **management interface**: the one your browser is currently talking to the Pi over, uses a two-phase commit. The editor asks you to confirm the warning, the server applies the change with a **60-second auto-rollback** scheduled against the previous settings, and the editor polls `GET /api/system/network/confirm` to prompt you when the new connection is working. If you don't confirm within 60 seconds (because the change cut off your session), the Pi reverts automatically. A connectivity watchdog timer (`wifi-watchdog.timer`) is paused during this window so it doesn't race the rollback.
 
-### WiFi
+### Wi-Fi
 
-- **Scan nearby networks**: lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
-- **Connect**: click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`). Each adapter gets its own saved entry, named after the network and the adapter (`HomeNet (wlan1)`), so a USB adapter can join the network the built-in WiFi is already on. Connecting again to a network you have saved updates that entry, password included.
-- **Hidden networks**: **Connect to hidden network...** takes a typed-in name and password for a network that does not broadcast its name.
-- **Saved Networks**: list with the adapter each entry belongs to, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
+- **Available Wi-Fi networks**: **Scan** lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
+- **Connect**: click a network, enter the password if required, confirm the disconnect warning if you're on Wi-Fi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`). Each adapter gets its own saved entry, named after the network and the adapter (`HomeNet (wlan1)`), so a USB adapter can join the network the built-in Wi-Fi is already on. Connecting again to a network you have saved updates that entry, password included.
+- **Hidden networks**: **Connect to hidden network…** takes a typed-in name and password for a network that does not broadcast its name.
+- **Saved networks**: list with the adapter each entry belongs to, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
 - **Forget**: `DELETE /api/system/network/wifi/saved` drops a saved entry. Forgetting the network your browser is connected through asks first, and names the address the Pi still answers on when it has another adapter.
 - **Disconnect**: brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`). The same warning, with the same address hint, appears when it is the network you are browsing over.
 
 ### IP address
 
-Each interface can be toggled between **DHCP (auto)** and **Static (manual)**. Manual mode requires `address`, `prefix` (CIDR bits), `gateway`, and optional `dns` array. Changes go through the same management-interface confirmation + 60 s rollback as WiFi.
+Each interface can be toggled between **DHCP (auto)** and **Static (manual)**. Manual mode requires `address`, `prefix` (CIDR bits), `gateway`, and optional `dns` array. Changes go through the same management-interface confirmation + 60 s rollback as Wi-Fi.
 
 ### Hostname
 
@@ -124,7 +124,7 @@ The **Diagnostics** panel pings the default gateway and `1.1.1.1`, and reports w
 
 ### Source-based routing
 
-When a Pi has **two WiFi interfaces** (common with USB adapters for range), Home Screens configures source-based routing so both interfaces remain reachable simultaneously. The hub refreshes the routing rules after every WiFi or IP change via `ensureSourceRouting()`. Without this, Linux's default-route picking would hide one interface whenever both are up.
+When a Pi has **two Wi-Fi interfaces** (common with USB adapters for range), Home Screens configures source-based routing so both interfaces remain reachable simultaneously. The hub refreshes the routing rules after every Wi-Fi or IP change via `ensureSourceRouting()`. Without this, Linux's default-route picking would hide one interface whenever both are up.
 
 ---
 
@@ -380,14 +380,14 @@ Home Screens supports a multi-display deployment where one server drives any num
 
 ---
 
-## WiFi reliability
+## Wi-Fi reliability
 
-The install script applies several WiFi reliability hardening measures for Raspberry Pi deployments, especially important for headless displays on mesh networks:
+The install script applies several Wi-Fi reliability hardening measures for Raspberry Pi deployments, especially important for headless displays on mesh networks:
 
 - **Infinite autoconnect retries**: NetworkManager's default of 4 retries can leave a headless display permanently offline; the installer sets unlimited retries
 - **Disabled scan MAC randomization**: random MACs confuse mesh access points and can prevent reconnection
-- **Disabled IPv6 on WiFi**: the Broadcom WiFi driver (`brcmfmac`) handles IPv6 multicast poorly, which can cause intermittent drops
-- **Masked suspend/hibernate**: `brcmfmac` cannot recover WiFi after suspend, so power management sleep states are disabled
+- **Disabled IPv6 on Wi-Fi**: the Broadcom Wi-Fi driver (`brcmfmac`) handles IPv6 multicast poorly, which can cause intermittent drops
+- **Masked suspend/hibernate**: `brcmfmac` cannot recover Wi-Fi after suspend, so power management sleep states are disabled
 - **Connectivity watchdog**: a timer checks connectivity every 2 minutes and escalates through three recovery steps: NetworkManager reconnect, interface cycle, and driver reload
 
 These changes are applied automatically by the full install and by the pre-built image. No manual configuration is needed.
@@ -396,7 +396,7 @@ Note that display-only Pis installed with `--display-only` do **not** get these 
 
 ### Offline indicator
 
-When the display loses network connectivity, a WiFi-off icon appears at the lower-right corner of the screen. The indicator uses a 3-second debounce to avoid flashing during brief WiFi blips. It clears immediately when connectivity is restored.
+When the display loses network connectivity, a Wi-Fi-off icon appears at the lower-right corner of the screen. The indicator uses a 3-second debounce to avoid flashing during brief Wi-Fi blips. It clears immediately when connectivity is restored.
 
 ---
 
@@ -440,7 +440,7 @@ No inbound ports beyond the web server port are required. All external service c
 
 ## Security best practices
 
-Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your WiFi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here. Backing up your API keys and connected accounts is the one thing that always needs a password, since without one the hub cannot tell you from anyone else on the network.
+Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your Wi-Fi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here. Backing up your API keys and connected accounts is the one thing that always needs a password, since without one the hub cannot tell you from anyone else on the network.
 
 ### Enable password protection
 
@@ -454,7 +454,7 @@ Set a password in the editor under **Settings > Security**. When enabled:
 - The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
 - Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
 
-Password protection is the right default for most LANs. If you want to lock things down further, including the kid view and the display itself, add an IP allowlist on top as described below.
+Password protection is the right default for most LANs. If you want to lock things down further, including the kids' chores page and the display itself, add an IP allowlist on top as described below.
 
 ### Restrict access by IP
 

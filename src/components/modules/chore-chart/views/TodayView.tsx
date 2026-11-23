@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Check } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import type { BonusItem } from '@/lib/chore-bonus';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
-import { CHORE_TIME_ORDER, buildChoreRows, getUniqueInitials, mergeChoreRows, type ChoreRow } from '@/lib/chore-rows';
+import { CHORE_TIME_ORDER, buildChoreRows, mergeChoreRows, type ChoreRow } from '@/lib/chore-rows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -20,7 +21,7 @@ import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
 import { BonusRows } from '../BonusRows';
-import { memberInitials } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
 import { localDateFromIso } from '@/lib/iso-date';
 
 interface TodayViewProps {
@@ -244,7 +245,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
               >
                 <span>{meta.icon}</span>
                 <span>{t(`chore-chart.timeOfDay.${section}`)}</span>
-                {sectionDone && isPast && <span style={{ marginLeft: 'auto' }}>{'✓'}</span>}
+                {sectionDone && isPast && <Check size="1em" strokeWidth={2.5} aria-hidden="true" style={{ marginLeft: 'auto', flexShrink: 0 }} />}
               </div>
 
               {/* Chore rows */}

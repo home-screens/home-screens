@@ -44,10 +44,10 @@ test.afterEach(async ({ request }) => {
 async function openLibrary(page: Page) {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
 }
 
-/** The Meals tab's own notice, which sits over its sheets and above the Library's add button. */
+/** The phone's toast, which sits over the sheets and above the Library's add button. */
 function notice(page: Page, text: string) {
   return page.getByRole('status').filter({ hasText: text }).getByText(text, { exact: true });
 }
@@ -138,7 +138,7 @@ test('saved meals with a recipe get the wall button, and a wall picked at the to
 
   // Tapping the meal still opens it to edit.
   await page.getByTestId('library-card').filter({ hasText: SOUP.name }).getByText(SOUP.name).click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
+  await expect(page.getByText('Edit meal')).toBeVisible();
 });
 
 test('with All picked and two walls, the phone asks which wall once, remembers it for recipes, and can take the recipe down', async ({ page, request }) => {
@@ -206,7 +206,7 @@ test("the planned meal's sheet sends its main dish's recipe", async ({ page, req
   const sheet = page.getByTestId('meal-sheet');
   await expect(sheet).toBeVisible();
   await expect(sheet.getByTestId('recipe-wall-button')).toHaveCount(0);
-  await sheet.getByRole('button', { name: 'Done', exact: true }).click();
+  await sheet.getByTestId('sheet-close').click();
   await expect(sheet).toHaveCount(0);
 
   await page.getByTestId('meals-week-row').filter({ hasText: SOUP.name }).first().click();
@@ -237,8 +237,8 @@ test('a recipe gone from the hub, Mealie not answering, or the hub failing each 
   await openLibrary(page);
 
   const wall = page.getByTestId('library-card').filter({ hasText: SOUP.name }).getByTestId('recipe-wall-button');
-  // The Meals tab's error line (Next's empty route announcer is an alert too).
-  const error = page.getByRole('alert').filter({ hasText: /\S/ });
+  // The phone's toast, said as an error.
+  const error = page.locator('[data-testid="remote-toast"][data-tone="error"]');
   for (const answer of answers.slice(0, -1)) {
     await wall.click();
     await expect(error).toHaveText(answer.toast!);

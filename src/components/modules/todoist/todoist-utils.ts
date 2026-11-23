@@ -1,7 +1,7 @@
 import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import type { TranslateFn } from '@/i18n/types';
-import { formatTimeInTZ, isoDateInTZ, parseDateInTZ } from '@/lib/timezone';
+import { formatTimeOfDay, isoDateInTZ, parseDateInTZ } from '@/lib/timezone';
 
 import { householdTimeFormat } from '@/lib/clock-time';
 import { parseIsoDate, isoDaysBetween } from '@/lib/iso-date';
@@ -100,7 +100,7 @@ export const DATE_GROUP_LABEL_KEYS: Record<DateGroupKey, string> = {
   overdue: 'todoist.groups.overdue',
   today: 'todoist.groups.today',
   tomorrow: 'todoist.groups.tomorrow',
-  thisWeek: 'todoist.groups.thisWeek',
+  thisWeek: 'lookAhead.thisWeek',
   upcoming: 'todoist.groups.upcoming',
   noDate: 'todoist.groups.noDate',
 };
@@ -190,9 +190,7 @@ export function formatDueDate(
   if (diff === 0) {
     const at = dueInstant(due, timezone);
     if (at) {
-      const hour12 = householdTimeFormat(timeFormat, locale) === '12h';
-      // Two-digit hours on a 24-hour clock ("09:05"), the HH:mm this label has always used.
-      const timeText = formatTimeInTZ(at, { timezone, locale, hour12 }, hour12 ? undefined : { hour: '2-digit' });
+      const timeText = formatTimeOfDay(at, { timeFormat: householdTimeFormat(timeFormat, locale), locale, timezone });
       return {
         text: t('todoist.dueDate.todayAtTime', { time: timeText }),
         color: '#f59e0b',

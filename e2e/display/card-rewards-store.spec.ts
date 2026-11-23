@@ -137,7 +137,7 @@ test.describe('chore-chart rewards store', () => {
     await mod.getByTestId('store-redeem').click();
     await confirmRedeem(page);
     await mod.getByTestId('store-history').click();
-    await expect(mod).toContainText('Reward History');
+    await expect(mod).toContainText('Reward history');
     await expect(mod.locator('[data-chore-row]')).toContainText(['Candy']);
 
     await mod.getByTestId('history-back').click();

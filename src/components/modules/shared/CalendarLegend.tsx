@@ -1,4 +1,5 @@
 import type { LegendAvatar, LegendRow } from '@/lib/calendar-legend';
+import { MemberBadge } from './MemberBadge';
 
 /**
  * Color key for the calendar modules, in any mode: one dot + name per
@@ -76,29 +77,24 @@ export function CalendarLegend({ rows, style, label, failingIds }: {
   );
 }
 
-/** An initials circle sized off the legend font; stacked ones overlap the previous by a third. */
+/** The letters' size in the legend's type; the circle and its overlap are given in the badge's own ems. */
+const AVATAR_LETTER_EM = 0.62;
+const em = (legendEm: number) => `${legendEm / AVATAR_LETTER_EM}em`;
+
+/** An initials circle 1.4 legend ems across; stacked ones overlap the previous by a third. */
 function LegendAvatarDot({ avatar, stacked, failing }: { avatar: LegendAvatar; stacked?: boolean; failing?: boolean }) {
   return (
-    <span
+    <MemberBadge
       aria-hidden="true"
+      initials={avatar.initials}
+      color={avatar.color}
+      fontSize={`${AVATAR_LETTER_EM}em`}
+      size={em(1.4)}
       style={{
-        width: '1.4em',
-        height: '1.4em',
-        borderRadius: '50%',
-        background: avatar.color,
-        color: '#fff',
-        fontSize: '1em',
-        fontWeight: 700,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        marginLeft: stacked ? '-0.45em' : undefined,
+        marginLeft: stacked ? em(-0.45) : undefined,
         // The ring separates stacked circles from each other; the amber ring wins while a feed is failing.
         boxShadow: failing ? '0 0 0 2px rgba(217,164,65,0.75)' : stacked ? '0 0 0 2px var(--cal-legend-bg, var(--cal-bg, #0000))' : undefined,
       }}
-    >
-      <span style={{ fontSize: avatar.initials.length > 2 ? '0.5em' : '0.62em', lineHeight: 1 }}>{avatar.initials}</span>
-    </span>
+    />
   );
 }

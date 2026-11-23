@@ -1,7 +1,7 @@
 import type { AffirmationEntry } from './types';
 
 // ---------------------------------------------------------------------------
-// Built-in content library — da-DK (198 entries)
+// Built-in content library: da-DK (198 entries)
 // ---------------------------------------------------------------------------
 
 export const DA_DK_AFFIRMATIONS: AffirmationEntry[] = [

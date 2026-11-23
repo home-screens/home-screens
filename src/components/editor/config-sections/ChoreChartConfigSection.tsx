@@ -57,7 +57,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
   return (
     <>
-      {/* View Mode */}
+      {/* View mode */}
       <ViewSelect
         value={c.view ?? 'board'}
         onChange={(v) => set({ view: v })}
@@ -119,20 +119,21 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       )}
       {c.view !== 'reward-history' && (
         <Toggle
-          label={t(c.view === 'rewards-store' ? 'configSections.chore-chart.tapToRedeem' : 'configSections.chore-chart.tapToComplete')}
+          label={t('configSections.tapOnWall')}
           checked={c.allowDisplayComplete ?? true}
           onChange={(v) => set({ allowDisplayComplete: v })}
         />
       )}
 
-      {/* Accent Color */}
+      {/* Accent color */}
       <ColorPicker
         label={t('configSections.chore-chart.accentColor')}
+        swatches="accent"
         value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
 
-      <ChoreChartLauncher weekStartDay={c.weekStartDay ?? 'monday'} accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR} keyPrefix="chore-chart" />
+      <ChoreChartLauncher weekStartDay={c.weekStartDay ?? 'monday'} accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR} />
     </>
   );
 }

@@ -22,9 +22,13 @@ vi.mock('@/hooks/useFamilyData', () => ({
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch: state.request }));
 vi.mock('@/hooks/useFetchData', () => ({ useFetchData: () => [null, false, null] }));
 import FamilyManager from '../FamilyManager';
+import PhoneFamilyManager from '../PhoneFamilyManager';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { useConfirmStore } from '@/stores/confirm-store';
 
+// The editor asks through its own confirm window, mounted once at the editor's root.
 function render(children: ReactNode) {
-  return renderUI(children, { wrapper: ({ children }) => <I18nProvider locale="en-US" blob={{ core: dictionary, modules, remote }}>{children}</I18nProvider> });
+  return renderUI(children, { wrapper: ({ children }) => <I18nProvider locale="en-US" blob={{ core: dictionary, modules, remote }}>{children}<ConfirmModal /></I18nProvider> });
 }
 
 function person(id: string, name = id) {
@@ -35,7 +39,10 @@ beforeEach(() => {
   state.snapshot = { members: [person('alex', 'Alex')], groups: [], revision: 'r1' };
   state.request.mockReset();
 });
-afterEach(cleanup);
+afterEach(() => {
+  if (useConfirmStore.getState().open) useConfirmStore.getState().respond(false);
+  cleanup();
+});
 
 describe('FamilyManager safety', () => {
   it('uses the draft revision after a poll and shows a conflict without retrying', async () => {
@@ -62,7 +69,7 @@ describe('FamilyManager safety', () => {
   it('names the deletion consequences and only submits exact removed IDs after confirmation', async () => {
     render(<FamilyManager />);
     fireEvent.click(screen.getByRole('button', { name: 'Remove Alex?' }));
-    const confirmation = screen.getByRole('alertdialog', { name: 'Remove Alex?' });
+    const confirmation = screen.getByRole('dialog', { name: 'Remove Alex?' });
     expect(confirmation.textContent).toContain('completion history');
     expect(confirmation.textContent).toContain('ticket balance');
     expect(confirmation.textContent).toContain('which calendars are theirs');
@@ -80,11 +87,11 @@ describe('FamilyManager safety', () => {
     render(<FamilyManager chores={[chore('shared', ['alex', 'sam'], { alex: [1], sam: [2] }), chore('only-alex', ['alex']), chore('sam', ['sam'])]} />);
     expect(screen.getByText('2 chores')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Remove Alex?' }));
-    expect(screen.getByRole('alertdialog').textContent).toContain('Alex is assigned to 2 chores.');
-    expect(screen.getByRole('alertdialog').textContent).toContain('Chores with no one left are deleted.');
+    expect(screen.getByRole('dialog').textContent).toContain('Alex is assigned to 2 chores.');
+    expect(screen.getByRole('dialog').textContent).toContain('Chores with no one left are deleted.');
   });
 
-  it('marks who has a timetable beside their chore count and says it goes with them', () => {
+  it('marks who has a timetable beside their chore count and says it goes with them', async () => {
     state.snapshot = { members: [person('alex', 'Alex'), person('sam', 'Sam')], groups: [], revision: 'r1' };
     const chore: ChoreDefinition = {
       id: 'dishes', name: 'dishes', emoji: '', points: 1, frequency: 'daily', daysOfWeek: [], timeOfDay: 'anytime', rotation: 'fixed', assigneeIds: ['alex'],
@@ -95,11 +102,13 @@ describe('FamilyManager safety', () => {
     expect(screen.getByText('0 chores')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove Sam?' }));
-    expect(screen.getByRole('alertdialog').textContent).not.toContain('timetable');
+    expect(screen.getByRole('dialog').textContent).not.toContain('timetable');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    // The roster unlocks once the editor's question has its answer.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Remove Alex?' }).hasAttribute('disabled')).toBe(false));
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove Alex?' }));
-    const confirmation = screen.getByRole('alertdialog').textContent;
+    const confirmation = screen.getByRole('dialog').textContent;
     expect(confirmation).toContain('Alex is assigned to 1 chore.');
     expect(confirmation).toContain('Alex has a school timetable, and it is removed as well.');
     // Their stars on the family's meals go with them, and the warning says so.
@@ -126,7 +135,7 @@ describe('FamilyManager safety', () => {
 
   it('uses the phone form, offers curated icons and color swatches, and confirms discarding edits', () => {
     state.snapshot.members[0].emoji = 'lucide:crown';
-    render(<FamilyManager variant="mobile" />);
+    render(<PhoneFamilyManager />);
     fireEvent.click(screen.getByRole('button', { name: 'Edit Alex' }));
     expect(screen.getByRole('dialog', { name: 'Edit person' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Icon: Royal' }));
@@ -153,13 +162,29 @@ describe('FamilyManager safety', () => {
     expect(JSON.parse(state.request.mock.calls[0][1].body).members[0]).toMatchObject({ name: legacyName, color: '#fbbf24' });
   });
 
+  it('asks on the phone in its own question, the red answer on top, and removes on a yes', async () => {
+    render(<PhoneFamilyManager />);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Alex?' }));
+    const question = screen.getByTestId('confirm-sheet');
+    expect(question.getAttribute('aria-label')).toBe('Remove Alex?');
+    expect(question.textContent).toContain('ticket balance');
+    const [first, second] = within(question).getAllByRole('button');
+    expect(first.textContent).toBe('Remove person');
+    expect(second.textContent).toBe('Cancel');
+    state.request.mockResolvedValue({ ok: true, json: async () => ({ members: [], groups: [], revision: 'r2' }) });
+    fireEvent.click(first);
+    await waitFor(() => expect(state.request).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(state.request.mock.calls[0][1].body)).toEqual({ members: [], revision: 'r1', removedIds: ['alex'] });
+    expect(screen.queryByTestId('confirm-sheet')).toBeNull();
+  });
+
   it('keeps a failed save visible inside the phone form and retains the draft', async () => {
-    render(<FamilyManager variant="mobile" />);
+    render(<PhoneFamilyManager />);
     fireEvent.click(screen.getByRole('button', { name: 'Edit Alex' }));
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Alicia' } });
     state.request.mockResolvedValue({ ok: false, status: 500, json: async () => ({ error: 'Could not save your family.' }) });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(within(screen.getByRole('dialog', { name: 'Edit person' })).getByRole('status').textContent).toBe('Could not save your family.'));
+    await waitFor(() => expect(within(screen.getByRole('dialog', { name: 'Edit person' })).getByRole('status').textContent).toBe("That didn't save. Try again."));
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Alicia');
     expect(screen.getByRole('button', { name: 'Cancel' }).hasAttribute('disabled')).toBe(false);
   });

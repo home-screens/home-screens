@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import { postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig, choreChartModule, makeScreen, textModule } from '../helpers/config-fixtures';
 import { drainCommands, postDisplayStatus } from '../helpers/display';
+import { NO_VALUE } from '@/lib/constants';
 
 /** Two named displays with distinct screen sets, for per-display targeting tests. */
 function twoDisplays(
@@ -32,11 +33,11 @@ test('sleep button enqueues a sleep command for the display', async ({ page, req
   // display the hub has never heard from cannot be confirmed or reverted.
   await postHeartbeat(request);
   await page.goto('/remote');
-  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  const sleepButton = page.getByRole('button', { name: 'Put the wall to sleep' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();
   // The button flips optimistically and says who it is waiting on.
-  await expect(page.getByText('Waiting for The display…')).toBeVisible();
+  await expect(page.getByText('Waiting for the wall…')).toBeVisible();
 
   // Poll the same queue the kiosk polls (legacy single-display key __default__)
   await expect
@@ -75,7 +76,7 @@ test('next-screen button enqueues a next command', async ({ page, request }) => 
 
 test('family tabs stay on the bar without their modules and explain the gap', async ({ page }) => {
   await page.goto('/remote');
-  await expect(page.getByRole('button', { name: 'Sleep Display' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Put the wall to sleep' })).toBeVisible();
   // exact match: the backup action's accessible name contains the word "chores"
   // ("Download config, chores, meals & rewards"), so a substring match would
   // false-positive. The real tab-bar button is aria-label="Chores".
@@ -107,7 +108,7 @@ test('the wake button appears for an asleep display and dispatches a wake comman
   await putConfig(request, twoDisplays({ id: 'wakekit', name: 'Wake Kitchen' }, { id: 'wakemain', name: 'Wake Main' }));
   await drainCommands(request, 'wakekit');
   // Seed an asleep heartbeat so the status poll flips the quick-action button
-  // from "Sleep Display" to "Wake Display". It goes to a named display's own
+  // from "Put the wall to sleep" to "Wake the wall". It goes to a named display's own
   // slot: an asleep status left in the single wall's slot would reach the
   // sleep test that shares this worker.
   await postDisplayStatus(request, 'wakekit', { displayState: 'asleep' });
@@ -117,7 +118,7 @@ test('the wake button appears for an asleep display and dispatches a wake comman
   // scope to it.
   await page.getByRole('button', { name: 'Wake Kitchen', exact: true }).click();
 
-  const wakeButton = page.getByRole('button', { name: 'Wake Display' });
+  const wakeButton = page.getByRole('button', { name: 'Wake the wall' });
   await expect(wakeButton).toBeVisible(); // waits out the status poll reporting asleep
   await wakeButton.click();
 
@@ -182,7 +183,7 @@ test('the brightness slider posts its value to the targeted display queue', asyn
   expect((await drainCommands(request, 'bmain')).map((c) => c.type)).not.toContain('brightness');
 });
 
-test('the brightness slider starts from what the display reports, or -- until it has', async ({ page, request }) => {
+test('the brightness slider starts from what the display reports, or the no-value mark until it has', async ({ page, request }) => {
   await putConfig(request, twoDisplays({ id: 'brkit', name: 'Level Kitchen' }, { id: 'brmain', name: 'Level Main' }));
   // Kitchen last reported 40%; Main has never reported at all.
   await postHeartbeat(request, { display: 'brkit', displayState: 'dimmed', brightness: 40 });
@@ -193,7 +194,7 @@ test('the brightness slider starts from what the display reports, or -- until it
   await expect(page.getByRole('slider')).toHaveValue('40');
 
   await page.getByRole('button', { name: 'Level Main', exact: true }).click();
-  await expect(page.getByTestId('brightness-value')).toHaveText('--');
+  await expect(page.getByTestId('brightness-value')).toHaveText(NO_VALUE);
   await expect(page.getByRole('slider')).toBeDisabled();
 });
 
@@ -206,7 +207,7 @@ test('a sleep that no display confirms reverts and says the display did not resp
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Revert Kitchen', exact: true }).click();
 
-  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  const sleepButton = page.getByRole('button', { name: 'Put the wall to sleep' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();
   await expect(page.getByText('Waiting for Revert Kitchen…')).toBeVisible();
@@ -215,7 +216,7 @@ test('a sleep that no display confirms reverts and says the display did not resp
   const toast = page.getByTestId('remote-toast');
   await expect(toast).toHaveText(/Revert Kitchen didn't respond/, { timeout: 15000 });
   await expect(toast).toHaveAttribute('data-tone', 'error');
-  await expect(page.getByRole('button', { name: 'Sleep Display' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Put the wall to sleep' })).toBeEnabled();
   await expect(page.getByText('Waiting for Revert Kitchen…')).toHaveCount(0);
 });
 
@@ -232,7 +233,7 @@ test('the hero names the targeted display, and All mode lists every display', as
   await expect(all.getByText('Hero Beta')).toBeVisible();
   await expect(all.getByText('Screen 2 of 2')).toBeVisible();
   await expect(all.getByText('Asleep', { exact: true })).toBeVisible();
-  await expect(all.getByText('Pick one display to change its screen or profile.')).toBeVisible();
+  await expect(all.getByText('Pick one wall to change its screen or profile.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Next screen' })).toHaveCount(0);
 
   // One display: the hero is prefixed with its name and the nav returns.
@@ -250,14 +251,14 @@ test('sending an alert lands the payload on the targeted display queue only', as
 
   await page.getByRole('button', { name: 'Alert Kitchen', exact: true }).click();
 
-  // Two buttons read "Send Alert": the QuickActions trigger (first in the DOM)
+  // Two buttons read "Send alert": the QuickActions trigger (first in the DOM)
   // opens the sheet; the sheet's submit button (last) sends it.
-  await page.getByRole('button', { name: 'Send Alert', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Send alert', exact: true }).first().click();
   await page.getByRole('button', { name: 'Warning', exact: true }).click();
   await page.getByLabel('Title', { exact: true }).fill('Dinner');
   await page.getByLabel('Message', { exact: true }).fill('Time to eat');
   await page.getByRole('button', { name: '30s', exact: true }).click();
-  await page.getByRole('button', { name: 'Send Alert', exact: true }).last().click();
+  await page.getByRole('button', { name: 'Send alert', exact: true }).last().click();
 
   let alert: { type: string; payload?: Record<string, unknown> } | undefined;
   await expect
@@ -279,7 +280,7 @@ test('sending an alert lands the payload on the targeted display queue only', as
   // (The closed sheet is slid off-screen and aria-hidden, so the role query
   // stops resolving it; a plain label query would still see the input.)
   await expect(page.getByTestId('remote-toast')).toHaveText('Alert sent to Alert Kitchen');
-  await expect(page.getByRole('heading', { name: 'Send Alert' })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Send alert' })).toBeHidden();
 });
 
 test('a persistent alert can be cleared from the phone', async ({ page, request }) => {
@@ -289,7 +290,7 @@ test('a persistent alert can be cleared from the phone', async ({ page, request 
   await postHeartbeat(request, { display: 'clkit', activeAlerts: 1 });
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Clear Kitchen', exact: true }).click();
-  await page.getByRole('button', { name: 'Send Alert', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Send alert', exact: true }).first().click();
 
   const clearButton = page.getByRole('button', { name: /Clear alerts on Clear Kitchen/ });
   await expect(clearButton).toContainText('(1 showing now)');
@@ -361,10 +362,10 @@ test('the backup reminder banner shows, downloads a backup, and dismisses', asyn
   await page.goto('/remote');
   await expect(page.getByText(/backed up in 40 days/)).toBeVisible();
 
-  // "Backup" GETs /api/backup (unstubbed, served from the sandbox) and triggers
+  // "Back up now" GETs /api/backup (unstubbed, served from the sandbox) and triggers
   // a client-side file download; the download event is the success signal.
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Backup', exact: true }).click();
+  await page.getByRole('button', { name: 'Back up now', exact: true }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^home-screens-backup-.*\.json$/);
 
@@ -385,7 +386,7 @@ test('the banner says when the automatic backup stopped working, with no button 
   await page.goto('/remote');
   await expect(page.getByTestId('backup-reminder-banner'))
     .toHaveText('The automatic backup did not work. Open Settings on a computer to see why.');
-  await expect(page.getByRole('button', { name: 'Backup', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Back up now', exact: true })).toHaveCount(0);
   await page.getByTestId('backup-reminder-banner').locator('xpath=../..').getByRole('button', { name: 'Dismiss' }).click();
   await expect(page.getByTestId('backup-reminder-banner')).toHaveCount(0);
 });

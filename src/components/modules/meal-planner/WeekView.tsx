@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'react';
 import { Star } from 'lucide-react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { TEXT_OPACITY, ink } from '@/lib/constants';
+import { TEXT_OPACITY, ink, NO_VALUE } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
@@ -304,7 +304,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                         )}
                       </>
                     ) : (
-                      <span style={{ fontSize: '0.6em', opacity: 0.2 }}>&mdash;</span>
+                      <span style={{ fontSize: '0.6em', opacity: 0.2 }}>{NO_VALUE}</span>
                     )}
                   </div>
                 );

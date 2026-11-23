@@ -4,18 +4,18 @@
     "saveFailed": "Dat is niet opgeslagen. Probeer het opnieuw.",
     "failed": "Er ging iets mis. Probeer het opnieuw.",
     "lists": {
-      "nameRequired": "Geef de lijst een naam",
-      "nameTooLong": "Een lijstnaam mag maximaal {max} tekens lang zijn",
-      "textRequired": "Typ eerst iets",
-      "textTooLong": "Een item mag maximaal {max} tekens lang zijn",
-      "badDate": "Die dag kennen we niet",
-      "badColor": "Kies een kleur uit de lijst",
-      "listGone": "Die lijst bestaat niet meer",
-      "itemGone": "Dat item bestaat niet meer",
-      "tooManyLists": "Je kunt maximaal {max} lijsten hebben",
-      "tooManyItems": "Een lijst kan maximaal {max} items bevatten",
+      "nameRequired": "Geef de lijst een naam.",
+      "nameTooLong": "Een lijstnaam mag maximaal {max} tekens lang zijn.",
+      "textRequired": "Typ eerst iets.",
+      "textTooLong": "Een item mag maximaal {max} tekens lang zijn.",
+      "badDate": "Die dag kennen we niet.",
+      "badColor": "Kies een kleur uit de lijst.",
+      "listGone": "Die lijst bestaat niet meer.",
+      "itemGone": "Dat item bestaat niet meer.",
+      "tooManyLists": "Je kunt maximaal {max} lijsten hebben.",
+      "tooManyItems": "Een lijst kan maximaal {max} items bevatten.",
       "orderChanged": "De lijst is veranderd terwijl je dingen verplaatste. Probeer het opnieuw.",
-      "wallAddOff": "Toevoegen vanaf het display staat uit voor deze lijst",
+      "wallAddOff": "Toevoegen vanaf de muur staat uit voor deze lijst.",
       "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens."
     },
     "notes": {
@@ -31,7 +31,7 @@
       "revision": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",
       "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens.",
       "nameTooLong": "Een naam mag maximaal {max} tekens lang zijn.",
-      "tooManyMembers": "Je kunt mensen toevoegen zolang het gezin minder dan {max} leden heeft.",
+      "tooManyMembers": "Een gezin kan maximaal {max} personen hebben.",
       "tooManyGroups": "Je kunt maximaal {max} groepen hebben.",
       "groupNameTooLong": "Een groepsnaam mag maximaal {max} tekens lang zijn.",
       "groupNameTaken": "Je hebt al een groep met de naam {name}.",
@@ -53,7 +53,12 @@
       "badName": "Die mapnaam kan niet worden gebruikt. Probeer er een met letters en cijfers.",
       "tooDeep": "Mappen kunnen maar {max} niveaus diep gaan.",
       "folderExists": "Er is hier al een map met de naam {name}.",
-      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst."
+      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst.",
+      "badType": "{name} is geen afbeelding of video die Home Screens kan tonen.",
+      "tooBig": "{name} is te groot. Afbeeldingen mogen maximaal 10 MB zijn en video's maximaal 200 MB.",
+      "tooBigAll": "Dat is te veel om in één keer te uploaden. Video's mogen maximaal 200 MB zijn.",
+      "svgNoSize": "{name} heeft geen afmetingen. Voeg een viewBox toe aan de SVG en probeer het opnieuw.",
+      "replaceKind": "Het nieuwe bestand moet eindigen op {ext}, net als het bestand dat het vervangt."
     },
     "calendarWrite": {
       "titleRequired": "Geef de afspraak een naam.",
@@ -74,10 +79,61 @@
       "calendarNotTicked": "In die agenda kun je geen afspraken zetten.",
       "notEditable": "Die afspraak kan hier niet worden gewijzigd.",
       "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd.",
-      "gone": "Die afspraak was al verwijderd.",
+      "gone": "Die afspraak was al weggehaald.",
       "notAllowed": "Deze agenda kan niet vanuit Home Screens worden gewijzigd.",
       "signInNeeded": "Je moet je opnieuw aanmelden bij de agenda. Dat doe je bij Instellingen > Kalender.",
       "unreachable": "De agenda was niet bereikbaar, dus er is nog niets veranderd. Probeer het over een minuut opnieuw."
+    },
+    "unreachable": "Kon Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
+    "power": {
+      "notManaged": "Home Screens kan zichzelf op dit apparaat niet opnieuw starten. Zet in plaats daarvan alles uit en weer aan."
+    },
+    "network": {
+      "addressNeeded": "Typ het adres voor deze verbinding.",
+      "badAddress": "Dat adres begrijpt Home Screens niet. Gebruik vier getallen met punten ertussen, zoals 192.168.1.50.",
+      "prefixNeeded": "Typ het prefix: het getal na de schuine streep, zoals 24.",
+      "badPrefix": "Het prefix is een getal van 1 tot en met 32, zoals 24.",
+      "gatewayNeeded": "Typ het adres van de gateway. Meestal is dat je router, zoals 192.168.1.1.",
+      "badGateway": "Dat gatewayadres begrijpt Home Screens niet. Gebruik vier getallen met punten ertussen, zoals 192.168.1.1.",
+      "badDns": "Een van de DNS-servers is geen adres dat Home Screens begrijpt. Gebruik vier getallen met punten ertussen, zoals 1.1.1.1.",
+      "changePending": "Er wacht nog een andere netwerkwijziging op bevestiging. Wacht tot die klaar is of ga terug, en probeer het dan opnieuw.",
+      "badHostname": "Die naam kan niet worden gebruikt. Gebruik letters, cijfers en streepjes, maximaal 63 tekens."
+    },
+    "wifi": {
+      "badName": "Die netwerknaam kan niet worden gebruikt. Controleer hem en probeer het opnieuw.",
+      "badPassword": "Een wifiwachtwoord heeft 8 tot 63 tekens. Controleer het en probeer het opnieuw.",
+      "passwordNeeded": "Dit netwerk heeft een wachtwoord nodig.",
+      "wrongPassword": "Het wifiwachtwoord werd niet geaccepteerd. Controleer het en probeer het opnieuw.",
+      "notFound": "Dat netwerk is niet gevonden. Controleer de naam en of het netwerk binnen bereik is.",
+      "timedOut": "Het netwerk reageerde niet op tijd. Probeer het zo meteen opnieuw."
+    },
+    "allowlist": {
+      "badEntry": "“{entry}” is geen netwerkadres. Probeer er een zoals 192.168.1.0/24."
+    },
+    "timezone": {
+      "unknown": "Die tijdzone kent Home Screens niet. Kies er een uit de lijst."
+    },
+    "plugins": {
+      "needsNewerHost": "Deze versie van de plugin werkt pas met een nieuwere versie van Home Screens. Werk Home Screens eerst bij.",
+      "downloadFailed": "Kon de plugin niet downloaden. Controleer de internetverbinding en probeer het opnieuw.",
+      "badLink": "Die link kan niet worden gebruikt. Plak de volledige https-link naar de plugin.",
+      "blockedLink": "Die link wijst naar iets binnen je thuisnetwerk, dus Home Screens downloadt er niets van.",
+      "needsVersion": "Die link heeft een versienummer nodig. Typ welke versie je wilt installeren.",
+      "notAPlugin": "Die link is geen Home Screens-plugin. Controleer of hij naar het .tar.gz-bestand van de plugin wijst.",
+      "alreadyInstalled": "Die plugin is al geïnstalleerd. Werk hem liever bij via de pluginwinkel."
+    },
+    "icloud": {
+      "signInRefused": "Inloggen bij iCloud lukte niet. Controleer de Apple ID en zorg dat het wachtwoord een app-wachtwoord is dat je op account.apple.com hebt gemaakt; je gewone Apple-wachtwoord werkt hier niet."
+    },
+    "secrets": {
+      "todoistRefused": "Todoist accepteerde die token niet. Kopieer hem opnieuw uit Todoist en plak hem hier."
+    },
+    "pluginAuth": {
+      "credentialsNeeded": "Vul je e-mailadres en wachtwoord in.",
+      "codeNeeded": "Vul de code in die je hebt gekregen.",
+      "wrongCode": "Die code werkte niet. Controleer hem en probeer het opnieuw.",
+      "expired": "Deze aanmelding is verlopen. Begin opnieuw.",
+      "notApproved": "De aanmelding is niet goedgekeurd. Begin opnieuw als je toch wilt koppelen."
     }
   },
   "today": "Vandaag",
@@ -87,11 +143,10 @@
   "actions": {
     "cancel": "Annuleren",
     "delete": "Verwijderen",
-    "remove": "Verwijderen",
+    "remove": "Weghalen",
     "add": "Toevoegen",
     "close": "Sluiten",
     "back": "Terug",
-    "confirm": "Bevestigen",
     "save": "Opslaan",
     "done": "Klaar",
     "edit": "Bewerken",
@@ -100,15 +155,15 @@
     "name": "Naam",
     "color": "Kleur",
     "icon": "Pictogram",
-    "label": "Label"
+    "label": "Label",
+    "ok": "OK"
   },
   "status": {
     "saving": "Opslaan…",
-    "uploadingCount": "{current} van {total} wordt geüpload...",
+    "copied": "Gekopieerd",
+    "uploadingCount": "{current} van {total} wordt geüpload…",
     "connected": "Verbonden",
-    "disabled": "Uitgeschakeld",
-    "never": "Nooit",
-    "none": "Geen"
+    "disabled": "Uitgeschakeld"
   },
   "relativeTime": {
     "justNow": "zojuist",
@@ -122,7 +177,7 @@
     "eyebrow": "Home Screens",
     "headline": "Nog niets op dit scherm",
     "body": "Open op een telefoon of computer in je thuisnetwerk",
-    "hideHint": "Liever een leeg scherm? Instellingen › Scherm › Deze tip tonen"
+    "hideHint": "Liever een leeg scherm? Zet het installatiebericht uit bij {place}."
   },
   "openedScreen": {
     "backTo": "Terug naar {name}",
@@ -132,6 +187,10 @@
     "paused": "Gepauzeerd",
     "previousScreen": "Vorig scherm",
     "nextScreen": "Volgend scherm",
+    "pause": "Op dit scherm blijven (twee keer tikken)",
+    "resume": "Weer van scherm wisselen",
+    "goTo": "Naar scherm {number}",
+    "goToNamed": "Naar scherm {number}: {name}",
     "resumesIn": "Gaat verder over {time} · tik om nu verder te gaan",
     "tapToResume": "tik om verder te gaan",
     "minutes": "{count} min",
@@ -140,18 +199,18 @@
   },
   "displayNotFound": {
     "notRegistered": "Display nog niet toegevoegd",
-    "adoptionLine1": "Deze display is verbonden met Home Screens maar is nog niet toegevoegd.",
-    "adoptionLine2": "Open de editor op de hoofd-Pi, ga naar",
-    "settingsLink": "Instellingen → Displays",
+    "adoptionLine1": "Dit display is verbonden met Home Screens, maar is nog niet toegevoegd.",
+    "adoptionLine2": "Open de Home Screens-editor, ga naar",
     "andClick": "en klik op",
     "adoptLabel": "Toevoegen",
     "nextTo": "naast",
     "waitingForAdoption": "Wachten op toevoeging…",
-    "recoveryNotice": "Deze display is nog niet ingesteld, je andere displays wel. Over {seconds} s wordt overgeschakeld naar de hoofddisplay.",
-    "goToDefault": "Nu naar de hoofddisplay"
+    "recoveryNotice": "Dit display is nog niet ingesteld, je andere displays wel. Over {seconds} s wordt overgeschakeld naar het hoofddisplay.",
+    "goToDefault": "Nu naar het hoofddisplay"
   },
   "login": {
     "checkingAuth": "Authenticatie controleren…",
+    "title": "Aanmelden",
     "ipBlocked": "Dit apparaat mag niet inloggen",
     "enterPasswordToContinue": "Voer je wachtwoord in om door te gaan",
     "accessRestricted": "Toegang beperkt",
@@ -161,8 +220,8 @@
     "signingIn": "Aanmelden…",
     "unlock": "Ontgrendelen",
     "loading": "Laden…",
-    "backToDisplay": "Terug naar display",
-    "loginFailed": "Aanmelden mislukt",
+    "backToDisplay": "Terug naar de muur",
+    "loginFailed": "Aanmelden is niet gelukt. Probeer het opnieuw.",
     "unreachable": "Home Screens is niet bereikbaar",
     "errors": {
       "wrongPassword": "Dat wachtwoord klopt niet.",
@@ -174,28 +233,27 @@
     "forgotPassword": {
       "link": "Wachtwoord vergeten?",
       "title": "Wachtwoord opnieuw instellen",
-      "body": "Wie dit apparaat heeft ingesteld, kan het wachtwoord wissen. Voer dit uit op het apparaat zelf (met een toetsenbord eraan) of vanaf een andere computer in een terminal:",
+      "body": "Wie Home Screens heeft ingesteld, kan het wachtwoord wissen. Voer dit uit op de computer waarop Home Screens draait (sluit er een toetsenbord op aan), of vanaf een andere computer in een terminal:",
       "fallback": "Bestaat die opdracht niet, dan doet het verwijderen van het bestand {file} in de Home Screens-map hetzelfde.",
-      "after": "Home Screens opent daarna zonder wachtwoord en je kunt in de instellingen een nieuw wachtwoord kiezen."
+      "after": "Home Screens opent daarna zonder wachtwoord en je kunt een nieuw wachtwoord kiezen bij {place}."
     }
   },
   "errors": {
     "fetchFailed": "Kon geen verbinding maken om deze gegevens te laden",
-    "loadImagesFailed": "Afbeeldingen konden niet worden geladen",
-    "uploadFailed": "Uploaden mislukt",
-    "uploadFailedFor": "Uploaden van {name} is mislukt",
-    "createFolderFailed": "Map kon niet worden aangemaakt",
-    "deleteFolderFailed": "Map kon niet worden verwijderd",
-    "deleteImageFailed": "Foto kon niet worden verwijderd",
+    "loadImagesFailed": "Kon de afbeeldingen niet laden. Probeer het opnieuw.",
+    "uploadFailed": "Dat is niet geüpload. Probeer het opnieuw.",
+    "uploadFailedFor": "{name} is niet geüpload. Probeer het opnieuw.",
+    "createFolderFailed": "Kon die map niet maken. Probeer het opnieuw.",
+    "deleteFolderFailed": "Kon die map niet verwijderen. Probeer het opnieuw.",
+    "deleteImageFailed": "Kon die foto niet verwijderen. Probeer het opnieuw.",
     "googleExpired": "Je Google-verbinding is verlopen. Log opnieuw in.",
     "googleDisconnectFailed": "Kon Google niet loskoppelen. Controleer je internetverbinding en probeer het opnieuw.",
     "googleStatusFailed": "Kon je Google-verbinding niet controleren. Vernieuw de pagina en probeer het opnieuw.",
-    "deviceFlowFailed": "Apparaataanmelding kon niet worden gestart",
-    "codeExpired": "Code verlopen. Probeer het opnieuw.",
-    "authorizationFailed": "Autorisatie mislukt",
-    "startSignInFailed": "Aanmelding kon niet worden gestart",
-    "deleteImageInUse": "Deze foto staat nog op een scherm en kan daarom niet worden verwijderd",
-    "deleteImageInUseOn": "Deze foto wordt nog gebruikt op {where} en kan daarom niet worden verwijderd"
+    "deviceFlowFailed": "Kon de aanmelding niet starten. Probeer het opnieuw.",
+    "codeExpired": "Die code is verlopen. Begin opnieuw met aanmelden.",
+    "authorizationFailed": "Die aanmelding werkte niet. Probeer het opnieuw.",
+    "deleteImageInUse": "Deze foto staat nog op een scherm en kan daarom niet worden verwijderd.",
+    "deleteImageInUseOn": "Deze foto wordt nog gebruikt op {where} en kan daarom niet worden verwijderd."
   },
   "days": {
     "sunday": "Zondag",
@@ -299,14 +357,14 @@
     "heading": "Waar wil je heen?",
     "remote": {
       "title": "Gezinsafstandsbediening",
-      "body": "Klusjes, maaltijden, timers en de schermen"
+      "body": "Klusjes, maaltijden, timers en de muur"
     },
     "chores": {
       "title": "Klusjes van de kinderen",
       "body": "De klusjes van vandaag afvinken"
     },
     "display": {
-      "title": "Scherm",
+      "title": "De muur",
       "body": "Zien wat er aan de muur staat"
     },
     "editor": {
@@ -316,7 +374,6 @@
     "editorAddressHint": "Open dit adres op een laptop om je schermen te ontwerpen:",
     "editorAddressLabel": "Adres van de editor",
     "copy": "Kopiëren",
-    "copied": "Gekopieerd",
     "openEditor": "Editor openen"
   },
   "alerts": {
@@ -330,11 +387,9 @@
     "color": "Kleur",
     "emptyTitle": "Nog niemand toegevoegd",
     "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij klusjes, beloningen, kalenders en roosters.",
-    "loadFailed": "Je gezin kon niet worden geladen.",
-    "saveFailed": "Je gezin kon niet worden opgeslagen.",
+    "loadFailed": "Kon je gezin niet laden. Controleer de verbinding en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
     "saved": "Gezin opgeslagen.",
-    "saving": "Opslaan…",
     "removeTitle": "{name} verwijderen?",
     "removeDescription": "Als je {name} verwijdert, worden de klusjes, schema’s, geschiedenis, tickets, beoordelingen van gerechten en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Klusjes waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "remove": "Persoon verwijderen",
@@ -373,7 +428,6 @@
         "other": "{count} klusjes gaan naar {name}. Ze blijven in je lijst staan, en klusjes waar verder niemand op staat wachten tot je iemand kiest."
       },
       "saved": "Groepen opgeslagen.",
-      "saveFailed": "De groepen konden niet worden opgeslagen.",
       "limit": "Je kunt maximaal {count} groepen maken.",
       "hint": "Groepen worden gebruikt door de kleurlegenda van de kalender en het filter \"Alleen tonen\". Een klusje kan ook naar een groep gaan. Beloningen geef je nog steeds aan personen."
     }
@@ -448,13 +502,11 @@
       "screen": "Scherm"
     },
     "remove": {
-      "title": "{name} verwijderen?",
       "inUse": {
         "one": "Het wordt op {count} plek gebruikt. Daar komt dan een standaardpictogram.",
         "other": "Het wordt op {count} plekken gebruikt. Daar komt dan een standaardpictogram."
       },
       "notUsed": "Het wordt nergens gebruikt.",
-      "confirm": "Verwijderen",
       "keep": "Houden"
     },
     "settingsRow": {
@@ -483,7 +535,7 @@
     "heading": "Afbeeldingen",
     "off": "Niet meenemen",
     "used": "Alleen die je schermen gebruiken",
-    "all": "Je hele afbeeldingenbibliotheek",
+    "all": "Alles in Afbeeldingen & video's",
     "help": "Achtergronden, diashowmappen en video's op je schermen. Een back-up met afbeeldingen wordt als zip-bestand opgeslagen.",
     "files": {
       "one": "{count} bestand",
@@ -496,32 +548,33 @@
     "openLibrary": "Afbeeldingen & video's openen",
     "leftOut": "Opgeslagen, maar je afbeeldingen konden niet mee. Probeer het nog eens om ze mee te nemen.",
     "restoreConfirm": {
-      "one": "Deze back-up bevat {count} afbeelding ({size}). Een afbeelding met dezelfde naam op dit apparaat wordt vervangen; er wordt niets verwijderd.",
-      "other": "Deze back-up bevat {count} afbeeldingen en video's ({size}). Een afbeelding met dezelfde naam op dit apparaat wordt vervangen; er wordt niets verwijderd."
+      "one": "Deze back-up bevat {count} afbeelding ({size}). Een afbeelding met dezelfde naam die al op Home Screens staat, wordt vervangen; er wordt niets verwijderd.",
+      "other": "Deze back-up bevat {count} afbeeldingen en video's ({size}). Een afbeelding met dezelfde naam die al op Home Screens staat, wordt vervangen; er wordt niets verwijderd."
     },
     "restoreConfirmButton": "Terugzetten",
     "restoreMissing": "Sommige schermen gebruiken afbeeldingen die niet in deze back-up zaten. Open Afbeeldingen & video's om te zien welke.",
+    "phoneRestoreMissing": "Sommige schermen gebruiken afbeeldingen die niet in deze back-up zaten. Welke dat zijn, zie je op de computer bij {place}.",
     "phoneRow": "Afbeeldingen in de back-up",
     "phoneUsed": "Alleen die op het scherm",
-    "phoneAll": "Je hele bibliotheek",
+    "phoneAll": "Al je foto's en video's",
     "phoneOff": "Niet meegenomen"
   },
   "noTimezone": {
     "title": "Nog geen tijdzone.",
-    "body": "Je schermen gebruiken de klok van de hub ({zone}), dus tijden kunnen afwijken.",
+    "body": "Je schermen gebruiken de klok van Home Screens ({zone}), dus tijden kunnen afwijken.",
     "action": "Tijdzone kiezen"
   },
   "routeError": {
     "title": "Deze pagina kan nu niet worden geladen",
     "body": "Home Screens heeft moeite met het lezen van de opgeslagen gegevens. Het probeert het zo vanzelf opnieuw.",
-    "help": "Als dit niet weggaat, kan een volwassene Home Screens op een computer openen en bij Instellingen een back-up terugzetten.",
+    "help": "Als dit niet weggaat, kan een volwassene Home Screens op een computer openen en een back-up terugzetten bij {place}.",
     "retry": "Opnieuw proberen"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serveertijd {time}, klik om te wijzigen",
     "servingTimeTitle": "Serveertijd: {time}",
     "setServingTime": "Serveertijd instellen",
-    "setTime": "+ Tijd instellen",
+    "setTime": "Tijd instellen",
     "setMealTime": "Maaltijdtijd instellen",
     "servingTime": "Serveertijd",
     "clearTime": "Tijd wissen"
@@ -539,7 +592,7 @@
     "saveError": "Je beoordeling is niet opgeslagen. Controleer de verbinding en tik op een ster om het opnieuw te proberen.",
     "loadError": "Beoordelingen konden niet worden vernieuwd.",
     "loading": "Beoordelingen laden…",
-    "noMembers": "Voeg personen toe via Instellingen > Gezin om te beoordelen.",
+    "noMembers": "Voeg personen toe bij {place} om te beoordelen.",
     "rate": "Gerecht beoordelen",
     "dinner": "Avondeten beoordelen",
     "close": "Gereed",
@@ -554,7 +607,8 @@
   "chores": {
     "changedElsewhere": "Iemand anders heeft de klusjes gewijzigd. Je laatste wijziging is niet opgeslagen. Probeer het opnieuw.",
     "coverage": "Dekking: {covered} van 7 dagen",
-    "holdToUncheck": "Houd ingedrukt om het vinkje weg te halen"
+    "holdToUncheck": "Houd ingedrukt om het vinkje weg te halen",
+    "deleteBody": "Het klusje verdwijnt. Tickets die de kinderen er al mee verdiend hebben, blijven op hun kaart staan."
   },
   "rewards": {
     "redeem": {
@@ -683,7 +737,7 @@
     }
   },
   "grownUp": {
-    "title": "Oudercode",
+    "title": "Volwassenencode",
     "ask": "Vraag een volwassene",
     "why": {
       "redeem": {
@@ -692,7 +746,7 @@
       },
       "untick": "Om {chore} voor {member} uit te vinken",
       "todoistClose": "Om {task} af te ronden",
-      "calendarRemove": "Om {title} te verwijderen",
+      "calendarRemove": "Om {title} weg te halen",
       "calendarChangeSeries": "Om alle keren van {title} te wijzigen"
     },
     "wrong": "Dat klopt niet. Probeer het opnieuw.",
@@ -700,7 +754,6 @@
       "one": "Te veel pogingen. Probeer het over {count} seconde opnieuw.",
       "other": "Te veel pogingen. Probeer het over {count} seconden opnieuw."
     },
-    "offline": "De hub was niet bereikbaar. Probeer het opnieuw.",
     "unlocked": {
       "one": "Nog 1 minuut ontgrendeld",
       "other": "Nog {count} minuten ontgrendeld"
@@ -732,5 +785,40 @@
     "everyTimePastFuture": "Alle keren, ook die al geweest zijn",
     "askBody": "Alleen deze dag wijzigen, of elke keer?",
     "everyTimeFromFirst": "Alle keren, vanaf de eerste"
+  },
+  "notice": {
+    "title": "Melding"
+  },
+  "settingsPages": {
+    "calendar": "Kalender",
+    "weather": "Weer",
+    "location": "Locatie & taal",
+    "data": "Back-ups & gegevens",
+    "integrations": "API-sleutels",
+    "media": "Afbeeldingen & video's",
+    "icons": "Eigen pictogrammen",
+    "meals": "Maaltijden",
+    "network": "Netwerk",
+    "security": "Beveiliging",
+    "stats": "Status",
+    "system": "Systeem & updates",
+    "displays": "Displays",
+    "screen": "Scherm",
+    "automation": "Automatisering",
+    "phone": "Op je telefoon",
+    "family": "Gezin"
+  },
+  "confirm": {
+    "deleteTitle": "“{name}” verwijderen?",
+    "removeTitle": "“{name}” weghalen?",
+    "clearTitle": "“{name}” leegmaken?",
+    "cantUndo": "Dit kan niet ongedaan worden gemaakt."
+  },
+  "lists": {
+    "removeDoneTitle": {
+      "one": "1 gedaan item uit “{name}” weghalen?",
+      "other": "{count} gedane items uit “{name}” weghalen?"
+    },
+    "removeDoneBody": "Ze gaan voorgoed van de lijst."
   }
 }

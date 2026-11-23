@@ -1,4 +1,7 @@
 {
+  "loadFailed": {
+    "retry": "Intentar de nuevo"
+  },
   "refusals": {
     "dayNotes": {
       "textRequired": "Una nota del día necesita unas palabras.",
@@ -37,15 +40,14 @@
     "hubDisconnected": "No se puede conectar con Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "No se puede conectar con Home Screens. Comprueba que este teléfono está en la Wi-Fi de casa y que la Pi principal está encendida.",
+    "unreachable": "No se puede conectar con Home Screens. Comprueba que este teléfono está en la Wi-Fi de casa y que Home Screens está encendido.",
     "restarting": "Home Screens se está reiniciando. Se reconectará en unos 20 segundos…",
-    "rebooting": "El dispositivo se está reiniciando. Se reconectará en aproximadamente un minuto…"
+    "rebooting": "Home Screens se está reiniciando. Se reconectará en aproximadamente un minuto…"
   },
   "backupReminder": {
     "daysAgoSingular": "No has hecho copia de seguridad desde hace {n} día.",
     "daysAgoPlural": "No has hecho copia de seguridad desde hace {n} días.",
-    "backupButton": "Copia de seguridad",
-    "savingButton": "Guardando…",
+    "backupButton": "Hacer copia ahora",
     "dismissAriaLabel": "Descartar",
     "autoFailed": "La copia automática no ha funcionado. Abre Ajustes en un ordenador para ver por qué.",
     "autoNotSent": "Tu copia se ha guardado, pero no se ha podido enviar a tu carpeta en red. Abre Ajustes en un ordenador para ver por qué."
@@ -59,19 +61,19 @@
   "displayHero": {
     "stateActive": "Activo",
     "stateDimmed": "Atenuado",
-    "stateAsleep": "Dormido",
+    "stateAsleep": "En reposo",
     "stateOffline": "Sin conexión",
     "updatedTimeAgo": "Actualizado {ago}",
     "lastSeenTimeAgo": "Visto por última vez {ago}",
     "screenIndex": "Pantalla {current} de {total}",
-    "waiting": "Esperando al display…",
-    "unreachable": "Display inalcanzable",
-    "notConnectedTitle": "Este display aún no se ha conectado",
+    "waiting": "Esperando al monitor…",
+    "unreachable": "No se puede conectar con el monitor",
+    "notConnectedTitle": "Este monitor aún no se ha conectado",
     "notConnectedHint": "Comprueba que está encendido, o abre Home Screens en un ordenador para terminar de configurarlo.",
-    "theDisplay": "La pantalla",
-    "allHeading": "Todas las pantallas",
+    "theDisplay": "El monitor",
+    "allHeading": "Todos los monitores",
     "rowNotConnected": "Aún no se ha conectado",
-    "pickOneHint": "Elige una pantalla para cambiar su página o su perfil.",
+    "pickOneHint": "Elige un monitor para cambiar su pantalla o su perfil.",
     "controlsPaused": "Los controles están en pausa hasta que se vuelva a conectar."
   },
   "screenControls": {
@@ -79,12 +81,12 @@
     "nextAriaLabel": "Pantalla siguiente"
   },
   "quickActions": {
-    "wakeDisplay": "Despertar display",
-    "sleepDisplay": "Dormir display",
+    "wakeDisplay": "Despertar el monitor",
+    "sleepDisplay": "Poner el monitor en reposo",
     "sendAlert": "Enviar aviso",
     "waitingFor": "Esperando a {name}…",
-    "waitingForAll": "Esperando a las pantallas…",
-    "waitingForUnnamed": "Esperando a la pantalla…"
+    "waitingForAll": "Esperando a los monitores…",
+    "waitingForUnnamed": "Esperando al monitor…"
   },
   "brightnessCard": {
     "label": "Brillo",
@@ -93,12 +95,12 @@
   },
   "profileSwitcher": {
     "heading": "Perfiles",
-    "noProfile": "Todas las páginas",
+    "noProfile": "Todas las pantallas",
     "scheduledNote": "Ahora mismo está activo el perfil programado {profile}. Lo que elijas aquí empezará cuando termine."
   },
   "displayPicker": {
     "targeting": "Enviar a",
-    "allLabel": "Todas las pantallas"
+    "allLabel": "Todos los monitores"
   },
   "mobileColorPicker": {
     "colorLabel": "Color",
@@ -141,7 +143,6 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Marcar como hecha: {chore}",
     "choreAriaLabelCompleted": "Hecha: {chore}",
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "dayToggle": {
       "ariaLabel": "Qué día mostrar",
       "yesterday": "Ayer",
@@ -197,8 +198,7 @@
       "title": "¿Volver a abrirla?",
       "description": "«{chore}» vuelve a estar disponible. Los tickets que ya se ganaron con ella no se pierden."
     },
-    "loadError": "No se pudieron cargar tus tareas. Comprueba que el hub está encendido y vuelve a intentarlo.",
-    "retry": "Intentar de nuevo",
+    "loadError": "No se pudieron cargar tus tareas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "goalLine": {
       "moreToGoSingular": "falta {n} ticket",
       "moreToGoPlural": "faltan {n} tickets",
@@ -236,7 +236,7 @@
   "choresManage": {
     "tabs": {
       "chores": "Tareas",
-      "members": "Miembros"
+      "members": "Familia"
     },
     "chores": {
       "editAriaLabel": "Editar {name}",
@@ -246,7 +246,7 @@
       "titleNew": "Nueva tarea",
       "titleEdit": "Editar tarea",
       "nameLabel": "Nombre",
-      "namePlaceholder": "Nombre de la tarea...",
+      "namePlaceholder": "Nombre de la tarea…",
       "iconLabel": "Icono",
       "ticketsLabel": "Tickets",
       "ticketsHint": "Cuántos tickets gana un niño por hacer esta tarea. Los tickets sirven para conseguir premios.",
@@ -258,14 +258,8 @@
       "weeklyScheduleLabel": "Calendario semanal",
       "rotationLabel": "Rotación",
       "addSubmit": "Añadir tarea",
-      "saveSubmit": "Guardar tarea",
       "deleteButton": "Eliminar tarea",
       "grabRulesNote": "Cuántas tareas puede pedirse una persona, y cuándo deja de ser suya, se elige para toda la casa en Extra, en la pestaña Gestionar."
-    },
-    "choreDelete": {
-      "title": "¿Eliminar «{name}»?",
-      "description": "La tarea desaparece. Los tickets que los niños ya han ganado con ella se quedan en su tarjeta.",
-      "confirmLabel": "Eliminar tarea"
     },
     "starter": {
       "cardTitle": "Empieza con tareas ya preparadas",
@@ -279,7 +273,7 @@
   },
   "mealsTab": {
     "header": "Comidas",
-    "loading": "Cargando comidas...",
+    "loading": "Cargando comidas…",
     "settingsButtonAriaLabel": "Abrir ajustes de comidas",
     "settingsButtonTitle": "Ajustes",
     "weekLabel": {
@@ -306,14 +300,12 @@
         "confirmLabel": "Vaciar semana"
       },
       "deleteMeal": {
-        "title": "¿Eliminar «{name}»?",
         "description": "También se quitará de cualquier hueco planeado.",
         "descriptionPlanned": "Está planeada para: {days}. Al eliminarla, también se quita del plan.",
         "moreDays": {
           "one": "{count} día más",
           "other": "{count} días más"
-        },
-        "confirmLabel": "Eliminar comida"
+        }
       },
       "suggestWeek": {
         "title": "¿Cambiar las comidas de esta semana?",
@@ -344,8 +336,8 @@
       }
     },
     "library": {
-      "searchPlaceholder": "Buscar comidas...",
-      "hint": "Toca una comida para editarla, o el botón de pantalla para mostrarla en la pared.",
+      "searchPlaceholder": "Buscar comidas…",
+      "hint": "Toca una comida para editarla, o el botón de pantalla para mostrarla en el monitor.",
       "filterByAriaLabel": "Filtrar por {label}",
       "empty": {
         "titleNoMeals": "Aún no hay comidas",
@@ -368,8 +360,7 @@
         "kid-friendly": "Para niños"
       }
     },
-    "loadError": "No se pudieron cargar tus comidas. Comprueba que el hub está encendido y vuelve a intentarlo.",
-    "retry": "Intentar de nuevo",
+    "loadError": "No se pudieron cargar tus comidas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -392,30 +383,27 @@
       "undo": "Deshacer"
     },
     "showOnWall": {
-      "button": "Mostrar en la pared",
-      "ariaLabel": "Mostrar {meal} en la pared",
+      "button": "Mostrar en el monitor",
+      "ariaLabel": "Mostrar {meal} en el monitor",
       "sent": "Mostrando {meal} en {where}.",
       "takeDown": "Quitar",
-      "takenDown": "Se ha quitado {meal} de {where}.",
-      "pickTitle": "¿En qué pared?",
-      "pickHint": "Este móvil recordará tu elección para las recetas. Para mandar una a otro sitio, elige esa pared en la pestaña Control.",
-      "everyWall": "todas las paredes",
-      "theWall": "la pared",
-      "failed": "No se pudo mostrar en la pared. Inténtalo de nuevo.",
+      "takenDown": "Ya no se muestra en {where}: {meal}.",
+      "pickTitle": "¿En qué monitor?",
+      "pickHint": "Este móvil recordará tu elección para las recetas. Para mandar una a otro sitio, elige ese monitor en la pestaña Control.",
+      "everyWall": "todos los monitores",
+      "theWall": "el monitor",
+      "failed": "No se pudo conectar con el monitor. Inténtalo de nuevo.",
       "mealieFailed": "No se pudo cargar esa receta de Mealie. Inténtalo de nuevo.",
       "gone": "Esa receta ya no está."
     }
   },
   "mealForm": {
-    "titleNew": "Añadir comida",
+    "titleNew": "Nueva comida",
     "titleEdit": "Editar comida",
-    "saveSubmit": "Guardar comida",
-    "saveChangesSubmit": "Guardar cambios",
-    "savingSubmit": "Guardando…",
+    "addSubmit": "Añadir comida",
     "deleteButton": "Eliminar comida",
     "nameLabel": "Nombre de la comida",
     "namePlaceholder": "p. ej. Pollo salteado",
-    "emojiSelectAriaLabel": "Seleccionar {emoji}",
     "prepTimeLabel": "Tiempo de preparación",
     "cookTimeLabel": "Tiempo de cocción",
     "minPlaceholder": "min",
@@ -428,11 +416,11 @@
     "ingredientNamePlaceholder": "Nombre",
     "ingredientAmountPlaceholder": "Cantidad",
     "removeIngredientAriaLabel": "Quitar ingrediente",
-    "addIngredientButton": "+ Añadir ingrediente",
-    "recipeUrlLabel": "URL de la receta",
+    "addIngredientButton": "Añadir ingrediente",
+    "recipeUrlLabel": "Enlace de la receta",
     "recipeUrlPlaceholder": "https://...",
     "notesLabel": "Notas",
-    "notesPlaceholder": "Cualquier nota sobre esta comida...",
+    "notesPlaceholder": "Cualquier nota sobre esta comida…",
     "favoriteOn": "Favorita",
     "favoriteOff": "Añadir a favoritas"
   },
@@ -452,7 +440,7 @@
       "addMealsButton": "Añadir comidas"
     },
     "slot": {
-      "addMeal": "+ Añadir comida",
+      "addMeal": "Añadir comida",
       "planSlotAriaLabel": "Planificar {slot} para {day}",
       "mealFallback": "comida",
       "changeMealAriaLabel": "Cambiar {meal} de {slot}",
@@ -463,7 +451,8 @@
     },
     "picker": {
       "title": "Elige una comida",
-      "emptyLibrary": "Aún no hay comidas guardadas. Escribe una arriba para hoy, o guarda las que cocinas a menudo.",
+      "emptyLibraryTitle": "Aún no hay comidas guardadas",
+      "emptyLibrary": "Escribe una arriba para hoy, o guarda las que cocinas a menudo.",
       "typePlaceholder": "Busca o escribe una comida",
       "searchLabel": "Buscar en tus comidas o escribir una",
       "subtitle": "{slot} · {day}"
@@ -473,7 +462,6 @@
     "itemsCountSingular": "{checked} de {total} artículo",
     "itemsCountPlural": "{checked} de {total} artículos",
     "shareButton": "Compartir",
-    "shareCopiedButton": "¡Copiado!",
     "autoGeneratedHint": "Generada a partir de las comidas de esta semana",
     "autoGeneratedHintDates": "Generada a partir de las comidas de la semana del {range}",
     "shareHeading": "Lista de la compra",
@@ -496,10 +484,9 @@
   "mealsSettings": {
     "ariaLabel": "Ajustes de comidas",
     "title": "Ajustes de comidas",
-    "cancelAriaLabel": "Cancelar y cerrar",
     "slots": {
       "heading": "Comidas del día",
-      "description": "¿Qué comidas planificas? Esto cambia lo que muestran la pantalla y el editor.",
+      "description": "¿Qué comidas planificas? Esto cambia lo que muestran el monitor y el editor.",
       "toggleAriaLabelEnabled": "{label}, activado",
       "toggleAriaLabelDisabled": "{label}, desactivado"
     },
@@ -507,7 +494,7 @@
       "heading": "La semana empieza en",
       "sunday": "Domingo",
       "monday": "Lunes",
-      "hint": "Solo para el menú. Los calendarios de la pared tienen su propio ajuste para el primer día."
+      "hint": "Solo para el menú. Los calendarios del monitor tienen su propio ajuste para el primer día."
     },
     "timeFormat": {
       "heading": "Formato de hora",
@@ -523,12 +510,6 @@
       "clearAriaLabel": "Vaciar la hora por defecto de {name}",
       "timeInputAriaLabel": "Hora por defecto para {name}"
     },
-    "save": {
-      "saving": "Guardando…",
-      "submit": "Guardar ajustes",
-      "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
-      "networkError": "Error de red. Inténtalo de nuevo."
-    },
     "planSource": {
       "heading": "Tu plan de comidas está en",
       "homeScreens": "Home Screens",
@@ -536,15 +517,15 @@
       "notConnectedNote": "Mealie es una app de recetas aparte que usan algunas familias. Si la usas, conéctala en Ajustes en el ordenador. Si no, aquí no hay nada que hacer.",
       "connectedNote": "Mealie está conectado al hogar «{household}». Elígelo para planificar con las recetas y el plan que tienes allí.",
       "connectedNoteNoName": "Mealie está conectado. Elígelo para planificar con las recetas y el plan que tienes allí.",
-      "onNote": "Con Mealie, las comidas vienen de Mealie, aquí y en la pared, y lo que planees aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
-      "switchingToMealieNote": "Al guardar, las comidas vendrán de Mealie aquí y en la pantalla, y lo que planees aquí se guardará en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
-      "switchingToHomeNote": "Al guardar, el móvil y la pantalla vuelven al plan de Home Screens que tenías antes. En Mealie no cambia nada."
+      "onNote": "Con Mealie, las comidas vienen de Mealie, aquí y en el monitor, y lo que planees aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
+      "switchingToMealieNote": "Al guardar, las comidas vendrán de Mealie aquí y en el monitor, y lo que planees aquí se guardará en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
+      "switchingToHomeNote": "Al guardar, el móvil y el monitor vuelven al plan de Home Screens que tenías antes. En Mealie no cambia nada."
     }
   },
   "rewardForm": {
-    "titleAdd": "Añadir premio",
+    "titleNew": "Nuevo premio",
     "titleEdit": "Editar premio",
-    "saveButton": "Guardar premio",
+    "addSubmit": "Añadir premio",
     "deleteButton": "Eliminar premio",
     "iconLabel": "Icono",
     "nameLabel": "Nombre",
@@ -555,12 +536,11 @@
     "visible": "Visible",
     "hidden": "Oculto",
     "descriptionLabel": "Descripción (opcional)",
-    "descriptionPlaceholder": "Descripción corta...",
+    "descriptionPlaceholder": "Descripción corta…",
     "availableToLabel": "Disponible para",
     "everyone": "Todos",
     "deleteConfirm": {
-      "title": "Eliminar premio",
-      "description": "¿Eliminar \"{name}\"? Las recompensas ya dadas se quedan en el historial.",
+      "description": "Los premios ya dados se quedan en el historial.",
       "goalClears": {
         "one": "Esa meta se borrará.",
         "other": "Sus metas se borrarán."
@@ -582,7 +562,7 @@
     "titleLabel": "Título",
     "titlePlaceholder": "Opcional",
     "messageLabel": "Mensaje",
-    "messagePlaceholder": "¿Qué debe mostrar el display?",
+    "messagePlaceholder": "¿Qué debe mostrar el monitor?",
     "durationLabel": "Duración",
     "duration10s": "10 s",
     "duration30s": "30 s",
@@ -593,11 +573,11 @@
     "sendingButton": "Enviando…",
     "sentButton": "¡Enviado!",
     "failedButton": "No se envió, inténtalo otra vez",
-    "clearOnDisplay": "Borrar avisos en {name}",
-    "clearOnAll": "Borrar avisos en todas las pantallas",
+    "clearOnDisplay": "Borrar los avisos de {name}",
+    "clearOnAll": "Borrar los avisos de todos los monitores",
     "clearingButton": "Borrando…",
     "showingNow": "({count} en pantalla)",
-    "clearOnUnnamed": "Borrar avisos en la pantalla"
+    "clearOnUnnamed": "Borrar los avisos del monitor"
   },
   "rewardsView": {
     "changedElsewhere": "Otra persona ha cambiado las recompensas. Tu último cambio no se guardó. Inténtalo de nuevo.",
@@ -642,8 +622,8 @@
       "countPlural": "{n} premios",
       "everyone": "Todos",
       "disabled": "Desactivado",
-      "memberCountSingular": "{n} miembro",
-      "memberCountPlural": "{n} miembros",
+      "memberCountSingular": "{n} persona",
+      "memberCountPlural": "{n} personas",
       "addButton": "Añadir premio"
     },
     "balances": {
@@ -651,7 +631,6 @@
       "adjustDownAriaLabel": "Quitar un ticket a {name}",
       "adjustUpAriaLabel": "Añadir un ticket a {name}"
     },
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "goal": {
       "heading": "Ahorrando para",
       "pick": "Elige algo para lo que ahorrar",
@@ -726,8 +705,8 @@
     "closeAriaLabel": "Cerrar ajustes",
     "system": {
       "heading": "Sistema",
-      "errorFailedToLoad": "Error al cargar",
-      "hostLabel": "Nombre del dispositivo",
+      "errorFailedToLoad": "No se pudo cargar. Inténtalo de nuevo.",
+      "hostLabel": "Nombre en la red",
       "uptimeLabel": "Tiempo activo",
       "memoryLabel": "Memoria",
       "diskLabel": "Disco"
@@ -741,22 +720,23 @@
     "data": {
       "heading": "Datos",
       "backup": {
-        "label": "Hacer copia de todos los datos",
+        "label": "Hacer copia de todo",
         "savedLabel": "Copia guardada",
         "busyLabel": "Descargando…",
         "description": "Descargar las tareas, comidas, premios e imágenes de tu familia"
       },
       "restore": {
-        "label": "Restaurar copia",
-        "confirmingLabel": "Toca otra vez para restaurar",
+        "label": "Restaurar una copia",
         "busyLabel": "Restaurando…",
         "doneLabel": "Restaurada",
         "invalidFileLabel": "Archivo de copia no válido",
-        "failedLabel": "Error al restaurar",
-        "idleDescription": "Sube un archivo de copia desde este dispositivo",
-        "confirmingDescription": "Esto reemplazará todos los datos existentes",
+        "failedLabel": "No se pudo restaurar esa copia. Inténtalo de nuevo.",
+        "idleDescription": "Sube un archivo de copia desde este teléfono",
+        "confirmingDescription": "Todo lo que hay ahora en Home Screens se sustituye por lo que hay en la copia.",
         "doneWithoutKeysLabel": "Restaurado, sin las claves",
-        "doneWithoutKeysDescription": "Tus claves y cuentas siguen igual. Vuelve a añadirlas en el editor."
+        "doneWithoutKeysDescription": "Tus claves y cuentas siguen igual. Vuelve a añadirlas en el editor.",
+        "confirmTitle": "¿Restaurar esta copia?",
+        "confirmButton": "Restaurar"
       }
     },
     "power": {
@@ -765,19 +745,19 @@
         "label": "Reiniciar Home Screens",
         "description": "Arregla casi todos los fallos. No se pierde nada de lo que has configurado.",
         "confirmTitle": "¿Reiniciar Home Screens?",
-        "confirmBody": "Las pantallas se quedan en negro un momento y este mando se reconecta en unos 20 segundos.",
+        "confirmBody": "El monitor se queda en negro un momento y este mando se reconecta en unos 20 segundos.",
         "confirmButton": "Reiniciar"
       },
       "reboot": {
-        "label": "Reiniciar dispositivo",
-        "description": "Reinicio completo del sistema",
-        "confirmTitle": "¿Reiniciar el dispositivo?",
+        "label": "Reiniciar todo",
+        "description": "Lo apaga todo y lo vuelve a encender. Tarda alrededor de un minuto.",
+        "confirmTitle": "¿Reiniciar todo?",
         "confirmBody": "Todo se detiene mientras se reinicia. Este mando se reconecta en aproximadamente un minuto.",
-        "confirmButton": "Reiniciar dispositivo"
+        "confirmButton": "Reiniciar todo"
       },
       "restartNeeded": {
         "title": "Reinicia para terminar la actualización",
-        "description": "Parte de la última actualización no empezará a funcionar hasta que se reinicie el dispositivo.",
+        "description": "Parte de la última actualización no empezará a funcionar hasta que se reinicie todo.",
         "button": "Reiniciar ahora"
       }
     },
@@ -796,12 +776,12 @@
     "selectNone": "Deseleccionar todo",
     "foldersLabel": "Carpetas",
     "mainFolderTab": "Carpeta principal",
-    "onWall": "En la pared",
+    "onWall": "En el monitor",
     "newFolder": "Nueva carpeta",
     "showingOn": "Se muestra en {walls}",
-    "notOnWall": "No está en la pared",
-    "notOnWallHint": "{contents}. Para mostrar esta carpeta en la pared, elígela para un pase de fotos desde un ordenador.",
-    "notOnWallShort": "No está en la pared · {contents}",
+    "notOnWall": "No está en el monitor",
+    "notOnWallHint": "{contents}. Para mostrar esta carpeta en el monitor, elígela para un pase de fotos desde un ordenador.",
+    "notOnWallShort": "No está en el monitor · {contents}",
     "unnamedWall": "Pantalla sin nombre",
     "unnamedScreen": "sin nombre",
     "empty": "Vacía",
@@ -825,18 +805,17 @@
     "addButton": "Añadir fotos y vídeos",
     "addFromGoogle": "Google Fotos",
     "addFromICloud": "Enlace de iCloud",
-    "space": "Las fotos y los vídeos ocupan {size}. Quedan {free} libres en el hub.",
+    "space": "Las fotos y los vídeos ocupan {size}. Quedan {free} libres en Home Screens.",
     "spaceNoFree": "Las fotos y los vídeos ocupan {size}.",
-    "spaceLow": "El hub está casi lleno: quedan {free}. Elimina las fotos que no necesites para hacer sitio.",
+    "spaceLow": "Casi lleno: quedan {free} en Home Screens. Elimina las fotos que no necesites para hacer sitio.",
     "emptyTitle": "Aún no hay nada en {folder}",
     "emptyHint": "Añade fotos o vídeos desde este móvil.",
     "loadFailed": "No se pudieron cargar tus fotos.",
-    "tryAgain": "Reintentar",
     "showsOn": {
       "one": "Se verá en {walls}.",
       "other": "Se verán en {walls}."
     },
-    "folderNotOnWall": "Esta carpeta aún no está en la pared.",
+    "folderNotOnWall": "Esta carpeta aún no está en el monitor.",
     "slideshowPhotosOnly": "El pase de fotos de {folder} solo muestra fotos.",
     "slideshowVideosOnly": "El pase de fotos de {folder} solo muestra vídeos.",
     "upload": {
@@ -852,18 +831,18 @@
         "other": "{count} no se pudieron añadir"
       },
       "tooBig": "{name} ocupa más de {size}.",
-      "notMedia": "{name} no es una foto ni un vídeo que la pared pueda mostrar.",
-      "wontPlay": "{name} es un tipo de vídeo que la pared no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
+      "notMedia": "{name} no es una foto ni un vídeo que el monitor pueda mostrar.",
+      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
       "failed": "No se pudo enviar {name}. Inténtalo de nuevo.",
       "close": "Cerrar",
-      "showNow": "Mostrar en la pared ahora"
+      "showNow": "Mostrar en el monitor ahora"
     },
-    "showOnWall": "Mostrar en la pared",
+    "showOnWall": "Mostrar en el monitor",
     "show": {
       "sent": "Se verá en {where} durante un minuto.",
-      "everyWall": "todas las paredes",
-      "theWall": "la pared",
-      "failed": "No se pudo mostrar en la pared. Inténtalo de nuevo.",
+      "everyWall": "todos los monitores",
+      "theWall": "el monitor",
+      "failed": "No se pudo conectar con el monitor. Inténtalo de nuevo.",
       "gonePhoto": "Esa foto ya no está.",
       "goneVideo": "Ese vídeo ya no está."
     },
@@ -913,7 +892,7 @@
     "photoDeleted": "Foto eliminada",
     "videoDeleted": "Vídeo eliminado",
     "deleteFailed": "No se pudo eliminar. Inténtalo de nuevo.",
-    "deleteRefused": "Aún hace falta en la pared, así que sigue en su sitio.",
+    "deleteRefused": "Aún hace falta en el monitor, así que sigue en su sitio.",
     "deleted": {
       "one": "Se ha eliminado 1.",
       "other": "Se han eliminado {count}."
@@ -960,7 +939,7 @@
       "renameTitle": "Cambiar el nombre de {folder}",
       "newName": "Nuevo nombre",
       "create": "Crear",
-      "startsOffWall": "No estará en la pared hasta que un pase de fotos la use.",
+      "startsOffWall": "No estará en el monitor hasta que un pase de fotos la use.",
       "wallFollows": "Se seguirá mostrando en {walls} con su nuevo nombre."
     },
     "savedAsHint": "Se guardará como {name}",
@@ -969,7 +948,7 @@
     "renamed": "Ahora se llama {name}",
     "renameFailed": "No se pudo cambiar el nombre de la carpeta. Inténtalo de nuevo.",
     "deleteFolderTitle": "¿Eliminar la carpeta {folder}?",
-    "deleteFolderBody": "Está vacía, así que no cambia nada en la pared.",
+    "deleteFolderBody": "Está vacía, así que no cambia nada en el monitor.",
     "deleteFolderButton": "Eliminar carpeta",
     "folderDeleted": "Carpeta eliminada",
     "deleteFolderFailed": "No se pudo eliminar la carpeta. Inténtalo de nuevo.",
@@ -977,7 +956,7 @@
       "googleTitle": "Añadir desde Google Fotos",
       "googleIntro": "Elige fotos en Google Fotos y luego vuelve aquí. Se añadirán a {folder}.",
       "googleOpen": "Abrir Google Fotos",
-      "googlePreparing": "Preparando Google Fotos...",
+      "googlePreparing": "Preparando Google Fotos…",
       "googleExpired": "Google Fotos ha dejado de esperar. Inténtalo de nuevo.",
       "googleFailed": "No se pudo conectar con Google Fotos. Inténtalo de nuevo.",
       "icloudIntro": "Pega el enlace de un álbum compartido o uno copiado con «Copiar enlace de iCloud» en la app Fotos. Todo lo que contenga se añadirá a {folder}.",
@@ -989,14 +968,14 @@
         "gone": "Ese álbum ya no se comparte. Vuelve a compartirlo en la app Fotos y pega el enlace nuevo.",
         "busy": "Todavía se están añadiendo fotos. Inténtalo de nuevo dentro de un minuto.",
         "tooMany": "Son demasiadas a la vez. Comparte menos e inténtalo de nuevo.",
-        "lost": "El hub se ha reiniciado mientras se añadían. Inténtalo de nuevo.",
+        "lost": "Home Screens se ha reiniciado mientras se añadían. Inténtalo de nuevo.",
         "unreachable": "No se pudo conectar con iCloud. Inténtalo de nuevo."
       },
       "progress": "Añadiendo {done} de {total}",
       "nothingPicked": "No has elegido nada.",
       "busy": "Todavía se están añadiendo fotos. Inténtalo de nuevo dentro de un minuto.",
       "tooMany": "Son demasiadas a la vez. Elige menos e inténtalo de nuevo.",
-      "lost": "El hub se ha reiniciado mientras se añadían. Inténtalo de nuevo.",
+      "lost": "Home Screens se ha reiniciado mientras se añadían. Inténtalo de nuevo.",
       "tryAgain": "Reintentar",
       "couldNotAdd": {
         "one": "1 no se pudo añadir.",
@@ -1004,8 +983,8 @@
       }
     },
     "art": {
-      "onWall": "Ahora en la pared",
-      "onWallAt": "Ahora en la pared · {wall}",
+      "onWall": "Ahora en el monitor",
+      "onWallAt": "Ahora en el monitor · {wall}",
       "next": "Siguiente pintura",
       "hide": "No mostrar más",
       "about": "Sobre esta pintura",
@@ -1023,7 +1002,7 @@
     "play": "Reanudar el pase de fotos"
   },
   "choresKidView": {
-    "notConfigured": "Aún no hay tareas. Pídele a una persona mayor que añada una tabla de tareas a la pantalla.",
+    "notConfigured": "Aún no hay tareas. Pídele a una persona mayor que añada una tabla de tareas al monitor.",
     "grownUpsLink": "Personas mayores: abrir el mando familiar"
   },
   "timers": {
@@ -1035,7 +1014,8 @@
     "routines": "Rutinas",
     "newRoutine": "Nueva rutina",
     "editRoutine": "Editar rutina",
-    "emptyHint": "Una rutina es un temporizador paso a paso, como la rutina de la mañana: vestirse, lavarse los dientes, hacer la cama. Crea una y ponla en la pantalla.",
+    "emptyTitle": "Aún no hay rutinas",
+    "emptyHint": "Una rutina es un temporizador paso a paso, como la rutina de la mañana: vestirse, lavarse los dientes, hacer la cama. Crea una y ponla en marcha en el monitor.",
     "stepCount": "Paso {current} de {total}",
     "pause": "Pausa",
     "resume": "Seguir",
@@ -1043,9 +1023,7 @@
     "stop": "Parar",
     "addMinute": "+1 min",
     "done": "¡Hecho!",
-    "save": "Guardar",
     "deleteRoutine": "Borrar",
-    "reallyDelete": "¿Borrar de verdad?",
     "routineName": "Nombre",
     "routineNamePlaceholder": "Rutina de la mañana",
     "routineIcon": "Icono",
@@ -1064,15 +1042,12 @@
     "removeStep": "Quitar paso",
     "addStep": "Añadir paso",
     "minutesShort": "{minutes} min",
-    "retry": "Reintentar",
-    "onAllDisplays": "En todas las pantallas",
+    "onAllDisplays": "En todos los monitores",
     "onDisplay": "En {name}",
     "showOn": "Enviar a",
-    "allDisplays": "Todas las pantallas",
+    "allDisplays": "Todos los monitores",
     "showOnNext": "Próximo temporizador en",
-    "onDisplays": "En {count} pantallas",
-    "soundOn": "Sonido activado",
-    "soundOff": "Sonido apagado",
+    "onDisplays": "En {count} monitores",
     "minUnit": "min",
     "secUnit": "s",
     "stepSeconds": "Segundos",
@@ -1080,16 +1055,19 @@
     "quickNameClock": "Temporizador de {time}",
     "secondsShort": "{seconds} s",
     "showingOn": "En marcha en {names}",
-    "showingOnDisplay": "En marcha en la pantalla",
-    "waitingForDisplay": "Esperando a que una pantalla lo muestre…",
-    "notShowing": "Ninguna pantalla lo muestra todavía. Comprueba que hay una pantalla encendida.",
+    "showingOnDisplay": "En marcha en el monitor",
+    "waitingForDisplay": "Esperando a que un monitor lo muestre…",
+    "notShowing": "Ningún monitor lo muestra todavía. Comprueba que el monitor está encendido.",
     "whyNoSave": {
       "name": "Ponle un nombre a la rutina para guardarla.",
       "stepName": "Ponle un nombre a cada paso para guardar.",
       "stepLength": "Cada paso tiene que durar al menos {seconds} segundos."
     },
     "quickTooShort": "Un temporizador tiene que durar al menos {seconds} segundos.",
-    "stepLimit": "Una rutina puede tener hasta {count} pasos."
+    "stepLimit": "Una rutina puede tener hasta {count} pasos.",
+    "deleteConfirm": {
+      "description": "La rutina y sus pasos desaparecen para siempre. No se puede deshacer."
+    }
   },
   "lists": {
     "title": "Listas",
@@ -1115,7 +1093,7 @@
     },
     "empty": {
       "title": "Todavía no hay nada en esta lista",
-      "body": "Escribe lo primero abajo. Cada cosa que añadas aparece en la pared unos segundos después."
+      "body": "Escribe lo primero abajo. Cada cosa que añadas aparece en el monitor unos segundos después."
     },
     "allDone": {
       "title": "Todo hecho",
@@ -1125,7 +1103,7 @@
     "firstList": {
       "title": "Crea tu primera lista",
       "placeholder": "Nombre de tu primera lista",
-      "body": "La compra, la maleta, cosas antes del cole. Cuando la tengas, abre Home Screens en un ordenador y ponla en la pared."
+      "body": "La compra, la maleta, cosas antes del cole. Cuando la tengas, abre Home Screens en un ordenador y ponla en el monitor."
     },
     "newList": {
       "title": "Nueva lista",
@@ -1160,19 +1138,18 @@
       "save": "Guardar",
       "delete": "Eliminar lista",
       "confirmDelete": {
-        "title": "¿Eliminar {name}?",
         "description": "Todo lo que hay en esta lista se va con ella. No se puede deshacer."
       }
     },
     "share": {
       "button": "Compartir",
-      "copied": "¡Copiado!",
       "nothingOpen": "¡Todo hecho!"
     },
-    "loadError": "No se pudieron cargar tus listas. Comprueba que el hub está encendido y vuelve a intentarlo.",
-    "retry": "Reintentar",
+    "loadError": "No se pudieron cargar tus listas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "alreadyOnList": "{item} ya está en la lista",
-    "putBack": "{item} vuelve a estar en la lista"
+    "putBack": "{item} vuelve a estar en la lista",
+    "deleted": "Se ha quitado de la lista: {item}.",
+    "undo": "Deshacer"
   },
   "formOverlay": {
     "discard": {
@@ -1184,19 +1161,19 @@
   },
   "feedback": {
     "alertSent": "Aviso enviado a {name}",
-    "alertSentAll": "Aviso enviado a todas las pantallas",
+    "alertSentAll": "Aviso enviado a todos los monitores",
     "alertsCleared": "Avisos borrados en {name}",
-    "alertsClearedAll": "Avisos borrados en todas las pantallas",
-    "noConfirm": "{name} no ha respondido. Puede estar apagada o sin conexión.",
+    "alertsClearedAll": "Avisos borrados en todos los monitores",
+    "noConfirm": "{name} no ha respondido. Puede que se haya apagado o que no tenga conexión.",
     "profileSwitched": "{name} ha cambiado a {profile}",
-    "profileCleared": "{name} muestra todas las páginas",
+    "profileCleared": "{name} muestra todas las pantallas",
     "profileAfterSchedule": "{name} cambiará a {profile} cuando termine {scheduled}",
-    "profileClearedAfterSchedule": "{name} mostrará todas las páginas cuando termine {scheduled}",
+    "profileClearedAfterSchedule": "{name} mostrará todas las pantallas cuando termine {scheduled}",
     "profileKeptAfterSchedule": "{name} seguirá mostrando {profile} cuando termine su programación",
     "profileFailed": "No se pudo cambiar el perfil en {name}",
     "hubBack": "Home Screens ha vuelto",
-    "alertSentUnnamed": "Aviso enviado a la pantalla",
-    "alertsClearedUnnamed": "Avisos borrados en la pantalla"
+    "alertSentUnnamed": "Aviso enviado al monitor",
+    "alertsClearedUnnamed": "Avisos borrados en el monitor"
   },
   "tabNotSetUp": {
     "chores": {
@@ -1229,7 +1206,6 @@
     "title": "Ajustes de tareas",
     "grabbingHeading": "Pedirse tareas extra",
     "letGoHint": "Una persona mayor siempre puede dejar libre una tarea que alguien se ha pedido: toca ••• junto a la tarea en la pestaña Hoy.",
-    "save": "Guardar",
     "changeAriaLabel": "Cambiar cómo se piden las tareas extra"
   },
   "atHome": {
@@ -1241,14 +1217,14 @@
       "board": "Tablón",
       "calendar": "Calendario"
     },
-    "boardToCalendar": "¿Algo para un día concreto? Ponlo en el calendario",
+    "boardToCalendar": "¿Algo para un día concreto? Ponlo en el calendario.",
     "onWall": {
-      "zero": "Nada en la pared",
-      "one": "{count} en la pared",
-      "other": "{count} en la pared"
+      "zero": "Nada en el monitor",
+      "one": "{count} en el monitor",
+      "other": "{count} en el monitor"
     },
     "writeNote": "Escribe una nota",
-    "post": "Colgar en la pared",
+    "post": "Poner en el monitor",
     "newNote": "Nueva nota",
     "editNote": "Editar nota",
     "noteLabel": "Nota",
@@ -1269,7 +1245,7 @@
     "pinned": "Fijada",
     "important": "Importante",
     "save": "Guardar",
-    "takeDown": "Quitar de la pared",
+    "takeDown": "Quitar del monitor",
     "gone": "Quitadas ({count})",
     "goneIn": "Se quita dentro de {time}",
     "postAgain": "Volver a colgar",
@@ -1293,24 +1269,23 @@
     "justNow": "Ahora mismo",
     "empty": {
       "title": "Todavía no hay nada en el tablón",
-      "body": "Escribe una nota abajo y aparecerá en la pared unos segundos después. Las notas se quitan solas cuando pasa el tiempo que elijas."
+      "body": "Escribe una nota abajo y aparecerá en el monitor unos segundos después. Las notas se quitan solas cuando pasa el tiempo que elijas."
     },
     "loadError": "No se pudieron cargar las notas.",
-    "retry": "Reintentar",
     "editAria": "Editar la nota de {name}",
     "dayNotes": {
-      "sub": "Las notas del día van en los calendarios de la pared",
+      "sub": "Las notas del día van en los calendarios del monitor",
       "nextDays": "Próximos 7 días",
       "addForDay": "Añadir una nota para este día",
       "addAnother": "Añadir otra nota",
       "addAria": "Añadir una nota para el {day}",
       "editAria": "Cambiar la nota del {day}",
-      "sheetHint": "Se añade a este día en los calendarios de la pared.",
+      "sheetHint": "Se añade a este día en los calendarios del monitor.",
       "placeholder": "Foto de clase, no hay cole…",
       "put": "Ponerla en el calendario",
       "remove": "Quitar",
       "loadError": "No se pudieron cargar las notas del día.",
-      "saved": "Guardada para el {day}. Saldrá en la pared cuando un calendario muestre ese día.",
+      "saved": "Guardada para el {day}. Saldrá en el monitor cuando un calendario muestre ese día.",
       "removed": "Nota quitada",
       "undo": "Deshacer",
       "atLimit": "Una nota del día no puede ser más larga."
@@ -1319,7 +1294,6 @@
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",
     "savesToMealie": "Se guarda en Mealie",
-    "done": "Hecho",
     "mainDish": "Plato principal",
     "change": "Cambiar",
     "changeAriaLabel": "Cambiar {meal}",
@@ -1371,7 +1345,6 @@
     "timeAndOrderKeptHere": "Home Screens guarda esta hora y el orden de los platos. Mealie no tiene sitio para ninguno de los dos, así que allí no aparecerán."
   },
   "mealPicker": {
-    "cancel": "Cancelar",
     "swap": {
       "side": "Cambiar la guarnición",
       "dessert": "Cambiar el postre",
@@ -1401,22 +1374,22 @@
       "updated": "· Actualizado: {time}"
     },
     "notConnected": {
-      "description": "El plan de comidas está puesto para venir de Mealie, pero no están guardados su dirección o su token. Añádelos en el ordenador en Ajustes > Claves de API, o vuelve a poner el plan en Home Screens en los ajustes de comidas."
+      "description": "El plan de comidas está puesto para venir de Mealie, pero no están guardados su dirección o su token. Añádelos en el ordenador en {place}, o vuelve a poner el plan en Home Screens en los ajustes de comidas."
     },
     "tokenRefused": {
-      "description": "Mealie ya no acepta el token guardado. Puede que se borrara en Mealie. Crea uno nuevo allí y guárdalo en el ordenador en Ajustes > Claves de API."
+      "description": "Mealie ya no acepta el token guardado. Puede que se borrara en Mealie. Crea uno nuevo allí y guárdalo en el ordenador en {place}."
     },
     "setup": {
-      "description": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización."
+      "description": "Comprueba la dirección de Mealie en el ordenador en {place}. Si es correcta, puede que Mealie necesite una actualización."
     },
     "connection": {
       "description": "Comprueba que este móvil esté conectado y vuelve a intentarlo."
     },
     "paused": {
-      "tokenDescription": "Crea un token nuevo en Mealie y guárdalo en el ordenador en Ajustes > Claves de API. Hasta entonces, la planificación está en pausa.",
-      "tokenDescriptionWithTime": "Crea un token nuevo en Mealie y guárdalo en el ordenador en Ajustes > Claves de API. Hasta entonces, la planificación está en pausa. Última copia: {time}.",
-      "setupDescription": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa.",
-      "setupDescriptionWithTime": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa. Última copia: {time}."
+      "tokenDescription": "Crea un token nuevo en Mealie y guárdalo en el ordenador en {place}. Hasta entonces, la planificación está en pausa.",
+      "tokenDescriptionWithTime": "Crea un token nuevo en Mealie y guárdalo en el ordenador en {place}. Hasta entonces, la planificación está en pausa. Última copia: {time}.",
+      "setupDescription": "Comprueba la dirección de Mealie en el ordenador en {place}. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa.",
+      "setupDescriptionWithTime": "Comprueba la dirección de Mealie en el ordenador en {place}. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa. Última copia: {time}."
     },
     "saveFailed": {
       "token": "Mealie no deja entrar a Home Screens, así que no se ha guardado.",
@@ -1451,7 +1424,7 @@
       "noneInCategoryDescription": "Busca una receta por su nombre o elige Favoritas."
     },
     "library": {
-      "info": "Las recetas están en Mealie. Toca una para abrirla allí, o el botón de pantalla para mostrarla en la pared.",
+      "info": "Las recetas están en Mealie. Toca una para abrirla allí, o el botón de pantalla para mostrarla en el monitor.",
       "placeholder": "Buscar recetas…",
       "placeholderCount": {
         "one": "Buscar entre 1 receta…",
@@ -1492,7 +1465,7 @@
   },
   "calendarTab": {
     "title": "Calendario",
-    "sub": "Lo que hay cada día y notas para la pared",
+    "sub": "Lo que hay cada día y notas para el monitor",
     "addEvent": "Añadir evento",
     "addNote": "Añadir nota",
     "addEventAria": "Añadir un evento para el {day}",
@@ -1502,13 +1475,13 @@
     "googleCalendar": "Google Calendar",
     "appleCalendar": "Apple Calendar",
     "unreachable": "No se pudo conectar con Home Screens, así que todavía no ha cambiado nada. Todo lo que escribiste sigue aquí.",
-    "added": "Añadido a {calendar}. Saldrá en la pared en unos segundos.",
-    "changed": "Cambiado. La pared lo mostrará en unos segundos.",
+    "added": "Añadido a {calendar}. Saldrá en el monitor en unos segundos.",
+    "changed": "Cambiado. El monitor lo mostrará en unos segundos.",
     "removed": "Quitado de {calendar}.",
     "offTitle": "Añadir eventos está desactivado",
-    "offBody": "Se puede activar en Ajustes > Calendario. Las notas del día funcionan como siempre.",
+    "offBody": "Se puede activar en {place}. Las notas del día funcionan como siempre.",
     "signInTitle": "Falta un paso para añadir eventos",
-    "signInBody": "Para añadir eventos hay que iniciar sesión en Google una vez más. Se hace en Ajustes > Calendario.",
+    "signInBody": "Para añadir eventos hay que iniciar sesión en Google una vez más. Se hace en {place}.",
     "justThisDay": "Solo este día",
     "everyTime": "Todas las veces",
     "keepIt": "Mejor no",
@@ -1517,8 +1490,7 @@
       "title": "Cambiar {title}"
     },
     "removeAsk": {
-      "title": "¿Quitar {title}?",
-      "body": "Se quita del calendario {calendar} para todos: aquí, en la pared y en {app}."
+      "body": "Se quita del calendario {calendar} para todos: aquí, en el monitor y en {app}."
     },
     "form": {
       "newTitle": "Nuevo evento",
@@ -1551,12 +1523,11 @@
       "placeOptional": "(si quieres)",
       "placePlaceholder": "Añade un lugar",
       "add": "Añadir al calendario",
-      "save": "Guardar",
       "remove": "Quitar",
-      "fromWall": "Lo empezaste en la pared {wall}, para el {day}.",
+      "fromWall": "Lo empezaste en el monitor {wall}, para el {day}.",
       "changedElsewhere": "Alguien acaba de cambiar este evento, así que esta es la versión más reciente. Vuelve a hacer tu cambio y guarda.",
       "repeatsNote": "{title} se repite. Al guardar, eliges si cambia solo este día o todas las veces.",
-      "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en Ajustes > Calendario."
+      "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en {place}."
     }
   }
 }

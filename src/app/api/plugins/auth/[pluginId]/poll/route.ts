@@ -41,18 +41,18 @@ export const PUT = withAuth<RouteContext>(async (request, ctx) => {
       const body = await parseJsonBody<PollBody>(request);
       if (body instanceof NextResponse) return body;
       if (!body.mfaCode) {
-        return NextResponse.json({ error: 'Enter the code Garmin sent you.' }, { status: 400 });
+        return NextResponse.json({ error: 'Enter the code Garmin sent you.', code: 'pluginAuth.codeNeeded' }, { status: 400 });
       }
       const pending = await loadPendingAuth(pluginId);
       if (!pending || pending.kind !== 'garmin_mfa') {
         return NextResponse.json(
-          { error: 'This sign-in attempt has expired. Sign in again.' },
+          { error: 'This sign-in attempt has expired. Sign in again.', code: 'pluginAuth.expired' },
           { status: 409 },
         );
       }
       const result = await garminContinueMfa(pending.mfa, body.mfaCode);
       if (result.status === 'mfa_required') {
-        return NextResponse.json({ status: 'mfa_required', error: result.error });
+        return NextResponse.json({ status: 'mfa_required', error: result.error, code: 'pluginAuth.wrongCode' });
       }
       await savePluginTokens(pluginId, result.tokens);
       await deletePendingAuth(pluginId);

@@ -108,13 +108,13 @@
     "week": "Week"
   },
   "garbage-day": {
-    "header": "Collection Schedule",
+    "header": "Collection schedule",
     "nextDay": "Next {day}",
-    "emptyState": "Set collection days in module settings",
+    "emptyState": "Set collection days in the editor and pickup days show here",
     "labels": {
       "trash": "Trash",
       "recycling": "Recycling",
-      "yardWaste": "Yard Waste"
+      "yardWaste": "Yard waste"
     },
     "frequency": {
       "weekly": "{day}",
@@ -129,19 +129,18 @@
     "moreCount": "+{count} more",
     "fromTime": "From {time}",
     "untilTime": "Until {time}",
-    "cantLoadEvents": "Can't load events right now",
     "loadingEvents": "Loading events…",
     "weekOf": "Week of {date}",
     "legendLabel": "Calendar sources",
-    "publicHolidays": "Public Holidays",
+    "publicHolidays": "Public holidays",
     "sourceNotUpdating": "{name} not updating since {time}",
     "sourceNotUpdatingNoTime": "{name} not updating",
     "sourcesNotUpdating": "Some calendars aren't updating",
     "notUpdatingSince": "Not updating since {time}",
     "signInAgain": "Calendar needs to sign in again",
-    "signInAgainHint": "Open Settings › Calendar on a computer and connect Google Calendar.",
+    "signInAgainHint": "Open {place} on a computer and connect Google Calendar.",
     "noSourcesYet": "No calendars picked yet",
-    "noSourcesYetHint": "Choose which calendars to show in Settings › Calendar.",
+    "noSourcesYetHint": "Choose which calendars to show in {place}",
     "savedShort": "saved",
     "holiday": "Holiday",
     "birthday": "Birthday",
@@ -153,7 +152,7 @@
       },
       "toTime": "to {time}",
       "openDay": "See everything on {date}",
-      "empty": "Nothing on this day yet.",
+      "empty": "Nothing on this day yet",
       "addEvent": "Add event"
     },
     "eventForm": {
@@ -164,7 +163,6 @@
       "typeOnPhone": "Type on your phone",
       "handoffBody": "Point your phone's camera here. The new event form opens for {day}.",
       "backToKeyboard": "Back to the wall keyboard",
-      "allDay": "All day",
       "repeats": "Repeats",
       "howOften": "How often?",
       "repeatNote": "It keeps going until it's changed or removed. To stop it on a date, set that on your phone.",
@@ -220,7 +218,6 @@
     }
   },
   "fullscreen-calendar": {
-    "allDay": "All Day",
     "noEvents": "No events",
     "noEventsThisMonth": "No events this month",
     "noEventsThisWeek": "No events this week",
@@ -237,7 +234,6 @@
       "dayTimeline": "Day",
       "agenda": "Agenda",
       "familyGrid": "Family",
-      "upNext": "Up next",
       "freeTime": "Free time",
       "rolling": "Rolling"
     },
@@ -263,7 +259,6 @@
     },
     "fromTime": "From {time}",
     "untilTime": "Until {time}",
-    "cantLoadEvents": "Can't load events right now",
     "weekOf": "Week of {date}",
     "weekNumber": "Week {number}",
     "holiday": "Holiday",
@@ -271,7 +266,6 @@
     "birthdayWithAge": "Birthday · turns {age}",
     "birthdayShort": "Birthday",
     "birthdayAgeShort": "turns {age}",
-    "headerUpNext": "Up next",
     "headerFreeTime": "Free time",
     "everyone": "Everyone",
     "thisWeekCount": {
@@ -329,23 +323,21 @@
       "chores": "Chores",
       "choresDone": "{done} of {total} chores done"
     },
-    "peopleHint": "Add people under Settings > Calendar to give everyone their own row."
+    "peopleHint": "Add people in {place} to give everyone their own row."
   },
   "weather": {
     "tomorrowShort": "Tmrw",
     "feelsLike": "Feels like {temp}",
     "feelsShort": "Feels {temp}",
     "highLow": "H:{high} L:{low}",
-    "hourlyForecast": "Hourly Forecast",
     "forecast": "Forecast",
-    "weatherAlerts": "Weather Alerts",
+    "weatherAlerts": "Weather alerts",
     "alertCount": "({count})",
     "noActiveAlerts": "No active alerts",
     "alertSeverityExpires": "{severity} · Expires {expires}",
     "noWeatherData": "No weather data",
     "noForecastData": "No forecast data",
-    "setLocationInSettings": "Set your location in Settings",
-    "next60Minutes": "Next 60 Minutes",
+    "next60Minutes": "Next 60 minutes",
     "noPrecipitationExpected": "No precipitation expected",
     "stoppingInMin": "Stopping in {minutes} min",
     "precipitationForNextHour": "Precipitation for the next hour",
@@ -372,20 +364,19 @@
       "Unknown": "Unknown"
     },
     "loading": "Getting the forecast…",
-    "notUpdating": "Weather is not updating",
     "notAvailableForSource": "Not available from your weather source",
     "rightNow": "Right now",
     "sunrise": "Sunrise"
   },
   "air-quality": {
     "loading": "Loading air quality…",
-    "airQualityIndex": "Air Quality Index",
+    "airQualityIndex": "Air quality index",
     "labels": {
       "good": "Good",
       "fair": "Fair",
       "moderate": "Moderate",
       "poor": "Poor",
-      "veryPoor": "Very Poor",
+      "veryPoor": "Very poor",
       "unknown": "Unknown"
     },
     "pollutants": {
@@ -438,7 +429,7 @@
   },
   "meal-planner": {
     "recipeBook": {
-      "title": "Recipe Book",
+      "title": "Recipe book",
       "count": {
         "one": "1 recipe",
         "other": "{count} recipes"
@@ -469,7 +460,7 @@
         "quick": "Quick",
         "healthy": "Healthy",
         "comfort": "Comfort",
-        "kid-friendly": "Kid-Friendly"
+        "kid-friendly": "Kid-friendly"
       },
       "heading": {
         "search": "Recipes with “{query}”",
@@ -528,8 +519,8 @@
     "noMealPlanned": "No meal planned",
     "nothingPlannedThisWeek": "Nothing planned this week",
     "nothingPlannedThatWeek": "Nothing planned for that week yet",
-    "todaysMeals": "Today's Meals",
-    "tomorrowsMeals": "Tomorrow's Meals",
+    "todaysMeals": "Today's meals",
+    "tomorrowsMeals": "Tomorrow's meals",
     "now": "Now",
     "servingAt": "serving at {time}",
     "time": {
@@ -554,7 +545,7 @@
     },
     "nextMealLabels": {
       "now": "Now",
-      "comingUp": "Coming Up",
+      "comingUp": "Coming up",
       "tomorrow": "Tomorrow",
       "next": "Next"
     },
@@ -605,7 +596,7 @@
       "staysOpen": "Stays open while you cook. Closes after an hour with no taps."
     },
     "grocery": {
-      "thisWeek": "This Week's Groceries",
+      "thisWeek": "This week's groceries",
       "toGet": "{count} to get",
       "got": "{count} got",
       "page": "{page} of {pages}",
@@ -739,24 +730,23 @@
     }
   },
   "fullscreen-meal-planner": {
-    "thisWeeksMeals": "This Week's Meals",
-    "todaysMeals": "Today's Meals",
-    "todaysMenu": "Today's Menu",
-    "alsoToday": "Also Today",
-    "tomorrowsMeals": "Tomorrow's Meals",
-    "alsoTomorrow": "Also Tomorrow",
+    "thisWeeksMeals": "This week's meals",
+    "todaysMeals": "Today's meals",
+    "todaysMenu": "Today's menu",
+    "alsoToday": "Also today",
+    "tomorrowsMeals": "Tomorrow's meals",
+    "alsoTomorrow": "Also tomorrow",
     "noMealPlanned": "No meal planned",
     "notPlanned": "Not planned",
     "noMealsPlannedToday": "No meals planned for today",
     "noUpcomingMeals": "No upcoming meals planned",
     "mealsPlannedCount": "{filled} of {total} meals planned",
     "heroLabels": {
-      "now": "Now",
-      "upNext": "Up Next"
+      "now": "Now"
     },
     "nextMealLabels": {
       "now": "Now",
-      "comingUp": "Coming Up",
+      "comingUp": "Coming up",
       "tomorrow": "Tomorrow"
     },
     "noRecipeToday": "No recipe for today",
@@ -765,13 +755,12 @@
     "noRecipeTomorrowHint": "Nothing planned for tomorrow has a recipe yet."
   },
   "chore-chart": {
-    "rewardHistory": "Reward History",
+    "rewardHistory": "Reward history",
     "noRewardHistory": "No rewards redeemed yet",
-    "familyChores": "Family Chores",
-    "familyProgress": "Family Progress",
-    "starChart": "Star Chart",
+    "familyChores": "Family chores",
+    "familyProgress": "Family progress",
+    "starChart": "Star chart",
     "chores": "Chores",
-    "thisWeek": "This Week",
     "dayOff": "Day off!",
     "dayOffList": "Day off: {names}",
     "noChoresToday": "No chores today",
@@ -807,7 +796,7 @@
       "anytime": "Anytime"
     },
     "iconPicker": {
-      "filter": "Filter icons...",
+      "filter": "Filter icons…",
       "noMatch": "No matching icons",
       "none": "None",
       "clear": "Clear"
@@ -862,10 +851,10 @@
       "home": "Home",
       "key": "Key",
       "lightbulb": "Light",
-      "wifi": "WiFi",
+      "wifi": "Wi-Fi",
       "toilet": "Toilet",
       "soap": "Soap",
-      "paw-print": "Pet Care",
+      "paw-print": "Pet care",
       "footprints": "Walk",
       "shovel": "Shovel",
       "paint-roller": "Paint",
@@ -879,7 +868,7 @@
       "coffee": "Coffee",
       "egg": "Breakfast",
       "pill": "Medicine",
-      "alarm-clock": "Wake Up",
+      "alarm-clock": "Wake up",
       "timer": "Timer",
       "dumbbell": "Exercise",
       "toy-brick": "Toys",
@@ -887,7 +876,7 @@
       "blinds": "Blinds",
       "gift": "Gift",
       "tv": "TV",
-      "ice-cream-cone": "Ice Cream",
+      "ice-cream-cone": "Ice cream",
       "clapperboard": "Movie",
       "pizza": "Pizza",
       "banknote": "Money",
@@ -922,19 +911,19 @@
     "frequency": {
       "daily": "Daily",
       "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One Time"
+      "biweekly": "Every other week",
+      "once": "One time"
     },
     "rotation": {
       "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotate Daily",
-      "rotateWeekly": "Rotate Weekly",
+      "rotateDaily": "Rotate daily",
+      "rotateWeekly": "Rotate weekly",
       "schedule": "Schedule"
     },
     "choreSummary": {
       "daily": "Daily",
       "weekly": "Weekly",
-      "biweekly": "Every Other Week",
+      "biweekly": "Every other week",
       "once": "One time · {date}",
       "onceNoDate": "One time",
       "ticketCountSingular": "{count} ticket",
@@ -954,6 +943,7 @@
       "groupMemberNote": "In {group}",
       "emptyGroupNote": "Nobody is in the group you picked yet, so nobody gets this chore until you add someone to it.",
       "removeFromSchedule": "Take {name} off the schedule",
+      "addToSchedule": "Add {name} to the schedule",
       "validation": {
         "enterName": "Enter a chore name",
         "addPersonToSchedule": "Add at least one person to the schedule",
@@ -1120,7 +1110,6 @@
       "other": "{name}, {count} days"
     },
     "bestStreakNone": "none yet",
-    "thisWeek": "This Week",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
@@ -1174,8 +1163,7 @@
       },
       "confirmCancel": "Cancel",
       "confirmYes": "Yes!",
-      "errorGeneric": "Something went wrong",
-      "errorOffline": "Could not connect",
+      "errorOffline": "Couldn't spend the tickets. Home Screens isn't answering, so tap Yes again in a moment.",
       "addFromPhoneHint": "Add rewards from a phone: open {url} and tap Chores",
       "moreTickets": {
         "one": "1 more ticket to go",
@@ -1261,8 +1249,8 @@
     "noGames": "No games found",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "pickTeam": "Pick your team in the module settings",
-    "teamLeagueOff": "Turn on your team's league in the module settings",
+    "pickTeam": "Pick a team in the editor and its games show here",
+    "teamLeagueOff": "Turn on your team's league in the editor and its games show here",
     "unavailable": "Scores are taking a break",
     "last": "Last:",
     "win": "W",
@@ -1311,12 +1299,11 @@
   },
   "todo": {
     "name": "To-Do List",
-    "defaultTitle": "To Do",
+    "defaultTitle": "To do",
     "noTasksYet": "Add things on your phone and they show up here",
     "noListsYet": "No lists yet. Make one on your phone.",
-    "pickAList": "Pick a list in the editor",
+    "pickAList": "Pick a list in the editor and it shows here",
     "tapHint": "Tap a box to check it off",
-    "upNext": "Up next",
     "allDone": "All done",
     "andMore": "and {n} more",
     "nLeft": "{n} left",
@@ -1344,17 +1331,7 @@
   },
   "fullscreen-photo": {
     "noPhotosYetFolderHint": "or pick a folder in the editor",
-    "noPhotoSelected": "No photo selected",
-    "noPhotoSelectedHint": "Choose a photo in the editor panel.",
-    "noPhotosYet": "No photos yet",
-    "noPhotosYetHint": "Add photos from your phone at",
-    "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on.",
-    "noPhotosYetHintOneDrive": "Check the OneDrive folder in the editor.",
-    "noPhotosYetHintImmich": "Check the Immich album, person and favorites choice in the editor.",
-    "noPhotosYetHintUnsplash": "Try different search words in the editor.",
-    "noPhotosYetHintNasa": "NASA isn't sending pictures right now. They come back on their own.",
-    "noPhotosYetHintArt": "Try loosening a filter in the editor.",
-    "noPhotosYetHintPicked": "Pick some pictures in the editor."
+    "noPhotoSelectedHint": "Choose a photo in the editor and it shows here"
   },
   "dad-joke": {
     "loading": "Loading joke…"
@@ -1364,7 +1341,7 @@
   },
   "history": {
     "loading": "Loading history…",
-    "header": "On This Day",
+    "header": "On this day",
     "noEvents": "No events found",
     "yearsAgo": {
       "one": "{count} year ago",
@@ -1472,10 +1449,9 @@
       "overdue": "Overdue",
       "today": "Today",
       "tomorrow": "Tomorrow",
-      "thisWeek": "This Week",
       "upcoming": "Upcoming",
-      "noDate": "No Date",
-      "noLabel": "No Label"
+      "noDate": "No date",
+      "noLabel": "No label"
     },
     "dueDate": {
       "yesterday": "Yesterday",
@@ -1506,15 +1482,7 @@
   },
   "photo-slideshow": {
     "loading": "Loading photos…",
-    "empty": "No photos found",
-    "emptyICloud": "No photos yet. Check the album link and make sure Public Website is turned on.",
-    "emptyOneDrive": "No photos yet. Check the OneDrive folder in the editor.",
-    "emptyImmich": "No photos yet. Check the Immich album, person and favorites choice in the editor.",
-    "emptyUnsplash": "No photos yet. Try different search words in the editor.",
-    "emptyNasa": "No pictures from NASA right now. They come back on their own.",
-    "emptyArt": "No paintings found. Try loosening a filter in the editor.",
-    "photoCredit": "{name} / {source}",
-    "emptyPicked": "No pictures picked yet. Pick some in the editor."
+    "photoCredit": "{name} / {source}"
   },
   "video": {
     "name": "Video",
@@ -1541,7 +1509,7 @@
     "unavailable": "This picture isn't available anymore"
   },
   "qr-code": {
-    "name": "QR code",
+    "name": "QR Code",
     "empty": "Add a link or your Wi-Fi in the editor and it shows here",
     "scanToConnect": "Scan to connect",
     "tooLong": "That's too much text for one QR code. Shorten it in the editor and it shows here"
@@ -1561,25 +1529,26 @@
     "wake": "Wake",
     "wakeSub": "screen back on",
     "controls": "Controls",
-    "thisDisplay": "This display",
-    "thisDisplayTag": "this display",
-    "allDisplays": "All displays",
+    "thisDisplay": "This wall",
+    "thisDisplayTag": "this wall",
+    "allDisplays": "Every wall",
     "brightnessValue": "Brightness {percent}%",
     "brightnessUnknown": "Brightness, not reported yet",
     "dockEmpty": "No screens yet",
     "unnamedScreen": "Screen {number}",
     "goTo": "Go to {name}",
     "timers": "Timers",
-    "timersEyebrow": "Starts on this display",
+    "timersEyebrow": "Starts on this wall",
     "routines": "Routines",
     "quickTimer": "Quick timer",
-    "noRoutines": "Make routines on the phone, under Timers.",
+    "noRoutines": "Make routines on the phone, under Timers",
     "start": "Start",
     "timerStartFailed": "That timer didn't start. Try again.",
     "timersPreview": "This is a preview, so a tap here won't start a timer."
   },
   "timetable": {
     "name": "School Timetable",
+    "loading": "Loading timetables…",
     "today": "Today",
     "free": "Free",
     "lunch": "Lunch",
@@ -1599,7 +1568,7 @@
     "abLegend": "{day} {periods}: week A {subjectA}, week B {subjectB}",
     "holidayLine": "{holiday}, back to school on {date}",
     "holidayBrief": "{holiday}, back {date}",
-    "pickWho": "Pick whose week to show in this module's settings.",
+    "pickWho": "Pick a person in the editor and their week shows here",
     "noTimetableYet": "No timetable yet. A grown-up can add one in the editor.",
     "tomorrow": "Tomorrow",
     "startsWord": "starts",
@@ -1623,7 +1592,9 @@
     "pluginNotAvailable": "Plugin not available: {name}",
     "moduleFailed": "This item could not be shown.",
     "setLocationLink": "Set your location",
+    "setLocationInEditor": "Set your location in the editor",
     "notUpdating": "Not updating right now",
+    "upNext": "Up next",
     "setup": {
       "needsKey": "No {service} key yet",
       "keyNotWorking": "The {service} key isn't working",
@@ -1636,12 +1607,27 @@
     "moreBelow": {
       "one": "{count} more below",
       "other": "{count} more below"
+    },
+    "photoEmpty": {
+      "noPhotos": "No photos yet",
+      "nonePicked": "No pictures picked yet",
+      "noPaintings": "No paintings found",
+      "noneFromNasa": "No pictures from NASA right now",
+      "hint": {
+        "addPhotos": "Add photos from a phone: open {url} and tap Photos",
+        "pickPictures": "Pick some pictures in the editor and they show here",
+        "checkFilters": "Check the Immich album, person and favorites choice in the editor",
+        "checkLink": "Check the album link in the editor and make sure the album's Public Website is turned on",
+        "checkFolder": "Check the OneDrive folder in the editor",
+        "checkSearch": "Try different search words in the editor",
+        "checkArt": "Try loosening a filter in the editor",
+        "tryLater": "They come back on their own"
+      }
     }
   },
   "event-detail": {
     "close": "Close",
     "happeningNow": "Happening now",
-    "allDay": "All Day",
     "holiday": "Holiday",
     "birthday": "Birthday",
     "birthdayWithAge": "Birthday · turns {age}",
@@ -1688,7 +1674,7 @@
     "stats": {
       "wind": "Wind",
       "humidity": "Humidity",
-      "uv": "UV Index",
+      "uv": "UV index",
       "pressure": "Pressure",
       "sunset": "Sunset"
     },

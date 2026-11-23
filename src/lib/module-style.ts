@@ -1,4 +1,15 @@
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
+import { relativeLuminance } from '@/lib/fullscreen-themes';
+
+/**
+ * Whether a card is dark: its text is light. The household picks the text
+ * colour to read on the card, so this holds on a see-through card over a
+ * photo too, which has no background colour of its own to read. Unreadable
+ * text counts as light, the white default.
+ */
+export function cardIsDark(style: Pick<ModuleStyle, 'textColor'>): boolean {
+  return (relativeLuminance(style.textColor) ?? 1) > 0.4;
+}
 
 /** The title strip's rendered size: titleFontSize when it is a usable number,
  *  else the module font size. Shared by ModuleWrapper and the editor's Title

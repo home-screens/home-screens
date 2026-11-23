@@ -2,10 +2,10 @@
 
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import Toggle from '@/components/ui/Toggle';
-import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import ColorPicker from '@/components/ui/ColorPicker';
 
 export function DadJokeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -24,7 +24,9 @@ export function DadJokeConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         step={30}
       />
       <Toggle label={t('configSections.dad-joke.showDividers')} checked={c.showDividers !== false} onChange={(v) => set({ showDividers: v })} />
-      <AccentColorPicker
+      <ColorPicker
+        label={t('accentColorPicker.label')}
+        swatches="accent-or-none"
         value={c.accentColor ?? '#000000'}
         onChange={(v) => set({ accentColor: v })}
       />

@@ -1,6 +1,7 @@
 'use client';
 
 import { lazy, Suspense, useState, type CSSProperties } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type { MealPlannerConfig, SavedMeal } from '@/types/config';
 import { INK, ink } from '@/lib/constants';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
@@ -9,6 +10,7 @@ import { useTranslate } from '@/i18n';
 import MealPicture from '@/components/meals/MealPicture';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import { WallScroller } from '../shared/WallScroller';
+import { WallButton } from '../shared/WallButton';
 import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 import { BookIcon, RecipeBookChips, WALL_TOUCH_MIN_PX } from '../shared/recipe-book/RecipeBookParts';
 import { RecipeBookSheet } from '../shared/recipe-book/RecipeBookSheet';
@@ -103,20 +105,22 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
               </span>
             )}
           </span>
-          {interactive && <span aria-hidden="true" style={{ opacity: 0.3, fontSize: '1.1em', lineHeight: 1 }}>&#8250;</span>}
+          {interactive && <ChevronRight size="1.1em" aria-hidden="true" style={{ opacity: 0.3, flexShrink: 0 }} />}
         </>
       );
       const row: CSSProperties = { display: 'flex', alignItems: 'center', gap: '0.75em', padding: '0.35em 0.3em', width: '100%' };
       return interactive ? (
-        <button
+        <WallButton
+          row
           key={meal.id}
-          type="button"
           data-testid="recipe-list-row"
           onClick={() => setOpen(meal)}
-          style={{ ...row, border: 0, background: 'none', font: 'inherit', color: 'inherit', cursor: 'pointer', borderRadius: '0.6em' }}
+          // The ground as a class, so the row's pressed tint can show over it.
+          className="bg-transparent"
+          style={{ ...row, border: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', borderRadius: '0.6em' }}
         >
           {body}
-        </button>
+        </WallButton>
       ) : (
         <div key={meal.id} data-testid="recipe-list-row" style={row}>{body}</div>
       );
@@ -131,14 +135,15 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
         <>
           {list}
           {book.moreFailed ? (
-            <button
-              type="button"
+            <WallButton
+              row
               data-testid="recipe-list-more-failed"
               onClick={book.retryMore}
-              style={{ display: 'block', width: '100%', border: 0, background: 'none', font: 'inherit', color: 'inherit', cursor: 'pointer', padding: '0.8em 0.3em', fontSize: '0.75em', opacity: 0.6 }}
+              className="bg-transparent"
+              style={{ display: 'block', width: '100%', border: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', padding: '0.8em 0.3em', fontSize: '0.75em', opacity: 0.6 }}
             >
               {t('meal-planner.recipeBook.moreFailed')} · {t('meal-planner.recipeBook.tryAgain')}
-            </button>
+            </WallButton>
           ) : (
             <div data-testid="recipe-list-more" style={{ padding: '0.8em 0.3em', fontSize: '0.75em', opacity: 0.45, textAlign: 'center' }}>{t('meal-planner.recipeBook.loadingMore')}</div>
           )}
@@ -149,8 +154,7 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
 
   return (
     <div data-testid="meal-planner-recipes" data-source={book.source} {...(interactive ? BROWSE_HOLD_ATTR : {})} style={{ ...palette, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <button
-        type="button"
+      <WallButton
         data-testid="recipe-list-search"
         onClick={interactive ? () => setSheet('search') : undefined}
         tabIndex={interactive ? undefined : -1}
@@ -163,7 +167,7 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
       >
         <BookIcon name="search" size={fontSize * 0.98} />
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{placeholder}</span>
-      </button>
+      </WallButton>
       <div style={{ marginTop: '0.7em', flexShrink: 0 }}>
         <RecipeBookChips
           chips={book.chips}

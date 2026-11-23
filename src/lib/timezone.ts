@@ -14,6 +14,9 @@
  * locale-independent integers.
  */
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { formatDateSync } from '@/i18n/formatters';
+import type { TimeFormat } from '@/types/config';
+import { NO_VALUE } from './constants';
 import { DAY_MS } from './iso-date';
 
 /**
@@ -396,32 +399,55 @@ export interface ClockFormat {
   hour12: boolean;
 }
 
+/** How a time of day is written: 12 or 24 hour, in which language, read in which zone. */
+export interface TimeOfDayFormat {
+  timeFormat: TimeFormat;
+  /** BCP-47 tag for the language (`useFormattingLocale()` on the client). */
+  locale: string;
+  /**
+   * The zone to read the instant in. Unset reads the Date's own local
+   * getters, which is also right for a shifted Date (`toTZWallTime`).
+   */
+  timezone?: string;
+  /** 12-hour only: a leading zero on the hour (`08:05 AM`), for times that line up in a column. */
+  pad?: boolean;
+  /**
+   * An hour label on a forecast: `8 AM` in 12-hour mode. 24-hour mode keeps
+   * its minutes (`08:00`), since a bare `08` does not read as a time.
+   */
+  hourOnly?: boolean;
+}
+
 /**
- * Format a Date's time in the given timezone using Intl.
- * Useful for modules that display times from external sources (SunCalc, APIs)
- * where the Date is already a real UTC instant.
+ * A time of day, written the one way every surface writes it: `08:05` in
+ * 24-hour mode in every language, and `8:05 AM` in 12-hour mode with the
+ * language's own day period (`8:05 vorm.`, `8:05 a. m.`).
+ *
+ * Intl's `hour: 'numeric'` writes `8:05` in German and `8.05` in Danish, so
+ * a wall that used it beside the calendar read `08:05` on an event and `8:05`
+ * on the sunrise card next to it. The hour and minute come from the zone's
+ * wall clock as plain numbers, so a household time that falls in the
+ * machine's own spring-forward gap still prints as itself.
  */
-export function formatTimeInTZ(
-  date: Date,
-  fmt: ClockFormat,
-  options?: Intl.DateTimeFormatOptions,
+export function formatTimeOfDay(
+  instant: Date,
+  { timeFormat, locale, timezone, pad = false, hourOnly = false }: TimeOfDayFormat,
 ): string {
-  if (isNaN(date.getTime())) return '—';
-  const base: Intl.DateTimeFormatOptions = {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: fmt.hour12,
-    ...options,
-  };
-  try {
-    return date.toLocaleTimeString(fmt.locale, {
-      ...base,
-      ...(fmt.timezone ? { timeZone: fmt.timezone } : {}),
-    });
-  } catch {
-    // Invalid timezone — format without timezone override
-    return date.toLocaleTimeString(fmt.locale, base);
-  }
+  if (isNaN(instant.getTime())) return NO_VALUE;
+  const { minuteOfDay } = wallClockParts(instant, timezone);
+  // A day with no clock change in any zone, so the probe reads as the time itself.
+  const probe = new Date(2000, 0, 1, Math.floor(minuteOfDay / 60), minuteOfDay % 60);
+  const hours = pad ? 'hh' : 'h';
+  const pattern = timeFormat === '24h' ? 'HH:mm' : hourOnly ? `${hours} a` : `${hours}:mm a`;
+  return formatDateSync(probe, pattern, { locale }).trim();
+}
+
+/**
+ * `formatTimeOfDay` for code that holds a `ClockFormat`: times from external
+ * sources (SunCalc, APIs) where the Date is a real instant.
+ */
+export function formatTimeInTZ(date: Date, fmt: ClockFormat): string {
+  return formatTimeOfDay(date, { timeFormat: fmt.hour12 ? '12h' : '24h', locale: fmt.locale, timezone: fmt.timezone });
 }
 
 /**
@@ -441,7 +467,7 @@ export function formatDateInTZ(
   options: Intl.DateTimeFormatOptions,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  if (isNaN(date.getTime())) return '—';
+  if (isNaN(date.getTime())) return NO_VALUE;
   try {
     return date.toLocaleDateString(locale, {
       ...options,

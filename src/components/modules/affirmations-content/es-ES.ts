@@ -1,7 +1,7 @@
 import type { AffirmationEntry } from './types';
 
 // ---------------------------------------------------------------------------
-// Built-in content library — es-ES (198 entries)
+// Built-in content library: es-ES (198 entries)
 // ---------------------------------------------------------------------------
 
 export const ES_ES_AFFIRMATIONS: AffirmationEntry[] = [

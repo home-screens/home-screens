@@ -9,6 +9,7 @@ import type { ModuleDefinition } from '@/lib/module-registry';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * Lowercase and strip accents, so "cumpleanos" finds "cumpleaños" and a French
@@ -57,9 +58,9 @@ function PaletteItem({ definition, displayLabel, description }: { definition: Mo
       <definition.icon className="w-4 h-4 text-hs-text-muted flex-shrink-0" />
       <span className="text-sm text-hs-text-body">{displayLabel}</span>
       {isPlugin && (
-        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20" title={t('modulePalette.communityPluginTooltip')}>
-          <Puzzle className="w-3 h-3 text-violet-500" />
-          <span className="text-[10px] text-violet-500 font-medium">{t('modulePalette.pluginBadge')}</span>
+        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-hs-group-accent-4/10 border border-hs-group-accent-4/20" title={t('modulePalette.communityPluginTooltip')}>
+          <Puzzle className="w-3 h-3 text-hs-group-accent-4" />
+          <span className="text-[10px] text-hs-group-accent-4 font-medium">{t('modulePalette.pluginBadge')}</span>
         </span>
       )}
     </div>
@@ -263,7 +264,7 @@ export default function ModulePalette({
             <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider">
               {t('modulePalette.modulesHeading')}
             </h3>
-            <p className="text-[11px] text-hs-text-faint mt-0.5">{t('modulePalette.howToAdd')}</p>
+            <FieldHint className="mt-0.5">{t('modulePalette.howToAdd')}</FieldHint>
           </div>
           {onCollapse && (
             <button

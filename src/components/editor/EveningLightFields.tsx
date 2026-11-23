@@ -9,6 +9,8 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import PropertyGroup from './PropertyGroup';
 import { EVENING_LIGHT_DEFAULT, isClockTime, normalizeEveningLight } from '@/lib/screen-hours';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Where "a set time" starts until the person changes it. */
 const SET_TIME_DEFAULT = '20:00';
@@ -19,6 +21,7 @@ const SET_TIME_DEFAULT = '20:00';
  */
 export default function EveningLightFields({ screenId, eveningLight }: { screenId: string; eveningLight?: EveningLight }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const updateScreen = useEditorStore((state) => state.updateScreen);
   const light = normalizeEveningLight(eveningLight);
   const save = (next: EveningLight | undefined) => updateScreen(screenId, { eveningLight: next });
@@ -26,8 +29,12 @@ export default function EveningLightFields({ screenId, eveningLight }: { screenI
   return (
     <PropertyGroup title={t('backgroundPicker.eveningGroup')} accent={3}>
       <div className="space-y-2" data-testid="evening-light-fields">
-        <Toggle label={t('backgroundPicker.eveningToggle')} checked={!!light} onChange={(on) => save(on ? EVENING_LIGHT_DEFAULT : undefined)} />
-        <p className="text-[10px] leading-relaxed text-hs-text-faint">{t('backgroundPicker.eveningHint')}</p>
+        <Toggle
+          label={t('backgroundPicker.eveningToggle')}
+          checked={!!light}
+          onChange={(on) => save(on ? EVENING_LIGHT_DEFAULT : undefined)}
+          description={t('backgroundPicker.eveningHint')}
+        />
         {light && (
           <>
             <LabeledSelect
@@ -37,7 +44,7 @@ export default function EveningLightFields({ screenId, eveningLight }: { screenI
               options={[{ value: 'sunset', label: t('backgroundPicker.eveningFromSunset') }, { value: 'time', label: t('backgroundPicker.eveningFromTime') }]}
             />
             {light.from === 'sunset' ? (
-              <p className="text-[10px] leading-relaxed text-hs-text-faint">{t('backgroundPicker.eveningSunsetHint')}</p>
+              <FieldHint>{t('backgroundPicker.eveningSunsetHint', { place: settingsPlaceText(tCore, 'location') })}</FieldHint>
             ) : (
               <input
                 type="time" aria-label={t('backgroundPicker.eveningFromTime')} className={INPUT_CLASS} value={light.from}

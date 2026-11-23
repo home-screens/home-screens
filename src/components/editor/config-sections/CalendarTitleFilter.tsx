@@ -4,6 +4,7 @@ import { useState } from 'react';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useTranslate } from '@/i18n';
 import type { CalendarTitleFilter } from '@/types/config';
+import { X } from 'lucide-react';
 
 /**
  * Mode select + tag input for `titleFilter`. Terms are added on Enter, comma,
@@ -68,7 +69,7 @@ export function CalendarTitleFilterControl({
               className="text-hs-text-muted hover:text-hs-text-body"
               aria-label={t(`${keyPrefix}.titleFilterRemoveTerm`, { term })}
             >
-              ×
+              <X className="h-3 w-3" aria-hidden />
             </button>
           </span>
         ))}

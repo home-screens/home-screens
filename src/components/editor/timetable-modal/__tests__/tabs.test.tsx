@@ -195,7 +195,7 @@ describe('SchoolsTab', () => {
 
     expect(added).toHaveLength(1);
     // And the tab is now showing it, rather than the nothing-yet pane.
-    expect(screen.getByRole('button', { name: 'Remove GGS Lindenweg' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Delete GGS Lindenweg' })).toBeTruthy();
     expect(screen.queryByText('Add the school first')).toBeNull();
   });
 
@@ -234,7 +234,7 @@ describe('SchoolsTab', () => {
     // next one lands after it rather than on top of it.
     expect(screen.getByText('Period 1')).toBeTruthy();
     expect((screen.getAllByLabelText('Starts')[0] as HTMLInputElement).value).toBe('08:00');
-    fireEvent.click(screen.getByRole('button', { name: '+ Period' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Period' }));
     expect((latest as TimetableData | null)?.schools[1].slots[1]).toEqual({
       kind: 'period',
       n: 2,
@@ -257,7 +257,7 @@ describe('SchoolsTab', () => {
     let latest: TimetableData | null = null;
     wrap(<SchoolsHarness onChange={(data) => { latest = data; }} />);
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Period' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Period' }));
     const saved = latest as TimetableData | null;
     expect(saved?.schools[0].slots[2]).toEqual({ kind: 'period', n: 3, start: '09:30', end: '10:15' });
   });
@@ -293,12 +293,12 @@ describe('SchoolsTab', () => {
 
   it('keeps a break named with the word somebody typed when its name box is emptied', () => {
     // A break saved without a name used to be dropped; that was fixed by never
-    // creating one ("+ Break" starts out named "Break"), but a break
+    // creating one ("Break" starts out named "Break"), but a break
     // whose name was cleared to retype it was still thrown away, times and all.
     let latest: TimetableData | null = null;
     wrap(<SchoolsHarness onChange={(data) => { latest = data; }} />);
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Break' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Break' }));
     const label = screen.getByLabelText('Break name') as HTMLInputElement;
     expect(label.value).toBe('Break');
 
@@ -316,7 +316,7 @@ describe('SchoolsTab', () => {
     // screen looking real, and a date seeded to today read as an answer.
     wrap(<SchoolsHarness />);
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Add a day' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add a day' }));
     const date = screen.getByLabelText('Date') as HTMLInputElement;
     const names = screen.getAllByLabelText('What is it called?') as HTMLInputElement[];
     const name = names[names.length - 1];
@@ -349,11 +349,13 @@ describe('SubjectsTab', () => {
     let latest: TimetableData | null = null;
     wrap(<SubjectsHarness onChange={(data) => { latest = data; }} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Mathe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Mathe' }));
     expect(confirm.ask).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: 'danger',
-        message: 'Remove "Mathe"? It comes off every timetable that uses it.',
+        title: 'Delete “Mathe”?',
+        message: 'It comes off every timetable that uses it.',
+        confirmLabel: 'Delete',
       }),
     );
     await waitFor(() => expect((latest as TimetableData | null)?.subjects.map((s) => s.id)).toEqual(['de']));
@@ -363,7 +365,7 @@ describe('SubjectsTab', () => {
     let latest: TimetableData | null = null;
     wrap(<SubjectsHarness onChange={(data) => { latest = data; }} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Deutsch' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Deutsch' }));
     await waitFor(() => expect((latest as TimetableData | null)?.subjects.map((s) => s.id)).toEqual(['ma']));
     expect(confirm.ask).not.toHaveBeenCalled();
   });
@@ -396,7 +398,7 @@ describe('SubjectsTab', () => {
     // hundreds of pixels below the bottom of the pane on arrival.
     wrap(<SubjectsHarness />);
 
-    const add = screen.getByRole('button', { name: '+ Add subject' });
+    const add = screen.getByRole('button', { name: 'Add subject' });
     expect(add.closest('.overflow-y-auto')).toBeNull();
     // The rows themselves are the part that scrolls.
     expect(screen.getByDisplayValue('Ma').closest('.overflow-y-auto')).not.toBeNull();
@@ -405,7 +407,7 @@ describe('SubjectsTab', () => {
   it('puts the cursor in the new subject, which lands at the end of the list', () => {
     wrap(<SubjectsHarness />);
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Add subject' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add subject' }));
     // Focusing the new row brings it on screen, and leaves the cursor on the
     // placeholder code that is the next thing to change.
     expect(document.activeElement).toBe(screen.getByDisplayValue('New'));

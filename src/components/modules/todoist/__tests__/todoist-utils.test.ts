@@ -233,7 +233,7 @@ describe('formatDueDate', () => {
     const due = { date: '2025-06-15', datetime: '2025-06-15T15:30:00', isRecurring: false };
     const result = formatDueDate(due, new Date(), identityT);
     // identityT returns "todoist.dueDate.todayAtTime" with `{time}` substituted
-    // from `formatTimeInTZ`; for en-US that's "3:30 PM".
+    // from `formatTimeOfDay`; for en-US that's "3:30 PM".
     expect(result.text).toBe('todoist.dueDate.todayAtTime');
     expect(result.color).toBe('#f59e0b');
   });

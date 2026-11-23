@@ -22,12 +22,12 @@ function pills(meal: SavedMeal | null) {
 }
 
 describe('MealMetaPills', () => {
-  /* A German wall printed "kid-friendly · easy" where the phone says
-   * "Kid-Friendly · Einfach". */
-  it('words the difficulty and the tags as the phone does', () => {
+  /* A German wall printed "kid-friendly · easy", and the tags stayed
+   * English even once the difficulty read "Einfach". */
+  it('words the difficulty and the tags in the family language, as the phone does', () => {
     const { container } = pills({ id: 'tacos', name: 'Tacos', difficulty: 'easy', tags: ['kid-friendly'] });
     expect(container.textContent).toContain('Einfach');
-    expect(container.textContent).toContain('Kid-Friendly');
+    expect(container.textContent).toContain('Kinderfreundlich');
     expect(container.textContent).not.toContain('easy');
     expect(container.textContent).not.toContain('kid-friendly');
   });

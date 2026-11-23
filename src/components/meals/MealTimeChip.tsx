@@ -1,25 +1,27 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
-import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/remote-styles';
+import { withAlpha } from '@/lib/hex-color';
+import { REMOTE_ACCENT_INK } from '@/app/(remote)/remote/components/remote-styles';
 
 /**
  * Inline time picker chip for a single planned meal.
  *
  * The chip itself is always rendered. When clicked, a popover opens as a
- * sibling overlay anchored relative to the chip — so the chip's layout slot
+ * sibling overlay anchored relative to the chip, so the chip's layout slot
  * never collapses while editing, and the popover position is predictable.
  *
  * Three visual states:
- *   1. empty   — ghost chip "+ Set time" (no time set)
- *   2. set     — filled chip showing the formatted time
- *   3. editing — popover overlay below the chip with native time input,
+ *   1. empty:   ghost chip "Set time" (no time set)
+ *   2. set:     filled chip showing the formatted time
+ *   3. editing: popover overlay below the chip with native time input,
  *                slot-aware presets, and clear button
  *
- * Visual: inline styles only — works inside both Tailwind and non-Tailwind contexts.
+ * Visual: inline styles only: works inside both Tailwind and non-Tailwind contexts.
  */
 
 export interface MealTimeChipProps {
@@ -31,9 +33,13 @@ export interface MealTimeChipProps {
   slot: MealSlotType;
   /** Display format for the chip face (24h or 12h), already resolved */
   timeFormat: TimeFormat;
-  /** Visual variant — "dark" for editor (dark background), "darker" for /remote */
-  variant?: 'dark' | 'darker';
-  /** Additional accent color for highlights (defaults to amber) */
+  /**
+   * Visual variant: "editor" for the editor's meal planner, "phone" for
+   * /remote. Both follow the light or dark theme; the phone's popover is
+   * sized for a finger.
+   */
+  variant?: 'editor' | 'phone';
+  /** Accent for the open chip's edge and the chosen preset's words (defaults to the phone's amber ink) */
   accentColor?: string;
   /** Optional aria-label override */
   ariaLabel?: string;
@@ -48,44 +54,52 @@ export interface MealTimeChipProps {
    * to keep the popover within the viewport.
    */
   align?: 'left' | 'right';
-  /**
-   * z-index for the popover overlay. Defaults to 60. Lift this when nesting the
-   * chip inside a higher-stacking surface (e.g. MealsSettingsSheet at z-index 200)
-   * so the popover renders above its container.
-   */
-  popoverZIndex?: number;
 }
 
+/**
+ * The open popover's order among the rows and grid cells beside the chip. It
+ * is drawn inside the chip, not portalled, so this is a local order and not
+ * a page layer: the popover sits in whatever sheet or window holds the chip.
+ */
+const POPOVER_Z = 60;
+
 const VARIANT_COLORS = {
-  dark: {
-    chipBg: 'rgba(38, 38, 38, 0.6)',
-    chipBgHover: 'rgba(64, 64, 64, 0.8)',
-    chipBorder: 'rgba(82, 82, 82, 0.5)',
-    chipText: '#d4d4d4',
-    ghostText: '#737373',
-    popoverBg: '#0a0a0a',
-    popoverBorder: '#262626',
-    presetBg: 'rgba(38, 38, 38, 0.8)',
-    presetBgHover: 'rgba(64, 64, 64, 1)',
-    presetText: '#d4d4d4',
-    inputBg: '#171717',
-    inputBorder: '#262626',
-    inputText: '#fafafa',
+  // The editor's meal planner: a translucent chip on the grid's cells, on the
+  // theme's tokens so it turns light with the rest of the window.
+  editor: {
+    chipBg: withAlpha('var(--hs-bg-card)', 0.6),
+    chipBgHover: withAlpha('var(--hs-border-strong)', 0.8),
+    chipBorder: 'var(--hs-border-strong)',
+    chipText: 'var(--hs-text-secondary)',
+    // "Set time" is something to tap, so it reads at the muted level, not the faint one.
+    ghostText: 'var(--hs-text-muted)',
+    popoverBg: 'var(--hs-bg-body)',
+    popoverBorder: 'var(--hs-border)',
+    presetBg: withAlpha('var(--hs-bg-card)', 0.8),
+    presetBgHover: 'var(--hs-border-strong)',
+    presetText: 'var(--hs-text-secondary)',
+    inputBg: 'var(--hs-bg-panel)',
+    inputBorder: 'var(--hs-border)',
+    inputText: 'var(--hs-text-primary)',
+    clearText: 'var(--hs-text-muted)',
   },
-  darker: {
-    chipBg: 'rgba(23, 23, 23, 0.8)',
-    chipBgHover: 'rgba(38, 38, 38, 1)',
-    chipBorder: 'rgba(64, 64, 64, 0.6)',
-    chipText: '#e5e5e5',
-    ghostText: '#525252',
-    popoverBg: '#171717',
-    popoverBorder: '#262626',
-    presetBg: 'rgba(38, 38, 38, 0.8)',
-    presetBgHover: 'rgba(64, 64, 64, 1)',
-    presetText: '#e5e5e5',
-    inputBg: '#0a0a0a',
-    inputBorder: '#262626',
-    inputText: '#fafafa',
+  // The phone's own tokens, so the chip and its popover flip with the phone's theme.
+  phone: {
+    chipBg: 'var(--hs-bg-panel)',
+    chipBgHover: 'var(--hs-bg-hover)',
+    chipBorder: 'var(--hs-border-strong)',
+    chipText: 'var(--hs-text-body)',
+    // "Set time" is something to tap, so it reads at the muted level, not the faint one.
+    ghostText: 'var(--hs-text-secondary)',
+    popoverBg: 'var(--hs-bg-panel)',
+    popoverBorder: 'var(--hs-border)',
+    presetBg: 'var(--hs-bg-card)',
+    presetBgHover: 'var(--hs-bg-hover)',
+    presetText: 'var(--hs-text-body)',
+    inputBg: 'var(--hs-bg-input)',
+    inputBorder: 'var(--hs-border)',
+    inputText: 'var(--hs-text-primary)',
+    clearText: 'var(--hs-text-muted)',
   },
 } as const;
 
@@ -94,12 +108,11 @@ export default function MealTimeChip({
   onChange,
   slot,
   timeFormat,
-  variant = 'dark',
-  accentColor = REMOTE_ACCENT,
+  variant = 'editor',
+  accentColor = REMOTE_ACCENT_INK,
   ariaLabel,
   compact = false,
   align = 'left',
-  popoverZIndex = 60,
 }: MealTimeChipProps) {
   // Core, not the phone's list: the editor draws this chip too, and loads
   // `remote` only after the page is up, so the words arrived late there.
@@ -108,6 +121,9 @@ export default function MealTimeChip({
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const colors = VARIANT_COLORS[variant];
+  // The phone's chip is tapped, so its popover's presets, time box and clear
+  // button are a full finger tall; the editor's stay compact for a mouse.
+  const touch = variant === 'phone';
 
   useEffect(() => {
     if (!isEditing) return;
@@ -254,7 +270,7 @@ export default function MealTimeChip({
         position: 'relative',
         display: 'inline-block',
         // Ensure stacking context so the popover sits above adjacent rows
-        ...(isEditing ? { zIndex: popoverZIndex } : {}),
+        ...(isEditing ? { zIndex: POPOVER_Z } : {}),
       }}
     >
       {chipButton}
@@ -265,7 +281,7 @@ export default function MealTimeChip({
           style={{
             position: 'absolute',
             ...popoverPositionStyle,
-            zIndex: popoverZIndex,
+            zIndex: POPOVER_Z,
             background: colors.popoverBg,
             border: `1px solid ${colors.popoverBorder}`,
             borderRadius: 8,
@@ -292,7 +308,7 @@ export default function MealTimeChip({
               style={{
                 flex: 1,
                 padding: '6px 8px',
-                minHeight: 32,
+                minHeight: touch ? 44 : 32,
                 borderRadius: 6,
                 border: `1px solid ${colors.inputBorder}`,
                 background: colors.inputBg,
@@ -311,23 +327,22 @@ export default function MealTimeChip({
                   setIsEditing(false);
                 }}
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: touch ? 44 : 28,
+                  height: touch ? 44 : 28,
                   borderRadius: 6,
                   border: `1px solid ${colors.inputBorder}`,
                   background: 'transparent',
-                  color: '#a3a3a3',
+                  color: colors.clearText,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 14,
-                  fontFamily: 'inherit',
+                  padding: 0,
                 }}
                 aria-label={t('mealTimeChip.clearTime')}
                 title={t('mealTimeChip.clearTime')}
               >
-                ×
+                <X size={touch ? 18 : 14} strokeWidth={2} aria-hidden />
               </button>
             )}
           </div>
@@ -346,7 +361,7 @@ export default function MealTimeChip({
                   }}
                   style={{
                     padding: '6px 8px',
-                    minHeight: 30,
+                    minHeight: touch ? 44 : 30,
                     borderRadius: 6,
                     border: `1px solid ${isSelected ? accentColor : colors.popoverBorder}`,
                     background: isSelected

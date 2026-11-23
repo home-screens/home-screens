@@ -45,14 +45,14 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     // The team view with nobody picked yet points at the settings.
     type: 'sports', name: 'team-no-pick', kind: 'networked', stubKey: 'sports',
     config: { view: 'team', favoriteTeams: [] },
-    expect: showsCopy('Pick your team in the module settings'),
+    expect: showsCopy('Pick a team in the editor and its games show here'),
   },
   {
     // Every picked team plays in a league that is switched off, so none is
     // fetched and the card says what to turn on instead of loading forever.
     type: 'sports', name: 'team-league-off', kind: 'networked', stubKey: 'sports',
     config: { view: 'team', leagues: ['nba'], favoriteTeams: ['nfl:MIN'] },
-    expect: showsCopy("Turn on your team's league in the module settings"),
+    expect: showsCopy("Turn on your team's league in the editor and its games show here"),
   },
   {
     type: 'countdown', name: 'no-events', kind: 'network-free',
@@ -104,7 +104,7 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     // No list picked (the registry default): the module says where to pick one.
     type: 'todo', name: 'no-list', kind: 'local-data',
     config: {},
-    expect: showsCopy('Pick a list in the editor'),
+    expect: showsCopy('Pick a list in the editor and it shows here'),
   },
   {
     // A new card can add from the wall (registry default), so the empty list
@@ -147,6 +147,13 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     type: 'traffic', name: 'no-routes', kind: 'network-free',
     config: { routes: [] },
     expect: showsCopy('Add a route in the editor and drive times show here'),
+  },
+  {
+    // Single-photo mode with no picture chosen yet: the placeholder every
+    // module with nothing set up shows. The module never fetches.
+    type: 'fullscreen-photo', name: 'no-photo-chosen', kind: 'network-free',
+    config: { file: '' },
+    expect: showsCopy('Choose a photo in the editor and it shows here'),
   },
   {
     // No file chosen (file source, empty path) — the module never fetches.
@@ -197,11 +204,14 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('No meals planned yet'),
   },
   {
-    // menu-board shows the aggregate empty copy; the today view renders
-    // per-slot "Not planned" placeholders instead.
+    // Unseeded sandbox: nothing is planned anywhere, so the board shows the
+    // card's empty state with the phone address, as Today and Next meal do.
     type: 'fullscreen-meal-planner', name: 'no-meals-today', kind: 'local-data',
     config: { view: 'menu-board' },
-    expect: showsCopy('No meals planned for today'),
+    expect: async (mod) => {
+      await expect(mod).toContainText('No meals planned yet');
+      await expect(mod).toContainText('/remote and tap Meals');
+    },
   },
   {
     // Unseeded sandbox → no members → the setup state, not "No chores today"
@@ -217,7 +227,7 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     // Nobody picked yet (the registry default): the card says where to pick.
     type: 'timetable', name: 'nobody-picked', kind: 'local-data',
     config: {},
-    expect: showsCopy("Pick whose week to show in this module's settings."),
+    expect: showsCopy('Pick a person in the editor and their week shows here'),
   },
   {
     // Leon is on the roster and picked, but his week has not been entered, so

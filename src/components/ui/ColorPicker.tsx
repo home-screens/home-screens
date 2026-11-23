@@ -1,13 +1,39 @@
 'use client';
 
 import { useState } from 'react';
+import { Ban } from 'lucide-react';
+import { useTranslate } from '@/i18n';
+import { NO_ACCENT_COLOR } from '@/lib/constants';
 import { parseCssColorToRgb, parseEditableColor, withCssColorAlpha } from '@/lib/hex-color';
 import Slider from './Slider';
+import { FOCUS_RING_CLASS } from './input-classes';
+
+/**
+ * The accent colours offered as one-click swatches under a module's accent
+ * picker, in the order they are drawn. Names come from the editor dictionary.
+ */
+const ACCENT_SWATCHES = [
+  { key: 'purple', value: '#a78bfa' },
+  { key: 'blue', value: '#3b82f6' },
+  { key: 'cyan', value: '#22d3ee' },
+  { key: 'green', value: '#22c55e' },
+  { key: 'amber', value: '#fbbf24' },
+  { key: 'orange', value: '#f97316' },
+  { key: 'red', value: '#ef4444' },
+  { key: 'pink', value: '#ec4899' },
+] as const;
 
 interface ColorPickerProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  /**
+   * A row of accent swatches under the picker, for a module's accent colour.
+   * `accent-or-none` adds a "None" swatch first, for the modules that draw
+   * no accent at all when the value is `NO_ACCENT_COLOR`; while it is chosen,
+   * the text box reads "None" instead of a black hex.
+   */
+  swatches?: 'accent' | 'accent-or-none';
   /**
    * Offer a see-through slider beside the swatch. Without it, the only way to
    * make a module's background semi-transparent was to hand-type
@@ -39,16 +65,54 @@ function isSupportedColor(input: string): boolean {
   return parseCssColorToRgb(input) !== null;
 }
 
-export default function ColorPicker({
-  label, value, onChange, defaultValue, resetLabel, showAlpha, alphaLabel,
-}: ColorPickerProps) {
-  const [draft, setDraft] = useState(value);
+interface Swatch {
+  value: string;
+  label: string;
+  /** The "no accent" choice, drawn as a crossed-out circle. */
+  none?: boolean;
+}
+
+/**
+ * A colour row: the label, a colour well and a text box that takes a hex or
+ * rgb()/rgba() value, with an optional see-through slider and, for a
+ * module's accent, a row of one-click swatches.
+ */
+export default function ColorPicker(props: ColorPickerProps) {
+  // The swatch names come from the dictionary; a picker without swatches
+  // stays free of it, so it also renders outside the editor's i18n provider.
+  return props.swatches ? <ColorPickerWithSwatches {...props} swatches={props.swatches} /> : <ColorPickerRow {...props} />;
+}
+
+function ColorPickerWithSwatches(props: ColorPickerProps & { swatches: 'accent' | 'accent-or-none' }) {
+  const t = useTranslate('editor');
+  const swatchList: Swatch[] = [
+    ...(props.swatches === 'accent-or-none'
+      ? [{ value: NO_ACCENT_COLOR, label: t('accentColorPicker.presets.none'), none: true }]
+      : []),
+    ...ACCENT_SWATCHES.map((s) => ({ value: s.value, label: t(`accentColorPicker.presets.${s.key}`) })),
+  ];
+  return <ColorPickerRow {...props} swatchList={swatchList} />;
+}
+
+function ColorPickerRow({
+  label, value, onChange, defaultValue, resetLabel, showAlpha, alphaLabel, swatchList,
+}: ColorPickerProps & { swatchList?: Swatch[] }) {
+  const none = swatchList?.find((s) => s.none);
+  // "No accent" is stored as black, which would read as a black accent in
+  // the text box, so the box stays empty and says "None" instead.
+  const shown = (v: string) => (none !== undefined && v.toLowerCase() === none.value ? '' : v);
+  const [draft, setDraftRaw] = useState(shown(value));
+  const setDraft = (v: string) => setDraftRaw(shown(v));
   // Keep draft in sync when parent value changes (e.g. undo/redo)
   const [prevValue, setPrevValue] = useState(value);
   if (value !== prevValue) {
     setDraft(value);
     setPrevValue(value);
   }
+  const pick = (next: string) => {
+    onChange(next);
+    setDraft(next);
+  };
 
   // The swatch used to show white for every `rgba(...)` and for `transparent`
   // because it only read hex, so the two values modules actually ship with
@@ -112,10 +176,13 @@ export default function ColorPicker({
           <input
             type="text"
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setDraftRaw(e.target.value)}
+            placeholder={none?.label}
             onBlur={() => {
               const trimmed = draft.trim();
-              if (HEX_RE.test(trimmed)) {
+              if (none && trimmed === '') {
+                pick(none.value);
+              } else if (HEX_RE.test(trimmed)) {
                 // Store every hex in its 6-digit form, the shape the swatch
                 // emits and the reset button compares against the default.
                 const normalized = trimmed.length === 4
@@ -130,10 +197,34 @@ export default function ColorPicker({
                 setDraft(value);
               }
             }}
-            className="w-28 px-2 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
+            className="w-28 px-2 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body placeholder:text-hs-text-faint focus:outline-none focus:border-hs-accent"
           />
         </div>
       </label>
+      {swatchList && (
+        // Outside the <label>, whose clicks all open the OS colour picker.
+        <div role="group" aria-label={label} className="flex flex-wrap justify-end gap-1.5">
+          {swatchList.map((s) => {
+            const chosen = value.toLowerCase() === s.value;
+            return (
+              <button
+                key={s.value}
+                type="button"
+                aria-label={s.label}
+                aria-pressed={chosen}
+                title={s.label}
+                onClick={() => pick(s.value)}
+                className={`flex size-5 items-center justify-center rounded-full border transition-shadow ${FOCUS_RING_CLASS} ${
+                  chosen ? 'border-hs-text-primary ring-2 ring-hs-accent-ring' : 'border-hs-border-strong hover:border-hs-text-muted'
+                }`}
+                style={s.none ? undefined : { backgroundColor: s.value }}
+              >
+                {s.none && <Ban aria-hidden className="size-3.5 text-hs-text-faint" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
       {showAlpha && alphaLabel !== undefined && (
         <Slider
           label={alphaLabel}

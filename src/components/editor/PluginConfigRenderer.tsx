@@ -6,7 +6,11 @@ import type { PluginConfigSchema, PluginConfigProperty } from '@/types/plugins';
 import { useEditorStore } from '@/stores/editor-store';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
-import { INPUT_CLASS } from './PropertyPanel';
+import Toggle from '@/components/ui/Toggle';
+import LabeledField from '@/components/ui/LabeledField';
+import FieldHint from '@/components/ui/FieldHint';
+import SectionHeading from '@/components/ui/SectionHeading';
+import { CHECKBOX_CLASS, INPUT_CLASS } from '@/components/ui/input-classes';
 import { X, Plus } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 
@@ -75,7 +79,7 @@ export function PluginSchemaFields({
         </ConditionalField>
       ))}
       {/* Grouped fields with section headers. A group whose fields are all
-          hidden by ui:showWhen renders nothing — no orphaned header. */}
+          hidden by ui:showWhen renders nothing, so no header is left orphaned. */}
       {[...groups.entries()].map(([groupName, fields]) => {
         const visible = fields.filter(([, prop]) =>
           isFieldVisible(prop, values, schema.properties),
@@ -83,9 +87,7 @@ export function PluginSchemaFields({
         if (visible.length === 0) return null;
         return (
           <div key={groupName} className="space-y-3">
-            <div className="text-[10px] font-semibold text-hs-text-faint uppercase tracking-wider pt-2 border-t border-hs-border-strong/50">
-              {groupName}
-            </div>
+            <SectionHeading>{groupName}</SectionHeading>
             {visible.map(([key, prop]) => (
               <ConfigField
                 key={key}
@@ -142,52 +144,33 @@ interface WidgetProps {
   placeholder?: string;
 }
 
-function Desc({ text }: { text?: string }) {
-  return text ? <span className="text-[10px] text-hs-text-faint">{text}</span> : null;
-}
-
 function ToggleWidget({ label, value, prop, onChange, description }: WidgetProps) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <label className="flex items-center justify-between gap-2">
-        <span className="text-xs text-hs-text-muted">{label}</span>
-        <input type="checkbox" checked={Boolean(value ?? prop.default)} onChange={(e) => onChange(e.target.checked)} className="accent-hs-accent" />
-      </label>
-      <Desc text={description} />
-    </div>
-  );
+  return <Toggle label={label} checked={Boolean(value ?? prop.default)} onChange={onChange} description={description} />;
 }
 
 function SliderWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <Slider label={label} value={Number(value ?? prop.default ?? prop.minimum ?? 0)} min={prop.minimum ?? 0} max={prop.maximum ?? 100} step={prop['ui:step'] ?? 1} onChange={onChange} />
-      <Desc text={description} />
-    </div>
+    <Slider label={label} value={Number(value ?? prop.default ?? prop.minimum ?? 0)} min={prop.minimum ?? 0} max={prop.maximum ?? 100} step={prop['ui:step'] ?? 1} onChange={onChange} hint={description} />
   );
 }
 
 function NumberWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
-    <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+    <LabeledField label={label} hint={description}>
       <input type="number" value={Number(value ?? prop.default ?? 0)} min={prop.minimum} max={prop.maximum} step={prop['ui:step']} onChange={(e) => onChange(Number(e.target.value))} className={INPUT_CLASS} placeholder={placeholder} />
-      <Desc text={description} />
-    </label>
+    </LabeledField>
   );
 }
 
 function SelectWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
-    <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+    <LabeledField label={label} hint={description}>
       <select value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(prop.type === 'number' ? Number(e.target.value) : e.target.value)} className={INPUT_CLASS}>
         {(prop.enum ?? []).map((opt, i) => (
           <option key={String(opt)} value={String(opt)}>{prop.enumLabels?.[i] ?? String(opt)}</option>
         ))}
       </select>
-      <Desc text={description} />
-    </label>
+    </LabeledField>
   );
 }
 
@@ -195,18 +178,16 @@ function ColorWidget({ label, value, prop, onChange, description }: WidgetProps)
   return (
     <div className="flex flex-col gap-0.5">
       <ColorPicker label={label} value={String(value ?? prop.default ?? '#000000')} onChange={onChange} />
-      <Desc text={description} />
+      {description && <FieldHint>{description}</FieldHint>}
     </div>
   );
 }
 
 function TextareaWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
-    <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+    <LabeledField label={label} hint={description}>
       <textarea rows={4} value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS + ' resize-y'} placeholder={placeholder} />
-      <Desc text={description} />
-    </label>
+    </LabeledField>
   );
 }
 
@@ -229,25 +210,23 @@ function MultiselectWidget({ label, value, prop, onChange, description }: Widget
                   else { const idx = current.indexOf(opt); if (idx >= 0) current.splice(idx, 1); }
                   onChange(current);
                 }}
-                className="accent-hs-accent"
+                className={CHECKBOX_CLASS}
               />
               {prop.enumLabels?.[i] ?? String(opt)}
             </label>
           );
         })}
       </div>
-      <Desc text={description} />
+      {description && <FieldHint>{description}</FieldHint>}
     </div>
   );
 }
 
 function TimeWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
-    <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+    <LabeledField label={label} hint={description}>
       <input type="time" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} />
-      <Desc text={description} />
-    </label>
+    </LabeledField>
   );
 }
 
@@ -261,11 +240,9 @@ function ObjectWidget({ label, value, prop, onChange, description }: WidgetProps
 
 function TextWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
-    <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+    <LabeledField label={label} hint={description}>
       <input type="text" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} placeholder={placeholder} />
-      <Desc text={description} />
-    </label>
+    </LabeledField>
   );
 }
 
@@ -370,7 +347,7 @@ function ArrayEditor({
   return (
     <div className="flex flex-col gap-1">
       <span className="text-xs text-hs-text-muted">{label}</span>
-      {description && <span className="text-[10px] text-hs-text-faint">{description}</span>}
+      {description && <FieldHint>{description}</FieldHint>}
       <div className="space-y-1.5">
         {items.map((item, i) => (
           <div key={keys[i]} className="flex items-start gap-1">
@@ -453,7 +430,7 @@ function ObjectEditor({
   return (
     <div className="flex flex-col gap-1">
       <span className="text-xs text-hs-text-muted">{label}</span>
-      {description && <span className="text-[10px] text-hs-text-faint">{description}</span>}
+      {description && <FieldHint>{description}</FieldHint>}
       <div className="pl-2 border-l-2 border-hs-border-strong space-y-2">
         {Object.entries(properties).map(([subKey, subProp]) => (
           <ConditionalField key={subKey} prop={subProp} config={obj} schemaProperties={properties}>

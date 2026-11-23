@@ -94,10 +94,27 @@ function sanitizeName(name: string): string {
  * cell at "Picture size 40", a screen background). Refuse it with a plain
  * explanation rather than store a picture that only looks right by accident.
  */
-async function svgSizeProblem(file: File): Promise<string | null> {
+async function svgSizeProblem(file: File): Promise<NextResponse | null> {
   if (file.type !== 'image/svg+xml') return null;
   if (svgDeclaresSize(await file.text())) return null;
-  return `${file.name} has no size information. Add a viewBox to the SVG and try again.`;
+  return NextResponse.json(
+    { error: `${file.name} has no size information. Add a viewBox to the SVG and try again.`, code: 'library.svgNoSize', params: { name: file.name } },
+    { status: 400 },
+  );
+}
+
+/** A file the library does not take, with the refusal code the editor phrases. */
+function refuseFile(file: File, isVideo: boolean): NextResponse | null {
+  if (!isVideo && !IMAGE_MIME_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: `Invalid file type: ${file.name}`, code: 'library.badType', params: { name: file.name } }, { status: 400 });
+  }
+  if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
+    return NextResponse.json(
+      { error: `File too large: ${file.name} (max ${isVideo ? '200 MB' : '10 MB'})`, code: 'library.tooBig', params: { name: file.name } },
+      { status: 413 },
+    );
+  }
+  return null;
 }
 
 /**
@@ -125,23 +142,14 @@ async function replaceLibraryFile(target: string, files: File[]): Promise<NextRe
   const ext = extensionOf(relativePath);
   if (extensionOf(file.name) !== ext) {
     return NextResponse.json(
-      { error: `The new file needs to end in ${ext} like the one it replaces` },
+      { error: `The new file needs to end in ${ext} like the one it replaces`, code: 'library.replaceKind', params: { ext } },
       { status: 400 },
     );
   }
   const isVideo = VIDEO_MIME_TYPES.includes(file.type);
-  if (!isVideo && !IMAGE_MIME_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: `Invalid file type: ${file.name}` }, { status: 400 });
-  }
+  const refused = refuseFile(file, isVideo) ?? await svgSizeProblem(file);
+  if (refused) return refused;
   const maxSize = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-  if (file.size > maxSize) {
-    return NextResponse.json(
-      { error: `File too large: ${file.name} (max ${isVideo ? '200 MB' : '10 MB'})` },
-      { status: 413 },
-    );
-  }
-  const svgProblem = await svgSizeProblem(file);
-  if (svgProblem) return NextResponse.json({ error: svgProblem }, { status: 400 });
   // Lands under the final name only once whole, so a replaced picture
   // stays whole until the new one is complete.
   await writeLibraryFile(filePath, file.stream(), maxSize);
@@ -162,7 +170,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   // only shave a byte-exact 200 MB file, which the friendly message still covers.
   const declared = Number(request.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > MAX_VIDEO_BYTES) {
-    return NextResponse.json({ error: 'File too large (max 200 MB)' }, { status: 413 });
+    return NextResponse.json({ error: 'File too large (max 200 MB)', code: 'library.tooBigAll' }, { status: 413 });
   }
 
   const formData = await request.formData();
@@ -194,17 +202,8 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   // Validate all files first
   for (const file of files) {
-    const isVideo = VIDEO_MIME_TYPES.includes(file.type);
-    if (!isVideo && !IMAGE_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: `Invalid file type: ${file.name}` }, { status: 400 });
-    }
-    const maxSize = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-    const maxLabel = isVideo ? '200 MB' : '10 MB';
-    if (file.size > maxSize) {
-      return NextResponse.json({ error: `File too large: ${file.name} (max ${maxLabel})` }, { status: 413 });
-    }
-    const svgProblem = await svgSizeProblem(file);
-    if (svgProblem) return NextResponse.json({ error: svgProblem }, { status: 400 });
+    const refused = refuseFile(file, VIDEO_MIME_TYPES.includes(file.type)) ?? await svgSizeProblem(file);
+    if (refused) return refused;
   }
 
   // The top-level `rotation-` names belong to the background rotation, which
@@ -214,7 +213,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     const reserved = files.find((file) => ROTATION_FILE_RE.test(sanitizeName(file.name)));
     if (reserved) {
       return NextResponse.json(
-        { error: `Names starting with "rotation-" are kept for rotating backgrounds. Please rename ${reserved.name} and try again.` },
+        { error: `Names starting with "rotation-" are kept for rotating backgrounds. Please rename ${reserved.name} and try again.`, code: 'library.reservedName', params: { name: reserved.name } },
         { status: 400 },
       );
     }

@@ -6,6 +6,7 @@ import type { FamilyMember } from '@/types/family';
 import type { WeekDayData } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { localDateFromIso } from '@/lib/iso-date';
+import { NO_VALUE } from '@/lib/constants';
 
 interface WeekStripProps {
   /** Canvas scale: 1 = the sizes authored for a 1080-wide panel. */
@@ -29,7 +30,7 @@ export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
   return (
     <div data-testid="fcc-week-strip" style={{ padding: `${20 * k}px 0 ${8 * k}px` }}>
       <div style={{ fontSize: 18 * k, fontWeight: 700, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 * k }}>
-        {t('fullscreen-chore-chart.thisWeek')}
+        {t('lookAhead.thisWeek')}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 10 * k }}>
         {weekData.map((day, i) => {
@@ -54,7 +55,7 @@ export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
                 {formatDateSync(dayDate, 'EEE', { locale })}
               </div>
               <div style={{ fontSize: 30 * k, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 4 * k, color: 'var(--fcc-text)' }}>
-                {future || assigned === 0 ? '–' : (
+                {future || assigned === 0 ? NO_VALUE : (
                   <>
                     {earned}
                     <span style={{ fontSize: 18 * k, color: 'var(--fcc-text-3)', fontWeight: 600 }}>/{assigned}</span>

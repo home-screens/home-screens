@@ -3,6 +3,7 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { formatTimeOfDay } from '@/lib/timezone';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { getLocalizedConditionLabel } from './condition-label';
@@ -30,11 +31,7 @@ export function HourColumn({ config, hour, timezone, timeFormat }: HourColumnPro
   return (
     <div className="flex flex-col items-center justify-evenly min-h-0 whitespace-nowrap" data-testid="weather-hour">
       <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-        {new Date(hour.time).toLocaleTimeString(locale, {
-          hour: 'numeric',
-          hour12: timeFormat !== '24h',
-          ...(timezone ? { timeZone: timezone } : {}),
-        })}
+        {formatTimeOfDay(new Date(hour.time), { timeFormat, locale, timezone, hourOnly: true })}
       </span>
       <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(hour.icon, tWeather)} role="img" />
       <WeatherStat icon={CloudRain} value={hour.precipProbability} unit="%" visible={config.showPrecipitation !== false} />

@@ -146,7 +146,7 @@ export const POST = async (request: NextRequest) => {
 
   if (!isValidISODate(date)) {
     return NextResponse.json(
-      { error: 'Invalid date format — expected a real YYYY-MM-DD calendar date' },
+      { error: 'Invalid date format: expected a real YYYY-MM-DD calendar date' },
       { status: 400 },
     );
   }

@@ -50,7 +50,7 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
               <>
                 <div className="w-8 h-px mt-3 mb-2" style={{ backgroundColor: hasAccent ? accentColor : ink(0.15), opacity: hasAccent ? TEXT_OPACITY.tertiary : 1 }} />
                 <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
-                  &mdash; {data.author}
+                  &ndash; {data.author}
                 </p>
               </>
             )}

@@ -23,7 +23,7 @@ import { smallWallScrollLook } from '../shared/wallScrollLook';
 
 /** What every Todoist view is handed about the wall it is on. */
 export interface TodoistWallProps {
-  /** Closes a task; set only when "Tap to complete" is on. */
+  /** Closes a task; set only when "Tap on the wall" is on. */
   onComplete?: (taskId: string) => void;
   /** The task whose tap is on its way to Todoist. */
   pressedId?: string | null;
@@ -56,7 +56,7 @@ export function TaskTapRing({ priorityColor, pressed, size = TAP_RING_PX }: { pr
 }
 
 /**
- * One task. With "Tap to complete" on, the whole row is the button (a finger
+ * One task. With "Tap on the wall" on, the whole row is the button (a finger
  * does not have to find the ring) and it tints while its tap is in flight.
  */
 export function TaskRow({
@@ -225,7 +225,7 @@ export function taskRows(tasks: TodoistTask[], config: TodoistConfig): FlatTaskR
  * The task rows of a list, under their headers. A card has no scrollbar, so
  * the rows that do not fit whole are left out and counted ("and N more")
  * instead of the last one being cut in half; a header whose rows are all
- * left out goes with them. On a touch wall with "Tap to complete" on, a
+ * left out goes with them. On a touch wall with "Tap on the wall" on, a
  * finger scrolls the whole list instead and nothing is left out.
  */
 export function TaskSections({ sections, config, now, fontPx, scroll, onComplete, pressedId, timeFormat, timezone }: {

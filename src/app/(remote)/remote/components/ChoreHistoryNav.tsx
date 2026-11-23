@@ -13,6 +13,7 @@ import {
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { localDateFromIso, addIsoDays } from '@/lib/iso-date';
+import { memberInk } from '@/lib/family-avatar';
 
 /** Days shown before anyone asks for more. Two weeks covers "did she do it last Tuesday". */
 export const DEFAULT_HISTORY_WINDOW_DAYS = 14;
@@ -206,7 +207,7 @@ export default function ChoreHistoryNav({
               border: 'none',
               cursor: 'pointer',
               background: accentColor,
-              color: 'var(--hs-bg-body)',
+              color: memberInk(accentColor),
               fontSize: 13,
               fontWeight: 700,
               display: 'inline-flex',
@@ -274,7 +275,7 @@ export default function ChoreHistoryNav({
           const fracColor = isPerfect
             ? accentColor
             : isPartialGood
-              ? '#fbbf24'
+              ? 'var(--hs-warning-ink)'
               : 'var(--hs-text-faint)';
 
           const numColor = isSelected ? accentColor : 'var(--hs-text-primary)';

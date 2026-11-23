@@ -71,7 +71,7 @@ test.describe('Defaults › Backups & data › Pictures', () => {
       // Counts come from the summary route; other workers' folders may add
       // to "all", so only the relation is fixed.
       await expect(group.getByText(/Only the ones your screens use \(\d+ files, /)).toBeVisible();
-      await expect(group.getByText(/Everything in your picture library \(\d+ files, /)).toBeVisible();
+      await expect(group.getByText(/Everything in Pictures & videos \(\d+ files, /)).toBeVisible();
       // The default is remembered per browser and starts at "used".
       await expect(group.getByRole('radio', { name: /Only the ones your screens use/ })).toBeChecked();
 
@@ -89,7 +89,7 @@ test.describe('Defaults › Backups & data › Pictures', () => {
       ]);
       await expect(page.getByText(/Saved home-screens-backup-.*\.zip to your downloads\./)).toBeVisible();
 
-      await group.getByRole('radio', { name: /Everything in your picture library/ }).check();
+      await group.getByRole('radio', { name: /Everything in Pictures & videos/ }).check();
       download = page.waitForEvent('download');
       await page.getByRole('button', { name: 'Save a backup' }).click();
       file = await download;

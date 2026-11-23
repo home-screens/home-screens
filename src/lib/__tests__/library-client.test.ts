@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { deleteLibraryFile, deleteLibraryFiles, deleteLibraryImage, uploadLibraryFile, uploadLibraryFiles, usageNames } from '@/lib/library-client';
+import { deleteLibraryFile, deleteLibraryFiles, deleteLibraryImage, uploadLibraryFile, uploadFailureText, uploadLibraryFiles, usageNames } from '@/lib/library-client';
 import { isSessionExpired } from '@/lib/editor-fetch';
 
 /**
@@ -271,10 +271,14 @@ describe('uploadLibraryFiles', () => {
     expect(body.get('directory')).toBeNull();
   });
 
-  it('names the file the hub turned down, with its sentence and status', async () => {
-    mockFetch.mockResolvedValue(new Response(JSON.stringify({ error: 'Too big' }), { status: 413 }));
+  it('names the file the hub turned down, with its answer and status', async () => {
+    const answer = { error: 'Too big', code: 'library.tooBig', params: { name: 'big.jpg' } };
+    mockFetch.mockResolvedValue(new Response(JSON.stringify(answer), { status: 413 }));
     const outcome = await uploadLibraryFiles([new File(['a'], 'big.jpg', { type: 'image/jpeg' })], '');
-    expect(outcome).toEqual({ uploaded: [], unplayable: [], error: { message: 'Too big', status: 413, file: 'big.jpg' } });
+    expect(outcome).toEqual({ uploaded: [], unplayable: [], error: { body: answer, status: 413, file: 'big.jpg' } });
+    const tCore = ((key: string, vars?: Record<string, string | number>) => `${key}:${vars?.name ?? ''}`) as Parameters<typeof uploadFailureText>[1];
+    expect(uploadFailureText(outcome.error!, tCore, 'fallback')).toBe('refusals.library.tooBig:big.jpg');
+    expect(uploadFailureText({ body: { error: 'Too big' }, status: 413, file: 'big.jpg' }, tCore, 'fallback')).toBe('fallback');
   });
 });
 

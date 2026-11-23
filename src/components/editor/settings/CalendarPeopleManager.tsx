@@ -5,6 +5,8 @@ import { useTranslate } from '@/i18n';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsHref } from '@/lib/settings-route';
 import { useCalendarSources } from '@/components/editor/config-sections/CalendarSourceFilter';
+import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
+import { LoadingLine } from '@/components/ui/Spinner';
 
 interface CalendarPeopleManagerProps {
   personSources: Record<string, string[]>;
@@ -21,7 +23,7 @@ export default function CalendarPeopleManager({ personSources, onChange }: Calen
   const familyHref = settingsHref({ kind: 'defaults', page: 'family' });
 
   return <section className="space-y-4">
-    {loading && <p className="text-sm text-hs-text-muted">{tCore('loading')}</p>}
+    {loading && <LoadingLine />}
     {error && <p role="alert" className="text-sm text-hs-danger">{tCore('family.loadFailed')}</p>}
     {!loading && !error && members.length === 0 && <p className="text-sm text-hs-text-muted">{t('settings.calendarPage.people.noPeople')}</p>}
     <Link href={familyHref} className="inline-block text-sm text-hs-accent hover:underline">{t('settings.calendarPage.people.manageFamily')}</Link>
@@ -32,7 +34,7 @@ export default function CalendarPeopleManager({ personSources, onChange }: Calen
       {sources.length === 0 && <p className="text-xs text-hs-text-muted">{t('settings.calendarPage.people.noSources')}</p>}
       <div className="flex flex-wrap gap-x-4 gap-y-2">
         {sources.map((source) => <label key={source.id} className="flex min-h-9 items-center gap-2 text-sm text-hs-text-body">
-          <input type="checkbox" className="h-4 w-4 accent-hs-accent" checked={(personSources[member.id] ?? []).includes(source.id)} onChange={(event) => {
+          <input type="checkbox" className={CHECKBOX_CLASS} checked={(personSources[member.id] ?? []).includes(source.id)} onChange={(event) => {
             const current = personSources[member.id] ?? [];
             onChange({ ...personSources, [member.id]: event.target.checked ? [...new Set([...current, source.id])] : current.filter((id) => id !== source.id) });
           }} />

@@ -4,18 +4,18 @@
     "saveFailed": "Det blev ikke gemt. Prøv igen.",
     "failed": "Noget gik galt. Prøv igen.",
     "lists": {
-      "nameRequired": "Giv listen et navn",
-      "nameTooLong": "Et listenavn må højst være {max} tegn",
-      "textRequired": "Skriv noget først",
-      "textTooLong": "Et punkt må højst være {max} tegn",
-      "badDate": "Den dag kender vi ikke",
-      "badColor": "Vælg en farve fra listen",
-      "listGone": "Den liste findes ikke længere",
-      "itemGone": "Det punkt findes ikke længere",
-      "tooManyLists": "Du kan have op til {max} lister",
-      "tooManyItems": "En liste kan rumme op til {max} punkter",
+      "nameRequired": "Giv listen et navn.",
+      "nameTooLong": "Et listenavn må højst være {max} tegn.",
+      "textRequired": "Skriv noget først.",
+      "textTooLong": "Et punkt må højst være {max} tegn.",
+      "badDate": "Den dag kender vi ikke.",
+      "badColor": "Vælg en farve fra listen.",
+      "listGone": "Den liste findes ikke længere.",
+      "itemGone": "Det punkt findes ikke længere.",
+      "tooManyLists": "Du kan have op til {max} lister.",
+      "tooManyItems": "En liste kan rumme op til {max} punkter.",
       "orderChanged": "Listen ændrede sig, mens du flyttede rundt på ting. Prøv igen.",
-      "wallAddOff": "Tilføjelse fra væggen er slået fra for denne liste",
+      "wallAddOff": "Tilføjelse fra væggen er slået fra for denne liste.",
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen."
     },
     "notes": {
@@ -31,7 +31,7 @@
       "revision": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen.",
       "nameTooLong": "Navne må højst være {max} tegn.",
-      "tooManyMembers": "Du kan tilføje personer, så længe familien har færre end {max} medlemmer.",
+      "tooManyMembers": "En familie kan have op til {max} personer.",
       "tooManyGroups": "Du kan have op til {max} grupper.",
       "groupNameTooLong": "Gruppenavne må højst være {max} tegn.",
       "groupNameTaken": "Du har allerede en gruppe, der hedder {name}.",
@@ -53,7 +53,12 @@
       "badName": "Det mappenavn kan ikke bruges. Prøv et med bogstaver og tal.",
       "tooDeep": "Mapper kan kun gå {max} niveauer ned.",
       "folderExists": "Der er allerede en mappe, der hedder {name}, her.",
-      "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først."
+      "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først.",
+      "badType": "{name} er ikke en slags billede eller video, som Home Screens kan vise.",
+      "tooBig": "{name} fylder for meget. Billeder må højst fylde 10 MB og videoer 200 MB.",
+      "tooBigAll": "Det er for meget at uploade på én gang. Videoer må højst fylde 200 MB.",
+      "svgNoSize": "{name} har ingen oplysninger om størrelse. Tilføj en viewBox til SVG-filen, og prøv igen.",
+      "replaceKind": "Den nye fil skal ende på {ext} ligesom den, den erstatter."
     },
     "calendarWrite": {
       "titleRequired": "Giv begivenheden et navn.",
@@ -78,6 +83,57 @@
       "notAllowed": "Denne kalender kan ikke ændres fra Home Screens.",
       "signInNeeded": "Du skal logge ind igen for at bruge kalenderen. Det gør du under Indstillinger > Kalender.",
       "unreachable": "Kunne ikke nå kalenderen, så intet er ændret endnu. Prøv igen om et minut."
+    },
+    "unreachable": "Kunne ikke nå Home Screens. Tjek forbindelsen, og prøv igen.",
+    "power": {
+      "notManaged": "Home Screens kan ikke genstarte sig selv på denne enhed. Sluk og tænd det hele i stedet."
+    },
+    "network": {
+      "addressNeeded": "Skriv adressen til denne forbindelse.",
+      "badAddress": "Den adresse forstår Home Screens ikke. Brug fire tal med punktummer imellem, som 192.168.1.50.",
+      "prefixNeeded": "Skriv præfikset, altså tallet efter skråstregen, som 24.",
+      "badPrefix": "Præfikset er et tal fra 1 til 32, som 24.",
+      "gatewayNeeded": "Skriv gatewayens adresse. Det er som regel din router, som 192.168.1.1.",
+      "badGateway": "Den gateway-adresse forstår Home Screens ikke. Brug fire tal med punktummer imellem, som 192.168.1.1.",
+      "badDns": "En af DNS-serverne er ikke en adresse, Home Screens forstår. Brug fire tal med punktummer imellem, som 1.1.1.1.",
+      "changePending": "En anden netværksændring venter stadig på at blive bekræftet. Vent, til den er færdig, eller gå tilbage, og prøv så igen.",
+      "badHostname": "Det navn kan ikke bruges. Brug bogstaver, tal og bindestreger, højst 63 tegn."
+    },
+    "wifi": {
+      "badName": "Det netværksnavn kan ikke bruges. Tjek det, og prøv igen.",
+      "badPassword": "En Wi-Fi-adgangskode er på 8 til 63 tegn. Tjek den, og prøv igen.",
+      "passwordNeeded": "Dette netværk kræver en adgangskode.",
+      "wrongPassword": "Wi-Fi-adgangskoden blev ikke godkendt. Tjek den, og prøv igen.",
+      "notFound": "Netværket kunne ikke findes. Tjek navnet, og at det er inden for rækkevidde.",
+      "timedOut": "Netværket svarede ikke i tide. Prøv igen om lidt."
+    },
+    "allowlist": {
+      "badEntry": "“{entry}” er ikke en netværksadresse. Prøv en som 192.168.1.0/24."
+    },
+    "timezone": {
+      "unknown": "Den tidszone kender Home Screens ikke. Vælg en fra listen."
+    },
+    "plugins": {
+      "needsNewerHost": "Denne version af pluginnet kræver en nyere Home Screens. Opdatér Home Screens først.",
+      "downloadFailed": "Kunne ikke hente pluginnet. Tjek internetforbindelsen, og prøv igen.",
+      "badLink": "Det link kan ikke bruges. Indsæt hele https-linket til pluginnet.",
+      "blockedLink": "Det link peger ind i dit hjemmenetværk, så Home Screens henter ikke noget derfra.",
+      "needsVersion": "Det link mangler et versionsnummer. Skriv, hvilken version der skal installeres.",
+      "notAPlugin": "Det link er ikke et Home Screens-plugin. Tjek, at det peger på pluginnets .tar.gz-fil.",
+      "alreadyInstalled": "Det plugin er allerede installeret. Opdatér det fra pluginbutikken i stedet."
+    },
+    "icloud": {
+      "signInRefused": "Kunne ikke logge ind på iCloud. Tjek Apple-id'et, og sørg for, at adgangskoden er en app-adgangskode, der er oprettet på account.apple.com; din almindelige Apple-adgangskode virker ikke her."
+    },
+    "secrets": {
+      "todoistRefused": "Todoist godkendte ikke det token. Kopiér det igen fra Todoist, og indsæt det her."
+    },
+    "pluginAuth": {
+      "credentialsNeeded": "Indtast din e-mail og adgangskode.",
+      "codeNeeded": "Indtast den kode, du har fået.",
+      "wrongCode": "Den kode virkede ikke. Tjek den, og prøv igen.",
+      "expired": "Dette login er udløbet. Start det igen.",
+      "notApproved": "Login blev ikke godkendt. Start det igen, hvis du vil oprette forbindelse."
     }
   },
   "today": "I dag",
@@ -91,7 +147,6 @@
     "add": "Tilføj",
     "close": "Luk",
     "back": "Tilbage",
-    "confirm": "Bekræft",
     "save": "Gem",
     "done": "Afslut",
     "edit": "Redigér",
@@ -100,15 +155,15 @@
     "name": "Navn",
     "color": "Farve",
     "icon": "Ikon",
-    "label": "Etiket"
+    "label": "Etiket",
+    "ok": "OK"
   },
   "status": {
     "saving": "Gemmer…",
-    "uploadingCount": "Uploader {current} af {total}...",
+    "copied": "Kopieret",
+    "uploadingCount": "Uploader {current} af {total}…",
     "connected": "Forbundet",
-    "disabled": "Deaktiveret",
-    "never": "Aldrig",
-    "none": "Ingen"
+    "disabled": "Deaktiveret"
   },
   "relativeTime": {
     "justNow": "lige nu",
@@ -121,8 +176,8 @@
   "emptyDisplay": {
     "eyebrow": "Home Screens",
     "headline": "Der er ikke noget på denne skærm endnu",
-    "body": "Åbn på en telefon eller computer på dit hjemme-wi-fi",
-    "hideHint": "Vil du hellere have en tom skærm? Indstillinger › Skærm › Vis dette tip"
+    "body": "Åbn denne adresse på en telefon eller computer på jeres Wi-Fi derhjemme",
+    "hideHint": "Vil du hellere have en tom skærm? Slå opsætningsbeskeden fra under {place}."
   },
   "openedScreen": {
     "backTo": "Tilbage til {name}",
@@ -132,6 +187,10 @@
     "paused": "Sat på pause",
     "previousScreen": "Forrige skærm",
     "nextScreen": "Næste skærm",
+    "pause": "Bliv på denne skærm (tryk to gange)",
+    "resume": "Begynd at skifte skærm igen",
+    "goTo": "Gå til skærm {number}",
+    "goToNamed": "Gå til skærm {number}: {name}",
     "resumesIn": "Fortsætter om {time} · tryk for at fortsætte nu",
     "tapToResume": "tryk for at fortsætte",
     "minutes": "{count} min",
@@ -141,8 +200,7 @@
   "displayNotFound": {
     "notRegistered": "Skærm ikke tilføjet endnu",
     "adoptionLine1": "Denne skærm er forbundet til Home Screens, men er ikke tilføjet endnu.",
-    "adoptionLine2": "Åbn redigeringsværktøjet på hoved-Pi'en, gå til",
-    "settingsLink": "Indstillinger → Skærme",
+    "adoptionLine2": "Åbn Home Screens-editoren, gå til",
     "andClick": "og klik",
     "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
@@ -152,50 +210,50 @@
   },
   "login": {
     "checkingAuth": "Kontrollerer godkendelse…",
+    "title": "Log ind",
     "ipBlocked": "Denne enhed må ikke logge ind",
-    "enterPasswordToContinue": "Indtast dit kodeord for at fortsætte",
+    "enterPasswordToContinue": "Indtast din adgangskode for at fortsætte",
     "accessRestricted": "Begrænset adgang",
     "accessRestrictedDescription": "Home Screens tager kun imod forbindelser fra bestemte enheder, og denne er ikke på listen. Det hjælper ikke at logge ind. Bed den, der satte Home Screens op, om at tilføje denne enhed, eller prøv fra en enhed, der allerede har lov.",
-    "passwordPlaceholder": "Kodeord",
+    "passwordPlaceholder": "Adgangskode",
     "rememberMe": "Husk mig i 90 dage",
     "signingIn": "Logger ind…",
     "unlock": "Lås op",
     "loading": "Henter…",
-    "backToDisplay": "Tilbage til skærm",
-    "loginFailed": "Logind fejlede",
+    "backToDisplay": "Tilbage til væggen",
+    "loginFailed": "Du blev ikke logget ind. Prøv igen.",
     "unreachable": "Kan ikke nå Home Screens",
     "errors": {
-      "wrongPassword": "Det kodeord passer ikke.",
+      "wrongPassword": "Den adgangskode passer ikke.",
       "tooManyTries": {
         "one": "For mange forsøg. Vent {count} minut, og prøv så igen.",
         "other": "For mange forsøg. Vent {count} minutter, og prøv så igen."
       }
     },
     "forgotPassword": {
-      "link": "Glemt kodeordet?",
-      "title": "Nulstil kodeordet",
-      "body": "Den, der satte enheden op, kan slette kodeordet. Kør det på selve enheden (med et tastatur i) eller fra en anden computer i en terminal:",
+      "link": "Glemt adgangskoden?",
+      "title": "Nulstil adgangskoden",
+      "body": "Den, der satte Home Screens op, kan fjerne adgangskoden. Kør denne kommando på den computer, Home Screens kører på (sæt et tastatur i), eller fra en anden computer i en terminal:",
       "fallback": "Findes den kommando ikke, gør det det samme at slette filen {file} i Home Screens-mappen.",
-      "after": "Derefter åbner Home Screens uden kodeord, og du kan vælge et nyt under indstillinger."
+      "after": "Derefter åbner Home Screens uden adgangskode, og du kan vælge en ny under {place}."
     }
   },
   "errors": {
     "fetchFailed": "Kunne ikke oprette forbindelse for at hente disse data",
-    "loadImagesFailed": "Indlæsning af billederne fejlede",
-    "uploadFailed": "Upload fejlede",
-    "uploadFailedFor": "Upload af {name} mislykkedes",
-    "createFolderFailed": "Oprettelse af mappen fejlede",
-    "deleteFolderFailed": "Sletning af mappen fejlede",
-    "deleteImageFailed": "Sletning af billedet fejlede",
+    "loadImagesFailed": "Kunne ikke hente billederne. Prøv igen.",
+    "uploadFailed": "Det blev ikke uploadet. Prøv igen.",
+    "uploadFailedFor": "{name} blev ikke uploadet. Prøv igen.",
+    "createFolderFailed": "Kunne ikke oprette mappen. Prøv igen.",
+    "deleteFolderFailed": "Kunne ikke slette mappen. Prøv igen.",
+    "deleteImageFailed": "Kunne ikke slette billedet. Prøv igen.",
     "googleExpired": "Din Google-forbindelse er udløbet. Log ind igen.",
     "googleDisconnectFailed": "Google kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen.",
     "googleStatusFailed": "Din Google-forbindelse kunne ikke tjekkes. Genindlæs siden, og prøv igen.",
-    "deviceFlowFailed": "Kunne ikke starte enhedslogin",
-    "codeExpired": "Koden er udløbet. Prøv igen.",
-    "authorizationFailed": "Godkendelse fejlede",
-    "startSignInFailed": "Start af logind fejlede",
-    "deleteImageInUse": "Dette billede vises stadig på en skærm, så det kan ikke slettes",
-    "deleteImageInUseOn": "Dette billede bruges stadig på {where}, så det kan ikke slettes"
+    "deviceFlowFailed": "Kunne ikke starte login. Prøv igen.",
+    "codeExpired": "Koden er udløbet. Start login igen.",
+    "authorizationFailed": "Det login virkede ikke. Prøv igen.",
+    "deleteImageInUse": "Dette billede vises stadig på en skærm, så det kan ikke slettes.",
+    "deleteImageInUseOn": "Dette billede bruges stadig på {where}, så det kan ikke slettes."
   },
   "days": {
     "sunday": "søndag",
@@ -244,8 +302,8 @@
       "categoryLabels": {
         "produce": "Frugt og grønt",
         "dairy": "Mejeriprodukter og æg",
-        "meat": "Kød og Fisk og skaldyr",
-        "seafood": "Kød og Fisk og skaldyr",
+        "meat": "Kød, fisk og skaldyr",
+        "seafood": "Kød, fisk og skaldyr",
         "bakery": "Bagværk",
         "pantry": "Spisekammer",
         "frozen": "Frossen",
@@ -299,14 +357,14 @@
     "heading": "Hvor vil du hen?",
     "remote": {
       "title": "Familiefjernbetjening",
-      "body": "Pligter, måltider, timere og skærmene"
+      "body": "Pligter, måltider, timere og væggen"
     },
     "chores": {
       "title": "Børnenes pligter",
       "body": "Sæt kryds ved dagens pligter"
     },
     "display": {
-      "title": "Skærm",
+      "title": "Væggen",
       "body": "Se hvad væggen viser"
     },
     "editor": {
@@ -316,7 +374,6 @@
     "editorAddressHint": "Åbn denne adresse på en computer for at bygge dine skærme:",
     "editorAddressLabel": "Editorens adresse",
     "copy": "Kopiér",
-    "copied": "Kopieret",
     "openEditor": "Åbn editoren"
   },
   "alerts": {
@@ -330,11 +387,9 @@
     "color": "Farve",
     "emptyTitle": "Ingen endnu",
     "emptyDescription": "Tilføj personerne i din husstand. De bliver tilgængelige i pligter, belønninger, kalendere og skemaer.",
-    "loadFailed": "Din familie kunne ikke indlæses.",
-    "saveFailed": "Din familie kunne ikke gemmes.",
+    "loadFailed": "Kunne ikke hente din familie. Tjek forbindelsen, og prøv igen.",
     "retry": "Prøv igen",
     "saved": "Familie gemt.",
-    "saving": "Gemmer…",
     "removeTitle": "Fjern {name}?",
     "removeDescription": "Når du fjerner {name}, slettes personens pligter, planer, historik, billetter, bedømmelser af retter og adgang til belønninger. Valget af personens kalendere glemmes også. Pligter uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
     "remove": "Fjern person",
@@ -373,7 +428,6 @@
         "other": "{count} pligter går til {name}. De bliver på din liste, og dem, som ingen andre er på, venter, til du vælger nogen."
       },
       "saved": "Grupper gemt.",
-      "saveFailed": "Grupperne kunne ikke gemmes.",
       "limit": "Du kan have op til {count} grupper.",
       "hint": "Grupper bruges af kalenderens farvenøgle og dens filter \"Vis kun\". En pligt kan også gives til en gruppe. Belønninger tildeles stadig personer."
     }
@@ -430,7 +484,7 @@
         "other": "Bruges {count} steder"
       },
       "dropHint": "Slip billeder her",
-      "tapHint": "Tryk på et billede for at omdøbe eller fjerne det.",
+      "tapHint": "Tryk på et billede for at omdøbe eller slette det.",
       "usedByList": "Bruges af: {list}.",
       "empty": "Ingen ikoner endnu. Tilføj et billede, og brug det til måltider, pligter og meget mere."
     },
@@ -438,7 +492,7 @@
       "added": "Tilføjet {date} · {size}",
       "usedBy": "Bruges af",
       "save": "Gem",
-      "remove": "Fjern ikon",
+      "remove": "Slet ikon",
       "rename": "Omdøb"
     },
     "kinds": {
@@ -450,13 +504,11 @@
       "screen": "Skærm"
     },
     "remove": {
-      "title": "Fjern {name}?",
       "inUse": {
         "one": "Det bruges {count} sted. Der vises et standardikon i stedet.",
         "other": "Det bruges {count} steder. Der vises et standardikon i stedet."
       },
       "notUsed": "Det bruges ikke nogen steder.",
-      "confirm": "Fjern",
       "keep": "Behold det"
     },
     "settingsRow": {
@@ -483,7 +535,7 @@
     "heading": "Billeder",
     "off": "Ikke med",
     "used": "Kun dem, dine skærme bruger",
-    "all": "Hele dit billedbibliotek",
+    "all": "Alt i Billeder & videoer",
     "help": "Baggrunde, diasshow-mapper og videoer på dine skærme. En sikkerhedskopi med billeder gemmes som en zip-fil.",
     "files": {
       "one": "{count} fil",
@@ -496,32 +548,33 @@
     "openLibrary": "Åbn Billeder & videoer",
     "leftOut": "Gemt, men dine billeder kunne ikke komme med. Prøv igen for at tage dem med.",
     "restoreConfirm": {
-      "one": "Denne sikkerhedskopi har {count} billede ({size}). Et billede med samme navn på denne hub bliver erstattet; intet bliver fjernet.",
-      "other": "Denne sikkerhedskopi har {count} billeder og videoer ({size}). Et billede med samme navn på denne hub bliver erstattet; intet bliver fjernet."
+      "one": "Denne sikkerhedskopi har {count} billede ({size}). Et billede med samme navn, der allerede er på Home Screens, bliver erstattet; intet bliver fjernet.",
+      "other": "Denne sikkerhedskopi har {count} billeder og videoer ({size}). Et billede med samme navn, der allerede er på Home Screens, bliver erstattet; intet bliver fjernet."
     },
     "restoreConfirmButton": "Gendan",
     "restoreMissing": "Nogle skærme bruger billeder, der ikke var med i denne sikkerhedskopi. Åbn Billeder & videoer for at se hvilke.",
+    "phoneRestoreMissing": "Nogle skærme bruger billeder, der ikke var med i denne sikkerhedskopi. Du kan se hvilke på computeren under {place}.",
     "phoneRow": "Billeder i sikkerhedskopien",
     "phoneUsed": "Kun dem på skærmen",
-    "phoneAll": "Hele dit bibliotek",
+    "phoneAll": "Alle dine billeder og videoer",
     "phoneOff": "Ikke med"
   },
   "noTimezone": {
     "title": "Ingen tidszone endnu.",
-    "body": "Dine skærme bruger hubbens ur ({zone}), så tiderne kan være forkerte.",
+    "body": "Dine skærme bruger uret i Home Screens ({zone}), så tiderne kan være forkerte.",
     "action": "Vælg tidszone"
   },
   "routeError": {
     "title": "Siden kan ikke indlæses lige nu",
     "body": "Home Screens har problemer med at læse sine gemte data. Den prøver selv igen om lidt.",
-    "help": "Hvis det ikke går væk, kan en voksen åbne Home Screens på en computer og lægge en sikkerhedskopi tilbage under Indstillinger.",
+    "help": "Hvis det ikke går væk, kan en voksen åbne Home Screens på en computer og lægge en sikkerhedskopi tilbage under {place}.",
     "retry": "Prøv igen"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serveringstide {time}, klik for at ændre",
     "servingTimeTitle": "Serveringstid: {time}",
     "setServingTime": "Indstil serveringstid",
-    "setTime": "+ Indstil tid",
+    "setTime": "Indstil tid",
     "setMealTime": "Indstil tid for måltid",
     "servingTime": "Indstil tid for servering",
     "clearTime": "Nulstil tid"
@@ -539,7 +592,7 @@
     "saveError": "Din bedømmelse blev ikke gemt. Tjek forbindelsen, og tryk på en stjerne for at prøve igen.",
     "loadError": "Bedømmelserne kunne ikke opdateres.",
     "loading": "Henter bedømmelser…",
-    "noMembers": "Tilføj personer under Indstillinger > Familie for at bedømme.",
+    "noMembers": "Tilføj personer under {place} for at bedømme.",
     "rate": "Bedøm retten",
     "dinner": "Bedøm aftensmaden",
     "close": "Færdig",
@@ -554,7 +607,8 @@
   "chores": {
     "changedElsewhere": "En anden har ændret pligterne. Din seneste ændring blev ikke gemt. Prøv igen.",
     "coverage": "Dækning: {covered} af 7 dage",
-    "holdToUncheck": "Hold nede for at fjerne fluebenet"
+    "holdToUncheck": "Hold nede for at fjerne fluebenet",
+    "deleteBody": "Pligten forsvinder. Billetter, som børnene allerede har tjent for den, bliver på deres kort."
   },
   "rewards": {
     "redeem": {
@@ -700,7 +754,6 @@
       "one": "For mange forsøg. Vent {count} sekund, og prøv så igen.",
       "other": "For mange forsøg. Vent {count} sekunder, og prøv så igen."
     },
-    "offline": "Kunne ikke nå hubben. Prøv igen.",
     "unlocked": {
       "one": "Låst op i 1 minut mere",
       "other": "Låst op i {count} minutter mere"
@@ -732,5 +785,40 @@
     "everyTimePastFuture": "Alle gange, både de tidligere og de kommende",
     "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",
     "everyTimeFromFirst": "Alle gange, helt fra den første"
+  },
+  "notice": {
+    "title": "Bemærk"
+  },
+  "settingsPages": {
+    "calendar": "Kalender",
+    "weather": "Vejr",
+    "location": "Placering og sprog",
+    "data": "Sikkerhedskopier og data",
+    "integrations": "API-nøgler",
+    "media": "Billeder & videoer",
+    "icons": "Dine ikoner",
+    "meals": "Måltider",
+    "network": "Netværk",
+    "security": "Sikkerhed",
+    "stats": "Status",
+    "system": "System og opdateringer",
+    "displays": "Displays",
+    "screen": "Skærm",
+    "automation": "Automatisering",
+    "phone": "På din telefon",
+    "family": "Familie"
+  },
+  "confirm": {
+    "deleteTitle": "Slet “{name}”?",
+    "removeTitle": "Fjern “{name}”?",
+    "clearTitle": "Ryd “{name}”?",
+    "cantUndo": "Det kan ikke fortrydes."
+  },
+  "lists": {
+    "removeDoneTitle": {
+      "one": "Fjern 1 færdigt punkt fra “{name}”?",
+      "other": "Fjern {count} færdige punkter fra “{name}”?"
+    },
+    "removeDoneBody": "De forsvinder fra listen for altid."
   }
 }

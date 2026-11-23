@@ -80,17 +80,15 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         options={VIEW_OPTIONS}
       />
 
-      {/* Show Rewards Button — only relevant on chore board */}
+      {/* Show rewards button: only relevant on chore board */}
       {isChoreBoard && (
         <>
           <Toggle
             label={t('configSections.fullscreen-chore-chart.showRewardsButton')}
             checked={c.showRewardsButton ?? false}
             onChange={(v) => set({ showRewardsButton: v })}
+            description={t('configSections.fullscreen-chore-chart.showRewardsButtonHelp')}
           />
-          <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
-            {t('configSections.fullscreen-chore-chart.showRewardsButtonHelp')}
-          </p>
         </>
       )}
 
@@ -117,7 +115,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         options={typographySizeOptions}
       />
 
-      {/* Accent Color */}
+      {/* Accent color */}
       <FullscreenAccentPicker
         label={t('configSections.fullscreen-chore-chart.accentColor')}
         value={c.accentColor}
@@ -125,7 +123,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         onChange={(v) => set({ accentColor: v })}
       />
 
-      {/* ── Chore Board-only settings ── */}
+      {/* ── Chore board-only settings ── */}
       {isChoreBoard && (
         <>
           {/* Row grouping */}
@@ -134,10 +132,8 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
             value={c.layout ?? 'by-time'}
             onChange={(v) => set({ layout: v })}
             options={LAYOUT_OPTIONS}
+            hint={t('configSections.fullscreen-chore-chart.layoutHelp')}
           />
-          <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
-            {t('configSections.fullscreen-chore-chart.layoutHelp')}
-          </p>
 
           {/* Week Start */}
           <LabeledSelect
@@ -178,7 +174,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
           history views have nothing to tap. */}
       {(isChoreBoard || view === 'rewards-store') && (
         <Toggle
-          label={t(isChoreBoard ? 'configSections.fullscreen-chore-chart.tapToComplete' : 'configSections.chore-chart.tapToRedeem')}
+          label={t('configSections.tapOnWall')}
           checked={c.allowDisplayComplete ?? true}
           onChange={(v) => set({ allowDisplayComplete: v })}
         />
@@ -190,34 +186,31 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-text-faint">
           {t('configSections.fullscreen-chore-chart.celebration')}
         </div>
-        <div className="space-y-1">
-          <LabeledField label={t('configSections.fullscreen-chore-chart.celebrationLabel')} as="div">
-            <SegmentedControl
-              label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
-              value={celebration}
-              onChange={(v) => set({ celebration: v })}
-              options={CELEBRATION_OPTIONS}
-            />
-          </LabeledField>
-          <p className="text-[11px] leading-relaxed text-hs-text-faint">
-            {t('configSections.fullscreen-chore-chart.celebrationHelp')}
-          </p>
-        </div>
+        <LabeledField
+          label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
+          as="div"
+          hint={t('configSections.fullscreen-chore-chart.celebrationHelp')}
+        >
+          <SegmentedControl
+            label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
+            value={celebration}
+            onChange={(v) => set({ celebration: v })}
+            options={CELEBRATION_OPTIONS}
+          />
+        </LabeledField>
         {celebration !== 'off' && (
           <>
             <Toggle
               label={t('configSections.fullscreen-chore-chart.celebrationSound')}
               checked={c.celebrationSound ?? false}
               onChange={(v) => set({ celebrationSound: v })}
+              description={t('configSections.fullscreen-chore-chart.celebrationSoundHelp')}
             />
-            <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
-              {t('configSections.fullscreen-chore-chart.celebrationSoundHelp')}
-            </p>
           </>
         )}
       </div>
 
-      <ChoreChartLauncher weekStartDay={c.weekStartDay ?? 'monday'} accentColor={accentColor} keyPrefix="fullscreen-chore-chart" />
+      <ChoreChartLauncher weekStartDay={c.weekStartDay ?? 'monday'} accentColor={accentColor} />
     </>
   );
 }

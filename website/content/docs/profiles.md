@@ -249,7 +249,7 @@ Any individual screen can override the global rotation interval, useful for dinn
 
 A screen can stay out of the rotation and show only when something opens it: a module's **Open a screen** button (see [Open a screen](/docs/editor#open-a-screen)), a display rule that shows it, a Display Control dock button you add for it, or a phone or voice command naming it. Under **Rotation** in **Screen settings**, choose **Shows only when opened** instead of **Takes its turn with the other screens**. The screen tab gets a **When opened** badge (or **Nothing opens it**, in warning colours, while no button, dock tile or rule can open it), and the screen never gets a turn, a dot, or a place in the rotation count.
 
-While an opened screen is up, a filled chip in the bottom left names the screen the display came from, in a strip painted the screen's own colour that its content stays clear of; tapping it goes straight back, and so do a sideways flick and Escape on a keyboard. In the last fifteen seconds before the screen goes back on its own, a thin line along the top of the chip empties; any touch fills it again. The screen you come back to gets its own full turn. Asking for the screen again while it is up (a dock tile, a phone command) starts its time again. **Go back after** sets how many minutes the screen stays with nobody touching it before the display goes back on its own (two unless you change it; whole or half minutes, up to a day). Any touch on the screen starts the count again: scrolling a list, opening a recipe card, searching the recipe book. An open recipe card holds the screen until the card closes, at most ten minutes. Set it to **0** to stay until someone taps Back. A pause you set on the dots is still there when the display comes back, and its countdown waits while the opened screen is up. Schedules and conditions still apply to an opened screen, and its Schedule and Conditions groups say "Only let it open at certain times" and "Let this screen be opened only while...": outside them its buttons and dock tiles are hidden (the editor draws its buttons dimmed and says when they show), a dock whose only tiles are hidden draws nothing, and a phone command is refused, so a Recipe Book screen can be openable only in the evening. A switched-off screen says so at the top of its settings, with a **Switch on** button. The screen's settings also list the modules whose button opens it.
+While an opened screen is up, a filled chip in the bottom left names the screen the display came from, in a strip painted the screen's own colour that its content stays clear of; tapping it goes straight back, and so do a sideways flick and Escape on a keyboard. In the last fifteen seconds before the screen goes back on its own, a thin line along the top of the chip empties; any touch fills it again. The screen you come back to gets its own full turn. Asking for the screen again while it is up (a dock tile, a phone command) starts its time again. **Go back after** sets how many minutes the screen stays with nobody touching it before the display goes back on its own (two unless you change it; whole or half minutes, up to a day). Any touch on the screen starts the count again: scrolling a list, opening a recipe card, searching the recipe book. An open recipe card holds the screen until the card closes, at most ten minutes. Set it to **0** to stay until someone taps Back. A pause you set on the dots is still there when the display comes back, and its countdown waits while the opened screen is up. Schedules and conditions still apply to an opened screen, and its Schedule and Conditions groups say "Only let it open at certain times" and "Let this screen be opened only while...": outside them its buttons and dock tiles are hidden (the editor draws its buttons dimmed and says when they show), a dock whose only tiles are hidden draws nothing, and a phone command is refused, so a Recipe book screen can be openable only in the evening. A switched-off screen says so at the top of its settings, with a **Switch on** button. The screen's settings also list the modules whose button opens it.
 
 ### Transition effects
 
@@ -259,9 +259,9 @@ Configure the animation between screens in **Settings > Screen > Rotation & appe
 |---|---|
 | **Fade** | Cross-dissolve between screens (default) |
 | **Slide** | Old screen slides out, new slides in, the direction follows the navigation (forward slides left, backward slides right) |
-| **Slide Up** | Old screen slides up, new slides in from bottom (reversed when navigating backward) |
+| **Slide up** | Old screen slides up, new slides in from bottom (reversed when navigating backward) |
 | **Zoom** | Old screen zooms out, new zooms in |
-| **3D Flip** | Perspective flip between screens |
+| **3D flip** | Perspective flip between screens |
 | **Blur** | Dissolve through a blur (may be GPU-intensive on low-power devices) |
 | **Crossfade (overlap)** | Overlapping fade with both screens visible briefly |
 | **None (instant)** | Instant switch, no animation |
@@ -304,7 +304,7 @@ Toggle **Dim in the evening** to force the display to dim during a fixed window 
 
 ### Scheduled sleep
 
-Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). Touching the display (or waking it from the remote) during the window brings it back for the **After a wake-up, stay on for** setting (5 minutes by default), then the schedule takes over again. It wakes automatically when the window ends. Supports overnight spans.
+Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). Touching the display (or waking it from the remote) during the window brings it back for the **After a wake-up, stay on for (minutes)** setting (5 minutes by default), then the schedule takes over again. It wakes automatically when the window ends. Supports overnight spans.
 
 ### Powering the screen off
 

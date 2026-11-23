@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { MealSettings, SavedMeal } from '@/types/config';
 import { groceryWeekKey } from '@/lib/grocery-checks';
 import { canEditMergedPlan, mealieRangeWanted, mealieStatus, mealieWeekHeld } from '@/lib/meal-sources';
@@ -13,6 +13,8 @@ import { useMealsPlanActions } from './useMealsPlanActions';
 import { useMealsLibrary } from './useMealsLibrary';
 import { useMealsGrocery } from './useMealsGrocery';
 import type { MealSlotRef, MealsConfirmAction } from '../components/meals-shared';
+import { useTranslate } from '@/i18n';
+import { showToast } from '../remote-toast';
 
 /**
  * Whether the viewed week can be drawn: `ready`, or, in Mealie mode for a
@@ -34,6 +36,7 @@ export type MealsWeekState = 'ready' | 'loading' | 'failed';
  * `keptWeek` is the week the address kept across a reload (`readMealsPlace`).
  */
 export function useMealsTabData(keptWeek: string | null = null) {
+  const t = useTranslate('remote');
   const {
     savedMeals,
     setSavedMeals,
@@ -67,23 +70,13 @@ export function useMealsTabData(keptWeek: string | null = null) {
   const [picker, setPicker] = useState<MealPickTarget | null>(null);
   const [sheet, setSheet] = useState<MealSlotRef | null>(null);
   const [confirmAction, setConfirmAction] = useState<MealsConfirmAction | null>(null);
-  // A plain message over the tab that is not an error ("every meal this
-  // week is already planned"); it goes away on its own. `undo` puts back
-  // what was just done, under the button's own words when `undoLabel` gives
-  // them ("Take it down" for a recipe sent to the wall), else "Undo".
-  const [notice, setNotice] = useState<{ message: string; undo?: () => void; undoLabel?: string } | null>(null);
-  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // A plain message that is not an error ("every meal this week is already
+  // planned"), through the phone's toast. `undo` puts back what was just
+  // done, under the button's own words when `undoLabel` gives them ("Take it
+  // down" for a recipe sent to the wall), else "Undo".
   const showNotice = useCallback((message: string, undo?: () => void, undoLabel?: string) => {
-    setNotice({ message, undo, undoLabel });
-    if (noticeTimer.current) clearTimeout(noticeTimer.current);
-    // Long enough to reach Undo.
-    noticeTimer.current = setTimeout(() => setNotice(null), undo ? 12_000 : 4_000);
-  }, []);
-  const dismissNotice = useCallback(() => {
-    if (noticeTimer.current) clearTimeout(noticeTimer.current);
-    setNotice(null);
-  }, []);
-  useEffect(() => () => { if (noticeTimer.current) clearTimeout(noticeTimer.current); }, []);
+    showToast(message, 'info', undo ? { label: undoLabel ?? t('mealsTab.notice.undo'), onPress: undo } : undefined);
+  }, [t]);
 
   // Mealie recipes picked from a search. The plan a save hands back carries
   // every recipe it uses, but until it answers the new dish is only an id;
@@ -195,7 +188,7 @@ export function useMealsTabData(keptWeek: string | null = null) {
     if (!ok) {
       // Server rejected the write — revert local state so the UI matches
       // what's actually on disk. The useMealsData hook will have set
-      // `saveError` which the toast already renders.
+      // `saveError`, which the tab says through the toast.
       setSettings(prev);
     } else if (next.planSource !== prev.planSource) {
       // The plan now lives in the other app: show that app's plan, not this
@@ -229,9 +222,7 @@ export function useMealsTabData(keptWeek: string | null = null) {
     saving,
     saveError,
     setSaveError,
-    notice,
     showNotice,
-    dismissNotice,
     form: library.form,
     weekDates: weekNav.weekDates,
     todayISO: weekNav.todayISO,

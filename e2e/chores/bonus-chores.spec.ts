@@ -132,7 +132,7 @@ test('a quick second tap after Let it go does not tick the chore that slides up'
 test('the household setting lifts the grab limit', async ({ page }) => {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
-  await page.getByRole('button', { name: 'Manage', exact: true }).click();
+  await page.getByRole('tab', { name: 'Manage', exact: true }).click();
   await page.getByTestId('open-chore-settings').click();
   const sheet = page.getByTestId('chore-settings-sheet');
   await sheet.getByRole('radio', { name: /No limit/ }).click();
@@ -140,7 +140,7 @@ test('the household setting lifts the grab limit', async ({ page }) => {
   await sheet.getByRole('button', { name: 'Save', exact: true }).click();
   await saved;
 
-  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await page.getByRole('tab', { name: 'Today', exact: true }).click();
   await page.getByRole('button', { name: 'Bram', exact: true }).click();
   await page.getByTestId('grab-bk-car').click();
   await expect(page.getByTestId('bonus-row-bk-car')).toContainText('You grabbed it');
@@ -164,7 +164,7 @@ test('a slow check that read the old rules does not undo a save', async ({ page 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await expect.poll(() => held).toBe(true);
-  await page.getByRole('button', { name: 'Manage', exact: true }).click();
+  await page.getByRole('tab', { name: 'Manage', exact: true }).click();
   await page.getByTestId('open-chore-settings').click();
   const sheet = page.getByTestId('chore-settings-sheet');
   await sheet.getByRole('radio', { name: /No limit/ }).click();

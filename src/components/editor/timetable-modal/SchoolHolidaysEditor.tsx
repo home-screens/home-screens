@@ -24,9 +24,10 @@ import type {
   SchoolHolidaysResponse,
 } from '@/lib/school-holidays';
 import type { TimetableSchool } from '@/types/timetables';
-import { PROSE_CLASS } from './prose';
 import { hasValidLocation } from '@/lib/location';
 import { HOLIDAY_COUNTRY_CODE, HOLIDAY_REGION_CODE } from '@/lib/holiday-region-codes';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** The two messages the holiday lookup can attach to an answer. */
 const HOLIDAY_MESSAGE_KEYS = ['schoolHolidaysStale', 'schoolHolidaysUnavailable'] as const;
@@ -139,6 +140,7 @@ interface SchoolHolidaysEditorProps {
 
 export default function SchoolHolidaysEditor({ school, onChange }: SchoolHolidaysEditorProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useLocale();
   const headingId = useId();
 
@@ -274,7 +276,7 @@ export default function SchoolHolidaysEditor({ school, onChange }: SchoolHoliday
     list: t('timetableModal.schools.holidaysHelp', { area: regionLabel }),
     'public-only': t('timetableModal.schools.holidayPublicOnly', { area: regionLabel }),
     resolving: '',
-    'no-country': t('timetableModal.schools.holidayNoCountry'),
+    'no-country': t('timetableModal.schools.holidayNoCountry', { place: settingsPlaceText(tCore, 'calendar') }),
     // Named from the section below's own heading, so the two cannot drift apart.
     'no-holidays': t('timetableModal.schools.holidayNoneForCountry', {
       section: t('timetableModal.specialDays.title'),
@@ -333,12 +335,12 @@ export default function SchoolHolidaysEditor({ school, onChange }: SchoolHoliday
       ) : null}
 
       {HOLIDAY_NOTES[holidayState] && (
-        <p className={`${PROSE_CLASS} text-hs-text-faint`}>{HOLIDAY_NOTES[holidayState]}</p>
+        <FieldHint>{HOLIDAY_NOTES[holidayState]}</FieldHint>
       )}
       {holidayMessage && (
-        <p className={`${PROSE_CLASS} text-hs-text-faint`}>
+        <FieldHint>
           {t(`timetableModal.schools.holidayMessages.${holidayMessage}`)}
-        </p>
+        </FieldHint>
       )}
     </div>
   );

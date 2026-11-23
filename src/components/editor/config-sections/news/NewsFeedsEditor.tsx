@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -14,6 +14,8 @@ import type { NewsResponse } from '@/lib/news/types';
 import { useTranslate } from '@/i18n';
 import type { NewsFeedSource } from '@/types/config';
 import { feedCheckSummary, feedDisplayName, feedKindName, NEWS_MAX_FEEDS } from './feed-display';
+import FieldHint from '@/components/ui/FieldHint';
+import IconButton from '@/components/ui/IconButton';
 
 interface CheckState {
   status: 'checking' | 'done';
@@ -66,7 +68,7 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
       const data = (await res.json()) as NewsResponse;
       const result = data.feeds?.[0];
       const summary = result
-        ? feedCheckSummary(result, feedDisplayName(feed, t), Date.now(), t)
+        ? feedCheckSummary(result, feedDisplayName(feed, t), Date.now(), t, tCore)
         : { ok: false, text: t('configSections.news.feedError.failed') };
       setChecks((prev) => ({ ...prev, [feed.id]: { status: 'done', ...summary } }));
     } catch (err) {
@@ -86,7 +88,7 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
       </div>
 
       {feeds.length === 0 && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.news.noFeeds')}</p>
+        <FieldHint>{t('configSections.news.noFeeds')}</FieldHint>
       )}
 
       {feeds.map((feed, index) => {
@@ -138,14 +140,7 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
               >
                 <ChevronDown className="w-3 h-3" />
               </button>
-              <button
-                type="button"
-                onClick={() => remove(feed.id)}
-                aria-label={t('configSections.news.feedRemove', { name })}
-                className="p-0.5 text-hs-danger hover:opacity-80"
-              >
-                <X className="w-3 h-3" />
-              </button>
+              <IconButton label={t('configSections.news.feedRemove', { name })} onClick={() => remove(feed.id)} />
             </div>
 
             {open && (
@@ -183,10 +178,8 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
                       label={t('configSections.news.feedHomeNetwork')}
                       checked={feed.homeNetwork === true}
                       onChange={(v) => update(feed.id, { homeNetwork: v || undefined })}
+                      description={t('configSections.news.feedHomeNetworkHint')}
                     />
-                    <p className="text-[11px] text-hs-text-faint leading-relaxed">
-                      {t('configSections.news.feedHomeNetworkHint')}
-                    </p>
                   </>
                 )}
                 <div className="flex items-start gap-2">
@@ -215,7 +208,7 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
       })}
 
       {feeds.length >= NEWS_MAX_FEEDS && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">{t('configSections.news.feedLimitReached')}</p>
+        <FieldHint>{t('configSections.news.feedLimitReached')}</FieldHint>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Check } from 'lucide-react';
 import type { TodoistConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
@@ -10,7 +11,6 @@ import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { usePressedKey } from './shared/usePressedKey';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { MetadataText } from './shared/MetadataText';
 import { todoistUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
@@ -22,6 +22,7 @@ import FocusView from './todoist/FocusView';
 import { useTranslate } from '@/i18n';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { logger } from '@/lib/logger';
+import { ModuleTitleRow } from './shared/ModuleTitleRow';
 
 const log = logger('todoist');
 
@@ -139,24 +140,18 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between mb-1">
-          {showTitle && (
-            <h2 className="font-semibold" style={{ fontSize: '1.1em' }}>
-              {title}
-            </h2>
-          )}
-          {/* Stays visible with the title off: it is the only place a
-              truncated fetch is surfaced. */}
-          <MetadataText size="xs" className="ml-auto">
-              {/* A truncated fetch (past the route's 4000-item ceiling) makes
-                  totalCount an undercount, so show it as a floor rather than an
-                  exact figure. Almost nobody hits this, but a silently short
-                  list presented as complete is the worst version of the bug. */}
-              {data?.truncated
-                ? t('todoist.taskCountAtLeast', { count: totalCount })
-                : t('todoist.taskCount', { count: totalCount })}
-          </MetadataText>
-        </div>
+        <ModuleTitleRow
+          title={showTitle ? title : undefined}
+          // Stays visible with the title off: it is the only place a
+          // truncated fetch is surfaced. A truncated fetch (past the route's
+          // 4000-item ceiling) makes totalCount an undercount, so show it as a
+          // floor rather than an exact figure. Almost nobody hits this, but a
+          // silently short list presented as complete is the worst version of
+          // the bug.
+          right={data?.truncated
+            ? t('todoist.taskCountAtLeast', { count: totalCount })
+            : t('todoist.taskCount', { count: totalCount })}
+        />
 
         {viewMode !== 'focus' && (
           <div className="mb-3">
@@ -168,7 +163,7 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <span className="block" style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>
-                ✓
+                <Check size="1em" strokeWidth={2.5} aria-hidden="true" style={{ display: 'inline-block' }} />
               </span>
               <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
                 {t('todoist.empty')}

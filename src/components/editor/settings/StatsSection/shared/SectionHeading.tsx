@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
+import { SETTINGS_SECTION_HEADING_CLASS } from '../../shared/SettingsPanel';
 import { SectionIcon } from './SectionIcon';
 
+/** A Stats card's heading: its icon, the shared Settings section heading and an optional slot on the right. */
 export function SectionHeading({ icon, title, trailing }: {
   icon: LucideIcon;
   title: string;
@@ -14,7 +16,7 @@ export function SectionHeading({ icon, title, trailing }: {
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2 sm:gap-3">
       <div className="flex items-center gap-2.5 min-w-0">
         <SectionIcon icon={icon} />
-        <h3 className="text-[11px] font-medium text-hs-text-secondary uppercase tracking-[0.08em] truncate">
+        <h3 className={`${SETTINGS_SECTION_HEADING_CLASS} truncate`}>
           {title}
         </h3>
       </div>

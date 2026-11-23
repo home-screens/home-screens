@@ -447,7 +447,8 @@ export type DeviceFlowPoll =
   /** `slowDown` when the provider asked for polls spaced further apart. */
   | { status: 'pending'; slowDown?: true }
   | { status: 'connected' }
-  | { status: 'expired' | 'denied'; error: string };
+  /** `code` names the refusal the editor phrases (`refusals.pluginAuth.*`); `error` is English for the log. */
+  | { status: 'expired' | 'denied'; error: string; code?: 'pluginAuth.expired' | 'pluginAuth.notApproved' };
 
 export function pollDeviceFlow(pluginId: string, auth: OAuth2Auth): Promise<DeviceFlowPoll> {
   const existing = pollInFlight.get(pluginId);
@@ -464,7 +465,7 @@ async function pollDeviceFlowInner(pluginId: string, auth: OAuth2Auth): Promise<
     // succeeded — report connected if tokens exist.
     const tokens = await loadPluginTokens(pluginId);
     if (tokens) return { status: 'connected' };
-    return { status: 'expired', error: 'The code expired. Start the sign-in again.' };
+    return { status: 'expired', error: 'The code expired. Start the sign-in again.', code: 'pluginAuth.expired' };
   }
 
   // Server-side enforcement of the provider's minimum poll interval: answer
@@ -513,13 +514,14 @@ async function pollDeviceFlowInner(pluginId: string, auth: OAuth2Auth): Promise<
     }
     case 'expired':
       await deletePendingAuth(pluginId);
-      return { status: 'expired', error: 'The code expired. Start the sign-in again.' };
+      return { status: 'expired', error: 'The code expired. Start the sign-in again.', code: 'pluginAuth.expired' };
     case 'denied':
       await deletePendingAuth(pluginId);
       if (!answer.declined) log.error(`Device sign-in for plugin ${pluginId} ended at the provider:`, answer.detail);
       return {
         status: 'denied',
         error: answer.declined || !answer.detail ? 'The sign-in was not approved.' : answer.detail,
+        ...(answer.declined || !answer.detail ? { code: 'pluginAuth.notApproved' as const } : {}),
       };
   }
 }

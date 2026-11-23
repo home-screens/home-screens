@@ -9,6 +9,8 @@ import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import { SettingsSubHeading } from '@/components/editor/settings/shared/SettingsPanel';
 
 const log = logger('alerts');
 
@@ -31,7 +33,7 @@ interface AlertFormFieldsProps {
    */
   disabled?: boolean;
   /**
-   * Target display ID for the "Clear All Alerts" command endpoint. Named-
+   * Target display ID for the "Clear all alerts" command endpoint. Named-
    * display Pis poll `/api/display/commands?display=<id>` queues, not the
    * legacy `__default__` queue, so without a `displayId` the button silently
    * no-ops on any adopted display.
@@ -88,7 +90,7 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
           onChange={(v) => onChange({ alertsEnabled: v })}
         />
       </div>
-      <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.enableHelp')}</p>
+      <FieldHint>{t('settings.alertFormFields.enableHelp')}</FieldHint>
 
       {alertsEnabled && (
         <>
@@ -129,9 +131,9 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
             />
           </div>
           {alertsDefaultDuration === 0 && (
-            <p className="text-xs text-hs-text-faint -mt-1">
+            <FieldHint className="-mt-1">
               {t('settings.alertFormFields.defaultDurationHelp')}
-            </p>
+            </FieldHint>
           )}
 
           <div data-field-id="alerts.scale">
@@ -148,9 +150,9 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
           </div>
 
           <div className="mt-4 pt-4 border-t border-hs-border-strong">
-            <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
+            <SettingsSubHeading className="mb-2">
               {t('settings.alertFormFields.activeAlertsHeading')}
-            </h4>
+            </SettingsSubHeading>
             <div className="flex items-center gap-3">
               <Button onClick={handleClearAlerts} disabled={clearing || disabled}>
                 {clearing ? t('settings.alertFormFields.clearingButton') : t('settings.alertFormFields.clearAllButton')}
@@ -165,14 +167,14 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
                 </span>
               )}
             </div>
-            <p className="text-xs text-hs-text-faint mt-2">{t('settings.alertFormFields.clearHelp')}</p>
+            <FieldHint className="mt-2">{t('settings.alertFormFields.clearHelp')}</FieldHint>
           </div>
 
           <div className="mt-4 pt-4 border-t border-hs-border-strong">
-            <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
+            <SettingsSubHeading className="mb-2">
               {t('settings.alertFormFields.apiUsageHeading')}
-            </h4>
-            <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.apiUsageIntro')}</p>
+            </SettingsSubHeading>
+            <FieldHint>{t('settings.alertFormFields.apiUsageIntro')}</FieldHint>
             <pre className="mt-2 text-xs text-hs-text-muted bg-hs-hover rounded-md p-3 overflow-x-auto">
 {`POST /api/display/alert
 {
@@ -182,14 +184,14 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
   "duration": 15000
 }`}
             </pre>
-            <p className="text-xs text-hs-text-faint mt-2">
+            <FieldHint className="mt-2">
               {t('settings.alertFormFields.apiTypesPart1')}
               <code className="text-hs-text-muted">info</code>
               {t('settings.alertFormFields.apiTypesPart2')}
               <code className="text-hs-text-muted">warning</code>
               {t('settings.alertFormFields.apiTypesPart3')}
               <code className="text-hs-text-muted">urgent</code>
-            </p>
+            </FieldHint>
           </div>
         </>
       )}

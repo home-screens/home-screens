@@ -30,7 +30,7 @@ In the editor, drag **To-Do List** from the **Personal** group onto a screen. In
 
 When everything on a list is done, the heading shows a green tick and **All done** in every view. Items stay visible, struck through, unless you set **Done items** to **Hidden**.
 
-**Edit items** opens the list in the editor so you can type the first few things without leaving the laptop.
+**Edit list** opens the list in the editor so you can type the first few things without leaving the laptop.
 
 ## 2. Add things from your phone
 
@@ -52,13 +52,13 @@ The gear next to the count opens the list: rename it, give it a colour, or tidy 
 
 ## 4. Ticking off on the wall
 
-**Tap to complete (touchscreen)** is on for new To-Do modules. On a touchscreen a tap ticks the item in the **List** and **Board** views; the other views and any display without touch just show the list. Turn it off in the module's settings if you would rather the wall be read-only.
+**Tap on the wall** is on for new To-Do modules. On a touchscreen a tap ticks the item in the **List** and **Board** views; the other views and any display without touch just show the list. Turn it off in the module's settings if you would rather the wall be read-only.
 
 With it on, a **List** or **Compact** view that holds more than fits scrolls with a finger too. A **Back to the top** button shows while the list is away, and a minute after the last touch it slides back to the top on its own. With it off, the list shows what fits and says how many more there are.
 
 ## 5. Adding on the wall
 
-**Add from the wall (touchscreen)** is on for new To-Do modules (it sits under **Tap to complete** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
+**Add from the wall** is on for new To-Do modules (it sits under **Tap on the wall** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
 
 Tap it and a sheet rises with the wall's own keyboard. Type one thing, tap **Add**, and the box empties for the next one; each thing added shows as a chip with **Undo** until you close the sheet. The first letter is a capital by itself, and **123** has numbers and the marks a list needs, for "Batteries (AA)".
 

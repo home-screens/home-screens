@@ -45,7 +45,7 @@ describe('PaginationDots', () => {
     fireEvent.click(dom.getByRole('button', { name: 'Previous screen' }));
     expect(onDotClick).toHaveBeenLastCalledWith(23);
     // The counter is the active dot: the double-tap-to-pause target.
-    fireEvent.click(dom.getByRole('button', { name: 'Pause rotation (double-tap)' }));
+    fireEvent.click(dom.getByRole('button', { name: 'Stay on this screen (tap twice)' }));
     expect(onDotClick).toHaveBeenLastCalledWith(0);
   });
 
@@ -95,7 +95,7 @@ describe('PaginationDots', () => {
 
     it('leaves the active dot as the double-tap target', () => {
       renderDots({ paused: true, onResume: () => {}, pausedUntil: null });
-      expect(dom.getByRole('button', { name: 'Resume rotation' }).getAttribute('aria-current')).toBe('true');
+      expect(dom.getByRole('button', { name: 'Start changing screens again' }).getAttribute('aria-current')).toBe('true');
     });
   });
 

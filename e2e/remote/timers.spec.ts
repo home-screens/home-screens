@@ -123,11 +123,11 @@ test('the running card confirms once the display reports the timer on screen', a
   await openTimers(page);
 
   const ack = page.getByTestId('timer-ack');
-  await expect(ack).toHaveText('Waiting for a display to pick it up…');
+  await expect(ack).toHaveText('Waiting for a wall to pick it up…');
 
   // The (single, legacy) display heartbeats with the session it is showing.
   await postHeartbeat(request, { timerSessionId: session!.id });
-  await expect(ack).toHaveText('Showing on the display', { timeout: 10000 });
+  await expect(ack).toHaveText('Showing on the wall', { timeout: 10000 });
 });
 
 test('a custom minutes-and-seconds quick timer starts', async ({ page, request }) => {
@@ -199,7 +199,7 @@ test('a routine created through the form persists and survives a reload', async 
   // goto that starts under it is cancelled (net::ERR_ABORTED under a loaded
   // parallel run), so reload only once the entry is gone.
   await expect
-    .poll(() => page.evaluate(() => (window.history.state as { hsSheet?: string } | null)?.hsSheet ?? null))
+    .poll(() => page.evaluate(() => (window.history.state as { hsSheets?: string[] } | null)?.hsSheets ?? null))
     .toBeNull();
 
   // Routines are family data on disk, not editor config — a fresh load shows it.
@@ -234,9 +234,9 @@ test('a routine can be deleted from the list', async ({ page, request }) => {
   await openTimers(page);
 
   await page.getByRole('button', { name: 'Edit routine' }).click();
-  // Delete is a two-tap arm on one button: the label flips to "Really delete?".
+  // Delete asks in a confirm sheet, as every other thing a person built does.
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await page.getByRole('button', { name: 'Really delete?' }).click();
+  await confirmSheet(page).getByRole('button', { name: 'Delete', exact: true }).click();
 
   await expect.poll(async () => (await getRoutines(request)).length).toBe(0);
   await expect(page.getByText('Bedtime routine')).toHaveCount(0);

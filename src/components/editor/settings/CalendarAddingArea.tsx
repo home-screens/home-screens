@@ -7,12 +7,17 @@ import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import type { CalendarEventEntry, CalendarOverride, ICloudSource } from '@/types/config';
 import { calendarLook } from '@/lib/calendar-overrides';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
 import { googleEntryStateWithSetting, type GoogleEntryState } from '@/lib/calendar-write';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import Button from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Toggle';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import { SettingsArea } from './calendar-settings-bits';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
 
 const LENGTHS = [30, 60, 90, 120] as const;
 
@@ -105,8 +110,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
       body: JSON.stringify({ code }),
     });
     if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      return setCodeError(body.error ?? t('settings.calendarPage.adding.signInFailed'));
+      return setCodeError(t('settings.calendarPage.adding.signInFailed'));
     }
     setCode('');
     setLink(null);
@@ -120,7 +124,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
       ? shownGoogleIds.flatMap((id) => {
         const cal = googleCalendars.find((c) => c.id === id);
         if (!cal) return [];
-        const look = calendarLook(id, { name: cal.summary ?? id, color: cal.backgroundColor ?? '#888' }, calendarOverrides);
+        const look = calendarLook(id, { name: cal.summary ?? id, color: cal.backgroundColor ?? DEFAULT_EVENT_COLOR }, calendarOverrides);
         return [{ id, ...look, group: 'google' as const, writable: cal.writable !== false }];
       })
       : []),
@@ -131,8 +135,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   const pickable = tickable.filter((c) => c.writable && ticked.has(c.id));
 
   const signInStep = (warn: boolean, title: string, body: string, button: string) => (
-    <div className={`mt-4 rounded-lg border p-3.5 ${warn ? 'border-hs-warning/45 bg-hs-warning/5' : 'border-hs-border-strong bg-hs-card'}`} data-testid="calendar-adding-sign-in">
-      <p className={`text-[13px] font-semibold ${warn ? 'text-hs-warning' : 'text-hs-text-primary'}`}>{title}</p>
+    <div className={`mt-4 rounded-lg border p-3.5 ${warn ? 'border-hs-warning/30 bg-hs-warning/10' : 'border-hs-border-strong bg-hs-card'}`} data-testid="calendar-adding-sign-in">
+      <p className={`text-[13px] font-semibold ${warn ? 'text-hs-warning-ink' : 'text-hs-text-primary'}`}>{title}</p>
       <p className="mt-1 mb-3 text-[12.5px] text-hs-text-faint">{body}</p>
       <button
         type="button"
@@ -147,7 +151,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder={t('settings.calendarPage.adding.pastePlaceholder')}
-            className="flex-1 rounded-md border border-hs-border-strong bg-hs-card px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+            className={`flex-1 ${SETTINGS_INPUT_SM_CLASS}`}
           />
           <Button variant="primary" onClick={() => void sendCode()} disabled={!code.trim()}>{t('settings.calendarPage.adding.pasteButton')}</Button>
         </div>
@@ -162,13 +166,13 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
         <div>
           <p className="text-[13px] font-medium text-hs-text-body">{t('settings.calendarPage.adding.switch')}</p>
           {enabled && google === 'ready' ? (
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-success"><span className="inline-block h-1.5 w-1.5 rounded-full bg-hs-success" />{t('settings.calendarPage.adding.ready')}</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-success"><StatusDot tone="success" size="sm" />{t('settings.calendarPage.adding.ready')}</p>
           ) : (
-            <p className="mt-1 text-[11.5px] text-hs-text-faint">
+            <FieldHint className="mt-1">
               {googleOffered && icloudCalendars.length > 0 ? t('settings.calendarPage.adding.switchHelpBoth')
                 : googleOffered ? t('settings.calendarPage.adding.switchHelpGoogle')
                   : t('settings.calendarPage.adding.switchHelpICloud')}
-            </p>
+            </FieldHint>
           )}
         </div>
         <Switch checked={enabled} onChange={(v) => setEntry({ enabled: v })} ariaLabel={t('settings.calendarPage.adding.switch')} />
@@ -205,7 +209,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
                   )}
                   {rows.map((c) => (
                     <label key={c.id} className={`flex items-center gap-3 border-t border-hs-border-strong px-3 py-2 text-[13.5px] first:border-t-0 ${c.writable ? 'text-hs-text-body' : 'text-hs-text-faint'}`}>
-                      <input type="checkbox" disabled={!c.writable} checked={c.writable && ticked.has(c.id)} onChange={() => toggleCalendar(c.id)} className="accent-hs-accent" />
+                      <input type="checkbox" disabled={!c.writable} checked={c.writable && ticked.has(c.id)} onChange={() => toggleCalendar(c.id)} className={CHECKBOX_CLASS} />
                       <span aria-hidden="true" className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: c.color }} />
                       <span className="min-w-0 flex-1 truncate">{c.name}</span>
                       {!c.writable && (
@@ -219,7 +223,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
               );
             })}
           </div>
-          <p className="mt-2 text-[11.5px] text-hs-text-faint">{t('settings.calendarPage.adding.calendarsHelp')}</p>
+          <FieldHint className="mt-2">{t('settings.calendarPage.adding.calendarsHelp')}</FieldHint>
 
           <div className="my-3.5 border-t border-hs-border-strong" />
           <div className="flex flex-wrap gap-7">
@@ -229,30 +233,20 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
                 value={entry.defaultCalendarId ?? pickable[0]?.id ?? ''}
                 disabled={pickable.length === 0}
                 onChange={(e) => setEntry({ defaultCalendarId: e.target.value || undefined })}
-                className="w-64 rounded-md border border-hs-border-strong bg-hs-card px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+                className={`w-64 ${SETTINGS_INPUT_SM_CLASS}`}
               >
                 {pickable.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </label>
             <div>
               <span className="mb-1.5 block text-[13px] text-hs-text-body">{t('settings.calendarPage.adding.lengthLabel')}</span>
-              <div role="radiogroup" aria-label={t('settings.calendarPage.adding.lengthLabel')} className="inline-flex overflow-hidden rounded-md border border-hs-border-strong">
-                {LENGTHS.map((minutes) => {
-                  const on = (entry.defaultMinutes ?? 60) === minutes;
-                  return (
-                    <button
-                      key={minutes}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      onClick={() => setEntry({ defaultMinutes: minutes })}
-                      className={`border-l border-hs-border-strong px-3 py-1.5 text-[12.5px] first:border-l-0 ${on ? 'bg-hs-accent text-white' : 'text-hs-text-muted hover:bg-hs-hover'}`}
-                    >
-                      {t(`settings.calendarPage.adding.length${minutes}`)}
-                    </button>
-                  );
-                })}
-              </div>
+              <SegmentedControl
+                fit="content"
+                label={t('settings.calendarPage.adding.lengthLabel')}
+                value={String(entry.defaultMinutes ?? 60)}
+                onChange={(minutes) => setEntry({ defaultMinutes: Number(minutes) })}
+                options={LENGTHS.map((minutes) => ({ value: String(minutes), label: t(`settings.calendarPage.adding.length${minutes}`) }))}
+              />
             </div>
           </div>
 
@@ -260,7 +254,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[13px] font-medium text-hs-text-body">{t('settings.calendarPage.adding.wallSwitch')}</p>
-              <p className="mt-1 text-[11.5px] text-hs-text-faint">{t('settings.calendarPage.adding.wallHelp')}</p>
+              <FieldHint className="mt-1">{t('settings.calendarPage.adding.wallHelp')}</FieldHint>
             </div>
             <Switch checked={wallEntry} onChange={(v) => onChange({ wallEntry: v })} ariaLabel={t('settings.calendarPage.adding.wallSwitch')} />
           </div>

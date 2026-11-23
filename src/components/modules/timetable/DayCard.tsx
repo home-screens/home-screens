@@ -18,14 +18,15 @@ import type { WeekLetter } from '@/types/timetables';
 import { smallPrintPx, type TimetableShed } from '@/lib/timetable-layout';
 import { axisShare, tickLabel, type DayAxis, type FamilyDayBlock, type FamilyDayRow } from '@/lib/timetable-day';
 import { careLineForm, DAY_LINE, nameFitsLine, wordsFit, type ColumnsGeometry, type DayGeometry, type RowsGeometry } from '@/lib/timetable-day-fit';
-import { ink } from '@/lib/constants';
+import { ink, NO_VALUE } from '@/lib/constants';
 import { formatClockMinutes, formatClockTime, parseTimeToMinutes } from '@/lib/clock-time';
 import { pickGridTimeColor } from '@/lib/calendar-color';
 import { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from '@/lib/timetable-subjects';
 import { useTranslate } from '@/i18n';
 import { SubjectIcon, atLeast } from './cells';
 import type { PersonEntry } from './useTimetablePeople';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInitials } from '@/lib/family-avatar';
+import { MemberBadge } from '../shared/MemberBadge';
 
 export interface DayTokens {
   /** The card's background: what a subject colour is tinted into. */
@@ -170,25 +171,14 @@ function rowGrid(geometry: RowsGeometry, base: number): CSSProperties {
 
 function Avatar({ entry, em = 0.8 }: { entry: PersonEntry; em?: number }) {
   return (
-    <span
+    <MemberBadge
       aria-hidden="true"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: `${1.7 * em}em`,
-        height: `${1.7 * em}em`,
-        flexShrink: 0,
-        borderRadius: '50%',
-        fontSize: `${0.88 * em}em`,
-        fontWeight: 800,
-        lineHeight: 1,
-        background: entry.member.color,
-        color: memberInk(entry.member.color),
-      }}
-    >
-      {memberInitials(entry.member.name)}
-    </span>
+      initials={memberInitials(entry.member.name)}
+      color={entry.member.color}
+      fontSize={`${0.88 * em}em`}
+      size={`${1.7 * em}em`}
+      style={{ fontWeight: 800 }}
+    />
   );
 }
 
@@ -256,7 +246,7 @@ function EndLines({ row, tokens, align, availablePx }: { row: FamilyDayRow; toke
     <>
       <span style={{ fontSize: small, fontWeight: 600, color: ink(0.62), ...NOWRAP }}>{t('timetable.endsWord')}</span>
       <b style={{ fontSize: align === 'center' ? '1.05em' : '1.12em', fontWeight: 750, letterSpacing: '-0.01em', ...TABULAR, ...NOWRAP }}>
-        {row.span ? clock(row.span.end) : '–'}
+        {row.span ? clock(row.span.end) : NO_VALUE}
       </b>
       {careLine && (
         <span style={{ fontSize: small, fontWeight: 600, color: ink(0.8), ...TABULAR, ...ELLIPSIS, maxWidth: '100%' }}>

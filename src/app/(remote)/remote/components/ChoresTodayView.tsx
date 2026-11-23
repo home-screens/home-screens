@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sunrise, Sun, Sunset, Clock, Hand, ChevronRight, Flame, Star } from 'lucide-react';
+import { Sunrise, Sun, Sunset, Clock, Hand, ChevronRight, Flame, Star, Check } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreDefinition, ChoreTimeOfDay } from '@/types/config';
 import { CHORE_TIME_ORDER } from '@/lib/chore-rows';
@@ -20,7 +20,8 @@ import ChoreRow, { type ChoreRowAssignment } from './ChoreRow';
 import BonusChoreRow from './BonusChoreRow';
 import DayCompleteSheet from './DayCompleteSheet';
 import type { ChoreRowNotice } from '../hooks/useChoreMarks';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT_INK } from './remote-styles';
+import SegmentedTabs from './SegmentedTabs';
 import { addIsoDays } from '@/lib/iso-date';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
@@ -82,7 +83,7 @@ interface ChoresTodayViewProps {
   selectedMemberId: string;
   selectedMember: FamilyMember | undefined;
   onSelectMember: (id: string) => void;
-  /** Per-member done and owed counts on the day, for the ✓ on each name. */
+  /** Per-member done and owed counts on the day, for the tick on each name. */
   memberTabStats: Record<string, { total: number; done: number }>;
   assignments: TodayAssignment[];
   /** Owed chores (not "not today") and how many are done. */
@@ -196,48 +197,17 @@ export default function ChoresTodayView({
         /* Kids get yesterday and today, not a 90-day strip: yesterday is
            read-only for them anyway, so there is nothing further back a
            kid can act on, and the strip was the biggest thing on the page. */
-        <div
-          role="group"
-          aria-label={t('choresTab.dayToggle.ariaLabel')}
-          style={{
-            display: 'inline-flex',
-            gap: 2,
-            padding: 3,
-            background: 'var(--hs-bg-card)',
-            borderRadius: 10,
-            marginTop: 4,
-          }}
-        >
-          {([
-            { date: yesterday, label: t('choresTab.dayToggle.yesterday') },
-            { date: realToday, label: t('choresTab.dayToggle.today') },
-          ] as const).map(({ date, label }) => {
-            const active = viewingDate === date;
-            return (
-              <button
-                key={date}
-                type="button"
-                onClick={() => onSelectDay(date)}
-                aria-pressed={active}
-                style={{
-                  padding: '6px 14px',
-                  minHeight: 44,
-                  minWidth: 44,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  borderRadius: 8,
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  background: active ? 'var(--hs-bg-hover)' : 'transparent',
-                  color: active ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedTabs
+          fit
+          ariaLabel={t('choresTab.dayToggle.ariaLabel')}
+          value={viewingDate}
+          onChange={onSelectDay}
+          style={{ marginTop: 4 }}
+          tabs={[
+            { id: yesterday, label: t('choresTab.dayToggle.yesterday') },
+            { id: realToday, label: t('choresTab.dayToggle.today') },
+          ]}
+        />
       )}
 
       {/* History banner: visible only when the user has navigated away from today */}
@@ -259,7 +229,7 @@ export default function ChoresTodayView({
           ariaLabel={(member) => (allDoneFor(member.id)
             ? t('choresTab.memberAriaLabelAllDone', { name: member.name })
             : t('choresTab.memberAriaLabel', { name: member.name }))}
-          trailing={(member) => allDoneFor(member.id) && <span style={{ fontSize: 12, lineHeight: 1, marginLeft: -2, flexShrink: 0 }}>&#10003;</span>}
+          trailing={(member) => allDoneFor(member.id) && <Check size={13} strokeWidth={3} aria-hidden="true" style={{ marginLeft: -2, flexShrink: 0 }} />}
         />
 
         <div className="md:flex-1 md:min-w-0">
@@ -329,7 +299,7 @@ export default function ChoresTodayView({
               <div data-testid="today-week-line" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, height: 28, marginTop: 6 }}>
                 <span
                   role="img"
-                  aria-label={`${tModules('chore-chart.thisWeek')}: ${weekLine.days.filter((day) => day.earned).length}/${weekLine.days.length}`}
+                  aria-label={`${tModules('lookAhead.thisWeek')}: ${weekLine.days.filter((day) => day.earned).length}/${weekLine.days.length}`}
                   style={{ display: 'inline-flex', gap: 5 }}
                 >
                   {weekLine.days.map((day) => (
@@ -420,10 +390,10 @@ export default function ChoresTodayView({
                     >
                       {tModules(getTimeOfDayLabelKey(section))}
                     </span>
-                    {/* lineHeight 1: the ✓ is taller than the label, and made the
-                        heading grow, moving every row under it, when a section finished. */}
+                    {/* No taller than the label, so the heading does not grow,
+                        moving every row under it, when a section finishes. */}
                     {sectionAllDone && (
-                      <span style={{ marginLeft: 'auto', fontSize: 12, lineHeight: 1, color: 'var(--hs-success)' }}>&#10003;</span>
+                      <Check size={13} strokeWidth={3} aria-hidden="true" style={{ marginLeft: 'auto', flex: 'none', color: 'var(--hs-success)' }} />
                     )}
                   </div>
 
@@ -435,8 +405,8 @@ export default function ChoresTodayView({
             {bonusItems.length > 0 && (
               <div data-testid="bonus-section" style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0 2px' }}>
-                  <Hand size={16} color={REMOTE_ACCENT} strokeWidth={2} />
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: REMOTE_ACCENT }}>
+                  <Hand size={16} color={REMOTE_ACCENT_INK} strokeWidth={2} />
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: REMOTE_ACCENT_INK }}>
                     {tModules('chore-chart.bonus.heading')}
                   </span>
                 </div>

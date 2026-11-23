@@ -677,7 +677,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns keep a plain dot"
+          "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set under Whose calendars? in Settings > Calendar. Calendars nobody owns keep a plain dot"
         },
         {
           "name": "showDayNotes",
@@ -1108,7 +1108,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the view title (\"Today's Meals\", \"This Week's Meals\", \"Today's Menu\", the grocery list's name, \"Recipe Book\")",
+          "description": "Show the view title (\"Today's meals\", \"This week's meals\", \"Today's menu\", the grocery list's name, \"Recipe book\")",
           "default": true
         },
         {
@@ -1452,7 +1452,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `photoSource`/`intervalMs`/`transition`/`shuffle`. Shows a \"No photo selected\" empty state until chosen"
+          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `photoSource`/`intervalMs`/`transition`/`shuffle`. Until one is chosen, the screen asks for a photo to be picked in the editor."
         },
         {
           "name": "intervalMs",
@@ -1610,7 +1610,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "description": "Tap on the wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
           "default": true
         }
       ]
@@ -2534,7 +2534,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns keep a plain dot"
+          "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set under Whose calendars? in Settings > Calendar. Calendars nobody owns keep a plain dot"
         },
         {
           "name": "showDayNotes",
@@ -3360,7 +3360,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the \"Forecast\" / \"Hourly Forecast\" heading (hourly, daily, and table views)",
+          "description": "Show the \"Forecast\" / \"Hourly forecast\" heading (hourly, daily, and table views)",
           "default": true
         }
       ],
@@ -4629,7 +4629,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the \"On This Day\" header. Turning it off hides the divider under it too",
+          "description": "Show the \"On this day\" header. Turning it off hides the divider under it too",
           "default": true
         }
       ]
@@ -4976,7 +4976,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Name to greet (e.g. \"Good morning, Bryan\")",
+          "description": "Name to greet (e.g. \"Good morning, Taylor\")",
           "default": "Friend"
         },
         {
@@ -4996,7 +4996,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it had before the event bus. Requires latitude/longitude configured in Settings > Weather, the editor surfaces a hint in the Greeting config section if location is missing.",
+          "description": "Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it had before the event bus. Requires latitude/longitude configured in Settings > Location & language, the editor surfaces a hint in the Greeting config section if location is missing.",
           "defaultText": "true"
         }
       ]
@@ -5363,7 +5363,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the built-in \"Collection Schedule\" header",
+          "description": "Show the built-in \"Collection schedule\" header",
           "default": true
         }
       ]
@@ -5447,7 +5447,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Only takes effect while **Time-aware** is on, since the weather boost is part of the same scoring pass. Requires latitude/longitude configured in Settings > Weather, the editor surfaces a hint in the Affirmations config section if location is missing.",
+          "description": "Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Only takes effect while **Time-aware content** is on, since the weather boost is part of the same scoring pass. Requires latitude/longitude configured in Settings > Location & language, the editor surfaces a hint in the Affirmations config section if location is missing.",
           "defaultText": "true"
         },
         {
@@ -5582,7 +5582,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the \"Today's Meals\" label in the today view and the list's name in the grocery view",
+          "description": "Show the \"Today's meals\" label in the today view and the list's name in the grocery view",
           "default": true
         },
         {
@@ -5718,7 +5718,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show the built-in view title (\"Family Chores\", \"Star Chart\", and so on)",
+          "description": "Show the built-in view title (\"Family chores\", \"Star chart\", and so on)",
           "default": true
         },
         {
@@ -5728,7 +5728,7 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Maximum number of redemptions shown in Reward History. Omitted = 5.",
+          "description": "Maximum number of redemptions shown in Reward history. Omitted = 5.",
           "default": 5
         },
         {
@@ -5743,7 +5743,7 @@
               "price-list"
             ]
           },
-          "description": "Rewards Store layout: `list`, `tiles`, or `price-list`. Omitted = `list`.",
+          "description": "Rewards store layout: `list`, `tiles`, or `price-list`. Omitted = `list`.",
           "default": "list"
         }
       ],
@@ -6703,7 +6703,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
+          "description": "Tap on the wall: on touch displays, a tap on the photo shows back, pause and next, and which album it is from. Unset means on",
           "default": true
         }
       ]
@@ -6731,7 +6731,7 @@
               "wifi"
             ]
           },
-          "description": "QR code mode: `custom` (arbitrary data) or `wifi` (WiFi network)",
+          "description": "QR code mode: `custom` (arbitrary data) or `wifi` (Wi-Fi network)",
           "default": "custom"
         },
         {
@@ -6761,7 +6761,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "WiFi network name (wifi mode)",
+          "description": "Wi-Fi network name (wifi mode)",
           "default": ""
         },
         {
@@ -6771,7 +6771,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "WiFi password (wifi mode)",
+          "description": "Wi-Fi password (wifi mode)",
           "default": ""
         },
         {
@@ -6786,7 +6786,7 @@
               "nopass"
             ]
           },
-          "description": "WiFi authentication type: `WPA`, `WEP`, or `nopass` (wifi mode)",
+          "description": "Wi-Fi authentication type: `WPA`, `WEP`, or `nopass` (wifi mode)",
           "default": "WPA"
         },
         {
@@ -6796,7 +6796,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Whether the WiFi network is hidden (wifi mode)",
+          "description": "Whether the Wi-Fi network is hidden (wifi mode)",
           "default": false
         },
         {
@@ -7534,7 +7534,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show a \"Controls\" dropdown of display names (with \"All displays\" last) so people can retarget on the wall (hidden in single-display mode)",
+          "description": "Show a \"Controls\" dropdown of display names (with \"Every wall\" last) so people can retarget on the wall (hidden in single-display mode)",
           "default": false
         },
         {

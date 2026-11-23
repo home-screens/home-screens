@@ -11,7 +11,6 @@ import {
   mealPhases,
   mealServingTime,
   servingOrder,
-  formatTagLabel,
   capitalize,
   normalizeTag,
   toISODate,
@@ -430,27 +429,6 @@ describe('now and next by serving time', () => {
   });
 });
 
-// ── formatTagLabel ──
-
-describe('formatTagLabel', () => {
-  it('capitalizes a single word', () => {
-    expect(formatTagLabel('quick')).toBe('Quick');
-  });
-
-  it('capitalizes each segment of a hyphenated tag', () => {
-    expect(formatTagLabel('kid-friendly')).toBe('Kid-Friendly');
-  });
-
-  it('handles multi-hyphen tags', () => {
-    expect(formatTagLabel('gluten-free')).toBe('Gluten-Free');
-    expect(formatTagLabel('batch-cook')).toBe('Batch-Cook');
-  });
-
-  it('handles already-capitalized input', () => {
-    expect(formatTagLabel('Quick')).toBe('Quick');
-  });
-});
-
 // ── capitalize ──
 
 describe('capitalize', () => {
@@ -682,7 +660,7 @@ describe('resolvePlannedMealTime', () => {
   });
 });
 
-/* The editor's chip said "+ Set time" for a dinner with no time of its own
+/* The editor's chip said "Set time" for a dinner with no time of its own
  * while the phone and the wall showed the usual 6:00 PM. */
 describe('servingTimeView', () => {
   it('shows the usual time for a meal with none of its own', () => {
@@ -861,7 +839,7 @@ describe('getNextPlannedMeal with a typed-in meal', () => {
   const meals: SavedMeal[] = [{ id: 'm1', name: 'Tacos' }];
   const slots: MealSlotType[] = ['breakfast', 'lunch', 'dinner'];
 
-  /* The wall's Next Meal card and the fullscreen Next Meal view both resolve
+  /* The wall's Next meal card and the fullscreen Next meal view both resolve
    * through this, so a typed meal used to be skipped over on both. */
   it('finds a slot holding only typed text', () => {
     const plan: PlannedMeal[] = [{ date: '2026-04-01', slot: 'dinner', customText: 'Takeaway' }];

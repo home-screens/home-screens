@@ -1,7 +1,7 @@
 import type { WordEntry } from './types';
 
 /**
- * fr-FR "Word of the Day" seed list — 732 entries (2 × 366) so the
+ * fr-FR "Word of the Day" seed list: 732 entries (2 × 366) so the
  * selection cycle in word-of-day-data.ts covers two full years without
  * a repeat. Kept alphabetized (accents folded for ordering):
  * presentation order comes from the year-seeded shuffle, so storage

@@ -405,7 +405,7 @@ test.describe('useLiveConfig reload paths', () => {
     // display (plus "All displays" last).
     await page.goto('/display');
     await page.getByRole('button', { name: 'Main', exact: true }).click();
-    await expect(page.getByRole('menuitem', { name: 'All displays' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Every wall' })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'Kitchen' })).toBeHidden();
 
     // Add a second display to config.displays. The next beat names a new

@@ -8,7 +8,9 @@ import type { CreateNoteInput, NotePatch } from '@/lib/notes-actions';
 import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife } from '@/types/notes';
 import type { FamilyMember } from '@/types/family';
 import BottomSheet from './BottomSheet';
-import { GHOST_BUTTON, HELPER_TEXT, HIT_TARGET, PRIMARY_BUTTON, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, personChipStyle, segmentStyle } from './remote-styles';
+import { GHOST_BUTTON, HELPER_TEXT, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
+import PersonChip from './PersonChip';
+import PrimaryButton from './PrimaryButton';
 
 type NotesSheetProps = {
   /** The family roster, in roster order. */
@@ -66,7 +68,8 @@ function toggleStyle(on: boolean, tone: 'plain' | 'danger'): CSSProperties {
   };
 }
 
-const AUTHOR_DOT: CSSProperties = { width: 18, height: 18, borderRadius: '50%', flex: 'none', display: 'block' };
+/** "Nobody" has no face of their own: an empty dashed ring where one would be. */
+const NOBODY_FACE: CSSProperties = { width: 18, height: 18, borderRadius: '50%', display: 'block', border: '1.5px dashed var(--hs-text-faint)', boxSizing: 'border-box' };
 
 /**
  * One sheet for writing a note and for changing one: the text, who it is
@@ -159,44 +162,30 @@ export default function NotesSheet(props: NotesSheetProps) {
         />
 
         <span style={SHEET_LABEL} id={`${ids}-from`}>{t('notes.fromLabel')}</span>
-        {/* Chips are drawn 36 tall inside 44-tall buttons, so the rows keep the
-            mockup's spacing and small fingers still get a full-size target. */}
         <div
-          style={{ display: 'flex', flexWrap: 'wrap', columnGap: 8, marginTop: -4, marginBottom: -4 }}
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
           role="group"
           aria-labelledby={`${ids}-from`}
           data-testid="notes-sheet-author"
         >
-          {members.map((m) => {
-            const on = knownAuthor === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                aria-pressed={on}
-                data-author-id={m.id}
-                onClick={() => setAuthorId(m.id)}
-                style={{ ...HIT_TARGET, fontFamily: 'inherit' }}
-              >
-                <span style={{ ...personChipStyle(on), cursor: undefined }}>
-                  <i aria-hidden="true" style={{ ...AUTHOR_DOT, background: m.color }} />
-                  {m.name}
-                </span>
-              </button>
-            );
-          })}
-          <button
-            type="button"
+          {members.map((m) => (
+            <PersonChip
+              key={m.id}
+              member={m}
+              selected={knownAuthor === m.id}
+              aria-pressed={knownAuthor === m.id}
+              data-author-id={m.id}
+              onClick={() => setAuthorId(m.id)}
+            />
+          ))}
+          <PersonChip
+            member={{ name: t('notes.nobody'), color: 'var(--hs-text-muted)' }}
+            selected={knownAuthor === null}
+            face={<i aria-hidden="true" style={NOBODY_FACE} />}
             aria-pressed={knownAuthor === null}
             data-author-id=""
             onClick={() => setAuthorId(null)}
-            style={{ ...HIT_TARGET, fontFamily: 'inherit' }}
-          >
-            <span style={{ ...personChipStyle(knownAuthor === null), cursor: undefined }}>
-              <i aria-hidden="true" style={{ ...AUTHOR_DOT, border: '1.5px dashed var(--hs-text-faint)', boxSizing: 'border-box' }} />
-              {t('notes.nobody')}
-            </span>
-          </button>
+          />
         </div>
 
         <span style={SHEET_LABEL} id={`${ids}-life`}>{t('notes.lifeLabel')}</span>
@@ -211,7 +200,7 @@ export default function NotesSheet(props: NotesSheetProps) {
                 setLife(value);
                 setLifeTouched(true);
               }}
-              style={{ ...segmentStyle(life === value), minHeight: 44, padding: '0 2px' }}
+              style={{ ...segmentStyle(life === value), padding: '0 2px' }}
             >
               {t(`notes.life.${value}`)}
             </button>
@@ -242,15 +231,9 @@ export default function NotesSheet(props: NotesSheetProps) {
           </button>
         </div>
 
-        <button
-          type="submit"
-          className="press-btn"
-          data-testid="notes-sheet-submit"
-          disabled={!clean}
-          style={{ ...PRIMARY_BUTTON, marginTop: 18, opacity: clean ? 1 : 0.5, cursor: clean ? 'pointer' : 'default' }}
-        >
+        <PrimaryButton type="submit" data-testid="notes-sheet-submit" disabled={!clean} style={{ marginTop: 18 }}>
           {props.mode === 'new' ? t('notes.post') : t('notes.save')}
-        </button>
+        </PrimaryButton>
         {props.mode === 'edit' && (
           <button
             type="button"

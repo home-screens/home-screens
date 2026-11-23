@@ -63,6 +63,10 @@ test('Back on a form with typed edits asks first, and Keep editing brings the dr
 
   await expect(formOverlay(page)).toBeVisible();
   await expect(page.getByPlaceholder('Morning routine')).toHaveValue('After school');
+  // The prompt gives its history entry back with history.back(), a beat after
+  // it closes; a Back pressed under that lands on the prompt's spent entry.
+  // A thumb's next Back comes long after, so wait until only the form's is left.
+  await expect.poll(() => page.evaluate(() => (window.history.state as { hsSheets?: string[] } | null)?.hsSheets?.length ?? 0)).toBe(1);
 
   // Back still means Back afterwards, and discarding leaves the remote up.
   await page.goBack();

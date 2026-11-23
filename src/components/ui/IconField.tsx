@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { useCallback, useId, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useTranslate } from '@/i18n';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import ModalFrame, { ModalHeader, ModalPanel } from './ModalFrame';
+import IconButton from './IconButton';
 import { ALL_EMOJI, EMOJI_GROUPS, findEmoji, searchEmoji, type EmojiEntry } from '@/lib/emoji-catalog';
 import { faIconValue, parseIconValue } from '@/lib/icon-value';
 import type { FaIconKind } from '@/lib/font-awesome-icons';
@@ -21,6 +21,7 @@ import {
   useFilteredFaIcons,
   type FaKindFilter,
 } from './fa-icon-browser';
+import FieldHint from './FieldHint';
 
 type Tab = 'emoji' | 'fa' | 'yours';
 
@@ -91,7 +92,7 @@ export default function IconField({ label, value, onChange }: IconFieldProps) {
               className="inline-flex items-center justify-center w-[22px] h-[22px] rounded bg-hs-card border border-hs-border-strong text-hs-text-body shrink-0 text-[13px] leading-none"
               aria-hidden="true"
             >
-              {value ? <Glyph value={value} /> : <span className="text-hs-text-faint">+</span>}
+              {value ? <Glyph value={value} /> : <Plus className="w-3 h-3 text-hs-text-faint" />}
             </span>
             <span className={`truncate text-[11px] flex-1 ${value ? 'text-hs-text-body' : 'text-hs-text-faint'}`}>
               {value ? triggerLabel(value, byId) : t('iconPicker.chooseIconPlaceholder')}
@@ -99,14 +100,7 @@ export default function IconField({ label, value, onChange }: IconFieldProps) {
             {!value && <span className="text-[10px] text-hs-text-faint shrink-0">{t('iconPicker.browse')}</span>}
           </button>
           {value && (
-            <button
-              type="button"
-              onClick={() => onChange(undefined)}
-              aria-label={t('iconPicker.removeIcon')}
-              className="px-1.5 py-1 text-hs-text-faint hover:text-hs-text-body transition-colors shrink-0"
-            >
-              <X size={12} />
-            </button>
+            <IconButton label={t('iconPicker.removeIcon')} onClick={() => onChange(undefined)} />
           )}
         </div>
       </div>
@@ -125,9 +119,6 @@ interface IconFieldModalProps {
 
 function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps) {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
-  const trapRef = useFocusTrap<HTMLDivElement>();
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const parsed = parseIconValue(value);
   const tCoreIcons = useTranslate('core');
@@ -140,42 +131,19 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
   const faFiltered = useFilteredFaIcons(query, catalog, kindFilter);
   const emojiResults = useMemo(() => (query.trim() ? searchEmoji(query) : null), [query]);
 
-  useEffect(() => {
-    searchRef.current?.focus();
-  }, []);
-  useEscapeKey(onClose);
 
   const selectedEmoji = parsed?.type === 'text' ? parsed.text : '';
   const selectedFaName = parsed?.type === 'fa' ? parsed.name : '';
 
   return (
-    <div
-      className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('iconPicker.chooseTitle')}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        ref={trapRef}
-        className="bg-hs-panel border border-hs-border-strong rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col"
-      >
-        <div className="px-5 pt-4 border-b border-hs-border-strong">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 className="text-sm font-semibold text-hs-text-primary">{t('iconPicker.chooseTitle')}</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
-              aria-label={tCore('actions.close')}
-            >
-              {tCore('actions.close')}
-            </button>
-          </div>
+    // A window of its own, so one Escape closes only it when it is opened
+    // from inside another window (the chore form's icon).
+    <ModalFrame labelledBy="icon-picker-title" onClose={onClose} className="w-full max-w-3xl">
+      <ModalPanel>
+        <ModalHeader titleId="icon-picker-title" title={t('iconPicker.chooseTitle')} onClose={onClose} />
+        <div className="shrink-0 px-5 pt-3 border-b border-hs-border-strong">
+          {/* The first control after the ×, so the window opens on it. */}
           <input
-            ref={searchRef}
             type="search"
             placeholder={t('iconPicker.searchAllPlaceholder')}
             value={query}
@@ -202,16 +170,16 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {tab === 'yours' ? (
             <>
               <EditorCustomIconSection value={value} onPick={onPick} showNames query={query} hideHeading />
-              <p className="text-[11.5px] text-hs-text-muted mt-4">
+              <FieldHint className="mt-4">
                 {tCoreIcons('customIcons.formats')}{' '}
                 <a href={settingsHref({ kind: 'defaults', page: 'icons' })} className="text-hs-accent-hover hover:underline">
                   {tCoreIcons('customIcons.manage')}
                 </a>
-              </p>
+              </FieldHint>
             </>
           ) : tab === 'emoji' ? (
             emojiResults ? (
@@ -263,8 +231,8 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
             </span>
           </div>
         )}
-      </div>
-    </div>
+      </ModalPanel>
+    </ModalFrame>
   );
 }
 

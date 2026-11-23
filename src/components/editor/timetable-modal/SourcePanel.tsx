@@ -38,6 +38,7 @@ import type { TimetableData, TimetableSource } from '@/types/timetables';
 import { PROSE_CLASS } from './prose';
 import { withSheetSync, type SheetCheckOutcome } from './use-timetable-draft';
 import { sheetLabel } from './sheet-label';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 
 interface SourcePanelProps {
   /** Whose week this is. Every action here is about this one person's sheet. */
@@ -55,6 +56,7 @@ interface SourcePanelProps {
 
 export default function SourcePanel({ memberId, source, onImportAgain, onCheck, update }: SourcePanelProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const timezone = useEditorHouseholdTimezone();
   const [checking, setChecking] = useState(false);
@@ -108,7 +110,7 @@ export default function SourcePanel({ memberId, source, onImportAgain, onCheck, 
       setFound(await onCheck(memberId));
     } catch (cause) {
       if (isSessionExpired(cause)) return;
-      setCheckError(cause instanceof Error && cause.message ? cause.message : t('common.saveError'));
+      setCheckError(cause instanceof HubUnreachableError ? tCore('refusals.unreachable') : refusalSentence(cause, t) ?? tCore('refusals.failed'));
     } finally {
       setChecking(false);
     }
@@ -260,8 +262,8 @@ export default function SourcePanel({ memberId, source, onImportAgain, onCheck, 
           label={t('timetableModal.source.sync')}
           checked={source.sync}
           onChange={(on) => update((current) => withSheetSync(current, memberId, on))}
+          description={syncHelp}
         />
-        <p className={`${PROSE_CLASS} text-hs-text-faint`}>{syncHelp}</p>
       </div>
           </section>
         </>

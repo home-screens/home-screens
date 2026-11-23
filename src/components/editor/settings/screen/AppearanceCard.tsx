@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
-import { FieldHelp, FieldLabel, FieldRow } from '@/components/editor/settings/screen/FieldRow';
+import { FieldLabel, FieldRow } from '@/components/editor/settings/screen/FieldRow';
+import FieldHint from '@/components/ui/FieldHint';
 import FullscreenThemeGrid from '@/components/editor/settings/shared/FullscreenThemeGrid';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import type { DisplayState } from '@/lib/settings-form';
@@ -79,10 +80,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           label={t('settings.defaultDisplayPage.fields.rotateToggle')}
           checked={rotationInterval > 0}
           onChange={(v) => onChange({ rotationInterval: v ? DEFAULT_ROTATION_SECONDS : 0 })}
+          description={t('settings.defaultDisplayPage.fields.rotateHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.rotateHelp')}
-        </FieldHelp>
       </FieldRow>
 
       {rotationInterval > 0 && (
@@ -96,10 +95,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
             step={DISPLAY_FIELD_SLIDERS.rotationSeconds.step}
             displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: rotationInterval })}
             onChange={(v) => onChange({ rotationInterval: v })}
+            hint={t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
           />
-          <FieldHelp>
-            {t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
-          </FieldHelp>
         </FieldRow>
       )}
 
@@ -109,10 +106,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           label={t('settings.defaultDisplayPage.fields.paginationDotsToggle')}
           checked={showPaginationDots}
           onChange={(v) => onChange({ showPaginationDots: v })}
+          description={t('settings.defaultDisplayPage.fields.paginationDotsHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.paginationDotsHelp')}
-        </FieldHelp>
       </FieldRow>
 
       {dotDefaultsInUse && (
@@ -123,10 +118,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
               label={t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
               checked={pauseEnabled}
               onChange={(v) => onChange({ pauseEnabled: v })}
+              description={t('settings.defaultDisplayPage.fields.pauseEnabledHelp')}
             />
-            <FieldHelp>
-              {t('settings.defaultDisplayPage.fields.pauseEnabledHelp')}
-            </FieldHelp>
             {pauseEnabled && (
               <div className="mt-3">
                 <Slider
@@ -141,10 +134,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
                         })
                   }
                   onChange={(v) => onChange({ pauseTimeoutSeconds: v })}
+                  hint={t('settings.defaultDisplayPage.fields.pauseTimeoutHelp')}
                 />
-                <FieldHelp>
-                  {t('settings.defaultDisplayPage.fields.pauseTimeoutHelp')}
-                </FieldHelp>
               </div>
             )}
           </FieldRow>
@@ -155,10 +146,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
               label={t('settings.defaultDisplayPage.fields.rotationProgressToggle')}
               checked={showRotationProgress}
               onChange={(v) => onChange({ showRotationProgress: v })}
+              description={t('settings.defaultDisplayPage.fields.rotationProgressHelp')}
             />
-            <FieldHelp>
-              {t('settings.defaultDisplayPage.fields.rotationProgressHelp')}
-            </FieldHelp>
           </FieldRow>
         </>
       )}
@@ -169,10 +158,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           label={t('settings.defaultDisplayPage.fields.swipeEnabledToggle')}
           checked={swipeEnabled}
           onChange={(v) => onChange({ swipeEnabled: v })}
+          description={t('settings.defaultDisplayPage.fields.swipeEnabledHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.swipeEnabledHelp')}
-        </FieldHelp>
       </FieldRow>
 
       <FieldRow fieldId="display.setupHintEnabled">
@@ -181,10 +168,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           label={t('settings.defaultDisplayPage.fields.setupHintToggle')}
           checked={setupHintEnabled}
           onChange={(v) => onChange({ setupHintEnabled: v })}
+          description={t('settings.defaultDisplayPage.fields.setupHintHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.setupHintHelp')}
-        </FieldHelp>
       </FieldRow>
 
       <FieldRow fieldId="display.transitionEffect">
@@ -200,9 +185,9 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
             </option>
           ))}
         </select>
-        <FieldHelp>
+        <FieldHint className="mt-1.5">
           {t('settings.defaultDisplayPage.fields.transitionEffectHelp')}
-        </FieldHelp>
+        </FieldHint>
       </FieldRow>
 
       {transitionEffect !== 'none' && (
@@ -216,8 +201,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
               seconds: transitionDuration.toFixed(1),
             })}
             onChange={(v) => onChange({ transitionDuration: v })}
+            hint={t('settings.defaultDisplayPage.fields.transitionDurationHelp')}
           />
-          <FieldHelp>{t('settings.defaultDisplayPage.fields.transitionDurationHelp')}</FieldHelp>
         </FieldRow>
       )}
 
@@ -231,10 +216,8 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
             seconds: cursorHideSeconds,
           })}
           onChange={(v) => onChange({ cursorHideSeconds: v })}
+          hint={t('settings.defaultDisplayPage.fields.cursorHideHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.cursorHideHelp')}
-        </FieldHelp>
       </FieldRow>
 
       {/* The wall's root box steps along a small lattice once a minute
@@ -245,17 +228,15 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
           label={t('settings.defaultDisplayPage.fields.pixelShiftToggle')}
           checked={pixelShift}
           onChange={(v) => onChange({ pixelShift: v })}
+          description={t('settings.defaultDisplayPage.fields.pixelShiftHelp')}
         />
-        <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.pixelShiftHelp')}
-        </FieldHelp>
       </FieldRow>
 
       <FieldRow fieldId="display.fullscreenTheme">
         <FieldLabel>{t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}</FieldLabel>
-        <FieldHelp>
+        <FieldHint className="mt-1.5">
           {t('settings.defaultDisplayPage.fields.fullscreenThemeHelp')}
-        </FieldHelp>
+        </FieldHint>
         <FullscreenThemeGrid
           value={fullscreenTheme}
           onChange={(themeId) => onChange({ fullscreenTheme: themeId })}

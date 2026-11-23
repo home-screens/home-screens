@@ -69,7 +69,7 @@ function compactMatch(match: CalendarEventMatch): CalendarEventMatch {
  *  field), but a fresh rule starts empty — so say out loud that it currently
  *  covers every event before someone hides the whole calendar with one click. */
 function MatchesEverythingNote({ children }: { children: ReactNode }) {
-  return <span className="text-[11px] text-hs-warning" data-matches-everything="">{children}</span>;
+  return <span className="text-[11px] text-hs-warning-ink" data-matches-everything="">{children}</span>;
 }
 
 function isEmptyMatch(match: CalendarEventMatch | undefined): boolean {

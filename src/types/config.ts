@@ -1818,7 +1818,7 @@ export type CalendarLegendMode = 'calendars' | 'people' | 'groups';
 
 /**
  * "Show only these people": family member ids and family group ids, resolved
- * to calendar sources through Settings > Calendar > People at render time.
+ * to calendar sources through Settings > Calendar > Whose calendars? at render time.
  * Empty member and group lists mean no people filter.
  */
 export interface CalendarPeopleFilter {
@@ -2308,8 +2308,8 @@ export interface FullscreenCalendarConfig {
   showLegend?: CalendarLegendPlacement;
   /**
    * Name tags: put the owning family member's initials, in their color, where the calendar dot
-   * goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns
-   * keep a plain dot
+   * goes. Who owns which calendar is set under Whose calendars? in Settings > Calendar.
+   * Calendars nobody owns keep a plain dot
    *
    * default false
    */
@@ -2555,8 +2555,8 @@ export interface CalendarConfig {
   showLegend?: CalendarLegendPlacement;
   /**
    * Name tags: put the owning family member's initials, in their color, where the calendar dot
-   * goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns
-   * keep a plain dot
+   * goes. Who owns which calendar is set under Whose calendars? in Settings > Calendar.
+   * Calendars nobody owns keep a plain dot
    *
    * default false
    */
@@ -2710,9 +2710,9 @@ export interface WeatherConfig {
    */
   locationLabel?: string;
   /**
-   * Show the "Forecast" / "Hourly Forecast" heading (hourly, daily, and table views)
+   * Show the "Forecast" / "Hourly forecast" heading (hourly, daily, and table views)
    *
-   * Show the "Forecast" / "Hourly Forecast" heading (hourly, daily, table views). Omitted = shown.
+   * Show the "Forecast" / "Hourly forecast" heading (hourly, daily, table views). Omitted = shown.
    */
   showTitle?: boolean;
 }
@@ -3351,14 +3351,15 @@ export interface StickyNoteConfig {
 
 // Greeting module config
 export interface GreetingConfig {
-  /** Name to greet (e.g. "Good morning, Bryan") */
+  /** Name to greet (e.g. "Good morning, Taylor") */
   name: string;
   /** Accent color for the greeting text */
   accentColor?: string;
   /**
    * Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it
-   * had before the event bus. Requires latitude/longitude configured in Settings > Weather, the
-   * editor surfaces a hint in the Greeting config section if location is missing.
+   * had before the event bus. Requires latitude/longitude configured in
+   * Settings > Location & language, the editor surfaces a hint in the Greeting config section if
+   * location is missing.
    *
    * @default true
    */
@@ -3373,7 +3374,7 @@ export type NewsTickerSeparator = 'dot' | 'pipe' | 'slash';
 /**
  * One feed a news module follows. `url` is either a real feed URL (RSS, RDF,
  * Atom, or JSON Feed) or a virtual source the server resolves:
- *   - `local`               news near the household location (Settings > Location)
+ *   - `local`               news near the household location (Settings > Location & language)
  *   - `topic:<keywords>`    a keyword search feed
  *   - `youtube:<channelId>` a YouTube channel's uploads
  *   - `reddit:<subreddit>`  a subreddit's newest posts
@@ -3709,9 +3710,9 @@ export interface HistoryConfig {
    */
   sourceWikipedia?: boolean;
   /**
-   * Show the "On This Day" header. Turning it off hides the divider under it too
+   * Show the "On this day" header. Turning it off hides the divider under it too
    *
-   * Show the built-in "On This Day" header. Omitted = shown.
+   * Show the built-in "On this day" header. Omitted = shown.
    */
   showTitle?: boolean;
 }
@@ -3837,7 +3838,7 @@ export interface PhotoSlideshowConfig {
    */
   maxVideoDurationMs?: number;
   /**
-   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * Tap on the wall: on touch displays, a tap on the photo shows back, pause and next, and which
    * album it is from. Unset means on
    *
    * Absent reads as on (a tap did nothing before this existed, so turning it
@@ -3853,21 +3854,21 @@ type QRCodeMode = 'custom' | 'wifi';
 export type WifiAuthType = 'WPA' | 'WEP' | 'nopass';
 
 export interface QRCodeConfig {
-  /** QR code mode: `custom` (arbitrary data) or `wifi` (WiFi network) */
+  /** QR code mode: `custom` (arbitrary data) or `wifi` (Wi-Fi network) */
   mode: QRCodeMode;
   // Custom mode
   /** Content to encode (custom mode) */
   data: string;
   /** Label text below the code (custom mode) */
   label: string;
-  // WiFi mode
-  /** WiFi network name (wifi mode) */
+  // Wi-Fi mode
+  /** Wi-Fi network name (wifi mode) */
   ssid: string;
-  /** WiFi password (wifi mode) */
+  /** Wi-Fi password (wifi mode) */
   password: string;
-  /** WiFi authentication type: `WPA`, `WEP`, or `nopass` (wifi mode) */
+  /** Wi-Fi authentication type: `WPA`, `WEP`, or `nopass` (wifi mode) */
   authType: WifiAuthType;
-  /** Whether the WiFi network is hidden (wifi mode) */
+  /** Whether the Wi-Fi network is hidden (wifi mode) */
   hiddenNetwork: boolean;
   /** Show the password below the QR code (wifi mode) */
   showPassword: boolean;
@@ -4162,9 +4163,9 @@ export interface GarbageDayConfig {
   /** When to highlight: `day-of` or `day-before` */
   highlightMode: 'day-of' | 'day-before';
   /**
-   * Show the built-in "Collection Schedule" header
+   * Show the built-in "Collection schedule" header
    *
-   * Show the built-in "Collection Schedule" header. Omitted = shown.
+   * Show the built-in "Collection schedule" header. Omitted = shown.
    */
   showTitle?: boolean;
 }
@@ -4260,9 +4261,10 @@ export interface AffirmationsConfig {
   timeAware: boolean;
   /**
    * Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries
-   * are never hidden. Only takes effect while **Time-aware** is on, since the weather boost is part
-   * of the same scoring pass. Requires latitude/longitude configured in Settings > Weather, the
-   * editor surfaces a hint in the Affirmations config section if location is missing.
+   * are never hidden. Only takes effect while **Time-aware content** is on, since the weather
+   * boost is part of the same scoring pass. Requires latitude/longitude configured in
+   * Settings > Location & language, the editor surfaces a hint in the Affirmations config section
+   * if location is missing.
    *
    * @default true
    */
@@ -4520,7 +4522,7 @@ export interface MealPlannerConfig {
    */
   tapRecipeAction?: RecipeTapAction;
   /**
-   * Show the "Today's Meals" label in the today view and the list's name in the grocery view
+   * Show the "Today's meals" label in the today view and the list's name in the grocery view
    *
    * Omitted = shown. The other views have no title of their own
    * (`mealViewOptions` in `src/lib/meal-view-options.ts`).
@@ -4905,7 +4907,7 @@ export interface DisplayControlConfig {
    */
   defaultTarget: 'all' | 'self' | string;
   /**
-   * Show a "Controls" dropdown of display names (with "All displays" last) so people can retarget
+   * Show a "Controls" dropdown of display names (with "Every wall" last) so people can retarget
    * on the wall (hidden in single-display mode)
    *
    * When false, the in-module picker is hidden even in multi-display mode.
@@ -5133,14 +5135,14 @@ export interface ChoreChartConfig {
   /** Accent color for highlights */
   accentColor: string;
   /**
-   * Show the built-in view title ("Family Chores", "Star Chart", and so on)
+   * Show the built-in view title ("Family chores", "Star chart", and so on)
    *
-   * Show the built-in view title ("Family Chores", "Star Chart", ...). Omitted = shown.
+   * Show the built-in view title ("Family chores", "Star chart", ...). Omitted = shown.
    */
   showTitle?: boolean;
-  /** Maximum number of redemptions shown in Reward History. Omitted = 5. */
+  /** Maximum number of redemptions shown in Reward history. Omitted = 5. */
   historyLimit?: number;
-  /** Rewards Store layout: `list`, `tiles`, or `price-list`. Omitted = `list`. */
+  /** Rewards store layout: `list`, `tiles`, or `price-list`. Omitted = `list`. */
   storeLayout?: ChoreChartStoreLayout;
 }
 
@@ -5285,8 +5287,8 @@ export interface FullscreenMealPlannerConfig {
    */
   tapRecipeAction?: RecipeTapAction;
   /**
-   * Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu", the grocery list's
-   * name, "Recipe Book")
+   * Show the view title ("Today's meals", "This week's meals", "Today's menu", the grocery list's
+   * name, "Recipe book")
    *
    * Omitted = shown. Next meal and Recipe have no title.
    */
@@ -5474,8 +5476,8 @@ export interface FullscreenPhotoConfig {
   count?: number;
   /**
    * Path to a single pinned photo. When set, the viewer shows this image statically and ignores
-   * `photoSource`/`intervalMs`/`transition`/`shuffle`. Shows a "No photo selected" empty state until
-   * chosen
+   * `photoSource`/`intervalMs`/`transition`/`shuffle`. Until one is chosen, the screen asks for a
+   * photo to be picked in the editor.
    */
   file?: string;
   /** Time between photos in milliseconds */
@@ -5542,7 +5544,7 @@ export interface FullscreenPhotoConfig {
    */
   maxVideoDurationMs?: number;
   /**
-   * Tap on the Wall: on touch displays, a tap on the photo shows back, pause and next, and which
+   * Tap on the wall: on touch displays, a tap on the photo shows back, pause and next, and which
    * album it is from. Unset means on
    *
    * Absent reads as on (a tap did nothing before this existed, so turning it

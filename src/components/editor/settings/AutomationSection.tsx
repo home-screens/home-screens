@@ -8,6 +8,8 @@ import ProfilesSection from './ProfilesSection';
 import RulesSection from './RulesSection';
 import SharedStateSection from './SharedStateSection';
 import SettingsTabBar from './shared/SettingsTabBar';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * The "Defaults → Automation" page — merged from the former Profiles,
@@ -79,7 +81,7 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
               onChange={(e) => setSelectedDisplay(e.target.value || null)}
-              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -87,9 +89,9 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-hs-text-faint mt-1.5">
+            <FieldHint className="mt-1.5">
               {t('settings.automationPage.displayPicker.help')}
-            </p>
+            </FieldHint>
           </label>
         </div>
       )}

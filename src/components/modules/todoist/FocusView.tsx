@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Check } from 'lucide-react';
 import type { TodoistConfig } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import { dueDaysFromToday } from './todoist-utils';
@@ -104,7 +105,7 @@ export default function FocusView({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <span className="block" style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>
-              ✓
+              <Check size="1em" strokeWidth={2.5} aria-hidden="true" style={{ display: 'inline-block' }} />
             </span>
             <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
               {tr('todoist.focus.allCaughtUp')}

@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, LoaderCircle, TriangleAlert, Undo2 } from 'lucide-react';
+import { Check, TriangleAlert, Undo2 } from 'lucide-react';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import Spinner from '@/components/ui/Spinner';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 type Outcome =
   | { kind: 'working' }
@@ -17,7 +19,7 @@ type Outcome =
   | { kind: 'connected'; purpose?: 'photos' | 'calendar'; canAddEvents?: boolean; justFinished?: boolean }
   | { kind: 'expired' }
   | { kind: 'cancelled' }
-  | { kind: 'failed'; message: string | null };
+  | { kind: 'failed' };
 
 /** How long a refused window.close() gets before the page says so. */
 const CLOSE_CHECK_MS = 300;
@@ -63,15 +65,17 @@ async function finishSignIn(search: string): Promise<Outcome> {
       const done = await res.json().catch(() => ({})) as { purpose?: 'photos' | 'calendar'; canAddEvents?: boolean };
       return { kind: 'connected', purpose: done.purpose, canAddEvents: done.canAddEvents, justFinished: true };
     }
-    const data = await res.json().catch(() => ({})) as { error?: string; expired?: boolean };
-    return data.expired ? { kind: 'expired' } : { kind: 'failed', message: data.error ?? null };
+    const data = await res.json().catch(() => ({})) as { expired?: boolean };
+    // The hub's reason is English for its log; the page says it in our words.
+    return data.expired ? { kind: 'expired' } : { kind: 'failed' };
   } catch {
-    return { kind: 'failed', message: null };
+    return { kind: 'failed' };
   }
 }
 
 export default function GoogleSignInReturn() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const router = useRouter();
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'working' });
   const [closeBlocked, setCloseBlocked] = useState(false);
@@ -126,8 +130,8 @@ export default function GoogleSignInReturn() {
         <HomeScreensLogo className="mb-8 justify-center" />
 
         {outcome.kind === 'working' && (
-          <p className="flex items-center justify-center gap-2 text-sm text-hs-text-muted">
-            <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
+          <p role="status" className="flex items-center justify-center gap-2 text-sm text-hs-text-muted">
+            <Spinner size="md" />
             {t('connectGoogle.finishing')}
           </p>
         )}
@@ -143,7 +147,7 @@ export default function GoogleSignInReturn() {
                   {outcome.canAddEvents === false ? t('settings.calendarPage.adding.scopeMissingTitle') : t('connectGoogle.calendarConnectedTitle')}
                 </h1>
                 <p className="mt-1.5 mb-4 text-sm text-hs-text-muted">
-                  {outcome.canAddEvents === false ? t('connectGoogle.calendarReadOnlyBody') : t('connectGoogle.calendarConnectedBody')}
+                  {t(outcome.canAddEvents === false ? 'connectGoogle.calendarReadOnlyBody' : 'connectGoogle.calendarConnectedBody', { place: settingsPlaceText(tCore, 'calendar') })}
                 </p>
               </>
             ) : (
@@ -187,7 +191,7 @@ export default function GoogleSignInReturn() {
             <Badge tone="warning"><TriangleAlert className="h-5 w-5" /></Badge>
             <h1 className="text-lg font-semibold text-hs-text-primary">{t('connectGoogle.failedTitle')}</h1>
             <p className="mt-1.5 mb-4 text-sm text-hs-text-muted">
-              {outcome.message ?? t('configSections.googlePhotosImport.genericError')}
+              {t('configSections.googlePhotosImport.genericError')}
             </p>
             <Button onClick={backToEditor}>{t('connectGoogle.backToEditor')}</Button>
           </>
@@ -199,7 +203,7 @@ export default function GoogleSignInReturn() {
 
 const BADGE_TONES = {
   success: 'bg-hs-success/15 text-hs-success',
-  warning: 'bg-hs-warning/15 text-hs-warning',
+  warning: 'bg-hs-warning/15 text-hs-warning-ink',
   neutral: 'bg-hs-card text-hs-text-muted',
 };
 

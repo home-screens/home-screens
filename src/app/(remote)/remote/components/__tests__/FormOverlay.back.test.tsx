@@ -26,7 +26,7 @@ function pressBack() {
 }
 
 function sheetOwnsAnEntry(): boolean {
-  return Boolean((window.history.state as { hsSheet?: string } | null)?.hsSheet);
+  return Boolean((window.history.state as { hsSheets?: string[] } | null)?.hsSheets?.length);
 }
 
 describe('FormOverlay and the Back gesture', () => {

@@ -2,7 +2,7 @@
 
 /**
  * A day rule's picture is a field: what it holds now, Choose a picture and
- * Remove. Choosing opens the Image Library on the day art that ships with
+ * Remove. Choosing opens the Pictures & videos window on the day art that ships with
  * Home Screens, or on the household's own picture where it lives.
  */
 

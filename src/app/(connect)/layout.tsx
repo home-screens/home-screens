@@ -3,9 +3,10 @@ import { readConfig } from '@/lib/config';
 import { I18nProvider } from '@/i18n';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { PRODUCT_NAME } from '@/lib/page-title';
 
 export const metadata: Metadata = {
-  title: 'Home Screens',
+  title: PRODUCT_NAME,
 };
 
 // Reads `data/config.json` for the active locale, which changes at runtime.

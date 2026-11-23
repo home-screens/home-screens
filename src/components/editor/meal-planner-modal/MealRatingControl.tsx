@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 import { FamilyMealSummary, useMealVoting } from '@/components/meals/meal-votes';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 const STARS = [1, 2, 3, 4, 5] as const;
 
@@ -26,7 +27,7 @@ export function MealRatingControl({ meal }: { meal: SavedMeal }) {
         <FamilyMealSummary meal={meal} className="text-xs text-hs-text-faint" />
       </div>
       {voting.roster === 'failed' && <p role="alert" className="text-xs text-hs-text-faint">{t('mealRatings.loadError')}</p>}
-      {voting.roster === 'ready' && members.length === 0 && <p className="text-xs text-hs-text-faint">{t('mealRatings.noMembers')}</p>}
+      {voting.roster === 'ready' && members.length === 0 && <p className="text-xs text-hs-text-faint">{t('mealRatings.noMembers', { place: settingsPlaceText(t, 'family') })}</p>}
       {members.length > 0 && (
         <div className="flex items-center gap-2">
           <select
@@ -45,7 +46,7 @@ export function MealRatingControl({ meal }: { meal: SavedMeal }) {
                 type="button"
                 disabled={!memberId}
                 className="text-lg leading-none transition-colors disabled:opacity-40"
-                style={{ color: mine !== null && star <= mine ? '#f59e0b' : 'var(--hs-text-faint)' }}
+                style={{ color: mine !== null && star <= mine ? 'var(--hs-meal)' : 'var(--hs-text-faint)' }}
                 aria-label={t('mealRatings.star', { count: star })}
                 aria-pressed={mine === star}
                 onClick={() => void voting.rate(meal.id, star)}

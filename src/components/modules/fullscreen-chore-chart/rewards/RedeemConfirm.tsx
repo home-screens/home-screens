@@ -6,6 +6,9 @@ import type { RewardDefinition } from '@/lib/reward-data';
 import { redeemGoalEffect, ticketsAfterRedeeming } from '@/lib/reward-rules';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
+import { WallButton } from '@/components/modules/shared/WallButton';
+import { WallNotice } from '@/components/modules/shared/WallNotice';
+import { useWallSheet, type WallSheetOptions } from '@/components/modules/shared/useWallSheet';
 
 interface RedeemConfirmProps {
   reward: RewardDefinition;
@@ -19,7 +22,8 @@ interface RedeemConfirmProps {
   /** Spending needs the grown-up code: the yes says so, with a lock, before it is pressed. */
   asksGrownUp?: boolean;
   onConfirm: () => void;
-  onCancel: () => void;
+  /** Closing it (Cancel, a scrim tap, nobody touching it), from `useRedeemReward`. */
+  sheet: WallSheetOptions;
   k: number;
   t: number;
   d: number;
@@ -29,9 +33,12 @@ interface RedeemConfirmProps {
 /**
  * "Spend your tickets?" sheet. Sized like the cards behind it (t for text,
  * k for tap targets) so it reads from where the kid is standing, not like a
- * phone dialog dropped on a wall.
+ * phone dialog dropped on a wall. It holds the screen while it is up, goes
+ * away by itself with nobody touching it, and a scrim tap within a double tap
+ * of opening is the tap that opened it.
  */
-export default function RedeemConfirm({ reward, memberName, balance, goal = null, error, busy, asksGrownUp = false, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
+export default function RedeemConfirm({ reward, memberName, balance, goal = null, error, busy, asksGrownUp = false, onConfirm, sheet, k, t, d, onAccent }: RedeemConfirmProps) {
+  const { touched, settled } = useWallSheet(sheet);
   const tr = useTranslate('modules');
   const trCore = useTranslate('core');
   const left = ticketsAfterRedeeming(balance, reward);
@@ -56,7 +63,8 @@ export default function RedeemConfirm({ reward, memberName, balance, goal = null
   return (
     <div
       data-testid="fcc-redeem-confirm"
-      onClick={onCancel}
+      onClick={settled(sheet.onClose)}
+      onPointerDown={touched}
       style={{
         position: 'absolute',
         inset: 0,
@@ -110,15 +118,16 @@ export default function RedeemConfirm({ reward, memberName, balance, goal = null
           </div>
         )}
 
+        {/* The notice's 26-unit text lands at the sheet's 22 px small text. */}
         {error && (
-          <div style={{ fontSize: 22 * t, color: '#ef4444', fontWeight: 600 }}>
+          <WallNotice tone="error" P={(n) => (n * 22 * t) / 26} surface="var(--fcc-surface)" text="var(--fcc-text)" testId="fcc-redeem-error">
             {error}
-          </div>
+          </WallNotice>
         )}
 
         <div style={{ display: 'flex', gap: 16 * k * d, marginTop: 8 * k * d, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button
-            onClick={onCancel}
+          <WallButton
+            onClick={sheet.onClose}
             style={{
               ...buttonBase,
               color: 'var(--fcc-text)',
@@ -127,9 +136,9 @@ export default function RedeemConfirm({ reward, memberName, balance, goal = null
             }}
           >
             {tr('fullscreen-chore-chart.rewardsStore.confirmCancel')}
-          </button>
+          </WallButton>
 
-          <button
+          <WallButton
             onClick={onConfirm}
             disabled={busy}
             style={{
@@ -143,7 +152,7 @@ export default function RedeemConfirm({ reward, memberName, balance, goal = null
             {asksGrownUp
               ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4em' }}><Lock size="1em" strokeWidth={2.6} aria-hidden="true" />{trCore('grownUp.ask')}</span>
               : tr('fullscreen-chore-chart.rewardsStore.confirmYes')}
-          </button>
+          </WallButton>
         </div>
       </div>
     </div>

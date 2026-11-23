@@ -5,7 +5,8 @@ import { useTranslate } from '@/i18n';
 import { TODO_LIMITS } from '@/types/todos';
 import BottomSheet from './BottomSheet';
 import ColorSwatchRow from './ColorSwatchRow';
-import { PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import { SHEET_FIELD, SHEET_LABEL } from './remote-styles';
+import PrimaryButton from './PrimaryButton';
 
 interface ListsNewListSheetProps {
   /** Swatch to start on: the first one no other list is using. */
@@ -50,9 +51,9 @@ export default function ListsNewListSheet({ defaultColor, onCreate, onClose }: L
         />
         <span style={SHEET_LABEL} id="todo-new-colour-label">{t('lists.listSheet.colourLabel')}</span>
         <ColorSwatchRow value={color} onChange={setColor} labelledBy="todo-new-colour-label" />
-        <button type="submit" className="press-btn" style={{ ...PRIMARY_BUTTON, marginTop: 22 }} disabled={!name.trim() || busy}>
+        <PrimaryButton type="submit" style={{ marginTop: 22 }} disabled={!name.trim()} busy={busy}>
           {t('lists.newList.submit')}
-        </button>
+        </PrimaryButton>
       </form>
     </BottomSheet>
   );

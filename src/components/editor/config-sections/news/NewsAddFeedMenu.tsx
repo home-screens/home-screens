@@ -12,6 +12,8 @@ import { extractYoutubeChannelId, LOCAL_SOURCE, sourceKind, subredditName } from
 import { useTranslate } from '@/i18n';
 import type { NewsFeedSource } from '@/types/config';
 import { NEWS_MAX_FEEDS, presetName } from './feed-display';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 type AddKind = 'preset' | 'custom' | 'local' | 'topic' | 'youtube' | 'reddit';
 
@@ -214,13 +216,13 @@ export function NewsAddFeedMenu({ feeds, onAdd }: NewsAddFeedMenuProps) {
           <Button type="submit" size="sm" disabled={full || !locationName.trim() || hasLocal}>
             {t('configSections.news.addLocalButton')}
           </Button>
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          <FieldHint>
             {!locationName.trim()
-              ? t('configSections.news.addLocalNoLocation')
+              ? t('configSections.news.addLocalNoLocation', { place: settingsPlaceText(tCore, 'location') })
               : hasLocal
                 ? t('configSections.news.addLocalAlready')
                 : t('configSections.news.addLocalHint', { place: locationName.trim() })}
-          </p>
+          </FieldHint>
         </div>
       )}
 

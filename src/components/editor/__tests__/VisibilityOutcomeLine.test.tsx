@@ -28,7 +28,7 @@ afterEach(cleanup);
 
 describe('VisibilityOutcomeLine (no live data)', () => {
   it('renders the generic neutral line when the display never reported', () => {
-    render(<VisibilityOutcomeLine visibility={visibility} states={null} reportedAt={null} t={t} />);
+    render(<VisibilityOutcomeLine visibility={visibility} states={null} reportedAt={null} t={t} tCore={t} />);
     const line = screen.getByText(/visibilityConditions\.outcome\.noLiveData/);
     expect(line.getAttribute('data-visibility-outcome')).toBe('offline');
   });
@@ -40,6 +40,7 @@ describe('VisibilityOutcomeLine (no live data)', () => {
         states={null}
         reportedAt={Date.now() - 5 * 60_000}
         t={t}
+        tCore={t}
       />,
     );
     const line = screen.getByText(/visibilityConditions\.outcome\.offlineSince\[time=/);
@@ -54,13 +55,13 @@ describe('VisibilityOutcomeLine (source-aware live outcome)', () => {
   ]);
 
   it('uses the display-worded outcome when values come from a display', () => {
-    render(<VisibilityOutcomeLine visibility={visibility} states={states} source="display" t={t} />);
+    render(<VisibilityOutcomeLine visibility={visibility} states={states} source="display" t={t} tCore={t} />);
     const line = screen.getByText('visibilityConditions.outcome.shownNow');
     expect(line.getAttribute('data-visibility-outcome')).toBe('shown');
   });
 
   it('uses the editor-worded outcome when values come from the editor tab', () => {
-    render(<VisibilityOutcomeLine visibility={visibility} states={states} source="editor" t={t} />);
+    render(<VisibilityOutcomeLine visibility={visibility} states={states} source="editor" t={t} tCore={t} />);
     const line = screen.getByText('visibilityConditions.outcome.shownNowEditor');
     // data-attribute is source-agnostic — E2E keys on it.
     expect(line.getAttribute('data-visibility-outcome')).toBe('shown');
@@ -71,7 +72,7 @@ describe('VisibilityOutcomeLine (a tree that only reads the clock)', () => {
   const allDay: ModuleVisibility = { conditions: [{ kind: 'time', startTime: '00:00', endTime: '23:59' }] };
 
   it('gives a verdict without waiting for a display report', () => {
-    render(<VisibilityOutcomeLine visibility={allDay} states={null} reportedAt={null} now={new Date(2026, 8, 24, 12, 0)} t={t} />);
+    render(<VisibilityOutcomeLine visibility={allDay} states={null} reportedAt={null} now={new Date(2026, 8, 24, 12, 0)} t={t} tCore={t} />);
     // No display is showing it, so the editor-worded line.
     const line = screen.getByText('visibilityConditions.outcome.shownNowEditor');
     expect(line.getAttribute('data-visibility-outcome')).toBe('shown');

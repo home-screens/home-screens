@@ -57,13 +57,13 @@ describe('buildSuggestions', () => {
     expect(out).toEqual([
       {
         key: DOOR.key,
-        primary: 'Back Door — on',
+        primary: 'Back Door: on',
         secondary: DOOR.key,
         section: 'Home Assistant · Kitchen',
       },
       {
         key: TEMP.key,
-        primary: 'Temperature — 72.5 °F',
+        primary: 'Temperature: 72.5 °F',
         secondary: TEMP.key,
         section: 'Home Assistant',
       },
@@ -74,7 +74,7 @@ describe('buildSuggestions', () => {
     const out = buildSuggestions([DOOR], OPTIONS, '', false);
     const doorRows = out.filter((s) => s.key === DOOR.key);
     expect(doorRows).toHaveLength(1);
-    expect(doorRows[0].primary).toBe('Back Door — on');
+    expect(doorRows[0].primary).toBe('Back Door: on');
   });
 
   it('filters static options by key or label, case-insensitively', () => {

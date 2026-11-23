@@ -68,7 +68,7 @@ export default function HistoryModule({ config, style, timezone }: HistoryModule
             <div className="text-center px-4">
               <p className="leading-relaxed">
                 <span className="font-bold">{event.year}</span>
-                {' — '}
+                {' · '}
                 {event.text}
               </p>
 

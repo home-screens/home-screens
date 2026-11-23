@@ -4,13 +4,21 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { fromISODate } from '@/lib/meal-constants';
+import TabHeader, { GearButton, HEADER_BUTTON } from './TabHeader';
 
-/** Between the heading, Rate Dinner and the gear. */
+/** Between the heading, Rate dinner and the gear (the header's own gap). */
 const GAP = 8;
-/** The gear, and Rate Dinner when it is only a star. */
-const BUTTON = 40;
-/** Rate Dinner with its words, less the words: borders, padding, the star and the space after it. */
-const RATE_CHROME = 2 + 10 + 15 + 6 + 12;
+/** The gear, and Rate dinner when it is only a star. */
+const BUTTON = 44;
+/**
+ * Rate dinner with its words, less the words: borders, padding, the star and
+ * the space after it. Kept tight so the longest words ("Abendessen bewerten",
+ * "Avondeten beoordelen") still fit beside the heading on a 390 px phone.
+ */
+const RATE_PAD_START = 8;
+const RATE_PAD_END = 10;
+const RATE_STAR_GAP = 4;
+const RATE_CHROME = 2 + RATE_PAD_START + 15 + RATE_STAR_GAP + RATE_PAD_END;
 
 interface MealsTabHeaderProps {
   /** The household's day, `YYYY-MM-DD`: the weekday is the one at home, not on the phone. */
@@ -25,7 +33,7 @@ export default function MealsTabHeader({ todayISO, onOpenSettings, onRateDinner 
   const tCore = useTranslate('core');
   const rateLabel = tCore('mealRatings.dinner');
 
-  // Rate Dinner says what it is in words wherever the words fit. A long
+  // Rate dinner says what it is in words wherever the words fit. A long
   // language on a narrow phone has no room for them beside the heading
   // ("Abendessen bewerten" at 360px), and there the star stands alone, the
   // same size as the gear. The widths are measured, not guessed per language.
@@ -50,73 +58,44 @@ export default function MealsTabHeader({ todayISO, onOpenSettings, onRateDinner 
   }, []);
 
   return (
-    <div ref={row} style={{ padding: '12px 0 4px', display: 'flex', alignItems: 'flex-start', gap: GAP }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', whiteSpace: 'nowrap' }}>
-          <span ref={day} style={{ display: 'inline-block' }}>
-            {fromISODate(todayISO).toLocaleDateString(locale, { weekday: 'long' })}
-          </span>
-        </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, whiteSpace: 'nowrap' }}>
-          <span ref={heading} style={{ display: 'inline-block' }}>{t('mealsTab.header')}</span>
-        </h2>
-      </div>
-      <button
-        type="button"
-        data-testid="meals-rate-dinner"
-        aria-label={rateLabel}
-        onClick={onRateDinner}
-        className="press-scale"
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          flex: 'none',
-          height: BUTTON,
-          borderRadius: 10,
-          border: '1px solid var(--hs-border)',
-          background: 'var(--hs-bg-panel)',
-          color: 'var(--hs-text-body)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
-          fontFamily: 'inherit',
-          fontSize: 13,
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-          ...(roomy ? { padding: '0 12px 0 10px' } : { width: BUTTON, padding: 0 }),
-        }}
-      >
-        <Star size={roomy ? 15 : 18} strokeWidth={0} fill="#f59e0b" aria-hidden="true" style={{ flex: 'none' }} />
-        {/* Kept when it is not shown, so its width can still be measured. */}
-        <span ref={words} style={roomy ? undefined : { position: 'absolute', left: 0, top: 0, visibility: 'hidden' }}>{rateLabel}</span>
-      </button>
-      <button
-        type="button"
-        onClick={onOpenSettings}
-        style={{
-          flex: 'none',
-          width: BUTTON,
-          height: BUTTON,
-          borderRadius: 10,
-          border: '1px solid var(--hs-border)',
-          background: 'var(--hs-bg-panel)',
-          color: 'var(--hs-text-muted)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'inherit',
-        }}
-        aria-label={t('mealsTab.settingsButtonAriaLabel')}
-        title={t('mealsTab.settingsButtonTitle')}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-      </button>
+    <div ref={row}>
+      <TabHeader
+        eyebrow={fromISODate(todayISO).toLocaleDateString(locale, { weekday: 'long' })}
+        eyebrowRef={day}
+        title={<span style={{ whiteSpace: 'nowrap' }}>{t('mealsTab.header')}</span>}
+        titleRef={heading}
+        actions={(
+          <>
+            <button
+              type="button"
+              data-testid="meals-rate-dinner"
+              aria-label={rateLabel}
+              onClick={onRateDinner}
+              className="press-scale"
+              style={{
+                ...HEADER_BUTTON,
+                position: 'relative',
+                overflow: 'hidden',
+                color: 'var(--hs-text-body)',
+                gap: RATE_STAR_GAP,
+                fontSize: 13,
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                ...(roomy ? { padding: `0 ${RATE_PAD_END}px 0 ${RATE_PAD_START}px` } : { width: BUTTON }),
+              }}
+            >
+              <Star size={roomy ? 15 : 18} strokeWidth={0} fill="var(--hs-warning)" aria-hidden="true" style={{ flex: 'none' }} />
+              {/* Kept when it is not shown, so its width can still be measured. */}
+              <span ref={words} style={roomy ? undefined : { position: 'absolute', left: 0, top: 0, visibility: 'hidden' }}>{rateLabel}</span>
+            </button>
+            <GearButton
+              label={t('mealsTab.settingsButtonAriaLabel')}
+              title={t('mealsTab.settingsButtonTitle')}
+              onClick={onOpenSettings}
+            />
+          </>
+        )}
+      />
     </div>
   );
 }

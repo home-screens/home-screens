@@ -123,7 +123,7 @@ export type RecipeLead =
 
 /**
  * The meal the Recipe view shows: the next one with a recipe, the same "next"
- * the Next Meal view walks (`getNextPlannedMeal`), passing over typed meals.
+ * the Next meal view walks (`getNextPlannedMeal`), passing over typed meals.
  * It stays on today while today has a meal still to come, and moves to
  * tomorrow once today is over, the way the Today view does; a recipe further
  * out than that is not shown, so the wall never cooks Thursday's dinner on a

@@ -10,6 +10,10 @@ import { isMainDisplay } from '@/lib/display-filter';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import Button from '@/components/ui/Button';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 interface IdentitySubtabProps {
   display: DisplayNode;
@@ -30,6 +34,7 @@ interface IdentitySubtabProps {
  */
 export default function IdentitySubtab({ display }: IdentitySubtabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const router = useRouter();
   const { updateDisplay, removeDisplay, saveConfig } = useEditorStore();
   const [name, setName] = useState(display.name);
@@ -51,9 +56,12 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
 
   const handleDelete = async () => {
     if (isMain) return;
-    const ok = await useConfirmStore
-      .getState()
-      .confirm(t('settings.perDisplayPage.identity.removeConfirm', { name: display.name }));
+    const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+      verb: 'delete',
+      name: display.name,
+      consequence: t('settings.perDisplayPage.identity.removeConfirmMessage'),
+      confirmLabel: t('settings.perDisplayPage.identity.removeConfirmButton'),
+    }, tCore));
     if (!ok) return;
     setSaving(true);
     try {
@@ -85,9 +93,9 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
               onBlur={handleNameBlur}
               className={`mt-1.5 block w-full ${SETTINGS_INPUT_CLASS}`}
             />
-            <p className="text-[11px] text-hs-text-faint mt-1.5">
+            <FieldHint className="mt-1.5">
               {t('settings.perDisplayPage.identity.displayNameHelp')}
-            </p>
+            </FieldHint>
           </label>
         </div>
         <div className="px-4 py-3.5">
@@ -101,34 +109,30 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
               disabled
               className="mt-1.5 block w-full rounded-md bg-hs-hover border border-hs-border-strong text-sm text-hs-text-muted px-3 py-2 font-mono"
             />
-            <p className="text-[11px] text-hs-text-faint mt-1.5">
+            <FieldHint className="mt-1.5">
               {t('settings.perDisplayPage.identity.displayIdHelpPart1')}
               <code className="text-hs-text-muted">/display/{display.id}</code>
               {t('settings.perDisplayPage.identity.displayIdHelpPart2')}
-            </p>
+            </FieldHint>
           </label>
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg border border-hs-danger/20 bg-hs-danger/[0.04] p-4">
-        <div className="text-sm font-medium text-hs-danger mb-1">
-          {t('settings.perDisplayPage.identity.dangerZoneHeading')}
-        </div>
-        <div className="text-xs text-hs-text-muted mb-3">
-          {isMain
-            ? t('settings.perDisplayPage.identity.dangerZoneMainHelp')
-            : t('settings.perDisplayPage.identity.dangerZoneRemovableHelp')}
-        </div>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={isMain || saving}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-transparent text-hs-danger border border-hs-danger/30 hover:bg-hs-danger/10 hover:border-hs-danger/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-hs-danger/30 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          {t('settings.perDisplayPage.identity.removeButton', { name: display.name })}
-        </button>
-      </div>
+      <Notice
+        tone="danger"
+        className="mt-5"
+        title={t('settings.perDisplayPage.identity.dangerZoneHeading')}
+        action={
+          <Button variant="danger" size="sm" onClick={handleDelete} disabled={isMain || saving} className="inline-flex items-center gap-1.5">
+            <Trash2 className="w-3.5 h-3.5" aria-hidden />
+            {t('settings.perDisplayPage.identity.removeButton', { name: display.name })}
+          </Button>
+        }
+      >
+        {isMain
+          ? t('settings.perDisplayPage.identity.dangerZoneMainHelp')
+          : t('settings.perDisplayPage.identity.dangerZoneRemovableHelp')}
+      </Notice>
     </>
   );
 }

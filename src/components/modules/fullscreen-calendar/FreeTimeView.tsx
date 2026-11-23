@@ -71,7 +71,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
     // the household is one track.
     const shared = everyoneRow ? eventsForRow(windowEvents, everyoneRow, allRows) : [];
     if (personRows.length === 0) {
-      personRows = [{ id: '__household__', name: householdLabel, color: EVERYONE_COLOR, initials: memberInitials(householdLabel, { max: 2 }), sourceIds: null }];
+      personRows = [{ id: '__household__', name: householdLabel, color: EVERYONE_COLOR, initials: memberInitials(householdLabel), sourceIds: null }];
     }
     const forDay = (day: Date, fromHour: number): PersonDay[] => personRows.map((row) => {
       const own = row.sourceIds ? eventsForRow(windowEvents, row, allRows) : windowEvents;

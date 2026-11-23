@@ -28,9 +28,11 @@ async function animatedGif(): Promise<Buffer> {
 async function openMealForm(page: Page, name: string) {
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Meals', exact: true }).click();
-  await page.getByRole('button', { name: 'Library' }).click();
+  await page.getByRole('tab', { name: 'Library' }).click();
   await page.getByRole('button', { name: new RegExp(name) }).first().click();
-  await expect(page.getByText('Edit Meal')).toBeVisible();
+  await expect(page.getByText('Edit meal')).toBeVisible();
+  // The icon chooser is a closed row until tapped, as on every phone form.
+  await page.getByRole('button', { name: /^Icon: / }).click();
 }
 
 test.beforeEach(async ({ request }) => {
@@ -55,8 +57,9 @@ test('a picture added from the meal form shows on the wall', async ({ page, requ
   await review.getByLabel('Name').fill('Taco night');
   await review.getByRole('button', { name: 'Use this icon' }).click();
   await expect(review).toHaveCount(0);
-  await expect(page.getByTestId('custom-icon-section').getByRole('button', { name: 'Taco night', pressed: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Save Changes' }).click();
+  // Keeping the picture picks it, and the chooser closes on what it picked.
+  await expect(page.getByRole('button', { name: 'Icon: Taco night' })).toBeVisible();
+  await page.getByTestId('form-overlay').getByRole('button', { name: 'Save', exact: true }).click();
 
   const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: Array<{ id: string; name: string }> };
   expect(icons.map((icon) => icon.name)).toEqual(['Taco night']);
@@ -110,8 +113,8 @@ test('a moving picture keeps moving, and the manage page removes it', async ({ p
   await page.getByRole('button', { name: /Your icons/ }).click();
   const manage = page.getByRole('dialog', { name: 'Your icons' });
   await manage.getByRole('button', { name: 'Spinner' }).click();
-  await page.getByRole('button', { name: 'Remove icon' }).click();
-  await page.getByTestId('confirm-sheet').getByRole('button', { name: 'Remove' }).click();
+  await page.getByRole('button', { name: 'Delete icon' }).click();
+  await page.getByTestId('confirm-sheet').getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(manage.getByRole('button', { name: 'Spinner' })).toHaveCount(0);
   const { icons } = await (await request.get('/api/custom-icons')).json() as { icons: unknown[] };
   expect(icons).toEqual([]);

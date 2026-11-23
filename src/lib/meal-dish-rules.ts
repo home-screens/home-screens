@@ -1,6 +1,7 @@
 import type { MealCourseKind, MealIngredient, MealSlotType, SavedMeal } from '@/types/config';
 import { parseMealieMealId } from './mealie-map';
-import { DEFAULT_MEAL_EMOJI, formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constants';
+import type { TranslateFn } from '@/i18n/types';
+import { DEFAULT_MEAL_EMOJI, MEAL_TAGS, normalizeTag, type LibraryFilter } from './meal-constants';
 import { ingredientsToSave } from './meal-ingredients';
 import type { MealPickTarget } from './meal-courses';
 
@@ -38,13 +39,20 @@ export function splitMinutes(total: number): { hours: number; minutes: number } 
   return { hours: Math.floor(whole / 60), minutes: whole % 60 };
 }
 
+const FIXED_TAGS: ReadonlySet<string> = new Set(MEAL_TAGS);
+
 /**
- * A tag as a dish's meta line prints it. The family's own tags are stored
- * lowercase ("kid-friendly") and are dressed up; Mealie's categories and tags
- * are names the family typed and are shown as typed.
+ * A tag as a dish's meta line prints it. One of the fixed tags the meal forms
+ * offer ("kid-friendly") reads in the family's language from `core`
+ * `meal.tags.*`. Any other tag, and every Mealie category and tag, is a name
+ * someone typed and is shown as typed.
+ *
+ * `tCore` reads the `core` dictionary.
  */
-export function mealTagLabel(meal: Pick<SavedMeal, 'id'>, tag: string): string {
-  return isMealieMeal(meal) ? tag : formatTagLabel(tag);
+export function mealTagLabel(meal: Pick<SavedMeal, 'id'>, tag: string, tCore: TranslateFn): string {
+  if (isMealieMeal(meal)) return tag;
+  const fixed = normalizeTag(tag);
+  return FIXED_TAGS.has(fixed) ? tCore(`meal.tags.${fixed}`) : tag;
 }
 
 /**

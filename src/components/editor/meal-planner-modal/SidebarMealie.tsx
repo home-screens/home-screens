@@ -18,7 +18,8 @@ import { useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 import { mealieRequestFailedWords } from './mealie-problem-words';
-import { mealSaveFailedKey } from './save-failed-words';
+import { mealSaveFailedText } from './save-failed-words';
+import FieldHint from '@/components/ui/FieldHint';
 
 /**
  * The sidebar's three tabs while the plan lives in Mealie. Recipes are
@@ -66,7 +67,7 @@ export function MealieLibrary({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 py-3 border-b border-hs-border-strong space-y-2">
-        <p className="text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.mealie.libraryNote')}</p>
+        <FieldHint>{t('mealPlannerModal.mealie.libraryNote')}</FieldHint>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" aria-hidden />
           <input
@@ -100,7 +101,7 @@ export function MealieLibrary({
                 onClick={() => choose(f)}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
                   on
-                    ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
+                    ? 'border-hs-meal-ring text-hs-meal bg-hs-meal-soft'
                     : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
                 }`}
               >
@@ -145,7 +146,7 @@ export function MealieLibrary({
               type="button"
               onClick={() => onSelectMeal(meal)}
               className={`flex items-center gap-3 w-full px-2 py-[7px] rounded-md text-left transition ${
-                selected ? 'bg-amber-500/8 ring-1 ring-amber-500/30' : 'hover:bg-hs-card'
+                selected ? 'bg-hs-meal-soft ring-1 ring-hs-meal-ring' : 'hover:bg-hs-card'
               }`}
             >
               <DishPicture meal={meal} size={36} />
@@ -184,6 +185,7 @@ function MealieRowMeta({ meal }: { meal: SavedMeal }) {
 
 export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const dishTime = useDishTime();
   const mealieLink = useMealieLink();
   const recipeId = parseMealieMealId(meal?.id);
@@ -193,10 +195,10 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
   const heartMeal = meal && meal.isFavorite === undefined && loaded?.detail
     ? { id: meal.id, isFavorite: loaded.detail.meal.isFavorite }
     : meal;
-  const [heartFailed, setHeartFailed] = useState<{ id: string; key: string } | null>(null);
+  const [heartFailed, setHeartFailed] = useState<{ id: string; text: string } | null>(null);
   const onHeartFailed = useCallback((err: unknown) => {
-    if (meal) setHeartFailed({ id: meal.id, key: mealSaveFailedKey({ problem: err instanceof MealClientError ? err.problem : undefined }, true) });
-  }, [meal]);
+    if (meal) setHeartFailed({ id: meal.id, text: mealSaveFailedText({ problem: err instanceof MealClientError ? err.problem : undefined }, true, t, tCore) });
+  }, [meal, t, tCore]);
   const favorite = useMealFavorite(heartMeal, editorFetch, onHeartFailed);
 
   if (!meal) {
@@ -257,12 +259,12 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
           )}
         </div>
       )}
-      {heartFailed?.id === meal.id && <p role="alert" className="mt-2 text-xs text-hs-danger">{t(heartFailed.key)}</p>}
+      {heartFailed?.id === meal.id && <p role="alert" className="mt-2 text-xs text-hs-danger">{heartFailed.text}</p>}
       <MealieIngredients recipeId={recipeId} current={loaded} />
-      <p className="mt-4 flex items-start gap-1.5 text-[11.5px] leading-4 text-hs-text-faint">
+      <FieldHint className="mt-4 flex items-start gap-1.5">
         <Pencil className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
         <span>{t('mealPlannerModal.mealie.readOnlyNote')}</span>
-      </p>
+      </FieldHint>
     </div>
   );
 }

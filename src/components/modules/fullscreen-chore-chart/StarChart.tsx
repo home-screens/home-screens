@@ -34,7 +34,7 @@ export default function StarChart({ k, weekData, members }: StarChartProps) {
   return (
     <div data-testid="fcc-week-grid" style={{ padding: `${20 * k}px 0 ${10 * k}px` }}>
       <div style={{ fontSize: labelSize, fontWeight: 700, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 * k }}>
-        {t('fullscreen-chore-chart.thisWeek')}
+        {t('lookAhead.thisWeek')}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: `${nameWidth}px repeat(7, 1fr)`, rowGap: 8 * k, alignItems: 'center' }}>
         <div />

@@ -85,7 +85,7 @@ describe('Google card on the API keys page', () => {
   ])('is the card it always was when %s', (_, apps) => {
     const view = card(apps, { google_client_id: true });
     expect(view.getByText('Google needs you to create a login for your own home first. Make an OAuth credential of type “TVs and Limited Input devices” in the Google Cloud Console, then paste both halves here.')).toBeTruthy();
-    expect(view.getByText('Calendar Client ID')).toBeTruthy();
+    expect(view.getByText('Calendar client ID')).toBeTruthy();
     expect(view.getByText('1 of 3')).toBeTruthy();
     expect(view.queryByText('Ready')).toBeNull();
     expect(view.queryByText('Use your own Google app')).toBeNull();
@@ -96,14 +96,14 @@ describe('Google card on the API keys page', () => {
     const view = card(HOSTED);
     expect(view.getByText('Ready')).toBeTruthy();
     expect(view.getByText('Google Calendar and Google Photos are ready to use')).toBeTruthy();
-    expect(view.getByText('Maps API Key')).toBeTruthy();
+    expect(view.getByText('Maps API key')).toBeTruthy();
     expect(view.getByText('Most homes don\'t need this.')).toBeTruthy();
-    expect(view.queryByText('Calendar Client ID')).toBeNull();
+    expect(view.queryByText('Calendar client ID')).toBeNull();
 
     fireEvent.click(view.getByTestId('google-own-app-toggle'));
     expect(view.getByText(/anyone already signed in with Google will need to sign in again/)).toBeTruthy();
-    expect(view.getByText('Calendar Client ID')).toBeTruthy();
-    expect(view.getByText('Web sign-in Client ID')).toBeTruthy();
+    expect(view.getByText('Calendar client ID')).toBeTruthy();
+    expect(view.getByText('Web sign-in client ID')).toBeTruthy();
   });
 
   it('opens on the household\'s own app, and says Photos alone is ready when only Photos uses Home Screens\' app', () => {
@@ -115,7 +115,7 @@ describe('Google card on the API keys page', () => {
     expect(view.getByText('In use. Your own Google app signs you in.')).toBeTruthy();
     expect(view.getByText('Google Photos is ready to use')).toBeTruthy();
     expect(view.queryByText('Connect Google Calendar →')).toBeNull();
-    expect(view.getByText('Calendar Client ID')).toBeTruthy();
+    expect(view.getByText('Calendar client ID')).toBeTruthy();
     expect(view.getByText(/Switching apps signs Google out/)).toBeTruthy();
     expect(view.queryByText(/anyone already signed in with Google will need to sign in again/)).toBeNull();
     expect(view.getByRole('switch', { name: 'Use your own Google app' }).getAttribute('aria-checked')).toBe('true');
@@ -145,7 +145,7 @@ describe('Google card on the API keys page', () => {
     expect(view.getByText('Google Calendar and Google Photos are ready to use')).toBeTruthy();
     expect(view.getByText('Saved, not in use. Home Screens\' app signs you in.')).toBeTruthy();
     expect(view.getByRole('switch').getAttribute('aria-checked')).toBe('false');
-    expect(view.getByText('Calendar Client ID')).toBeTruthy();
+    expect(view.getByText('Calendar client ID')).toBeTruthy();
     expect(view.getByTestId('google-own-app-fields').className).toContain('opacity-60');
   });
 

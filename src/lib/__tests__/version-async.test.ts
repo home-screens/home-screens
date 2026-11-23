@@ -284,7 +284,7 @@ describe('getChannelReleases', () => {
   });
 
   it('never serves stale on a forced check, so the git fallback gets its turn', async () => {
-    // The user clicked Check for Updates while GitHub is rate limiting. A
+    // The user clicked Check for updates while GitHub is rate limiting. A
     // stale "nothing new" would hide a tag git can still see.
     mockGitHub({ page: { status: 200, body: page }, latest: { status: 200, body: makeRelease('v1.12.2') } });
     const { getChannelReleases } = await loadModule();
@@ -296,7 +296,7 @@ describe('getChannelReleases', () => {
   });
 
   it('applies the stale policy per caller when a forced check joins a background refresh', async () => {
-    // Background poll and Check for Updates overlap while GitHub is failing.
+    // Background poll and Check for updates overlap while GitHub is failing.
     // They share the one request, but only the background caller may fall
     // back to the hour-old page; the forced one has to see the failure.
     mockGitHub({ page: { status: 200, body: page }, latest: { status: 200, body: makeRelease('v1.12.2') } });

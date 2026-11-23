@@ -15,6 +15,7 @@ import {
   renameLibraryFolder,
   uploadLibraryFiles,
 } from '@/lib/library-client';
+import { buildLibraryDeleteConfirm } from '@/lib/delete-confirmations';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -28,6 +29,11 @@ import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
 import MediaViewer, { UsedByEntry, type UsedByLine } from './MediaViewer';
 import { GooglePhotosImportSheet, ICloudImportSheet } from './MediaImportPanels';
 import { logger } from '@/lib/logger';
+import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import { LoadingLine } from '@/components/ui/Spinner';
+import { uploadFailureText } from '@/lib/library-client';
 
 const log = logger('media-library');
 
@@ -91,7 +97,6 @@ const CHECKER_STYLE = {
  *  empty string is the menu's resting state. */
 const TOP_LEVEL_OPTION = '__top__';
 
-const INPUT_CLASS = 'rounded-lg border border-hs-border-strong bg-hs-input px-2.5 py-1.5 text-xs text-hs-text-body';
 
 interface Outcome {
   ok: boolean;
@@ -280,9 +285,7 @@ export default function MediaLibraryPage() {
       const { uploaded, unplayable, error } = await uploadLibraryFiles(files, uploadDir);
       setWontPlay(unplayable);
       if (error) {
-        setUploadError(error.message ?? (error.status
-          ? t('settings.mediaPage.uploadFailedWithStatus', { status: error.status })
-          : t('settings.mediaPage.uploadFailed')));
+        setUploadError(uploadFailureText(error, tCore, tCore('errors.uploadFailedFor', { name: error.file })));
       }
       if (uploaded.length === 0) return;
       // Kept open while it says why a file stayed behind.
@@ -296,7 +299,7 @@ export default function MediaLibraryPage() {
       await finish(null);
     } catch (err) {
       if (!isSessionExpired(err)) {
-        setUploadError(err instanceof Error ? err.message : t('settings.mediaPage.uploadFailed'));
+        setUploadError(tCore('errors.uploadFailed'));
       }
     } finally {
       setBusy(false);
@@ -318,7 +321,7 @@ export default function MediaLibraryPage() {
         return;
       }
       if (uploaded.length === 0) {
-        setOutcome({ ok: false, text: error?.message ?? t('settings.mediaPage.replaceFailed', { file: name }) });
+        setOutcome({ ok: false, text: error ? uploadFailureText(error, tCore, t('settings.mediaPage.replaceFailed', { file: name })) : t('settings.mediaPage.replaceFailed', { file: name }) });
         return;
       }
       await finish({ ok: true, text: t('settings.mediaPage.replaced', { file: name }) });
@@ -345,12 +348,7 @@ export default function MediaLibraryPage() {
    *  and the per-tile buttons land here. */
   const deleteFiles = async (paths: string[]) => {
     if (paths.length === 0 || busy) return;
-    const confirmed = await useConfirmStore.getState().confirm({
-      title: t('settings.mediaPage.deleteTitle', { count: paths.length }),
-      message: t('settings.mediaPage.deleteMessage', { count: paths.length }),
-      confirmLabel: t('settings.mediaPage.deleteConfirm'),
-      variant: 'danger',
-    });
+    const confirmed = await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm(paths.length, t));
     if (!confirmed) return;
     setBusy(true);
     clearOutcome();
@@ -384,6 +382,7 @@ export default function MediaLibraryPage() {
       title: t('settings.mediaPage.moveTitle', { count: paths.length }),
       message: t('settings.mediaPage.moveMessage', { count: paths.length }),
       confirmLabel: t('settings.mediaPage.moveConfirm'),
+      variant: 'primary',
     });
     if (!confirmed) return;
     setBusy(true);
@@ -560,7 +559,7 @@ export default function MediaLibraryPage() {
           disabled={selected.size === 0 || busy}
           aria-label={t('settings.mediaPage.moveTo')}
           data-testid="media-move-select"
-          className={clsx(INPUT_CLASS, 'disabled:opacity-50')}
+          className={clsx(SETTINGS_INPUT_SM_CLASS, 'disabled:opacity-50')}
         >
           <option value="">{t('settings.mediaPage.moveTo')}</option>
           <option value={TOP_LEVEL_OPTION}>{t('settings.mediaPage.topLevel')}</option>
@@ -601,12 +600,8 @@ export default function MediaLibraryPage() {
       )}
 
       {missing.length > 0 && (
-        <div
-          className="mb-4 rounded-[10px] border border-hs-warning/40 bg-hs-warning/10 px-3 py-2.5 text-xs"
-          data-testid="media-missing"
-        >
-          <div className="mb-1 font-semibold text-hs-warning">{t('settings.mediaPage.missingHeading')}</div>
-          <div className="flex flex-col gap-0.5 text-hs-text-muted">
+        <Notice tone="warning" className="mb-4" testId="media-missing" title={t('settings.mediaPage.missingHeading')}>
+          <div className="mt-1 flex flex-col gap-0.5 text-hs-text-muted">
             {missing.flatMap((entry) => entry.uses.map((use, i) => (
               <UsedByEntry
                 key={`${entry.kind}:${entry.path}:${i}`}
@@ -623,7 +618,7 @@ export default function MediaLibraryPage() {
               />
             )))}
           </div>
-        </div>
+        </Notice>
       )}
 
       {importPanel === 'icloud' && (
@@ -667,7 +662,7 @@ export default function MediaLibraryPage() {
               value={uploadDir}
               onChange={(e) => setUploadDir(e.target.value)}
               data-upload-directory=""
-              className={INPUT_CLASS}
+              className={SETTINGS_INPUT_SM_CLASS}
             >
               <option value="">{t('settings.mediaPage.topLevel')}</option>
               {directories.map((d) => (
@@ -688,7 +683,7 @@ export default function MediaLibraryPage() {
             <p className="text-xs text-hs-danger" data-testid="media-upload-error">{uploadError}</p>
           )}
           {wontPlay.length > 0 && (
-            <ul className="flex flex-col gap-1 text-xs text-hs-warning" data-testid="media-upload-wont-play">
+            <ul className="flex flex-col gap-1 text-xs text-hs-warning-ink" data-testid="media-upload-wont-play">
               {wontPlay.map((name) => (
                 <li key={name}>{t('settings.mediaPage.wontPlay', { name })}</li>
               ))}
@@ -806,7 +801,7 @@ export default function MediaLibraryPage() {
             aria-label={t('settings.mediaPage.folderName')}
             autoFocus
             data-testid="media-folder-name"
-            className={INPUT_CLASS}
+            className={SETTINGS_INPUT_SM_CLASS}
           />
           <Button type="submit" variant="primary" size="sm" disabled={busy || !folderForm.name.trim()} data-testid="media-folder-submit">
             {t(folderForm.mode === 'create' ? 'settings.mediaPage.create' : 'settings.mediaPage.save')}
@@ -825,7 +820,7 @@ export default function MediaLibraryPage() {
           placeholder={t('settings.mediaPage.search')}
           aria-label={t('settings.mediaPage.search')}
           data-testid="media-search"
-          className={clsx(INPUT_CLASS, 'w-[200px]')}
+          className={clsx(SETTINGS_INPUT_SM_CLASS, 'w-[200px]')}
         />
         <label className="flex items-center gap-1.5 text-xs text-hs-text-muted">
           {t('settings.mediaPage.sort')}
@@ -833,7 +828,7 @@ export default function MediaLibraryPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value as MediaSortKey)}
             data-testid="media-sort"
-            className={INPUT_CLASS}
+            className={SETTINGS_INPUT_SM_CLASS}
           >
             <option value="name">{t('settings.mediaPage.sortName')}</option>
             <option value="newest">{t('settings.mediaPage.sortNewest')}</option>
@@ -862,14 +857,14 @@ export default function MediaLibraryPage() {
       </div>
 
       {storageLine && (
-        <p className="mb-4 text-[11px] text-hs-text-faint" data-testid="media-storage">{storageLine}</p>
+        <FieldHint className="mb-4" data-testid="media-storage">{storageLine}</FieldHint>
       )}
 
       {(refused.length > 0 || deleteFailed > 0 || outcome) && (
         <div className="mb-3 flex flex-col gap-1" data-testid="media-refused">
           {refused.map((kept) => (
             // Keeping a slideshow's last picture is the rule working, not a failure.
-            <p key={kept.path} className={clsx('text-xs', kept.slideshow ? 'text-hs-warning' : 'text-hs-danger')}>
+            <p key={kept.path} className={clsx('text-xs', kept.slideshow ? 'text-hs-warning-ink' : 'text-hs-danger')}>
               {kept.slideshow
                 ? t('settings.mediaPage.keptLast', { file: kept.file, name: kept.slideshow })
                 : t('settings.mediaPage.refused', { file: kept.file })}
@@ -983,7 +978,7 @@ export default function MediaLibraryPage() {
                 title={isUsed ? usedByTitle : undefined}
                 onClick={(e) => toggle(item.path, e)}
                 onChange={() => { /* handled on click so the shift key is available */ }}
-                className="absolute left-[7px] top-[7px] h-4 w-4 cursor-pointer accent-[var(--hs-accent)]"
+                className={`${CHECKBOX_CLASS} absolute left-[7px] top-[7px]`}
               />
               {!isLocked && (
                 <button
@@ -1007,7 +1002,7 @@ export default function MediaLibraryPage() {
                     <span
                       data-in-use=""
                       title={usedByTitle}
-                      className={clsx(BADGE_CLASS, 'border-amber-400/55 text-amber-400')}
+                      className={clsx(BADGE_CLASS, 'border-hs-warning/55 text-hs-warning-ink')}
                     >
                       {t('settings.mediaPage.inUse')}
                     </span>
@@ -1015,7 +1010,7 @@ export default function MediaLibraryPage() {
                     <span
                       data-slideshow=""
                       title={usedByTitle}
-                      className={clsx(BADGE_CLASS, 'border-green-400/55 text-green-400')}
+                      className={clsx(BADGE_CLASS, 'border-hs-success/55 text-hs-success')}
                     >
                       <Monitor className="h-[11px] w-[11px]" aria-hidden="true" />
                       {t('settings.mediaPage.inSlideshow')}
@@ -1061,9 +1056,7 @@ export default function MediaLibraryPage() {
       </div>
 
       {loading && (
-        <p className="text-sm text-hs-text-faint" data-testid="media-loading">
-          {t('settings.mediaPage.loading')}
-        </p>
+        <LoadingLine label={t('settings.mediaPage.loading')} testId="media-loading" />
       )}
 
       {!loading && !loadFailed && visible.length === 0 && (

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import { isFamilySnapshot, useFamilyData, type FamilySnapshot } from '@/hooks/useFamilyData';
-import { Settings } from 'lucide-react';
+import { Check, Hand, ListChecks, Minus, RotateCcw, X } from 'lucide-react';
 import type {
   ChoreChartConfig,
   ChoreDefinition,
@@ -35,7 +35,13 @@ import { useChoreMarks } from '../hooks/useChoreMarks';
 import { useRewardsPoll } from '../hooks/useRewardsPoll';
 import { useHouseholdDayRollover } from '../hooks/useHouseholdDayRollover';
 import AtHomePill from './AtHomePill';
-import { REMOTE_ACCENT } from './remote-styles';
+import { REMOTE_ACCENT_INK } from './remote-styles';
+import TabHeader from './TabHeader';
+import SegmentedTabs from './SegmentedTabs';
+import { LoadFailed } from './RetryButton';
+import EmptyState from './EmptyState';
+import PrimaryButton from './PrimaryButton';
+import IconButton from './IconButton';
 
 const log = logger('chores');
 
@@ -118,10 +124,12 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   }, {
     initial: choreData,
     flushOnUnmount: true,
-    words: { refused: t('choresTab.saveFailed'), unreachable: tCore('refusals.hubUnreachable') },
+    words: { refused: tCore('refusals.saveFailed'), unreachable: tCore('refusals.hubUnreachable') },
   });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
-  const accentColor = config.accentColor || REMOTE_ACCENT;
+  // The chart's own accent when the family picked one. Otherwise the phone's
+  // amber as ink, since it colours words (the streak, the part of the day).
+  const accentColor = config.accentColor || REMOTE_ACCENT_INK;
 
   // The hub's day as the page was drawn is the first paint, so it matches on any clock.
   const householdNow = useHouseholdNow();
@@ -186,7 +194,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       case 'limit': return isAdmin ? limitWords(nameOf(selectedMemberId)) : null;
       case 'not-yours': return t('choresTab.bonus.refused.notYours', { name: nameOf(selectedMemberId) });
       case 'not-today': return t('choresTab.bonus.refused.notToday');
-      default: return t('choresTab.saveFailed');
+      default: return tCore('refusals.saveFailed');
     }
   };
 
@@ -223,7 +231,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     onOnline: refreshFamily,
     onWarning: setLastWarning,
     words: {
-      failed: t('choresTab.saveFailed'),
+      failed: tCore('refusals.saveFailed'),
       refusal: refusalWords,
       untickWhy: ({ choreId, memberId }) => tCore('grownUp.why.untick', {
         chore: chores.find((c) => c.id === choreId)?.name ?? '',
@@ -410,19 +418,19 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   const describeAction = (action: ChoreDayMenuAction, chore: ChoreDefinition, person: FamilyMember): ChoreAction => {
     switch (action.id) {
       case 'toggle':
-        return { id: action.id, mark: '✓', label: t(action.done ? 'choresTab.dayMenu.notDone' : 'choresTab.dayMenu.didIt', { name: person.name }), onSelect: () => void toggle(chore.id) };
+        return { id: action.id, icon: Check, label: t(action.done ? 'choresTab.dayMenu.notDone' : 'choresTab.dayMenu.didIt', { name: person.name }), onSelect: () => void toggle(chore.id) };
       case 'let-go':
-        return { id: action.id, mark: '✋', label: t('choresTab.dayMenu.letGoOf', { name: nameOf(action.memberId) }), onSelect: () => void letGoOfChore(chore.id, action.memberId) };
+        return { id: action.id, icon: Hand, label: t('choresTab.dayMenu.letGoOf', { name: nameOf(action.memberId) }), onSelect: () => void letGoOfChore(chore.id, action.memberId) };
       case 'put-back':
-        return { id: action.id, mark: '↺', label: t('choresTab.dayMenu.putBack'), hint: t('choresTab.dayMenu.putBackHint'), onSelect: () => setPutBackChoreId(chore.id) };
+        return { id: action.id, icon: RotateCcw, label: t('choresTab.dayMenu.putBack'), hint: t('choresTab.dayMenu.putBackHint'), onSelect: () => setPutBackChoreId(chore.id) };
       case 'skip':
-        return { id: action.id, mark: '–', label: t('choresTab.dayMenu.notTodayFor', { name: person.name }), hint: t('choresTab.dayMenu.notTodayHint', { name: person.name }), onSelect: () => void markNotToday(chore.id, [person.id], true) };
+        return { id: action.id, icon: Minus, label: t('choresTab.dayMenu.notTodayFor', { name: person.name }), hint: t('choresTab.dayMenu.notTodayHint', { name: person.name }), onSelect: () => void markNotToday(chore.id, [person.id], true) };
       case 'undo-skip':
-        return { id: action.id, mark: '↺', label: t('choresTab.dayMenu.undoNotToday', { name: person.name }), onSelect: () => void markNotToday(chore.id, [person.id], false) };
+        return { id: action.id, icon: RotateCcw, label: t('choresTab.dayMenu.undoNotToday', { name: person.name }), onSelect: () => void markNotToday(chore.id, [person.id], false) };
       case 'skip-all':
-        return { id: action.id, mark: '–', label: t('choresTab.dayMenu.notTodayEveryone'), hint: t('choresTab.dayMenu.notTodayEveryoneHint', { n: action.memberIds.length }), onSelect: () => void markNotToday(chore.id, action.memberIds, true) };
+        return { id: action.id, icon: Minus, label: t('choresTab.dayMenu.notTodayEveryone'), hint: t('choresTab.dayMenu.notTodayEveryoneHint', { n: action.memberIds.length }), onSelect: () => void markNotToday(chore.id, action.memberIds, true) };
       case 'undo-skip-all':
-        return { id: action.id, mark: '↺', label: t('choresTab.dayMenu.onTodayEveryone'), onSelect: () => void markNotToday(chore.id, action.memberIds, false) };
+        return { id: action.id, icon: RotateCcw, label: t('choresTab.dayMenu.onTodayEveryone'), onSelect: () => void markNotToday(chore.id, action.memberIds, false) };
     }
   };
   const menuChore = menuChoreId ? chores.find((c) => c.id === menuChoreId) : undefined;
@@ -459,57 +467,33 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           colour halfway down the rail, so a kid could tick someone else's
           chores without ever seeing a name. The switch hint the Rewards tab
           already carries sits here too, on the tab people actually land on. */}
-      <div style={{ padding: '12px 0 4px' }}>
-        <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{dayName}</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>
-          {subView === 'today' && selectedMember
-            ? t('choresTab.headerFor', { name: selectedMember.name })
-            : t('choresTab.header')}
-        </h2>
-        {subView === 'today' && selectedMember && members.length > 1 && (
-          <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '4px 0 0', lineHeight: 1.4 }}>
-            {t('choresTab.switchHint', { name: selectedMember.name })}
-          </p>
-        )}
-      </div>
+      <TabHeader
+        eyebrow={dayName}
+        title={subView === 'today' && selectedMember
+          ? t('choresTab.headerFor', { name: selectedMember.name })
+          : t('choresTab.header')}
+        style={subView === 'today' && selectedMember && members.length > 1 ? { paddingBottom: 0 } : undefined}
+      />
+      {subView === 'today' && selectedMember && members.length > 1 && (
+        <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '4px 0 0', lineHeight: 1.4 }}>
+          {t('choresTab.switchHint', { name: selectedMember.name })}
+        </p>
+      )}
       {/* Grown-ups only: the kids' page runs on the home tablet or a kid's
           phone at home, where the phone's clock is home's. */}
       {isAdmin && <AtHomePill style={{ marginTop: 8 }} />}
 
       {/* Sub-nav: Today / Manage / Rewards */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 2,
-          padding: 3,
-          background: 'var(--hs-bg-card)',
-          borderRadius: 10,
-          marginTop: 12,
-          marginBottom: 16,
-        }}
-      >
-        {(isAdmin ? ['today', 'manage', 'rewards'] as const : ['today', 'rewards'] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setSubView(v)}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              minHeight: 44,
-              fontSize: 13,
-              fontWeight: 600,
-              borderRadius: 8,
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              background: subView === v ? 'var(--hs-bg-hover)' : 'transparent',
-              color: subView === v ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
-            }}
-          >
-            {t(`choresTab.subNav.${v}`)}
-          </button>
-        ))}
-      </div>
+      <SegmentedTabs
+        ariaLabel={t('choresTab.header')}
+        value={subView}
+        onChange={setSubView}
+        style={{ marginTop: 12, marginBottom: 16 }}
+        tabs={(isAdmin ? ['today', 'manage', 'rewards'] as const : ['today', 'rewards'] as const).map((v) => ({
+          id: v,
+          label: t(`choresTab.subNav.${v}`),
+        }))}
+      />
 
       {/* Server-side warning banner: a save that failed, or a balance that went
           negative after an un-complete. Rendered above the sub-view switch because the
@@ -533,23 +517,14 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           }}
         >
           <span style={{ flex: 1 }}>{lastWarning}</span>
-          <button
-            type="button"
+          {/* A full-size target; the negative margin keeps the banner its height. */}
+          <IconButton
+            label={t('choresTab.warningDismissAriaLabel')}
             onClick={() => setLastWarning(null)}
-            aria-label={t('choresTab.warningDismissAriaLabel')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--hs-danger)',
-              cursor: 'pointer',
-              fontSize: 16,
-              lineHeight: 1,
-              padding: '0 4px',
-              fontWeight: 700,
-            }}
+            style={{ margin: '-12px -14px -12px 0', color: 'var(--hs-danger)' }}
           >
-            ×
-          </button>
+            <X size={16} strokeWidth={2.5} aria-hidden="true" />
+          </IconButton>
         </div>
       )}
 
@@ -573,7 +548,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           today={realToday}
           choreSettings={choreSettings}
           onFamilyChanged={() => {
-            void loadChoreSnapshot(editorFetch).then(adoptChores).catch(() => setLastWarning(t('choresTab.saveFailed')));
+            void loadChoreSnapshot(editorFetch).then(adoptChores).catch(() => setLastWarning(tCore('refusals.saveFailed')));
             void refreshMarks();
             void refreshRewards();
           }}
@@ -584,55 +559,19 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
         /* The family could not be read (a Wi-Fi blip as the tab opened). Said
            as that: "no chores set up yet" would send a grown-up off to set up
            chores that are all still there. */
-        <div style={{ textAlign: 'center', padding: '48px 16px' }} data-testid="chores-load-error">
-          <p role="alert" style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 16 }}>{t('choresTab.loadError')}</p>
-          <button
-            onClick={refreshFamily}
-            className="press-btn"
-            style={{
-              padding: '10px 24px',
-              minHeight: 44,
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              background: 'var(--hs-hover)',
-              color: 'var(--hs-text-primary)',
-              fontSize: 14,
-              fontWeight: 600,
-            }}
-          >
-            {t('choresTab.retry')}
-          </button>
-        </div>
+        <LoadFailed testId="chores-load-error" message={t('choresTab.loadError')} onRetry={refreshFamily} />
       ) : members.length === 0 || chores.length === 0 ? (
-        /* Empty state */
-        <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <Settings size={40} color="var(--hs-border-strong)" style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {t(isAdmin ? 'choresTab.empty.title' : 'choresTab.empty.kidTitle')}
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            {t(isAdmin ? 'choresTab.empty.description' : 'choresTab.empty.kidDescription')}
-          </p>
-          {isAdmin && (
-          <button
-            onClick={() => setSubView('manage')}
-            style={{
-              padding: '10px 24px',
-              minHeight: 44,
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              background: accentColor,
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 600,
-            }}
-          >
-            {t('choresTab.empty.setUpButton')}
-          </button>
+        <EmptyState
+          icon={ListChecks}
+          title={t(isAdmin ? 'choresTab.empty.title' : 'choresTab.empty.kidTitle')}
+          body={t(isAdmin ? 'choresTab.empty.description' : 'choresTab.empty.kidDescription')}
+          style={{ paddingTop: 48 }}
+          action={isAdmin && (
+            <PrimaryButton compact onClick={() => setSubView('manage')}>
+              {t('choresTab.empty.setUpButton')}
+            </PrimaryButton>
           )}
-        </div>
+        />
       ) : (
         <ChoresTodayView
           isAdmin={isAdmin}
@@ -692,7 +631,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           title={t('choresTab.putBackConfirm.title')}
           description={t('choresTab.putBackConfirm.description', { chore: chores.find((c) => c.id === putBackChoreId)?.name ?? '' })}
           confirmLabel={t('choresTab.dayMenu.putBack')}
-          confirmColor="var(--hs-accent)"
+          tone="primary"
           settleMs={500}
           guardTaps
           onConfirm={() => { const id = putBackChoreId; setPutBackChoreId(null); void putBack(id); }}

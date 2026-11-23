@@ -2,7 +2,7 @@ import { isAllDayEvent } from './calendar-utils';
 
 /**
  * A family with Google's holiday calendar (or any other calendar that lists
- * holidays) who also turns on Public Holidays gets every public holiday
+ * holidays) who also turns on Public holidays gets every public holiday
  * twice: "Veterans Day" from the calendar and "Veterans Day" from the
  * feature. One of the two is enough.
  */

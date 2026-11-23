@@ -10,6 +10,9 @@ import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import { formatDateInTZ, formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { wallClockMinutes, wallDateKey, type AutoUpdateInfo } from '@/lib/auto-update-policy';
 import { lastRunStatus, nextDayWord, pastDayWord } from '@/lib/auto-update-status';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface Props {
   info: AutoUpdateInfo;
@@ -38,6 +41,7 @@ function formatWallTime(time: string, fmt: ClockFormat): string {
  */
 export default function AutoUpdateSection({ info, currentVersion, enabled, time, saveError, onToggle, onSetTime }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const timezone = useEditorHouseholdTimezone();
   const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
@@ -68,12 +72,12 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
 
   return (
     <section data-field-id="system.autoUpdate">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+      <SettingsSectionHeading>
         {t('settings.systemPage.autoUpdate.heading')}
-      </h3>
-      <p className="text-xs text-hs-text-faint mb-3">
+      </SettingsSectionHeading>
+      <FieldHint className="mb-3">
         {t('settings.systemPage.autoUpdate.description')}
-      </p>
+      </FieldHint>
       <Toggle
         label={t('settings.systemPage.autoUpdate.toggleLabel')}
         checked={enabled}
@@ -86,9 +90,9 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
               <label htmlFor={timeInputId} className="block text-xs text-hs-text-muted">
                 {t('settings.systemPage.autoUpdate.timeLabel')}
               </label>
-              <p className="text-xs text-hs-text-faint mt-0.5">
+              <FieldHint className="mt-0.5">
                 {t('settings.systemPage.autoUpdate.timeHelp')}
-              </p>
+              </FieldHint>
             </div>
             <input
               id={timeInputId}
@@ -98,7 +102,7 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
                 if (TIME_RE.test(e.target.value)) onSetTime(e.target.value);
               }}
               data-field-id="system.autoUpdateTime"
-              className="w-32 shrink-0 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+              className={`w-32 shrink-0 ${SETTINGS_INPUT_SM_CLASS}`}
             />
           </div>
           <HomeTimeHint />
@@ -112,7 +116,7 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
               {lastLine && (
                 <p>
                   <span className="text-hs-text-faint">{t('settings.systemPage.autoUpdate.lastCheckLabel')}</span>{' '}
-                  <span className={status?.warning ? 'text-hs-warning' : 'text-hs-text-secondary'}>{lastLine}</span>
+                  <span className={status?.warning ? 'text-hs-warning-ink' : 'text-hs-text-secondary'}>{lastLine}</span>
                 </p>
               )}
               {nextLine && (
@@ -127,7 +131,7 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
       )}
       {saveError && (
         <p className="text-xs text-hs-danger mt-2" role="alert">
-          {t('common.saveFailed')}
+          {tCore('refusals.saveFailed')}
         </p>
       )}
     </section>

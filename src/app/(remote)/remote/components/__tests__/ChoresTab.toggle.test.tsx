@@ -171,13 +171,13 @@ function tapHeight(el: HTMLElement): number {
 describe('kid-sized tap targets', () => {
   it('gives the Yesterday / Today toggle and the Today / Rewards bar at least 44 px', async () => {
     await openTab(false);
-    const toggle = screen.getByRole('group', { name: remote.choresTab.dayToggle.ariaLabel });
+    const toggle = screen.getByRole('tablist', { name: remote.choresTab.dayToggle.ariaLabel });
     for (const button of Array.from(toggle.querySelectorAll('button'))) {
       expect(tapHeight(button)).toBeGreaterThanOrEqual(44);
       expect(parseFloat(button.style.minWidth)).toBeGreaterThanOrEqual(44);
     }
     for (const name of [remote.choresTab.subNav.today, remote.choresTab.subNav.rewards]) {
-      const tab = screen.getAllByRole('button', { name }).find((b) => b.textContent === name && !toggle.contains(b));
+      const tab = screen.getAllByRole('tab', { name }).find((b) => b.textContent === name && !toggle.contains(b));
       expect(tab).toBeTruthy();
       expect(tapHeight(tab!)).toBeGreaterThanOrEqual(44);
     }

@@ -281,8 +281,8 @@ describe('TimetableModal', () => {
     render('emma');
     await settle();
 
-    const remove = screen.getByRole('button', { name: "Remove Emma's timetable" });
-    expect(remove.textContent).toContain("Remove Emma's timetable");
+    const remove = screen.getByRole('button', { name: "Delete Emma's timetable" });
+    expect(remove.textContent).toContain("Delete Emma's timetable");
     expect(remove.getAttribute('aria-label')).toBeNull();
   });
 
@@ -424,7 +424,7 @@ describe('TimetableModal, saying what it knows', () => {
     const picker = screen.getByLabelText('School') as HTMLSelectElement;
     expect([...picker.options].map((option) => option.text)).toEqual(['Gymnasium am Rhein']);
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Add a school' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add a school' }));
     expect(screen.getByRole('status').textContent).toContain('Add the school Emma goes to');
 
     // The add form's own box, in the rail. The second box of that name is the
@@ -572,7 +572,7 @@ describe('checking a sheet with pending edits', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Check now' }));
     await settle();
     expect(state.request.mock.calls.map(([, init]) => init?.method ?? 'GET')).toEqual(['GET', 'PUT', 'POST']);
-    expect(screen.getByRole('alert').textContent).toContain('Could not check the sheet.');
+    expect(screen.getByRole('alert').textContent).toContain('Something went wrong. Try again.');
     expect(screen.getByLabelText('Class').closest('fieldset')?.disabled).toBe(false);
   });
 });

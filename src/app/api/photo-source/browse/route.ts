@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/photo-source/browse?kind=immich|unsplash|nasa|art&collection=<id>&page=N[&query=words][&orientation=portrait|landscape]
  *
- * One page of the Image Library's grid for a source: `{ items, nextPage }`.
+ * One page of the Pictures & videos window's grid for a source: `{ items, nextPage }`.
  * `collection` is the sidebar entry (`all`, `favorites`, `album:<id>`,
  * `person:<id>` for Immich; `apod` or `search` for NASA; `search` for
  * Unsplash and for art, whose ideas are search words; an art answer also has

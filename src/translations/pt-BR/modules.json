@@ -110,7 +110,7 @@
   "garbage-day": {
     "header": "Calendário de coleta",
     "nextDay": "Próxima {day}",
-    "emptyState": "Defina os dias de coleta nas configurações do módulo",
+    "emptyState": "Defina os dias de coleta no editor e eles aparecem aqui",
     "labels": {
       "trash": "Lixo",
       "recycling": "Reciclagem",
@@ -129,7 +129,6 @@
     "moreCount": "+{count} mais",
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",
-    "cantLoadEvents": "Não foi possível carregar os eventos agora",
     "loadingEvents": "Carregando eventos…",
     "weekOf": "Semana de {date}",
     "legendLabel": "Fontes do calendário",
@@ -139,9 +138,9 @@
     "sourcesNotUpdating": "Alguns calendários não estão atualizando",
     "notUpdatingSince": "Sem atualizar desde {time}",
     "signInAgain": "O calendário precisa entrar de novo",
-    "signInAgainHint": "Abra Configurações › Calendário em um computador e conecte o Google Agenda.",
+    "signInAgainHint": "Abra {place} em um computador e conecte o Google Agenda.",
     "noSourcesYet": "Nenhum calendário escolhido ainda",
-    "noSourcesYetHint": "Escolha quais calendários mostrar em Configurações › Calendário.",
+    "noSourcesYetHint": "Escolha quais calendários mostrar em {place}",
     "savedShort": "salvo",
     "holiday": "Feriado",
     "birthday": "Aniversário",
@@ -153,7 +152,7 @@
       },
       "toTime": "até {time}",
       "openDay": "Ver o dia todo: {date}",
-      "empty": "Nada neste dia ainda.",
+      "empty": "Nada neste dia ainda",
       "addEvent": "Adicionar evento"
     },
     "eventForm": {
@@ -163,8 +162,7 @@
       "namePlaceholder": "Digite um nome",
       "typeOnPhone": "Digite no celular",
       "handoffBody": "Aponte a câmera do celular para cá. O novo evento já abre marcado para {day}.",
-      "backToKeyboard": "Voltar ao teclado da tela",
-      "allDay": "Dia inteiro",
+      "backToKeyboard": "Voltar ao teclado do painel",
       "repeats": "Repetição",
       "howOften": "Quando se repete?",
       "repeatNote": "Ele se repete até ser mudado ou removido. Para terminar em uma data, faça isso pelo celular.",
@@ -220,7 +218,6 @@
     }
   },
   "fullscreen-calendar": {
-    "allDay": "Dia inteiro",
     "noEvents": "Sem eventos",
     "noEventsThisMonth": "Sem eventos neste mês",
     "noEventsThisWeek": "Sem eventos nesta semana",
@@ -237,7 +234,6 @@
       "dayTimeline": "Dia",
       "agenda": "Programação",
       "familyGrid": "Família",
-      "upNext": "A seguir",
       "freeTime": "Tempo livre",
       "rolling": "Contínuo"
     },
@@ -263,7 +259,6 @@
     },
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",
-    "cantLoadEvents": "Não foi possível carregar os eventos agora",
     "weekOf": "Semana de {date}",
     "weekNumber": "Semana {number}",
     "holiday": "Feriado",
@@ -271,7 +266,6 @@
     "birthdayWithAge": "Aniversário · faz {age} anos",
     "birthdayShort": "Aniversário",
     "birthdayAgeShort": "faz {age} anos",
-    "headerUpNext": "A seguir",
     "headerFreeTime": "Tempo livre",
     "everyone": "Todos",
     "thisWeekCount": {
@@ -329,14 +323,13 @@
       "chores": "Tarefas",
       "choresDone": "{done} de {total} tarefas feitas"
     },
-    "peopleHint": "Adicione pessoas em Configurações > Calendário para que cada um tenha sua própria linha."
+    "peopleHint": "Adicione pessoas em {place} para que cada uma tenha sua própria linha."
   },
   "weather": {
     "tomorrowShort": "Amanhã",
     "feelsLike": "Sensação {temp}",
     "feelsShort": "Sens. {temp}",
     "highLow": "Máx:{high} Mín:{low}",
-    "hourlyForecast": "Previsão por hora",
     "forecast": "Previsão",
     "weatherAlerts": "Alertas meteorológicos",
     "alertCount": "({count})",
@@ -344,7 +337,6 @@
     "alertSeverityExpires": "{severity} · Expira em {expires}",
     "noWeatherData": "Sem dados de tempo",
     "noForecastData": "Sem dados de previsão",
-    "setLocationInSettings": "Defina sua localização nas configurações",
     "next60Minutes": "Próximos 60 minutos",
     "noPrecipitationExpected": "Nenhuma precipitação esperada",
     "stoppingInMin": "Para em {minutes} min",
@@ -372,7 +364,6 @@
       "Unknown": "Desconhecido"
     },
     "loading": "Buscando a previsão…",
-    "notUpdating": "O tempo não está atualizando",
     "notAvailableForSource": "Não disponível na sua fonte de tempo",
     "rightNow": "Agora",
     "sunrise": "Nascer do sol"
@@ -671,7 +662,7 @@
   },
   "openButton": {
     "open": "Abrir {name}",
-    "unavailable": "Oculto na tela agora: essa tela está fora dos horários ou das condições dela."
+    "unavailable": "Oculto no painel agora: essa tela está fora dos horários ou das condições dela."
   },
   "lookAhead": {
     "thisWeek": "Esta semana",
@@ -754,8 +745,7 @@
     "noUpcomingMeals": "Nenhuma refeição planejada em breve",
     "mealsPlannedCount": "{filled} de {total} refeições planejadas",
     "heroLabels": {
-      "now": "Agora",
-      "upNext": "A seguir"
+      "now": "Agora"
     },
     "nextMealLabels": {
       "now": "Agora",
@@ -774,7 +764,6 @@
     "familyProgress": "Progresso da família",
     "starChart": "Quadro de estrelas",
     "chores": "Tarefas",
-    "thisWeek": "Esta semana",
     "dayOff": "Dia de folga!",
     "dayOffList": "Dia de folga: {names}",
     "noChoresToday": "Sem tarefas hoje",
@@ -810,7 +799,7 @@
       "anytime": "A qualquer hora"
     },
     "iconPicker": {
-      "filter": "Filtrar ícones...",
+      "filter": "Filtrar ícones…",
       "noMatch": "Nenhum ícone correspondente",
       "none": "Nenhum",
       "clear": "Limpar"
@@ -865,7 +854,7 @@
       "home": "Casa",
       "key": "Chave",
       "lightbulb": "Luz",
-      "wifi": "WiFi",
+      "wifi": "Wi-Fi",
       "toilet": "Vaso",
       "soap": "Sabão",
       "paw-print": "Cuidar pet",
@@ -957,6 +946,7 @@
       "groupMemberNote": "Em {group}",
       "emptyGroupNote": "Ainda não há ninguém no grupo que você escolheu, então ninguém recebe esta tarefa até você adicionar alguém.",
       "removeFromSchedule": "Tirar {name} da agenda",
+      "addToSchedule": "Colocar {name} na agenda",
       "validation": {
         "enterName": "Digite um nome para a tarefa",
         "addPersonToSchedule": "Adicione pelo menos uma pessoa à agenda",
@@ -1123,7 +1113,6 @@
       "other": "{name}, {count} dias"
     },
     "bestStreakNone": "nenhuma ainda",
-    "thisWeek": "Esta semana",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
@@ -1177,8 +1166,7 @@
       },
       "confirmCancel": "Cancelar",
       "confirmYes": "Sim!",
-      "errorGeneric": "Algo deu errado",
-      "errorOffline": "Não foi possível conectar",
+      "errorOffline": "Não deu para gastar os tickets. O Home Screens não está respondendo, toque em Sim de novo daqui a pouco.",
       "addFromPhoneHint": "Adicione recompensas pelo celular: abra {url} e toque em Tarefas",
       "moreTickets": {
         "one": "Falta {count} ticket",
@@ -1264,8 +1252,8 @@
     "noGames": "Nenhum jogo encontrado",
     "today": "Hoje",
     "tomorrow": "Amanhã",
-    "pickTeam": "Escolha seu time nas configurações do módulo",
-    "teamLeagueOff": "Ative a liga do seu time nas configurações do módulo",
+    "pickTeam": "Escolha um time no editor e os jogos dele aparecem aqui",
+    "teamLeagueOff": "Ative a liga do seu time no editor e os jogos aparecem aqui",
     "unavailable": "Os placares estão dando uma pausa",
     "last": "Último:",
     "win": "V",
@@ -1316,10 +1304,9 @@
     "name": "Lista de tarefas",
     "defaultTitle": "Tarefas",
     "noTasksYet": "Adicione coisas pelo celular e elas aparecem aqui",
-    "tapHint": "Toque em uma caixa para marcar",
     "noListsYet": "Nenhuma lista ainda. Crie uma pelo celular.",
-    "pickAList": "Escolha uma lista no editor",
-    "upNext": "A seguir",
+    "pickAList": "Escolha uma lista no editor e ela aparece aqui",
+    "tapHint": "Toque em uma caixa para marcar",
     "allDone": "Tudo feito",
     "andMore": "e mais {n}",
     "nLeft": "{n} restantes",
@@ -1347,17 +1334,7 @@
   },
   "fullscreen-photo": {
     "noPhotosYetFolderHint": "ou escolha uma pasta no editor",
-    "noPhotoSelected": "Nenhuma foto selecionada",
-    "noPhotoSelectedHint": "Escolha uma foto no painel do editor.",
-    "noPhotosYet": "Nenhuma foto ainda",
-    "noPhotosYetHint": "Adicione fotos do seu celular em",
-    "noPhotosYetHintICloud": "Verifique o link do álbum no editor e confira se o \"Site público\" do álbum está ativado.",
-    "noPhotosYetHintOneDrive": "Verifique a pasta do OneDrive no editor.",
-    "noPhotosYetHintImmich": "Confira no editor o álbum, a pessoa e a opção de favoritos do Immich.",
-    "noPhotosYetHintUnsplash": "Tente outras palavras de busca no editor.",
-    "noPhotosYetHintNasa": "A NASA não está enviando imagens agora. Elas voltam sozinhas.",
-    "noPhotosYetHintArt": "Tente afrouxar um filtro no editor.",
-    "noPhotosYetHintPicked": "Escolha algumas fotos no editor."
+    "noPhotoSelectedHint": "Escolha uma foto no editor e ela aparece aqui"
   },
   "dad-joke": {
     "loading": "Carregando piada…"
@@ -1477,7 +1454,6 @@
       "overdue": "Atrasadas",
       "today": "Hoje",
       "tomorrow": "Amanhã",
-      "thisWeek": "Esta semana",
       "upcoming": "Próximas",
       "noDate": "Sem data",
       "noLabel": "Sem etiqueta"
@@ -1514,15 +1490,7 @@
   },
   "photo-slideshow": {
     "loading": "Carregando fotos…",
-    "empty": "Nenhuma foto encontrada",
-    "emptyICloud": "Nenhuma foto ainda. Verifique o link do álbum e confira se o \"Site público\" está ativado.",
-    "emptyOneDrive": "Ainda não há fotos. Verifique a pasta do OneDrive no editor.",
-    "emptyImmich": "Nenhuma foto ainda. Confira no editor o álbum, a pessoa e a opção de favoritos do Immich.",
-    "emptyUnsplash": "Nenhuma foto ainda. Tente outras palavras de busca no editor.",
-    "emptyNasa": "Nenhuma imagem da NASA agora. Elas voltam sozinhas.",
-    "emptyArt": "Nenhuma pintura encontrada. Tente afrouxar um filtro no editor.",
-    "photoCredit": "{name} / {source}",
-    "emptyPicked": "Nenhuma foto escolhida ainda. Escolha algumas no editor."
+    "photoCredit": "{name} / {source}"
   },
   "video": {
     "name": "Vídeo",
@@ -1569,25 +1537,26 @@
     "wake": "Acordar",
     "wakeSub": "liga a tela de novo",
     "controls": "Controla",
-    "thisDisplay": "Esta tela",
-    "thisDisplayTag": "esta tela",
-    "allDisplays": "Todas as telas",
+    "thisDisplay": "Este painel",
+    "thisDisplayTag": "este painel",
+    "allDisplays": "Todos os painéis",
     "brightnessValue": "Brilho {percent}%",
     "brightnessUnknown": "Brilho, ainda não informado",
     "dockEmpty": "Ainda não há telas",
     "unnamedScreen": "Tela {number}",
     "goTo": "Ir para {name}",
     "timers": "Timers",
-    "timersEyebrow": "Começa aqui",
+    "timersEyebrow": "Começa neste painel",
     "routines": "Rotinas",
     "quickTimer": "Timer rápido",
-    "noRoutines": "Crie rotinas no celular, em Timers.",
+    "noRoutines": "Crie rotinas no celular, em Timers",
     "start": "Começar",
     "timerStartFailed": "O timer não começou. Tente de novo.",
     "timersPreview": "Isto é só uma prévia, então tocar aqui não começa nenhum timer."
   },
   "timetable": {
     "name": "Horário escolar",
+    "loading": "Carregando horários…",
     "today": "Hoje",
     "free": "livre",
     "lunch": "Almoço",
@@ -1607,7 +1576,7 @@
     "abLegend": "{day} {periods}: semana A {subjectA}, semana B {subjectB}",
     "holidayLine": "{holiday}, volta às aulas: {date}",
     "holidayBrief": "{holiday}, volta {date}",
-    "pickWho": "Escolha nas configurações do módulo de quem mostrar a semana.",
+    "pickWho": "Escolha uma pessoa no editor e a semana dela aparece aqui",
     "noTimetableYet": "Ainda sem horário. Um adulto pode preencher no editor.",
     "tomorrow": "Amanhã",
     "startsWord": "começa",
@@ -1631,7 +1600,9 @@
     "pluginNotAvailable": "Plug-in indisponível: {name}",
     "moduleFailed": "Não foi possível mostrar este item.",
     "setLocationLink": "Definir sua localização",
+    "setLocationInEditor": "Defina sua localização no editor",
     "notUpdating": "Sem atualizar agora",
+    "upNext": "A seguir",
     "setup": {
       "needsKey": "Ainda sem chave do {service}",
       "keyNotWorking": "A chave do {service} não está funcionando",
@@ -1644,12 +1615,27 @@
     "moreBelow": {
       "one": "{count} mais abaixo",
       "other": "{count} mais abaixo"
+    },
+    "photoEmpty": {
+      "noPhotos": "Nenhuma foto ainda",
+      "nonePicked": "Nenhuma foto escolhida ainda",
+      "noPaintings": "Nenhuma pintura encontrada",
+      "noneFromNasa": "Nenhuma imagem da NASA agora",
+      "hint": {
+        "addPhotos": "Adicione fotos pelo celular: abra {url} e toque em Fotos",
+        "pickPictures": "Escolha algumas fotos no editor e elas aparecem aqui",
+        "checkFilters": "Confira no editor o álbum, a pessoa e a opção de favoritos do Immich",
+        "checkLink": "Verifique o link do álbum no editor e confira se o “Site público” do álbum está ativado",
+        "checkFolder": "Verifique a pasta do OneDrive no editor",
+        "checkSearch": "Tente outras palavras de busca no editor",
+        "checkArt": "Tente usar menos filtros no editor",
+        "tryLater": "Elas voltam sozinhas"
+      }
     }
   },
   "event-detail": {
     "close": "Fechar",
     "happeningNow": "Acontecendo agora",
-    "allDay": "O dia todo",
     "holiday": "Feriado",
     "birthday": "Aniversário",
     "birthdayWithAge": "Aniversário · faz {age} anos",
@@ -1658,7 +1644,7 @@
     "remove": "Remover",
     "keepIt": "Manter",
     "removeTitle": "Remover {title}?",
-    "removeBody": "Ele sai do calendário {calendar} para todos: nas telas, nos celulares e no app de calendário.",
+    "removeBody": "Ele sai do calendário {calendar} para todos: no painel, nos celulares e no app de calendário.",
     "justThisDay": "Só este dia",
     "everyTime": "Todas as vezes"
   },

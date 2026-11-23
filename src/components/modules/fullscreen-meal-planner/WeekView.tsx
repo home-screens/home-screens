@@ -14,6 +14,8 @@ import { MealCourseNames } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import type { LookAhead } from '../shared/useLookAhead';
 import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
+import { EMPTY_STATE_PX } from './meal-planner-utils';
+import { NO_VALUE } from '@/lib/constants';
 
 interface WeekViewProps extends MealPlannerViewProps {
   /** The seven days drawn: this week, or the week the look-ahead arrows stepped to. `plan` is theirs. */
@@ -198,7 +200,7 @@ export default function WeekView({
                         color: 'var(--fmp-text-3)', fontSize: P(24), fontWeight: 400, lineHeight: 1,
                         // In line with the meals beside it, under a label in line with theirs.
                         ...(landscape ? {} : { flex: 1, display: 'flex', alignItems: 'center' }),
-                      }}>&mdash;</span>
+                      }}>{NO_VALUE}</span>
                     </div>
                   );
                 }
@@ -315,7 +317,7 @@ export default function WeekView({
       {/* Header */}
       {look.on ? (
         // On a touch wall the arrows stand at the heading's end. Stepped to
-        // another week, "This Week's Meals" would be wrong, so the title
+        // another week, "This week's meals" would be wrong, so the title
         // says that week's dates instead, with the week in words as a tag.
         <div
           data-testid="look-ahead-bar"
@@ -365,7 +367,7 @@ export default function WeekView({
             // waiting to be set up: no "plan from a phone" hint.
             title={t(showsToday ? 'meal-planner.nothingPlannedThisWeek' : 'meal-planner.nothingPlannedThatWeek')}
             hint={showsToday ? t('meal-planner.planFromPhoneHint') : undefined}
-            fontSize={P(44)}
+            fontSize={P(EMPTY_STATE_PX)}
           />
         </div>
       )}

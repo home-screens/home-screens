@@ -19,6 +19,9 @@ import { useTranslate } from '@/i18n';
 import { dragEndIndices, useSortableSensors } from '@/hooks/useDndSensors';
 import SortableRuleCard from './SortableRuleCard';
 import { logger } from '@/lib/logger';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 const log = logger('rules');
 
@@ -103,13 +106,13 @@ export default function RulesSection({ embedded = false }: RulesSectionProps) {
   return (
     <section>
       {!embedded && (
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        <SettingsSectionHeading>
           {t('settings.rulesPage.heading')}
-        </h3>
+        </SettingsSectionHeading>
       )}
-      <p className="text-xs text-hs-text-faint mb-4">
+      <FieldHint className="mb-4">
         {t('settings.rulesPage.description')}
-      </p>
+      </FieldHint>
 
       {isMultiDisplay && !embedded && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
@@ -120,7 +123,7 @@ export default function RulesSection({ embedded = false }: RulesSectionProps) {
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
               onChange={(e) => setSelectedDisplay(e.target.value || null)}
-              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+              className={`mt-1 block w-full ${SETTINGS_INPUT_CLASS}`}
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -128,17 +131,17 @@ export default function RulesSection({ embedded = false }: RulesSectionProps) {
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-hs-text-faint mt-1.5">
+            <FieldHint className="mt-1.5">
               {t('settings.rulesPage.displayPicker.help')}
-            </p>
+            </FieldHint>
           </label>
         </div>
       )}
 
       {rules.length === 0 && (
-        <p className="text-xs text-hs-text-faint mb-4">
+        <FieldHint className="mb-4">
           {t('settings.rulesPage.emptyHint')}
-        </p>
+        </FieldHint>
       )}
 
       {rules.length > 1 && (

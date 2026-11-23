@@ -9,6 +9,7 @@ import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import { GooglePhotosImportSection } from '@/components/editor/config-sections/GooglePhotosImportSection';
 import type { MediaListItem, PhotoSource } from '@/types/config';
 import PreviewStrip from './PreviewStrip';
+import FieldHint from '@/components/ui/FieldHint';
 
 type LibrarySource = Extract<PhotoSource, { kind: 'library' }>;
 
@@ -29,7 +30,7 @@ export function LibraryFolderFields({ source, onChange, use }: {
   // The same list the wall plays (pictures only), so the count is the wall's.
   const { data, refetch } = useEditorData<MediaListItem[]>(`${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams(source)}`);
   const pictures = data ?? [];
-  const folderName = source.folder || t('photoSources.library.topLevel');
+  const folderName = source.folder || t('settings.mediaPage.topLevel');
   // Asked only for a background's folder with no pictures in it: is it empty, or all videos?
   const { data: videos } = useEditorData<MediaListItem[]>(
     use === 'background' && data !== null && pictures.length === 0 ? `${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams(source)}&media=videos` : null,
@@ -54,9 +55,9 @@ export function LibraryFolderFields({ source, onChange, use }: {
             <PreviewStrip urls={pictures.slice(0, 4).map((item) => item.url)} />
           </div>
         ) : (
-          <p className="text-[10px] text-hs-text-faint mt-1" data-testid="photo-source-folder-empty">
+          <FieldHint className="mt-1" data-testid="photo-source-folder-empty">
             {t(videos && videos.length > 0 ? 'photoSources.library.onlyVideos' : 'photoSources.library.empty')}
-          </p>
+          </FieldHint>
         ))}
       </div>
 

@@ -51,7 +51,7 @@ test('the week from Mealie shows its courses, and a typed dessert lands in Meali
   await expect(page.getByText('Harvest Chili').first()).toBeVisible();
   await expect(page.getByText('Skillet Cornbread').first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
   await page.getByRole('button', { name: /Change Harvest Chili/ }).first().click();
   await page.getByRole('button', { name: 'Add a dessert' }).click();
   await page.getByRole('searchbox', { name: "Search Mealie's recipes" }).or(page.getByRole('textbox', { name: "Search Mealie's recipes" })).fill('Ice cream sundae');
@@ -65,7 +65,7 @@ test('the week from Mealie shows its courses, and a typed dessert lands in Meali
 async function openGrocery(page: Page) {
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Grocery', exact: true }).click();
+  await page.getByRole('tab', { name: 'Grocery', exact: true }).click();
 }
 
 const groceryItem = (page: Page, text: string) => page.getByTestId('mealie-grocery-item').filter({ hasText: text });
@@ -137,8 +137,8 @@ test("a tick Mealie doesn't take springs back and says why", async ({ page, requ
     status: 502, contentType: 'application/json', body: JSON.stringify({ error: "We couldn't reach Mealie.", failure: 'unreachable' }),
   }));
   await groceryItem(page, 'Paper towels').click();
-  // Not Next's own route announcer, which is an alert too.
-  await expect(page.getByRole('alert').filter({ hasText: "Mealie isn't answering" })).toBeVisible();
+  const error = page.locator('[data-testid="remote-toast"][data-tone="error"]').filter({ hasText: "Mealie isn't answering" });
+  await expect(error).toBeVisible();
   await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'false');
 
   // Mealie answers again: the next tick saves, and the old "wasn't saved" goes.
@@ -146,7 +146,7 @@ test("a tick Mealie doesn't take springs back and says why", async ({ page, requ
   await page.waitForTimeout(DOUBLE_TAP_MS + 50);
   await groceryItem(page, 'Paper towels').click();
   await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'true');
-  await expect(page.getByRole('alert').filter({ hasText: "Mealie isn't answering" })).toHaveCount(0);
+  await expect(error).toHaveCount(0);
 });
 
 test('a quick double tap on an item ticks it once', async ({ page, request }) => {
@@ -228,7 +228,7 @@ test.describe('on a touch phone', () => {
       });
       await page.goto('/remote');
       await page.getByRole('button', { name: 'Meals', exact: true }).tap();
-      await page.getByRole('button', { name: 'Plan', exact: true }).tap();
+      await page.getByRole('tab', { name: 'Plan', exact: true }).tap();
       await page.getByRole('button', { name: /Change Harvest Chili/ }).first().tap();
 
       // The middle dish, as a child would: the one under it slides up into the finger's way.
@@ -251,7 +251,7 @@ test('Suggest asks first, fills only the empty dinners in Mealie, and Undo takes
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
   await expect(page.getByText('Harvest Chili').first()).toBeVisible();
 
   const before = mealie.entries.map((e) => e.id);
@@ -279,7 +279,7 @@ test('Undo after Suggest leaves alone a dinner that took over the number of one 
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
   await expect(page.getByText('Harvest Chili').first()).toBeVisible();
 
   const before = mealie.entries.map((e) => e.id);
@@ -309,7 +309,7 @@ test('a family without Mealie adds a side from its own meals', async ({ page, re
   });
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
   await page.getByRole('button', { name: /Change Tacos/ }).first().click();
   await page.getByRole('button', { name: 'Add a side' }).click();
   await page.getByRole('button', { name: /Mexican Rice/ }).first().click();
@@ -328,7 +328,7 @@ test("the Library's cookbook chips show only that cookbook's recipes", async ({ 
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
 
   const library = page.getByTestId('mealie-library');
   await library.getByRole('button', { name: 'Weeknight dinners' }).click();
@@ -349,7 +349,7 @@ test('the Library gets its cookbook and category chips and its count back once M
   await down.close();
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
   const library = page.getByTestId('mealie-library');
   const retry = library.getByRole('button', { name: 'Try again' });
   const box = library.getByRole('searchbox', { name: "Search Mealie's recipes" });
@@ -371,7 +371,7 @@ test("the picker's cookbook chips narrow the recipes to pick from", async ({ pag
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('tab', { name: 'Plan', exact: true }).click();
   await page.getByRole('button', { name: /Change Harvest Chili/ }).first().click();
   await page.getByRole('button', { name: 'Add a side' }).click();
 
@@ -388,7 +388,7 @@ test("the Library's hearts save to Mealie's favorites, and one taken off on Favo
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
   const library = page.getByTestId('mealie-library');
   const cards = library.getByTestId('mealie-library-card');
   const heart = (name: string) => cards.filter({ hasText: name }).getByTestId('mealie-library-heart');
@@ -426,7 +426,7 @@ test("a heart Mealie does not take goes back, and the tab says why", async ({ pa
   await connectFakeMealie(request, mealie);
   await page.goto('/remote');
   await openMeals(page);
-  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('tab', { name: 'Library', exact: true }).click();
   const heart = page.getByTestId('mealie-library-card').filter({ hasText: 'Harvest Chili' }).getByTestId('mealie-library-heart');
   await expect(heart).toHaveAttribute('aria-pressed', 'true');
 

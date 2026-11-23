@@ -1,6 +1,7 @@
 import type { TranslateFn } from '@/i18n/types';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import type { MealieProblem } from '@/lib/meal-sources';
+import { mealiePlaces } from '@/components/meals/mealie-places';
 
 const PROBLEM_WORDS: Record<MealieClientProblem, string> = {
   'not-connected': 'notConnected',
@@ -31,7 +32,7 @@ export function mealieProblemTitleKey(problem: MealieClientProblem | null | unde
  */
 export function mealieProblemBody(problem: MealieProblem | null | undefined, t: TranslateFn, tCore: TranslateFn): string {
   if (!problem || problem === 'unreachable') return tCore('mealie.unreachable.description');
-  return t(`mealPlannerModal.mealie.${PROBLEM_WORDS[problem]}Body`);
+  return t(`mealPlannerModal.mealie.${PROBLEM_WORDS[problem]}Body`, mealiePlaces(tCore));
 }
 
 /**
@@ -51,7 +52,7 @@ export function mealieRequestFailedWords(
   if (problem === 'connection') return { title: tCore(mealieProblemTitleKey(problem)), fix: null };
   if (problem === 'not-connected' || problem === 'token' || problem === 'setup') {
     const fix = FIX[problem];
-    return { title: tCore(mealieProblemTitleKey(problem)), fix: fix ? t(fix) : null };
+    return { title: tCore(mealieProblemTitleKey(problem)), fix: fix ? t(fix, mealiePlaces(tCore)) : null };
   }
   return { title: fallback, fix: null };
 }

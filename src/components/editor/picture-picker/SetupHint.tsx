@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { settingsPath } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /**
  * The body of a tab whose source is not set up yet: one line saying what it
@@ -11,6 +12,7 @@ import { useTranslate } from '@/i18n';
  */
 export default function SetupHint({ text, action }: { text: string; action?: { label: string; onClick: () => void } }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2.5 px-10 text-center" data-testid="picker-setup-hint">
       <p className="max-w-xs text-xs text-hs-text-secondary">{text}</p>
@@ -27,7 +29,7 @@ export default function SetupHint({ text, action }: { text: string; action?: { l
           href={settingsPath({ kind: 'defaults', page: 'integrations' })}
           className="rounded-md border border-hs-border-strong bg-hs-card px-2.5 py-1 text-xs text-hs-text-body hover:bg-hs-hover"
         >
-          {t('photoSources.picker.openApiKeys')}
+          {t('photoSources.picker.openApiKeys', { place: settingsPlaceText(tCore, 'integrations') })}
         </Link>
       )}
     </div>

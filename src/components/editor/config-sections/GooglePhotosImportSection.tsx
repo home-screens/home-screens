@@ -6,6 +6,9 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useGooglePhotosImport } from '@/hooks/useGooglePhotosImport';
 import GooglePhotosSignIn from '@/components/editor/photo-source/GooglePhotosSignIn';
 import { useTranslate } from '@/i18n';
+import { LoadingLine } from '@/components/ui/Spinner';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 /** Where Google Photos picks land in the media library. */
 export const GOOGLE_PHOTOS_IMPORT_FOLDER = 'google-photos';
@@ -21,8 +24,8 @@ interface Props {
  * because Google won't redirect to LAN addresses), then each import opens
  * Google Photos' own picker; picked photos download into the library and
  * the module points its library-folder source at them. The sign-in and
- * import logic is `useGooglePhotosImport`, shared with the Image Library's
- * Local tab and the Pictures & videos page; this is the slideshow card's
+ * import logic is `useGooglePhotosImport`, shared with the Pictures & videos window's
+ * library tab and the Pictures & videos page; this is the slideshow card's
  * layout of it.
  *
  * With Home Screens' own Google app (HS_GOOGLE_HOSTED) there is nothing to
@@ -35,6 +38,7 @@ interface Props {
  */
 export function GooglePhotosImportSection({ onImported }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [open, setOpen] = useState(false);
   const google = useGooglePhotosImport({
     folder: GOOGLE_PHOTOS_IMPORT_FOLDER,
@@ -63,7 +67,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
           <p className="mt-1 text-[11px] text-hs-text-muted">{t('configSections.googlePhotosImport.checking')}</p>
         ) : <GooglePhotosSignIn google={google} />}
         {note && <div className="mt-2">{note}</div>}
-        {error && <p className="mt-2 text-[11px] text-hs-warning leading-relaxed">{error}</p>}
+        {error && <p className="mt-2 text-[11px] text-hs-warning-ink leading-relaxed">{error}</p>}
       </div>
     );
   }
@@ -81,16 +85,16 @@ export function GooglePhotosImportSection({ onImported }: Props) {
       {!status ? (
         <p className="text-[11px] text-hs-text-muted">{t('configSections.googlePhotosImport.checking')}</p>
       ) : !status.credentialsConfigured ? (
-        <p className="text-[11px] text-hs-text-muted leading-relaxed">
-          {t('configSections.googlePhotosImport.credentialsNeeded')}
-        </p>
+        <FieldHint>
+          {t('configSections.googlePhotosImport.credentialsNeeded', { place: settingsPlaceText(tCore, 'integrations') })}
+        </FieldHint>
       ) : !status.connected && returnsToHub ? (
         <GooglePhotosSignIn google={google} />
       ) : !status.connected ? (
         <>
-          <p className="text-[11px] text-hs-text-muted leading-relaxed">
+          <FieldHint>
             {t('configSections.googlePhotosImport.signInIntro')}
-          </p>
+          </FieldHint>
           <Button size="sm" variant="primary" onClick={signIn} disabled={busy}>
             {t('common.signInWithGoogle')}
           </Button>
@@ -109,9 +113,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
         </>
       ) : session ? (
         <>
-          <p className="text-[11px] text-hs-text-muted animate-pulse">
-            {t('configSections.googlePhotosImport.waitingForPicks')}
-          </p>
+          <LoadingLine label={t('configSections.googlePhotosImport.waitingForPicks')} />
           <div className="flex gap-2 items-center">
             <a href={session.pickerUri} target="_blank" rel="noreferrer" className="text-[11px] text-hs-accent hover:text-hs-accent-hover">
               {t('configSections.googlePhotosImport.reopenPicker')}
@@ -139,12 +141,12 @@ export function GooglePhotosImportSection({ onImported }: Props) {
             </p>
           )}
           {jobSucceeded && unsavedCount > 0 && (
-            <p className="text-[11px] text-hs-warning">
+            <p className="text-[11px] text-hs-warning-ink">
               {t('configSections.googlePhotosImport.failedNote', { failed: unsavedCount })}
             </p>
           )}
           {jobFailed && (
-            <p className="text-[11px] text-hs-warning">
+            <p className="text-[11px] text-hs-warning-ink">
               {t('configSections.googlePhotosImport.allFailed')}
             </p>
           )}
@@ -157,8 +159,8 @@ export function GooglePhotosImportSection({ onImported }: Props) {
         </>
       )}
       {note}
-      {startErrorText && <p className="text-[11px] text-hs-warning leading-relaxed">{startErrorText}</p>}
-      {error && <p className="text-[11px] text-hs-warning leading-relaxed">{error}</p>}
+      {startErrorText && <p className="text-[11px] text-hs-warning-ink leading-relaxed">{startErrorText}</p>}
+      {error && <p className="text-[11px] text-hs-warning-ink leading-relaxed">{error}</p>}
     </div>
   );
 }

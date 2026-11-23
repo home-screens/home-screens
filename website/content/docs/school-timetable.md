@@ -23,7 +23,7 @@ Add everyone first in the editor under **Settings > Family**, or on your phone a
 In the editor, drag **School Timetable** from the **Personal** group onto a screen. Its settings panel lists everyone in your family:
 
 - Somebody who already has a timetable gets a tick box. Tick them to put their card on this screen.
-- Somebody who has none gets **+ Add**, which opens the timetables window on them.
+- Somebody who has none gets **Add**, which opens the timetables window on them.
 
 Cards appear in the order Family lists people in, so moving somebody up there moves their card. The rest of the panel decides how the cards look:
 
@@ -46,14 +46,14 @@ Colour, background and font come from the **Style** section above. One thing to 
 
 Choose **Add school**, give it a name, and start from one of the ready-made days (short lessons with a long day, short lessons with a shorter day, or hour-long lessons), or from a blank one and type your own. Every period and every time can be changed afterwards.
 
-- **+ Period** adds a numbered lesson, **+ Break** adds a named gap such as Break or Lunch. Breaks show on the wall as a band across the week.
+- **Period** adds a numbered lesson, **Break** adds a named gap such as Break or Lunch. Breaks show on the wall as a band across the week.
 - **After-school care**: give it a name and the time it runs until, one time per day. Leave a day empty when there is no care that day.
 
 Two more things belong to the school and sit in the right-hand column of this tab: whether its weeks alternate, and its days off. Both have a section of their own below.
 
 ### Painting a week
 
-**Timetables** shows one child at a time, with the family down the left. Pick their school and type their class, then pick a subject from the palette and click or drag across the grid to fill lessons in. **Clear** wipes periods back to free, the **Lunch** brush marks a lunch period, and **+ Subject** adds a subject without leaving the grid. **Show subject icons** draws a small picture in every lesson, which helps younger readers.
+**Timetables** shows one child at a time, with the family down the left. Pick their school and type their class, then pick a subject from the palette and click or drag across the grid to fill lessons in. **Clear** wipes periods back to free, the **Lunch** brush marks a lunch period, and **Add subject** adds a subject without leaving the grid. **Show subject icons** draws a small picture in every lesson, which helps younger readers.
 
 #### Rooms and course groups
 
@@ -62,7 +62,7 @@ A lesson that already has a subject gets a small pencil in its corner. That open
 - **Room** is free text, such as `112` or `Bio 1`, and shows under the subject on the card.
 - **Course group** is a short badge for the set or stream a lesson belongs to, up to six characters. Schools that split a year group into different levels for a subject use this: in Germany it is usually `LK` or `GK`, in the UK something like `Higher` or `Foundation`, and elsewhere often just a set number. Leave it empty if your school does not split classes this way, which most do not.
 
-Underneath there is a **Copy to every ..., both weeks** button, so giving one Chemistry lesson its room fills in every other Chemistry lesson at once, in both the A and the B week. That is usually how a real school works. It copies only the boxes you have filled in, so an empty box never wipes what the other lessons already have.
+Underneath there is a **Copy to every …, both weeks** button, so giving one Chemistry lesson its room fills in every other Chemistry lesson at once, in both the A and the B week. That is usually how a real school works. It copies only the boxes you have filled in, so an empty box never wipes what the other lessons already have.
 
 ### Subjects
 
@@ -111,7 +111,7 @@ Three things it will not do:
 - **Editing a week by hand takes it off the sheet.** Paint one cell and the hourly look switches itself off, so it can never throw away what you typed. The window says so when it happens, and **Undo** puts the week back on its sheet if that is what you meant. Turning the switch on again does the same, and the next look brings the sheet's week back.
 - **Only the week the sheet holds is replaced.** A second week you built by hand for an A and B school is yours, and a code in the sheet you have no subject for leaves that lesson empty rather than guessing at one.
 
-A week that came from a link gets a **From a spreadsheet** button above the grid on the **Timetables** tab, saying **In sync**, **Checking…**, **Could not check**, or **Not following the sheet**. Open it for the link itself, when it was read and when it was last looked at, and the buttons to look now, to import again, or to open the sheet. **Check now** looks while you wait and says whether the sheet had a new week; after a look that failed the same button says **Try now**. The switch sits at the bottom of the same panel, so a week can be put back on its sheet or let off it at any time.
+A week that came from a link gets a **From a spreadsheet** button above the grid on the **Timetables** tab, saying **In sync**, **Checking…**, **Couldn't check**, or **Not following the sheet**. Open it for the link itself, when it was read and when it was last looked at, and the buttons to look now, to import again, or to open the sheet. **Check now** looks while you wait and says whether the sheet had a new week; after a look that failed the same button says **Try now**. The switch sits at the bottom of the same panel, so a week can be put back on its sheet or let off it at any time.
 
 ## 4. A and B weeks
 

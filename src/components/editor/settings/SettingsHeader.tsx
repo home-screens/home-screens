@@ -8,6 +8,8 @@ import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import type { SaveStatus } from '@/hooks/useSettingsAutosave';
 import { useEditorStore } from '@/stores/editor-store';
 import { SaveConflictNotice } from '@/components/editor/SaveStatus';
+import Spinner from '@/components/ui/Spinner';
+import StatusDot from '@/components/ui/StatusDot';
 
 interface SettingsHeaderProps {
   onBack: () => void;
@@ -47,17 +49,17 @@ export default function SettingsHeader({
     <SaveConflictNotice />
   ) : isActivelySaving ? (
     <span className="text-xs text-hs-text-muted flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse" />
+      <Spinner />
       {tCore('status.saving')}
     </span>
   ) : hasFailure ? (
     <span className="text-xs text-hs-danger flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-danger" />
-      {t('common.saveFailed')}
+      <StatusDot tone="danger" size="sm" />
+      {tCore('refusals.saveFailed')}
     </span>
   ) : saveMessage === 'saved' ? (
     <span className="text-xs text-hs-success flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-success" />
+      <StatusDot tone="success" size="sm" />
       {t('common.saved')}
     </span>
   ) : null;

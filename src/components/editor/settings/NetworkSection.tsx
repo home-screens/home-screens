@@ -17,6 +17,8 @@ import type { NetworkOverview, NetworkInterface, WifiNetwork } from '@/lib/netwo
 import { managementWarningText } from './network/management-warning';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
 
 const log = logger('network-settings');
 
@@ -210,9 +212,9 @@ export default function NetworkSection() {
     return (
       <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
         <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          <SettingsSectionHeading>
             {t('settings.networkPage.unavailable.heading')}
-          </h3>
+          </SettingsSectionHeading>
           <div className="rounded-lg bg-hs-card border border-hs-border p-4">
             <p className="text-sm text-hs-text-muted">
               {t('settings.networkPage.unavailable.message')}
@@ -222,9 +224,9 @@ export default function NetworkSection() {
               // Linux daemon, which tells a household nothing and reads like
               // a fault. The sentence above already says what to do, so the
               // technical cause is kept for the advanced view only.
-              <p className="text-xs text-hs-text-faint mt-1">
+              <FieldHint className="mt-1">
                 {overview.reason}
-              </p>
+              </FieldHint>
             )}
           </div>
         </section>
@@ -251,11 +253,11 @@ export default function NetworkSection() {
 
         {/* Interfaces */}
         <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          <SettingsSectionHeading>
             {t('settings.networkPage.interfaces.heading')}
-          </h3>
+          </SettingsSectionHeading>
           {interfaces.length === 0 ? (
-            <p className="text-xs text-hs-text-faint">{t('settings.networkPage.interfaces.noneDetected')}</p>
+            <FieldHint>{t('settings.networkPage.interfaces.noneDetected')}</FieldHint>
           ) : (
             <div className="space-y-2">
               {interfaces.map((iface) => (
@@ -310,7 +312,7 @@ export default function NetworkSection() {
           </section>
         )}
 
-        {/* Saved Networks */}
+        {/* Saved networks */}
         {hasWifi && (
           <SavedNetworksSection refreshKey={savedRefreshKey} />
         )}

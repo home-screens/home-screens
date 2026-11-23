@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, type PointerEvent, type ReactNode } from 'react';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
-import { relativeLuminance } from '@/lib/fullscreen-themes';
 import type { ModuleInstance, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -14,6 +13,7 @@ import { openWith } from '@/lib/open-button';
 import { TAP_SLOP_PX } from '@/lib/swipe-gesture';
 import { wallPressProps, wallRowPress } from './wallPress';
 import { PANEL_SECTION_OPEN_BUTTON, revealPanelSection } from '@/components/editor/panel-section-reveal';
+import { cardIsDark } from '@/lib/module-style';
 
 /** The gap between the module's content and the pill. */
 const BUTTON_GAP_PX = 8;
@@ -58,7 +58,7 @@ export function OpenButtonSlot({ mod, style, children }: OpenButtonSlotProps) {
   const frame = useMemo<ModuleFrame>(() => ({ reserveBottomPx: height + BUTTON_GAP_PX }), [height]);
   if (!target) return <>{children}</>;
   const inset = Math.max(style.padding, BUTTON_GAP_PX);
-  const inkIsLight = (relativeLuminance(style.textColor) ?? 1) > 0.4;
+  const inkIsLight = cardIsDark(style);
   if (openWith(mod) === 'card') {
     // The whole card is the way in: nothing to make room for, and a small
     // mark in the corner instead of the pill.

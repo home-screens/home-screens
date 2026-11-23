@@ -4,7 +4,7 @@ import { hasPeopleFilter, resolvePeopleFilterMembers } from '@/lib/family-groups
 import { eventHoursOnDay } from '@/lib/calendar-event-layout';
 import { isEventOnDay } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
-import { memberInitials } from '@/lib/family-avatar';
+import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
 
 /** Neutral gray for the shared "Everyone" row and unknown-member avatars;
  *  person rows use their own configured color. */
@@ -25,18 +25,13 @@ export interface PersonRow {
   id: string;
   name: string;
   color: string;
-  /** One or two characters for the avatar circle. */
+  /** The letters for the avatar circle, unique across the rows (`getUniqueInitials`). */
   initials: string;
   /** Sources this row owns; null = the shared row (everything unclaimed). */
   sourceIds: string[] | null;
 }
 
 export const EVERYONE_ROW_ID = '__everyone__';
-
-/** The calendar's name tags carry two letters: "Ella" is E, "Mary Ann" is MA. */
-function initialsOf(name: string): string {
-  return memberInitials(name, { max: 2 });
-}
 
 /** A source id that no configured person owns. Holidays are never a person's. */
 function isUnclaimed(ev: Pick<CalendarEvent, 'sourceId' | 'kind'>, claimed: ReadonlySet<string>): boolean {
@@ -61,15 +56,17 @@ export function buildPersonRows(
   const everyone: PersonRow = {
     // Initials derive from the localized label like every other row: a
     // hardcoded English "ALL" would sit next to a translated "Alle"/"Tous".
-    id: EVERYONE_ROW_ID, name: opts.everyoneLabel, color: opts.everyoneColor, initials: initialsOf(opts.everyoneLabel), sourceIds: null,
+    id: EVERYONE_ROW_ID, name: opts.everyoneLabel, color: opts.everyoneColor, initials: memberInitials(opts.everyoneLabel), sourceIds: null,
   };
   const rows: PersonRow[] = [];
 
   if (people && people.length > 0) {
     const claimed = new Set(people.flatMap((p) => p.sourceIds));
     if (opts.includeEveryone && events.some((ev) => isUnclaimed(ev, claimed))) rows.push(everyone);
+    // The same letters as each person's name tags (`ownerBySource`).
+    const initials = getUniqueInitials(people);
     for (const p of people) {
-      rows.push({ id: p.id, name: p.name, color: p.color, initials: initialsOf(p.name), sourceIds: [...p.sourceIds] });
+      rows.push({ id: p.id, name: p.name, color: p.color, initials: initials.get(p.id) ?? memberInitials(p.name), sourceIds: [...p.sourceIds] });
     }
     return rows;
   }
@@ -86,8 +83,9 @@ export function buildPersonRows(
   }
   if (opts.includeEveryone && unclaimed) rows.push(everyone);
   const sorted = [...sources.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const initials = getUniqueInitials(sorted.map(([id, { name }]) => ({ id, name })));
   for (const [id, { name, color }] of sorted) {
-    rows.push({ id, name, color, initials: initialsOf(name), sourceIds: [id] });
+    rows.push({ id, name, color, initials: initials.get(id) ?? memberInitials(name), sourceIds: [id] });
   }
   return rows;
 }
@@ -127,8 +125,10 @@ export interface EventOwner {
  */
 export function ownerBySource(people: readonly CalendarPerson[] | undefined): Map<string, EventOwner> {
   const owners = new Map<string, EventOwner>();
+  // A tag stands alone on its event, so two people never share its letters.
+  const initials = getUniqueInitials(people ?? []);
   for (const person of people ?? []) {
-    const owner: EventOwner = { id: person.id, name: person.name, color: person.color, initials: initialsOf(person.name) };
+    const owner: EventOwner = { id: person.id, name: person.name, color: person.color, initials: initials.get(person.id) ?? memberInitials(person.name) };
     for (const sourceId of person.sourceIds) if (!owners.has(sourceId)) owners.set(sourceId, owner);
   }
   return owners;

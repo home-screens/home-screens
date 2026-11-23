@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { repeatFrequenciesFor, type RepeatFrequency, type RepeatRule } from '@/lib/calendar-write';
 import { repeatChoiceWords } from '@/lib/calendar-repeat-words';
-import { FIELD, SHEET_LABEL, selectedPillStyle } from './remote-styles';
+import { FIELD, SHEET_LABEL, radioRingStyle, selectedPillStyle } from './remote-styles';
 import BottomSheet from './BottomSheet';
+import PrimaryButton from './PrimaryButton';
 
 /**
  * The Repeats choices for an event starting on `date`: seven
@@ -26,7 +27,7 @@ export default function EventRepeatSheet({ date, value, onDone, onClose }: {
   const choices: (RepeatFrequency | null)[] = [null, ...repeatFrequenciesFor(date)];
 
   return (
-    <BottomSheet title={t('calendarTab.form.repeats')} onClose={onClose} zIndex={210} testId="event-repeat-sheet">
+    <BottomSheet title={t('calendarTab.form.repeats')} onClose={onClose} testId="event-repeat-sheet">
       <div role="radiogroup" aria-label={t('calendarTab.form.repeats')}>
         {choices.map((choice) => {
           const on = choice === frequency;
@@ -45,7 +46,7 @@ export default function EventRepeatSheet({ date, value, onDone, onClose }: {
                 textAlign: 'left', fontFamily: 'inherit',
               }}
             >
-              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: '50%', flex: 'none', border: on ? '6px solid var(--hs-accent)' : '2px solid #525252' }} />
+              <span aria-hidden="true" style={radioRingStyle(on)} />
               <span style={{ flex: 1 }}>{choice ? repeatChoiceWords(choice, date, locale, tCore) : tCore('calendarRepeat.none')}</span>
               {choice === 'weekdays' && <small style={{ color: 'var(--hs-text-faint)', fontSize: 12 }}>{tCore('calendarRepeat.weekdaysHint')}</small>}
             </button>
@@ -81,15 +82,13 @@ export default function EventRepeatSheet({ date, value, onDone, onClose }: {
           )}
         </>
       )}
-      <button
-        type="button"
-        className="press-scale"
+      <PrimaryButton
         data-testid="event-repeat-done"
         onClick={() => onDone(frequency ? { frequency, ...(until ? { until } : {}) } : null)}
-        style={{ width: '100%', minHeight: 48, borderRadius: 12, background: 'var(--hs-accent)', color: '#fff', fontSize: 15, fontWeight: 700, border: 0, fontFamily: 'inherit', marginTop: 6 }}
+        style={{ marginTop: 6 }}
       >
         {t('calendarTab.form.done')}
-      </button>
+      </PrimaryButton>
     </BottomSheet>
   );
 }

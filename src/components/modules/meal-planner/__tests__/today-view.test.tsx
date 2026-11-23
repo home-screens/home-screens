@@ -41,16 +41,16 @@ function todayAt(nowMinutes: number, showTitle = true) {
 describe('the small Today view', () => {
   it("shows today's meals while today has one to come, its tags worded as the phone words them", () => {
     const { container } = todayAt(12 * 60);
-    expect(container.textContent).toContain("Today's Meals");
+    expect(container.textContent).toContain("Today's meals");
     expect(container.textContent).toContain('Tacos');
-    expect(container.textContent).toContain('Kid-Friendly');
+    expect(container.textContent).toContain('Kid-friendly');
   });
 
   /* It kept tonight's finished dinner up until midnight, while the
    * full-screen Today and Next meal had moved on to tomorrow. */
   it("turns to tomorrow once today's last meal is over, into next week too", () => {
     const { container } = todayAt(21 * 60);
-    expect(container.textContent).toContain("Tomorrow's Meals");
+    expect(container.textContent).toContain("Tomorrow's meals");
     expect(container.textContent).toContain('Soup');
     expect(container.textContent).not.toContain('Tacos');
   });

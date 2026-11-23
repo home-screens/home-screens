@@ -66,11 +66,11 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
       {/* Unset reads as on: a tap did nothing before, so nothing on a wall moves until someone touches it. */}
       <div className="flex flex-col gap-1">
         <Toggle
-          label={t('configSections.fullscreen-photo.interactive')}
+          label={t('configSections.tapOnWall')}
           checked={c.interactive !== false}
           onChange={(v) => set({ interactive: v })}
+          description={t('configSections.fullscreen-photo.interactiveHintCard')}
         />
-        <p className="text-xs leading-relaxed text-hs-text-muted">{t('configSections.fullscreen-photo.interactiveHintCard')}</p>
       </div>
     </>
   );

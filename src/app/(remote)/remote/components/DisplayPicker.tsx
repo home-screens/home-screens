@@ -2,6 +2,7 @@
 
 import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
+import { toggleChipStyle } from './remote-styles';
 
 /**
  * Segmented control at the top of the remote that lets the user pick which
@@ -39,12 +40,11 @@ export default function DisplayPicker() {
           return (
             <button
               key={opt.value}
+              type="button"
               onClick={() => setTarget(opt.value)}
-              className={`shrink-0 px-3.5 py-2 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
-                active
-                  ? 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/25'
-                  : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
-              }`}
+              aria-pressed={active}
+              className="press-scale-sm shrink-0"
+              style={toggleChipStyle(active)}
             >
               {opt.label}
             </button>

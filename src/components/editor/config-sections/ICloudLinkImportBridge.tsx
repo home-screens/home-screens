@@ -3,6 +3,7 @@
 import Button from '@/components/ui/Button';
 import { useICloudImport, type ICloudImportJobStatus } from '@/hooks/useICloudImport';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 
 /** Where every wrong-link bridge saves iCloud content in the library. */
 export const ICLOUD_IMPORT_FOLDER = 'icloud-imports';
@@ -37,9 +38,9 @@ export function ICloudLinkImportBridge({ url, introKey, noItemsKey, savedSomethi
 
   return (
     <div className="space-y-1.5 p-2 rounded bg-hs-card border border-hs-border-strong">
-      <p className="text-[11px] text-hs-text-muted leading-relaxed">
+      <FieldHint>
         {t(introKey)}
-      </p>
+      </FieldHint>
       {running && job ? (
         <p className="text-[11px] text-hs-text-muted">
           {t('icloudImport.progress', { done: job.done + job.skipped, total: job.total })}
@@ -50,12 +51,12 @@ export function ICloudLinkImportBridge({ url, introKey, noItemsKey, savedSomethi
         </Button>
       )}
       {finished && job && !savedSomething(job) && (
-        <p className="text-[11px] text-hs-warning">
+        <p className="text-[11px] text-hs-warning-ink">
           {t(noItemsKey)}
         </p>
       )}
       {errorKey && (
-        <p className="text-[11px] text-hs-warning">{t(`icloudImport.errors.${errorKey}`)}</p>
+        <p className="text-[11px] text-hs-warning-ink">{t(`icloudImport.errors.${errorKey}`)}</p>
       )}
     </div>
   );

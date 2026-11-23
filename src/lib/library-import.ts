@@ -329,7 +329,7 @@ export interface PictureImportResult {
 
 /**
  * Copy one picked picture into the library: the one path every source's
- * "Select Image" takes. It downloads on the hub (an Immich pick no longer
+ * "Use this picture" takes. It downloads on the hub (an Immich pick no longer
  * travels hub to browser to hub), streams to disk under the import size cap,
  * names the file `<kind>-<id>` so picking the same picture again reuses the
  * copy instead of making `-2`, `-3` duplicates, and bumps the library

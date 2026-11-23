@@ -8,13 +8,13 @@
  * holiday feed, so this list only holds what nobody outside the school knows.
  */
 
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { TIMETABLE_LIMITS, type TimetableSchool, type TimetableSpecialDay } from '@/types/timetables';
 import NameInput from './NameInput';
-import { PROSE_CLASS } from './prose';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface SpecialDaysEditorProps {
   school: TimetableSchool;
@@ -129,12 +129,14 @@ export default function SpecialDaysEditor({ school, periods, onChange }: Special
 
       <Button
         size="sm"
+        className="inline-flex items-center gap-1"
         onClick={addDay}
         disabled={school.specialDays.length >= TIMETABLE_LIMITS.maxSpecialDaysPerSchool}
       >
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
         {t('timetableModal.specialDays.add')}
       </Button>
-      <p className={`${PROSE_CLASS} text-hs-text-faint`}>{t('timetableModal.specialDays.help')}</p>
+      <FieldHint>{t('timetableModal.specialDays.help')}</FieldHint>
     </div>
   );
 }

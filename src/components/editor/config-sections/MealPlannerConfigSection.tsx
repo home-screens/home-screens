@@ -20,6 +20,8 @@ import type {
   MealPlannerView,
   RecipeTapAction,
 } from '@/types/config';
+import FieldHint from '@/components/ui/FieldHint';
+import { settingsPlaceText } from '@/lib/settings-route';
 
 type Config = {
   view?: MealPlannerView;
@@ -36,6 +38,7 @@ type Config = {
 
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
   // Only the switches this view draws; a hidden one keeps its saved value.
@@ -54,7 +57,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
 
   return (
     <>
-      {/* View Mode */}
+      {/* View mode */}
       <ViewSelect
         value={view}
         onChange={(v) => set({ view: v })}
@@ -103,40 +106,39 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
             ]}
           />
           {c.tapRecipeAction === 'card' && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.meal-planner.tapRecipeActionCardHint')}
-            </p>
+            </FieldHint>
           )}
           {c.tapRecipeAction === 'iframe' && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.meal-planner.tapRecipeActionIframeHint')}
-            </p>
+            </FieldHint>
           )}
           {(c.tapRecipeAction === 'qr' || c.tapRecipeAction === 'iframe') && (
-            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            <FieldHint>
               {t('configSections.meal-planner.tapRecipeActionNoLinkHint')}
-            </p>
+            </FieldHint>
           )}
         </>
       )}
 
       {/* Every view follows it: ticking the grocery list, opening recipes, rating dinner and scrolling long lists on the wall */}
       <Toggle
-        label={t('configSections.meal-planner.interactive')}
+        label={t('configSections.tapOnWall')}
         checked={c.interactive !== false}
         onChange={(v) => set({ interactive: v })}
+        description={t('configSections.meal-planner.interactiveHint')}
       />
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.meal-planner.interactiveHint')}
-      </p>
       {/* The grocery view's Add row needs taps (groceryCardAdds). */}
       {view === 'grocery' && c.interactive !== false && (
         <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
       )}
 
-      {/* Accent Color */}
+      {/* Accent color */}
       <ColorPicker
         label={t('configSections.meal-planner.accentColor')}
+        swatches="accent"
         value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -144,11 +146,11 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Note: planning settings (which slots, week start, default times, time format)
           are shared across all meal modules. Edit them from either Settings → Meals
           (in the editor) or the /remote settings drawer. */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
+      <FieldHint>
         {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
-        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</Link>{' '}
+        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{settingsPlaceText(tCore, 'meals')}</Link>{' '}
         {t('configSections.meal-planner.sharedSettingsSuffix')}
-      </p>
+      </FieldHint>
       <PhoneSurfaceLinks context="meals" />
 
       <MealPlanLauncher meals={meals} accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR} countKeyPrefix="meal-planner" open={showModal} onOpenChange={setShowModal} />

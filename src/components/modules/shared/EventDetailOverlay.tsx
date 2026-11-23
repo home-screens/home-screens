@@ -109,7 +109,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
   const description = sanitizeEventDescription(event.description);
   const start = parseEventWallTime(event.start, timezone);
   const time = describeEventTime(event, now, locale, {
-    allDay: t('event-detail.allDay'),
+    allDay: t('calendar.allDay'),
     today: tCore('today'),
     happeningNow: t('event-detail.happeningNow'),
   }, timeFormat, timezone);

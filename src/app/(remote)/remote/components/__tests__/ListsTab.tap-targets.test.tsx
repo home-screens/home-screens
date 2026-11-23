@@ -55,7 +55,7 @@ function size(el: HTMLElement): { width: number; height: number } {
 }
 
 describe('Lists tab tap targets', () => {
-  it('reserves 44 px for the list chips, New list, List settings and the drag handle', async () => {
+  it('reserves 44 px for the list chips, New list, List settings, the drag handle and the pencil', async () => {
     render(<ListsTab selectedListId="l1" onSelectList={() => {}} />, { wrapper });
     await act(async () => {});
 
@@ -72,5 +72,9 @@ describe('Lists tab tap targets', () => {
     const handle = screen.getByRole('button', { name: remote.lists.item.move.replace('{text}', 'Permission slip') });
     expect(size(handle).width).toBeGreaterThanOrEqual(44);
     expect(size(handle).height).toBeGreaterThanOrEqual(44);
+
+    const pencil = screen.getByRole('button', { name: remote.lists.item.edit.replace('{text}', 'Permission slip') });
+    expect(size(pencil).width).toBeGreaterThanOrEqual(44);
+    expect(size(pencil).height).toBeGreaterThanOrEqual(44);
   });
 });

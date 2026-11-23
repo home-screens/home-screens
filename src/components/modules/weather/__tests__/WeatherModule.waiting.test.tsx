@@ -38,7 +38,7 @@ describe('WeatherModule before the first payload', () => {
 
   it('admits the weather is not updating on a transient failure', () => {
     render(ui({ weatherError: { kind: 'transient', message: 'API error 502' } }));
-    expect(screen.getByText('Weather is not updating')).toBeTruthy();
+    expect(screen.getByText('Not updating right now')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/502/);
   });
 
@@ -47,7 +47,7 @@ describe('WeatherModule before the first payload', () => {
     render(ui({}));
     expect(screen.getByText('Getting the forecast…')).toBeTruthy();
     act(() => { vi.advanceTimersByTime(20_000); });
-    expect(screen.getByText('Weather is not updating')).toBeTruthy();
+    expect(screen.getByText('Not updating right now')).toBeTruthy();
   });
 
   it('still shows the genuine empty state once a provider answers with nothing', () => {

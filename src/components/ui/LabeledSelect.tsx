@@ -13,6 +13,9 @@ interface LabeledSelectProps<T extends string> {
   options: ReadonlyArray<LabeledSelectOption<T>>;
   className?: string;
   fieldClassName?: string;
+  /** The help line under the select (see `LabeledField`). */
+  hint?: React.ReactNode;
+  hintTestId?: string;
 }
 
 export default function LabeledSelect<T extends string>({
@@ -22,9 +25,11 @@ export default function LabeledSelect<T extends string>({
   options,
   className,
   fieldClassName,
+  hint,
+  hintTestId,
 }: LabeledSelectProps<T>) {
   return (
-    <LabeledField label={label} className={fieldClassName}>
+    <LabeledField label={label} className={fieldClassName} hint={hint} hintTestId={hintTestId}>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}

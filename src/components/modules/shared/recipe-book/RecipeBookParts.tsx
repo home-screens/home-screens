@@ -2,16 +2,16 @@
 
 import { wallPressProps } from '../wallPress';
 import { WallCaret } from '../WallTextField';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { useInteractionHold } from '@/lib/interaction-hold';
 import { isMealieMeal } from '@/lib/meal-dish-rules';
 import { chipsThatFit, recipeBookChipId, type RecipeBookChip } from '@/lib/meal-recipe-book';
 import { useElementBox } from '@/hooks/useElementBox';
 import MealPicture from '@/components/meals/MealPicture';
 import { useMealMinutes } from '../useMealMinutes';
+import { useWallSheet } from '../useWallSheet';
 import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 /** The chooser of every chip closes itself after this long with no touch, like the event detail. */
@@ -370,23 +370,16 @@ function ChipSheet({ chips, activeId, P, size, onChoose, onClose }: {
 }) {
   const t = useTranslate('modules');
   const label = useChipLabel();
-  useInteractionHold();
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
-  const [touchedAt, setTouchedAt] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => closeRef.current(), CHIP_SHEET_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [touchedAt]);
+  const { touched, settled } = useWallSheet({ onClose, autoCloseMs: CHIP_SHEET_AUTO_CLOSE_MS });
   return (
     <div
       data-testid="recipe-book-chip-sheet"
-      onClick={onClose}
+      onClick={settled(onClose)}
+      onPointerDown={touched}
       style={{ position: 'absolute', inset: 0, zIndex: 20, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'flex-end' }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        onPointerDown={() => setTouchedAt(Date.now())}
         style={{
           width: '100%', maxHeight: '80%', overflowY: 'auto', scrollbarWidth: 'none', background: 'var(--fmp-bg)',
           borderRadius: `${P(36)}px ${P(36)}px 0 0`, boxShadow: '0 -16px 60px rgba(0,0,0,0.3)', padding: `${P(22)}px ${P(48)}px ${P(48)}px`,

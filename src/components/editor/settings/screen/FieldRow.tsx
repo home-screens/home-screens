@@ -21,7 +21,3 @@ export function FieldRow({ fieldId, children }: { fieldId?: string; children: Re
 export function FieldLabel({ children }: { children: ReactNode }) {
   return <div className="text-xs text-hs-text-muted mb-2">{children}</div>;
 }
-
-export function FieldHelp({ children }: { children: ReactNode }) {
-  return <p className="text-[11px] text-hs-text-faint mt-1.5">{children}</p>;
-}

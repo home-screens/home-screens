@@ -18,6 +18,9 @@ import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useGoogleApps } from '@/hooks/useGoogleApps';
 import { useTranslate } from '@/i18n';
 import { isServiceConnected, servicesForPage } from '@/lib/connectable-services';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
+import StatusDot from '@/components/ui/StatusDot';
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -63,7 +66,7 @@ export default function IntegrationsSection() {
   if (loading || appsLoading) {
     return (
       <section>
-        <p className="text-xs text-hs-text-faint">{t('settings.integrationsPage.loadingStatus')}</p>
+        <FieldHint>{t('settings.integrationsPage.loadingStatus')}</FieldHint>
       </section>
     );
   }
@@ -82,7 +85,7 @@ export default function IntegrationsSection() {
 
       {/* Summary bar */}
       <div className="flex items-center gap-2 px-3.5 py-2.5 bg-hs-hover border border-hs-border-strong/60 rounded-lg mb-7">
-        <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-hs-success' : 'bg-hs-card'}`} />
+        <StatusDot tone={configuredCount > 0 ? 'success' : 'neutral'} />
         <span className="text-[13px] text-hs-text-muted">
           <strong className="text-hs-text-secondary">{configuredCount}</strong>
           {t('settings.integrationsPage.summary.configuredCountPart1')}
@@ -93,17 +96,17 @@ export default function IntegrationsSection() {
 
       {/* Google — full width */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.integrationsPage.groups.googleEcosystem')}
-        </div>
+        </SettingsSectionHeading>
         <GoogleIntegrationCard status={status} onSaved={refetchGoogle} apps={apps} />
       </div>
 
-      {/* Photos & Backgrounds — 2-col masonry */}
+      {/* Photos & backgrounds: 2-col masonry */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.integrationsPage.groups.photosAndBackgrounds')}
-        </div>
+        </SettingsSectionHeading>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <IntegrationCard
             fieldId="integrations.immich"
@@ -176,9 +179,9 @@ export default function IntegrationsSection() {
 
       {/* Services — 2-col masonry */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+        <SettingsSectionHeading>
           {t('settings.integrationsPage.groups.services')}
-        </div>
+        </SettingsSectionHeading>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <MealieIntegrationCard
             status={status}

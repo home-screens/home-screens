@@ -1,7 +1,7 @@
 import type { AffirmationEntry } from './types';
 
 // ---------------------------------------------------------------------------
-// Built-in content library — nl-NL (198 entries)
+// Built-in content library: nl-NL (198 entries)
 // ---------------------------------------------------------------------------
 
 export const NL_NL_AFFIRMATIONS: AffirmationEntry[] = [

@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 
 /**
  * One-line confirmations for the family remote ("Alert sent to Kitchen",
@@ -19,8 +20,8 @@ export interface RemoteToast {
 
 const INFO_MS = 3_500;
 const ERROR_MS = 6_000;
-/** A toast with a button stays long enough to read it and reach the button. */
-const ACTION_MS = 7_000;
+/** A toast with a button (an Undo) stays as long as every surface's Undo does. */
+const ACTION_MS = UNDO_WINDOW_MS;
 
 let current: RemoteToast | null = null;
 let counter = 0;

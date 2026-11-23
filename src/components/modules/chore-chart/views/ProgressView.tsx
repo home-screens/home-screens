@@ -170,7 +170,7 @@ export function ProgressView({ config, data, width, fontSize }: ProgressViewProp
             textTransform: 'uppercase',
           }}
         >
-          {t('chore-chart.thisWeek')}
+          {t('lookAhead.thisWeek')}
         </div>
         <div
           className="rounded-lg p-2 space-y-1"

@@ -42,7 +42,7 @@ export default function ChoreHistoryBanner({ viewingDate, canEdit }: ChoreHistor
         borderRadius: 10,
         marginBottom: 10,
         fontSize: 12,
-        color: 'var(--hs-warning)',
+        color: 'var(--hs-warning-ink)',
         lineHeight: 1.4,
       }}
     >

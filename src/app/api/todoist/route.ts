@@ -169,7 +169,7 @@ async function fetchTodoistList(
   } while (cursor && pageCount < MAX_PAGES);
 
   if (cursor) {
-    log.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages — returning a truncated list`);
+    log.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages; returning a truncated list`);
   }
 
   return { items: results, truncated: cursor !== null };

@@ -4,11 +4,15 @@ import {
   resolveSettingsRoute,
   settingsHref,
   settingsPath,
+  settingsPlaceText,
+  placeText,
   DEFAULT_PAGE_IDS,
   PER_DISPLAY_SUBTABS,
   type DefaultPageId,
   type SettingsRoute,
 } from '@/lib/settings-route';
+import { lookupKey } from '@/i18n/fallback';
+import coreWords from '@/translations/en-US/core.json';
 
 /**
  * Pure-function unit tests for the settings route parser. These exist
@@ -403,5 +407,28 @@ describe('resolveSettingsRoute landingPage', () => {
   it('keeps foreign params and a highlight through the landing rewrite', () => {
     const { redirectedQuery } = resolveSettingsRoute('utm=x&highlight=location.latitude', { landingPage: 'location' });
     expect(redirectedQuery).toBe('utm=x&section=defaults&page=location&highlight=location.latitude');
+  });
+});
+
+describe('settingsPlaceText', () => {
+  const tCore = ((key: string) => lookupKey(coreWords, key) ?? key) as Parameters<typeof settingsPlaceText>[0];
+
+  it('names a page the way the sidebar does, with one separator', () => {
+    expect(settingsPlaceText(tCore, 'location')).toBe('Settings > Location & language');
+    expect(settingsPlaceText(tCore, 'integrations')).toBe('Settings > API keys');
+  });
+
+  it('adds steps inside the page', () => {
+    expect(settingsPlaceText(tCore, 'automation', 'Shared state')).toBe('Settings > Automation > Shared state');
+  });
+
+  it('has a page name in core for every page a hint can point at', () => {
+    for (const page of [...DEFAULT_PAGE_IDS, 'displays'] as const) {
+      expect(lookupKey(coreWords, `settingsPages.${page}`), page).toBeTruthy();
+    }
+  });
+
+  it('joins steps that are already words', () => {
+    expect(placeText(['Defaults', 'Screen'])).toBe('Defaults > Screen');
   });
 });

@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
@@ -19,7 +19,6 @@ import { TIMETABLE_SUBJECT_ICONS } from '@/lib/timetable-subjects/types';
 import type { FamilyMember } from '@/types/family';
 import { TIMETABLE_LIMITS, type TimetableData, type TimetableSubject } from '@/types/timetables';
 import MemberDot from './MemberDot';
-import { PROSE_CLASS } from './prose';
 import { SubjectIcon, subjectTint } from './SubjectPalette';
 import {
   makeSubject,
@@ -29,6 +28,8 @@ import {
   withSubject,
   withoutSubject,
 } from './use-timetable-draft';
+import FieldHint from '@/components/ui/FieldHint';
+import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
 
 /** Up to this many people are spelled out; past it the column counts them. */
@@ -47,6 +48,7 @@ interface SubjectsTabProps {
 
 export default function SubjectsTab({ data, members, update }: SubjectsTabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [openId, setOpenId] = useState<string | null>(null);
   /** The Short box of every row, so a new subject can be put on screen. */
   const codeBoxes = useRef(new Map<string, HTMLInputElement | null>());
@@ -89,12 +91,11 @@ export default function SubjectsTab({ data, members, update }: SubjectsTabProps)
   const remove = async (subject: TimetableSubject) => {
     const users = subjectMembers(data, subject.id);
     if (users.length > 0) {
-      const ok = await useConfirmStore.getState().confirm({
-        title: t('timetableModal.subjects.removeConfirm.title'),
-        message: t('timetableModal.subjects.removeConfirm.message', { name: subject.name || subject.code }),
-        confirmLabel: t('timetableModal.subjects.removeConfirm.confirmLabel'),
-        variant: 'danger',
-      });
+      const ok = await useConfirmStore.getState().confirm(buildDeleteConfirm({
+        verb: 'delete',
+        name: subject.name || subject.code,
+        consequence: t('timetableModal.subjects.removeConfirm.message'),
+      }, tCore));
       if (!ok) return;
     }
     update((current) => withoutSubject(current, subject.id));
@@ -213,10 +214,11 @@ export default function SubjectsTab({ data, members, update }: SubjectsTabProps)
         one control the screen is for was the one control nobody could see.
       */}
       <div className="flex flex-wrap items-center gap-2 border-t border-hs-border px-4 py-2.5">
-        <Button size="sm" onClick={add} disabled={data.subjects.length >= TIMETABLE_LIMITS.maxSubjects}>
+        <Button size="sm" className="inline-flex items-center gap-1" onClick={add} disabled={data.subjects.length >= TIMETABLE_LIMITS.maxSubjects}>
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           {t('timetableModal.subjects.add')}
         </Button>
-        <span className={`${PROSE_CLASS} text-hs-text-faint`}>{t('timetableModal.subjects.note')}</span>
+        <FieldHint>{t('timetableModal.subjects.note')}</FieldHint>
       </div>
     </div>
   );

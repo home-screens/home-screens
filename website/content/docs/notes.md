@@ -14,7 +14,7 @@ nextjs:
 
 - **The wall** shows a **Notes** module. Pick one of twenty-two views, from a full board or a single line along the bottom of the screen to a chalkboard or a neon sign. The wall only shows notes; nothing can be changed from it.
 - **The family remote** at `/remote` has a **Notes** tab. That is where most notes are written, changed, taken down and posted again.
-- **The editor** puts the board on a screen and picks how it looks. Its **Manage notes** button writes and changes notes from the computer too.
+- **The editor** puts the board on a screen and picks how it looks. Its **Edit notes** button writes and changes notes from the computer too.
 
 There is one board for the whole house. Put the Notes module on as many screens and displays as you like, each in its own view, and they all show the same notes.
 
@@ -32,7 +32,7 @@ The **Write a note** bar sits above the tab bar. For a quick one, type it and pr
 
 - **Note**: up to 500 characters of plain text. The counter shows how many you have used.
 - **From**: who wrote it. Pick a person from your family under **Settings > Family**, or **Nobody** for a note from the whole house. Your phone remembers the last pick, so your next note is already from you, and so is a quick note from the bar. A note from nobody shows on the wall as from "Someone".
-- **Show for**: how long it stays on the wall. **12 hours**, **1 day** (the default), **3 days**, **1 week**, or **Keep**, which stays until you take it down. Good for the WiFi password or the babysitter's number.
+- **Show for**: how long it stays on the wall. **12 hours**, **1 day** (the default), **3 days**, **1 week**, or **Keep**, which stays until you take it down. Good for the Wi-Fi password or the babysitter's number.
 - **Pin to top**: keeps the note above all the others, with a pin, in every view that has an order.
 - **Important**: shows the note in red on the wall, for the things nobody can miss.
 
@@ -51,7 +51,7 @@ Notes stay in Gone for a week, then they are cleared away for you.
 
 ## 4. Write notes from the editor
 
-Select the Notes module in the editor and press **Manage notes** at the top of its settings. The **Family notes** window has the same choices as the phone:
+Select the Notes module in the editor and press **Edit notes** at the top of its settings. The **Family notes** window has the same choices as the phone:
 
 - **New note** at the top: type the note, pick **From** and **Show for**, switch on **Pin to top** or **Important** if you want them, and press **Post**. Ctrl+Enter, or Cmd+Enter on a Mac, posts too. The editor remembers who you last posted as.
 - **On the wall** lists every note that is up now. Click into a note's words to change them. Each note also has its own **From** and **Show for**, a pin and an important switch, and **Take down**. Changing **Show for** starts its time over from now.
@@ -84,7 +84,7 @@ The layouts sit on the module's own card, which follows the **Style** section li
 
 ### Materials
 
-A material turns the whole card into something from around the house, with its own colours and lettering. Because it brings its own look, the editor hides the card's **Background**, **Text Color**, **Border Color**, **Border Width**, **Font Family** and **Frosted glass** for it. The rest of the Style section, such as **Text size**, corner rounding, space inside, **Solid** and shadow, still works.
+A material turns the whole card into something from around the house, with its own colours and lettering. Because it brings its own look, the editor hides the card's **Background**, **Text color**, **Border color**, **Border width**, **Font family** and **Frosted glass** for it. The rest of the Style section, such as **Text size**, corner rounding, space inside, **Solid** and shadow, still works.
 
 - **Chalkboard**: a slate in a wooden frame with a chalk tray. Notes in chalk handwriting, names in a lighter version of each person's colour, a star on the pinned note and yellow chalk for an important one.
 - **Letterboard**: black felt in an oak frame with chunky white plastic letters, like a hallway letter board. One note at a time, moving on like Spotlight, with a small letter tag for who wrote it.

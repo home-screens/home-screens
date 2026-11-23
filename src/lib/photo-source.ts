@@ -11,7 +11,7 @@ import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from '@/lib/icloud-p
  *
  * Each place a picture is chosen used to carry its own list of sources and
  * its own key checks, so a source built for one spot (Immich in the
- * background picker) was missing from the next (the Image Library). The
+ * background picker) was missing from the next (the Pictures & videos window). The
  * lists below are the one place a kind is offered.
  */
 
@@ -30,7 +30,7 @@ export function isPhotoSourceKind(value: unknown): value is PhotoSourceKind {
 
 /**
  * Where a source is used:
- * - `pick`: choosing one picture, copied into the library (the Image Library)
+ * - `pick`: choosing one picture, copied into the library (the Pictures & videos window)
  * - `stream`: a changing list of pictures (Photo Slideshow, Full-screen Photo)
  * - `background`: a screen's rotating background, one still picture at a time
  */
@@ -96,7 +96,7 @@ export function usesCount(kind: PhotoSourceKind): boolean {
  *
  * Picking one picture offers the sources that can be browsed one picture at
  * a time; an iCloud album is added to the library as a whole from the
- * Local tab instead, and OneDrive has no single-picture browser yet. A
+ * library tab instead, and OneDrive has no single-picture browser yet. A
  * stream takes every kind of photos; a rotating background takes those and
  * the walls that come with Home Screens, which are no good as a slideshow.
  */
@@ -431,6 +431,25 @@ export function emptyStateFor(source: PhotoSource): PhotoSourceEmptyReason {
     case 'art': return 'checkArt';
   }
 }
+
+/**
+ * What a photo module with no pictures says, by why it has none
+ * (`emptyStateFor`): a title, and where the fix is. Keys in the `modules`
+ * dictionary. The slideshow card and the full-screen photo both draw these,
+ * so the iCloud or OneDrive advice is written, and translated, once.
+ * `addPhotos` is fixed from a phone, so its hint carries `{url}` for the
+ * hub's phone address (`FamilyEmptyState`); every other fix is in the editor.
+ */
+export const PHOTO_EMPTY_KEYS: Record<PhotoSourceEmptyReason, { title: string; hint: string }> = {
+  addPhotos: { title: 'common.photoEmpty.noPhotos', hint: 'common.photoEmpty.hint.addPhotos' },
+  pickPictures: { title: 'common.photoEmpty.nonePicked', hint: 'common.photoEmpty.hint.pickPictures' },
+  checkFilters: { title: 'common.photoEmpty.noPhotos', hint: 'common.photoEmpty.hint.checkFilters' },
+  checkLink: { title: 'common.photoEmpty.noPhotos', hint: 'common.photoEmpty.hint.checkLink' },
+  checkFolder: { title: 'common.photoEmpty.noPhotos', hint: 'common.photoEmpty.hint.checkFolder' },
+  checkSearch: { title: 'common.photoEmpty.noPhotos', hint: 'common.photoEmpty.hint.checkSearch' },
+  checkArt: { title: 'common.photoEmpty.noPaintings', hint: 'common.photoEmpty.hint.checkArt' },
+  tryLater: { title: 'common.photoEmpty.noneFromNasa', hint: 'common.photoEmpty.hint.tryLater' },
+};
 
 /** Pictures per refresh: 50 unless set, held to 1..`maxPhotoCount(kind)`. */
 export const DEFAULT_PHOTO_COUNT = 50;

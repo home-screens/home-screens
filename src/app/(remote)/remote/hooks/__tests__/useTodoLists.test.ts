@@ -224,4 +224,46 @@ describe('useTodoLists', () => {
     await waitFor(() => expect(view.result.current.loaded).toBe(true));
     expect(view.result.current.loadError).toBe(false);
   });
+
+  // A deleted item goes at once with an Undo; Undo has to put back the same
+  // thing in the same place, not a bare copy of its words at the bottom.
+  it('puts a deleted item back where it was, with its day, its people and its tick', async () => {
+    store.lists[0].items = [
+      { id: 'milk', text: 'Milk', completed: false, createdAt: NOW },
+      { id: 'eggs', text: 'Eggs', completed: true, completedAt: NOW, createdAt: NOW, dueDate: '2026-11-05', assigneeIds: ['noah'] },
+      { id: 'bread', text: 'Bread', completed: false, createdAt: NOW },
+    ];
+    const { view } = await mounted();
+    const eggs = view.result.current.lists[0].items[1];
+    act(() => { view.result.current.deleteItem('groceries', 'eggs'); });
+    await waitFor(() => expect(store.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Bread']));
+
+    act(() => { view.result.current.restoreItem('groceries', eggs, 1); });
+    // Shown back in its place at once, before the hub answers.
+    expect(view.result.current.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Eggs', 'Bread']);
+    await waitFor(() => expect(store.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Eggs', 'Bread']));
+    await waitFor(() => expect(store.lists[0].items[1].completed).toBe(true));
+    expect(store.lists[0].items[1]).toMatchObject({ dueDate: '2026-11-05', assigneeIds: ['noah'] });
+    expect(writes.at(-3)).toMatchObject({ method: 'POST', body: { text: 'Eggs', dueDate: '2026-11-05', assigneeIds: ['noah'] } });
+  });
+
+  // The toast's Undo is wired up in the render before the delete, so it holds
+  // the list as it was, the deleted item still in it.
+  it('puts a deleted item back in its place from the Undo wired up before the delete', async () => {
+    store.lists[0].items = [
+      { id: 'milk', text: 'Milk', completed: false, createdAt: NOW },
+      { id: 'eggs', text: 'Eggs', completed: false, createdAt: NOW },
+      { id: 'bread', text: 'Bread', completed: false, createdAt: NOW },
+    ];
+    const { view } = await mounted();
+    const before = view.result.current;
+    const milk = before.lists[0].items[0];
+    act(() => { before.deleteItem('groceries', 'milk'); });
+    await waitFor(() => expect(store.lists[0].items.map((i) => i.text)).toEqual(['Eggs', 'Bread']));
+
+    act(() => { before.restoreItem('groceries', milk, 0); });
+    expect(view.result.current.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Eggs', 'Bread']);
+    await waitFor(() => expect(store.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Eggs', 'Bread']));
+    expect(showToast).not.toHaveBeenCalledWith(expect.anything(), 'error');
+  });
 });

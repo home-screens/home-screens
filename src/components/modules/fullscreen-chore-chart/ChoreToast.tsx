@@ -4,6 +4,7 @@ import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { useEffect, useRef } from 'react';
 import { Undo2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 
 export interface ToastItem {
   id: string;
@@ -43,8 +44,6 @@ interface ChoreToastProps {
   top?: number;
 }
 
-const TOAST_DURATION = 4000;
-
 function ToastEntry({
   toast,
   scale,
@@ -61,7 +60,8 @@ function ToastEntry({
   const fontSize = 24 * scale;
 
   useEffect(() => {
-    timerRef.current = setTimeout(() => onDismiss(toast.id), TOAST_DURATION);
+    // The toast carries an Undo, so it stays as long as every other Undo does.
+    timerRef.current = setTimeout(() => onDismiss(toast.id), UNDO_WINDOW_MS);
     return () => clearTimeout(timerRef.current);
   }, [toast.id, onDismiss]);
 

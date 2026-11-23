@@ -3,7 +3,7 @@
 import { useRefetchOnClose } from '@/hooks/useRefetchOnClose';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
-import { Pencil, Users } from 'lucide-react';
+import { Pencil, Plus, Users } from 'lucide-react';
 import clsx from 'clsx';
 import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
@@ -27,6 +27,8 @@ import type {
 import { DEFAULT_TOMORROW_FROM } from '@/lib/timetable-day';
 import { withAlpha } from '@/lib/hex-color';
 import { memberInitials } from '@/lib/family-avatar';
+import { CHECKBOX_CLASS, INPUT_CLASS } from '@/components/ui/input-classes';
+import FieldHint from '@/components/ui/FieldHint';
 
 const FAMILY_PAGE = settingsPath({ kind: 'defaults', page: 'family' });
 
@@ -68,6 +70,7 @@ const EDGE_FADE = 'pointer-events-none absolute inset-x-px h-7 transition-opacit
 
 export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   // The caption over the list of names is the list's own name, so the tick
   // boxes are read as one group rather than as loose checkboxes.
   const showLabelId = useId();
@@ -203,7 +206,7 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
                     {hasTimetable ? (
                       <input
                         type="checkbox"
-                        className="h-4 w-4 shrink-0 accent-hs-accent"
+                        className={CHECKBOX_CLASS}
                         checked={chosen.has(member.id)}
                         aria-label={t('configSections.timetable.showMember', { name: member.name })}
                         onChange={(event) => toggleMember(member.id, event.target.checked)}
@@ -215,9 +218,10 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
                         aria-haspopup="dialog"
                         aria-expanded={windowFor?.memberId === member.id}
                         onClick={() => setWindowFor({ memberId: member.id })}
-                        className="shrink-0 text-[11px] font-medium text-hs-accent hover:text-hs-accent-hover"
+                        className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-hs-accent hover:text-hs-accent-hover"
                       >
-                        {t('configSections.timetable.add')}
+                        <Plus className="h-3 w-3" aria-hidden="true" />
+                        {tCore('actions.add')}
                       </button>
                     )}
                   </div>
@@ -241,7 +245,7 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
           {/* The picker looks like it is building an order and is not: one place
               decides who stands where, and it is the family list. */}
           {chosen.size > 1 && (
-            <p className="text-[11px] text-hs-text-faint">{t('configSections.timetable.cardOrder')}</p>
+            <FieldHint>{t('configSections.timetable.cardOrder')}</FieldHint>
           )}
 
           <p className="flex items-center gap-1.5 text-[11px] text-hs-text-faint">
@@ -263,7 +267,7 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
             href={FAMILY_PAGE}
             className="mt-2 inline-block rounded-md bg-hs-accent px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-hs-accent-hover"
           >
-            {t('configSections.timetable.openFamily')}
+            {t('configSections.timetable.manageFamily')}
           </Link>
         </div>
       )}
@@ -284,20 +288,15 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
         <TimetableModal memberId={windowFor.memberId} onClose={() => setWindowFor(null)} />
       )}
 
-      <div className="space-y-1">
-        <LabeledField label={t('configSections.timetable.view')} as="div">
-          <SegmentedControl
-            label={t('configSections.timetable.view')}
-            value={view}
-            onChange={(next) => set({ view: next })}
-            options={VIEWS}
-            disabled={!hasFamily}
-          />
-        </LabeledField>
-        <p className="text-[11px] leading-relaxed text-hs-text-faint">
-          {t('configSections.timetable.viewHelp')}
-        </p>
-      </div>
+      <LabeledField label={t('configSections.timetable.view')} as="div" hint={t('configSections.timetable.viewHelp')}>
+        <SegmentedControl
+          label={t('configSections.timetable.view')}
+          value={view}
+          onChange={(next) => set({ view: next })}
+          options={VIEWS}
+          disabled={!hasFamily}
+        />
+      </LabeledField>
 
       <div className="space-y-1">
         <LabeledField label={t('configSections.timetable.layout')} as="div">
@@ -313,9 +312,9 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
             two arrangements of week cards, so the line under the control
             says which is which. */}
         {view === 'day' && (
-          <p className="text-[11px] leading-relaxed text-hs-text-faint">
+          <FieldHint>
             {t('configSections.timetable.layoutHelpDay')}
-          </p>
+          </FieldHint>
         )}
       </div>
 
@@ -331,9 +330,9 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
         </LabeledField>
         {/* Static wording: how much fits in a cell is the household's choice,
             and the module never swaps it to suit the box. */}
-        <p className="text-[11px] leading-relaxed text-hs-text-faint">
+        <FieldHint>
           {t('configSections.timetable.detailHelp')}
-        </p>
+        </FieldHint>
       </div>
 
       {/* Settings that do nothing in the current view are hidden rather than
@@ -356,18 +355,15 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
       )}
       {view === 'day' && (
         <div className="space-y-1">
-          <LabeledField label={t('configSections.timetable.tomorrowFrom')}>
+          <LabeledField label={t('configSections.timetable.tomorrowFrom')} hint={t('configSections.timetable.tomorrowFromHelp')}>
             <input
               type="time"
               value={c.tomorrowFrom ?? DEFAULT_TOMORROW_FROM}
               onChange={(event) => set({ tomorrowFrom: event.target.value || DEFAULT_TOMORROW_FROM })}
               disabled={!hasFamily}
-              className="w-full rounded-md border border-hs-border-strong bg-hs-card/60 px-2 py-1 text-xs tabular-nums text-hs-text-body"
+              className={`tabular-nums ${INPUT_CLASS}`}
             />
           </LabeledField>
-          <p className="text-[11px] leading-relaxed text-hs-text-faint">
-            {t('configSections.timetable.tomorrowFromHelp')}
-          </p>
           <Toggle
             label={t('configSections.timetable.showNowLine')}
             checked={c.showNowLine ?? true}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildChoreRows, getUniqueInitials, mergeChoreRows } from '@/lib/chore-rows';
+import { buildChoreRows, mergeChoreRows } from '@/lib/chore-rows';
 import type { ResolvedAssignment } from '@/lib/chore-assignments';
 import type { ChoreDefinition } from '@/types/config';
 
@@ -23,80 +23,6 @@ function makeAssignment(
 ): ResolvedAssignment {
   return { chore, memberId, isCompleted, isSkipped: false, groupIds: chore.assigneeGroupIds ?? [] };
 }
-
-describe('getUniqueInitials', () => {
-  it('uses single characters when all first letters are unique', () => {
-    const members = [
-      { id: '1', name: 'Alice' },
-      { id: '2', name: 'Bob' },
-      { id: '3', name: 'Charlie' },
-    ];
-    const result = getUniqueInitials(members);
-    expect(result.get('1')).toBe('A');
-    expect(result.get('2')).toBe('B');
-    expect(result.get('3')).toBe('C');
-  });
-
-  it('extends to 2 characters to resolve collisions', () => {
-    const members = [
-      { id: '1', name: 'Sam' },
-      { id: '2', name: 'Sarah' },
-      { id: '3', name: 'Bob' },
-    ];
-    const result = getUniqueInitials(members);
-    // B is unique → single char
-    expect(result.get('3')).toBe('B');
-    // Sam vs Sarah → 'Sa' vs 'Sa' → still collide → extend to 3: 'Sam' vs 'Sar'
-    expect(result.get('1')).toBe('Sam');
-    expect(result.get('2')).toBe('Sar');
-  });
-
-  it('handles single member', () => {
-    const result = getUniqueInitials([{ id: '1', name: 'Zoe' }]);
-    expect(result.get('1')).toBe('Z');
-  });
-
-  it('handles empty list', () => {
-    const result = getUniqueInitials([]);
-    expect(result.size).toBe(0);
-  });
-
-  it('extends to 2 chars only where needed', () => {
-    const members = [
-      { id: '1', name: 'Dan' },
-      { id: '2', name: 'Dave' },
-      { id: '3', name: 'Emily' },
-    ];
-    const result = getUniqueInitials(members);
-    expect(result.get('3')).toBe('E'); // unique at 1
-    // Dan vs Dave: 'Da' vs 'Da' → collide at 2, resolved at 3
-    expect(result.get('1')).toBe('Dan');
-    expect(result.get('2')).toBe('Dav');
-  });
-
-  it('steps over an emoji or symbol in front of a name, for the letter and the extension', () => {
-    const members = [
-      { id: '1', name: '* Ava' },
-      { id: '2', name: '🌟 Avery' },
-      { id: '3', name: '🦄' },
-    ];
-    const result = getUniqueInitials(members);
-    expect(result.get('1')).toBe('Ava');
-    expect(result.get('2')).toBe('Ave');
-    expect(result.get('3')).toBe('🦄');
-  });
-
-  it('caps at 3 characters for unresolvable collisions', () => {
-    const members = [
-      { id: '1', name: 'AAAAAA' },
-      { id: '2', name: 'AAAAAB' },
-    ];
-    const result = getUniqueInitials(members);
-    // Both are "AAA" at 3 chars — the remaining get truncated to 3
-    expect(result.get('1')).toBe('AAA');
-    expect(result.get('2')).toBe('AAA');
-  });
-});
 
 describe('buildChoreRows', () => {
   it('deduplicates a chore assigned to multiple members into one row', () => {

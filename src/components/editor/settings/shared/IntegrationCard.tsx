@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import StatusDot from '@/components/ui/StatusDot';
+import { STATUS_PILL_TONE_CLASS } from '@/components/ui/StatusPill';
 
 interface Props {
   icon: React.ReactNode;
@@ -30,23 +32,14 @@ export default function IntegrationCard({
 }: Props) {
   const [open, setOpen] = useState(defaultOpen ?? false);
 
-  const pillClasses =
+  const tone =
     statusType === 'none'
-      ? 'bg-hs-card/30 text-hs-text-faint'
+      ? 'neutral'
       : statusType === 'partial'
-        ? 'bg-hs-warning/10 text-hs-warning'
+        ? 'warning'
         : statusType === 'own'
-          ? 'bg-hs-accent/10 text-hs-accent'
-          : 'bg-hs-success/10 text-hs-success';
-
-  const dotClasses =
-    statusType === 'none'
-      ? 'bg-hs-card'
-      : statusType === 'partial'
-        ? 'bg-hs-warning'
-        : statusType === 'own'
-          ? 'bg-hs-accent'
-          : 'bg-hs-success';
+          ? 'info'
+          : 'success';
 
   return (
     <div
@@ -72,8 +65,10 @@ export default function IntegrationCard({
           </div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0 ml-3">
-          <span className={`inline-flex items-center gap-1.5 p-1.5 lg:px-2.5 lg:py-0.5 rounded-full text-[11px] whitespace-nowrap ${pillClasses}`}>
-            <span className={`w-2 h-2 lg:w-[5px] lg:h-[5px] rounded-full ${dotClasses}`} />
+          {/* A status pill that shrinks to its dot below lg, so it keeps its
+              own shape and takes only the shared tone colours. */}
+          <span className={`inline-flex items-center gap-1.5 p-1.5 lg:px-2.5 lg:py-0.5 rounded-full border text-[11px] font-medium whitespace-nowrap ${STATUS_PILL_TONE_CLASS[tone]}`}>
+            <StatusDot tone={tone} />
             <span className="hidden lg:inline">{statusLabel}</span>
           </span>
           <ChevronDown

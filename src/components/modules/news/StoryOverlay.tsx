@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { TranslateFn } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import type { NewsTapAction } from '@/types/config';
 import { clampLines } from '@/components/modules/shared/clampLines';
+import { useWallSheet } from '@/components/modules/shared/useWallSheet';
 
 /** The overlay closes itself after this long so a wall display never sits on a QR code. */
 export const OVERLAY_AUTO_CLOSE_MS = 30_000;
@@ -15,7 +15,8 @@ export const OVERLAY_AUTO_CLOSE_MS = 30_000;
  * What a tapped story opens: a QR code to read it on a phone (`qr`), or the
  * full description with a smaller QR in the corner (`details`). Rendered
  * inside the module so it inherits the module font and never escapes the
- * tile. Tapping anywhere closes it.
+ * tile. Tapping anywhere closes it, once it has settled; it holds the screen
+ * while it is up, and every touch starts its wait over (`useWallSheet`).
  */
 export function StoryOverlay({
   item, mode, meta, onClose, t,
@@ -26,10 +27,7 @@ export function StoryOverlay({
   onClose: () => void;
   t: TranslateFn;
 }) {
-  useEffect(() => {
-    const id = setTimeout(onClose, OVERLAY_AUTO_CLOSE_MS);
-    return () => clearTimeout(id);
-  }, [onClose, item]);
+  const { touched, settled } = useWallSheet({ onClose, autoCloseMs: OVERLAY_AUTO_CLOSE_MS, restartKey: item.id });
 
   const link = item.link;
 
@@ -38,11 +36,13 @@ export function StoryOverlay({
       data-news-overlay={mode}
       role="dialog"
       aria-label={item.title}
-      onClick={onClose}
+      onClick={settled(onClose)}
+      onPointerDown={touched}
       className="absolute inset-0 z-10 flex items-center justify-center p-[6%] cursor-pointer"
       // The QR below is fixed dark-on-white so it scans, and sits on this scrim
-      // rather than the card: not card ink.
-      style={{ backgroundColor: 'rgba(8,10,14,0.9)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      // rather than the card: not card ink. A plain scrim, no backdrop blur: a
+      // blur over a card that repaints re-blurs it every frame on a Pi.
+      style={{ backgroundColor: 'rgba(8,10,14,0.9)' }}
     >
       {mode === 'qr' ? (
         <div className="flex flex-col items-center gap-3 max-w-full">

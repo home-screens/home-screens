@@ -10,7 +10,8 @@ import { groupMembers } from '@/lib/family-groups';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
-import { ACCENT_HEADING, FIELD_LABEL, REMOTE_ACCENT } from './remote-styles';
+import SaveDeleteFooter from './SaveDeleteFooter';
+import { ACCENT_HEADING, FIELD_LABEL, REMOTE_ACCENT, REMOTE_ACCENT_INK, REMOTE_ON_ACCENT } from './remote-styles';
 import { withAlpha } from '@/lib/hex-color';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
@@ -22,12 +23,12 @@ function chipStyle(on: boolean): React.CSSProperties {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    minHeight: 36,
+    minHeight: 44,
     padding: '0 12px 0 8px',
-    borderRadius: 18,
-    border: `2px solid ${on ? REMOTE_ACCENT : 'transparent'}`,
+    borderRadius: 22,
+    border: `2px solid ${on ? REMOTE_ACCENT_INK : 'transparent'}`,
     background: on ? `color-mix(in srgb, ${REMOTE_ACCENT} 12%, var(--hs-bg-panel))` : 'var(--hs-bg-card)',
-    color: on ? '#fbbf24' : 'var(--hs-text-faint)',
+    color: on ? REMOTE_ACCENT_INK : 'var(--hs-text-faint)',
     fontSize: 13.5,
     fontWeight: 600,
     cursor: 'pointer',
@@ -82,37 +83,15 @@ export default function StarterChoresOverlay({
       dirty={pickedCount > 0}
       onBack={onBack}
       footer={
-        <div style={{ padding: '12px 16px' }}>
-          {pickedCount > 0 && !hasSomeone && (
-            <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
-              {tModules('chore-chart.starter.whoNobody')}
-            </p>
-          )}
-          <button
-            className="press-btn"
-            data-testid="starter-add"
-            onClick={() => { if (canAdd) onAdd(picker.build()); }}
-            disabled={!canAdd}
-            style={{
-              width: '100%',
-              minHeight: 48,
-              padding: 14,
-              borderRadius: 12,
-              fontSize: 15,
-              fontWeight: 700,
-              color: '#fff',
-              border: 'none',
-              cursor: canAdd ? 'pointer' : 'default',
-              background: canAdd ? REMOTE_ACCENT : 'var(--hs-text-faint)',
-              opacity: canAdd ? 1 : 0.5,
-              transition: 'all 0.15s',
-            }}
-          >
-            {pickedCount === 0
-              ? tModules('chore-chart.starter.addButtonNone')
-              : tModules('chore-chart.starter.addButton', { count: pickedCount })}
-          </button>
-        </div>
+        <SaveDeleteFooter
+          saveLabel={pickedCount === 0
+            ? tModules('chore-chart.starter.addButtonNone')
+            : tModules('chore-chart.starter.addButton', { count: pickedCount })}
+          canSave={canAdd}
+          onSave={() => { if (canAdd) onAdd(picker.build()); }}
+          notice={pickedCount > 0 && !hasSomeone ? tModules('chore-chart.starter.whoNobody') : undefined}
+          saveTestId="starter-add"
+        />
       }
     >
       <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 14px', lineHeight: 1.4 }}>
@@ -220,7 +199,7 @@ export default function StarterChoresOverlay({
                       fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                       border: on ? 'none' : '1px solid var(--hs-border)',
                       background: on ? REMOTE_ACCENT : 'var(--hs-bg-panel)',
-                      color: on ? '#fff' : 'var(--hs-text-faint)',
+                      color: on ? REMOTE_ON_ACCENT : 'var(--hs-text-faint)',
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
@@ -269,7 +248,7 @@ export default function StarterChoresOverlay({
                       background: on ? REMOTE_ACCENT : added ? 'var(--hs-bg-card)' : 'transparent',
                     }}
                   >
-                    {(on || added) && <Check size={14} color={added ? 'var(--hs-text-faint)' : 'white'} strokeWidth={3} />}
+                    {(on || added) && <Check size={14} color={added ? 'var(--hs-text-faint)' : REMOTE_ON_ACCENT} strokeWidth={3} />}
                   </span>
                   <span
                     aria-hidden
@@ -280,7 +259,7 @@ export default function StarterChoresOverlay({
                       opacity: added ? 0.45 : 1,
                     }}
                   >
-                    <ChoreIcon value={`lucide:${starter.icon}`} size={18} color={REMOTE_ACCENT} />
+                    <ChoreIcon value={`lucide:${starter.icon}`} size={18} color={REMOTE_ACCENT_INK} />
                   </span>
                   <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500, lineHeight: 1.25, color: added ? 'var(--hs-text-faint)' : 'var(--hs-text-body)' }}>
                     {starter.name}

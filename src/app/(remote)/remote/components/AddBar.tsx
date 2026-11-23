@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
-import { Plus } from 'lucide-react';
+import { REMOTE_LAYERS } from './remote-layers';
+import SquareAddButton, { SQUARE_ADD_SIZE } from './SquareAddButton';
 
 interface AddBarProps {
   /** The field's placeholder, also its accessible name. */
@@ -80,7 +81,7 @@ export default function AddBar({
         left: 0,
         right: 0,
         bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-        zIndex: 40,
+        zIndex: REMOTE_LAYERS.pageChrome,
         borderTop: '1px solid var(--hs-border-subtle)',
         background: 'var(--hs-bg-body)',
         display: 'flex',
@@ -108,7 +109,7 @@ export default function AddBar({
           style={{
             flex: 1,
             minWidth: 0,
-            height: 48,
+            height: SQUARE_ADD_SIZE,
             borderRadius: 12,
             background: 'var(--hs-bg-input)',
             border: '1px solid var(--hs-border-strong)',
@@ -119,28 +120,12 @@ export default function AddBar({
             fontFamily: 'inherit',
           }}
         />
-        <button
+        <SquareAddButton
           type={onExpand ? 'button' : 'submit'}
           onClick={onExpand ? expand : undefined}
-          className="press-btn"
-          aria-label={buttonLabel}
-          data-testid={buttonTestId}
-          style={{
-            width: 48,
-            height: 48,
-            flex: 'none',
-            borderRadius: 12,
-            background: 'var(--hs-accent)',
-            color: '#fff',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={24} aria-hidden="true" />
-        </button>
+          label={buttonLabel}
+          testId={buttonTestId}
+        />
       </form>
     </div>
   );

@@ -326,7 +326,7 @@ describe('useMealsData when the hub is out of reach', () => {
     const { result } = await loaded(fetchMock);
 
     await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
-    expect(result.current.saveError).toBe('mealsSettings.save.saveFailed');
+    expect(result.current.saveError).toBe('refusals.saveFailed');
     await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
     expect(result.current.saveError).toBe('refusals.hubUnreachable');
   });

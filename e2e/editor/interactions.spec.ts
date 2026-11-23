@@ -155,7 +155,7 @@ test.describe('module lifecycle', () => {
     await openEditor(page);
 
     await page.locator('[data-module-id="del"]').click();
-    await page.getByRole('button', { name: 'Delete Module' }).click();
+    await page.getByRole('button', { name: 'Delete module' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
 
     await pollConfig(request, (c) => c.screens[0].modules.length).then((p) => p.toBe(0));
@@ -169,7 +169,7 @@ test.describe('module lifecycle', () => {
     await openEditor(page);
 
     await page.locator('[data-module-id="u1"]').click();
-    await page.getByRole('button', { name: 'Delete Module' }).click();
+    await page.getByRole('button', { name: 'Delete module' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
     await pollConfig(request, (c) => c.screens[0].modules.length).then((p) => p.toBe(0));
 
@@ -190,7 +190,7 @@ test.describe('screen management', () => {
     await openEditor(page);
 
     await page.getByRole('button', { name: 'Add screen' }).click();
-    await page.getByRole('button', { name: 'Blank Screen' }).click();
+    await page.getByRole('button', { name: 'Blank screen' }).click();
 
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
   });
@@ -217,7 +217,7 @@ test.describe('screen management', () => {
     await openEditor(page);
 
     await page.locator('span.max-w-32', { hasText: 'Alpha' }).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Move Right' }).click();
+    await page.getByRole('button', { name: 'Move right' }).click();
 
     await pollConfig(request, (c) => c.screens.map((s) => s.id)).then((p) => p.toEqual(['b', 'a']));
   });
@@ -241,7 +241,7 @@ test.describe('screen management', () => {
     await openEditor(page);
 
     await page.getByRole('button', { name: 'Add screen' }).click();
-    await page.getByRole('button', { name: /From Template/ }).click();
+    await page.getByRole('button', { name: /From template/ }).click();
 
     // Template picker → pick the single-clock template → import modal → Import.
     await expect(page.getByRole('heading', { name: 'Templates' })).toBeVisible();
@@ -264,7 +264,7 @@ test.describe('screen management', () => {
     await openEditor(page);
 
     await page.getByRole('button', { name: 'Add screen' }).click();
-    await page.getByRole('button', { name: /From Template/ }).click();
+    await page.getByRole('button', { name: /From template/ }).click();
     await page.getByRole('button', { name: /Minimal Clock/ }).click();
     await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
@@ -421,11 +421,11 @@ test.describe('screen context menu', () => {
     await openEditor(page);
 
     await page.locator('span.max-w-32', { hasText: 'Kitchen' }).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Export This Screen' }).click();
+    await page.getByRole('button', { name: 'Export this screen' }).click();
 
     // The export modal is pre-scoped to this screen; its Export button triggers
     // the browser download.
-    await expect(page.getByRole('heading', { name: 'Export Layout' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Export layout' })).toBeVisible();
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Export', exact: true }).click();
     const download = await downloadPromise;
@@ -481,7 +481,7 @@ test.describe('per-screen rotation duration', () => {
 
 test.describe('open button and screens that show only when opened', () => {
   test('the screen rotation choice persists and badges the tab', async ({ page, request }) => {
-    await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Recipe Book', [])] }));
+    await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Recipe book', [])] }));
     await openEditor(page);
 
     await page.getByRole('radio', { name: 'Shows only when opened' }).check();
@@ -536,7 +536,7 @@ test.describe('open button and screens that show only when opened', () => {
           textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 }, openButtonScreen: 'recipes' }),
           { ...buildModuleInstance('calendar'), id: 'kitchen-cal', position: { x: 100, y: 500 }, size: { w: 800, h: 500 }, openButtonScreen: 'recipes' },
         ]),
-        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+        makeScreen('recipes', 'Recipe book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
       ],
     }));
     await openEditor(page);
@@ -545,7 +545,7 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(choice.getByRole('radio', { name: 'The button' })).toHaveAttribute('aria-checked', 'true');
     await choice.getByRole('radio', { name: 'A tap on the card' }).click();
     await pollConfig(request, (c) => c.screens[0].modules[0].openWith).then((p) => p.toBe('card'));
-    await expect(page.getByText('A tap anywhere on the card opens Recipe Book.', { exact: false })).toBeVisible();
+    await expect(page.getByText('A tap anywhere on the card opens Recipe book.', { exact: false })).toBeVisible();
     // The canvas draws the corner mark instead of the pill.
     await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-mark"]')).toBeVisible();
     await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]')).toHaveCount(0);
@@ -566,7 +566,7 @@ test.describe('open button and screens that show only when opened', () => {
     await putConfig(request, baseConfig({
       screens: [
         makeScreen('kitchen', 'Kitchen', [textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 } })]),
-        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+        makeScreen('recipes', 'Recipe book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
         makeScreen('night', 'Night', [], { enabled: false }),
         makeScreen('evening', 'Evening', [textModule('EVENING', { position: { x: 0, y: 0 } })]),
       ],
@@ -579,7 +579,7 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(select).toHaveValue('');
     // Never the module's own screen, never a switched-off one: nothing greyed.
     // Screens are grouped by how they show.
-    await expect(select.locator('option')).toHaveText(['Nothing', 'Recipe Book', 'Evening']);
+    await expect(select.locator('option')).toHaveText(['Nothing', 'Recipe book', 'Evening']);
     await expect(select.locator('optgroup')).toHaveCount(2);
     await expect(select.locator('optgroup').first()).toHaveAttribute('label', 'Shows only when opened');
     await expect(select.locator('optgroup').last()).toHaveAttribute('label', 'In the rotation');
@@ -588,7 +588,7 @@ test.describe('open button and screens that show only when opened', () => {
     await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBe('recipes'));
     await expect(page.getByTestId('open-button-target-holds')).toHaveText('Shows Text');
     const pill = page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]');
-    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe Book');
+    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe book');
 
     // The target screen's quiet time, edited from here: one number, the screen's.
     const minutes = page.locator('#module-open-button-go-back-kitchen-text');
@@ -604,7 +604,7 @@ test.describe('open button and screens that show only when opened', () => {
     await page.reload();
     // A module with a button opens on its Open a screen section.
     await page.locator('[data-module-id="kitchen-text"]').click();
-    await expect(page.getByTestId('open-button-in-rotation-hint')).toContainText('Recipe Book takes its turn');
+    await expect(page.getByTestId('open-button-in-rotation-hint')).toContainText('Recipe book takes its turn');
     await expect(minutes).toBeHidden();
     // Both targets are in the rotation now: one list, no group headings.
     await expect(select.locator('optgroup')).toHaveCount(0);
@@ -636,12 +636,12 @@ test.describe('open button and screens that show only when opened', () => {
     await page.locator('[data-module-id="meals"]').click();
     await page.getByRole('button', { name: 'Open a screen' }).click();
 
-    await page.getByRole('button', { name: 'Add a Recipe Book screen' }).click();
+    await page.getByRole('button', { name: 'Add a Recipe book screen' }).click();
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
     const config = await getConfig(request);
     const added = config.screens[1];
     // Named after what it shows, which is what the wall's button then says.
-    expect(added.name).toBe('Recipe Book');
+    expect(added.name).toBe('Recipe book');
     expect(added.rotation).toBe('opened');
     expect(added.modules.map((m) => m.type)).toEqual(['fullscreen-meal-planner']);
     expect(added.modules[0].config.view).toBe('recipes');
@@ -652,22 +652,22 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(page.locator('#module-open-button-meals')).toHaveValue(added.id);
     await expect(page.locator('#module-open-button-go-back-meals')).toHaveValue('2');
     await expect(page.getByTestId('open-button-add-twin')).toBeHidden();
-    await expect(page.getByTestId('open-button-twin-added')).toContainText('Added Recipe Book');
+    await expect(page.getByTestId('open-button-twin-added')).toContainText('Added Recipe book');
     await expect(page.getByTestId('open-button-target-theme')).toContainText('Linen');
     const pill = page.locator('[data-module-id="meals"] [data-testid="open-screen-button"]');
-    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe Book');
+    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe book');
     await expect(page.getByTestId('screen-tab-opens-only')).toHaveText('When opened');
 
     // With Tap on the Wall off the button has no business on the wall, and the section says why.
-    await page.getByRole('switch', { name: 'Tap on the Wall' }).click();
+    await page.getByRole('switch', { name: 'Tap on the wall' }).click();
     await expect(pill).toBeHidden();
     await expect(page.getByTestId('open-button-tap-off')).toBeVisible();
-    await page.getByRole('switch', { name: 'Tap on the Wall' }).click();
+    await page.getByRole('switch', { name: 'Tap on the wall' }).click();
     await expect(pill).toBeVisible();
 
     // Picking Nothing strands the screen: the section and the tab both say so.
     await page.locator('#module-open-button-meals').selectOption('');
-    await expect(page.getByTestId('open-button-orphaned')).toContainText('Recipe Book now has nothing that opens it');
+    await expect(page.getByTestId('open-button-orphaned')).toContainText('Recipe book now has nothing that opens it');
     await expect(page.getByTestId('screen-tab-orphaned')).toHaveText('Nothing opens it');
     // The warning offers the way out.
     await page.getByRole('button', { name: 'Pick it again' }).click();
@@ -689,10 +689,10 @@ test.describe('open button and screens that show only when opened', () => {
     await expect(pill).toHaveAttribute('data-unavailable', '');
 
     // Deleting the screen offers Undo, which brings it and the button back.
-    await page.getByText('Recipe Book', { exact: true }).first().click();
-    await page.getByRole('button', { name: 'Delete Recipe Book', exact: true }).click();
+    await page.getByText('Recipe book', { exact: true }).first().click();
+    await page.getByRole('button', { name: 'Delete Recipe book', exact: true }).click();
     await page.getByRole('button', { name: 'Delete', exact: true }).click();
-    await expect(page.getByTestId('deleted-screen-toast')).toContainText('Recipe Book deleted');
+    await expect(page.getByTestId('deleted-screen-toast')).toContainText('Recipe book deleted');
     await page.getByTestId('deleted-screen-toast').getByRole('button', { name: 'Undo' }).click();
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
     await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBe(book.id));
@@ -702,7 +702,7 @@ test.describe('open button and screens that show only when opened', () => {
     await putConfig(request, baseConfig({
       screens: [
         makeScreen('kitchen', 'Kitchen', [textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 }, openButtonScreen: 'recipes' })]),
-        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+        makeScreen('recipes', 'Recipe book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
       ],
     }));
     await openEditor(page);
@@ -710,8 +710,8 @@ test.describe('open button and screens that show only when opened', () => {
 
     // The tab itself is a button whose name includes its controls' names, so
     // the X needs an exact match. The confirm names the button that goes.
-    await page.getByText('Recipe Book', { exact: true }).first().click();
-    await page.getByRole('button', { name: 'Delete Recipe Book', exact: true }).click();
+    await page.getByText('Recipe book', { exact: true }).first().click();
+    await page.getByRole('button', { name: 'Delete Recipe book', exact: true }).click();
     await expect(page.getByRole('dialog')).toContainText('Text on Kitchen has a button that opens this screen');
     await page.getByRole('button', { name: 'Delete', exact: true }).click();
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));

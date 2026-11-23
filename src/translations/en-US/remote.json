@@ -1,4 +1,7 @@
 {
+  "loadFailed": {
+    "retry": "Try again"
+  },
   "refusals": {
     "dayNotes": {
       "textRequired": "A day note needs some words.",
@@ -37,15 +40,14 @@
     "hubDisconnected": "Can't reach Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Can't reach Home Screens. Check that this phone is on the home Wi-Fi and the main Pi is on.",
+    "unreachable": "Can't reach Home Screens. Check that this phone is on the home Wi-Fi and Home Screens is turned on.",
     "restarting": "Home Screens is restarting. Reconnecting in about 20 seconds…",
-    "rebooting": "The device is rebooting. Reconnecting in about a minute…"
+    "rebooting": "Home Screens is restarting. Reconnecting in about a minute…"
   },
   "backupReminder": {
     "daysAgoSingular": "You haven't backed up in {n} day.",
     "daysAgoPlural": "You haven't backed up in {n} days.",
-    "backupButton": "Backup",
-    "savingButton": "Saving…",
+    "backupButton": "Back up now",
     "dismissAriaLabel": "Dismiss",
     "autoFailed": "The automatic backup did not work. Open Settings on a computer to see why.",
     "autoNotSent": "Your backup was saved but could not be sent to your storage folder. Open Settings on a computer to see why."
@@ -64,14 +66,14 @@
     "updatedTimeAgo": "Updated {ago}",
     "lastSeenTimeAgo": "Last seen {ago}",
     "screenIndex": "Screen {current} of {total}",
-    "waiting": "Waiting for display…",
-    "unreachable": "Display unreachable",
-    "notConnectedTitle": "This display hasn't connected yet",
+    "waiting": "Waiting for the wall…",
+    "unreachable": "Can't reach the wall",
+    "notConnectedTitle": "This wall hasn't connected yet",
     "notConnectedHint": "Make sure it's turned on, or open Home Screens on a computer to finish setting it up.",
-    "theDisplay": "The display",
-    "allHeading": "All displays",
+    "theDisplay": "The wall",
+    "allHeading": "Every wall",
     "rowNotConnected": "Hasn't connected yet",
-    "pickOneHint": "Pick one display to change its screen or profile.",
+    "pickOneHint": "Pick one wall to change its screen or profile.",
     "controlsPaused": "Controls are paused until it reconnects."
   },
   "screenControls": {
@@ -79,12 +81,12 @@
     "nextAriaLabel": "Next screen"
   },
   "quickActions": {
-    "wakeDisplay": "Wake Display",
-    "sleepDisplay": "Sleep Display",
-    "sendAlert": "Send Alert",
+    "wakeDisplay": "Wake the wall",
+    "sleepDisplay": "Put the wall to sleep",
+    "sendAlert": "Send alert",
     "waitingFor": "Waiting for {name}…",
-    "waitingForAll": "Waiting for the displays…",
-    "waitingForUnnamed": "Waiting for the display…"
+    "waitingForAll": "Waiting for the walls…",
+    "waitingForUnnamed": "Waiting for the wall…"
   },
   "brightnessCard": {
     "label": "Brightness",
@@ -98,7 +100,7 @@
   },
   "displayPicker": {
     "targeting": "Send to",
-    "allLabel": "All displays"
+    "allLabel": "Every wall"
   },
   "mobileColorPicker": {
     "colorLabel": "Color",
@@ -118,7 +120,7 @@
       "description": "Switch to Manage to add family members and chores.",
       "kidTitle": "No chores yet",
       "kidDescription": "Ask a grown-up to add chores from their phone.",
-      "setUpButton": "Set Up Chores"
+      "setUpButton": "Set up chores"
     },
     "warningDismissAriaLabel": "Dismiss warning",
     "overspentOne": "{name} already spent those tickets, so the balance is now {balance}. 1 more ticket has to be earned before the next reward.",
@@ -141,7 +143,6 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Mark complete: {chore}",
     "choreAriaLabelCompleted": "Completed: {chore}",
-    "saveFailed": "Failed to save. Please try again.",
     "dayToggle": {
       "ariaLabel": "Which day to show",
       "yesterday": "Yesterday",
@@ -197,8 +198,7 @@
       "title": "Put it back?",
       "description": "{chore} opens up again. Tickets already earned for it stay earned."
     },
-    "loadError": "Couldn't load your chores. Check the hub is on and try again.",
-    "retry": "Try again",
+    "loadError": "Couldn't load your chores. Check that Home Screens is on and try again.",
     "goalLine": {
       "moreToGoSingular": "{n} ticket to go",
       "moreToGoPlural": "{n} tickets to go",
@@ -236,36 +236,30 @@
   "choresManage": {
     "tabs": {
       "chores": "Chores",
-      "members": "Members"
+      "members": "Family"
     },
     "chores": {
       "editAriaLabel": "Edit {name}",
-      "addButton": "Add Chore"
+      "addButton": "Add chore"
     },
     "choreForm": {
-      "titleNew": "New Chore",
-      "titleEdit": "Edit Chore",
+      "titleNew": "New chore",
+      "titleEdit": "Edit chore",
       "nameLabel": "Name",
-      "namePlaceholder": "Chore name...",
+      "namePlaceholder": "Chore name…",
       "iconLabel": "Icon",
       "ticketsLabel": "Tickets",
       "ticketsHint": "How many tickets a kid earns for doing this chore. Tickets buy rewards.",
       "frequencyLabel": "Frequency",
-      "timeOfDayLabel": "Time of Day",
+      "timeOfDayLabel": "Time of day",
       "dateLabel": "Date",
       "daysLabel": "Days",
       "assignToLabel": "Assign to",
-      "weeklyScheduleLabel": "Weekly Schedule",
+      "weeklyScheduleLabel": "Weekly schedule",
       "rotationLabel": "Rotation",
-      "addSubmit": "Add Chore",
-      "saveSubmit": "Save Chore",
-      "deleteButton": "Delete Chore",
+      "addSubmit": "Add chore",
+      "deleteButton": "Delete chore",
       "grabRulesNote": "How many one person can grab, and when a grab ends, are set for the whole household, under Bonus in Manage."
-    },
-    "choreDelete": {
-      "title": "Delete \"{name}\"?",
-      "description": "The chore goes away. Tickets the kids have already earned for it stay on their cards.",
-      "confirmLabel": "Delete Chore"
     },
     "starter": {
       "cardTitle": "Start with ready-made chores",
@@ -279,11 +273,11 @@
   },
   "mealsTab": {
     "header": "Meals",
-    "loading": "Loading meals...",
+    "loading": "Loading meals…",
     "settingsButtonAriaLabel": "Open meal settings",
     "settingsButtonTitle": "Settings",
     "weekLabel": {
-      "thisWeek": "This Week"
+      "thisWeek": "This week"
     },
     "subNav": {
       "week": "Week",
@@ -303,17 +297,15 @@
         "descriptionMealie": "This will remove all planned meals for this week, in Mealie too.",
         "descriptionDates": "This will remove all planned meals for {range}.",
         "descriptionMealieDates": "This will remove all planned meals for {range}, in Mealie too.",
-        "confirmLabel": "Clear Week"
+        "confirmLabel": "Clear week"
       },
       "deleteMeal": {
-        "title": "Delete \"{name}\"?",
         "description": "This will also remove it from any planned slots.",
         "descriptionPlanned": "It's planned for {days}. Deleting it takes it off the plan too.",
         "moreDays": {
           "one": "{count} more day",
           "other": "{count} more days"
-        },
-        "confirmLabel": "Delete Meal"
+        }
       },
       "suggestWeek": {
         "title": "Replace this week's meals?",
@@ -340,11 +332,11 @@
         "title": "No meals planned this week",
         "titleDates": "No meals planned for {range}",
         "description": "Switch to Plan to start adding meals.",
-        "planButton": "Plan Meals"
+        "planButton": "Plan meals"
       }
     },
     "library": {
-      "searchPlaceholder": "Search meals...",
+      "searchPlaceholder": "Search meals…",
       "hint": "Tap a meal to change it, or the screen button to show it on the wall.",
       "filterByAriaLabel": "Filter by {label}",
       "empty": {
@@ -365,11 +357,10 @@
         "quick": "Quick",
         "healthy": "Healthy",
         "comfort": "Comfort",
-        "kid-friendly": "Kid-Friendly"
+        "kid-friendly": "Kid-friendly"
       }
     },
-    "loadError": "Couldn't load your meals. Check the hub is on and try again.",
-    "retry": "Try again",
+    "loadError": "Couldn't load your meals. Check that Home Screens is on and try again.",
     "duration": {
       "minutes": "{minutes}m",
       "hours": "{hours}h",
@@ -407,17 +398,14 @@
     }
   },
   "mealForm": {
-    "titleNew": "Add Meal",
-    "titleEdit": "Edit Meal",
-    "saveSubmit": "Save Meal",
-    "saveChangesSubmit": "Save Changes",
-    "savingSubmit": "Saving…",
-    "deleteButton": "Delete Meal",
-    "nameLabel": "Meal Name",
-    "namePlaceholder": "e.g. Chicken Stir Fry",
-    "emojiSelectAriaLabel": "Select {emoji}",
-    "prepTimeLabel": "Prep Time",
-    "cookTimeLabel": "Cook Time",
+    "titleNew": "New meal",
+    "titleEdit": "Edit meal",
+    "addSubmit": "Add meal",
+    "deleteButton": "Delete meal",
+    "nameLabel": "Meal name",
+    "namePlaceholder": "e.g. Chicken stir fry",
+    "prepTimeLabel": "Prep time",
+    "cookTimeLabel": "Cook time",
     "minPlaceholder": "min",
     "servingsLabel": "Servings",
     "servingsPlaceholder": "4",
@@ -428,20 +416,20 @@
     "ingredientNamePlaceholder": "Name",
     "ingredientAmountPlaceholder": "Amount",
     "removeIngredientAriaLabel": "Remove ingredient",
-    "addIngredientButton": "+ Add ingredient",
-    "recipeUrlLabel": "Recipe URL",
+    "addIngredientButton": "Add ingredient",
+    "recipeUrlLabel": "Recipe link",
     "recipeUrlPlaceholder": "https://...",
     "notesLabel": "Notes",
-    "notesPlaceholder": "Any notes about this meal...",
+    "notesPlaceholder": "Any notes about this meal…",
     "favoriteOn": "Favorited",
-    "favoriteOff": "Add to Favorites"
+    "favoriteOff": "Add to favorites"
   },
   "mealsPlan": {
     "actions": {
       "suggest": "Suggest",
       "suggestAriaLabel": "Suggest random meals",
       "suggestMealieAriaLabel": "Fill the empty dinners with recipes from Mealie",
-      "copyLastWeek": "Copy Last Week",
+      "copyLastWeek": "Copy last week",
       "copyLastWeekAriaLabel": "Copy last week's plan",
       "clear": "Clear",
       "clearAriaLabel": "Clear all planned meals"
@@ -449,10 +437,10 @@
     "empty": {
       "title": "No meals in your library",
       "description": "Add meals to your library first, then plan your week.",
-      "addMealsButton": "Add Meals"
+      "addMealsButton": "Add meals"
     },
     "slot": {
-      "addMeal": "+ Add meal",
+      "addMeal": "Add meal",
       "planSlotAriaLabel": "Plan {slot} for {day}",
       "mealFallback": "meal",
       "changeMealAriaLabel": "Change {meal} for {slot}",
@@ -462,8 +450,9 @@
       }
     },
     "picker": {
-      "title": "Choose a Meal",
-      "emptyLibrary": "No saved meals yet. Type one above for tonight, or save the meals you cook often.",
+      "title": "Choose a meal",
+      "emptyLibraryTitle": "No saved meals yet",
+      "emptyLibrary": "Type one above for tonight, or save the meals you cook often.",
       "typePlaceholder": "Find a meal or type one in",
       "searchLabel": "Search your meals or type one in",
       "subtitle": "{slot} · {day}"
@@ -473,10 +462,9 @@
     "itemsCountSingular": "{checked} of {total} item",
     "itemsCountPlural": "{checked} of {total} items",
     "shareButton": "Share",
-    "shareCopiedButton": "Copied!",
     "autoGeneratedHint": "Auto-generated from this week's meals",
     "autoGeneratedHintDates": "Auto-generated from the meals for {range}",
-    "shareHeading": "Grocery List",
+    "shareHeading": "Grocery list",
     "shareCompleteMessage": "Grocery list is complete!",
     "withoutIngredients": {
       "one": "{count} planned meal has no ingredients yet: {names}",
@@ -495,39 +483,32 @@
   },
   "mealsSettings": {
     "ariaLabel": "Meal settings",
-    "title": "Meal Settings",
-    "cancelAriaLabel": "Cancel and close",
+    "title": "Meal settings",
     "slots": {
-      "heading": "Meal Slots",
-      "description": "Which meals do you plan? This changes what the display and the editor show.",
+      "heading": "Meal slots",
+      "description": "Which meals do you plan? This changes what the wall and the editor show.",
       "toggleAriaLabelEnabled": "{label}, enabled",
       "toggleAriaLabelDisabled": "{label}, disabled"
     },
     "weekStart": {
-      "heading": "Week Starts On",
+      "heading": "Week starts on",
       "sunday": "Sunday",
       "monday": "Monday",
       "hint": "Only for the meal plan. Calendars on the wall have their own setting for the first day."
     },
     "timeFormat": {
-      "heading": "Time Format",
+      "heading": "Time format",
       "description": "Used everywhere meals are shown.",
       "twelveHourLabel": "12-hour",
       "twentyFourHourLabel": "24-hour",
       "followLabel": "Same as the clock"
     },
     "defaultTimes": {
-      "heading": "Default Serving Times",
+      "heading": "Default serving times",
       "description": "Used when a planned meal doesn't have its own time. Leave blank for slots that vary.",
       "clear": "Clear",
       "clearAriaLabel": "Clear default time for {name}",
       "timeInputAriaLabel": "Default time for {name}"
-    },
-    "save": {
-      "saving": "Saving…",
-      "submit": "Save Settings",
-      "saveFailed": "Failed to save. Please try again.",
-      "networkError": "Network error. Please try again."
     },
     "planSource": {
       "heading": "Your meal plan lives in",
@@ -542,25 +523,24 @@
     }
   },
   "rewardForm": {
-    "titleAdd": "Add Reward",
-    "titleEdit": "Edit Reward",
-    "saveButton": "Save Reward",
-    "deleteButton": "Delete Reward",
+    "titleNew": "New reward",
+    "titleEdit": "Edit reward",
+    "addSubmit": "Add reward",
+    "deleteButton": "Delete reward",
     "iconLabel": "Icon",
     "nameLabel": "Name",
-    "namePlaceholder": "e.g. Extra Screen Time",
-    "ticketCostLabel": "Ticket Cost",
+    "namePlaceholder": "e.g. Extra screen time",
+    "ticketCostLabel": "Ticket cost",
     "ticketCostPlaceholder": "10",
     "enabledLabel": "Enabled",
     "visible": "Visible",
     "hidden": "Hidden",
     "descriptionLabel": "Description (optional)",
-    "descriptionPlaceholder": "Short description...",
-    "availableToLabel": "Available To",
+    "descriptionPlaceholder": "Short description…",
+    "availableToLabel": "Available to",
     "everyone": "Everyone",
     "deleteConfirm": {
-      "title": "Delete Reward",
-      "description": "Delete \"{name}\"? Rewards already given stay in the history.",
+      "description": "Rewards already given stay in the history.",
       "goalClears": {
         "one": "That goal will be cleared.",
         "other": "Their goals will be cleared."
@@ -574,7 +554,7 @@
     }
   },
   "alertSender": {
-    "title": "Send Alert",
+    "title": "Send alert",
     "closeAriaLabel": "Close alert sender",
     "typeInfo": "Info",
     "typeWarning": "Warning",
@@ -582,22 +562,22 @@
     "titleLabel": "Title",
     "titlePlaceholder": "Optional",
     "messageLabel": "Message",
-    "messagePlaceholder": "What should the display show?",
+    "messagePlaceholder": "What should the wall show?",
     "durationLabel": "Duration",
     "duration10s": "10s",
     "duration30s": "30s",
     "duration1Min": "1 min",
     "duration5Min": "5 min",
     "durationPersistent": "Persistent",
-    "sendButton": "Send Alert",
+    "sendButton": "Send alert",
     "sendingButton": "Sending…",
     "sentButton": "Sent!",
     "failedButton": "Didn't send, try again",
     "clearOnDisplay": "Clear alerts on {name}",
-    "clearOnAll": "Clear alerts on every display",
+    "clearOnAll": "Clear alerts on every wall",
     "clearingButton": "Clearing…",
     "showingNow": "({count} showing now)",
-    "clearOnUnnamed": "Clear alerts on the display"
+    "clearOnUnnamed": "Clear alerts on the wall"
   },
   "rewardsView": {
     "changedElsewhere": "Someone else changed the rewards. Your last change wasn't saved. Please try it again.",
@@ -611,9 +591,9 @@
     "ticketCountPlural": "{n} tickets",
     "redeem": {
       "balanceLabel": "tickets available",
-      "availableHeading": "Available Rewards",
+      "availableHeading": "Available rewards",
       "empty": "No rewards set up yet",
-      "memberFallback": "this member",
+      "memberFallback": "this person",
       "confirmTitle": "Redeem {name}?",
       "confirmDescriptionSingular": "This will use {cost} ticket from {memberName}'s balance. Remaining: {remaining}",
       "confirmDescriptionPlural": "This will use {cost} tickets from {memberName}'s balance. Remaining: {remaining}",
@@ -642,16 +622,15 @@
       "countPlural": "{n} rewards",
       "everyone": "Everyone",
       "disabled": "Disabled",
-      "memberCountSingular": "{n} member",
-      "memberCountPlural": "{n} members",
-      "addButton": "Add Reward"
+      "memberCountSingular": "{n} person",
+      "memberCountPlural": "{n} people",
+      "addButton": "Add reward"
     },
     "balances": {
-      "heading": "Ticket Balances",
+      "heading": "Ticket balances",
       "adjustDownAriaLabel": "Subtract a ticket from {name}",
       "adjustUpAriaLabel": "Add a ticket to {name}"
     },
-    "saveFailed": "Failed to save. Please try again.",
     "goal": {
       "heading": "Saving for",
       "pick": "Pick something to save for",
@@ -726,8 +705,8 @@
     "closeAriaLabel": "Close settings",
     "system": {
       "heading": "System",
-      "errorFailedToLoad": "Failed to load",
-      "hostLabel": "Device name",
+      "errorFailedToLoad": "Couldn't load this. Try again.",
+      "hostLabel": "Name on the network",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Memory",
       "diskLabel": "Disk"
@@ -741,22 +720,23 @@
     "data": {
       "heading": "Data",
       "backup": {
-        "label": "Backup All Data",
-        "savedLabel": "Backup Saved",
+        "label": "Back up everything",
+        "savedLabel": "Backup saved",
         "busyLabel": "Downloading…",
         "description": "Download your family's chores, meals, rewards and pictures"
       },
       "restore": {
-        "label": "Restore Backup",
-        "confirmingLabel": "Tap again to restore",
+        "label": "Restore a backup",
         "busyLabel": "Restoring…",
         "doneLabel": "Restored",
         "invalidFileLabel": "Invalid backup file",
-        "failedLabel": "Restore failed",
-        "idleDescription": "Upload a backup file from this device",
-        "confirmingDescription": "This will replace all existing data",
+        "failedLabel": "Couldn't restore that backup. Try again.",
+        "idleDescription": "Upload a backup file from this phone",
+        "confirmingDescription": "Everything on Home Screens now is replaced with what is in the backup.",
         "doneWithoutKeysLabel": "Restored, keys not included",
-        "doneWithoutKeysDescription": "Your keys and accounts stayed as they are. Add them back in the editor."
+        "doneWithoutKeysDescription": "Your keys and accounts stayed as they are. Add them back in the editor.",
+        "confirmTitle": "Restore this backup?",
+        "confirmButton": "Restore"
       }
     },
     "power": {
@@ -765,19 +745,19 @@
         "label": "Restart Home Screens",
         "description": "Fixes most glitches. Nothing you set up is lost.",
         "confirmTitle": "Restart Home Screens?",
-        "confirmBody": "The displays go blank for a moment and this remote reconnects in about 20 seconds.",
+        "confirmBody": "The wall goes blank for a moment and this remote reconnects in about 20 seconds.",
         "confirmButton": "Restart"
       },
       "reboot": {
-        "label": "Reboot Device",
-        "description": "Full system restart",
-        "confirmTitle": "Reboot the device?",
-        "confirmBody": "Everything stops while it reboots. This remote reconnects in about a minute.",
-        "confirmButton": "Reboot"
+        "label": "Restart everything",
+        "description": "Turns the whole thing off and on. Takes about a minute.",
+        "confirmTitle": "Restart everything?",
+        "confirmBody": "Everything stops while it restarts. This remote reconnects in about a minute.",
+        "confirmButton": "Restart everything"
       },
       "restartNeeded": {
         "title": "Restart to finish the update",
-        "description": "Part of the last update only starts working after the device restarts.",
+        "description": "Part of the last update only starts working after everything restarts.",
         "button": "Restart now"
       }
     },
@@ -825,13 +805,12 @@
     "addButton": "Add photos and videos",
     "addFromGoogle": "Google Photos",
     "addFromICloud": "iCloud link",
-    "space": "Photos and videos use {size}. {free} free on the hub.",
+    "space": "Photos and videos use {size}. {free} free on Home Screens.",
     "spaceNoFree": "Photos and videos use {size}.",
-    "spaceLow": "Almost full: {free} left on the hub. Delete photos you don't need to make room.",
+    "spaceLow": "Almost full: {free} left on Home Screens. Delete photos you don't need to make room.",
     "emptyTitle": "Nothing in {folder} yet",
     "emptyHint": "Add photos or videos from this phone.",
     "loadFailed": "Couldn't load your photos.",
-    "tryAgain": "Try again",
     "showsOn": {
       "one": "It'll show on {walls}.",
       "other": "They'll show on {walls}."
@@ -977,7 +956,7 @@
       "googleTitle": "Add from Google Photos",
       "googleIntro": "Pick photos in Google Photos, then come back here. They'll be added to {folder}.",
       "googleOpen": "Open Google Photos",
-      "googlePreparing": "Getting Google Photos ready...",
+      "googlePreparing": "Getting Google Photos ready…",
       "googleExpired": "Google Photos stopped waiting. Try again.",
       "googleFailed": "Couldn't reach Google Photos. Try again.",
       "icloudIntro": "Paste a Shared Album link, or a link from Copy iCloud Link in the Photos app. Everything in it is added to {folder}.",
@@ -989,14 +968,14 @@
         "gone": "That album isn't shared anymore. Share it again in the Photos app and paste the new link.",
         "busy": "Photos are still being added. Try again in a minute.",
         "tooMany": "That's too many at once. Share fewer and try again.",
-        "lost": "The hub restarted while adding. Try again.",
+        "lost": "Home Screens restarted while adding. Try again.",
         "unreachable": "Couldn't reach iCloud. Try again."
       },
       "progress": "Adding {done} of {total}",
       "nothingPicked": "Nothing was picked.",
       "busy": "Photos are still being added. Try again in a minute.",
       "tooMany": "That's too many at once. Pick fewer and try again.",
-      "lost": "The hub restarted while adding. Try again.",
+      "lost": "Home Screens restarted while adding. Try again.",
       "tryAgain": "Try again",
       "couldNotAdd": {
         "one": "1 couldn't be added.",
@@ -1023,7 +1002,7 @@
     "play": "Play the slideshow"
   },
   "choresKidView": {
-    "notConfigured": "No chores yet. Ask a grown-up to add a chore chart to the display.",
+    "notConfigured": "No chores yet. Ask a grown-up to add a chore chart to the wall.",
     "grownUpsLink": "Grown-ups: open the family remote"
   },
   "timers": {
@@ -1035,7 +1014,8 @@
     "routines": "Routines",
     "newRoutine": "New routine",
     "editRoutine": "Edit routine",
-    "emptyHint": "A routine is a step-by-step timer, like a morning routine: get dressed, brush teeth, make your bed. Make one and start it on the display.",
+    "emptyTitle": "No routines yet",
+    "emptyHint": "A routine is a step-by-step timer, like a morning routine: get dressed, brush teeth, make your bed. Make one and start it on the wall.",
     "stepCount": "Step {current} of {total}",
     "pause": "Pause",
     "resume": "Resume",
@@ -1043,9 +1023,7 @@
     "stop": "Stop",
     "addMinute": "+1 min",
     "done": "Done!",
-    "save": "Save",
     "deleteRoutine": "Delete",
-    "reallyDelete": "Really delete?",
     "routineName": "Name",
     "routineNamePlaceholder": "Morning routine",
     "routineIcon": "Icon",
@@ -1064,15 +1042,12 @@
     "removeStep": "Remove step",
     "addStep": "Add step",
     "minutesShort": "{minutes} min",
-    "retry": "Try again",
-    "onAllDisplays": "On all displays",
+    "onAllDisplays": "On every wall",
     "onDisplay": "On {name}",
     "showOn": "Send to",
-    "allDisplays": "All displays",
+    "allDisplays": "Every wall",
     "showOnNext": "Next timer shows on",
-    "onDisplays": "On {count} displays",
-    "soundOn": "Sound on",
-    "soundOff": "Sound off",
+    "onDisplays": "On {count} walls",
     "minUnit": "min",
     "secUnit": "sec",
     "stepSeconds": "Seconds",
@@ -1080,16 +1055,19 @@
     "quickNameClock": "{time} timer",
     "secondsShort": "{seconds} sec",
     "showingOn": "Showing on {names}",
-    "showingOnDisplay": "Showing on the display",
-    "waitingForDisplay": "Waiting for a display to pick it up…",
-    "notShowing": "No display is showing this yet. Check that a display is on.",
+    "showingOnDisplay": "Showing on the wall",
+    "waitingForDisplay": "Waiting for a wall to pick it up…",
+    "notShowing": "No wall is showing this yet. Check that the wall is on.",
     "whyNoSave": {
       "name": "Give the routine a name to save.",
       "stepName": "Give every step a name to save.",
       "stepLength": "Every step needs to last at least {seconds} seconds."
     },
     "quickTooShort": "A timer needs to last at least {seconds} seconds.",
-    "stepLimit": "A routine can have up to {count} steps."
+    "stepLimit": "A routine can have up to {count} steps.",
+    "deleteConfirm": {
+      "description": "The routine and its steps are gone for good. This cannot be undone."
+    }
   },
   "lists": {
     "title": "Lists",
@@ -1160,19 +1138,18 @@
       "save": "Save",
       "delete": "Delete list",
       "confirmDelete": {
-        "title": "Delete {name}?",
         "description": "Everything on this list goes with it. This cannot be undone."
       }
     },
     "share": {
       "button": "Share",
-      "copied": "Copied!",
       "nothingOpen": "All done!"
     },
-    "loadError": "Couldn't load your lists. Check the hub is on and try again.",
-    "retry": "Try again",
+    "loadError": "Couldn't load your lists. Check that Home Screens is on and try again.",
     "alreadyOnList": "{item} is already on the list",
-    "putBack": "{item} is back on the list"
+    "putBack": "{item} is back on the list",
+    "deleted": "Took {item} off the list.",
+    "undo": "Undo"
   },
   "formOverlay": {
     "discard": {
@@ -1184,9 +1161,9 @@
   },
   "feedback": {
     "alertSent": "Alert sent to {name}",
-    "alertSentAll": "Alert sent to every display",
+    "alertSentAll": "Alert sent to every wall",
     "alertsCleared": "Alerts cleared on {name}",
-    "alertsClearedAll": "Alerts cleared on every display",
+    "alertsClearedAll": "Alerts cleared on every wall",
     "noConfirm": "{name} didn't respond. It may be off or offline.",
     "profileSwitched": "{name} switched to {profile}",
     "profileCleared": "{name} is showing all screens",
@@ -1195,8 +1172,8 @@
     "profileKeptAfterSchedule": "{name} will keep showing {profile} after its schedule ends",
     "profileFailed": "Couldn't switch the profile on {name}",
     "hubBack": "Home Screens is back",
-    "alertSentUnnamed": "Alert sent to the display",
-    "alertsClearedUnnamed": "Alerts cleared on the display"
+    "alertSentUnnamed": "Alert sent to the wall",
+    "alertsClearedUnnamed": "Alerts cleared on the wall"
   },
   "tabNotSetUp": {
     "chores": {
@@ -1229,7 +1206,6 @@
     "title": "Chore settings",
     "grabbingHeading": "Grabbing bonus chores",
     "letGoHint": "A grown-up can always let go of someone's grab: tap the ••• next to the chore on the Today tab.",
-    "save": "Save",
     "changeAriaLabel": "Change how bonus chores are grabbed"
   },
   "atHome": {
@@ -1241,7 +1217,7 @@
       "board": "Board",
       "calendar": "Calendar"
     },
-    "boardToCalendar": "Something for a day? Put it on the calendar",
+    "boardToCalendar": "Something for a day? Put it on the calendar.",
     "onWall": {
       "zero": "Nothing on the wall",
       "one": "{count} on the wall",
@@ -1296,7 +1272,6 @@
       "body": "Write a note below and it shows up on the wall a few seconds later. Notes come down on their own after the time you pick."
     },
     "loadError": "Couldn't load the notes.",
-    "retry": "Try again",
     "editAria": "Edit note from {name}",
     "dayNotes": {
       "sub": "Day notes go on the calendars on the wall",
@@ -1319,7 +1294,6 @@
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",
     "savesToMealie": "Saves to Mealie",
-    "done": "Done",
     "mainDish": "Main dish",
     "change": "Change",
     "changeAriaLabel": "Change {meal}",
@@ -1371,7 +1345,6 @@
     "timeAndOrderKeptHere": "Home Screens keeps this time and the order of the dishes. Mealie has no place for either, so they won't show there."
   },
   "mealPicker": {
-    "cancel": "Cancel",
     "swap": {
       "side": "Change the side",
       "dessert": "Change the dessert",
@@ -1401,22 +1374,22 @@
       "updated": "· Last updated {time}"
     },
     "notConnected": {
-      "description": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them on the computer in Settings > API keys, or set the meal plan back to Home Screens in the meal settings."
+      "description": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them on the computer in {place}, or set the meal plan back to Home Screens in the meal settings."
     },
     "tokenRefused": {
-      "description": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it on the computer in Settings > API keys."
+      "description": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it on the computer in {place}."
     },
     "setup": {
-      "description": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update."
+      "description": "Check Mealie's address on the computer in {place}. If it's right, Mealie may need an update."
     },
     "connection": {
       "description": "Check that this phone is connected, then try again."
     },
     "paused": {
-      "tokenDescription": "Make a new token in Mealie and save it on the computer in Settings > API keys. Until then, planning is paused.",
-      "tokenDescriptionWithTime": "Make a new token in Mealie and save it on the computer in Settings > API keys. Until then, planning is paused. This is the plan from {time}.",
-      "setupDescription": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused.",
-      "setupDescriptionWithTime": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
+      "tokenDescription": "Make a new token in Mealie and save it on the computer in {place}. Until then, planning is paused.",
+      "tokenDescriptionWithTime": "Make a new token in Mealie and save it on the computer in {place}. Until then, planning is paused. This is the plan from {time}.",
+      "setupDescription": "Check Mealie's address on the computer in {place}. If it's right, Mealie may need an update. Until then, planning is paused.",
+      "setupDescriptionWithTime": "Check Mealie's address on the computer in {place}. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
     },
     "saveFailed": {
       "token": "Mealie isn't letting Home Screens in, so that wasn't saved.",
@@ -1506,9 +1479,9 @@
     "changed": "Changed. The wall shows it in a few seconds.",
     "removed": "Removed from {calendar}.",
     "offTitle": "Adding events is turned off",
-    "offBody": "It can be turned on in Settings > Calendar. Day notes work as always.",
+    "offBody": "It can be turned on in {place}. Day notes work as always.",
     "signInTitle": "Adding events needs one more step",
-    "signInBody": "Adding events needs one more Google sign-in. It's in Settings > Calendar.",
+    "signInBody": "Adding events needs one more Google sign-in. It's in {place}.",
     "justThisDay": "Just this day",
     "everyTime": "Every time",
     "keepIt": "Keep it",
@@ -1517,14 +1490,13 @@
       "title": "Change {title}"
     },
     "removeAsk": {
-      "title": "Remove {title}?",
       "body": "It comes off the {calendar} calendar for everyone: here, on the wall and in {app}."
     },
     "form": {
       "newTitle": "New event",
       "changeTitle": "Change event",
       "what": "What is it?",
-      "whatPlaceholder": "Soccer practice, dentist...",
+      "whatPlaceholder": "Soccer practice, dentist…",
       "day": "Day",
       "firstDay": "First day",
       "lastDay": "Last day",
@@ -1551,12 +1523,11 @@
       "placeOptional": "(if you like)",
       "placePlaceholder": "Add a place",
       "add": "Add to calendar",
-      "save": "Save",
       "remove": "Remove",
       "fromWall": "Started on the {wall} wall for {day}.",
       "changedElsewhere": "Someone changed this event a moment ago, so this is the newest version. Make your change again, then save.",
       "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
-      "noCalendars": "No calendar takes new events yet. Pick some in Settings > Calendar."
+      "noCalendars": "No calendar takes new events yet. Pick some in {place}."
     }
   }
 }

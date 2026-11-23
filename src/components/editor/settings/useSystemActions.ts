@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useConfirmStore } from '@/stores/confirm-store';
+import { useConfirmStore, type ConfirmOptions } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
@@ -14,6 +14,7 @@ import {
   versionChangeDirection,
   type VersionChangeDirection,
 } from '@/lib/version-change-dialog';
+import { refusalSentence } from '@/lib/hub-request';
 
 const log = logger('system-settings');
 
@@ -86,6 +87,7 @@ export interface SystemActions {
  */
 export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActions {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { updateSettings, saveConfig } = useEditorStore();
   const [versionInfo, setVersionInfo] = useState<VersionResponse | null>(null);
   const [releases, setReleases] = useState<ChangelogRelease[]>([]);
@@ -217,7 +219,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
 
   /** Prompt a confirmation dialog and, if confirmed, execute an async action */
   async function confirmAndRun(
-    dialogOptions: Parameters<ReturnType<typeof useConfirmStore.getState>['confirm']>[0],
+    dialogOptions: ConfirmOptions,
     action: () => Promise<void>,
   ) {
     if (!(await useConfirmStore.getState().confirm(dialogOptions))) return;
@@ -249,7 +251,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
         title: t(keys.titleKey, { tag }),
         message: t(keys.messageKey, { tag }),
         confirmLabel: t(keys.confirmKey, { tag }),
-        ...(keys.variant ? { variant: keys.variant } : {}),
+        variant: keys.variant,
       },
       async () => { install(); },
     );
@@ -290,13 +292,13 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
       }
       setPowerState({
         status: 'error',
-        message: data.error || t('settings.systemPage.powerStatus.unknownError'),
+        message: refusalSentence(data, tCore) ?? tCore('refusals.failed'),
         source,
       });
     } catch {
       setPowerState({
         status: 'error',
-        message: t('common.serverUnreachable'),
+        message: tCore('refusals.unreachable'),
         source,
       });
     }
@@ -314,6 +316,8 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
         confirmLabel: action === 'reboot'
           ? t('settings.systemPage.powerDialog.rebootConfirm')
           : t('settings.systemPage.powerDialog.restartConfirm'),
+        // Nothing is lost: the hub comes back by itself.
+        variant: 'primary',
       },
       () => sendPowerAction(action, source),
     );
@@ -334,6 +338,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
         title: t('settings.systemPage.cancelUpgradeDialog.title'),
         message: t('settings.systemPage.cancelUpgradeDialog.message'),
         confirmLabel: t('settings.systemPage.cancelUpgradeDialog.confirm'),
+        variant: 'danger',
       },
       async () => {
         try {

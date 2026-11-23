@@ -712,7 +712,7 @@ describe('getIpAllowlistConfig', () => {
       restrictAccess: true,
     });
 
-    // Disable auth (admin clicks "Disable Authentication")
+    // Disable auth (someone clicks "Turn the password off")
     await clearPassword();
 
     // Password state cleared

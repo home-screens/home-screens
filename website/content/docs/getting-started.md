@@ -42,12 +42,12 @@ Images are published for major and minor releases (v1.0.0, v1.1.0, and so on). P
 6. Click **Next**. When Imager asks whether to apply OS customisation, click **No**. The image is already set up.
 
 {% callout type="warning" title="Do not click Edit Settings in Imager" %}
-Imager's customisation screen does not work with this image, and if you open it you will be stuck. **No** is the right answer. Ethernet works with no setup at all; for WiFi, use the `wifi.txt` file described next.
+Imager's customisation screen does not work with this image, and if you open it you will be stuck. **No** is the right answer. Ethernet works with no setup at all; for Wi-Fi, use the `wifi.txt` file described next.
 {% /callout %}
 
-### WiFi setup
+### Wi-Fi setup
 
-If the Pi will be on WiFi rather than a cable, tell it your network before the first boot:
+If the Pi will be on Wi-Fi rather than a cable, tell it your network before the first boot:
 
 1. After flashing, take the card out and put it back in so the boot drive (labelled `bootfs`) shows up on your computer.
 2. Find `wifi.txt.example` on that drive and rename it to `wifi.txt`.
@@ -61,9 +61,9 @@ COUNTRY=US
 
 | Line | Required | Meaning |
 |---|---|---|
-| `SSID` | Yes | Your WiFi network name |
-| `PASSWORD` | No | Your WiFi password, exactly as typed, spaces included. Leave the line out for an open network. |
-| `COUNTRY` | No | Two-letter country code such as `US`, `GB` or `DK` (defaults to `US`). Set it: it decides which WiFi channels the Pi may use. |
+| `SSID` | Yes | Your Wi-Fi network name |
+| `PASSWORD` | No | Your Wi-Fi password, exactly as typed, spaces included. Leave the line out for an open network. |
+| `COUNTRY` | No | Two-letter country code such as `US`, `GB` or `DK` (defaults to `US`). Set it: it decides which Wi-Fi channels the Pi may use. |
 | `HIDDEN` | No | `true` if your network is hidden (defaults to `false`) |
 
 4. Save the file, eject the card, and put it in the Pi.
@@ -76,10 +76,10 @@ Put the card in the Pi and plug in the power. You will see:
 
 1. A black screen for 30 to 90 seconds while the Pi starts up
 2. The Raspberry Pi rainbow splash, briefly
-3. The Home Screens splash while the card is prepared and WiFi connects
+3. The Home Screens splash while the card is prepared and Wi-Fi connects
 4. A dark screen with **"Nothing on this screen yet"**, the address to open, and a QR code
 
-{% screenshot name="display-fresh" caption="A brand-new display. Scan the code or type the address on any phone or laptop on your home WiFi." /%}
+{% screenshot name="display-fresh" caption="A brand-new display. Scan the code or type the address on any phone or laptop on your home Wi-Fi." /%}
 
 That last screen means the Pi is done. Nothing is wrong; you have not designed a screen yet. Total time is 2 to 3 minutes. If it is still black after 5 minutes, see [the screen is still black](/docs/troubleshooting#i-flashed-the-sd-card-but-the-screen-is-still-black-after-5-minutes).
 
@@ -91,7 +91,7 @@ The address is on the wall. On the pre-built image it is:
 http://home-screens.local:3000
 ```
 
-Open it from any phone or laptop on the same WiFi. A laptop lands in the editor. A phone gets a short menu instead: the family remote, the kids' chores page, and the editor address to send to a laptop, because the editor needs a wide screen.
+Open it from any phone or laptop on the same Wi-Fi. A laptop lands in the editor. A phone gets a short menu instead: the family remote, the kids' chores page, and the editor address to send to a laptop, because the editor needs a wide screen.
 
 If `home-screens.local` does not open (a few routers do not support these names), look at the address printed on the wall, or find a device called `home-screens` in your router's admin page and use its IP address instead, like `http://192.168.1.50:3000`.
 
@@ -118,7 +118,7 @@ If you already have a Pi running Raspberry Pi OS, or you need a patch release th
 - Raspberry Pi 4 or 5 (2 GB or more). The Pi 5 is much smoother with large screens and animations.
 - [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/). Desktop works too. In Raspberry Pi Imager, Lite is under **Raspberry Pi OS (other)**.
 - A screen connected over HDMI
-- A network connection (cable or WiFi)
+- A network connection (cable or Wi-Fi)
 
 ### Install
 

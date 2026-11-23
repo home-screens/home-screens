@@ -26,13 +26,14 @@ interface NextMealViewProps {
 
 export function NextMealView({ config, settings, timeFormat, plan, savedMeals, todayISO, nowMinutes, recipeTapMode }: NextMealViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 
-  // Same walk-forward resolver the fullscreen Next Meal view uses: skip empty
+  // Same walk-forward resolver the fullscreen Next meal view uses: skip empty
   // slots until a planned meal is found (up to a week out), so the card never
   // says "Nothing planned" while meals are on the plan.
   const next = getNextPlannedMeal(todayISO, nowMinutes, plan, savedMeals, slots, settings.defaultSlotTimes);
@@ -115,7 +116,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
                 className="rounded-full px-2 py-0.5"
                 style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
               >
-                {mealTagLabel(meal, tag)}
+                {mealTagLabel(meal, tag, tCore)}
               </span>
             ))}
           </div>

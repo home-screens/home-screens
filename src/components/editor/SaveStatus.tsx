@@ -17,8 +17,8 @@ export function SaveConflictNotice() {
   if (!saveConflict) return null;
   return (
     <span role="alert" className="flex items-center gap-2" data-testid="save-conflict" title={t('page.toolbar.conflict.hint')}>
-      <AlertCircle className="w-3.5 h-3.5 text-hs-warning shrink-0" />
-      <span className="text-xs text-hs-warning">{t('page.toolbar.conflict.title')}</span>
+      <AlertCircle className="w-3.5 h-3.5 text-hs-warning-ink shrink-0" />
+      <span className="text-xs text-hs-warning-ink">{t('page.toolbar.conflict.title')}</span>
       <Button variant="secondary" size="sm" onClick={() => { void resolveSaveConflict('theirs'); }}>
         {t('page.toolbar.conflict.loadTheirs')}
       </Button>
@@ -83,8 +83,8 @@ export default function SaveStatus() {
   } else if (remoteChanged) {
     body = (
       <span className="flex items-center gap-1.5" data-testid="save-remote-changed" title={t('page.toolbar.changedElsewhereHint')}>
-        <RefreshCw className="w-3.5 h-3.5 text-hs-warning shrink-0" />
-        <span className="text-xs text-hs-warning">{t('page.toolbar.changedElsewhere')}</span>
+        <RefreshCw className="w-3.5 h-3.5 text-hs-warning-ink shrink-0" />
+        <span className="text-xs text-hs-warning-ink">{t('page.toolbar.changedElsewhere')}</span>
         <Button variant="secondary" size="sm" onClick={() => { void loadConfig(); }}>
           {t('page.toolbar.reloadButton')}
         </Button>

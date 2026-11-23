@@ -93,14 +93,6 @@ export function normalizeTag(tag: string): string {
   return tag.toLowerCase().replace(/\s+/g, '-');
 }
 
-/** Capitalize a tag for display: 'kid-friendly' → 'Kid-Friendly' */
-export function formatTagLabel(tag: string): string {
-  return tag
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join('-');
-}
-
 /** Capitalize for simple labels: 'produce' → 'Produce' */
 export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -318,7 +310,7 @@ export function getWeekDatesForRange(
 
 /**
  * The seven days of the week before `weekDates` (a week's `YYYY-MM-DD` days,
- * in order), for Copy Last Week. Built with the household's `weekStartDay`:
+ * in order), for Copy last week. Built with the household's `weekStartDay`:
  * without it the window was shifted by a day for a Monday-start household.
  */
 export function previousWeekDates(
@@ -595,7 +587,7 @@ export function mealPhases(served: readonly { at: number }[], nowMinutes: number
  * The slot of `date` whose meal is being served at `nowMinutes` (see
  * `mealPhases`), or null between meals. Only planned meals take turns, so an
  * empty lunch never holds "now" and a dinner keeps it until its own window
- * closes. The phone's This Week, the wall's Week and both Today views mark
+ * closes. The phone's This week, the wall's Week and both Today views mark
  * their "now" with this, and `getNextPlannedMeal` leads with the same meal.
  */
 export function currentMealSlot(
@@ -614,7 +606,7 @@ export function currentMealSlot(
 /**
  * Walk forward from now to the first meal that is not over: the one being
  * served, else today's next, then up to a week ahead in serving order.
- * Both the small meal-planner card and the fullscreen Next Meal view resolve
+ * Both the small meal-planner card and the fullscreen Next meal view resolve
  * through this, so the two can never disagree about what's next. Returns
  * null only when nothing is planned in the coming week.
  *

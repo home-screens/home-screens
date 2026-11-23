@@ -143,7 +143,7 @@ describe('PropertyPanel background-provider toggle', () => {
     openVisibility(container);
 
     expect(container.querySelector(toggleId())).not.toBeNull();
-    expect((container.querySelector(toggleId()) as HTMLInputElement).checked).toBe(true);
+    expect(container.querySelector(toggleId())?.getAttribute('aria-checked')).toBe('true');
     expect(container.textContent).toContain(OBSOLETE_HINT);
   });
 

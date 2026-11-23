@@ -12,7 +12,8 @@ import { useRealClock } from '@/hooks/useTZClock';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import { arrangeNotes, isMaterialView, NOTES_TITLE_ROW_VIEWS } from '@/lib/notes-rules';
-import { NotesHeader, clampSetting, type NotesContext } from './shared';
+import { clampSetting, type NotesContext } from './shared';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 import { STEP_SECONDS } from './useStepper';
 import { BoardView } from './BoardView';
 import { CardsView } from './CardsView';
@@ -170,7 +171,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     now,
     locale,
     timezone,
-    hour12: timeFormat !== '24h',
+    timeFormat,
     t,
     fontPx: scaledFontSize,
   };
@@ -232,11 +233,10 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
         style={{ fontSize: `${scaledFontSize}px`, lineHeight: 1.2 }}
       >
         {NOTES_TITLE_ROW_VIEWS.has(view) && (
-          <NotesHeader
-            title={config.title?.trim() || t('notes.defaultTitle')}
-            showTitle={config.showTitle !== false}
+          <ModuleTitleRow
+            title={config.showTitle !== false ? config.title?.trim() || t('notes.defaultTitle') : undefined}
             // Compact keeps its header short: the bare number.
-            meta={view === 'compact' ? count : t('notes.count', { count })}
+            right={view === 'compact' ? count : t('notes.count', { count })}
           />
         )}
         {body}

@@ -13,6 +13,8 @@ import {
 } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { isoDateInTZ } from '@/lib/timezone';
+import { NO_VALUE } from '@/lib/constants';
+import { clockTime } from './parts';
 import { withAlpha } from '@/lib/hex-color';
 
 /** Section label: small, tracked-out, muted. Shared by every card. */
@@ -52,13 +54,7 @@ export function Card({ children, u, style, testId }: {
 export function TopBar({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
   const showTime = p.config.showTime !== false;
-  const time = showTime
-    ? cachedFormat(p.locale, {
-        hour: 'numeric', minute: '2-digit',
-        hour12: p.timeFormat !== '24h',
-        timeZone: p.timezone,
-      }).format(p.now)
-    : null;
+  const time = showTime ? clockTime(p, p.now) : null;
 
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: u * 2, flex: 'none' }}>
@@ -96,7 +92,7 @@ export function MiniHero({ p }: { p: WeatherViewProps }) {
     <div data-testid="fsw-mini-hero" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: u * 2.5 }}>
       <Icon style={{ width: iconSize, height: iconSize, color: p.accent }} strokeWidth={1} />
       <div style={{ fontSize: tempSize, fontWeight: 200, letterSpacing: '-.05em', lineHeight: .9 }}>
-        {now ? Math.round(now.temp) : '--'}
+        {now ? Math.round(now.temp) : NO_VALUE}
         <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
       </div>
       <div>

@@ -189,7 +189,7 @@ describe('Dock Timers button', () => {
       : new Response(JSON.stringify({ session: null }), { status: 200 })));
     vi.stubGlobal('fetch', empty);
     await openSheet();
-    expect(screen.getByText('Make routines on the phone, under Timers.')).toBeTruthy();
+    expect(screen.getByText('Make routines on the phone, under Timers')).toBeTruthy();
     expect(screen.getAllByTestId('timers-sheet-quick')).toHaveLength(6);
   });
 

@@ -80,11 +80,13 @@ describe('the meal planner window by keyboard', () => {
     renderWindow();
     const empty = screen.getByRole('button', { name: 'Plan Dinner for Tuesday 9/22' });
     expect(empty.tabIndex).toBe(0);
-    expect(empty.textContent).toBe('+');
+    // A quiet drawn + and no words: the button's name says what it does.
+    expect(empty.textContent).toBe('');
+    expect(empty.querySelector('svg.lucide-plus')).toBeTruthy();
 
     empty.focus();
     fireEvent.keyDown(empty, { key: 'Enter' });
-    const picker = screen.getByRole('dialog', { name: 'Choose a Meal' });
+    const picker = screen.getByRole('dialog', { name: 'Choose a meal' });
     // Typing goes straight to the search.
     expect(document.activeElement).toBe(within(picker).getByRole('textbox'));
 

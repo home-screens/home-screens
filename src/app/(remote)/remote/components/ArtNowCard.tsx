@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useDisplayTarget } from '../display-target';
 import { showToast } from '../remote-toast';
+import PrimaryButton from './PrimaryButton';
 
 interface PaintingNow {
   id: string;
@@ -102,10 +103,10 @@ export default function ArtNowCard() {
     });
   });
 
-  const button = (primary: boolean): React.CSSProperties => ({
+  const quietButton: React.CSSProperties = {
     flex: 1, minHeight: 44, padding: '12px 8px', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 600, cursor: busy ? 'default' : 'pointer',
-    background: primary ? 'var(--hs-accent)' : 'var(--hs-bg-card)', color: primary ? '#fff' : 'var(--hs-text-body)', opacity: busy ? 0.6 : 1,
-  });
+    background: 'var(--hs-bg-card)', color: 'var(--hs-text-body)', opacity: busy ? 0.6 : 1,
+  };
   const byline = [painting.artist, painting.year].filter(Boolean).join(', ');
 
   return (
@@ -126,8 +127,8 @@ export default function ArtNowCard() {
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-          <button type="button" onClick={next} disabled={busy} style={button(true)} data-testid="art-now-next">{t('photosTab.art.next')}</button>
-          <button type="button" onClick={hide} disabled={busy} style={button(false)} data-testid="art-now-hide">{t('photosTab.art.hide')}</button>
+          <PrimaryButton compact onClick={next} disabled={busy} style={{ flex: 1, padding: '12px 8px', fontSize: 15 }} data-testid="art-now-next">{t('photosTab.art.next')}</PrimaryButton>
+          <button type="button" onClick={hide} disabled={busy} className="press-btn" style={quietButton} data-testid="art-now-hide">{t('photosTab.art.hide')}</button>
         </div>
         <a
           href={painting.about} target="_blank" rel="noopener noreferrer"

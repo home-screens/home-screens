@@ -8,6 +8,8 @@ import { useTranslate } from '@/i18n';
 import { useCanvasDimensionDrafts } from './useCanvasDimensionDrafts';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
+import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import FieldHint from '@/components/ui/FieldHint';
 
 interface DisplayCanvasCardProps {
   config: ScreenConfiguration;
@@ -42,9 +44,9 @@ export default function DisplayCanvasCard({ config, display }: DisplayCanvasCard
 
   return (
     <div className="mb-5">
-      <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+      <SettingsSectionHeading>
         {t('settings.perDisplayPage.display.canvasHeading')}
-      </div>
+      </SettingsSectionHeading>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <div className="px-4 py-3.5 border-b border-hs-border">
           <div className="flex items-center justify-between mb-2">
@@ -75,9 +77,9 @@ export default function DisplayCanvasCard({ config, display }: DisplayCanvasCard
               className={`w-full ${SETTINGS_INPUT_CLASS} tabular-nums`}
             />
           </div>
-          <p className="text-[11px] text-hs-text-faint mt-1.5">
+          <FieldHint className="mt-1.5">
             {t('settings.perDisplayPage.display.resolutionHelp')}
-          </p>
+          </FieldHint>
         </div>
         <div className={`px-4 py-3.5${isHubScreen ? ' border-b border-hs-border' : ''}`}>
           <div className="flex items-center justify-between mb-2">

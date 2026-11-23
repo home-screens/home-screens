@@ -7,7 +7,6 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { fetchStats, fetchDisplayStatus, generateBundle } from './fetchers';
-import type { SemanticColor } from './shared/types';
 import type { SystemStats } from '@/lib/system-stats-types';
 import { DisplayCard } from './DisplayCard';
 import { StorageCard } from './StorageCard';
@@ -22,6 +21,7 @@ import { TelemetryCard } from './TelemetryCard';
 
 export default function StatsSection() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [displayStatus, setDisplayStatus] = useState<DisplayStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,7 +101,7 @@ export default function StatsSection() {
   if (error || !stats) {
     return (
       <div className="text-sm text-hs-danger py-8 text-center">
-        {error || t('settings.statsSection.failedToLoad')}
+        {error === 'unreachable' ? tCore('refusals.unreachable') : t('settings.statsSection.failedToLoad')}
       </div>
     );
   }
@@ -111,10 +111,6 @@ export default function StatsSection() {
   const statusAge = displayStatus ? Date.now() - displayStatus.timestamp : null;
   const displayConnected = statusAge !== null && statusAge < 60_000;
   const displayState = displayStatus?.displayState;
-  const stateColor: SemanticColor =
-    displayState === 'active' ? 'success' :
-    displayState === 'dimmed' ? 'warning' : 'danger';
-  const stateLabel = displayState ?? 'off';
 
   const telemetryOn = config?.settings.telemetryEnabled !== false;
   const advancedMode = config?.settings.advancedMode ?? false;
@@ -136,8 +132,6 @@ export default function StatsSection() {
           displayStatus={displayStatus}
           displayConnected={displayConnected}
           displayState={displayState}
-          stateColor={stateColor}
-          stateLabel={stateLabel}
           statusAge={statusAge}
           isMultiDisplay={isMultiDisplay}
           displays={displays}

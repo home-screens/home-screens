@@ -9,6 +9,7 @@ import AlertFormFields, {
   type AlertFormValues,
 } from './AlertFormFields';
 import WholeBlockOverrideCard from './WholeBlockOverrideCard';
+import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
 
 interface AlertsSubtabProps {
   config: ScreenConfiguration;
@@ -40,6 +41,7 @@ interface AlertsSubtabProps {
  */
 export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { updateDisplaySettings, saveConfig } = useEditorStore();
   const isForked = display.settings?.alerts !== undefined;
   const values: AlertFormValues = isForked
@@ -70,7 +72,7 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
       label={t('settings.perDisplayPage.alerts.label')}
       displayName={display.name}
       defaultsHref={settingsHref({ kind: 'defaults', page: 'screen', panel: 'alerts' })}
-      defaultsLabel={t('settings.perDisplayPage.alerts.defaultsLabel')}
+      defaultsLabel={defaultsPlaceText(t, tCore, 'screen')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.alerts.infoPart1')}
@@ -78,7 +80,7 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
             href={settingsHref({ kind: 'defaults', page: 'screen', panel: 'alerts' })}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
-            {t('settings.perDisplayPage.alerts.defaultsLabel')}
+            {defaultsPlaceText(t, tCore, 'screen')}
           </Link>
           {t('settings.perDisplayPage.alerts.infoPart2')}
         </>

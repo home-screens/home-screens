@@ -13,7 +13,8 @@ import type { HourlyWeather } from '@/lib/weather';
 import {
   HOURLY_RAIN_SHOWN_PCT, cachedFormat, hourLabel, hourLabelled, labelStride, smoothPath, spanHours, temperatureAxis, timelineMarks, valueLabelled,
 } from '../fullscreen-weather/weather-view-utils';
-import { RAIN_COLOR, RainLegend, ViewTitle, useSunTimes, useViewBox } from './chart-parts';
+import { RAIN_COLOR, RainLegend, useSunTimes, useViewBox } from './chart-parts';
+import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 import { getLocalizedConditionLabel } from './condition-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
@@ -84,7 +85,7 @@ export default function WeatherTimelineView({ config, hourly, units, timezone, t
         {/* Title and chart measured together; see WeatherWeekView. */}
         <div ref={contentRef} className="h-full flex flex-col">
           {config.showTitle !== false && (
-            <ViewTitle right={<RainLegend />}>{t('fullscreen-weather.sections.nextHours', { hours: spanHours(hrs) })}</ViewTitle>
+            <ModuleTitleRow title={t('fullscreen-weather.sections.nextHours', { hours: spanHours(hrs) })} right={<RainLegend />} />
           )}
           {N < 2 ? (
             <WeatherEmptyState />

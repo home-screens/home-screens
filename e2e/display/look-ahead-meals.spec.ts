@@ -229,7 +229,7 @@ test('Full-Screen Meal Planner Week steps, with the week tagged beside its title
   await seedWeeks(request);
   const mod = await show(page, request, 'fullscreen-meal-planner', { view: 'week', interactive: true });
 
-  await expect(mod.getByTestId('fmp-week-title')).toHaveText('This Week\'s Meals');
+  await expect(mod.getByTestId('fmp-week-title')).toHaveText('This week\'s meals');
   await expect(mod.getByTestId('fmp-week-dates')).toHaveText(range(0, true));
   await expect(mod.getByTestId('look-ahead-words')).toHaveCount(0);
   await expect(mod.getByText('Taco Night')).toBeVisible();
@@ -250,7 +250,7 @@ test('Full-Screen Meal Planner Week steps, with the week tagged beside its title
   await expect(mod.getByTestId('fmp-week-empty')).toContainText('Nothing planned for that week yet');
 
   await mod.getByTestId('look-ahead-home').click();
-  await expect(mod.getByTestId('fmp-week-title')).toHaveText('This Week\'s Meals');
+  await expect(mod.getByTestId('fmp-week-title')).toHaveText('This week\'s meals');
   await expect(mod.getByText('Taco Night')).toBeVisible();
   await expect(mod.getByTestId('look-ahead-home')).toHaveCount(0);
 });
@@ -265,7 +265,7 @@ test.describe('with taps off', () => {
       await expect(mod.getByTestId('look-ahead-bar')).toHaveCount(0);
       await expect(mod.getByTestId('look-ahead-forward')).toHaveCount(0);
       if (type === 'fullscreen-meal-planner') {
-        await expect(mod.getByText('This Week\'s Meals')).toBeVisible();
+        await expect(mod.getByText('This week\'s meals')).toBeVisible();
         await expect(mod.getByText(range(0, true))).toBeVisible();
       }
     });
@@ -299,7 +299,7 @@ test('the editor preview draws no arrows, taps on or not', async ({ page, reques
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [full])] }));
   await page.goto('/editor');
   const preview = page.locator('[data-module-id="full-week"]');
-  await expect(preview).toContainText('This Week\'s Meals');
+  await expect(preview).toContainText('This week\'s meals');
   await expect(preview.getByTestId('look-ahead-bar')).toHaveCount(0);
 });
 

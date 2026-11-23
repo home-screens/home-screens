@@ -7,6 +7,7 @@ import { formatRecord, getPlayoffTeamCount, StandingsHeader, StandingsTeamRow } 
 import { standingsRowsKey, useStandingsPaging } from './paging';
 import { GamePagesFooter } from '../sports/shared';
 import { useTranslate } from '@/i18n';
+import { NO_VALUE } from '@/lib/constants';
 
 interface TableViewProps {
   groups: StandingsGroup[];
@@ -87,15 +88,15 @@ function CellValue({ entry, col, league, t }: { entry: StandingsEntry; col: stri
     case 'pct':
       return <>{entry.winPct.toFixed(3).replace(/^0/, '')}</>;
     case 'gb':
-      return <>{entry.gamesBack !== undefined && entry.gamesBack > 0 ? entry.gamesBack : '—'}</>;
+      return <>{entry.gamesBack !== undefined && entry.gamesBack > 0 ? entry.gamesBack : NO_VALUE}</>;
     case 'strk':
       return (
         <span className={entry.streak?.startsWith('W') ? 'text-emerald-400' : entry.streak?.startsWith('L') ? 'text-red-400' : ''}>
-          {entry.streak ? streakLabel(entry.streak, t('sports.win'), t('sports.loss')) : '—'}
+          {entry.streak ? streakLabel(entry.streak, t('sports.win'), t('sports.loss')) : NO_VALUE}
         </span>
       );
     case 'l10':
-      return <>{entry.last10 ?? '—'}</>;
+      return <>{entry.last10 ?? NO_VALUE}</>;
     case 'pts':
       return <>{entry.points ?? 0}</>;
     case 'gp':
@@ -121,7 +122,7 @@ function CellValue({ entry, col, league, t }: { entry: StandingsEntry; col: stri
       );
     }
     default:
-      return <>—</>;
+      return <>{NO_VALUE}</>;
   }
 }
 

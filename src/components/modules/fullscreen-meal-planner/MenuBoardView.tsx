@@ -3,7 +3,8 @@ import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISO
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { getDifficultyColor, px } from './meal-planner-utils';
+import { EMPTY_STATE_PX, getDifficultyColor, px } from './meal-planner-utils';
+import FamilyEmptyState from '../FamilyEmptyState';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
@@ -100,8 +101,10 @@ export default function MenuBoardView({
         }}
       >
         {meals.length === 0 ? (
-          <div style={{ fontFamily: headerFont, color: 'var(--fmp-text-3)', fontSize: P(60), lineHeight: 1.1 }}>
-            {t('fullscreen-meal-planner.noMealsPlannedToday')}
+          // Other days have meals, today has none: the empty state's shape,
+          // with no phone hint, since nothing needs setting up.
+          <div style={{ color: 'var(--fmp-text-2)' }}>
+            <FamilyEmptyState icon={<>&#127869;</>} title={t('fullscreen-meal-planner.noMealsPlannedToday')} fontSize={P(EMPTY_STATE_PX)} />
           </div>
         ) : meals.map((course, i) => {
           // Emoji count as pictures too, so a board mixing photos and emoji

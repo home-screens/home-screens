@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FamilyMember } from '@/types/family';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { displayFetch } from '@/lib/display-fetch';
@@ -9,8 +9,13 @@ import { useTranslate } from '@/i18n';
 import { asksForCode } from '@/lib/grown-up-code';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { useGrownUpStatus, useGrownUpUnlock } from '@/hooks/useGrownUp';
+import { CHORE_SHEET_IDLE_MS } from '@/lib/chore-constants';
+import type { WallSheetOptions } from './useWallSheet';
 
 const REDEEMED_BANNER_MS = 5000;
+
+/** How long "Spend your tickets?" waits with nobody touching it, as every chore chart sheet does. */
+export const REDEEM_IDLE_MS = CHORE_SHEET_IDLE_MS;
 
 export interface RedeemPending {
   reward: RewardDefinition;
@@ -47,7 +52,7 @@ const REFUSAL_KEYS: Record<Exclude<RedeemOutcome, 'redeemed'>, readonly ['core' 
   // Said in the same words on the phone, so these two live in `core`.
   notOffered: ['core', 'rewards.redeem.notOffered'],
   removed: ['core', 'rewards.redeem.removed'],
-  failed: ['modules', 'fullscreen-chore-chart.rewardsStore.errorGeneric'],
+  failed: ['core', 'refusals.failed'],
 };
 
 /**
@@ -128,5 +133,11 @@ export function useRedeemReward({ enabled, onRedeemed }: UseRedeemRewardOptions)
     }
   }, [enabled, pending, busy, onRedeemed, t, tCore]);
 
-  return { pending, busy, error, redeemed, asksGrownUp, ask, cancel, confirm, dismissRedeemed };
+  // How "Spend your tickets?" closes, for both stores' sheets (`useWallSheet`):
+  // by itself after a spell with nobody touching it, so a wall with rotation
+  // off never keeps a question up for good, but never while the spend is on
+  // its way or the grown-up pad is up over it.
+  const sheet = useMemo<WallSheetOptions>(() => ({ onClose: cancel, autoCloseMs: REDEEM_IDLE_MS, paused: busy }), [cancel, busy]);
+
+  return { pending, busy, error, redeemed, asksGrownUp, ask, cancel, confirm, dismissRedeemed, sheet };
 }

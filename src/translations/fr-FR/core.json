@@ -4,43 +4,43 @@
     "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
     "failed": "Quelque chose n'a pas marché. Réessaie.",
     "lists": {
-      "nameRequired": "Donnez un nom à la liste",
-      "nameTooLong": "Un nom de liste peut avoir jusqu'à {max} caractères",
-      "textRequired": "Écrivez d'abord quelque chose",
-      "textTooLong": "Un élément peut avoir jusqu'à {max} caractères",
-      "badDate": "Ce jour n'existe pas",
-      "badColor": "Choisissez une couleur dans la liste",
-      "listGone": "Cette liste n'existe plus",
-      "itemGone": "Cet élément n'existe plus",
-      "tooManyLists": "Vous pouvez avoir jusqu'à {max} listes",
-      "tooManyItems": "Une liste peut contenir jusqu'à {max} éléments",
-      "orderChanged": "La liste a changé pendant que vous déplaciez des éléments. Réessayez.",
-      "wallAddOff": "L'ajout depuis le mur est désactivé pour cette liste",
-      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez."
+      "nameRequired": "Donne un nom à la liste.",
+      "nameTooLong": "Un nom de liste peut avoir jusqu'à {max} caractères.",
+      "textRequired": "Écris d'abord quelque chose.",
+      "textTooLong": "Un élément peut avoir jusqu'à {max} caractères.",
+      "badDate": "Ce jour n'existe pas.",
+      "badColor": "Choisis une couleur dans la liste.",
+      "listGone": "Cette liste n'existe plus.",
+      "itemGone": "Cet élément n'existe plus.",
+      "tooManyLists": "Tu peux avoir jusqu'à {max} listes.",
+      "tooManyItems": "Une liste peut contenir jusqu'à {max} éléments.",
+      "orderChanged": "La liste a changé pendant que tu déplaçais des éléments. Réessaie.",
+      "wallAddOff": "L'ajout depuis le mur est désactivé pour cette liste.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Recharge la page et réessaie."
     },
     "notes": {
-      "textRequired": "Écrivez d'abord quelque chose.",
+      "textRequired": "Écris d'abord quelque chose.",
       "textTooLong": "Une note peut avoir {max} caractères au maximum.",
       "badAuthor": "L'auteur doit être un membre de la famille.",
-      "badLife": "Choisissez combien de temps la note doit rester.",
-      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez.",
+      "badLife": "Choisis combien de temps la note doit rester.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Recharge la page et réessaie.",
       "noteGone": "Cette note n'est plus là.",
-      "boardFull": "Le tableau est plein : {max} notes. Retirez-en quelques-unes d'abord."
+      "boardFull": "Le tableau est plein : {max} notes. Retires-en quelques-unes d'abord."
     },
     "family": {
-      "revision": "La famille a été modifiée pendant votre saisie. La liste actuelle est affichée. Veuillez refaire votre modification.",
-      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez.",
+      "revision": "La famille a été modifiée entre-temps. La liste à jour est affichée : il faut refaire la modification.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Il faut recharger la page et réessayer.",
       "nameTooLong": "Un nom peut avoir jusqu'à {max} caractères.",
-      "tooManyMembers": "Vous pouvez ajouter des personnes tant que la famille compte moins de {max} membres.",
-      "tooManyGroups": "Vous pouvez avoir jusqu'à {max} groupes.",
+      "tooManyMembers": "Une famille peut compter jusqu'à {max} personnes.",
+      "tooManyGroups": "Une famille peut avoir jusqu'à {max} groupes.",
       "groupNameTooLong": "Un nom de groupe peut avoir jusqu'à {max} caractères.",
-      "groupNameTaken": "Vous avez déjà un groupe appelé {name}.",
-      "groupMemberRemoved": "Un groupe nomme quelqu'un qui n'est pas dans la liste de la famille. Actualisez et réessayez.",
-      "memberRemoved": "Quelqu'un dans cette sélection a été retiré. Actualisez et choisissez à nouveau.",
-      "groupRemoved": "Un groupe de cette sélection a été retiré. Actualisez et choisissez à nouveau.",
-      "dataInvalid": "Les données de la famille ont besoin d'attention. Ouvrez les réglages pour les vérifier ou restaurez une sauvegarde.",
-      "dataWaiting": "Les données de la famille sont en cours de récupération. Réessayez dans une minute.",
-      "restoreMissing": "Cette sauvegarde nomme des personnes ou des groupes absents de sa liste de famille, donc elle n'a pas été restaurée. Restaurez une sauvegarde qui les contient."
+      "groupNameTaken": "Il y a déjà un groupe appelé {name}.",
+      "groupMemberRemoved": "Un groupe nomme quelqu'un qui n'est plus dans la famille. Il faut actualiser et réessayer.",
+      "memberRemoved": "Quelqu'un dans cette sélection a été retiré. Il faut actualiser et choisir à nouveau.",
+      "groupRemoved": "Un groupe de cette sélection a été retiré. Il faut actualiser et choisir à nouveau.",
+      "dataInvalid": "Les données de la famille ont un problème. Il faut les vérifier dans les Paramètres, ou restaurer une sauvegarde.",
+      "dataWaiting": "Les données de la famille sont en cours de récupération. Il faut réessayer dans une minute.",
+      "restoreMissing": "Cette sauvegarde nomme des personnes ou des groupes absents de sa liste de famille, donc elle n'a pas été restaurée. Il faut restaurer une sauvegarde qui les contient."
     },
     "library": {
       "badFolder": "Ce dossier ne peut pas être utilisé.",
@@ -49,11 +49,16 @@
       "fileGone": "{name} n'existe plus.",
       "fileExists": "{name} est déjà dans ce dossier.",
       "nameClash": "Deux des fichiers s'appellent {name} ; un seul peut y aller.",
-      "reservedName": "Les noms commençant par « rotation- » sont réservés aux fonds tournants au premier niveau. Renommez {name} d'abord.",
-      "badName": "Ce nom de dossier ne peut pas être utilisé. Essayez avec des lettres et des chiffres.",
+      "reservedName": "Les noms commençant par « rotation- » sont réservés aux fonds tournants au premier niveau. Il faut d'abord renommer {name}.",
+      "badName": "Ce nom de dossier ne peut pas être utilisé. Il faut des lettres et des chiffres.",
       "tooDeep": "Les dossiers ne peuvent avoir que {max} niveaux.",
       "folderExists": "Il y a déjà un dossier appelé {name} ici.",
-      "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord."
+      "folderNotEmpty": "Ce dossier contient encore des fichiers. Il faut d'abord les déplacer ou les supprimer.",
+      "badType": "{name} n'est pas une photo ou une vidéo que Home Screens peut afficher.",
+      "tooBig": "Le fichier {name} est trop lourd. Les photos peuvent faire jusqu'à 10 Mo et les vidéos jusqu'à 200 Mo.",
+      "tooBigAll": "C'est trop à envoyer en une seule fois. Les vidéos peuvent faire jusqu'à 200 Mo.",
+      "svgNoSize": "Le fichier {name} n'indique pas sa taille. Il faut ajouter un viewBox au SVG, puis réessayer.",
+      "replaceKind": "Le nouveau fichier doit se terminer par {ext}, comme celui qu'il remplace."
     },
     "calendarWrite": {
       "titleRequired": "Donne un nom à l'événement.",
@@ -76,8 +81,59 @@
       "changedElsewhere": "Quelqu'un vient de modifier cet événement.",
       "gone": "Cet événement a déjà été retiré.",
       "notAllowed": "Ce calendrier ne peut pas être modifié depuis Home Screens.",
-      "signInNeeded": "Il faut se reconnecter au calendrier. C'est dans Réglages > Calendrier.",
+      "signInNeeded": "Il faut se reconnecter au calendrier. C'est dans Paramètres > Calendrier.",
       "unreachable": "Impossible de joindre le calendrier, donc rien n'a encore changé. Réessaie dans une minute."
+    },
+    "unreachable": "Impossible de joindre Home Screens. Vérifie la connexion et réessaie.",
+    "power": {
+      "notManaged": "Home Screens ne peut pas redémarrer tout seul sur cet appareil. Il faut plutôt tout éteindre et rallumer."
+    },
+    "network": {
+      "addressNeeded": "Saisissez l'adresse de cette connexion.",
+      "badAddress": "Home Screens ne comprend pas cette adresse. Utilisez quatre nombres séparés par des points, comme 192.168.1.50.",
+      "prefixNeeded": "Saisissez le préfixe, le nombre après la barre oblique, comme 24.",
+      "badPrefix": "Le préfixe est un nombre de 1 à 32, comme 24.",
+      "gatewayNeeded": "Saisissez l'adresse de la passerelle. C'est en général votre box ou votre routeur, comme 192.168.1.1.",
+      "badGateway": "Home Screens ne comprend pas cette adresse de passerelle. Utilisez quatre nombres séparés par des points, comme 192.168.1.1.",
+      "badDns": "L'un des serveurs DNS n'est pas une adresse que Home Screens comprend. Utilisez quatre nombres séparés par des points, comme 1.1.1.1.",
+      "changePending": "Un autre changement de réseau attend encore d'être confirmé. Attendez qu'il se termine ou revenez en arrière, puis réessayez.",
+      "badHostname": "Ce nom ne peut pas être utilisé. Utilisez des lettres, des chiffres et des tirets, 63 caractères au maximum."
+    },
+    "wifi": {
+      "badName": "Ce nom de réseau ne peut pas être utilisé. Vérifiez-le et réessayez.",
+      "badPassword": "Un mot de passe Wi-Fi fait de 8 à 63 caractères. Vérifiez-le et réessayez.",
+      "passwordNeeded": "Ce réseau demande un mot de passe.",
+      "wrongPassword": "Le mot de passe Wi-Fi n'a pas été accepté. Vérifiez-le et réessayez.",
+      "notFound": "Ce réseau est introuvable. Vérifiez son nom et qu'il est à portée.",
+      "timedOut": "Le réseau n'a pas répondu à temps. Réessayez dans un instant."
+    },
+    "allowlist": {
+      "badEntry": "« {entry} » n'est pas une adresse réseau. Essayez avec une adresse comme 192.168.1.0/24."
+    },
+    "timezone": {
+      "unknown": "Home Screens ne connaît pas ce fuseau horaire. Choisissez-en un dans la liste."
+    },
+    "plugins": {
+      "needsNewerHost": "Cette version du plugin demande une version plus récente de Home Screens. Mettez d'abord Home Screens à jour.",
+      "downloadFailed": "Impossible de télécharger le plugin. Vérifiez la connexion Internet et réessayez.",
+      "badLink": "Ce lien ne peut pas être utilisé. Collez le lien https complet du plugin.",
+      "blockedLink": "Ce lien pointe vers votre réseau domestique, donc Home Screens ne téléchargera rien depuis cette adresse.",
+      "needsVersion": "Ce lien a besoin d'un numéro de version. Indiquez la version à installer.",
+      "notAPlugin": "Ce lien ne mène pas à un plugin Home Screens. Vérifiez qu'il pointe vers le fichier .tar.gz du plugin.",
+      "alreadyInstalled": "Ce plugin est déjà installé. Mettez-le plutôt à jour depuis la boutique de plugins."
+    },
+    "icloud": {
+      "signInRefused": "Impossible de se connecter à iCloud. Vérifiez l'identifiant Apple, et assurez-vous que le mot de passe est un mot de passe d'application créé sur account.apple.com ; votre mot de passe Apple habituel ne fonctionne pas ici."
+    },
+    "secrets": {
+      "todoistRefused": "Todoist n'a pas accepté ce jeton. Copiez-le à nouveau depuis Todoist et collez-le ici."
+    },
+    "pluginAuth": {
+      "credentialsNeeded": "Saisissez votre e-mail et votre mot de passe.",
+      "codeNeeded": "Saisissez le code que vous avez reçu.",
+      "wrongCode": "Ce code n'a pas fonctionné. Vérifiez-le et réessayez.",
+      "expired": "Cette connexion a expiré. Recommencez-la.",
+      "notApproved": "La connexion n'a pas été approuvée. Recommencez si vous voulez vous connecter."
     }
   },
   "today": "Aujourd'hui",
@@ -91,7 +147,6 @@
     "add": "Ajouter",
     "close": "Fermer",
     "back": "Retour",
-    "confirm": "Confirmer",
     "save": "Enregistrer",
     "done": "Terminé",
     "edit": "Modifier",
@@ -100,15 +155,15 @@
     "name": "Nom",
     "color": "Couleur",
     "icon": "Icône",
-    "label": "Étiquette"
+    "label": "Étiquette",
+    "ok": "OK"
   },
   "status": {
     "saving": "Enregistrement…",
-    "uploadingCount": "Envoi de {current} sur {total}...",
+    "copied": "Copié",
+    "uploadingCount": "Envoi de {current} sur {total}…",
     "connected": "Connecté",
-    "disabled": "Désactivé",
-    "never": "Jamais",
-    "none": "Aucun"
+    "disabled": "Désactivé"
   },
   "relativeTime": {
     "justNow": "à l'instant",
@@ -122,7 +177,7 @@
     "eyebrow": "Home Screens",
     "headline": "Rien sur cet écran pour l'instant",
     "body": "Sur un téléphone ou un ordinateur connecté à ton Wi-Fi, ouvre",
-    "hideHint": "Tu préfères un écran vide ? Paramètres › Écran › Afficher cette astuce"
+    "hideHint": "Tu préfères un écran vide ? Désactive le message de configuration dans {place}."
   },
   "openedScreen": {
     "backTo": "Retour à {name}",
@@ -132,6 +187,10 @@
     "paused": "En pause",
     "previousScreen": "Écran précédent",
     "nextScreen": "Écran suivant",
+    "pause": "Rester sur cet écran (touche deux fois)",
+    "resume": "Reprendre le défilement des écrans",
+    "goTo": "Aller à l'écran {number}",
+    "goToNamed": "Aller à l'écran {number} : {name}",
     "resumesIn": "Reprend dans {time} · touche pour reprendre",
     "tapToResume": "touche pour reprendre",
     "minutes": "{count} min",
@@ -141,8 +200,7 @@
   "displayNotFound": {
     "notRegistered": "Affichage pas encore ajouté",
     "adoptionLine1": "Cet affichage est connecté à Home Screens mais n'a pas encore été ajouté.",
-    "adoptionLine2": "Ouvre l'éditeur sur le Pi principal, va dans",
-    "settingsLink": "Paramètres → Affichages",
+    "adoptionLine2": "Ouvre l'éditeur Home Screens, va dans",
     "andClick": "et clique sur",
     "adoptLabel": "Ajouter",
     "nextTo": "à côté de",
@@ -152,6 +210,7 @@
   },
   "login": {
     "checkingAuth": "Vérification de l'authentification…",
+    "title": "Connexion",
     "ipBlocked": "Cet appareil n'a pas le droit de se connecter",
     "enterPasswordToContinue": "Saisis ton mot de passe pour continuer",
     "accessRestricted": "Accès restreint",
@@ -161,41 +220,40 @@
     "signingIn": "Connexion…",
     "unlock": "Déverrouiller",
     "loading": "Chargement…",
-    "backToDisplay": "Retour à l'affichage",
-    "loginFailed": "Échec de la connexion",
+    "backToDisplay": "Retour au mur",
+    "loginFailed": "La connexion n'a pas fonctionné. Réessaie.",
     "unreachable": "Impossible de joindre Home Screens",
     "errors": {
       "wrongPassword": "Ce mot de passe n'est pas le bon.",
       "tooManyTries": {
-        "one": "Trop d'essais. Attendez {count} minute, puis réessayez.",
-        "other": "Trop d'essais. Attendez {count} minutes, puis réessayez."
+        "one": "Trop d'essais. Attends {count} minute, puis réessaie.",
+        "other": "Trop d'essais. Attends {count} minutes, puis réessaie."
       }
     },
     "forgotPassword": {
       "link": "Mot de passe oublié ?",
       "title": "Réinitialiser le mot de passe",
-      "body": "La personne qui a installé cet appareil peut effacer le mot de passe. Sur l'appareil (avec un clavier branché) ou depuis un autre ordinateur dans un terminal, lance :",
+      "body": "La personne qui a installé Home Screens peut effacer le mot de passe. Sur l'ordinateur où tourne Home Screens (avec un clavier branché) ou depuis un autre ordinateur dans un terminal, lance :",
       "fallback": "Si cette commande n'existe pas, supprimer le fichier {file} dans le dossier Home Screens fait la même chose.",
-      "after": "Home Screens s'ouvre ensuite sans mot de passe, et vous pouvez en définir un nouveau dans les réglages."
+      "after": "Home Screens s'ouvre ensuite sans mot de passe, et tu peux en définir un nouveau dans {place}."
     }
   },
   "errors": {
     "fetchFailed": "Impossible de se connecter pour charger ces données",
-    "loadImagesFailed": "Échec du chargement des images",
-    "uploadFailed": "Échec de l'envoi",
-    "uploadFailedFor": "L'envoi de {name} a échoué",
-    "createFolderFailed": "Échec de la création du dossier",
-    "deleteFolderFailed": "Échec de la suppression du dossier",
-    "deleteImageFailed": "Échec de la suppression de la photo",
-    "googleExpired": "Ta connexion Google a expiré. Reconnecte-toi.",
-    "googleDisconnectFailed": "Impossible de déconnecter Google. Vérifie ta connexion Internet et réessaie.",
-    "googleStatusFailed": "Impossible de vérifier ta connexion Google. Recharge la page et réessaie.",
-    "deviceFlowFailed": "Échec du démarrage de l'authentification par appareil",
-    "codeExpired": "Code expiré. Réessaie.",
-    "authorizationFailed": "Échec de l'autorisation",
-    "startSignInFailed": "Impossible de démarrer la connexion",
-    "deleteImageInUse": "Cette photo est encore affichée sur un écran, elle ne peut donc pas être supprimée",
-    "deleteImageInUseOn": "Cette photo est encore utilisée sur {where}, elle ne peut donc pas être supprimée"
+    "loadImagesFailed": "Impossible de charger les images. Réessayez.",
+    "uploadFailed": "L'envoi n'a pas fonctionné. Réessayez.",
+    "uploadFailedFor": "L'envoi de {name} n'a pas fonctionné. Réessayez.",
+    "createFolderFailed": "Impossible de créer ce dossier. Réessayez.",
+    "deleteFolderFailed": "Impossible de supprimer ce dossier. Réessayez.",
+    "deleteImageFailed": "Impossible de supprimer cette photo. Réessayez.",
+    "googleExpired": "Votre connexion Google a expiré. Reconnectez-vous.",
+    "googleDisconnectFailed": "Impossible de déconnecter Google. Vérifiez votre connexion Internet et réessayez.",
+    "googleStatusFailed": "Impossible de vérifier votre connexion Google. Rechargez la page et réessayez.",
+    "deviceFlowFailed": "Impossible de lancer la connexion. Réessayez.",
+    "codeExpired": "Ce code a expiré. Relancez la connexion.",
+    "authorizationFailed": "La connexion n'a pas fonctionné. Réessayez.",
+    "deleteImageInUse": "Cette photo est encore affichée sur un écran, elle ne peut donc pas être supprimée.",
+    "deleteImageInUseOn": "Cette photo est encore utilisée sur {where}, elle ne peut donc pas être supprimée."
   },
   "days": {
     "sunday": "Dimanche",
@@ -283,12 +341,12 @@
     "addMinute": "+1 min",
     "secondsShort": "{seconds} s",
     "stopHoldHint": "Arrêter (maintenir pour confirmer)",
-    "keepHoldingToStop": "Maintenez pour arrêter",
-    "tapToClose": "Touchez pour fermer",
+    "keepHoldingToStop": "Maintiens pour arrêter",
+    "tapToClose": "Touche pour fermer",
     "controls": "Boutons du minuteur",
     "replaceTitle": "Démarrer un nouveau minuteur ?",
     "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
-    "routinesLoadError": "Impossible de charger les routines. Vérifiez la connexion et réessayez.",
+    "routinesLoadError": "Impossible de charger les routines. Vérifie la connexion et réessaie.",
     "routineMeta": {
       "one": "{steps} étape · {minutes} min",
       "other": "{steps} étapes · {minutes} min"
@@ -299,14 +357,14 @@
     "heading": "Où voulez-vous aller ?",
     "remote": {
       "title": "Télécommande familiale",
-      "body": "Tâches, repas, minuteurs et écrans"
+      "body": "Tâches, repas, minuteurs et le mur"
     },
     "chores": {
       "title": "Tâches des enfants",
       "body": "Cocher les tâches du jour"
     },
     "display": {
-      "title": "Affichage",
+      "title": "Le mur",
       "body": "Voir ce que montre le mur"
     },
     "editor": {
@@ -316,7 +374,6 @@
     "editorAddressHint": "Ouvrez cette adresse sur un ordinateur pour composer vos écrans :",
     "editorAddressLabel": "Adresse de l'éditeur",
     "copy": "Copier",
-    "copied": "Copié",
     "openEditor": "Ouvrir l'éditeur"
   },
   "alerts": {
@@ -329,12 +386,10 @@
     "emoji": "Emoji (facultatif)",
     "color": "Couleur",
     "emptyTitle": "Personne pour le moment",
-    "emptyDescription": "Ajoutez les membres de votre foyer. Ils seront disponibles dans les tâches, les récompenses, les calendriers et les emplois du temps.",
-    "loadFailed": "Impossible de charger votre famille.",
-    "saveFailed": "Impossible d’enregistrer votre famille.",
+    "emptyDescription": "Les personnes du foyer ajoutées ici se retrouvent dans les tâches, les récompenses, les calendriers et les emplois du temps.",
+    "loadFailed": "Impossible de charger la famille. Il faut vérifier la connexion, puis réessayer.",
     "retry": "Réessayer",
     "saved": "Famille enregistrée.",
-    "saving": "Enregistrement…",
     "removeTitle": "Supprimer {name} ?",
     "removeDescription": "Supprimer {name} efface ses attributions de tâches, plannings, historique, solde de tickets, accès aux récompenses et notes données aux plats. Le choix de ses calendriers est aussi oublié. Les tâches sans personne pour les faire sont supprimées. Cette action est irréversible.",
     "remove": "Supprimer la personne",
@@ -345,7 +400,7 @@
     "previous": "Précédent",
     "next": "Suivant",
     "page": "Page {page} sur {total}",
-    "limit": "Vous pouvez ajouter jusqu’à {count} personnes. Les personnes déjà présentes sont conservées et peuvent toujours être modifiées ou supprimées.",
+    "limit": "Une famille peut compter jusqu'à {count} personnes. Les personnes déjà présentes sont conservées et peuvent toujours être modifiées ou supprimées.",
     "choreCount": {
       "one": "{count} tâche",
       "other": "{count} tâches"
@@ -358,7 +413,7 @@
     "removeTimetable": "{name} a un emploi du temps, et il est supprimé également.",
     "groups": {
       "title": "Groupes",
-      "description": "Regroupez des personnes pour qu'un calendrier affiche « Enfants » au lieu de cinq prénoms, et pour donner une tâche à tout le groupe d'un coup. Une personne peut faire partie de plusieurs groupes.",
+      "description": "Un groupe permet à un calendrier d'afficher « Enfants » au lieu de cinq prénoms, et de donner une tâche à tout le groupe d'un coup. Une personne peut faire partie de plusieurs groupes.",
       "add": "Ajouter un groupe",
       "edit": "Modifier le groupe",
       "name": "Nom du groupe",
@@ -369,12 +424,11 @@
       "removeTitle": "Supprimer {name} ?",
       "removeDescription": "Les écrans qui n'affichent que {name} affichent de nouveau tout le monde. Personne n'est retiré de la famille.",
       "removeChoreCount": {
-        "one": "{count} tâche est donnée à {name}. Elle reste dans votre liste et attend que vous choisissiez quelqu'un si personne d'autre ne s'en occupe.",
-        "other": "{count} tâches sont données à {name}. Elles restent dans votre liste, et celles dont personne d'autre ne s'occupe attendent que vous choisissiez quelqu'un."
+        "one": "{count} tâche est donnée à {name}. Elle reste dans la liste et attend qu'on choisisse quelqu'un si personne d'autre ne s'en occupe.",
+        "other": "{count} tâches sont données à {name}. Elles restent dans la liste, et celles dont personne d'autre ne s'occupe attendent qu'on choisisse quelqu'un."
       },
       "saved": "Groupes enregistrés.",
-      "saveFailed": "Impossible d'enregistrer vos groupes.",
-      "limit": "Vous pouvez créer jusqu'à {count} groupes.",
+      "limit": "On peut créer jusqu'à {count} groupes.",
       "hint": "Les groupes servent à la légende des couleurs du calendrier et à son filtre « Afficher seulement ». Une tâche peut aussi être donnée à un groupe. Les récompenses restent attribuées à des personnes."
     }
   },
@@ -448,13 +502,11 @@
       "screen": "Écran"
     },
     "remove": {
-      "title": "Supprimer {name} ?",
       "inUse": {
         "one": "Elle est utilisée à {count} endroit, qui passera à une icône standard.",
         "other": "Elle est utilisée à {count} endroits, qui passeront à une icône standard."
       },
       "notUsed": "Elle n'est utilisée nulle part.",
-      "confirm": "Supprimer",
       "keep": "La garder"
     },
     "settingsRow": {
@@ -483,7 +535,7 @@
     "heading": "Photos et vidéos",
     "off": "Ne pas les inclure",
     "used": "Seulement celles que vos écrans utilisent",
-    "all": "Toute votre photothèque",
+    "all": "Tout ce qui est dans Photos et vidéos",
     "help": "Fonds d'écran, dossiers de diaporama et vidéos de vos écrans. Une sauvegarde avec des images est enregistrée en fichier zip.",
     "files": {
       "one": "{count} fichier",
@@ -496,32 +548,33 @@
     "openLibrary": "Ouvrir Photos et vidéos",
     "leftOut": "Sauvegarde faite, mais vos images n'ont pas pu être ajoutées. Réessayez pour les inclure.",
     "restoreConfirm": {
-      "one": "Cette sauvegarde contient {count} image ({size}). Une image du même nom déjà sur cet appareil est remplacée ; rien n'est supprimé.",
-      "other": "Cette sauvegarde contient {count} images et vidéos ({size}). Une image du même nom déjà sur cet appareil est remplacée ; rien n'est supprimé."
+      "one": "Cette sauvegarde contient {count} image ({size}). Une image du même nom déjà sur Home Screens est remplacée ; rien n'est supprimé.",
+      "other": "Cette sauvegarde contient {count} images et vidéos ({size}). Une image du même nom déjà sur Home Screens est remplacée ; rien n'est supprimé."
     },
     "restoreConfirmButton": "Restaurer",
     "restoreMissing": "Certains écrans utilisent des images qui n'étaient pas dans cette sauvegarde. Ouvrez Photos et vidéos pour voir lesquelles.",
+    "phoneRestoreMissing": "Certains écrans utilisent des images qui n'étaient pas dans cette sauvegarde. Tu peux voir lesquelles sur l'ordinateur dans {place}.",
     "phoneRow": "Photos et vidéos dans la sauvegarde",
     "phoneUsed": "Seulement celles à l'écran",
-    "phoneAll": "Toute la photothèque",
+    "phoneAll": "Toutes tes photos et vidéos",
     "phoneOff": "Non incluses"
   },
   "noTimezone": {
     "title": "Pas encore de fuseau horaire.",
-    "body": "Vos écrans suivent l'horloge du hub ({zone}), les heures peuvent donc être fausses.",
+    "body": "Vos écrans suivent l'horloge de Home Screens ({zone}), les heures peuvent donc être fausses.",
     "action": "Choisir le fuseau horaire"
   },
   "routeError": {
     "title": "Cette page ne peut pas s'afficher pour le moment",
     "body": "Home Screens a du mal à lire ses données enregistrées. Il va réessayer tout seul dans un instant.",
-    "help": "Si ça ne disparaît pas, un adulte peut ouvrir Home Screens sur un ordinateur et remettre une sauvegarde dans les Réglages.",
+    "help": "Si ça ne disparaît pas, un adulte peut ouvrir Home Screens sur un ordinateur et remettre une sauvegarde dans {place}.",
     "retry": "Réessayer"
   },
   "mealTimeChip": {
     "servingTimeAria": "Heure de service {time}, clique pour modifier",
     "servingTimeTitle": "Heure de service : {time}",
     "setServingTime": "Définir l'heure de service",
-    "setTime": "+ Définir l'heure",
+    "setTime": "Choisir l'heure",
     "setMealTime": "Définir l'heure du repas",
     "servingTime": "Heure de service",
     "clearTime": "Effacer l'heure"
@@ -533,17 +586,17 @@
     "choose": "Choisir un membre de la famille",
     "stars": "Choisir de 1 à 5 étoiles",
     "star": "{count} étoiles",
-    "yourVote": "Votre note : {rating} / 5",
-    "notRated": "Vous n’avez pas encore noté cette recette.",
+    "yourVote": "Ta note : {rating} / 5",
+    "notRated": "Tu n’as pas encore noté cette recette.",
     "clear": "Effacer ma note",
-    "saveError": "Votre note n’a pas été enregistrée. Vérifiez la connexion et touchez une étoile pour réessayer.",
+    "saveError": "Ta note n’a pas été enregistrée. Vérifie la connexion et touche une étoile pour réessayer.",
     "loadError": "Impossible d’actualiser les notes.",
     "loading": "Chargement des notes…",
-    "noMembers": "Ajoutez des personnes dans Réglages > Famille pour commencer à noter.",
+    "noMembers": "Ajoute des personnes dans {place} pour commencer à noter.",
     "rate": "Noter le plat",
     "dinner": "Noter le dîner",
     "close": "Terminé",
-    "hint": "Chaque personne a une note par recette. Notez à nouveau pour la modifier ; la moyenne familiale utilise les notes actuelles de chacun.",
+    "hint": "Chaque personne a une note par recette. Note à nouveau pour la modifier ; la moyenne familiale utilise les notes actuelles de chacun.",
     "noDinner": "Aucun dîner n’est prévu ce jour-là.",
     "typed": {
       "one": "{dishes} : ce plat a été tapé à la main, il n’a donc pas de recette à noter.",
@@ -554,7 +607,8 @@
   "chores": {
     "changedElsewhere": "Quelqu'un d'autre a modifié les tâches. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
     "coverage": "Couverture : {covered} jours sur 7",
-    "holdToUncheck": "Appuie longuement pour décocher"
+    "holdToUncheck": "Appuie longuement pour décocher",
+    "deleteBody": "La tâche disparaît. Les tickets que les enfants ont déjà gagnés pour elle restent sur leur carte."
   },
   "rewards": {
     "redeem": {
@@ -604,12 +658,12 @@
       "emptyDescription": "Ajoute quelque chose ci-dessus, ou envoie ici les ingrédients d'une recette depuis Mealie.",
       "unreachableDescription": "Ta liste est en sécurité dans Mealie. Vérifie que Mealie fonctionne, puis réessaie.",
       "notSaved": {
-        "one": "{items} n'a pas été enregistré. Réessaie.",
-        "other": "{items} n'ont pas été enregistrés. Réessaie."
+        "one": "Impossible d'enregistrer {items}. Réessaie.",
+        "other": "Impossible d'enregistrer {items}. Réessaie."
       },
       "notSavedUnreachable": {
-        "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
-        "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
+        "one": "Impossible d'enregistrer {items} : Mealie ne répond pas. Réessaie dans un instant.",
+        "other": "Impossible d'enregistrer {items} : Mealie ne répond pas. Réessaie dans un instant."
       },
       "notSavedToken": {
         "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
@@ -624,8 +678,8 @@
         "other": "{items} n'ont pas été enregistrés. Mealie n'est pas connecté."
       },
       "notSavedConnection": {
-        "one": "{items} n'a pas été enregistré. Home Screens est injoignable, vérifie la connexion et réessaie.",
-        "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
+        "one": "Impossible d'enregistrer {items} : Home Screens est injoignable. Vérifie la connexion et réessaie.",
+        "other": "Impossible d'enregistrer {items} : Home Screens est injoignable. Vérifie la connexion et réessaie."
       },
       "moreItems": {
         "one": "{count} autre",
@@ -700,7 +754,6 @@
       "one": "Trop d'essais. Réessaie dans {count} seconde.",
       "other": "Trop d'essais. Réessaie dans {count} secondes."
     },
-    "offline": "Impossible de joindre le hub. Réessaie.",
     "unlocked": {
       "one": "Déverrouillé encore {count} minute",
       "other": "Déverrouillé encore {count} minutes"
@@ -732,5 +785,40 @@
     "everyTimePastFuture": "Toutes les fois, passées et à venir",
     "askBody": "Modifier seulement ce jour-là, ou toutes les fois ?",
     "everyTimeFromFirst": "Toutes les fois, depuis la première"
+  },
+  "notice": {
+    "title": "Information"
+  },
+  "settingsPages": {
+    "calendar": "Calendrier",
+    "weather": "Météo",
+    "location": "Lieu et langue",
+    "data": "Sauvegardes et données",
+    "integrations": "Clés API",
+    "media": "Photos et vidéos",
+    "icons": "Vos icônes",
+    "meals": "Repas",
+    "network": "Réseau",
+    "security": "Sécurité",
+    "stats": "État",
+    "system": "Système et mises à jour",
+    "displays": "Affichages",
+    "screen": "Écran",
+    "automation": "Automatisation",
+    "phone": "Sur votre téléphone",
+    "family": "Famille"
+  },
+  "confirm": {
+    "deleteTitle": "Supprimer « {name} » ?",
+    "removeTitle": "Retirer « {name} » ?",
+    "clearTitle": "Vider « {name} » ?",
+    "cantUndo": "Impossible de revenir en arrière."
+  },
+  "lists": {
+    "removeDoneTitle": {
+      "one": "Retirer {count} élément fait de « {name} » ?",
+      "other": "Retirer {count} éléments faits de « {name} » ?"
+    },
+    "removeDoneBody": "Ils sont retirés de la liste pour de bon."
   }
 }
