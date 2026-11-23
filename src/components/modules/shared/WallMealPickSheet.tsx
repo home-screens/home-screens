@@ -250,7 +250,7 @@ function PickSheet({ ctx, target, onClose }: { ctx: MealRecipeContextValue; targ
       busy={busy}
     />
   ) : status ? (
-    <WallMenuStatusLine status={status} canUndo={canUndo} busy={busy} P={P} onUndo={() => status.undo && void run({ undo: status.undo })} />
+    <WallMenuStatusLine status={status} canUndo={canUndo} busy={busy} P={P} onUndo={() => { if (status.undo && !guard.quiet()) void run({ undo: status.undo }); }} />
   ) : null;
 
   // Once a recipe is on, the sheet has done its job: it closes soon after, unless it is touched again.

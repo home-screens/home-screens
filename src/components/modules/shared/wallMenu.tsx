@@ -92,6 +92,8 @@ export function useWallPlanKind(): (meal: SavedMeal) => MealCourseKind {
  * changed: it just opened, a question opened or closed in it, or a change
  * landed. The second tap of a double tap lands in that moment, on whatever
  * is there now, and must never plan, swap or take off something nobody chose.
+ * Undo is held to it too: in the recipe book the line that carries it appears
+ * over the recipes, and a double tap on the recipe under it would undo its own pick.
  */
 export const WALL_MENU_TAP_GUARD_MS = 700;
 

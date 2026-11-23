@@ -80,6 +80,7 @@ test('recipe card: Put on the menu plans a free day, and Undo frees it again', a
   expect((await dinnerOn(request, TODAY))?.mealId).toBe('meal-curry');
   expect(await day(page, TOMORROW).boundingBox()).toEqual(tuesdayBefore);
 
+  await settle(page);
   const undone = changed(page);
   await sheet.getByTestId('wall-menu-undo').click();
   expect((await undone).ok()).toBe(true);
@@ -209,6 +210,7 @@ test('taking a meal off from its own card keeps the card, the sheet and its Undo
   await expect(sheet.getByTestId('wall-menu-status')).toContainText('Chicken tacos came off');
   await expect(sheet.getByTestId('wall-menu-title')).toHaveText('Change the menu');
   await expect(page.getByTestId('recipe-card')).toBeVisible();
+  await settle(page);
   const undone = changed(page);
   await sheet.getByTestId('wall-menu-undo').click();
   expect((await undone).ok()).toBe(true);
@@ -236,6 +238,28 @@ test('the second tap of a double tap never plans, picks or answers anything', as
   await expect(sheet.getByTestId('wall-menu-status')).toContainText('Chicken curry now');
   await page.waitForTimeout(400);
   expect(await planned()).toBe(2);
+});
+
+test('a double tap on a recipe never undoes its own pick, wherever the line with Undo appears', async ({ page, request }) => {
+  await seedMeals(request, MEALS);
+  const week = buildModuleInstance('fullscreen-meal-planner', { view: 'week', interactive: true, wallPlan: true });
+  const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [week])] }));
+  await display.module('fullscreen-meal-planner').getByRole('button', { name: /^Plan .* dinner$/ }).first().click();
+  const book = page.getByTestId('meal-pick-sheet');
+  await settle(page);
+  const put = changed(page);
+  await book.getByTestId('recipe-book-tile').filter({ hasText: 'Chicken curry' }).click();
+  expect((await put).ok()).toBe(true);
+  // The second tap, the moment Undo is drawn: the worst case is a recipe that sat right under it.
+  await book.getByTestId('wall-menu-undo').click();
+  await page.waitForTimeout(600);
+  expect((await dinnerOn(request, TODAY))?.mealId).toBe('meal-curry');
+  // A person who means it, a moment later, still can.
+  await settle(page);
+  const undone = changed(page);
+  await book.getByTestId('wall-menu-undo').click();
+  expect((await undone).ok()).toBe(true);
+  expect(await dinnerOn(request, TODAY)).toBeUndefined();
 });
 
 test('a dessert planned on a free day stays a dessert: the main dish picked after it leads the meal', async ({ page, request }) => {

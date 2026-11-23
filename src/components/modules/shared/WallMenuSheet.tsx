@@ -310,7 +310,7 @@ function MenuSheet({ ctx, meal, startSlot, heading: headingKey, onClose }: { ctx
     </button>
   );
   const statusLine = status && (
-    <WallMenuStatusLine status={status} canUndo={canUndo} busy={busy} P={P} onUndo={() => status.undo && void run({ undo: status.undo })} style={{ flex: 1, minWidth: 0 }} />
+    <WallMenuStatusLine status={status} canUndo={canUndo} busy={busy} P={P} onUndo={() => { if (status.undo && !guard.quiet()) void run({ undo: status.undo }); }} style={{ flex: 1, minWidth: 0 }} />
   );
   const anyMine = weeks.some((days) => days.some((date) => date >= todayISO && wallDayTap(plan, date, slot, meal.id, kind) === 'off'));
 
