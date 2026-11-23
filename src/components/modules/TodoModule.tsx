@@ -13,6 +13,7 @@ import { TapCheckbox, TAP_CHECKBOX_ACCENT } from './shared/TapCheckbox';
 import { wallRowPress } from './shared/wallPress';
 import { usePressedKey } from './shared/usePressedKey';
 import { WallScroller } from './shared/WallScroller';
+import { useScrolledFromTop } from './shared/useScrolledFromTop';
 import { smallWallScrollLook } from './shared/wallScrollLook';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
@@ -280,11 +281,15 @@ function RepeatLine({ list, t, className = 'mt-auto' }: { list: TodoList; t: Tra
 // A wall module has no scrollbar, so a list taller than its card would clip
 // whichever row fell on the edge in half. The rows that do not fit are
 // dropped and an "and N more" line takes the last slot (useFitCount, shared
-// with the notes views). On a touch wall a finger scrolls the whole list
-// instead, and nothing is fitted.
+// with the notes views). Where a finger may scroll the list ("Tap on the
+// wall" on), every wall still shows that at rest, with the rest of the rows
+// under the line for a swipe to reach: a wall with no touchscreen showed a
+// row cut in half and nothing counting the hidden ones.
 
 /** The rows of a to-do `<ul>`, for useFitCount. */
 const ROW_SELECTOR = ':scope > li';
+/** The same rows measured from the scrolling box around the lists. */
+const SCROLL_ROW_SELECTOR = ':scope > ul > li';
 
 function rowsKeyOf(items: TodoListItem[]): string {
   return items.map((it) => `${it.id}:${it.completed ? 1 : 0}:${it.text.length}`).join('|');
@@ -463,7 +468,6 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   // predates the tap can't flash the old value back.
   const { run: runToggle, pending: pendingRef } = useOptimisticMutation();
   const [pressedId, press] = usePressedKey();
-  const tapHint = useTapHint(tappable);
   // After a successful write we hold local state for one poll interval. The
   // lists GET is a plain read, not serialized with the write, so a poll that
   // read the file before our write landed can resolve after the request
@@ -515,6 +519,9 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   // household that never assigns anything never makes the request. Several
   // cards cost one: useFetchData shares a request per URL.
   const visibleLists = view === 'board' ? lists : list ? [list] : [];
+  // Shown once per wall, and only where there is a box to tap: an empty card
+  // must not use it up for the card beside it, or for this one once it fills.
+  const tapHint = useTapHint(tappable && visibleLists.some((l) => l.items.length > 0));
   const needsMembers = showAssignees
     && visibleLists.some((l) => l.items.some((it) => it.assigneeIds && it.assigneeIds.length > 0));
   const [membersData] = useFetchData<FamilyPayload>(needsMembers ? familyUrl() : '', MEMBERS_TTL_MS);
@@ -750,7 +757,7 @@ interface TappableViewProps extends ViewProps {
 interface FittedListProps {
   /** Module font size in px; the room kept for "and N more" is measured from it. */
   fontPx: number;
-  /** A touch wall: a finger scrolls every row, and the list goes back to the top by itself. */
+  /** Taps on: "and N more" at rest, and a finger scrolls on to the rest; the list goes back to the top by itself. */
   scroll: boolean;
   /** The Add row (`WallAddRow`), at the card's foot under the rows; nothing when the wall can't add. */
   addRow?: ReactNode;
@@ -764,25 +771,38 @@ function AddRowSlot({ addRow, below }: { addRow: ReactNode; below: boolean }) {
 }
 
 /**
- * The rows, either clipped to the ones that fit (the editor preview, a wall
- * nobody can touch) or in a box a finger scrolls through all of them. `ulRef`
- * is what `useFitRows` measures; the scrolling list has no use for it.
+ * The rows that fit and their "and N more" line, and where taps are on, the
+ * rest below that line for a swipe to reach. `fitRef` is what useFitCount
+ * measures: the list itself, or the scrolling box around the lists.
  */
-function Rows({ ulRef, scroll, accentColor, t, testId, children }: {
-  ulRef: React.RefObject<HTMLUListElement | null>;
+function Rows({ fitRef, scroll, accentColor, t, testId, children, rest, more }: {
+  fitRef: React.RefObject<HTMLElement | null>;
   scroll: boolean;
   accentColor: string;
   t: TranslateFn;
   testId: string;
+  /** The rows that fit. */
   children: ReactNode;
+  /** The rows after them, which only a scrolling list draws. */
+  rest: ReactNode;
+  more: number;
 }) {
   const look = useMemo(() => smallWallScrollLook(accentColor), [accentColor]);
+  // The rest shows once a finger moves the list, never in the room under the line at rest.
+  const moved = useScrolledFromTop(fitRef, scroll);
   if (!scroll) {
-    return <ul ref={ulRef} className="relative flex flex-col min-h-0 overflow-hidden">{children}</ul>;
+    return (
+      <>
+        <ul ref={fitRef as React.RefObject<HTMLUListElement | null>} className="relative flex flex-col min-h-0 overflow-hidden">{children}</ul>
+        <MoreLine n={more} t={t} />
+      </>
+    );
   }
   return (
-    <WallScroller enabled backLabel={t('wallScroll.backToTop')} {...look} testId={testId}>
+    <WallScroller enabled boxRef={fitRef as React.RefObject<HTMLDivElement | null>} backLabel={t('wallScroll.backToTop')} {...look} testId={testId}>
       <ul className="relative flex flex-col">{children}</ul>
+      {more > 0 && <MoreLine n={more} t={t} />}
+      {more > 0 && <ul data-rest="" className="relative flex flex-col" style={{ visibility: moved ? 'visible' : 'hidden' }}>{rest}</ul>}
     </WallScroller>
   );
 }
@@ -791,28 +811,27 @@ function ListView({ list, title, showTitle, placement, accentColor, ctx, tappabl
   const { done, total } = countDone(list.items);
   const items = arrangeItems(list.items, placement);
   const allDone = total > 0 && done === total;
-  const ulRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(ulRef, rowsKeyOf(items), fontPx * 1.3, { active: !scroll, itemSelector: ROW_SELECTOR });
+  const fitRef = useRef<HTMLElement>(null);
+  const visible = useFitCount(fitRef, rowsKeyOf(items), fontPx * 1.3, { itemSelector: scroll ? SCROLL_ROW_SELECTOR : ROW_SELECTOR });
   const shown = visible === null ? items : items.slice(0, visible);
   const more = items.length - shown.length;
+  const row = (item: TodoListItem, last: boolean) => (
+    <Row key={item.id} item={item} listId={list.id} ctx={ctx} tappable={tappable} pressed={pressedId === item.id} onToggle={onToggle} last={last} />
+  );
   return (
     <>
       <Header title={title} showTitle={showTitle} done={done} total={total} t={ctx.t} />
-      <Rows ulRef={ulRef} scroll={scroll} accentColor={accentColor} t={ctx.t} testId="todo-list-scroll">
-        {shown.map((item, i) => (
-          <Row
-            key={item.id}
-            item={item}
-            listId={list.id}
-            ctx={ctx}
-            tappable={tappable}
-            pressed={pressedId === item.id}
-            onToggle={onToggle}
-            last={i === shown.length - 1}
-          />
-        ))}
+      <Rows
+        fitRef={fitRef}
+        scroll={scroll}
+        accentColor={accentColor}
+        t={ctx.t}
+        testId="todo-list-scroll"
+        more={more}
+        rest={items.slice(shown.length).map((item, i, rest) => row(item, i === rest.length - 1))}
+      >
+        {shown.map((item, i) => row(item, i === shown.length - 1))}
       </Rows>
-      <MoreLine n={more} t={ctx.t} />
       {allDone && <RepeatLine list={list} t={ctx.t} />}
       <AddRowSlot addRow={addRow} below={allDone && list.repeat !== 'never'} />
     </>
@@ -960,37 +979,37 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
   const { done, total } = countDone(list.items);
   const allDone = total > 0 && done === total;
   const items = arrangeItems(list.items, placement);
-  const ulRef = useRef<HTMLUListElement>(null);
-  const visible = useFitCount(ulRef, rowsKeyOf(items), fontPx * 1.1, { active: !scroll, itemSelector: ROW_SELECTOR });
+  const fitRef = useRef<HTMLElement>(null);
+  const visible = useFitCount(fitRef, rowsKeyOf(items), fontPx * 1.1, { itemSelector: scroll ? SCROLL_ROW_SELECTOR : ROW_SELECTOR });
   const shown = visible === null ? items : items.slice(0, visible);
   const more = items.length - shown.length;
+  const row = (item: TodoListItem) => (
+      <li
+        key={item.id}
+        data-testid="todo-item"
+        data-item-id={item.id}
+        className="flex items-center"
+        style={{ gap: '0.4em', padding: '0.28em 0', fontSize: '0.85em', opacity: item.completed ? TEXT_OPACITY.secondary : TEXT_OPACITY.primary, ...freshGlow(fresh, item.id, accentColor) }}
+      >
+        <span
+          className="rounded-full shrink-0"
+          style={{ width: '0.32em', height: '0.32em', backgroundColor: item.completed ? ink(0.35) : accentColor }}
+          aria-hidden="true"
+        />
+        <span
+          className="truncate"
+          style={{ lineHeight: 1.2, textDecorationLine: item.completed ? 'line-through' : 'none', textDecorationColor: item.completed ? accentColor : undefined }}
+        >
+          {item.text}
+        </span>
+      </li>
+  );
   return (
     <>
       <Header title={title} showTitle={showTitle} done={done} total={total} t={t} />
-      <Rows ulRef={ulRef} scroll={scroll} accentColor={accentColor} t={t} testId="todo-compact-scroll">
-        {shown.map((item) => (
-          <li
-            key={item.id}
-            data-testid="todo-item"
-            data-item-id={item.id}
-            className="flex items-center"
-            style={{ gap: '0.4em', padding: '0.28em 0', fontSize: '0.85em', opacity: item.completed ? TEXT_OPACITY.secondary : TEXT_OPACITY.primary, ...freshGlow(fresh, item.id, accentColor) }}
-          >
-            <span
-              className="rounded-full shrink-0"
-              style={{ width: '0.32em', height: '0.32em', backgroundColor: item.completed ? ink(0.35) : accentColor }}
-              aria-hidden="true"
-            />
-            <span
-              className="truncate"
-              style={{ lineHeight: 1.2, textDecorationLine: item.completed ? 'line-through' : 'none', textDecorationColor: item.completed ? accentColor : undefined }}
-            >
-              {item.text}
-            </span>
-          </li>
-        ))}
+      <Rows fitRef={fitRef} scroll={scroll} accentColor={accentColor} t={t} testId="todo-compact-scroll" more={more} rest={items.slice(shown.length).map(row)}>
+        {shown.map(row)}
       </Rows>
-      <MoreLine n={more} t={t} />
       {allDone && <RepeatLine list={list} t={t} />}
       <AddRowSlot addRow={addRow} below={allDone && list.repeat !== 'never'} />
     </>

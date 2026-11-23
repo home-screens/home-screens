@@ -824,6 +824,10 @@
       "one": "Remover {count} item feito de “{name}”?",
       "other": "Remover {count} itens feitos de “{name}”?"
     },
-    "removeDoneBody": "Eles saem da lista de vez."
+    "removeDoneBody": "Eles saem da lista de vez.",
+    "alreadyOnList": "Já está na lista: {item}",
+    "putBack": "Item de volta na lista: {item}",
+    "deleted": "Item tirado da lista: {item}",
+    "undo": "Desfazer"
   }
 }

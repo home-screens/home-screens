@@ -822,6 +822,10 @@
       "one": "Remove 1 done item from “{name}”?",
       "other": "Remove {count} done items from “{name}”?"
     },
-    "removeDoneBody": "They come off the list for good."
+    "removeDoneBody": "They come off the list for good.",
+    "alreadyOnList": "Already on the list: {item}",
+    "putBack": "Back on the list: {item}",
+    "deleted": "Took {item} off the list.",
+    "undo": "Undo"
   }
 }

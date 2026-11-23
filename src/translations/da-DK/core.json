@@ -822,6 +822,10 @@
       "one": "Fjern 1 færdigt punkt fra “{name}”?",
       "other": "Fjern {count} færdige punkter fra “{name}”?"
     },
-    "removeDoneBody": "De forsvinder fra listen for altid."
+    "removeDoneBody": "De forsvinder fra listen for altid.",
+    "alreadyOnList": "{item} står allerede på listen",
+    "putBack": "{item} står på listen igen",
+    "deleted": "{item} er fjernet fra listen.",
+    "undo": "Fortryd"
   }
 }

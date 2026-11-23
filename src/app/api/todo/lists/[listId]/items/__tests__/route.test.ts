@@ -122,6 +122,8 @@ describe('POST /api/todo/lists/[listId]/items from a wall', () => {
     vi.mocked(requireSession).mockRejectedValue(unauthorized());
     expect((await add('shop', { text: 'Bread', dueDate: '2026-11-21' })).status).toBe(401);
     expect((await add('shop', { text: 'Bread', assigneeIds: ['m-1'] })).status).toBe(401);
+    // Undo's "make it again" is a session's: a wall always keeps one of each.
+    expect((await add('shop', { text: 'milk', restore: true })).status).toBe(401);
     expect(await itemsOf('shop')).toHaveLength(2);
   });
 });
@@ -131,17 +133,23 @@ describe('POST /api/todo/lists/[listId]/items with a session', () => {
     vi.mocked(hasEditorSession).mockResolvedValue(true);
   });
 
-  it('adds to any list, a second copy included, as the phone always has', async () => {
-    const res = await add('jobs', { text: 'Rake the leaves' });
+  it('adds to any list', async () => {
+    const res = await add('jobs', { text: 'Sweep the porch' });
     expect((await res.json()).outcome).toBe('added');
     expect(await itemsOf('jobs')).toHaveLength(2);
     expect(readConfig).not.toHaveBeenCalled();
   });
 
-  it('keeps to one copy when asked', async () => {
-    const res = await add('shop', { text: 'milk', ifNew: true });
+  it('keeps to one copy whoever adds, so no surface can forget it', async () => {
+    const res = await add('shop', { text: 'milk' });
     expect((await res.json()).outcome).toBe('already');
     expect(await itemsOf('shop')).toHaveLength(2);
+  });
+
+  it('makes the item again for Undo, beside a copy that was added meanwhile', async () => {
+    const res = await add('shop', { text: 'milk', restore: true });
+    expect((await res.json()).outcome).toBe('added');
+    expect(await itemsOf('shop')).toHaveLength(3);
   });
 
   it('remembers nothing for a wall', async () => {

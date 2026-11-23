@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Andere Einkäufe",
-        "description": "Wähle eine eurer Listen für Dinge, die kein Essen braucht, wie Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand, und eine Einkaufskarte mit „An der Wand hinzufügen“ fügt dort hinzu.",
+        "description": "Wähle eine eurer Listen für alles, was ihr nicht zum Kochen braucht, zum Beispiel Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand. Eine Einkaufskarte mit „An der Wand hinzufügen“ trägt neue Einträge dort ein.",
         "none": "Keine"
       },
       "status": {

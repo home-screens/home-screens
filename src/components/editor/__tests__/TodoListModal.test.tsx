@@ -5,8 +5,9 @@ import { act, cleanup, fireEvent, render as renderUI, screen } from '@testing-li
 import core from '@/translations/en-US/core.json';
 import editor from '@/translations/en-US/editor.json';
 import { I18nProvider } from '@/i18n/provider';
-import { addItem, deleteItem, updateItem, updateList, TodoError } from '@/lib/todo-actions';
+import { addItem, addItemIfNew, deleteItem, updateItem, updateList, TodoError } from '@/lib/todo-actions';
 import type { TodoData } from '@/types/todos';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 import { refusalBody } from '@/lib/refusal';
 
 const state = vi.hoisted(() => ({ request: vi.fn() }));
@@ -57,7 +58,10 @@ function answer(url: string, method: string, body: Record<string, unknown> | und
       if (method === 'DELETE') board = deleteItem(board, listId, itemId);
       else board = updateItem(board, listId, itemId, body as never);
     } else if (items === 'items') {
-      board = addItem(board, listId, body as never).data;
+      // The route's rule: one of each, except Undo putting an item back.
+      const made = body?.restore ? addItem(board, listId, body as never) : addItemIfNew(board, listId, body as never);
+      board = made.data;
+      return reply(200, { lists: board.lists, created: made.item });
     } else {
       board = updateList(board, listId, body as never);
     }
@@ -172,4 +176,41 @@ describe('TodoListModal', () => {
     expect(board.lists[0].items.find((i) => i.id === 'milk')?.completed).toBe(false);
     expect((screen.getByLabelText('Done: Milk') as HTMLInputElement).checked).toBe(false);
   });
+
+  it('takes one item off at once, and Undo puts it back where it was', async () => {
+    render();
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: /Remove Milk/ }));
+    await settle();
+    expect(board.lists[0].items.map((i) => i.text)).toEqual(['Eggs']);
+    const toast = screen.getByTestId('todo-list-toast');
+    expect(toast.textContent).toContain('Took Milk off the list.');
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    await settle();
+    // Made again (never merged), then moved back to the top.
+    expect(writes.at(-2)).toMatchObject({ method: 'POST', body: { text: 'Milk', restore: true } });
+    expect(board.lists[0].items.map((i) => i.text)).toEqual(['Milk', 'Eggs']);
+  });
+
+  it('keeps the Undo only as long as every Undo lasts', async () => {
+    render();
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: /Remove Milk/ }));
+    await settle();
+    act(() => { vi.advanceTimersByTime(UNDO_WINDOW_MS); });
+    expect(screen.queryByTestId('todo-list-toast')).toBeNull();
+  });
+
+  it('says so when the words are already on the list, and sends nothing', async () => {
+    render();
+    await settle();
+    const before = writes.length;
+    fireEvent.change(screen.getByPlaceholderText(editor.todoListModal.addPlaceholder), { target: { value: 'milk ' } });
+    fireEvent.click(screen.getByRole('button', { name: core.actions.add }));
+    await settle();
+    expect(writes.length).toBe(before);
+    expect(screen.getByTestId('todo-list-toast').textContent).toContain('Already on the list: Milk');
+    expect(board.lists[0].items).toHaveLength(2);
+  });
 });
+

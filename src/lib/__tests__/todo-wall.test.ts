@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addItemIfNew, sameItemText } from '../todo-actions';
+import { addItemIfNew, orderWithItemAt, sameItemText } from '../todo-actions';
 import { groceryAddListId, groceryCardAdds, todoCardAdds, wallMayAddToList, wallMayAddToMealie } from '../todo-wall';
 import type { ScreenConfiguration } from '@/types/config';
 import type { TodoData } from '@/types/todos';
@@ -157,5 +157,24 @@ describe('addItemIfNew', () => {
 
   it('still refuses nothing typed', () => {
     expect(() => addItemIfNew(data(), 'shop', { text: '  ' })).toThrow('Type something first');
+  });
+});
+
+describe('orderWithItemAt', () => {
+  it('moves a put-back item to where it was', () => {
+    expect(orderWithItemAt(['a', 'b', 'c', 'new'], 'new', 1)).toEqual(['a', 'new', 'b', 'c']);
+    expect(orderWithItemAt(['a', 'new'], 'new', 0)).toEqual(['new', 'a']);
+  });
+
+  it('leaves it at the end when the list got shorter meanwhile, and leaves an unknown id alone', () => {
+    expect(orderWithItemAt(['a', 'new'], 'new', 5)).toEqual(['a', 'new']);
+    expect(orderWithItemAt(['a', 'b'], 'gone', 0)).toEqual(['a', 'b']);
+  });
+});
+
+describe('the words a list keeps', () => {
+  it('keeps one line with single spaces, whoever typed them', () => {
+    const data: TodoData = { migratedFromConfig: true, lists: [{ id: 'l', name: 'Shopping', slug: 'shopping', repeat: 'never', createdAt: '', updatedAt: '', items: [] }] };
+    expect(addItemIfNew(data, 'l', { text: '  Paper  Towels\n' }).item.text).toBe('Paper Towels');
   });
 });

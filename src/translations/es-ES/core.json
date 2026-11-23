@@ -822,6 +822,10 @@
       "one": "¿Quitar 1 elemento hecho de «{name}»?",
       "other": "¿Quitar {count} elementos hechos de «{name}»?"
     },
-    "removeDoneBody": "Se quitan de la lista para siempre."
+    "removeDoneBody": "Se quitan de la lista para siempre.",
+    "alreadyOnList": "Ya está en la lista: {item}",
+    "putBack": "De vuelta en la lista: {item}",
+    "deleted": "Se ha quitado de la lista: {item}.",
+    "undo": "Deshacer"
   }
 }

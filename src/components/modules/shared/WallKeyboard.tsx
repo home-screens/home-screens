@@ -109,6 +109,7 @@ export function WallKeyboard({
   const press = (fn: () => void) => () => { pressed(); fn(); };
   const row: CSSProperties = { display: 'flex', justifyContent: 'center', gap };
   const text = kind === 'text';
+  const actionWords = actionLabel ?? t('wallKeyboard.doneKey');
   const numbers = text && page === 'numbers';
 
   const charKeys = (chars: string) => [...chars].map((char) => {
@@ -201,13 +202,15 @@ export function WallKeyboard({
             // A faint key still counts as a touch for the minute, but acts on nothing.
             onClick={press(() => { if (!actionDisabled) onAction(); })}
             style={keyStyle(text ? 3 : 2.4, {
-              background: 'var(--wt-accent)', color: 'var(--wt-on-accent)', fontWeight: 700, fontSize: P(32),
+              background: 'var(--wt-accent)', color: 'var(--wt-on-accent)', fontWeight: 700,
+              // A long word ("Hinzufügen") steps down a size and keeps a margin, rather than touching the key's edges.
+              fontSize: P(actionWords.length > 8 ? 27 : 32), padding: `0 ${P(12)}px`, whiteSpace: 'nowrap',
               boxShadow: `0 ${P(3)}px 0 color-mix(in srgb, var(--wt-accent) 70%, #000)`,
               opacity: actionDisabled ? 0.38 : 1,
             })}
           >
             {actionIcon}
-            {actionLabel ?? t('wallKeyboard.doneKey')}
+            {actionWords}
           </button>
         </div>
       </div>

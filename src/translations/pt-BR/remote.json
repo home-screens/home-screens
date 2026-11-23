@@ -1146,11 +1146,7 @@
       "button": "Compartilhar",
       "nothingOpen": "Tudo feito!"
     },
-    "loadError": "Não foi possível carregar suas listas. Confira se o Home Screens está ligado e tente de novo.",
-    "alreadyOnList": "{item} já está na lista",
-    "putBack": "Item de volta na lista: {item}",
-    "deleted": "Item tirado da lista: {item}",
-    "undo": "Desfazer"
+    "loadError": "Não foi possível carregar suas listas. Confira se o Home Screens está ligado e tente de novo."
   },
   "formOverlay": {
     "discard": {

@@ -1145,11 +1145,7 @@
       "button": "Share",
       "nothingOpen": "All done!"
     },
-    "loadError": "Couldn't load your lists. Check that Home Screens is on and try again.",
-    "alreadyOnList": "{item} is already on the list",
-    "putBack": "{item} is back on the list",
-    "deleted": "Took {item} off the list.",
-    "undo": "Undo"
+    "loadError": "Couldn't load your lists. Check that Home Screens is on and try again."
   },
   "formOverlay": {
     "discard": {

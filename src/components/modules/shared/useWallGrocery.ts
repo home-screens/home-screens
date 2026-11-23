@@ -26,7 +26,7 @@ import { groceryAddListId } from '@/lib/todo-wall';
 import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
 import { usePressedKey } from './usePressedKey';
 
-/** The Mealie list every grocery card on the wall reads and an Add from the wall writes back. */
+/** The Mealie list every grocery card on the wall reads and an Add on the wall writes back. */
 export const WALL_SHOPPING_URL = '/api/mealie/shopping';
 
 /** How often the wall reads the Mealie list again: a tick made at the store shows up within a minute. */

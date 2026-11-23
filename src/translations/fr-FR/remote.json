@@ -1145,11 +1145,7 @@
       "button": "Partager",
       "nothingOpen": "Tout est fait !"
     },
-    "loadError": "Impossible de charger tes listes. Vérifie que Home Screens est allumé et réessaie.",
-    "alreadyOnList": "{item} est déjà sur la liste",
-    "putBack": "{item} est de retour sur la liste",
-    "deleted": "Élément retiré de la liste : {item}.",
-    "undo": "Annuler"
+    "loadError": "Impossible de charger tes listes. Vérifie que Home Screens est allumé et réessaie."
   },
   "formOverlay": {
     "discard": {

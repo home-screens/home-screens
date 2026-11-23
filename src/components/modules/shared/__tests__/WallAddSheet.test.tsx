@@ -7,6 +7,7 @@ import core from '@/translations/en-US/core.json';
 import modules from '@/translations/en-US/modules.json';
 import { WallAddSheet, type WallAddResult } from '../WallAddSheet';
 import { WALL_KEYBOARD_IDLE_MS } from '../WallKeyboard';
+import { WALL_UNDO_MARGIN_MS, WALL_UNDO_MS } from '@/lib/undo-window';
 
 afterEach(() => {
   cleanup();
@@ -107,4 +108,25 @@ describe('WallAddSheet', () => {
     act(() => { vi.advanceTimersByTime(WALL_KEYBOARD_IDLE_MS - 6_000); });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('drops a chip\'s Undo before the hub would stop taking it, while typing keeps the sheet open', async () => {
+    vi.useFakeTimers();
+    const { type, tap } = open(async (text) => ({ outcome: 'added', text, undo: async () => {} }));
+    type(['P', 'o', 'p']);
+    await act(async () => { tap('action'); });
+    expect(screen.getByTestId('wall-add-undo')).toBeTruthy();
+    // Keep the sheet up past its minute by typing now and then, as someone adding a long list does.
+    const step = WALL_KEYBOARD_IDLE_MS - 10_000;
+    for (let at = step; at < WALL_UNDO_MS - WALL_UNDO_MARGIN_MS - 1_000; at += step) {
+      act(() => { vi.advanceTimersByTime(step); });
+      // A fresh line starts on a capital.
+      tap('A');
+      tap('delete');
+    }
+    expect(screen.getByTestId('wall-add-undo')).toBeTruthy();
+    act(() => { vi.advanceTimersByTime(step); });
+    expect(screen.getByTestId('wall-add-chip').textContent).toContain('Pop');
+    expect(screen.queryByTestId('wall-add-undo')).toBeNull();
+  });
 });
+

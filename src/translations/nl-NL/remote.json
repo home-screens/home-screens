@@ -1145,11 +1145,7 @@
       "button": "Delen",
       "nothingOpen": "Alles gedaan!"
     },
-    "loadError": "Je lijsten konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
-    "alreadyOnList": "{item} staat al op de lijst",
-    "putBack": "{item} staat weer op de lijst",
-    "deleted": "{item} van de lijst gehaald.",
-    "undo": "Ongedaan maken"
+    "loadError": "Je lijsten konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw."
   },
   "formOverlay": {
     "discard": {

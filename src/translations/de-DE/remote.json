@@ -1145,11 +1145,7 @@
       "button": "Teilen",
       "nothingOpen": "Alles erledigt!"
     },
-    "loadError": "Deine Listen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
-    "alreadyOnList": "{item} steht schon auf der Liste",
-    "putBack": "Wieder auf der Liste: {item}",
-    "deleted": "Von der Liste genommen: {item}",
-    "undo": "Rückgängig"
+    "loadError": "Deine Listen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal."
   },
   "formOverlay": {
     "discard": {

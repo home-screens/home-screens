@@ -822,6 +822,10 @@
       "one": "{count} erledigten Eintrag aus „{name}“ entfernen?",
       "other": "{count} erledigte Einträge aus „{name}“ entfernen?"
     },
-    "removeDoneBody": "Was erledigt ist, verschwindet endgültig von der Liste."
+    "removeDoneBody": "Was erledigt ist, verschwindet endgültig von der Liste.",
+    "alreadyOnList": "Schon auf der Liste: {item}",
+    "putBack": "Wieder auf der Liste: {item}",
+    "deleted": "Von der Liste genommen: {item}",
+    "undo": "Rückgängig"
   }
 }

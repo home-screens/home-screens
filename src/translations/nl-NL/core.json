@@ -822,6 +822,10 @@
       "one": "1 gedaan item uit “{name}” weghalen?",
       "other": "{count} gedane items uit “{name}” weghalen?"
     },
-    "removeDoneBody": "Ze gaan voorgoed van de lijst."
+    "removeDoneBody": "Ze gaan voorgoed van de lijst.",
+    "alreadyOnList": "Al op de lijst: {item}",
+    "putBack": "Weer op de lijst: {item}",
+    "deleted": "{item} van de lijst gehaald.",
+    "undo": "Ongedaan maken"
   }
 }

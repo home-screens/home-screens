@@ -281,22 +281,46 @@ test.describe('To-Do List', () => {
     }],
   });
 
-  test('draws every item and scrolls with taps on, then goes back to the top', async ({ page, request, sandboxDir }) => {
+  test('shows whole rows and "and N more" at rest with taps on, scrolls on to the rest, then goes back to the top', async ({ page, request, sandboxDir }) => {
     await page.clock.install({ time: NOW });
     seedTodos(sandboxDir, longList());
     await show(page, request, 'todo', { listId: E2E_TODO_LIST_ID, interactive: true }, { w: 520, h: 640 });
 
     const box = page.getByTestId('todo-list-scroll');
     await expect(box).toHaveAttribute('data-wall-scroll', 'on');
-    // Every row is there, and no "and N more".
+    // Every row is there for a finger to reach, and at rest the count shows
+    // under the rows that fit whole, as on a wall nobody can touch.
     await expect(box.getByTestId('todo-item')).toHaveCount(ITEMS);
-    await expect(page.getByTestId('todo-more')).toHaveCount(0);
+    const more = box.getByTestId('todo-more');
+    await expect(more).toHaveText(/^and \d+ more$/);
+    const counted = Number(/\d+/.exec((await more.textContent()) ?? '')?.[0]);
+    const above = await box.locator(':scope > ul').first().getByTestId('todo-item').count();
+    expect(above + counted).toBe(ITEMS);
+    const rest = await box.evaluate((el) => {
+      const view = el.getBoundingClientRect();
+      const line = el.querySelector('[data-testid="todo-more"]')!.getBoundingClientRect();
+      const rows = [...el.querySelectorAll(':scope > ul:first-of-type > li')].map((li) => li.getBoundingClientRect().bottom);
+      return { lineBottom: line.bottom, viewBottom: view.bottom, lastRowBottom: Math.max(...rows) };
+    });
+    // Whole rows, then the line, all inside the card: nothing cut in half.
+    expect(rest.lastRowBottom).toBeLessThanOrEqual(rest.lineBottom);
+    expect(rest.lineBottom).toBeLessThanOrEqual(rest.viewBottom + 1);
+    // The rows past the line wait out of sight until a finger moves the list:
+    // whatever room is left under the line must not show the next one.
+    const restRows = box.locator('[data-rest]');
+    await expect(restRows).toHaveCSS('visibility', 'hidden');
     const { scrollHeight, clientHeight } = await box.evaluate((el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }));
     expect(scrollHeight).toBeGreaterThan(clientHeight * 1.5);
     await roundTrip(page, box, 'todo-list-scroll', 'Back to the top', 900, 0);
+    await expect(restRows).toHaveCSS('visibility', 'hidden');
+    await wheel(page, box, 600);
+    await expect(restRows).toHaveCSS('visibility', 'visible');
+    await page.getByTestId('todo-list-scroll-home').click();
+    await expect(restRows).toHaveCSS('visibility', 'hidden');
 
-    // A row inside the scrolling box still ticks on a tap.
-    const row = box.getByRole('button', { name: 'Thing number 1', exact: true });
+    // A row inside the scrolling box still ticks on a tap. Ticked, it moves to
+    // the foot of the list, past the line, where it waits out of sight.
+    const row = box.getByRole('button', { name: 'Thing number 1', exact: true, includeHidden: true });
     await expect(row).toHaveAttribute('aria-pressed', 'false');
     await row.click();
     await expect(row).toHaveAttribute('aria-pressed', 'true');

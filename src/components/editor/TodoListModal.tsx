@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ListTodo } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { refusalText } from '@/lib/hub-request';
@@ -10,13 +10,15 @@ import {
   addItemRequest,
   deleteItemRequest,
   listActionRequest,
+  reorderItemsRequest,
   sendTodoWrite,
   updateItemRequest,
   updateListRequest,
   type TodoListsPayload,
   type TodoWriteRequest,
 } from '@/lib/todo-client';
-import { TodoError, confirmsBefore, updateItem } from '@/lib/todo-actions';
+import { TodoError, confirmsBefore, orderWithItemAt, sameItemText, updateItem } from '@/lib/todo-actions';
+import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useWriteSession } from '@/hooks/useWriteSession';
 import Button from '@/components/ui/Button';
@@ -26,6 +28,7 @@ import { useTranslate } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { TODO_LIMITS, type TodoList, type TodoListItem } from '@/types/todos';
 import Notice from '@/components/ui/Notice';
+import Toast from '@/components/ui/Toast';
 import IconButton from '@/components/ui/IconButton';
 import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 
@@ -140,10 +143,13 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
 
   const saveFailed = tCore('refusals.saveFailed');
 
-  const { data: lists, loaded, loadError: loadFailed, write } = useWriteSession<TodoList[], TodoWriteRequest>({
+  const { data: lists, loaded, loadError: loadFailed, write } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
     initial: [],
     load: loadLists,
-    send: async (request) => ({ data: (await sendTodoWrite(editorFetch, request, saveFailed)).lists }),
+    send: async (request) => {
+      const { lists: data, created } = await sendTodoWrite(editorFetch, request, saveFailed);
+      return { data, created };
+    },
     holdMs: TODO_LISTS_TTL_MS,
     // A tick replayed over a copy that no longer has the item is skipped.
     tolerates: (e) => e instanceof TodoError,
@@ -163,6 +169,17 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   // (a row's unmount flush must not resurrect an item that was just removed).
   const listRef = useRef<TodoList | null>(null);
   listRef.current = list;
+
+  // A word on what just happened: an item taken off (with Undo, for as long
+  // as every Undo lasts), or an add that found the thing already there.
+  const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = useCallback((message: string, undo?: () => void) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ message, undo });
+    toastTimer.current = setTimeout(() => setToast(null), undo ? UNDO_WINDOW_MS : 4000);
+  }, []);
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
   // ── Name ──
   const name = typedName ?? list?.name ?? '';
@@ -192,8 +209,33 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     void write(null, updateItemRequest(listId, itemId, { text: trimmed }));
   };
 
+  /**
+   * Puts back an item just taken off, for the toast's Undo: the same words,
+   * due day and people, where it was, and ticked if it was. The hub makes it
+   * a new item at the end; the move back into place is worked out from the
+   * list as it is once the add has landed.
+   */
+  const restoreItem = async (item: TodoListItem, index: number) => {
+    let made: string | undefined;
+    const saved = await write(
+      null,
+      addItemRequest(listId, item.text, { restore: true, dueDate: item.dueDate, assigneeIds: item.assigneeIds }),
+      (created) => { made = created?.id; },
+    );
+    const ids = saved?.find((l) => l.id === listId)?.items.map((i) => i.id);
+    if (!made || !ids) return;
+    const order = orderWithItemAt(ids, made, index);
+    if (order.some((id, i) => id !== ids[i])) void write(null, reorderItemsRequest(listId, order));
+    if (item.completed) void write(null, updateItemRequest(listId, made, { completed: true }));
+  };
+
+  // One small item goes at once, with Undo on the toast, as on the phone.
   const deleteItem = (itemId: string) => {
+    const items = listRef.current?.items ?? [];
+    const index = items.findIndex((i) => i.id === itemId);
+    const item = items[index];
     void write(null, deleteItemRequest(listId, itemId));
+    if (item) showToast(tCore('lists.deleted', { item: item.text }), () => void restoreItem(item, index));
   };
 
   const addItem = async () => {
@@ -205,8 +247,18 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     // been typed since.
     setDraft('');
     addInputRef.current?.focus();
+    // A list keeps one of each thing (the hub's rule, as on the phone and the
+    // wall): say so rather than add nothing without a word.
+    const items = listRef.current?.items ?? [];
+    const open = items.find((i) => !i.completed && sameItemText(i.text, text));
+    if (open) {
+      showToast(tCore('lists.alreadyOnList', { item: open.text }));
+      return;
+    }
+    const ticked = items.find((i) => i.completed && sameItemText(i.text, text));
     const saved = await write(null, addItemRequest(listId, text));
     if (!saved) setDraft((current) => current || text);
+    else if (ticked) showToast(tCore('lists.putBack', { item: ticked.text }));
   };
 
   // ── Bulk actions ──
@@ -242,7 +294,8 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       {loadError && (
         <Notice tone="danger" role="alert" className="mx-4 mt-3">{loadError}</Notice>
       )}
-      {error && (
+      {/* A list deleted elsewhere already says so above; the refused write that found it gone would say it again. */}
+      {error && !(loaded && !list) && (
         <Notice tone="danger" role="alert" className="mx-4 mt-3">{error}</Notice>
       )}
 
@@ -316,6 +369,20 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
           {t('modals.crud.done')}
         </Button>
       </div>
+      {toast && (
+        <Toast
+          testId="todo-list-toast"
+          message={toast.message}
+          action={toast.undo ? {
+            label: tCore('lists.undo'),
+            onClick: () => {
+              toast.undo?.();
+              setToast(null);
+              if (toastTimer.current) clearTimeout(toastTimer.current);
+            },
+          } : undefined}
+        />
+      )}
     </CRUDModalShell>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { holdRotationFor } from '@/lib/interaction-hold';
 import { BROWSE_ROTATION_HOLD_MS } from '@/components/display/useTapRotationHold';
 import { WALL_SCROLL_GLASS_REST_MS, WALL_SCROLL_IDLE_MS, WALL_SCROLL_THUMB_FADE_MS, isAwayFromHome, isNearEnd, wallScrollThumb } from '@/lib/wall-scroll';
@@ -46,6 +46,8 @@ export interface WallScrollerProps {
   holdMs?: number;
   /** Called while the list is near its end (load the next page). The caller ignores repeats. */
   onNearEnd?: () => void;
+  /** Handed the scrolling box, for a caller that measures what shows in it at rest. */
+  boxRef?: RefObject<HTMLDivElement | null>;
   /** The scrolling box. */
   style?: CSSProperties;
   className?: string;
@@ -71,9 +73,13 @@ export interface WallScrollerProps {
  */
 export function WallScroller({
   enabled, home, homeKey, backLabel, backStyle, thumbColor = 'rgba(127,127,127,0.55)', thumbWidth = 6,
-  stays = false, holdMs = BROWSE_ROTATION_HOLD_MS, onNearEnd, style, className, frameStyle, testId, children,
+  stays = false, holdMs = BROWSE_ROTATION_HOLD_MS, onNearEnd, boxRef: outerBoxRef, style, className, frameStyle, testId, children,
 }: WallScrollerProps) {
   const boxRef = useRef<HTMLDivElement>(null);
+  const setBox = useCallback((el: HTMLDivElement | null) => {
+    boxRef.current = el;
+    if (outerBoxRef) outerBoxRef.current = el;
+  }, [outerBoxRef]);
   const thumbRef = useRef<HTMLDivElement>(null);
   const homeRef = useRef(home);
   homeRef.current = home;
@@ -210,7 +216,7 @@ export function WallScroller({
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', ...frameStyle }}>
       <div
-        ref={boxRef}
+        ref={setBox}
         data-testid={testId}
         data-wall-scroll={enabled ? 'on' : 'off'}
         className={className}

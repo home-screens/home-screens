@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Andere boodschappen",
-        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en de muur, en een boodschappenkaart met Toevoegen op de muur voegt daaraan toe.",
+        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en de muur. Staat ‘Toevoegen vanaf de muur’ aan bij een boodschappenkaart, dan komt wat daar wordt toegevoegd op deze lijst.",
         "none": "Geen"
       },
       "status": {
@@ -4689,7 +4689,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
-      "wallAdd": "Toevoegen op de muur",
+      "wallAdd": "Toevoegen vanaf de muur",
       "wallAddHelpMealie": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
       "wallAddHelpLocal": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
       "extrasList": "Andere boodschappen gaan op",

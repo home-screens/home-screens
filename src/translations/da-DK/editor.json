@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Andre indkøb",
-        "description": "Vælg en af jeres lister til de ting, ingen ret skal bruge, som køkkenrulle eller hundemad. Det, der stadig står på den, vises sidst i indkøbslisten på telefonen og på væggen, og et indkøbskort med Tilføj på væggen tilføjer til den.",
+        "description": "Vælg en af jeres lister til de ting, ingen ret skal bruge, som køkkenrulle eller hundemad. Det, der stadig står på den, vises sidst i indkøbslisten på telefonen og på væggen, og et indkøbskort med “Tilføj på væggen” slået til lægger nye ting på den.",
         "none": "Ingen"
       },
       "status": {
@@ -5207,7 +5207,7 @@
       "completedHidden": "Skjult",
       "showDueDates": "Vis frister",
       "showAssignees": "Vis hvem",
-      "wallAdd": "Tilføj fra væggen",
+      "wallAdd": "Tilføj på væggen",
       "wallAddHelp": "En Tilføj-linje under listen. Alle ved væggen kan tilføje; ændre og fjerne sker stadig på telefonen."
     },
     "todoist": {

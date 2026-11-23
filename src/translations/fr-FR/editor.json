@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Autres achats",
-        "description": "Choisissez une de vos listes pour ce dont aucun repas n'a besoin, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses sur le téléphone et sur le mur, et une carte de courses avec « Ajouter sur le mur » y ajoute.",
+        "description": "Choisissez une de vos listes pour les achats qui ne dépendent d'aucun repas, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses, sur le téléphone et sur le mur. Quand une carte de courses a « Ajouter depuis le mur », ce qu'on y ajoute va dans cette liste.",
         "none": "Aucune"
       },
       "status": {
@@ -4689,7 +4689,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactivez-le si l'écran n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
-      "wallAdd": "Ajouter sur le mur",
+      "wallAdd": "Ajouter depuis le mur",
       "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
       "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
       "extrasList": "Les autres achats vont sur",

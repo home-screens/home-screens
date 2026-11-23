@@ -36,7 +36,8 @@ const QWERTY = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as const;
 
 const LAYOUTS: Record<string, WallKeyboardLayout> = {
   en: { rows: QWERTY },
-  nl: { rows: QWERTY, accents: 'ëéèïöü' },
+  // ê and î for the French words on a Dutch shopping list: crème fraîche, crêpes.
+  nl: { rows: QWERTY, accents: 'ëéèêïîöü' },
   de: { rows: ['qwertzuiopü', 'asdfghjklöä', 'yxcvbnmß'] },
   fr: { rows: ['azertyuiop', 'qsdfghjklm', 'wxcvbnéèçà'], accents: 'âêîôûùëïœ' },
   es: { rows: ['qwertyuiop', 'asdfghjklñ', 'zxcvbnm'], accents: 'áéíóúü' },

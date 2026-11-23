@@ -1145,11 +1145,7 @@
       "button": "Del",
       "nothingOpen": "Alt er gjort!"
     },
-    "loadError": "Dine lister kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
-    "alreadyOnList": "{item} står allerede på listen",
-    "putBack": "{item} står på listen igen",
-    "deleted": "{item} er fjernet fra listen.",
-    "undo": "Fortryd"
+    "loadError": "Dine lister kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen."
   },
   "formOverlay": {
     "discard": {

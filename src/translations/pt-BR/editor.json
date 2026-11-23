@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Outras compras",
-        "description": "Escolha uma das suas listas para o que nenhuma refeição precisa, como papel-toalha ou ração do cachorro. O que ainda está nela aparece no fim da lista de compras no celular e no painel, e um cartão de compras com Adicionar no painel adiciona nela.",
+        "description": "Escolha uma das suas listas para as coisas que nenhuma refeição usa, como papel-toalha ou ração do cachorro. O que ainda estiver nela aparece no fim da lista de compras no celular e no painel, e o que for adicionado num cartão de compras com “Adicionar no painel” vai para ela.",
         "none": "Nenhuma"
       },
       "status": {
@@ -5207,7 +5207,7 @@
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar prazos",
       "showAssignees": "Mostrar para quem",
-      "wallAdd": "Adicionar pelo painel",
+      "wallAdd": "Adicionar no painel",
       "wallAddHelp": "Uma linha Adicionar embaixo da lista. Qualquer pessoa pode adicionar pelo painel; mudar e tirar continua no celular."
     },
     "todoist": {

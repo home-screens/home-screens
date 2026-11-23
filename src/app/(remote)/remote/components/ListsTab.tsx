@@ -62,6 +62,7 @@ interface ListsTabProps {
  */
 export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const api = useTodoLists({ selectedListId, onSelectList });
   const { lists, loaded, loadError, selectedList } = api;
@@ -360,8 +361,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
             const index = selectedList.items.indexOf(item);
             api.deleteItem(listId, item.id);
             setEditingItemId(null);
-            showToast(t('lists.deleted', { item: item.text }), 'info', {
-              label: t('lists.undo'),
+            showToast(tCore('lists.deleted', { item: item.text }), 'info', {
+              label: tCore('lists.undo'),
               onPress: () => api.restoreItem(listId, item, index),
             });
           }}

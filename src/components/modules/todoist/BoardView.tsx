@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import {
@@ -13,6 +13,7 @@ import { TEXT_OPACITY, ink, inkLikeTailwind } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { wallRowPress } from '../shared/wallPress';
 import { MoreLine } from '../shared/MoreLine';
+import { useFitCount } from '../shared/useFitCount';
 import { TaskTapRing, type TodoistWallProps } from './ListView';
 
 /** Columns the board draws side by side. */
@@ -26,10 +27,13 @@ export default function BoardView({
   pressedId,
   timeFormat,
   timezone,
+  fontPx,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
+  /** The card's type size, for the room "and N more" needs. */
+  fontPx: number;
 } & TodoistWallProps) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -79,9 +83,9 @@ export default function BoardView({
             </span>
           </div>
 
-          {/* Task cards */}
-          <div className="flex flex-col gap-1 p-1.5 overflow-hidden flex-1">
-            {group.tasks.map((t) => {
+          {/* Task cards: the ones that fit whole, then how many more */}
+          <ColumnCards tasks={group.tasks} fontPx={fontPx} tappable={!!onComplete} moreLabel={(n) => tr('todo.andMore', { n })}>
+            {(t) => {
               const dueInfo = formatDueDate(t.due, now, tr, { locale, timeFormat, timezone });
               const isOverdue = (dueDaysFromToday(t.due, now, timezone) ?? 0) < 0;
               const priorityColor = PRIORITY_COLORS[t.priority];
@@ -127,6 +131,7 @@ export default function BoardView({
                   key={t.id}
                   type="button"
                   data-testid="todoist-task"
+                  data-fit=""
                   data-pressed={pressedId === t.id ? '' : undefined}
                   onClick={() => onComplete(t.id)}
                   aria-label={tr('todoist.completeAriaLabel', { content: t.content })}
@@ -139,14 +144,15 @@ export default function BoardView({
                 <div
                   key={t.id}
                   data-testid="todoist-task"
+                  data-fit=""
                   className="flex items-start gap-1.5 rounded-md px-2 py-1.5"
                   style={{ backgroundColor: background }}
                 >
                   {body}
                 </div>
               );
-            })}
-          </div>
+            }}
+          </ColumnCards>
         </div>
       ))}
     </div>
@@ -157,6 +163,39 @@ export default function BoardView({
       className="shrink-0"
       style={{ fontSize: '0.7em', paddingTop: '0.3em' }}
     />
+    </>
+  );
+}
+
+/**
+ * One column's cards: as many as fit whole, then "and N more" at its foot,
+ * the way the To-Do board's columns do. A card cut in half at the bottom
+ * says nothing about how many more there are.
+ */
+function ColumnCards({ tasks, fontPx, tappable, moreLabel, children }: {
+  tasks: TodoistTask[];
+  fontPx: number;
+  /** Tap rings make the cards taller, so they are measured again. */
+  tappable: boolean;
+  moreLabel: (n: number) => string;
+  children: (task: TodoistTask) => ReactNode;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const visible = useFitCount(boxRef, `${tasks.map((t) => t.id).join('|')}#${tappable}`, fontPx * 1.1);
+  const shown = visible === null ? tasks : tasks.slice(0, visible);
+  const more = tasks.length - shown.length;
+  return (
+    <>
+      <div ref={boxRef} className="flex flex-col gap-1 p-1.5 overflow-hidden flex-1 min-h-0">
+        {shown.map(children)}
+      </div>
+      <MoreLine
+        n={more}
+        label={moreLabel(more)}
+        testId="todoist-board-more"
+        className="shrink-0 px-2.5"
+        style={{ fontSize: '0.62em', paddingBottom: '0.4em' }}
+      />
     </>
   );
 }

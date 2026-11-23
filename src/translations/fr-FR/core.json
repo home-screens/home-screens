@@ -822,6 +822,10 @@
       "one": "Retirer {count} élément fait de « {name} » ?",
       "other": "Retirer {count} éléments faits de « {name} » ?"
     },
-    "removeDoneBody": "Ils sont retirés de la liste pour de bon."
+    "removeDoneBody": "Ils sont retirés de la liste pour de bon.",
+    "alreadyOnList": "Déjà sur la liste : {item}",
+    "putBack": "De retour sur la liste : {item}",
+    "deleted": "Élément retiré de la liste : {item}.",
+    "undo": "Annuler"
   }
 }

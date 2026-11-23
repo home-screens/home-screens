@@ -52,6 +52,10 @@ describe('request builders', () => {
       method: 'POST',
       body: { text: 'Milk' },
     });
+    // Undo puts an item back as it was: made again, with its day and people.
+    expect(addItemRequest('l1', 'Milk', { restore: true, dueDate: '2026-11-24', assigneeIds: ['m-1'] }).body).toEqual({
+      text: 'Milk', restore: true, dueDate: '2026-11-24', assigneeIds: ['m-1'],
+    });
     expect(updateItemRequest('l1', 'i1', { completed: true })).toEqual({
       url: '/api/todo/lists/l1/items/i1',
       method: 'PATCH',

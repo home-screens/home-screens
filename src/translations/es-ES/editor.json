@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Otras compras",
-        "description": "Elige una de vuestras listas para lo que ninguna comida necesita, como papel de cocina o comida para el perro. Lo que queda en ella sale al final de la lista de la compra en el móvil y en el monitor, y una tarjeta de compra con «Añadir en el monitor» añade ahí.",
+        "description": "Elige una de vuestras listas para lo que ninguna comida necesita, como papel de cocina o comida para el perro. Lo que queda en ella sale al final de la lista de la compra en el móvil y en el monitor, y una tarjeta de compra con «Añadir desde el monitor» activado añade cosas a esa lista.",
         "none": "Ninguna"
       },
       "status": {
@@ -4689,7 +4689,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, valorar la cena, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
-      "wallAdd": "Añadir en el monitor",
+      "wallAdd": "Añadir desde el monitor",
       "wallAddHelpMealie": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista de Mealie con la que compra la familia.",
       "wallAddHelpLocal": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista elegida abajo.",
       "extrasList": "Las demás compras van a",

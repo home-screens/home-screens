@@ -74,10 +74,14 @@ function cleanName(raw: unknown): string {
   );
 }
 
+/**
+ * An item's words as the list keeps them: one line, single spaces, whoever
+ * typed them ("Paper  Towels" from a phone reads like the wall's "Paper Towels").
+ */
 function cleanText(raw: unknown): string {
   const max = TODO_LIMITS.maxItemTextLength;
   return requiredText(
-    raw,
+    typeof raw === 'string' ? oneLineText(raw) : raw,
     max,
     () => new TodoError(400, 'lists.textRequired', 'Type something first'),
     () => new TodoError(400, 'lists.textTooLong', `Items can be up to ${max} characters`, { max }),
@@ -268,6 +272,19 @@ export function addItem(data: TodoData, listId: string, input: AddItemInput, now
  */
 export function sameItemText(a: string, b: string): boolean {
   return oneLineText(a).toLocaleLowerCase() === oneLineText(b).toLocaleLowerCase();
+}
+
+/**
+ * A list's item order with `itemId` moved to `index`, for Undo putting a
+ * removed item back where it was. The hub makes the put-back item new (it
+ * lands at the end), so the order is worked out from the list as it is now,
+ * which another phone may have changed since. An id not on the list leaves
+ * the order as it is.
+ */
+export function orderWithItemAt(ids: readonly string[], itemId: string, index: number): string[] {
+  if (!ids.includes(itemId)) return [...ids];
+  const rest = ids.filter((id) => id !== itemId);
+  return [...rest.slice(0, index), itemId, ...rest.slice(index)];
 }
 
 /**

@@ -1968,7 +1968,7 @@
       },
       "groceryExtras": {
         "heading": "Other things to buy",
-        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall, and a grocery card with Add on the Wall adds to it.",
+        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall. When a grocery card has “Add on the wall” switched on, what is added there goes on this list.",
         "none": "None"
       },
       "status": {
@@ -5207,7 +5207,7 @@
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
       "showAssignees": "Show who",
-      "wallAdd": "Add from the wall",
+      "wallAdd": "Add on the wall",
       "wallAddHelp": "An Add row under the list. Anyone at the wall can add; changing and removing stay on the phone."
     },
     "todoist": {
