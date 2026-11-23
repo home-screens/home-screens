@@ -119,6 +119,26 @@ describe('SheetFrame', () => {
     }
   });
 
+  it('takes no tap from a finger that was already down when it opened, only one that starts on it', () => {
+    const onPick = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <SheetFrame layer="grownUp" label="Grown-up code" onClose={onClose} freshPressesOnly>
+        <button type="button" data-testid="key-5" onClick={onPick}>5</button>
+      </SheetFrame>,
+    );
+    // The lift of the long press that opened it: a tap (detail 1) with no press of its own here.
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 1 });
+    fireEvent.click(screen.getByTestId('sheet-backdrop'), { detail: 1 });
+    expect(onPick).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    // A real tap on the pad, and a press of Enter, both count.
+    fireEvent.pointerDown(screen.getByTestId('key-5'));
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 1 });
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 0 });
+    expect(onPick).toHaveBeenCalledTimes(2);
+  });
+
   it('leaves focus on a field that focused itself as the sheet opened', () => {
     render(
       <BottomSheet title="New list" onClose={() => {}}>

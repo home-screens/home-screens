@@ -6,6 +6,7 @@ import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { EventTapStyle } from '@/types/config';
 import { useWallSheet } from './useWallSheet';
+import { useFreshPressesOnly, useSettling } from '@/hooks/useSheetTapGuard';
 
 export interface WallOverlayProps {
   /** What the dialog is called (the event, the meal, the day). */
@@ -21,6 +22,11 @@ export interface WallOverlayProps {
   closeOnScrim?: boolean;
   /** The scrim's colour. */
   scrim?: string;
+  /**
+   * It can open under a finger still on the screen (the grown-up pad after a
+   * long press): only a press that starts on it counts (`useFreshPressesOnly`).
+   */
+  freshPressesOnly?: boolean;
   testId?: string;
   className?: string;
   style?: CSSProperties;
@@ -36,7 +42,8 @@ export interface WallOverlayProps {
  * nobody touching it, so a kiosk nobody stands at never shows a sheet
  * forever. A tap on the scrim closes it, except within a double tap of
  * opening: the second tap of a double tap on what opened the sheet lands on
- * the scrim, and must not close what it just opened.
+ * the scrim, and must not close what it just opened. For the same moment its
+ * buttons take no taps either.
  *
  * No `data-swipe-ignore`: flick navigation is already off while the overlay
  * holds the screen, and the attribute's stylesheet side effect would allow
@@ -44,9 +51,14 @@ export interface WallOverlayProps {
  */
 export function WallOverlay({
   label, onClose, autoCloseMs, paused = false, restartKey, closeOnScrim = true, scrim = 'rgba(0,0,0,0.62)',
-  testId, className, style, children,
+  freshPressesOnly = false, testId, className, style, children,
 }: WallOverlayProps) {
   const { touched, settled } = useWallSheet({ onClose, autoCloseMs, paused, restartKey });
+  const fresh = useFreshPressesOnly();
+  // The second tap of a double tap on what opened it lands on whatever of the
+  // sheet is now under the finger (an event row, Change, Remove): its buttons
+  // take no taps for that long, the same as the dark part.
+  const settling = useSettling(null);
   if (typeof document === 'undefined') return null;
   return createPortal(
     <div
@@ -56,6 +68,7 @@ export function WallOverlay({
       className={className ? `wall-overlay ${className}` : 'wall-overlay'}
       onClick={closeOnScrim ? settled(onClose) : undefined}
       onPointerDown={touched}
+      {...(freshPressesOnly ? fresh : {})}
       style={{
         position: 'fixed',
         inset: 0,
@@ -68,7 +81,8 @@ export function WallOverlay({
         ...style,
       }}
     >
-      {children}
+      {/* `contents`: no box of its own, so the sheet lays out as if it were not there. */}
+      <fieldset disabled={settling} style={{ display: 'contents' }}>{children}</fieldset>
     </div>,
     document.body,
   );

@@ -84,6 +84,14 @@ export function guardAfterRowRemoved(): void {
 export const DOUBLE_TAP_MS = 300;
 
 /**
+ * How long a sheet's new buttons hold after they replace the ones a finger
+ * just pressed (a form's next step, a "Just this day or every time?" that
+ * takes Remove's place). Longer than a double tap: a quick second press
+ * there 400 ms later removed a whole repeating event.
+ */
+export const STEP_SETTLE_MS = 500;
+
+/**
  * Whether a tap at `now` comes too soon after a sheet opened at `openedAt` to
  * be meant for it. A double tap on what opens a sheet opens it with the first
  * tap; the second lands on the sheet's backdrop, where the tapped thing was,

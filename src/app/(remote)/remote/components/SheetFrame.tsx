@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import ModalPortal from '@/components/ui/ModalPortal';
 import { useSheetDialog } from '@/hooks/useSheetDialog';
-import { useSettledTap, useSheetTapGuard } from '@/hooks/useSheetTapGuard';
+import { useFreshPressesOnly, useSettledTap, useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { holdToastAtTop } from '../remote-toast';
 import { REMOTE_LAYERS, type RemoteLayer } from './remote-layers';
@@ -31,6 +31,8 @@ export interface SheetFrameProps {
   dim?: boolean;
   /** A tap on the dimmed area this soon after it opens is ignored: the second half of the tap that opened it. */
   settleMs?: number;
+  /** It can open under a finger still on the screen (the grown-up pad after a long press): only a press that starts on it counts. */
+  freshPressesOnly?: boolean;
   /** When it closes from a tap, a second tap near there is ignored for a moment (see `BottomSheet`). */
   guardTaps?: boolean;
   /** Where focus lands as it opens; see `useFocusTrap`. */
@@ -97,6 +99,7 @@ function Frame({
   closeOnBackdrop = true,
   dim = true,
   settleMs = 0,
+  freshPressesOnly = false,
   guardTaps = false,
   focus = 'container',
   open,
@@ -121,6 +124,7 @@ function Frame({
   useSheetTapGuard(guardTaps);
   const dialog = useSheetDialog<HTMLDivElement>({ onClose, focus, active: shown, keepAutoFocus: true });
   const settled = useSettledTap(settleMs);
+  const fresh = useFreshPressesOnly();
   // Back is the sheet's way out, exactly as its close control. Under a page
   // opened from it, the page's own entry is on top, so Back closes that first.
   useBackGesture(() => {
@@ -136,6 +140,7 @@ function Frame({
 
   return (
     <div
+      {...(freshPressesOnly ? fresh : {})}
       style={{
         position: 'fixed',
         inset: 0,
