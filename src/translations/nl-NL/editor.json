@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Kon de back-up niet maken. Probeer het opnieuw.",
-        "invalidBackupFile": "Ongeldig back-upbestand.",
         "restoreBackupFailed": "Kon die back-up niet terugzetten. Probeer het opnieuw.",
         "credentialsExportFailedTitle": "Je sleutels konden niet mee",
         "credentialsExportFailed": "Je sleutels en accounts konden niet aan deze back-up worden toegevoegd. De rest toch downloaden?",

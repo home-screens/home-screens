@@ -134,6 +134,11 @@
       "wrongCode": "Ese código no ha funcionado. Revísalo e inténtalo de nuevo.",
       "expired": "Se acabó el tiempo para iniciar sesión. Vuelve a empezar.",
       "notApproved": "No se aprobó el inicio de sesión. Vuelve a empezar si quieres conectarte."
+    },
+    "backup": {
+      "notABackup": "Ese archivo no es una copia de seguridad de Home Screens.",
+      "noRoom": "No hay espacio suficiente en Home Screens para esta copia de seguridad.",
+      "noRoomForPictures": "No hay espacio suficiente en Home Screens para las imágenes de esta copia de seguridad."
     }
   },
   "today": "Hoy",

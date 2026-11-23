@@ -134,6 +134,11 @@
       "wrongCode": "Esse código não funcionou. Confira e tente de novo.",
       "expired": "Este login expirou. Comece de novo.",
       "notApproved": "O login não foi aprovado. Comece de novo se quiser conectar."
+    },
+    "backup": {
+      "notABackup": "Esse arquivo não é um backup do Home Screens.",
+      "noRoom": "Não há espaço suficiente no Home Screens para este backup.",
+      "noRoomForPictures": "Não há espaço suficiente no Home Screens para as fotos e os vídeos deste backup."
     }
   },
   "today": "Hoje",

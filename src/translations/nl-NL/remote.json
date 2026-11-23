@@ -729,7 +729,6 @@
         "label": "Een back-up terugzetten",
         "busyLabel": "Terugzetten…",
         "doneLabel": "Teruggezet",
-        "invalidFileLabel": "Ongeldig back-upbestand",
         "failedLabel": "Kon die back-up niet terugzetten. Probeer het opnieuw.",
         "idleDescription": "Upload een back-upbestand vanaf deze telefoon",
         "confirmingDescription": "Alles wat nu op Home Screens staat, wordt vervangen door wat er in de back-up staat.",

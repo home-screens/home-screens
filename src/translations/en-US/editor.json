@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Couldn't make the backup. Try again.",
-        "invalidBackupFile": "Invalid backup file.",
         "restoreBackupFailed": "Couldn't restore that backup. Try again.",
         "credentialsExportFailedTitle": "Couldn't include your keys",
         "credentialsExportFailed": "Your keys and accounts could not be added to this backup. Download the rest anyway?",

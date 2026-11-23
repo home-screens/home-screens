@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Não foi possível fazer o backup. Tente de novo.",
-        "invalidBackupFile": "Arquivo de backup inválido.",
         "restoreBackupFailed": "Não foi possível restaurar esse backup. Tente de novo.",
         "credentialsExportFailedTitle": "Não foi possível incluir suas chaves",
         "credentialsExportFailed": "Suas chaves e contas não puderam ser adicionadas a este backup. Baixar o resto mesmo assim?",

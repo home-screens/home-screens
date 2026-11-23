@@ -729,7 +729,6 @@
         "label": "Gendan en sikkerhedskopi",
         "busyLabel": "Gendanner…",
         "doneLabel": "Gendannet",
-        "invalidFileLabel": "Ugyldig sikkerhedskopi",
         "failedLabel": "Kunne ikke gendanne den sikkerhedskopi. Prøv igen.",
         "idleDescription": "Upload en sikkerhedskopi fra denne telefon",
         "confirmingDescription": "Alt, hvad der er på Home Screens nu, bliver erstattet med det, der er i sikkerhedskopien.",

@@ -134,6 +134,11 @@
       "wrongCode": "Dieser Code hat nicht funktioniert. Prüf ihn und versuch es noch einmal.",
       "expired": "Diese Anmeldung ist abgelaufen. Starte sie noch einmal.",
       "notApproved": "Die Anmeldung wurde nicht bestätigt. Starte sie noch einmal, wenn du verbinden möchtest."
+    },
+    "backup": {
+      "notABackup": "Diese Datei ist kein Home-Screens-Backup.",
+      "noRoom": "Auf Home Screens ist nicht genug Platz für dieses Backup.",
+      "noRoomForPictures": "Auf Home Screens ist nicht genug Platz für die Bilder in diesem Backup."
     }
   },
   "today": "Heute",

@@ -729,7 +729,6 @@
         "label": "Backup wiederherstellen",
         "busyLabel": "Stelle wieder her…",
         "doneLabel": "Wiederhergestellt",
-        "invalidFileLabel": "Ungültige Backup-Datei",
         "failedLabel": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal.",
         "idleDescription": "Lade eine Backup-Datei von diesem Handy hoch",
         "confirmingDescription": "Alles, was jetzt auf Home Screens ist, wird durch den Inhalt des Backups ersetzt.",

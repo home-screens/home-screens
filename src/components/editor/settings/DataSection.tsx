@@ -42,7 +42,7 @@ import { describeConfigBackup, LAST_STABLE_BACKUP } from '@/lib/config-backup-la
 import { CHECKBOX_CLASS, SETTINGS_INPUT_SM_CLASS } from '@/components/ui/input-classes';
 import FieldHint from '@/components/ui/FieldHint';
 import Notice from '@/components/ui/Notice';
-import { refusalSentence } from '@/lib/hub-request';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
@@ -79,15 +79,25 @@ interface RestoreStatus {
   kind: RestoreStatusKind;
 }
 
-/** The hub refused a restore; `reason` is its own explanation, when it gave one. */
+/**
+ * The hub refused a restore. `sentence` is a coded refusal said in the
+ * household's language, the whole story on its own ("That file isn't a
+ * Home Screens backup."); `reason` is an uncoded explanation, when it gave one.
+ */
 class RestoreRefused extends Error {
-  constructor(message: string, readonly reason: string | null) {
+  constructor(message: string, readonly reason: string | null, readonly sentence: string | null = null) {
     super(message);
   }
 }
 
-/** "Couldn't restore that backup. Try again.", followed by why when the hub said. */
-function restoreFailureText(err: unknown, summary: string): string {
+/**
+ * The hub's own sentence when it has one; "Couldn't reach Home Screens" when
+ * it could not be reached; else "Couldn't restore that backup. Try again.",
+ * followed by why when the hub said.
+ */
+function restoreFailureText(err: unknown, summary: string, unreachable: string): string {
+  if (err instanceof HubUnreachableError) return unreachable;
+  if (err instanceof RestoreRefused && err.sentence) return err.sentence;
   return err instanceof RestoreRefused && err.reason ? `${summary}\n\n${err.reason}` : summary;
 }
 
@@ -439,7 +449,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         if (res.status === 400 && isCredentialErrorCode(data?.code)) return data.code;
         // The hub says which file and which entry it could not accept, and
         // what to do about it: that goes to the person, not just "failed".
-        throw new RestoreRefused(`HTTP ${res.status}`, typeof data?.error === 'string' ? data.error : null);
+        throw new RestoreRefused(`HTTP ${res.status}`, typeof data?.error === 'string' ? data.error : null, refusalSentence(data, tCore));
       }
       result = await res.json();
       void refreshCustomIcons();
@@ -458,7 +468,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       useConfirmStore.getState().alert(t('settings.dataPage.restore.reloadFailed'));
     }
     return null;
-  }, [finishRestore, t]);
+  }, [finishRestore, t, tCore]);
 
   const handleBackupRestore = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -491,10 +501,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         }
       } catch (err) {
         if (isSessionExpired(err)) return;
-        useConfirmStore.getState().alert(restoreFailureText(
-          new RestoreRefused('upload', err instanceof Error ? err.message : null),
-          t('settings.dataPage.alerts.invalidBackupFile'),
-        ));
+        // The hub's coded answer (not a backup, no room), a hub out of reach, or the usual words.
+        useConfirmStore.getState().alert(err instanceof HubUnreachableError
+          ? tCore('refusals.unreachable')
+          : refusalSentence(err, tCore) ?? t('settings.dataPage.alerts.restoreBackupFailed'));
         return;
       } finally {
         setBackupBusy(false);
@@ -507,7 +517,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         bundle = JSON.parse(await file.text());
         if (!bundle || typeof bundle !== 'object') throw new Error('not an object');
       } catch {
-        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
+        useConfirmStore.getState().alert(tCore('refusals.backup.notABackup'));
         return;
       }
       const summary = summarizeBundle(bundle, null);
@@ -560,7 +570,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       }
     } catch (err) {
       if (isSessionExpired(err)) return;
-      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
+      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed'), tCore('refusals.unreachable')));
     }
   }, [formattingLocale, postBackupAndReload, t, tCore]);
 
@@ -585,9 +595,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     } catch (err) {
       setPendingRestore(null);
       if (isSessionExpired(err)) return;
-      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
+      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed'), tCore('refusals.unreachable')));
     }
-  }, [pendingRestore, postBackupAndReload, t]);
+  }, [pendingRestore, postBackupAndReload, t, tCore]);
 
   // The escape hatch that keeps a forgotten password from costing the whole
   // restore: drop the credential section and restore everything else.
@@ -601,9 +611,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       await postBackupAndReload(withoutCredentials);
     } catch (err) {
       if (isSessionExpired(err)) return;
-      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
+      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed'), tCore('refusals.unreachable')));
     }
-  }, [pendingRestore, postBackupAndReload, t]);
+  }, [pendingRestore, postBackupAndReload, t, tCore]);
 
   /**
    * Restore an automatic backup kept on the hub. It is already confirmed
@@ -638,7 +648,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (code) useConfirmStore.getState().alert(t('settings.dataPage.restore.damagedKeys'));
     } catch (err) {
       if (isSessionExpired(err)) return;
-      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
+      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed'), tCore('refusals.unreachable')));
     }
   }, [postBackupAndReload, t, tCore]);
 

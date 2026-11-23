@@ -134,6 +134,11 @@
       "wrongCode": "That code didn't work. Check it and try again.",
       "expired": "This sign-in ran out. Start it again.",
       "notApproved": "The sign-in wasn't approved. Start it again if you want to connect."
+    },
+    "backup": {
+      "notABackup": "That file isn't a Home Screens backup.",
+      "noRoom": "There isn't enough room on Home Screens for this backup.",
+      "noRoomForPictures": "There isn't enough room on Home Screens for the pictures in this backup."
     }
   },
   "today": "Today",

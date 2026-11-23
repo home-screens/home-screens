@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Impossible de créer la sauvegarde. Réessayez.",
-        "invalidBackupFile": "Fichier de sauvegarde invalide.",
         "restoreBackupFailed": "Impossible de restaurer cette sauvegarde. Réessayez.",
         "credentialsExportFailedTitle": "Impossible d'inclure vos clés",
         "credentialsExportFailed": "Vos clés et vos comptes connectés n'ont pas pu être ajoutés à cette sauvegarde. Télécharger le reste quand même ?",

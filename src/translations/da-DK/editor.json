@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Kunne ikke lave sikkerhedskopien. Prøv igen.",
-        "invalidBackupFile": "Ugyldig sikkerhedskopi.",
         "restoreBackupFailed": "Kunne ikke gendanne den sikkerhedskopi. Prøv igen.",
         "credentialsExportFailedTitle": "Kunne ikke tage dine nøgler med",
         "credentialsExportFailed": "Dine nøgler og konti kunne ikke lægges i denne sikkerhedskopi. Vil du hente resten alligevel?",

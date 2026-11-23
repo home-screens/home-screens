@@ -134,6 +134,11 @@
       "wrongCode": "Ce code n'a pas fonctionné. Vérifiez-le et réessayez.",
       "expired": "Cette connexion a expiré. Recommencez-la.",
       "notApproved": "La connexion n'a pas été approuvée. Recommencez si vous voulez vous connecter."
+    },
+    "backup": {
+      "notABackup": "Ce fichier n'est pas une sauvegarde Home Screens.",
+      "noRoom": "Il n'y a pas assez de place sur Home Screens pour cette sauvegarde.",
+      "noRoomForPictures": "Il n'y a pas assez de place sur Home Screens pour les images de cette sauvegarde."
     }
   },
   "today": "Aujourd'hui",

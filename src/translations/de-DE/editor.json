@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Das Backup konnte nicht erstellt werden. Versuch es noch einmal.",
-        "invalidBackupFile": "Ungültige Backup-Datei.",
         "restoreBackupFailed": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal.",
         "credentialsExportFailedTitle": "Schlüssel konnten nicht mitgesichert werden",
         "credentialsExportFailed": "Deine Schlüssel und Konten konnten diesem Backup nicht hinzugefügt werden. Den Rest trotzdem herunterladen?",

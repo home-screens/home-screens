@@ -13,6 +13,7 @@ import {
 import { MAX_RESTORE_BYTES } from '@/lib/backup-limits';
 import { RESTORE_FREE_SPACE_MARGIN } from '@/lib/backup-pictures';
 import { summarizeBundle } from '@/lib/backup-summary';
+import { RefusalError, refusalBody } from '@/lib/refusal';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,11 +54,11 @@ export const POST = withAuth(async (request: NextRequest) => {
   }
   if (!inspected || !bundle) {
     await fs.rm(file, { force: true }).catch(() => {});
-    return NextResponse.json({ error: 'That file is not a Home Screens backup.' }, { status: 400 });
+    return NextResponse.json(refusalBody(new RefusalError(400, 'backup.notABackup', 'That file is not a Home Screens backup.')), { status: 400 });
   }
   return NextResponse.json({ id, ...summarizeBundle(bundle, inspected) });
 }, 'Failed to read the backup');
 
 function tooLarge(): NextResponse {
-  return NextResponse.json({ error: 'Not enough space on the hub for this backup.' }, { status: 413 });
+  return NextResponse.json(refusalBody(new RefusalError(413, 'backup.noRoom', 'Not enough space on the hub for this backup.')), { status: 413 });
 }

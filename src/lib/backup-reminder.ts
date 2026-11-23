@@ -44,3 +44,21 @@ export function backupReminderKind(state: {
   if (state.picturesLeftOut) return 'picturesLeftOut';
   return state.autoOn ? 'autoLocalOnly' : 'overdue';
 }
+
+const savedListeners = new Set<() => void>();
+
+/**
+ * A backup file was just saved in this browser (`saveBackupFile`), so the
+ * reminder reads the hub's backup date again at once rather than at its
+ * next hourly look: saving one from Settings left "You haven't backed up in
+ * 14 days" up right under the new date.
+ */
+export function announceBackupSaved(): void {
+  for (const listener of savedListeners) listener();
+}
+
+/** Hear about a backup saved in this browser; answers the way to stop. */
+export function onBackupSaved(listener: () => void): () => void {
+  savedListeners.add(listener);
+  return () => { savedListeners.delete(listener); };
+}

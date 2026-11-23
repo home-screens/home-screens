@@ -729,7 +729,6 @@
         "label": "Restaurer une sauvegarde",
         "busyLabel": "Restauration…",
         "doneLabel": "Restauré",
-        "invalidFileLabel": "Fichier de sauvegarde invalide",
         "failedLabel": "Impossible de restaurer cette sauvegarde. Réessaie.",
         "idleDescription": "Envoie un fichier de sauvegarde depuis ce téléphone",
         "confirmingDescription": "Tout ce qui est sur Home Screens est remplacé par le contenu de la sauvegarde.",

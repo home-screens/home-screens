@@ -729,7 +729,6 @@
         "label": "Restaurar um backup",
         "busyLabel": "Restaurando…",
         "doneLabel": "Restaurado",
-        "invalidFileLabel": "Arquivo de backup inválido",
         "failedLabel": "Não foi possível restaurar esse backup. Tente de novo.",
         "idleDescription": "Envie um arquivo de backup deste celular",
         "confirmingDescription": "Tudo o que está no Home Screens agora é substituído pelo que está no backup.",

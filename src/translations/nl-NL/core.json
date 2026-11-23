@@ -134,6 +134,11 @@
       "wrongCode": "Die code werkte niet. Controleer hem en probeer het opnieuw.",
       "expired": "Deze aanmelding is verlopen. Begin opnieuw.",
       "notApproved": "De aanmelding is niet goedgekeurd. Begin opnieuw als je toch wilt koppelen."
+    },
+    "backup": {
+      "notABackup": "Dat bestand is geen back-up van Home Screens.",
+      "noRoom": "Er is niet genoeg ruimte op Home Screens voor deze back-up.",
+      "noRoomForPictures": "Er is niet genoeg ruimte op Home Screens voor de afbeeldingen in deze back-up."
     }
   },
   "today": "Vandaag",

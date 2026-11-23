@@ -134,6 +134,11 @@
       "wrongCode": "Den kode virkede ikke. Tjek den, og prøv igen.",
       "expired": "Dette login er udløbet. Start det igen.",
       "notApproved": "Login blev ikke godkendt. Start det igen, hvis du vil oprette forbindelse."
+    },
+    "backup": {
+      "notABackup": "Den fil er ikke en sikkerhedskopi fra Home Screens.",
+      "noRoom": "Der er ikke plads nok på Home Screens til denne sikkerhedskopi.",
+      "noRoomForPictures": "Der er ikke plads nok på Home Screens til billederne i denne sikkerhedskopi."
     }
   },
   "today": "I dag",

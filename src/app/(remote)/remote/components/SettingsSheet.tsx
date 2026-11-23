@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 import { settingsPlaceText } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
 import type { SystemStats } from '@/lib/system-stats-types';
@@ -137,6 +138,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   const [confirmPower, setConfirmPower] = useState<PowerAction | null>(null);
 
   // Restore state machine: idle → confirming (the question is open) → busy → done/invalid-file/restore-failed
+  /** Why staging a zip failed, in the family's words, when it was not simply a bad file. */
+  const [restoreProblem, setRestoreProblem] = useState<string | null>(null);
   const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'done-without-keys' | 'invalid-file' | 'restore-failed'>('idle');
   const restoreDataRef = useRef<string | null>(null);
   /** True when the selected bundle carried keys this sheet chose not to apply. */
@@ -208,6 +211,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     const file = e.target.files?.[0];
     if (!file) return;
     restorePicturesRef.current = null;
+    setRestoreProblem(null);
     if (isZipBackup(file)) {
       // The zip goes to the hub once; the hub says what is inside, and the
       // restore then posts only its id. Keys are dropped the way they are
@@ -219,8 +223,12 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         restoreLacksIconsRef.current = lacksCustomIcons(staged);
         restorePicturesRef.current = staged.pictures.count > 0 ? staged.pictures : null;
         armRestore({ _archive: staged.id, ...(staged.hasCredentials ? { _withoutKeys: true } : {}) });
-      }).catch(() => {
-        setRestoreState('invalid-file');
+      }).catch((err: unknown) => {
+        // Only the hub can say the file is not a backup; a hub out of reach is not the file's fault.
+        setRestoreProblem(err instanceof HubUnreachableError
+          ? tCore('refusals.unreachable')
+          : refusalSentence(err, tCore) ?? t('settingsSheet.data.restore.failedLabel'));
+        setRestoreState('restore-failed');
       });
       return;
     }
@@ -273,7 +281,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       void refreshCustomIcons();
       setRestoreState(credentialsSkippedRef.current ? 'done-without-keys' : 'done');
       restoreDataRef.current = null;
-    } catch {
+    } catch (err) {
+      // A hub out of reach says so; anything else keeps the usual words.
+      setRestoreProblem(err instanceof HubUnreachableError ? tCore('refusals.unreachable') : null);
       setRestoreState('restore-failed');
     }
   };
@@ -448,8 +458,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
                 {restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
                 : restoreState === 'done' ? t('settingsSheet.data.restore.doneLabel')
                 : restoreState === 'done-without-keys' ? t('settingsSheet.data.restore.doneWithoutKeysLabel')
-                : restoreState === 'invalid-file' ? t('settingsSheet.data.restore.invalidFileLabel')
-                : restoreState === 'restore-failed' ? t('settingsSheet.data.restore.failedLabel')
+                : restoreState === 'invalid-file' ? tCore('refusals.backup.notABackup')
+                : restoreState === 'restore-failed' ? restoreProblem ?? t('settingsSheet.data.restore.failedLabel')
                 : t('settingsSheet.data.restore.label')}
               </div>
               {(restoreState === 'idle' || restoreState === 'confirming') && (

@@ -788,7 +788,6 @@
       },
       "alerts": {
         "exportBackupFailed": "No se pudo hacer la copia de seguridad. Inténtalo de nuevo.",
-        "invalidBackupFile": "Archivo de copia de seguridad no válido.",
         "restoreBackupFailed": "No se pudo restaurar esa copia de seguridad. Inténtalo de nuevo.",
         "credentialsExportFailedTitle": "No se pudieron incluir tus claves",
         "credentialsExportFailed": "Tus claves y cuentas no se pudieron añadir a esta copia. ¿Descargar el resto de todos modos?",

@@ -229,7 +229,7 @@ test('malformed backup file is rejected with a friendly message', async ({ page 
     buffer: Buffer.from(JSON.stringify({ hello: 'world' })),
   });
 
-  await expect(page.getByText('Invalid backup file')).toBeVisible();
+  await expect(page.getByText("That file isn't a Home Screens backup.")).toBeVisible();
   expect(posted).toBe(false);
 });
 

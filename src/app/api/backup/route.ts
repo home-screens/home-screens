@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import { readConfig } from '@/lib/config';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
+import { RefusalError, refusalBody } from '@/lib/refusal';
 import { newerSchemaProblem, validateConfigForWrite } from '@/lib/config-validation';
 import { planCredentialRestore } from '@/lib/backup-credentials';
 import { planFamilyRestore } from '@/lib/family-import';
@@ -186,7 +187,7 @@ async function stagePictures(archive: string, entries: ArchivePictureEntry[], sk
   const plan = planPictureWrites(entries, existing);
   const { freeBytes } = await volumeSpace();
   if (freeBytes !== undefined && plan.bytesNeeded > freeBytes - RESTORE_FREE_SPACE_MARGIN) {
-    return NextResponse.json({ error: 'Not enough space on the hub for the pictures in this backup.' }, { status: 400 });
+    return NextResponse.json(refusalBody(new RefusalError(400, 'backup.noRoomForPictures', 'Not enough space on the hub for the pictures in this backup.')), { status: 400 });
   }
   const byPath = new Map(entries.map((entry) => [entry.libraryPath, entry]));
   for (const write of plan.writes) {
@@ -320,7 +321,7 @@ async function readRestoreSource(file: string, goneMessage: string): Promise<
   { bundle: RestoreBundle; archive: string | null; pictures: ArchivePictureEntry[]; skipped: number } | NextResponse
 > {
   const gone = () => NextResponse.json({ error: goneMessage }, { status: 400 });
-  const unrecognized = () => NextResponse.json({ error: 'Unrecognized backup format' }, { status: 400 });
+  const unrecognized = notABackup;
   let text: string;
   let archive: string | null = null;
   let pictures: ArchivePictureEntry[] = [];
@@ -466,8 +467,13 @@ async function restore(
     return NextResponse.json({ restored: { config: true }, missingPictures: await countMissingPictures() });
   }
 
-  return NextResponse.json(
-    { error: 'Unrecognized backup format' },
-    { status: 400 },
-  );
+  return notABackup();
+}
+
+/**
+ * A file that is not a Home Screens backup. Coded, so the editor and the
+ * phone say it in the household's language rather than the hub's English.
+ */
+function notABackup(): NextResponse {
+  return NextResponse.json(refusalBody(new RefusalError(400, 'backup.notABackup', 'Unrecognized backup format')), { status: 400 });
 }
