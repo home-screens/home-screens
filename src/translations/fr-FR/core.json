@@ -118,8 +118,10 @@
       "downloadFailed": "Impossible de télécharger le plugin. Vérifiez la connexion Internet et réessayez.",
       "badLink": "Ce lien ne peut pas être utilisé. Collez le lien https complet du plugin.",
       "blockedLink": "Ce lien pointe vers votre réseau domestique, donc Home Screens ne téléchargera rien depuis cette adresse.",
+      "notHttps": "Ce lien n'est pas un lien https sécurisé, donc Home Screens ne téléchargera rien depuis cette adresse.",
       "needsVersion": "Ce lien a besoin d'un numéro de version. Indiquez la version à installer.",
       "notAPlugin": "Ce lien ne mène pas à un plugin Home Screens. Vérifiez qu'il pointe vers le fichier .tar.gz du plugin.",
+      "tooBig": "Ce fichier est trop gros pour être un plugin. Un plugin peut faire jusqu'à {max} Mo.",
       "alreadyInstalled": "Ce plugin est déjà installé. Mettez-le plutôt à jour depuis la boutique de plugins."
     },
     "icloud": {

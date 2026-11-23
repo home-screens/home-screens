@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "blijft: wisselt niet vanzelf, heeft een tik of de afstandsbediening nodig",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "gepland",
     "conditionalTooltip": "alleen getoond als voorwaarden overeenkomen",
     "disabledTooltip": "uitgezet, niet op het scherm",
@@ -325,6 +325,7 @@
       "weekdays": "ma t/m vr",
       "weekends": "za en zo",
       "allDay": "de hele dag",
+      "allDaysFor": "de hele dag, {count} dagen lang",
       "fromOnly": "vanaf {start}",
       "untilOnly": "tot {end}",
       "window": "{start} tot {end}",
@@ -1209,7 +1210,7 @@
         "pauseEnabledHelp": "Dubbeltik op de gemarkeerde schermstip om het wisselen te pauzeren. Dubbeltik nogmaals om verder te gaan.",
         "pauseTimeoutLabel": "Time-out voor automatisch hervatten",
         "pauseTimeoutNever": "Nooit",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Hervat de rotatie automatisch na zoveel seconden. Stel in op 0 om gepauzeerd te blijven tot handmatig hervat.",
         "swipeEnabledLabel": "Vegen om van scherm te wisselen",
         "swipeEnabledToggle": "Ingeschakeld",
@@ -1223,10 +1224,10 @@
         "transitionEffectLabel": "Overgangseffect",
         "transitionEffectHelp": "Hoe het ene scherm plaatsmaakt voor het volgende. Onscherp is het zwaarst voor een langzaam apparaat: hapert het beeld, kies dan een ander effect.",
         "transitionDurationLabel": "Duur van de overgang",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Hoe lang de overgangsanimatie tussen schermen duurt.",
         "cursorHideLabel": "Cursor verbergen na",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "De muiscursor wordt verborgen na zoveel seconden van inactiviteit. Beweeg de muis om hem weer te tonen.",
         "pixelShiftLabel": "Scherm beschermen tegen inbranden",
         "pixelShiftToggle": "Beeld iets verschuiven",
@@ -1839,7 +1840,7 @@
         "scanningInterface": "Scannen op {device}",
         "scanButton": "Scannen",
         "scanningButton": "Scannen…",
-        "scanCooldownButton": "Scannen ({seconds}s)",
+        "scanCooldownButton": "Scannen ({seconds} s)",
         "defaultScanError": "Kon niet naar netwerken zoeken. Probeer het opnieuw.",
         "emptyHint": "Klik op Scannen om naar wifinetwerken in de buurt te zoeken.",
         "badges": {
@@ -1881,7 +1882,7 @@
       "rollback": {
         "polling": {
           "heading": "Verbinding controleren…",
-          "remaining": "{seconds}s tot automatische rollback",
+          "remaining": "Over {seconds} s worden de vorige instellingen hersteld",
           "warning": "Als deze pagina onbereikbaar wordt, worden de vorige instellingen automatisch hersteld."
         },
         "confirmed": {
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Elk display herlaadt één keer om de nieuwe sleutel op te pikken.",
-        "errorRegenerate": "Nieuwe sleutel maken is niet gelukt",
-        "errorCopy": "Kopiëren mislukt; selecteer en kopieer handmatig",
+        "errorRegenerate": "Nieuwe sleutel maken is niet gelukt.",
+        "errorCopy": "Kopiëren is niet gelukt. Selecteer de sleutel en kopieer hem zelf.",
         "phoneHintIntro": "Wil je een display vanaf je telefoon bedienen, maak dan een bladwijzer van een link als deze:",
         "phoneHintOutro": "Toon eerst de sleutel hierboven, zodat de link hem meeneemt. Vervang sleep door wake, reload, next-screen of prev-screen voor de andere opdrachten.",
         "phoneHintDisplayNote": "Deze wijst naar {name}. Vervang {display} door de id van een ander display om daarop te mikken."
@@ -2390,9 +2391,9 @@
         "addButton": "Toevoegen",
         "errors": {
           "invalidCidr": "Dat is geen netwerkbereik. De meeste thuisnetwerken zijn 192.168.1.0/24.",
-          "invalidIp": "Dat is geen adres",
+          "invalidIp": "Dat is geen IP-adres.",
           "invalidPrefix": "Het getal na de schuine streep moet tussen 0 en 32 liggen.",
-          "alreadyInList": "Staat al in de lijst"
+          "alreadyInList": "Staat al in de lijst."
         },
         "callerIpLabel": "Jouw IP: ",
         "lockoutWarning": {
@@ -2773,7 +2774,7 @@
       "statusIdle": "Inactief · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "rotatie van {degrees}°",
-      "rotationNormal": "normaal",
+      "rotationNormal": "Geen rotatie",
       "screenCount": {
         "one": "{count} scherm",
         "other": "{count} schermen"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Weektotalen",
       "memberLine": "{chores} klusjes, {tickets} tickets"
     },
-    "finishFormFirst": "Sla eerst het open formulier op of annuleer het.",
+    "finishFormFirst": "Maak eerst af wat openstaat, of annuleer het.",
     "starter": {
       "openButton": "Kiezen uit kant-en-klare klusjes",
       "hint": "{count} alledaagse klusjes, ingedeeld per moment van de dag",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Plugin installeren via URL",
     "dialogAriaLabel": "Plugin installeren via URL",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "HTTPS-URL naar een ",
-    "tarballUrlHelpPart2": " plugin-bundel. Vervang de versie door ",
-    "tarballUrlHelpPart3": " als je wilt dat toekomstige updates alleen een versienummer nodig hebben.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Een beveiligde link (begint met https) naar het ",
+    "tarballUrlHelpPart2": "-bestand van de plugin. Zet ",
+    "tarballUrlHelpPart3": " op de plek van het versienummer, dan heb je bij volgende updates alleen het nummer nodig.",
     "exampleLabel": "Voorbeeld:",
     "versionLabel": "Versie om te installeren",
     "externalSourceWarning": "Je installeert van buiten de plugin-marketplace. Installeer alleen plugins van bronnen die je vertrouwt.",
@@ -3986,9 +3987,9 @@
     "title": "{id} bijwerken",
     "dialogAriaLabel": "{id} bijwerken",
     "currentVersionLabel": "Huidige versie:",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "Bewerk de URL om naar een nieuwe versie te verwijzen, of vervang de versie door ",
-    "tarballUrlHelpPart2": " zodat toekomstige updates alleen een versienummer nodig hebben.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Pas de link aan zodat hij naar de nieuwe versie wijst, of zet ",
+    "tarballUrlHelpPart2": " op de plek van het versienummer. Dan typ je de volgende keer alleen het nummer.",
     "exampleLabel": "Voorbeeld:",
     "versionLabel": "Versie om te installeren",
     "workingMessage": "Downloaden en bijwerken…",

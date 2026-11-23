@@ -1292,8 +1292,8 @@
       "gamesPlayed": "PJ",
       "points": "PTS",
       "goalDiff": "DG",
-      "gamesBack": "GB",
-      "last10": "L10",
+      "gamesBack": "JD",
+      "last10": "U10",
       "draw": "E"
     }
   },

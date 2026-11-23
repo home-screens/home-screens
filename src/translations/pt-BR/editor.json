@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "fica: não avança sozinha, precisa de um toque ou do controle remoto",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "agendada",
     "conditionalTooltip": "aparece só quando as condições correspondem",
     "disabledTooltip": "desligada, não aparece no display",
@@ -325,6 +325,7 @@
       "weekdays": "de segunda a sexta",
       "weekends": "sábado e domingo",
       "allDay": "o dia todo",
+      "allDaysFor": "o dia todo por {count} dias",
       "fromOnly": "a partir das {start}",
       "untilOnly": "até {end}",
       "window": "das {start} às {end}",
@@ -1209,7 +1210,7 @@
         "pauseEnabledHelp": "Toque duas vezes no ponto de tela destacado para pausar a rotação. Toque duas vezes de novo para retomar.",
         "pauseTimeoutLabel": "Tempo para retomar automaticamente",
         "pauseTimeoutNever": "Nunca",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Retoma a rotação automaticamente após esse número de segundos. Defina como 0 para permanecer pausado até retomar manualmente.",
         "swipeEnabledLabel": "Deslizar para trocar de tela",
         "swipeEnabledToggle": "Ativado",
@@ -1223,10 +1224,10 @@
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Como uma tela dá lugar à seguinte. O desfoque é o efeito mais pesado: se a troca de telas engasgar num aparelho mais lento, escolha outro.",
         "transitionDurationLabel": "Duração da transição",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Quanto tempo dura a animação de transição entre telas.",
         "cursorHideLabel": "Ocultar cursor após",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "O cursor do mouse é ocultado após esse número de segundos sem atividade. Mexa o mouse para mostrá-lo novamente.",
         "pixelShiftLabel": "Proteger a tela contra burn-in",
         "pixelShiftToggle": "Deslocar a imagem levemente",
@@ -1418,7 +1419,7 @@
       "maxVisibleLabel": "Máx. de avisos visíveis",
       "defaultDurationLabel": "Duração padrão (segundos)",
       "defaultDurationPerType": "Padrões por tipo",
-      "defaultDurationHelp": "Info: 10s, Atenção: 30s, Urgente: permanente até dispensar.",
+      "defaultDurationHelp": "Info: 10 s, Atenção: 30 s, Urgente: permanente até dispensar.",
       "alertSizeLabel": "Tamanho do aviso",
       "activeAlertsHeading": "Avisos ativos",
       "clearAllButton": "Limpar todos os avisos",
@@ -1839,7 +1840,7 @@
         "scanningInterface": "Escaneando {device}",
         "scanButton": "Escanear",
         "scanningButton": "Escaneando…",
-        "scanCooldownButton": "Escanear ({seconds}s)",
+        "scanCooldownButton": "Escanear ({seconds} s)",
         "defaultScanError": "Não foi possível procurar redes. Tente de novo.",
         "emptyHint": "Clique em Escanear para procurar redes Wi-Fi próximas.",
         "badges": {
@@ -1881,7 +1882,7 @@
       "rollback": {
         "polling": {
           "heading": "Verificando conectividade…",
-          "remaining": "{seconds}s restantes antes do rollback automático",
+          "remaining": "{seconds} s restantes antes do rollback automático",
           "warning": "Se esta página ficar inacessível, as configurações anteriores serão restauradas automaticamente."
         },
         "confirmed": {
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Criar uma chave nova",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Cada display recarrega uma vez para pegar a chave nova.",
-        "errorRegenerate": "Não foi possível criar uma chave nova",
-        "errorCopy": "Falha ao copiar; selecione e copie manualmente",
+        "errorRegenerate": "Não foi possível criar uma chave nova.",
+        "errorCopy": "Não foi possível copiar. Selecione a chave e copie você mesmo.",
         "phoneHintIntro": "Para controlar um display pelo celular, salve nos favoritos um link como este:",
         "phoneHintOutro": "Mostre antes a chave acima para que o link a leve junto. Troque sleep por wake, reload, next-screen ou prev-screen para os outros comandos.",
         "phoneHintDisplayNote": "Este aponta para {name}. Troque {display} pelo id de outro display para mirar nele."
@@ -2390,9 +2391,9 @@
         "addButton": "Adicionar",
         "errors": {
           "invalidCidr": "Isso não é um intervalo de rede. A maioria das redes domésticas é 192.168.1.0/24.",
-          "invalidIp": "Isso não é um endereço",
+          "invalidIp": "Isso não é um endereço IP.",
           "invalidPrefix": "O número depois da barra precisa ficar entre 0 e 32.",
-          "alreadyInList": "Já está na lista"
+          "alreadyInList": "Já está na lista."
         },
         "callerIpLabel": "Seu IP: ",
         "lockoutWarning": {
@@ -2610,7 +2611,7 @@
         "tipsHeading": "Dicas",
         "tips": {
           "localStorage": "Plugins de dev ficam apenas no localStorage; não persistem entre navegadores.",
-          "autoReload": "O plugin recarrega automaticamente quando o bundle muda (verificado a cada 2s)",
+          "autoReload": "O plugin recarrega automaticamente quando o bundle muda (verificado a cada 2 s)",
           "sourcemapsPart1": "Source maps são suportados; adicione ",
           "sourcemapsPart2": " na sua config do Vite",
           "devOverrides": "Plugins de dev substituem versões instaladas com o mesmo tipo de módulo."
@@ -2773,7 +2774,7 @@
       "statusIdle": "Inativo · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "rotação de {degrees}°",
-      "rotationNormal": "normal",
+      "rotationNormal": "Sem rotação",
       "screenCount": {
         "one": "{count} tela",
         "other": "{count} telas"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Totais da semana",
       "memberLine": "{chores} tarefas, {tickets} tickets"
     },
-    "finishFormFirst": "Salve ou cancele primeiro o formulário aberto.",
+    "finishFormFirst": "Termine ou cancele primeiro o que está aberto.",
     "starter": {
       "openButton": "Escolher da lista de sugestões",
       "hint": "{count} tarefas do dia a dia, separadas por período do dia",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Instalar plugin de URL",
     "dialogAriaLabel": "Instalar plugin de URL",
-    "tarballUrlLabel": "URL do tarball",
-    "tarballUrlHelpPart1": "URL HTTPS para um bundle de plugin ",
-    "tarballUrlHelpPart2": ". Substitua a versão por ",
-    "tarballUrlHelpPart3": " se quiser que atualizações futuras precisem apenas de um número de versão.",
+    "tarballUrlLabel": "Link de download",
+    "tarballUrlHelpPart1": "Um link seguro (começando com https) para o arquivo ",
+    "tarballUrlHelpPart2": " do plugin. Coloque ",
+    "tarballUrlHelpPart3": " no lugar do número da versão, assim as próximas atualizações só precisam do número.",
     "exampleLabel": "Exemplo:",
     "versionLabel": "Versão a instalar",
     "externalSourceWarning": "Você está instalando de fora do marketplace de plugins. Instale apenas plugins de fontes confiáveis.",
@@ -3986,9 +3987,9 @@
     "title": "Atualizar {id}",
     "dialogAriaLabel": "Atualizar {id}",
     "currentVersionLabel": "Versão atual:",
-    "tarballUrlLabel": "URL do tarball",
-    "tarballUrlHelpPart1": "Edite a URL para apontar para uma nova versão, ou substitua a versão por ",
-    "tarballUrlHelpPart2": " para que futuras atualizações precisem apenas de um número de versão.",
+    "tarballUrlLabel": "Link de download",
+    "tarballUrlHelpPart1": "Mude o link para apontar para a nova versão, ou coloque ",
+    "tarballUrlHelpPart2": " no lugar do número da versão, assim da próxima vez você só digita o número.",
     "exampleLabel": "Exemplo:",
     "versionLabel": "Versão a instalar",
     "workingMessage": "Baixando e atualizando…",

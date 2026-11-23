@@ -255,7 +255,7 @@ export default function EditorPage() {
         {/* Toolbar */}
         <div className="flex items-center gap-4 overflow-hidden border-b border-hs-border-strong bg-hs-panel px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
-            <HomeScreensLogo />
+            <HomeScreensLogo markOnlyWhenNarrow />
             <div className="h-8 w-px bg-hs-card" />
             <DisplaySwitcher />
             <ScreenTabs />

@@ -16,12 +16,13 @@ export function spinHits(file: string, source: string): GuardHit[] {
 }
 
 /** Glyphs that only ever mean an icon. */
-const ICON_GLYPHS = /[✓✕›‹♥♡]/;
+const ICON_GLYPHS = /[✓✕›‹♥♡↺↻↳↪▾▸▴◂▼▶◀▲]/;
 const TIMES = '×';
 const PLUS = '+';
 
 /**
- * A glyph typed as an icon: ✓ ✕ › ‹ ♥ ♡ anywhere in a file's words, a ×
+ * A glyph typed as an icon: ✓ ✕ › ‹ ♥ ♡, the arrows ↺ ↻ ↳ ↪ and the small
+ * triangles ▾ ▸ ▴ ◂ ▼ ▶ ◀ ▲ anywhere in a file's words, a ×
  * standing alone (a close or remove button), and a + standing alone as JSX
  * text (an add button or tile). A × with a value beside it is a
  * multiplication sign, which is words: `{w} × {h}`, `×{count}`, `${n}×`,
@@ -29,7 +30,7 @@ const PLUS = '+';
  * string, where code builds "+2" or "UTC+1".
  */
 export function glyphIconHits(file: string, source: string): GuardHit[] {
-  return textPieces(file, source, /[✓✕›‹♥♡×]|&(?:times|rsaquo|lsaquo|hearts|check|#\d+|#x[0-9a-f]+);|>\s*\+\s*</i)
+  return textPieces(file, source, /[✓✕›‹♥♡↺↻▾▸▴◂▼▶◀▲×]|&(?:times|rsaquo|lsaquo|hearts|check|#\d+|#x[0-9a-f]+);|>\s*\+\s*</i)
     .filter((piece) => {
       const alone = piece.text.trim();
       return ICON_GLYPHS.test(piece.text)

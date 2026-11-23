@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import Button from '@/components/ui/Button';
 import { useICloudImport } from '@/hooks/useICloudImport';
@@ -46,7 +47,7 @@ export default function ICloudImportPanel({ selectedDir, onImported, trailing, b
           onClick={() => setOpen(!open)}
           className="flex-1 text-left text-xs px-3 py-1.5 text-hs-text-muted hover:text-hs-text-body flex items-center gap-1.5"
         >
-          <span className="text-hs-text-faint">{open ? '▾' : '▸'}</span>
+          <span className="text-hs-text-faint">{open ? <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />}</span>
           {tCore('imports.icloudTitle')}
         </button>
         {trailing}

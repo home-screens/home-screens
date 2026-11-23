@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "bliver: skifter ikke af sig selv, kræver et tryk eller fjernbetjeningen",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "planlagt",
     "conditionalTooltip": "vises kun, når betingelserne passer",
     "disabledTooltip": "slukket, vises ikke på skærmen",
@@ -325,6 +325,7 @@
       "weekdays": "man. til fre.",
       "weekends": "lør. og søn.",
       "allDay": "hele dagen",
+      "allDaysFor": "hele dagen i {count} dage",
       "fromOnly": "fra {start}",
       "untilOnly": "til {end}",
       "window": "{start} til {end}",
@@ -1209,7 +1210,7 @@
         "pauseEnabledHelp": "Dobbelttryk på den fremhævede skærmprik for at sætte skærmskift på pause. Dobbelttryk igen for at fortsætte.",
         "pauseTimeoutLabel": "Fortsæt automatisk efter",
         "pauseTimeoutNever": "Aldrig",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Fortsæt automatisk med skærmskift efter så mange sekunder. Sæt til 0 for at blive på pause, indtil du selv fortsætter.",
         "swipeEnabledLabel": "Stryg for at skifte skærm",
         "swipeEnabledToggle": "Slået til",
@@ -1223,10 +1224,10 @@
         "transitionEffectLabel": "Overgangseffekt",
         "transitionEffectHelp": "Hvordan én skærm giver plads til den næste. Sløring belaster enheden mest. Hakker overgangene på en langsom enhed, så vælg en anden effekt.",
         "transitionDurationLabel": "Overgangens varighed",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Hvor lang tid overgangen mellem skærme tager.",
         "cursorHideLabel": "Skjul markøren efter",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "Musemarkøren skjules efter så mange sekunder uden aktivitet. Bevæg musen for at få den frem igen.",
         "pixelShiftLabel": "Beskyt skærmen mod indbrænding",
         "pixelShiftToggle": "Flyt billedet en smule",
@@ -1839,7 +1840,7 @@
         "scanningInterface": "Søger på {device}",
         "scanButton": "Scan",
         "scanningButton": "Søger…",
-        "scanCooldownButton": "Scan ({seconds}s)",
+        "scanCooldownButton": "Scan ({seconds} s)",
         "defaultScanError": "Kunne ikke søge efter netværk. Prøv igen.",
         "emptyHint": "Klik på Scan for at søge efter Wi-Fi-netværk i nærheden.",
         "badges": {
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Lav en ny nøgle",
         "regenerateCancel": "Annullér",
         "regenerateWarning": "Hver skærm genindlæser én gang for at bruge den nye nøgle.",
-        "errorRegenerate": "Kunne ikke lave en ny nøgle",
-        "errorCopy": "Kopieringen mislykkedes; markér og kopiér selv",
+        "errorRegenerate": "Kunne ikke lave en ny nøgle.",
+        "errorCopy": "Kopieringen mislykkedes. Markér nøglen, og kopiér den selv.",
         "phoneHintIntro": "Vil du styre en skærm fra telefonen, så gem et bogmærke med et link som dette:",
         "phoneHintOutro": "Vis nøglen ovenfor først, så linket får den med. Byt sleep ud med wake, reload, next-screen eller prev-screen for de andre kommandoer.",
         "phoneHintDisplayNote": "Dette peger på {name}. Byt {display} ud med en anden skærms id for at ramme den."
@@ -2390,9 +2391,9 @@
         "addButton": "Tilføj",
         "errors": {
           "invalidCidr": "Det er ikke et netværksområde. De fleste hjemmenetværk er 192.168.1.0/24.",
-          "invalidIp": "Det er ikke en adresse",
+          "invalidIp": "Det er ikke en IP-adresse.",
           "invalidPrefix": "Tallet efter skråstregen skal være mellem 0 og 32.",
-          "alreadyInList": "Findes allerede på listen"
+          "alreadyInList": "Findes allerede på listen."
         },
         "callerIpLabel": "Din IP: ",
         "lockoutWarning": {
@@ -2772,8 +2773,8 @@
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
-      "rotationDegrees": "{degrees}° rotation",
-      "rotationNormal": "normal",
+      "rotationDegrees": "Drejet {degrees}°",
+      "rotationNormal": "Ikke drejet",
       "screenCount": {
         "one": "{count} skærm",
         "other": "{count} skærme"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Ugen i alt",
       "memberLine": "{chores} pligter, {tickets} billetter"
     },
-    "finishFormFirst": "Gem eller annullér først den åbne formular.",
+    "finishFormFirst": "Afslut eller annullér først det, du er i gang med.",
     "starter": {
       "openButton": "Vælg fra forslagslisten",
       "hint": "{count} hverdagspligter, sorteret efter tid på dagen",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Installér plugin fra URL",
     "dialogAriaLabel": "Installér plugin fra URL",
-    "tarballUrlLabel": "URL til tarball",
-    "tarballUrlHelpPart1": "HTTPS-URL til et ",
-    "tarballUrlHelpPart2": "-pluginbundt. Erstat versionen med ",
-    "tarballUrlHelpPart3": ", hvis fremtidige opdateringer kun skal kræve et versionsnummer.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Et sikkert link (der starter med https) til pluginets ",
+    "tarballUrlHelpPart2": "-fil. Skriv ",
+    "tarballUrlHelpPart3": " i stedet for versionsnummeret, så kræver senere opdateringer kun nummeret.",
     "exampleLabel": "Eksempel:",
     "versionLabel": "Version der skal installeres",
     "externalSourceWarning": "Du installerer fra uden for pluginbutikken. Installér kun plugins fra kilder, du stoler på.",
@@ -3986,9 +3987,9 @@
     "title": "Opdatér {id}",
     "dialogAriaLabel": "Opdatér {id}",
     "currentVersionLabel": "Nuværende version:",
-    "tarballUrlLabel": "URL til tarball",
-    "tarballUrlHelpPart1": "Redigér URL'en, så den peger på en ny version, eller erstat versionen med ",
-    "tarballUrlHelpPart2": ", så fremtidige opdateringer kun kræver et versionsnummer.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Ret linket, så det peger på den nye version, eller skriv ",
+    "tarballUrlHelpPart2": " i stedet for versionsnummeret, så du næste gang kun skal skrive nummeret.",
     "exampleLabel": "Eksempel:",
     "versionLabel": "Version der skal installeres",
     "workingMessage": "Henter og opdaterer…",

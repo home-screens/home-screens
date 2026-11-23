@@ -325,6 +325,7 @@
       "weekdays": "Mo bis Fr",
       "weekends": "Sa und So",
       "allDay": "ganztägig",
+      "allDaysFor": "ganztägig für {count} Tage",
       "fromOnly": "ab {start}",
       "untilOnly": "bis {end}",
       "window": "{start} bis {end}",
@@ -1209,7 +1210,7 @@
         "pauseEnabledHelp": "Tippe doppelt auf den hervorgehobenen Bildschirmpunkt, um den Bildschirmwechsel anzuhalten. Tippe noch einmal doppelt, um ihn fortzusetzen.",
         "pauseTimeoutLabel": "Automatisches Fortsetzen nach",
         "pauseTimeoutNever": "Nie",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Setzt den Bildschirmwechsel nach Ablauf dieser Zeit automatisch fort. Setze auf 0, um pausiert zu bleiben, bis manuell fortgesetzt wird.",
         "swipeEnabledLabel": "Wischen zum Bildschirmwechsel",
         "swipeEnabledToggle": "Aktiviert",
@@ -1223,10 +1224,10 @@
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Wie ein Bildschirm in den nächsten übergeht. „Unschärfe“ ist der aufwendigste Effekt: Ruckelt es auf einem langsameren Gerät, nimm einen anderen.",
         "transitionDurationLabel": "Übergangsdauer",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Wie lange die Übergangsanimation zwischen Bildschirmen dauert.",
         "cursorHideLabel": "Mauszeiger ausblenden nach",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "Der Mauszeiger wird nach der eingestellten Zeit ohne Aktivität ausgeblendet. Bewege die Maus, um ihn wieder anzuzeigen.",
         "pixelShiftLabel": "Bildschirm vor Einbrennen schützen",
         "pixelShiftToggle": "Bild leicht verschieben",
@@ -1839,7 +1840,7 @@
         "scanningInterface": "Suche auf {device}",
         "scanButton": "Suchen",
         "scanningButton": "Suche läuft …",
-        "scanCooldownButton": "Suchen ({seconds}s)",
+        "scanCooldownButton": "Suchen ({seconds} s)",
         "defaultScanError": "Die Netzwerksuche hat nicht geklappt. Versuch es noch einmal.",
         "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
         "badges": {
@@ -1881,7 +1882,7 @@
       "rollback": {
         "polling": {
           "heading": "Verbindung wird geprüft …",
-          "remaining": "Noch {seconds}s bis zum automatischen Zurücksetzen",
+          "remaining": "Noch {seconds} s bis zum automatischen Zurücksetzen",
           "warning": "Wird diese Seite unerreichbar, werden die vorherigen Einstellungen automatisch wiederhergestellt."
         },
         "confirmed": {
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Jedes Display lädt einmal neu, um den neuen Schlüssel zu übernehmen.",
-        "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden",
-        "errorCopy": "Kopieren fehlgeschlagen; bitte manuell auswählen und kopieren",
+        "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden.",
+        "errorCopy": "Kopieren hat nicht geklappt. Markiere den Schlüssel und kopiere ihn selbst.",
         "phoneHintIntro": "Um ein Display vom Telefon aus zu steuern, setze ein Lesezeichen auf einen Link wie diesen:",
         "phoneHintOutro": "Zeige den Schlüssel oben zuerst an, damit der Link ihn enthält. Tausche sleep gegen wake, reload, next-screen oder prev-screen, um die anderen Befehle zu bekommen.",
         "phoneHintDisplayNote": "Dieser zeigt auf das Display „{name}“. Tausche {display} gegen die ID eines anderen Displays, um auf dieses zu zielen."
@@ -2390,9 +2391,9 @@
         "addButton": "Hinzufügen",
         "errors": {
           "invalidCidr": "Das ist kein Netzwerkbereich. Die meisten Heimnetze sind 192.168.1.0/24.",
-          "invalidIp": "Das ist keine Adresse",
+          "invalidIp": "Das ist keine IP-Adresse.",
           "invalidPrefix": "Die Zahl nach dem Schrägstrich muss zwischen 0 und 32 liegen.",
-          "alreadyInList": "Bereits in der Liste"
+          "alreadyInList": "Bereits in der Liste."
         },
         "callerIpLabel": "Deine IP: ",
         "lockoutWarning": {
@@ -2773,7 +2774,7 @@
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "{degrees}° Drehung",
-      "rotationNormal": "normal",
+      "rotationNormal": "Keine Drehung",
       "screenCount": {
         "one": "{count} Bildschirm",
         "other": "{count} Bildschirme"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Wochensumme",
       "memberLine": "{chores} Aufgaben, {tickets} Tickets"
     },
-    "finishFormFirst": "Speichere oder verwirf zuerst das offene Formular.",
+    "finishFormFirst": "Schließ zuerst ab, was offen ist, oder brich es ab.",
     "starter": {
       "openButton": "Aus den Vorschlägen auswählen",
       "hint": "{count} alltägliche Aufgaben, nach Tageszeit sortiert",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Plugin aus URL installieren",
     "dialogAriaLabel": "Plugin aus URL installieren",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "HTTPS-URL zu einem ",
-    "tarballUrlHelpPart2": "-Plugin-Bundle. Ersetze die Version durch ",
-    "tarballUrlHelpPart3": ", wenn künftige Updates nur eine Versionsnummer benötigen sollen.",
+    "tarballUrlLabel": "Download-Link",
+    "tarballUrlHelpPart1": "Ein sicherer Link (beginnt mit https) zur ",
+    "tarballUrlHelpPart2": "-Datei des Plugins. Setze ",
+    "tarballUrlHelpPart3": " dort ein, wo die Versionsnummer steht. Dann brauchen spätere Updates nur noch die Nummer.",
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
     "externalSourceWarning": "Du installierst von außerhalb des Plugin-Marketplace. Installiere nur Plugins aus Quellen, denen du vertraust.",
@@ -3986,9 +3987,9 @@
     "title": "{id} aktualisieren",
     "dialogAriaLabel": "{id} aktualisieren",
     "currentVersionLabel": "Aktuelle Version:",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "Passe die URL auf eine neue Version an oder ersetze die Version durch ",
-    "tarballUrlHelpPart2": ", damit künftige Updates nur eine Versionsnummer benötigen.",
+    "tarballUrlLabel": "Download-Link",
+    "tarballUrlHelpPart1": "Ändere den Link so, dass er auf die neue Version zeigt, oder setze ",
+    "tarballUrlHelpPart2": " dort ein, wo die Versionsnummer steht. Dann musst du nächstes Mal nur die Nummer eintippen.",
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
     "workingMessage": "Wird heruntergeladen und aktualisiert …",

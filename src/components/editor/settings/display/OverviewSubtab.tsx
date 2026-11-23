@@ -10,11 +10,12 @@ import {
   ALERT_OVERRIDE_FIELDS,
   CALENDAR_OVERRIDE_FIELDS,
   resolveDisplayDefault,
+  transitionSecondsText,
 } from '@/lib/display-override-fields';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { resolvePanelPowerEnabled } from '@/lib/panel-power';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
+import { useFormattingLocale, useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
@@ -241,7 +242,8 @@ function OverrideChip({
   t: TranslateFn;
 }) {
   const overrides = display.settings ?? {};
-  const formatted = formatOverrideComparison(field, overrides, settings, t);
+  const locale = useFormattingLocale();
+  const formatted = formatOverrideComparison(field, overrides, settings, t, locale);
 
   return (
     <span className="text-[11px] text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/30 px-2.5 py-1 rounded-full">
@@ -259,9 +261,15 @@ function OverrideChip({
  * can be unit-tested as a whole when the test infra grows beyond node.
  */
 
-function formatRotationInterval(ms: number, t: TranslateFn): string {
+/** "60s" in English, "60 s" in German: the editor's own seconds words, in the household's numbers. */
+function secondsText(seconds: string | number, t: TranslateFn, locale: string): string {
+  const value = typeof seconds === 'number' ? new Intl.NumberFormat(locale).format(seconds) : seconds;
+  return t('screenTabs.secondsSuffix', { seconds: value });
+}
+
+function formatRotationInterval(ms: number, t: TranslateFn, locale: string): string {
   if (ms <= 0) return t('settings.perDisplayPage.display.fields.rotationOff');
-  return `${Math.round(ms / 1000)}s`;
+  return secondsText(Math.round(ms / 1000), t, locale);
 }
 
 // Shortened labels — the chip has no room for the parenthetical clarifiers
@@ -273,8 +281,8 @@ function formatTransitionEffect(effect: string, t: TranslateFn): string {
   return tOrFallback(t, `settings.perDisplayPage.overview.transitionLabels.${effect}`, effect);
 }
 
-function formatTransitionDuration(seconds: number): string {
-  return `${seconds.toFixed(1)}s`;
+function formatTransitionDuration(seconds: number, t: TranslateFn, locale: string): string {
+  return secondsText(transitionSecondsText(seconds, locale), t, locale);
 }
 
 function formatPauseEnabled(enabled: boolean, t: TranslateFn): string {
@@ -283,12 +291,8 @@ function formatPauseEnabled(enabled: boolean, t: TranslateFn): string {
     : t('settings.perDisplayPage.overview.chipValues.pauseOff');
 }
 
-function formatPauseTimeout(seconds: number, t: TranslateFn): string {
-  return seconds === 0 ? t('settings.perDisplayPage.overview.chipValues.pauseNever') : `${seconds}s`;
-}
-
-function formatCursorHide(seconds: number): string {
-  return `${seconds}s`;
+function formatPauseTimeout(seconds: number, t: TranslateFn, locale: string): string {
+  return seconds === 0 ? t('settings.perDisplayPage.overview.chipValues.pauseNever') : secondsText(seconds, t, locale);
 }
 
 function formatFullscreenTheme(themeId: string): string {
@@ -321,11 +325,12 @@ function fieldLabel(field: string, t: TranslateFn): string {
  * `findDisplaysOverridingFields` uses an `in` check to decide a field is
  * overridden.
  */
-function formatOverrideComparison(
+export function formatOverrideComparison(
   field: string,
   overrides: NonNullable<DisplayNode['settings']>,
   settings: GlobalSettings,
   t: TranslateFn,
+  locale: string,
 ): string {
   const label = fieldLabel(field, t);
 
@@ -357,8 +362,8 @@ function formatOverrideComparison(
   switch (field) {
     case 'rotationIntervalMs':
       return compare(
-        formatRotationInterval(overrideValue as number, t),
-        formatRotationInterval(defaultOf('rotationIntervalMs'), t),
+        formatRotationInterval(overrideValue as number, t, locale),
+        formatRotationInterval(defaultOf('rotationIntervalMs'), t, locale),
       );
     case 'transitionEffect':
       return compare(
@@ -367,34 +372,35 @@ function formatOverrideComparison(
       );
     case 'transitionDuration':
       return compare(
-        formatTransitionDuration(overrideValue as number),
-        formatTransitionDuration(defaultOf('transitionDuration')),
+        formatTransitionDuration(overrideValue as number, t, locale),
+        formatTransitionDuration(defaultOf('transitionDuration'), t, locale),
       );
     case 'pauseTimeoutSeconds':
       return compare(
-        formatPauseTimeout(overrideValue as number, t),
-        formatPauseTimeout(defaultOf('pauseTimeoutSeconds'), t),
+        formatPauseTimeout(overrideValue as number, t, locale),
+        formatPauseTimeout(defaultOf('pauseTimeoutSeconds'), t, locale),
       );
     case 'pauseEnabled':
     case 'swipeEnabled':
     case 'showPaginationDots':
     case 'showRotationProgress':
     case 'setupHintEnabled':
-    case 'calendarWallEntry':
-      return compare(
-        formatPauseEnabled(overrideValue as boolean, t),
-        formatPauseEnabled(settings.calendarWallEntry !== false, t),
-      );
     case 'pixelShift':
       // One generic On/Off pair serves every switch.
       return compare(
         formatPauseEnabled(overrideValue as boolean, t),
         formatPauseEnabled(defaultOf(field), t),
       );
+    case 'calendarWallEntry':
+      // Not a screen field, so it has no `resolveDisplayDefault`: unset is on.
+      return compare(
+        formatPauseEnabled(overrideValue as boolean, t),
+        formatPauseEnabled(settings.calendarWallEntry !== false, t),
+      );
     case 'cursorHideSeconds':
       return compare(
-        formatCursorHide(overrideValue as number),
-        formatCursorHide(defaultOf('cursorHideSeconds')),
+        secondsText(overrideValue as number, t, locale),
+        secondsText(defaultOf('cursorHideSeconds'), t, locale),
       );
     case 'fullscreenTheme':
       return compare(

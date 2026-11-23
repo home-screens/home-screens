@@ -325,6 +325,7 @@
       "weekdays": "du lundi au vendredi",
       "weekends": "le samedi et le dimanche",
       "allDay": "toute la journée",
+      "allDaysFor": "toute la journée pendant {count} jours",
       "fromOnly": "à partir de {start}",
       "untilOnly": "jusqu’à {end}",
       "window": "de {start} à {end}",
@@ -1881,7 +1882,7 @@
       "rollback": {
         "polling": {
           "heading": "Vérification de la connectivité…",
-          "remaining": "{seconds} s restantes avant l'annulation automatique",
+          "remaining": "Annulation automatique dans {seconds} s",
           "warning": "Si cette page devient inaccessible, les paramètres précédents seront restaurés automatiquement."
         },
         "confirmed": {
@@ -2368,7 +2369,7 @@
         "regenerateConfirm": "Créer une nouvelle clé",
         "regenerateCancel": "Annuler",
         "regenerateWarning": "Chaque affichage se recharge une fois pour prendre la nouvelle clé.",
-        "errorRegenerate": "Impossible de créer une nouvelle clé",
+        "errorRegenerate": "Impossible de créer une nouvelle clé.",
         "errorCopy": "Impossible de copier. Sélectionnez la clé et copiez-la vous-même.",
         "phoneHintIntro": "Pour piloter un affichage depuis votre téléphone, mettez en favori un lien comme celui-ci :",
         "phoneHintOutro": "Affichez d'abord la clé ci-dessus pour que le lien la contienne. Remplacez sleep par wake, reload, next-screen ou prev-screen pour les autres commandes.",
@@ -2390,9 +2391,9 @@
         "addButton": "Ajouter",
         "errors": {
           "invalidCidr": "Ce n'est pas une plage réseau. La plupart des réseaux domestiques sont en 192.168.1.0/24.",
-          "invalidIp": "Ce n’est pas une adresse",
+          "invalidIp": "Ce n’est pas une adresse IP.",
           "invalidPrefix": "Le nombre après la barre oblique doit être entre 0 et 32.",
-          "alreadyInList": "Déjà dans la liste"
+          "alreadyInList": "Déjà dans la liste."
         },
         "callerIpLabel": "Ton IP : ",
         "lockoutWarning": {
@@ -2773,7 +2774,7 @@
       "statusIdle": "Inactif · {time}",
       "statusOffline": "Hors ligne · {time}",
       "rotationDegrees": "rotation de {degrees}°",
-      "rotationNormal": "normale",
+      "rotationNormal": "Pas de rotation",
       "screenCount": {
         "one": "{count} écran",
         "other": "{count} écrans"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Totaux de la semaine",
       "memberLine": "{chores} tâches, {tickets} tickets"
     },
-    "finishFormFirst": "Enregistrez ou annulez d'abord le formulaire ouvert.",
+    "finishFormFirst": "Terminez ou annulez d'abord ce qui est ouvert.",
     "starter": {
       "openButton": "Choisir parmi les tâches toutes prêtes",
       "hint": "{count} tâches du quotidien, classées par moment de la journée",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Installer un plugin depuis une URL",
     "dialogAriaLabel": "Installer un plugin depuis une URL",
-    "tarballUrlLabel": "URL du tarball",
-    "tarballUrlHelpPart1": "URL HTTPS vers un bundle de plugin ",
-    "tarballUrlHelpPart2": ". Remplacez la version par ",
-    "tarballUrlHelpPart3": " si vous voulez que les futures mises à jour ne nécessitent qu'un numéro de version.",
+    "tarballUrlLabel": "Lien de téléchargement",
+    "tarballUrlHelpPart1": "Un lien sécurisé (commençant par https) vers le fichier ",
+    "tarballUrlHelpPart2": " du plugin. Mettez ",
+    "tarballUrlHelpPart3": " à la place du numéro de version : les prochaines mises à jour n'auront besoin que du numéro.",
     "exampleLabel": "Exemple :",
     "versionLabel": "Version à installer",
     "externalSourceWarning": "Tu installes hors de la marketplace de plugins. N'installe que des plugins de sources de confiance.",
@@ -3986,9 +3987,9 @@
     "title": "Mettre à jour {id}",
     "dialogAriaLabel": "Mettre à jour {id}",
     "currentVersionLabel": "Version actuelle :",
-    "tarballUrlLabel": "URL du tarball",
-    "tarballUrlHelpPart1": "Modifiez l'URL pour pointer vers une nouvelle version, ou remplacez la version par ",
-    "tarballUrlHelpPart2": " pour que les futures mises à jour ne nécessitent qu'un numéro de version.",
+    "tarballUrlLabel": "Lien de téléchargement",
+    "tarballUrlHelpPart1": "Modifiez le lien pour qu'il pointe vers la nouvelle version, ou mettez ",
+    "tarballUrlHelpPart2": " à la place du numéro de version : la prochaine fois, vous n'aurez qu'à taper le numéro.",
     "exampleLabel": "Exemple :",
     "versionLabel": "Version à installer",
     "workingMessage": "Téléchargement et mise à jour…",

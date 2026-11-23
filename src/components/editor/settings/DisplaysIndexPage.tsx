@@ -831,7 +831,8 @@ function DisplayCard({
         <span>
           {t('settings.displaysIndex.screenCount', { count: screenCount })}
         </span>
-        {currentScreenName && (
+        {/* What it showed last is not what it shows now once it stops checking in. */}
+        {currentScreenName && pill.kind !== 'offline' && pill.kind !== 'never' && (
           <span className="truncate">
             {t('settings.displaysIndex.currentScreenLabel', { name: currentScreenName })}
           </span>

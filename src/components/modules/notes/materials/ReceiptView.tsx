@@ -63,7 +63,7 @@ function Dash() {
 /**
  * Receipt: a till roll of thermal paper with torn ends, printed in monospace
  * capitals. The heading centred, the date and time, then one row per note
- * with the author in a right-hand column, [PIN] before pinned rows and ***
+ * with the author in a right-hand column, [PINNED] (in the household's language) before pinned rows and ***
  * before important ones; a total, the pinned and important tally, a barcode
  * and a thank-you. Rows fit whole; the rest are counted on a row of their own.
  */
@@ -130,7 +130,7 @@ export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding
               style={{ gap: '0.67em', fontWeight: note.important ? 700 : 400 }}
             >
               <span className="flex-1 min-w-0 line-clamp-4" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
-                {note.pinned && '[PIN] '}
+                {note.pinned && `[${ctx.t('notes.pinnedOne')}] `}
                 {note.important && '*** '}
                 {note.text}
               </span>

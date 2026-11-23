@@ -1280,7 +1280,7 @@
     "loading": "Stand laden…",
     "noStandings": "Geen stand beschikbaar",
     "columns": {
-      "overtime": "OT",
+      "overtime": "NV",
       "pct": "PCT",
       "pointsFor": "PV",
       "pointsAgainst": "PT",

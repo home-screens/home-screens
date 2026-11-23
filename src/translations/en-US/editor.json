@@ -325,6 +325,7 @@
       "weekdays": "Mon to Fri",
       "weekends": "Sat and Sun",
       "allDay": "all day",
+      "allDaysFor": "all day for {count} days",
       "fromOnly": "from {start}",
       "untilOnly": "until {end}",
       "window": "{start} to {end}",
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
         "regenerateWarning": "Each display reloads once to pick up the new key.",
-        "errorRegenerate": "Couldn't make a new key",
-        "errorCopy": "Copy failed; select and copy manually",
+        "errorRegenerate": "Couldn't make a new key.",
+        "errorCopy": "Couldn't copy it. Select the key and copy it yourself.",
         "phoneHintIntro": "To control a display from a phone, bookmark a link like this one:",
         "phoneHintOutro": "Reveal the key above first so the link carries it. Swap sleep for wake, reload, next-screen or prev-screen to get the other commands.",
         "phoneHintDisplayNote": "This one points at {name}. Swap {display} for another display's id to aim at that one."
@@ -2390,9 +2391,9 @@
         "addButton": "Add",
         "errors": {
           "invalidCidr": "That isn't a network range. Most home networks are 192.168.1.0/24.",
-          "invalidIp": "That isn't an address",
+          "invalidIp": "That isn't an IP address.",
           "invalidPrefix": "The number after the slash has to be between 0 and 32.",
-          "alreadyInList": "Already in the list"
+          "alreadyInList": "Already in the list."
         },
         "callerIpLabel": "Your IP: ",
         "lockoutWarning": {
@@ -2773,7 +2774,7 @@
       "statusIdle": "Idle · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "{degrees}° rotation",
-      "rotationNormal": "normal",
+      "rotationNormal": "No rotation",
       "screenCount": {
         "one": "{count} screen",
         "other": "{count} screens"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Weekly totals",
       "memberLine": "{chores} chores, {tickets} tickets"
     },
-    "finishFormFirst": "Save or cancel the open form first.",
+    "finishFormFirst": "Finish or cancel what's open first.",
     "starter": {
       "openButton": "Pick from the starter list",
       "hint": "{count} everyday chores, sorted by time of day",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Install plugin from URL",
     "dialogAriaLabel": "Install plugin from URL",
-    "tarballUrlLabel": "Tarball URL",
-    "tarballUrlHelpPart1": "HTTPS URL to a ",
-    "tarballUrlHelpPart2": " plugin bundle. Replace the version with ",
-    "tarballUrlHelpPart3": " if you want future updates to only need a version number.",
+    "tarballUrlLabel": "Download link",
+    "tarballUrlHelpPart1": "A secure link (starting with https) to the plugin's ",
+    "tarballUrlHelpPart2": " file. Put ",
+    "tarballUrlHelpPart3": " where the version number goes, so later updates only need the number.",
     "exampleLabel": "Example:",
     "versionLabel": "Version to install",
     "externalSourceWarning": "You're installing from outside the plugin marketplace. Only install plugins from sources you trust.",
@@ -3986,9 +3987,9 @@
     "title": "Update {id}",
     "dialogAriaLabel": "Update {id}",
     "currentVersionLabel": "Current version:",
-    "tarballUrlLabel": "Tarball URL",
-    "tarballUrlHelpPart1": "Edit the URL to point at a new version, or replace the version with ",
-    "tarballUrlHelpPart2": " so future updates only need a version number.",
+    "tarballUrlLabel": "Download link",
+    "tarballUrlHelpPart1": "Change the link to point at the new version, or put ",
+    "tarballUrlHelpPart2": " where the version number goes, so next time you only type the number.",
     "exampleLabel": "Example:",
     "versionLabel": "Version to install",
     "workingMessage": "Downloading and updating…",

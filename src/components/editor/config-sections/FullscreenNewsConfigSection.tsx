@@ -12,12 +12,14 @@ import { NewsSourcesFields } from './news/NewsSourcesFields';
 import { NewsFiltersFields } from './news/NewsFiltersFields';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
+import { mastheadTitle } from '@/components/modules/fullscreen-news/news-canvas';
 import type { FullscreenNewsConfig, FullscreenNewsView, ModuleInstance } from '@/types/config';
 
 type Config = Partial<FullscreenNewsConfig>;
 
 export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tModules = useTranslate('modules');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const typographySizeOptions = useTypographySizeOptions();
 
@@ -49,12 +51,14 @@ export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInst
           label={t('configSections.news.headerText')}
           value={c.title ?? ''}
           onChange={(v) => set({ title: v || undefined })}
-          placeholder={t('configSections.news.headerTextPlaceholder')}
+          // What the page is headed with when the box is left empty: the one feed's name, or News for several.
+          placeholder={mastheadTitle({ feeds: c.feeds ?? [] }, tModules)}
         />
       )}
 
       <Slider
-        label={t('configSections.fullscreen-news.rotateSeconds')}
+        // The front page turns pages of stories, in the news tile's words; the story view changes its one story.
+        label={c.view === 'front-page' ? t('configSections.sports.rotateSeconds') : t('configSections.fullscreen-news.rotateSeconds')}
         value={(c.rotateIntervalMs ?? 15000) / 1000}
         min={5}
         max={60}

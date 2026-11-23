@@ -9,9 +9,9 @@ import FullscreenThemeGrid from '@/components/editor/settings/shared/FullscreenT
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import type { DisplayState } from '@/lib/settings-form';
 import type { TransitionEffect } from '@/types/config';
-import { useTranslate, tOrFallback } from '@/i18n';
+import { useFormattingLocale, useTranslate, tOrFallback } from '@/i18n';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
-import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS } from '@/lib/display-override-fields';
+import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS, transitionSecondsText } from '@/lib/display-override-fields';
 
 /** Seeded when rotation is switched back on, so the slider has somewhere to start. */
 
@@ -34,6 +34,7 @@ interface AppearanceCardProps {
  */
 export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: AppearanceCardProps) {
   const t = useTranslate('editor');
+  const locale = useFormattingLocale();
 
   const {
     rotationInterval,
@@ -198,7 +199,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
             value={transitionDuration}
             {...DISPLAY_FIELD_SLIDERS.transitionDuration}
             displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', {
-              seconds: transitionDuration.toFixed(1),
+              seconds: transitionSecondsText(transitionDuration, locale),
             })}
             onChange={(v) => onChange({ transitionDuration: v })}
             hint={t('settings.defaultDisplayPage.fields.transitionDurationHelp')}

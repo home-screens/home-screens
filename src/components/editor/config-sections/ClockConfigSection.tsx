@@ -90,6 +90,8 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const householdTimeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   const hourFormat = clockHourFormat(c);
   const householdLabel = t(householdTimeFormat === '24h' ? 'configSections.clock.hourFormat24h' : 'configSections.clock.hourFormat12h');
+  // The clock's own choice, or the household's when it follows it.
+  const shownHourFormat = c.hourFormat === '12h' || c.hourFormat === '24h' ? c.hourFormat : householdTimeFormat;
 
   const VIEWS: { value: ClockView; label: string }[] = [
     { value: 'classic', label: t('configSections.clock.viewClassic') },
@@ -223,8 +225,9 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         </LabeledField>
       )}
 
-      {/* Minimal: AM/PM suffix (off by default, so existing Minimal clocks keep the bare time) */}
-      {has('showAmPm') && (
+      {/* Minimal: AM/PM suffix (off by default, so existing Minimal clocks keep the bare time).
+          Only for a 12-hour clock: on a 24-hour one there is no AM or PM to show. */}
+      {has('showAmPm') && shownHourFormat === '12h' && (
         <Toggle label={t('configSections.clock.showAmPm')} checked={!!c.showAmPm} onChange={(v) => set({ showAmPm: v })} />
       )}
 

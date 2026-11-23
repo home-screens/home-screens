@@ -103,4 +103,31 @@ describe('a toast raised inside a window', () => {
     expect(outer.contains(screen.getByText('From the outer window'))).toBe(true);
     expect(screen.getByTestId('toast-stack').children).toHaveLength(0);
   });
+
+  /** The window stack's placement with the window's bottom edge `roomBelow` px above the bottom of a 768 px screen. */
+  async function placedWith(roomBelow: number) {
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      return { top: 20, bottom: 768 - roomBelow, left: 0, right: 600, width: 600, height: 748 - roomBelow, x: 0, y: 20, toJSON: () => ({}) } as DOMRect;
+    });
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+    Object.defineProperty(window, 'innerHeight', { value: 768, configurable: true });
+    try {
+      render(<Editor />);
+      await screen.findByRole('dialog');
+      const stack = screen.getByTestId('window-toast-stack');
+      return { atTop: stack.dataset.atTop === 'true', top: stack.style.top, bottom: stack.style.bottom };
+    } finally {
+      rect.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  }
+
+  it('goes to the top of the screen when a toast would not fit under the window', async () => {
+    expect(await placedWith(40)).toEqual({ atTop: true, top: '16px', bottom: '' });
+  });
+
+  it('stays at the bottom when a toast fits under the window', async () => {
+    // A 1080p screen leaves about 80 px under the meal planner.
+    expect(await placedWith(100)).toEqual({ atTop: false, top: '', bottom: '16px' });
+  });
 });

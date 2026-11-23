@@ -1287,13 +1287,13 @@
       "pct": "PCT",
       "pointsFor": "PF",
       "pointsAgainst": "PC",
-      "diff": "SALDO",
+      "diff": "DIF",
       "streak": "SEQ",
       "gamesPlayed": "J",
       "points": "PTS",
       "goalDiff": "SG",
-      "gamesBack": "GB",
-      "last10": "L10",
+      "gamesBack": "JA",
+      "last10": "U10",
       "draw": "E"
     }
   },

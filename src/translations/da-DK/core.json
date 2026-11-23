@@ -118,8 +118,10 @@
       "downloadFailed": "Kunne ikke hente pluginnet. Tjek internetforbindelsen, og prøv igen.",
       "badLink": "Det link kan ikke bruges. Indsæt hele https-linket til pluginnet.",
       "blockedLink": "Det link peger ind i dit hjemmenetværk, så Home Screens henter ikke noget derfra.",
+      "notHttps": "Det link er ikke et sikkert https-link, så Home Screens henter ikke noget derfra.",
       "needsVersion": "Det link mangler et versionsnummer. Skriv, hvilken version der skal installeres.",
       "notAPlugin": "Det link er ikke et Home Screens-plugin. Tjek, at det peger på pluginnets .tar.gz-fil.",
+      "tooBig": "Den fil er for stor til at være et plugin. Plugins må højst fylde {max} MB.",
       "alreadyInstalled": "Det plugin er allerede installeret. Opdatér det fra pluginbutikken i stedet."
     },
     "icloud": {
@@ -210,7 +212,7 @@
     "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
     "waitingForAdoption": "Venter på at blive tilføjet…",
-    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds}s.",
+    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} s.",
     "goToDefault": "Gå til hovedskærmen nu"
   },
   "login": {

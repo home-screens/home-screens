@@ -118,8 +118,10 @@
       "downloadFailed": "Não foi possível baixar o plugin. Verifique a conexão com a internet e tente de novo.",
       "badLink": "Esse link não pode ser usado. Cole o link https completo do plugin.",
       "blockedLink": "Esse link aponta para dentro da sua rede de casa, então o Home Screens não baixa nada dele.",
+      "notHttps": "Esse link não é um link https seguro, então o Home Screens não baixa nada dele.",
       "needsVersion": "Esse link precisa de um número de versão. Digite qual versão instalar.",
       "notAPlugin": "Esse link não é um plugin do Home Screens. Confira se ele aponta para o arquivo .tar.gz do plugin.",
+      "tooBig": "Esse arquivo é grande demais para ser um plugin. Plugins podem ter até {max} MB.",
       "alreadyInstalled": "Esse plugin já está instalado. Atualize pela loja de plugins."
     },
     "icloud": {
@@ -172,7 +174,7 @@
   },
   "relativeTime": {
     "justNow": "agora mesmo",
-    "secondsAgo": "há {n}s",
+    "secondsAgo": "há {n} s",
     "minutesAgo": "há {n} min",
     "hoursAgo": "há {n}h",
     "daysAgo": "há {n}d",

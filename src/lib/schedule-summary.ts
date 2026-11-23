@@ -54,9 +54,12 @@ export function formatScheduleTime(
 ): string {
   const start = schedule?.startTime;
   const end = schedule?.endTime;
-  if (!start && !end) return t('scheduleEditor.summary.allDay');
-
   const span = resolveSpanDays(schedule);
+  // No times is all day: for one day, or for a stretch across days that runs
+  // from its first day's midnight to the midnight after its last.
+  if (!start && !end) {
+    return span === 0 ? t('scheduleEditor.summary.allDay') : t('scheduleEditor.summary.allDaysFor', { count: span + 1 });
+  }
 
   // A one-sided window that stays inside its own day reads best open-ended:
   // "from 6:00 PM" already says it runs to midnight, and "until 9:00 AM" that

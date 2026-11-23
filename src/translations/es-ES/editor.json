@@ -325,6 +325,7 @@
       "weekdays": "de lunes a viernes",
       "weekends": "sábados y domingos",
       "allDay": "todo el día",
+      "allDaysFor": "todo el día durante {count} días",
       "fromOnly": "a partir de {start}",
       "untilOnly": "hasta {end}",
       "window": "de {start} a {end}",
@@ -2368,8 +2369,8 @@
         "regenerateConfirm": "Crear una clave nueva",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Cada pantalla se recarga una vez para tomar la clave nueva.",
-        "errorRegenerate": "No se pudo crear una clave nueva",
-        "errorCopy": "No se pudo copiar; selecciona y copia manualmente",
+        "errorRegenerate": "No se pudo crear una clave nueva.",
+        "errorCopy": "No se pudo copiar. Selecciona la clave y cópiala a mano.",
         "phoneHintIntro": "Para controlar un display desde el teléfono, guarda un marcador con un enlace como este:",
         "phoneHintOutro": "Muestra antes la clave de arriba para que el enlace la lleve. Cambia sleep por wake, reload, next-screen o prev-screen para las demás órdenes.",
         "phoneHintDisplayNote": "Este apunta a {name}. Cambia {display} por el id de otro display para apuntar a ese."
@@ -2390,9 +2391,9 @@
         "addButton": "Añadir",
         "errors": {
           "invalidCidr": "Eso no es un rango de red. La mayoría de las redes domésticas son 192.168.1.0/24.",
-          "invalidIp": "Eso no es una dirección",
+          "invalidIp": "Eso no es una dirección IP.",
           "invalidPrefix": "El número después de la barra tiene que estar entre 0 y 32.",
-          "alreadyInList": "Ya está en la lista"
+          "alreadyInList": "Ya está en la lista."
         },
         "callerIpLabel": "Tu IP: ",
         "lockoutWarning": {
@@ -2773,7 +2774,7 @@
       "statusIdle": "Inactiva · {time}",
       "statusOffline": "Desconectada · {time}",
       "rotationDegrees": "rotación de {degrees}°",
-      "rotationNormal": "normal",
+      "rotationNormal": "Sin rotación",
       "screenCount": {
         "one": "{count} pantalla",
         "other": "{count} pantallas"
@@ -3106,7 +3107,7 @@
       "weeklyTotalsHeading": "Totales semanales",
       "memberLine": "{chores} tareas, {tickets} tickets"
     },
-    "finishFormFirst": "Guarda o cancela primero el formulario abierto.",
+    "finishFormFirst": "Termina o cancela primero lo que está abierto.",
     "starter": {
       "openButton": "Elegir de las tareas sugeridas",
       "hint": "{count} tareas de cada día, ordenadas por momento del día",
@@ -3969,10 +3970,10 @@
   "installFromUrlModal": {
     "title": "Instalar plugin desde URL",
     "dialogAriaLabel": "Instalar plugin desde URL",
-    "tarballUrlLabel": "URL del tarball",
-    "tarballUrlHelpPart1": "URL HTTPS a un bundle de plugin ",
-    "tarballUrlHelpPart2": ". Reemplaza la versión por ",
-    "tarballUrlHelpPart3": " si quieres que las futuras actualizaciones solo necesiten un número de versión.",
+    "tarballUrlLabel": "Enlace de descarga",
+    "tarballUrlHelpPart1": "Un enlace seguro (que empiece por https) al archivo ",
+    "tarballUrlHelpPart2": " del plugin. Pon ",
+    "tarballUrlHelpPart3": " donde va el número de versión, y las próximas actualizaciones solo necesitarán el número.",
     "exampleLabel": "Ejemplo:",
     "versionLabel": "Versión a instalar",
     "externalSourceWarning": "Vas a instalar desde fuera del marketplace de plugins. Instala solo plugins de fuentes en las que confíes.",
@@ -3986,9 +3987,9 @@
     "title": "Actualizar {id}",
     "dialogAriaLabel": "Actualizar {id}",
     "currentVersionLabel": "Versión actual:",
-    "tarballUrlLabel": "URL del tarball",
-    "tarballUrlHelpPart1": "Edita la URL para apuntar a una nueva versión, o reemplaza la versión por ",
-    "tarballUrlHelpPart2": " para que las futuras actualizaciones solo necesiten un número de versión.",
+    "tarballUrlLabel": "Enlace de descarga",
+    "tarballUrlHelpPart1": "Cambia el enlace para que apunte a la nueva versión, o pon ",
+    "tarballUrlHelpPart2": " donde va el número de versión, y la próxima vez solo tendrás que escribir el número.",
     "exampleLabel": "Ejemplo:",
     "versionLabel": "Versión a instalar",
     "workingMessage": "Descargando y actualizando…",

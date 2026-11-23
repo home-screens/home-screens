@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Ban } from 'lucide-react';
+import { Ban, RotateCcw } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { NO_ACCENT_COLOR } from '@/lib/constants';
 import { parseCssColorToRgb, parseEditableColor, withCssColorAlpha } from '@/lib/hex-color';
@@ -164,7 +164,7 @@ function ColorPickerRow({
               onClick={(e) => { e.preventDefault(); onChange(defaultValue); setDraft(defaultValue); }}
               className="text-xs text-hs-text-muted hover:text-hs-text-body cursor-pointer"
             >
-              ↺
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           )}
           <input

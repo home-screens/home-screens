@@ -122,7 +122,9 @@ export const POST = withAuth(async (request: NextRequest) => {
       case 'blocked':
       case 'not-allowed': {
         const why = guardError ?? BLOCKED_ADDRESS;
-        return NextResponse.json({ error: checkedHop > 0 ? `Redirect blocked: ${why}` : why, code: 'plugins.blockedLink' }, { status: 400 });
+        // A plain http address is refused for being unencrypted, not for being at home: say which.
+        const code = why.startsWith('URLs must use HTTPS') ? 'plugins.notHttps' : 'plugins.blockedLink';
+        return NextResponse.json({ error: checkedHop > 0 ? `Redirect blocked: ${why}` : why, code }, { status: 400 });
       }
       case 'too-many-redirects':
         return NextResponse.json({ error: `${displayUrl} returned too many redirects.` }, { status: 502 });
@@ -132,7 +134,11 @@ export const POST = withAuth(async (request: NextRequest) => {
         return NextResponse.json({ error: `${displayUrl} returned an invalid redirect Location.` }, { status: 502 });
       case 'too-large':
         return NextResponse.json(
-          { error: `${displayUrl} is too big to be a plugin (over ${MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024)} MB). Check that the URL points at a tarball.`, code: 'plugins.notAPlugin' },
+          {
+            error: `${displayUrl} is too big to be a plugin (over ${MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024)} MB). Check that the URL points at a tarball.`,
+            code: 'plugins.tooBig',
+            params: { max: MAX_PLUGIN_TARBALL_BYTES / (1024 * 1024) },
+          },
           { status: 502 },
         );
       default:

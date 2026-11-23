@@ -226,7 +226,7 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
             date: formatDateInTZ(new Date(icon.createdAt), timezone, { month: 'short', day: 'numeric' }, locale),
             size: formatIconBytes(icon.bytes, locale),
           })}
-          {icon.animated && <div style={{ marginTop: 4 }}>▶ {t('customIcons.moving')}</div>}
+          {icon.animated && <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}><Play size={11} aria-hidden="true" />{t('customIcons.moving')}</div>}
         </div>
       </div>
 

@@ -118,8 +118,10 @@
       "downloadFailed": "Das Plugin konnte nicht heruntergeladen werden. Prüf die Internetverbindung und versuch es noch einmal.",
       "badLink": "Dieser Link geht nicht. Füge den vollständigen https-Link zum Plugin ein.",
       "blockedLink": "Dieser Link zeigt in dein Heimnetz, deshalb lädt Home Screens nichts davon herunter.",
+      "notHttps": "Dieser Link ist kein sicherer https-Link, deshalb lädt Home Screens nichts davon herunter.",
       "needsVersion": "Dieser Link braucht eine Versionsnummer. Gib ein, welche Version installiert werden soll.",
       "notAPlugin": "Dieser Link führt nicht zu einem Home-Screens-Plugin. Prüf, ob er auf die .tar.gz-Datei des Plugins zeigt.",
+      "tooBig": "Diese Datei ist zu groß für ein Plugin. Plugins dürfen höchstens {max} MB groß sein.",
       "alreadyInstalled": "Dieses Plugin ist schon installiert. Aktualisiere es stattdessen im Plugin-Store."
     },
     "icloud": {
@@ -210,7 +212,7 @@
     "adoptLabel": "Hinzufügen",
     "nextTo": "neben",
     "waitingForAdoption": "Warte auf das Hinzufügen…",
-    "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Hauptdisplay in {seconds}s.",
+    "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Hauptdisplay in {seconds} s.",
     "goToDefault": "Jetzt zum Hauptdisplay wechseln"
   },
   "login": {
