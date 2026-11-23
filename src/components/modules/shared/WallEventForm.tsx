@@ -40,9 +40,13 @@ import { useWallOverlayScale } from './useWallOverlayScale';
 import { useDisplayId } from '@/hooks/useDisplayId';
 
 const SERIF = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
-/** The hours the grid offers: family life. Earlier or later is for the phone. */
-const FIRST_HOUR = 6;
-const LAST_HOUR = 21;
+/**
+ * Every hour of the day, six across: four rows, one per quarter of the day
+ * (night, morning, afternoon, evening), so the grid is no taller than a
+ * family-hours grid four across.
+ */
+const HOURS = Array.from({ length: 24 }, (_, h) => h);
+const HOUR_COLUMNS = 6;
 const MINUTES = [0, 15, 30, 45] as const;
 const LENGTHS = [30, 60, 90, 120, 180] as const;
 /** The calendar this wall put its last event on, offered first next time. */
@@ -124,8 +128,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   const today = isoDateInTZ(new Date(), entry.timezone);
   const [start, setStart] = useState(() => {
     if (date !== today) return 9 * 60;
-    const next = (new Date().getHours() + 1) * 60;
-    return Math.min(LAST_HOUR * 60, Math.max(FIRST_HOUR * 60, next));
+    return Math.min(23 * 60, (new Date().getHours() + 1) * 60);
   });
   const [length, setLength] = useState<number>(entry.defaultMinutes);
   const [other, setOther] = useState(!LENGTHS.includes(entry.defaultMinutes as (typeof LENGTHS)[number]));
@@ -295,8 +298,8 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   );
 
   const hourGrid = (selected: number, onPick: (minutes: number) => void, before?: number) => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: P(12) }} role="radiogroup">
-      {Array.from({ length: LAST_HOUR - FIRST_HOUR + 1 }, (_, i) => FIRST_HOUR + i).map((h) => {
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${HOUR_COLUMNS}, 1fr)`, gap: P(12) }} role="radiogroup">
+      {HOURS.map((h) => {
         const off = before !== undefined && h * 60 + 45 <= before;
         const on = Math.floor(selected / 60) === h;
         return (

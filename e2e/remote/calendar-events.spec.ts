@@ -137,11 +137,12 @@ test('the wall adds an event on an empty day with its own keyboard, then removes
   // The first letter is a capital on its own.
   for (const key of ['S', 'w', 'i', 'm']) await page.locator(`[data-testid="wall-event-form"] [data-key="${key}"]`).click();
   await page.locator('[data-testid="wall-event-form"] [data-key="action"]').click();
-  await page.locator('[data-testid="wall-event-form"] [data-hour="15"]').click();
+  // Every hour of the day is on the grid, late evening included.
+  await page.locator('[data-testid="wall-event-form"] [data-hour="22"]').click();
   await page.getByTestId('wall-event-save').click();
   await expect(page.getByTestId('wall-event-form')).toHaveCount(0);
   const posted = writes(google, 'POST').at(-1)!;
-  expect(posted.body).toMatchObject({ summary: 'Swim', start: { dateTime: `${day}T15:00:00` }, end: { dateTime: `${day}T16:00:00` } });
+  expect(posted.body).toMatchObject({ summary: 'Swim', start: { dateTime: `${day}T22:00:00` }, end: { dateTime: `${day}T23:00:00` } });
   expect(posted.path).toBe(`/calendar/v3/calendars/${FAMILY}/events`);
 
   const event = page.locator('[data-event-id]', { hasText: 'Swim' }).first();
