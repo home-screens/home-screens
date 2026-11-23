@@ -50,9 +50,11 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
       <span style={{ fontSize: '2.2em', lineHeight: 1, opacity: TEXT_OPACITY.secondary }} aria-hidden="true">
         {icon}
       </span>
-      <p style={{ fontSize: '0.8em', fontWeight: 600, opacity: TEXT_OPACITY.heading, lineHeight: 1.3 }}>{title}</p>
+      {/* Floors for a card drawn at its own small type (16 px makes 0.55em a 9 px
+          hint); a full-screen module's base is far above them. */}
+      <p style={{ fontSize: 'max(0.8em, 16px)', fontWeight: 600, opacity: TEXT_OPACITY.heading, lineHeight: 1.3 }}>{title}</p>
       {hint && (
-        <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
+        <p style={{ fontSize: 'max(0.55em, 13px)', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
           {before}
           {asksForUrl && <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>}
           {after}

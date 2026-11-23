@@ -64,11 +64,14 @@ export default function RoutineFormOverlay({
   onClose,
   onSave,
   onDelete,
+  saveError,
 }: {
   routine: Routine | null;
   onClose: () => void;
   onSave: (routine: Routine) => Promise<boolean>;
   onDelete?: () => Promise<boolean>;
+  /** Why the last save did not go through. Drawn in the form's own footer; the tab's line is hidden under the form. */
+  saveError?: string | null;
 }) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
@@ -121,8 +124,13 @@ export default function RoutineFormOverlay({
         : t('timers.whyNoSave.stepLength', { seconds: MIN_STEP_SEC });
   const atStepLimit = steps.length >= MAX_STEPS;
 
+  // Only a save tried from this form shows the tab's error here, never one left from before it opened.
+  const [tried, setTried] = useState(false);
+  const failed = tried && !saving ? saveError ?? null : null;
+
   const handleSave = async () => {
     if (!valid || saving) return;
+    setTried(true);
     setSaving(true);
     const ok = await onSave({
       id: routine?.id ?? uuid(),
@@ -151,7 +159,8 @@ export default function RoutineFormOverlay({
             canSave={valid}
             busy={saving}
             onSave={() => void handleSave()}
-            notice={whyNoSave}
+            notice={failed ?? whyNoSave}
+            noticeTone={failed ? 'danger' : 'warning'}
             deleteLabel={onDelete ? t('timers.deleteRoutine') : undefined}
             onDelete={() => setConfirmDelete(true)}
           />

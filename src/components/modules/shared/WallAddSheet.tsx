@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Check, Info, Plus, RotateCcw, Undo2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getThemeTokens, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { refusalSentence } from '@/lib/hub-request';
 import { RefusalError } from '@/lib/refusal';
 import { WALL_ITEM_MAX_LENGTH } from '@/lib/todo-wall';
+import { WALL_UNDO_MARGIN_MS, WALL_UNDO_MS } from '@/lib/undo-window';
 import { useWallOverlayScale } from './useWallOverlayScale';
 import { useWallTyping, type WallTyping } from './useWallTyping';
 import { WallNotice } from './WallNotice';
@@ -29,7 +30,12 @@ export interface WallAddResult {
 
 interface Chip extends WallAddResult {
   key: number;
+  /** When it was added: its Undo goes before the hub stops taking it (`WALL_UNDO_MS`). */
+  at: number;
 }
+
+/** How long a chip offers Undo. */
+const CHIP_UNDO_MS = WALL_UNDO_MS - WALL_UNDO_MARGIN_MS;
 
 /** The sheet's own colours: the charcoal every card's sheet on the wall uses. */
 const SHEET_THEME = getThemeTokens('charcoal');
@@ -54,7 +60,8 @@ export interface WallAddSheetProps {
 /**
  * The add sheet a list card opens on a touch wall: type one thing, tap Add,
  * and the box empties for the next one. Each thing added shows as a chip,
- * newest first on one line, with Undo until the sheet closes. Something
+ * newest first on one line, with Undo until the sheet closes or the hub
+ * would no longer take it (every key press keeps the sheet open). Something
  * already on the list adds nothing and says so; something ticked off is put
  * back rather than added twice (the hub decides, `addItemIfNew`). A failed
  * add keeps the words and says what happened. The keys wait while an Add is
@@ -103,7 +110,7 @@ export function WallAddSheet({ listName, aside, source, accent, theme = SHEET_TH
       const result = await onAdd(words);
       typing.clear();
       setProblem(null);
-      setChips((current) => [{ ...result, key: nextKey.current++ }, ...current]);
+      setChips((current) => [{ ...result, key: nextKey.current++, at: Date.now() }, ...current]);
     } catch (err) {
       setProblem({ message: explain(err), words: typing.text });
     } finally {
@@ -111,6 +118,18 @@ export function WallAddSheet({ listName, aside, source, accent, theme = SHEET_TH
       setBusy(false);
     }
   }, [typing, onAdd, explain]);
+
+  // A sheet kept open by typing outlasts the hub's memory of what it added:
+  // each chip's Undo goes when its time is up, rather than failing on a tap.
+  const nextExpiry = chips.reduce((soonest, c) => (c.undo ? Math.min(soonest, c.at + CHIP_UNDO_MS) : soonest), Infinity);
+  useEffect(() => {
+    if (nextExpiry === Infinity) return;
+    const timer = setTimeout(() => {
+      const now = Date.now();
+      setChips((current) => current.map((c) => (c.undo && now >= c.at + CHIP_UNDO_MS ? { ...c, undo: undefined } : c)));
+    }, Math.max(0, nextExpiry - Date.now()));
+    return () => clearTimeout(timer);
+  }, [nextExpiry]);
 
   const undo = useCallback(async (chip: Chip) => {
     if (!chip.undo) return;

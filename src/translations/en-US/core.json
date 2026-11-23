@@ -118,8 +118,10 @@
       "downloadFailed": "Couldn't download the plugin. Check the internet connection and try again.",
       "badLink": "That link can't be used. Paste the full https link to the plugin.",
       "blockedLink": "That link points inside your home network, so Home Screens won't download from it.",
+      "notHttps": "That link isn't a secure https link, so Home Screens won't download from it.",
       "needsVersion": "That link needs a version number. Type which version to install.",
       "notAPlugin": "That link isn't a Home Screens plugin. Check that it points at the plugin's .tar.gz file.",
+      "tooBig": "That file is too big to be a plugin. Plugins can be up to {max} MB.",
       "alreadyInstalled": "That plugin is already installed. Update it from the plugin store instead."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "That code didn't work. Check it and try again.",
       "expired": "This sign-in ran out. Start it again.",
       "notApproved": "The sign-in wasn't approved. Start it again if you want to connect."
+    },
+    "backup": {
+      "notABackup": "That file isn't a Home Screens backup.",
+      "noRoom": "There isn't enough room on Home Screens for this backup.",
+      "noRoomForPictures": "There isn't enough room on Home Screens for the pictures in this backup."
     }
   },
   "today": "Today",
@@ -346,7 +353,7 @@
     "controls": "Timer buttons",
     "replaceTitle": "Start a new timer?",
     "replaceBody": "A timer is already running. Starting a new one will stop it.",
-    "routinesLoadError": "Couldn't load your routines. Check the connection and try again.",
+    "routinesLoadError": "Couldn't load your routines. Check that Home Screens is on and try again.",
     "routineMeta": {
       "one": "{steps} step · {minutes} min",
       "other": "{steps} steps · {minutes} min"
@@ -387,7 +394,7 @@
     "color": "Color",
     "emptyTitle": "No one here yet",
     "emptyDescription": "Add the people in your household. They will be available in chores, rewards, calendars and school timetables.",
-    "loadFailed": "Couldn't load your family. Check the connection and try again.",
+    "loadFailed": "Couldn't load your family. Check that Home Screens is on and try again.",
     "retry": "Try again",
     "saved": "Family saved.",
     "removeTitle": "Remove {name}?",
@@ -754,11 +761,18 @@
       "one": "Too many tries. Try again in {count} second.",
       "other": "Too many tries. Try again in {count} seconds."
     },
+    "tooManyMinutes": {
+      "one": "Too many tries. Try again in {count} minute.",
+      "other": "Too many tries. Try again in {count} minutes."
+    },
     "unlocked": {
       "one": "Unlocked for 1 more minute",
       "other": "Unlocked for {count} more minutes"
     },
-    "lockNow": "Lock now"
+    "lockNow": "Lock now",
+    "lockedTitle": "Too many wrong tries",
+    "letThemTry": "Let them try now",
+    "clearFailed": "Couldn't end the wait. Try again."
   },
   "calendarRepeat": {
     "none": "Does not repeat",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. The other days stay.",
     "everyTimePastFuture": "Every time, past and future",
     "askBody": "Change just this day, or every time it happens?",
-    "everyTimeFromFirst": "Every time it happens, from the first one"
+    "everyTimeFromFirst": "Every time it happens, from the first one",
+    "everyTimeMovesTo": "Every time moves by the same amount, to {time}",
+    "nextDay": "next day"
   },
   "notice": {
     "title": "Notice"
@@ -820,6 +836,10 @@
       "one": "Remove 1 done item from “{name}”?",
       "other": "Remove {count} done items from “{name}”?"
     },
-    "removeDoneBody": "They come off the list for good."
+    "removeDoneBody": "They come off the list for good.",
+    "alreadyOnList": "Already on the list: {item}",
+    "putBack": "Back on the list: {item}",
+    "deleted": "Took {item} off the list.",
+    "undo": "Undo"
   }
 }

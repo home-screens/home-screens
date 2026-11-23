@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Réveiller le mur",
     "sleepDisplay": "Mettre le mur en veille",
+    "wakeAll": "Réveiller tous les murs",
+    "sleepAll": "Mettre tous les murs en veille",
     "sendAlert": "Envoyer une alerte",
     "waitingFor": "En attente de {name}…",
     "waitingForAll": "En attente des murs…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} ne verra pas son objectif tant que c'est masqué.",
       "other": "{names} ne verront pas leurs objectifs tant que c'est masqué."
-    }
+    },
+    "whyNoSave": "Donne un nom à la récompense pour l'enregistrer."
   },
   "alertSender": {
     "title": "Envoyer une alerte",
@@ -683,7 +686,7 @@
       "adjusted": "des adultes",
       "window": "30 derniers jours",
       "empty": "Aucun ticket n'a encore bougé.",
-      "failed": "Impossible de charger l'historique des tickets.",
+      "failed": "Impossible de charger l'historique des tickets. Vérifie que Home Screens est allumé et réessaie.",
       "removedChore": "Une tâche supprimée",
       "tookOne": "Un adulte en a retiré",
       "gaveSome": "Un adulte en a donné",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Fermer les paramètres",
     "system": {
       "heading": "Système",
-      "errorFailedToLoad": "Impossible de charger ces informations. Réessaie.",
+      "errorFailedToLoad": "Impossible de charger ces informations. Vérifie que Home Screens est allumé et réessaie.",
       "hostLabel": "Nom sur le réseau",
       "uptimeLabel": "Temps de fonctionnement",
       "memoryLabel": "Mémoire",
@@ -729,7 +732,6 @@
         "label": "Restaurer une sauvegarde",
         "busyLabel": "Restauration…",
         "doneLabel": "Restauré",
-        "invalidFileLabel": "Fichier de sauvegarde invalide",
         "failedLabel": "Impossible de restaurer cette sauvegarde. Réessaie.",
         "idleDescription": "Envoie un fichier de sauvegarde depuis ce téléphone",
         "confirmingDescription": "Tout ce qui est sur Home Screens est remplacé par le contenu de la sauvegarde.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Gère les personnes de ta famille."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Les murs et la page des tâches n’accepteront pas le code parental pendant encore {count} minute.",
+        "other": "Les murs et la page des tâches n’accepteront pas le code parental pendant encore {count} minutes."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Presque plein : il ne reste que {free} sur Home Screens. Supprime les photos dont tu n'as plus besoin pour faire de la place.",
     "emptyTitle": "Rien dans {folder} pour l'instant",
     "emptyHint": "Ajoute des photos ou des vidéos depuis ce téléphone.",
-    "loadFailed": "Impossible de charger tes photos.",
+    "loadFailed": "Impossible de charger tes photos. Vérifie que Home Screens est allumé et réessaie.",
     "showsOn": {
       "one": "Elle s'affichera sur {walls}.",
       "other": "Elles s'afficheront sur {walls}."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} fait plus de {size}.",
       "notMedia": "{name} n'est pas une photo ou une vidéo que le mur peut afficher.",
-      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Sur un iPhone, choisis « Le plus compatible » dans Réglages > Appareil photo > Formats.",
+      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Si elle vient d'un iPhone, choisis « Le plus compatible » dans Réglages > Appareil photo > Formats.",
       "failed": "Impossible d'envoyer {name}. Réessaie.",
       "close": "Fermer",
       "showNow": "Afficher sur le mur maintenant"
@@ -1145,11 +1153,7 @@
       "button": "Partager",
       "nothingOpen": "Tout est fait !"
     },
-    "loadError": "Impossible de charger tes listes. Vérifie que Home Screens est allumé et réessaie.",
-    "alreadyOnList": "{item} est déjà sur la liste",
-    "putBack": "{item} est de retour sur la liste",
-    "deleted": "Élément retiré de la liste : {item}.",
-    "undo": "Annuler"
+    "loadError": "Impossible de charger tes listes. Vérifie que Home Screens est allumé et réessaie."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Rien sur le tableau pour le moment",
       "body": "Écris une note ci-dessous et elle apparaîtra sur le mur quelques secondes plus tard. Les notes s'en vont toutes seules après la durée choisie."
     },
-    "loadError": "Impossible de charger les notes.",
+    "loadError": "Impossible de charger les notes. Vérifie que Home Screens est allumé et réessaie.",
     "editAria": "Modifier la note de {name}",
     "dayNotes": {
       "sub": "Les notes du jour s'affichent sur les calendriers du mur",
@@ -1284,7 +1288,7 @@
       "placeholder": "Photo de classe, pas d'école…",
       "put": "Mettre dans le calendrier",
       "remove": "Retirer",
-      "loadError": "Impossible de charger les notes du jour.",
+      "loadError": "Impossible de charger les notes du jour. Vérifie que Home Screens est allumé et réessaie.",
       "saved": "Note enregistrée pour {day}. Elle s'affiche sur le mur dès qu'un calendrier montre ce jour.",
       "removed": "Note retirée",
       "undo": "Annuler",
@@ -1482,6 +1486,10 @@
     "offBody": "On peut l'activer dans {place}. Les notes du jour marchent comme d'habitude.",
     "signInTitle": "L'ajout d'événements demande encore une étape",
     "signInBody": "Pour ajouter des événements, il faut se reconnecter une fois de plus à Google. C'est dans {place}.",
+    "pickTitle": "Aucun calendrier n'est choisi pour les nouveaux événements",
+    "pickBody": "Les calendriers qui recevront les nouveaux événements se choisissent dans {place}. Les notes du jour marchent comme d'habitude.",
+    "unreachableTitle": "Google Agenda ne répond pas",
+    "unreachableBody": "On pourra de nouveau ajouter des événements dès qu'il répondra. Les notes du jour marchent comme d'habitude.",
     "justThisDay": "Ce jour-là seulement",
     "everyTime": "Toutes les fois",
     "keepIt": "Le garder",
@@ -1501,9 +1509,9 @@
       "firstDay": "Premier jour",
       "lastDay": "Dernier jour",
       "allDay": "Toute la journée",
+      "allDayLocked": "Il dure plus d'une journée, donc il occupe des journées entières.",
       "starts": "Début",
       "ends": "Fin",
-      "nextDay": "le lendemain",
       "endsOn": "Se termine le {day} à {time} · {length}",
       "hours": {
         "one": "{count} heure",

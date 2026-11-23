@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Despertar el monitor",
     "sleepDisplay": "Poner el monitor en reposo",
+    "wakeAll": "Despertar todos los monitores",
+    "sleepAll": "Poner todos los monitores en reposo",
     "sendAlert": "Enviar aviso",
     "waitingFor": "Esperando a {name}…",
     "waitingForAll": "Esperando a los monitores…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} no verá su meta mientras esté oculta.",
       "other": "{names} no verán sus metas mientras esté oculta."
-    }
+    },
+    "whyNoSave": "Ponle un nombre al premio para guardarlo."
   },
   "alertSender": {
     "title": "Enviar aviso",
@@ -683,7 +686,7 @@
       "adjusted": "de adultos",
       "window": "Últimos 30 días",
       "empty": "Todavía no se ha movido ningún ticket.",
-      "failed": "No se pudo cargar el historial de tickets.",
+      "failed": "No se pudo cargar el historial de tickets. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "removedChore": "Una tarea que se eliminó",
       "tookOne": "Un adulto quitó algunos",
       "gaveSome": "Un adulto dio algunos",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Cerrar ajustes",
     "system": {
       "heading": "Sistema",
-      "errorFailedToLoad": "No se pudo cargar. Inténtalo de nuevo.",
+      "errorFailedToLoad": "No se pudo cargar. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "hostLabel": "Nombre en la red",
       "uptimeLabel": "Tiempo activo",
       "memoryLabel": "Memoria",
@@ -729,7 +732,6 @@
         "label": "Restaurar una copia",
         "busyLabel": "Restaurando…",
         "doneLabel": "Restaurada",
-        "invalidFileLabel": "Archivo de copia no válido",
         "failedLabel": "No se pudo restaurar esa copia. Inténtalo de nuevo.",
         "idleDescription": "Sube un archivo de copia desde este teléfono",
         "confirmingDescription": "Todo lo que hay ahora en Home Screens se sustituye por lo que hay en la copia.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Gestiona las personas de tu hogar."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minuto más.",
+        "other": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minutos más."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Casi lleno: quedan {free} en Home Screens. Elimina las fotos que no necesites para hacer sitio.",
     "emptyTitle": "Aún no hay nada en {folder}",
     "emptyHint": "Añade fotos o vídeos desde este móvil.",
-    "loadFailed": "No se pudieron cargar tus fotos.",
+    "loadFailed": "No se pudieron cargar tus fotos. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "showsOn": {
       "one": "Se verá en {walls}.",
       "other": "Se verán en {walls}."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} ocupa más de {size}.",
       "notMedia": "{name} no es una foto ni un vídeo que el monitor pueda mostrar.",
-      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
+      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. Si viene de un iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
       "failed": "No se pudo enviar {name}. Inténtalo de nuevo.",
       "close": "Cerrar",
       "showNow": "Mostrar en el monitor ahora"
@@ -1145,11 +1153,7 @@
       "button": "Compartir",
       "nothingOpen": "¡Todo hecho!"
     },
-    "loadError": "No se pudieron cargar tus listas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
-    "alreadyOnList": "{item} ya está en la lista",
-    "putBack": "{item} vuelve a estar en la lista",
-    "deleted": "Se ha quitado de la lista: {item}.",
-    "undo": "Deshacer"
+    "loadError": "No se pudieron cargar tus listas. Comprueba que Home Screens está encendido e inténtalo de nuevo."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Todavía no hay nada en el tablón",
       "body": "Escribe una nota abajo y aparecerá en el monitor unos segundos después. Las notas se quitan solas cuando pasa el tiempo que elijas."
     },
-    "loadError": "No se pudieron cargar las notas.",
+    "loadError": "No se pudieron cargar las notas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "editAria": "Editar la nota de {name}",
     "dayNotes": {
       "sub": "Las notas del día van en los calendarios del monitor",
@@ -1284,7 +1288,7 @@
       "placeholder": "Foto de clase, no hay cole…",
       "put": "Ponerla en el calendario",
       "remove": "Quitar",
-      "loadError": "No se pudieron cargar las notas del día.",
+      "loadError": "No se pudieron cargar las notas del día. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "saved": "Guardada para el {day}. Saldrá en el monitor cuando un calendario muestre ese día.",
       "removed": "Nota quitada",
       "undo": "Deshacer",
@@ -1482,6 +1486,10 @@
     "offBody": "Se puede activar en {place}. Las notas del día funcionan como siempre.",
     "signInTitle": "Falta un paso para añadir eventos",
     "signInBody": "Para añadir eventos hay que iniciar sesión en Google una vez más. Se hace en {place}.",
+    "pickTitle": "No hay ningún calendario elegido para los eventos nuevos",
+    "pickBody": "Elige en {place} los calendarios en los que se pueden poner los eventos nuevos. Las notas del día funcionan como siempre.",
+    "unreachableTitle": "Google Calendar no responde",
+    "unreachableBody": "Podrás añadir eventos en cuanto responda. Las notas del día funcionan como siempre.",
     "justThisDay": "Solo este día",
     "everyTime": "Todas las veces",
     "keepIt": "Mejor no",
@@ -1501,9 +1509,9 @@
       "firstDay": "Primer día",
       "lastDay": "Último día",
       "allDay": "Todo el día",
+      "allDayLocked": "Dura más de un día, así que sigue siendo de todo el día.",
       "starts": "Empieza",
       "ends": "Termina",
-      "nextDay": "al día siguiente",
       "endsOn": "Termina el {day} a las {time} · {length}",
       "hours": {
         "one": "{count} hora",

@@ -325,6 +325,7 @@
       "weekdays": "du lundi au vendredi",
       "weekends": "le samedi et le dimanche",
       "allDay": "toute la journée",
+      "allDaysFor": "toute la journée pendant {count} jours",
       "fromOnly": "à partir de {start}",
       "untilOnly": "jusqu’à {end}",
       "window": "de {start} à {end}",
@@ -622,6 +623,7 @@
         "connected": "Connecté à Google",
         "disconnect": "Déconnecter",
         "noCalendars": "Aucun calendrier trouvé.",
+        "notAnswering": "Google ne répond pas pour le moment, la liste de vos calendriers ne peut donc pas s'afficher. Ceux que vous avez choisis restent choisis.",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Masquer les événements refusés",
         "credentialsRequired": "Connecter votre calendrier demande un identifiant Google que vous créez vous-même. Ajoutez-le dans Clés API.",
@@ -636,8 +638,10 @@
         "copyCode": "Copier le code",
         "googleOnly": "Google uniquement",
         "pausedExplanation": "Google n'est pas connecté pour le moment, donc ces agendas ne se mettent plus à jour. Reconnectez-vous ci-dessus pour les retrouver.",
+        "goneExplanation": "Google ne liste plus ces calendriers. Ils ont peut-être été supprimés ou ne sont plus partagés avec vous. Retirez-les ci-dessous.",
         "stillUsedByPhotos": "Déconnecté de ce hub. L'import Google Photos utilise toujours la même connexion Google, donc Home Screens restera affiché dans votre compte Google tant que vous n'aurez pas aussi déconnecté Google Photos.",
         "pausedBadge": "En pause",
+        "goneBadge": "Introuvable",
         "removeTitle": "Retirer {name}",
         "credentialsSetupPrefix": "Ajoutez votre identifiant Google sur la page ",
         "credentialsSetupSuffix": " au préalable.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Google vous demande de vous reconnecter une fois pour l'autoriser. Dans tous les cas, vos calendriers s'affichent comme avant.",
         "switchHelpICloud": "Vos calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, ils s'affichent comme avant.",
         "ready": "Connecté, prêt à ajouter des événements",
+        "pickCalendars": "Choisissez ci-dessous au moins un calendrier pour les nouveaux événements.",
+        "googleNotAnswering": "Google ne répond pas pour le moment. L'ajout d'événements à ses calendriers reviendra dès qu'il répondra.",
         "signInTitle": "Encore une étape : reconnectez-vous à Google",
         "signInBody": "Google vous demandera d'autoriser Home Screens à « Afficher et modifier les événements de tous vos agendas ». Un onglet Google s'ouvre, puis vous revenez ici automatiquement.",
         "signInButton": "Se connecter avec Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Impossible de créer la sauvegarde. Réessayez.",
-        "invalidBackupFile": "Fichier de sauvegarde invalide.",
         "restoreBackupFailed": "Impossible de restaurer cette sauvegarde. Réessayez.",
         "credentialsExportFailedTitle": "Impossible d'inclure vos clés",
         "credentialsExportFailed": "Vos clés et vos comptes connectés n'ont pas pu être ajoutés à cette sauvegarde. Télécharger le reste quand même ?",
@@ -1486,7 +1491,7 @@
       "upload": "Envoyer",
       "dropzone": "Déposez des photos ou vidéos ici, ou cliquez pour choisir, autant que vous voulez",
       "saveInto": "Enregistrer dans",
-      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Sur un iPhone, choisissez « Le plus compatible » dans Réglages > Appareil photo > Formats.",
+      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Si elle vient d'un iPhone, choisissez « Le plus compatible » dans Réglages > Appareil photo > Formats.",
       "loadFailed": "Impossible de charger vos photos et vidéos",
       "tryAgain": "Réessayer",
       "allFolders": "Toutes les photos et vidéos",
@@ -1518,6 +1523,24 @@
         "one": "Il disparaîtra définitivement de ce hub. Un diaporama qui l'affiche continuera avec ses autres photos, et si un écran en a besoin, le fichier sera conservé, pour qu'aucun écran ne se retrouve vide.",
         "other": "Tout ce que vous supprimez disparaîtra définitivement de ce hub. Les diaporamas continueront avec leurs autres photos, et les fichiers dont un écran a besoin seront conservés, pour qu'aucun écran ne se retrouve vide."
       },
+      "clipsGoToo": {
+        "one": "Son extrait Live Photo part avec.",
+        "other": "Leurs extraits Live Photo partent avec."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo n’est pas encore associée",
+        "other": "{count} Live Photos ne sont pas encore associées"
+      },
+      "pairBody": {
+        "one": "{name} est à côté d’une image du même nom : elle passe donc comme une courte vidéo à part. Associez-la et elle animera plutôt son image.",
+        "other": "{name} et {more} autres sont à côté d’images du même nom : chacune passe donc comme une courte vidéo à part. Associez-les et chacune animera plutôt son image."
+      },
+      "pairButton": "Associer les Live Photos",
+      "paired": {
+        "one": "{count} Live Photo associée.",
+        "other": "{count} Live Photos associées."
+      },
+      "pairFailed": "Impossible d’associer les Live Photos. Réessayez.",
       "deleteConfirm": "Supprimer",
       "refused": "{file} est encore utilisé et n'a pas été supprimé.",
       "keptLast": "{file} a été conservé : c'est la seule photo du diaporama sur '{name}'.",
@@ -1872,7 +1895,7 @@
       "rollback": {
         "polling": {
           "heading": "Vérification de la connectivité…",
-          "remaining": "{seconds} s restantes avant l'annulation automatique",
+          "remaining": "Annulation automatique dans {seconds} s",
           "warning": "Si cette page devient inaccessible, les paramètres précédents seront restaurés automatiquement."
         },
         "confirmed": {
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Autres achats",
-        "description": "Choisissez une de vos listes pour ce dont aucun repas n'a besoin, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses sur le téléphone et sur le mur, et une carte de courses avec « Ajouter sur le mur » y ajoute.",
+        "description": "Choisissez une de vos listes pour les achats qui ne dépendent d'aucun repas, comme l'essuie-tout ou les croquettes du chien. Ce qui reste dessus apparaît à la fin de la liste de courses, sur le téléphone et sur le mur. Quand une carte de courses a « Ajouter depuis le mur », ce qu'on y ajoute va dans cette liste.",
         "none": "Aucune"
       },
       "status": {
@@ -2359,7 +2382,7 @@
         "regenerateConfirm": "Créer une nouvelle clé",
         "regenerateCancel": "Annuler",
         "regenerateWarning": "Chaque affichage se recharge une fois pour prendre la nouvelle clé.",
-        "errorRegenerate": "Impossible de créer une nouvelle clé",
+        "errorRegenerate": "Impossible de créer une nouvelle clé.",
         "errorCopy": "Impossible de copier. Sélectionnez la clé et copiez-la vous-même.",
         "phoneHintIntro": "Pour piloter un affichage depuis votre téléphone, mettez en favori un lien comme celui-ci :",
         "phoneHintOutro": "Affichez d'abord la clé ci-dessus pour que le lien la contienne. Remplacez sleep par wake, reload, next-screen ou prev-screen pour les autres commandes.",
@@ -2381,9 +2404,9 @@
         "addButton": "Ajouter",
         "errors": {
           "invalidCidr": "Ce n'est pas une plage réseau. La plupart des réseaux domestiques sont en 192.168.1.0/24.",
-          "invalidIp": "Ce n’est pas une adresse",
+          "invalidIp": "Ce n’est pas une adresse IP.",
           "invalidPrefix": "Le nombre après la barre oblique doit être entre 0 et 32.",
-          "alreadyInList": "Déjà dans la liste"
+          "alreadyInList": "Déjà dans la liste."
         },
         "callerIpLabel": "Ton IP : ",
         "lockoutWarning": {
@@ -2764,7 +2787,7 @@
       "statusIdle": "Inactif · {time}",
       "statusOffline": "Hors ligne · {time}",
       "rotationDegrees": "rotation de {degrees}°",
-      "rotationNormal": "normale",
+      "rotationNormal": "Pas de rotation",
       "screenCount": {
         "one": "{count} écran",
         "other": "{count} écrans"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Modifier tous les jours d'un événement qui se répète",
             "hint": "Quand la modification vaut pour toutes les fois, pas pour un seul jour."
+          },
+          "menu-change": {
+            "label": "Modifier le menu",
+            "hint": "Mettre un repas au menu, en remplacer un ou en retirer un, sur le mur."
           }
         },
         "unlockLabel": "Rester déverrouillé pendant",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Une fois le bon code saisi, ce mur fait les actions cochées sans le redemander pendant ce temps. On ne le demande jamais à quelqu'un qui est connecté sur le téléphone.",
         "removeConfirmTitle": "Retirer le code parental ?",
-        "removeConfirmMessage": "Le mur ne le demandera plus avant les actions que vous avez cochées. Vous pouvez définir un nouveau code à tout moment."
+        "removeConfirmMessage": "Le mur ne le demandera plus avant les actions que vous avez cochées. Vous pouvez définir un nouveau code à tout moment.",
+        "lockedBody": {
+          "one": "Les murs, la page des tâches et les téléphones non connectés n’accepteront pas le code parental pendant encore {count} minute.",
+          "other": "Les murs, la page des tâches et les téléphones non connectés n’accepteront pas le code parental pendant encore {count} minutes."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Totaux de la semaine",
       "memberLine": "{chores} tâches, {tickets} tickets"
     },
-    "finishFormFirst": "Enregistrez ou annulez d'abord le formulaire ouvert.",
+    "finishFormFirst": "Terminez ou annulez d'abord ce qui est ouvert.",
     "starter": {
       "openButton": "Choisir parmi les tâches toutes prêtes",
       "hint": "{count} tâches du quotidien, classées par moment de la journée",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Installer un plugin depuis une URL",
     "dialogAriaLabel": "Installer un plugin depuis une URL",
-    "tarballUrlLabel": "URL du tarball",
-    "tarballUrlHelpPart1": "URL HTTPS vers un bundle de plugin ",
-    "tarballUrlHelpPart2": ". Remplacez la version par ",
-    "tarballUrlHelpPart3": " si vous voulez que les futures mises à jour ne nécessitent qu'un numéro de version.",
+    "tarballUrlLabel": "Lien de téléchargement",
+    "tarballUrlHelpPart1": "Un lien sécurisé (commençant par https) vers le fichier ",
+    "tarballUrlHelpPart2": " du plugin. Mettez ",
+    "tarballUrlHelpPart3": " à la place du numéro de version : les prochaines mises à jour n'auront besoin que du numéro.",
     "exampleLabel": "Exemple :",
     "versionLabel": "Version à installer",
     "externalSourceWarning": "Tu installes hors de la marketplace de plugins. N'installe que des plugins de sources de confiance.",
@@ -3973,9 +4004,9 @@
     "title": "Mettre à jour {id}",
     "dialogAriaLabel": "Mettre à jour {id}",
     "currentVersionLabel": "Version actuelle :",
-    "tarballUrlLabel": "URL du tarball",
-    "tarballUrlHelpPart1": "Modifiez l'URL pour pointer vers une nouvelle version, ou remplacez la version par ",
-    "tarballUrlHelpPart2": " pour que les futures mises à jour ne nécessitent qu'un numéro de version.",
+    "tarballUrlLabel": "Lien de téléchargement",
+    "tarballUrlHelpPart1": "Modifiez le lien pour qu'il pointe vers la nouvelle version, ou mettez ",
+    "tarballUrlHelpPart2": " à la place du numéro de version : la prochaine fois, vous n'aurez qu'à taper le numéro.",
     "exampleLabel": "Exemple :",
     "versionLabel": "Version à installer",
     "workingMessage": "Téléchargement et mise à jour…",
@@ -4697,9 +4728,11 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de noter le dîner, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactivez-le si l'écran n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
-      "wallAdd": "Ajouter sur le mur",
+      "wallAdd": "Ajouter depuis le mur",
       "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
       "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
+      "wallPlan": "Planifier les repas sur le mur",
+      "wallPlanHelp": "Tout le monde peut mettre une recette au menu depuis le mur, pour cette semaine et la suivante : un bouton « Mettre au menu » sur chaque recette, et un bouton + sur les repas libres dans les vues qui montrent la semaine. Les repas écrits à la main et les nouvelles recettes restent sur le téléphone.",
       "extrasList": "Les autres achats vont sur",
       "extrasListNone": "Aucune (pas de ligne Ajouter)",
       "extrasListHelp": "Une de vos listes. Ce qui reste dessus apparaît à la fin de la liste de courses, ici et sur le téléphone. Toutes les cartes de courses la partagent."

@@ -158,7 +158,7 @@ function ReviewPanel({ upload }: { upload: ReturnType<typeof useCustomIconUpload
                   <span className="truncate">{review.name}</span>
                 </span>
               ))}
-              {icon.animated && <span className="text-[10px] text-hs-text-muted">▶ {t('customIcons.moving')}</span>}
+              {icon.animated && <span className="inline-flex items-center gap-1 text-[10px] text-hs-text-muted"><Play className="h-2.5 w-2.5" aria-hidden="true" />{t('customIcons.moving')}</span>}
             </div>
           </div>
           {shape && (

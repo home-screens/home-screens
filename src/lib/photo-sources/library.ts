@@ -41,7 +41,12 @@ export async function listLibraryMedia(
   }
   // readdir answers in whatever order the disk keeps, which on a Pi's ext4
   // is neither by name nor by date.
-  entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  // Names are compared without their extensions first, so a re-uploaded copy
+  // (`IMG_1202-2.JPG`) plays after its original (`IMG_1202.JPG`) rather than
+  // before it, as "-" sorts ahead of ".".
+  const byName = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+  const stem = (name: string) => name.replace(/\.[^.]+$/, '');
+  entries.sort((a, b) => byName(stem(a.name), stem(b.name)) || byName(a.name, b.name) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   // The moving half of a Live Photo, matched to the still it belongs to.
   // Only when the stills are listed: a slideshow showing videos only has no
   // still to play a clip over, so there every clip is a video like any other.

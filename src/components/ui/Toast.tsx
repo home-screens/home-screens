@@ -72,7 +72,34 @@ export function WindowToastStack({ children }: { children: ReactNode }) {
     observer.observe(pageStack);
     return () => observer.disconnect();
   }, [pageStack]);
+  // A window whose toasts would not fit between its bottom edge and the
+  // bottom of the screen (under the page's own stack, when that is up) puts
+  // them at the top of the screen instead, as the phone holds them while a
+  // form is open. At the bottom they sat on Done and Save, and lifted above
+  // the buttons they sat on the box being typed in.
+  const [roomBelow, setRoomBelow] = useState<number | null>(null);
+  const [ownHeight, setOwnHeight] = useState(0);
+  useEffect(() => {
+    const frame = host?.parentElement;
+    if (!host || !frame || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      setRoomBelow(window.innerHeight - frame.getBoundingClientRect().bottom);
+      setOwnHeight(host.offsetHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    observer.observe(host);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [host]);
   const value = useMemo(() => ({ host }), [host]);
+  const underPageStack = STACK_BOTTOM_PX + (pageStackHeight > 0 ? pageStackHeight + STACK_GAP_PX : 0);
+  // Before a toast shows its height is unknown, so a usual one's is assumed.
+  const atTop = roomBelow !== null && roomBelow < underPageStack + Math.max(ownHeight, TOAST_HEIGHT_PX) + STACK_GAP_PX;
 
   return (
     <WindowStack.Provider value={value}>
@@ -80,12 +107,16 @@ export function WindowToastStack({ children }: { children: ReactNode }) {
       <div
         ref={setHost}
         data-testid="window-toast-stack"
+        data-at-top={atTop || undefined}
         className={STACK_CLASS}
-        style={{ bottom: STACK_BOTTOM_PX + (pageStackHeight > 0 ? pageStackHeight + STACK_GAP_PX : 0) }}
+        style={atTop ? { top: STACK_BOTTOM_PX } : { bottom: underPageStack }}
       />
     </WindowStack.Provider>
   );
 }
+
+/** One toast's height, a line of words with its padding: what a window must leave free under it for its toasts to stay at the bottom. */
+const TOAST_HEIGHT_PX = 52;
 
 export interface ToastAction {
   label: ReactNode;

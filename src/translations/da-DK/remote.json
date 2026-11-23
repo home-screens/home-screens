@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Væk væggen",
     "sleepDisplay": "Lad væggen slumre",
+    "wakeAll": "Væk alle vægge",
+    "sleepAll": "Lad alle vægge slumre",
     "sendAlert": "Send advarsel",
     "waitingFor": "Venter på {name}…",
     "waitingForAll": "Venter på væggene…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} kan ikke se sit sparemål, mens det her er skjult.",
       "other": "{names} kan ikke se deres sparemål, mens det her er skjult."
-    }
+    },
+    "whyNoSave": "Giv belønningen et navn for at gemme."
   },
   "alertSender": {
     "title": "Send besked",
@@ -683,7 +686,7 @@
       "adjusted": "fra voksne",
       "window": "Seneste 30 dage",
       "empty": "Ingen billetter har flyttet sig endnu.",
-      "failed": "Billethistorikken kunne ikke hentes.",
+      "failed": "Billethistorikken kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
       "removedChore": "En pligt, der er fjernet",
       "tookOne": "En voksen tog nogle",
       "gaveSome": "En voksen gav nogle",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Luk indstillinger",
     "system": {
       "heading": "System",
-      "errorFailedToLoad": "Kunne ikke hente det her. Prøv igen.",
+      "errorFailedToLoad": "Kunne ikke hente det her. Tjek, at Home Screens er tændt, og prøv igen.",
       "hostLabel": "Navn i netværket",
       "uptimeLabel": "Oppetid",
       "memoryLabel": "Hukommelse",
@@ -729,7 +732,6 @@
         "label": "Gendan en sikkerhedskopi",
         "busyLabel": "Gendanner…",
         "doneLabel": "Gendannet",
-        "invalidFileLabel": "Ugyldig sikkerhedskopi",
         "failedLabel": "Kunne ikke gendanne den sikkerhedskopi. Prøv igen.",
         "idleDescription": "Upload en sikkerhedskopi fra denne telefon",
         "confirmingDescription": "Alt, hvad der er på Home Screens nu, bliver erstattet med det, der er i sikkerhedskopien.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Administrer personerne i din husstand."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minut mere.",
+        "other": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minutter mere."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Næsten fuld: kun {free} tilbage på Home Screens. Slet billeder, du ikke har brug for, så der bliver plads.",
     "emptyTitle": "Der er ikke noget i {folder} endnu",
     "emptyHint": "Tilføj billeder eller videoer fra denne telefon.",
-    "loadFailed": "Dine billeder kunne ikke hentes.",
+    "loadFailed": "Dine billeder kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "showsOn": {
       "one": "Det bliver vist på {walls}.",
       "other": "De bliver vist på {walls}."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} er større end {size}.",
       "notMedia": "{name} er ikke et billede eller en video, som væggen kan vise.",
-      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. På en iPhone skal du vælge Mest kompatibel under Indstillinger > Kamera > Formater.",
+      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. Kommer den fra en iPhone, så vælg Mest kompatibel under Indstillinger > Kamera > Formater.",
       "failed": "{name} kunne ikke sendes. Prøv igen.",
       "close": "Luk",
       "showNow": "Vis på væggen nu"
@@ -1145,11 +1153,7 @@
       "button": "Del",
       "nothingOpen": "Alt er gjort!"
     },
-    "loadError": "Dine lister kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
-    "alreadyOnList": "{item} står allerede på listen",
-    "putBack": "{item} står på listen igen",
-    "deleted": "{item} er fjernet fra listen.",
-    "undo": "Fortryd"
+    "loadError": "Dine lister kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Der er ikke noget på opslagstavlen endnu",
       "body": "Skriv en note herunder, så dukker den op på væggen få sekunder efter. Noter forsvinder af sig selv, når den tid, du har valgt, er gået."
     },
-    "loadError": "Noterne kunne ikke hentes.",
+    "loadError": "Noterne kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "editAria": "Rediger note fra {name}",
     "dayNotes": {
       "sub": "Dagsnoter vises i kalenderne på væggen",
@@ -1284,7 +1288,7 @@
       "placeholder": "Skolefoto, skolefri…",
       "put": "Sæt den i kalenderen",
       "remove": "Fjern",
-      "loadError": "Dagsnoterne kunne ikke hentes.",
+      "loadError": "Dagsnoterne kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
       "saved": "Gemt til {day}. Noten vises på væggen, når en kalender viser den dag.",
       "removed": "Noten er fjernet",
       "undo": "Fortryd",
@@ -1482,6 +1486,10 @@
     "offBody": "Det kan slås til under {place}. Dagsnoter virker som altid.",
     "signInTitle": "Der mangler et trin, før du kan tilføje begivenheder",
     "signInBody": "Du skal logge ind med Google én gang til for at tilføje begivenheder. Det gør du under {place}.",
+    "pickTitle": "Der er ikke valgt nogen kalender til nye begivenheder",
+    "pickBody": "Vælg under {place} de kalendere, som nye begivenheder kan lægges i. Dagsnoter virker som altid.",
+    "unreachableTitle": "Google Kalender svarer ikke",
+    "unreachableBody": "Du kan tilføje begivenheder igen, så snart den svarer. Dagsnoter virker som altid.",
     "justThisDay": "Kun denne dag",
     "everyTime": "Alle gange",
     "keepIt": "Behold den",
@@ -1501,9 +1509,9 @@
       "firstDay": "Første dag",
       "lastDay": "Sidste dag",
       "allDay": "Hele dagen",
+      "allDayLocked": "Den varer mere end én dag, så den forbliver en heldagsbegivenhed.",
       "starts": "Starter",
       "ends": "Slutter",
-      "nextDay": "næste dag",
       "endsOn": "Slutter {day} kl. {time} · {length}",
       "hours": {
         "one": "{count} time",

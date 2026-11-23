@@ -62,24 +62,39 @@ const DAY_MS = 86_400_000;
 const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const dayMs = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
 
-/** The days a series falls on between two days, from its RRULE (the six frequencies Home Screens writes). */
+/**
+ * The days a series falls on between two days, from its RRULE: the six
+ * frequencies Home Screens writes, each anchored to one day (`BYDAY=WE`,
+ * `BYMONTHDAY=22`, `BYMONTH=11;BYMONTHDAY=22`) or bare. As RFC 5545 reads
+ * it, the first day always counts, then every day the rule names.
+ */
 function seriesDays(first: string, rrule: string, from: string, to: string, skipped: string[]): string[] {
   const fields = new Map(rrule.replace(/^RRULE:/, '').split(';').map((p) => p.split('=') as [string, string]));
   const freq = fields.get('FREQ');
   const step = Number(fields.get('INTERVAL') ?? 1);
   const untilRaw = fields.get('UNTIL');
   const until = untilRaw ? `${untilRaw.slice(0, 4)}-${untilRaw.slice(4, 6)}-${untilRaw.slice(6, 8)}` : '9999-12-31';
-  const weekdaysOnly = fields.get('BYDAY') === 'MO,TU,WE,TH,FR';
-  const out: string[] = [];
-  for (let i = 0, day = first; day <= to && day <= until && i < 2000; i++) {
-    const weekday = new Date(dayMs(day)).getUTCDay();
-    if (day >= from && !skipped.includes(day) && (!weekdaysOnly || (weekday > 0 && weekday < 6))) out.push(day);
+  const byDay = fields.get('BYDAY');
+  const weekdaysOnly = byDay === 'MO,TU,WE,TH,FR';
+  const CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+  const f = new Date(dayMs(first));
+  const weekday = byDay && !weekdaysOnly ? CODES.indexOf(byDay) : f.getUTCDay();
+  const monthDay = Number(fields.get('BYMONTHDAY') ?? f.getUTCDate());
+  const month = Number(fields.get('BYMONTH') ?? f.getUTCMonth() + 1);
+  // Weeks count from the Monday of the first day's week (RFC 5545's default WKST).
+  const firstMonday = dayMs(first) - ((f.getUTCDay() + 6) % 7) * DAY_MS;
+  const named = (day: string): boolean => {
     const d = new Date(dayMs(day));
-    if (freq === 'DAILY' || weekdaysOnly) day = isoDay(dayMs(day) + DAY_MS);
-    else if (freq === 'WEEKLY') day = isoDay(dayMs(day) + 7 * step * DAY_MS);
-    else if (freq === 'MONTHLY') day = isoDay(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()));
-    else if (freq === 'YEARLY') day = isoDay(Date.UTC(d.getUTCFullYear() + 1, d.getUTCMonth(), d.getUTCDate()));
-    else break;
+    if (freq === 'DAILY') return ((dayMs(day) - dayMs(first)) / DAY_MS) % step === 0;
+    if (weekdaysOnly) return d.getUTCDay() > 0 && d.getUTCDay() < 6;
+    if (freq === 'WEEKLY') return d.getUTCDay() === weekday && Math.floor((dayMs(day) - firstMonday) / (7 * DAY_MS)) % step === 0;
+    if (freq === 'MONTHLY') return d.getUTCDate() === monthDay;
+    if (freq === 'YEARLY') return d.getUTCMonth() + 1 === month && d.getUTCDate() === monthDay;
+    return false;
+  };
+  const out: string[] = [];
+  for (let i = 0, day = first; day <= to && day <= until && i < 4000; i++, day = isoDay(dayMs(day) + DAY_MS)) {
+    if (day >= from && !skipped.includes(day) && (day === first || named(day))) out.push(day);
   }
   return out;
 }

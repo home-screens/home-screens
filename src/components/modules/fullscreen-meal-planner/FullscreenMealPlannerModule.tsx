@@ -24,7 +24,7 @@ import NextMealView from './NextMealView';
 import RecipeView from './RecipeView';
 import GroceryView from './GroceryView';
 import RecipeBookView from './RecipeBookView';
-import { MealRecipeContext } from '../shared/MealRecipeContext';
+import { MealRecipeScope } from '../shared/MealRecipeScope';
 import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
 import { MealVotesScope } from '@/components/meals/meal-votes';
 import { useLookAhead } from '../shared/useLookAhead';
@@ -292,8 +292,8 @@ export default function FullscreenMealPlannerModule({
             position: 'relative',
           }}
         >
-          <MealRecipeContext.Provider value={recipeContext}>
           <MealVotesScope votes={familyRatings}>
+          <MealRecipeScope value={recipeContext}>
           {view === 'week' && <WeekView {...viewProps} plan={shownWeek.plan} weekDates={shownWeek.weekDates} look={look} />}
           {/* The whole plan: late in the evening Today shows tomorrow, which
               can be in next week. */}
@@ -304,8 +304,8 @@ export default function FullscreenMealPlannerModule({
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
           {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} theme={theme} />}
           {view === 'recipes' && <RecipeBookView {...viewProps} book={book} />}
+          </MealRecipeScope>
           </MealVotesScope>
-          </MealRecipeContext.Provider>
         </div>
       )}
     </div>

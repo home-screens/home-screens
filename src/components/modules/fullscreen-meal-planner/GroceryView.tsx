@@ -142,7 +142,10 @@ export default function GroceryView({ grocery, tappable, accent, theme, config, 
   if (grocery.state !== 'ready' || rows.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: P(36), height: '100%', padding: pad, fontFamily: bodyFont, color: 'var(--fmp-text)' }}>
-        <GroceryEmpty grocery={grocery} fontSize={P(40)} />
+        {/* Sized to its words, not the screen: at full height it pushed Add down under the screen dots. */}
+        <div style={{ minHeight: 0, width: '100%' }}>
+          <GroceryEmpty grocery={grocery} fontSize={P(40)} canAdd={grocery.state === 'ready' && Boolean(addButton)} />
+        </div>
         {/* Nothing left to get, and the wall can add the first thing. */}
         {grocery.state === 'ready' && addButton}
         {sheet}

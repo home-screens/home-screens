@@ -38,6 +38,13 @@ describe('listLibraryMedia order', () => {
     expect((await listLibraryMedia('order', 'photos'))!.map((item) => item.url))
       .toEqual(['apple.jpg', 'img1.jpg', 'img2.jpg', 'img10.jpg', 'Zoo.jpg'].map((name) => serve(`order/${name}`)));
   });
+
+  it('plays a re-uploaded copy after its original', async () => {
+    await fs.mkdir(path.join(library, 'copies'));
+    for (const name of ['IMG_1202-2.JPG', 'IMG_1203.JPG', 'IMG_1202.JPG']) await fs.writeFile(path.join(library, 'copies', name), 'x');
+    expect((await listLibraryMedia('copies', 'photos'))!.map((item) => item.url))
+      .toEqual(['IMG_1202.JPG', 'IMG_1202-2.JPG', 'IMG_1203.JPG'].map((name) => serve(`copies/${name}`)));
+  });
 });
 
 describe('listLibraryMedia', () => {

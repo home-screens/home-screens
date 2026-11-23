@@ -56,6 +56,12 @@ export function CalendarLookStrip({ own, override, onChange, onDone }: {
       className="space-y-2 bg-hs-accent-soft px-3 py-2.5 pl-9"
       data-testid="calendar-look-strip"
       data-field-id="calendar.calendarOverrides"
+      // Done from anywhere in the strip (after picking a colour too): Escape,
+      // or Enter in the name box, where it cannot mean pressing a swatch.
+      // Every keystroke and pick has already been kept.
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' || (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type === 'text')) onDone();
+      }}
     >
       <input
         type="text"
@@ -64,8 +70,6 @@ export function CalendarLookStrip({ own, override, onChange, onDone }: {
         // comes with" and not as missing.
         placeholder={own.name}
         onChange={(e) => onChange({ name: e.target.value })}
-        // Enter or Escape is done: every keystroke has already been kept.
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onDone(); }}
         // The pencil was pressed to type a name, so the box takes the typing.
         autoFocus
         maxLength={CALENDAR_NAME_MAX}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LIVE_COMPANION_RE, clipIndex, companionsLast, liveUploadPairing, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
+import { LIVE_COMPANION_RE, clipIndex, companionsLast, liveUploadPairing, picturesWithClips, unpairedLiveClips, extensionForContentType, liveCompanionsFor, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
 
 describe('extensionForContentType', () => {
   it.each([
@@ -202,5 +202,31 @@ describe('a clip whose picture has gone', () => {
     const names = ['IMG_1.MOV', 'IMG_1.live.mov', 'IMG_1.HEIC', 'IMG_2.jpg'];
     const find = clipIndex(names);
     expect(names.map(find).filter(Boolean)).toEqual([]);
+  });
+});
+
+describe('picturesWithClips', () => {
+  it('counts the chosen pictures that have a Live Photo clip in their own folder', () => {
+    const all = ['trip/IMG_1.jpg', 'trip/IMG_1.live.mov', 'trip/IMG_2.jpg', 'home/IMG_2.live.mov', 'IMG_3.jpg', 'IMG_3.live.mp4'];
+    expect(picturesWithClips(['trip/IMG_1.jpg', 'trip/IMG_2.jpg', 'IMG_3.jpg'], all)).toBe(2);
+    // A clip chosen on its own is not a picture with a clip.
+    expect(picturesWithClips(['trip/IMG_1.live.mov'], all)).toBe(0);
+  });
+});
+
+describe('unpairedLiveClips', () => {
+  it('pairs each iPhone export with the picture of its name', () => {
+    expect(unpairedLiveClips(['IMG_1.JPG', 'IMG_1.MOV', 'IMG_2.jpg', 'IMG_2.mov', 'IMG_3.png', 'IMG_3.mp4'])).toEqual([
+      { from: 'IMG_1.MOV', to: 'IMG_1.live.mov' },
+      { from: 'IMG_2.mov', to: 'IMG_2.live.mov' },
+      { from: 'IMG_3.mp4', to: 'IMG_3.live.mp4' },
+    ]);
+  });
+
+  it('leaves a video with no picture, a picture that has a clip, a shared name and a taken name alone', () => {
+    expect(unpairedLiveClips(['party.mov'])).toEqual([]);
+    expect(unpairedLiveClips(['IMG_1.jpg', 'IMG_1.live.mov', 'IMG_1.MOV'])).toEqual([]);
+    expect(unpairedLiveClips(['IMG_1.jpg', 'IMG_1.png', 'IMG_1.MOV'])).toEqual([]);
+    expect(unpairedLiveClips(['IMG_1.jpg', 'IMG_1.MOV', 'IMG_1.mp4'])).toEqual([{ from: 'IMG_1.MOV', to: 'IMG_1.live.mov' }]);
   });
 });

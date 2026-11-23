@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Display aufwecken",
     "sleepDisplay": "Display schlafen legen",
+    "wakeAll": "Alle Displays aufwecken",
+    "sleepAll": "Alle Displays schlafen legen",
     "sendAlert": "Hinweis senden",
     "waitingFor": "Warte auf das Display „{name}“…",
     "waitingForAll": "Warte auf die Displays…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} sieht das Sparziel nicht, solange das versteckt ist.",
       "other": "{names} sehen ihre Sparziele nicht, solange das versteckt ist."
-    }
+    },
+    "whyNoSave": "Gib der Belohnung einen Namen, um zu speichern."
   },
   "alertSender": {
     "title": "Hinweis senden",
@@ -666,7 +669,7 @@
         "other": "Tickets pro Person"
       },
       "reasonPlaceholder": "Warum? (optional)",
-      "reasonHint": "Steht dann in der Ticket-Geschichte.",
+      "reasonHint": "Steht dann im Ticket-Verlauf.",
       "pickSomeone": "Wähle jemanden",
       "chooseHowMany": "Wähle, wie viele",
       "manyPeople": "{count} Personen",
@@ -683,7 +686,7 @@
       "adjusted": "von Erwachsenen",
       "window": "Letzte 30 Tage",
       "empty": "Noch keine Tickets bewegt.",
-      "failed": "Die Ticket-Geschichte konnte nicht geladen werden.",
+      "failed": "Der Ticket-Verlauf konnte nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
       "removedChore": "Eine gelöschte Aufgabe",
       "tookOne": "Ein Erwachsener hat welche abgezogen",
       "gaveSome": "Ein Erwachsener hat welche gegeben",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Einstellungen schließen",
     "system": {
       "heading": "System",
-      "errorFailedToLoad": "Das konnte nicht geladen werden. Versuch es noch einmal.",
+      "errorFailedToLoad": "Das konnte nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
       "hostLabel": "Name im Netzwerk",
       "uptimeLabel": "Laufzeit",
       "memoryLabel": "Speicher",
@@ -729,7 +732,6 @@
         "label": "Backup wiederherstellen",
         "busyLabel": "Stelle wieder her…",
         "doneLabel": "Wiederhergestellt",
-        "invalidFileLabel": "Ungültige Backup-Datei",
         "failedLabel": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal.",
         "idleDescription": "Lade eine Backup-Datei von diesem Handy hoch",
         "confirmingDescription": "Alles, was jetzt auf Home Screens ist, wird durch den Inhalt des Backups ersetzt.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Verwalte die Personen in deinem Haushalt."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minute lang nicht an.",
+        "other": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minuten lang nicht an."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Fast voll: Auf Home Screens sind nur noch {free} frei. Lösche Fotos, die du nicht mehr brauchst, um Platz zu schaffen.",
     "emptyTitle": "Noch nichts in „{folder}“",
     "emptyHint": "Füge Fotos oder Videos von diesem Handy hinzu.",
-    "loadFailed": "Deine Fotos konnten nicht geladen werden.",
+    "loadFailed": "Deine Fotos konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "showsOn": {
       "one": "Es erscheint in der Diashow ({walls}).",
       "other": "Sie erscheinen in der Diashow ({walls})."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} ist größer als {size}.",
       "notMedia": "{name} ist kein Foto oder Video, das an der Wand gezeigt werden kann.",
-      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Wähle auf dem iPhone unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
+      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Kommt es von einem iPhone, wähle dort unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
       "failed": "{name} konnte nicht gesendet werden. Versuch es noch einmal.",
       "close": "Schließen",
       "showNow": "Jetzt an der Wand zeigen"
@@ -1145,11 +1153,7 @@
       "button": "Teilen",
       "nothingOpen": "Alles erledigt!"
     },
-    "loadError": "Deine Listen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
-    "alreadyOnList": "{item} steht schon auf der Liste",
-    "putBack": "Wieder auf der Liste: {item}",
-    "deleted": "Von der Liste genommen: {item}",
-    "undo": "Rückgängig"
+    "loadError": "Deine Listen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Noch nichts an der Pinnwand",
       "body": "Schreib unten eine Notiz, dann hängt sie ein paar Sekunden später an der Wand. Notizen verschwinden von selbst, wenn die gewählte Zeit um ist."
     },
-    "loadError": "Die Notizen konnten nicht geladen werden.",
+    "loadError": "Die Notizen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "editAria": "Notiz von {name} bearbeiten",
     "dayNotes": {
       "sub": "Tagesnotizen stehen im Kalender an der Wand",
@@ -1284,7 +1288,7 @@
       "placeholder": "z. B. Fototag, schulfrei…",
       "put": "In den Kalender eintragen",
       "remove": "Entfernen",
-      "loadError": "Die Tagesnotizen konnten nicht geladen werden.",
+      "loadError": "Die Tagesnotizen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
       "saved": "Für {day} gespeichert. Die Notiz steht an der Wand, sobald dieser Tag im Kalender zu sehen ist.",
       "removed": "Notiz entfernt",
       "undo": "Rückgängig",
@@ -1482,6 +1486,10 @@
     "offBody": "Das lässt sich am Computer unter {place} einschalten. Tagesnotizen funktionieren wie immer.",
     "signInTitle": "Für neue Termine fehlt noch ein Schritt",
     "signInBody": "Für neue Termine musst du dich noch einmal bei Google anmelden. Das geht am Computer unter {place}.",
+    "pickTitle": "Noch kein Kalender für neue Termine ausgewählt",
+    "pickBody": "Wähle am Computer unter {place} die Kalender aus, in die neue Termine eingetragen werden. Tagesnotizen funktionieren wie immer.",
+    "unreachableTitle": "Google Kalender antwortet gerade nicht",
+    "unreachableBody": "Sobald er wieder antwortet, kannst du wieder Termine hinzufügen. Tagesnotizen funktionieren wie immer.",
     "justThisDay": "Nur an diesem Tag",
     "everyTime": "An allen Tagen",
     "keepIt": "Behalten",
@@ -1501,9 +1509,9 @@
       "firstDay": "Erster Tag",
       "lastDay": "Letzter Tag",
       "allDay": "Ganztägig",
+      "allDayLocked": "Der Termin geht über mehr als einen Tag, darum bleibt er ganztägig.",
       "starts": "Beginn",
       "ends": "Ende",
-      "nextDay": "am nächsten Tag",
       "endsOn": "Endet am {day} um {time} · {length}",
       "hours": {
         "one": "{count} Stunde",

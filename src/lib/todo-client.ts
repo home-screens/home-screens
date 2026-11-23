@@ -85,22 +85,23 @@ export function deleteListRequest(listId: string): TodoWriteRequest {
 }
 
 /**
- * `ifNew` keeps to one copy: the hub answers `already` for the same words on
- * an item still to do and puts a ticked one back (`addItemIfNew`). The wall
- * always gets that; the phone asks for it.
+ * Add words to a list. The hub keeps one of each (`addItemIfNew`): the same
+ * words as an item still to do change nothing, and on a ticked one put it
+ * back. `restore` is Undo putting back an item just removed, exactly as it
+ * was (its due day and people too), so it is always made, never merged; only
+ * a signed-in phone or the editor may send it.
  */
 export function addItemRequest(
   listId: string,
   text: string,
-  { ifNew = false, dueDate, assigneeIds }: { ifNew?: boolean; dueDate?: string; assigneeIds?: string[] } = {},
+  { restore = false, dueDate, assigneeIds }: { restore?: boolean; dueDate?: string; assigneeIds?: string[] } = {},
 ): TodoWriteRequest {
-  // Due day and people only from a session (the phone putting back an item it
-  // just deleted); the wall's adds are words only.
   const extra = {
+    ...(restore ? { restore: true } : {}),
     ...(dueDate ? { dueDate } : {}),
     ...(assigneeIds && assigneeIds.length > 0 ? { assigneeIds } : {}),
   };
-  return { url: itemsUrl(listId), method: 'POST', body: ifNew ? { text, ifNew: true, ...extra } : { text, ...extra } };
+  return { url: itemsUrl(listId), method: 'POST', body: { text, ...extra } };
 }
 
 export function updateItemRequest(listId: string, itemId: string, patch: TodoItemPatch): TodoWriteRequest {

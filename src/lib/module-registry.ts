@@ -642,6 +642,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       interactive: true,
       // An Add button on the grocery view for new cards; an older card stays without one (FullscreenMealPlannerConfig.wallAdd).
       wallAdd: true,
+      // Planning from the wall for new cards; an older card stays as it was (FullscreenMealPlannerConfig.wallPlan).
+      wallPlan: true,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -1315,6 +1317,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       interactive: true,
       // An Add row on the grocery view for new cards; an older card stays without one (MealPlannerConfig.wallAdd).
       wallAdd: true,
+      // Planning from the wall for new cards; an older card stays as it was (MealPlannerConfig.wallPlan).
+      wallPlan: true,
     },
     defaultSize: { w: 500, h: 600 },
   },

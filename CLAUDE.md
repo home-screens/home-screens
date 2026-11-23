@@ -4,7 +4,7 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## Project Overview
 
-Custom smart display system (a Dakboard / MagicMirror replacement). Web-based, runs on a Raspberry Pi in Chromium kiosk mode, portrait 1080x1920 by default. All data is local JSON under `data/`. No database, no cloud. Solo pre-release project: no backwards-compatibility shims or migration paths unless asked.
+Custom smart display system (a Dakboard / MagicMirror replacement). Web-based, runs on a Raspberry Pi in Chromium kiosk mode, portrait 1080x1920 by default. All data is local JSON under `data/`. No database, no cloud.
 
 ## Commands
 
@@ -48,25 +48,14 @@ The same domain is often edited from two or three places: the editor, `/remote`,
 
 ### UI building blocks
 Each surface draws from its own shared pieces; a hand-written copy is how they drift. Reach for these first, and extend one rather than writing a near-copy.
-- **Editor** (`src/components/ui/` unless named):
-  - Windows: `ModalFrame` with `ModalPanel` / `ModalHeader` / `ModalBody` / `ModalFooter` (`editor/CRUDModalShell.tsx` for list windows); questions through `useConfirmStore().confirm`, always with `confirmLabel` and `variant`.
-  - Feedback: `Toast` (one `ToastStack` in the editor layout), `Notice` for a tinted box, `StatusDot`, `StatusPill`, `IconButton`, `Spinner` / `LoadingLine`.
-  - Fields: `FieldHint` for a help line (`hint` on `LabeledField` / `LabeledInput` / `LabeledSelect` / `Slider`), the tiers in `input-classes.ts` (`INPUT_CLASS` in the property panel, `SETTINGS_INPUT_CLASS` / `SETTINGS_INPUT_SM_CLASS` on Settings pages, `MODAL_INPUT_CLASS` in windows) with `CHECKBOX_CLASS` for every checkbox and radio, `Toggle` (with `description`) or `Switch`, `SegmentedControl` for pick-one, `ColorPicker` with `swatches` for an accent.
-  - Headings: `SettingsSectionHeading` / `SettingsSubHeading` (`editor/settings/shared/SettingsPanel.tsx`), `SectionHeading` for property-panel groups.
-  - Colours are `hs-*` tokens only; no Tailwind palette classes.
-- **Phone** (`src/app/(remote)/remote/components/`):
-  - Overlays: every sheet through `SheetFrame` (`BottomSheet`, `TallSheet`, `ConfirmSheet` with its `tone`), full-screen forms through `FormOverlay`, stacked by name from `REMOTE_LAYERS` (`remote-layers.ts`), never a number.
-  - Actions: `PrimaryButton` for every save, add or send (amber with dark ink), `SaveDeleteFooter` under a form, `DANGER_BUTTON` for a delete, `IconButton`, `ChipButton`, `PhoneSwitch`, `PersonChip`, `PhoneIconPicker` (`src/components/custom-icons/`).
-  - Pages: `TabHeader` (with `GearButton`), `SegmentedTabs`, `EmptyState`, `LoadFailed` (`RetryButton.tsx`), `TickRow`, `PhoneSpinner`, `showToast` (`remote-toast.ts`).
-  - Colours from `remote-styles.ts` or `var(--hs-*)`: `REMOTE_ACCENT` is the amber fill, `REMOTE_ACCENT_INK` amber as words or a thin line, `REMOTE_ON_ACCENT` ink on amber, `selectedPillStyle` / `toggleChipStyle` for a chosen chip.
-- **Wall** (`src/components/modules/shared/`): `WallButton` for every tap target, `useWallSheet` / `WallOverlay` for a sheet, `FullscreenStateShell` / `fullscreenStateStyle` for a full-screen module's loading, setup and empty states, `ModuleTitleRow`, `MemberBadge`, `WallNotice`.
+- **Per surface**: the editor's pieces are listed in `src/components/editor/CLAUDE.md`, the phone's in `src/app/(remote)/CLAUDE.md`, the wall's in `src/components/modules/CLAUDE.md`.
 - **Rules in `src/lib/`**: `formatTimeOfDay` (`timezone.ts`) for any time of day, `UNDO_WINDOW_MS` (`undo-window.ts`), `NO_VALUE` (`constants.ts`) for a missing value, `memberInitials` (one letter) / `getUniqueInitials` (where a dot stands alone with no name) and `memberInk` for ink on a person's colour (`family-avatar.ts`), `buildDeleteConfirm` and its Delete / Remove / Clear verb rule (`delete-confirmations.ts`), `settingsPlaceText` (`settings-route.ts`) for a "Settings > Calendar" path. Words follow `src/translations/GLOSSARY.md`.
 - Guard tests enforce the drift-prone parts: `src/__tests__/{phone,editor,shared}-ui-guards.test.ts` (phone layers, colours and amber buttons; editor palette classes, full-screen layers and switches; spinners, text glyph icons and em-dashes everywhere), `theme-token-names.test.ts` and `modules/shared/__tests__/wall-button-ratchet.test.ts`. Each failure names the piece to use; an allowlist entry needs a reason.
 
 ### API auth tiers
 Every route under `src/app/api/` opens with one guard, usually through the `withAuth` / `withDisplayAuth` / `withMediaTokenAuth` wrappers in `src/lib/api-utils.ts` or a factory in `src/lib/route-factories.ts`, and picking the wrong one is the easiest security mistake to make:
 - `requireSession` (`src/lib/auth.ts`, wrapped by `withAuth`): a logged-in editor or phone user. Rejects display bearer tokens. Use for anything that writes config or family data.
-- `requireDisplayAuth` (`src/lib/auth.ts`, wrapped by `withDisplayAuth`; `withMediaTokenAuth` also accepts a signed `mt` token for bare `<video src>` URLs): a session cookie or the kiosk's display bearer token, with an optional trusted-IP bypass. Use for reads a wall display needs and the few writes it may make (tick a to-do, add to a list some card offers an Add row for, add or change a calendar event once the household allows it, post status). Such a route narrows the display token itself: `hasEditorSession` tells a phone or editor apart from the wall. One display token serves every kiosk, so a route cannot tell which display wrote: a per-display switch is enforced on the wall, and the hub checks only that some display may.
+- `requireDisplayAuth` (`src/lib/auth.ts`, wrapped by `withDisplayAuth`; `withMediaTokenAuth` also accepts a signed `mt` token for bare `<video src>` URLs): a session cookie or the kiosk's display bearer token, with an optional trusted-IP bypass. Use for reads a wall display needs and the few writes it may make (tick a to-do, add to a list some card offers an Add row for, put a recipe on the menu while some meal card has planning on, add or change a calendar event once the household allows it, post status). Such a route narrows the display token itself: `hasEditorSession` tells a phone or editor apart from the wall. One display token serves every kiosk, so a route cannot tell which display wrote: a per-display switch is enforced on the wall, and the hub checks only that some display may.
 - `requireAdoptedDisplay` (`src/lib/adopted-display-gate.ts`): LAN plus presence in `config.displays` (or the id `main` before any displays exist). Used by the endpoints a Pi's shell scripts call without a display token: hardware stats and the kiosk bundle and bootstrap (display-only Pis), and power state (every kiosk Pi, the hub included, through `scripts/kiosk-power-agent.sh`).
 - `requireSudo` (`src/lib/sudo-grant.ts`): for system actions (restart and reboot, WiFi, hostname, time zone). Answers 409 when the service account has no passwordless sudo, which the editor turns into a password prompt that repairs the grant. The upgrade pipeline makes the same check in its preflight and reports `needsSudoPassword`.
 Proxy routes built with `cachedProxyRoute` are the exception to "opens with a guard": they declare `auth: 'display' | 'session'` on the factory config instead, so grepping for a guard clause will not find them.
@@ -75,20 +64,10 @@ Proxy routes built with `cachedProxyRoute` are the exception to "opens with a gu
 ### Config schema migrations
 `config.json` carries a schema version. `src/lib/migrations/` holds one `vN-to-vN+1.ts` per step from v5 on (v1 to v4 are inline in `index.ts`; the module walker is `src/lib/config-modules.ts`, which anything outside a migration that rewrites, removes or looks for modules uses too), each imported and appended to the `migrations` list in `index.ts`. `migrateUp` runs on every read and the latest version is derived from that list, so the file plus its list entry is the whole bump, apart from rerunning `npm run docs:schema`, the `"version"` in the website `configuration.md` example and the `"schema"` in the `/api/health` example in `api.md`, all of which `docs-schema.test.ts` checks. A change that makes an existing saved config read differently (a renamed, retired or reshaped field, a new meaning for an old value) needs a migration, not a read-time shim. A new optional setting whose absence keeps today's behaviour needs none, not even a version-only step. Plugin config shapes migrate through `src/lib/plugin-config-migration.ts`.
 
-Releases carry two HTML-comment markers in their GitHub body, stamped by `scripts/release.sh` from code: `home-screens-schema` (the newest schema this release reads, from `getLatestSchemaVersion()`) and `home-screens-requires` (`REQUIRED_FLOORS` in the migrations module, empty until a release drops old migrations). `src/lib/update-policy.ts` turns them into what the update check offers and what `runUpgrade` refuses: a device below a floor is sent to the floor first, and a step back to a release whose schema is below the saved config's is withheld. The pipeline's migrate step in `src/lib/upgrade.ts` is the last place this release's migrations run before the new tree takes over, so any new lazy host migration must be settled there too.
+Release schema markers, update floors and the upgrade pipeline's migrate step are described in `src/lib/migrations/CLAUDE.md`.
 
 ### Module system
-Built-in module types plus runtime plugins, found through a registry. Adding a built-in module touches these places, and the `meta` E2E project names exactly which ones are still missing:
-
-1. Component in `src/components/modules/`
-2. Type added to the `BuiltinModuleType` union and a config interface in `src/types/config.ts`, with a JSDoc comment on every field (the first paragraph is shown on the website, so keep it plain; developer notes go after a blank line), then `npm run docs:schema`
-3. Registry entry in `src/lib/module-registry.ts` (type, label, icon, category, `defaultConfig`, `defaultSize`; set `autoSizesText` if the component uses `useScaledFontSize` / `useFitFontSize`)
-4. Dynamic import in `src/lib/module-components.ts`
-5. Config section in `src/components/editor/config-sections/` (one file per module, exported from the barrel, dispatched in `PropertyPanel.tsx`)
-6. Optional API route under `src/app/api/`
-7. Fixture row in `e2e/helpers/module-fixtures.ts`; a JSON stub under `e2e/fixtures/module-data/` plus a `stubKey` if it fetches data; a `CONFIG_VARIANTS` row per config field (or a reasoned `FIELD_DECISIONS` entry in `e2e/meta/coverage.spec.ts`); an `EXTRA_DISCRIMINATORS` row or a `DISCRIMINATOR_UNION_DECISIONS` entry for any other string union its config uses; an `EMPTY_STATE_FIXTURES` row if it uses `ModuleEmptyState` / `LocationRequired` / `WeatherEmptyState`
-8. A `buildModuleInstance('<type>')` field-edit case in `e2e/editor/config-editing.spec.ts`
-9. If it declares a `*View` union: a `VIEW_MATRIX` row in `e2e/helpers/view-matrix.ts` (rendered by `e2e/display/module-views.spec.ts`) or a `SINGLE_VIEW_TESTED_MODULES` entry in `e2e/meta/coverage.spec.ts`
+Built-in module types plus runtime plugins, found through a registry. Adding a built-in module touches nine places, listed in `src/components/modules/CLAUDE.md`; the `meta` E2E project names exactly which ones are still missing.
 
 Every `ModuleInstance` has three AND-combined visibility gates: `enabled` (toggle), `schedule` (day/time window) and `visibility` (conditions over the shared state bus). A `backgroundProvider` flag mounts a module hidden in `BackgroundProviderLayer` so its data loop survives screen rotation.
 
@@ -99,65 +78,55 @@ Every `ModuleInstance` has three AND-combined visibility gates: `enabled` (toggl
 A plugin is an IIFE bundle plus manifest loaded at runtime from `data/plugins/`, typed as `plugin:<moduleType>`. Plugins use `window.__HS_SDK__` and `pluginFetch`, which goes through `/api/plugins/proxy/[pluginId]` (SSRF hardening, 60 req/min, 240 for `localNetwork` plugins). A manifest `auth` field declares a host-run OAuth2 or Garmin SSO adapter (`/api/plugins/auth/*`); tokens live in `data/plugin-tokens/` and the proxy injects and refreshes them. The real SDK contract is the host's `PluginGlobals.tsx`, not the template typings. Plugin manifests may ship `translations` that register under namespace `plugin:<pluginId>`.
 
 ### Multi-display (hub and spoke)
-`ScreenConfiguration.displays?: DisplayNode[]` is optional. Unset means legacy single-display mode with `config.screens` as the source of truth, which is still the default. When set, each `DisplayNode` (including `main`, a regular node that the editor's `addDisplay` seeds from the globals when the first display is added) owns its own `screens`, dimensions, transform and optional profiles. Each Pi polls `/api/display/commands?display=<id>` every 3 s and posts status; that drain is the wall's heartbeat, and its `revisions` (build, plugin list, config ETag, timer session, chores, rewards, notes and day notes ETags, media library, calendar sources, from `src/lib/display-revisions.ts`) tell `useLiveConfig`, `TimerOverlay` and `useFetchData` (for the reads `display-heartbeat.ts` lists) when to fetch (`src/lib/display-heartbeat.ts`), and `library` and `calendar` drive early re-reads through `src/hooks/useRevisionRefresh.ts`; per-display command queues, the in-memory heartbeat `statusMap` and viewport reports live in `src/lib/display-commands.ts` (`__default__` for legacy callers, `all` broadcasts). Wall-side requests go through `displayFetch` (`src/lib/display-fetch.ts`), which adds the display token and aborts after `DISPLAY_FETCH_TIMEOUT_MS` (15 s) so a network blip cannot fill Chromium's connections. Pictures, plugin bundles and plugin proxy calls pass `timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS` (60 s) themselves, and any new slow request must do the same; `timeoutMs: null` is only for a request that must stay open. Editor screen mutations go through `getActiveScreens` / `withActiveScreens` so edits target the selected display. `validateDisplays` enforces slug, uniqueness and size caps. Display-only Pis (`scripts/install.sh --display-only`) run a Chromium kiosk against the hub with no Node.
+`ScreenConfiguration.displays?: DisplayNode[]` is optional. Unset means legacy single-display mode with `config.screens` as the source of truth, which is still the default. When set, each `DisplayNode` (including `main`, a regular node that the editor's `addDisplay` seeds from the globals when the first display is added) owns its own `screens`, dimensions, transform and optional profiles. Each Pi polls `/api/display/commands?display=<id>` every 3 s and posts status; that drain is the wall's heartbeat, and its `revisions` (`src/lib/display-revisions.ts`) tell `useLiveConfig`, `TimerOverlay` and `useFetchData` (for the reads `display-heartbeat.ts` lists) when to fetch (`src/lib/display-heartbeat.ts`), and `library` and `calendar` drive early re-reads through `src/hooks/useRevisionRefresh.ts`; per-display command queues, the in-memory heartbeat `statusMap` and viewport reports live in `src/lib/display-commands.ts` (`__default__` for legacy callers, `all` broadcasts). Wall-side requests go through `displayFetch` (`src/lib/display-fetch.ts`), which adds the display token and aborts after `DISPLAY_FETCH_TIMEOUT_MS` (15 s) so a network blip cannot fill Chromium's connections. Pictures, plugin bundles and plugin proxy calls pass `timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS` (60 s) themselves, and any new slow request must do the same; `timeoutMs: null` is only for a request that must stay open. Editor screen mutations go through `getActiveScreens` / `withActiveScreens` so edits target the selected display. `validateDisplays` enforces slug, uniqueness and size caps. Display-only Pis (`scripts/install.sh --display-only`) run a Chromium kiosk against the hub with no Node.
 
-Settings is split into **Defaults** (shared values, pages listed in `DEFAULT_PAGE_IDS`) and **Per display** (one page per display, every field an `OverrideRow` with explicit Override / Reset). `src/lib/settings-route.ts` parses and canonicalizes the settings URL and maps retired ids. `src/lib/display-defaults-backlinks.ts` tells a Defaults page which displays override its fields.
+The Settings split into Defaults and Per display pages is described in `src/components/editor/CLAUDE.md`.
 
 ### Data files (`data/`)
-| File | Module | Notes |
-|---|---|---|
-| `config.json` | `src/lib/config.ts` | Layout, displays, settings. `GET/PUT /api/config`; `updateConfigAtomic` for queued read-modify-write. Editor loads it into `src/stores/editor-store.ts`, edits in memory, saves via PUT. |
-| `secrets.json` | `src/lib/secrets.ts` | API keys. |
-| `family.json` | `src/lib/family-data.ts` | Shared roster for chores, calendars, rewards, timetables. |
-| `chores.json`, `chore-completions.json`, `rewards.json` | `src/lib/chore-data.ts`, `src/lib/chore-completion-data.ts`, `src/lib/reward-data.ts` | Chore definitions; completions, bonus-chore grabs and put-backs; rewards, balances and redemptions. |
-| `meals.json` | `src/lib/meal-data.ts` | Meal planner state and settings, shared by `/remote` and every module instance. Also holds the family's meal ratings, one vote per person and recipe (rules in `src/lib/meal-ratings.ts`, written through `POST /api/meals/ratings`). |
-| `todos.json` | `src/lib/todo-data.ts` | Shared to-do lists; a `todo` module points at a `listId` and never carries items. Only door is `/api/todo/lists*`. |
-| `day-notes.json` | `src/lib/day-notes-data.ts` | Calendar day notes, a list of `{ id, date, text }` (up to three per day), written from `/remote` Notes > Calendar and drawn by every calendar with `showDayNotes` on. Rules in `src/lib/day-notes.ts`; swept six weeks after the day on the next write. |
-| `notes.json` | `src/lib/notes-data.ts` | Family notes board; the wall reads `/api/notes?live=1`, the phone and the editor's Manage notes window (`NotesBoardModal`) read everything. Expired notes are kept a week for the phone's Gone group, then swept on the next write. |
-| `routines.json`, `timer-session.json` | `src/lib/timer-data.ts` | Authored routines vs hot running session; displays derive countdowns from timestamps. |
-| `timetables.json` | `src/lib/timetable-data.ts` | School bell times and one week per family member, revision-checked (409 on stale save). |
-| `school-holidays.json` | `src/lib/school-holidays.ts` | Last-good OpenHolidays cache; only DE, FR, NL have data. |
-| `icloud-accounts.json` | `src/lib/icloud-accounts.ts` | CalDAV app passwords, never returned by the API. |
-| `icloud-albums.json` | `src/lib/icloud-album-keeper.ts` | The kept list of each iCloud shared album's items, so a restarted hub shows its albums at once. Never holds a link; Apple's links die within minutes. |
-| `google-tokens.json`, `google-picker-tokens.json` | `src/lib/google-token-stores.ts` | Google Calendar and Google Photos grants. A grant from Home Screens' own app carries `client_mode: 'hosted'`; `settings.googleApp` and `src/lib/google-app-choice.ts` decide which app signs in. |
-| `custom-icons/` | `src/lib/custom-icon-data.ts` | The family's own icons. `index.json` goes through the data transaction; the pictures are `<hash>.webp` beside it, written before the index names them and kept out of the journal. |
-| `plugins/`, `plugin-tokens/` | `src/lib/plugin-loader.ts`, `src/lib/plugin-auth.ts` | Bundles and OAuth tokens, kept apart so upgrades cannot wipe tokens. |
-| `system-packages.json` | `scripts/upgrade.sh`, `scripts/kiosk-update-privileged.sh` | Installed versions of the kiosk programs and when they were last checked (`checkedAt`, read by `src/lib/hardware-stats-server.ts` and the Pi reporter). Written by shell, never by the app. |
+Most files have a store in `src/lib/` named after them (`family.json` is `family-data.ts`, `chores.json` is `chore-data.ts`). What the names do not tell you:
+- `config.json` (`src/lib/config.ts`): queued read-modify-write through `updateConfigAtomic`; the editor edits a copy in `src/stores/editor-store.ts` and saves with `PUT /api/config`.
+- `chore-completions.json` also holds bonus-chore grabs and put-backs; `rewards.json` holds rewards, balances and redemptions.
+- `meals.json`: one meal plan and its settings for `/remote` and every module instance, plus the family's meal ratings, one vote per person and recipe (rules in `src/lib/meal-ratings.ts`).
+- `todos.json`: a `todo` module points at a `listId` and never carries items; the only door is `/api/todo/lists*`.
+- `day-notes.json`: `{ id, date, text }`, up to three per day, rules in `src/lib/day-notes.ts`, swept six weeks after the day on the next write.
+- `notes.json`: the wall reads `/api/notes?live=1`; expired notes are kept a week for the phone's Gone group, then swept on the next write.
+- `routines.json` (authored) and `timer-session.json` (the running session) share `src/lib/timer-data.ts`; displays derive countdowns from timestamps.
+- `timetables.json` is revision-checked (409 on a stale save).
+- `school-holidays.json` is a last-good OpenHolidays cache; only DE, FR, NL have data.
+- `icloud-accounts.json` holds CalDAV app passwords the API never returns. `icloud-albums.json` (`src/lib/icloud-album-keeper.ts`) keeps each shared album's items so a restarted hub shows them at once, but never a link; Apple's links die within minutes.
+- `google-tokens.json` and `google-picker-tokens.json` (`src/lib/google-token-stores.ts`): a grant from Home Screens' own app carries `client_mode: 'hosted'`; `settings.googleApp` and `src/lib/google-app-choice.ts` decide which app signs in.
+- `custom-icons/`: `index.json` goes through the data transaction; the `<hash>.webp` pictures beside it are written before the index names them and kept out of the journal.
+- `plugins/` and `plugin-tokens/` (`src/lib/plugin-loader.ts`, `src/lib/plugin-auth.ts`) are kept apart so upgrades cannot wipe tokens.
+- `system-packages.json` is written only by `scripts/upgrade.sh` and `scripts/kiosk-update-privileged.sh`, never by the app.
 
 Stores that take part in family changes or backup restore go through `src/lib/data-transaction.ts`, a reentrant per-root coordinator with a durable journal. Keep reference checks and their writes inside it, and make any new multi-file write path participate. The app is one process that serializes its own writes; there is no cross-process lock.
 
 Every file that names a family member by id registers a `MemberReferenceDomain` in `src/lib/member-references/`: pure rules for what removing a person and restoring a backup mean for that file. Family deletion and restore walk that registry and nothing else, and `registry.test.ts` refuses a domain without a row exercising its policies. A new member-based store is added there before it ships.
 
 ### I18n
-Locale lives in `GlobalSettings.locale` (BCP-47, default `en-US`), with optional `formattingLocale` for dates and numbers. Shipped locales: en-US, de-DE, fr-FR, es-ES, nl-NL, pt-BR, da-DK. Dictionaries are `src/translations/<locale>/{core,editor,modules,remote,weather}.json`; `src/i18n/manifest.ts` is the source of truth for registered locales. Server pages get a blob from `buildLocaleBlob`; client pages hydrate through `/api/i18n/[locale]`. A layout that passes `namespaces` without `blob` renders raw keys until the fetch lands.
+Locale lives in `GlobalSettings.locale` (BCP-47, default `en-US`), with optional `formattingLocale` for dates and numbers. Dictionaries are `src/translations/<locale>/{core,editor,modules,remote,weather}.json`; `src/i18n/manifest.ts` is the source of truth for registered locales. Server pages get a blob from `buildLocaleBlob`; client pages hydrate through `/api/i18n/[locale]`. A layout that passes `namespaces` without `blob` renders raw keys until the fetch lands.
 
 ### Other key files
 - `src/types/config.ts`: every config type (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode); `src/types/plugins.ts` for plugin manifests
 - `src/stores/editor-slices/`: editor actions by area (config, selection, modules, screens, settings, profiles, rules, displays, layout); history bookkeeping in `src/stores/editor-save.ts`
 - `src/lib/weather/`: one file per provider behind a shared interface and factory; `src/lib/weather-providers.ts` is the one table of sources (ids, which need a key, what each sends) that the wall, editor, settings search and weather route all read
 - `src/lib/google-calendar.ts`, `src/lib/caldav-calendar.ts`: calendar integrations
-- `src/lib/google-hosted.ts` (Home Screens' own Google apps, on unless `HS_GOOGLE_HOSTED=0`), `src/lib/google-app-choice.ts` (which app each integration signs in with, from the one `settings.googleApp` switch), `src/lib/google-token-store.ts` / `google-token-stores.ts` (the grant store and its two instances)
 - `src/lib/display-filter.ts`: `filterConfigForDisplay`, `validateDisplays`, `getDisplayScreens`
 - `src/lib/display-dispatch.ts`, `src/hooks/useDisplayId.ts`: the `display-control` module's hub commands (`self`, `all`, or a display id)
 - `src/lib/resolve-screen-duration.ts`: per-screen rotation duration with global fallback
 - `scripts/reporter.sh` posts Pi hardware stats to `/api/display/hw-stats`, gated by `requireAdoptedDisplay` (LAN plus presence in `config.displays`)
-- `website/`: separate Next.js app for homescreens.dev (marketing plus Markdoc docs, static export to Cloudflare Pages, build with `--webpack`); sidebar in `website/src/lib/docs-navigation.ts`
+- `website/`: separate Next.js app for homescreens.dev (marketing plus Markdoc docs, a static export served as Cloudflare Worker static assets per `website/wrangler.jsonc`, build with `--webpack`); sidebar in `website/src/lib/docs-navigation.ts`
 - `infrastructure/`: Cloudflare workers deployed with wrangler: `google-oauth-worker` (auth.homescreens.dev, holds the hosted Google client secrets and adds them to hub token requests), `telemetry-worker` (the anonymous beacon), `version-worker` (cached latest-release lookup)
 
 ## Testing
 
 Unit tests are Vitest in `__tests__/` directories next to the code, `node` environment by default (component and hook tests opt into jsdom with a `// @vitest-environment jsdom` docblock), with `data/` and `public/` sandboxed by `vitest.setup.ts`.
 
-E2E is Playwright, Chromium only, in `e2e/`. Each worker boots its own production `next start` from a sandboxed cwd with a private `data/` (`e2e/helpers/sandbox.ts`), so runs never touch the real data. Specs reset state with `PUT /api/config` in `beforeEach`.
-
-Module coverage is data-driven. `e2e/helpers/module-fixtures.ts` has one row per built-in type and the render matrices loop over it; config-field depth lives in `e2e/helpers/config-variants/`, empty states in `e2e/helpers/empty-state-fixtures.ts`, the style matrix in `e2e/display/module-style.spec.ts` (exemptions in `e2e/helpers/style-matrix.ts` carry a reason). Module data is fetched client-side and stubbed at the browser boundary by `stubModuleData` (`e2e/helpers/stubs.ts`), whose external-block catch-all guarantees zero real upstream calls. Local-data modules seed instead: `seedChores`, `seedMeals`, `seedTodos(sandboxDir)`; plugin specs use `seedFixturePlugin`. The ratchets in `e2e/meta/coverage.spec.ts` also police settings pages, API routes (`ROUTE_DECISIONS`), locales per surface, `autoSizesText` flags, style exemptions, every route's auth posture (`PUBLIC_ROUTES`), and agreement between a registry `defaultConfig` and the fallback the code renders or fetches with (`DEFAULT_FALLBACK_EXEMPTIONS`).
+E2E is Playwright, Chromium only, in `e2e/`, each worker on its own sandboxed production server so runs never touch the real data. `e2e/CLAUDE.md` has the sandbox, stubbing, seeding and coverage-ratchet rules.
 
 ## Working Conventions
 
-- Plans and specs live in `.claude/plans/` (finished ones in `.claude/plans-finished/`), mockups in `.claude/mockups/`. None are committed.
-- UI features are mockup-first: real HTML mockup, sign-off, implement, then audit the rendered result against the mockup.
-- Never claim a fix without observing the fixed behavior in the running app or a re-run check.
-- Never commit until the user signs off. One summary line, blank line, bulleted body. No phase or review references, no attribution, no em-dashes.
+- UI features are mockup-first: a real HTML mockup in `.claude/mockups/` (not committed), sign-off, implement, then audit the rendered result against the mockup.
 - User-visible strings are kid-friendly plain language: no "admin", "permission", "enum", "backfill", or node/chromium jargon. Children use the chore chart and `/remote`; issue reporters are not developers.
 - Member-based UIs must work with 5+ members: aggregate indicators, not per-member visuals.
 - Placeholder content in unconfigured modules is intentional; never blank it.

@@ -325,6 +325,7 @@
       "weekdays": "Mon to Fri",
       "weekends": "Sat and Sun",
       "allDay": "all day",
+      "allDaysFor": "all day for {count} days",
       "fromOnly": "from {start}",
       "untilOnly": "until {end}",
       "window": "{start} to {end}",
@@ -622,6 +623,7 @@
         "connected": "Connected to Google",
         "disconnect": "Disconnect",
         "noCalendars": "No calendars found.",
+        "notAnswering": "Google isn't answering right now, so your calendars can't be listed. The ones you picked stay picked.",
         "primaryBadge": "(primary)",
         "hideDeclinedLabel": "Hide events you declined",
         "credentialsRequired": "Connecting your calendar needs a Google sign-in you create yourself. Add it on the API keys page.",
@@ -636,8 +638,10 @@
         "copyCode": "Copy code",
         "googleOnly": "Google only",
         "pausedExplanation": "Google isn't connected right now, so these calendars have stopped updating. Sign in again above to bring them back.",
+        "goneExplanation": "Google doesn't list these calendars any more. They may have been deleted, or stopped being shared with you. Remove them below.",
         "stillUsedByPhotos": "Disconnected on this hub. Google Photos import still uses the same Google sign-in, so your Google account keeps listing Home Screens until you disconnect Google Photos too.",
         "pausedBadge": "Paused",
+        "goneBadge": "Not found",
         "removeTitle": "Remove {name}",
         "credentialsSetupPrefix": "Add your Google login on the ",
         "credentialsSetupSuffix": " page first.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Google asks you to sign in once more to allow it. Showing your calendars works the same either way.",
         "switchHelpICloud": "Your iCloud calendars need nothing more. Showing them works the same either way.",
         "ready": "Signed in, can add events",
+        "pickCalendars": "Pick at least one calendar below for new events to go on.",
+        "googleNotAnswering": "Google isn't answering right now. Adding events to its calendars comes back once it does.",
         "signInTitle": "One more step: sign in to Google again",
         "signInBody": "Google will ask you to let Home Screens “View and edit events on all your calendars”. A Google tab opens, and you'll come back here on your own.",
         "signInButton": "Sign in with Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Couldn't make the backup. Try again.",
-        "invalidBackupFile": "Invalid backup file.",
         "restoreBackupFailed": "Couldn't restore that backup. Try again.",
         "credentialsExportFailedTitle": "Couldn't include your keys",
         "credentialsExportFailed": "Your keys and accounts could not be added to this backup. Download the rest anyway?",
@@ -1486,7 +1491,7 @@
       "upload": "Upload",
       "dropzone": "Drop pictures or videos here, or click to pick, as many as you like",
       "saveInto": "Save into",
-      "wontPlay": "{name} is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
+      "wontPlay": "{name} is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.",
       "loadFailed": "Couldn't load your pictures and videos",
       "tryAgain": "Try again",
       "allFolders": "All pictures & videos",
@@ -1518,6 +1523,24 @@
         "one": "It'll be gone from this hub for good. A slideshow that shows it moves on to its other pictures, and if a screen depends on it, it's kept, so no screen goes empty.",
         "other": "They'll be gone from this hub for good. Slideshows move on to their other pictures, and files a screen depends on are kept, so no screen goes empty."
       },
+      "clipsGoToo": {
+        "one": "Its Live Photo clip goes with it.",
+        "other": "Their Live Photo clips go with them."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo isn’t paired yet",
+        "other": "{count} Live Photos aren’t paired yet"
+      },
+      "pairBody": {
+        "one": "{name} sits beside a picture of the same name, so it plays as a short video of its own. Pair it and it moves its picture instead.",
+        "other": "{name} and {more} more sit beside pictures of the same name, so each plays as a short video of its own. Pair them and each one moves its picture instead."
+      },
+      "pairButton": "Pair Live Photos",
+      "paired": {
+        "one": "Paired {count} Live Photo.",
+        "other": "Paired {count} Live Photos."
+      },
+      "pairFailed": "Couldn't pair the Live Photos. Try again.",
       "deleteConfirm": "Delete",
       "refused": "{file} is still in use and was not deleted.",
       "keptLast": "{file} was kept: it's the last picture in the slideshow on '{name}'.",
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Other things to buy",
-        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall, and a grocery card with Add on the Wall adds to it.",
+        "description": "Pick one of your lists for the things no meal needs, like paper towels or dog food. What is still on it shows at the end of the grocery list on the phone and the wall. When a grocery card has “Add on the wall” switched on, what is added there goes on this list.",
         "none": "None"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
         "regenerateWarning": "Each display reloads once to pick up the new key.",
-        "errorRegenerate": "Couldn't make a new key",
-        "errorCopy": "Copy failed; select and copy manually",
+        "errorRegenerate": "Couldn't make a new key.",
+        "errorCopy": "Couldn't copy it. Select the key and copy it yourself.",
         "phoneHintIntro": "To control a display from a phone, bookmark a link like this one:",
         "phoneHintOutro": "Reveal the key above first so the link carries it. Swap sleep for wake, reload, next-screen or prev-screen to get the other commands.",
         "phoneHintDisplayNote": "This one points at {name}. Swap {display} for another display's id to aim at that one."
@@ -2381,9 +2404,9 @@
         "addButton": "Add",
         "errors": {
           "invalidCidr": "That isn't a network range. Most home networks are 192.168.1.0/24.",
-          "invalidIp": "That isn't an address",
+          "invalidIp": "That isn't an IP address.",
           "invalidPrefix": "The number after the slash has to be between 0 and 32.",
-          "alreadyInList": "Already in the list"
+          "alreadyInList": "Already in the list."
         },
         "callerIpLabel": "Your IP: ",
         "lockoutWarning": {
@@ -2764,7 +2787,7 @@
       "statusIdle": "Idle · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "{degrees}° rotation",
-      "rotationNormal": "normal",
+      "rotationNormal": "No rotation",
       "screenCount": {
         "one": "{count} screen",
         "other": "{count} screens"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Changing every day of a repeating event",
             "hint": "When a change covers every time it happens, not just one day."
+          },
+          "menu-change": {
+            "label": "Changing the menu",
+            "hint": "Putting a meal on the menu, swapping one or taking one off, on the wall."
           }
         },
         "unlockLabel": "Stay unlocked for",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked.",
         "removeConfirmTitle": "Remove the grown-up code?",
-        "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time."
+        "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time.",
+        "lockedBody": {
+          "one": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minute.",
+          "other": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minutes."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Weekly totals",
       "memberLine": "{chores} chores, {tickets} tickets"
     },
-    "finishFormFirst": "Save or cancel the open form first.",
+    "finishFormFirst": "Finish or cancel what's open first.",
     "starter": {
       "openButton": "Pick from the starter list",
       "hint": "{count} everyday chores, sorted by time of day",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Install plugin from URL",
     "dialogAriaLabel": "Install plugin from URL",
-    "tarballUrlLabel": "Tarball URL",
-    "tarballUrlHelpPart1": "HTTPS URL to a ",
-    "tarballUrlHelpPart2": " plugin bundle. Replace the version with ",
-    "tarballUrlHelpPart3": " if you want future updates to only need a version number.",
+    "tarballUrlLabel": "Download link",
+    "tarballUrlHelpPart1": "A secure link (starting with https) to the plugin's ",
+    "tarballUrlHelpPart2": " file. Put ",
+    "tarballUrlHelpPart3": " where the version number goes, so later updates only need the number.",
     "exampleLabel": "Example:",
     "versionLabel": "Version to install",
     "externalSourceWarning": "You're installing from outside the plugin marketplace. Only install plugins from sources you trust.",
@@ -3973,9 +4004,9 @@
     "title": "Update {id}",
     "dialogAriaLabel": "Update {id}",
     "currentVersionLabel": "Current version:",
-    "tarballUrlLabel": "Tarball URL",
-    "tarballUrlHelpPart1": "Edit the URL to point at a new version, or replace the version with ",
-    "tarballUrlHelpPart2": " so future updates only need a version number.",
+    "tarballUrlLabel": "Download link",
+    "tarballUrlHelpPart1": "Change the link to point at the new version, or put ",
+    "tarballUrlHelpPart2": " where the version number goes, so next time you only type the number.",
     "exampleLabel": "Example:",
     "versionLabel": "Version to install",
     "workingMessage": "Downloading and updating…",
@@ -4700,6 +4731,8 @@
       "wallAdd": "Add on the wall",
       "wallAddHelpMealie": "Anyone at the wall can add to the grocery list. It goes on the Mealie list the family shops from.",
       "wallAddHelpLocal": "Anyone at the wall can add to the grocery list. It goes on the list picked below.",
+      "wallPlan": "Plan meals on the wall",
+      "wallPlanHelp": "Anyone at the wall can put a recipe on the menu, for this week and next: a \"Put on the menu\" button on every recipe, and a plus on empty meals in the week views. Typed meals and new recipes stay on the phone.",
       "extrasList": "Other things to buy go on",
       "extrasListNone": "None (no add row)",
       "extrasListHelp": "One of your lists. What is still on it shows at the end of the grocery list here and on the phone. Every grocery card shares it."
@@ -5215,7 +5248,7 @@
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
       "showAssignees": "Show who",
-      "wallAdd": "Add from the wall",
+      "wallAdd": "Add on the wall",
       "wallAddHelp": "An Add row under the list. Anyone at the wall can add; changing and removing stay on the phone."
     },
     "todoist": {

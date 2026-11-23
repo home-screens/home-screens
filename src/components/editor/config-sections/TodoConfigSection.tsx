@@ -114,15 +114,18 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       <div className="flex items-center gap-1.5">
-        <Button
-          size="sm"
-          variant="primary"
-          className="flex-1"
-          disabled={!selected}
-          onClick={() => setShowModal(true)}
-        >
-          {t('configSections.todo.editItems')}
-        </Button>
+        {/* The board has no one list of its own to edit; its lists are edited from the cards and the phone. */}
+        {view !== 'board' && (
+          <Button
+            size="sm"
+            variant="primary"
+            className="flex-1"
+            disabled={!selected}
+            onClick={() => setShowModal(true)}
+          >
+            {t('configSections.todo.editItems')}
+          </Button>
+        )}
         <Button size="sm" className="flex-1" disabled={creating} onClick={() => setCreating(true)}>
           {t('configSections.todo.newList')}
         </Button>

@@ -183,6 +183,7 @@ export async function changeEvent(
   input: {
     draft?: unknown; etag?: unknown; scope?: unknown; seriesId?: unknown; sourceRef?: unknown;
     dayWas?: unknown; timeWas?: unknown; repeatChanged?: unknown; timesChanged?: unknown;
+    titleChanged?: unknown; placeChanged?: unknown;
   },
 ): Promise<void> {
   if (!input.draft || typeof input.draft !== 'object' || typeof input.etag !== 'string') {
@@ -196,7 +197,11 @@ export async function changeEvent(
   const repeatChanged = input.repeatChanged === true;
   // Only a plain "no" leaves the times alone; anything else is held to the full rules.
   const timesChanged = input.timesChanged !== false;
-  checkChangeScope(scope, repeatChanged);
+  const titleChanged = input.titleChanged !== false;
+  const placeChanged = input.placeChanged !== false;
+  // A day of a series arrives with its series' id; a one-off has none.
+  const seriesId = typeof input.seriesId === 'string' && input.seriesId !== '' ? input.seriesId : undefined;
+  checkChangeScope(scope, repeatChanged, seriesId !== undefined);
   const dayWas = checkDayWas(input.dayWas, isoDateInTZ(new Date(), ctx.timezone));
   const timeWas = readTimeWas(input.timeWas, dayWas);
   const event = normalizeEventDraft(input.draft as EventDraft, { timezone: ctx.timezone, timesChanged });
@@ -206,7 +211,7 @@ export async function changeEvent(
     const { updateICloudEvent } = await import('@/lib/icloud-calendar-write');
     await updateICloudEvent(icloud, account, {
       eventId, sourceRef: sourceRefOf(input.sourceRef), etag: input.etag, scope, dayWas, ...(timeWas ? { timeWas } : {}),
-      event, repeatChanged, timesChanged, timezone: ctx.timezone,
+      event, repeatChanged, timesChanged, titleChanged, placeChanged, timezone: ctx.timezone,
     });
     bumpCalendarRevision();
     return;
@@ -217,12 +222,14 @@ export async function changeEvent(
     eventId,
     etag: input.etag,
     scope,
-    seriesId: typeof input.seriesId === 'string' ? input.seriesId : undefined,
+    seriesId,
     dayWas,
     ...(timeWas ? { timeWas } : {}),
     event,
     repeatChanged,
     timesChanged,
+    titleChanged,
+    placeChanged,
     // The grown-up code guards "every time" by its scope, and every kiosk shares one token.
     refuseSeriesId: caller === 'wall',
     timezone: ctx.timezone,
@@ -279,6 +286,8 @@ export interface CalendarEntryInfo {
   googleIfOn: GoogleEntryState;
   /** Calendars a new event can go on now, in the household's order. Empty means no "Add event". */
   calendars: EntryCalendar[];
+  /** Google is signed in but could not be asked about the calendars ticked for adding, so none of them is listed. */
+  googleUnreachable?: true;
   defaultCalendarId: string | null;
   /** How long a new event lasts until changed, in minutes. */
   defaultMinutes: number;
@@ -302,6 +311,7 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
 
   const googleEntry = ctx.entryIds.filter((id) => ctx.googleIds.includes(id));
   let labels = new Map<string, { name: string; color: string; writable: boolean }>();
+  let googleUnreachable = false;
   if (google === 'ready' && googleEntry.length > 0) {
     try {
       labels = await (await import('@/lib/google-calendar')).googleCalendarLabels(googleEntry);
@@ -310,6 +320,9 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
       // (iCloud calendars, the settings), so one a phone has open stays open.
       log.warn('Google calendar names unavailable for the event form', err);
     }
+    // None known, not even from before (a hub just restarted with Google out
+    // of reach): say so, rather than that no calendar is picked.
+    googleUnreachable = labels.size === 0;
   }
   const icloud = new Map((calendar.icloudSources ?? []).map((s) => [s.id, s]));
   const looks = calendar.calendarOverrides;
@@ -323,5 +336,5 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   }
   const preferred = entry?.defaultCalendarId;
   const defaultCalendarId = calendars.find((c) => c.id === preferred)?.id ?? calendars[0]?.id ?? null;
-  return { ...base, google, googleIfOn, calendars, defaultCalendarId };
+  return { ...base, google, googleIfOn, calendars, defaultCalendarId, ...(googleUnreachable ? { googleUnreachable: true as const } : {}) };
 }

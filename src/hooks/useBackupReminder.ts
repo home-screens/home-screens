@@ -6,7 +6,7 @@ import { attachCustomIcons } from '@/lib/custom-icon-backup';
 import { saveBackupFile } from '@/lib/picture-backup';
 import type { BackupState } from '@/lib/backup-state';
 import type { AutoBackupReminder } from '@/lib/backup-reminder-auto';
-import { backupReminderKind } from '@/lib/backup-reminder';
+import { backupReminderKind, onBackupSaved } from '@/lib/backup-reminder';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
 
@@ -68,6 +68,14 @@ export function useBackupReminder({
     [fetchFn],
     { enabled: enabled || autoBackupEnabled, intervalMs: pollIntervalMs },
   );
+
+  // A backup saved anywhere on the page (Settings > Backups & data) answers
+  // the reminder at once, not at its next hourly look.
+  useEffect(() => onBackupSaved(() => {
+    fetchFn('/api/backup/reminder')
+      .then(async (res) => { if (res.ok) setBackupState(await res.json()); })
+      .catch(() => {});
+  }), [fetchFn]);
 
   // Seed lastBackupDate on first encounter when null (avoids nagging new users)
   useEffect(() => {

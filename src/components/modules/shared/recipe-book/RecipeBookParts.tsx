@@ -56,13 +56,15 @@ export function BookIcon({ name, size, strokeWidth = 2.2, fill = 'none', style }
  * it takes. A button on a touch wall; a picture otherwise. `heart` sits on
  * the picture's corner, beside the tile's button rather than inside it.
  */
-export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, heart }: {
+export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, heart, badge }: {
   meal: SavedMeal;
   P: Px;
   onOpen?: (meal: SavedMeal) => void;
   nameSize?: number;
   metaSize?: number;
   heart?: ReactNode;
+  /** A few words over the picture's corner ("On Wed", for a recipe already on the menu). */
+  badge?: string | null;
 }) {
   const minutes = useMealMinutes()(meal);
   const picture = meal.photoUrl
@@ -77,7 +79,17 @@ export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, hear
     );
   const body = (
     <>
-      {picture}
+      <span style={{ position: 'relative', display: 'block' }}>
+        {picture}
+        {badge && (
+          <span data-testid="recipe-book-tile-badge" style={{
+            position: 'absolute', left: P(14), top: P(14), padding: `${P(4)}px ${P(14)}px`, borderRadius: 999, fontSize: P(20), fontWeight: 700, whiteSpace: 'nowrap',
+            background: 'color-mix(in srgb, var(--fmp-accent) 22%, var(--fmp-surface))', color: 'color-mix(in srgb, var(--fmp-accent) 60%, var(--fmp-text))',
+          }}>
+            {badge}
+          </span>
+        )}
+      </span>
       <span data-testid="recipe-book-tile-name" style={{
         fontSize: P(nameSize), fontWeight: 600, lineHeight: 1.22, color: 'var(--fmp-text)', marginTop: P(14),
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textAlign: 'left', overflowWrap: 'anywhere',

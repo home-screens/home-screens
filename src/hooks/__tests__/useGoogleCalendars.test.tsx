@@ -160,4 +160,24 @@ describe('useGoogleCalendars', () => {
     // The calendar listing was never asked for on the strength of a broken answer.
     expect(state.request.mock.calls.some(([url]) => url === '/api/calendars')).toBe(false);
   });
+
+  it('marks the list unreadable when Google cannot be asked, and readable again once it answers', async () => {
+    let calendarsAnswer = () => reply(502, { error: 'Google did not answer' });
+    state.request.mockImplementation((url: string) => {
+      if (url === '/api/auth/google/status') return Promise.resolve(statusAnswer());
+      if (url === '/api/calendars') return Promise.resolve(calendarsAnswer());
+      return Promise.resolve(reply(404, {}));
+    });
+    const { result } = mount();
+    await settle();
+    // Still signed in: the empty list is Google's outage, not the family's calendars being gone.
+    expect(result.current.googleConnected).toBe(true);
+    expect(result.current.googleCalendars).toEqual([]);
+    expect(result.current.calendarsUnreadable).toBe(true);
+
+    calendarsAnswer = () => reply(200, CALENDARS);
+    await act(async () => { await result.current.fetchCalendars(); });
+    expect(result.current.calendarsUnreadable).toBe(false);
+    expect(result.current.googleCalendars).toEqual(CALENDARS);
+  });
 });

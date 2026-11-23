@@ -75,7 +75,8 @@ type AuditEvent =
   | { action: 'auto_backup_removed'; file: string }
   | { action: 'grown_up_code_set' }
   | { action: 'grown_up_code_removed' }
-  | { action: 'grown_up_code_wrong'; ip: string };
+  | { action: 'grown_up_code_wrong'; ip: string }
+  | { action: 'grown_up_code_lock_cleared' };
 
 type AuditEntry = AuditEvent & { ts: string }; // ISO 8601
 

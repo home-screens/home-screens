@@ -18,6 +18,9 @@ import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
 import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 import { isoWeekday } from '@/lib/iso-date';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { MealPlanPlus, useWallMealPick } from '../shared/WallMealPickSheet';
+import { wallRowPressProps } from '../shared/wallPress';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
@@ -60,6 +63,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
   const showsToday = weekDates.includes(todayISO);
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
+  const pick = useWallMealPick();
   // Each row names its meal ("Breakfast") in a column as wide as the longest
   // name, so the dishes line up; a list too narrow for that says "B".
   const [listRef, list] = useElementBox();
@@ -215,6 +219,19 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
                   );
                 })}
               </div>
+            ) : pick.canPlan(date) ? (
+              // A day the wall may plan: the line is a full touch row that opens the recipe book for that day.
+              <button
+                type="button"
+                {...wallRowPressProps}
+                data-testid="meal-list-plan"
+                onClick={() => pick.open(date)}
+                className={`${wallRowPressProps.className} flex items-center w-full pl-1 rounded`}
+                style={{ gap: '0.5em', minHeight: 44, border: 0, background: 'none', font: 'inherit', fontSize: SMALL_SIZE, fontWeight: 600, color: config.accentColor || DEFAULT_ACCENT_COLOR, cursor: 'pointer', textAlign: 'left' }}
+              >
+                <MealPlanPlus size={Math.max(22, fontSize * 1.3)} color={config.accentColor || DEFAULT_ACCENT_COLOR} />
+                {t('meal-planner.menu.pick.plan')}
+              </button>
             ) : (
               <p className="pl-1 italic" style={{ fontSize: SMALL_SIZE, opacity: TEXT_OPACITY.tertiary }}>
                 {t('meal-planner.noMealsPlanned')}
@@ -226,6 +243,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
       {/* Room after the last day, when the scroll needs it (set by `home`) */}
       <div ref={spacerRef} aria-hidden="true" className="shrink-0" />
       </div>
+      {pick.sheet}
     </WallScroller>
   );
 }

@@ -552,7 +552,7 @@ describe('TodoModule add from the wall', () => {
     key('action');
     await waitFor(() => expect(document.body.querySelector('[data-testid="wall-add-chip"]')?.textContent).toContain('Bread'));
     expect(displayFetch).toHaveBeenCalledWith('/api/todo/lists/groceries/items', expect.objectContaining({ method: 'POST' }));
-    expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ text: 'Bread', ifNew: true });
+    expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ text: 'Bread' });
     // The box is empty for the next one.
     expect(document.body.querySelector('[data-testid="wall-text-field-words"]')?.textContent).not.toContain('Bread');
 

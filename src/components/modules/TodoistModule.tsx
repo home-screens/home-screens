@@ -171,7 +171,7 @@ export default function TodoistModule({ config, style, timeFormat, timezone, scr
             </div>
           </div>
         ) : viewMode === 'board' ? (
-          <BoardView tasks={tasks} config={config} now={now} {...wall} />
+          <BoardView tasks={tasks} config={config} now={now} fontPx={style.fontSize} {...wall} />
         ) : viewMode === 'focus' ? (
           <FocusView allTasks={filteredAll} config={config} now={now} fontPx={style.fontSize} scroll={scroll} {...wall} />
         ) : (

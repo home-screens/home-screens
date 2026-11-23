@@ -103,7 +103,7 @@ export function sourceTint(item: NewsDisplayItem, accent: string): string {
  * label, else the translated "News". A page of several feeds is not headed
  * with whichever feed happens to be listed first.
  */
-export function mastheadTitle(config: FullscreenNewsConfig, t: TranslateFn): string {
+export function mastheadTitle(config: Pick<FullscreenNewsConfig, 'title' | 'feeds'>, t: TranslateFn): string {
   const own = config.title?.trim();
   if (own) return own;
   const feeds = Array.isArray(config.feeds) ? config.feeds.filter((f) => f?.url?.trim()) : [];

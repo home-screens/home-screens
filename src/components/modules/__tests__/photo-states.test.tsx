@@ -132,14 +132,15 @@ describe('PhotoSlideshowModule options it shares with Full-Screen Photo', () => 
   it('keeps its 800 ms fade and gains slide, zoom and the slow pan', () => {
     mockData = TWO;
     const fade = render(<PhotoSlideshowModule config={slideshow()} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
-    expect(fade.container.querySelector('img')!.style.transition).toBe('opacity 800ms ease-in-out');
+    expect(fade.container.querySelector<HTMLElement>('[data-slide-layer]')!.style.transition).toBe('opacity 800ms ease-in-out');
     expect(fade.container.querySelector('style')).toBeNull();
     fade.unmount();
 
     const slide = render(<PhotoSlideshowModule config={slideshow({ transition: 'slide', kenBurns: true })} style={DEFAULT_MODULE_STYLE} />, { wrapper: Wrapper });
     const img = slide.container.querySelector('img')!;
     fireEvent.load(img);
-    expect(img.style.transition).toContain('transform 800ms');
+    expect(slide.container.querySelector<HTMLElement>('[data-slide-layer]')!.style.animation).toContain('hs-slide-in 800ms');
+    expect(img.style.animation).toContain('kb-');
     expect(slide.container.querySelector('style')!.textContent).toContain('@keyframes kb-a');
   });
 });

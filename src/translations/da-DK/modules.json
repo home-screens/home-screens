@@ -206,10 +206,7 @@
       "viewsLabel": "Visninger",
       "sheetEyebrow": "Vis én person",
       "sheetTitle": "Hvis kalender?",
-      "allPeople": {
-        "one": "{count} person",
-        "other": "{count} personer"
-      },
+      "everyCalendar": "Alle kalendere",
       "peopleCount": {
         "one": "{count} person",
         "other": "{count} personer"
@@ -617,6 +614,71 @@
         "mealieSetup": "Tjek Mealie under Indstillinger på computeren for at vise listen."
       },
       "alsoOn": "Også på {list}"
+    },
+    "menu": {
+      "put": "Sæt på madplanen",
+      "change": "Ændr madplanen",
+      "codeWhy": "For at ændre madplanen",
+      "whichMeal": "Hvilket måltid",
+      "thisWeek": "Denne uge",
+      "nextWeek": "Næste uge",
+      "free": "Ledig",
+      "undo": "Fortryd",
+      "undone": "Sat tilbage, som det var.",
+      "hint": "Tryk på en dag. Hvis dagen allerede har et måltid, bliver du spurgt, før noget ændres.",
+      "hintMine": "Et flueben viser, hvor {meal} allerede står. Tryk på den dag for at fjerne retten, eller på en anden dag for at få den en gang til.",
+      "when": {
+        "breakfast": "{day} til morgenmad",
+        "lunch": "{day} til frokost",
+        "dinner": "{day} til aftensmad",
+        "snack": "{day} til mellemmåltid"
+      },
+      "did": {
+        "planned": "{meal} er på madplanen {when}.",
+        "joined": "{meal} er kommet med {when}.",
+        "swapped": "{meal} er nu på madplanen {when}.",
+        "both": "{meal} er også på madplanen {when}.",
+        "off": "{meal} er fjernet fra madplanen {when}."
+      },
+      "groceryThis": "Ingredienserne står på denne uges indkøbsliste.",
+      "groceryNext": "Ingredienserne kommer på næste uges indkøbsliste.",
+      "savedMealie": "Gemt i madplanen i Mealie.",
+      "addIngredients": "Sæt ingredienserne på indkøbslisten",
+      "listAdded": "Ingredienserne står på {list}.",
+      "listAddedPlain": "Ingredienserne står på indkøbslisten.",
+      "ask": {
+        "title": "{when} står der {dish}",
+        "body": "Hvad vil du gøre?",
+        "swap": "Byt ud",
+        "swapDetail": "{meal} i stedet for {dish}",
+        "both": "Tag begge",
+        "bothDetail": "{meal} og {dish}",
+        "leave": "Lad {day} være, som den er",
+        "offTitle": "{meal} er på madplanen {when}",
+        "offBody": "Skal retten fjernes fra madplanen den dag?",
+        "offYes": "Fjern fra {day}",
+        "offNo": "Behold"
+      },
+      "problem": {
+        "changed": "Nogen har lige ændret {day}.",
+        "changedDetail": "Sådan ser madplanen ud nu. Tryk på en dag for at prøve igen.",
+        "full": "Det måltid kan ikke have flere retter.",
+        "off": "Planlægning på væggen er lige blevet slået fra.",
+        "undoLate": "Det kunne ikke fortrydes. Dagen er blevet ændret igen.",
+        "undoFailed": "Det kunne ikke fortrydes.",
+        "day": "Den dag kan ikke planlægges på væggen.",
+        "failed": "Det kom ikke på madplanen.",
+        "failedDetail": "Home Screens svarer ikke. Prøv igen om lidt.",
+        "listFailed": "Ingredienserne kom ikke på listen."
+      },
+      "pick": {
+        "hint": "Tryk på en opskrift for at sætte den på madplanen.",
+        "on": "Planlagt {day}",
+        "plan": "Planlæg et måltid",
+        "planAria": "Vælg en ret {when}",
+        "noneTitle": "Ingen opskrifter at planlægge endnu",
+        "noneHint": "Tilføj et måltid med ingredienser eller noter på telefonen, så dukker det op her."
+      }
     }
   },
   "wallScroll": {

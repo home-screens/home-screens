@@ -1130,6 +1130,16 @@
           },
           "description": "In the grocery view on a touch wall, an Add button by the list's name, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
           "default": true
+        },
+        {
+          "name": "wallPlan",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "On a touch wall, lets anyone put a recipe on the menu: a \"Put on the menu\" button on every recipe card, and a plus on the empty meals of the Week view. Needs taps on",
+          "default": true
         }
       ],
       "views": [
@@ -5603,6 +5613,16 @@
             "text": "boolean"
           },
           "description": "In the grocery view on a touch wall, an Add row under the list, so anyone at the wall can put something on the family's shopping list with the wall's keyboard. Needs taps on",
+          "default": true
+        },
+        {
+          "name": "wallPlan",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "On a touch wall, lets anyone put a recipe on the menu: a \"Put on the menu\" button on every recipe card, and a plus on the empty meals of the Week and List views. Needs taps on",
           "default": true
         }
       ],
@@ -11390,6 +11410,15 @@
       ]
     },
     {
+      "path": "/api/backgrounds/pair-live",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backgrounds/rotate",
       "methods": [
         {
@@ -11959,6 +11988,10 @@
         {
           "method": "POST",
           "access": "open"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
         }
       ]
     },
@@ -12230,6 +12263,15 @@
       ]
     },
     {
+      "path": "/api/mealie/shopping/recipe",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "display"
+        }
+      ]
+    },
+    {
       "path": "/api/mealie/validate",
       "methods": [
         {
@@ -12278,6 +12320,15 @@
       "methods": [
         {
           "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/meals/plan/wall",
+      "methods": [
+        {
+          "method": "POST",
           "access": "display"
         }
       ]

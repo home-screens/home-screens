@@ -1,6 +1,6 @@
 import type { DisplayNodeSettings } from '@/types/config';
 import { COALESCE_KEYS } from '@/stores/editor-save';
-import { pruneCalendarSourceRefs, removedCalendarSourceIds } from '@/lib/calendar-source-refs';
+import { pruneCalendarSourceRefs } from '@/lib/calendar-source-refs';
 import type { MutateConfig, SettingsActions } from './types';
 
 /**
@@ -10,14 +10,13 @@ import type { MutateConfig, SettingsActions } from './types';
  */
 export function createSettingsSlice(mutateConfig: MutateConfig): SettingsActions {
   return {
-    // A calendar source the new settings no longer have takes every other
-    // mention of it (who owns it, which calendar modules show it) with it in
-    // the same edit.
+    // A calendar source the new settings no longer have takes the other
+    // mentions of it (which calendar modules show it; who owns it, for a
+    // removed link) with it in the same edit.
     updateSettings: (settings) => {
       mutateConfig((config) => {
         const next = { ...config, settings: { ...config.settings, ...settings } };
-        const removed = removedCalendarSourceIds(config.settings.calendar, next.settings.calendar);
-        return { config: pruneCalendarSourceRefs(next, removed) };
+        return { config: pruneCalendarSourceRefs(next, config.settings.calendar) };
       }, { coalesce: COALESCE_KEYS.settings });
     },
 

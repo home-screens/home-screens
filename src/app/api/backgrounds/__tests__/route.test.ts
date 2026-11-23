@@ -879,6 +879,23 @@ describe('DELETE /api/backgrounds', () => {
     await expect(fs.access(path.join(bgsDir, 'remove-me.jpg'))).rejects.toThrow();
   });
 
+  it('takes a Live Photo clip with its picture, and leaves a clip deleted on its own', async () => {
+    const { DELETE } = await getHandlers();
+    await fs.writeFile(path.join(bgsDir, 'IMG_1.jpg'), 'img');
+    await fs.writeFile(path.join(bgsDir, 'IMG_1.live.mov'), 'mov');
+    await fs.writeFile(path.join(bgsDir, 'IMG_2.jpg'), 'img');
+    await fs.writeFile(path.join(bgsDir, 'IMG_2.live.mov'), 'mov');
+
+    const res = await DELETE(makeDeleteRequest({ file: 'IMG_1.jpg' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ deleted: 'IMG_1.jpg', clip: 'IMG_1.live.mov' });
+    await expect(fs.access(path.join(bgsDir, 'IMG_1.live.mov'))).rejects.toThrow();
+
+    // The clip on its own goes alone; its picture stays.
+    expect((await DELETE(makeDeleteRequest({ file: 'IMG_2.live.mov' }))).status).toBe(200);
+    await expect(fs.access(path.join(bgsDir, 'IMG_2.jpg'))).resolves.toBeUndefined();
+  });
+
   it('returns 404 for nonexistent file', async () => {
     const { DELETE } = await getHandlers();
 

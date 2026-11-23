@@ -805,12 +805,12 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   {
     type: 'photo-slideshow', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'slide' },
-    expect: child('img[style*="transform 800ms"]'),
+    expect: child('[data-slide-layer][style*="hs-slide-in"]'),
   },
   {
     type: 'photo-slideshow', name: 'transition-zoom', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'zoom' },
-    expect: child('img[style*="transform 1000ms"]'),
+    expect: child('[data-slide-layer][style*="hs-zoom-in"]'),
   },
   {
     // The slow pan: the picture showing carries one of the two keyframes.
@@ -821,12 +821,12 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   {
     type: 'fullscreen-photo', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'slide' },
-    expect: child('img[style*="transform 800ms"]'),
+    expect: child('[data-slide-layer][style*="hs-slide-in"]'),
   },
   {
     type: 'fullscreen-photo', name: 'transition-zoom', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'zoom' },
-    expect: child('img[style*="transform 1000ms"]'),
+    expect: child('[data-slide-layer][style*="hs-zoom-in"]'),
   },
 
   // -- dad-joke / quote / word-of-day / history --

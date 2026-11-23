@@ -33,6 +33,12 @@ describe('formatScheduleTime', () => {
     expect(formatScheduleTime({ daysOfWeek: [1, 2, 3] }, t, 'en-US', '12h')).toBe('all day');
   });
 
+  it('names a stretch across days with no times as days, not as one day', () => {
+    // Friday to Sunday: Friday's midnight until Monday's.
+    expect(formatScheduleTime({ daysOfWeek: [5], endDayOffset: 2 }, t, 'en-US', '12h')).toBe('all day for 3 days');
+    expect(describeSchedule({ daysOfWeek: [5], endDayOffset: 2 }, t, 'en-US', '12h').short).toBe('Fri, all day for 3 days');
+  });
+
   it('names a one-sided window, which really does gate most of the day', () => {
     // 6 PM with no end is hidden from midnight to 6 PM, not "all day".
     expect(formatScheduleTime({ startTime: '18:00' }, t, 'en-US', '12h')).toBe('from 6:00 PM');

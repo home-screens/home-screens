@@ -26,8 +26,9 @@ import { isUnplayableVideo } from '@/lib/video-codec';
  */
 export const PHONE_VIDEO_MAX_BYTES = 100 * 1024 * 1024;
 
-/** Why one picked file was not added. `wontPlay` is an HEVC video (what
- *  iPhones record by default), which the wall's Chromium cannot play. */
+/** Why one picked file was not added. `wontPlay` is a video the wall's
+ *  Chromium cannot play: HEVC (what iPhones record by default) or an older
+ *  camera's format (`isUnplayableVideo`). */
 export type UploadProblem = 'tooBigPhoto' | 'tooBigVideo' | 'notMedia' | 'wontPlay' | 'failed';
 
 export interface UploadFailure {

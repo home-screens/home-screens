@@ -42,7 +42,7 @@ describe('toGoogleBody', () => {
       // The other shape is cleared by name, so a patch that turns an all-day event timed leaves no `date` behind.
       start: { date: null, dateTime: '2026-11-23T16:00:00', timeZone: TZ },
       end: { date: null, dateTime: '2026-11-23T16:45:00', timeZone: TZ },
-      recurrence: ['RRULE:FREQ=WEEKLY'],
+      recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=MO'],
     });
   });
 
@@ -211,6 +211,8 @@ describe('updateGoogleEvent', () => {
       event: normalizeEventDraft({ ...loaded.draft, title }, { ...household, timesChanged: false }),
       repeatChanged: false,
       timesChanged: false,
+      titleChanged: true,
+      placeChanged: false,
       timezone: TZ,
     });
     return loaded;
@@ -247,14 +249,38 @@ describe('updateGoogleEvent', () => {
     expect(patches()).toEqual([{ method: 'patch', eventId: 'cabin_20261127', body: { summary: 'Cabin with the Lees', location: '' }, ifMatch: '"i1"' }]);
 
     await rename('cabin_20261127', 'Cabin weekend', 'series');
-    expect(patches()).toEqual([{ method: 'patch', eventId: 'cabin', body: { summary: 'Cabin weekend', location: '' }, ifMatch: '"s1"' }]);
+    // Only the name changed, so only the name reaches the series.
+    expect(patches()).toEqual([{ method: 'patch', eventId: 'cabin', body: { summary: 'Cabin weekend' }, ifMatch: '"s1"' }]);
+  });
+
+  it('"Every time" from a day moved to another weekday moves the series and its named day together', async () => {
+    held.set('art', { id: 'art', etag: '"s1"', summary: 'Art club', start: at('2026-09-02T17:00:00'), end: at('2026-09-02T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=WE'] });
+    // Wednesday the 25th moved to Thursday the 26th, every time; the repeat itself was left as it was.
+    await updateGoogleEvent({
+      calendarId: CAL, eventId: 'art_20261125', etag: '"s1"', scope: 'series', seriesId: 'art', dayWas: '2026-11-25',
+      event: normalizeEventDraft({ title: 'Art club', date: '2026-11-26', allDay: false, startTime: '17:00', endTime: '18:00', repeat: { frequency: 'weekly' } }, household),
+      repeatChanged: false, timesChanged: true, titleChanged: false, placeChanged: false, timezone: TZ,
+      timeWas: { allDay: false, startMinute: 17 * 60, minutes: 60 },
+    });
+    const body = patches()[0].body as { start: { dateTime: string }; recurrence: string[] };
+    expect(body.start.dateTime).toBe('2026-09-03T17:00:00');
+    expect(body.recurrence).toEqual(['RRULE:FREQ=WEEKLY;BYDAY=TH']);
+  });
+
+  it('hands the form a timed series\' usual start, where "every time" moves from', async () => {
+    held.set('practice', { id: 'practice', etag: '"s1"', summary: 'Practice', start: at('2026-09-01T17:00:00'), end: at('2026-09-01T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    held.set('practice_20261124', { id: 'practice_20261124', etag: '"i1"', recurringEventId: 'practice', summary: 'Practice', start: at('2026-11-24T18:00:00'), end: at('2026-11-24T19:00:00') });
+    const loaded = await getGoogleEventForEdit(CAL, 'practice_20261124', TZ);
+    // The series at 5 PM; this day was moved to 6 PM on its own.
+    expect(loaded.seriesStartTime).toBe('17:00');
+    expect(loaded.draft.startTime).toBe('18:00');
   });
 
   it('"Every time" from a day moved to another time renames the series and moves nothing', async () => {
     held.set('practice', { id: 'practice', etag: '"s1"', summary: 'Practice', start: at('2026-09-01T17:00:00'), end: at('2026-09-01T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
     held.set('practice_20261124', { id: 'practice_20261124', etag: '"i1"', recurringEventId: 'practice', summary: 'Practice', start: at('2026-11-24T18:00:00'), end: at('2026-11-24T19:00:00') });
     await rename('practice_20261124', 'Soccer practice', 'series');
-    expect(patches()[0].body).toEqual({ summary: 'Soccer practice', location: '' });
+    expect(patches()[0].body).toEqual({ summary: 'Soccer practice' });
   });
 
   it('sends times once the family changed them, measured from the day as it was loaded', async () => {
@@ -263,7 +289,7 @@ describe('updateGoogleEvent', () => {
       calendarId: CAL, eventId: 'practice_20261124', etag: '"s1"', scope: 'series', seriesId: 'practice', dayWas: '2026-11-24',
       timeWas: { allDay: false, startMinute: 18 * 60, minutes: 60 },
       event: normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: false, startTime: '18:30', endTime: '19:30' }, household),
-      repeatChanged: false, timesChanged: true, timezone: TZ,
+      repeatChanged: false, timesChanged: true, titleChanged: false, placeChanged: false, timezone: TZ,
     });
     expect(patches()[0].body).toMatchObject({ start: { date: null, dateTime: '2026-09-01T17:30:00' }, end: { date: null, dateTime: '2026-09-01T18:30:00' } });
   });
@@ -272,7 +298,7 @@ describe('updateGoogleEvent', () => {
     await updateGoogleEvent({
       calendarId: CAL, eventId: 'party', etag: '"p1"', scope: 'instance', dayWas: '2026-11-28',
       event: normalizeEventDraft({ title: 'Party', date: '2026-11-28', allDay: false, startTime: '14:00', endTime: '16:00' }, household),
-      repeatChanged: false, timesChanged: true, timezone: TZ,
+      repeatChanged: false, timesChanged: true, titleChanged: false, placeChanged: false, timezone: TZ,
     });
     expect(patches()[0].body).toMatchObject({
       start: { date: null, dateTime: '2026-11-28T14:00:00', timeZone: TZ },
@@ -286,16 +312,35 @@ describe('updateGoogleEvent', () => {
     await updateGoogleEvent({
       calendarId: CAL, eventId: 'practice_20261124', etag: '"s1"', scope: 'series', seriesId: 'practice', dayWas: '2026-11-24',
       event: normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: true, repeat: { frequency: 'weekly', until: '2026-12-15' } }, household),
-      repeatChanged: true, timesChanged: false, timezone: TZ,
+      repeatChanged: true, timesChanged: false, titleChanged: false, placeChanged: false, timezone: TZ,
     });
-    expect(patches()[0].body).toEqual({ summary: 'Practice', location: '', recurrence: ['RRULE:FREQ=WEEKLY;UNTIL=20261216T055959Z'] });
+    // On the tapped Tuesday, as "Every week on Tuesday" says.
+    expect(patches()[0].body).toEqual({ recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=20261216T055959Z'] });
+  });
+
+  it('"Every time" from a day with a place of its own keeps that place off the series', async () => {
+    held.set('gym', { id: 'gym', etag: '"s1"', summary: 'Gymnastics', location: 'Rec center', start: at('2026-09-03T17:00:00'), end: at('2026-09-03T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    held.set('gym_20261126', { id: 'gym_20261126', etag: '"i1"', recurringEventId: 'gym', summary: 'Gymnastics', location: 'Lakeside gym (away meet)', start: at('2026-11-26T17:00:00'), end: at('2026-11-26T18:00:00') });
+    const loaded = await getGoogleEventForEdit(CAL, 'gym_20261126', TZ);
+    calls.length = 0;
+    // Only the start moved; the form sends that day's own place back as it was.
+    const draft = { ...loaded.draft, startTime: '17:30', endTime: '18:30' };
+    await updateGoogleEvent({
+      calendarId: CAL, eventId: 'gym_20261126', etag: loaded.seriesEtag!, scope: 'series', seriesId: loaded.seriesId, dayWas: loaded.draft.date,
+      timeWas: { allDay: false, startMinute: 17 * 60, minutes: 60 },
+      event: normalizeEventDraft(draft, household),
+      repeatChanged: false, timesChanged: true, titleChanged: false, placeChanged: false, timezone: TZ,
+    });
+    expect(patches()[0].body).not.toHaveProperty('location');
+    expect(patches()[0].body).not.toHaveProperty('summary');
+    expect(patches()[0].body).toMatchObject({ start: { dateTime: '2026-09-03T17:30:00' } });
   });
 
   describe('a one-day change aimed at a series own id', () => {
     const input = {
       calendarId: CAL, eventId: 'soccer', etag: '"s1"', scope: 'instance' as const, dayWas: '2026-11-24',
       event: normalizeEventDraft({ title: 'Changed', date: '2026-11-24', allDay: false, startTime: '06:00', endTime: '07:00' }, household),
-      repeatChanged: false, timesChanged: true, timezone: TZ,
+      repeatChanged: false, timesChanged: true, titleChanged: true, placeChanged: false, timezone: TZ,
     };
 
     it('is refused for a wall before anything is written', async () => {

@@ -15,6 +15,9 @@ import { useMealMinutes } from '../shared/useMealMinutes';
 import type { LookAhead } from '../shared/useLookAhead';
 import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
 import { EMPTY_STATE_PX } from './meal-planner-utils';
+import { MealPlanPlus, useWallMealPick } from '../shared/WallMealPickSheet';
+import { useWallMenuWords } from '../shared/wallMenu';
+import { wallPressProps } from '../shared/wallPress';
 import { NO_VALUE } from '@/lib/constants';
 
 interface WeekViewProps extends MealPlannerViewProps {
@@ -49,6 +52,7 @@ export default function WeekView({
   // the end, how far the wall goes.
   const tagText = limitWords ?? (look.away ? lookWords : null);
   const P = (n: number) => px(s, n);
+  const menuWords = useWallMenuWords(weekDates);
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
   const todayISO = toISODate(now);
   // Another week has no today to rest at: it starts at its top.
@@ -67,8 +71,14 @@ export default function WeekView({
     () => weekPlannedSlots(weekDates, slots, plan, savedMeals),
     [slots, weekDates, plan, savedMeals],
   );
-  const weekEmpty = usedSlots.length === 0;
-  const total = weekDates.length * usedSlots.length;
+  // Where the wall may plan, the week draws every meal the household plans,
+  // each empty one with a plus: with only the meals in use, a week of
+  // dinners had nowhere to tap for a lunch, and an empty week nothing at all.
+  const pick = useWallMealPick();
+  const plannable = weekDates.some(pick.canPlan);
+  const drawnSlots = plannable ? slots : usedSlots;
+  const weekEmpty = drawnSlots.length === 0;
+  const total = weekDates.length * drawnSlots.length;
   const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
 
   const titleStyle: React.CSSProperties = { fontFamily: headerFont, fontSize: P(56), fontWeight: 400, lineHeight: 1, color: 'var(--fmp-text)', letterSpacing: '-0.01em' };
@@ -162,7 +172,7 @@ export default function WeekView({
 
             {/* Meal cards: as tall as the row, their meals centred in them */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: P(10) }}>
-              {usedSlots.map((slot) => {
+              {drawnSlots.map((slot) => {
                 const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
                 const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                 const minutes = showPrepTime ? mealMinutes(meal) : null;
@@ -181,8 +191,37 @@ export default function WeekView({
                   </span>
                 );
 
+                if (!name && pick.canPlan(date)) {
+                  // A meal the wall may plan: the whole cell opens the recipe book for it.
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      {...wallPressProps}
+                      data-testid="fmp-empty-slot"
+                      data-plan=""
+                      aria-label={t('meal-planner.menu.pick.planAria', { when: menuWords.when(date, slot) })}
+                      onClick={() => pick.open(date, slot)}
+                      style={{
+                        flex: 1, minWidth: 0, font: 'inherit', color: 'inherit', background: 'none', cursor: 'pointer',
+                        border: `1px solid var(--fmp-border-sub)`,
+                        borderRadius: P(12),
+                        padding: P(12),
+                        display: 'flex', flexDirection: 'column' as const, alignItems: 'center',
+                        justifyContent: landscape ? 'center' : 'flex-start', gap: P(6),
+                        textAlign: 'center' as const,
+                      }}
+                    >
+                      <span style={{ opacity: 0.55 }}>{slotLabel}</span>
+                      <span style={{ ...(landscape ? {} : { flex: 1, display: 'flex', alignItems: 'center' }) }}>
+                        <MealPlanPlus size={Math.max(30, P(48))} />
+                      </span>
+                    </button>
+                  );
+                }
+
                 if (!name) {
-                  // Quiet: nothing on the wall is tappable, so a dashed
+                  // Quiet: nothing here is tappable, so a dashed
                   // "+" box only looked like a button that never worked.
                   return (
                     <div key={slot} data-testid="fmp-empty-slot" style={{
@@ -414,6 +453,7 @@ export default function WeekView({
         {interactive && <WallRateDinnerButton size={P(24)} style={{ marginLeft: 'auto' }} />}
       </div>
       )}
+      {pick.sheet}
     </div>
   );
 }

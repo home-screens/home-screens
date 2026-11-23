@@ -111,8 +111,11 @@ describe('videoCodecOf', () => {
     await expect(codecOf(FTYP, moov('mp4a', 'avc1'))).resolves.toBe('avc');
   });
 
-  it('reads another picture format as other', async () => {
-    await expect(codecOf(FTYP, moov('vp09'))).resolves.toBe('other');
+  it('reads VP9 and AV1 as web, and an older camera format as other', async () => {
+    await expect(codecOf(FTYP, moov('vp09'))).resolves.toBe('web');
+    await expect(codecOf(FTYP, moov('mp4a', 'av01'))).resolves.toBe('web');
+    await expect(codecOf(FTYP, moov('mp4v'))).resolves.toBe('other');
+    await expect(codecOf(FTYP, moov('jpeg'))).resolves.toBe('other');
   });
 
   it('reads a file with only sound as unknown', async () => {
@@ -195,8 +198,16 @@ describe('isUnplayableVideo', () => {
     expect(await isUnplayableVideo(clip(FTYP, moov('mp4a', 'hev1')))).toBe(true);
   });
 
-  it('is false for H.264 and for a file that does not open like MP4', async () => {
+  it('is true for an older camera format the wall cannot play either', async () => {
+    // MPEG-4 Part 2 and Motion JPEG upload fine and then show a black card.
+    expect(await isUnplayableVideo(clip(FTYP, moov('mp4v')))).toBe(true);
+    expect(await isUnplayableVideo(clip(FTYP, moov('mp4a', 'mjpa')))).toBe(true);
+  });
+
+  it('is false for H.264, VP9, AV1 and for a file that does not open like MP4', async () => {
     expect(await isUnplayableVideo(clip(FTYP, moov('avc1')))).toBe(false);
+    expect(await isUnplayableVideo(clip(FTYP, moov('vp09')))).toBe(false);
+    expect(await isUnplayableVideo(clip(FTYP, moov('av01')))).toBe(false);
     expect(await isUnplayableVideo(new Blob([new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9])]))).toBe(false);
   });
 

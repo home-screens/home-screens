@@ -94,3 +94,35 @@ describe('a Live Photo on a slide layer', () => {
     expect(container.querySelector('video')).toBeNull();
   });
 });
+
+describe('a picture leaving the screen', () => {
+  const frame = (container: HTMLElement) => container.querySelector<HTMLElement>('[data-slide-layer]')!;
+
+  it('holds its slow pan where it is, rather than snapping back as it fades', () => {
+    const { container, rerender } = render(layer(plain, { active: true, kenBurns: true }));
+    const img = container.querySelector('img')!;
+    expect(img.style.animationPlayState).toBe('running');
+    rerender(layer(plain, { active: false, kenBurns: true }));
+    // Still the same pan, held: removing it would jump the picture to its first frame mid-fade.
+    expect(img.style.animation).toContain('kb-');
+    expect(img.style.animationPlayState).toBe('paused');
+  });
+
+  it('slides in from the right and out to the left, staying painted until it is out', () => {
+    const { container, rerender } = render(layer(plain, { active: true, transition: 'slide', kenBurns: true }));
+    expect(frame(container).style.animation).toContain('hs-slide-in');
+    rerender(layer(plain, { active: false, transition: 'slide', kenBurns: true }));
+    expect(frame(container).style.animation).toContain('hs-slide-out');
+    expect(frame(container).style.transition).toBe('opacity 0s linear 800ms');
+    // The pan is on the picture, the slide on its frame, so neither overrides the other.
+    expect(container.querySelector('img')!.style.animation).toContain('kb-');
+  });
+
+  it('fades out where it is on a zoom, while only the arriving picture zooms', () => {
+    const { container, rerender } = render(layer(plain, { active: true, transition: 'zoom' }));
+    expect(frame(container).style.animation).toContain('hs-zoom-in');
+    rerender(layer(plain, { active: false, transition: 'zoom' }));
+    expect(frame(container).style.animation).toBe('');
+    expect(frame(container).style.opacity).toBe('0');
+  });
+});

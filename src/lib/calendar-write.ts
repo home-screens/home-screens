@@ -167,6 +167,15 @@ export function isLongTimed(draft: Pick<EventDraft, 'allDay' | 'endDate'>): bool
 }
 
 /**
+ * An event across days, timed or all day: the forms keep it the shape it is.
+ * Switching it between all day and timed would quietly make it one day long,
+ * since a form has no way to set a time on another day.
+ */
+export function spansDays(draft: Pick<EventDraft, 'allDay' | 'endDate' | 'lastDate' | 'date'>): boolean {
+  return isLongTimed(draft) || (draft.allDay && draft.lastDate !== undefined && draft.lastDate > draft.date);
+}
+
+/**
  * Check a draft and put it in the shape the writers take. `timezone` is the
  * household's, and `now` decides "today" for the date range.
  *
@@ -267,9 +276,10 @@ export function endsNextDay(startTime: string, endTime: string): boolean {
 /**
  * A change to one day of a repeating event cannot also change how it
  * repeats: that can only mean every time, so the forms skip the question.
+ * A one-off is the whole event, so giving it a repeat is an ordinary change.
  */
-export function checkChangeScope(scope: ChangeScope, repeatChanged: boolean): void {
-  if (scope === 'instance' && repeatChanged) {
+export function checkChangeScope(scope: ChangeScope, repeatChanged: boolean, inSeries: boolean): void {
+  if (scope === 'instance' && repeatChanged && inSeries) {
     refuse('calendarWrite.repeatNeedsEveryTime', 'Changing how it repeats changes every time.');
   }
 }
@@ -348,7 +358,7 @@ export function repeatToRRule(
   shape: { allDay: true } | { allDay: false; timeZone: string } = event,
 ): string | null {
   if (!event.repeat) return null;
-  const parts = [RRULE_FOR[event.repeat.frequency]];
+  const parts = [RRULE_FOR[event.repeat.frequency], ...ruleAnchor(event.repeat.frequency, event.allDay ? event.startDate : event.startLocal.slice(0, 10))];
   const until = event.repeat.until;
   if (until) {
     if (shape.allDay) {
@@ -362,6 +372,63 @@ export function repeatToRRule(
 }
 
 const WEEKDAY_ORDER = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+
+/**
+ * The day a repeat is worded from, written into the rule: "Every week on
+ * Wednesday" is `BYDAY=WE`, "Every month on the 22nd" `BYMONTHDAY=22`. A bare
+ * `FREQ` repeats from the series' own first day, so a repeat changed from
+ * any other day landed on days the form never named (a Wednesday's "every
+ * week" fell on Tuesdays). The series keeps its first day, which RFC 5545
+ * always counts as the first time.
+ */
+function ruleAnchor(frequency: RepeatFrequency, isoDate: string): string[] {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  switch (frequency) {
+    case 'weekly':
+    case 'biweekly':
+      return [`BYDAY=${WEEKDAY_ORDER[(new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7]}`];
+    case 'monthly':
+      return [`BYMONTHDAY=${d}`];
+    case 'yearly':
+      return [`BYMONTH=${m}`, `BYMONTHDAY=${d}`];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Whether "every time" writes the series' rule again: when the repeat itself
+ * changed, or when the series moved to another day and its rule names its
+ * day (`ruleAnchor`). A weekly series moved from Wednesday to Thursday kept
+ * `BYDAY=WE` and stayed on Wednesdays, with only its first day moved.
+ */
+export function seriesRuleFollows(event: NormalizedEvent, change: { repeatChanged: boolean; timesChanged: boolean; dayWas: string }): boolean {
+  if (change.repeatChanged) return true;
+  if (!change.timesChanged || !event.repeat) return false;
+  const day = event.allDay ? event.startDate : event.startLocal.slice(0, 10);
+  return day !== change.dayWas && ruleAnchor(event.repeat.frequency, day).length > 0;
+}
+
+/**
+ * Take out a rule's anchor to one day (one weekday for a weekly rule, one day
+ * of the month, one date in the year), the way `ruleAnchor` writes it and
+ * Google's own app writes every weekly event. What is left matches a family
+ * choice; a rule on several days, or a "second Tuesday", keeps its parts and
+ * reads as set up elsewhere.
+ */
+function dropDayAnchor(fields: Map<string, string>): void {
+  const freq = fields.get('FREQ');
+  const single = (key: string, pattern: RegExp) => {
+    const value = fields.get(key);
+    return value !== undefined && pattern.test(value);
+  };
+  if (freq === 'WEEKLY' && single('BYDAY', /^(MO|TU|WE|TH|FR|SA|SU)$/)) fields.delete('BYDAY');
+  if (freq === 'MONTHLY' && single('BYMONTHDAY', /^([1-9]|[12]\d|3[01])$/)) fields.delete('BYMONTHDAY');
+  if (freq === 'YEARLY' && single('BYMONTH', /^([1-9]|1[0-2])$/) && single('BYMONTHDAY', /^([1-9]|[12]\d|3[01])$/)) {
+    fields.delete('BYMONTH');
+    fields.delete('BYMONTHDAY');
+  }
+}
 
 function ruleFields(rule: string): Map<string, string> {
   const fields = new Map<string, string>();
@@ -410,6 +477,7 @@ export function repeatFromRecurrence(lines: readonly string[] | null | undefined
   fields.delete('UNTIL');
   if (fields.get('INTERVAL') === '1') fields.delete('INTERVAL');
   fields.delete('WKST');
+  dropDayAnchor(fields);
   const body = canonicalRule(fields);
   const frequency = (Object.keys(RRULE_FOR) as RepeatFrequency[]).find((f) => canonicalRule(ruleFields(RRULE_FOR[f])) === body);
   if (!frequency) return { kind: 'other' };
@@ -447,6 +515,25 @@ export function splitGoogleEventId(id: string, calendarIds: readonly string[]): 
 export type GoogleEntryState = 'notOffered' | 'off' | 'needsWebClient' | 'needsSignIn' | 'scopeMissing' | 'ready';
 
 export const GOOGLE_EVENTS_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+
+/**
+ * Where adding events stands, as Settings > Calendar and the phone both say
+ * it: `off`; `needsGoogle` (switched on, nothing to add to until Google is
+ * signed in again); `googleUnreachable` (signed in, but Google cannot be
+ * asked right now); `noCalendars` (switched on, but no calendar is ticked to
+ * take new events, the state right after the switch is first turned on); or
+ * `ready`. `calendars` is how many ticked calendars can take an event.
+ */
+export type AddingReadiness = 'off' | 'needsGoogle' | 'googleUnreachable' | 'noCalendars' | 'ready';
+
+export function addingReadiness(entry: { enabled: boolean; google: GoogleEntryState | null; calendars: number; googleUnreachable?: boolean }): AddingReadiness {
+  if (!entry.enabled) return 'off';
+  if (entry.calendars > 0) return 'ready';
+  if (entry.google !== null && entry.google !== 'notOffered' && entry.google !== 'ready') return 'needsGoogle';
+  // Signed in, but Google could not be asked which calendars take events (`googleUnreachable` on the hub's answer).
+  if (entry.googleUnreachable) return 'googleUnreachable';
+  return 'noCalendars';
+}
 
 export function googleEntryState(input: {
   settingOn: boolean;

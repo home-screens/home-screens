@@ -135,3 +135,8 @@ export const DISPLAY_FIELD_SLIDERS = {
   transitionDuration: { min: 0.3, max: 2, step: 0.1 },
   cursorHideSeconds: { min: 1, max: 30, step: 1 },
 } as const;
+
+/** A transition's length for its slider and override row, in the household's numbers: "0.6" in English, "0,6" in German. */
+export function transitionSecondsText(seconds: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(seconds);
+}

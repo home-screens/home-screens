@@ -173,6 +173,25 @@ describe('a calendar\'s own name and colour', () => {
     expect(within(googleRow(view, 'Smith family')).queryByTestId('calendar-look-edit')).toBeTruthy();
   });
 
+  it('asks Google for its calendar list once for the whole page, ticks included', async () => {
+    const { view } = page();
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Team schedule')).getByRole('checkbox'));
+    fireEvent.click(within(googleRow(view, 'Team schedule')).getByRole('checkbox'));
+    await act(async () => {});
+    // People names Google's calendars from the page's own reading of the list.
+    expect(editorFetch.mock.calls.filter(([url]) => url === '/api/calendars')).toHaveLength(1);
+  });
+
+  it('keeps who a calendar belongs to when it is unticked, for when it is ticked again', async () => {
+    const { view, staged } = page({ personSources: { 'm-sam': [FAMILY, HOME.id] } });
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Family')).getByRole('checkbox'));
+    fireEvent.click(within(icloudRow(view, 'Home')).getByRole('checkbox'));
+    // Nothing takes Sam off them: "Whose calendar?" has Sam back the moment they are ticked again.
+    expect(staged.some((u) => 'personSources' in u)).toBe(false);
+  });
+
   it('gives an iCloud calendar ticked again its old id, and with it its name', async () => {
     const id = icloudSourceId('parent@icloud.com', 'calendar', HOME_URL);
     const source = { ...HOME, id };
@@ -194,6 +213,17 @@ describe('a calendar\'s own name and colour', () => {
     fireEvent.keyDown(box, { key: 'Enter' });
     expect(view.queryByTestId('calendar-look-strip')).toBeNull();
     expect(looks()).toEqual({ [FAMILY]: { name: 'Smith family' } });
+  });
+
+  it('closes the strip on Escape after a colour is picked, with the name box no longer focused', async () => {
+    const { view } = page();
+    await act(async () => {});
+    fireEvent.click(within(googleRow(view, 'Family')).getByTestId('calendar-look-edit'));
+    const strip = view.getByTestId('calendar-look-strip');
+    const swatch = within(strip).getAllByRole('radio')[1] ?? within(strip).getAllByRole('button')[1];
+    fireEvent.click(swatch);
+    fireEvent.keyDown(swatch, { key: 'Escape' });
+    expect(view.queryByTestId('calendar-look-strip')).toBeNull();
   });
 
   it('puts back just the colour from the calendar\'s own swatch, keeping its name', async () => {

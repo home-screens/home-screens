@@ -7,13 +7,16 @@
  *
  * It exists because iPhones record HEVC by default and the wall's Chromium on
  * a Raspberry Pi cannot play it: such a clip uploads fine and then shows as a
- * black slide. A file that is not MP4 or QuickTime (WebM) reads as 'unknown'.
+ * black slide. Older cameras' formats (MPEG-4 Part 2, Motion JPEG, ProRes)
+ * fail the same way. A file that is not MP4 or QuickTime (WebM) reads as
+ * 'unknown'.
  */
 
 /** Reads up to `length` bytes at `offset`; fewer at the end of the file. */
 export type ReadAt = (offset: number, length: number) => Promise<Uint8Array>;
 
-export type VideoCodec = 'hevc' | 'avc' | 'other' | 'unknown';
+/** `web`: VP8, VP9 or AV1, which Chromium also plays. `other`: a picture format it does not. */
+export type VideoCodec = 'hevc' | 'avc' | 'web' | 'other' | 'unknown';
 
 /** Boxes on the way down to a track's sample description. */
 const CONTAINERS = new Set(['moov', 'trak', 'mdia', 'minf', 'stbl']);
@@ -21,6 +24,8 @@ const CONTAINERS = new Set(['moov', 'trak', 'mdia', 'minf', 'stbl']);
 /** Sample entry formats that are HEVC underneath (Dolby Vision included). */
 const HEVC_FORMATS = new Set(['hvc1', 'hev1', 'dvh1', 'dvhe']);
 const AVC_FORMATS = new Set(['avc1', 'avc2', 'avc3', 'avc4']);
+/** The other picture formats the wall's Chromium plays inside MP4 or QuickTime. */
+const WEB_FORMATS = new Set(['vp08', 'vp09', 'av01']);
 
 /** Audio and timecode tracks, which say nothing about the picture. */
 const NOT_VIDEO_FORMATS = new Set(['mp4a', 'ac-3', 'ec-3', 'alac', 'lpcm', 'sowt', 'twos', 'Opus', 'fLaC', 'tmcd', 'mebx', 'text', 'tx3g']);
@@ -76,6 +81,7 @@ export async function videoCodecOf(read: ReadAt, size: number): Promise<VideoCod
   const video = formats.filter((format) => !NOT_VIDEO_FORMATS.has(format));
   if (video.some((format) => HEVC_FORMATS.has(format))) return 'hevc';
   if (video.some((format) => AVC_FORMATS.has(format))) return 'avc';
+  if (video.length > 0 && video.every((format) => WEB_FORMATS.has(format))) return 'web';
   return video.length > 0 ? 'other' : 'unknown';
 }
 
@@ -89,10 +95,12 @@ export function videoCodecOfFile(file: Blob): Promise<VideoCodec> {
 
 /**
  * True for a picked video the wall cannot play: HEVC, which the Chromium on a
- * Pi does not decode, so it would upload fine and then show as a black slide.
- * A file that cannot be read counts as playable; the hub still checks the type.
- * Shared by every place a video is added (the phone and Settings).
+ * Pi does not decode, or any picture format it does not play at all, so it
+ * would upload fine and then show as a black slide. A file that cannot be
+ * read counts as playable; the hub still checks the type. Shared by every
+ * place a video is added (the phone and Settings).
  */
 export async function isUnplayableVideo(file: Blob): Promise<boolean> {
-  return (await videoCodecOfFile(file).catch(() => 'unknown')) === 'hevc';
+  const codec = await videoCodecOfFile(file).catch((): VideoCodec => 'unknown');
+  return codec === 'hevc' || codec === 'other';
 }

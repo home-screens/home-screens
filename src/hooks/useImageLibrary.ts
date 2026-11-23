@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { logger } from '@/lib/logger';
-import { deleteLibraryImage, usageNames, type DirectoryInfo, invalidateLibraryReads, uploadLibraryFiles, uploadFailureText } from '@/lib/library-client';
+import { deleteLibraryImage, libraryFileFromServeUrl, usageNames, type DirectoryInfo, invalidateLibraryReads, uploadLibraryFiles, uploadFailureText } from '@/lib/library-client';
+import { fileNameOf } from '@/lib/media-paths';
 import { buildLibraryDeleteConfirm } from '@/lib/delete-confirmations';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { MediaListItem } from '@/types/config';
@@ -144,14 +145,14 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
 
     setUploading(true);
     setError(null);
-    const { uploaded, unplayable, error } = await uploadLibraryFiles(fileList, selectedDir, {
+    const { uploaded, unplayable, errors } = await uploadLibraryFiles(fileList, selectedDir, {
       onProgress: (i, total) => setUploadProgress(t('status.uploadingCount', { current: i + 1, total })),
     });
-    const hadError = error !== null || unplayable.length > 0;
+    const hadError = errors.length > 0 || unplayable.length > 0;
     const hadSuccess = uploaded.length > 0;
     // A video the wall cannot play stayed behind: say which, and why.
     const notes = unplayable.map((name) => tEditor('settings.mediaPage.wontPlay', { name }));
-    if (error) notes.push(uploadFailureText(error, t, t('errors.uploadFailedFor', { name: error.file })));
+    for (const e of errors) notes.push(uploadFailureText(e, t, t('errors.uploadFailedFor', { name: e.file })));
     if (notes.length > 0) setError(notes.join(' '));
 
     setUploading(false);
@@ -167,7 +168,9 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
   }, [selectedDir, fetchImages, fetchDirectories, t, tEditor]);
 
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
-    if (!(await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm(1, tEditor)))) return;
+    const file = libraryFileFromServeUrl(imageUrl);
+    const clips = items.some((item) => item.url === imageUrl && item.liveUrl) ? 1 : 0;
+    if (!(await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm([file ? fileNameOf(file) : imageUrl], tEditor, t, clips)))) return;
     setDeletingImage(imageUrl);
     try {
       const res = await deleteLibraryImage(imageUrl);
@@ -190,7 +193,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       if (!isSessionExpired(err)) setError(t('errors.deleteImageFailed'));
     }
     setDeletingImage(null);
-  }, [fetchDirectories, t, tEditor]);
+  }, [fetchDirectories, items, t, tEditor]);
 
   const handleCreateFolder = useCallback(async () => {
     if (!newFolderName.trim()) return;

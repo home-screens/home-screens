@@ -118,7 +118,6 @@ export function WallPersonSheet({ choices, current, counts, theme, accentColor, 
     </button>
   );
 
-  const everyone = choices.people.length;
   const body = (
     <div style={{ padding: `${len(36, 18)} ${len(56, 20)} ${len(44, 22)}`, borderTop: `12px solid ${accentColor}` }}>
       <div style={{ fontSize: len(22, 12), letterSpacing: '0.14em', textTransform: 'uppercase', color: theme.textMuted, marginBottom: len(10, 6) }}>
@@ -136,7 +135,7 @@ export function WallPersonSheet({ choices, current, counts, theme, accentColor, 
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: len(14, 7) }}>
         {tile('everyone', 'wall-person-everyone', current === null, <PersonFace person={null} size={face} />,
-          t('fullscreen-calendar.everyone'), t('calendar.wallSwitch.allPeople', { count: everyone }), null, true)}
+          t('fullscreen-calendar.everyone'), t('calendar.wallSwitch.everyCalendar'), null, true)}
         {choices.groups.map((group) => tile(
           `g:${group.id}`, 'wall-person-group', current?.kind === 'group' && current.id === group.id,
           <FaceStack people={group.members} size={len(46, 24)} ring={tileBackground} />,

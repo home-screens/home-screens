@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readConfig } from '@/lib/config';
+import { hasEditorSession } from '@/lib/auth';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
 import { applyCalendarOverrides, renameSourceStatus } from '@/lib/calendar-overrides';
 import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
@@ -70,10 +71,16 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
       throw errorResponse(error, 'Failed to read config');
     }
 
+    const configuredIds = googleCalendarIdList(config.settings.calendar);
     const calendarIdsParam = searchParams.get('calendarIds');
-    const calendarIds = calendarIdsParam
-      ? calendarIdsParam.split(',').filter(Boolean)
-      : googleCalendarIdList(config.settings.calendar);
+    const requested = calendarIdsParam ? calendarIdsParam.split(',').filter(Boolean) : configuredIds;
+    // A wall reads only the calendars the household picked. Its key is on
+    // any device that loads /display, and the Google sign-in can see more
+    // than the family put on the wall (a parent's own calendars on the same
+    // account). The editor may preview a calendar ticked but not yet saved.
+    const calendarIds = (await hasEditorSession(request))
+      ? requested
+      : requested.filter((id) => configuredIds.includes(id));
 
     const icalSources = (config.settings.calendar.icalSources ?? []).filter(s => s.enabled);
     const icloudSources = (config.settings.calendar.icloudSources ?? []).filter(s => s.enabled);

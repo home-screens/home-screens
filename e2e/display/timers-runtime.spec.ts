@@ -322,7 +322,7 @@ test('a tap brings up the wall\'s buttons; Pause, +1 min and a held Stop act on 
   await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
 });
 
-test('a tap closes "Time\'s up!" on this display, and Stop from the hub ends it everywhere', async ({ page, request }) => {
+test('a tap closes "Time\'s up!" on this display, and Stop from the hub ends it everywhere', async ({ page, request, browser }) => {
   // Real clock: the reload below reads the hub's own view of the session,
   // which a faked page clock would contradict.
   test.setTimeout(45_000);
@@ -336,12 +336,25 @@ test('a tap closes "Time\'s up!" on this display, and Stop from the hub ends it 
   await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
   await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
 
-  // Closing it was this display's own: a reload shows it again, until a Stop
-  // ends it for every display.
+  // This wall remembers it was closed: a reload (an update, a power blip)
+  // does not bring it back.
   await page.reload();
-  await expect(page.getByText("Time's up!")).toBeVisible();
-  await control(request, 'cancel');
-  await expect(page.getByTestId('timer-overlay')).toHaveCount(0, { timeout: 10_000 });
+  await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
+
+  // Closing it was this display's own: another wall still shows it, until a
+  // Stop ends it for every display.
+  // Its own browser, so nothing this wall remembers is shared.
+  const otherWall = await browser.newContext({ viewport: page.viewportSize() ?? undefined });
+  const other = await otherWall.newPage();
+  try {
+    await other.goto(`${new URL(page.url()).origin}/display`);
+    await expect(other.getByText("Time's up!")).toBeVisible({ timeout: 10_000 });
+    await control(request, 'cancel');
+    await expect(other.getByTestId('timer-overlay')).toHaveCount(0, { timeout: 10_000 });
+  } finally {
+    await otherWall.close();
+  }
 });
 
 test('the dock\'s Timers button starts a routine or a quick timer on this display', async ({ page, request }) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { wallPressProps } from '../wallPress';
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useElementBox } from '@/hooks/useElementBox';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
@@ -13,17 +13,9 @@ import { WallScroller } from '../WallScroller';
 import { WallKeyboard } from '../WallKeyboard';
 import { mealieTitleKey, mealieWords } from '../mealie-problem';
 import { WallRecipeHeart } from '../WallRecipeHeart';
+import { FMP_WALL_VARS } from '../MealRecipeContext';
 import type { WallRecipeBook } from './useWallRecipeBook';
 import { BookMessage, RecipeBookChips, RecipeSearchField, RecipeTile, RecipeTileSkeletons, SECTION_LABEL, useChipLabel, type Px } from './RecipeBookParts';
-
-/**
- * The keyboard and the search field's caret read the wall's typing colours
- * (`--wt-*`, see `wallTypingVars`); the recipe book gives them its own
- * full-screen colours.
- */
-const FMP_TYPING_VARS = Object.fromEntries(
-  ['bg', 'surface', 'text', 'text-2', 'text-3', 'border', 'border-sub', 'accent', 'on-accent'].map((name) => [`--wt-${name}`, `var(--fmp-${name})`]),
-) as CSSProperties;
 
 const RecipeCard = lazy(() => import('../RecipeCard').then((m) => ({ default: m.RecipeCard })));
 
@@ -46,7 +38,26 @@ interface RecipeBookPanelProps {
   /** The search sheet closes (a minute without a key, nothing typed). */
   onClose?: () => void;
   /** A recipe card opened or closed over the book. */
-  onCardChange?: (open: boolean) => void;
+  onCardChange?: (open: boolean) => void;  /**
+   * The book opened to choose a recipe for one meal ("Tuesday dinner"): its
+   * own heading, a tap on a recipe hands it over instead of opening its
+   * card, and no hearts, so a missed tap never favourites something.
+   */
+  pick?: RecipeBookPick;
+}
+
+export interface RecipeBookPick {
+  title: string;
+  hint: string;
+  /** At the heading's end: the sheet's close button. */
+  end?: ReactNode;
+  /** Under the heading: which meal of the day, and what the last tap did. */
+  top?: ReactNode;
+  onPick: (meal: SavedMeal) => void;
+  /** A few words on a recipe's picture ("On Wed"). */
+  badge?: (meal: SavedMeal) => string | null;
+  /** A pick is on its way: the recipes wait. */
+  busy?: boolean;
 }
 
 /**
@@ -89,7 +100,7 @@ function problemWords(problem: MealieClientProblem): ReturnType<typeof mealieWor
  * Recipes view's search sheet. Sizes are authored at 1080 wide and go through
  * `P`, so the same layout serves a wall and a sheet.
  */
-export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, mode, showTitle = true, onClose, onCardChange }: RecipeBookPanelProps) {
+export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, mode, showTitle = true, onClose, onCardChange, pick }: RecipeBookPanelProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const chipLabel = useChipLabel();
@@ -146,12 +157,21 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
   const headingCountsBook = mode === 'book' && !typed && book.active.kind === 'local' && book.active.filter === 'all';
   // On a chip that narrows the book the number is the whole book's, and says so.
   const narrowed = mode === 'book' && !(book.active.kind === 'mealie' && book.active.filter === 'all') && !headingCountsBook;
-  const count = book.recipeCount !== null && !headingCountsBook && (
+  const count = !pick && book.recipeCount !== null && !headingCountsBook && (
     <span data-testid="recipe-book-count" style={{ ...SECTION_LABEL, fontSize: P(landscape ? 22 : 24), flexShrink: 0 }}>
       {t(narrowed ? 'meal-planner.recipeBook.countInBook' : 'meal-planner.recipeBook.count', { count: book.recipeCount })}
     </span>
   );
-  const title = showTitle && <span data-testid="recipe-book-title" style={{ fontFamily: headerFont, fontSize: P(landscape ? 72 : 78), lineHeight: 1, color: 'var(--fmp-text)', flexShrink: 0 }}>{t('meal-planner.recipeBook.title')}</span>;
+  const title = pick ? (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: P(24), minWidth: 0, flex: landscape ? 'none' : 1, maxWidth: landscape ? '46%' : undefined }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div data-testid="recipe-book-title" style={{ fontFamily: headerFont, fontSize: P(landscape ? 50 : 58), lineHeight: 1.1, color: 'var(--fmp-text)', textWrap: 'balance' }}>{pick.title}</div>
+        <div style={{ fontSize: P(landscape ? 27 : 30), color: 'var(--fmp-text-2)', marginTop: P(6) }}>{pick.hint}</div>
+      </div>
+      {!landscape && pick.end}
+    </div>
+  ) : showTitle && <span data-testid="recipe-book-title" style={{ fontFamily: headerFont, fontSize: P(landscape ? 72 : 78), lineHeight: 1, color: 'var(--fmp-text)', flexShrink: 0 }}>{t('meal-planner.recipeBook.title')}</span>;
+  const pickTop = pick?.top && <div style={{ marginTop: P(landscape ? 18 : 22) }}>{pick.top}</div>;
   // A book with almost nothing in it while the planner is full of meals
   // looks broken: say what gets a meal into the book. Gone once the book
   // has a few recipes, and never for Mealie's book.
@@ -183,8 +203,10 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
           {title}
           <div style={{ flex: 1, minWidth: 0 }}>{searchField}</div>
           {count}
+          {pick?.end}
         </div>
         {fewRecipes}
+        {pickTop}
         {chips}
       </>
     );
@@ -194,7 +216,8 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
         {/* With the title off and nothing to count, the search field starts the page. */}
         {(title || count) && <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: title ? 'space-between' : 'flex-end', flexWrap: 'wrap', columnGap: P(24) }}>{title}{count}</div>}
         {fewRecipes}
-        <div style={{ marginTop: title || count || fewRecipes ? P(30) : 0 }}>{searchField}</div>
+        {pickTop}
+        <div style={{ marginTop: title || count || fewRecipes ? P(pick ? 22 : 30) : 0 }}>{searchField}</div>
         {chips}
       </>
     );
@@ -259,7 +282,8 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
           style={{
             display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, columnGap: gapX, rowGap: P(landscape ? 30 : 34),
             // Old tiles stay (a blank grid on every key would flash) but read as old, and take no taps.
-            opacity: book.outdated ? 0.35 : 1, pointerEvents: book.outdated ? 'none' : undefined, transition: 'opacity 150ms',
+            // A pick on its way dims them too, so a tap is seen to have been taken.
+            opacity: book.outdated ? 0.35 : pick?.busy ? 0.5 : 1, pointerEvents: book.outdated ? 'none' : undefined, transition: 'opacity 150ms',
           }}
         >
           {book.items.map((meal) => (
@@ -269,8 +293,9 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
               P={P}
               nameSize={landscape ? 28 : 31}
               metaSize={landscape ? 23 : 25}
-              onOpen={interactive ? setOpen : undefined}
-              heart={<WallRecipeHeart meal={meal} P={P} place="tile" interactive={interactive} />}
+              onOpen={!interactive ? undefined : pick ? (pick.busy ? undefined : pick.onPick) : setOpen}
+              heart={pick ? undefined : <WallRecipeHeart meal={meal} P={P} place="tile" interactive={interactive} />}
+              badge={pick?.badge?.(meal)}
             />
           ))}
           {/* More to come: the next page's places, so the end of a page never reads as the end of the book.
@@ -301,7 +326,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       ref={attachRoot}
       data-testid="recipe-book"
       data-source={book.source}
-      style={{ ...FMP_TYPING_VARS, position: 'relative', flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
+      style={{ ...FMP_WALL_VARS, position: 'relative', flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       <div style={{ padding: `${P(mode === 'search' ? 26 : landscape ? 44 : 56)}px ${side}px 0`, flexShrink: 0 }}>{header}</div>
       {showHeading && (

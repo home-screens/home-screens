@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Wake the wall",
     "sleepDisplay": "Put the wall to sleep",
+    "wakeAll": "Wake every wall",
+    "sleepAll": "Put every wall to sleep",
     "sendAlert": "Send alert",
     "waitingFor": "Waiting for {name}…",
     "waitingForAll": "Waiting for the walls…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} won't see their goal while this is hidden.",
       "other": "{names} won't see their goals while this is hidden."
-    }
+    },
+    "whyNoSave": "Give the reward a name to save."
   },
   "alertSender": {
     "title": "Send alert",
@@ -683,7 +686,7 @@
       "adjusted": "from grown-ups",
       "window": "Last 30 days",
       "empty": "No tickets have moved yet.",
-      "failed": "Couldn't load the ticket history.",
+      "failed": "Couldn't load the ticket history. Check that Home Screens is on and try again.",
       "removedChore": "A chore that was removed",
       "tookOne": "A grown-up took some",
       "gaveSome": "A grown-up gave some",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Close settings",
     "system": {
       "heading": "System",
-      "errorFailedToLoad": "Couldn't load this. Try again.",
+      "errorFailedToLoad": "Couldn't load this. Check that Home Screens is on and try again.",
       "hostLabel": "Name on the network",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Memory",
@@ -729,7 +732,6 @@
         "label": "Restore a backup",
         "busyLabel": "Restoring…",
         "doneLabel": "Restored",
-        "invalidFileLabel": "Invalid backup file",
         "failedLabel": "Couldn't restore that backup. Try again.",
         "idleDescription": "Upload a backup file from this phone",
         "confirmingDescription": "Everything on Home Screens now is replaced with what is in the backup.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Manage the people in your household."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "The walls and the chores page won’t take the grown-up code for {count} more minute.",
+        "other": "The walls and the chores page won’t take the grown-up code for {count} more minutes."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Almost full: {free} left on Home Screens. Delete photos you don't need to make room.",
     "emptyTitle": "Nothing in {folder} yet",
     "emptyHint": "Add photos or videos from this phone.",
-    "loadFailed": "Couldn't load your photos.",
+    "loadFailed": "Couldn't load your photos. Check that Home Screens is on and try again.",
     "showsOn": {
       "one": "It'll show on {walls}.",
       "other": "They'll show on {walls}."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} is bigger than {size}.",
       "notMedia": "{name} isn't a photo or video the wall can show.",
-      "wontPlay": "{name} is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
+      "wontPlay": "{name} is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.",
       "failed": "{name} couldn't be sent. Try again.",
       "close": "Close",
       "showNow": "Show it on the wall now"
@@ -1145,11 +1153,7 @@
       "button": "Share",
       "nothingOpen": "All done!"
     },
-    "loadError": "Couldn't load your lists. Check that Home Screens is on and try again.",
-    "alreadyOnList": "{item} is already on the list",
-    "putBack": "{item} is back on the list",
-    "deleted": "Took {item} off the list.",
-    "undo": "Undo"
+    "loadError": "Couldn't load your lists. Check that Home Screens is on and try again."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Nothing on the board yet",
       "body": "Write a note below and it shows up on the wall a few seconds later. Notes come down on their own after the time you pick."
     },
-    "loadError": "Couldn't load the notes.",
+    "loadError": "Couldn't load the notes. Check that Home Screens is on and try again.",
     "editAria": "Edit note from {name}",
     "dayNotes": {
       "sub": "Day notes go on the calendars on the wall",
@@ -1284,7 +1288,7 @@
       "placeholder": "Picture day, no school…",
       "put": "Put it on the calendar",
       "remove": "Remove",
-      "loadError": "Couldn't load the day notes.",
+      "loadError": "Couldn't load the day notes. Check that Home Screens is on and try again.",
       "saved": "Saved for {day}. It shows on the wall when that day is on a calendar.",
       "removed": "Note removed",
       "undo": "Undo",
@@ -1482,6 +1486,10 @@
     "offBody": "It can be turned on in {place}. Day notes work as always.",
     "signInTitle": "Adding events needs one more step",
     "signInBody": "Adding events needs one more Google sign-in. It's in {place}.",
+    "pickTitle": "No calendar is picked for new events",
+    "pickBody": "Pick the calendars new events can go on in {place}. Day notes work as always.",
+    "unreachableTitle": "Google Calendar isn't answering",
+    "unreachableBody": "Adding events comes back once it does. Day notes work as always.",
     "justThisDay": "Just this day",
     "everyTime": "Every time",
     "keepIt": "Keep it",
@@ -1501,9 +1509,9 @@
       "firstDay": "First day",
       "lastDay": "Last day",
       "allDay": "All day",
+      "allDayLocked": "It runs over more than one day, so it stays all day.",
       "starts": "Starts",
       "ends": "Ends",
-      "nextDay": "next day",
       "endsOn": "Ends {day} at {time} · {length}",
       "hours": {
         "one": "{count} hour",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { daySheetHeading, daySheetRows } from '@/lib/calendar-day-sheet';
+import { daySheetHeading, daySheetRows, daySheetTime } from '@/lib/calendar-day-sheet';
 
 /** Friday, November 6 2026, the busy day in the mockup. */
 const FRIDAY = new Date(2026, 10, 6);
@@ -105,5 +105,13 @@ describe('daySheetHeading', () => {
     // The label runs mid-sentence ("Voir toute la journée du vendredi 6 novembre").
     expect(fr.full).toBe('vendredi 6 novembre');
     expect(daySheetHeading(FRIDAY, 'da-DK').date).toBe('6. november');
+  });
+});
+
+describe('daySheetTime', () => {
+  it('prints the clock time, with its weekday when it falls on another day', () => {
+    const friday4pm = new Date(2026, 10, 27, 16, 0);
+    expect(daySheetTime(friday4pm, false, '12h', 'en-US')).toBe('4:00 PM');
+    expect(daySheetTime(friday4pm, true, '12h', 'en-US')).toBe('Fri 4:00 PM');
   });
 });

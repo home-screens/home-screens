@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Delete, Lock } from 'lucide-react';
 import { useTranslate } from '@/i18n';
-import { GROWN_UP_CODE_LENGTH } from '@/lib/grown-up-code';
+import { GROWN_UP_CODE_LENGTH, grownUpWaitWords } from '@/lib/grown-up-code';
 import { registerGrownUpAsker } from '@/lib/grown-up-client';
 import { GROWN_UP_KEYS, useGrownUpEntry } from '@/hooks/useGrownUpEntry';
 import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
@@ -29,7 +29,7 @@ function GrownUpSheet({ why, onUnlocked, onCancel }: { why: string; onUnlocked: 
   const wrong = state.kind === 'wrong';
   const waiting = state.kind === 'waiting';
   const message = wrong ? t('grownUp.wrong')
-    : state.kind === 'waiting' ? t('grownUp.tooMany', { count: state.secondsLeft })
+    : state.kind === 'waiting' ? grownUpWaitWords(state.secondsLeft, t)
     : state.kind === 'offline' ? t('refusals.unreachable')
     : '';
   return (
@@ -39,6 +39,8 @@ function GrownUpSheet({ why, onUnlocked, onCancel }: { why: string; onUnlocked: 
       onClose={onCancel}
       // It opens in answer to a tap; the second half of a double tap must not cancel it.
       settleMs={DOUBLE_TAP_MS}
+      // On /chores it opens while the long press that unticks a chore is still held: that press's lift must not type a key.
+      freshPressesOnly
       testId="grown-up-sheet"
       bottomGap={20}
       panelStyle={{ background: 'var(--hs-bg-panel)', borderRadius: '20px 20px 0 0', padding: '20px 16px', textAlign: 'center' }}
@@ -69,7 +71,9 @@ function GrownUpSheet({ why, onUnlocked, onCancel }: { why: string; onUnlocked: 
               key={i}
               type="button"
               className="press-scale"
-              disabled={waiting || state.kind === 'checking'}
+              // Said, not set: a disabled key drops the focus to the page, and Escape no longer reaches the sheet.
+              // The pad already ignores keys while it checks or waits.
+              aria-disabled={waiting || state.kind === 'checking'}
               aria-label={key === 'del' ? t('actions.delete') : key}
               data-testid={`grown-up-key-${key}`}
               onClick={() => press(key)}

@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "blijft: wisselt niet vanzelf, heeft een tik of de afstandsbediening nodig",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "gepland",
     "conditionalTooltip": "alleen getoond als voorwaarden overeenkomen",
     "disabledTooltip": "uitgezet, niet op het scherm",
@@ -325,6 +325,7 @@
       "weekdays": "ma t/m vr",
       "weekends": "za en zo",
       "allDay": "de hele dag",
+      "allDaysFor": "de hele dag, {count} dagen lang",
       "fromOnly": "vanaf {start}",
       "untilOnly": "tot {end}",
       "window": "{start} tot {end}",
@@ -622,6 +623,7 @@
         "connected": "Verbonden met Google",
         "disconnect": "Verbinding verbreken",
         "noCalendars": "Geen kalenders gevonden.",
+        "notAnswering": "Google reageert nu niet, dus je agenda's kunnen niet worden getoond. Wat je hebt gekozen, blijft gekozen.",
         "primaryBadge": "(primair)",
         "hideDeclinedLabel": "Afspraken die je hebt afgewezen verbergen",
         "credentialsRequired": "Je agenda verbinden vraagt om een Google-login die je zelf aanmaakt. Voeg die toe bij API-sleutels.",
@@ -636,8 +638,10 @@
         "copyCode": "Code kopiëren",
         "googleOnly": "Alleen Google",
         "pausedExplanation": "Google is nu niet verbonden, dus deze agenda’s worden niet meer bijgewerkt. Log hierboven opnieuw in om ze terug te halen.",
+        "goneExplanation": "Google toont deze agenda's niet meer. Misschien zijn ze verwijderd of worden ze niet meer met je gedeeld. Haal ze hieronder weg.",
         "stillUsedByPhotos": "Op deze hub is de verbinding verbroken. De import uit Google Foto's gebruikt nog dezelfde Google-aanmelding, dus blijft Home Screens in je Google-account staan tot je ook Google Foto's loskoppelt.",
         "pausedBadge": "Gepauzeerd",
+        "goneBadge": "Niet gevonden",
         "removeTitle": "{name} weghalen",
         "credentialsSetupPrefix": "Voeg je Google-login eerst toe op de pagina ",
         "credentialsSetupSuffix": ".",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Om dit toe te staan, meld je je nog één keer aan bij Google. Het tonen van je agenda's blijft gewoon hetzelfde.",
         "switchHelpICloud": "Voor je iCloud-agenda's hoef je niets meer te doen. Ze worden gewoon op dezelfde manier getoond.",
         "ready": "Aangemeld, je kunt afspraken toevoegen",
+        "pickCalendars": "Kies hieronder minstens één agenda waar nieuwe afspraken in kunnen komen.",
+        "googleNotAnswering": "Google reageert nu niet. Zodra het weer reageert, kun je weer afspraken aan die agenda's toevoegen.",
         "signInTitle": "Nog één stap: meld je opnieuw aan bij Google",
         "signInBody": "Google vraagt of Home Screens “Afspraken in al je agenda's bekijken en bewerken” mag. Er gaat een Google-tabblad open en daarna kom je vanzelf hier terug.",
         "signInButton": "Aanmelden met Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Kon de back-up niet maken. Probeer het opnieuw.",
-        "invalidBackupFile": "Ongeldig back-upbestand.",
         "restoreBackupFailed": "Kon die back-up niet terugzetten. Probeer het opnieuw.",
         "credentialsExportFailedTitle": "Je sleutels konden niet mee",
         "credentialsExportFailed": "Je sleutels en accounts konden niet aan deze back-up worden toegevoegd. De rest toch downloaden?",
@@ -1218,7 +1223,7 @@
         "pauseEnabledHelp": "Dubbeltik op de gemarkeerde schermstip om het wisselen te pauzeren. Dubbeltik nogmaals om verder te gaan.",
         "pauseTimeoutLabel": "Time-out voor automatisch hervatten",
         "pauseTimeoutNever": "Nooit",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Hervat de rotatie automatisch na zoveel seconden. Stel in op 0 om gepauzeerd te blijven tot handmatig hervat.",
         "swipeEnabledLabel": "Vegen om van scherm te wisselen",
         "swipeEnabledToggle": "Ingeschakeld",
@@ -1232,10 +1237,10 @@
         "transitionEffectLabel": "Overgangseffect",
         "transitionEffectHelp": "Hoe het ene scherm plaatsmaakt voor het volgende. Onscherp is het zwaarst voor een langzaam apparaat: hapert het beeld, kies dan een ander effect.",
         "transitionDurationLabel": "Duur van de overgang",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Hoe lang de overgangsanimatie tussen schermen duurt.",
         "cursorHideLabel": "Cursor verbergen na",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "De muiscursor wordt verborgen na zoveel seconden van inactiviteit. Beweeg de muis om hem weer te tonen.",
         "pixelShiftLabel": "Scherm beschermen tegen inbranden",
         "pixelShiftToggle": "Beeld iets verschuiven",
@@ -1486,7 +1491,7 @@
       "upload": "Uploaden",
       "dropzone": "Sleep afbeeldingen of video's hierheen, of klik om te kiezen, zoveel als je wilt",
       "saveInto": "Opslaan in",
-      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Kies op een iPhone 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
+      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Komt hij van een iPhone, kies dan 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
       "loadFailed": "Je afbeeldingen en video's konden niet worden geladen",
       "tryAgain": "Opnieuw proberen",
       "allFolders": "Alle afbeeldingen & video's",
@@ -1518,6 +1523,24 @@
         "one": "Het verdwijnt voorgoed van deze hub. Een diavoorstelling die het toont, gaat verder met de andere afbeeldingen. Heeft een scherm het bestand nodig, dan blijft het staan, zodat er geen scherm leeg raakt.",
         "other": "Ze verdwijnen voorgoed van deze hub. Diavoorstellingen gaan verder met hun andere afbeeldingen. Bestanden die een scherm nodig heeft, blijven staan, zodat er geen scherm leeg raakt."
       },
+      "clipsGoToo": {
+        "one": "De Live Photo-clip gaat mee.",
+        "other": "De Live Photo-clips gaan mee."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo is nog niet gekoppeld",
+        "other": "{count} Live Photos zijn nog niet gekoppeld"
+      },
+      "pairBody": {
+        "one": "{name} staat naast een afbeelding met dezelfde naam en speelt daardoor als een los kort filmpje. Koppel het, dan beweegt het voortaan zijn afbeelding.",
+        "other": "{name} en {more} andere staan naast afbeeldingen met dezelfde naam en spelen daardoor als losse korte filmpjes. Koppel ze, dan beweegt elk voortaan zijn afbeelding."
+      },
+      "pairButton": "Live Photos koppelen",
+      "paired": {
+        "one": "{count} Live Photo gekoppeld.",
+        "other": "{count} Live Photos gekoppeld."
+      },
+      "pairFailed": "De Live Photos konden niet worden gekoppeld. Probeer het opnieuw.",
       "deleteConfirm": "Verwijderen",
       "refused": "{file} is nog in gebruik en is niet verwijderd.",
       "keptLast": "{file} is blijven staan: het is de laatste afbeelding in de diavoorstelling op '{name}'.",
@@ -1830,7 +1853,7 @@
         "scanningInterface": "Scannen op {device}",
         "scanButton": "Scannen",
         "scanningButton": "Scannen…",
-        "scanCooldownButton": "Scannen ({seconds}s)",
+        "scanCooldownButton": "Scannen ({seconds} s)",
         "defaultScanError": "Kon niet naar netwerken zoeken. Probeer het opnieuw.",
         "emptyHint": "Klik op Scannen om naar wifinetwerken in de buurt te zoeken.",
         "badges": {
@@ -1872,7 +1895,7 @@
       "rollback": {
         "polling": {
           "heading": "Verbinding controleren…",
-          "remaining": "{seconds}s tot automatische rollback",
+          "remaining": "Over {seconds} s worden de vorige instellingen hersteld",
           "warning": "Als deze pagina onbereikbaar wordt, worden de vorige instellingen automatisch hersteld."
         },
         "confirmed": {
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Andere boodschappen",
-        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en de muur, en een boodschappenkaart met Toevoegen op de muur voegt daaraan toe.",
+        "description": "Kies een van jullie lijsten voor dingen die geen maaltijd nodig heeft, zoals keukenpapier of hondenvoer. Wat er nog op staat, komt onderaan de boodschappenlijst op de telefoon en de muur. Staat ‘Toevoegen vanaf de muur’ aan bij een boodschappenkaart, dan komt wat daar wordt toegevoegd op deze lijst.",
         "none": "Geen"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Elk display herlaadt één keer om de nieuwe sleutel op te pikken.",
-        "errorRegenerate": "Nieuwe sleutel maken is niet gelukt",
-        "errorCopy": "Kopiëren mislukt; selecteer en kopieer handmatig",
+        "errorRegenerate": "Nieuwe sleutel maken is niet gelukt.",
+        "errorCopy": "Kopiëren is niet gelukt. Selecteer de sleutel en kopieer hem zelf.",
         "phoneHintIntro": "Wil je een display vanaf je telefoon bedienen, maak dan een bladwijzer van een link als deze:",
         "phoneHintOutro": "Toon eerst de sleutel hierboven, zodat de link hem meeneemt. Vervang sleep door wake, reload, next-screen of prev-screen voor de andere opdrachten.",
         "phoneHintDisplayNote": "Deze wijst naar {name}. Vervang {display} door de id van een ander display om daarop te mikken."
@@ -2381,9 +2404,9 @@
         "addButton": "Toevoegen",
         "errors": {
           "invalidCidr": "Dat is geen netwerkbereik. De meeste thuisnetwerken zijn 192.168.1.0/24.",
-          "invalidIp": "Dat is geen adres",
+          "invalidIp": "Dat is geen IP-adres.",
           "invalidPrefix": "Het getal na de schuine streep moet tussen 0 en 32 liggen.",
-          "alreadyInList": "Staat al in de lijst"
+          "alreadyInList": "Staat al in de lijst."
         },
         "callerIpLabel": "Jouw IP: ",
         "lockoutWarning": {
@@ -2764,7 +2787,7 @@
       "statusIdle": "Inactief · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "rotatie van {degrees}°",
-      "rotationNormal": "normaal",
+      "rotationNormal": "Geen rotatie",
       "screenCount": {
         "one": "{count} scherm",
         "other": "{count} schermen"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Alle keren van een terugkerende afspraak wijzigen",
             "hint": "Als een wijziging voor elke keer geldt, niet alleen voor één dag."
+          },
+          "menu-change": {
+            "label": "Het menu wijzigen",
+            "hint": "Een maaltijd op het menu zetten, vervangen of eraf halen, op de muur."
           }
         },
         "unlockLabel": "Hoe lang de muur ontgrendeld blijft",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Na de juiste code doet die muur de aangevinkte dingen zo lang zonder het opnieuw te vragen. Wie op de telefoon is aangemeld, krijgt de vraag nooit.",
         "removeConfirmTitle": "De volwassenencode weghalen?",
-        "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen."
+        "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen.",
+        "lockedBody": {
+          "one": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuut niet aan.",
+          "other": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuten niet aan."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Weektotalen",
       "memberLine": "{chores} klusjes, {tickets} tickets"
     },
-    "finishFormFirst": "Sla eerst het open formulier op of annuleer het.",
+    "finishFormFirst": "Maak eerst af wat openstaat, of annuleer het.",
     "starter": {
       "openButton": "Kiezen uit kant-en-klare klusjes",
       "hint": "{count} alledaagse klusjes, ingedeeld per moment van de dag",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Plugin installeren via URL",
     "dialogAriaLabel": "Plugin installeren via URL",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "HTTPS-URL naar een ",
-    "tarballUrlHelpPart2": " plugin-bundel. Vervang de versie door ",
-    "tarballUrlHelpPart3": " als je wilt dat toekomstige updates alleen een versienummer nodig hebben.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Een beveiligde link (begint met https) naar het ",
+    "tarballUrlHelpPart2": "-bestand van de plugin. Zet ",
+    "tarballUrlHelpPart3": " op de plek van het versienummer, dan heb je bij volgende updates alleen het nummer nodig.",
     "exampleLabel": "Voorbeeld:",
     "versionLabel": "Versie om te installeren",
     "externalSourceWarning": "Je installeert van buiten de plugin-marketplace. Installeer alleen plugins van bronnen die je vertrouwt.",
@@ -3973,9 +4004,9 @@
     "title": "{id} bijwerken",
     "dialogAriaLabel": "{id} bijwerken",
     "currentVersionLabel": "Huidige versie:",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "Bewerk de URL om naar een nieuwe versie te verwijzen, of vervang de versie door ",
-    "tarballUrlHelpPart2": " zodat toekomstige updates alleen een versienummer nodig hebben.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Pas de link aan zodat hij naar de nieuwe versie wijst, of zet ",
+    "tarballUrlHelpPart2": " op de plek van het versienummer. Dan typ je de volgende keer alleen het nummer.",
     "exampleLabel": "Voorbeeld:",
     "versionLabel": "Versie om te installeren",
     "workingMessage": "Downloaden en bijwerken…",
@@ -4697,9 +4728,11 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, het avondeten beoordelen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
-      "wallAdd": "Toevoegen op de muur",
+      "wallAdd": "Toevoegen vanaf de muur",
       "wallAddHelpMealie": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
       "wallAddHelpLocal": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
+      "wallPlan": "Maaltijden plannen op de muur",
+      "wallPlanHelp": "Iedereen bij de muur kan een recept op het menu zetten, voor deze en volgende week: met de knop ‘Op het menu zetten’ bij elk recept, en met een plusje bij lege maaltijden in de weekoverzichten. Zelf getypte maaltijden en nieuwe recepten blijven op de telefoon.",
       "extrasList": "Andere boodschappen gaan op",
       "extrasListNone": "Geen (geen regel Toevoegen)",
       "extrasListHelp": "Een van jullie lijsten. Wat er nog op staat, komt onderaan de boodschappenlijst, hier en op de telefoon. Alle boodschappenkaarten delen hem."

@@ -118,8 +118,10 @@
       "downloadFailed": "Kon de plugin niet downloaden. Controleer de internetverbinding en probeer het opnieuw.",
       "badLink": "Die link kan niet worden gebruikt. Plak de volledige https-link naar de plugin.",
       "blockedLink": "Die link wijst naar iets binnen je thuisnetwerk, dus Home Screens downloadt er niets van.",
+      "notHttps": "Die link is geen veilige https-link, dus Home Screens downloadt er niets van.",
       "needsVersion": "Die link heeft een versienummer nodig. Typ welke versie je wilt installeren.",
       "notAPlugin": "Die link is geen Home Screens-plugin. Controleer of hij naar het .tar.gz-bestand van de plugin wijst.",
+      "tooBig": "Dat bestand is te groot voor een plugin. Plugins mogen tot {max} MB groot zijn.",
       "alreadyInstalled": "Die plugin is al geïnstalleerd. Werk hem liever bij via de pluginwinkel."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Die code werkte niet. Controleer hem en probeer het opnieuw.",
       "expired": "Deze aanmelding is verlopen. Begin opnieuw.",
       "notApproved": "De aanmelding is niet goedgekeurd. Begin opnieuw als je toch wilt koppelen."
+    },
+    "backup": {
+      "notABackup": "Dat bestand is geen back-up van Home Screens.",
+      "noRoom": "Er is niet genoeg ruimte op Home Screens voor deze back-up.",
+      "noRoomForPictures": "Er is niet genoeg ruimte op Home Screens voor de afbeeldingen in deze back-up."
     }
   },
   "today": "Vandaag",
@@ -346,7 +353,7 @@
     "controls": "Timerknoppen",
     "replaceTitle": "Nieuwe timer starten?",
     "replaceBody": "Er loopt al een timer. Een nieuwe timer stopt de huidige.",
-    "routinesLoadError": "De routines konden niet worden geladen. Controleer de verbinding en probeer het opnieuw.",
+    "routinesLoadError": "De routines konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "routineMeta": {
       "one": "{steps} stap · {minutes} min",
       "other": "{steps} stappen · {minutes} min"
@@ -387,7 +394,7 @@
     "color": "Kleur",
     "emptyTitle": "Nog niemand toegevoegd",
     "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij klusjes, beloningen, kalenders en roosters.",
-    "loadFailed": "Kon je gezin niet laden. Controleer de verbinding en probeer het opnieuw.",
+    "loadFailed": "Je gezin kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
     "saved": "Gezin opgeslagen.",
     "removeTitle": "{name} verwijderen?",
@@ -754,11 +761,18 @@
       "one": "Te veel pogingen. Probeer het over {count} seconde opnieuw.",
       "other": "Te veel pogingen. Probeer het over {count} seconden opnieuw."
     },
+    "tooManyMinutes": {
+      "one": "Te veel pogingen. Probeer het over {count} minuut opnieuw.",
+      "other": "Te veel pogingen. Probeer het over {count} minuten opnieuw."
+    },
     "unlocked": {
       "one": "Nog 1 minuut ontgrendeld",
       "other": "Nog {count} minuten ontgrendeld"
     },
-    "lockNow": "Nu vergrendelen"
+    "lockNow": "Nu vergrendelen",
+    "lockedTitle": "Te vaak een verkeerde code",
+    "letThemTry": "Laat ze het nu weer proberen",
+    "clearFailed": "Het wachten kon niet worden beëindigd. Probeer het opnieuw."
   },
   "calendarRepeat": {
     "none": "Wordt niet herhaald",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. De andere dagen blijven staan.",
     "everyTimePastFuture": "Alle keren, ook die al geweest zijn",
     "askBody": "Alleen deze dag wijzigen, of elke keer?",
-    "everyTimeFromFirst": "Alle keren, vanaf de eerste"
+    "everyTimeFromFirst": "Alle keren, vanaf de eerste",
+    "everyTimeMovesTo": "Elke keer schuift evenveel op, naar {time}",
+    "nextDay": "de volgende dag"
   },
   "notice": {
     "title": "Melding"
@@ -820,6 +836,10 @@
       "one": "1 gedaan item uit “{name}” weghalen?",
       "other": "{count} gedane items uit “{name}” weghalen?"
     },
-    "removeDoneBody": "Ze gaan voorgoed van de lijst."
+    "removeDoneBody": "Ze gaan voorgoed van de lijst.",
+    "alreadyOnList": "Al op de lijst: {item}",
+    "putBack": "Weer op de lijst: {item}",
+    "deleted": "{item} van de lijst gehaald.",
+    "undo": "Ongedaan maken"
   }
 }

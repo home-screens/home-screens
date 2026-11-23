@@ -2,13 +2,13 @@
 
 import type { CSSProperties } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
-import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
-import { eventKindLabel, formatEventTime, isZeroLengthEvent } from '@/lib/calendar-utils';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { eventKindLabel, isZeroLengthEvent } from '@/lib/calendar-utils';
 import { eventOwner, type EventOwner } from '@/lib/calendar-people';
-import { daySheetHeading, daySheetRows, type DaySheetRow } from '@/lib/calendar-day-sheet';
+import { daySheetHeading, daySheetRows, daySheetTime, type DaySheetRow } from '@/lib/calendar-day-sheet';
 import { eventGlyph } from '@/lib/calendar-rules';
 import { GlyphPrefix } from '@/components/ui/Glyph';
-import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { onAccentFor, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
 import { DayNoteLines, dayNoteColors } from './DayNoteLine';
 import { EVENT_DETAIL_AUTO_DISMISS_MS } from './EventDetailOverlay';
@@ -71,10 +71,7 @@ export function DaySheetOverlay({ date, events, notes = [], owners, variant, the
 
   const rows = daySheetRows(events, date, timezone);
   const heading = daySheetHeading(date, locale);
-  const time = (d: Date, otherDay: boolean) => {
-    const clock = formatEventTime(d, timeFormat, locale);
-    return otherDay ? `${formatDateSync(d, 'EEE', { locale })} ${clock}` : clock;
-  };
+  const time = (d: Date, otherDay: boolean) => daySheetTime(d, otherDay, timeFormat, locale);
   // A soft step off the panel for each row: half way to the theme's second
   // surface on a light theme. A dark theme's second surface is darker than its
   // panel and the rows sank into it, so there they lift toward the text colour.
@@ -197,7 +194,8 @@ export function DaySheetOverlay({ date, events, notes = [], owners, variant, the
             gap: len(14, 8),
             background: accentColor,
             border: '1px solid transparent',
-            color: '#fff',
+            // Dark ink on a light accent (amber, cyan), white on a dark one.
+            color: onAccentFor(accentColor),
             fontSize: len(28, 15),
             fontWeight: 700,
             fontFamily: 'inherit',

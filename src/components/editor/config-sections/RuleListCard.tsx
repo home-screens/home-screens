@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { ChevronRight, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp, Pencil } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { uuid } from '@/lib/uuid';
 import IconButton from '@/components/ui/IconButton';
@@ -171,8 +171,8 @@ export function RuleCard({
               <Pencil className="h-3 w-3" aria-hidden="true" />
             </button>
           )}
-          <button type="button" aria-label={t(`${KEY}.moveUp`)} title={t(`${KEY}.moveUp`)} disabled={index === 0} onClick={() => onMove(index - 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30">▲</button>
-          <button type="button" aria-label={t(`${KEY}.moveDown`)} title={t(`${KEY}.moveDown`)} disabled={index === total - 1} onClick={() => onMove(index + 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30">▼</button>
+          <button type="button" aria-label={t(`${KEY}.moveUp`)} title={t(`${KEY}.moveUp`)} disabled={index === 0} onClick={() => onMove(index - 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30"><ChevronUp className="h-3 w-3" aria-hidden="true" /></button>
+          <button type="button" aria-label={t(`${KEY}.moveDown`)} title={t(`${KEY}.moveDown`)} disabled={index === total - 1} onClick={() => onMove(index + 1)} className="px-1 text-xs text-hs-text-muted hover:text-hs-text-body disabled:opacity-30"><ChevronDown className="h-3 w-3" aria-hidden="true" /></button>
           <IconButton label={t(`${KEY}.remove`)} onClick={onRemove} />
         </div>
       </div>

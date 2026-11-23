@@ -72,6 +72,43 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+describe('CalendarTab: switching All day', () => {
+  const party = (lastDate: string) => ({
+    calendarId: CAL, eventId: 'party', etag: '"p1"',
+    draft: { title: 'Party', allDay: true, date: '2026-11-27', lastDate },
+    repeat: { kind: 'none' },
+  });
+
+  beforeEach(() => {
+    shownDay = '2026-11-27';
+    events = [row({ id: `${CAL}:party`, title: 'Party', allDay: true, start: '2026-11-27', end: '2026-11-28' })];
+  });
+
+  it('gives an all-day event a start and the usual length when it is made timed, so it can be saved', async () => {
+    write.mockResolvedValue({ ok: true, json: party('2026-11-27') });
+    render(<CalendarTab />);
+    await openEvent();
+    fireEvent.click(screen.getByTestId('event-form-all-day'));
+    expect((screen.getByTestId('event-form-start') as HTMLInputElement).value).toMatch(/^\d{2}:00$/);
+    expect((screen.getByTestId('event-form-end') as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/);
+    expect((screen.getByTestId('event-form-save') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('keeps an all-day event across days all day, where switching would make it one day long', async () => {
+    write.mockResolvedValue({ ok: true, json: party('2026-11-28') });
+    render(<CalendarTab />);
+    await openEvent();
+    const allDay = () => screen.getByTestId('event-form-all-day').querySelector('button, input') ?? screen.getByTestId('event-form-all-day');
+    expect(allDay().hasAttribute('disabled')).toBe(true);
+    expect(screen.getByText(remote.calendarTab.form.allDayLocked)).toBeTruthy();
+    // Shortened to its first day, switching loses nothing.
+    const lastDay = screen.getByTestId('event-form-last-day') as HTMLInputElement;
+    fireEvent.change(lastDay, { target: { value: lastDay.min } });
+    expect(allDay().hasAttribute('disabled')).toBe(false);
+    expect(screen.queryByText(remote.calendarTab.form.allDayLocked)).toBeNull();
+  });
+});
+
 describe('CalendarTab: an event of a day or more', () => {
   // Friday 6 PM to Sunday 4 PM.
   const weekend = {

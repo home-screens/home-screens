@@ -729,6 +729,25 @@ A Mealie recipe (`mealie:<recipe id>`) is hearted in Mealie, among the favorites
 
 **Response:** `{ "mealId": "mealie:0f1e2d3c-...", "favorite": true }`
 
+### POST /api/meals/plan/wall
+
+One change to the menu, made at a wall. Display access, a display token works, held back to the least a wall needs: only while some Meal Planner module has **Plan meals on the wall** on (`403` with `"code": "meals.wallPlanOff"` otherwise), only a recipe (a saved meal with ingredients or notes, or a Mealie recipe while the plan lives in Mealie), only today to the end of next week, and only a meal of the day the household plans. When the household ticked **Changing the menu** for the grown-up code, a caller without a session or an unlock gets `403` with `"needsGrownUpCode": true`.
+
+**Body:**
+```json
+{
+  "action": "put",
+  "date": "2026-11-26",
+  "slot": "dinner",
+  "mealId": "meal-1",
+  "kind": "main"
+}
+```
+
+`action` is `put` (plan it; refused when the meal already has a different main dish), `swap` or `both` (the answers to that refusal, with `expect` naming the main dish the wall saw: `m:<mealId>` or `t:<typed words>`), or `off` (take the recipe off that meal). `kind` is `main`, `side`, `dessert` or `drink`; anything but `main` joins a meal that is already there. `{ "undo": "<ticket>" }` instead puts the meal back as it was before an earlier change.
+
+**Response:** the same body as `GET /api/meals/data`, read after the change, plus `wall`: `{ "outcome": "planned" | "joined" | "swapped" | "both" | "off", "changed": true, "undo": "<ticket>" }`. A change that cannot be made is a `409` with `reason` and the same meals body, nothing written: `taken` (the meal got a main dish meanwhile), `changed` (the dish the wall asked about is no longer the one there), `full` (the meal holds no more dishes) or `moved` (an Undo that came too late, or after the meal changed again).
+
 ### POST /api/meals/ratings
 
 Saves one person's stars for one recipe, or takes them back. Display access, a display token works, so a touch wall can rate dinner.
@@ -828,6 +847,10 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 ### POST /api/mealie/shopping/items
 
 Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
+
+### POST /api/mealie/shopping/recipe
+
+Puts a Mealie recipe's ingredients on the list the family shops from, the way Mealie's own "Add to list" does. Body `{ "mealId": "mealie:<recipe id>" }`. Answers like `GET`, with the list read fresh. Only while the plan lives in Mealie. A display token works while some Meal Planner module has **Plan meals on the wall** on; `403` with `"code": "meals.wallPlanOff"` otherwise.
 
 ### PATCH /api/mealie/shopping/items/:itemId
 

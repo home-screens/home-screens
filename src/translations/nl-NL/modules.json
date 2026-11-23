@@ -206,10 +206,7 @@
       "viewsLabel": "Weergaven",
       "sheetEyebrow": "Eén persoon tonen",
       "sheetTitle": "Wiens agenda?",
-      "allPeople": {
-        "one": "{count} persoon",
-        "other": "Alle {count} personen"
-      },
+      "everyCalendar": "Alle agenda's",
       "peopleCount": {
         "one": "{count} persoon",
         "other": "{count} personen"
@@ -617,6 +614,71 @@
         "mealieSetup": "Controleer Mealie in Instellingen op de computer om de lijst te zien."
       },
       "alsoOn": "Ook op {list}"
+    },
+    "menu": {
+      "put": "Op het menu zetten",
+      "change": "Het menu wijzigen",
+      "codeWhy": "Om het menu te wijzigen",
+      "whichMeal": "Welke maaltijd",
+      "thisWeek": "Deze week",
+      "nextWeek": "Volgende week",
+      "free": "Vrij",
+      "undo": "Ongedaan maken",
+      "undone": "Het is weer zoals het was.",
+      "hint": "Tik op een dag. Staat er al iets, dan vragen we eerst wat je wilt.",
+      "hintMine": "Een vinkje laat zien waar je {meal} al hebt staan. Tik op die dag om het eraf te halen, of op een andere dag om het nog een keer te eten.",
+      "when": {
+        "breakfast": "het ontbijt van {day}",
+        "lunch": "de lunch van {day}",
+        "dinner": "het avondeten van {day}",
+        "snack": "het tussendoortje van {day}"
+      },
+      "did": {
+        "planned": "{meal} gepland voor {when}.",
+        "joined": "{meal} toegevoegd aan {when}.",
+        "swapped": "{meal} nu gepland voor {when}.",
+        "both": "{meal} ook gepland voor {when}.",
+        "off": "{meal} weggehaald bij {when}."
+      },
+      "groceryThis": "De ingrediënten staan bij de boodschappen van deze week.",
+      "groceryNext": "De ingrediënten komen bij de boodschappen van volgende week.",
+      "savedMealie": "Opgeslagen in het maaltijdplan in Mealie.",
+      "addIngredients": "Ingrediënten op de boodschappenlijst zetten",
+      "listAdded": "De ingrediënten staan op {list}.",
+      "listAddedPlain": "De ingrediënten staan op de boodschappenlijst.",
+      "ask": {
+        "title": "{when} is al {dish}",
+        "body": "Wat wil je daarmee doen?",
+        "swap": "Vervangen",
+        "swapDetail": "{meal} in plaats van {dish}",
+        "both": "Allebei",
+        "bothDetail": "{meal} en {dish}",
+        "leave": "Laat {day} zoals het is",
+        "offTitle": "{meal} al gepland voor {when}",
+        "offBody": "Wil je het voor die dag van het menu halen?",
+        "offYes": "Van {day} afhalen",
+        "offNo": "Laten staan"
+      },
+      "problem": {
+        "changed": "Iemand heeft {day} net veranderd.",
+        "changedDetail": "Zo ziet het menu er nu uit. Tik op een dag om het opnieuw te proberen.",
+        "full": "Bij die maaltijd kan er niets meer bij.",
+        "off": "Plannen op de muur is net uitgezet.",
+        "undoLate": "Terugzetten lukte niet. De dag is alweer veranderd.",
+        "undoFailed": "Terugzetten lukte niet.",
+        "day": "Die dag kun je niet plannen op de muur.",
+        "failed": "Dat is niet op het menu gekomen.",
+        "failedDetail": "Home Screens reageert niet. Probeer het zo meteen opnieuw.",
+        "listFailed": "De ingrediënten zijn niet op de lijst gekomen."
+      },
+      "pick": {
+        "hint": "Tik op een recept om het op het menu te zetten.",
+        "on": "Gepland: {day}",
+        "plan": "Maaltijd plannen",
+        "planAria": "Iets plannen voor {when}",
+        "noneTitle": "Nog geen recepten om te plannen",
+        "noneHint": "Voeg op de telefoon een maaltijd met ingrediënten of notities toe, dan staat die hier."
+      }
     }
   },
   "wallScroll": {
@@ -1284,7 +1346,7 @@
     "loading": "Stand laden…",
     "noStandings": "Geen stand beschikbaar",
     "columns": {
-      "overtime": "OT",
+      "overtime": "NV",
       "pct": "PCT",
       "pointsFor": "PV",
       "pointsAgainst": "PT",

@@ -27,6 +27,7 @@ vi.mock('@/lib/grown-up-client', async (original) => ({
 import SheetFrame from '../SheetFrame';
 import BottomSheet from '../BottomSheet';
 import TallSheet from '../TallSheet';
+import FormOverlay from '../FormOverlay';
 import ConfirmSheet from '../ConfirmSheet';
 import ChoreActionSheet from '../ChoreActionSheet';
 import DayCompleteSheet from '../DayCompleteSheet';
@@ -117,6 +118,26 @@ describe('SheetFrame', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('takes no tap from a finger that was already down when it opened, only one that starts on it', () => {
+    const onPick = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <SheetFrame layer="grownUp" label="Grown-up code" onClose={onClose} freshPressesOnly>
+        <button type="button" data-testid="key-5" onClick={onPick}>5</button>
+      </SheetFrame>,
+    );
+    // The lift of the long press that opened it: a tap (detail 1) with no press of its own here.
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 1 });
+    fireEvent.click(screen.getByTestId('sheet-backdrop'), { detail: 1 });
+    expect(onPick).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    // A real tap on the pad, and a press of Enter, both count.
+    fireEvent.pointerDown(screen.getByTestId('key-5'));
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 1 });
+    fireEvent.click(screen.getByTestId('key-5'), { detail: 0 });
+    expect(onPick).toHaveBeenCalledTimes(2);
   });
 
   it('leaves focus on a field that focused itself as the sheet opened', () => {
@@ -226,6 +247,21 @@ describe('where a toast sits around a sheet', () => {
     const page = (sheet: boolean) => (
       <>
         {sheet && <TallSheet label="Dinner" title="Dinner" onClose={() => {}}><button type="button">7:00 PM</button></TallSheet>}
+        <RemoteToast />
+      </>
+    );
+    const { rerender } = render(page(false));
+    expect(toastEdge()).toBe('bottom');
+    rerender(page(true));
+    expect(toastEdge()).toBe('top');
+    rerender(page(false));
+    expect(toastEdge()).toBe('bottom');
+  });
+
+  it('moves to the top while a full-screen form is up, where it would cover Save at the bottom', () => {
+    const page = (form: boolean) => (
+      <>
+        {form && <FormOverlay title="New event" onBack={() => {}} footer={<button type="button">Save</button>}><span /></FormOverlay>}
         <RemoteToast />
       </>
     );

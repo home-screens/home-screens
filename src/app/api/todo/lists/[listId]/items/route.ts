@@ -16,15 +16,18 @@ export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ listId: string }> };
 
 type AddBody = AddItemInput & {
-  /** Don't make a second one: answer `already` for an item still to do, put a ticked one back. */
-  ifNew?: unknown;
+  /** Undo putting back an item just removed: make it as it was, never merged with another. */
+  restore?: unknown;
 };
 
 /**
- * POST /api/todo/lists/[listId]/items: add `{ text, dueDate?, assigneeIds?, position?, ifNew? }`.
- * Answers `{ lists, created, outcome }`: `created` is the item the add
- * landed on and `outcome` says how (`added`, `already`, `putBack`; always
- * `added` without `ifNew`).
+ * POST /api/todo/lists/[listId]/items: add `{ text, dueDate?, assigneeIds?, position?, restore? }`.
+ * A list keeps one of each thing whoever adds (`addItemIfNew`), so no
+ * surface can forget it: the same words as an item still to do change
+ * nothing, and a ticked one is put back. Answers `{ lists, created, outcome }`:
+ * `created` is the item the add landed on and `outcome` says how (`added`,
+ * `already`, `putBack`). Only `restore`, Undo after a remove, always makes
+ * a new item.
  *
  * The phone's add bar and the editor's items window land here with a
  * session. So does a wall's Add row, with the display token, which is held
@@ -43,7 +46,7 @@ export const POST = withDisplayAuth(async (request: NextRequest, ctx: RouteConte
 
   const fromWall = !(await hasEditorSession(request));
   if (fromWall) {
-    if (Object.keys(fields).some((f) => f !== 'text' && f !== 'ifNew')) await requireSession(request);
+    if (Object.keys(fields).some((f) => f !== 'text')) await requireSession(request);
     const [config, meals] = await Promise.all([readConfig(), readMealData()]);
     if (!wallMayAddToList(config, listId, meals.settings)) {
       throw new TodoError(403, 'lists.wallAddOff', 'Adding from the wall is turned off for this list');
@@ -52,7 +55,7 @@ export const POST = withDisplayAuth(async (request: NextRequest, ctx: RouteConte
       throw new TodoError(400, 'lists.textTooLong', `Items can be up to ${WALL_ITEM_MAX_LENGTH} characters`, { max: WALL_ITEM_MAX_LENGTH });
     }
   }
-  const ifNew = fromWall || fields.ifNew === true;
+  const keepOne = fromWall || fields.restore !== true;
   // The wall's words are one line, whatever arrived.
   const input: AddItemInput = fromWall ? { text: typeof fields.text === 'string' ? oneLineText(fields.text) : fields.text } : body;
 
@@ -60,7 +63,7 @@ export const POST = withDisplayAuth(async (request: NextRequest, ctx: RouteConte
   let outcome: AddOutcome = 'added';
   const response = await todoWrite(
     (data) => {
-      const result = ifNew ? addItemIfNew(data, listId, input) : { ...addItem(data, listId, input), outcome: 'added' as const };
+      const result = keepOne ? addItemIfNew(data, listId, input) : { ...addItem(data, listId, input), outcome: 'added' as const };
       created = result.item;
       outcome = result.outcome;
       return result.data;

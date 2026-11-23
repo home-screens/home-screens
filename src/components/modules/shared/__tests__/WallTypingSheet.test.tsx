@@ -120,6 +120,23 @@ describe('WallTypingSheet', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('closes from a tap on the dark part only while nothing is typed', () => {
+    vi.useFakeTimers();
+    try {
+      const { onClose, tap } = open();
+      // Past the double tap that opened it.
+      vi.advanceTimersByTime(1000);
+      tap('P');
+      fireEvent.click(screen.getByTestId('wall-typing-sheet'));
+      expect(onClose).not.toHaveBeenCalled();
+      tap('delete');
+      fireEvent.click(screen.getByTestId('wall-typing-sheet'));
+      expect(onClose).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('draws the slot under the field', () => {
     open();
     expect(screen.getByRole('status').textContent).toContain('Type one thing');

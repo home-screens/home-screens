@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { parseJsonBody, publicErrorResponse, SMALL_BODY_BYTES, withAuth } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
-import { hasSignedInSession } from '@/lib/auth';
+import { hasEditorSession, hasSignedInSession } from '@/lib/auth';
 import { cleanGrownUpActions, cleanUnlockMinutes, isGrownUpCode } from '@/lib/grown-up-code';
 import { readGrownUpStatus, removeGrownUpCode, setGrownUpCode, updateGrownUpPrefs } from '@/lib/grown-up-code-data';
+import { hubCodeLockSeconds } from '@/lib/grown-up-code-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,14 @@ export const GET = async (request: NextRequest) => {
   try {
     // Whether this page would be asked: a signed-in grown-up never is.
     const signedIn = await hasSignedInSession(request);
-    return NextResponse.json({ ...(await readGrownUpStatus()), signedIn }, { headers: { 'Cache-Control': 'no-store' } });
+    // The hub-wide wait after too many wrong codes, for whoever may end it
+    // (`DELETE /api/grown-up-code/unlock`): a session, or anyone on a hub
+    // with no password, where a code still guards the wall.
+    const lockedSeconds = await hasEditorSession(request) ? hubCodeLockSeconds() : 0;
+    return NextResponse.json(
+      { ...(await readGrownUpStatus()), signedIn, ...(lockedSeconds > 0 ? { lockedSeconds } : {}) },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
   } catch (error) {
     return publicErrorResponse(error, 'Failed to read the grown-up code');
   }

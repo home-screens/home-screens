@@ -1,5 +1,6 @@
 'use client';
 
+import { CornerDownRight, Repeat } from 'lucide-react';
 import { useMemo, useRef, type ReactNode } from 'react';
 import type { TodoistConfig, TimeFormat } from '@/types/config';
 import type { TodoistTask, FlatTaskRow } from './todoist-utils';
@@ -17,6 +18,7 @@ import { withAlpha } from '@/lib/hex-color';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
 import { wallRowPress } from '../shared/wallPress';
 import { useFitCount } from '../shared/useFitCount';
+import { useScrolledFromTop } from '../shared/useScrolledFromTop';
 import { MoreLine } from '../shared/MoreLine';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
@@ -104,9 +106,11 @@ export function TaskRow({
             style={{ fontSize: '0.85em' }}
           >
             {depth > 0 && (
-              <span className="mr-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
-                ↳
-              </span>
+              <CornerDownRight
+                aria-hidden="true"
+                className="mr-1 inline-block"
+                style={{ width: '0.8em', height: '0.8em', verticalAlign: '-0.1em', opacity: TEXT_OPACITY.tertiary }}
+              />
             )}
             {t.content}
             {t.due?.isRecurring && (
@@ -115,7 +119,7 @@ export function TaskRow({
                 style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}
                 title={tr('todoist.recurringTooltip')}
               >
-                ↻
+                <Repeat className="inline-block" style={{ width: '1em', height: '1em', verticalAlign: '-0.1em' }} aria-hidden="true" />
               </span>
             )}
           </p>
@@ -225,8 +229,8 @@ export function taskRows(tasks: TodoistTask[], config: TodoistConfig): FlatTaskR
  * The task rows of a list, under their headers. A card has no scrollbar, so
  * the rows that do not fit whole are left out and counted ("and N more")
  * instead of the last one being cut in half; a header whose rows are all
- * left out goes with them. On a touch wall with "Tap on the wall" on, a
- * finger scrolls the whole list instead and nothing is left out.
+ * left out goes with them. With "Tap on the wall" on, every wall still shows
+ * that at rest, and the rest sits under the line for a finger to scroll to.
  */
 export function TaskSections({ sections, config, now, fontPx, scroll, onComplete, pressedId, timeFormat, timezone }: {
   sections: TaskSection[];
@@ -234,7 +238,7 @@ export function TaskSections({ sections, config, now, fontPx, scroll, onComplete
   now: Date;
   /** The card's type size in px: the room kept for "and N more". */
   fontPx: number;
-  /** A touch wall with taps on: the list scrolls under a finger. */
+  /** "Tap on the wall" on: a finger scrolls on past "and N more" to the rest. */
   scroll: boolean;
 } & TodoistWallProps) {
   const tr = useTranslate('modules');
@@ -244,20 +248,25 @@ export function TaskSections({ sections, config, now, fontPx, scroll, onComplete
     sections.map((s) => `${s.key}:${s.rows.map((r) => `${r.task.id}.${r.task.content.length}`).join(',')}`).join('|'),
     fontPx, !!onComplete, !!config.showDescription, !!config.showProject, !!config.showLabels,
   ].join('#');
-  const visible = useFitCount(boxRef, key, fontPx * 1.3, { active: !scroll });
+  const visible = useFitCount(boxRef, key, fontPx * 1.3);
+  // The rest shows once a finger moves the list, never in the room under the line at rest.
+  const moved = useScrolledFromTop(boxRef, scroll);
   const look = useMemo(() => smallWallScrollLook(TAP_CHECKBOX_ACCENT), []);
 
+  // The rows that fit, under their headers, and the rest after them; a
+  // section split by the cut carries on below without its header again.
   let room = visible ?? total;
-  const drawn = sections
-    .map((section) => {
-      const rows = section.rows.slice(0, room);
-      room -= rows.length;
-      return { ...section, rows };
-    })
-    .filter((section) => section.rows.length > 0);
+  const drawn: TaskSection[] = [];
+  const rest: TaskSection[] = [];
+  for (const section of sections) {
+    const take = Math.min(room, section.rows.length);
+    room -= take;
+    if (take > 0) drawn.push({ ...section, rows: section.rows.slice(0, take) });
+    if (take < section.rows.length) rest.push({ ...section, key: `${section.key}-rest`, header: take > 0 ? null : section.header, rows: section.rows.slice(take) });
+  }
   const more = total - drawn.reduce((n, s) => n + s.rows.length, 0);
 
-  const groups = drawn.map((section) => (
+  const groupsOf = (list: TaskSection[]) => list.map((section) => (
     <div key={section.key} className="shrink-0">
       {section.header}
       <div className="flex flex-col gap-1">
@@ -277,26 +286,31 @@ export function TaskSections({ sections, config, now, fontPx, scroll, onComplete
       </div>
     </div>
   ));
+  const moreLine = (
+    <MoreLine
+      n={more}
+      label={tr('todo.andMore', { n: more })}
+      testId="todoist-more"
+      className="shrink-0"
+      style={{ fontSize: '0.7em', paddingTop: '0.3em' }}
+    />
+  );
 
   if (scroll) {
     return (
-      <WallScroller enabled backLabel={tr('wallScroll.backToTop')} {...look} testId="todoist-scroll">
-        <div className="flex flex-col gap-3">{groups}</div>
+      <WallScroller enabled boxRef={boxRef} backLabel={tr('wallScroll.backToTop')} {...look} testId="todoist-scroll">
+        <div className="flex flex-col gap-3">{groupsOf(drawn)}</div>
+        {more > 0 && moreLine}
+        {more > 0 && <div data-rest="" className="flex flex-col gap-3" style={{ visibility: moved ? 'visible' : 'hidden' }}>{groupsOf(rest)}</div>}
       </WallScroller>
     );
   }
   return (
     <>
       <div ref={boxRef} className="flex flex-col gap-3 overflow-hidden flex-1 min-h-0" data-testid="todoist-rows">
-        {groups}
+        {groupsOf(drawn)}
       </div>
-      <MoreLine
-        n={more}
-        label={tr('todo.andMore', { n: more })}
-        testId="todoist-more"
-        className="shrink-0"
-        style={{ fontSize: '0.7em', paddingTop: '0.3em' }}
-      />
+      {moreLine}
     </>
   );
 }

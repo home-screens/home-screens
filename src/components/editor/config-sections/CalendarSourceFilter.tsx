@@ -33,7 +33,14 @@ export interface CalendarSource {
  * `keyPrefix` is the `editor` namespace path to the caller's translations (e.g.
  * `configSections.calendar`) so the two calendar modules keep their own i18n keys.
  */
-export function useCalendarSources(keyPrefix: string): {
+export function useCalendarSources(
+  keyPrefix: string,
+  /**
+   * Google's calendar list when the caller already has it (Settings >
+   * Calendar reads it once for the whole page), so it is not asked for again.
+   */
+  knownGoogleCalendars?: GoogleCalendar[],
+): {
   availableSources: CalendarSource[];
   googleAuthError: boolean;
 } {
@@ -43,10 +50,12 @@ export function useCalendarSources(keyPrefix: string): {
   const icloudSources = useEditorStore((s) => s.config?.settings?.calendar?.icloudSources ?? EMPTY_ICLOUD);
   const holidayCountry = useEditorStore((s) => s.config?.settings?.calendar?.holidayCountry);
   const calendarOverrides = useEditorStore((s) => s.config?.settings?.calendar?.calendarOverrides);
-  const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
+  const [fetchedGoogleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleAuthError, setGoogleAuthError] = useState(false);
+  const fetchesItsOwn = knownGoogleCalendars === undefined;
 
   useEffect(() => {
+    if (!fetchesItsOwn) return;
     async function fetchGoogleCals() {
       try {
         const res = await editorFetch('/api/calendars');
@@ -59,7 +68,8 @@ export function useCalendarSources(keyPrefix: string): {
       } catch { /* ignore */ }
     }
     if (googleCalendarIds.length > 0) fetchGoogleCals();
-  }, [googleCalendarIds.length]);
+  }, [googleCalendarIds.length, fetchesItsOwn]);
+  const googleCalendars = knownGoogleCalendars ?? fetchedGoogleCalendars;
 
   const availableSources: CalendarSource[] = [];
   let unnamedCount = 0;

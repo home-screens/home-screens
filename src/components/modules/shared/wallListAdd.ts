@@ -14,7 +14,7 @@ import { WALL_SHOPPING_URL } from './useWallGrocery';
  * a card that shows it.
  */
 export async function addToTodoListFromWall(listId: string, text: string, failedText: string): Promise<WallAddResult & { itemId?: string }> {
-  const { lists, created, outcome = 'added' } = await sendTodoWrite(displayFetch, addItemRequest(listId, text, { ifNew: true }), failedText);
+  const { lists, created, outcome = 'added' } = await sendTodoWrite(displayFetch, addItemRequest(listId, text), failedText);
   if (!created) return { outcome, text };
   const item = lists.find((l) => l.id === listId)?.items.find((it) => it.id === created.id);
   const undo = outcome === 'added'

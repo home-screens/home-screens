@@ -92,7 +92,7 @@ test.describe('Defaults › Pictures & videos', () => {
     await freeTile.locator('input[type="checkbox"]').click();
     await expect(freeTile).toHaveAttribute('data-selected', 'true');
     await page.getByTestId('media-delete-button').click();
-    const dialog = page.getByRole('dialog').filter({ hasText: 'Delete 1 file?' });
+    const dialog = page.getByRole('dialog').filter({ hasText: /Delete “[^”]+”\?/ });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(freeTile).toHaveCount(0);
@@ -101,7 +101,7 @@ test.describe('Defaults › Pictures & videos', () => {
     // The per-tile button deletes just that one file after the same confirm.
     await otherTile.hover();
     await otherTile.getByTestId('media-tile-delete').click();
-    const dialog2 = page.getByRole('dialog').filter({ hasText: 'Delete 1 file?' });
+    const dialog2 = page.getByRole('dialog').filter({ hasText: /Delete “[^”]+”\?/ });
     await expect(dialog2).toBeVisible();
     await dialog2.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(otherTile).toHaveCount(0);
@@ -136,7 +136,7 @@ test.describe('Defaults › Pictures & videos', () => {
     await expect(page.getByTestId(`media-tile-${folder}/e2e-ok.png`)).toBeVisible();
     // The panel stays open while it says why the video stayed behind.
     await expect(panel.getByTestId('media-upload-wont-play')).toHaveText(
-      "IMG_0042.MOV is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
+      "IMG_0042.MOV is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.",
     );
     await expect(page.getByTestId(`media-tile-${folder}/IMG_0042.MOV`)).toHaveCount(0);
     await removeFolder(request, folder);
@@ -297,7 +297,7 @@ test.describe('Defaults › Pictures & videos', () => {
 
     await first.hover();
     await first.getByTestId('media-tile-delete').click();
-    const dialog = page.getByRole('dialog').filter({ hasText: 'Delete 1 file?' });
+    const dialog = page.getByRole('dialog').filter({ hasText: /Delete “[^”]+”\?/ });
     await expect(dialog).toContainText("It'll be gone from this hub for good. A slideshow that shows it moves on to its other pictures");
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(first).toHaveCount(0);

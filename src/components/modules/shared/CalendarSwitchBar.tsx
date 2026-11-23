@@ -114,6 +114,9 @@ export function CalendarSwitchBar<V extends string>({ look, bu = 10.8, views, cu
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        // On a narrow card the person button takes a line of its own rather
+        // than sliding under the view buttons, in any language.
+        flexWrap: 'wrap',
         gap: s.gap,
         minHeight: s.bar,
         padding: `0 ${s.pad}`,
@@ -123,7 +126,7 @@ export function CalendarSwitchBar<V extends string>({ look, bu = 10.8, views, cu
       }}
     >
       {views.length >= 2 ? (
-        <div role="group" aria-label={t('calendar.wallSwitch.viewsLabel')} style={{ display: 'flex', gap: 4, padding: 4, borderRadius: `calc(${s.button} * 0.33)`, background: c.track, minWidth: 0 }}>
+        <div role="group" aria-label={t('calendar.wallSwitch.viewsLabel')} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 4, borderRadius: `calc(${s.button} * 0.33)`, background: c.track, maxWidth: '100%' }}>
           {views.map(({ value, label, icon: Icon }) => {
             const on = value === current;
             return (
@@ -169,6 +172,8 @@ export function CalendarSwitchBar<V extends string>({ look, bu = 10.8, views, cu
             background: tint ? `color-mix(in srgb, ${tint} 18%, transparent)` : c.buttonBg,
             border: `1px solid ${tint ?? c.buttonBorder}`,
             flexShrink: 0,
+            // Stays at the right, on the views' line or its own.
+            marginLeft: 'auto',
             opacity: pending ? 0.55 : 1,
           }}
         >

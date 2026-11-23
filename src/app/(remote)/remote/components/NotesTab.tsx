@@ -213,7 +213,8 @@ function NotesBoard({ onOpenCalendar }: {
               data-testid="notes-to-calendar"
               onClick={onOpenCalendar}
               style={{
-                width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px', padding: '0 12px',
+                // Room under the empty board's words, which end flush with their own box.
+                width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, margin: `${live.length === 0 && gone.length === 0 ? 16 : 0}px 0 12px`, padding: '0 12px',
                 borderRadius: 10, border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)',
                 fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
               }}

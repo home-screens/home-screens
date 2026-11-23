@@ -9,7 +9,7 @@ import enUSModules from '@/translations/en-US/modules.json';
 import enUSCore from '@/translations/en-US/core.json';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useInteractionHeld } from '@/lib/interaction-hold';
-import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
+import { DOUBLE_TAP_MS, STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 import {
   EventDetailOverlay,
   describeEventTime,
@@ -267,13 +267,41 @@ describe('EventDetailOverlay', () => {
       );
     }
 
+    /** The question replaces Remove, so its answers hold a moment first, as a person's second deliberate tap waits. */
+    async function settle() {
+      if (vi.isFakeTimers()) act(() => { vi.advanceTimersByTime(STEP_SETTLE_MS); });
+      else await act(() => new Promise((resolve) => setTimeout(resolve, STEP_SETTLE_MS + 20)));
+    }
+
     /** Opens the ask and presses its Remove. */
     async function pressRemove() {
       fireEvent.click(screen.getByTestId('event-detail-remove'));
       const ask = screen.getByTestId('event-detail-remove-ask');
+      await settle();
       await act(async () => { fireEvent.click(ask.querySelector('[data-choice="instance"]')!); });
       return ask;
     }
+
+    it('ignores the second tap of a double tap on Remove, which lands on the question', async () => {
+      const onRemove = vi.fn(async () => ({ ok: true }) as RemoveAnswer);
+      render(withActions(vi.fn(), onRemove), { wrapper: Wrapper });
+      fireEvent.click(screen.getByTestId('event-detail-remove'));
+      const ask = screen.getByTestId('event-detail-remove-ask');
+      await act(async () => { fireEvent.click(ask.querySelector('[data-choice="instance"]')!); });
+      expect(onRemove).not.toHaveBeenCalled();
+      expect(screen.getByTestId('event-detail-remove-ask')).toBeTruthy();
+    });
+
+    it('still ignores a second press 400 ms after Remove, a slow double tap on a wall', async () => {
+      vi.useFakeTimers();
+      const onRemove = vi.fn(async () => ({ ok: true }) as RemoveAnswer);
+      render(withActions(vi.fn(), onRemove), { wrapper: Wrapper });
+      fireEvent.click(screen.getByTestId('event-detail-remove'));
+      const ask = screen.getByTestId('event-detail-remove-ask');
+      act(() => { vi.advanceTimersByTime(400); });
+      await act(async () => { fireEvent.click(ask.querySelector('[data-choice="instance"]')!); });
+      expect(onRemove).not.toHaveBeenCalled();
+    });
 
     it('closes once the event is removed', async () => {
       const onClose = vi.fn();

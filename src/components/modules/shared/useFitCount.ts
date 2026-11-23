@@ -6,8 +6,11 @@ export interface FitCountOptions {
   /** Cut by summed height in this order of `data-fit` values instead of by position. */
   priority?: readonly string[];
   /**
-   * False where a finger scrolls the whole list instead (a touch wall):
+   * False where a finger scrolls the whole list and nothing is counted:
    * every row stays, nothing is measured and the answer is always null.
+   * A list that scrolls and still counts (the to-do lists: "and N more" at
+   * rest, the rest under a swipe) passes its scrolling box, which is
+   * measured as if at its top.
    */
   active?: boolean;
   /** Which of the box's descendants are the rows. Default: the ones marked `data-fit`. */
@@ -69,9 +72,11 @@ export function useFitCount(
     // Rects are on-screen pixels, `reservePx` and the box's own height are
     // layout pixels; the editor canvas zooms its previews, so convert.
     const zoom = box.offsetHeight > 0 ? rect.height / box.offsetHeight : 1;
+    // A box a finger has scrolled is measured as if at its top, where the
+    // count is shown at rest.
     const fit = priority
       ? fitByHeight(box, rect, items, priority, reservePx * zoom)
-      : fitByPosition(rect, items, reservePx * zoom);
+      : fitByPosition(rect.bottom - box.scrollTop * zoom, items, reservePx * zoom);
     setVisible((v) => (v === fit ? v : fit));
   }, [boxRef, reservePx, priority, itemSelector]);
   useLayoutEffect(() => {
@@ -90,10 +95,10 @@ export function useFitCount(
   return active ? visible : null;
 }
 
-function fitByPosition(box: DOMRect, items: HTMLElement[], reservePx: number): number | null {
+function fitByPosition(boxBottom: number, items: HTMLElement[], reservePx: number): number | null {
   // Fractional rects, with a pixel of slack: rows are often n.5px tall, and
   // a rounded box height would otherwise refuse a row that fits.
-  const limit = box.bottom + 1;
+  const limit = boxBottom + 1;
   const bottoms = items.map((el) => el.getBoundingClientRect().bottom);
   let fit = bottoms.findIndex((b) => b > limit);
   if (fit === -1) return null;

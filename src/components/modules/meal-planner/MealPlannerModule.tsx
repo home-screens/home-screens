@@ -17,6 +17,8 @@ import { GroceryView } from './GroceryView';
 import { RecipesView } from './RecipesView';
 import { mealieTitleKey, mealieWords } from '../shared/mealie-problem';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
+import { wallPlanDayOpen } from '@/lib/meal-plan-wall';
+import { MealRecipeScope } from '../shared/MealRecipeScope';
 import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
 import { WallRateDinnerButton } from '../shared/MealRatingWall';
 import { MealVotesScope } from '@/components/meals/meal-votes';
@@ -42,7 +44,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   const view = config.view ?? 'week';
   const {
     data, error, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan,
-    mealie, grocery, interactive, recipeTapMode, recipeContext, familyRatings,
+    mealie, grocery, interactive, recipeTapMode, recipeContext, familyRatings, wallPlan,
   } = useWallMeals({ moduleType: 'meal-planner', view, timezone, theme: fullscreenTheme, config, screenId, moduleId });
   // The Week and List views step a week at a time on a touch wall (the
   // arrows show where taps are on, as the finger scrolling does). They draw
@@ -136,7 +138,11 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   const rateDinner = interactive && config.showFamilyRatings !== false
     && <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '0.4em' }}><WallRateDinnerButton size="0.65em" /></div>;
 
-  if (!hasMeals) {
+  // Where the wall may plan, a week with nothing on it still draws its days,
+  // each with a plus: the empty state would leave a finger nothing to tap.
+  const plansThisWeek = wallPlan && (view === 'week' || view === 'list')
+    && weekDates.some((date) => wallPlanDayOpen(date, todayISO, settings.weekStartDay));
+  if (!hasMeals && !plansThisWeek) {
     // Another week with nothing planned is just that, not a wall waiting
     // to be set up: no "plan from a phone" hint with the hub's address.
     const empty = (
@@ -164,8 +170,8 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
 
   return (
     <ModuleWrapper style={cardStyle}>
-      <MealRecipeContext.Provider value={recipeContext}>
       <MealVotesScope votes={familyRatings}>
+      <MealRecipeScope value={recipeContext}>
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, minHeight: 0 }}>
       {view === 'week' && withArrows(<WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />)}
@@ -177,8 +183,8 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
       </div>
       {rateDinner}
       </div>
+      </MealRecipeScope>
       </MealVotesScope>
-      </MealRecipeContext.Provider>
     </ModuleWrapper>
   );
 }

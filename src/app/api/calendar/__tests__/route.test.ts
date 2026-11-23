@@ -10,6 +10,8 @@ vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
   requireSession: vi.fn(),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
+  // The editor unless a case says otherwise; a wall has no session.
+  hasEditorSession: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('@/lib/google-calendar', () => ({
@@ -216,6 +218,17 @@ describe('calendar ID resolution', () => {
     const res = await GET(req);
 
     expect(res.status).toBe(200);
+  });
+
+  it('reads a wall only the calendars the household picked, whatever it asks for', async () => {
+    const { hasEditorSession } = await import('@/lib/auth');
+    vi.mocked(hasEditorSession).mockResolvedValueOnce(false);
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['family@group.calendar.google.com'] }));
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+    await GET(makeRequest({ calendarIds: 'family@group.calendar.google.com,parent-work@group.calendar.google.com' }));
+
+    expect(mockFetchGoogle).toHaveBeenCalledWith(['family@group.calendar.google.com'], expect.any(String), expect.any(String), false);
   });
 
   it('filters out empty strings from calendarIds query param', async () => {

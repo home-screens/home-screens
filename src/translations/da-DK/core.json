@@ -118,8 +118,10 @@
       "downloadFailed": "Kunne ikke hente pluginnet. Tjek internetforbindelsen, og prøv igen.",
       "badLink": "Det link kan ikke bruges. Indsæt hele https-linket til pluginnet.",
       "blockedLink": "Det link peger ind i dit hjemmenetværk, så Home Screens henter ikke noget derfra.",
+      "notHttps": "Det link er ikke et sikkert https-link, så Home Screens henter ikke noget derfra.",
       "needsVersion": "Det link mangler et versionsnummer. Skriv, hvilken version der skal installeres.",
       "notAPlugin": "Det link er ikke et Home Screens-plugin. Tjek, at det peger på pluginnets .tar.gz-fil.",
+      "tooBig": "Den fil er for stor til at være et plugin. Plugins må højst fylde {max} MB.",
       "alreadyInstalled": "Det plugin er allerede installeret. Opdatér det fra pluginbutikken i stedet."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Den kode virkede ikke. Tjek den, og prøv igen.",
       "expired": "Dette login er udløbet. Start det igen.",
       "notApproved": "Login blev ikke godkendt. Start det igen, hvis du vil oprette forbindelse."
+    },
+    "backup": {
+      "notABackup": "Den fil er ikke en sikkerhedskopi fra Home Screens.",
+      "noRoom": "Der er ikke plads nok på Home Screens til denne sikkerhedskopi.",
+      "noRoomForPictures": "Der er ikke plads nok på Home Screens til billederne i denne sikkerhedskopi."
     }
   },
   "today": "I dag",
@@ -205,7 +212,7 @@
     "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
     "waitingForAdoption": "Venter på at blive tilføjet…",
-    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds}s.",
+    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} s.",
     "goToDefault": "Gå til hovedskærmen nu"
   },
   "login": {
@@ -346,7 +353,7 @@
     "controls": "Timerknapper",
     "replaceTitle": "Start en ny timer?",
     "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
-    "routinesLoadError": "Rutinerne kunne ikke indlæses. Tjek forbindelsen og prøv igen.",
+    "routinesLoadError": "Dine rutiner kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "routineMeta": {
       "one": "{steps} trin · {minutes} min.",
       "other": "{steps} trin · {minutes} min."
@@ -387,7 +394,7 @@
     "color": "Farve",
     "emptyTitle": "Ingen endnu",
     "emptyDescription": "Tilføj personerne i din husstand. De bliver tilgængelige i pligter, belønninger, kalendere og skemaer.",
-    "loadFailed": "Kunne ikke hente din familie. Tjek forbindelsen, og prøv igen.",
+    "loadFailed": "Kunne ikke hente din familie. Tjek, at Home Screens er tændt, og prøv igen.",
     "retry": "Prøv igen",
     "saved": "Familie gemt.",
     "removeTitle": "Fjern {name}?",
@@ -754,11 +761,18 @@
       "one": "For mange forsøg. Vent {count} sekund, og prøv så igen.",
       "other": "For mange forsøg. Vent {count} sekunder, og prøv så igen."
     },
+    "tooManyMinutes": {
+      "one": "For mange forsøg. Vent {count} minut, og prøv så igen.",
+      "other": "For mange forsøg. Vent {count} minutter, og prøv så igen."
+    },
     "unlocked": {
       "one": "Låst op i 1 minut mere",
       "other": "Låst op i {count} minutter mere"
     },
-    "lockNow": "Lås nu"
+    "lockNow": "Lås nu",
+    "lockedTitle": "For mange forkerte forsøg",
+    "letThemTry": "Lad dem prøve nu",
+    "clearFailed": "Ventetiden kunne ikke afsluttes. Prøv igen."
   },
   "calendarRepeat": {
     "none": "Gentages ikke",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. De andre dage bliver, som de er.",
     "everyTimePastFuture": "Alle gange, både de tidligere og de kommende",
     "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",
-    "everyTimeFromFirst": "Alle gange, helt fra den første"
+    "everyTimeFromFirst": "Alle gange, helt fra den første",
+    "everyTimeMovesTo": "Hver gang flyttes lige så meget, til {time}",
+    "nextDay": "næste dag"
   },
   "notice": {
     "title": "Bemærk"
@@ -820,6 +836,10 @@
       "one": "Fjern 1 færdigt punkt fra “{name}”?",
       "other": "Fjern {count} færdige punkter fra “{name}”?"
     },
-    "removeDoneBody": "De forsvinder fra listen for altid."
+    "removeDoneBody": "De forsvinder fra listen for altid.",
+    "alreadyOnList": "{item} står allerede på listen",
+    "putBack": "{item} står på listen igen",
+    "deleted": "{item} er fjernet fra listen.",
+    "undo": "Fortryd"
   }
 }

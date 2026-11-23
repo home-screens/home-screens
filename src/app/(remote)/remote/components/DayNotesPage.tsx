@@ -132,9 +132,15 @@ export default function DayNotesPage({ events, sub, card, page: pageProp, onPage
     setEditing(null);
     const saved = e.id ? update(e.id, text, today) : add(e.date, text, today);
     void saved.then((ok) => {
+      // Turned down (the toast says why): the words wait as the note's draft,
+      // so opening it again brings them back rather than an empty box.
+      if (!ok) {
+        setDrafts((current) => ({ ...current, [draftKey(e)]: text }));
+        return;
+      }
       // The wall only draws a note while its day is on a calendar there, so
       // say so: a note for next week is saved even if no wall shows it yet.
-      if (ok) showToast(t('notes.dayNotes.saved', { day: savedDay(e.date) }));
+      showToast(t('notes.dayNotes.saved', { day: savedDay(e.date) }));
     });
   };
 

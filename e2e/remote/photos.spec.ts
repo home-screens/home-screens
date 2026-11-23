@@ -307,7 +307,7 @@ test('adding several says so once, and every file that could not go is listed wi
   const failures = result.getByTestId('photo-upload-failures');
   await expect(failures).toContainText("permission-slip.pdf isn't a photo or video the wall can show.");
   // Read from the file itself: an iPhone's default HEVC would play as a black slide.
-  await expect(failures).toContainText("IMG_0042.MOV is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.");
+  await expect(failures).toContainText("IMG_0042.MOV is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.");
   await result.getByTestId('photo-upload-close').first().click();
   await expect(result).toHaveCount(0);
 });

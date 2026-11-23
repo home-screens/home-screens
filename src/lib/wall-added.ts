@@ -9,8 +9,9 @@
  * this module (the add and the remove are different route files).
  */
 
-/** How long after adding the wall may take an item off again. Longer than the add sheet stays open. */
-export const WALL_UNDO_MS = 5 * 60_000;
+import { WALL_UNDO_MS } from '@/lib/undo-window';
+
+export { WALL_UNDO_MS };
 
 type Ledger = Map<string, number>;
 

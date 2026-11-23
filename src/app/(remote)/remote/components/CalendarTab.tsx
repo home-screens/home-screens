@@ -5,15 +5,15 @@ import { CalendarPlus, ChevronRight, Repeat } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { upcomingDays } from '@/lib/day-notes';
 import { capitalize } from '@/lib/meal-constants';
-import { daySheetHeading, daySheetRows } from '@/lib/calendar-day-sheet';
-import { formatEventTime } from '@/lib/calendar-utils';
+import { daySheetHeading, daySheetRows, daySheetTime } from '@/lib/calendar-day-sheet';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { refusalText } from '@/lib/hub-request';
-import { afterChangeRefusal, changeRequestBody, saveScope } from '@/lib/calendar-event-form';
+import { afterChangeRefusal, changeRequestBody, saveScope, seriesStartAfterMove } from '@/lib/calendar-event-form';
 import type { EditableGoogleEvent } from '@/lib/google-calendar-write';
 import type { EditableICloudEvent } from '@/lib/icloud-calendar-write';
 import type { EntryCalendar } from '@/lib/calendar-event-writes';
-import type { ChangeScope } from '@/lib/calendar-write';
+import { addingReadiness, type ChangeScope, type EventDraft } from '@/lib/calendar-write';
+import { formatTimeOfDay, parseDateInTZ } from '@/lib/timezone';
 import type { CalendarEvent } from '@/types/config';
 import { useCalendarTab, type CalendarWriteResult } from '../hooks/useCalendarTab';
 import { useHouseholdClockFormat, useHouseholdTimezone, useHouseholdToday } from '../household-clock';
@@ -92,7 +92,6 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
     onOpenedAdd?.();
   }, [openAdd, entry, canAdd, onOpenedAdd]);
 
-  const clock = (d: Date) => formatEventTime(d, timeFormat, locale);
   const sourceWords = (source: 'google' | 'icloud') => (source === 'icloud' ? t('calendarTab.appleCalendar') : t('calendarTab.googleCalendar'));
   const failed = (result: CalendarWriteResult) => {
     if (!result.ok && 'cancelled' in result) return;
@@ -196,63 +195,82 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
     void change(value, scope);
   };
 
-  const rows = (date: string) => daySheetRows(events, dateOfIso(date), zone).map(({ event, allDay, start, end }) => {
-    const editable = Boolean(event.canEdit);
-    const inner = (
-      <>
-        <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: event.calendarColor }} />
-        <span style={{ width: 66, flex: 'none', fontSize: 13, fontWeight: 600, lineHeight: 1.25, fontVariantNumeric: 'tabular-nums' }}>
-          {allDay ? t('calendarTab.allDay') : clock(start)}
-          {!allDay && <span style={{ display: 'block', fontSize: 12, fontWeight: 400, color: 'var(--hs-text-faint)' }}>{clock(end)}</span>}
-        </span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <b style={{ display: 'block', fontSize: 15, fontWeight: editable ? 600 : 500, lineHeight: 1.25, color: editable ? undefined : 'var(--hs-text-body)', overflowWrap: 'anywhere' }}>{event.title}</b>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
-            <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: event.calendarColor, flex: 'none' }} />
-            {event.sourceName}
-            {event.repeats && <><Repeat size={12} aria-hidden="true" />{t('calendarTab.repeats')}</>}
+  const rows = (date: string) => {
+    const dayRows = daySheetRows(events, dateOfIso(date), zone);
+    // One width for the day's time column, so the names line up; wider on a
+    // day where some time carries its weekday ("Fri 4:00 PM").
+    const timeWidth = dayRows.some((r) => !r.allDay && (r.startsEarlier || r.endsLater)) ? 92 : 66;
+    return dayRows.map(({ event, allDay, start, end, startsEarlier, endsLater }) => {
+      const editable = Boolean(event.canEdit);
+      const inner = (
+        <>
+          <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: event.calendarColor }} />
+          <span style={{ width: timeWidth, flex: 'none', fontSize: 13, fontWeight: 600, lineHeight: 1.25, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            {/* A start or end on another day carries its weekday, as on the wall's day sheet. */}
+            {allDay ? t('calendarTab.allDay') : daySheetTime(start, startsEarlier, timeFormat, locale)}
+            {!allDay && <span style={{ display: 'block', fontSize: 12, fontWeight: 400, color: 'var(--hs-text-faint)' }}>{daySheetTime(end, endsLater, timeFormat, locale)}</span>}
           </span>
-        </span>
-        {editable && <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />}
-      </>
-    );
-    // An event that cannot be changed here is not a button: no arrow, no fill.
-    return editable ? (
-      <button
-        key={event.id}
-        type="button"
-        className="press-scale"
-        data-testid="calendar-event"
-        data-event-id={event.id}
-        aria-label={t('calendarTab.changeAria', { title: event.title })}
-        onClick={() => void openEvent(event)}
-        style={{ ...ROW, cursor: 'pointer', background: 'var(--hs-bg-panel)', border: '1px solid var(--hs-border)' }}
-      >
-        {inner}
-      </button>
-    ) : (
-      <div key={event.id} data-testid="calendar-event" data-event-id={event.id} data-read-only="" style={{ ...ROW, background: 'transparent', border: '1px solid var(--hs-border)' }}>
-        {inner}
-      </div>
-    );
-  });
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <b style={{ display: 'block', fontSize: 15, fontWeight: editable ? 600 : 500, lineHeight: 1.25, color: editable ? undefined : 'var(--hs-text-body)', overflowWrap: 'anywhere' }}>{event.title}</b>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: event.calendarColor, flex: 'none' }} />
+              {event.sourceName}
+              {event.repeats && <><Repeat size={12} aria-hidden="true" />{t('calendarTab.repeats')}</>}
+            </span>
+          </span>
+          {editable && <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />}
+        </>
+      );
+      // An event that cannot be changed here is not a button: no arrow, no fill.
+      return editable ? (
+        <button
+          key={event.id}
+          type="button"
+          className="press-scale"
+          data-testid="calendar-event"
+          data-event-id={event.id}
+          aria-label={t('calendarTab.changeAria', { title: event.title })}
+          onClick={() => void openEvent(event)}
+          style={{ ...ROW, cursor: 'pointer', background: 'var(--hs-bg-panel)', border: '1px solid var(--hs-border)' }}
+        >
+          {inner}
+        </button>
+      ) : (
+        <div key={event.id} data-testid="calendar-event" data-event-id={event.id} data-read-only="" style={{ ...ROW, background: 'transparent', border: '1px solid var(--hs-border)' }}>
+          {inner}
+        </div>
+      );
+    });
+  };
 
-  const off = entry && !entry.enabled && entry.google !== 'notOffered';
-  const needsGoogle = entry?.enabled && !canAdd && entry.google !== null && entry.google !== 'notOffered' && entry.google !== 'ready';
-  const card = (off || needsGoogle) ? (
+  const readiness = entry ? addingReadiness({ enabled: entry.enabled, google: entry.google, calendars: entry.calendars.length, googleUnreachable: entry.googleUnreachable }) : null;
+  // A Google app not yet allowed to add says nothing about adding at all.
+  const cardKind = readiness === 'off' ? (entry?.google !== 'notOffered' ? 'off' : null)
+    : readiness === 'needsGoogle' ? 'signIn'
+      : readiness === 'googleUnreachable' ? 'unreachable'
+        : readiness === 'noCalendars' ? 'pick'
+          : null;
+  const card = cardKind ? (
     <div data-testid="calendar-adding-card" style={{ background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border-strong)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', gap: 12 }}>
       <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--hs-accent-soft)', color: 'var(--hs-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
         <CalendarPlus size={20} aria-hidden="true" />
       </span>
       <div>
-        <b style={{ display: 'block', fontSize: 15, marginBottom: 3 }}>{off ? t('calendarTab.offTitle') : t('calendarTab.signInTitle')}</b>
-        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{t(off ? 'calendarTab.offBody' : 'calendarTab.signInBody', { place: settingsPlaceText(tCore, 'calendar') })}</p>
+        <b style={{ display: 'block', fontSize: 15, marginBottom: 3 }}>{t(`calendarTab.${cardKind}Title`)}</b>
+        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{t(`calendarTab.${cardKind}Body`, { place: settingsPlaceText(tCore, 'calendar') })}</p>
       </div>
     </div>
   ) : null;
 
   const editing = form?.mode === 'change' ? form : null;
   const editDay = editing ? daySheetHeading(dateOfIso(editing.editable.draft.date), locale).full : '';
+  // "Every time" moves the series by however far this day's start moved: say where it lands.
+  const everyTimeWords = (draft: EventDraft) => {
+    const movedTo = editing ? seriesStartAfterMove(editing.editable, draft) : null;
+    return movedTo
+      ? tCore('calendarChange.everyTimeMovesTo', { time: formatTimeOfDay(parseDateInTZ(`${draft.date}T${movedTo}:00`, zone), { timeFormat, locale, timezone: zone }) })
+      : tCore('calendarChange.everyTimeFromFirst');
+  };
   const app = editing ? sourceWords(editing.calendar.source) : '';
 
   return (
@@ -290,7 +308,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
           cancelLabel={t('calendarTab.backToForm')}
           choices={[
             { id: 'instance', label: t('calendarTab.justThisDay'), detail: editDay, tone: 'primary' },
-            { id: 'series', label: t('calendarTab.everyTime'), detail: tCore('calendarChange.everyTimeFromFirst'), tone: 'plain' },
+            { id: 'series', label: t('calendarTab.everyTime'), detail: everyTimeWords(ask.value.draft), tone: 'plain' },
           ]}
           busy={pending === 'save'}
           onPick={(id) => void change(ask.value, id as ChangeScope)}

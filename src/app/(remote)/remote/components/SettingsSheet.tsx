@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalSentence } from '@/lib/hub-request';
 import { settingsPlaceText } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
 import type { SystemStats } from '@/lib/system-stats-types';
@@ -137,6 +138,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   const [confirmPower, setConfirmPower] = useState<PowerAction | null>(null);
 
   // Restore state machine: idle → confirming (the question is open) → busy → done/invalid-file/restore-failed
+  /** Why staging a zip failed, in the family's words, when it was not simply a bad file. */
+  const [restoreProblem, setRestoreProblem] = useState<string | null>(null);
   const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'done-without-keys' | 'invalid-file' | 'restore-failed'>('idle');
   const restoreDataRef = useRef<string | null>(null);
   /** True when the selected bundle carried keys this sheet chose not to apply. */
@@ -161,10 +164,34 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     }
   }, [t]);
 
+  // The hub-wide wait after too many wrong grown-up codes, which this
+  // signed-in phone may end: whole minutes left when the sheet opened.
+  const [lockedMinutes, setLockedMinutes] = useState(0);
+  const [lockState, setLockState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const readCodeLock = useCallback(() => {
+    editorFetch('/api/grown-up-code')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((status: { lockedSeconds?: number } | null) => setLockedMinutes(status?.lockedSeconds ? Math.ceil(status.lockedSeconds / 60) : 0))
+      .catch(() => setLockedMinutes(0));
+  }, []);
+  const clearCodeLock = async () => {
+    setLockState('busy');
+    try {
+      const res = await editorFetch('/api/grown-up-code/unlock', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setLockedMinutes(0);
+      setLockState('idle');
+    } catch {
+      setLockState('failed');
+    }
+  };
+
   // Re-fetch stats each time the sheet opens; reset data action states
   useEffect(() => {
     if (open && !loading) fetchStats();
     if (open) {
+      readCodeLock();
+      setLockState('idle');
       setFamilyOpen(false);
       setIconsOpen(false);
       setBackupDone(false);
@@ -208,6 +235,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     const file = e.target.files?.[0];
     if (!file) return;
     restorePicturesRef.current = null;
+    setRestoreProblem(null);
     if (isZipBackup(file)) {
       // The zip goes to the hub once; the hub says what is inside, and the
       // restore then posts only its id. Keys are dropped the way they are
@@ -219,8 +247,12 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         restoreLacksIconsRef.current = lacksCustomIcons(staged);
         restorePicturesRef.current = staged.pictures.count > 0 ? staged.pictures : null;
         armRestore({ _archive: staged.id, ...(staged.hasCredentials ? { _withoutKeys: true } : {}) });
-      }).catch(() => {
-        setRestoreState('invalid-file');
+      }).catch((err: unknown) => {
+        // Only the hub can say the file is not a backup; a hub out of reach is not the file's fault.
+        setRestoreProblem(err instanceof HubUnreachableError
+          ? tCore('refusals.unreachable')
+          : refusalSentence(err, tCore) ?? t('settingsSheet.data.restore.failedLabel'));
+        setRestoreState('restore-failed');
       });
       return;
     }
@@ -273,7 +305,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       void refreshCustomIcons();
       setRestoreState(credentialsSkippedRef.current ? 'done-without-keys' : 'done');
       restoreDataRef.current = null;
-    } catch {
+    } catch (err) {
+      // A hub out of reach says so; anything else keeps the usual words.
+      setRestoreProblem(err instanceof HubUnreachableError ? tCore('refusals.unreachable') : null);
       setRestoreState('restore-failed');
     }
   };
@@ -303,6 +337,27 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         covered={familyOpen || iconsOpen}
       >
         <div className="px-5 pb-5">
+          {lockedMinutes > 0 && (
+            <div
+              data-testid="grown-up-lock-card"
+              style={{
+                margin: '0 0 20px', padding: '14px 16px', borderRadius: 14,
+                border: '1px solid color-mix(in srgb, var(--hs-warning) 45%, transparent)',
+                background: 'color-mix(in srgb, var(--hs-warning) 12%, transparent)',
+              }}
+            >
+              <b style={{ display: 'block', fontSize: 15, color: 'var(--hs-text-primary)' }}>{tCore('grownUp.lockedTitle')}</b>
+              <p style={{ fontSize: 13, lineHeight: 1.4, marginTop: 4, color: 'var(--hs-text-muted)' }}>
+                {t('settingsSheet.grownUpLock.body', { count: lockedMinutes })}
+              </p>
+              {lockState === 'failed' && (
+                <p role="alert" style={{ fontSize: 13, marginTop: 6, color: 'var(--hs-danger)' }}>{tCore('grownUp.clearFailed')}</p>
+              )}
+              <PrimaryButton compact busy={lockState === 'busy'} onClick={() => void clearCodeLock()} style={{ marginTop: 12 }} data-testid="grown-up-lock-clear">
+                {tCore('grownUp.letThemTry')}
+              </PrimaryButton>
+            </div>
+          )}
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
           {loading ? (
@@ -448,8 +503,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
                 {restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
                 : restoreState === 'done' ? t('settingsSheet.data.restore.doneLabel')
                 : restoreState === 'done-without-keys' ? t('settingsSheet.data.restore.doneWithoutKeysLabel')
-                : restoreState === 'invalid-file' ? t('settingsSheet.data.restore.invalidFileLabel')
-                : restoreState === 'restore-failed' ? t('settingsSheet.data.restore.failedLabel')
+                : restoreState === 'invalid-file' ? tCore('refusals.backup.notABackup')
+                : restoreState === 'restore-failed' ? restoreProblem ?? t('settingsSheet.data.restore.failedLabel')
                 : t('settingsSheet.data.restore.label')}
               </div>
               {(restoreState === 'idle' || restoreState === 'confirming') && (

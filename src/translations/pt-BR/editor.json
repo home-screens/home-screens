@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "fica: não avança sozinha, precisa de um toque ou do controle remoto",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "agendada",
     "conditionalTooltip": "aparece só quando as condições correspondem",
     "disabledTooltip": "desligada, não aparece no display",
@@ -325,6 +325,7 @@
       "weekdays": "de segunda a sexta",
       "weekends": "sábado e domingo",
       "allDay": "o dia todo",
+      "allDaysFor": "o dia todo por {count} dias",
       "fromOnly": "a partir das {start}",
       "untilOnly": "até {end}",
       "window": "das {start} às {end}",
@@ -622,6 +623,7 @@
         "connected": "Conectado ao Google",
         "disconnect": "Desconectar",
         "noCalendars": "Nenhum calendário encontrado.",
+        "notAnswering": "O Google não está respondendo agora, então seus calendários não podem ser listados. Os que você escolheu continuam escolhidos.",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Ocultar eventos recusados",
         "credentialsRequired": "Conectar seu calendário precisa de um login do Google que você mesmo cria. Adicione em Chaves de API.",
@@ -636,8 +638,10 @@
         "copyCode": "Copiar código",
         "googleOnly": "Somente Google",
         "pausedExplanation": "O Google não está conectado agora, então estes calendários pararam de atualizar. Entre novamente acima para trazê-los de volta.",
+        "goneExplanation": "O Google não mostra mais estes calendários. Talvez tenham sido apagados ou deixado de ser compartilhados com você. Remova-os abaixo.",
         "stillUsedByPhotos": "Desconectado neste hub. A importação do Google Fotos ainda usa o mesmo login do Google, então sua conta do Google continua mostrando o Home Screens até você desconectar o Google Fotos também.",
         "pausedBadge": "Pausado",
+        "goneBadge": "Não encontrado",
         "removeTitle": "Remover {name}",
         "credentialsSetupPrefix": "Adicione o seu acesso do Google na página ",
         "credentialsSetupSuffix": " primeiro.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "O Google pede que você entre mais uma vez para permitir isso. Mostrar seus calendários funciona igual de qualquer jeito.",
         "switchHelpICloud": "Seus calendários do iCloud não precisam de mais nada. Mostrar os calendários funciona igual de qualquer jeito.",
         "ready": "Conectado, já pode adicionar eventos",
+        "pickCalendars": "Escolha abaixo pelo menos um calendário para receber os eventos novos.",
+        "googleNotAnswering": "O Google não está respondendo agora. Dá para adicionar eventos nos calendários dele de novo assim que ele responder.",
         "signInTitle": "Mais um passo: entre no Google de novo",
         "signInBody": "O Google vai pedir para você deixar o Home Screens “Ver e editar eventos em todas as suas agendas”. Uma aba do Google se abre e, no fim, você volta para cá automaticamente.",
         "signInButton": "Entrar com o Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Não foi possível fazer o backup. Tente de novo.",
-        "invalidBackupFile": "Arquivo de backup inválido.",
         "restoreBackupFailed": "Não foi possível restaurar esse backup. Tente de novo.",
         "credentialsExportFailedTitle": "Não foi possível incluir suas chaves",
         "credentialsExportFailed": "Suas chaves e contas não puderam ser adicionadas a este backup. Baixar o resto mesmo assim?",
@@ -1218,7 +1223,7 @@
         "pauseEnabledHelp": "Toque duas vezes no ponto de tela destacado para pausar a rotação. Toque duas vezes de novo para retomar.",
         "pauseTimeoutLabel": "Tempo para retomar automaticamente",
         "pauseTimeoutNever": "Nunca",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Retoma a rotação automaticamente após esse número de segundos. Defina como 0 para permanecer pausado até retomar manualmente.",
         "swipeEnabledLabel": "Deslizar para trocar de tela",
         "swipeEnabledToggle": "Ativado",
@@ -1232,10 +1237,10 @@
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Como uma tela dá lugar à seguinte. O desfoque é o efeito mais pesado: se a troca de telas engasgar num aparelho mais lento, escolha outro.",
         "transitionDurationLabel": "Duração da transição",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Quanto tempo dura a animação de transição entre telas.",
         "cursorHideLabel": "Ocultar cursor após",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "O cursor do mouse é ocultado após esse número de segundos sem atividade. Mexa o mouse para mostrá-lo novamente.",
         "pixelShiftLabel": "Proteger a tela contra burn-in",
         "pixelShiftToggle": "Deslocar a imagem levemente",
@@ -1427,7 +1432,7 @@
       "maxVisibleLabel": "Máx. de avisos visíveis",
       "defaultDurationLabel": "Duração padrão (segundos)",
       "defaultDurationPerType": "Padrões por tipo",
-      "defaultDurationHelp": "Info: 10s, Atenção: 30s, Urgente: permanente até dispensar.",
+      "defaultDurationHelp": "Info: 10 s, Atenção: 30 s, Urgente: permanente até dispensar.",
       "alertSizeLabel": "Tamanho do aviso",
       "activeAlertsHeading": "Avisos ativos",
       "clearAllButton": "Limpar todos os avisos",
@@ -1486,7 +1491,7 @@
       "upload": "Enviar",
       "dropzone": "Arraste fotos ou vídeos para aqui, ou clique para escolher, quantos você quiser",
       "saveInto": "Salvar em",
-      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. No iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
+      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. Se veio de um iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
       "loadFailed": "Não foi possível carregar suas fotos e vídeos",
       "tryAgain": "Tentar de novo",
       "allFolders": "Todas as fotos e vídeos",
@@ -1518,6 +1523,24 @@
         "one": "Ele vai sumir deste hub para sempre. Se estiver em uma apresentação, ela segue com as outras fotos. Se uma tela depender dele, ele é mantido, para que nenhuma tela fique vazia.",
         "other": "Eles vão sumir deste hub para sempre. As apresentações seguem com as outras fotos, e os arquivos de que uma tela depende são mantidos, para que nenhuma tela fique vazia."
       },
+      "clipsGoToo": {
+        "one": "O clipe da Live Photo vai junto.",
+        "other": "Os clipes das Live Photos vão junto."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo ainda não está pareada",
+        "other": "{count} Live Photos ainda não estão pareadas"
+      },
+      "pairBody": {
+        "one": "{name} está ao lado de uma foto com o mesmo nome, então toca como um vídeo curto separado. Pareie e ela passa a animar a foto.",
+        "other": "{name} e mais {more} estão ao lado de fotos com o mesmo nome, então cada um toca como um vídeo curto separado. Pareie e cada um passa a animar sua foto."
+      },
+      "pairButton": "Parear Live Photos",
+      "paired": {
+        "one": "{count} Live Photo pareada.",
+        "other": "{count} Live Photos pareadas."
+      },
+      "pairFailed": "Não foi possível parear as Live Photos. Tente de novo.",
       "deleteConfirm": "Excluir",
       "refused": "{file} ainda está em uso e não foi excluído.",
       "keptLast": "{file} foi mantido: é a última foto da apresentação em '{name}'.",
@@ -1830,7 +1853,7 @@
         "scanningInterface": "Escaneando {device}",
         "scanButton": "Escanear",
         "scanningButton": "Escaneando…",
-        "scanCooldownButton": "Escanear ({seconds}s)",
+        "scanCooldownButton": "Escanear ({seconds} s)",
         "defaultScanError": "Não foi possível procurar redes. Tente de novo.",
         "emptyHint": "Clique em Escanear para procurar redes Wi-Fi próximas.",
         "badges": {
@@ -1872,7 +1895,7 @@
       "rollback": {
         "polling": {
           "heading": "Verificando conectividade…",
-          "remaining": "{seconds}s restantes antes do rollback automático",
+          "remaining": "{seconds} s restantes antes do rollback automático",
           "warning": "Se esta página ficar inacessível, as configurações anteriores serão restauradas automaticamente."
         },
         "confirmed": {
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Outras compras",
-        "description": "Escolha uma das suas listas para o que nenhuma refeição precisa, como papel-toalha ou ração do cachorro. O que ainda está nela aparece no fim da lista de compras no celular e no painel, e um cartão de compras com Adicionar no painel adiciona nela.",
+        "description": "Escolha uma das suas listas para as coisas que nenhuma refeição usa, como papel-toalha ou ração do cachorro. O que ainda estiver nela aparece no fim da lista de compras no celular e no painel, e o que for adicionado num cartão de compras com “Adicionar no painel” vai para ela.",
         "none": "Nenhuma"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Criar uma chave nova",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Cada display recarrega uma vez para pegar a chave nova.",
-        "errorRegenerate": "Não foi possível criar uma chave nova",
-        "errorCopy": "Falha ao copiar; selecione e copie manualmente",
+        "errorRegenerate": "Não foi possível criar uma chave nova.",
+        "errorCopy": "Não foi possível copiar. Selecione a chave e copie você mesmo.",
         "phoneHintIntro": "Para controlar um display pelo celular, salve nos favoritos um link como este:",
         "phoneHintOutro": "Mostre antes a chave acima para que o link a leve junto. Troque sleep por wake, reload, next-screen ou prev-screen para os outros comandos.",
         "phoneHintDisplayNote": "Este aponta para {name}. Troque {display} pelo id de outro display para mirar nele."
@@ -2381,9 +2404,9 @@
         "addButton": "Adicionar",
         "errors": {
           "invalidCidr": "Isso não é um intervalo de rede. A maioria das redes domésticas é 192.168.1.0/24.",
-          "invalidIp": "Isso não é um endereço",
+          "invalidIp": "Isso não é um endereço IP.",
           "invalidPrefix": "O número depois da barra precisa ficar entre 0 e 32.",
-          "alreadyInList": "Já está na lista"
+          "alreadyInList": "Já está na lista."
         },
         "callerIpLabel": "Seu IP: ",
         "lockoutWarning": {
@@ -2601,7 +2624,7 @@
         "tipsHeading": "Dicas",
         "tips": {
           "localStorage": "Plugins de dev ficam apenas no localStorage; não persistem entre navegadores.",
-          "autoReload": "O plugin recarrega automaticamente quando o bundle muda (verificado a cada 2s)",
+          "autoReload": "O plugin recarrega automaticamente quando o bundle muda (verificado a cada 2 s)",
           "sourcemapsPart1": "Source maps são suportados; adicione ",
           "sourcemapsPart2": " na sua config do Vite",
           "devOverrides": "Plugins de dev substituem versões instaladas com o mesmo tipo de módulo."
@@ -2764,7 +2787,7 @@
       "statusIdle": "Inativo · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "rotação de {degrees}°",
-      "rotationNormal": "normal",
+      "rotationNormal": "Sem rotação",
       "screenCount": {
         "one": "{count} tela",
         "other": "{count} telas"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Mudar todos os dias de um evento que se repete",
             "hint": "Quando a mudança vale para todas as vezes, não só para um dia."
+          },
+          "menu-change": {
+            "label": "Mudar o cardápio",
+            "hint": "Colocar uma refeição no cardápio, trocar ou tirar uma, pelo painel."
           }
         },
         "unlockLabel": "Ficar desbloqueado por",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Depois do código certo, aquele painel faz o que está marcado sem pedir de novo durante esse tempo. Quem está conectado pelo celular nunca precisa digitar o código.",
         "removeConfirmTitle": "Remover o código dos adultos?",
-        "removeConfirmMessage": "O painel para de pedir o código antes do que você marcou. Você pode definir um código novo quando quiser."
+        "removeConfirmMessage": "O painel para de pedir o código antes do que você marcou. Você pode definir um código novo quando quiser.",
+        "lockedBody": {
+          "one": "Os painéis, a página de tarefas e os celulares sem login não vão aceitar o código dos adultos por mais {count} minuto.",
+          "other": "Os painéis, a página de tarefas e os celulares sem login não vão aceitar o código dos adultos por mais {count} minutos."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Totais da semana",
       "memberLine": "{chores} tarefas, {tickets} tickets"
     },
-    "finishFormFirst": "Salve ou cancele primeiro o formulário aberto.",
+    "finishFormFirst": "Termine ou cancele primeiro o que está aberto.",
     "starter": {
       "openButton": "Escolher da lista de sugestões",
       "hint": "{count} tarefas do dia a dia, separadas por período do dia",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Instalar plugin de URL",
     "dialogAriaLabel": "Instalar plugin de URL",
-    "tarballUrlLabel": "URL do tarball",
-    "tarballUrlHelpPart1": "URL HTTPS para um bundle de plugin ",
-    "tarballUrlHelpPart2": ". Substitua a versão por ",
-    "tarballUrlHelpPart3": " se quiser que atualizações futuras precisem apenas de um número de versão.",
+    "tarballUrlLabel": "Link de download",
+    "tarballUrlHelpPart1": "Um link seguro (começando com https) para o arquivo ",
+    "tarballUrlHelpPart2": " do plugin. Coloque ",
+    "tarballUrlHelpPart3": " no lugar do número da versão, assim as próximas atualizações só precisam do número.",
     "exampleLabel": "Exemplo:",
     "versionLabel": "Versão a instalar",
     "externalSourceWarning": "Você está instalando de fora do marketplace de plugins. Instale apenas plugins de fontes confiáveis.",
@@ -3973,9 +4004,9 @@
     "title": "Atualizar {id}",
     "dialogAriaLabel": "Atualizar {id}",
     "currentVersionLabel": "Versão atual:",
-    "tarballUrlLabel": "URL do tarball",
-    "tarballUrlHelpPart1": "Edite a URL para apontar para uma nova versão, ou substitua a versão por ",
-    "tarballUrlHelpPart2": " para que futuras atualizações precisem apenas de um número de versão.",
+    "tarballUrlLabel": "Link de download",
+    "tarballUrlHelpPart1": "Mude o link para apontar para a nova versão, ou coloque ",
+    "tarballUrlHelpPart2": " no lugar do número da versão, assim da próxima vez você só digita o número.",
     "exampleLabel": "Exemplo:",
     "versionLabel": "Versão a instalar",
     "workingMessage": "Baixando e atualizando…",
@@ -4700,6 +4731,8 @@
       "wallAdd": "Adicionar no painel",
       "wallAddHelpMealie": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista do Mealie que a família usa nas compras.",
       "wallAddHelpLocal": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista escolhida abaixo.",
+      "wallPlan": "Planejar refeições no painel",
+      "wallPlanHelp": "Qualquer pessoa pode colocar uma receita no cardápio pelo painel, nesta semana e na próxima: um botão \"Colocar no cardápio\" em cada receita e um sinal de mais nas refeições vazias das visualizações de semana. Refeições digitadas e receitas novas continuam no celular.",
       "extrasList": "Outras compras vão para",
       "extrasListNone": "Nenhuma (sem linha para adicionar)",
       "extrasListHelp": "Uma das suas listas. O que ainda está nela aparece no fim da lista de compras, aqui e no celular. Todos os cartões de compras usam a mesma."
@@ -5215,7 +5248,7 @@
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar prazos",
       "showAssignees": "Mostrar para quem",
-      "wallAdd": "Adicionar pelo painel",
+      "wallAdd": "Adicionar no painel",
       "wallAddHelp": "Uma linha Adicionar embaixo da lista. Qualquer pessoa pode adicionar pelo painel; mudar e tirar continua no celular."
     },
     "todoist": {

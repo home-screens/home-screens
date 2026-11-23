@@ -118,8 +118,10 @@
       "downloadFailed": "Não foi possível baixar o plugin. Verifique a conexão com a internet e tente de novo.",
       "badLink": "Esse link não pode ser usado. Cole o link https completo do plugin.",
       "blockedLink": "Esse link aponta para dentro da sua rede de casa, então o Home Screens não baixa nada dele.",
+      "notHttps": "Esse link não é um link https seguro, então o Home Screens não baixa nada dele.",
       "needsVersion": "Esse link precisa de um número de versão. Digite qual versão instalar.",
       "notAPlugin": "Esse link não é um plugin do Home Screens. Confira se ele aponta para o arquivo .tar.gz do plugin.",
+      "tooBig": "Esse arquivo é grande demais para ser um plugin. Plugins podem ter até {max} MB.",
       "alreadyInstalled": "Esse plugin já está instalado. Atualize pela loja de plugins."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Esse código não funcionou. Confira e tente de novo.",
       "expired": "Este login expirou. Comece de novo.",
       "notApproved": "O login não foi aprovado. Comece de novo se quiser conectar."
+    },
+    "backup": {
+      "notABackup": "Esse arquivo não é um backup do Home Screens.",
+      "noRoom": "Não há espaço suficiente no Home Screens para este backup.",
+      "noRoomForPictures": "Não há espaço suficiente no Home Screens para as fotos e os vídeos deste backup."
     }
   },
   "today": "Hoje",
@@ -167,7 +174,7 @@
   },
   "relativeTime": {
     "justNow": "agora mesmo",
-    "secondsAgo": "há {n}s",
+    "secondsAgo": "há {n} s",
     "minutesAgo": "há {n} min",
     "hoursAgo": "há {n}h",
     "daysAgo": "há {n}d",
@@ -346,7 +353,7 @@
     "controls": "Botões do timer",
     "replaceTitle": "Começar um novo timer?",
     "replaceBody": "Já tem um timer rodando. Começar um novo vai parar o atual.",
-    "routinesLoadError": "Não foi possível carregar as rotinas. Verifique a conexão e tente de novo.",
+    "routinesLoadError": "Não foi possível carregar as rotinas. Confira se o Home Screens está ligado e tente de novo.",
     "routineMeta": {
       "one": "{steps} passo · {minutes} min",
       "other": "{steps} passos · {minutes} min"
@@ -387,7 +394,7 @@
     "color": "Cor",
     "emptyTitle": "Ainda não há ninguém",
     "emptyDescription": "Adicione as pessoas da sua casa. Elas estarão disponíveis nas tarefas, recompensas, calendários e horários escolares.",
-    "loadFailed": "Não foi possível carregar sua família. Verifique a conexão e tente de novo.",
+    "loadFailed": "Não foi possível carregar sua família. Confira se o Home Screens está ligado e tente de novo.",
     "retry": "Tentar de novo",
     "saved": "Família salva.",
     "removeTitle": "Remover {name}?",
@@ -756,11 +763,18 @@
       "one": "Muitas tentativas. Espere {count} segundo e tente de novo.",
       "other": "Muitas tentativas. Espere {count} segundos e tente de novo."
     },
+    "tooManyMinutes": {
+      "one": "Muitas tentativas. Espere {count} minuto e tente de novo.",
+      "other": "Muitas tentativas. Espere {count} minutos e tente de novo."
+    },
     "unlocked": {
       "one": "Desbloqueado por mais {count} minuto",
       "other": "Desbloqueado por mais {count} minutos"
     },
-    "lockNow": "Bloquear agora"
+    "lockNow": "Bloquear agora",
+    "lockedTitle": "Tentativas erradas demais",
+    "letThemTry": "Deixar tentar agora",
+    "clearFailed": "Não deu para acabar com a espera. Tente de novo."
   },
   "calendarRepeat": {
     "none": "Não se repete",
@@ -787,7 +801,9 @@
     "thisDayStays": "{day}. Os outros dias ficam como estão.",
     "everyTimePastFuture": "Todas as vezes, passadas e futuras",
     "askBody": "Mudar só este dia ou todas as vezes que ele acontece?",
-    "everyTimeFromFirst": "Todas as vezes que ele acontece, desde a primeira"
+    "everyTimeFromFirst": "Todas as vezes que ele acontece, desde a primeira",
+    "everyTimeMovesTo": "Todas as vezes mudam na mesma medida, para {time}",
+    "nextDay": "no dia seguinte"
   },
   "notice": {
     "title": "Aviso"
@@ -822,6 +838,10 @@
       "one": "Remover {count} item feito de “{name}”?",
       "other": "Remover {count} itens feitos de “{name}”?"
     },
-    "removeDoneBody": "Eles saem da lista de vez."
+    "removeDoneBody": "Eles saem da lista de vez.",
+    "alreadyOnList": "Já está na lista: {item}",
+    "putBack": "Item de volta na lista: {item}",
+    "deleted": "Item tirado da lista: {item}",
+    "undo": "Desfazer"
   }
 }

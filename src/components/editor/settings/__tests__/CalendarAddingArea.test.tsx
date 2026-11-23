@@ -37,13 +37,14 @@ function answer(googleIfOn: GoogleEntryState, saved = true) {
   })));
 }
 
-function renderArea(googleCalendars: GoogleCalendar[], enabled = true) {
+function renderArea(googleCalendars: GoogleCalendar[], enabled = true, googleUnreadable = false) {
   return render(
     <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>
       <CalendarAddingArea
         eventEntry={{ enabled, calendarIds: [FAMILY], defaultCalendarId: FAMILY }}
         wallEntry
         googleCalendars={googleCalendars}
+        googleUnreadable={googleUnreadable}
         shownGoogleIds={[FAMILY]}
         icloudSources={[]}
         onChange={() => {}}
@@ -86,5 +87,12 @@ describe('CalendarAddingArea', () => {
     await waitFor(() => expect(screen.getAllByText('Family').length).toBeGreaterThan(0));
     expect(screen.getByRole('checkbox', { name: /Family/ })).toBeTruthy();
     expect(screen.queryByTestId('calendar-adding-sign-in')).toBeNull();
+  });
+
+  it('says Google is not answering, not that no calendar is picked, while its list cannot be read', async () => {
+    answer('ready');
+    renderArea([], true, true);
+    await waitFor(() => expect(screen.getByText(copy.googleNotAnswering)).toBeTruthy());
+    expect(screen.queryByText(copy.pickCalendars)).toBeNull();
   });
 });

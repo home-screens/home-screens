@@ -6,7 +6,7 @@ import { isSoccerLeague } from '@/lib/espn';
 import { formatRecord, getPlayoffTeamCount, StandingsHeader, StandingsTeamRow } from './shared';
 import { standingsRowsKey, useStandingsPaging } from './paging';
 import { GamePagesFooter } from '../sports/shared';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { NO_VALUE } from '@/lib/constants';
 
 interface TableViewProps {
@@ -81,14 +81,16 @@ export function streakLabel(streak: string, win: string, loss: string): string {
   return streak;
 }
 
-function CellValue({ entry, col, league, t }: { entry: StandingsEntry; col: string; league: string; t: Translate }) {
+export function CellValue({ entry, col, league, t, locale }: { entry: StandingsEntry; col: string; league: string; t: Translate; locale: string }) {
   switch (col) {
     case 'record':
       return <>{formatRecord(entry, league)}</>;
     case 'pct':
-      return <>{entry.winPct.toFixed(3).replace(/^0/, '')}</>;
+      // ".625" in English, ",625" where a comma is the decimal mark, as games back is written.
+      return <>{new Intl.NumberFormat(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(entry.winPct).replace(/^0(?=\D)/, '')}</>;
     case 'gb':
-      return <>{entry.gamesBack !== undefined && entry.gamesBack > 0 ? entry.gamesBack : NO_VALUE}</>;
+      // In the household's numbers: 1,5 in a German table.
+      return <>{entry.gamesBack !== undefined && entry.gamesBack > 0 ? new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(entry.gamesBack) : NO_VALUE}</>;
     case 'strk':
       return (
         <span className={entry.streak?.startsWith('W') ? 'text-emerald-400' : entry.streak?.startsWith('L') ? 'text-red-400' : ''}>
@@ -128,6 +130,7 @@ function CellValue({ entry, col, league, t }: { entry: StandingsEntry; col: stri
 
 export function TableView({ groups, teamsToShow, showPlayoffLine, rotationIntervalMs, grouping, favorites = [], fontSize }: TableViewProps) {
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const { ref, group: index, page, pages, visible } = useStandingsPaging(
     groups.length,
     (g) => standingsRowsKey(groups[g], teamsToShow, fontSize),
@@ -181,7 +184,7 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
                   className={`${col.width} text-right text-current/60 tabular-nums shrink-0 relative`}
                   style={{ fontSize: '0.7em' }}
                 >
-                  <CellValue entry={entry} col={col.key} league={group.league} t={t} />
+                  <CellValue entry={entry} col={col.key} league={group.league} t={t} locale={locale} />
                 </span>
               ))}
             </StandingsTeamRow>

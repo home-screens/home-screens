@@ -1,6 +1,12 @@
 import clsx from 'clsx';
 
 interface HomeScreensLogoProps {
+  /**
+   * The mark alone on a screen narrower than 1280 px: the editor's toolbar
+   * shares its row with the screen tabs, which a 1024 px laptop otherwise
+   * squeezed to a sliver.
+   */
+  markOnlyWhenNarrow?: boolean;
   className?: string;
   contextLabel?: string;
 }
@@ -8,6 +14,7 @@ interface HomeScreensLogoProps {
 export default function HomeScreensLogo({
   className,
   contextLabel,
+  markOnlyWhenNarrow = false,
 }: HomeScreensLogoProps) {
   return (
     <div className={clsx('flex shrink-0 items-center gap-3 text-left', className)}>
@@ -30,7 +37,7 @@ export default function HomeScreensLogo({
         </svg>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2.5 leading-none">
+      <div className={clsx('min-w-0 items-center gap-2.5 leading-none', markOnlyWhenNarrow ? 'hidden xl:flex' : 'flex')}>
         <div className="flex items-baseline gap-2 whitespace-nowrap">
           <span className="text-[0.95rem] font-semibold tracking-[0.16em] uppercase text-hs-logo-wordmark">
             Home

@@ -118,8 +118,10 @@
       "downloadFailed": "Das Plugin konnte nicht heruntergeladen werden. Prüf die Internetverbindung und versuch es noch einmal.",
       "badLink": "Dieser Link geht nicht. Füge den vollständigen https-Link zum Plugin ein.",
       "blockedLink": "Dieser Link zeigt in dein Heimnetz, deshalb lädt Home Screens nichts davon herunter.",
+      "notHttps": "Dieser Link ist kein sicherer https-Link, deshalb lädt Home Screens nichts davon herunter.",
       "needsVersion": "Dieser Link braucht eine Versionsnummer. Gib ein, welche Version installiert werden soll.",
       "notAPlugin": "Dieser Link führt nicht zu einem Home-Screens-Plugin. Prüf, ob er auf die .tar.gz-Datei des Plugins zeigt.",
+      "tooBig": "Diese Datei ist zu groß für ein Plugin. Plugins dürfen höchstens {max} MB groß sein.",
       "alreadyInstalled": "Dieses Plugin ist schon installiert. Aktualisiere es stattdessen im Plugin-Store."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Dieser Code hat nicht funktioniert. Prüf ihn und versuch es noch einmal.",
       "expired": "Diese Anmeldung ist abgelaufen. Starte sie noch einmal.",
       "notApproved": "Die Anmeldung wurde nicht bestätigt. Starte sie noch einmal, wenn du verbinden möchtest."
+    },
+    "backup": {
+      "notABackup": "Diese Datei ist kein Home-Screens-Backup.",
+      "noRoom": "Auf Home Screens ist nicht genug Platz für dieses Backup.",
+      "noRoomForPictures": "Auf Home Screens ist nicht genug Platz für die Bilder in diesem Backup."
     }
   },
   "today": "Heute",
@@ -205,7 +212,7 @@
     "adoptLabel": "Hinzufügen",
     "nextTo": "neben",
     "waitingForAdoption": "Warte auf das Hinzufügen…",
-    "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Hauptdisplay in {seconds}s.",
+    "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Hauptdisplay in {seconds} s.",
     "goToDefault": "Jetzt zum Hauptdisplay wechseln"
   },
   "login": {
@@ -346,7 +353,7 @@
     "controls": "Timer-Knöpfe",
     "replaceTitle": "Neuen Timer starten?",
     "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
-    "routinesLoadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "routinesLoadError": "Deine Routinen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "routineMeta": {
       "one": "{steps} Schritt · {minutes} Min.",
       "other": "{steps} Schritte · {minutes} Min."
@@ -387,7 +394,7 @@
     "color": "Farbe",
     "emptyTitle": "Noch niemand hier",
     "emptyDescription": "Füge die Personen in deinem Haushalt hinzu. Sie stehen dann in Aufgaben, Belohnungen, Kalendern und Stundenplänen zur Verfügung.",
-    "loadFailed": "Deine Familie konnte nicht geladen werden. Prüf die Verbindung und versuch es noch einmal.",
+    "loadFailed": "Deine Familie konnte nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "retry": "Erneut versuchen",
     "saved": "Familie gespeichert.",
     "removeTitle": "{name} entfernen?",
@@ -754,11 +761,18 @@
       "one": "Zu viele Versuche. Probier es in {count} Sekunde noch einmal.",
       "other": "Zu viele Versuche. Probier es in {count} Sekunden noch einmal."
     },
+    "tooManyMinutes": {
+      "one": "Zu viele Versuche. Probier es in {count} Minute noch einmal.",
+      "other": "Zu viele Versuche. Probier es in {count} Minuten noch einmal."
+    },
     "unlocked": {
       "one": "Noch 1 Minute entsperrt",
       "other": "Noch {count} Minuten entsperrt"
     },
-    "lockNow": "Jetzt sperren"
+    "lockNow": "Jetzt sperren",
+    "lockedTitle": "Zu viele falsche Versuche",
+    "letThemTry": "Jetzt wieder versuchen lassen",
+    "clearFailed": "Das Warten konnte nicht beendet werden. Versuch es noch einmal."
   },
   "calendarRepeat": {
     "none": "Wiederholt sich nicht",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. Die anderen Tage bleiben, wie sie sind.",
     "everyTimePastFuture": "Alle vergangenen und kommenden Tage",
     "askBody": "Nur an diesem Tag ändern oder an allen Tagen?",
-    "everyTimeFromFirst": "Alle Tage, vom ersten an"
+    "everyTimeFromFirst": "Alle Tage, vom ersten an",
+    "everyTimeMovesTo": "Jeder Termin verschiebt sich um genauso viel, auf {time}",
+    "nextDay": "am nächsten Tag"
   },
   "notice": {
     "title": "Hinweis"
@@ -820,6 +836,10 @@
       "one": "{count} erledigten Eintrag aus „{name}“ entfernen?",
       "other": "{count} erledigte Einträge aus „{name}“ entfernen?"
     },
-    "removeDoneBody": "Was erledigt ist, verschwindet endgültig von der Liste."
+    "removeDoneBody": "Was erledigt ist, verschwindet endgültig von der Liste.",
+    "alreadyOnList": "Schon auf der Liste: {item}",
+    "putBack": "Wieder auf der Liste: {item}",
+    "deleted": "Von der Liste genommen: {item}",
+    "undo": "Rückgängig"
   }
 }

@@ -15,7 +15,9 @@
 import { downloadBlob } from './download';
 import { backupFileName } from './backup-file-name';
 import type { EditorFetchInit } from './editor-fetch';
+import { refusalFromBody } from './refusal';
 import type { PictureBackupChoice, PictureBackupSummary } from './backup-pictures-types';
+import { announceBackupSaved } from './backup-reminder';
 
 export type { PictureBackupChoice, PictureBackupSummary } from './backup-pictures-types';
 
@@ -72,6 +74,16 @@ export async function saveBackupFile(
   bundle: object,
   fetchFn: FetchFn,
   options: { timezone?: string; withKeys?: boolean; pictures?: PictureBackupChoice } = {},
+): Promise<SavedBackup> {
+  const saved = await writeBackupFile(bundle, fetchFn, options);
+  announceBackupSaved();
+  return saved;
+}
+
+async function writeBackupFile(
+  bundle: object,
+  fetchFn: FetchFn,
+  options: { timezone?: string; withKeys?: boolean; pictures?: PictureBackupChoice },
 ): Promise<SavedBackup> {
   const choice = options.pictures ?? getPictureBackupChoice();
   if (choice !== 'off') {
@@ -132,6 +144,7 @@ export async function stageZipBackup(file: File, fetchFn: FetchFn): Promise<Stag
     timeoutMs: null,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`);
+  // A refusal travels with its code (`backup.notABackup`, `backup.noRoom`), for the surface to put in the family's words.
+  if (!res.ok) throw refusalFromBody(data, res.status, `HTTP ${res.status}`) ?? new Error(`HTTP ${res.status}`);
   return data as StagedBackup;
 }

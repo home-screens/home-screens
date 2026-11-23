@@ -58,7 +58,7 @@ With it on, a **List** or **Compact** view that holds more than fits scrolls wit
 
 ## 5. Adding on the wall
 
-**Add from the wall** is on for new To-Do modules (it sits under **Tap on the wall** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
+**Add on the wall** is on for new To-Do modules (it sits under **Tap on the wall** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
 
 Tap it and a sheet rises with the wall's own keyboard. Type one thing, tap **Add**, and the box empties for the next one; each thing added shows as a chip with **Undo** until you close the sheet. The first letter is a capital by itself, and **123** has numbers and the marks a list needs, for "Batteries (AA)".
 

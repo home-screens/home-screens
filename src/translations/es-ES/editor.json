@@ -325,6 +325,7 @@
       "weekdays": "de lunes a viernes",
       "weekends": "sábados y domingos",
       "allDay": "todo el día",
+      "allDaysFor": "todo el día durante {count} días",
       "fromOnly": "a partir de {start}",
       "untilOnly": "hasta {end}",
       "window": "de {start} a {end}",
@@ -622,6 +623,7 @@
         "connected": "Conectado a Google",
         "disconnect": "Desconectar",
         "noCalendars": "No se han encontrado calendarios.",
+        "notAnswering": "Google no responde ahora mismo, así que no se pueden mostrar tus calendarios. Los que elegiste siguen elegidos.",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Ocultar eventos que rechazaste",
         "credentialsRequired": "Conectar tu calendario necesita un acceso de Google que creas tú. Añádelo en Claves de API.",
@@ -636,8 +638,10 @@
         "copyCode": "Copiar código",
         "googleOnly": "Solo Google",
         "pausedExplanation": "Google no está conectado ahora mismo, así que estos calendarios han dejado de actualizarse. Vuelve a iniciar sesión arriba para recuperarlos.",
+        "goneExplanation": "Google ya no muestra estos calendarios. Puede que se hayan eliminado o que ya no se compartan contigo. Quítalos abajo.",
         "stillUsedByPhotos": "Desconectado en este hub. La importación de Google Fotos sigue usando el mismo inicio de sesión de Google, así que Home Screens seguirá apareciendo en tu cuenta de Google hasta que también desconectes Google Fotos.",
         "pausedBadge": "En pausa",
+        "goneBadge": "No encontrado",
         "removeTitle": "Quitar {name}",
         "credentialsSetupPrefix": "Añade tu acceso de Google en la página ",
         "credentialsSetupSuffix": " primero.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Google te pedirá que inicies sesión una vez más para permitirlo. Tus calendarios se ven igual que siempre, lo actives o no.",
         "switchHelpICloud": "Tus calendarios de iCloud no necesitan nada más. Se ven igual que siempre, lo actives o no.",
         "ready": "Sesión iniciada: ya se pueden añadir eventos",
+        "pickCalendars": "Elige abajo al menos un calendario para los eventos nuevos.",
+        "googleNotAnswering": "Google no responde ahora mismo. Podrás volver a añadir eventos a sus calendarios en cuanto responda.",
         "signInTitle": "Un paso más: vuelve a iniciar sesión en Google",
         "signInBody": "Google te preguntará si Home Screens puede «Ver y editar eventos de todos tus calendarios». Se abrirá una pestaña de Google y después volverás aquí automáticamente.",
         "signInButton": "Iniciar sesión con Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "No se pudo hacer la copia de seguridad. Inténtalo de nuevo.",
-        "invalidBackupFile": "Archivo de copia de seguridad no válido.",
         "restoreBackupFailed": "No se pudo restaurar esa copia de seguridad. Inténtalo de nuevo.",
         "credentialsExportFailedTitle": "No se pudieron incluir tus claves",
         "credentialsExportFailed": "Tus claves y cuentas no se pudieron añadir a esta copia. ¿Descargar el resto de todos modos?",
@@ -1486,7 +1491,7 @@
       "upload": "Subir",
       "dropzone": "Arrastra imágenes o vídeos aquí, o haz clic para elegir: tantos como quieras",
       "saveInto": "Guardar en",
-      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
+      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. Si viene de un iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
       "loadFailed": "No se pudieron cargar tus imágenes y vídeos",
       "tryAgain": "Intentar de nuevo",
       "allFolders": "Todas las imágenes y vídeos",
@@ -1518,6 +1523,24 @@
         "one": "Desaparecerá de este hub para siempre. Un pase de fotos que lo muestre seguirá con sus otras imágenes. Si una pantalla depende de este archivo, se conservará, así que ninguna pantalla se quedará vacía.",
         "other": "Desaparecerán de este hub para siempre. Los pases de fotos seguirán con sus otras imágenes y se conservarán los archivos de los que depende una pantalla, así que ninguna pantalla se quedará vacía."
       },
+      "clipsGoToo": {
+        "one": "Su clip de Live Photo también se borra.",
+        "other": "Sus clips de Live Photo también se borran."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo aún no está emparejada",
+        "other": "{count} Live Photos aún no están emparejadas"
+      },
+      "pairBody": {
+        "one": "{name} está junto a una imagen con el mismo nombre, así que se reproduce como un vídeo corto aparte. Emparéjala y moverá su imagen.",
+        "other": "{name} y {more} más están junto a imágenes con el mismo nombre, así que cada una se reproduce como un vídeo corto aparte. Emparéjalas y cada una moverá su imagen."
+      },
+      "pairButton": "Emparejar Live Photos",
+      "paired": {
+        "one": "{count} Live Photo emparejada.",
+        "other": "{count} Live Photos emparejadas."
+      },
+      "pairFailed": "No se pudieron emparejar las Live Photos. Inténtalo de nuevo.",
       "deleteConfirm": "Eliminar",
       "refused": "{file} todavía se está usando y no se ha eliminado.",
       "keptLast": "{file} sigue en su sitio: es la última imagen del pase de fotos en '{name}'.",
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Otras compras",
-        "description": "Elige una de vuestras listas para lo que ninguna comida necesita, como papel de cocina o comida para el perro. Lo que queda en ella sale al final de la lista de la compra en el móvil y en el monitor, y una tarjeta de compra con «Añadir en el monitor» añade ahí.",
+        "description": "Elige una de vuestras listas para lo que ninguna comida necesita, como papel de cocina o comida para el perro. Lo que queda en ella sale al final de la lista de la compra en el móvil y en el monitor, y una tarjeta de compra con «Añadir desde el monitor» activado añade cosas a esa lista.",
         "none": "Ninguna"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Crear una clave nueva",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Cada pantalla se recarga una vez para tomar la clave nueva.",
-        "errorRegenerate": "No se pudo crear una clave nueva",
-        "errorCopy": "No se pudo copiar; selecciona y copia manualmente",
+        "errorRegenerate": "No se pudo crear una clave nueva.",
+        "errorCopy": "No se pudo copiar. Selecciona la clave y cópiala a mano.",
         "phoneHintIntro": "Para controlar un display desde el teléfono, guarda un marcador con un enlace como este:",
         "phoneHintOutro": "Muestra antes la clave de arriba para que el enlace la lleve. Cambia sleep por wake, reload, next-screen o prev-screen para las demás órdenes.",
         "phoneHintDisplayNote": "Este apunta a {name}. Cambia {display} por el id de otro display para apuntar a ese."
@@ -2381,9 +2404,9 @@
         "addButton": "Añadir",
         "errors": {
           "invalidCidr": "Eso no es un rango de red. La mayoría de las redes domésticas son 192.168.1.0/24.",
-          "invalidIp": "Eso no es una dirección",
+          "invalidIp": "Eso no es una dirección IP.",
           "invalidPrefix": "El número después de la barra tiene que estar entre 0 y 32.",
-          "alreadyInList": "Ya está en la lista"
+          "alreadyInList": "Ya está en la lista."
         },
         "callerIpLabel": "Tu IP: ",
         "lockoutWarning": {
@@ -2764,7 +2787,7 @@
       "statusIdle": "Inactiva · {time}",
       "statusOffline": "Desconectada · {time}",
       "rotationDegrees": "rotación de {degrees}°",
-      "rotationNormal": "normal",
+      "rotationNormal": "Sin rotación",
       "screenCount": {
         "one": "{count} pantalla",
         "other": "{count} pantallas"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Cambiar todos los días de un evento que se repite",
             "hint": "Cuando el cambio vale para todas las veces, no solo para un día."
+          },
+          "menu-change": {
+            "label": "Cambiar el menú",
+            "hint": "Poner una comida en el menú, cambiarla por otra o quitarla, en el monitor."
           }
         },
         "unlockLabel": "Desbloqueado durante",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Tras el código correcto, ese monitor hace lo marcado sin volver a pedirlo durante este tiempo. A quien haya iniciado sesión en el teléfono nunca se le pide.",
         "removeConfirmTitle": "¿Quitar el código de los mayores?",
-        "removeConfirmMessage": "El monitor deja de pedirlo antes de lo que marcaste. Puedes poner un código nuevo cuando quieras."
+        "removeConfirmMessage": "El monitor deja de pedirlo antes de lo que marcaste. Puedes poner un código nuevo cuando quieras.",
+        "lockedBody": {
+          "one": "Los monitores, la página de tareas y los móviles sin sesión no aceptarán el código de los mayores durante {count} minuto más.",
+          "other": "Los monitores, la página de tareas y los móviles sin sesión no aceptarán el código de los mayores durante {count} minutos más."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Totales semanales",
       "memberLine": "{chores} tareas, {tickets} tickets"
     },
-    "finishFormFirst": "Guarda o cancela primero el formulario abierto.",
+    "finishFormFirst": "Termina o cancela primero lo que está abierto.",
     "starter": {
       "openButton": "Elegir de las tareas sugeridas",
       "hint": "{count} tareas de cada día, ordenadas por momento del día",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Instalar plugin desde URL",
     "dialogAriaLabel": "Instalar plugin desde URL",
-    "tarballUrlLabel": "URL del tarball",
-    "tarballUrlHelpPart1": "URL HTTPS a un bundle de plugin ",
-    "tarballUrlHelpPart2": ". Reemplaza la versión por ",
-    "tarballUrlHelpPart3": " si quieres que las futuras actualizaciones solo necesiten un número de versión.",
+    "tarballUrlLabel": "Enlace de descarga",
+    "tarballUrlHelpPart1": "Un enlace seguro (que empiece por https) al archivo ",
+    "tarballUrlHelpPart2": " del plugin. Pon ",
+    "tarballUrlHelpPart3": " donde va el número de versión, y las próximas actualizaciones solo necesitarán el número.",
     "exampleLabel": "Ejemplo:",
     "versionLabel": "Versión a instalar",
     "externalSourceWarning": "Vas a instalar desde fuera del marketplace de plugins. Instala solo plugins de fuentes en las que confíes.",
@@ -3973,9 +4004,9 @@
     "title": "Actualizar {id}",
     "dialogAriaLabel": "Actualizar {id}",
     "currentVersionLabel": "Versión actual:",
-    "tarballUrlLabel": "URL del tarball",
-    "tarballUrlHelpPart1": "Edita la URL para apuntar a una nueva versión, o reemplaza la versión por ",
-    "tarballUrlHelpPart2": " para que las futuras actualizaciones solo necesiten un número de versión.",
+    "tarballUrlLabel": "Enlace de descarga",
+    "tarballUrlHelpPart1": "Cambia el enlace para que apunte a la nueva versión, o pon ",
+    "tarballUrlHelpPart2": " donde va el número de versión, y la próxima vez solo tendrás que escribir el número.",
     "exampleLabel": "Ejemplo:",
     "versionLabel": "Versión a instalar",
     "workingMessage": "Descargando y actualizando…",
@@ -4697,9 +4728,11 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, valorar la cena, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
-      "wallAdd": "Añadir en el monitor",
+      "wallAdd": "Añadir desde el monitor",
       "wallAddHelpMealie": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista de Mealie con la que compra la familia.",
       "wallAddHelpLocal": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista elegida abajo.",
+      "wallPlan": "Planear comidas en el monitor",
+      "wallPlanHelp": "Cualquiera puede poner una receta en el menú desde el monitor, para esta semana y la que viene: un botón «Poner en el menú» en cada receta y un signo más en las comidas vacías de las vistas de la semana. Escribir una comida o crear una receta nueva se sigue haciendo desde el móvil.",
       "extrasList": "Las demás compras van a",
       "extrasListNone": "Ninguna (sin fila «Añadir»)",
       "extrasListHelp": "Una de vuestras listas. Lo que queda en ella sale al final de la lista de la compra, aquí y en el móvil. Todas las tarjetas de compra la comparten."

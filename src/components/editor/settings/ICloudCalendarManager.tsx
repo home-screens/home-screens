@@ -246,7 +246,11 @@ export default function ICloudCalendarManager({
             <input
               type="checkbox"
               checked={source !== undefined}
-              onChange={opts.onToggle}
+              onChange={() => {
+                // Unticked with its strip open: it closes, rather than opening again when ticked again.
+                if (editing) onEditLook?.(null);
+                opts.onToggle();
+              }}
               className={CHECKBOX_CLASS}
             />
             <span

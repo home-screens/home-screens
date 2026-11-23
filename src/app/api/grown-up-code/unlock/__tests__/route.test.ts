@@ -16,6 +16,7 @@ import { WRONG_CODES_PER_ADDRESS, WRONG_CODES_PER_HUB } from '@/lib/grown-up-cod
 let tmpDir: string;
 let origCwd: () => string;
 let POST: (request: NextRequest) => Promise<Response>;
+let DELETE: (request: NextRequest) => Promise<Response>;
 let hashes: ReturnType<typeof vi.spyOn>;
 
 const RIGHT = '4821';
@@ -45,7 +46,7 @@ beforeEach(async () => {
   vi.resetModules();
   const data = await import('@/lib/grown-up-code-data');
   await data.setGrownUpCode(RIGHT);
-  ({ POST } = await import('../route'));
+  ({ POST, DELETE } = await import('../route'));
   hashes = vi.spyOn(crypto, 'scrypt');
 });
 
@@ -91,6 +92,24 @@ describe('POST /api/grown-up-code/unlock', () => {
 
     expect(hashes.mock.calls.length).toBeLessThanOrEqual(WRONG_CODES_PER_HUB);
     expect(count(responses)[200]).toBeUndefined();
+  });
+
+  it('lets a signed-in grown-up clear the hub-wide wait, so the right code works again everywhere', async () => {
+    for (let i = 0; i < WRONG_CODES_PER_HUB; i++) await unlock(wrong(i), `192.168.3.${i + 1}`);
+    const { hubCodeLockSeconds } = await import('@/lib/grown-up-code-limits');
+    expect(hubCodeLockSeconds()).toBeGreaterThan(0);
+    expect((await unlock(RIGHT, '192.168.4.1')).status).toBe(429);
+
+    // No password set in this sandbox: anyone may end the wait, so the code
+    // settings are told about it, though nobody counts as signed in.
+    const { GET } = await import('../../route');
+    const status = await (await GET(new NextRequest('http://localhost/api/grown-up-code'))).json();
+    expect(status.signedIn).toBe(false);
+    expect(status.lockedSeconds).toBeGreaterThan(0);
+    const cleared = await DELETE(new NextRequest('http://localhost/api/grown-up-code/unlock', { method: 'DELETE' }));
+    expect(cleared.status).toBe(200);
+    expect(hubCodeLockSeconds()).toBe(0);
+    expect((await unlock(RIGHT, '192.168.4.1')).status).toBe(200);
   });
 
   it('never counts a right code against the hub-wide limit', async () => {

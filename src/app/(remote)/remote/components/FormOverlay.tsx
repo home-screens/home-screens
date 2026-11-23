@@ -7,6 +7,7 @@ import { useSheetDialog } from '@/hooks/useSheetDialog';
 import ConfirmSheet from './ConfirmSheet';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { REMOTE_LAYERS, type RemoteLayer } from './remote-layers';
+import { holdToastAtTop } from '../remote-toast';
 
 export default function FormOverlay({
   title,
@@ -46,6 +47,9 @@ export default function FormOverlay({
     requestAnimationFrame(() => setVisible(true));
     return () => clearTimeout(exitTimer.current);
   }, []);
+  // Messages go to the top of the screen while the form is up, as they do over
+  // a sheet: at the bottom they covered Save, and a tap meant for Save dismissed them.
+  useEffect(() => holdToastAtTop(), []);
 
   // Read from the popstate listener, which is registered once.
   const dirtyRef = useRef(dirty);

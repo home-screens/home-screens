@@ -72,7 +72,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     try {
       // The shared upload forgets the cached library reads, so the module
       // preview's lookup for this file (cached as missing) is asked again.
-      const { uploaded, unplayable, error } = await uploadLibraryFiles([picked], '');
+      const { uploaded, unplayable, errors: [error] } = await uploadLibraryFiles([picked], '');
       const file = uploaded[0] ? fileParamOf(uploaded[0]) : null;
       if (file) {
         set({ file });

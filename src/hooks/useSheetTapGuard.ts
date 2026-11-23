@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { DOUBLE_TAP_MS, guardAfterSheetClose, isTooSoonAfterOpen, watchSheetTaps } from '@/lib/sheet-tap-guard';
 
 /**
@@ -32,4 +32,50 @@ export function useSettledTap(windowMs = DOUBLE_TAP_MS): (action: () => void) =>
     },
     [openedAt, windowMs],
   );
+}
+
+/**
+ * For a sheet whose buttons change in place (a form's next step, a question
+ * that replaces its buttons): true for a double tap's length after `key`
+ * changes, and after it mounts. Disable the buttons while it is true, and the
+ * second tap of a double tap on what changed it lands on nothing, rather than
+ * on whatever now sits under the finger (Cancel, Save, "Just this day").
+ * Disabled is also what a test runner waits out before it clicks.
+ */
+export function useSettling(key: unknown, windowMs = DOUBLE_TAP_MS): boolean {
+  const [settled, setSettled] = useState<{ key: unknown } | null>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled({ key }), windowMs);
+    return () => {
+      clearTimeout(timer);
+      // Back to a key seen before: it settles again from now.
+      setSettled(null);
+    };
+  }, [key, windowMs]);
+  return !settled || !Object.is(settled.key, key);
+}
+
+/**
+ * For a sheet that can open under a finger already on the screen: the
+ * grown-up code pad opens while a long press on a chore is still held. A tap
+ * then counts only once a finger has gone down inside the sheet, so the lift
+ * of the press that opened it never types a key or closes the pad. A click
+ * from the keyboard (no pointer at all) always counts.
+ *
+ * Spread the answer on the sheet's outermost element, so the dimmed area is
+ * covered too.
+ */
+export function useFreshPressesOnly(): {
+  onPointerDownCapture: () => void;
+  onClickCapture: (event: MouseEvent) => void;
+} {
+  const armed = useRef(false);
+  return useMemo(() => ({
+    onPointerDownCapture: () => { armed.current = true; },
+    onClickCapture: (event: MouseEvent) => {
+      if (armed.current || event.detail === 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+  }), []);
 }

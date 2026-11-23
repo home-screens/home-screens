@@ -25,6 +25,7 @@ import { listLibraryMedia } from '@/lib/photo-sources/library';
 import { isMediaTypes } from '@/lib/photo-source';
 import { enqueueCommand } from '@/lib/display-commands';
 import { svgDeclaresSize } from '@/lib/svg-intrinsic-size';
+import { clipIndex } from '@/lib/media-formats';
 import type { MediaListItem } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -310,7 +311,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   // The check and the unlink run inside the queued config update, so an
   // editor save adding a reference, or a second delete emptying the same
   // slideshow, cannot land between them.
-  const outcome: { refusal?: MediaUse[] } = {};
+  const outcome: { refusal?: MediaUse[]; clip?: string } = {};
   await updateConfigAtomic(async (config) => {
     // The whole folder, not just this file: a slideshow's last picture is
     // only "last" relative to the others still in it.
@@ -332,6 +333,17 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       }
     }
     await fs.unlink(filePath);
+    // A Live Photo's clip is its picture's movement: left behind, it played
+    // as a three-second video slide. It goes too, unless a screen uses it
+    // as a video of its own.
+    const folder = folderOf(relativePath);
+    const clipName = clipIndex([...known].map(fileNameOf))(path.basename(relativePath));
+    const clip = clipName ? (folder ? `${folder}/${clipName}` : clipName) : null;
+    const clipPath = clip ? safeLibraryPath(clip) : null;
+    if (clip && clipPath && !blockedRemovals(usage, [clip], 'delete').has(clip)) {
+      await fs.unlink(clipPath).catch(() => { /* already gone */ });
+      outcome.clip = clip;
+    }
     return config;
   });
   if (outcome.refusal) {
@@ -339,6 +351,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   }
 
   await removeThumbnails(relativePath);
+  if (outcome.clip) await removeThumbnails(outcome.clip);
   bumpLibraryRevision();
-  return NextResponse.json({ deleted: path.basename(relativePath) });
+  return NextResponse.json({ deleted: path.basename(relativePath), ...(outcome.clip ? { clip: path.basename(outcome.clip) } : {}) });
 }, 'Failed to delete background');

@@ -1,24 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createRateLimiter, getClientIP, parseJsonBody, publicErrorResponse, SMALL_BODY_BYTES } from '@/lib/api-utils';
+import { getClientIP, parseJsonBody, publicErrorResponse, SMALL_BODY_BYTES, withAuth } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
-import {
-  isGrownUpCode,
-  WRONG_CODE_HUB_WAIT_MS,
-  WRONG_CODE_WAIT_MS,
-  WRONG_CODES_PER_ADDRESS,
-  WRONG_CODES_PER_HUB,
-} from '@/lib/grown-up-code';
+import { isGrownUpCode } from '@/lib/grown-up-code';
 import { checkGrownUpCode } from '@/lib/grown-up-code-data';
+import { HUB_KEY as HUB, clearHubCodeLock, perAddress, perHub } from '@/lib/grown-up-code-limits';
 
 export const dynamic = 'force-dynamic';
-
-// Per address, and for the whole hub under one key, so guessing from many
-// addresses at once waits too. In memory: a restart forgets the count, which
-// for four digits behind a minute's wait is an acceptable gift.
-const perAddress = createRateLimiter(WRONG_CODES_PER_ADDRESS, WRONG_CODE_WAIT_MS);
-const perHub = createRateLimiter(WRONG_CODES_PER_HUB, WRONG_CODE_HUB_WAIT_MS);
-const HUB = '*';
 
 function waitResponse(ms: number) {
   const retryAfterSeconds = Math.max(1, Math.ceil(ms / 1000));
@@ -108,3 +96,13 @@ export const POST = async (request: NextRequest) => {
     return publicErrorResponse(error, 'Failed to check the grown-up code');
   }
 };
+
+/**
+ * DELETE — a signed-in grown-up clears the hub-wide wait after too many wrong
+ * codes, so the walls, `/chores` and signed-out phones take the code again.
+ */
+export const DELETE = withAuth(async () => {
+  clearHubCodeLock();
+  audit({ action: 'grown_up_code_lock_cleared' });
+  return NextResponse.json({ lockedSeconds: 0 });
+}, 'Failed to clear the grown-up code wait');

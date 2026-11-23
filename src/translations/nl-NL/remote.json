@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Maak de muur wakker",
     "sleepDisplay": "Laat de muur slapen",
+    "wakeAll": "Maak alle muren wakker",
+    "sleepAll": "Laat alle muren slapen",
     "sendAlert": "Melding sturen",
     "waitingFor": "Wachten op {name}…",
     "waitingForAll": "Wachten op de muren…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} ziet het spaardoel niet zolang dit verborgen is.",
       "other": "{names} zien hun spaardoelen niet zolang dit verborgen is."
-    }
+    },
+    "whyNoSave": "Geef de beloning een naam om op te slaan."
   },
   "alertSender": {
     "title": "Melding sturen",
@@ -683,7 +686,7 @@
       "adjusted": "van volwassenen",
       "window": "Laatste 30 dagen",
       "empty": "Er zijn nog geen tickets verplaatst.",
-      "failed": "De ticketgeschiedenis kon niet worden geladen.",
+      "failed": "De ticketgeschiedenis kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "removedChore": "Een klusje dat is verwijderd",
       "tookOne": "Een volwassene heeft er wat afgenomen",
       "gaveSome": "Een volwassene heeft er wat gegeven",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Instellingen sluiten",
     "system": {
       "heading": "Systeem",
-      "errorFailedToLoad": "Kon dit niet laden. Probeer het opnieuw.",
+      "errorFailedToLoad": "Dit kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "hostLabel": "Naam op het netwerk",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Geheugen",
@@ -729,7 +732,6 @@
         "label": "Een back-up terugzetten",
         "busyLabel": "Terugzetten…",
         "doneLabel": "Teruggezet",
-        "invalidFileLabel": "Ongeldig back-upbestand",
         "failedLabel": "Kon die back-up niet terugzetten. Probeer het opnieuw.",
         "idleDescription": "Upload een back-upbestand vanaf deze telefoon",
         "confirmingDescription": "Alles wat nu op Home Screens staat, wordt vervangen door wat er in de back-up staat.",
@@ -763,6 +765,12 @@
     },
     "family": {
       "description": "Beheer de mensen in je huishouden."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuut niet aan.",
+        "other": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuten niet aan."
+      }
     }
   },
   "photosTab": {
@@ -810,7 +818,7 @@
     "spaceLow": "Bijna vol: nog {free} over op Home Screens. Verwijder foto's die je niet meer nodig hebt, dan komt er ruimte vrij.",
     "emptyTitle": "Nog niets in {folder}",
     "emptyHint": "Voeg foto's of video's toe vanaf deze telefoon.",
-    "loadFailed": "Je foto's konden niet worden geladen.",
+    "loadFailed": "Je foto's konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "showsOn": {
       "one": "Je ziet hem straks op {walls}.",
       "other": "Je ziet ze straks op {walls}."
@@ -832,7 +840,7 @@
       },
       "tooBig": "{name} is groter dan {size}.",
       "notMedia": "{name} is geen foto of video die de muur kan tonen.",
-      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Kies op een iPhone 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
+      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Komt hij van een iPhone, kies dan 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
       "failed": "{name} kon niet worden verstuurd. Probeer het opnieuw.",
       "close": "Sluiten",
       "showNow": "Nu op de muur tonen"
@@ -1145,11 +1153,7 @@
       "button": "Delen",
       "nothingOpen": "Alles gedaan!"
     },
-    "loadError": "Je lijsten konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
-    "alreadyOnList": "{item} staat al op de lijst",
-    "putBack": "{item} staat weer op de lijst",
-    "deleted": "{item} van de lijst gehaald.",
-    "undo": "Ongedaan maken"
+    "loadError": "Je lijsten konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw."
   },
   "formOverlay": {
     "discard": {
@@ -1271,7 +1275,7 @@
       "title": "Nog niets op het prikbord",
       "body": "Schrijf hieronder een notitie en een paar seconden later staat hij op de muur. Notities verdwijnen vanzelf na de tijd die je kiest."
     },
-    "loadError": "De notities konden niet worden geladen.",
+    "loadError": "De notities konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "editAria": "Notitie van {name} bewerken",
     "dayNotes": {
       "sub": "Dagnotities komen in de kalenders aan de muur",
@@ -1284,7 +1288,7 @@
       "placeholder": "Schoolfotograaf, studiedag…",
       "put": "In de kalender zetten",
       "remove": "Weghalen",
-      "loadError": "De dagnotities konden niet worden geladen.",
+      "loadError": "De dagnotities konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "saved": "Bewaard voor {day}. Je ziet het op de muur zodra een kalender die dag laat zien.",
       "removed": "Notitie weggehaald",
       "undo": "Ongedaan maken",
@@ -1482,6 +1486,10 @@
     "offBody": "Je kunt het aanzetten bij {place}. Dagnotities werken gewoon zoals altijd.",
     "signInTitle": "Afspraken toevoegen vraagt nog één stap",
     "signInBody": "Voor afspraken toevoegen moet je je nog een keer aanmelden bij Google. Dat doe je bij {place}.",
+    "pickTitle": "Er is nog geen agenda gekozen voor nieuwe afspraken",
+    "pickBody": "Kies bij {place} de agenda's waar nieuwe afspraken in kunnen komen. Dagnotities werken gewoon zoals altijd.",
+    "unreachableTitle": "Google Agenda reageert niet",
+    "unreachableBody": "Afspraken toevoegen kan weer zodra hij reageert. Dagnotities werken gewoon zoals altijd.",
     "justThisDay": "Alleen deze dag",
     "everyTime": "Elke keer",
     "keepIt": "Laten staan",
@@ -1501,9 +1509,9 @@
       "firstDay": "Eerste dag",
       "lastDay": "Laatste dag",
       "allDay": "Hele dag",
+      "allDayLocked": "De afspraak duurt meer dan één dag, dus dit blijft zoals het is.",
       "starts": "Begint",
       "ends": "Eindigt",
-      "nextDay": "volgende dag",
       "endsOn": "Eindigt op {day} om {time} · {length}",
       "hours": {
         "one": "{count} uur",

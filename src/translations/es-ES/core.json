@@ -118,8 +118,10 @@
       "downloadFailed": "No se pudo descargar el plugin. Comprueba la conexión a internet e inténtalo de nuevo.",
       "badLink": "Ese enlace no se puede usar. Pega el enlace https completo del plugin.",
       "blockedLink": "Ese enlace apunta a tu red de casa, así que Home Screens no descargará nada de él.",
+      "notHttps": "Ese enlace no es un enlace https seguro, así que Home Screens no descargará nada de él.",
       "needsVersion": "Ese enlace necesita un número de versión. Escribe qué versión quieres instalar.",
       "notAPlugin": "Ese enlace no es un plugin de Home Screens. Comprueba que lleva al archivo .tar.gz del plugin.",
+      "tooBig": "Ese archivo es demasiado grande para ser un plugin. Los plugins pueden ocupar hasta {max} MB.",
       "alreadyInstalled": "Ese plugin ya está instalado. Actualízalo desde la tienda de plugins."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Ese código no ha funcionado. Revísalo e inténtalo de nuevo.",
       "expired": "Se acabó el tiempo para iniciar sesión. Vuelve a empezar.",
       "notApproved": "No se aprobó el inicio de sesión. Vuelve a empezar si quieres conectarte."
+    },
+    "backup": {
+      "notABackup": "Ese archivo no es una copia de seguridad de Home Screens.",
+      "noRoom": "No hay espacio suficiente en Home Screens para esta copia de seguridad.",
+      "noRoomForPictures": "No hay espacio suficiente en Home Screens para las imágenes de esta copia de seguridad."
     }
   },
   "today": "Hoy",
@@ -346,7 +353,7 @@
     "controls": "Botones del temporizador",
     "replaceTitle": "¿Empezar un temporizador nuevo?",
     "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
-    "routinesLoadError": "No se pudieron cargar las rutinas. Revisa la conexión e inténtalo otra vez.",
+    "routinesLoadError": "No se pudieron cargar las rutinas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "routineMeta": {
       "one": "{steps} paso · {minutes} min",
       "other": "{steps} pasos · {minutes} min"
@@ -387,7 +394,7 @@
     "color": "Color",
     "emptyTitle": "Aún no hay nadie",
     "emptyDescription": "Añade a las personas de tu hogar. Estarán disponibles en tareas, recompensas, calendarios y horarios escolares.",
-    "loadFailed": "No se pudo cargar tu familia. Comprueba la conexión e inténtalo de nuevo.",
+    "loadFailed": "No se pudo cargar tu familia. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "retry": "Reintentar",
     "saved": "Familia guardada.",
     "removeTitle": "¿Eliminar a {name}?",
@@ -754,11 +761,18 @@
       "one": "Demasiados intentos. Espera {count} segundo y vuelve a probar.",
       "other": "Demasiados intentos. Espera {count} segundos y vuelve a probar."
     },
+    "tooManyMinutes": {
+      "one": "Demasiados intentos. Espera {count} minuto y vuelve a probar.",
+      "other": "Demasiados intentos. Espera {count} minutos y vuelve a probar."
+    },
     "unlocked": {
       "one": "Desbloqueado 1 minuto más",
       "other": "Desbloqueado {count} minutos más"
     },
-    "lockNow": "Bloquear ya"
+    "lockNow": "Bloquear ya",
+    "lockedTitle": "Demasiados intentos fallidos",
+    "letThemTry": "Dejar que lo intenten ya",
+    "clearFailed": "No se pudo quitar la espera. Inténtalo de nuevo."
   },
   "calendarRepeat": {
     "none": "No se repite",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. Los demás días no cambian.",
     "everyTimePastFuture": "Todas las veces, pasadas y futuras",
     "askBody": "¿Cambiar solo este día o todas las veces que se repite?",
-    "everyTimeFromFirst": "Todas las veces, desde la primera"
+    "everyTimeFromFirst": "Todas las veces, desde la primera",
+    "everyTimeMovesTo": "Todas las veces se mueven lo mismo, a las {time}",
+    "nextDay": "al día siguiente"
   },
   "notice": {
     "title": "Aviso"
@@ -820,6 +836,10 @@
       "one": "¿Quitar 1 elemento hecho de «{name}»?",
       "other": "¿Quitar {count} elementos hechos de «{name}»?"
     },
-    "removeDoneBody": "Se quitan de la lista para siempre."
+    "removeDoneBody": "Se quitan de la lista para siempre.",
+    "alreadyOnList": "Ya está en la lista: {item}",
+    "putBack": "De vuelta en la lista: {item}",
+    "deleted": "Se ha quitado de la lista: {item}.",
+    "undo": "Deshacer"
   }
 }

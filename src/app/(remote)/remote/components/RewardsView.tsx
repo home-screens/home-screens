@@ -82,7 +82,10 @@ export default function RewardsView({
   const [innerView, setInnerView] = useState<InnerView>('redeem');
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
-  const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
+  // One person's plus and minus taps go to the hub one change at a time: a
+  // tap while one is out waits here, added up, and goes when it lands.
+  const adjustingRef = useRef<Set<string>>(new Set());
+  const waitingRef = useRef<Map<string, number>>(new Map());
   const [saveError, setSaveError] = useState<keyof typeof REWARD_ERROR_KEYS | null>(null);
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [adjustSheetOpen, setAdjustSheetOpen] = useState(false);
@@ -219,23 +222,34 @@ export default function RewardsView({
    * of reach says so, puts back what `rollback` holds and reads the real
    * numbers, whichever control sent it.
    */
-  const sendAdjustment = async (adjustment: TicketAdjustment, rollback?: RewardsData | null) => {
+  const sendAdjustment = async (adjustment: TicketAdjustment, rollback?: RewardsData | null): Promise<boolean> => {
     try {
       const balances = await adjustTickets(editorFetch, adjustment, '');
       setSaveError(null);
-      setData((prev) => (prev ? { ...prev, balances } : prev));
+      // Taps still waiting to go stay on the number shown, or it would dip
+      // back to the hub's answer for a moment between quick taps. Read now:
+      // React runs the update later, after the caller has taken the waiting
+      // taps out to send them.
+      const shown = { ...balances };
+      for (const [memberId, amount] of waitingRef.current) shown[memberId] = Math.max(0, (shown[memberId] ?? 0) + amount);
+      setData((prev) => (prev ? { ...prev, balances: shown } : prev));
+      return true;
     } catch (err) {
-      if (isSessionExpired(err)) return;
+      if (isSessionExpired(err)) return false;
       if (rollback !== undefined) setData(rollback);
       setSaveError(failureKey(err, 'adjustFailed'));
       await refreshData();
+      return false;
     }
   };
 
-  /** One person's plus or minus. Optimistic: the number moves at once. */
+  /**
+   * One person's plus or minus. Optimistic: the number moves at once. Taps
+   * faster than the hub answers all count: they wait and go as one change
+   * once the one out lands, where each used to be dropped while a save was
+   * out (two taps on a slow hub gave one ticket).
+   */
   const handleAdjust = async (memberId: string, amount: number) => {
-    if (adjusting.has(memberId)) return;
-    setAdjusting((prev) => new Set(prev).add(memberId));
     const snapshot = data;
     setData((prev) => {
       if (!prev) return prev;
@@ -247,12 +261,23 @@ export default function RewardsView({
         },
       };
     });
-    await sendAdjustment({ memberIds: [memberId], amount }, snapshot);
-    setAdjusting((prev) => {
-      const next = new Set(prev);
-      next.delete(memberId);
-      return next;
-    });
+    if (adjustingRef.current.has(memberId)) {
+      waitingRef.current.set(memberId, (waitingRef.current.get(memberId) ?? 0) + amount);
+      return;
+    }
+    adjustingRef.current.add(memberId);
+    let next = amount;
+    let rollback: RewardsData | null | undefined = snapshot;
+    while (next !== 0) {
+      const saved = await sendAdjustment({ memberIds: [memberId], amount: next }, rollback);
+      next = waitingRef.current.get(memberId) ?? 0;
+      waitingRef.current.delete(memberId);
+      // A refused change put the hub's numbers back: taps that waited on it are dropped with it.
+      if (!saved) break;
+      // The hub's answer already holds everything sent so far; only what waited is left to undo.
+      rollback = undefined;
+    }
+    adjustingRef.current.delete(memberId);
   };
 
   /**
@@ -281,8 +306,9 @@ export default function RewardsView({
   };
 
   /** Several people, the same amount each, with a reason. Nothing optimistic: the sheet waits for the hub. */
-  const handleAdjustMany = (memberIds: string[], amount: number, reason: string) =>
-    sendAdjustment({ memberIds, amount, reason });
+  const handleAdjustMany = async (memberIds: string[], amount: number, reason: string) => {
+    await sendAdjustment({ memberIds, amount, reason });
+  };
 
   // ── Render ──
   return (
@@ -803,7 +829,7 @@ function BalancesSection({
           <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--hs-text-body)' }}>
             {member.name}
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
+          <div data-testid={`balance-${member.id}`} style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
             {(() => {
               const n = data?.balances[member.id] ?? 0;
               return ticketWords(t, n, 'rewardsView');

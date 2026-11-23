@@ -120,6 +120,20 @@ export default function MealTimeChip({
   const [isEditing, setIsEditing] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // Closing the popover takes its focused box away; focus goes back to the
+  // chip rather than to the page, so Escape still reaches the sheet around it.
+  const wasEditing = useRef(false);
+  useEffect(() => {
+    if (isEditing) {
+      wasEditing.current = true;
+      return;
+    }
+    if (!wasEditing.current) return;
+    wasEditing.current = false;
+    const active = document.activeElement;
+    if (!active || active === document.body) triggerRef.current?.focus();
+  }, [isEditing]);
   const colors = VARIANT_COLORS[variant];
   // The phone's chip is tapped, so its popover's presets, time box and clear
   // button are a full finger tall; the editor's stay compact for a mouse.
@@ -165,6 +179,7 @@ export default function MealTimeChip({
   // ── Chip face (rendered in all three states; popover overlays it when editing) ──
   const chipButton = value ? (
     <button
+      ref={triggerRef}
       type="button"
       onClick={(e) => {
         e.stopPropagation();
@@ -211,6 +226,7 @@ export default function MealTimeChip({
     </button>
   ) : (
     <button
+      ref={triggerRef}
       type="button"
       onClick={(e) => {
         e.stopPropagation();

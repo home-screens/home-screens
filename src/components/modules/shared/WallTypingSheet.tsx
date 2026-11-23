@@ -48,9 +48,10 @@ export interface WallTypingSheetProps {
  * Typing on the wall, as one sheet rising from the bottom: the wall sheets'
  * look (accent stripe, small capitals over a serif heading, Close), a
  * `WallTextField`, a slot for what happened, and the `text` keyboard docked
- * underneath. Closes with Close, a tap on the dark part, or a minute nobody
- * touches it. Sized at 1080 across the window's short side; on a landscape
- * wall the keys are 78 px tall so the whole sheet fits without scrolling.
+ * underneath. Closes with Close, a tap on the dark part while the box is
+ * empty, or a minute nobody touches it. Sized at 1080 across the window's
+ * short side; on a landscape wall the keys are 78 px tall so the whole sheet
+ * fits without scrolling.
  *
  * Each piece also works on its own (`useWallTyping`, `WallTextField`,
  * `WallKeyboard`, `wallTypingVars`) for a sheet that types and then turns
@@ -71,6 +72,8 @@ export function WallTypingSheet({
       onClose={onClose}
       autoCloseMs={WALL_KEYBOARD_IDLE_MS}
       paused={paused}
+      // A brushed screen must not throw away words a child spent a minute typing: once the box holds any, only Close closes.
+      closeOnScrim={typing.text === ''}
       scrim={theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)'}
       style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
     >

@@ -528,6 +528,8 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
   'meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (adds to the picked list; no row without one)
   'fullscreen-meal-planner.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (the full-screen grocery view's Add button)
+  'meal-planner.wallPlan': 'covered-elsewhere', // wall-meal-plan.spec.ts (the plus on empty meals; nothing when off)
+  'fullscreen-meal-planner.wallPlan': 'covered-elsewhere', // wall-meal-plan.spec.ts (Put on the menu, the plus, nothing when off)
   'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'multi-month.addEvents': 'covered-elsewhere', // calendar-events.spec.ts

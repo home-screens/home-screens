@@ -38,10 +38,27 @@ export interface LoadedEvent {
   etag: string;
   seriesId?: string;
   seriesEtag?: string;
+  /** A timed series' usual start, `HH:MM` on the household clock: where "every time" moves from. */
+  seriesStartTime?: string;
   /** iCloud only: the calendar object's address. */
   sourceRef?: string;
   draft: EventDraft;
   repeat: RepeatReading;
+}
+
+/**
+ * Where "every time" puts a timed series after this day's start moved: the
+ * series moves by the same amount (plan 288's rule), so a 9:30 series changed
+ * from a day kept at 9:00 to 10:00 lands at 10:30. `HH:MM`, or null when the
+ * start did not move, either side is all day, or the series would cross midnight.
+ */
+export function seriesStartAfterMove(loaded: Pick<LoadedEvent, 'seriesStartTime' | 'draft'>, draft: EventDraft): string | null {
+  const was = loaded.draft;
+  if (!loaded.seriesStartTime || draft.allDay || was.allDay || !draft.startTime || !was.startTime) return null;
+  const shift = minutesOfTime(draft.startTime) - minutesOfTime(was.startTime);
+  if (shift === 0) return null;
+  const next = minutesOfTime(loaded.seriesStartTime) + shift;
+  return next >= 0 && next < 24 * 60 ? timeOfMinutes(next) : null;
 }
 
 /** Whether the form may change how the event repeats; a repeat set up elsewhere in a way the forms cannot show is left alone. */
@@ -68,6 +85,18 @@ function whenOf(draft: EventDraft): string {
  */
 export function timesWereChanged(draft: EventDraft, loaded: EventDraft): boolean {
   return whenOf(draft) !== whenOf(loaded);
+}
+
+/**
+ * Whether the name and the place were changed in the form. "Every time" from
+ * a day with a name or place of its own (an away game) writes only what the
+ * family changed, so that day's own words never spread to the whole series.
+ */
+export function wordsWereChanged(draft: EventDraft, loaded: EventDraft): { titleChanged: boolean; placeChanged: boolean } {
+  return {
+    titleChanged: draft.title.trim() !== loaded.title.trim(),
+    placeChanged: (draft.location ?? '').trim() !== (loaded.location ?? '').trim(),
+  };
 }
 
 /** The draft as the hub takes it: only the fields its shape has, and no repeat when the form could not change it. */
@@ -119,6 +148,7 @@ export function changeRequestBody(
     ...(timeWas ? { timeWas } : {}),
     repeatChanged: change.repeatChanged,
     timesChanged: timesWereChanged(change.draft, loaded.draft),
+    ...wordsWereChanged(change.draft, loaded.draft),
   };
 }
 

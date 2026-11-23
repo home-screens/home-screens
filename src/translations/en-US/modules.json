@@ -206,10 +206,7 @@
       "viewsLabel": "Views",
       "sheetEyebrow": "Show one person",
       "sheetTitle": "Whose calendar?",
-      "allPeople": {
-        "one": "{count} person",
-        "other": "All {count} people"
-      },
+      "everyCalendar": "Every calendar",
       "peopleCount": {
         "one": "{count} person",
         "other": "{count} people"
@@ -617,6 +614,71 @@
         "mealieSetup": "Check Mealie in Settings on the computer to show the list."
       },
       "alsoOn": "Also on {list}"
+    },
+    "menu": {
+      "put": "Put on the menu",
+      "change": "Change the menu",
+      "codeWhy": "To change the menu",
+      "whichMeal": "Which meal",
+      "thisWeek": "This week",
+      "nextWeek": "Next week",
+      "free": "Free",
+      "undo": "Undo",
+      "undone": "Put back as it was.",
+      "hint": "Tap a day. A day that already has a meal asks before anything changes.",
+      "hintMine": "A tick shows the days that already have {meal}. Tap one to take it off, or another day to have it again.",
+      "when": {
+        "breakfast": "{day} breakfast",
+        "lunch": "{day} lunch",
+        "dinner": "{day} dinner",
+        "snack": "{day} snack"
+      },
+      "did": {
+        "planned": "{when} is {meal}.",
+        "joined": "{when} has {meal} too.",
+        "swapped": "{when} is {meal} now.",
+        "both": "{when} has {meal} too.",
+        "off": "{meal} came off {when}."
+      },
+      "groceryThis": "Its ingredients are on this week's grocery list.",
+      "groceryNext": "Its ingredients will be on next week's grocery list.",
+      "savedMealie": "Saved to the plan in Mealie.",
+      "addIngredients": "Add ingredients to the shopping list",
+      "listAdded": "The ingredients are on {list}.",
+      "listAddedPlain": "The ingredients are on the shopping list.",
+      "ask": {
+        "title": "{when} is {dish}",
+        "body": "What should happen to it?",
+        "swap": "Swap it",
+        "swapDetail": "{meal} instead of {dish}",
+        "both": "Have both",
+        "bothDetail": "{meal} as well as {dish}",
+        "leave": "Leave {day} as it is",
+        "offTitle": "{when} has {meal}",
+        "offBody": "Take it off the menu for that day?",
+        "offYes": "Take it off {day}",
+        "offNo": "Keep it"
+      },
+      "problem": {
+        "changed": "Someone just changed {day}.",
+        "changedDetail": "This is the menu now. Tap a day to try again.",
+        "full": "That meal already has as many dishes as it can hold.",
+        "off": "Planning from the wall was just turned off.",
+        "undoLate": "That could not be put back. The day changed again.",
+        "undoFailed": "That could not be put back.",
+        "day": "That day can't be planned from the wall.",
+        "failed": "That did not go on the menu.",
+        "failedDetail": "Home Screens isn't answering. Try again in a moment.",
+        "listFailed": "The ingredients did not go on the list."
+      },
+      "pick": {
+        "hint": "Tap a recipe to put it on the menu.",
+        "on": "On {day}",
+        "plan": "Plan a meal",
+        "planAria": "Plan {when}",
+        "noneTitle": "No recipes to plan yet",
+        "noneHint": "Add a meal with ingredients or notes on the phone, and it shows up here."
+      }
     }
   },
   "wallScroll": {

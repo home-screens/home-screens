@@ -1,8 +1,10 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { onAccentFor, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { wallPressProps } from './wallPress';
+import { useSettling } from '@/hooks/useSheetTapGuard';
+import { STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 
 export interface WallAskChoice {
   id: string;
@@ -24,7 +26,7 @@ const DANGER_DARK = '#f87171';
  * detail's own (viewport-relative, never below 44 px). Shared by every wall
  * sheet that has to ask before it changes something.
  */
-export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPick, onCancel, theme, accentColor, busy = false, testId }: {
+export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPick, onCancel, theme, accentColor, onAccent, busy = false, testId }: {
   title: string;
   body?: string;
   /** Why the answer just picked did not go through. The ask stays up under it, so it can be tried again. */
@@ -36,10 +38,18 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
   theme: FullscreenThemeTokens;
   /** The highlighted answer's colour. */
   accentColor: string;
+  /**
+   * The ink on the highlighted answer, for an accent given as a CSS variable
+   * (a sheet in the meal theme), which cannot be read here to pick one.
+   * Otherwise it is worked out from `accentColor`.
+   */
+  onAccent?: string;
   /** A write is under way: the answers wait. */
   busy?: boolean;
   testId?: string;
 }) {
+  // The question replaces the buttons that opened it: the second tap of a double tap on Remove must not answer it.
+  const settling = useSettling(null, STEP_SETTLE_MS);
   const danger = theme.isDark ? DANGER_DARK : DANGER_LIGHT;
   const removes = choices.some((c) => c.tone === 'danger' || c.tone === 'dangerFill');
   const button = (tone: WallAskChoice['tone']): CSSProperties => {
@@ -50,7 +60,7 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
       fontSize: 'clamp(17px, 3vmin, 32px)', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1,
       border: `2px solid ${theme.border}`, background: theme.surfaceAlt, color: theme.text,
     };
-    if (tone === 'primary') return { ...base, background: accentColor, borderColor: 'transparent', color: '#fff' };
+    if (tone === 'primary') return { ...base, background: accentColor, borderColor: 'transparent', color: onAccent ?? onAccentFor(accentColor) };
     if (tone === 'danger') return { ...base, background: 'transparent', color: danger, borderColor: `color-mix(in srgb, ${danger} 40%, transparent)` };
     if (tone === 'dangerFill') return { ...base, background: danger, borderColor: 'transparent', color: '#fff' };
     return base;
@@ -92,7 +102,7 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
           type="button"
           {...wallPressProps}
           data-choice={choice.id}
-          disabled={busy}
+          disabled={busy || settling}
           onClick={() => onPick(choice.id)}
           style={button(choice.tone)}
         >
@@ -104,6 +114,7 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
         type="button"
         {...wallPressProps}
         data-choice="cancel"
+        disabled={settling}
         onClick={onCancel}
         style={{ ...button('plain'), alignItems: 'center', fontWeight: 600 }}
       >

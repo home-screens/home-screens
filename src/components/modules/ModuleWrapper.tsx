@@ -10,9 +10,11 @@ import { useModuleFrame } from './module-frame';
 interface ModuleWrapperProps {
   style: ModuleStyle;
   children: ReactNode;
+  /** The card itself, for a module that measures its own size the way the editor states it (border and title included). */
+  cardRef?: (el: HTMLDivElement | null) => void;
 }
 
-export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
+export default function ModuleWrapper({ style, children, cardRef }: ModuleWrapperProps) {
   const bw = style.borderWidth ?? 0;
   const bc = style.borderColor ?? 'rgba(255, 255, 255, 0.15)';
   const hasBlur = style.backdropBlur > 0;
@@ -69,6 +71,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   const inset = DEFAULT_MODULE_STYLE.padding;
   return (
     <div
+      ref={cardRef}
       data-module-card
       className={`w-full h-full overflow-hidden${title ? ' flex flex-col' : weightClass}`}
       style={wrapperStyle}

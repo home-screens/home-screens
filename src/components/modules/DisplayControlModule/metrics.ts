@@ -94,7 +94,10 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
 
   const pickerH = showPicker ? clamp(h * 0.1, 22, 40) : 0;
   const sliderH = layout === 'panel' ? clamp(h * 0.13, 22, 56) : 0;
-  const rowH = layout === 'pad' || (layout === 'panel' && box.timers === true) ? clamp(h * 0.13, 24, 58) : 0;
+  // The row under the grid (Brightness on the pad, Timers on the panel) is a
+  // finger's 44 px whenever the box can spare a quarter of its height for it;
+  // a short, wide panel otherwise made it a 24 px strip.
+  const rowH = layout === 'pad' || (layout === 'panel' && box.timers === true) ? clamp(h * 0.13, Math.min(44, h * 0.25), 58) : 0;
   const showCaption = sliderH >= 40;
   if (pickerH) innerH -= pickerH + gap;
   if (sliderH) innerH -= sliderH + gap;

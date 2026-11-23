@@ -325,6 +325,7 @@
       "weekdays": "Mo bis Fr",
       "weekends": "Sa und So",
       "allDay": "ganztägig",
+      "allDaysFor": "ganztägig für {count} Tage",
       "fromOnly": "ab {start}",
       "untilOnly": "bis {end}",
       "window": "{start} bis {end}",
@@ -622,6 +623,7 @@
         "connected": "Mit Google verbunden",
         "disconnect": "Verbindung trennen",
         "noCalendars": "Keine Kalender gefunden.",
+        "notAnswering": "Google antwortet gerade nicht, darum können deine Kalender nicht angezeigt werden. Was du ausgewählt hast, bleibt ausgewählt.",
         "primaryBadge": "(primär)",
         "hideDeclinedLabel": "Abgesagte Termine ausblenden",
         "credentialsRequired": "Um deinen Kalender zu verbinden, brauchst du eine Google-Anmeldung, die du selbst anlegst. Trage sie unter API-Schlüssel ein.",
@@ -636,8 +638,10 @@
         "copyCode": "Code kopieren",
         "googleOnly": "Nur Google",
         "pausedExplanation": "Google ist gerade nicht verbunden, deshalb aktualisieren sich diese Kalender nicht mehr. Melde dich oben erneut an, um sie zurückzuholen.",
+        "goneExplanation": "Diese Kalender gibt es bei Google nicht mehr. Vielleicht wurden sie gelöscht oder werden nicht mehr mit dir geteilt. Entferne sie unten.",
         "stillUsedByPhotos": "Auf diesem Hub getrennt. Der Google-Fotos-Import nutzt noch dieselbe Google-Anmeldung, deshalb zeigt dein Google-Konto Home Screens weiter als verbundene App an, bis du auch Google Fotos trennst.",
         "pausedBadge": "Pausiert",
+        "goneBadge": "Nicht gefunden",
         "removeTitle": "{name} entfernen",
         "credentialsSetupPrefix": "Füge deine Google-Anmeldung auf der Seite ",
         "credentialsSetupSuffix": " zuerst hinzu.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Damit Google das erlaubt, meldest du dich noch einmal an. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
         "switchHelpICloud": "Deine iCloud-Kalender brauchen nichts weiter. Sie werden so oder so genauso angezeigt wie bisher.",
         "ready": "Angemeldet und bereit für neue Termine",
+        "pickCalendars": "Wähle unten mindestens einen Kalender aus, in den neue Termine eingetragen werden.",
+        "googleNotAnswering": "Google antwortet gerade nicht. Sobald es wieder antwortet, kannst du wieder Termine in seine Kalender eintragen.",
         "signInTitle": "Noch ein Schritt: noch einmal bei Google anmelden",
         "signInBody": "Google fragt dich, ob Home Screens „Termine in allen Ihren Kalendern ansehen und bearbeiten“ darf. Ein Google-Tab öffnet sich, und danach kommst du von selbst hierher zurück.",
         "signInButton": "Mit Google anmelden",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Das Backup konnte nicht erstellt werden. Versuch es noch einmal.",
-        "invalidBackupFile": "Ungültige Backup-Datei.",
         "restoreBackupFailed": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal.",
         "credentialsExportFailedTitle": "Schlüssel konnten nicht mitgesichert werden",
         "credentialsExportFailed": "Deine Schlüssel und Konten konnten diesem Backup nicht hinzugefügt werden. Den Rest trotzdem herunterladen?",
@@ -1218,7 +1223,7 @@
         "pauseEnabledHelp": "Tippe doppelt auf den hervorgehobenen Bildschirmpunkt, um den Bildschirmwechsel anzuhalten. Tippe noch einmal doppelt, um ihn fortzusetzen.",
         "pauseTimeoutLabel": "Automatisches Fortsetzen nach",
         "pauseTimeoutNever": "Nie",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Setzt den Bildschirmwechsel nach Ablauf dieser Zeit automatisch fort. Setze auf 0, um pausiert zu bleiben, bis manuell fortgesetzt wird.",
         "swipeEnabledLabel": "Wischen zum Bildschirmwechsel",
         "swipeEnabledToggle": "Aktiviert",
@@ -1232,10 +1237,10 @@
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Wie ein Bildschirm in den nächsten übergeht. „Unschärfe“ ist der aufwendigste Effekt: Ruckelt es auf einem langsameren Gerät, nimm einen anderen.",
         "transitionDurationLabel": "Übergangsdauer",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Wie lange die Übergangsanimation zwischen Bildschirmen dauert.",
         "cursorHideLabel": "Mauszeiger ausblenden nach",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "Der Mauszeiger wird nach der eingestellten Zeit ohne Aktivität ausgeblendet. Bewege die Maus, um ihn wieder anzuzeigen.",
         "pixelShiftLabel": "Bildschirm vor Einbrennen schützen",
         "pixelShiftToggle": "Bild leicht verschieben",
@@ -1486,7 +1491,7 @@
       "upload": "Hochladen",
       "dropzone": "Ziehe Bilder oder Videos hierher oder klicke zum Auswählen, so viele du magst",
       "saveInto": "Speichern in",
-      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Wähle auf dem iPhone unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
+      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Kommt es von einem iPhone, wähle dort unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
       "loadFailed": "Deine Bilder und Videos konnten nicht geladen werden",
       "tryAgain": "Erneut versuchen",
       "allFolders": "Alle Bilder & Videos",
@@ -1518,6 +1523,24 @@
         "one": "Die Datei ist dann endgültig von diesem Hub verschwunden. Eine Diashow, die sie zeigt, macht mit ihren übrigen Bildern weiter. Wenn ein Bildschirm die Datei braucht, bleibt sie erhalten, damit kein Bildschirm leer wird.",
         "other": "Die Dateien sind dann endgültig von diesem Hub verschwunden. Diashows machen mit ihren übrigen Bildern weiter, und Dateien, die ein Bildschirm braucht, bleiben erhalten, damit kein Bildschirm leer wird."
       },
+      "clipsGoToo": {
+        "one": "Der Live-Photo-Clip wird mit gelöscht.",
+        "other": "Die Live-Photo-Clips werden mit gelöscht."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo ist noch nicht verbunden",
+        "other": "{count} Live Photos sind noch nicht verbunden"
+      },
+      "pairBody": {
+        "one": "{name} liegt neben einem Bild mit demselben Namen und läuft deshalb als eigenes kurzes Video. Verbinde es, dann bewegt es stattdessen sein Bild.",
+        "other": "{name} und {more} weitere liegen neben Bildern mit demselben Namen und laufen deshalb als eigene kurze Videos. Verbinde sie, dann bewegt jedes stattdessen sein Bild."
+      },
+      "pairButton": "Live Photos verbinden",
+      "paired": {
+        "one": "{count} Live Photo verbunden.",
+        "other": "{count} Live Photos verbunden."
+      },
+      "pairFailed": "Die Live Photos konnten nicht verbunden werden. Versuch es noch einmal.",
       "deleteConfirm": "Löschen",
       "refused": "{file} wird noch verwendet und wurde nicht gelöscht.",
       "keptLast": "{file} wurde behalten: Es ist das letzte Bild der Diashow auf '{name}'.",
@@ -1830,7 +1853,7 @@
         "scanningInterface": "Suche auf {device}",
         "scanButton": "Suchen",
         "scanningButton": "Suche läuft …",
-        "scanCooldownButton": "Suchen ({seconds}s)",
+        "scanCooldownButton": "Suchen ({seconds} s)",
         "defaultScanError": "Die Netzwerksuche hat nicht geklappt. Versuch es noch einmal.",
         "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
         "badges": {
@@ -1872,7 +1895,7 @@
       "rollback": {
         "polling": {
           "heading": "Verbindung wird geprüft …",
-          "remaining": "Noch {seconds}s bis zum automatischen Zurücksetzen",
+          "remaining": "Noch {seconds} s bis zum automatischen Zurücksetzen",
           "warning": "Wird diese Seite unerreichbar, werden die vorherigen Einstellungen automatisch wiederhergestellt."
         },
         "confirmed": {
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Andere Einkäufe",
-        "description": "Wähle eine eurer Listen für Dinge, die kein Essen braucht, wie Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand, und eine Einkaufskarte mit „An der Wand hinzufügen“ fügt dort hinzu.",
+        "description": "Wähle eine eurer Listen für alles, was ihr nicht zum Kochen braucht, zum Beispiel Küchenrolle oder Hundefutter. Was noch darauf steht, erscheint am Ende der Einkaufsliste auf dem Handy und an der Wand. Eine Einkaufskarte mit „An der Wand hinzufügen“ trägt neue Einträge dort ein.",
         "none": "Keine"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Jedes Display lädt einmal neu, um den neuen Schlüssel zu übernehmen.",
-        "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden",
-        "errorCopy": "Kopieren fehlgeschlagen; bitte manuell auswählen und kopieren",
+        "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden.",
+        "errorCopy": "Kopieren hat nicht geklappt. Markiere den Schlüssel und kopiere ihn selbst.",
         "phoneHintIntro": "Um ein Display vom Telefon aus zu steuern, setze ein Lesezeichen auf einen Link wie diesen:",
         "phoneHintOutro": "Zeige den Schlüssel oben zuerst an, damit der Link ihn enthält. Tausche sleep gegen wake, reload, next-screen oder prev-screen, um die anderen Befehle zu bekommen.",
         "phoneHintDisplayNote": "Dieser zeigt auf das Display „{name}“. Tausche {display} gegen die ID eines anderen Displays, um auf dieses zu zielen."
@@ -2381,9 +2404,9 @@
         "addButton": "Hinzufügen",
         "errors": {
           "invalidCidr": "Das ist kein Netzwerkbereich. Die meisten Heimnetze sind 192.168.1.0/24.",
-          "invalidIp": "Das ist keine Adresse",
+          "invalidIp": "Das ist keine IP-Adresse.",
           "invalidPrefix": "Die Zahl nach dem Schrägstrich muss zwischen 0 und 32 liegen.",
-          "alreadyInList": "Bereits in der Liste"
+          "alreadyInList": "Bereits in der Liste."
         },
         "callerIpLabel": "Deine IP: ",
         "lockoutWarning": {
@@ -2764,7 +2787,7 @@
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
       "rotationDegrees": "{degrees}° Drehung",
-      "rotationNormal": "normal",
+      "rotationNormal": "Keine Drehung",
       "screenCount": {
         "one": "{count} Bildschirm",
         "other": "{count} Bildschirme"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Alle Tage eines Termins ändern, der sich wiederholt",
             "hint": "Wenn eine Änderung für alle Tage gilt, nicht nur für einen."
+          },
+          "menu-change": {
+            "label": "Essensplan ändern",
+            "hint": "Wenn an der Wand ein Gericht auf den Plan kommt, getauscht oder vom Plan genommen wird."
           }
         },
         "unlockLabel": "Entsperrt bleiben für",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Nach dem richtigen Code fragt das Display, an dem er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt.",
         "removeConfirmTitle": "Erwachsenen-Code entfernen?",
-        "removeConfirmMessage": "Das Display fragt dann nicht mehr danach, bevor es etwas tut, das du angehakt hast. Du kannst jederzeit einen neuen Code festlegen."
+        "removeConfirmMessage": "Das Display fragt dann nicht mehr danach, bevor es etwas tut, das du angehakt hast. Du kannst jederzeit einen neuen Code festlegen.",
+        "lockedBody": {
+          "one": "Die Displays, die Aufgabenseite und nicht angemeldete Handys nehmen den Erwachsenen-Code noch {count} Minute lang nicht an.",
+          "other": "Die Displays, die Aufgabenseite und nicht angemeldete Handys nehmen den Erwachsenen-Code noch {count} Minuten lang nicht an."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Wochensumme",
       "memberLine": "{chores} Aufgaben, {tickets} Tickets"
     },
-    "finishFormFirst": "Speichere oder verwirf zuerst das offene Formular.",
+    "finishFormFirst": "Schließ zuerst ab, was offen ist, oder brich es ab.",
     "starter": {
       "openButton": "Aus den Vorschlägen auswählen",
       "hint": "{count} alltägliche Aufgaben, nach Tageszeit sortiert",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Plugin aus URL installieren",
     "dialogAriaLabel": "Plugin aus URL installieren",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "HTTPS-URL zu einem ",
-    "tarballUrlHelpPart2": "-Plugin-Bundle. Ersetze die Version durch ",
-    "tarballUrlHelpPart3": ", wenn künftige Updates nur eine Versionsnummer benötigen sollen.",
+    "tarballUrlLabel": "Download-Link",
+    "tarballUrlHelpPart1": "Ein sicherer Link (beginnt mit https) zur ",
+    "tarballUrlHelpPart2": "-Datei des Plugins. Setze ",
+    "tarballUrlHelpPart3": " dort ein, wo die Versionsnummer steht. Dann brauchen spätere Updates nur noch die Nummer.",
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
     "externalSourceWarning": "Du installierst von außerhalb des Plugin-Marketplace. Installiere nur Plugins aus Quellen, denen du vertraust.",
@@ -3973,9 +4004,9 @@
     "title": "{id} aktualisieren",
     "dialogAriaLabel": "{id} aktualisieren",
     "currentVersionLabel": "Aktuelle Version:",
-    "tarballUrlLabel": "Tarball-URL",
-    "tarballUrlHelpPart1": "Passe die URL auf eine neue Version an oder ersetze die Version durch ",
-    "tarballUrlHelpPart2": ", damit künftige Updates nur eine Versionsnummer benötigen.",
+    "tarballUrlLabel": "Download-Link",
+    "tarballUrlHelpPart1": "Ändere den Link so, dass er auf die neue Version zeigt, oder setze ",
+    "tarballUrlHelpPart2": " dort ein, wo die Versionsnummer steht. Dann musst du nächstes Mal nur die Nummer eintippen.",
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
     "workingMessage": "Wird heruntergeladen und aktualisiert …",
@@ -4700,6 +4731,8 @@
       "wallAdd": "An der Wand hinzufügen",
       "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
       "wallAddHelpLocal": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die unten gewählte Liste.",
+      "wallPlan": "Mahlzeiten an der Wand planen",
+      "wallPlanHelp": "Alle an der Wand können ein Rezept auf den Essensplan setzen, für diese und nächste Woche: mit dem Knopf „Auf den Essensplan“ bei jedem Rezept und einem Plus bei leeren Mahlzeiten in den Wochenansichten. Eingetippte Mahlzeiten und neue Rezepte gehen weiter nur am Handy.",
       "extrasList": "Andere Einkäufe kommen auf",
       "extrasListNone": "Keine (keine Zeile zum Hinzufügen)",
       "extrasListHelp": "Eine eurer Listen. Was noch darauf steht, erscheint am Ende der Einkaufsliste, hier und auf dem Handy. Alle Einkaufskarten teilen sie."

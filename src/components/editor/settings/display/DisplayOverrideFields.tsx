@@ -8,10 +8,10 @@ import FullscreenThemeGrid from '@/components/editor/settings/shared/FullscreenT
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
-import { useTranslate, tOrFallback } from '@/i18n';
+import { useFormattingLocale, useTranslate, tOrFallback } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import { displayShowsPaginationDots, showsPaginationDots } from '@/lib/pagination-dots';
-import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS, resolveDisplayDefault } from '@/lib/display-override-fields';
+import { DEFAULT_ROTATION_SECONDS, DISPLAY_FIELD_SLIDERS, resolveDisplayDefault, transitionSecondsText } from '@/lib/display-override-fields';
 import type {
   DisplayNode,
   DisplayNodeSettings,
@@ -43,6 +43,7 @@ const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
  */
 export default function DisplayOverrideFields({ config, display }: DisplayOverrideFieldsProps) {
   const t = useTranslate('editor');
+  const locale = useFormattingLocale();
   const tCore = useTranslate('core');
   // Selector-scoped: an unscoped `useEditorStore()` re-renders this card on
   // every store write (including each save's isSaving flip), which is enough
@@ -174,7 +175,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               onReset={() => setOverride('transitionDuration', undefined)}
               defaultsPageHref={DEFAULTS_HREF}
               defaultsPageLabel={DEFAULTS_LABEL}
-              formatValue={(v) => t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: v.toFixed(1) })}
+              formatValue={(v) => t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: transitionSecondsText(v, locale) })}
               displayName={display.name}
             >
               {({ value, onChange, disabled }) => (
@@ -182,7 +183,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                   label=""
                   value={value}
                   {...DISPLAY_FIELD_SLIDERS.transitionDuration}
-                  displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: value.toFixed(1) })}
+                  displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: transitionSecondsText(value, locale) })}
                   onChange={onChange}
                   disabled={disabled}
                 />

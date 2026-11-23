@@ -186,7 +186,7 @@
   },
   "screenTabs": {
     "stickyTooltip": "bliver: skifter ikke af sig selv, kræver et tryk eller fjernbetjeningen",
-    "secondsSuffix": "{seconds}s",
+    "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "planlagt",
     "conditionalTooltip": "vises kun, når betingelserne passer",
     "disabledTooltip": "slukket, vises ikke på skærmen",
@@ -325,6 +325,7 @@
       "weekdays": "man. til fre.",
       "weekends": "lør. og søn.",
       "allDay": "hele dagen",
+      "allDaysFor": "hele dagen i {count} dage",
       "fromOnly": "fra {start}",
       "untilOnly": "til {end}",
       "window": "{start} til {end}",
@@ -622,6 +623,7 @@
         "connected": "Forbundet til Google",
         "disconnect": "Afbryd",
         "noCalendars": "Ingen kalendere fundet.",
+        "notAnswering": "Google svarer ikke lige nu, så dine kalendere kan ikke vises. Dem, du har valgt, forbliver valgt.",
         "primaryBadge": "(primær)",
         "hideDeclinedLabel": "Skjul begivenheder du har afvist",
         "credentialsRequired": "For at forbinde din kalender skal du bruge et Google-login, du selv opretter. Tilføj det under API-nøgler.",
@@ -636,8 +638,10 @@
         "copyCode": "Kopiér kode",
         "googleOnly": "Kun Google",
         "pausedExplanation": "Google er ikke forbundet lige nu, så disse kalendere opdateres ikke længere. Log ind igen ovenfor for at få dem tilbage.",
+        "goneExplanation": "Google viser ikke længere disse kalendere. De er måske slettet eller ikke længere delt med dig. Fjern dem nedenfor.",
         "stillUsedByPhotos": "Forbindelsen er afbrudt på denne hub. Google Fotos-import bruger stadig det samme Google-login, så din Google-konto bliver ved med at vise Home Screens, indtil du også afbryder Google Fotos.",
         "pausedBadge": "Sat på pause",
+        "goneBadge": "Ikke fundet",
         "removeTitle": "Fjern {name}",
         "credentialsSetupPrefix": "Tilføj dit Google-login på siden ",
         "credentialsSetupSuffix": " først.",
@@ -735,6 +739,8 @@
         "switchHelpGoogle": "Google beder dig om at logge ind én gang til for at give lov. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
         "switchHelpICloud": "For dine iCloud-kalendere skal du ikke gøre mere. De vises på samme måde, uanset om det er slået til eller ej.",
         "ready": "Logget ind og klar til at tilføje begivenheder",
+        "pickCalendars": "Vælg mindst én kalender nedenfor, som nye begivenheder kan lægges i.",
+        "googleNotAnswering": "Google svarer ikke lige nu. Du kan tilføje begivenheder til dets kalendere igen, så snart det svarer.",
         "signInTitle": "Et trin mere: log ind med Google igen",
         "signInBody": "Google beder dig om at give Home Screens lov til at “Se og redigere begivenheder i alle dine kalendere”. Der åbnes en Google-fane, og bagefter kommer du automatisk tilbage hertil.",
         "signInButton": "Log ind med Google",
@@ -796,7 +802,6 @@
       },
       "alerts": {
         "exportBackupFailed": "Kunne ikke lave sikkerhedskopien. Prøv igen.",
-        "invalidBackupFile": "Ugyldig sikkerhedskopi.",
         "restoreBackupFailed": "Kunne ikke gendanne den sikkerhedskopi. Prøv igen.",
         "credentialsExportFailedTitle": "Kunne ikke tage dine nøgler med",
         "credentialsExportFailed": "Dine nøgler og konti kunne ikke lægges i denne sikkerhedskopi. Vil du hente resten alligevel?",
@@ -1218,7 +1223,7 @@
         "pauseEnabledHelp": "Dobbelttryk på den fremhævede skærmprik for at sætte skærmskift på pause. Dobbelttryk igen for at fortsætte.",
         "pauseTimeoutLabel": "Fortsæt automatisk efter",
         "pauseTimeoutNever": "Aldrig",
-        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Fortsæt automatisk med skærmskift efter så mange sekunder. Sæt til 0 for at blive på pause, indtil du selv fortsætter.",
         "swipeEnabledLabel": "Stryg for at skifte skærm",
         "swipeEnabledToggle": "Slået til",
@@ -1232,10 +1237,10 @@
         "transitionEffectLabel": "Overgangseffekt",
         "transitionEffectHelp": "Hvordan én skærm giver plads til den næste. Sløring belaster enheden mest. Hakker overgangene på en langsom enhed, så vælg en anden effekt.",
         "transitionDurationLabel": "Overgangens varighed",
-        "transitionDurationValue": "{seconds}s",
+        "transitionDurationValue": "{seconds} s",
         "transitionDurationHelp": "Hvor lang tid overgangen mellem skærme tager.",
         "cursorHideLabel": "Skjul markøren efter",
-        "cursorHideValue": "{seconds}s",
+        "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "Musemarkøren skjules efter så mange sekunder uden aktivitet. Bevæg musen for at få den frem igen.",
         "pixelShiftLabel": "Beskyt skærmen mod indbrænding",
         "pixelShiftToggle": "Flyt billedet en smule",
@@ -1486,7 +1491,7 @@
       "upload": "Upload",
       "dropzone": "Træk billeder eller videoer herhen, eller klik for at vælge, lige så mange du vil",
       "saveInto": "Gem i",
-      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. På en iPhone skal du vælge Mest kompatibel under Indstillinger > Kamera > Formater.",
+      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. Kommer den fra en iPhone, så vælg Mest kompatibel under Indstillinger > Kamera > Formater.",
       "loadFailed": "Dine billeder og videoer kunne ikke indlæses",
       "tryAgain": "Prøv igen",
       "allFolders": "Alle billeder & videoer",
@@ -1518,6 +1523,24 @@
         "one": "Den forsvinder fra denne hub for altid. Et billedshow, der viser den, fortsætter med sine andre billeder, og har en skærm brug for filen, bliver den beholdt, så ingen skærm står tom.",
         "other": "De forsvinder fra denne hub for altid. Billedshows fortsætter med deres andre billeder, og filer, som en skærm har brug for, bliver beholdt, så ingen skærm står tom."
       },
+      "clipsGoToo": {
+        "one": "Live Photo-klippet slettes også.",
+        "other": "Live Photo-klippene slettes også."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo er ikke parret endnu",
+        "other": "{count} Live Photos er ikke parret endnu"
+      },
+      "pairBody": {
+        "one": "{name} ligger ved siden af et billede med samme navn og afspilles derfor som en kort video for sig. Par den, så bevæger den i stedet sit billede.",
+        "other": "{name} og {more} andre ligger ved siden af billeder med samme navn og afspilles derfor som korte videoer for sig. Par dem, så bevæger hver i stedet sit billede."
+      },
+      "pairButton": "Par Live Photos",
+      "paired": {
+        "one": "{count} Live Photo parret.",
+        "other": "{count} Live Photos parret."
+      },
+      "pairFailed": "Live Photos kunne ikke parres. Prøv igen.",
       "deleteConfirm": "Slet",
       "refused": "{file} bruges stadig og blev ikke slettet.",
       "keptLast": "{file} blev liggende, fordi det er det sidste billede i billedshowet på '{name}'.",
@@ -1830,7 +1853,7 @@
         "scanningInterface": "Søger på {device}",
         "scanButton": "Scan",
         "scanningButton": "Søger…",
-        "scanCooldownButton": "Scan ({seconds}s)",
+        "scanCooldownButton": "Scan ({seconds} s)",
         "defaultScanError": "Kunne ikke søge efter netværk. Prøv igen.",
         "emptyHint": "Klik på Scan for at søge efter Wi-Fi-netværk i nærheden.",
         "badges": {
@@ -1976,7 +1999,7 @@
       },
       "groceryExtras": {
         "heading": "Andre indkøb",
-        "description": "Vælg en af jeres lister til de ting, ingen ret skal bruge, som køkkenrulle eller hundemad. Det, der stadig står på den, vises sidst i indkøbslisten på telefonen og på væggen, og et indkøbskort med Tilføj på væggen tilføjer til den.",
+        "description": "Vælg en af jeres lister til de ting, ingen ret skal bruge, som køkkenrulle eller hundemad. Det, der stadig står på den, vises sidst i indkøbslisten på telefonen og på væggen, og et indkøbskort med “Tilføj på væggen” slået til lægger nye ting på den.",
         "none": "Ingen"
       },
       "status": {
@@ -2359,8 +2382,8 @@
         "regenerateConfirm": "Lav en ny nøgle",
         "regenerateCancel": "Annullér",
         "regenerateWarning": "Hver skærm genindlæser én gang for at bruge den nye nøgle.",
-        "errorRegenerate": "Kunne ikke lave en ny nøgle",
-        "errorCopy": "Kopieringen mislykkedes; markér og kopiér selv",
+        "errorRegenerate": "Kunne ikke lave en ny nøgle.",
+        "errorCopy": "Kopieringen mislykkedes. Markér nøglen, og kopiér den selv.",
         "phoneHintIntro": "Vil du styre en skærm fra telefonen, så gem et bogmærke med et link som dette:",
         "phoneHintOutro": "Vis nøglen ovenfor først, så linket får den med. Byt sleep ud med wake, reload, next-screen eller prev-screen for de andre kommandoer.",
         "phoneHintDisplayNote": "Dette peger på {name}. Byt {display} ud med en anden skærms id for at ramme den."
@@ -2381,9 +2404,9 @@
         "addButton": "Tilføj",
         "errors": {
           "invalidCidr": "Det er ikke et netværksområde. De fleste hjemmenetværk er 192.168.1.0/24.",
-          "invalidIp": "Det er ikke en adresse",
+          "invalidIp": "Det er ikke en IP-adresse.",
           "invalidPrefix": "Tallet efter skråstregen skal være mellem 0 og 32.",
-          "alreadyInList": "Findes allerede på listen"
+          "alreadyInList": "Findes allerede på listen."
         },
         "callerIpLabel": "Din IP: ",
         "lockoutWarning": {
@@ -2763,8 +2786,8 @@
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
-      "rotationDegrees": "{degrees}° rotation",
-      "rotationNormal": "normal",
+      "rotationDegrees": "Drejet {degrees}°",
+      "rotationNormal": "Ikke drejet",
       "screenCount": {
         "one": "{count} skærm",
         "other": "{count} skærme"
@@ -2891,6 +2914,10 @@
           "calendar-change-series": {
             "label": "Ændre alle dagene for en begivenhed, der gentages",
             "hint": "Når en ændring gælder alle gange, ikke kun én dag."
+          },
+          "menu-change": {
+            "label": "Ændre madplanen",
+            "hint": "Når et måltid sættes på, byttes ud eller fjernes på væggen."
           }
         },
         "unlockLabel": "Hold væggen låst op i",
@@ -2900,7 +2927,11 @@
         },
         "unlockHint": "Efter den rigtige kode gør den væg de ting, der er sat kryds ved, uden at spørge igen i så lang tid. Er man logget ind på telefonen, bliver man aldrig spurgt.",
         "removeConfirmTitle": "Fjern voksenkoden?",
-        "removeConfirmMessage": "Væggen spørger ikke længere efter koden, før den gør de ting, du har sat kryds ved. Du kan vælge en ny kode når som helst."
+        "removeConfirmMessage": "Væggen spørger ikke længere efter koden, før den gør de ting, du har sat kryds ved. Du kan vælge en ny kode når som helst.",
+        "lockedBody": {
+          "one": "Væggene, opgavesiden og telefoner, der ikke er logget ind, tager ikke imod voksenkoden i {count} minut mere.",
+          "other": "Væggene, opgavesiden og telefoner, der ikke er logget ind, tager ikke imod voksenkoden i {count} minutter mere."
+        }
       }
     },
     "touchAlignment": {
@@ -3093,7 +3124,7 @@
       "weeklyTotalsHeading": "Ugen i alt",
       "memberLine": "{chores} pligter, {tickets} billetter"
     },
-    "finishFormFirst": "Gem eller annullér først den åbne formular.",
+    "finishFormFirst": "Afslut eller annullér først det, du er i gang med.",
     "starter": {
       "openButton": "Vælg fra forslagslisten",
       "hint": "{count} hverdagspligter, sorteret efter tid på dagen",
@@ -3956,10 +3987,10 @@
   "installFromUrlModal": {
     "title": "Installér plugin fra URL",
     "dialogAriaLabel": "Installér plugin fra URL",
-    "tarballUrlLabel": "URL til tarball",
-    "tarballUrlHelpPart1": "HTTPS-URL til et ",
-    "tarballUrlHelpPart2": "-pluginbundt. Erstat versionen med ",
-    "tarballUrlHelpPart3": ", hvis fremtidige opdateringer kun skal kræve et versionsnummer.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Et sikkert link (der starter med https) til pluginets ",
+    "tarballUrlHelpPart2": "-fil. Skriv ",
+    "tarballUrlHelpPart3": " i stedet for versionsnummeret, så kræver senere opdateringer kun nummeret.",
     "exampleLabel": "Eksempel:",
     "versionLabel": "Version der skal installeres",
     "externalSourceWarning": "Du installerer fra uden for pluginbutikken. Installér kun plugins fra kilder, du stoler på.",
@@ -3973,9 +4004,9 @@
     "title": "Opdatér {id}",
     "dialogAriaLabel": "Opdatér {id}",
     "currentVersionLabel": "Nuværende version:",
-    "tarballUrlLabel": "URL til tarball",
-    "tarballUrlHelpPart1": "Redigér URL'en, så den peger på en ny version, eller erstat versionen med ",
-    "tarballUrlHelpPart2": ", så fremtidige opdateringer kun kræver et versionsnummer.",
+    "tarballUrlLabel": "Downloadlink",
+    "tarballUrlHelpPart1": "Ret linket, så det peger på den nye version, eller skriv ",
+    "tarballUrlHelpPart2": " i stedet for versionsnummeret, så du næste gang kun skal skrive nummeret.",
     "exampleLabel": "Eksempel:",
     "versionLabel": "Version der skal installeres",
     "workingMessage": "Henter og opdaterer…",
@@ -4700,6 +4731,8 @@
       "wallAdd": "Tilføj på væggen",
       "wallAddHelpMealie": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på den Mealie-liste, familien handler efter.",
       "wallAddHelpLocal": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på listen, der er valgt nedenfor.",
+      "wallPlan": "Planlæg måltider på væggen",
+      "wallPlanHelp": "Alle ved væggen kan sætte en opskrift på madplanen for denne og næste uge: en knap „Sæt på madplanen“ på hver opskrift og et plus ved tomme måltider i ugevisningerne. Måltider, man selv skriver ind, og nye opskrifter laves stadig på telefonen.",
       "extrasList": "Andre indkøb kommer på",
       "extrasListNone": "Ingen (ingen tilføj-linje)",
       "extrasListHelp": "En af jeres lister. Det, der stadig står på den, vises sidst i indkøbslisten, her og på telefonen. Alle indkøbskort deler den."
@@ -5215,7 +5248,7 @@
       "completedHidden": "Skjult",
       "showDueDates": "Vis frister",
       "showAssignees": "Vis hvem",
-      "wallAdd": "Tilføj fra væggen",
+      "wallAdd": "Tilføj på væggen",
       "wallAddHelp": "En Tilføj-linje under listen. Alle ved væggen kan tilføje; ændre og fjerne sker stadig på telefonen."
     },
     "todoist": {

@@ -101,11 +101,11 @@ test('the IP allowlist rejects a malformed entry with an inline error', async ({
   const entryInput = page.getByPlaceholder('192.168.1.0/24');
   await expect(entryInput).toBeVisible();
 
-  // A value that fails the dotted-quad shape → "That isn't an address". The bad
+  // A value that fails the dotted-quad shape → "That isn't an IP address". The bad
   // entry is never added to the list, so nothing gets saved.
   await entryInput.fill('not-an-ip');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(page.getByText("That isn't an address")).toBeVisible();
+  await expect(page.getByText("That isn't an IP address.")).toBeVisible();
   await expect(page.getByText('not-an-ip')).toHaveCount(0);
 
   // A valid IP with an out-of-range prefix → the slash-number explanation.

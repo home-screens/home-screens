@@ -187,3 +187,17 @@ describe('useBackupReminder with automatic backups', () => {
     expect(result.current.shouldShow).toBe(false);
   });
 });
+
+describe('useBackupReminder when a backup is saved elsewhere on the page', () => {
+  it('goes at once, rather than at its next hourly look', async () => {
+    let last = staleBackupDate();
+    const hub = fetchFnWith(() => last);
+    const hook = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn: hub, pollIntervalMs: 3_600_000 }));
+    await waitFor(() => expect(hook.result.current.shouldShow).toBe(true));
+    // Settings > Backups & data saved one: the hub now has today's date.
+    last = new Date().toISOString();
+    const { announceBackupSaved } = await import('@/lib/backup-reminder');
+    act(() => announceBackupSaved());
+    await waitFor(() => expect(hook.result.current.shouldShow).toBe(false));
+  });
+});

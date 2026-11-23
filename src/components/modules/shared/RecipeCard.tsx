@@ -17,6 +17,7 @@ import { BookIcon } from './recipe-book/RecipeBookParts';
 import { recipeCardActionStyle } from './recipe-card-actions';
 import { WallRecipeHeart } from './WallRecipeHeart';
 import { WallRateMealButton } from './MealRatingWall';
+import { WallPutOnMenuButton } from './WallMenuSheet';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 
@@ -78,8 +79,12 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         </div>
       </div>
       {/* In the footer's own row, which every page already keeps room for, so it never covers the recipe.
-          The measuring copies draw it too (inert there) and take the same room. */}
-      <WallRateMealButton meal={meal} size={P(28)} style={{ marginLeft: 'auto' }} measuring={measuring} />
+          The measuring copies draw it too (inert there) and take the same room. "Put on the menu" stacks
+          above "Rate meal": beside it, the two would squeeze the line that says how long the card stays. */}
+      <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: P(12), flexShrink: 0 }}>
+        <WallPutOnMenuButton meal={meal} at={at} P={P} measuring={measuring} />
+        <WallRateMealButton meal={meal} size={P(28)} measuring={measuring} />
+      </div>
     </div>
   );
 

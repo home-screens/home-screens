@@ -122,7 +122,7 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   // list, and when Undo turns it back.
   const body = empty ? (
     // Nothing left to get, and the wall can add the first thing.
-    <div key="empty" className="flex-1 min-h-0"><GroceryEmpty grocery={grocery} /></div>
+    <div key="empty" className="flex-1 min-h-0"><GroceryEmpty grocery={grocery} canAdd /></div>
   ) : (
     <Fragment key="list">
       <div className={`flex items-baseline gap-2 shrink-0 ${showTitle ? 'justify-between' : 'justify-end'}`}>
@@ -210,7 +210,12 @@ function GroceryRow({ item, accent, tappable, pressed, onTick }: {
 }
 
 /** Loading, Mealie out of reach, no list, or nothing left to get. */
-export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; fontSize?: number }) {
+export function GroceryEmpty({ grocery, fontSize, canAdd = false }: {
+  grocery: WallGrocery;
+  fontSize?: number;
+  /** An Add button sits under it: an empty list says to tap it, as the to-do card does. */
+  canAdd?: boolean;
+}) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   if (grocery.state === 'loading') {
@@ -231,7 +236,7 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
       <FamilyEmptyState
         icon={done ? <Check size="1em" strokeWidth={2.5} /> : <>&#129530;</>}
         title={done ? t('meal-planner.grocery.mealieDone', { list: grocery.listName }) : tCore('mealie.grocery.emptyTitle', { list: grocery.listName })}
-        hint={t('meal-planner.grocery.mealieEmptyHint')}
+        hint={canAdd ? t('wallAdd.emptyHint') : t('meal-planner.grocery.mealieEmptyHint')}
         fontSize={fontSize}
       />
     );
@@ -240,7 +245,7 @@ export function GroceryEmpty({ grocery, fontSize }: { grocery: WallGrocery; font
     <FamilyEmptyState
       icon={done ? <Check size="1em" strokeWidth={2.5} /> : <>&#129530;</>}
       title={t(done ? 'meal-planner.grocery.localDone' : 'meal-planner.grocery.localEmpty')}
-      hint={t(done ? 'meal-planner.grocery.localDoneHint' : 'meal-planner.grocery.localEmptyHint')}
+      hint={canAdd ? t('wallAdd.emptyHint') : t(done ? 'meal-planner.grocery.localDoneHint' : 'meal-planner.grocery.localEmptyHint')}
       fontSize={fontSize}
     />
   );

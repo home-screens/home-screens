@@ -43,7 +43,7 @@ function answer(url: string, method: string, body: Record<string, unknown> | und
     if (items === 'items' && itemId) {
       store = method === 'DELETE' ? deleteItem(store, listId, itemId) : updateItem(store, listId, itemId, body as never);
     } else if (items === 'items') {
-      const made = body?.ifNew ? addItemIfNew(store, listId, body as never) : { ...addItem(store, listId, body as never), outcome: 'added' };
+      const made = body?.restore ? { ...addItem(store, listId, body as never), outcome: 'added' } : addItemIfNew(store, listId, body as never);
       store = made.data;
       return reply(200, { lists: store.lists, created: { id: made.item.id }, outcome: made.outcome });
     } else if (method === 'DELETE') {
@@ -113,7 +113,7 @@ describe('useTodoLists', () => {
     act(() => { view.result.current.toggleItem('groceries', temp!.id); });
     expect(view.result.current.lists[0].items.find((i) => i.text === 'Eggs')?.completed).toBe(true);
     await act(async () => {});
-    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'Eggs', ifNew: true } }]);
+    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'Eggs' } }]);
 
     await act(async () => { held!.shift()?.(); });
     await act(async () => { expect(await added).toBe(true); });
@@ -142,7 +142,7 @@ describe('useTodoLists', () => {
     act(() => { added = view.result.current.addItem('groceries', 'MILK'); });
     expect(view.result.current.lists[0].items).toEqual([expect.objectContaining({ id: 'milk', completed: false })]);
     await act(async () => { expect(await added).toBe(true); });
-    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'MILK', ifNew: true } }]);
+    expect(writes).toEqual([{ method: 'POST', url: '/api/todo/lists/groceries/items', body: { text: 'MILK' } }]);
     expect(store.lists[0].items).toEqual([expect.objectContaining({ id: 'milk', completed: false })]);
     expect(showToast).toHaveBeenCalledWith('lists.putBack', 'info');
   });

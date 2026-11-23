@@ -568,7 +568,7 @@ test('the external update modal swaps an external plugin to a newer bundle versi
     const updateResponse = page.waitForResponse(
       (r) => r.url().includes('/api/plugins/install-external') && r.request().method() === 'POST' && r.ok(),
     );
-    await updateModal.getByRole('button', { name: 'Install', exact: true }).click();
+    await updateModal.getByRole('button', { name: 'Update', exact: true }).click();
     await updateResponse;
 
     // The update writes installed.json before the response returns; the modal's

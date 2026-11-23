@@ -163,6 +163,6 @@ test.describe('Defaults › Backups & data › Pictures', () => {
     await page.getByRole('button', { name: 'Restore from a file' }).click();
     await page.getByRole('button', { name: 'Choose a file…' }).click();
     await page.getByTestId('backup-restore-input').setInputFiles({ name: 'photos.zip', mimeType: 'application/zip', buffer: Buffer.from('not a zip at all') });
-    await expect(page.getByText(/not a Home Screens backup/)).toBeVisible();
+    await expect(page.getByText("That file isn't a Home Screens backup.")).toBeVisible();
   });
 });

@@ -12,6 +12,7 @@ import {
   TodoError,
   addItem as addItemTo,
   addItemIfNew,
+  orderWithItemAt,
   createList as createListIn,
   deleteItem as deleteItemFrom,
   deleteList as deleteListFrom,
@@ -74,7 +75,6 @@ async function loadLists(): Promise<TodoList[] | null> {
  */
 export function useTodoLists({ selectedListId, onSelectList }: Options) {
   const tCore = useTranslate('core');
-  const tRemote = useTranslate('remote');
 
   const { data: lists, loaded, loadError, retry, write, mapId, resolveId, session } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
     initial: [],
@@ -123,7 +123,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
       const items = lists.find((l) => sameId(l.id, listId, resolveId))?.items ?? [];
       const open = items.find((it) => !it.completed && sameItemText(it.text, clean));
       if (open) {
-        showToast(tRemote('lists.alreadyOnList', { item: open.text }), 'info');
+        showToast(tCore('lists.alreadyOnList', { item: open.text }), 'info');
         return Promise.resolve(true);
       }
       const ticked = items.find((it) => it.completed && sameItemText(it.text, clean));
@@ -135,18 +135,18 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
           if (outcome !== 'added') return data.lists;
           return data.lists.map((l) => (l.items.includes(item) ? { ...l, items: l.items.map((it) => (it === item ? { ...item, id: temp } : it)) } : l));
         },
-        (r) => addItemRequest(r(listId), clean, { ifNew: true }),
+        (r) => addItemRequest(r(listId), clean),
         (created) => {
           // The route names the item it made, so the optimistic row's temp
           // id can be pointed at the real one before anything taps it.
           if (created && !ticked) mapId(temp, created.id);
         },
       ).then((saved) => {
-        if (saved !== null && ticked) showToast(tRemote('lists.putBack', { item: ticked.text }), 'info');
+        if (saved !== null && ticked) showToast(tCore('lists.putBack', { item: ticked.text }), 'info');
         return saved !== null;
       });
     },
-    [lists, resolveId, write, mapId, tRemote],
+    [lists, resolveId, write, mapId, tCore],
   );
 
   const updateItem = useCallback(
@@ -195,16 +195,14 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
       const backInPlace = (ls: TodoList[], r: ResolveId): string[] => {
         const ids = ls.find((l) => sameId(l.id, listId, r))?.items.map((it) => it.id) ?? [];
         const restored = ids.find((id) => sameId(id, temp, r));
-        if (restored === undefined) return ids;
-        const rest = ids.filter((id) => id !== restored);
-        return [...rest.slice(0, index), restored, ...rest.slice(index)];
+        return restored === undefined ? ids : orderWithItemAt(ids, restored, index);
       };
       void write(
         (ls, r) => {
           const { data, item: added } = addItemTo({ lists: ls }, r(listId), { text: item.text, ...fields }, at);
           return data.lists.map((l) => (l.items.includes(added) ? { ...l, items: l.items.map((it) => (it === added ? { ...added, id: temp } : it)) } : l));
         },
-        (r) => addItemRequest(r(listId), item.text, fields),
+        (r) => addItemRequest(r(listId), item.text, { restore: true, ...fields }),
         (created) => {
           if (created) mapId(temp, created.id);
         },

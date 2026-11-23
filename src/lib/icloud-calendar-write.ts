@@ -8,18 +8,19 @@ import {
   CalendarWriteError,
   repeatFromRecurrence,
   repeatToRRule,
+  seriesRuleFollows,
   type ChangeScope,
   type EventDraft,
   type NormalizedEvent,
   type RepeatReading,
   type TimeWas,
 } from '@/lib/calendar-write';
-import { describeWriteFailure, draftFromGoogle, isKnownWriteStatus, seriesTimes, toGoogleTimes, writeRefusalForStatus } from '@/lib/google-calendar-write';
+import { clockOfMinutes, describeWriteFailure, draftFromGoogle, isKnownWriteStatus, seriesTimes, toGoogleTimes, writeRefusalForStatus } from '@/lib/google-calendar-write';
 import { forgetICloudClient, isICloudUrl, withICloudClient, type ICloudCalDAVClient } from '@/lib/caldav-calendar';
 import { parseICSEvents } from '@/lib/ical-calendar';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
 import { DAY_MS, addIsoDays, isIsoDate } from '@/lib/iso-date';
-import { isKnownTimezone, isoDateInTZ, localISODate, parseDateInTZ } from '@/lib/timezone';
+import { isKnownTimezone, isoDateInTZ, localISODate, parseDateInTZ, wallClockParts } from '@/lib/timezone';
 import { logger } from '@/lib/logger';
 
 /**
@@ -764,6 +765,13 @@ export interface ICloudChange {
    * never move or shorten an event, whatever shape its times have.
    */
   timesChanged: boolean;
+  /**
+   * Write the name and the place (they changed). For "every time", the day
+   * the form opened may have a name or place of its own, which must not
+   * become the whole series'.
+   */
+  titleChanged: boolean;
+  placeChanged: boolean;
   timezone: string;
   now: Date;
 }
@@ -857,15 +865,15 @@ function editSeries(
     ? { date: located.seriesStart.date }
     : { instant: Date.parse(located.seriesStart.dateTime ?? '') };
 
-  setTitle(master, event.title);
-  setPlace(master, event.location);
+  if (change.titleChanged) setTitle(master, event.title);
+  if (change.placeChanged) setPlace(master, event.location);
   if (change.timesChanged) {
     const times = seriesTimes(event, withEnd(seriesStart), dayWas, timezone, timeWas);
     setTimes(master, times);
     if (!event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
   }
 
-  if (change.repeatChanged) {
+  if (seriesRuleFollows(event, change)) {
     // With its times left alone the series keeps its own shape, which one of its days may not share.
     const rrule = repeatToRRule(event, change.timesChanged ? event : wasAllDay ? { allDay: true } : { allDay: false, timeZone: timezone });
     if (!rrule) {
@@ -909,8 +917,8 @@ function editSeries(
       setProp(day, 'RECURRENCE-ID', timeLine('RECURRENCE-ID', landing.start ?? undefined));
       if (unmoved) setTimes(day, landing);
     }
-    if ((textOf(day, 'SUMMARY') ?? '') === oldTitle) setTitle(day, event.title);
-    if ((textOf(day, 'LOCATION') ?? '') === oldPlace) setPlace(day, event.location);
+    if (change.titleChanged && (textOf(day, 'SUMMARY') ?? '') === oldTitle) setTitle(day, event.title);
+    if (change.placeChanged && (textOf(day, 'LOCATION') ?? '') === oldPlace) setPlace(day, event.location);
     if (day.props.join('\n') !== propsBefore) markRevised(day, now, dayBefore);
   }
   markRevised(master, now, before);
@@ -1000,6 +1008,8 @@ export interface EditableICloudEvent {
   /** The series (its UID) and its version, when this is one day of a repeating event. On iCloud the version is the object's. */
   seriesId?: string;
   seriesEtag?: string;
+  /** A timed series' usual start, `HH:MM` on the household clock. */
+  seriesStartTime?: string;
   draft: EventDraft;
   /** How the series repeats, as a family choice, or `other` when it was set up elsewhere in a way the forms cannot edit. */
   repeat: RepeatReading;
@@ -1112,6 +1122,9 @@ export async function getICloudEventForEdit(
     etag: stored.etag,
     sourceRef: stored.url,
     ...(located.series ? { seriesId: located.uid, seriesEtag: stored.etag } : {}),
+    ...(located.series && located.seriesStart.dateTime
+      ? { seriesStartTime: clockOfMinutes(wallClockParts(new Date(located.seriesStart.dateTime), input.timezone).minuteOfDay) }
+      : {}),
     draft,
     repeat,
   };
@@ -1153,6 +1166,9 @@ export async function updateICloudEvent(
     repeatChanged: boolean;
     /** Write new times (the family changed the day or the times). */
     timesChanged: boolean;
+    /** Write the name and the place (they changed); see `ICloudChange`. */
+    titleChanged: boolean;
+    placeChanged: boolean;
     timezone: string;
   },
 ): Promise<void> {
@@ -1164,6 +1180,8 @@ export async function updateICloudEvent(
     ...(input.timeWas ? { timeWas: input.timeWas } : {}),
     repeatChanged: input.repeatChanged,
     timesChanged: input.timesChanged,
+    titleChanged: input.titleChanged,
+    placeChanged: input.placeChanged,
     timezone: input.timezone,
     now: new Date(),
   });

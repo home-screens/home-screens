@@ -15,21 +15,24 @@ interface QuickActionsProps {
   targetName: string | null;
   /** The one display of a household that never named it. */
   targetUnnamed?: boolean;
+  /** "Every wall" is picked in a home with more than one, so the button says every wall. */
+  everyWall?: boolean;
 }
 
-export default function QuickActions({ isAsleep, sleepPending, disabled, onSleepWake, onAlertOpen, targetName, targetUnnamed = false }: QuickActionsProps) {
+export default function QuickActions({ isAsleep, sleepPending, disabled, onSleepWake, onAlertOpen, targetName, targetUnnamed = false, everyWall = false }: QuickActionsProps) {
   const t = useTranslate('remote');
+  const action = isAsleep
+    ? t(everyWall ? 'quickActions.wakeAll' : 'quickActions.wakeDisplay')
+    : t(everyWall ? 'quickActions.sleepAll' : 'quickActions.sleepDisplay');
   const sleepLabel = sleepPending
     ? (targetUnnamed ? t('quickActions.waitingForUnnamed') : targetName ? t('quickActions.waitingFor', { name: targetName }) : t('quickActions.waitingForAll'))
-    : isAsleep
-      ? t('quickActions.wakeDisplay')
-      : t('quickActions.sleepDisplay');
+    : action;
   return (
     <div className="grid grid-cols-2 gap-3 mx-5 mt-5">
       <button
         onClick={onSleepWake}
         disabled={disabled}
-        aria-label={isAsleep ? t('quickActions.wakeDisplay') : t('quickActions.sleepDisplay')}
+        aria-label={action}
         className="p-4 bg-hs-card border border-hs-border-strong rounded-[14px] flex flex-col items-center gap-2.5 transition-colors active:bg-hs-hover active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 disabled:active:bg-hs-card"
       >
         <div className={`w-11 h-11 rounded-xl bg-violet-500/[0.12] text-violet-400 flex items-center justify-center ${sleepPending ? 'animate-pulse' : ''}`}>

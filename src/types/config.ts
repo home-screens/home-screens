@@ -4576,6 +4576,16 @@ export interface MealPlannerConfig {
    * picked as `MealSettings.groceryExtrasListId` (no Add row without one).
    */
   wallAdd?: boolean;
+  /**
+   * On a touch wall, lets anyone put a recipe on the menu: a "Put on the menu" button on every
+   * recipe card, and a plus on the empty meals of the Week and List views. Needs taps on
+   *
+   * Omitted = off, so a card made before this keeps its look; the registry
+   * default turns it on for new cards. The wall plans recipes only (typed
+   * meals stay on the phone), for this week and next, and the hub takes the
+   * change only while some card has this on (`meal-plan-wall.ts`).
+   */
+  wallPlan?: boolean;
 }
 
 // Icon module config (Font Awesome)
@@ -5338,6 +5348,14 @@ export interface FullscreenMealPlannerConfig {
    * shops from or to `MealSettings.groceryExtrasListId`.
    */
   wallAdd?: boolean;
+  /**
+   * On a touch wall, lets anyone put a recipe on the menu: a "Put on the menu" button on every
+   * recipe card, and a plus on the empty meals of the Week view. Needs taps on
+   *
+   * The same as `MealPlannerConfig.wallPlan`: omitted = off, on for new cards
+   * through the registry default.
+   */
+  wallPlan?: boolean;
 }
 
 // Fullscreen weather module config

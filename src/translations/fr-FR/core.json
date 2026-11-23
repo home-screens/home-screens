@@ -118,8 +118,10 @@
       "downloadFailed": "Impossible de télécharger le plugin. Vérifiez la connexion Internet et réessayez.",
       "badLink": "Ce lien ne peut pas être utilisé. Collez le lien https complet du plugin.",
       "blockedLink": "Ce lien pointe vers votre réseau domestique, donc Home Screens ne téléchargera rien depuis cette adresse.",
+      "notHttps": "Ce lien n'est pas un lien https sécurisé, donc Home Screens ne téléchargera rien depuis cette adresse.",
       "needsVersion": "Ce lien a besoin d'un numéro de version. Indiquez la version à installer.",
       "notAPlugin": "Ce lien ne mène pas à un plugin Home Screens. Vérifiez qu'il pointe vers le fichier .tar.gz du plugin.",
+      "tooBig": "Ce fichier est trop gros pour être un plugin. Un plugin peut faire jusqu'à {max} Mo.",
       "alreadyInstalled": "Ce plugin est déjà installé. Mettez-le plutôt à jour depuis la boutique de plugins."
     },
     "icloud": {
@@ -134,6 +136,11 @@
       "wrongCode": "Ce code n'a pas fonctionné. Vérifiez-le et réessayez.",
       "expired": "Cette connexion a expiré. Recommencez-la.",
       "notApproved": "La connexion n'a pas été approuvée. Recommencez si vous voulez vous connecter."
+    },
+    "backup": {
+      "notABackup": "Ce fichier n'est pas une sauvegarde Home Screens.",
+      "noRoom": "Il n'y a pas assez de place sur Home Screens pour cette sauvegarde.",
+      "noRoomForPictures": "Il n'y a pas assez de place sur Home Screens pour les images de cette sauvegarde."
     }
   },
   "today": "Aujourd'hui",
@@ -346,7 +353,7 @@
     "controls": "Boutons du minuteur",
     "replaceTitle": "Démarrer un nouveau minuteur ?",
     "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
-    "routinesLoadError": "Impossible de charger les routines. Vérifie la connexion et réessaie.",
+    "routinesLoadError": "Impossible de charger les routines. Vérifie que Home Screens est allumé et réessaie.",
     "routineMeta": {
       "one": "{steps} étape · {minutes} min",
       "other": "{steps} étapes · {minutes} min"
@@ -387,7 +394,7 @@
     "color": "Couleur",
     "emptyTitle": "Personne pour le moment",
     "emptyDescription": "Les personnes du foyer ajoutées ici se retrouvent dans les tâches, les récompenses, les calendriers et les emplois du temps.",
-    "loadFailed": "Impossible de charger la famille. Il faut vérifier la connexion, puis réessayer.",
+    "loadFailed": "Impossible de charger la famille. Vérifie que Home Screens est allumé et réessaie.",
     "retry": "Réessayer",
     "saved": "Famille enregistrée.",
     "removeTitle": "Supprimer {name} ?",
@@ -754,11 +761,18 @@
       "one": "Trop d'essais. Réessaie dans {count} seconde.",
       "other": "Trop d'essais. Réessaie dans {count} secondes."
     },
+    "tooManyMinutes": {
+      "one": "Trop d'essais. Réessaie dans {count} minute.",
+      "other": "Trop d'essais. Réessaie dans {count} minutes."
+    },
     "unlocked": {
       "one": "Déverrouillé encore {count} minute",
       "other": "Déverrouillé encore {count} minutes"
     },
-    "lockNow": "Verrouiller maintenant"
+    "lockNow": "Verrouiller maintenant",
+    "lockedTitle": "Trop d’essais ratés",
+    "letThemTry": "Les laisser réessayer",
+    "clearFailed": "Impossible d’arrêter l’attente. Réessaie."
   },
   "calendarRepeat": {
     "none": "Ne se répète pas",
@@ -785,7 +799,9 @@
     "thisDayStays": "{day}. Les autres jours restent.",
     "everyTimePastFuture": "Toutes les fois, passées et à venir",
     "askBody": "Modifier seulement ce jour-là, ou toutes les fois ?",
-    "everyTimeFromFirst": "Toutes les fois, depuis la première"
+    "everyTimeFromFirst": "Toutes les fois, depuis la première",
+    "everyTimeMovesTo": "Chaque fois est décalée d'autant, à {time}",
+    "nextDay": "le lendemain"
   },
   "notice": {
     "title": "Information"
@@ -820,6 +836,10 @@
       "one": "Retirer {count} élément fait de « {name} » ?",
       "other": "Retirer {count} éléments faits de « {name} » ?"
     },
-    "removeDoneBody": "Ils sont retirés de la liste pour de bon."
+    "removeDoneBody": "Ils sont retirés de la liste pour de bon.",
+    "alreadyOnList": "Déjà sur la liste : {item}",
+    "putBack": "De retour sur la liste : {item}",
+    "deleted": "Élément retiré de la liste : {item}.",
+    "undo": "Annuler"
   }
 }

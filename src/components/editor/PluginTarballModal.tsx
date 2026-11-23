@@ -215,7 +215,8 @@ export default function PluginTarballModal({ plugin, onClose, onDone }: PluginTa
         {step === 'entry' && (
           <ModalFooter
             onCancel={onClose}
-            primary={{ label: t('settings.pluginStorePanel.browse.installButton'), disabled: !canContinue, onClick: handleSubmit }}
+            // An update window says Update, as its title does.
+            primary={{ label: t(updating ? 'settings.pluginStorePanel.updates.updateButton' : 'settings.pluginStorePanel.browse.installButton'), disabled: !canContinue, onClick: handleSubmit }}
           />
         )}
         {step === 'done' && result && (

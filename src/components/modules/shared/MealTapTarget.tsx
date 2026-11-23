@@ -8,6 +8,7 @@ import { recipeTapOpens } from '@/lib/meal-recipe';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
 import type { MealServingRef } from './MealRecipeContext';
 import { WallButton } from './WallButton';
+import { useMealRecipeContext } from './MealRecipeContext';
 
 // Lazy so qrcode.react is only fetched/parsed after the first tap — most
 // displays run with tapRecipeAction 'off' and never pay for it.
@@ -61,6 +62,7 @@ interface MealTapTargetProps {
 export function MealTapTarget({ meal, mode, serving, className, style, children }: MealTapTargetProps) {
   const t = useTranslate('modules');
   const [overlay, setOverlay] = useState<'qr' | 'iframe' | 'card' | null>(null);
+  const openCard = useMealRecipeContext()?.openCard;
   // The card draws the recipe itself, so a saved meal with ingredients opens
   // one without a link; the code and the page need a link, and a meal without
   // one opens the card instead (`recipeTapOpens`).
@@ -88,7 +90,7 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
       <WallButton
         row
         aria-label={t('meal-planner.openRecipeAria', { name: meal.name })}
-        onClick={() => setOverlay(opensAs)}
+        onClick={() => (opensAs === 'card' && openCard ? openCard(meal, serving) : setOverlay(opensAs))}
         // The ground as a class, so the row's pressed tint can show over it.
         className={className ? `bg-transparent ${className}` : 'bg-transparent'}
         style={{

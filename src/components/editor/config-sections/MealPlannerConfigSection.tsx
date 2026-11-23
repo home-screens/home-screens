@@ -34,6 +34,7 @@ type Config = {
   showTitle?: boolean;
   interactive?: boolean;
   wallAdd?: boolean;
+  wallPlan?: boolean;
 };
 
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -133,6 +134,14 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* The grocery view's Add row needs taps (groceryCardAdds). */}
       {view === 'grocery' && c.interactive !== false && (
         <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
+      )}
+      {c.interactive !== false && (
+        <Toggle
+          label={t('configSections.meal-planner.wallPlan')}
+          checked={!!c.wallPlan}
+          onChange={(v) => set({ wallPlan: v })}
+          description={t('configSections.meal-planner.wallPlanHelp')}
+        />
       )}
 
       {/* Accent color */}
