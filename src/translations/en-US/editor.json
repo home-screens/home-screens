@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Changing every day of a repeating event",
             "hint": "When a change covers every time it happens, not just one day."
+          },
+          "menu-change": {
+            "label": "Changing the menu",
+            "hint": "Putting a meal on the menu, swapping one or taking one off, on the wall."
           }
         },
         "unlockLabel": "Stay unlocked for",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Add on the wall",
       "wallAddHelpMealie": "Anyone at the wall can add to the grocery list. It goes on the Mealie list the family shops from.",
       "wallAddHelpLocal": "Anyone at the wall can add to the grocery list. It goes on the list picked below.",
+      "wallPlan": "Plan meals on the wall",
+      "wallPlanHelp": "Anyone at the wall can put a recipe on the menu, for this week and next: a \"Put on the menu\" button on every recipe, and a plus on empty meals in the week views. Typed meals and new recipes stay on the phone.",
       "extrasList": "Other things to buy go on",
       "extrasListNone": "None (no add row)",
       "extrasListHelp": "One of your lists. What is still on it shows at the end of the grocery list here and on the phone. Every grocery card shares it."

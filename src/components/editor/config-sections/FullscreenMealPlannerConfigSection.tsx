@@ -179,6 +179,14 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {view === 'grocery' && c.interactive !== false && (
         <GroceryAddFields wallAdd={!!c.wallAdd} onWallAdd={(v) => set({ wallAdd: v })} />
       )}
+      {c.interactive !== false && (
+        <Toggle
+          label={t('configSections.meal-planner.wallPlan')}
+          checked={!!c.wallPlan}
+          onChange={(v) => set({ wallPlan: v })}
+          description={t('configSections.meal-planner.wallPlanHelp')}
+        />
+      )}
 
       {/* Accent color */}
       <FullscreenAccentPicker

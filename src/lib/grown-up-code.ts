@@ -2,7 +2,7 @@
  * The grown-up code: an optional four-number code a household sets in
  * Settings, which the wall, the kids' chores page and an unsigned phone ask
  * for before the jobs ticked there (spending tickets, unticking a chore,
- * closing a Todoist task). The rules both sides share live here; the hub
+ * closing a Todoist task, changing the menu). The rules both sides share live here; the hub
  * keeps the code itself (`grown-up-code-data.ts`) and refuses a ticked job
  * without a fresh unlock (`grown-up-gate.ts`).
  *
@@ -14,7 +14,7 @@
 import type { TranslateFn } from '@/i18n/types';
 
 /** The jobs that can ask for the code, in the order Settings lists them. */
-export const GROWN_UP_ACTIONS = ['redeem', 'untick', 'todoist-close', 'calendar-remove', 'calendar-change-series'] as const;
+export const GROWN_UP_ACTIONS = ['redeem', 'untick', 'todoist-close', 'calendar-remove', 'calendar-change-series', 'menu-change'] as const;
 export type GrownUpAction = typeof GROWN_UP_ACTIONS[number];
 
 /** What a newly set code asks for: spending tickets, the one a kid most wants to do alone. */

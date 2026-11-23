@@ -10,6 +10,7 @@ import { readMealAnswer, type MealAnswer } from '@/lib/meal-client';
 import { mealieStatus, type MealieStatus } from '@/lib/meal-sources';
 import { DEFAULT_MEAL_SETTINGS, filterPlanToWeek, getWeekDatesForRange, minutesOfDay, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
 import { resolveRecipeTapMode, type RecipeTapMode } from './MealTapTarget';
+import { mealCardPlans } from '@/lib/meal-plan-wall';
 import type { MealRecipeContextValue } from './MealRecipeContext';
 import { useWallGrocery, type WallGrocery } from './useWallGrocery';
 import { useVotesWithPending } from '@/components/meals/meal-votes';
@@ -25,7 +26,7 @@ export interface WallMealsOptions {
   timezone: string | undefined;
   /** The full-screen theme a recipe card is drawn in. */
   theme: string | undefined;
-  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean; showFamilyRatings?: boolean };
+  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean; showFamilyRatings?: boolean; wallPlan?: boolean };
   screenId: string | undefined;
   moduleId: string | undefined;
 }
@@ -59,6 +60,8 @@ export interface WallMeals {
   recipeTapMode: RecipeTapMode;
   /** What a recipe card opened from any of the module's views needs. */
   recipeContext: MealRecipeContextValue;
+  /** The wall may plan meals from this module (`MealRecipeContextValue.wallPlan`). */
+  wallPlan: boolean;
 }
 
 export interface MealWeek {
@@ -117,9 +120,12 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
   );
 
   // The ratings switch rides along so a recipe card, portalled out of the module, follows it too.
+  // Planning is a tap on a real wall: never in the editor's preview, which has no screen to address.
+  const wallPlan = mealCardPlans(config) && !!screenId && !!moduleId;
+  const planInMealie = data?.source === 'mealie';
   const recipeContext = useMemo<MealRecipeContextValue>(
-    () => ({ theme, showFamilyRatings: config.showFamilyRatings !== false, plan: fullPlan, savedMeals, settings, timeFormat, now }),
-    [theme, config.showFamilyRatings, fullPlan, savedMeals, settings, timeFormat, now],
+    () => ({ theme, showFamilyRatings: config.showFamilyRatings !== false, plan: fullPlan, savedMeals, settings, timeFormat, now, wallPlan, planInMealie }),
+    [theme, config.showFamilyRatings, fullPlan, savedMeals, settings, timeFormat, now, wallPlan, planInMealie],
   );
   // The family's votes ride the meals answer; a vote made on this wall shows before the next one lands.
   const familyRatings = useVotesWithPending(data?.familyRatings);
@@ -144,5 +150,6 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
     // with that off the rows are not tappable and show no "›".
     recipeTapMode: config.interactive === false ? 'off' : resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId),
     recipeContext,
+    wallPlan,
   };
 }

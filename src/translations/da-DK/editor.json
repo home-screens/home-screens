@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Ændre alle dagene for en begivenhed, der gentages",
             "hint": "Når en ændring gælder alle gange, ikke kun én dag."
+          },
+          "menu-change": {
+            "label": "Ændre madplanen",
+            "hint": "Når et måltid sættes på, byttes ud eller fjernes på væggen."
           }
         },
         "unlockLabel": "Hold væggen låst op i",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Tilføj på væggen",
       "wallAddHelpMealie": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på den Mealie-liste, familien handler efter.",
       "wallAddHelpLocal": "Alle ved væggen kan tilføje til indkøbslisten. Det kommer på listen, der er valgt nedenfor.",
+      "wallPlan": "Planlæg måltider på væggen",
+      "wallPlanHelp": "Alle ved væggen kan sætte en opskrift på madplanen for denne og næste uge: en knap „Sæt på madplanen“ på hver opskrift og et plus ved tomme måltider i ugevisningerne. Måltider, man selv skriver ind, og nye opskrifter laves stadig på telefonen.",
       "extrasList": "Andre indkøb kommer på",
       "extrasListNone": "Ingen (ingen tilføj-linje)",
       "extrasListHelp": "En af jeres lister. Det, der stadig står på den, vises sidst i indkøbslisten, her og på telefonen. Alle indkøbskort deler den."

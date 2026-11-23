@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Alle keren van een terugkerende afspraak wijzigen",
             "hint": "Als een wijziging voor elke keer geldt, niet alleen voor één dag."
+          },
+          "menu-change": {
+            "label": "Het menu wijzigen",
+            "hint": "Een maaltijd op het menu zetten, vervangen of eraf halen, op de muur."
           }
         },
         "unlockLabel": "Hoe lang de muur ontgrendeld blijft",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Toevoegen vanaf de muur",
       "wallAddHelpMealie": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de Mealie-lijst waarmee het gezin boodschappen doet.",
       "wallAddHelpLocal": "Iedereen bij de muur kan iets aan de boodschappenlijst toevoegen. Het komt op de lijst die je hieronder kiest.",
+      "wallPlan": "Maaltijden plannen op de muur",
+      "wallPlanHelp": "Iedereen bij de muur kan een recept op het menu zetten, voor deze en volgende week: met de knop ‘Op het menu zetten’ bij elk recept, en met een plusje bij lege maaltijden in de weekoverzichten. Zelf getypte maaltijden en nieuwe recepten blijven op de telefoon.",
       "extrasList": "Andere boodschappen gaan op",
       "extrasListNone": "Geen (geen regel Toevoegen)",
       "extrasListHelp": "Een van jullie lijsten. Wat er nog op staat, komt onderaan de boodschappenlijst, hier en op de telefoon. Alle boodschappenkaarten delen hem."

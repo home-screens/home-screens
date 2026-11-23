@@ -26,7 +26,7 @@ const DANGER_DARK = '#f87171';
  * detail's own (viewport-relative, never below 44 px). Shared by every wall
  * sheet that has to ask before it changes something.
  */
-export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPick, onCancel, theme, accentColor, busy = false, testId }: {
+export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPick, onCancel, theme, accentColor, onAccent, busy = false, testId }: {
   title: string;
   body?: string;
   /** Why the answer just picked did not go through. The ask stays up under it, so it can be tried again. */
@@ -38,6 +38,12 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
   theme: FullscreenThemeTokens;
   /** The highlighted answer's colour. */
   accentColor: string;
+  /**
+   * The ink on the highlighted answer, for an accent given as a CSS variable
+   * (a sheet in the meal theme), which cannot be read here to pick one.
+   * Otherwise it is worked out from `accentColor`.
+   */
+  onAccent?: string;
   /** A write is under way: the answers wait. */
   busy?: boolean;
   testId?: string;
@@ -54,7 +60,7 @@ export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPi
       fontSize: 'clamp(17px, 3vmin, 32px)', fontWeight: 700, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1,
       border: `2px solid ${theme.border}`, background: theme.surfaceAlt, color: theme.text,
     };
-    if (tone === 'primary') return { ...base, background: accentColor, borderColor: 'transparent', color: onAccentFor(accentColor) };
+    if (tone === 'primary') return { ...base, background: accentColor, borderColor: 'transparent', color: onAccent ?? onAccentFor(accentColor) };
     if (tone === 'danger') return { ...base, background: 'transparent', color: danger, borderColor: `color-mix(in srgb, ${danger} 40%, transparent)` };
     if (tone === 'dangerFill') return { ...base, background: danger, borderColor: 'transparent', color: '#fff' };
     return base;

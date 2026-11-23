@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Alle Tage eines Termins ändern, der sich wiederholt",
             "hint": "Wenn eine Änderung für alle Tage gilt, nicht nur für einen."
+          },
+          "menu-change": {
+            "label": "Essensplan ändern",
+            "hint": "Wenn an der Wand ein Gericht auf den Plan kommt, getauscht oder vom Plan genommen wird."
           }
         },
         "unlockLabel": "Entsperrt bleiben für",
@@ -4714,6 +4718,8 @@
       "wallAdd": "An der Wand hinzufügen",
       "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
       "wallAddHelpLocal": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die unten gewählte Liste.",
+      "wallPlan": "Mahlzeiten an der Wand planen",
+      "wallPlanHelp": "Alle an der Wand können ein Rezept auf den Essensplan setzen, für diese und nächste Woche: mit dem Knopf „Auf den Essensplan“ bei jedem Rezept und einem Plus bei leeren Mahlzeiten in den Wochenansichten. Eingetippte Mahlzeiten und neue Rezepte gehen weiter nur am Handy.",
       "extrasList": "Andere Einkäufe kommen auf",
       "extrasListNone": "Keine (keine Zeile zum Hinzufügen)",
       "extrasListHelp": "Eine eurer Listen. Was noch darauf steht, erscheint am Ende der Einkaufsliste, hier und auf dem Handy. Alle Einkaufskarten teilen sie."

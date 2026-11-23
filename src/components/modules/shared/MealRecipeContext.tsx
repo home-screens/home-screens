@@ -25,7 +25,29 @@ export interface MealRecipeContextValue {
   settings: MealSettings;
   timeFormat: TimeFormat;
   now: Date;
+  /**
+   * The wall may put recipes on the menu from this module: its "Plan meals on
+   * the wall" switch, on a real display with taps on (`mealCardPlans`).
+   */
+  wallPlan?: boolean;
+  /** The plan lives in Mealie, which decides which recipes can go on it (`wallCanPlanMeal`). */
+  planInMealie?: boolean;
+  /**
+   * Open a meal's recipe card at the module, where it outlives the row that
+   * was tapped (`MealRecipeScope`). Absent outside a scope; the row then
+   * holds its own card.
+   */
+  openCard?: (meal: SavedMeal, at?: MealServingRef) => void;
 }
+
+/**
+ * The wall's typing and choosing pieces (the keyboard, the choice chips, the
+ * notice line) read `--wt-*` colours (see `wallTypingVars`); a surface drawn
+ * in the meal theme hands them its own.
+ */
+export const FMP_WALL_VARS = Object.fromEntries(
+  ['bg', 'surface', 'text', 'text-2', 'text-3', 'border', 'border-sub', 'accent', 'on-accent'].map((name) => [`--wt-${name}`, `var(--fmp-${name})`]),
+) as CSSProperties;
 
 export const MealRecipeContext = createContext<MealRecipeContextValue | null>(null);
 

@@ -616,6 +616,71 @@
         "mealieSetup": "Vérifie Mealie dans les Paramètres sur l'ordinateur pour afficher la liste."
       },
       "alsoOn": "Aussi sur {list}"
+    },
+    "menu": {
+      "put": "Mettre au menu",
+      "change": "Modifier le menu",
+      "codeWhy": "Pour modifier le menu",
+      "whichMeal": "Quel repas",
+      "thisWeek": "Cette semaine",
+      "nextWeek": "La semaine prochaine",
+      "free": "Libre",
+      "undo": "Annuler",
+      "undone": "Remis comme avant.",
+      "hint": "Touche un jour. S'il y a déjà un repas ce jour-là, on te demande avant de changer quoi que ce soit.",
+      "hintMine": "La coche montre où il y a déjà {meal}. Touche ce jour-là pour l'enlever, ou un autre jour pour en remanger.",
+      "when": {
+        "breakfast": "{day} au petit-déjeuner",
+        "lunch": "{day} au déjeuner",
+        "dinner": "{day} au dîner",
+        "snack": "{day} au goûter"
+      },
+      "did": {
+        "planned": "{meal}, c'est au menu {when}.",
+        "joined": "{meal}, ça s'ajoute au menu {when}.",
+        "swapped": "{meal}, c'est maintenant au menu {when}.",
+        "both": "{meal}, c'est aussi au menu {when}.",
+        "off": "{meal}, ce n'est plus au menu {when}."
+      },
+      "groceryThis": "Ses ingrédients sont sur la liste de courses de cette semaine.",
+      "groceryNext": "Ses ingrédients seront sur la liste de courses de la semaine prochaine.",
+      "savedMealie": "Enregistré dans le planning de Mealie.",
+      "addIngredients": "Ajouter les ingrédients à la liste de courses",
+      "listAdded": "Les ingrédients sont sur {list}.",
+      "listAddedPlain": "Les ingrédients sont sur la liste de courses.",
+      "ask": {
+        "title": "{when}, il y a déjà {dish}",
+        "body": "Qu'est-ce qu'on en fait ?",
+        "swap": "Remplacer",
+        "swapDetail": "Enlever {dish}, mettre {meal}",
+        "both": "Garder les deux",
+        "bothDetail": "{meal} et {dish}",
+        "leave": "Ne rien changer {day}",
+        "offTitle": "{meal}, c'est déjà au menu {when}",
+        "offBody": "À retirer du menu ce jour-là ?",
+        "offYes": "Retirer du menu {day}",
+        "offNo": "Garder"
+      },
+      "problem": {
+        "changed": "Le menu de {day} vient de changer.",
+        "changedDetail": "Voici le menu maintenant. Touche un jour pour réessayer.",
+        "full": "Ce repas est complet, il n'y a plus de place pour un autre plat.",
+        "off": "On ne peut plus planifier depuis le mur, ça vient d'être désactivé.",
+        "undoLate": "Impossible de remettre comme avant. Le jour a encore changé.",
+        "undoFailed": "Impossible de remettre comme avant.",
+        "day": "On ne peut pas planifier ce jour-là depuis le mur.",
+        "failed": "Ça n'a pas été mis au menu.",
+        "failedDetail": "Home Screens ne répond pas. Réessaie dans un instant.",
+        "listFailed": "Les ingrédients n'ont pas été ajoutés à la liste."
+      },
+      "pick": {
+        "hint": "Touche une recette pour la mettre au menu.",
+        "on": "Au menu : {day}",
+        "plan": "Planifier un repas",
+        "planAria": "Planifier un repas {when}",
+        "noneTitle": "Pas encore de recettes à planifier",
+        "noneHint": "Ajoute un repas avec des ingrédients ou des notes sur le téléphone, et il apparaîtra ici."
+      }
     }
   },
   "wallScroll": {

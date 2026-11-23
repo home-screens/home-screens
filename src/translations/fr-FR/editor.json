@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Modifier tous les jours d'un événement qui se répète",
             "hint": "Quand la modification vaut pour toutes les fois, pas pour un seul jour."
+          },
+          "menu-change": {
+            "label": "Modifier le menu",
+            "hint": "Mettre un repas au menu, en remplacer un ou en retirer un, sur le mur."
           }
         },
         "unlockLabel": "Rester déverrouillé pendant",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Ajouter depuis le mur",
       "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
       "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
+      "wallPlan": "Planifier les repas sur le mur",
+      "wallPlanHelp": "Tout le monde peut mettre une recette au menu depuis le mur, pour cette semaine et la suivante : un bouton « Mettre au menu » sur chaque recette, et un bouton + sur les repas libres dans les vues qui montrent la semaine. Les repas écrits à la main et les nouvelles recettes restent sur le téléphone.",
       "extrasList": "Les autres achats vont sur",
       "extrasListNone": "Aucune (pas de ligne Ajouter)",
       "extrasListHelp": "Une de vos listes. Ce qui reste dessus apparaît à la fin de la liste de courses, ici et sur le téléphone. Toutes les cartes de courses la partagent."

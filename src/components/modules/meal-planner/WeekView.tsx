@@ -19,6 +19,10 @@ import { withAlpha } from '@/lib/hex-color';
 import { familyMealAverage } from '@/lib/meal-ratings';
 import { useMealVotes } from '@/components/meals/meal-votes';
 import { isoWeekday } from '@/lib/iso-date';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { MealPlanPlus, useWallMealPick } from '../shared/WallMealPickSheet';
+import { useWallMenuWords } from '../shared/wallMenu';
+import { wallPressProps } from '../shared/wallPress';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -79,6 +83,8 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
   // Another week has no today to rest at: it starts at its top.
   const showsToday = weekDates.includes(todayISO);
   const showEmoji = config.showEmoji ?? true;
+  const menuWords = useWallMenuWords(weekDates);
+  const pick = useWallMealPick();
   // Only slots the week uses get a column; four columns for one apple squeezed
   // every dish name to a stub. A week with nothing in any slot keeps them all,
   // though the module shows its empty state before it gets here.
@@ -86,7 +92,9 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
     const { usedSlots: used } = weekPlannedSlots(weekDates, settings.enabledSlots, plan, savedMeals);
     return used.length > 0 ? used : settings.enabledSlots;
   }, [settings.enabledSlots, weekDates, plan, savedMeals]);
-  const slots = usedSlots;
+  // Where the wall may plan this week, every meal the household plans keeps
+  // its column, so a week of dinners still has a plus for a lunch.
+  const slots = weekDates.some(pick.canPlan) ? settings.enabledSlots : usedSlots;
 
   // Spelled-out slot names when the columns have room; single letters otherwise.
   const [frameRef, frame] = useElementBox();
@@ -303,6 +311,19 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                           </span>
                         )}
                       </>
+                    ) : pick.canPlan(date) ? (
+                      // A meal the wall may plan: the whole cell opens the recipe book for it.
+                      <button
+                        type="button"
+                        {...wallPressProps}
+                        data-testid="meal-week-plan"
+                        aria-label={t('meal-planner.menu.pick.planAria', { when: menuWords.when(date, slot) })}
+                        onClick={() => pick.open(date, slot)}
+                        className="flex items-center self-stretch"
+                        style={{ flex: 1, minHeight: 0, border: 0, padding: 0, background: 'none', font: 'inherit', color: 'inherit', cursor: 'pointer' }}
+                      >
+                        <MealPlanPlus size={Math.max(22, Math.min(38, fontSize * 1.5))} color={config.accentColor || DEFAULT_ACCENT_COLOR} />
+                      </button>
                     ) : (
                       <span style={{ fontSize: '0.6em', opacity: 0.2 }}>{NO_VALUE}</span>
                     )}
@@ -313,6 +334,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
           );
         })}
       </WallScroller>
+      {pick.sheet}
     </div>
   );
 }

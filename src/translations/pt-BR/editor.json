@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Mudar todos os dias de um evento que se repete",
             "hint": "Quando a mudança vale para todas as vezes, não só para um dia."
+          },
+          "menu-change": {
+            "label": "Mudar o cardápio",
+            "hint": "Colocar uma refeição no cardápio, trocar ou tirar uma, pelo painel."
           }
         },
         "unlockLabel": "Ficar desbloqueado por",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Adicionar no painel",
       "wallAddHelpMealie": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista do Mealie que a família usa nas compras.",
       "wallAddHelpLocal": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista escolhida abaixo.",
+      "wallPlan": "Planejar refeições no painel",
+      "wallPlanHelp": "Qualquer pessoa pode colocar uma receita no cardápio pelo painel, nesta semana e na próxima: um botão \"Colocar no cardápio\" em cada receita e um sinal de mais nas refeições vazias das visualizações de semana. Refeições digitadas e receitas novas continuam no celular.",
       "extrasList": "Outras compras vão para",
       "extrasListNone": "Nenhuma (sem linha para adicionar)",
       "extrasListHelp": "Uma das suas listas. O que ainda está nela aparece no fim da lista de compras, aqui e no celular. Todos os cartões de compras usam a mesma."

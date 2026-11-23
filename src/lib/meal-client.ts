@@ -12,6 +12,7 @@ import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type GroceryCheckDirection } from '@/lib/grocery-checks';
 import { MEAL_RATINGS_URL, normalizeFamilyMealRatings } from '@/lib/meal-ratings';
 import type { FamilyMealRating } from '@/types/meal-ratings';
+import type { WallPlanChange, WallPlanOutcome } from '@/lib/meal-plan-wall';
 
 /**
  * The transport contract of `/api/meals/data`, shared by the phone's Meals
@@ -629,6 +630,75 @@ export async function saveMealVote(fetcher: MealFetch, mealId: string, memberId:
     body: JSON.stringify({ mealId, memberId, rating }),
   });
   if (!res.ok) throw mealieRefusal('save', await readJson(res), 'The rating could not be saved.');
+}
+
+// ── The menu, changed at a wall ──
+
+export const WALL_PLAN_URL = '/api/meals/plan/wall';
+
+/** What the hub says back for a wall's change: what happened, whether anything was written, and the Undo ticket. */
+export interface WallPlanAnswer {
+  outcome?: WallPlanOutcome;
+  changed: boolean;
+  undo?: string;
+}
+
+/**
+ * Why a change was not made. `taken`, `changed`, `full` and `moved` come with
+ * the menu as it is now (see `applyWallPlanChange`; `moved` is an Undo that
+ * came too late); `off` is planning switched off since the wall drew its
+ * button; `day` is a day the hub no longer plans (the wall's clock and the
+ * hub's disagree, or midnight passed with the sheet open).
+ */
+export type WallPlanRefusal = 'taken' | 'changed' | 'full' | 'moved' | 'off' | 'day';
+
+export type WallPlanSent = { ok: true; wall: WallPlanAnswer } | { ok: false; reason: WallPlanRefusal };
+
+const WALL_PLAN_REFUSALS: readonly WallPlanRefusal[] = ['taken', 'changed', 'full', 'moved'];
+
+/**
+ * Send one wall change to the menu, or an Undo (`POST /api/meals/plan/wall`).
+ * The hub's answer is the meals as they read afterwards, which every meal
+ * card on this wall draws at once. A refusal that carries the menu is an
+ * answer too, not an error: the wall shows the days as they are. Anything
+ * else rejects.
+ */
+export async function sendWallPlanChange(fetcher: MealFetch, body: WallPlanChange | { undo: string }): Promise<WallPlanSent> {
+  const res = await fetcher(WALL_PLAN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = await readJson(res) as ({ reason?: unknown; code?: unknown; wall?: WallPlanAnswer; savedMeals?: unknown } | null);
+  if (res.ok && json?.wall) {
+    displayCache.replace(mealsDataUrl(), json, TTL_MS);
+    return { ok: true, wall: json.wall };
+  }
+  const reason = WALL_PLAN_REFUSALS.find((r) => r === json?.reason);
+  if (res.status === 409 && reason) {
+    if (Array.isArray(json?.savedMeals)) displayCache.replace(mealsDataUrl(), json, TTL_MS);
+    return { ok: false, reason };
+  }
+  if (res.status === 403 && json?.code === 'meals.wallPlanOff') return { ok: false, reason: 'off' };
+  if (res.status === 400 && json?.code === 'meals.wallPlanDay') return { ok: false, reason: 'day' };
+  throw mealieRefusal('save', json, 'The menu could not be changed.');
+}
+
+/**
+ * Put a Mealie recipe's ingredients on the list the family shops from
+ * (`POST /api/mealie/shopping/recipe`). Answers the list's name, for "added
+ * to Weekly Shop".
+ */
+export async function addMealieRecipeToList(fetcher: MealFetch, mealId: string): Promise<{ wire: MealieShoppingAnswer; listName: string }> {
+  const res = await fetcher(`${SHOPPING_URL}/recipe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mealId }),
+  });
+  const json = await readJson(res);
+  if (!res.ok) throw shoppingRefusal(json, 'save');
+  const wire = json as MealieShoppingAnswer;
+  return { wire, listName: wire.list?.name ?? '' };
 }
 
 // ── Mealie's shopping list ──

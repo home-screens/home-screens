@@ -616,6 +616,71 @@
         "mealieSetup": "Confira o Mealie em Configurações no computador para mostrar a lista."
       },
       "alsoOn": "Também em {list}"
+    },
+    "menu": {
+      "put": "Colocar no cardápio",
+      "change": "Mudar o cardápio",
+      "codeWhy": "Para mudar o cardápio",
+      "whichMeal": "Qual refeição",
+      "thisWeek": "Esta semana",
+      "nextWeek": "Semana que vem",
+      "free": "Livre",
+      "undo": "Desfazer",
+      "undone": "Voltou a ficar como estava.",
+      "hint": "Toque em um dia. Se o dia já tiver um prato, o painel pergunta antes de mudar.",
+      "hintMine": "O sinal de certo mostra os dias que já têm {meal}. Toque em um desses dias para tirar, ou em outro para repetir.",
+      "when": {
+        "breakfast": "café da manhã de {day}",
+        "lunch": "almoço de {day}",
+        "dinner": "jantar de {day}",
+        "snack": "lanche de {day}"
+      },
+      "did": {
+        "planned": "O {when} vai ter {meal}.",
+        "joined": "O {when} ganhou {meal}.",
+        "swapped": "O {when} agora vai ter {meal}.",
+        "both": "O {when} também vai ter {meal}.",
+        "off": "O {when} não tem mais {meal}."
+      },
+      "groceryThis": "Os ingredientes estão na lista de compras desta semana.",
+      "groceryNext": "Os ingredientes vão entrar na lista de compras da semana que vem.",
+      "savedMealie": "Salvo no plano do Mealie.",
+      "addIngredients": "Adicionar os ingredientes à lista de compras",
+      "listAdded": "Os ingredientes estão em {list}.",
+      "listAddedPlain": "Os ingredientes estão na lista de compras.",
+      "ask": {
+        "title": "o {when} já tem {dish}",
+        "body": "O que fazer com esse prato?",
+        "swap": "Trocar",
+        "swapDetail": "{meal} no lugar de {dish}",
+        "both": "Ficar com os dois",
+        "bothDetail": "{meal} e {dish}",
+        "leave": "Deixar {day} como está",
+        "offTitle": "o {when} já tem {meal}",
+        "offBody": "Tirar do cardápio desse dia?",
+        "offYes": "Tirar de {day}",
+        "offNo": "Manter"
+      },
+      "problem": {
+        "changed": "O cardápio de {day} acabou de mudar.",
+        "changedDetail": "O cardápio agora está assim. Toque em um dia para tentar de novo.",
+        "full": "Essa refeição já tem todos os pratos que cabem nela.",
+        "off": "Planejar pelo painel acabou de ser desligado.",
+        "undoLate": "Não deu para desfazer. O dia mudou de novo.",
+        "undoFailed": "Não deu para desfazer.",
+        "day": "Não dá para planejar esse dia pelo painel.",
+        "failed": "Não deu para colocar no cardápio.",
+        "failedDetail": "O Home Screens não está respondendo. Tente de novo daqui a pouco.",
+        "listFailed": "Os ingredientes não entraram na lista."
+      },
+      "pick": {
+        "hint": "Toque em uma receita para colocá-la no cardápio.",
+        "on": "Para {day}",
+        "plan": "Planejar refeição",
+        "planAria": "Planejar o {when}",
+        "noneTitle": "Nenhuma receita para planejar ainda",
+        "noneHint": "Adicione pelo celular uma refeição com ingredientes ou notas e ela aparece aqui."
+      }
     }
   },
   "wallScroll": {

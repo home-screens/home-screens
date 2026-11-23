@@ -2901,6 +2901,10 @@
           "calendar-change-series": {
             "label": "Cambiar todos los días de un evento que se repite",
             "hint": "Cuando el cambio vale para todas las veces, no solo para un día."
+          },
+          "menu-change": {
+            "label": "Cambiar el menú",
+            "hint": "Poner una comida en el menú, cambiarla por otra o quitarla, en el monitor."
           }
         },
         "unlockLabel": "Desbloqueado durante",
@@ -4714,6 +4718,8 @@
       "wallAdd": "Añadir desde el monitor",
       "wallAddHelpMealie": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista de Mealie con la que compra la familia.",
       "wallAddHelpLocal": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista elegida abajo.",
+      "wallPlan": "Planear comidas en el monitor",
+      "wallPlanHelp": "Cualquiera puede poner una receta en el menú desde el monitor, para esta semana y la que viene: un botón «Poner en el menú» en cada receta y un signo más en las comidas vacías de las vistas de la semana. Escribir una comida o crear una receta nueva se sigue haciendo desde el móvil.",
       "extrasList": "Las demás compras van a",
       "extrasListNone": "Ninguna (sin fila «Añadir»)",
       "extrasListHelp": "Una de vuestras listas. Lo que queda en ella sale al final de la lista de la compra, aquí y en el móvil. Todas las tarjetas de compra la comparten."

@@ -278,6 +278,25 @@ export async function addMealieShoppingItem(listId: string, text: string): Promi
   return typeof made === 'string' ? made : null;
 }
 
+/**
+ * Put a recipe's ingredients on a list, as Mealie's own "Add to list" does:
+ * one batch, every ingredient, merged into lines already there. Mealie keeps
+ * which recipe each line is for, so the list still says so.
+ */
+export async function addMealieRecipeToShopping(listId: string, recipeId: string): Promise<void> {
+  const cfg = await requireMealieConfig();
+  // Asked first, as for a typed item: Mealie answers a list it no longer has with a bare 500.
+  if (!(await findList(cfg, listId))) throw new MealieShoppingGoneError('list');
+  try {
+    await mealieJson(`/api/households/shopping/lists/${encodeURIComponent(listId)}/recipe/${encodeURIComponent(recipeId)}`, {
+      method: 'POST',
+      json: { recipeIncrementQuantity: 1 },
+    }, cfg);
+  } finally {
+    clearMealieShoppingCache();
+  }
+}
+
 /** Take an item off its list, for Undo right after adding it. Already gone counts as done. */
 export async function deleteMealieShoppingItem(itemId: string): Promise<void> {
   const res = await mealieFetch(`/api/households/shopping/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });

@@ -613,6 +613,71 @@
         "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheint die Liste."
       },
       "alsoOn": "Außerdem auf {list}"
+    },
+    "menu": {
+      "put": "Auf den Essensplan",
+      "change": "Essensplan ändern",
+      "codeWhy": "Um den Essensplan zu ändern",
+      "whichMeal": "Welche Mahlzeit",
+      "thisWeek": "Diese Woche",
+      "nextWeek": "Nächste Woche",
+      "free": "Frei",
+      "undo": "Rückgängig",
+      "undone": "Alles wieder wie vorher.",
+      "hint": "Tippe auf einen Tag. Ist dort schon etwas geplant, wird erst gefragt, bevor sich etwas ändert.",
+      "hintMine": "Ein Haken zeigt, wo es {meal} schon gibt. Tippe auf diesen Tag, um das Gericht vom Plan zu nehmen, oder auf einen anderen, um es noch einmal zu planen.",
+      "when": {
+        "breakfast": "Frühstück am {day}",
+        "lunch": "Mittagessen am {day}",
+        "dinner": "Abendessen am {day}",
+        "snack": "Snack am {day}"
+      },
+      "did": {
+        "planned": "Zum {when} gibt es {meal}.",
+        "joined": "{meal} gibt es zum {when} dazu.",
+        "swapped": "Zum {when} gibt es jetzt {meal}.",
+        "both": "Zum {when} gibt es auch {meal}.",
+        "off": "{meal} gibt es zum {when} nicht mehr."
+      },
+      "groceryThis": "Die Zutaten stehen auf der Einkaufsliste für diese Woche.",
+      "groceryNext": "Die Zutaten kommen auf die Einkaufsliste für nächste Woche.",
+      "savedMealie": "Im Essensplan in Mealie gespeichert.",
+      "addIngredients": "Zutaten auf die Einkaufsliste setzen",
+      "listAdded": "Die Zutaten stehen auf {list}.",
+      "listAddedPlain": "Die Zutaten stehen auf der Einkaufsliste.",
+      "ask": {
+        "title": "Zum {when} gibt es schon {dish}",
+        "body": "Was soll damit passieren?",
+        "swap": "Tauschen",
+        "swapDetail": "{meal} statt {dish}",
+        "both": "Beides",
+        "bothDetail": "{meal} und {dish}",
+        "leave": "{day} so lassen",
+        "offTitle": "{meal} gibt es schon zum {when}",
+        "offBody": "Für diesen Tag vom Essensplan nehmen?",
+        "offYes": "Am {day} vom Plan nehmen",
+        "offNo": "Behalten"
+      },
+      "problem": {
+        "changed": "Jemand hat den {day} gerade geändert.",
+        "changedDetail": "So sieht der Essensplan jetzt aus. Tippe auf einen Tag und versuch es noch einmal.",
+        "full": "Bei dieser Mahlzeit ist kein Platz mehr für weitere Gerichte.",
+        "off": "Das Planen an der Wand wurde gerade ausgeschaltet.",
+        "undoLate": "Das ließ sich nicht rückgängig machen. Der Tag wurde noch einmal geändert.",
+        "undoFailed": "Das ließ sich nicht rückgängig machen.",
+        "day": "Dieser Tag lässt sich an der Wand nicht planen.",
+        "failed": "Das kam nicht auf den Essensplan.",
+        "failedDetail": "Home Screens antwortet nicht. Versuch es gleich noch einmal.",
+        "listFailed": "Die Zutaten kamen nicht auf die Liste."
+      },
+      "pick": {
+        "hint": "Tippe auf ein Rezept, um es auf den Essensplan zu setzen.",
+        "on": "Geplant: {day}",
+        "plan": "Mahlzeit planen",
+        "planAria": "{when} planen",
+        "noneTitle": "Noch keine Rezepte zum Planen",
+        "noneHint": "Füge am Handy eine Mahlzeit mit Zutaten oder Notizen hinzu, dann erscheint sie hier."
+      }
     }
   },
   "wallScroll": {

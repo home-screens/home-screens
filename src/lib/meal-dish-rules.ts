@@ -273,6 +273,19 @@ function categoryNamed<C extends { name: string }>(category: C, words: readonly 
   return words.some((w) => sameCategoryWord(name, categoryWord(w)));
 }
 
+/**
+ * The kind of dish a Mealie recipe is, from the household's own category
+ * names, which the hub hands over as the recipe's first tags: one filed
+ * under Side, Dessert or Drink (or the word in the household's language,
+ * `localWords`) is that; anything else, and anything also filed as a main
+ * dish, is a main dish.
+ */
+export function courseKindFromTags(tags: readonly string[] | undefined, localWords: Partial<Record<MealCourseKind, readonly string[]>> = {}): MealCourseKind {
+  const named = (kind: MealCourseKind) => matchCourseCategory((tags ?? []).map((name) => ({ name, slug: name })), kind, localWords[kind] ?? []) !== null;
+  if (named('main')) return 'main';
+  return (['side', 'dessert', 'drink'] as const).find(named) ?? 'main';
+}
+
 /** Names a household might give its Mealie categories of dinners, in the seven languages Home Screens ships. */
 const DINNER_CATEGORY_WORDS = [
   'main', 'main course', 'dinner', 'supper', 'entree', 'entrée',

@@ -19,6 +19,8 @@ import {
   searchMealieRecipes,
   fetchMealieRecipeDetail,
   withoutSuggested,
+  sendWallPlanChange,
+  WALL_PLAN_URL,
   type MealFetch,
   type MealSnapshot,
 } from '../meal-client';
@@ -728,5 +730,70 @@ describe('withoutSuggested', () => {
     ];
     expect(withoutSuggested(plan, [picked, { date: '2026-11-03', slot: 'dinner', sourceId: 'mealie:10' }]).map((p) => p.date)).toEqual(['2026-11-03', '2026-11-04']);
     expect(withoutSuggested(plan, [])).toBe(plan);
+  });
+});
+
+describe('sendWallPlanChange', () => {
+  const put = { action: 'put', date: '2026-11-18', slot: 'dinner', mealId: 'tacos', kind: 'main' } as const;
+  const cached = () => displayCache.get<{ plan: PlannedMeal[] }>('/api/meals/data')?.data;
+
+  it('posts the change and hands the meals answer to the display cache', async () => {
+    const answer = payload({ plan: [{ date: '2026-11-18', slot: 'dinner', mealId: 'tacos' }] });
+    const fetcher = vi.fn().mockResolvedValue(ok({ ...answer, wall: { outcome: 'planned', changed: true, undo: 'ticket-1' } }));
+    const sent = await sendWallPlanChange(fetcher, put);
+    expect(sent).toEqual({ ok: true, wall: { outcome: 'planned', changed: true, undo: 'ticket-1' } });
+    expect(fetcher.mock.calls[0][0]).toBe(WALL_PLAN_URL);
+    expect((fetcher.mock.calls[0][1] as RequestInit).method).toBe('POST');
+    expect(bodyOf(fetcher.mock.calls[0])).toEqual(put);
+    expect(cached()?.plan).toEqual(answer.plan);
+  });
+
+  it('sends an Undo as the ticket alone', async () => {
+    const fetcher = vi.fn().mockResolvedValue(ok({ ...payload(), wall: { changed: true } }));
+    expect(await sendWallPlanChange(fetcher, { undo: 'ticket-1' })).toEqual({ ok: true, wall: { changed: true } });
+    expect(bodyOf(fetcher.mock.calls[0])).toEqual({ undo: 'ticket-1' });
+  });
+
+  it('answers a refusal that carries the menu with its reason, and draws the menu as it is', async () => {
+    for (const reason of ['taken', 'changed', 'full', 'moved'] as const) {
+      displayCache.clear();
+      const now = payload({ plan: [{ date: '2026-11-18', slot: 'dinner', mealId: 'stir-fry' }] });
+      const fetcher = vi.fn().mockResolvedValue(status(409, { error: 'The menu changed. Nothing was written.', reason, ...now }));
+      expect(await sendWallPlanChange(fetcher, put)).toEqual({ ok: false, reason });
+      expect(cached()?.plan).toEqual(now.plan);
+    }
+  });
+
+  it('answers off when planning was switched off since the wall drew its button', async () => {
+    const fetcher = vi.fn().mockResolvedValue(status(403, { error: 'Planning meals from the wall is turned off', code: 'meals.wallPlanOff' }));
+    expect(await sendWallPlanChange(fetcher, put)).toEqual({ ok: false, reason: 'off' });
+    expect(cached()).toBeUndefined();
+  });
+
+  it('answers a day the hub no longer plans as a refusal, not an error', async () => {
+    // The wall's clock and the hub's disagree, or midnight passed with the sheet open: trying again never helps.
+    const badDay = vi.fn().mockResolvedValue(status(400, { error: 'The wall plans today to the end of next week', code: 'meals.wallPlanDay' }));
+    expect(await sendWallPlanChange(badDay, put)).toEqual({ ok: false, reason: 'day' });
+    expect(cached()).toBeUndefined();
+  });
+
+  it('rejects anything else with the hub\'s words', async () => {
+    const grownUp = vi.fn().mockResolvedValue(status(403, { error: 'This needs the grown-up code.', needsGrownUpCode: true }));
+    await expect(sendWallPlanChange(grownUp, put)).rejects.toMatchObject({ kind: 'save', message: 'This needs the grown-up code.' });
+    const badRecipe = vi.fn().mockResolvedValue(status(400, { error: 'That recipe cannot go on this menu', code: 'meals.wallPlanRecipe' }));
+    await expect(sendWallPlanChange(badRecipe, put)).rejects.toThrow('That recipe cannot go on this menu');
+    const unknownConflict = vi.fn().mockResolvedValue(status(409, { error: 'Something else', reason: 'revision' }));
+    await expect(sendWallPlanChange(unknownConflict, put)).rejects.toBeInstanceOf(MealClientError);
+    // A success with no wall answer is not one this route gives.
+    const noWall = vi.fn().mockResolvedValue(ok(payload()));
+    await expect(sendWallPlanChange(noWall, put)).rejects.toBeInstanceOf(MealClientError);
+    expect(cached()).toBeUndefined();
+  });
+
+  it('says why Mealie did not take the change', async () => {
+    const fetcher = vi.fn().mockResolvedValue(status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' }));
+    const err = await sendWallPlanChange(fetcher, put).catch((e: MealClientError) => e);
+    expect(err).toBeInstanceOf(MealClientError);
+    expect((err as MealClientError).problem).toBe('unreachable');
   });
 });

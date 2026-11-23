@@ -7,6 +7,7 @@ vi.mock('../mealie', async (importOriginal) => {
 
 import { MealieError, getMealieRecipe, mealieFetch, mealieJson, requireMealieConfig } from '../mealie';
 import {
+  addMealieRecipeToShopping,
   addMealieShoppingItem,
   clearMealieShoppingCache,
   deleteMealieShoppingItem,
@@ -256,6 +257,37 @@ describe('mealie-shopping', () => {
     it('refuses a list Mealie no longer has without asking Mealie to add to it', async () => {
       household({ 'list-g': { name: 'Groceries', items: [] } });
       await expect(addMealieShoppingItem('list-gone', 'Milk')).rejects.toBeInstanceOf(MealieShoppingGoneError);
+      expect(json.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    });
+  });
+
+  describe('addMealieRecipeToShopping', () => {
+    it("adds every ingredient in one batch, the way Mealie's own Add to list does", async () => {
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      const lists = json.getMockImplementation()!;
+      json.mockImplementation(async (path, init, cfg) => (init?.method === 'POST' ? {} as never : lists(path, init, cfg)));
+      await addMealieRecipeToShopping('list-g', 'recipe-1');
+      expect(json).toHaveBeenCalledWith(
+        '/api/households/shopping/lists/list-g/recipe/recipe-1',
+        { method: 'POST', json: { recipeIncrementQuantity: 1 } },
+        expect.anything(),
+      );
+    });
+
+    it('reads fresh after adding, so the new lines show at once', async () => {
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      await readMealieShopping(undefined);
+      const lists = json.getMockImplementation()!;
+      json.mockImplementation(async (path, init, cfg) => (init?.method === 'POST' ? {} as never : lists(path, init, cfg)));
+      await addMealieRecipeToShopping('list-g', 'recipe-1');
+      const before = listReads();
+      await readMealieShopping(undefined);
+      expect(listReads()).toBe(before + 1);
+    });
+
+    it('refuses a list Mealie no longer has without asking Mealie to add to it', async () => {
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      await expect(addMealieRecipeToShopping('list-gone', 'recipe-1')).rejects.toMatchObject({ name: 'MealieShoppingGoneError', what: 'list' });
       expect(json.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
     });
   });
