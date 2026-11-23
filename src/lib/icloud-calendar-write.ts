@@ -12,6 +12,7 @@ import {
   type EventDraft,
   type NormalizedEvent,
   type RepeatReading,
+  type TimeWas,
 } from '@/lib/calendar-write';
 import { describeWriteFailure, draftFromGoogle, isKnownWriteStatus, seriesTimes, toGoogleTimes, writeRefusalForStatus } from '@/lib/google-calendar-write';
 import { forgetICloudClient, isICloudUrl, withICloudClient, type ICloudCalDAVClient } from '@/lib/caldav-calendar';
@@ -310,9 +311,10 @@ function sameOccurrence(a: OccurrenceRef, b: OccurrenceRef, timezone: string): b
 /**
  * A RECURRENCE-ID or EXDATE line for one day of a series, in the form the
  * series' own DTSTART uses (RFC 5545 says they must match): a date, a UTC
- * time, or a wall time in the same TZID.
+ * time, or a wall time in the same TZID. Also that day's own DTSTART and
+ * DTEND, when a changed day keeps the times its series gives it.
  */
-function lineLike(name: 'RECURRENCE-ID' | 'EXDATE', dtstart: string, ref: OccurrenceRef, masterZone: string): string {
+function lineLike(name: 'RECURRENCE-ID' | 'EXDATE' | 'DTSTART' | 'DTEND', dtstart: string, ref: OccurrenceRef, masterZone: string): string {
   const start = parseContentLine(dtstart);
   if (isDateValue(start)) return `${name};VALUE=DATE:${icsDate(dayOf(ref, masterZone))}`;
   const ms = 'instant' in ref ? ref.instant : parseDateInTZ(`${ref.date}${localFromIcs(start.value.trim()).slice(10)}`, masterZone).getTime();
@@ -685,6 +687,19 @@ function setTimes(component: IcsComponent, times: EventTimes): void {
   setProp(component, 'DURATION', null);
 }
 
+/**
+ * Give a new changed day the times its series already gives that day, as the
+ * wall read them, written the way the series writes its own. For a change
+ * that leaves the times alone (a new name for one day): the day needs a
+ * DTSTART of its own, and it must be the true one, however long the event.
+ */
+function setTimesAsShown(component: IcsComponent, master: IcsComponent, shown: CalendarEvent, masterZone: string): void {
+  const dtstart = getProp(master, 'DTSTART') ?? '';
+  const refFor = (value: string): OccurrenceRef => (shown.allDay ? { date: value.slice(0, 10) } : { instant: Date.parse(value) });
+  setProp(component, 'DTSTART', lineLike('DTSTART', dtstart, refFor(shown.start), masterZone));
+  setProp(component, 'DTEND', lineLike('DTEND', dtstart, refFor(shown.end), masterZone));
+}
+
 /** Properties that belong to a series as a whole, never to one changed day. */
 const SERIES_ONLY = new Set(['RRULE', 'RDATE', 'EXDATE', 'EXRULE', 'DTSTART', 'DTEND', 'DURATION', 'RECURRENCE-ID', 'DTSTAMP']);
 
@@ -739,8 +754,16 @@ export interface ICloudChange {
   event: NormalizedEvent;
   /** The day the form opened on, for moving a series by the same number of days. */
   dayWas: string;
+  /** That day's own times as the form loaded them; see `seriesTimes`. */
+  timeWas?: TimeWas;
   /** Write a new repeat rule (it changed). */
   repeatChanged: boolean;
+  /**
+   * Write new times (the family changed the day or the times). False leaves
+   * every DTSTART, DTEND and DURATION as stored, so a new name or place can
+   * never move or shorten an event, whatever shape its times have.
+   */
+  timesChanged: boolean;
   timezone: string;
   now: Date;
 }
@@ -755,6 +778,8 @@ export interface ICloudChange {
  * - "Every time": the main VEVENT, keeping the series' own first day moved by
  *   the days this day moved. Skipped and changed days move with it, and a
  *   changed day that still had the old name, place or times takes the new.
+ *
+ * Times are written only when the family changed them (`timesChanged`).
  */
 export function changeICloudObject(text: string, located: LocatedOccurrence, change: ICloudChange): string {
   const calendar = parseIcsDocument(text);
@@ -770,10 +795,10 @@ export function changeICloudObject(text: string, located: LocatedOccurrence, cha
     const before = timingOf(target);
     setTitle(target, event.title);
     setPlace(target, event.location);
-    setTimes(target, times);
+    if (change.timesChanged) setTimes(target, times);
     if (master && change.repeatChanged) setProp(master, 'RRULE', repeatToRRule(event));
     markRevised(target, now, before);
-    if (!event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
+    if (change.timesChanged && !event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
     return serializeIcsDocument(calendar);
   }
 
@@ -781,6 +806,7 @@ export function changeICloudObject(text: string, located: LocatedOccurrence, cha
     const ref = located.recurrenceId;
     if (!ref) throw notEditable();
     let target = findChanged(changed, ref, zoneFor, timezone);
+    const isNew = !target;
     if (!target) {
       target = newChangedDay(master, ref, located.masterZone);
       insertAfterEvent(calendar, located.uid, target);
@@ -789,10 +815,11 @@ export function changeICloudObject(text: string, located: LocatedOccurrence, cha
     const before = timingOf(target);
     setTitle(target, event.title);
     setPlace(target, event.location);
-    setTimes(target, times);
+    if (change.timesChanged) setTimes(target, times);
+    else if (isNew) setTimesAsShown(target, master, located.shown, located.masterZone);
     for (const name of ['RRULE', 'RDATE', 'EXDATE', 'EXRULE']) setProp(target, name, null);
     markRevised(target, now, before);
-    if (!event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
+    if (change.timesChanged && !event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
     return serializeIcsDocument(calendar);
   }
 
@@ -808,7 +835,7 @@ function editSeries(
   change: ICloudChange,
   zoneFor: ZoneFor,
 ): void {
-  const { event, dayWas, timezone, now } = change;
+  const { event, dayWas, timeWas, timezone, now } = change;
   const oldStart = getProp(master, 'DTSTART') ?? '';
   const wasAllDay = isDateValue(parseContentLine(oldStart));
   const oldTitle = textOf(master, 'SUMMARY') ?? '';
@@ -816,14 +843,31 @@ function editSeries(
   const oldSpan = spanOf(master, zoneFor);
   const before = timingOf(master);
 
-  const times = seriesTimes(event, located.seriesStart, dayWas, timezone);
+  // A start with the series' own length after it, for `seriesTimes` to move and grow.
+  const withEnd = (start: OccurrenceRef) => {
+    if ('date' in start) {
+      return { start: { date: start.date }, ...(wasAllDay && oldSpan !== null ? { end: { date: addIsoDays(start.date, Math.round(oldSpan / DAY_MS)) } } : {}) };
+    }
+    return {
+      start: { dateTime: new Date(start.instant).toISOString() },
+      ...(!wasAllDay && oldSpan !== null ? { end: { dateTime: new Date(start.instant + oldSpan).toISOString() } } : {}),
+    };
+  };
+  const seriesStart: OccurrenceRef = located.seriesStart.date
+    ? { date: located.seriesStart.date }
+    : { instant: Date.parse(located.seriesStart.dateTime ?? '') };
+
   setTitle(master, event.title);
   setPlace(master, event.location);
-  setTimes(master, times);
-  if (!event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
+  if (change.timesChanged) {
+    const times = seriesTimes(event, withEnd(seriesStart), dayWas, timezone, timeWas);
+    setTimes(master, times);
+    if (!event.allDay) ensureVTimezone(calendar, event.timeZone, yearOf(times));
+  }
 
   if (change.repeatChanged) {
-    const rrule = repeatToRRule(event);
+    // With its times left alone the series keeps its own shape, which one of its days may not share.
+    const rrule = repeatToRRule(event, change.timesChanged ? event : wasAllDay ? { allDay: true } : { allDay: false, timeZone: timezone });
     if (!rrule) {
       // It no longer repeats, so its skipped and changed days go with the rule.
       for (const name of ['RRULE', 'RDATE', 'EXDATE', 'EXRULE']) setProp(master, name, null);
@@ -832,13 +876,13 @@ function editSeries(
       return;
     }
     setProp(master, 'RRULE', rrule);
-  } else if (wasAllDay !== event.allDay) {
+  } else if (change.timesChanged && wasAllDay !== event.allDay) {
     master.props = master.props.map((p) => (propName(p) === 'RRULE' ? untilFor(p, event.allDay, timezone) : p));
   }
 
   // Where one day of the series lands now: that day moved like the series,
   // at the new times.
-  const onDay = (ref: OccurrenceRef) => seriesTimes(event, { date: dayOf(ref, timezone) }, dayWas, timezone);
+  const onDay = (ref: OccurrenceRef) => seriesTimes(event, withEnd(ref), dayWas, timezone, timeWas);
   const moved = getProp(master, 'DTSTART') !== oldStart;
 
   if (moved) {
@@ -1102,9 +1146,13 @@ export async function updateICloudEvent(
     scope: ChangeScope;
     /** The day the form opened on, for moving a series by the same number of days. */
     dayWas: string;
+    /** That day's own times as the form loaded them; see `seriesTimes`. */
+    timeWas?: TimeWas;
     event: NormalizedEvent;
     /** Send a new repeat rule (it changed). */
     repeatChanged: boolean;
+    /** Write new times (the family changed the day or the times). */
+    timesChanged: boolean;
     timezone: string;
   },
 ): Promise<void> {
@@ -1113,7 +1161,9 @@ export async function updateICloudEvent(
     scope: input.scope,
     event: input.event,
     dayWas: input.dayWas,
+    ...(input.timeWas ? { timeWas: input.timeWas } : {}),
     repeatChanged: input.repeatChanged,
+    timesChanged: input.timesChanged,
     timezone: input.timezone,
     now: new Date(),
   });

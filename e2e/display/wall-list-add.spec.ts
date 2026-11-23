@@ -133,6 +133,36 @@ test('grocery card: adds to the list picked for other things to buy, shown as Al
   await expect.poll(async () => (await items(request)).find((it) => it.id === 'a')?.completed).toBe(true);
 });
 
+test('grocery card: the first thing added to an empty list keeps its chip and Undo', async ({ page, request, sandboxDir }) => {
+  // Nothing planned and nothing on the list: the card shows its empty state with the Add row under it.
+  seedTodos(sandboxDir, { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [] }] });
+  await seedMeals(request, { savedMeals: [], plan: [] });
+  const current = (await (await request.get('/api/meals/data')).json()) as { settings: Record<string, unknown> };
+  expect((await request.put('/api/meals/data', { data: { settings: { ...current.settings, groceryExtrasListId: E2E_TODO_LIST_ID } } })).ok()).toBe(true);
+
+  const grocery = buildModuleInstance('meal-planner', { view: 'grocery', interactive: true, wallAdd: true });
+  const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [grocery])] }));
+  const card = display.module('meal-planner');
+  await expect(card.getByTestId('meal-grocery-item')).toHaveCount(0);
+
+  const sheet = await openSheet(card.getByTestId('meal-grocery-add'), page);
+  await typeOnWall(page, 'Dog food');
+  const posted = added(page);
+  await sheet.locator('[data-key="action"]').click();
+  await posted;
+  // The card behind turns from its empty state into a list. The sheet is
+  // still the same sheet: what was just added is on it, with its Undo.
+  await expect(card.getByTestId('meal-grocery-item')).toContainText('Dog food');
+  await expect(sheet.getByTestId('wall-add-chip')).toContainText('Dog food');
+
+  // Undo empties the list again, and the sheet stays open for the next thing.
+  await sheet.getByTestId('wall-add-undo').click();
+  await expect(card.getByTestId('meal-grocery-item')).toHaveCount(0);
+  await expect(sheet.getByTestId('wall-add-chip')).toHaveCount(0);
+  await expect(page.getByTestId('wall-add-sheet')).toBeVisible();
+  await expect.poll(async () => (await items(request)).map((it) => it.text)).not.toContain('Dog food');
+});
+
 test('full-screen meal planner: the grocery view adds the same way, from a button by the name', async ({ page, request, sandboxDir }) => {
   seedTodos(sandboxDir);
   await seedMeals(request, mealData());

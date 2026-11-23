@@ -67,6 +67,11 @@ export function memberNameStem(name: string): string[] {
  * characters only where two names collide ("Sam" and "Sarah" become "Sam"
  * and "Sar"). The extension grows from the name's first letter on, so
  * "* Ava" and "🌟 Ava" extend like "Ava" and a symbol never takes a slot.
+ *
+ * People still tied after three characters share a first word ("Mary Ann"
+ * and "Mary Beth"), so those are told apart by the first letter of each
+ * word instead ("MA" and "MB"). Whoever that does not separate keeps the
+ * shared three characters.
  */
 export function getUniqueInitials(memberList: readonly { id: string; name: string }[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -93,10 +98,20 @@ export function getUniqueInitials(memberList: readonly { id: string; name: strin
     }
     remaining = next;
   }
-  for (const m of remaining) {
-    result.set(m.id, prefixOf(m.name, 3));
-  }
+  const byWords = remaining.map((m) => wordInitials(m.name));
+  const taken = new Set(result.values());
+  remaining.forEach((m, i) => {
+    const letters = byWords[i];
+    const unique = letters !== null && !taken.has(letters) && byWords.indexOf(letters) === byWords.lastIndexOf(letters);
+    result.set(m.id, unique ? letters : prefixOf(m.name, 3));
+  });
   return result;
+}
+
+/** The first letter of each of a name's first three words, or null for a name with one word. */
+function wordInitials(name: string): string | null {
+  const letters = name.trim().split(/\s+/).map(firstLetter).filter(Boolean);
+  return letters.length > 1 ? letters.slice(0, 3).join('') : null;
 }
 
 /**

@@ -178,13 +178,22 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     else if (current.nudge && !prev.nudge) playTimerSound('nudge');
   }, [live, matches, nudge]);
 
-  const act = useCallback((action: SessionAction) => {
+  // A press names the timer on this screen and, for "Done!", the step: the
+  // hub's timer can be another one by now (started from a phone inside the
+  // last heartbeat), and a second "Done!" tap must not skip the next step.
+  // The hub turns a press for anything else down, and the read that follows
+  // every press shows what is really running.
+  const act = useCallback((action: SessionAction, on: Pick<TimerSession, 'id' | 'stepIndex'>) => {
     void (async () => {
       try {
         await displayFetch('/api/timers/session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action }),
+          body: JSON.stringify({
+            action,
+            sessionId: on.id,
+            ...(action === 'step-done' ? { stepIndex: on.stepIndex } : {}),
+          }),
         });
       } catch {
         // The next poll reconciles.
@@ -199,7 +208,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   // "Time's up!", and otherwise bring the buttons up (or keep them up). A tap
   // on one of the buttons lands here too, which keeps them up a while longer.
   const onTap = live.awaitingTap
-    ? () => act('step-done')
+    ? () => act('step-done', live)
     : live.status === 'done'
       ? () => setDismissedId(live.id)
       : controls.poke;
@@ -225,6 +234,10 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
         // Paired with the ::view-transition rules in globals.css.
         viewTransitionName: 'timer-overlay',
       }}
+      // A finger going down counts as a touch too: Stop is a hold with no
+      // click until it ends, and the buttons must not go away under it. While
+      // a step waits for "Done!" or "Time's up!" shows, a poke does nothing.
+      onPointerDown={controls.poke}
       onClick={onTap}
     >
       {live.status === 'done' ? (
@@ -250,12 +263,12 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
           paused={paused}
           s={s}
           t={t}
-          onPause={() => act('pause')}
-          onResume={() => act('resume')}
-          onAddMinute={() => act('add-minute')}
+          onPause={() => act('pause', live)}
+          onResume={() => act('resume', live)}
+          onAddMinute={() => act('add-minute', live)}
           onStop={() => {
             controls.hide();
-            act('cancel');
+            act('cancel', live);
           }}
         />
       )}

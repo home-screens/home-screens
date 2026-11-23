@@ -2,12 +2,14 @@
 
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/react';
+import { StrictMode } from 'react';
 import VideoLayer from '../VideoLayer';
 
 // jsdom doesn't implement media playback — stub the methods VideoLayer calls.
 beforeAll(() => {
   HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
   HTMLMediaElement.prototype.pause = vi.fn();
+  HTMLMediaElement.prototype.load = vi.fn();
 });
 
 beforeEach(() => {
@@ -119,6 +121,116 @@ describe('VideoLayer activation states', () => {
     expect(video.hasAttribute('autoplay')).toBe(true);
     expect(video.hasAttribute('playsinline')).toBe(true);
     expect(video.muted).toBe(true);
+  });
+});
+
+describe('letting go of the element', () => {
+  const load = () => HTMLMediaElement.prototype.load as ReturnType<typeof vi.fn>;
+  const pause = () => HTMLMediaElement.prototype.pause as ReturnType<typeof vi.fn>;
+  const SRC = '/api/backgrounds/serve?file=clip.mp4';
+
+  /** What the element looked like each time it was told to load. */
+  function recordLoads(): Array<string | null> {
+    const seen: Array<string | null> = [];
+    load().mockReset();
+    load().mockImplementation(function (this: HTMLMediaElement) {
+      seen.push(this.getAttribute('src'));
+    });
+    return seen;
+  }
+
+  afterEach(() => {
+    load().mockReset();
+  });
+
+  it('unloads the clip when the layer goes inactive', () => {
+    // Taking the src attribute off does not make an element give up what it
+    // has loaded; only a load() with nothing to load does.
+    const seen = recordLoads();
+    const onEnded = vi.fn();
+    const { rerender, container } = render(<VideoLayer src={SRC} active autoPlay onEnded={onEnded} />);
+    const video = container.querySelector('video')!;
+    expect(video.getAttribute('src')).toBe(SRC);
+    expect(seen).toEqual([]);
+    pause().mockClear();
+
+    rerender(<VideoLayer src={SRC} active={false} autoPlay onEnded={onEnded} />);
+    expect(pause()).toHaveBeenCalled();
+    expect(video.getAttribute('src')).toBeNull();
+    expect(seen).toEqual([null]);
+  });
+
+  it('unloads the clip when the layer is unmounted', () => {
+    const seen = recordLoads();
+    const { unmount, container } = render(<VideoLayer src={SRC} active autoPlay onEnded={vi.fn()} />);
+    const video = container.querySelector('video')!;
+    pause().mockClear();
+
+    unmount();
+    expect(pause()).toHaveBeenCalled();
+    expect(video.getAttribute('src')).toBeNull();
+    expect(seen).toEqual([null]);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('does not unload a layer that never held a clip', () => {
+    const seen = recordLoads();
+    const { unmount } = render(<VideoLayer src={SRC} active={false} autoPlay onEnded={vi.fn()} />);
+    unmount();
+    expect(seen).toEqual([]);
+  });
+
+  it('takes the clip back when the layer is active again', () => {
+    recordLoads();
+    const { rerender, container } = render(<VideoLayer src={SRC} active autoPlay onEnded={vi.fn()} />);
+    const video = container.querySelector('video')!;
+    rerender(<VideoLayer src={SRC} active={false} autoPlay onEnded={vi.fn()} />);
+    const play = HTMLMediaElement.prototype.play as ReturnType<typeof vi.fn>;
+    play.mockClear();
+
+    rerender(<VideoLayer src={SRC} active autoPlay onEnded={vi.fn()} />);
+    expect(video.getAttribute('src')).toBe(SRC);
+    expect(play).toHaveBeenCalledTimes(1);
+  });
+
+  it('never reports the clip finished because it was let go', () => {
+    // Whatever the browser says while the element empties (a real one fires
+    // `abort` and `emptied`; these are the worst it could say) is about the
+    // unloading, not about the clip.
+    load().mockReset();
+    load().mockImplementation(function (this: HTMLMediaElement) {
+      for (const type of ['abort', 'emptied', 'error', 'stalled', 'waiting', 'ended']) fireEvent(this, new Event(type));
+    });
+    const onEnded = vi.fn();
+    const { rerender, unmount } = render(<VideoLayer src={SRC} active autoPlay onEnded={onEnded} />);
+
+    rerender(<VideoLayer src={SRC} active={false} autoPlay onEnded={onEnded} />);
+    vi.advanceTimersByTime(60_000);
+    expect(onEnded).not.toHaveBeenCalled();
+
+    rerender(<VideoLayer src={SRC} active autoPlay onEnded={onEnded} />);
+    unmount();
+    vi.advanceTimersByTime(60_000);
+    expect(onEnded).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('still reports a clip that fails after coming back', () => {
+    recordLoads();
+    const onEnded = vi.fn();
+    const { rerender, container } = render(<VideoLayer src={SRC} active autoPlay onEnded={onEnded} />);
+    rerender(<VideoLayer src={SRC} active={false} autoPlay onEnded={onEnded} />);
+    rerender(<VideoLayer src={SRC} active autoPlay onEnded={onEnded} />);
+    fireEvent(container.querySelector('video')!, new Event('error'));
+    expect(onEnded).toHaveBeenCalledTimes(1);
+  });
+
+  it('survives a doubled mount with its clip attached', () => {
+    recordLoads();
+    const { container } = render(
+      <StrictMode><VideoLayer src={SRC} active autoPlay onEnded={vi.fn()} /></StrictMode>,
+    );
+    expect(container.querySelector('video')!.getAttribute('src')).toBe(SRC);
   });
 });
 

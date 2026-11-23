@@ -24,9 +24,11 @@ const DANGER_DARK = '#f87171';
  * detail's own (viewport-relative, never below 44 px). Shared by every wall
  * sheet that has to ask before it changes something.
  */
-export function WallAskInSheet({ title, body, choices, cancelLabel, onPick, onCancel, theme, accentColor, busy = false, testId }: {
+export function WallAskInSheet({ title, body, notice, choices, cancelLabel, onPick, onCancel, theme, accentColor, busy = false, testId }: {
   title: string;
   body?: string;
+  /** Why the answer just picked did not go through. The ask stays up under it, so it can be tried again. */
+  notice?: string | null;
   choices: WallAskChoice[];
   cancelLabel: string;
   onPick: (id: string) => void;
@@ -69,6 +71,21 @@ export function WallAskInSheet({ title, body, choices, cancelLabel, onPick, onCa
     >
       <div style={{ fontSize: 'clamp(19px, 3.2vmin, 34px)', fontWeight: 700, color: theme.text, marginBottom: body ? 8 : 0 }}>{title}</div>
       {body && <div style={{ fontSize: 'clamp(15px, 2.4vmin, 26px)', color: theme.textSecondary, lineHeight: 1.4 }}>{body}</div>}
+      {notice && (
+        <div
+          role="alert"
+          data-testid={testId ? `${testId}-notice` : undefined}
+          style={{
+            marginTop: 'clamp(10px, 1.5vmin, 16px)', padding: 'clamp(10px, 1.7vmin, 18px) clamp(14px, 2.4vmin, 26px)', borderRadius: 16,
+            fontSize: 'clamp(15px, 2.4vmin, 26px)', fontWeight: 600, lineHeight: 1.4,
+            background: `color-mix(in srgb, ${danger} 14%, ${theme.surface})`,
+            border: `1px solid color-mix(in srgb, ${danger} 32%, transparent)`,
+            color: `color-mix(in srgb, ${danger} 60%, ${theme.text})`,
+          }}
+        >
+          {notice}
+        </div>
+      )}
       {choices.map((choice) => (
         <button
           key={choice.id}

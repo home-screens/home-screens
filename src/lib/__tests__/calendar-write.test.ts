@@ -3,14 +3,18 @@ import {
   CALENDAR_WRITE_LIMITS,
   CalendarWriteError,
   GOOGLE_EVENTS_SCOPE,
+  anyWallMayWrite,
   checkChangeScope,
+  checkDayWas,
   draftMinutes,
   endKeepingLength,
   endsNextDay,
   googleEntryState,
   googleEntryStateWithSetting,
   grantedScopes,
+  isLongTimed,
   normalizeEventDraft,
+  readTimeWas,
   repeatFrequenciesFor,
   repeatFromRecurrence,
   repeatToRRule,
@@ -303,5 +307,141 @@ describe('googleEntryState', () => {
   it('reads Google\'s scope string', () => {
     expect(grantedScopes(` a  b\n${GOOGLE_EVENTS_SCOPE} `)).toEqual(['a', 'b', GOOGLE_EVENTS_SCOPE]);
     expect(grantedScopes(undefined)).toEqual([]);
+  });
+});
+
+describe('normalizeEventDraft: a change that leaves the times alone', () => {
+  // Friday 6 PM to Sunday 4 PM, as the Change form loads it.
+  const weekend: EventDraft = { title: 'Cabin trip', date: '2026-11-27', allDay: false, startTime: '18:00', endTime: '16:00', endDate: '2026-11-29' };
+  const code = (run: () => unknown) => {
+    try {
+      run();
+    } catch (e) {
+      return (e as CalendarWriteError).code;
+    }
+    return null;
+  };
+
+  it('keeps the real end day of an event of a day or more', () => {
+    expect(isLongTimed(weekend)).toBe(true);
+    expect(normalizeEventDraft(weekend, { ...opts, timesChanged: false })).toMatchObject({
+      startLocal: '2026-11-27T18:00:00',
+      endLocal: '2026-11-29T16:00:00',
+    });
+  });
+
+  it('lets an event of exactly 48 hours be renamed, though it starts and ends at the same clock time', () => {
+    const two = { ...weekend, title: 'Lake weekend', endTime: '18:00' };
+    expect(normalizeEventDraft(two, { ...opts, timesChanged: false })).toMatchObject({ title: 'Lake weekend', endLocal: '2026-11-29T18:00:00' });
+  });
+
+  it('refuses new times for an event of a day or more, said or left unsaid', () => {
+    expect(code(() => normalizeEventDraft(weekend, { ...opts, timesChanged: true }))).toBe('calendarWrite.notEditable');
+    expect(code(() => normalizeEventDraft(weekend, opts))).toBe('calendarWrite.notEditable');
+    try {
+      normalizeEventDraft(weekend, opts);
+    } catch (e) {
+      expect((e as CalendarWriteError).status).toBe(403);
+    }
+  });
+
+  it('refuses an end day that is no day, or before the start', () => {
+    expect(code(() => normalizeEventDraft({ ...weekend, endDate: 'soon' }, { ...opts, timesChanged: false }))).toBe('calendarWrite.badDate');
+    expect(code(() => normalizeEventDraft({ ...weekend, endDate: '2026-11-26' }, { ...opts, timesChanged: false }))).toBe('calendarWrite.badDate');
+  });
+
+  it('lets an event that ends the moment it starts be renamed, and still refuses to make one', () => {
+    const instant = timed({ startTime: '15:30', endTime: '15:30' });
+    expect(normalizeEventDraft(instant, { ...opts, timesChanged: false })).toMatchObject({ startLocal: '2026-11-23T15:30:00', endLocal: '2026-11-23T15:30:00' });
+    expect(code(() => normalizeEventDraft(instant, { ...opts, timesChanged: true }))).toBe('calendarWrite.endsWhenItStarts');
+    expect(code(() => normalizeEventDraft(instant, opts))).toBe('calendarWrite.endsWhenItStarts');
+  });
+
+  it('is not a long event when it is all day or has no end day', () => {
+    expect(isLongTimed(timed())).toBe(false);
+    expect(isLongTimed({ allDay: true, endDate: '2026-11-29' })).toBe(false);
+  });
+});
+
+describe('repeatToRRule: whose shape the end takes', () => {
+  it('writes the end as a time for a timed series changed from a day that was made all day', () => {
+    const day = normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: true, repeat: { frequency: 'weekly', until: '2026-12-15' } }, opts);
+    expect(repeatToRRule(day)).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261215');
+    expect(repeatToRRule(day, { allDay: false, timeZone: TZ })).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261216T055959Z');
+    const timedDay = normalizeEventDraft(timed({ repeat: { frequency: 'weekly', until: '2026-12-15' } }), opts);
+    expect(repeatToRRule(timedDay, { allDay: true })).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261215');
+  });
+});
+
+describe('checkDayWas', () => {
+  const today = '2026-11-21';
+  const code = (value: unknown) => {
+    try {
+      checkDayWas(value, today);
+    } catch (e) {
+      return (e as CalendarWriteError).code;
+    }
+    return null;
+  };
+
+  it('takes a real day near today', () => {
+    expect(checkDayWas('2026-11-24', today)).toBe('2026-11-24');
+    expect(checkDayWas('2021-11-21', today)).toBe('2021-11-21');
+  });
+
+  it('refuses anything that is not a day, where a shift of nothing used to pass quietly', () => {
+    expect(code('not-a-date')).toBe('calendarWrite.badDate');
+    expect(code('2026-02-30')).toBe('calendarWrite.badDate');
+    expect(code(undefined)).toBe('calendarWrite.badDate');
+    expect(code(20261124)).toBe('calendarWrite.badDate');
+  });
+
+  it('refuses a day further away than an event may start, which would carry a series decades off', () => {
+    expect(code('1990-01-01')).toBe('calendarWrite.dayTooFar');
+    expect(code('2031-11-22')).toBe('calendarWrite.dayTooFar');
+  });
+});
+
+describe('readTimeWas', () => {
+  it('reads a timed day as its start and length, next-day end included', () => {
+    expect(readTimeWas({ allDay: false, startTime: '18:00', endTime: '19:00' }, '2026-11-24')).toEqual({ allDay: false, startMinute: 1080, minutes: 60 });
+    expect(readTimeWas({ allDay: false, startTime: '18:00', endTime: '10:00' }, '2026-11-24')).toEqual({ allDay: false, startMinute: 1080, minutes: 960 });
+  });
+
+  it('reads an all-day day as its days, one when no last day is named', () => {
+    expect(readTimeWas({ allDay: true, lastDate: '2026-11-25' }, '2026-11-24')).toEqual({ allDay: true, days: 2 });
+    expect(readTimeWas({ allDay: true }, '2026-11-24')).toEqual({ allDay: true, days: 1 });
+  });
+
+  it('answers nothing when none was sent or the day had no length', () => {
+    expect(readTimeWas(undefined, '2026-11-24')).toBeUndefined();
+    expect(readTimeWas({ allDay: false, startTime: '18:00', endTime: '18:00' }, '2026-11-24')).toBeUndefined();
+  });
+
+  it('refuses times that are not times and a last day before the first', () => {
+    expect(() => readTimeWas({ allDay: false, startTime: '25:00', endTime: '26:00' }, '2026-11-24')).toThrow(expect.objectContaining({ code: 'calendarWrite.badTime' }));
+    expect(() => readTimeWas('18:00', '2026-11-24')).toThrow(expect.objectContaining({ code: 'calendarWrite.badTime' }));
+    expect(() => readTimeWas({ allDay: true, lastDate: '2026-11-20' }, '2026-11-24')).toThrow(expect.objectContaining({ code: 'calendarWrite.badDate' }));
+  });
+});
+
+describe('anyWallMayWrite', () => {
+  const display = (calendarWallEntry?: boolean) => ({ settings: calendarWallEntry === undefined ? {} : { calendarWallEntry } });
+
+  it('goes by the household before any displays exist', () => {
+    expect(anyWallMayWrite({}, undefined)).toBe(true);
+    expect(anyWallMayWrite({}, [])).toBe(true);
+    expect(anyWallMayWrite({ calendarWallEntry: false }, [])).toBe(false);
+  });
+
+  it('refuses once every display has turned it off, even with the household on', () => {
+    expect(anyWallMayWrite({}, [display(false), display(false)])).toBe(false);
+    expect(anyWallMayWrite({ calendarWallEntry: true }, [display(false)])).toBe(false);
+  });
+
+  it('allows while one display is on, by its own switch or the household', () => {
+    expect(anyWallMayWrite({}, [display(false), display()])).toBe(true);
+    expect(anyWallMayWrite({ calendarWallEntry: false }, [display(false), display(true)])).toBe(true);
+    expect(anyWallMayWrite({ calendarWallEntry: false }, [display(), display(false)])).toBe(false);
   });
 });

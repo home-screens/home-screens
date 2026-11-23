@@ -83,15 +83,19 @@ export async function setGrownUpCode(code: string): Promise<GrownUpStatus> {
 
 /** Changes what an existing code guards or how long it unlocks; null when no code is set. */
 export async function updateGrownUpPrefs(prefs: { actions?: GrownUpAction[]; unlockMinutes?: number }): Promise<GrownUpStatus | null> {
-  const before = await store.read();
-  if (!isSet(before)) return null;
-  const next: GrownUpCodeFile = {
-    ...before,
-    ...(prefs.actions ? { actions: prefs.actions } : {}),
-    ...(prefs.unlockMinutes ? { unlockMinutes: prefs.unlockMinutes } : {}),
-  };
-  await store.write(next);
-  return statusOf(next);
+  // Read and written in one turn of the store's queue: a tick and the unlock
+  // length saved at the same moment each change their own field, and a read
+  // taken outside the queue would let the later write put the other one back.
+  const next = await store.updateAtomic((before) => {
+    // The file handed back as it came means nothing is written.
+    if (!isSet(before)) return before;
+    return {
+      ...before,
+      ...(prefs.actions ? { actions: prefs.actions } : {}),
+      ...(prefs.unlockMinutes ? { unlockMinutes: prefs.unlockMinutes } : {}),
+    };
+  });
+  return isSet(next) ? statusOf(next) : null;
 }
 
 export async function removeGrownUpCode(): Promise<void> {

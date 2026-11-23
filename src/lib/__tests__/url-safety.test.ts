@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isBlockedHost, isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
+import {
+  isBlockedHost, isSafeExternalUrl, isSafeLocalOrExternalUrl, checkedLookup, isAddressBlockedError, type AddressRule,
+} from '@/lib/url-safety';
 import { promises as dns } from 'dns';
 
 afterEach(() => {
@@ -317,5 +319,106 @@ describe('isSafeLocalOrExternalUrl (localNetwork permission)', () => {
     // First public, second is the cloud metadata IP — must reject
     mockResolve(['8.8.8.8', '169.254.169.254']);
     expect(await isSafeLocalOrExternalUrl('http://mixed.example/')).toBe(false);
+  });
+});
+
+describe('checkedLookup (the check a connection makes for itself)', () => {
+  type Answer = { err: NodeJS.ErrnoException | null; address?: unknown; family?: number };
+
+  function resolveWith(rule: AddressRule, hostname: string, options: { all?: boolean; family?: number } = {}): Promise<Answer> {
+    return new Promise((resolve) => {
+      checkedLookup(rule)(hostname, options, ((err: NodeJS.ErrnoException | null, address?: unknown, family?: number) => {
+        resolve({ err, address, family });
+      }) as never);
+    });
+  }
+
+  const answers = (...addresses: string[]) =>
+    vi.spyOn(dns, 'lookup').mockResolvedValue(addresses.map((address) => ({ address, family: address.includes(':') ? 6 : 4 })) as never);
+
+  it('hands a public address to the connection', async () => {
+    answers('93.184.216.34');
+    expect(await resolveWith('public', 'example.com')).toEqual({ err: null, address: '93.184.216.34', family: 4 });
+  });
+
+  it('hands back the whole list when the connection asks for all of them', async () => {
+    answers('93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946');
+    const { err, address } = await resolveWith('public', 'example.com', { all: true });
+    expect(err).toBeNull();
+    expect(address).toEqual([
+      { address: '93.184.216.34', family: 4 },
+      { address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 },
+    ]);
+  });
+
+  it.each(['127.0.0.1', '10.0.0.5', '192.168.1.1', '169.254.169.254', '::1', 'fd00::1', '::ffff:7f00:1'])(
+    'refuses %s under the public rule',
+    async (address) => {
+      answers(address);
+      const { err, address: handed } = await resolveWith('public', 'rebind.example.com');
+      expect(isAddressBlockedError(err)).toBe(true);
+      expect(handed).toBeUndefined();
+    },
+  );
+
+  it('refuses a name with one private address among public ones, rather than picking a good one', async () => {
+    answers('93.184.216.34', '10.0.0.5');
+    expect(isAddressBlockedError((await resolveWith('public', 'mixed.example.com', { all: true })).err)).toBe(true);
+  });
+
+  it.each(['127.0.0.1', '192.168.1.1', '169.254.10.10', 'fd12::5'])('lets %s through under the home-network rule', async (address) => {
+    answers(address);
+    expect((await resolveWith('home-network', 'nas.example.com')).err).toBeNull();
+  });
+
+  it.each(['169.254.169.254', '0.0.0.0', '::', 'fd00:ec2::254', '::ffff:a9fe:a9fe'])(
+    'still refuses %s under the home-network rule',
+    async (address) => {
+      answers(address);
+      expect(isAddressBlockedError((await resolveWith('home-network', 'meta.example.com')).err)).toBe(true);
+    },
+  );
+
+  it('judges the second answer on its own: public for the check, private for the connection', async () => {
+    vi.spyOn(dns, 'lookup')
+      .mockResolvedValueOnce([{ address: '93.184.216.34', family: 4 }] as never)
+      .mockResolvedValueOnce([{ address: '127.0.0.1', family: 4 }] as never);
+    expect(await isSafeExternalUrl('https://rebind.example.com/')).toBe(true);
+    expect(isAddressBlockedError((await resolveWith('public', 'rebind.example.com')).err)).toBe(true);
+  });
+
+  it('passes a name that does not resolve on as the failure it is', async () => {
+    vi.spyOn(dns, 'lookup').mockRejectedValue(Object.assign(new Error('getaddrinfo ENOTFOUND'), { code: 'ENOTFOUND' }));
+    const { err } = await resolveWith('public', 'nowhere.example.com');
+    expect(err?.code).toBe('ENOTFOUND');
+    expect(isAddressBlockedError(err)).toBe(false);
+  });
+
+  it('refuses a name that resolves to nothing', async () => {
+    answers();
+    expect(isAddressBlockedError((await resolveWith('public', 'empty.example.com')).err)).toBe(true);
+  });
+
+  it('asks for the address family the connection wants', async () => {
+    const lookup = answers('93.184.216.34');
+    await resolveWith('public', 'example.com', { family: 4 });
+    expect(lookup).toHaveBeenCalledWith('example.com', { all: true, verbatim: true, family: 4 });
+  });
+});
+
+describe('isAddressBlockedError', () => {
+  it('finds the refusal under the wrapping a fetch puts around it', async () => {
+    vi.spyOn(dns, 'lookup').mockResolvedValue([{ address: '127.0.0.1', family: 4 }] as never);
+    const refusal = await new Promise<Error | null>((resolve) => {
+      checkedLookup('public')('rebind.example.com', {}, ((err: Error | null) => resolve(err)) as never);
+    });
+    expect(isAddressBlockedError(new TypeError('fetch failed', { cause: refusal }))).toBe(true);
+    expect(isAddressBlockedError(new TypeError('fetch failed', { cause: new AggregateError([new Error('x'), refusal!]) }))).toBe(true);
+  });
+
+  it('says no to everything else', () => {
+    expect(isAddressBlockedError(new TypeError('fetch failed', { cause: new Error('ECONNREFUSED') }))).toBe(false);
+    expect(isAddressBlockedError('EADDRBLOCKED')).toBe(false);
+    expect(isAddressBlockedError(undefined)).toBe(false);
   });
 });

@@ -10,6 +10,7 @@ import {
   isValidTargets,
   materializeSession,
   pauseSession,
+  pressIsForSession,
   readRoutinesFile,
   readSessionCached,
   resumeSession,
@@ -42,6 +43,10 @@ interface SessionActionBody {
   targets?: unknown;
   view?: TimerView;
   sound?: boolean;
+  /** control: the session the press was made looking at */
+  sessionId?: unknown;
+  /** control: the step it was made looking at (the wall's "Done!" tap) */
+  stepIndex?: unknown;
 }
 
 /**
@@ -51,7 +56,10 @@ interface SessionActionBody {
  * `cancel`. `skip` and `step-done` are the same transition (advance now);
  * both names exist because remotes skip and touch displays tap Done.
  * Starting while a session is running replaces it — one active session at a
- * time is the intended family-display behavior.
+ * time is the intended family-display behavior. A control may name the
+ * `sessionId` it was pressed on and the `stepIndex` it saw; when the hub's
+ * timer is another one by then, or on another step, the press is refused as
+ * "no timer is running" and nothing changes.
  *
  * Display-auth (not editor-auth) on purpose: touch kiosks post `step-done`.
  * Every mutation runs inside the store's atomic queue so overlapping taps
@@ -87,6 +95,9 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
     // everywhere; every other control needs it still running.
     const stoppable = live && (live.status === 'running' || (live.status === 'done' && body.action === 'cancel'));
     if (!live || !stoppable) throw new TimerError(404, 'timers.notRunning', 'No timer is running');
+    // Checked here, inside the queue, so two taps on one step cannot both
+    // find it waiting: the timer that press was for is not running any more.
+    if (!pressIsForSession(live, body)) throw new TimerError(404, 'timers.notRunning', 'No timer is running');
     const { awaitingTap, ...session } = live;
     void awaitingTap;
     return { session: op(session, now) };

@@ -47,17 +47,22 @@ function choiceStyle(tone: EventChoice['tone']): CSSProperties {
  * event. A plain `ConfirmSheet` answers yes or no; this answers which. On
  * the `confirm` layer with it, over the form that asked.
  */
-export default function EventChoiceSheet({ title, description, choices, cancelLabel, onPick, onCancel, testId }: {
+export default function EventChoiceSheet({ title, description, choices, cancelLabel, busy = false, onPick, onCancel, testId }: {
   title: string;
   description: string;
   choices: EventChoice[];
   cancelLabel: string;
+  /** The answer already given is on its way to the hub: nothing can be pressed until it is back. */
+  busy?: boolean;
   onPick: (id: string) => void;
   onCancel: () => void;
   testId?: string;
 }) {
+  const cancel = () => {
+    if (!busy) onCancel();
+  };
   return (
-    <BottomSheet title={title} onClose={onCancel} layer="confirm" testId={testId}>
+    <BottomSheet title={title} onClose={cancel} layer="confirm" testId={testId}>
       <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', lineHeight: 1.5, margin: '0 0 16px' }}>{description}</p>
       {choices.map((choice) => (
         <button
@@ -65,8 +70,9 @@ export default function EventChoiceSheet({ title, description, choices, cancelLa
           type="button"
           className="press-scale"
           data-choice={choice.id}
+          disabled={busy}
           onClick={() => onPick(choice.id)}
-          style={choiceStyle(choice.tone)}
+          style={{ ...choiceStyle(choice.tone), ...(busy ? { opacity: 0.6 } : {}) }}
         >
           {choice.label}
           <span style={{ fontSize: 12.5, fontWeight: 500, opacity: 0.85 }}>{choice.detail}</span>
@@ -75,8 +81,9 @@ export default function EventChoiceSheet({ title, description, choices, cancelLa
       <button
         type="button"
         className="press-scale"
-        onClick={onCancel}
-        style={{ width: '100%', minHeight: 48, borderRadius: 12, background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', border: 0 }}
+        disabled={busy}
+        onClick={cancel}
+        style={{ width: '100%', minHeight: 48, borderRadius: 12, background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', border: 0, ...(busy ? { opacity: 0.6 } : {}) }}
       >
         {cancelLabel}
       </button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
@@ -34,6 +34,11 @@ export default function GrownUpCodeSection() {
   const [again, setAgain] = useState('');
   const [problem, setProblem] = useState<'mismatch' | 'format' | 'failed' | null>(null);
   const [savedAt, setSavedAt] = useState(0);
+  // One save at a time. A tick is built from the list the last answer left, so
+  // a second tick made before the first answer came back would send a list
+  // without the first one and undo it. The controls wait for the answer.
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +50,12 @@ export default function GrownUpCodeSection() {
   }, []);
 
   const send = async (method: 'PUT' | 'DELETE', body?: object) => {
+    // The ref turns a second save away in the same moment, before the
+    // controls have been drawn switched off.
+    if (savingRef.current) return false;
+    savingRef.current = true;
     setProblem(null);
+    setSaving(true);
     try {
       const res = await editorFetch('/api/grown-up-code', {
         method,
@@ -59,6 +69,9 @@ export default function GrownUpCodeSection() {
     } catch {
       setProblem('failed');
       return false;
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
 
@@ -116,11 +129,11 @@ export default function GrownUpCodeSection() {
               <span className="ml-auto flex gap-2">
                 {status.set ? (
                   <>
-                    <Button size="sm" onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.change')}</Button>
-                    <Button size="sm" onClick={() => void removeCode()}>{t('settings.familyPage.grownUp.remove')}</Button>
+                    <Button size="sm" disabled={saving} onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.change')}</Button>
+                    <Button size="sm" disabled={saving} onClick={() => void removeCode()}>{t('settings.familyPage.grownUp.remove')}</Button>
                   </>
                 ) : (
-                  <Button size="sm" variant="primary" onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.set')}</Button>
+                  <Button size="sm" variant="primary" disabled={saving} onClick={() => setEditing('set')}>{t('settings.familyPage.grownUp.set')}</Button>
                 )}
               </span>
             </div>
@@ -156,7 +169,7 @@ export default function GrownUpCodeSection() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" size="sm" variant="primary" data-testid="grown-up-code-save">{t('settings.familyPage.grownUp.save')}</Button>
+                <Button type="submit" size="sm" variant="primary" disabled={saving} data-testid="grown-up-code-save">{t('settings.familyPage.grownUp.save')}</Button>
                 <Button type="button" size="sm" onClick={() => { setEditing(null); setCode(''); setAgain(''); setProblem(null); }}>{tCore('actions.cancel')}</Button>
               </div>
             </form>
@@ -174,6 +187,7 @@ export default function GrownUpCodeSection() {
                   type="checkbox"
                   className={`${CHECKBOX_CLASS} mt-0.5`}
                   checked={status.actions.includes(action)}
+                  disabled={saving}
                   onChange={(e) => toggleAction(action, e.target.checked)}
                   data-testid={`grown-up-job-${action}`}
                 />
@@ -190,6 +204,7 @@ export default function GrownUpCodeSection() {
               <select
                 className={`ml-auto ${SETTINGS_INPUT_CLASS}`}
                 value={status.unlockMinutes}
+                disabled={saving}
                 onChange={(e) => void send('PUT', { unlockMinutes: Number(e.target.value) })}
                 data-testid="grown-up-unlock-minutes"
               >

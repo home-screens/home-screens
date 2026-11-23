@@ -94,6 +94,13 @@ export interface StubOptions {
    * are collected in the returned handle's `externalHits`.
    */
   blockExternal?: boolean;
+  /**
+   * Answer `/api/calendar` the way the hub does: only the events inside the
+   * window the display asked for (`timeMin` / `timeMax`, or today through the
+   * next seven days when it sent none). Off, the stub hands back every event
+   * whatever was asked, which hides a view drawing days nobody fetched.
+   */
+  calendarWindow?: boolean;
 }
 
 export interface StubHandle {
@@ -117,7 +124,7 @@ function isAppHost(url: string): boolean {
 }
 
 export async function stubModuleData(page: Page, opts: StubOptions = {}): Promise<StubHandle> {
-  const { overrides = {}, blockExternal = true } = opts;
+  const { overrides = {}, blockExternal = true, calendarWindow = false } = opts;
   const handle: StubHandle = { externalHits: [] };
   radarTileUrls = [];
 
@@ -147,7 +154,8 @@ export async function stubModuleData(page: Page, opts: StubOptions = {}): Promis
           body: JSON.stringify(override.body ?? {}),
         });
       }
-      const body = override !== undefined ? override : fixture(file);
+      const whole = override !== undefined ? override : fixture(file);
+      const body = key === 'calendar' && calendarWindow ? insideCalendarWindow(whole, route.request().url()) : whole;
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -181,6 +189,34 @@ export async function stubModuleData(page: Page, opts: StubOptions = {}): Promis
   });
 
   return handle;
+}
+
+/**
+ * The hub's own window rule for `/api/calendar`: an event is sent when it
+ * overlaps `timeMin` to `timeMax`; with no `timeMin` the window opens at the
+ * start of today, and with no `timeMax` it closes seven days after today
+ * (the fixtures' `daysAhead`). Handles both answers the route gives, a bare
+ * list and `{ events }`.
+ */
+function insideCalendarWindow(body: unknown, url: string): unknown {
+  const params = new URL(url).searchParams;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const at = (name: string, fallback: number) => {
+    const ms = Date.parse(params.get(name) ?? '');
+    return Number.isFinite(ms) ? ms : fallback;
+  };
+  const min = at('timeMin', today.getTime());
+  const max = at('timeMax', today.getTime() + 8 * 86_400_000);
+  const inside = (events: unknown[]) => events.filter((e) => {
+    const { start, end } = e as { start: string; end: string };
+    return Date.parse(end) > min && Date.parse(start) < max;
+  });
+  if (Array.isArray(body)) return inside(body);
+  if (body && typeof body === 'object' && Array.isArray((body as { events?: unknown }).events)) {
+    return { ...(body as object), events: inside((body as { events: unknown[] }).events) };
+  }
+  return body;
 }
 
 function isStatusOverride(o: Override): o is { status: number; body?: unknown } {

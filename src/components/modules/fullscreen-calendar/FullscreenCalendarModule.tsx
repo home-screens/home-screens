@@ -50,6 +50,7 @@ import { useEventTapDetail } from '../shared/useEventTapDetail';
 import { DaySheetContext, useDaySheet } from '../shared/useDaySheet';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { fullscreenCalendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
+import { borrowedViewReach } from '@/lib/calendar-window';
 import { useLookAhead, type LookAhead } from '../shared/useLookAhead';
 import { useWallCalendarSwitch } from '../shared/useWallCalendarSwitch';
 import { CalendarSwitchBar } from '../shared/CalendarSwitchBar';
@@ -314,9 +315,15 @@ export default function FullscreenCalendarModule({
     () => fullscreenCalendarLookAhead({ view: config.view }, scheduleColumns),
     [config.view, scheduleColumns],
   );
+  // A view borrowed from the wall's buttons is fetched like a saved one for as long as it shows.
+  const borrowedReach = useMemo(
+    () => (wall.borrowed === null ? null : borrowedViewReach('fullscreen-calendar', config, today)),
+    [wall.borrowed, config, today],
+  );
   const look = useLookAhead({
     step: lookStep, enabled: scroll, today, moduleId,
     reach: (step) => lookAheadReach(today, step, (at) => traits.legendWindow({ today, anchor: at, weekStartsOn, config, scaleWidth: scale.width })),
+    reachNow: borrowedReach,
   });
   // The first day the view draws: `today` at rest, so taps off and the
   // editor preview draw exactly what they always have.

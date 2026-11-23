@@ -55,10 +55,24 @@ interface MetadataEntry {
 let metadataCache: MetadataEntry | null = null;
 const labelColorCache = new Map<string, { account: string; at: number; colors: Map<string, string> }>();
 
+export interface GoogleCalendarLabel {
+  name: string;
+  color: string;
+  writable: boolean;
+}
+
+// What each calendar was last known to be called, for the event form. The
+// hourly cache above is keyed by access token and dropped on a failed read,
+// so it is empty for the whole of a Google or internet outage; this is kept
+// per calendar id and only ever replaced by a newer good answer (a sign-in to
+// another account replaces each one at its first good read).
+const lastGoodLabels = new Map<string, GoogleCalendarLabel>();
+
 /** @internal exported for test isolation */
 export function clearGoogleCalendarCache(): void {
   metadataCache = null;
   labelColorCache.clear();
+  lastGoodLabels.clear();
 }
 
 type GoogleAuthClient = NonNullable<Awaited<ReturnType<typeof getAuthenticatedClient>>>;
@@ -264,18 +278,28 @@ async function fetchEventLabelColors(
 /**
  * Names, colors and whether this account may write, for the given calendars,
  * from the same hourly cache the event fetch uses. Empty when Google is not
- * signed in.
+ * signed in. When Google cannot be asked, each calendar answers as it was
+ * last known, and one never seen is left out.
  */
-export async function googleCalendarLabels(
-  calendarIds: string[],
-): Promise<Map<string, { name: string; color: string; writable: boolean }>> {
+export async function googleCalendarLabels(calendarIds: string[]): Promise<Map<string, GoogleCalendarLabel>> {
   const auth = await getAuthenticatedClient();
   if (!auth || calendarIds.length === 0) return new Map();
   const calendar = calendarApi(auth);
-  const meta = await calendarMetadata(calendar, accountKey(auth), calendarIds);
-  return new Map(calendarIds.map((id) => [id, {
+  let meta: CalendarMetadata;
+  try {
+    meta = await calendarMetadata(calendar, accountKey(auth), calendarIds);
+  } catch (err) {
+    log.warn('Google calendar names unavailable; answering with the last known ones', err);
+    return new Map(calendarIds.flatMap((id) => {
+      const known = lastGoodLabels.get(id);
+      return known ? [[id, known] as const] : [];
+    }));
+  }
+  const labels = new Map(calendarIds.map((id) => [id, {
     name: meta.names.get(id) ?? id,
     color: meta.colors.get(id) ?? DEFAULT_EVENT_COLOR,
     writable: meta.writable.has(id),
   }]));
+  for (const [id, label] of labels) lastGoodLabels.set(id, label);
+  return labels;
 }

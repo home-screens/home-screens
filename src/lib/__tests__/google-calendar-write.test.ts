@@ -1,8 +1,33 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { calendar_v3 } from '@googleapis/calendar';
 
-vi.mock('@/lib/google-auth', () => ({ getAuthenticatedClient: vi.fn() }));
+vi.mock('@/lib/google-auth', () => ({ getAuthenticatedClient: vi.fn(async () => ({})) }));
 
-const { describeWriteFailure, draftFromGoogle, seriesTimes, toGoogleBody, withNewRRule, writeRefusal } = await import('../google-calendar-write');
+/** A stand-in Google: the events it holds, and every call the writer makes. */
+const held = new Map<string, calendar_v3.Schema$Event>();
+const calls: { method: 'get' | 'patch' | 'insert'; eventId?: string; fields?: string; body?: calendar_v3.Schema$Event; ifMatch?: string }[] = [];
+const fakeCalendar = {
+  events: {
+    get: vi.fn(async ({ eventId, fields }: { eventId: string; fields?: string }) => {
+      calls.push({ method: 'get', eventId, ...(fields ? { fields } : {}) });
+      const data = held.get(eventId);
+      if (!data) throw Object.assign(new Error('Not Found'), { code: 404 });
+      return { data };
+    }),
+    patch: vi.fn(async ({ eventId, requestBody }: { eventId: string; requestBody: calendar_v3.Schema$Event }, options: { headers: Record<string, string> }) => {
+      calls.push({ method: 'patch', eventId, body: requestBody, ifMatch: options.headers['If-Match'] });
+      return { data: {} };
+    }),
+    insert: vi.fn(async ({ requestBody }: { requestBody: calendar_v3.Schema$Event }) => {
+      calls.push({ method: 'insert', body: requestBody });
+      return { data: { id: 'new1' } };
+    }),
+  },
+};
+vi.mock('@/lib/google-calendar', () => ({ calendarApi: () => fakeCalendar }));
+
+const { createGoogleEvent, describeWriteFailure, draftFromGoogle, getGoogleEventForEdit, seriesTimes, toGoogleBody, updateGoogleEvent, withNewRRule, writeRefusal } =
+  await import('../google-calendar-write');
 const { normalizeEventDraft } = await import('../calendar-write');
 
 const TZ = 'America/Chicago';
@@ -14,15 +39,21 @@ describe('toGoogleBody', () => {
     expect(toGoogleBody(e)).toEqual({
       summary: 'Piano',
       location: '',
-      start: { dateTime: '2026-11-23T16:00:00', timeZone: TZ },
-      end: { dateTime: '2026-11-23T16:45:00', timeZone: TZ },
+      // The other shape is cleared by name, so a patch that turns an all-day event timed leaves no `date` behind.
+      start: { date: null, dateTime: '2026-11-23T16:00:00', timeZone: TZ },
+      end: { date: null, dateTime: '2026-11-23T16:45:00', timeZone: TZ },
       recurrence: ['RRULE:FREQ=WEEKLY'],
     });
   });
 
   it('writes an all-day event with its exclusive end and a place', () => {
     const e = normalizeEventDraft({ title: 'Grandma visiting', date: '2026-11-21', allDay: true, lastDate: '2026-11-22', location: 'Here' }, opts);
-    expect(toGoogleBody(e)).toEqual({ summary: 'Grandma visiting', location: 'Here', start: { date: '2026-11-21' }, end: { date: '2026-11-23' } });
+    expect(toGoogleBody(e)).toEqual({
+      summary: 'Grandma visiting',
+      location: 'Here',
+      start: { date: '2026-11-21', dateTime: null, timeZone: null },
+      end: { date: '2026-11-23', dateTime: null, timeZone: null },
+    });
   });
 });
 
@@ -44,6 +75,21 @@ describe('draftFromGoogle', () => {
     )).toMatchObject({ date: '2026-11-21', startTime: '09:00', endTime: '10:30' });
   });
 
+  it('marks a timed event of 24 hours or more with the day it ends, and no shorter one', () => {
+    const read = (start: string, end: string) =>
+      draftFromGoogle({ summary: 'Cabin', start: { dateTime: start, timeZone: TZ }, end: { dateTime: end, timeZone: TZ } }, TZ, { kind: 'none' });
+    // Friday 6 PM to Sunday 4 PM.
+    expect(read('2026-11-27T18:00:00', '2026-11-29T16:00:00')).toEqual({
+      title: 'Cabin', allDay: false, date: '2026-11-27', startTime: '18:00', endTime: '16:00', endDate: '2026-11-29',
+    });
+    // 26 hours, and exactly 24 and 48.
+    expect(read('2026-11-27T10:00:00', '2026-11-28T12:00:00')).toMatchObject({ endTime: '12:00', endDate: '2026-11-28' });
+    expect(read('2026-11-27T10:00:00', '2026-11-28T10:00:00')).toMatchObject({ endTime: '10:00', endDate: '2026-11-28' });
+    expect(read('2026-11-27T18:00:00', '2026-11-29T18:00:00')).toMatchObject({ endTime: '18:00', endDate: '2026-11-29' });
+    // A minute under a day is one the form can make itself.
+    expect(read('2026-11-27T10:00:00', '2026-11-28T09:59:00')).not.toHaveProperty('endDate');
+  });
+
   it('reads an all-day event back to its real last day, and carries a known repeat', () => {
     expect(draftFromGoogle({ summary: 'Trip', start: { date: '2026-12-20' }, end: { date: '2026-12-24' } }, TZ, { kind: 'known', rule: { frequency: 'yearly' } })).toEqual({
       title: 'Trip',
@@ -62,20 +108,20 @@ describe('seriesTimes ("Every time")', () => {
 
   it('keeps the series first day and takes the new times', () => {
     // The series started September 5; the family moved Nov 21's practice from 9:00 to 9:30.
-    expect(seriesTimes(timed('2026-11-21', '09:30', '11:00'), { dateTime: '2026-09-05T09:00:00-05:00', timeZone: TZ }, '2026-11-21', TZ)).toEqual({
-      start: { dateTime: '2026-09-05T09:30:00', timeZone: TZ },
-      end: { dateTime: '2026-09-05T11:00:00', timeZone: TZ },
+    expect(seriesTimes(timed('2026-11-21', '09:30', '11:00'), { start: { dateTime: '2026-09-05T09:00:00-05:00', timeZone: TZ } }, '2026-11-21', TZ)).toEqual({
+      start: { date: null, dateTime: '2026-09-05T09:30:00', timeZone: TZ },
+      end: { date: null, dateTime: '2026-09-05T11:00:00', timeZone: TZ },
     });
   });
 
   it('moves the whole series by the days this day moved', () => {
-    expect(seriesTimes(timed('2026-11-22', '09:00', '10:30'), { dateTime: '2026-09-05T14:00:00Z' }, '2026-11-21', TZ)).toMatchObject({
+    expect(seriesTimes(timed('2026-11-22', '09:00', '10:30'), { start: { dateTime: '2026-09-05T14:00:00Z' } }, '2026-11-21', TZ)).toMatchObject({
       start: { dateTime: '2026-09-06T09:00:00' },
     });
   });
 
   it('keeps a next-day end a day after the series start', () => {
-    expect(seriesTimes(timed('2026-11-27', '18:00', '10:00'), { dateTime: '2026-10-02T18:00:00-05:00' }, '2026-11-27', TZ)).toMatchObject({
+    expect(seriesTimes(timed('2026-11-27', '18:00', '10:00'), { start: { dateTime: '2026-10-02T18:00:00-05:00' } }, '2026-11-27', TZ)).toMatchObject({
       start: { dateTime: '2026-10-02T18:00:00' },
       end: { dateTime: '2026-10-03T10:00:00' },
     });
@@ -83,7 +129,201 @@ describe('seriesTimes ("Every time")', () => {
 
   it('keeps an all-day series as long as the day was', () => {
     const e = normalizeEventDraft({ title: 'Camp', date: '2026-11-23', allDay: true, lastDate: '2026-11-24' }, opts);
-    expect(seriesTimes(e, { date: '2026-01-05' }, '2026-11-23', TZ)).toEqual({ start: { date: '2026-01-05' }, end: { date: '2026-01-07' } });
+    expect(seriesTimes(e, { start: { date: '2026-01-05' } }, '2026-11-23', TZ)).toEqual({
+      start: { date: '2026-01-05', dateTime: null, timeZone: null },
+      end: { date: '2026-01-07', dateTime: null, timeZone: null },
+    });
+  });
+
+  describe('from a day that was moved on its own', () => {
+    // Tuesdays 5 to 6 PM from September 1; November 24 was moved to 6 to 7 PM.
+    const series = { start: { dateTime: '2026-09-01T17:00:00', timeZone: TZ }, end: { dateTime: '2026-09-01T18:00:00', timeZone: TZ } };
+    const movedDay = { allDay: false, startMinute: 18 * 60, minutes: 60 } as const;
+
+    it('moves the series by as much as the family moved that day, not onto that day', () => {
+      // 6:00 to 7:00 becomes 6:30 to 7:30 on the moved day: every Tuesday goes half an hour later.
+      expect(seriesTimes(timed('2026-11-24', '18:30', '19:30'), series, '2026-11-24', TZ, movedDay)).toMatchObject({
+        start: { dateTime: '2026-09-01T17:30:00' },
+        end: { dateTime: '2026-09-01T18:30:00' },
+      });
+    });
+
+    it('grows the series by as much as that day grew', () => {
+      expect(seriesTimes(timed('2026-11-24', '18:00', '19:30'), series, '2026-11-24', TZ, movedDay)).toMatchObject({
+        start: { dateTime: '2026-09-01T17:00:00' },
+        end: { dateTime: '2026-09-01T18:30:00' },
+      });
+    });
+
+    it('gives the same answer as before for a day that was never moved', () => {
+      const unmoved = { allDay: false, startMinute: 17 * 60, minutes: 60 } as const;
+      expect(seriesTimes(timed('2026-11-25', '16:15', '18:00'), series, '2026-11-24', TZ, unmoved))
+        .toEqual(seriesTimes(timed('2026-11-25', '16:15', '18:00'), series, '2026-11-24', TZ));
+    });
+
+    it('falls back to the new length when shortening the day would leave the series none', () => {
+      // The moved day ran three hours and is cut to one; the series only ever ran one.
+      const longDay = { allDay: false, startMinute: 18 * 60, minutes: 180 } as const;
+      expect(seriesTimes(timed('2026-11-24', '18:00', '19:00'), series, '2026-11-24', TZ, longDay)).toMatchObject({
+        start: { dateTime: '2026-09-01T17:00:00' },
+        end: { dateTime: '2026-09-01T18:00:00' },
+      });
+    });
+
+    it('carries a move past midnight onto the next day', () => {
+      const late = { start: { dateTime: '2026-09-01T23:30:00', timeZone: TZ }, end: { dateTime: '2026-09-02T00:30:00', timeZone: TZ } };
+      const day = { allDay: false, startMinute: 22 * 60, minutes: 60 } as const;
+      expect(seriesTimes(timed('2026-11-24', '23:00', '00:00'), late, '2026-11-24', TZ, day)).toMatchObject({
+        start: { dateTime: '2026-09-02T00:30:00' },
+        end: { dateTime: '2026-09-02T01:30:00' },
+      });
+    });
+
+    it('grows an all-day series by the days that day grew', () => {
+      const camp = { start: { date: '2026-01-05' }, end: { date: '2026-01-06' } };
+      const e = normalizeEventDraft({ title: 'Camp', date: '2026-11-23', allDay: true, lastDate: '2026-11-25' }, opts);
+      // That day had been stretched to two days elsewhere; a third is one more for everyone.
+      expect(seriesTimes(e, camp, '2026-11-23', TZ, { allDay: true, days: 2 })).toMatchObject({ start: { date: '2026-01-05' }, end: { date: '2026-01-07' } });
+    });
+
+    it('takes the new times as they are when the day turns all day', () => {
+      const e = normalizeEventDraft({ title: 'Soccer', date: '2026-11-24', allDay: true }, opts);
+      expect(seriesTimes(e, series, '2026-11-24', TZ, movedDay)).toMatchObject({ start: { date: '2026-09-01' }, end: { date: '2026-09-02' } });
+    });
+  });
+});
+
+describe('updateGoogleEvent', () => {
+  const CAL = 'family@group.calendar.google.com';
+  const household = { timezone: TZ, now: new Date('2026-11-21T16:00:00Z') };
+  const patches = () => calls.filter((c) => c.method === 'patch');
+  /** Load an event the way the Change form does, rename it, and send it back with its times untouched. */
+  async function rename(eventId: string, title: string, scope: 'instance' | 'series') {
+    const loaded = await getGoogleEventForEdit(CAL, eventId, TZ);
+    calls.length = 0;
+    await updateGoogleEvent({
+      calendarId: CAL,
+      eventId,
+      etag: scope === 'series' ? loaded.seriesEtag! : loaded.etag,
+      scope,
+      seriesId: loaded.seriesId,
+      dayWas: loaded.draft.date,
+      event: normalizeEventDraft({ ...loaded.draft, title }, { ...household, timesChanged: false }),
+      repeatChanged: false,
+      timesChanged: false,
+      timezone: TZ,
+    });
+    return loaded;
+  }
+  const at = (dateTime: string) => ({ dateTime, timeZone: TZ });
+
+  beforeEach(() => {
+    held.clear();
+    calls.length = 0;
+  });
+
+  it('renames a Friday 6 PM to Sunday 4 PM event without sending its times', async () => {
+    held.set('trip', { id: 'trip', etag: '"t1"', summary: 'Cabin trp', start: at('2026-11-27T18:00:00'), end: at('2026-11-29T16:00:00') });
+    const loaded = await rename('trip', 'Cabin trip', 'instance');
+    expect(loaded.draft.endDate).toBe('2026-11-29');
+    expect(patches()).toEqual([{ method: 'patch', eventId: 'trip', body: { summary: 'Cabin trip', location: '' }, ifMatch: '"t1"' }]);
+  });
+
+  it('renames a 26 hour event, and one of exactly 48 hours, the same way', async () => {
+    held.set('day', { id: 'day', etag: '"d1"', summary: 'Lake', start: at('2026-11-27T10:00:00'), end: at('2026-11-28T12:00:00') });
+    await rename('day', 'Lake day', 'instance');
+    expect(patches()[0].body).toEqual({ summary: 'Lake day', location: '' });
+
+    held.set('two', { id: 'two', etag: '"w1"', summary: 'Lake', start: at('2026-11-27T18:00:00'), end: at('2026-11-29T18:00:00') });
+    await rename('two', 'Lake weekend', 'instance');
+    expect(patches()[0].body).toEqual({ summary: 'Lake weekend', location: '' });
+  });
+
+  it('renames one weekend of a weekly Friday to Sunday series, and every weekend, without sending times', async () => {
+    held.set('cabin', { id: 'cabin', etag: '"s1"', summary: 'Cabin', start: at('2026-10-02T18:00:00'), end: at('2026-10-04T16:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    held.set('cabin_20261127', { id: 'cabin_20261127', etag: '"i1"', recurringEventId: 'cabin', summary: 'Cabin', start: at('2026-11-27T18:00:00'), end: at('2026-11-29T16:00:00') });
+
+    await rename('cabin_20261127', 'Cabin with the Lees', 'instance');
+    expect(patches()).toEqual([{ method: 'patch', eventId: 'cabin_20261127', body: { summary: 'Cabin with the Lees', location: '' }, ifMatch: '"i1"' }]);
+
+    await rename('cabin_20261127', 'Cabin weekend', 'series');
+    expect(patches()).toEqual([{ method: 'patch', eventId: 'cabin', body: { summary: 'Cabin weekend', location: '' }, ifMatch: '"s1"' }]);
+  });
+
+  it('"Every time" from a day moved to another time renames the series and moves nothing', async () => {
+    held.set('practice', { id: 'practice', etag: '"s1"', summary: 'Practice', start: at('2026-09-01T17:00:00'), end: at('2026-09-01T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    held.set('practice_20261124', { id: 'practice_20261124', etag: '"i1"', recurringEventId: 'practice', summary: 'Practice', start: at('2026-11-24T18:00:00'), end: at('2026-11-24T19:00:00') });
+    await rename('practice_20261124', 'Soccer practice', 'series');
+    expect(patches()[0].body).toEqual({ summary: 'Soccer practice', location: '' });
+  });
+
+  it('sends times once the family changed them, measured from the day as it was loaded', async () => {
+    held.set('practice', { id: 'practice', etag: '"s1"', summary: 'Practice', start: at('2026-09-01T17:00:00'), end: at('2026-09-01T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    await updateGoogleEvent({
+      calendarId: CAL, eventId: 'practice_20261124', etag: '"s1"', scope: 'series', seriesId: 'practice', dayWas: '2026-11-24',
+      timeWas: { allDay: false, startMinute: 18 * 60, minutes: 60 },
+      event: normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: false, startTime: '18:30', endTime: '19:30' }, household),
+      repeatChanged: false, timesChanged: true, timezone: TZ,
+    });
+    expect(patches()[0].body).toMatchObject({ start: { date: null, dateTime: '2026-09-01T17:30:00' }, end: { date: null, dateTime: '2026-09-01T18:30:00' } });
+  });
+
+  it('turns an all-day event timed by clearing its dates by name', async () => {
+    await updateGoogleEvent({
+      calendarId: CAL, eventId: 'party', etag: '"p1"', scope: 'instance', dayWas: '2026-11-28',
+      event: normalizeEventDraft({ title: 'Party', date: '2026-11-28', allDay: false, startTime: '14:00', endTime: '16:00' }, household),
+      repeatChanged: false, timesChanged: true, timezone: TZ,
+    });
+    expect(patches()[0].body).toMatchObject({
+      start: { date: null, dateTime: '2026-11-28T14:00:00', timeZone: TZ },
+      end: { date: null, dateTime: '2026-11-28T16:00:00', timeZone: TZ },
+    });
+  });
+
+  it('keeps a new repeat end in the series own shape when its times are left alone', async () => {
+    held.set('practice', { id: 'practice', etag: '"s1"', summary: 'Practice', start: at('2026-09-01T17:00:00'), end: at('2026-09-01T18:00:00'), recurrence: ['RRULE:FREQ=WEEKLY'] });
+    // The tapped day was made all day on its own; the series is still timed.
+    await updateGoogleEvent({
+      calendarId: CAL, eventId: 'practice_20261124', etag: '"s1"', scope: 'series', seriesId: 'practice', dayWas: '2026-11-24',
+      event: normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: true, repeat: { frequency: 'weekly', until: '2026-12-15' } }, household),
+      repeatChanged: true, timesChanged: false, timezone: TZ,
+    });
+    expect(patches()[0].body).toEqual({ summary: 'Practice', location: '', recurrence: ['RRULE:FREQ=WEEKLY;UNTIL=20261216T055959Z'] });
+  });
+
+  describe('a one-day change aimed at a series own id', () => {
+    const input = {
+      calendarId: CAL, eventId: 'soccer', etag: '"s1"', scope: 'instance' as const, dayWas: '2026-11-24',
+      event: normalizeEventDraft({ title: 'Changed', date: '2026-11-24', allDay: false, startTime: '06:00', endTime: '07:00' }, household),
+      repeatChanged: false, timesChanged: true, timezone: TZ,
+    };
+
+    it('is refused for a wall before anything is written', async () => {
+      held.set('soccer', { id: 'soccer', etag: '"s1"', recurrence: ['EXDATE;TZID=America/Chicago:20261110T170000', 'RRULE:FREQ=WEEKLY'] });
+      await expect(updateGoogleEvent({ ...input, refuseSeriesId: true })).rejects.toMatchObject({ code: 'calendarWrite.notEditable', status: 403 });
+      expect(calls).toEqual([{ method: 'get', eventId: 'soccer', fields: 'recurrence' }]);
+    });
+
+    it('lets a wall change a plain event and one day of a series', async () => {
+      held.set('dentist', { id: 'dentist', etag: '"d1"' });
+      await updateGoogleEvent({ ...input, eventId: 'dentist', etag: '"d1"', refuseSeriesId: true });
+      expect(patches()).toHaveLength(1);
+    });
+
+    it('costs a phone no extra read', async () => {
+      await updateGoogleEvent(input);
+      expect(calls.map((c) => c.method)).toEqual(['patch']);
+    });
+  });
+});
+
+describe('createGoogleEvent', () => {
+  it('sends a new event only the fields it has', async () => {
+    calls.length = 0;
+    await createGoogleEvent('family', normalizeEventDraft({ title: 'Piano', date: '2026-11-23', allDay: false, startTime: '16:00', endTime: '16:45' }, opts));
+    expect(calls[0].body).toMatchObject({ start: { dateTime: '2026-11-23T16:00:00', timeZone: TZ }, end: { dateTime: '2026-11-23T16:45:00', timeZone: TZ } });
+    expect(calls[0].body?.start).not.toHaveProperty('date');
+    expect(calls[0].body?.end).not.toHaveProperty('date');
   });
 });
 

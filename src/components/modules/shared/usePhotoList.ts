@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { MediaListItem, PhotoSlideshowConfig, FullscreenPhotoConfig } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
@@ -8,11 +9,39 @@ import { useMediaRotation } from '@/hooks/useRotatingIndex';
 import { useModuleCommand } from '@/hooks/useModuleCommand';
 import { handleSlideshowCommand } from './slideshow-commands';
 import { useCrossfadeLayers } from './useCrossfadeLayers';
+import { stripMediaToken } from '@/lib/media-url';
 
 const NO_ITEMS: MediaListItem[] = [];
 
 /** How long a slide stays up when the module sets no interval. */
 export const DEFAULT_SLIDE_INTERVAL_MS = 30_000;
+
+/** One asset, whatever access token its address carries this time. */
+const assetKey = (item: MediaListItem) => `${item.type} ${stripMediaToken(item.url)}`;
+
+/**
+ * The slides on screen, each swapped for the newest read's entry for the
+ * same asset.
+ *
+ * A film's address, a Live Photo's clip and a poster carry an access token
+ * that runs out after a few hours, and every list read mints new ones. The
+ * pass being played holds the read it was dealt from until it wraps, which
+ * for a big folder or a paused slideshow is longer than a token lasts, so the
+ * clips of a long pass stopped loading partway through. Swapping the entries
+ * here, where they are handed to the layers, keeps the tokens fresh without
+ * touching the pass: dealing the newer read into it would send the crossfade
+ * down its first-load path and cut a fade that is waiting on its picture.
+ *
+ * A slide the newest read no longer lists stays as it was dealt.
+ */
+export function withNewestTokens<T extends MediaListItem>(
+  sources: [T | null, T | null],
+  newest: ReadonlyMap<string, T>,
+): [T | null, T | null] {
+  const freshen = (item: T | null) => (item ? newest.get(assetKey(item)) ?? item : item);
+  const next: [T | null, T | null] = [freshen(sources[0]), freshen(sources[1])];
+  return next[0] === sources[0] && next[1] === sources[1] ? sources : next;
+}
 
 interface PhotoListOptions {
   /** The module's id on a real display: it carries the position across the screen rotating away and back. */
@@ -54,5 +83,8 @@ export function usePhotoList(
   // Where the slideshow is, for the wall's "3 of 5".
   const position = batch.length > 1 ? { at: (index % batch.length) + 1, of: batch.length } : null;
 
-  return { data, error, items, batch, advance, controls, position, ...layers };
+  const newest = useMemo(() => new Map(items.map((item) => [assetKey(item), item])), [items]);
+  const sources = useMemo(() => withNewestTokens(layers.sources, newest), [layers.sources, newest]);
+
+  return { data, error, items, batch, advance, controls, position, ...layers, sources };
 }

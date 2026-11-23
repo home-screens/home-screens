@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore, type HTMLAttributes, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type HTMLAttributes, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import type { LucideIcon } from 'lucide-react';
@@ -15,9 +15,10 @@ const TONES: Record<ToastTone, { border: string; ink: string }> = {
   danger: { border: 'border-hs-danger/50', ink: 'text-hs-danger' },
 };
 
-/* The one stack every editor toast lands in, so two never sit in the same
-   spot (an Undo under the backup reminder). Kept outside React state: a
-   toast anywhere in the tree, even inside a window, finds it. */
+/* The stack the page's toasts land in, so two never sit in the same spot
+   (an Undo under the backup reminder). Kept outside React state: a toast
+   anywhere on the page finds it. A toast raised inside a window lands in
+   that window's own stack instead (`WindowToastStack`). */
 let stackHost: HTMLElement | null = null;
 const listeners = new Set<() => void>();
 function setStackHost(el: HTMLElement | null) {
@@ -38,8 +39,51 @@ export function ToastStack() {
     <div
       ref={setStackHost}
       data-testid="toast-stack"
-      className="pointer-events-none fixed bottom-4 left-1/2 z-toast flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col items-center gap-2"
+      className={STACK_CLASS}
+      style={{ bottom: STACK_BOTTOM_PX }}
     />
+  );
+}
+
+const STACK_CLASS = 'pointer-events-none fixed left-1/2 z-toast flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col items-center gap-2';
+/** The gap under the lowest toast, and between the two stacks: Tailwind's `bottom-4` and `gap-2`. */
+const STACK_BOTTOM_PX = 16;
+const STACK_GAP_PX = 8;
+
+/** The stack of the window a toast is raised in; null on the page itself. */
+const WindowStack = createContext<{ host: HTMLElement | null } | null>(null);
+
+/**
+ * A window's own toast stack, drawn inside the element that keeps Tab in the
+ * window. A window is a modal dialog: a toast left in the page's stack is
+ * outside it, so its button (Undo) could be clicked but never reached from
+ * the keyboard. It sits where the page's stack does, and above whatever the
+ * page's stack is showing, so the two never cover each other.
+ */
+export function WindowToastStack({ children }: { children: ReactNode }) {
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  const pageStack = useSyncExternalStore(subscribe, () => stackHost, () => null);
+  const [pageStackHeight, setPageStackHeight] = useState(0);
+  useEffect(() => {
+    if (!pageStack || typeof ResizeObserver === 'undefined') return;
+    const measure = () => setPageStackHeight(pageStack.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(pageStack);
+    return () => observer.disconnect();
+  }, [pageStack]);
+  const value = useMemo(() => ({ host }), [host]);
+
+  return (
+    <WindowStack.Provider value={value}>
+      {children}
+      <div
+        ref={setHost}
+        data-testid="window-toast-stack"
+        className={STACK_CLASS}
+        style={{ bottom: STACK_BOTTOM_PX + (pageStackHeight > 0 ? pageStackHeight + STACK_GAP_PX : 0) }}
+      />
+    </WindowStack.Provider>
   );
 }
 
@@ -56,8 +100,9 @@ export interface ToastAction {
  * `status` by default, `alert` for a danger tone. The action button follows
  * the tone, `warning` on a warning and the main colour otherwise.
  *
- * It draws into the `ToastStack`; with no stack on the page (a unit test of
- * one component) it draws where it is.
+ * Raised inside a window it draws into that window's stack, where the
+ * keyboard can reach it; anywhere else into the page's `ToastStack`. With no
+ * stack on the page (a unit test of one component) it draws where it is.
  */
 export default function Toast({
   tone = 'neutral',
@@ -80,7 +125,8 @@ export default function Toast({
   testId?: string;
   messageTestId?: string;
 }) {
-  const host = useSyncExternalStore(subscribe, () => stackHost, () => null);
+  const pageHost = useSyncExternalStore(subscribe, () => stackHost, () => null);
+  const windowStack = useContext(WindowStack);
   const look = TONES[tone];
   const Icon = action?.icon;
   const toast = (
@@ -111,5 +157,8 @@ export default function Toast({
       )}
     </div>
   );
-  return host ? createPortal(toast, host) : toast;
+  // A window's stack is in the page one commit after the window; the toast
+  // waits for it, not drawn in the page's stack first and then moved.
+  if (windowStack) return windowStack.host ? createPortal(toast, windowStack.host) : null;
+  return pageHost ? createPortal(toast, pageHost) : toast;
 }

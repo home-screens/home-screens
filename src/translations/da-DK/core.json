@@ -781,6 +781,7 @@
     }
   },
   "calendarChange": {
+    "longNote": "Denne begivenhed varer et døgn eller mere. Dag og tidspunkter ændrer du i din kalender-app.",
     "thisDayStays": "{day}. De andre dage bliver, som de er.",
     "everyTimePastFuture": "Alle gange, både de tidligere og de kommende",
     "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",

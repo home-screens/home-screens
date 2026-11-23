@@ -675,6 +675,10 @@
         "connecting": "Verbinden…",
         "connectFailed": "Kon geen verbinding maken met iCloud. Controleer je internetverbinding en probeer het opnieuw.",
         "addAccount": "iCloud-account toevoegen",
+        "orphanedHeading": "Het account van deze agenda's is niet meer gekoppeld",
+        "orphanedHint": "Ze kunnen pas weer worden getoond als hun iCloud-account opnieuw is toegevoegd. Voeg het hieronder toe om ze terug te krijgen, of haal weg wat je niet meer nodig hebt.",
+        "orphanedRemove": "Weghalen",
+        "orphanedRemoveLabel": "{name} weghalen",
         "helpText": "Log in met een app-wachtwoord, niet met je gewone Apple-wachtwoord. Maak er een aan op account.apple.com onder Inloggen en beveiliging > App-specifieke wachtwoorden."
       },
       "holidays": {
@@ -3850,6 +3854,7 @@
     "successDefault": "De update is klaar.",
     "successRollback": "Terug naar {tag} is gelukt!",
     "restartNeeded": "Nog één stap: het apparaat moet opnieuw opstarten om de update af te ronden. Dat kan hier zodra de pagina is herladen.",
+    "alreadyRunning": "Er loopt al een update. In dit venster zie je hoe het gaat.",
     "reload": {
       "shuttingDown": "Home Screens start opnieuw…",
       "waitingNew": "Wachten tot Home Screens terug is… ({seconds} s)",

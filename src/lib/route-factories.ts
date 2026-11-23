@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, parseTagParam } from '@/lib/api-utils';
+import { UPGRADE_RUNNING_CODE } from '@/lib/upgrade-refusal';
 
 /**
  * Factory for upgrade/rollback POST handlers that share the same
@@ -12,7 +13,7 @@ export function createTagActionRoute(
   return withAuth(async (request: NextRequest) => {
     if (opts.busyCheck()) {
       return NextResponse.json(
-        { error: 'An upgrade is already in progress' },
+        { error: 'An upgrade is already in progress', code: UPGRADE_RUNNING_CODE },
         { status: 409 },
       );
     }

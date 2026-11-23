@@ -1,10 +1,11 @@
 'use client';
 
-import { dismissToast, useRemoteToast, useToastFloor } from '../remote-toast';
+import { dismissToast, toastPlacement, useRemoteToast, useToastFloor, useToastHeldAtTop } from '../remote-toast';
 import { REMOTE_LAYERS } from './remote-layers';
 
 /**
- * Renders the current remote toast just above the tab bar. Tap to dismiss.
+ * Renders the current remote toast just above the tab bar, or at the top of
+ * the screen while a sheet is up (`toastPlacement`). Tap to dismiss.
  * `role="status"` keeps it polite for screen readers — these are outcomes,
  * not interruptions. On the top layer, over every sheet, so an error is never
  * painted under the sheet it is about (a folder name that could not be kept).
@@ -17,16 +18,15 @@ import { REMOTE_LAYERS } from './remote-layers';
 export default function RemoteToast({ raisedBy = 0 }: { raisedBy?: number }) {
   const toast = useRemoteToast();
   const floor = useToastFloor();
-  const bottom = floor !== null
-    ? `${floor + 12}px`
-    : `calc(5.75rem + ${raisedBy}px + env(safe-area-inset-bottom))`;
+  const heldAtTop = useToastHeldAtTop();
+  const place = toastPlacement({ floor, heldAtTop, raisedBy });
 
   return (
     <div
       role="status"
       aria-live="polite"
       className="pointer-events-none fixed left-0 right-0 flex justify-center px-5"
-      style={{ bottom, zIndex: REMOTE_LAYERS.toast }}
+      style={{ ...place, zIndex: REMOTE_LAYERS.toast }}
     >
       {toast?.action ? (
         // A toast with a button: the message still closes it, the button acts.

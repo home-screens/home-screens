@@ -48,13 +48,20 @@ export interface LookAhead {
  * `reach` is for a calendar: while it is away, the days the arrows can bring
  * into view are registered with the display's shared calendar fetch
  * (`useLookAheadStore`), all at once so further taps fetch nothing.
+ *
+ * `reachNow` is for a calendar showing a view borrowed from the wall's
+ * buttons: the days that view draws at rest, registered for as long as they
+ * are passed, whether or not the view steps and wherever the arrows are. The
+ * shared fetch only knows the saved view, so without it a borrowed Month
+ * would draw with the saved view's week of events.
  */
-export function useLookAhead({ step: stepIn, enabled, today, moduleId, reach }: {
+export function useLookAhead({ step: stepIn, enabled, today, moduleId, reach, reachNow = null }: {
   step: LookAheadStep | null;
   enabled: boolean;
   today: Date;
   moduleId?: string;
   reach?: (step: LookAheadStep) => { start: Date; end: Date };
+  reachNow?: { start: Date; end: Date } | null;
 }): LookAhead {
   // Callers may build the step each render (`daySteps`); keep one object per distinct step.
   const stepKey = stepIn ? `${stepIn.unit}:${stepIn.count}:${stepIn.back}:${stepIn.forward}` : '';
@@ -137,15 +144,21 @@ export function useLookAhead({ step: stepIn, enabled, today, moduleId, reach }: 
   // earlier. A vertical scroll cancels the pointer.
   const rootProps: LookAheadRootProps = useOwnedSwipe(on, forward, back, touched);
 
-  const span = away && step && reach ? reach(step) : null;
-  const spanStart = span?.start.getTime() ?? null;
-  const spanEnd = span?.end.getTime() ?? null;
+  // Stepped away and borrowed at once: both together, so coming back to now
+  // narrows to the borrowed view's days rather than dropping them.
+  const spans = [away && step && reach ? reach(step) : null, reachNow].filter((s) => s !== null);
+  const spanStart = spans.length > 0 ? Math.min(...spans.map((s) => s.start.getTime())) : null;
+  const spanEnd = spans.length > 0 ? Math.max(...spans.map((s) => s.end.getTime())) : null;
+  // One write per change, never a clear followed by a set: a gap would send
+  // the shared fetch back to its at-rest address for a moment.
   useEffect(() => {
-    if (!moduleId || spanStart === null || spanEnd === null) return;
-    const { setReach } = useLookAheadStore.getState();
-    setReach(moduleId, { start: spanStart, end: spanEnd });
-    return () => setReach(moduleId, null);
+    if (!moduleId) return;
+    useLookAheadStore.getState().setReach(moduleId, spanStart === null || spanEnd === null ? null : { start: spanStart, end: spanEnd });
   }, [moduleId, spanStart, spanEnd]);
+  useEffect(() => {
+    if (!moduleId) return;
+    return () => useLookAheadStore.getState().setReach(moduleId, null);
+  }, [moduleId]);
 
   const shown = on ? offset : 0;
   const todayMs = today.getTime();

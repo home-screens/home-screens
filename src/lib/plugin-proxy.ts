@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { isAllowedDomain } from '@/lib/url-safety';
+import { addressCheckedFetch } from '@/lib/pinned-fetch';
+import { isAddressBlockedError, isAllowedDomain } from '@/lib/url-safety';
 import { auditProxyDenied } from './audit';
 
 export { isAllowedDomain } from '@/lib/url-safety';
@@ -53,6 +54,11 @@ export type FollowRedirectsResult =
  * DNS-rebinding defense applied to the initial URL. We follow up to
  * MAX_REDIRECT_HOPS hops and re-check each one with the same rules as the
  * initial URL.
+ *
+ * `safeCheck` resolves a host's name and so does the connection after it,
+ * and a hostile DNS server can answer the two differently. Every hop, the
+ * first included, is therefore fetched with `addressCheckedFetch`, which
+ * checks the address it is about to connect to under the same rule.
  */
 export async function followRedirectsWithValidation(
   opts: FollowRedirectsOptions,
@@ -66,15 +72,31 @@ export async function followRedirectsWithValidation(
   let currentMethod = opts.method;
   let currentBody: string | undefined = isBodyMethod ? opts.payload : undefined;
   let upstreamRes!: Response;
+  const fetchImpl = addressCheckedFetch(allowLan ? 'home-network' : 'public');
   for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
-    upstreamRes = await fetchWithTimeout(currentUrl, {
-      method: currentMethod,
-      headers,
-      body: isBodyMethod ? currentBody : undefined,
-      timeout: PROXY_TIMEOUT_MS,
-      redirect: 'manual',
-      retries: 0, // Retries belong on the client's request, not per redirect hop
-    });
+    try {
+      upstreamRes = await fetchWithTimeout(currentUrl, {
+        method: currentMethod,
+        headers,
+        body: isBodyMethod ? currentBody : undefined,
+        timeout: PROXY_TIMEOUT_MS,
+        redirect: 'manual',
+        retries: 0, // Retries belong on the client's request, not per redirect hop
+        fetchImpl,
+      });
+    } catch (error) {
+      if (!isAddressBlockedError(error)) throw error;
+      // The name passed the check and then resolved to a forbidden address
+      // for the connection itself.
+      auditProxyDenied(pluginId, currentUrl, hop === 0 ? 'ssrf_blocked' : 'redirect_ssrf_blocked');
+      return {
+        ok: false,
+        error: NextResponse.json(
+          { error: hop === 0 ? 'Upstream URL resolves to a blocked address' : 'Redirect target resolves to a blocked address' },
+          { status: 403 },
+        ),
+      };
+    }
     // 3xx with no Location header is treated as the final response
     if (upstreamRes.status < 300 || upstreamRes.status >= 400) break;
     const location = upstreamRes.headers.get('location');

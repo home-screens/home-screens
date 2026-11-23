@@ -250,6 +250,92 @@ describe('EventDetailOverlay', () => {
     expect(closed).toBe(1);
   });
 
+  describe('Remove', () => {
+    type RemoveAnswer = Awaited<ReturnType<NonNullable<Parameters<typeof EventDetailOverlay>[0]['actions']>['onRemove']>>;
+
+    function withActions(onClose: () => void, onRemove: () => Promise<RemoveAnswer>) {
+      return (
+        <EventDetailOverlay
+          event={timedEvent()}
+          variant="sheet"
+          theme={theme}
+          accentColor="#10b981"
+          now={NOW}
+          actions={{ onChange: () => {}, onRemove }}
+          onClose={onClose}
+        />
+      );
+    }
+
+    /** Opens the ask and presses its Remove. */
+    async function pressRemove() {
+      fireEvent.click(screen.getByTestId('event-detail-remove'));
+      const ask = screen.getByTestId('event-detail-remove-ask');
+      await act(async () => { fireEvent.click(ask.querySelector('[data-choice="instance"]')!); });
+      return ask;
+    }
+
+    it('closes once the event is removed', async () => {
+      const onClose = vi.fn();
+      render(withActions(onClose, async () => ({ ok: true })), { wrapper: Wrapper });
+      await pressRemove();
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('says why in the ask and stays open when the hub turns the removal down', async () => {
+      const onClose = vi.fn();
+      const onRemove = vi.fn(async (): Promise<RemoveAnswer> => ({ ok: false, body: { error: 'Changed elsewhere', code: 'calendarWrite.changedElsewhere' } }));
+      render(withActions(onClose, onRemove), { wrapper: Wrapper });
+      const ask = await pressRemove();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert').textContent).toBe(enUSCore.refusals.calendarWrite.changedElsewhere);
+      expect(ask.contains(screen.getByRole('alert'))).toBe(true);
+
+      // The ask is still up, so a second press can go through.
+      onRemove.mockResolvedValueOnce({ ok: true });
+      await act(async () => { fireEvent.click(ask.querySelector('[data-choice="instance"]')!); });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('says the calendar could not be reached when the answer has no words of its own', async () => {
+      for (const answer of [{ ok: false, unreachable: true }, { ok: false, body: null }] as RemoveAnswer[]) {
+        const onClose = vi.fn();
+        render(withActions(onClose, async () => answer), { wrapper: Wrapper });
+        await pressRemove();
+        expect(screen.getByRole('alert').textContent).toBe(enUSCore.refusals.calendarWrite.unreachable);
+        expect(onClose).not.toHaveBeenCalled();
+        cleanup();
+      }
+    });
+
+    it('says nothing when nobody gave the grown-up code', async () => {
+      const onClose = vi.fn();
+      render(withActions(onClose, async () => ({ ok: false, cancelled: true })), { wrapper: Wrapper });
+      await pressRemove();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByTestId('event-detail-remove-ask')).toBeTruthy();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not close on its own while a removal waits on the grown-up code', async () => {
+      vi.useFakeTimers();
+      const onClose = vi.fn();
+      let answer!: (value: RemoveAnswer) => void;
+      render(withActions(onClose, () => new Promise<RemoveAnswer>((resolve) => { answer = resolve; })), { wrapper: Wrapper });
+      await pressRemove();
+
+      act(() => { vi.advanceTimersByTime(EVENT_DETAIL_AUTO_DISMISS_MS * 2); });
+      expect(onClose).not.toHaveBeenCalled();
+
+      // Turned down after the wait: the words still have a sheet to show on,
+      // and the countdown starts again from here.
+      await act(async () => { answer({ ok: false, unreachable: true }); });
+      expect(screen.getByRole('alert').textContent).toBe(enUSCore.refusals.calendarWrite.unreachable);
+      act(() => { vi.advanceTimersByTime(EVENT_DETAIL_AUTO_DISMISS_MS); });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('holds screen rotation while mounted and releases on unmount', () => {
     function HoldProbe() {
       const held = useInteractionHeld();

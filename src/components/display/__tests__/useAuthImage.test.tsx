@@ -382,3 +382,156 @@ describe('the shared picture cache', () => {
     }
   });
 });
+
+describe('a picture the hub could not hand over', () => {
+  const PIC = '/api/backgrounds/serve?file=family/beach.jpg';
+  const SECOND = 1000;
+  const MINUTE = 60 * SECOND;
+  const DAY = 24 * 60 * MINUTE;
+
+  /** Run the clock forward and let whatever fetch it started settle. */
+  async function pass(ms: number) {
+    await act(async () => { await vi.advanceTimersByTimeAsync(ms); });
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  it('tries again after a dropped connection and shows the picture when it lands', async () => {
+    mockDisplayFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    mockDisplayFetch.mockResolvedValue(okResponse() as never);
+    const { result } = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    expect(result.current.status).toBe('failed');
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(1);
+
+    await pass(5 * SECOND);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+    expect(result.current).toEqual({ url: 'blob:mock-1', status: 'ready' });
+    // Nothing left ticking once the picture is in.
+    await pass(DAY);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each([429, 500, 502, 503, 504])('tries again after a %i', async (status) => {
+    mockDisplayFetch.mockResolvedValueOnce({ ok: false, status, headers: new Headers() } as never);
+    mockDisplayFetch.mockResolvedValue(okResponse() as never);
+    const { result } = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    expect(result.current.status).toBe('failed');
+    await pass(5 * SECOND);
+    expect(result.current.status).toBe('ready');
+  });
+
+  it.each([404, 410, 403, 400])('takes a %i as final and never asks again', async (status) => {
+    mockDisplayFetch.mockResolvedValue({ ok: false, status, headers: new Headers() } as never);
+    const { result } = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    expect(result.current.status).toBe('failed');
+    expect(vi.getTimerCount()).toBe(0);
+    await pass(DAY);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('failed');
+  });
+
+  it('waits longer each time, then settles at every five minutes', async () => {
+    mockDisplayFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { result } = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    const calls = () => mockDisplayFetch.mock.calls.length;
+    expect(calls()).toBe(1);
+    await pass(5 * SECOND - 1);
+    expect(calls()).toBe(1);
+    await pass(1);
+    expect(calls()).toBe(2);
+    await pass(15 * SECOND - 1);
+    expect(calls()).toBe(2);
+    await pass(1);
+    expect(calls()).toBe(3);
+    await pass(MINUTE);
+    expect(calls()).toBe(4);
+    await pass(5 * MINUTE - 1);
+    expect(calls()).toBe(4);
+    await pass(1);
+    expect(calls()).toBe(5);
+    await pass(5 * MINUTE);
+    expect(calls()).toBe(6);
+    // It says failed the whole way through, never a flicker of loading.
+    expect(result.current.status).toBe('failed');
+  });
+
+  it('holds one timer, however long the hub stays away', async () => {
+    mockDisplayFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const a = renderHook(() => useAuthImageState(PIC));
+    const b = renderHook(() => useAuthImageState(PIC));
+    await pass(7 * DAY);
+    expect(vi.getTimerCount()).toBe(1);
+    // About one try every five minutes for a week, shared by both hooks.
+    expect(mockDisplayFetch.mock.calls.length).toBeLessThan(7 * 24 * 12 + 5);
+
+    mockDisplayFetch.mockResolvedValue(okResponse() as never);
+    await pass(5 * MINUTE);
+    expect(a.result.current.status).toBe('ready');
+    expect(b.result.current.status).toBe('ready');
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('stops trying when the last hook showing it leaves', async () => {
+    mockDisplayFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const a = renderHook(() => useAuthImageState(PIC));
+    const b = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(1);
+
+    a.unmount();
+    await pass(5 * SECOND);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+
+    b.unmount();
+    await pass(DAY);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('stops trying when the last hook leaves while a try is still out', async () => {
+    mockDisplayFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const { unmount } = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    let failSecond!: (reason: unknown) => void;
+    mockDisplayFetch.mockReturnValueOnce(new Promise((_, reject) => { failSecond = reject; }) as never);
+    await pass(5 * SECOND);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+
+    unmount();
+    await act(async () => { failSecond(new TypeError('Failed to fetch')); });
+    await pass(DAY);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('starts the waits over for a picture that failed, was let go and is asked for afresh', async () => {
+    mockDisplayFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const first = renderHook(() => useAuthImageState(PIC));
+    await pass(2 * MINUTE);
+    first.unmount();
+    await pass(1);
+    mockDisplayFetch.mockClear();
+
+    const again = renderHook(() => useAuthImageState(PIC));
+    await pass(0);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(1);
+    await pass(5 * SECOND);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(2);
+    again.unmount();
+  });
+
+  it('leaves nothing ticking after a preload that fails', async () => {
+    mockDisplayFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    preloadAuthImage(PIC);
+    await pass(DAY);
+    expect(mockDisplayFetch).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});

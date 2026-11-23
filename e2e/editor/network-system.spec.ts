@@ -1098,8 +1098,7 @@ test.describe('Defaults › System', () => {
 
   test('a finished step back says so, and still asks for the restart when the connection dropped first', async ({ page, request }) => {
     await putConfig(request, baseConfig());
-    // upgradeRunning keeps the window from reloading the page under the test.
-    const stubs = await setupSystemStubs(page, { version: { ...VERSION_UP_TO_DATE, upgradeRunning: true } });
+    const stubs = await setupSystemStubs(page);
     // The usual ending: the restart step is the last thing the window hears,
     // then the service restarts and the stream ends without a finished event.
     const events = [
@@ -1114,7 +1113,15 @@ test.describe('Defaults › System', () => {
     );
 
     await page.goto('/editor/settings?section=defaults&page=system');
-    await page.getByRole('button', { name: 'Go back to this' }).click();
+    const goBack = page.getByRole('button', { name: 'Go back to this' });
+    await expect(goBack).toBeEnabled();
+    // From here the hub says an update is running, which keeps the window
+    // from reloading the page under the test. Not before the page has read
+    // the version: a page that knows one is running offers no going back.
+    await page.route('**/api/system/version**', (route) =>
+      route.fulfill({ json: { ...VERSION_UP_TO_DATE, upgradeRunning: true } }),
+    );
+    await goBack.click();
     await page.getByRole('dialog').getByRole('button', { name: 'Go back to v1.2.2' }).click();
 
     await expect(page.getByRole('heading', { name: 'Going back to v1.2.2' })).toBeVisible({ timeout: 15_000 });

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { UPGRADE_RUNNING_CODE } from '@/lib/upgrade-refusal';
 import { useTranslate } from '@/i18n';
 
 // ---------------------------------------------------------------------------
@@ -59,6 +60,12 @@ export interface UpgradeStreamState {
    * handleStreamError.
    */
   reconnecting: boolean;
+  /**
+   * The hub turned this window's own start down because an update was
+   * already running (an automatic one, or one started from another tab).
+   * Not a failure: the stream stays open and shows that update.
+   */
+  alreadyRunning: boolean;
 }
 
 /**
@@ -123,6 +130,7 @@ interface StreamContext {
   /** The timer that gives up on a dropped stream; null while the stream is up. */
   giveUpTimer: RefObject<ReturnType<typeof setTimeout> | null>;
   setReconnecting: (b: boolean) => void;
+  setAlreadyRunning: (b: boolean) => void;
 }
 
 /** The install is over because the service came back as a fresh process. */
@@ -262,7 +270,11 @@ function handleStreamOpen(ctx: StreamContext): void {
   ctx.markEvent();
 }
 
-/** POST the upgrade/rollback trigger; a failed trigger tears down the stream. */
+/**
+ * POST the upgrade/rollback trigger; a failed trigger tears down the stream.
+ * Turned down because an update is already running is not a failed trigger:
+ * the stream is already replaying that update's steps, so it stays open.
+ */
 async function triggerUpgrade(
   ctx: StreamContext,
   isRollback: boolean,
@@ -276,6 +288,11 @@ async function triggerUpgrade(
       body: JSON.stringify({ tag: targetTag }),
     });
     if (!res.ok) {
+      const body = await res.json().catch(() => null) as { code?: unknown } | null;
+      if (res.status === 409 && body?.code === UPGRADE_RUNNING_CODE) {
+        ctx.setAlreadyRunning(true);
+        return;
+      }
       ctx.es.close();
       ctx.setFailed(true);
       ctx.setProgress({ step: 'error', progress: 0, message: '', notice: 'startFailed' });
@@ -328,6 +345,7 @@ export function useUpgradeStream(
   const [lastEventAt, setLastEventAt] = useState(() => Date.now());
   const [reconnecting, setReconnecting] = useState(false);
   const giveUpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [alreadyRunning, setAlreadyRunning] = useState(false);
 
   // Track visited steps whenever activeStep changes
   useEffect(() => {
@@ -398,6 +416,7 @@ export function useUpgradeStream(
       markEvent: () => setLastEventAt(Date.now()),
       giveUpTimer,
       setReconnecting,
+      setAlreadyRunning,
     };
 
     es.addEventListener(
@@ -432,6 +451,7 @@ export function useUpgradeStream(
     activeStepStartedAt,
     lastEventAt,
     reconnecting,
+    alreadyRunning,
   };
 }
 

@@ -11,19 +11,24 @@
  *  1. Fast-path string check (`isBlockedHost`) — rejects obvious literal
  *     private/loopback addresses (IPv4 and IPv6) without a DNS round-trip.
  *  2. DNS-resolved check (`isSafeExternalUrl`) — resolves the hostname and
- *     validates EVERY resulting IP against the same blocklist. Closes the
- *     DNS-rebinding gap where `evil.com` resolves to `127.0.0.1`.
+ *     validates EVERY resulting IP against the same blocklist. Catches a
+ *     public-looking name such as `evil.com` that resolves to `127.0.0.1`.
  *
- * IMPORTANT: results are NOT cached. A previous version of this file kept
- * a 60-second resolved-IP cache for performance. That cache re-introduced
- * the rebinding window it was meant to defend against — an attacker could
- * present a public IP on the first lookup, get cached, then rebind to a
- * private IP for the next 60 seconds while subsequent fetches did their
- * own (now-stale) DNS lookup. We always re-resolve so the safety check and
- * the actual fetch see the same addresses.
+ * Neither of those is the last word, because a fetch resolves the name again
+ * when it connects, and whoever runs the name's DNS can answer the check
+ * with a public address and the connection with a private one. So the fetch
+ * itself has to connect through `checkedLookup` (wired up in
+ * `pinned-fetch.ts`): the address it hands the socket is the address it
+ * just checked, so there is no second answer to swap in. The two checks
+ * above stay in front of it as the quick refusal with a clear reason.
+ *
+ * Results are NOT cached, here or there. A previous version of this file
+ * kept a 60-second resolved-IP cache for performance, which only widened the
+ * gap between the answer that was checked and the answer that was used.
  */
 
-import { promises as dns } from 'dns';
+import { promises as dns, type LookupAddress } from 'dns';
+import type { LookupFunction } from 'net';
 
 // --- Domain validation ---
 
@@ -173,10 +178,9 @@ export async function isSafeExternalUrl(url: string): Promise<boolean> {
     ? parsed.hostname.slice(1, -1)
     : parsed.hostname;
 
-  // Always re-resolve. dns.lookup uses the system resolver (matches what
-  // fetch() does under the hood) so the safety check and the subsequent
-  // fetch see the same addresses. Caching here would re-introduce the
-  // DNS-rebinding window we're trying to close.
+  // Always re-resolve, through the system resolver a connection uses. This
+  // answer is not the one the fetch connects with (see `checkedLookup`), so
+  // it is only the early, well-worded refusal.
   let addresses: string[];
   try {
     const results = await dns.lookup(hostForLookup, { all: true, verbatim: true });
@@ -213,7 +217,8 @@ export async function isSafeExternalUrl(url: string): Promise<boolean> {
 //     - Link-local / APIPA (169.254/16, except the metadata IP)
 //     - IPv6 ULA (fc00::/7) and link-local (fe80::/10)
 //
-// DNS-rebinding defense still applies: every resolved address is re-checked.
+// Every resolved address is still checked, and checked again at connect
+// time by `checkedLookup('home-network')`.
 function isBlockedHostForLan(hostname: string): boolean {
   if (hostname === '' || hostname === '0.0.0.0') return true;
   // Bracketed or bare IPv6
@@ -284,4 +289,71 @@ export async function isSafeLocalOrExternalUrl(url: string): Promise<boolean> {
     if (isBlockedHostForLan(addr)) return false;
   }
   return true;
+}
+
+// ── The check at connect time ────────────────────────────────────────────
+
+/**
+ * Which addresses a fetch may connect to: `public` is the strict rule
+ * (`isSafeExternalUrl`), `home-network` the relaxed one a household opted
+ * into (`isSafeLocalOrExternalUrl`).
+ */
+export type AddressRule = 'public' | 'home-network';
+
+const ADDRESS_BLOCKED = 'EADDRBLOCKED';
+
+/** Whether one resolved address is off limits under a rule. */
+export function isBlockedAddress(address: string, rule: AddressRule): boolean {
+  return rule === 'home-network' ? isBlockedHostForLan(address) : isBlockedHost(address);
+}
+
+/**
+ * A `lookup` for `net.connect` / `tls.connect` that resolves a name and
+ * refuses it unless every address it resolves to passes the rule. Whatever
+ * it hands back is what the socket connects to, so the address that was
+ * checked and the address that is used are one answer, not two.
+ *
+ * A name with even one blocked address is refused outright rather than
+ * narrowed to its good ones, the same as the up-front checks: a public name
+ * that also answers with a private address is not a name to trust.
+ *
+ * Node skips `lookup` for a host that is already an address, so a literal
+ * never comes through here. It cannot change between check and connect
+ * either, and the up-front checks have already judged it.
+ */
+export function checkedLookup(rule: AddressRule): LookupFunction {
+  return (hostname, options, callback) => {
+    const wantsAll = typeof options === 'object' && options !== null && options.all === true;
+    const family = typeof options === 'object' && options !== null && typeof options.family === 'number' ? options.family : 0;
+    const settle = callback as (err: NodeJS.ErrnoException | null, address?: string | LookupAddress[], family?: number) => void;
+    dns.lookup(hostname, { all: true, verbatim: true, family }).then(
+      (found) => {
+        if (found.length === 0 || found.some((entry) => isBlockedAddress(entry.address, rule))) {
+          settle(addressBlockedError(hostname));
+          return;
+        }
+        if (wantsAll) settle(null, found);
+        else settle(null, found[0].address, found[0].family);
+      },
+      (error: NodeJS.ErrnoException) => settle(error),
+    );
+  };
+}
+
+function addressBlockedError(hostname: string): NodeJS.ErrnoException {
+  const error: NodeJS.ErrnoException = new Error(`${hostname} resolves to an address that may not be reached`);
+  error.code = ADDRESS_BLOCKED;
+  return error;
+}
+
+/**
+ * Whether a failed fetch failed because `checkedLookup` refused the address.
+ * A fetch wraps the socket's error as its `cause`, sometimes more than once.
+ */
+export function isAddressBlockedError(error: unknown): boolean {
+  for (let depth = 0, at: unknown = error; depth < 5 && at instanceof Error; depth++, at = at.cause) {
+    if ((at as NodeJS.ErrnoException).code === ADDRESS_BLOCKED) return true;
+    if (at instanceof AggregateError && at.errors.some((inner) => isAddressBlockedError(inner))) return true;
+  }
+  return false;
 }

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { icloudSourceId } from '@/lib/icloud-source-id';
+import { adoptICloudSources, icloudSourceId, orphanedICloudSources, withICloudSource } from '@/lib/icloud-source-id';
 import { editorFetch } from '@/lib/editor-fetch';
 import { CALENDAR_COLOR_PALETTE } from '@/lib/calendar-color';
-import { insertInListOrder } from '@/lib/calendar-sources';
 import type { CalendarOverride, ICloudSource } from '@/types/config';
 import type { ICloudCalendarListing } from '@/lib/caldav-calendar';
 import { calendarLook, storedOverride } from '@/lib/calendar-overrides';
@@ -52,6 +51,9 @@ export default function ICloudCalendarManager({
   const tCore = useTranslate('core');
   const [accounts, setAccounts] = useState<ICloudAccountInfo[]>([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
+  // Only a list the hub actually sent says which accounts exist: after a
+  // failed read every saved calendar would look like its account is gone.
+  const [accountsKnown, setAccountsKnown] = useState(false);
   const [calendarsByAccount, setCalendarsByAccount] = useState<Record<string, AccountCalendars>>({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAppleId, setNewAppleId] = useState('');
@@ -65,18 +67,10 @@ export default function ICloudCalendarManager({
   accountsRef.current = accounts;
   const calendarsRef = useRef(calendarsByAccount);
   calendarsRef.current = calendarsByAccount;
-  /**
-   * A new source where the account's own list puts it (its calendars in
-   * Apple's order, then its birthdays), so one ticked again goes back to its
-   * place in every list instead of the bottom.
-   */
+  /** A new source where the account's own list puts it, saved once per id (`withICloudSource`). */
   const withSource = useCallback((sources: ICloudSource[], source: ICloudSource) => {
     const listing = calendarsRef.current[source.accountId];
-    const urls = listing?.status === 'ready' ? listing.calendars.map((c) => c.url) : [];
-    return insertInListOrder(sources, source, (s) => {
-      if (s.accountId !== source.accountId) return -1;
-      return s.kind === 'birthdays' ? urls.length : urls.indexOf(s.url);
-    });
+    return withICloudSource(sources, source, listing?.status === 'ready' ? listing.calendars.map((c) => c.url) : []);
   }, []);
   /** A calendar's id, the same each time it is ticked (`icloudSourceId`). */
   const idFor = useCallback((accountId: string, kind: ICloudSource['kind'], url: string) => {
@@ -109,6 +103,7 @@ export default function ICloudCalendarManager({
         const list: ICloudAccountInfo[] = await res.json();
         if (cancelled) return;
         setAccounts(list);
+        setAccountsKnown(true);
         for (const account of list) fetchAccountCalendars(account.id);
       } catch (err) {
         log.debug('loadAccounts failed:', err);
@@ -138,6 +133,9 @@ export default function ICloudCalendarManager({
         return;
       }
       setAccounts((prev) => [...prev.filter((a) => a.id !== data.id), data]);
+      // The same Apple ID added again: its calendars left behind come back as they were.
+      const adopted = adoptICloudSources(sourcesRef.current, data);
+      if (adopted !== sourcesRef.current) onChange({ icloudSources: adopted });
       setNewAppleId('');
       setNewAppPassword('');
       setShowAddForm(false);
@@ -148,7 +146,7 @@ export default function ICloudCalendarManager({
     } finally {
       setConnecting(false);
     }
-  }, [newAppleId, newAppPassword, fetchAccountCalendars, t, tCore]);
+  }, [newAppleId, newAppPassword, fetchAccountCalendars, onChange, t, tCore]);
 
   const disconnectAccount = useCallback(async (accountId: string) => {
     setDisconnectFailedId(null);
@@ -219,6 +217,9 @@ export default function ICloudCalendarManager({
       onChange({ icloudSources: withSource(sources, source) });
     }
   }, [onChange, nextColor, idFor, withSource, t]);
+
+  // Saved calendars no account's list above can show, so they get rows of their own.
+  const orphaned = accountsKnown ? orphanedICloudSources(icloudSources, accounts.map((a) => a.id)) : [];
 
   const sourceFor = (accountId: string, kind: ICloudSource['kind'], url: string) =>
     icloudSources.find((s) => s.accountId === accountId && s.kind === kind && (kind === 'birthdays' || s.url === url));
@@ -373,6 +374,35 @@ export default function ICloudCalendarManager({
               </div>
             );
           })
+        )}
+
+        {orphaned.length > 0 && (
+          <div className="space-y-2" data-testid="icloud-orphaned-sources">
+            <span className="text-xs text-hs-warning-ink flex items-center gap-1.5">
+              <StatusDot tone="warning" size="sm" />
+              {t('settings.calendarPage.icloud.orphanedHeading')}
+            </span>
+            <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
+              {orphaned.map((s) => {
+                const look = calendarLook(s.id, { name: s.name, color: s.color }, calendarOverrides);
+                return (
+                  <div key={s.id} className="flex items-center gap-3 px-3 py-2" data-testid="icloud-orphaned-row">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: look.color }} />
+                    <span className="text-sm text-hs-text-body flex-1 min-w-0 truncate">{look.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => onChange({ icloudSources: sourcesRef.current.filter((other) => other.id !== s.id) })}
+                      aria-label={t('settings.calendarPage.icloud.orphanedRemoveLabel', { name: look.name })}
+                      className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
+                    >
+                      {t('settings.calendarPage.icloud.orphanedRemove')}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <FieldHint>{t('settings.calendarPage.icloud.orphanedHint')}</FieldHint>
+          </div>
         )}
 
         {showAddForm ? (

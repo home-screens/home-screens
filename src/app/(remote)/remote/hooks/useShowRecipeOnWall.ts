@@ -12,9 +12,10 @@ import {
 import { useSendToWall } from './useSendToWall';
 
 /**
- * Where a send's outcome is said. The Meals tab passes its own notice and
- * error line, which sit over its sheets and above the Library's add button;
- * the remote's toast would be hidden under an open meal sheet.
+ * Where a send's outcome is said. The Meals tab passes the remote's toast,
+ * with "Take it down" as its button. The toast is drawn over every sheet and
+ * moves to the top of the screen while one is up, so it is neither hidden
+ * under an open meal sheet nor lying on that sheet's rows.
  */
 export interface WallNotices {
   /**

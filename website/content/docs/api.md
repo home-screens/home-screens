@@ -831,7 +831,7 @@ Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id
 
 ### PATCH /api/mealie/shopping/items/:itemId
 
-Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can change. One-way: **Response** `{ "changed": false }` when it was already that way. `404` with `"reason": "gone"` when the item is no longer in Mealie. Display access, so a wall can tick.
+Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can change. One-way: **Response** `{ "changed": false }` when it was already that way. `404` with `"reason": "gone"` when the item is no longer in Mealie. A session may tick on any of the household's lists. A display token may tick only on the list the family shops from; an item on another list answers `404` the same way.
 
 ### DELETE /api/mealie/shopping/items/:itemId
 
@@ -878,6 +878,8 @@ Starts a session or controls the running one, selected by `action`:
 - `skip` and `step-done`: the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
 - `add-minute`: add a minute to the current step
 - `cancel`: stop the session
+
+Every action but `start` may also send `sessionId` (the `id` of the session the button was pressed on) and `stepIndex` (the step it was on). When the running session is a different one by then, or has moved to another step, the hub answers `404` with code `timers.notRunning` and changes nothing. Wall displays send both, so a press never lands on a timer started a moment earlier from somewhere else and two quick Done taps finish one step. Without them the action applies to whatever is running.
 
 Display access on purpose, touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
 
@@ -965,7 +967,7 @@ One event ready for the Change form: `{ "calendarId", "eventId", "etag", "series
 
 ### PATCH /api/calendar/events/:id
 
-Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "repeatChanged" }`. `scope` is `instance` (this event, or this one day of a series) or `series` (every time); `etag` is the version the form loaded (the series' for `series`); `dayWas` is the day the form opened on, so moving a series by a day moves every time by a day. A new repeat can only change every time. **Response:** `{ "ok": true }`.
+Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "timeWas", "repeatChanged", "timesChanged" }`. `scope` is `instance` (this event, or this one day of a series) or `series` (every time); `etag` is the version the form loaded (the series' for `series`); `dayWas` is the day the form opened on, so moving a series by a day moves every time by a day, and `timeWas` is that day's own times as loaded (`{ "allDay": false, "startTime", "endTime" }` or `{ "allDay": true, "lastDate" }`), so a new time moves every time by the same amount. `timesChanged: false` says the day and times were left alone: none are written, and the event keeps exactly the times its calendar holds. An event of 24 hours or more comes back from `GET` with `draft.endDate`, and its times can only be left alone. A new repeat can only change every time. **Response:** `{ "ok": true }`.
 
 ### DELETE /api/calendar/events/:id
 

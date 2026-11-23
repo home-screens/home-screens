@@ -15,6 +15,7 @@
  * land in the sandbox. Tests that additionally override process.cwd with
  * their own tmpDir keep working unchanged on top of this.
  */
+import { vi } from 'vitest';
 import { mkdtempSync, mkdirSync, readdirSync, symlinkSync } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -69,3 +70,19 @@ try {
   // expose the real cwd again), but still catches import-time path captures.
   process.cwd = () => sandbox;
 }
+
+/**
+ * No test reaches the network through the address-checked fetch by accident.
+ *
+ * `addressCheckedFetch` (src/lib/pinned-fetch.ts) is undici's own fetch on
+ * its own connections, so a test that stubs the global `fetch` would not
+ * catch it: the request would go out for real, to whatever host the test
+ * named. Here it hands back the global `fetch` instead, looked up at call
+ * time, so the stub a test installs is the one that answers. The one test
+ * that needs the real thing, against a server on this machine, asks for it
+ * with `vi.unmock('@/lib/pinned-fetch')`.
+ */
+vi.mock('@/lib/pinned-fetch', () => ({
+  addressCheckedFetch: () => (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init),
+  __closePinnedFetchForTests: async () => {},
+}));

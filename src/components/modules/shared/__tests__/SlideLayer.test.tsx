@@ -15,6 +15,7 @@ import { SlideLayer } from '../SlideImage';
 beforeAll(() => {
   HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
   HTMLMediaElement.prototype.pause = vi.fn();
+  HTMLMediaElement.prototype.load = vi.fn();
 });
 
 afterEach(cleanup);

@@ -214,3 +214,59 @@ describe('the phone’s layer scale', () => {
     expect(toastLayer).toBeGreaterThan(layerOf(screen.getByTestId('grown-up-sheet')));
   });
 });
+
+describe('where a toast sits around a sheet', () => {
+  /** The edge the toast is pinned to. */
+  const toastEdge = () => {
+    const { top, bottom } = screen.getByRole('status').style;
+    return top ? 'top' : bottom ? 'bottom' : 'none';
+  };
+
+  it('moves to the top of the screen while a sheet is up, off the sheet’s own rows, and back after', () => {
+    const page = (sheet: boolean) => (
+      <>
+        {sheet && <TallSheet label="Dinner" title="Dinner" onClose={() => {}}><button type="button">7:00 PM</button></TallSheet>}
+        <RemoteToast />
+      </>
+    );
+    const { rerender } = render(page(false));
+    expect(toastEdge()).toBe('bottom');
+    rerender(page(true));
+    expect(toastEdge()).toBe('top');
+    rerender(page(false));
+    expect(toastEdge()).toBe('bottom');
+  });
+
+  it('stays at the top until the last of two stacked sheets has closed', () => {
+    const page = (sheet: boolean, picker: boolean) => (
+      <>
+        {sheet && <TallSheet label="Dinner" title="Dinner" onClose={() => {}}><p>Tacos</p></TallSheet>}
+        {picker && <BottomSheet title="Pick a dish" onClose={() => {}}><p>Soup</p></BottomSheet>}
+        <RemoteToast />
+      </>
+    );
+    const { rerender } = render(page(true, true));
+    expect(toastEdge()).toBe('top');
+    rerender(page(true, false));
+    expect(toastEdge()).toBe('top');
+    rerender(page(false, false));
+    expect(toastEdge()).toBe('bottom');
+  });
+
+  it('stays above the tab bar for a sheet that is slid away, covered by a page, or leaves the page live', () => {
+    const page = (props: { open?: boolean; covered?: boolean; dim?: boolean }) => (
+      <>
+        <SheetFrame layer="sheet" label="Settings" onClose={() => {}} {...props}><p>Rows</p></SheetFrame>
+        <RemoteToast />
+      </>
+    );
+    const { rerender } = render(page({ open: false }));
+    expect(toastEdge()).toBe('bottom');
+    rerender(page({ open: true }));
+    expect(toastEdge()).toBe('top');
+    rerender(page({ open: true, covered: true }));
+    expect(toastEdge()).toBe('bottom');
+    rerender(page({ open: true, dim: false }));
+    expect(toastEdge()).toBe('bottom');
+  });
+});

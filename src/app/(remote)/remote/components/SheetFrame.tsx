@@ -1,12 +1,13 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import ModalPortal from '@/components/ui/ModalPortal';
 import { useSheetDialog } from '@/hooks/useSheetDialog';
 import { useSettledTap, useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useBackGesture } from '../hooks/useBackGesture';
+import { holdToastAtTop } from '../remote-toast';
 import { REMOTE_LAYERS, type RemoteLayer } from './remote-layers';
 
 export interface SheetFrameProps {
@@ -127,6 +128,11 @@ function Frame({
     onClose();
     return false;
   }, { active: up });
+  // A toast above the tab bar would sit on this sheet's lower rows and take
+  // their taps, so it waits at the top while the sheet is up. A sheet that
+  // leaves the page live is small and leaves the toast where the page has it.
+  const holdsToast = shown && dim;
+  useEffect(() => (holdsToast ? holdToastAtTop() : undefined), [holdsToast]);
 
   return (
     <div

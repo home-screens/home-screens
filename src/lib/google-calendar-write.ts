@@ -9,6 +9,7 @@ import {
   type EventDraft,
   type NormalizedEvent,
   type RepeatReading,
+  type TimeWas,
 } from '@/lib/calendar-write';
 import { addIsoDays, isoDaysBetween } from '@/lib/iso-date';
 import { parseDateInTZ, wallClockParts } from '@/lib/timezone';
@@ -44,13 +45,31 @@ export interface EditableGoogleEvent {
 
 // ── Pure mapping ──────────────────────────────────────────────────────
 
+type GoogleTimes = Pick<calendar_v3.Schema$Event, 'start' | 'end'>;
+
+/**
+ * A start or end as a day, or as a time on a clock. The other shape is named
+ * and set to null: a patch merges `start` and `end` field by field, so an
+ * all-day event turned timed (or the reverse) would otherwise keep its old
+ * `date` beside the new `dateTime`.
+ */
+function googleDay(date: string): calendar_v3.Schema$EventDateTime {
+  return { date, dateTime: null, timeZone: null };
+}
+
+function googleTime(dateTime: string, timeZone: string): calendar_v3.Schema$EventDateTime {
+  return { date: null, dateTime, timeZone };
+}
+
 /** The fields Google stores for a normalized event (no id, no marker). */
-export function toGoogleTimes(event: NormalizedEvent): Pick<calendar_v3.Schema$Event, 'start' | 'end'> {
-  if (event.allDay) return { start: { date: event.startDate }, end: { date: event.endDateExclusive } };
-  return {
-    start: { dateTime: event.startLocal, timeZone: event.timeZone },
-    end: { dateTime: event.endLocal, timeZone: event.timeZone },
-  };
+export function toGoogleTimes(event: NormalizedEvent): GoogleTimes {
+  if (event.allDay) return { start: googleDay(event.startDate), end: googleDay(event.endDateExclusive) };
+  return { start: googleTime(event.startLocal, event.timeZone), end: googleTime(event.endLocal, event.timeZone) };
+}
+
+/** A start or end with only the fields it has, for a new event, which has no other shape to clear. */
+function withoutNulls(when: calendar_v3.Schema$EventDateTime | undefined): calendar_v3.Schema$EventDateTime {
+  return Object.fromEntries(Object.entries(when ?? {}).filter(([, value]) => value !== null));
 }
 
 export function toGoogleBody(event: NormalizedEvent): calendar_v3.Schema$Event {
@@ -81,9 +100,46 @@ export function draftFromGoogle(event: calendar_v3.Schema$Event, timezone: strin
   }
   // A time without an offset is on the event's own clock, read like every
   // other calendar time here; Google normally sends one.
-  const start = wallClockParts(parseDateInTZ(event.start?.dateTime ?? '', event.start?.timeZone ?? timezone), timezone);
-  const end = wallClockParts(parseDateInTZ(event.end?.dateTime ?? '', event.end?.timeZone ?? timezone), timezone);
-  return { ...base, allDay: false, date: start.isoDate, startTime: clockTime(start.minuteOfDay), endTime: clockTime(end.minuteOfDay) };
+  const start = localOf(event.start ?? {}, timezone);
+  const end = localOf(event.end ?? {}, timezone);
+  // A day or longer cannot be told from a shorter one by its two clock times, so its end day rides along and locks its times.
+  const long = minutesBetween(start, end) >= DAY_MINUTES;
+  return {
+    ...base,
+    allDay: false,
+    date: start.isoDate,
+    startTime: clockTime(start.minuteOfDay),
+    endTime: clockTime(end.minuteOfDay),
+    ...(long ? { endDate: end.isoDate } : {}),
+  };
+}
+
+const DAY_MINUTES = 24 * 60;
+
+interface LocalTime {
+  isoDate: string;
+  minuteOfDay: number;
+}
+
+/** A timed start or end on the household's clock. */
+function localOf(when: calendar_v3.Schema$EventDateTime, timezone: string): LocalTime {
+  return wallClockParts(parseDateInTZ(when.dateTime ?? '', when.timeZone ?? timezone), timezone);
+}
+
+/** Minutes from one clock time to another, as a clock on the wall counts them. */
+function minutesBetween(from: LocalTime, to: LocalTime): number {
+  return (isoDaysBetween(from.isoDate, to.isoDate) ?? 0) * DAY_MINUTES + to.minuteOfDay - from.minuteOfDay;
+}
+
+/** A `YYYY-MM-DDTHH:MM:00` stamp as its day and minutes after midnight. */
+function stampParts(stamp: string): LocalTime {
+  return { isoDate: stamp.slice(0, 10), minuteOfDay: Number(stamp.slice(11, 13)) * 60 + Number(stamp.slice(14, 16)) };
+}
+
+/** `YYYY-MM-DDTHH:MM:00` for a day and minutes after its midnight, which may run past the day either way. */
+function localStamp(isoDate: string, minuteOfDay: number): string {
+  const days = Math.floor(minuteOfDay / DAY_MINUTES);
+  return `${addIsoDays(isoDate, days)}T${clockTime(minuteOfDay - days * DAY_MINUTES)}:00`;
 }
 
 /**
@@ -91,26 +147,49 @@ export function draftFromGoogle(event: calendar_v3.Schema$Event, timezone: strin
  * moved by however many days this day was moved, and takes the new times.
  * Changing the series' start to this day instead would drop every earlier
  * occurrence.
+ *
+ * `timeWas` is that day's own times as the form loaded them. A day that was
+ * moved on its own (practice at 6 this week, 5 every other week) differs from
+ * its series, so with it the series moves by how far the family moved this
+ * day and grows by how much they lengthened it, and does not land on this
+ * day's own times. It applies while the series, the day as loaded and the day
+ * as saved are all timed or all all-day; across that line the new times are
+ * taken as they are.
  */
 export function seriesTimes(
   event: NormalizedEvent,
-  seriesStart: calendar_v3.Schema$EventDateTime,
+  series: { start: calendar_v3.Schema$EventDateTime; end?: calendar_v3.Schema$EventDateTime | null },
   dayWas: string,
   timezone: string,
-): Pick<calendar_v3.Schema$Event, 'start' | 'end'> {
-  const firstDay = seriesStart.date ?? wallClockParts(parseDateInTZ(seriesStart.dateTime ?? '', seriesStart.timeZone ?? timezone), timezone).isoDate;
+  timeWas?: TimeWas,
+): GoogleTimes {
+  const seriesAllDay = Boolean(series.start.date);
+  const first = seriesAllDay ? null : localOf(series.start, timezone);
+  const firstDay = series.start.date ?? first!.isoDate;
   const dayNow = event.allDay ? event.startDate : event.startLocal.slice(0, 10);
   const shift = isoDaysBetween(dayWas, dayNow) ?? 0;
   const newFirst = addIsoDays(firstDay, shift);
   if (event.allDay) {
     const span = isoDaysBetween(event.startDate, event.endDateExclusive) ?? 1;
-    return { start: { date: newFirst }, end: { date: addIsoDays(newFirst, span) } };
+    const seriesSpan = seriesAllDay && series.end?.date ? isoDaysBetween(firstDay, series.end.date) : null;
+    const grown = timeWas?.allDay === true && seriesSpan !== null ? seriesSpan + span - timeWas.days : span;
+    return { start: googleDay(newFirst), end: googleDay(addIsoDays(newFirst, grown >= 1 ? grown : span)) };
   }
-  const endDay = event.endLocal.slice(0, 10);
-  const nights = isoDaysBetween(dayNow, endDay) ?? 0;
+  const start = stampParts(event.startLocal);
+  const startMinute = start.minuteOfDay;
+  const minutes = minutesBetween(start, stampParts(event.endLocal));
+  if (first && timeWas?.allDay === false) {
+    const seriesMinutes = series.end?.dateTime ? minutesBetween(first, localOf(series.end, timezone)) : null;
+    const grown = seriesMinutes !== null ? seriesMinutes + minutes - timeWas.minutes : minutes;
+    const newStart = first.minuteOfDay + startMinute - timeWas.startMinute;
+    return {
+      start: googleTime(localStamp(newFirst, newStart), event.timeZone),
+      end: googleTime(localStamp(newFirst, newStart + (grown > 0 ? grown : minutes)), event.timeZone),
+    };
+  }
   return {
-    start: { dateTime: `${newFirst}${event.startLocal.slice(10)}`, timeZone: event.timeZone },
-    end: { dateTime: `${addIsoDays(newFirst, nights)}${event.endLocal.slice(10)}`, timeZone: event.timeZone },
+    start: googleTime(localStamp(newFirst, startMinute), event.timeZone),
+    end: googleTime(localStamp(newFirst, startMinute + minutes), event.timeZone),
   };
 }
 
@@ -222,10 +301,11 @@ export async function getGoogleEventForEdit(calendarId: string, eventId: string,
 /** Add an event. Answers its id, so the wall can outline it once it arrives. */
 export async function createGoogleEvent(calendarId: string, event: NormalizedEvent): Promise<{ id: string }> {
   const calendar = await client();
+  const body = toGoogleBody(event);
   try {
     const { data } = await calendar.events.insert({
       calendarId,
-      requestBody: { ...toGoogleBody(event), extendedProperties: { private: HOME_SCREENS_MARKER } },
+      requestBody: { ...body, start: withoutNulls(body.start), end: withoutNulls(body.end), extendedProperties: { private: HOME_SCREENS_MARKER } },
     });
     return { id: `${calendarId}:${data.id ?? ''}` };
   } catch (err) {
@@ -247,9 +327,24 @@ export async function updateGoogleEvent(input: {
   seriesId?: string;
   /** The day the form opened on, for moving a series by the same number of days. */
   dayWas: string;
+  /** That day's own times as the form loaded them; see `seriesTimes`. */
+  timeWas?: TimeWas;
   event: NormalizedEvent;
   /** Send a new repeat rule (it changed). */
   repeatChanged: boolean;
+  /**
+   * Send new times (the family changed the day or the times). False leaves
+   * `start` and `end` out of the patch, so a new name or place can never
+   * move or shorten an event, whatever shape its times have.
+   */
+  timesChanged: boolean;
+  /**
+   * Make sure a one-day change is not aimed at a series' own id, which
+   * would change every time without the question (and the grown-up code)
+   * that guards it. Costs one read, so it is asked for a wall, whose token
+   * every kiosk shares; a phone is already signed in.
+   */
+  refuseSeriesId?: boolean;
   timezone: string;
 }): Promise<void> {
   const calendar = await client();
@@ -261,6 +356,10 @@ export async function updateGoogleEvent(input: {
         // Changed since the form opened: the same answer Google gives below.
         throw Object.assign(new Error('Precondition Failed'), { code: 412 });
       }
+      // With its times left alone the series keeps its own shape, which one of its days may not share.
+      const untilShape = input.timesChanged
+        ? event
+        : series.start?.date ? ({ allDay: true } as const) : ({ allDay: false, timeZone: input.timezone } as const);
       await calendar.events.patch(
         {
           calendarId,
@@ -268,15 +367,27 @@ export async function updateGoogleEvent(input: {
           requestBody: {
             summary: event.title,
             location: event.location ?? '',
-            ...seriesTimes(event, series.start ?? {}, input.dayWas, input.timezone),
-            ...(input.repeatChanged ? { recurrence: withNewRRule(series.recurrence, repeatToRRule(event)) } : {}),
+            ...(input.timesChanged
+              ? seriesTimes(event, { start: series.start ?? {}, end: series.end }, input.dayWas, input.timezone, input.timeWas)
+              : {}),
+            ...(input.repeatChanged ? { recurrence: withNewRRule(series.recurrence, repeatToRRule(event, untilShape)) } : {}),
           },
         },
         { headers: { 'If-Match': input.etag } },
       );
       return;
     }
+    if (input.refuseSeriesId) {
+      const { data: target } = await calendar.events.get({ calendarId, eventId: input.eventId, fields: 'recurrence' });
+      if (target.recurrence?.length) {
+        throw new CalendarWriteError('calendarWrite.notEditable', "That event can't be changed here.", undefined, { status: 403 });
+      }
+    }
     const body = toGoogleBody(event);
+    if (!input.timesChanged) {
+      delete body.start;
+      delete body.end;
+    }
     // One day of a series never carries a repeat of its own.
     if (input.seriesId) delete body.recurrence;
     await calendar.events.patch({ calendarId, eventId: input.eventId, requestBody: body }, { headers: { 'If-Match': input.etag } });

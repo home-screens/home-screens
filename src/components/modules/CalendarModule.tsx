@@ -31,6 +31,7 @@ import { useDayNotes } from '@/hooks/useDayNotes';
 import { hasDayNoteInWindow, type DayNotes } from '@/lib/day-notes';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { calendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
+import { borrowedViewReach } from '@/lib/calendar-window';
 import { formatDayRange } from '@/i18n/formatters';
 import { useLookAhead } from './shared/useLookAhead';
 import { LookAheadBar, LookAheadContext } from './shared/LookAhead';
@@ -175,7 +176,16 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
     return viewDayWindow({ kind: 'week', today: anchor, weekStartsOn });
   }, [viewMode, weekStartsOn, config.daysToShow, config.weeksToShow]);
   const lookStep = useMemo(() => calendarLookAhead({ viewMode, daysToShow: config.daysToShow }), [viewMode, config.daysToShow]);
-  const look = useLookAhead({ step: lookStep, enabled: scroll, today, moduleId, reach: (step) => lookAheadReach(today, step, windowAt) });
+  // A view borrowed from the wall's buttons is fetched like a saved one for as long as it shows.
+  const borrowedReach = useMemo(
+    () => (wall.borrowed === null ? null : borrowedViewReach('calendar', config, today)),
+    [wall.borrowed, config, today],
+  );
+  const look = useLookAhead({
+    step: lookStep, enabled: scroll, today, moduleId,
+    reach: (step) => lookAheadReach(today, step, windowAt),
+    reachNow: borrowedReach,
+  });
   const anchor = look.anchor;
   // A stepped list starts at its first day (the agenda: the first day of that
   // week), past or future, instead of at what is still upcoming now.

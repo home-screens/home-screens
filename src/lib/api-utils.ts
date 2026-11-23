@@ -187,6 +187,12 @@ export interface FetchRetryOptions extends RequestInit {
   baseDelayMs?: number;
   /** Maximum backoff delay in ms. Default: 5_000. */
   maxDelayMs?: number;
+  /**
+   * The fetch to make each attempt with. Default: the global one. A request
+   * to a URL someone else chose passes `addressCheckedFetch` here, so it can
+   * only connect to an address that was checked.
+   */
+  fetchImpl?: typeof fetch;
 }
 
 const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
@@ -211,6 +217,7 @@ export async function fetchWithRetry(
     retries = DEFAULT_RETRIES,
     baseDelayMs = DEFAULT_BASE_DELAY_MS,
     maxDelayMs = DEFAULT_MAX_DELAY_MS,
+    fetchImpl = fetch,
     ...rest
   } = init ?? {};
 
@@ -224,7 +231,7 @@ export async function fetchWithRetry(
         ? AbortSignal.any([rest.signal, timeoutSignal])
         : timeoutSignal;
 
-      const response = await fetch(url, { ...rest, signal });
+      const response = await fetchImpl(url, { ...rest, signal });
 
       if (!isTransientError(response.status) || attempt === retries) {
         return response;

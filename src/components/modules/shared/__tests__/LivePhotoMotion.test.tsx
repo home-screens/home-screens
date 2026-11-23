@@ -7,6 +7,7 @@ import { LivePhotoMotionLayer } from '../LivePhotoMotion';
 beforeAll(() => {
   HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
   HTMLMediaElement.prototype.pause = vi.fn();
+  HTMLMediaElement.prototype.load = vi.fn();
 });
 
 beforeEach(() => {

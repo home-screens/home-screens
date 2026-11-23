@@ -11,7 +11,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { publishRevisions } from '@/lib/display-heartbeat';
-import { TIMES_UP_HOLD_MS, addMinute, advanceStep, cancelSession, materializeSession, pauseSession, resumeSession, startSession } from '@/lib/timer-logic';
+import { TIMES_UP_HOLD_MS, addMinute, advanceStep, cancelSession, materializeSession, pauseSession, pressIsForSession, resumeSession, startSession } from '@/lib/timer-logic';
 import { __resetTimerPresenceForTests, requestTimerRefresh } from '@/lib/timer-presence';
 import type { Routine, TimerSession } from '@/types/timers';
 
@@ -25,6 +25,8 @@ vi.mock('../timer-views/timer-sounds', () => ({ playTimerSound: vi.fn() }));
 
 let session: TimerSession | null = null;
 const posted: string[] = [];
+/** Every press as sent, with the timer and step it names. */
+const bodies: Array<{ action: string; sessionId?: string; stepIndex?: number }> = [];
 
 const RULES: Record<string, (s: TimerSession, now: number) => TimerSession> = {
   pause: pauseSession,
@@ -37,9 +39,13 @@ const RULES: Record<string, (s: TimerSession, now: number) => TimerSession> = {
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (_url: string, init?: RequestInit) => {
     if (init?.method === 'POST') {
-      const { action } = JSON.parse(String(init.body)) as { action: string };
+      const body = JSON.parse(String(init.body)) as { action: string; sessionId?: string; stepIndex?: number };
+      const { action } = body;
       posted.push(action);
-      if (session) session = RULES[action](materializeSession(session, Date.now())!, Date.now());
+      bodies.push(body);
+      const live = materializeSession(session, Date.now());
+      // The route's rule: a press for another timer or another step changes nothing.
+      if (live && pressIsForSession(live, body)) session = RULES[action](live, Date.now());
     }
     return { ok: true, json: async () => ({ session }) };
   },
@@ -61,7 +67,13 @@ async function showSession(s: TimerSession, revision: string) {
   });
 }
 
-const tapScreen = () => fireEvent.click(screen.getByTestId('timer-overlay'));
+// A tap as a finger makes it: down, up, then the click.
+const tapScreen = () => {
+  const overlay = screen.getByTestId('timer-overlay');
+  fireEvent.pointerDown(overlay);
+  fireEvent.pointerUp(overlay);
+  fireEvent.click(overlay);
+};
 const controls = () => screen.queryByTestId('timer-controls');
 
 function quick(durationSec: number): TimerSession {
@@ -80,6 +92,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   session = null;
   posted.length = 0;
+  bodies.length = 0;
   __resetTimerPresenceForTests();
 });
 
@@ -176,6 +189,54 @@ describe('TimerOverlay buttons', () => {
     await settle();
     expect(posted).toEqual(['step-done']);
     expect(controls()).toBeNull();
+  });
+
+  it('a hold on Stop begun just before the buttons would go keeps them up and stops the timer', async () => {
+    render(<TimerOverlay />);
+    await showSession(quick(600), 't1');
+    // Stepped, not jumped: the buttons going and the hold finishing must not
+    // fall inside one batch.
+    const step = async (ms: number) => { for (let at = 0; at < ms; at += 50) await settle(50); };
+    await step(TIMER_CONTROLS_IDLE_MS - 800);
+    fireEvent.pointerDown(screen.getByLabelText('timer.stopHoldHint'));
+    await step(900);
+    expect(controls()).not.toBeNull();
+    await step(200);
+    expect(posted).toEqual(['cancel']);
+  });
+
+  it('a press names the timer on the screen, so it cannot land on one started since', async () => {
+    render(<TimerOverlay />);
+    const shown = quick(600);
+    await showSession(shown, 't1');
+    // A phone starts another timer; this wall has not heard yet.
+    const started = quick(300);
+    session = started;
+
+    tapScreen();
+    fireEvent.click(screen.getByTestId('timer-pause'));
+    await settle();
+    expect(bodies).toEqual([{ action: 'pause', sessionId: shown.id }]);
+    expect(session).toBe(started);
+    // The read after the press shows the timer that is really running, with no error.
+    expect(screen.getByTestId('timer-pause')).toBeTruthy();
+    expect(screen.queryByTestId('timer-resume')).toBeNull();
+  });
+
+  it('two quick "Done!" taps finish one step, not two', async () => {
+    render(<TimerOverlay />);
+    const routine: Routine = { ...TAP_ROUTINE, steps: [...TAP_ROUTINE.steps, { id: 'c', label: 'Brush teeth', icon: '🪥', durationSec: 300 }] };
+    const started = startSession({ kind: 'routine', routine, targets: 'all' }, Date.now());
+    await showSession(started, 't1');
+    await settle(6000);
+    tapScreen();
+    tapScreen();
+    await settle();
+    expect(bodies).toEqual([
+      { action: 'step-done', sessionId: started.id, stepIndex: 0 },
+      { action: 'step-done', sessionId: started.id, stepIndex: 0 },
+    ]);
+    expect(session!.stepIndex).toBe(1);
   });
 
   it('keeps "Time\'s up!" up past the old 15 s until a tap', async () => {

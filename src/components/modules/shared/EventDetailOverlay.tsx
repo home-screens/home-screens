@@ -9,9 +9,11 @@ import { useTranslate, useFormattingLocale, formatDayRange, formatRelativeTime, 
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { refusalSentence } from '@/lib/hub-request';
 import { WallOverlay, WallSheetPanel } from './WallOverlay';
 import { wallPressProps } from './wallPress';
 import { WallAskInSheet } from './WallAskInSheet';
+import type { WallRemoveResult } from './useWallCalendarAdding';
 
 // A kiosk nobody is standing at must not show an event detail forever.
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
@@ -81,12 +83,14 @@ interface EventDetailOverlayProps {
   now: Date;
   /**
    * Change and Remove, shown only for an event this wall may change.
-   * Remove asks inside the sheet first; `onRemove` answers whether
-   * it went through, so the sheet can stay open with its words when it did not.
+   * Remove asks inside the sheet first; `onRemove` answers how it ended.
+   * Removed closes the sheet. Turned down, or the hub out of reach, keeps
+   * the ask open with the reason in it, so Remove can be pressed again. A
+   * grown-up code nobody gave keeps the ask open and says nothing.
    */
   actions?: {
     onChange: () => void;
-    onRemove: (scope: 'instance' | 'series') => Promise<boolean>;
+    onRemove: (scope: 'instance' | 'series') => Promise<WallRemoveResult>;
   };
   onClose: () => void;
 }
@@ -105,6 +109,8 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
   const locale = useFormattingLocale();
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Why the last Remove did not go through, said in the ask.
+  const [removeProblem, setRemoveProblem] = useState<string | null>(null);
 
   const description = sanitizeEventDescription(event.description);
   const start = parseEventWallTime(event.start, timezone);
@@ -219,6 +225,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
           theme={theme}
           accentColor={accentColor}
           busy={busy}
+          notice={removeProblem}
           title={t('event-detail.removeTitle', { title: event.title })}
           body={t('event-detail.removeBody', { calendar: event.sourceName ?? '' })}
           cancelLabel={t('event-detail.keepIt')}
@@ -230,11 +237,18 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
             : [{ id: 'instance', label: t('event-detail.remove'), tone: 'dangerFill' }]}
           onPick={async (id) => {
             setBusy(true);
-            const removed = await actions.onRemove(id === 'series' ? 'series' : 'instance');
+            setRemoveProblem(null);
+            const result = await actions.onRemove(id === 'series' ? 'series' : 'instance');
             setBusy(false);
-            if (removed) onClose();
+            if (result.ok) return onClose();
+            // Nobody gave the grown-up code: back to the ask, nothing changed, nothing to say.
+            if ('cancelled' in result) return;
+            setRemoveProblem(('body' in result ? refusalSentence(result.body, tCore) : null) ?? tCore('refusals.calendarWrite.unreachable'));
           }}
-          onCancel={() => setAsking(false)}
+          onCancel={() => {
+            setAsking(false);
+            setRemoveProblem(null);
+          }}
         />
       )}
 
@@ -298,6 +312,9 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
       label={event.title}
       onClose={onClose}
       autoCloseMs={EVENT_DETAIL_AUTO_DISMISS_MS}
+      // A removal may be waiting on the grown-up pad, a separate overlay whose
+      // presses never reach this one: the countdown waits with it.
+      paused={busy}
       scrim={theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)'}
       style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
     >

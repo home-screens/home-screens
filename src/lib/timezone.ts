@@ -412,16 +412,20 @@ export interface TimeOfDayFormat {
   /** 12-hour only: a leading zero on the hour (`08:05 AM`), for times that line up in a column. */
   pad?: boolean;
   /**
-   * An hour label on a forecast: `8 AM` in 12-hour mode. 24-hour mode keeps
-   * its minutes (`08:00`), since a bare `08` does not read as a time.
+   * An hour label on a forecast, with no minutes: `8 AM` in 12-hour mode and
+   * the bare two-digit hour (`08`) in 24-hour mode. The labels sit in narrow
+   * columns that never wrap, where `08:00` under every hour does not fit.
    */
   hourOnly?: boolean;
 }
 
 /**
  * A time of day, written the one way every surface writes it: `08:05` in
- * 24-hour mode in every language, and `8:05 AM` in 12-hour mode with the
- * language's own day period (`8:05 vorm.`, `8:05 a. m.`).
+ * 24-hour mode in every language (leading zero, colon), and `8:05 AM` in
+ * 12-hour mode. The day period is the one date-fns has for the language:
+ * `AM` / `PM` in every shipped language but German, which reads
+ * `8:05 vorm.` / `3:30 nachm.`. With `hourOnly` the minutes go: `8 AM`,
+ * `8 vorm.`, and `08` in 24-hour mode.
  *
  * Intl's `hour: 'numeric'` writes `8:05` in German and `8.05` in Danish, so
  * a wall that used it beside the calendar read `08:05` on an event and `8:05`
@@ -438,8 +442,19 @@ export function formatTimeOfDay(
   // A day with no clock change in any zone, so the probe reads as the time itself.
   const probe = new Date(2000, 0, 1, Math.floor(minuteOfDay / 60), minuteOfDay % 60);
   const hours = pad ? 'hh' : 'h';
-  const pattern = timeFormat === '24h' ? 'HH:mm' : hourOnly ? `${hours} a` : `${hours}:mm a`;
+  const pattern = timeFormat === '24h'
+    ? (hourOnly ? 'HH' : 'HH:mm')
+    : hourOnly ? `${hours} a` : `${hours}:mm a`;
   return formatDateSync(probe, pattern, { locale }).trim();
+}
+
+/**
+ * An hour label (`formatTimeOfDay` with `hourOnly`) for a strip too tight for
+ * the space: a two-letter day period closes up to the hour (`8AM`), a longer
+ * one keeps its space, since `8vorm.` reads as a typo.
+ */
+export function tightHourLabel(label: string): string {
+  return label.replace(/^(\d+) (\p{L}{2})$/u, '$1$2');
 }
 
 /**

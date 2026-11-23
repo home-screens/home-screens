@@ -51,6 +51,7 @@ const choreDataResult = [{ chores }, null] as const;
 const rewardsResult = [{ balances: {}, rewards: [], redemptions: [] }, null] as const;
 type Marks = {
   completions: Array<{ choreId: string; memberId: string; date: string; status?: 'skipped'; at?: string }>;
+  grabs?: Array<{ choreId: string; memberId: string; date: string }>;
   bonusResets?: Record<string, string>;
 };
 let completionsResult: readonly [Marks & { today?: string }, null] =
@@ -235,5 +236,58 @@ describe('loading covers the beat between the chores and their ticks', () => {
     // that was finished before it opened.
     expect(seen.some((s) => !s.isLoading)).toBe(true);
     for (const s of seen) if (!s.isLoading) expect(s.completed).toBe(1);
+  });
+});
+
+describe('a write that saved nothing', () => {
+  // The write is held open (a grown-up pad left up, a slow hub) and then
+  // fails, after a read of the chores has landed in between.
+  async function holdWrite() {
+    const { displayFetch } = await import('@/lib/display-fetch');
+    let fail!: (reason: Error) => void;
+    vi.mocked(displayFetch).mockImplementationOnce(() => new Promise<Response>((_, reject) => { fail = reject; }));
+    return () => fail(new Error('gave up'));
+  }
+
+  it('goes back to the newest chores read, not the list from before the tap', async () => {
+    completionsResult = [{ completions: [], today: today() }, null];
+    const { result, rerender } = renderHook(() => useChoreData(config, undefined), { wrapper });
+    await act(async () => {});
+    const fail = await holdWrite();
+
+    let write!: Promise<unknown>;
+    act(() => { write = result.current.toggleComplete('chore-1', 'kid-1'); });
+    expect(result.current.bonusMarks.completions.map((c) => c.choreId)).toEqual(['chore-1']);
+
+    // Someone else's tick, read while the write is still out.
+    completionsResult = [{ completions: [{ choreId: 'garage', memberId: 'kid-1', date: today() }], today: today() }, null];
+    rerender();
+    await act(async () => {});
+
+    await act(async () => { fail(); await write; });
+    expect(result.current.bonusMarks.completions.map((c) => c.choreId)).toEqual(['garage']);
+  });
+
+  it('does the same for a chore someone tried to take', async () => {
+    completionsResult = [{ completions: [], grabs: [], today: today() }, null];
+    const { result, rerender } = renderHook(() => useChoreData(config, undefined), { wrapper });
+    await act(async () => {});
+    const fail = await holdWrite();
+
+    let write!: Promise<unknown>;
+    act(() => { write = result.current.grabChore('garage', 'kid-1', 'grab'); });
+    expect(result.current.bonusMarks.grabs).toHaveLength(1);
+
+    completionsResult = [{
+      completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }],
+      grabs: [{ choreId: 'garage', memberId: 'kid-2', date: today() }],
+      today: today(),
+    }, null];
+    rerender();
+    await act(async () => {});
+
+    await act(async () => { fail(); await write; });
+    expect(result.current.bonusMarks.grabs.map((g) => g.memberId)).toEqual(['kid-2']);
+    expect(result.current.bonusMarks.completions.map((c) => c.choreId)).toEqual(['chore-1']);
   });
 });

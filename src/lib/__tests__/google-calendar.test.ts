@@ -20,7 +20,7 @@ vi.mock('@googleapis/calendar', () => ({
   }),
 }));
 
-import { clearGoogleCalendarCache, fetchCalendarEvents } from '../google-calendar';
+import { clearGoogleCalendarCache, fetchCalendarEvents, googleCalendarLabels } from '../google-calendar';
 import { SetupError } from '@/lib/api-utils';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
@@ -611,5 +611,57 @@ describe('fetchCalendarEvents', () => {
       expect(first.events[0].calendarColor).toBe('#4285f4');
       expect(second.events[0].calendarColor).toBe('#ff0000');
     });
+  });
+});
+
+describe('googleCalendarLabels', () => {
+  const FAMILY = 'family@group.calendar.google.com';
+  const WORK = 'work@group.calendar.google.com';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clearGoogleCalendarCache();
+    setupColors();
+  });
+
+  it('names, colours and marks what this account may write', async () => {
+    setupAuth();
+    setupCalendarList([
+      { id: FAMILY, summary: 'Family', backgroundColor: '#10b981', accessRole: 'owner' },
+      { id: WORK, summary: 'Work', backgroundColor: '#4073ff', accessRole: 'reader' },
+    ]);
+    expect([...(await googleCalendarLabels([FAMILY, WORK]))]).toEqual([
+      [FAMILY, { name: 'Family', color: '#10b981', writable: true }],
+      [WORK, { name: 'Work', color: '#4073ff', writable: false }],
+    ]);
+  });
+
+  it('answers with the last known names when Google cannot be asked, across a new access token', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    setupAuth('ya29.first');
+    setupCalendarList([{ id: FAMILY, summary: 'Family', backgroundColor: '#10b981', accessRole: 'owner' }]);
+    await googleCalendarLabels([FAMILY]);
+
+    // An hour on: the token was refreshed, so the hourly cache misses, and Google is down.
+    setupAuth('ya29.second');
+    mockCalendarListList.mockRejectedValue(new Error('getaddrinfo ENOTFOUND www.googleapis.com'));
+    const during = await googleCalendarLabels([FAMILY, WORK]);
+    // The calendar seen before is still offered; one never seen is left out, not made up.
+    expect([...during]).toEqual([[FAMILY, { name: 'Family', color: '#10b981', writable: true }]]);
+    // And again on the next poll: a failed read is not what gets remembered.
+    expect((await googleCalendarLabels([FAMILY])).get(FAMILY)?.name).toBe('Family');
+
+    // Back up, with the calendar renamed in the meantime.
+    setupCalendarList([{ id: FAMILY, summary: 'The Smiths', backgroundColor: '#10b981', accessRole: 'owner' }]);
+    expect((await googleCalendarLabels([FAMILY])).get(FAMILY)?.name).toBe('The Smiths');
+    warn.mockRestore();
+  });
+
+  it('answers nothing when Google is down and no calendar was ever read', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    setupAuth();
+    mockCalendarListList.mockRejectedValue(new Error('socket hang up'));
+    expect((await googleCalendarLabels([FAMILY])).size).toBe(0);
+    warn.mockRestore();
   });
 });

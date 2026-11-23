@@ -7,14 +7,18 @@ vi.mock('@/lib/auth', () => ({
   hasEditorSession: vi.fn().mockResolvedValue(true),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
+vi.mock('@/lib/meal-data', () => ({ readMealData: vi.fn() }));
 vi.mock('@/lib/mealie-shopping', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/mealie-shopping')>()),
   setMealieShoppingItemChecked: vi.fn(),
   deleteMealieShoppingItem: vi.fn(),
+  readMealieShopping: vi.fn(),
 }));
 
 import { DELETE, PATCH } from '../route';
-import { deleteMealieShoppingItem, MealieShoppingGoneError, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
+import { deleteMealieShoppingItem, MealieShoppingGoneError, readMealieShopping, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
+import { readMealData } from '@/lib/meal-data';
+import type { MealData } from '@/lib/meal-data';
 import { MealieError } from '@/lib/mealie';
 import { hasEditorSession, requireSession } from '@/lib/auth';
 import { noteWallAdded, resetWallAdded, wallMayUndo } from '@/lib/wall-added';
@@ -30,13 +34,21 @@ const patch = (itemId: string, body: unknown) => PATCH(
 describe('PATCH /api/mealie/shopping/items/[itemId]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(hasEditorSession).mockResolvedValue(true);
     vi.mocked(setMealieShoppingItemChecked).mockResolvedValue(true);
   });
 
   it('ticks the item and says whether anything changed', async () => {
     const res = await patch(ITEM, { checked: true });
     expect(await res.json()).toEqual({ changed: true });
-    expect(setMealieShoppingItemChecked).toHaveBeenCalledWith(ITEM, true);
+    // The phone ticks on any of the household's lists.
+    expect(setMealieShoppingItemChecked).toHaveBeenCalledWith(ITEM, true, {});
+    expect(readMealieShopping).not.toHaveBeenCalled();
+  });
+
+  it('refuses a body that is not an object', async () => {
+    for (const body of [null, [], 'checked', 7]) expect((await patch(ITEM, body)).status).toBe(400);
+    expect(setMealieShoppingItemChecked).not.toHaveBeenCalled();
   });
 
   it('only ticks: anything but true or false is refused', async () => {
@@ -64,10 +76,53 @@ describe('PATCH /api/mealie/shopping/items/[itemId]', () => {
   });
 });
 
+describe('PATCH /api/mealie/shopping/items/[itemId] from a wall', () => {
+  const FAMILY = '930a09f2-00f6-44b3-89ec-449586cffcc0';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(hasEditorSession).mockResolvedValue(false);
+    vi.mocked(setMealieShoppingItemChecked).mockResolvedValue(true);
+    vi.mocked(readMealData).mockResolvedValue({ settings: { planSource: 'mealie' }, mealieShoppingList: FAMILY } as unknown as MealData);
+    vi.mocked(readMealieShopping).mockResolvedValue({ status: 'ok', lists: [], list: { id: FAMILY, name: 'Groceries', groups: [] }, fetchedAt: 1, baseUrl: 'http://mealie.local' });
+  });
+
+  it('ticks only on the list the family shops from', async () => {
+    const res = await patch(ITEM, { checked: true });
+    expect(await res.json()).toEqual({ changed: true });
+    expect(readMealieShopping).toHaveBeenCalledWith(FAMILY);
+    expect(setMealieShoppingItemChecked).toHaveBeenCalledWith(ITEM, true, { onList: FAMILY });
+  });
+
+  it('says an item on another list is not there', async () => {
+    vi.mocked(setMealieShoppingItemChecked).mockRejectedValue(new MealieShoppingGoneError());
+    const res = await patch(ITEM, { checked: true });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ reason: 'gone' });
+  });
+
+  it('ticks nothing while the household has no list', async () => {
+    vi.mocked(readMealieShopping).mockResolvedValue({ status: 'ok', lists: [], list: null, fetchedAt: 1, baseUrl: 'http://mealie.local' });
+    expect((await patch(ITEM, { checked: true })).status).toBe(404);
+    expect(setMealieShoppingItemChecked).not.toHaveBeenCalled();
+  });
+
+  it('ticks nothing while Mealie cannot say which list that is', async () => {
+    vi.mocked(readMealieShopping).mockResolvedValue({ status: 'failed', failure: 'unreachable' });
+    const res = await patch(ITEM, { checked: true });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ failure: 'unreachable' });
+    expect(setMealieShoppingItemChecked).not.toHaveBeenCalled();
+  });
+});
+
 describe('DELETE /api/mealie/shopping/items/[itemId]', () => {
   const del = (itemId: string) => DELETE(new NextRequest(`http://localhost/api/mealie/shopping/items/${itemId}`, { method: 'DELETE' }), { params: Promise.resolve({ itemId }) });
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(hasEditorSession).mockResolvedValue(true);
+  });
 
   it('takes the item off its list, for Undo', async () => {
     vi.mocked(deleteMealieShoppingItem).mockResolvedValue();

@@ -103,6 +103,24 @@ describe('mealie-shopping', () => {
       json.mockRejectedValueOnce(new MealieError('unreachable', 'Mealie did not answer'));
       await expect(setMealieShoppingItemChecked('item-1', true)).rejects.toMatchObject({ failure: 'unreachable' });
     });
+
+    it('ticks an item on the one list it is held to', async () => {
+      json.mockResolvedValueOnce(TOWELS as never).mockResolvedValueOnce({ updatedItems: [] } as never);
+      expect(await setMealieShoppingItemChecked('item-1', true, { onList: 'list-g' })).toBe(true);
+    });
+
+    it('leaves an item on another list alone when held to one list', async () => {
+      json.mockResolvedValueOnce(TOWELS as never);
+      await expect(setMealieShoppingItemChecked('item-1', true, { onList: 'list-other' })).rejects.toBeInstanceOf(MealieShoppingGoneError);
+      expect(json).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves an item alone when Mealie does not say which list it is on', async () => {
+      const { shoppingListId: _list, ...unplaced } = TOWELS;
+      json.mockResolvedValueOnce(unplaced as never);
+      await expect(setMealieShoppingItemChecked('item-1', true, { onList: 'list-g' })).rejects.toBeInstanceOf(MealieShoppingGoneError);
+      expect(json).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('readMealieShopping', () => {

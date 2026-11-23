@@ -1,4 +1,4 @@
-import { addIsoDays, isIsoDate, isoWeekday } from './iso-date';
+import { addIsoDays, isIsoDate, isoDaysBetween, isoWeekday } from './iso-date';
 import { oneLineText, textLength } from './text-length';
 import { isoDateInTZ, parseDateInTZ } from './timezone';
 import { RefusalError, type RefusalParams } from './refusal';
@@ -84,6 +84,13 @@ export interface EventDraft {
   startTime?: string;
   /** Timed only: `HH:MM`. Earlier than `startTime` means the next day. */
   endTime?: string;
+  /**
+   * Timed only, and only on an event loaded for Change that runs 24 hours or
+   * more: the day it really ends. The forms can only say "ends the same day
+   * or the next", so such an event's day and times are shown and never
+   * changed here; its name, place and Remove still work.
+   */
+  endDate?: string;
   /** All day only: the last day, inclusive. Absent means one day. */
   lastDate?: string;
   location?: string;
@@ -154,11 +161,22 @@ function normalizeRepeat(repeat: RepeatRule | null | undefined, date: string): R
   return { frequency: repeat.frequency, until: repeat.until };
 }
 
+/** Whether a draft is a timed event of 24 hours or more, whose day and times the forms show but never change. */
+export function isLongTimed(draft: Pick<EventDraft, 'allDay' | 'endDate'>): boolean {
+  return !draft.allDay && draft.endDate !== undefined;
+}
+
 /**
  * Check a draft and put it in the shape the writers take. `timezone` is the
  * household's, and `now` decides "today" for the date range.
+ *
+ * `timesChanged: false` is a change that leaves the day and times alone (a
+ * new name or place): the writers then send no times at all, so the event
+ * keeps exactly the times its calendar holds, including ones no form here
+ * could have made (two days long, or ending the moment it starts). Left out,
+ * the times count as changed.
  */
-export function normalizeEventDraft(draft: EventDraft, opts: { timezone: string; now?: Date }): NormalizedEvent {
+export function normalizeEventDraft(draft: EventDraft, opts: { timezone: string; now?: Date; timesChanged?: boolean }): NormalizedEvent {
   const title = oneLineText(String(draft.title ?? ''));
   if (!title) refuse('calendarWrite.titleRequired', 'Give the event a name.');
   if (textLength(title) > CALENDAR_WRITE_LIMITS.maxTitleLength) {
@@ -199,10 +217,19 @@ export function normalizeEventDraft(draft: EventDraft, opts: { timezone: string;
 
   const start = minutesOf(draft.startTime);
   const end = minutesOf(draft.endTime);
-  if (end === start) refuse('calendarWrite.endsWhenItStarts', 'It ends when it starts.');
-  // An end earlier on the clock is the next day: a sleepover from 6 PM to
-  // 10 AM. That keeps every timed event under a day; longer is all day.
-  const endDate = end < start ? addIsoDays(date, 1) : date;
+  const keepsTimes = opts.timesChanged === false;
+  let endDate: string;
+  if (draft.endDate !== undefined) {
+    if (!isIsoDate(draft.endDate) || draft.endDate < date) refuse('calendarWrite.badDate', 'That day does not look right.');
+    // New times would be written as "the same day or the next", cutting the event short.
+    if (!keepsTimes) throw new CalendarWriteError('calendarWrite.notEditable', "That event's times can't be changed here.", undefined, { status: 403 });
+    endDate = draft.endDate;
+  } else {
+    if (end === start && !keepsTimes) refuse('calendarWrite.endsWhenItStarts', 'It ends when it starts.');
+    // An end earlier on the clock is the next day: a sleepover from 6 PM to
+    // 10 AM. That keeps every timed event made here under a day; longer is all day.
+    endDate = end < start ? addIsoDays(date, 1) : date;
+  }
   return {
     ...base,
     allDay: false,
@@ -247,6 +274,51 @@ export function checkChangeScope(scope: ChangeScope, repeatChanged: boolean): vo
   }
 }
 
+/**
+ * The day a Change form opened on, which "every time" moves a whole series
+ * from: a real day, and no further from today than an event may start, so a
+ * made-up one cannot carry a series decades away.
+ */
+export function checkDayWas(dayWas: unknown, today: string): string {
+  if (typeof dayWas !== 'string' || !isIsoDate(dayWas)) refuse('calendarWrite.badDate', 'That day does not look right.');
+  if (dayWas < yearsFrom(today, -CALENDAR_WRITE_LIMITS.maxYearsAway) || dayWas > yearsFrom(today, CALENDAR_WRITE_LIMITS.maxYearsAway)) {
+    refuse('calendarWrite.dayTooFar', `An event must start within ${CALENDAR_WRITE_LIMITS.maxYearsAway} years of today.`, {
+      years: CALENDAR_WRITE_LIMITS.maxYearsAway,
+    });
+  }
+  return dayWas;
+}
+
+/** The times a Change form opened with, as the forms send them beside `dayWas`. */
+export type TimeWasInput = { allDay: true; lastDate?: string } | { allDay: false; startTime?: string; endTime?: string };
+
+/**
+ * A day's own times as its form loaded them. A day of a series that was
+ * moved on its own can differ from the series, so "every time" moves the
+ * series by how far the family moved this day, not onto this day's times.
+ */
+export type TimeWas =
+  | { allDay: true; /** First day to last, inclusive. */ days: number }
+  | { allDay: false; /** Minutes after midnight. */ startMinute: number; /** How long it ran. */ minutes: number };
+
+/** Read `timeWas` from a change. Absent, or a day with no length to measure from, answers undefined: the new times are then taken as they are. */
+export function readTimeWas(value: unknown, dayWas: string): TimeWas | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'object') refuse('calendarWrite.badTime', 'That time does not look right.');
+  const was = value as { allDay?: unknown; lastDate?: unknown; startTime?: unknown; endTime?: unknown };
+  if (was.allDay === true) {
+    const lastDate = was.lastDate ?? dayWas;
+    if (typeof lastDate !== 'string' || !isIsoDate(lastDate)) refuse('calendarWrite.badDate', 'That day does not look right.');
+    const nights = isoDaysBetween(dayWas, lastDate) ?? -1;
+    if (nights < 0 || nights >= CALENDAR_WRITE_LIMITS.maxAllDayDays) refuse('calendarWrite.badDate', 'That day does not look right.');
+    return { allDay: true, days: nights + 1 };
+  }
+  if (typeof was.startTime !== 'string' || typeof was.endTime !== 'string') refuse('calendarWrite.badTime', 'That time does not look right.');
+  const startMinute = minutesOf(was.startTime);
+  const minutes = draftMinutes(was.startTime, was.endTime);
+  return minutes === null ? undefined : { allDay: false, startMinute, minutes };
+}
+
 // ── Repeat rules as RFC 5545 RRULE lines (Google and iCloud both take them) ──
 
 const RRULE_FOR: Record<RepeatFrequency, string> = {
@@ -266,16 +338,23 @@ function compactUtc(instant: Date): string {
  * The RRULE line for an event's repeat. UNTIL is the last day in the form
  * each side of RFC 5545 needs: a date for an all-day event, and for a timed
  * one the last second of that day on the household's clock, in UTC.
+ *
+ * `shape` is whose form UNTIL takes when that is not the event's own: a
+ * series whose times are being left alone, changed from one of its days that
+ * was made all day (or timed) on its own.
  */
-export function repeatToRRule(event: NormalizedEvent): string | null {
+export function repeatToRRule(
+  event: NormalizedEvent,
+  shape: { allDay: true } | { allDay: false; timeZone: string } = event,
+): string | null {
   if (!event.repeat) return null;
   const parts = [RRULE_FOR[event.repeat.frequency]];
   const until = event.repeat.until;
   if (until) {
-    if (event.allDay) {
+    if (shape.allDay) {
       parts.push(`UNTIL=${until.replace(/-/g, '')}`);
     } else {
-      const nextMidnight = parseDateInTZ(`${addIsoDays(until, 1)}T00:00:00`, event.timeZone);
+      const nextMidnight = parseDateInTZ(`${addIsoDays(until, 1)}T00:00:00`, shape.timeZone);
       parts.push(`UNTIL=${compactUtc(new Date(nextMidnight.getTime() - 1000))}`);
     }
   }
@@ -429,14 +508,16 @@ export function stampEditable(events: CalendarEvent[], editable: (sourceId: stri
 }
 
 /**
- * Whether any wall may add, change and remove events: the household's
- * setting, or a display that turned it on for itself. The hub cannot tell
- * which display sent a write (one token for every kiosk), so each wall checks
- * its own switch and the hub checks this.
+ * Whether any wall may add, change and remove events: some display whose own
+ * switch, or the household's where it has none, is on. Before any displays
+ * exist it is the household's setting. The hub cannot tell which display sent
+ * a write (one token for every kiosk), so each wall checks its own switch and
+ * the hub checks this: once every display is off, nothing holding the display
+ * token can write.
  */
 export function anyWallMayWrite(settings: Pick<GlobalSettings, 'calendarWallEntry'>, displays: readonly { settings?: { calendarWallEntry?: boolean } }[] | undefined): boolean {
-  if (settings.calendarWallEntry !== false) return true;
-  return (displays ?? []).some((d) => d.settings?.calendarWallEntry === true);
+  if (!displays || displays.length === 0) return settings.calendarWallEntry !== false;
+  return displays.some((d) => (d.settings?.calendarWallEntry ?? settings.calendarWallEntry) !== false);
 }
 
 /** Whether this wall may add, change and remove events: its own switch, else the household's. On unless turned off. */

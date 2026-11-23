@@ -675,6 +675,10 @@
         "connecting": "Forbinder…",
         "connectFailed": "Kunne ikke forbinde til iCloud. Tjek din internetforbindelse, og prøv igen.",
         "addAccount": "Tilføj iCloud-konto",
+        "orphanedHeading": "Kontoen til disse kalendere er ikke længere forbundet",
+        "orphanedHint": "De kan først vises igen, når deres iCloud-konto er tilføjet igen. Tilføj den nedenfor for at få dem tilbage, eller fjern dem, du ikke længere har brug for.",
+        "orphanedRemove": "Fjern",
+        "orphanedRemoveLabel": "Fjern {name}",
         "helpText": "Log ind med en app-adgangskode, ikke din almindelige Apple-adgangskode. Opret en på account.apple.com under Log ind og sikkerhed > App-specifikke adgangskoder."
       },
       "holidays": {
@@ -3850,6 +3854,7 @@
     "successDefault": "Opdateringen er færdig.",
     "successRollback": "Du er tilbage på {tag}.",
     "restartNeeded": "Et trin mere: Enheden skal genstartes for at afslutte opdateringen. Når siden er genindlæst, kan du gøre det herfra.",
+    "alreadyRunning": "En opdatering er allerede i gang. Dette vindue viser, hvordan det går.",
     "reload": {
       "shuttingDown": "Home Screens genstarter…",
       "waitingNew": "Venter på, at Home Screens er tilbage… ({seconds} s)",

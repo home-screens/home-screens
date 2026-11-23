@@ -49,4 +49,51 @@ describe('useCalendarTab', () => {
     expect(view.result.current.loadError).toBe(false);
     expect(view.result.current.events).toHaveLength(1);
   });
+
+  const refused = () => new Response(JSON.stringify({ error: 'Something went wrong' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  /** The answers `beforeEach` set up, for a test that turns down only one of the two reads. */
+  const good = () => request.getMockImplementation()!;
+
+  it('keeps what adding offers when a read in the background is turned down, so an open form stays', async () => {
+    const answer = good();
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
+    const before = view.result.current.entry;
+    expect(before).not.toBeNull();
+
+    name = 'Smith family';
+    request.mockImplementation(async (url: string) => (url === '/api/calendar/entry' ? refused() : answer(url)));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await settle();
+    expect(view.result.current.entry).toBe(before);
+    // The events answered, so they still move on, read in the zone already known.
+    expect(view.result.current.events[0].sourceName).toBe('Smith family');
+    const eventsUrl = request.mock.calls.map(([url]) => url as string).filter((url) => url.startsWith('/api/calendar?')).at(-1)!;
+    expect(new URL(eventsUrl, 'http://hub').searchParams.get('timeMin')).toBe('2026-11-23T06:00:00.000Z');
+    expect(view.result.current.loadError).toBe(false);
+  });
+
+  it('keeps the events when a read of them in the background is turned down', async () => {
+    const answer = good();
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
+    expect(view.result.current.events).toHaveLength(1);
+
+    request.mockImplementation(async (url: string) => (url === '/api/calendar/entry' ? answer(url) : refused()));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await settle();
+    expect(view.result.current.events).toHaveLength(1);
+    expect(view.result.current.entry).not.toBeNull();
+    expect(view.result.current.loadError).toBe(false);
+  });
+
+  it('the first read still shows the days with no events and no adding when the hub turns both down', async () => {
+    request.mockImplementation(async () => refused());
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
+    expect(view.result.current.loaded).toBe(true);
+    expect(view.result.current.entry).toBeNull();
+    expect(view.result.current.events).toEqual([]);
+    expect(view.result.current.loadError).toBe(false);
+  });
 });

@@ -160,6 +160,7 @@ function UpgradeAttempt({
     activeStepStartedAt,
     lastEventAt,
     reconnecting,
+    alreadyRunning,
   } = useUpgradeStream(ALL_STEPS, targetTag, isRollback);
   const running = !done && !failed;
   const now = useNow(running);
@@ -443,6 +444,18 @@ function UpgradeAttempt({
               <p className={`text-xs text-hs-danger ${notice ? '' : 'font-mono break-all'}`}>{failureDetail}</p>
             </div>
           )
+        )}
+
+        {/* This window's own start was turned down, and it is showing the
+            update that was already under way. Said while that one runs. */}
+        {alreadyRunning && running && (
+          <div
+            data-testid="upgrade-already-running"
+            className="flex items-start gap-2.5 px-6 py-3 border-t border-hs-border bg-hs-accent-soft flex-shrink-0"
+          >
+            <Info size={14} className="text-hs-accent-hover flex-shrink-0 mt-0.5" aria-hidden />
+            <p className="text-xs text-hs-accent-hover">{t('upgradeModal.alreadyRunning')}</p>
+          </div>
         )}
 
         {/* The page reloads as soon as the new version answers, onto the

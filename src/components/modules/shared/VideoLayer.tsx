@@ -25,7 +25,7 @@ export interface VideoLayerProps {
   src: string;
   /** Optional thumbnail (e.g. Immich preview); fetched through useAuthImage. */
   posterSrc?: string;
-  /** Inactive layers pause and detach their src, freeing the decoder. */
+  /** Inactive layers pause and unload their clip, freeing the decoder. */
   active: boolean;
   /** False in the editor preview: poster frame only, never playing. */
   autoPlay: boolean;
@@ -95,8 +95,13 @@ export default function VideoLayer({
   const finishedRef = useRef(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // True only while the element is being emptied on purpose. Whatever it
+  // reports in that moment is about the unloading, not about the clip, and
+  // must not end the slide or arm the stall timer.
+  const releasingRef = useRef(false);
+
   const finish = useCallback(() => {
-    if (finishedRef.current) return;
+    if (finishedRef.current || releasingRef.current) return;
     finishedRef.current = true;
     if (onEndedRef.current) onEndedRef.current();
     else videoRef.current?.pause();
@@ -110,7 +115,7 @@ export default function VideoLayer({
   }, []);
 
   const armStall = useCallback(() => {
-    if (!playingRef.current || finishedRef.current || stallTimerRef.current) return;
+    if (!playingRef.current || finishedRef.current || releasingRef.current || stallTimerRef.current) return;
     stallTimerRef.current = setTimeout(finish, STALL_GRACE_MS);
   }, [finish]);
 
@@ -143,6 +148,36 @@ export default function VideoLayer({
     }
   }, [restartSignal, clearStall]);
 
+  // The element's src is set and taken away here rather than in the markup,
+  // because taking it away is only half of letting a clip go. An element
+  // whose src attribute is removed keeps everything it had loaded, decoder
+  // included, until it is told to load again with nothing to load. On a Pi
+  // that is a hardware decoder held by a layer nobody can see, for as long
+  // as the other layer keeps showing pictures. So a layer that goes inactive
+  // or unmounts, and one swapping to another clip, pauses, drops the src and
+  // loads the nothing that is left.
+  //
+  // Declared before the playback effect below so the src is in place when
+  // that effect calls play(), and so this cleanup's unloading happens before
+  // that one's timers are cleared.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !active) return;
+    video.setAttribute('src', heldSrc);
+    return () => {
+      releasingRef.current = true;
+      try {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      } catch {
+        // An element already torn down has nothing left to let go of.
+      } finally {
+        releasingRef.current = false;
+      }
+    };
+  }, [active, heldSrc]);
+
   useEffect(() => {
     finishedRef.current = false;
     const video = videoRef.current;
@@ -172,7 +207,6 @@ export default function VideoLayer({
   return (
     <video
       ref={videoRef}
-      src={active ? heldSrc : undefined}
       poster={posterUrl || undefined}
       autoPlay={playing}
       muted={muted}

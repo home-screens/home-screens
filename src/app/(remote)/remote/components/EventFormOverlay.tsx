@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, type CSSProperties } from 'react';
-import { CalendarDays, ChevronRight, Info, Repeat, Smartphone } from 'lucide-react';
+import { CalendarDays, ChevronRight, Info, Lock, Repeat, Smartphone } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { addIsoDays } from '@/lib/iso-date';
 import { formatEventTime } from '@/lib/calendar-utils';
@@ -14,13 +14,15 @@ import {
   draftMinutes,
   endKeepingLength,
   endsNextDay,
+  isLongTimed,
   normalizeEventDraft,
   type EventDraft,
   type RepeatReading,
   type RepeatRule,
 } from '@/lib/calendar-write';
+import { defaultStartMinutes, draftToSend, minutesOfTime, repeatEditable as mayChangeRepeat, repeatWasChanged, timeOfMinutes, timesWereChanged } from '@/lib/calendar-event-form';
 import type { CalendarEntryInfo, EntryCalendar } from '@/lib/calendar-event-writes';
-import { useHouseholdClockFormat, useHouseholdToday } from '../household-clock';
+import { useHouseholdClockFormat } from '../household-clock';
 import { withAlpha } from '@/lib/hex-color';
 import FormOverlay from './FormOverlay';
 import EventRepeatSheet from './EventRepeatSheet';
@@ -40,26 +42,9 @@ function lastCalendar(): string | null {
   try { return localStorage.getItem(LAST_CALENDAR_KEY); } catch { return null; }
 }
 
-function toMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function fromMinutes(total: number): string {
-  const wrapped = ((total % 1440) + 1440) % 1440;
-  return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
-}
-
 function dateOf(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, m - 1, d);
-}
-
-/** A new event's start: the next whole hour today, 9:00 on any other day. */
-function defaultStart(date: string, today: string): string {
-  if (date !== today) return '09:00';
-  const now = new Date();
-  return fromMinutes(Math.min(23 * 60, (now.getHours() + 1) * 60));
 }
 
 const NOTE: CSSProperties = {
@@ -73,12 +58,16 @@ export interface EventFormSubmit {
   repeatChanged: boolean;
 }
 
+/** The latest a new event is offered to start, so its end still shows on the same day's clock. */
+const LATEST_DEFAULT_START = 23 * 60;
+
 /**
  * The phone's add and change form. A full-screen
  * `FormOverlay` like the chore and meal forms. Times are on the household's
  * clock; an end earlier than the start is the next day. The calendar is
  * picked for a new event and shown, not picked, on a change: an edit never
- * moves an event.
+ * moves an event. An event of a day or more shows its day and times and
+ * does not change them: the two time fields cannot say which day it ends.
  */
 export default function EventFormOverlay({ mode, entry, date, initial, repeat, calendar, fromWall, notice, saving, removing, onSubmit, onRemove, onClose }: {
   mode: 'new' | 'change';
@@ -105,23 +94,23 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
-  const today = useHouseholdToday();
   const timeFormat = useHouseholdClockFormat();
 
   const start = useMemo(() => {
     if (initial) return initial;
-    const startTime = defaultStart(date, today);
+    const startMinutes = Math.min(LATEST_DEFAULT_START, defaultStartMinutes(date, new Date(), entry.timezone));
+    const startTime = timeOfMinutes(startMinutes);
     return {
       title: '',
       date,
       allDay: false,
       startTime,
-      endTime: fromMinutes(toMinutes(startTime) + entry.defaultMinutes),
+      endTime: timeOfMinutes(minutesOfTime(startTime) + entry.defaultMinutes),
       lastDate: date,
       location: '',
       repeat: null,
     } satisfies EventDraft;
-  }, [initial, date, today, entry.defaultMinutes]);
+  }, [initial, date, entry.defaultMinutes, entry.timezone]);
 
   const [draft, setDraft] = useState<EventDraft>({ ...start, lastDate: start.lastDate ?? start.date });
   const [calendarId, setCalendarId] = useState(() => {
@@ -131,21 +120,24 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   const [repeatOpen, setRepeatOpen] = useState(false);
 
   const set = (patch: Partial<EventDraft>) => setDraft((d) => ({ ...d, ...patch }));
-  const repeatEditable = repeat?.kind !== 'other';
-  const repeatChanged = mode === 'change' && repeatEditable
-    && JSON.stringify(draft.repeat ?? null) !== JSON.stringify(repeat?.kind === 'known' ? repeat.rule : null);
+  const loaded = mode === 'change' && repeat ? { repeat } : null;
+  const repeatEditable = mayChangeRepeat(loaded);
+  const repeatChanged = repeatWasChanged(draft.repeat, loaded);
+  // A change that leaves the day and times alone sends none, so they are not held to what this form can make.
+  const timesChanged = initial ? timesWereChanged(draft, initial) : true;
+  const locked = Boolean(initial && isLongTimed(initial));
   const dirty = JSON.stringify({ ...draft, lastDate: draft.allDay ? draft.lastDate : undefined })
     !== JSON.stringify({ ...start, lastDate: start.allDay ? (start.lastDate ?? start.date) : undefined });
 
   // The hub's own rule decides what may be saved, so the form never offers what it would refuse.
   const problem = useMemo(() => {
     try {
-      normalizeEventDraft(draft, { timezone: entry.timezone });
+      normalizeEventDraft(draft, { timezone: entry.timezone, timesChanged });
       return null;
     } catch (e) {
       return e instanceof CalendarWriteError ? e : null;
     }
-  }, [draft, entry.timezone]);
+  }, [draft, entry.timezone, timesChanged]);
   const problemText = problem && problem.code !== 'calendarWrite.titleRequired' ? refusalSentence(problem, tCore) : null;
   const canSave = !saving && !removing && !problem && (mode === 'new' ? Boolean(calendarId) : dirty);
 
@@ -159,12 +151,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
 
   const submit = () => {
     if (!canSave) return;
-    const sent: EventDraft = draft.allDay
-      ? { title: draft.title, date: draft.date, allDay: true, lastDate: draft.lastDate, location: draft.location, repeat: draft.repeat ?? null }
-      : { title: draft.title, date: draft.date, allDay: false, startTime: draft.startTime, endTime: draft.endTime, location: draft.location, repeat: draft.repeat ?? null };
-    // A repeat set up elsewhere is left exactly as it is.
-    if (!repeatEditable) delete sent.repeat;
-    onSubmit({ calendarId, draft: sent, repeatChanged });
+    onSubmit({ calendarId, draft: draftToSend(draft, { repeatEditable }), repeatChanged });
   };
 
   const footer = (
@@ -219,76 +206,92 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
           />
         </label>
 
-        <label style={{ display: 'block', ...gap }}>
-          {label(draft.allDay ? 'calendarTab.form.firstDay' : 'calendarTab.form.day')}
-          <input
-            type="date"
-            data-testid="event-form-date"
-            value={draft.date}
-            onChange={(e) => {
-              const next = e.target.value;
-              if (!next) return;
-              // Keep an all-day event as long as it was.
-              const span = draft.lastDate && draft.lastDate > draft.date ? Math.round((dateOf(draft.lastDate).getTime() - dateOf(draft.date).getTime()) / 86_400_000) : 0;
-              set({ date: next, lastDate: addIsoDays(next, span) });
-            }}
-            style={FIELD}
-          />
-        </label>
-
-        <PhoneSwitch
-          checked={draft.allDay}
-          onChange={(allDay) => set({ allDay })}
-          label={t('calendarTab.form.allDay')}
-          testId="event-form-all-day"
-          style={{ marginTop: 12 }}
-        />
-
-        {draft.allDay ? (
-          <label style={{ display: 'block', marginTop: 14 }}>
-            {label('calendarTab.form.lastDay')}
-            <input type="date" data-testid="event-form-last-day" min={draft.date} value={draft.lastDate ?? draft.date} onChange={(e) => set({ lastDate: e.target.value || draft.date })} style={FIELD} />
-          </label>
+        {locked ? (
+          <div data-testid="event-form-locked-times" style={gap}>
+            <div style={{ ...FIELD, background: 'transparent', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 14, rowGap: 8, alignItems: 'baseline' }}>
+              <span style={{ ...FIELD_LABEL, margin: 0 }}>{t('calendarTab.form.starts')}</span>
+              <span>{daySheetHeading(dateOf(draft.date), locale).full} · {clock(draft.startTime ?? '00:00')}</span>
+              <span style={{ ...FIELD_LABEL, margin: 0 }}>{t('calendarTab.form.ends')}</span>
+              <span>{daySheetHeading(dateOf(draft.endDate ?? draft.date), locale).full} · {clock(draft.endTime ?? '00:00')}</span>
+            </div>
+            <p style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 8 }}>
+              <Lock size={14} aria-hidden="true" style={{ flex: 'none', marginTop: 1 }} />{tCore('calendarChange.longNote')}
+            </p>
+          </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
-              <label>
-                {label('calendarTab.form.starts')}
-                <input
-                  type="time"
-                  data-testid="event-form-start"
-                  value={draft.startTime}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    if (!next) return;
-                    // Ends moves with Starts, so the event keeps its length.
-                    setDraft((d) => ({ ...d, startTime: next, endTime: endKeepingLength(d.startTime ?? '', d.endTime ?? '', next, entry.defaultMinutes) }));
-                  }}
-                  style={FIELD}
-                />
-              </label>
-              <label>
-                <span style={FIELD_LABEL}>
-                  {t('calendarTab.form.ends')}
-                  {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--hs-warning-ink)', marginLeft: 6 }}>{t('calendarTab.form.nextDay')}</span>}
-                </span>
-                <input
-                  type="time"
-                  data-testid="event-form-end"
-                  value={draft.endTime}
-                  onChange={(e) => {
-                    if (!e.target.value) return;
-                    set({ endTime: e.target.value });
-                  }}
-                  style={{ ...FIELD, ...(problem?.code === 'calendarWrite.endsWhenItStarts' ? { borderColor: 'var(--hs-danger)' } : {}) }}
-                />
-              </label>
-            </div>
-            {nextDay && draft.endTime && (
-              <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 8 }}>
-                {t('calendarTab.form.endsOn', { day: daySheetHeading(dateOf(addIsoDays(draft.date, 1)), locale).full, time: clock(draft.endTime), length: lengthWords })}
-              </p>
-            )}
+          <label style={{ display: 'block', ...gap }}>
+            {label(draft.allDay ? 'calendarTab.form.firstDay' : 'calendarTab.form.day')}
+            <input
+              type="date"
+              data-testid="event-form-date"
+              value={draft.date}
+              onChange={(e) => {
+                const next = e.target.value;
+                if (!next) return;
+                // Keep an all-day event as long as it was.
+                const span = draft.lastDate && draft.lastDate > draft.date ? Math.round((dateOf(draft.lastDate).getTime() - dateOf(draft.date).getTime()) / 86_400_000) : 0;
+                set({ date: next, lastDate: addIsoDays(next, span) });
+              }}
+              style={FIELD}
+            />
+          </label>
+
+          <PhoneSwitch
+            checked={draft.allDay}
+            onChange={(allDay) => set({ allDay })}
+            label={t('calendarTab.form.allDay')}
+            testId="event-form-all-day"
+            style={{ marginTop: 12 }}
+          />
+
+          {draft.allDay ? (
+            <label style={{ display: 'block', marginTop: 14 }}>
+              {label('calendarTab.form.lastDay')}
+              <input type="date" data-testid="event-form-last-day" min={draft.date} value={draft.lastDate ?? draft.date} onChange={(e) => set({ lastDate: e.target.value || draft.date })} style={FIELD} />
+            </label>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
+                <label>
+                  {label('calendarTab.form.starts')}
+                  <input
+                    type="time"
+                    data-testid="event-form-start"
+                    value={draft.startTime}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      if (!next) return;
+                      // Ends moves with Starts, so the event keeps its length.
+                      setDraft((d) => ({ ...d, startTime: next, endTime: endKeepingLength(d.startTime ?? '', d.endTime ?? '', next, entry.defaultMinutes) }));
+                    }}
+                    style={FIELD}
+                  />
+                </label>
+                <label>
+                  <span style={FIELD_LABEL}>
+                    {t('calendarTab.form.ends')}
+                    {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--hs-warning-ink)', marginLeft: 6 }}>{t('calendarTab.form.nextDay')}</span>}
+                  </span>
+                  <input
+                    type="time"
+                    data-testid="event-form-end"
+                    value={draft.endTime}
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      set({ endTime: e.target.value });
+                    }}
+                    style={{ ...FIELD, ...(problem?.code === 'calendarWrite.endsWhenItStarts' ? { borderColor: 'var(--hs-danger)' } : {}) }}
+                  />
+                </label>
+              </div>
+              {nextDay && draft.endTime && (
+                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 8 }}>
+                  {t('calendarTab.form.endsOn', { day: daySheetHeading(dateOf(addIsoDays(draft.date, 1)), locale).full, time: clock(draft.endTime), length: lengthWords })}
+                </p>
+              )}
+            </>
+          )}
           </>
         )}
         {problemText && <p role="alert" style={{ fontSize: 12.5, color: 'var(--hs-danger)', marginTop: 8 }}>{problemText}</p>}

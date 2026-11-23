@@ -112,6 +112,13 @@ describe('adding', () => {
     // One display turned back on for itself is enough for the hub; that wall checks its own switch.
     config.displays = [{ id: 'kitchen', name: 'Kitchen', screens: [], settings: { calendarWallEntry: true } }] as never;
     await addEvent(request(), { calendarId: 'family@group.calendar.google.com', draft });
+    // The household on, and every display off for itself: nothing holding the display token may write.
+    config.settings.calendarWallEntry = true;
+    config.displays = [
+      { id: 'kitchen', name: 'Kitchen', screens: [], settings: { calendarWallEntry: false } },
+      { id: 'hall', name: 'Hall', screens: [], settings: { calendarWallEntry: false } },
+    ] as never;
+    expect((await refusal(addEvent(request(), { calendarId: 'family@group.calendar.google.com', draft }))).code).toBe('calendarWrite.notOffered');
     // A phone is never held to the walls' switch.
     signedIn = true;
     config.displays = [];
@@ -140,6 +147,39 @@ describe('changing and removing', () => {
     expect(bump).toHaveBeenCalledOnce();
   });
 
+  it('tells the writer whether the times changed, and to check a wall is not aiming at a series', async () => {
+    const body = { draft, etag: '"e1"', scope: 'instance', seriesId: 'soccer', dayWas: '2026-11-21', repeatChanged: false };
+    await changeEvent(request(), id, { ...body, timesChanged: false, timeWas: { allDay: false, startTime: '15:00', endTime: '16:00' } });
+    expect(updateGoogleEvent).toHaveBeenLastCalledWith(expect.objectContaining({
+      timesChanged: false,
+      refuseSeriesId: false,
+      dayWas: '2026-11-21',
+      timeWas: { allDay: false, startMinute: 900, minutes: 60 },
+    }));
+    // Left unsaid, the times count as changed; and a wall is checked.
+    signedIn = false;
+    await changeEvent(request(), id, body);
+    expect(updateGoogleEvent).toHaveBeenLastCalledWith(expect.objectContaining({ timesChanged: true, refuseSeriesId: true }));
+  });
+
+  it('renames an event of a day or more, and refuses new times for it', async () => {
+    const weekend = { title: 'Cabin trip', date: '2026-11-27', allDay: false, startTime: '18:00', endTime: '18:00', endDate: '2026-11-29' };
+    const body = { draft: weekend, etag: '"e1"', scope: 'instance', dayWas: '2026-11-27', repeatChanged: false };
+    await changeEvent(request(), id, { ...body, timesChanged: false });
+    expect(updateGoogleEvent).toHaveBeenCalledOnce();
+    expect(await refusal(changeEvent(request(), id, { ...body, timesChanged: true }))).toEqual({ code: 'calendarWrite.notEditable', status: 403 });
+    expect(await refusal(changeEvent(request(), id, body))).toEqual({ code: 'calendarWrite.notEditable', status: 403 });
+    expect(updateGoogleEvent).toHaveBeenCalledOnce();
+  });
+
+  it('refuses a day the form could not have opened on', async () => {
+    const body = { draft, etag: '"e1"', scope: 'series', seriesId: 'soccer', repeatChanged: false };
+    expect((await refusal(changeEvent(request(), id, { ...body, dayWas: '1990-01-01' }))).code).toBe('calendarWrite.dayTooFar');
+    expect((await refusal(changeEvent(request(), id, { ...body, dayWas: 'not-a-date' }))).code).toBe('calendarWrite.badDate');
+    expect((await refusal(changeEvent(request(), id, body))).code).toBe('calendarWrite.badDate');
+    expect(updateGoogleEvent).not.toHaveBeenCalled();
+  });
+
   it('refuses a new repeat for just one day', async () => {
     expect((await refusal(changeEvent(request(), id, { draft, etag: '"e1"', scope: 'instance', dayWas: '2026-11-21', repeatChanged: true }))).code).toBe(
       'calendarWrite.repeatNeedsEveryTime',
@@ -163,6 +203,31 @@ describe('changing and removing', () => {
 });
 
 describe('what the forms offer', () => {
+  it('still answers when Google cannot be asked for its calendar names', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const calendar = config.settings.calendar;
+    calendar.icloudSources = [{ id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true }];
+    calendar.eventEntry = { enabled: true, calendarIds: ['family@group.calendar.google.com', 'ic-home'], defaultMinutes: 90 };
+    googleCalendarLabels.mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND www.googleapis.com'));
+
+    const info = await calendarEntryInfo();
+    warn.mockRestore();
+    expect(info).toMatchObject({
+      enabled: true,
+      google: 'ready',
+      defaultMinutes: 90,
+      timezone: 'America/Chicago',
+      calendars: [{ id: 'ic-home', name: 'Home', color: '#ef4444', source: 'icloud' }],
+      defaultCalendarId: 'ic-home',
+    });
+  });
+
+  it('offers the Google calendars it is given from the last good read', async () => {
+    // What `googleCalendarLabels` answers during an outage: only the calendars it has seen before.
+    googleCalendarLabels.mockResolvedValueOnce(new Map([['family@group.calendar.google.com', { name: 'Family', color: '#4073ff', writable: true }]]));
+    expect((await calendarEntryInfo()).calendars).toEqual([{ id: 'family@group.calendar.google.com', name: 'Family', color: '#4073ff', source: 'google' }]);
+  });
+
   it('says where Google would stand with adding on, while the saved switch is still off', async () => {
     config.settings.calendar.eventEntry = { enabled: false, calendarIds: [] };
     entryState = 'needsSignIn';

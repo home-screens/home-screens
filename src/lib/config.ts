@@ -163,7 +163,12 @@ export function updateConfigAtomic(
         || JSON.stringify(migrated.settings?.calendar?.eventEntry ?? null) !== JSON.stringify(result.settings?.calendar?.eventEntry ?? null)
         // So are the household's names and colours, and the walls' add-event
         // forms name the calendars with them: a rename shows in seconds.
-        || JSON.stringify(migrated.settings?.calendar?.calendarOverrides ?? null) !== JSON.stringify(result.settings?.calendar?.calendarOverrides ?? null);
+        || JSON.stringify(migrated.settings?.calendar?.calendarOverrides ?? null) !== JSON.stringify(result.settings?.calendar?.calendarOverrides ?? null)
+        // And each link's and iCloud calendar's own name, which the answer's
+        // cache key does not carry: without this a rename waited for the
+        // cached answer to run out.
+        || JSON.stringify(migrated.settings?.calendar?.icalSources ?? null) !== JSON.stringify(result.settings?.calendar?.icalSources ?? null)
+        || JSON.stringify(migrated.settings?.calendar?.icloudSources ?? null) !== JSON.stringify(result.settings?.calendar?.icloudSources ?? null);
       if (wasMigrated) {
         // A source/manual upgrade may reach this path without the updater's
         // snapshot step. Keep the exact original bytes before publishing any

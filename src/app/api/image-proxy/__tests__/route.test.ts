@@ -25,6 +25,12 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   };
 });
 
+// The address check resolves the host's name; no test asks real DNS.
+vi.mock('@/lib/url-safety', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/url-safety')>();
+  return { ...actual, isSafeExternalUrl: vi.fn(async () => true) };
+});
+
 const { GET } = await import('@/app/api/image-proxy/route');
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -183,5 +189,92 @@ describe('GET /api/image-proxy', () => {
 
     expect(res.status).toBe(500);
     expect(json.error).toBe('Failed to proxy image');
+  });
+});
+
+describe('GET /api/image-proxy holds the picture host to https, its own redirects and a size', () => {
+  /** Answer each URL from a table of real responses; anything else is a test bug. */
+  function mockRoutes(routes: Record<string, () => Response>) {
+    global.fetch = vi.fn(async (input: unknown) => {
+      const route = routes[String(input)];
+      if (!route) throw new TypeError(`unexpected fetch: ${String(input)}`);
+      return route();
+    }) as never;
+  }
+  const fetched = () => vi.mocked(global.fetch).mock.calls.map((call) => String(call[0]));
+  const png = () => new Response(new Uint8Array([0x89, 0x50, 0x4e, 0x47]), { status: 200, headers: { 'content-type': 'image/png' } });
+  const redirect = (location: string) => new Response(null, { status: 302, headers: { location } });
+
+  it.each([
+    'http://a.espncdn.com/logo.png',
+    'ftp://a.espncdn.com/logo.png',
+    'https://a.espncdn.com:8443/logo.png',
+    'https://someone:secret@a.espncdn.com/logo.png',
+  ])('refuses %s without fetching it', async (url) => {
+    mockRoutes({});
+    const res = await GET(makeRequest(url));
+    expect(res.status).toBe(400);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('follows a redirect that stays on the picture host', async () => {
+    mockRoutes({
+      'https://a.espncdn.com/old.png': () => redirect('/new.png'),
+      'https://a.espncdn.com/new.png': png,
+    });
+    const res = await GET(makeRequest('https://a.espncdn.com/old.png'));
+    expect(res.status).toBe(200);
+    expect(fetched()).toEqual(['https://a.espncdn.com/old.png', 'https://a.espncdn.com/new.png']);
+  });
+
+  it('does not follow a redirect to another host', async () => {
+    mockRoutes({
+      'https://a.espncdn.com/logo.png': () => redirect('https://evil.example.com/logo.png'),
+      'https://evil.example.com/logo.png': png,
+    });
+    const res = await GET(makeRequest('https://a.espncdn.com/logo.png'));
+    expect(res.status).toBe(502);
+    expect(fetched()).toEqual(['https://a.espncdn.com/logo.png']);
+    expect(mockCache.set).not.toHaveBeenCalled();
+  });
+
+  it('does not follow a redirect down to plain http on the same host', async () => {
+    mockRoutes({
+      'https://a.espncdn.com/logo.png': () => redirect('http://a.espncdn.com/logo.png'),
+      'http://a.espncdn.com/logo.png': png,
+    });
+    const res = await GET(makeRequest('https://a.espncdn.com/logo.png'));
+    expect(res.status).toBe(502);
+    expect(fetched()).toEqual(['https://a.espncdn.com/logo.png']);
+  });
+
+  it('never lets fetch follow redirects by itself', async () => {
+    mockRoutes({ 'https://a.espncdn.com/logo.png': png });
+    await GET(makeRequest('https://a.espncdn.com/logo.png'));
+    expect(vi.mocked(global.fetch).mock.calls[0][1]).toMatchObject({ redirect: 'manual' });
+  });
+
+  it('refuses a picture over the size cap from its declared length alone', async () => {
+    mockRoutes({
+      'https://a.espncdn.com/huge.png': () => new Response('x', { status: 200, headers: { 'content-type': 'image/png', 'content-length': String(50 * 1024 * 1024) } }),
+    });
+    const res = await GET(makeRequest('https://a.espncdn.com/huge.png'));
+    expect(res.status).toBe(502);
+    expect(mockCache.set).not.toHaveBeenCalled();
+  });
+
+  it('stops reading a picture that runs past the size cap without declaring it', async () => {
+    let sent = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        sent += 1;
+        controller.enqueue(new Uint8Array(1024 * 1024));
+      },
+    });
+    mockRoutes({ 'https://a.espncdn.com/endless.png': () => new Response(endless, { status: 200, headers: { 'content-type': 'image/png' } }) });
+    const res = await GET(makeRequest('https://a.espncdn.com/endless.png'));
+    expect(res.status).toBe(502);
+    // It gave up a little past the cap, not after reading for ever.
+    expect(sent).toBeLessThan(12);
   });
 });

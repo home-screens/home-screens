@@ -133,4 +133,36 @@ describe('settings-form transforms', () => {
     expect(config.sleep).not.toHaveProperty('dimSchedule');
     expect(config.sleep).not.toHaveProperty('schedule');
   });
+
+  it('"Walls can add events" turns back on after it was turned off', async () => {
+    // The save merges the form's settings over the stored ones, so a key the
+    // form only leaves out keeps whatever was stored before.
+    await import('@/lib/module-registry');
+    const { useEditorStore } = await import('@/stores/editor-store');
+    const start = toConfigSettings(FORM_DEFAULTS) as GlobalSettings;
+    useEditorStore.setState({ config: { version: 1, settings: start, screens: [] } });
+
+    const save = (wallEntry: boolean) => {
+      const form = toFormState(useEditorStore.getState().config!.settings);
+      useEditorStore.getState().updateSettings(toConfigSettings({ ...form, calendar: { ...form.calendar, wallEntry } }));
+      const stored = useEditorStore.getState().config!.settings;
+      // What the save sends to the hub, and what the page shows after a reload.
+      const sent = JSON.parse(JSON.stringify(stored)) as GlobalSettings;
+      return { stored: stored.calendarWallEntry, sent, reloaded: toFormState(sent).calendar.wallEntry };
+    };
+
+    const on = save(true);
+    expect(on.sent).not.toHaveProperty('calendarWallEntry');
+    expect(on.reloaded).toBe(true);
+
+    const off = save(false);
+    expect(off.stored).toBe(false);
+    expect(off.sent.calendarWallEntry).toBe(false);
+    expect(off.reloaded).toBe(false);
+
+    const onAgain = save(true);
+    expect(onAgain.stored).toBeUndefined();
+    expect(onAgain.sent).not.toHaveProperty('calendarWallEntry');
+    expect(onAgain.reloaded).toBe(true);
+  });
 });

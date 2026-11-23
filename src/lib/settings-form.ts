@@ -297,8 +297,10 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
         ? { calendarOverrides: calendar.calendarOverrides }
         : {}),
     },
-    // On unless turned off; written only when off, for the same reason.
-    ...(calendar.wallEntry ? {} : { calendarWallEntry: false }),
+    // On unless turned off, and saved only when off, for the same reason. The
+    // key is always here, undefined when on: the save merges these settings
+    // over the stored ones, so a key left out would keep a stored `false`.
+    calendarWallEntry: calendar.wallEntry ? undefined : false,
     ...sleepFormToConfig(sleep),
     alerts: {
       enabled: alerts.alertsEnabled,

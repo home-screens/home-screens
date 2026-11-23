@@ -10,14 +10,18 @@ import {
   CalendarWriteError,
   anyWallMayWrite,
   checkChangeScope,
+  checkDayWas,
   entryCalendarIds,
   googleEntryStateWithSetting,
   normalizeEventDraft,
+  readTimeWas,
   splitGoogleEventId,
   type ChangeScope,
   type EventDraft,
   type GoogleEntryState,
 } from '@/lib/calendar-write';
+import { isoDateInTZ } from '@/lib/timezone';
+import { logger } from '@/lib/logger';
 import type { ScreenConfiguration } from '@/types/config';
 
 /**
@@ -26,6 +30,8 @@ import type { ScreenConfiguration } from '@/types/config';
  * The rules themselves are calendar-write.ts; the Google calls are
  * google-calendar-write.ts.
  */
+
+const log = logger('calendar-event-writes');
 
 /** A phone or the editor (a signed-in session), or a wall (the display token). */
 export type Caller = 'session' | 'wall';
@@ -174,9 +180,12 @@ function scopeOf(value: unknown): ChangeScope {
 export async function changeEvent(
   request: NextRequest,
   id: string,
-  input: { draft?: unknown; etag?: unknown; scope?: unknown; seriesId?: unknown; sourceRef?: unknown; dayWas?: unknown; repeatChanged?: unknown },
+  input: {
+    draft?: unknown; etag?: unknown; scope?: unknown; seriesId?: unknown; sourceRef?: unknown;
+    dayWas?: unknown; timeWas?: unknown; repeatChanged?: unknown; timesChanged?: unknown;
+  },
 ): Promise<void> {
-  if (!input.draft || typeof input.draft !== 'object' || typeof input.etag !== 'string' || typeof input.dayWas !== 'string') {
+  if (!input.draft || typeof input.draft !== 'object' || typeof input.etag !== 'string') {
     throw new CalendarWriteError('calendarWrite.badDate', 'That change does not look right.');
   }
   const caller = await callerOf(request);
@@ -185,14 +194,19 @@ export async function changeEvent(
   const source = await assertMayWrite(ctx, calendarId, caller);
   const scope = scopeOf(input.scope);
   const repeatChanged = input.repeatChanged === true;
+  // Only a plain "no" leaves the times alone; anything else is held to the full rules.
+  const timesChanged = input.timesChanged !== false;
   checkChangeScope(scope, repeatChanged);
-  const event = normalizeEventDraft(input.draft as EventDraft, { timezone: ctx.timezone });
+  const dayWas = checkDayWas(input.dayWas, isoDateInTZ(new Date(), ctx.timezone));
+  const timeWas = readTimeWas(input.timeWas, dayWas);
+  const event = normalizeEventDraft(input.draft as EventDraft, { timezone: ctx.timezone, timesChanged });
   countWrite(request);
   if (source === 'icloud') {
     const { source: icloud, account } = await icloudTarget(ctx, calendarId);
     const { updateICloudEvent } = await import('@/lib/icloud-calendar-write');
     await updateICloudEvent(icloud, account, {
-      eventId, sourceRef: sourceRefOf(input.sourceRef), etag: input.etag, scope, dayWas: input.dayWas, event, repeatChanged, timezone: ctx.timezone,
+      eventId, sourceRef: sourceRefOf(input.sourceRef), etag: input.etag, scope, dayWas, ...(timeWas ? { timeWas } : {}),
+      event, repeatChanged, timesChanged, timezone: ctx.timezone,
     });
     bumpCalendarRevision();
     return;
@@ -204,9 +218,13 @@ export async function changeEvent(
     etag: input.etag,
     scope,
     seriesId: typeof input.seriesId === 'string' ? input.seriesId : undefined,
-    dayWas: input.dayWas,
+    dayWas,
+    ...(timeWas ? { timeWas } : {}),
     event,
     repeatChanged,
+    timesChanged,
+    // The grown-up code guards "every time" by its scope, and every kiosk shares one token.
+    refuseSeriesId: caller === 'wall',
     timezone: ctx.timezone,
   });
   bumpCalendarRevision();
@@ -283,9 +301,16 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   if (!base.enabled) return { ...base, google, googleIfOn, calendars: [], defaultCalendarId: null };
 
   const googleEntry = ctx.entryIds.filter((id) => ctx.googleIds.includes(id));
-  const labels = google === 'ready' && googleEntry.length > 0
-    ? await (await import('@/lib/google-calendar')).googleCalendarLabels(googleEntry)
-    : new Map<string, { name: string; color: string; writable: boolean }>();
+  let labels = new Map<string, { name: string; color: string; writable: boolean }>();
+  if (google === 'ready' && googleEntry.length > 0) {
+    try {
+      labels = await (await import('@/lib/google-calendar')).googleCalendarLabels(googleEntry);
+    } catch (err) {
+      // Google or the internet is down. The form still gets everything else
+      // (iCloud calendars, the settings), so one a phone has open stays open.
+      log.warn('Google calendar names unavailable for the event form', err);
+    }
+  }
   const icloud = new Map((calendar.icloudSources ?? []).map((s) => [s.id, s]));
   const looks = calendar.calendarOverrides;
   const calendars: EntryCalendar[] = [];

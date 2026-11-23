@@ -9,11 +9,13 @@ import { useTranslate } from '@/i18n';
 import Button from './Button';
 import ModalPortal from './ModalPortal';
 import { FieldSurfaceProvider } from './FieldHint';
+import { WindowToastStack } from './Toast';
 
 /**
  * Dismissal behaviour every dialog is expected to have: Escape closes, a click
  * on the backdrop closes, Tab stays inside, and the dialog is announced with
- * its own visible heading.
+ * its own visible heading. A toast raised inside the window is drawn inside
+ * it too, so the keyboard reaches its button.
  *
  * The window inside is drawn from the parts below, so every editor window
  * looks and closes the same way:
@@ -130,7 +132,8 @@ function TrapLayer({ className, children }: { className?: string; children: Reac
 
   return (
     <div ref={trapRef} className={`relative ${className ?? ''}`}>
-      {children}
+      {/* Inside the trap, so a toast's Undo is a Tab stop of the window that raised it. */}
+      <WindowToastStack>{children}</WindowToastStack>
     </div>
   );
 }

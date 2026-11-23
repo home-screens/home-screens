@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { WALL_KEYBOARD_NUMBER_ROWS, deleteKey, shiftLetter, startsSentence, typeKey, wallKeyboardColumns, wallKeyboardLayout } from '../wall-keyboard';
+import {
+  WALL_KEYBOARD_NUMBER_ROWS,
+  deleteKey,
+  shiftLetter,
+  startsSentence,
+  typeKey,
+  wallKeyboardAccents,
+  wallKeyboardColumns,
+  wallKeyboardLayout,
+} from '../wall-keyboard';
 import { LOCALES } from '@/i18n';
 
 describe('wallKeyboardLayout', () => {
@@ -23,6 +32,80 @@ describe('wallKeyboardLayout', () => {
       expect(letters).toMatch(/^\p{Ll}+$/u);
       expect(new Set(letters).size).toBe([...letters].length);
     }
+  });
+});
+
+describe('the accent row', () => {
+  /** Every character a `text` keyboard in this language can put in the box. */
+  function typeable(tag: string): Set<string> {
+    const layout = wallKeyboardLayout(tag);
+    const letters = [...layout.rows.join(''), ...wallKeyboardAccents(layout, 'text')];
+    return new Set([...letters, ...letters.map((l) => shiftLetter(l, tag)), ...WALL_KEYBOARD_NUMBER_ROWS.join(''), ' ']);
+  }
+
+  // Things a family writes on a shopping list or a calendar, as they spell them.
+  const WORDS: Record<string, string[]> = {
+    'en-US': ['Milk', 'Paper towels', "Mom's birthday"],
+    'de-DE': ['Brötchen', 'Käse', 'Süßkartoffeln', 'Äpfel', 'Öl'],
+    'fr-FR': ['pâtes', 'gâteau', 'bœuf', 'Œufs', 'crème fraîche', 'août', 'Noël', 'maïs', 'forêt', 'où', 'sûr', 'côte', 'Pâques', 'Été', 'ça'],
+    'es-ES': ['jamón', 'atún', 'plátanos', 'azúcar', 'café', 'maíz', 'pingüino', 'niño', 'Árbol'],
+    'pt-BR': ['pão', 'feijão', 'açúcar', 'maçã', 'limão', 'café', 'você', 'avô', 'à noite', 'pêssego', 'salsão', 'aniversários', 'baú', 'botões', 'família', 'Água', 'Óleo'],
+    'nl-NL': ['één', 'crème', 'reëel', 'patiënt', 'paté', 'coördinatie', 'ruïne', 'reünie', 'Eén'],
+    'da-DK': ['rødkål', 'æg', 'smør', 'Øl', 'Æbler', 'Århus'],
+  };
+
+  it('has words to spell for every shipped locale', () => {
+    expect(Object.keys(WORDS).sort()).toEqual(Object.keys(LOCALES).sort());
+  });
+
+  for (const [tag, words] of Object.entries(WORDS)) {
+    it(`lets a ${tag} wall spell its everyday words`, () => {
+      const keys = typeable(tag);
+      for (const word of words) {
+        const missing = [...word].filter((ch) => !keys.has(ch));
+        expect(missing, `${word} (${tag})`).toEqual([]);
+      }
+    });
+  }
+
+  it('holds small letters only, none of them already on the letter rows', () => {
+    for (const tag of Object.keys(LOCALES)) {
+      const layout = wallKeyboardLayout(tag);
+      const accents = wallKeyboardAccents(layout, 'text');
+      if (accents === '') continue;
+      expect(accents).toMatch(/^\p{Ll}+$/u);
+      const all = [...layout.rows.join(''), ...accents];
+      expect(new Set(all).size).toBe(all.length);
+    }
+  });
+
+  it('gives a capital for every accented letter, so Shift works on the row', () => {
+    for (const tag of Object.keys(LOCALES)) {
+      for (const letter of wallKeyboardAccents(wallKeyboardLayout(tag), 'text')) {
+        expect(shiftLetter(letter, tag), `${letter} (${tag})`).not.toBe(letter);
+      }
+    }
+  });
+
+  it('is left off the recipe search, whose keys stay as they were', () => {
+    for (const tag of Object.keys(LOCALES)) {
+      expect(wallKeyboardAccents(wallKeyboardLayout(tag), 'search')).toBe('');
+    }
+    expect(wallKeyboardColumns(wallKeyboardLayout('pt-BR'))).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('es-ES'))).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('nl-NL'))).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('fr-FR'))).toBe(12);
+  });
+
+  it('never makes a key narrower than the widest keyboard already shipped (French, 13 across)', () => {
+    for (const tag of Object.keys(LOCALES)) {
+      expect(wallKeyboardColumns(wallKeyboardLayout(tag), 'text')).toBeLessThanOrEqual(13);
+    }
+    // The longest row, Portuguese, sets that keyboard's width; the others fit inside their letters.
+    expect(wallKeyboardColumns(wallKeyboardLayout('pt-BR'), 'text')).toBe(11);
+    expect(wallKeyboardColumns(wallKeyboardLayout('es-ES'), 'text')).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('nl-NL'), 'text')).toBe(10);
+    expect(wallKeyboardColumns(wallKeyboardLayout('fr-FR'), 'text')).toBe(13);
   });
 });
 

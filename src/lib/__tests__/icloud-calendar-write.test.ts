@@ -9,6 +9,7 @@ vi.mock('@/lib/google-auth', () => ({ getAuthenticatedClient: vi.fn() }));
 const { createDAVClient } = await import('tsdav');
 const w = await import('../icloud-calendar-write');
 const { normalizeEventDraft } = await import('../calendar-write');
+const { draftFromGoogle } = await import('../google-calendar-write');
 const { parseICSEvents } = await import('../ical-calendar');
 const { clearICloudCaches } = await import('../caldav-calendar');
 
@@ -345,8 +346,13 @@ describe('splitICloudEventId', () => {
 
 // ── Changing stored text ──────────────────────────────────────────────
 
-const change = (scope: 'instance' | 'series', event: ReturnType<typeof timed>, dayWas: string, repeatChanged = false) =>
-  ({ scope, event, dayWas, repeatChanged, timezone: TZ, now: NOW }) as const;
+const change = (
+  scope: 'instance' | 'series',
+  event: ReturnType<typeof timed>,
+  dayWas: string,
+  repeatChanged = false,
+  extra: { timesChanged?: boolean; timeWas?: import('../calendar-write').TimeWas } = {},
+) => ({ scope, event, dayWas, repeatChanged, timesChanged: true, timezone: TZ, now: NOW, ...extra }) as const;
 
 describe('locateOccurrence', () => {
   it('finds one day of a series by its start and names it as RECURRENCE-ID would', () => {
@@ -600,6 +606,154 @@ describe('changeICloudObject: "Every time"', () => {
   });
 });
 
+describe('changeICloudObject: times are written only when they changed', () => {
+  /** The draft the Change form gets for the day at `eventId`, built the way `getICloudEventForEdit` builds it. */
+  function loadedDraft(text: string, eventId: string) {
+    const located = w.locateOccurrence(text, eventId, TZ);
+    const when = (value: string) => (located.shown.allDay ? { date: value } : { dateTime: value });
+    const draft = draftFromGoogle({ summary: located.shown.title, start: when(located.shown.start), end: when(located.shown.end) }, TZ, { kind: 'none' });
+    return { located, draft };
+  }
+  const renamed = (draft: import('../calendar-write').EventDraft, title: string) =>
+    normalizeEventDraft({ ...draft, title }, { ...opts, timesChanged: false });
+  const untouched = { timesChanged: false } as const;
+
+  const longOneOff = (start: string, end: string) => ics([
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Apple Inc.//macOS 15.1//EN', ...CHICAGO_VTIMEZONE,
+    'BEGIN:VEVENT', `UID:${UID}`, 'DTSTAMP:20261101T120000Z',
+    `DTSTART;TZID=America/Chicago:${start}`, `DTEND;TZID=America/Chicago:${end}`,
+    'SUMMARY:Cabin trp', 'SEQUENCE:2', 'END:VEVENT', 'END:VCALENDAR',
+  ]);
+
+  it('renames a Friday 6 PM to Sunday 4 PM event without touching its end', () => {
+    const text0 = longOneOff('20261127T180000', '20261129T160000');
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-28T00:00:00.000Z`);
+    expect(draft).toMatchObject({ date: '2026-11-27', startTime: '18:00', endTime: '16:00', endDate: '2026-11-29' });
+    const text = w.changeICloudObject(text0, located, change('instance', renamed(draft, 'Cabin trip'), '2026-11-27', false, untouched));
+    const lines = w.unfoldIcsLines(text);
+    expect(lines).toEqual(expect.arrayContaining([
+      'SUMMARY:Cabin trip',
+      'DTSTART;TZID=America/Chicago:20261127T180000',
+      'DTEND;TZID=America/Chicago:20261129T160000',
+      // Nothing about when it happens moved, so its revision count stays.
+      'SEQUENCE:2',
+    ]));
+    expect(read(text)).toMatchObject([{ title: 'Cabin trip', start: '2026-11-28T00:00:00.000Z', end: '2026-11-29T22:00:00.000Z' }]);
+  });
+
+  it('renames a 26 hour event and one of exactly 48 hours, both kept whole', () => {
+    const day26 = longOneOff('20261127T100000', '20261128T120000');
+    const a = loadedDraft(day26, `${UID}:2026-11-27T16:00:00.000Z`);
+    expect(w.changeICloudObject(day26, a.located, change('instance', renamed(a.draft, 'Lake day'), '2026-11-27', false, untouched)))
+      .toContain('DTEND;TZID=America/Chicago:20261128T120000');
+
+    const day48 = longOneOff('20261127T180000', '20261129T180000');
+    const b = loadedDraft(day48, `${UID}:2026-11-28T00:00:00.000Z`);
+    // Starts and ends at the same clock time: the form could never have made it, and can still rename it.
+    expect(b.draft).toMatchObject({ startTime: '18:00', endTime: '18:00', endDate: '2026-11-29' });
+    const text = w.changeICloudObject(day48, b.located, change('instance', renamed(b.draft, 'Lake weekend'), '2026-11-27', false, untouched));
+    expect(text).toContain('SUMMARY:Lake weekend');
+    expect(text).toContain('DTEND;TZID=America/Chicago:20261129T180000');
+  });
+
+  it('keeps a DURATION as it was when only the place changes', () => {
+    const text0 = ics(['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//x//EN', ...CHICAGO_VTIMEZONE, 'BEGIN:VEVENT', `UID:${UID}`, 'DTSTAMP:20261101T120000Z',
+      'DTSTART;TZID=America/Chicago:20261127T180000', 'DURATION:P1DT22H', 'SUMMARY:Cabin trip', 'END:VEVENT', 'END:VCALENDAR']);
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-28T00:00:00.000Z`);
+    const event = normalizeEventDraft({ ...draft, location: 'Up north' }, { ...opts, timesChanged: false });
+    const lines = w.unfoldIcsLines(w.changeICloudObject(text0, located, change('instance', event, '2026-11-27', false, untouched)));
+    expect(lines).toContain('DURATION:P1DT22H');
+    expect(lines).toContain('LOCATION:Up north');
+    expect(lines.some((l) => l.startsWith('DTEND'))).toBe(false);
+  });
+
+  const longSeries = (extraEvents: string[][] = []) => ics([
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Apple Inc.//iOS 18.1//EN', ...CHICAGO_VTIMEZONE,
+    'BEGIN:VEVENT', `UID:${UID}`, 'DTSTAMP:20260901T150000Z',
+    'DTSTART;TZID=America/Chicago:20261002T180000', 'DTEND;TZID=America/Chicago:20261004T160000',
+    'RRULE:FREQ=WEEKLY', 'SUMMARY:Cabin weekend', 'END:VEVENT',
+    ...extraEvents.flat(),
+    'END:VCALENDAR',
+  ]);
+
+  it('"Every time" on a weekly Friday to Sunday series renames it and leaves every weekend whole', () => {
+    const text0 = longSeries();
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-28T00:00:00.000Z`);
+    const text = w.changeICloudObject(text0, located, change('series', renamed(draft, 'Cabin'), '2026-11-27', false, untouched));
+    const lines = w.unfoldIcsLines(text);
+    expect(lines).toEqual(expect.arrayContaining(['SUMMARY:Cabin', 'DTSTART;TZID=America/Chicago:20261002T180000', 'DTEND;TZID=America/Chicago:20261004T160000']));
+    expect(read(text, '2026-11-27T00:00:00Z', '2026-11-28T12:00:00Z')).toMatchObject([{ title: 'Cabin', start: '2026-11-28T00:00:00.000Z', end: '2026-11-29T22:00:00.000Z' }]);
+  });
+
+  it('"Just this day" on that series writes the day with its true start and end', () => {
+    const text0 = longSeries();
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-28T00:00:00.000Z`);
+    const text = w.changeICloudObject(text0, located, change('instance', renamed(draft, 'Cabin with the Lees'), '2026-11-27', false, untouched));
+    const [, day] = veventBlocks(text);
+    expect(day).toContain('RECURRENCE-ID;TZID=America/Chicago:20261127T180000');
+    expect(day).toContain('DTSTART;TZID=America/Chicago:20261127T180000');
+    expect(day).toContain('DTEND;TZID=America/Chicago:20261129T160000');
+    expect(day).toContain('SUMMARY:Cabin with the Lees');
+    expect(read(text, '2026-11-27T00:00:00Z', '2026-11-28T12:00:00Z')).toMatchObject([{ title: 'Cabin with the Lees', end: '2026-11-29T22:00:00.000Z' }]);
+  });
+
+  it('"Just this day" keeps the times of a day that was already changed', () => {
+    const text0 = appleSeries([], [changedDay('20261121T090000', '20261121T113000', '20261121T123000', 'Soccer (late)')]);
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-21T17:30:00.000Z`);
+    const text = w.changeICloudObject(text0, located, change('instance', renamed(draft, 'Soccer (late, away)'), '2026-11-21', false, untouched));
+    const [, day] = veventBlocks(text);
+    expect(day).toContain('DTSTART;TZID=America/Chicago:20261121T113000');
+    expect(day).toContain('DTEND;TZID=America/Chicago:20261121T123000');
+    expect(day).toContain('SUMMARY:Soccer (late\\, away)');
+  });
+
+  it('"Just this day" on an all-day series writes that day as dates', () => {
+    const allDaySeries = ics(['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//x//EN', 'BEGIN:VEVENT', `UID:${UID}`, 'DTSTAMP:20260901T150000Z',
+      'DTSTART;VALUE=DATE:20261102', 'DTEND;VALUE=DATE:20261104', 'RRULE:FREQ=WEEKLY', 'SUMMARY:Grandma here', 'END:VEVENT', 'END:VCALENDAR']);
+    const { located, draft } = loadedDraft(allDaySeries, `${UID}:2026-11-23`);
+    const text = w.changeICloudObject(allDaySeries, located, change('instance', renamed(draft, 'Grandma and Grandpa here'), '2026-11-23', false, untouched));
+    const [, day] = veventBlocks(text);
+    expect(day).toContain('RECURRENCE-ID;VALUE=DATE:20261123');
+    expect(day).toContain('DTSTART;VALUE=DATE:20261123');
+    expect(day).toContain('DTEND;VALUE=DATE:20261125');
+  });
+
+  it('"Every time" from a day that was moved to another time renames the series and moves nothing', () => {
+    // Saturdays 9 to 10, one skipped day, and Nov 21 moved to 11:30 on its own.
+    const text0 = appleSeries(['EXDATE;TZID=America/Chicago:20261107T090000'], [changedDay('20261121T090000', '20261121T113000', '20261121T123000', 'Soccer')]);
+    const { located, draft } = loadedDraft(text0, `${UID}:2026-11-21T17:30:00.000Z`);
+    const text = w.changeICloudObject(text0, located, change('series', renamed(draft, 'Soccer practice'), '2026-11-21', false, untouched));
+    const lines = w.unfoldIcsLines(text);
+    expect(lines).toEqual(expect.arrayContaining([
+      'DTSTART;TZID=America/Chicago:20260905T090000',
+      'DTEND;TZID=America/Chicago:20260905T100000',
+      'EXDATE;TZID=America/Chicago:20261107T090000',
+      'RECURRENCE-ID;TZID=America/Chicago:20261121T090000',
+      'DTSTART;TZID=America/Chicago:20261121T113000',
+    ]));
+    expect(lines.filter((l) => l === 'SUMMARY:Soccer practice')).toHaveLength(2);
+  });
+
+  it('"Every time" from a moved day with a new time moves the series by as much as that day moved', () => {
+    const text0 = appleSeries(['EXDATE;TZID=America/Chicago:20261107T090000'], [changedDay('20261121T090000', '20261121T113000', '20261121T123000', 'Soccer')]);
+    const { located } = loadedDraft(text0, `${UID}:2026-11-21T17:30:00.000Z`);
+    // The moved day ran 11:30 to 12:30; the family makes it 12:00 to 13:30: half an hour later, half an hour longer.
+    const event = timed('2026-11-21', '12:00', '13:30');
+    const timeWas = { allDay: false, startMinute: 11 * 60 + 30, minutes: 60 } as const;
+    const text = w.changeICloudObject(text0, located, change('series', event, '2026-11-21', false, { timeWas }));
+    const lines = w.unfoldIcsLines(text);
+    expect(lines).toEqual(expect.arrayContaining([
+      // Every other Saturday: 9:30 to 11:00, not noon.
+      'DTSTART;TZID=America/Chicago:20260905T093000',
+      'DTEND;TZID=America/Chicago:20260905T110000',
+      'EXDATE;TZID=America/Chicago:20261107T093000',
+      'RECURRENCE-ID;TZID=America/Chicago:20261121T093000',
+      // The moved day stays where it was moved to.
+      'DTSTART;TZID=America/Chicago:20261121T113000',
+    ]));
+  });
+});
+
 describe('removeICloudOccurrence', () => {
   it('skips that day with an EXDATE in the series own form', () => {
     const text0 = appleSeries();
@@ -777,6 +931,7 @@ describe('updateICloudEvent', () => {
     etag: '"C=101@U=abc"',
     scope: 'instance' as const,
     dayWas: '2026-11-21',
+    timesChanged: true,
     event: timed('2026-11-21', '09:30', '10:30'),
     repeatChanged: false,
     timezone: TZ,

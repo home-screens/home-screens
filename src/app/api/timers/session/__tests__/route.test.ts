@@ -151,6 +151,44 @@ describe('/api/timers/session', () => {
     expect(await (await getSession(req())).json()).toEqual({ session: null });
   });
 
+  it('refuses a press made looking at a timer that has since been replaced, and leaves the new one alone', async () => {
+    const first = (await (await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: ['kitchen'] }))).json()).session;
+    const second = (await (await postSession(req({ action: 'start', kind: 'quick', durationSec: 600, targets: ['kids'] }))).json()).session;
+
+    for (const action of ['cancel', 'pause', 'add-minute']) {
+      const res = await postSession(req({ action, sessionId: first.id }));
+      expect(res.status).toBe(404);
+      expect((await res.json()).code).toBe('timers.notRunning');
+    }
+    const { session: untouched } = await (await getSession(req())).json();
+    expect(untouched).toMatchObject({ id: second.id, status: 'running', stepStartedAt: second.stepStartedAt });
+    expect(untouched.pausedAt).toBeUndefined();
+
+    const res = await postSession(req({ action: 'pause', sessionId: second.id }));
+    expect(res.status).toBe(200);
+  });
+
+  it('counts two "Done!" taps on the same step once', async () => {
+    const three: Routine = { ...routine, steps: [
+      { id: 's1', label: 'Make your bed', icon: '🛏️', durationSec: 5, waitForTap: true },
+      { id: 's2', label: 'Get dressed', icon: '👕', durationSec: 300 },
+      { id: 's3', label: 'Brush teeth', icon: '🪥', durationSec: 120 },
+    ] };
+    await saveRoutines([three]);
+    const { session } = await (await postSession(req({ action: 'start', kind: 'routine', routineId: 'morning', targets: 'all' }))).json();
+    nowSpy.mockReturnValue(T0 + 10_000);
+
+    const tap = { action: 'step-done', sessionId: session.id, stepIndex: 0 };
+    expect((await postSession(req(tap))).status).toBe(200);
+    expect((await postSession(req(tap))).status).toBe(404);
+    expect((await (await getSession(req())).json()).session.stepIndex).toBe(1);
+  });
+
+  it('still takes a press that names no timer', async () => {
+    await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }));
+    expect((await postSession(req({ action: 'pause' }))).status).toBe(200);
+  });
+
   it('starting a new session replaces the running one', async () => {
     await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }));
     const res = await postSession(

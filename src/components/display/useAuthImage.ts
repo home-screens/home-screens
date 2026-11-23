@@ -28,7 +28,11 @@ export type AuthImageStatus =
   | 'loading'
   /** `url` renders the current src. */
   | 'ready'
-  /** The current src could not be fetched (non-2xx or network error). */
+  /**
+   * The current src could not be fetched (non-2xx or network error). Not
+   * always for good: a failure that may pass is tried again behind this, and
+   * the status turns `ready` when a try lands.
+   */
   | 'failed';
 
 export interface AuthImageState {
@@ -64,6 +68,10 @@ interface CachedImage {
   /** When a hook last rendered it or let go of it, for eviction order. */
   lastUsed: number;
   busy: boolean;
+  /** How many reads in a row came to nothing for a reason that may pass. */
+  failures: number;
+  /** The wait before the next try of a picture that could not be read. */
+  retryTimer: ReturnType<typeof setTimeout> | null;
 }
 
 const cache = new Map<string, CachedImage>();
@@ -82,6 +90,25 @@ const RECHECK_AFTER_MS = 10_000;
  *  <img> still loading it to finish. */
 const REVOKE_DELAY_MS = 30_000;
 
+/**
+ * How long to wait before asking again for a picture the hub could not hand
+ * over, try by try; the last wait repeats. A wall is left running for weeks,
+ * and one WiFi blip at the wrong moment must not leave "not available" up
+ * until somebody restarts it. Short at first, since most blips are over in
+ * seconds, then slow enough to cost nothing while a hub is down for the day.
+ */
+const RETRY_WAITS_MS = [5_000, 15_000, 60_000, 5 * 60_000];
+
+/**
+ * Whether asking again could help. A picture that is not there (404, 410) or
+ * that this wall may not have stays failed; a dropped connection, a timeout,
+ * a busy hub (429) or a hub that tripped over itself (5xx) is worth another
+ * try.
+ */
+function mayPass(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
 /** Only API-served images need the display token; static paths load as they are. */
 function isHubImage(src: string): boolean {
   return src.startsWith('/api/');
@@ -96,7 +123,10 @@ async function load(entry: CachedImage): Promise<void> {
   try {
     const res = await displayFetch(entry.src, { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS });
     if (!res.ok) {
+      // The answer's body is of no use; let go of its connection.
+      void res.body?.cancel().catch(() => { /* already consumed */ });
       entry.failed = true;
+      if (mayPass(res.status)) retryLater(entry);
       return;
     }
     const etag = res.headers.get('etag');
@@ -106,14 +136,39 @@ async function load(entry: CachedImage): Promise<void> {
     entry.etag = etag;
     entry.bytes = blob.size;
     entry.failed = false;
+    entry.failures = 0;
     entry.checkedAt = Date.now();
   } catch {
     entry.failed = true;
+    retryLater(entry);
   } finally {
     entry.busy = false;
     settleUnused(entry);
     notify(entry);
   }
+}
+
+/**
+ * Ask again for a picture after a wait, as long as something is showing it.
+ * The entry stays `failed` meanwhile, so the wall keeps saying so (or keeps
+ * skipping the slide) rather than flickering through "loading" on every try.
+ * One timer per picture at most, and `release` clears it with the last user,
+ * so a wall left running holds no timer for a picture nobody shows.
+ */
+function retryLater(entry: CachedImage): void {
+  if (entry.users.size === 0 || entry.retryTimer !== null) return;
+  const wait = RETRY_WAITS_MS[Math.min(entry.failures, RETRY_WAITS_MS.length - 1)];
+  entry.failures++;
+  entry.retryTimer = setTimeout(() => {
+    entry.retryTimer = null;
+    if (entry.users.size > 0 && !entry.busy) void load(entry);
+  }, wait);
+}
+
+function stopRetrying(entry: CachedImage): void {
+  if (entry.retryTimer === null) return;
+  clearTimeout(entry.retryTimer);
+  entry.retryTimer = null;
 }
 
 /**
@@ -192,6 +247,7 @@ function acquire(src: string, rerender: () => void): CachedImage {
     entry = {
       src, url: undefined, blob: undefined, etag: null, bytes: 0, failed: false,
       users: new Set(), checkedAt: 0, lastUsed: Date.now(), busy: false,
+      failures: 0, retryTimer: null,
     };
     cache.set(src, entry);
   }
@@ -207,6 +263,7 @@ function release(entry: CachedImage, rerender: () => void): void {
   entry.users.delete(rerender);
   if (entry.users.size > 0) return;
   entry.lastUsed = Date.now();
+  stopRetrying(entry);
   // A failure is not kept: the next mount tries again. One whose fetch is
   // still out is tidied when it settles (settleUnused).
   if (entry.failed && !entry.busy) forget(entry);
@@ -283,7 +340,10 @@ export function preloadAuthImage(src: string | undefined): void {
 
 /** Revoke and forget every kept picture. */
 export function __resetAuthImageCacheForTests(): void {
-  for (const entry of cache.values()) if (entry.url) URL.revokeObjectURL(entry.url);
+  for (const entry of cache.values()) {
+    if (entry.url) URL.revokeObjectURL(entry.url);
+    stopRetrying(entry);
+  }
   cache.clear();
   if (evictionTimer !== null) clearTimeout(evictionTimer);
   evictionTimer = null;

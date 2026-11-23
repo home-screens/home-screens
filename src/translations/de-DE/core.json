@@ -781,6 +781,7 @@
     }
   },
   "calendarChange": {
+    "longNote": "Dieser Termin dauert einen Tag oder länger. Tag und Uhrzeit änderst du in deiner Kalender-App.",
     "thisDayStays": "{day}. Die anderen Tage bleiben, wie sie sind.",
     "everyTimePastFuture": "Alle vergangenen und kommenden Tage",
     "askBody": "Nur an diesem Tag ändern oder an allen Tagen?",

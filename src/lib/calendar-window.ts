@@ -74,7 +74,7 @@ function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date):
 
 /** The event window a single module's current view renders, or null if the
  *  server's upcoming-only default already covers it. */
-function getModuleWindow(mod: ModuleInstance, now: Date, daysAhead: number): ModuleWindow | null {
+function getModuleWindow(mod: Pick<ModuleInstance, 'type' | 'config'>, now: Date, daysAhead: number): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
     // Every grid honors startDay (the rolling view is the exception: it
@@ -229,6 +229,32 @@ export function getCalendarFetchWindow(
   }
 
   return { timeMin, timeMax };
+}
+
+/**
+ * What a view borrowed from the wall's buttons needs fetched while it is on
+ * screen: the same window that view would get if it were the saved one, so a
+ * borrowed Month is as full as a saved Month. The module registers it with
+ * the look-ahead store for as long as the view is borrowed, which keeps the
+ * fetch of a wall nobody has touched exactly as it was. Null when the server's
+ * default already covers the view.
+ *
+ * `config` is the calendar as drawn (the borrowed view already in place).
+ */
+export function borrowedViewReach(
+  type: 'calendar' | 'fullscreen-calendar',
+  config: Partial<CalendarConfig> | Partial<FullscreenCalendarConfig>,
+  now: Date,
+): { start: Date; end: Date } | null {
+  // A `daysAhead` of 0 makes a Daily of two or more columns answer with its
+  // drawn days rather than "the default covers it": the household's real
+  // number is only known to the fetch, which decides there whether those days
+  // reach past the default.
+  const win = getModuleWindow({ type, config: config as ModuleInstance['config'] }, now, 0);
+  if (!win) return null;
+  // No end of its own means no more ahead than the default: an end at the
+  // start never moves the fetch's far edge.
+  return { start: win.start, end: win.end ?? win.start };
 }
 
 // Source predicates and the /api/calendar URL builder live in

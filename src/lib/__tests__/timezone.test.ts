@@ -6,6 +6,7 @@ import {
   localISODateTime,
   formatTimeInTZ,
   formatTimeOfDay,
+  tightHourLabel,
   formatDateInTZ,
   parseDateInTZ,
   toTZWallTime,
@@ -183,9 +184,37 @@ describe('formatTimeOfDay', () => {
     }
   });
 
-  it('labels a forecast hour without minutes only in 12-hour mode', () => {
-    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'UTC', hourOnly: true })).toBe('7 AM');
-    expect(formatTimeOfDay(morning, { timeFormat: '24h', locale: 'de-DE', timezone: 'UTC', hourOnly: true })).toBe('07:05');
+  // What each shipped language reads at 08:05 and 15:30, as a time, as a
+  // forecast hour label, and as the label closed up for a tight strip.
+  const READS: Array<[locale: string, clock: '12h' | '24h', at: string, time: string, hour: string, tight: string]> = [
+    ['en-US', '24h', '08:05', '08:05', '08', '08'],
+    ['de-DE', '24h', '08:05', '08:05', '08', '08'],
+    ['fr-FR', '24h', '08:05', '08:05', '08', '08'],
+    ['es-ES', '24h', '08:05', '08:05', '08', '08'],
+    ['nl-NL', '24h', '08:05', '08:05', '08', '08'],
+    ['pt-BR', '24h', '08:05', '08:05', '08', '08'],
+    ['da-DK', '24h', '08:05', '08:05', '08', '08'],
+    ['de-DE', '24h', '00:05', '00:05', '00', '00'],
+    ['da-DK', '24h', '15:30', '15:30', '15', '15'],
+    ['en-US', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
+    ['en-US', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
+    ['en-US', '12h', '00:05', '12:05 AM', '12 AM', '12AM'],
+    ['de-DE', '12h', '08:05', '8:05 vorm.', '8 vorm.', '8 vorm.'],
+    ['de-DE', '12h', '15:30', '3:30 nachm.', '3 nachm.', '3 nachm.'],
+    ['fr-FR', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
+    ['es-ES', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
+    ['nl-NL', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
+    ['pt-BR', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
+    ['da-DK', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
+  ];
+
+  it.each(READS)('%s %s at %s reads %s, hour label %s, closed up %s', (locale, timeFormat, at, time, hour, tight) => {
+    const instant = new Date(`2026-06-08T${at}:00Z`);
+    const clock = { timeFormat, locale, timezone: 'UTC' };
+    expect(formatTimeOfDay(instant, clock)).toBe(time);
+    const label = formatTimeOfDay(instant, { ...clock, hourOnly: true });
+    expect(label).toBe(hour);
+    expect(tightHourLabel(label)).toBe(tight);
   });
 
   it('reads the instant in the zone it is given', () => {

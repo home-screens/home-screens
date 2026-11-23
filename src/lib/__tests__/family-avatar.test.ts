@@ -163,4 +163,31 @@ describe('getUniqueInitials', () => {
     expect(result.get('1')).toBe('AAA');
     expect(result.get('2')).toBe('AAA');
   });
+
+  it('tells apart people who share a first word by the first letter of each word', () => {
+    const tags = (names: string[]) => {
+      const found = getUniqueInitials(names.map((name) => ({ id: name, name })));
+      return names.map((name) => found.get(name));
+    };
+    expect(tags(['Mary Ann', 'Mary Beth'])).toEqual(['MA', 'MB']);
+    expect(tags(['Anna Lena', 'Anna Maria', 'Ben'])).toEqual(['AL', 'AM', 'B']);
+    expect(tags(['Hans Peter', 'Hans Jürgen'])).toEqual(['HP', 'HJ']);
+    expect(tags(['⭐ Mary Ann', 'Mary Beth'])).toEqual(['MA', 'MB']);
+    // Three words when two are not enough.
+    expect(tags(['Mary Ann Lee', 'Mary Ann Poe'])).toEqual(['MAL', 'MAP']);
+  });
+
+  it('keeps the name prefix for one-word names, and where the word letters would clash too', () => {
+    const tags = (names: string[]) => {
+      const found = getUniqueInitials(names.map((name) => ({ id: name, name })));
+      return names.map((name) => found.get(name));
+    };
+    expect(tags(['Sam', 'Sarah', 'Sophie'])).toEqual(['Sam', 'Sar', 'So']);
+    // A one-word name tied with two-word ones keeps its prefix; the others move off it.
+    expect(tags(['Mary', 'Mary Ann', 'Mary Beth'])).toEqual(['Mar', 'MA', 'MB']);
+    // Word letters that are the same again fall back to the shared prefix.
+    expect(tags(['Mary Ann', 'Mary Anders'])).toEqual(['Mar', 'Mar']);
+    // A second word is not read while the first one already tells them apart.
+    expect(tags(['Mary Ann', 'Mia Beth'])).toEqual(['Ma', 'Mi']);
+  });
 });

@@ -42,21 +42,32 @@ export function useCalendarTab(days: readonly string[]) {
   // A slower read for an earlier week must not land over the newer one.
   const generation = useRef(0);
 
-  /** `quiet`: a read in the background, whose failure keeps what is on screen. */
+  // What adding last offered, for a background read that has to go on without a new answer.
+  const entryRef = useRef<CalendarEntryInfo | null>(null);
+
+  /**
+   * `quiet`: a read in the background, whose failure keeps what is on screen.
+   * That covers an answer the hub turned down as much as one that never
+   * came: each half is replaced only by its own good answer, because an open
+   * event form lives on `entry` and everything typed in it would go with it.
+   */
   const load = useCallback(async (quiet = false) => {
     const mine = ++generation.current;
     try {
       const entryRes = await editorFetch('/api/calendar/entry');
-      const info = entryRes.ok ? (await readJson(entryRes)) as CalendarEntryInfo : null;
+      const answered = entryRes.ok ? (await readJson(entryRes)) as CalendarEntryInfo : null;
+      const info = answered ?? (quiet ? entryRef.current : null);
       const zone = info?.timezone;
       const timeMin = parseDateInTZ(`${first}T00:00:00`, zone).toISOString();
       const timeMax = parseDateInTZ(`${addIsoDays(last, 1)}T00:00:00`, zone).toISOString();
       const res = await editorFetch(`/api/calendar?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`);
       const body = res.ok ? (await readJson(res)) as { events?: CalendarEvent[] } : null;
       if (mine !== generation.current) return;
+      entryRef.current = info;
       setEntry(info);
       // No calendar at all answers an error; the tab still shows the days and their notes.
-      setEvents(body?.events ?? []);
+      // In the background an error keeps the events already shown.
+      if (body || !quiet) setEvents(body?.events ?? []);
       setLoadError(false);
     } catch {
       if (mine === generation.current && !quiet) setLoadError(true);

@@ -195,7 +195,9 @@ export default function FullscreenPhotoModule({ config, style, timezone, fullscr
   const containerRef = useRef<HTMLDivElement>(null);
   const setupSentence = useSetupSentence();
   const surface = useModuleSurface();
-  // The single picture that could not be loaded, so a new choice gets its own try.
+  // The single picture that could not be loaded, so a new choice gets its own
+  // try. Cleared when that picture paints after all: a read lost to a network
+  // blip is tried again behind the sentence.
   const [failedFile, setFailedFile] = useState<string | null>(null);
 
   const isSinglePhoto = isSinglePhotoMode(config);
@@ -229,15 +231,8 @@ export default function FullscreenPhotoModule({ config, style, timezone, fullscr
         </FullscreenStateShell>
       );
     }
-    if (failedFile === config.file) {
-      // The file was deleted or cannot be read: say so instead of a bare ground.
-      return (
-        <div ref={containerRef} className="w-full h-full flex items-center justify-center" style={{ ...themeGround, color: theme.textSecondary }}>
-          <NoPhotosYet theme={theme} t={t} title={t('image.unavailable')} hint={t('fullscreen-photo.noPhotoSelectedHint')} />
-        </div>
-      );
-    }
     const file = config.file;
+    const failed = failedFile === file;
     return (
       <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={themeGround}>
         {config.kenBurns && <style>{KEN_BURNS_CSS}</style>}
@@ -249,9 +244,19 @@ export default function FullscreenPhotoModule({ config, style, timezone, fullscr
           transition="none"
           fadeMs={0}
           kenBurns={config.kenBurns ?? false}
+          onReady={() => setFailedFile((was) => (was === file ? null : was))}
           onFailed={() => setFailedFile(file)}
         />
-        {showClock && (
+        {failed && (
+          // The file was deleted or cannot be read: say so instead of a bare
+          // ground. Drawn over the picture's layer rather than in place of
+          // it, because that layer is what keeps asking for the picture; with
+          // it unmounted nothing was left to notice the picture had arrived.
+          <div className="absolute inset-0 flex items-center justify-center" style={{ ...themeGround, color: theme.textSecondary, zIndex: 2 }}>
+            <NoPhotosYet theme={theme} t={t} title={t('image.unavailable')} hint={t('fullscreen-photo.noPhotoSelectedHint')} />
+          </div>
+        )}
+        {showClock && !failed && (
           <ClockOverlay theme={theme} backdrop={config} timezone={timezone} timeFormat={timeFormat} />
         )}
       </div>

@@ -7,6 +7,7 @@ import type { CalendarEvent, CalendarPerson, FullscreenCalendarConfig, ModuleSty
 import { EMPTY_EXTRAS } from '@/lib/calendar-extras';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { LOOK_AHEAD_DAYS } from '@/lib/look-ahead';
+import { borrowedViewReach } from '@/lib/calendar-window';
 import { useLookAheadStore } from '@/stores/look-ahead-store';
 import { I18nWrapper, installResizeObserverStub, testScale } from '../../__tests__/helpers/harness';
 
@@ -97,6 +98,38 @@ describe('the full-screen calendar header arrows', () => {
       end: addDays(weekStart, LOOK_AHEAD_DAYS + 7).getTime(),
     });
     fireEvent.click(screen.getByTestId('look-ahead-home'));
+    expect(useLookAheadStore.getState().span).toBeNull();
+  });
+
+  /* Month picked from the wall's buttons drew a month of empty days: only the saved view's days were fetched. */
+  it('has a view borrowed from the wall\'s buttons fetched for as long as it shows, arrows or no arrows', () => {
+    const { container } = render(<Calendar config={{ view: 'schedule', wallViews: ['month-grid', 'up-next'] }} />, { wrapper: I18nWrapper });
+    const press = (view: string) => fireEvent.click(container.querySelector(`[data-wall-view="${view}"]`)!);
+    const month = borrowedViewReach('fullscreen-calendar', { view: 'month-grid' }, today)!;
+    const monthSpan = { start: month.start.getTime(), end: month.end.getTime() };
+    // Sun 26 Jul to Sat 5 Sep: the six rows August draws.
+    expect(monthSpan).toEqual({ start: new Date(2026, 6, 26).getTime(), end: new Date(2026, 8, 6).getTime() });
+    expect(useLookAheadStore.getState().span).toBeNull();
+
+    press('month-grid');
+    expect(title(container)).toBe('August 2026');
+    expect(useLookAheadStore.getState().span).toEqual(monthSpan);
+    // Stepping reaches further, and coming back to this month keeps the month.
+    fireEvent.click(screen.getByTestId('look-ahead-forward'));
+    const away = useLookAheadStore.getState().span!;
+    expect(away.start).toBeLessThan(monthSpan.start);
+    expect(away.end).toBeGreaterThan(monthSpan.end);
+    fireEvent.click(screen.getByTestId('look-ahead-home'));
+    expect(title(container)).toBe('August 2026');
+    expect(useLookAheadStore.getState().span).toEqual(monthSpan);
+
+    // Up next has no arrows; it asks for today from midnight.
+    press('up-next');
+    expect(screen.queryByTestId('look-ahead-bar')).toBeNull();
+    expect(useLookAheadStore.getState().span).toEqual({ start: today.getTime(), end: today.getTime() });
+
+    // Its own view again: nothing more than the saved view's fetch.
+    press('schedule');
     expect(useLookAheadStore.getState().span).toBeNull();
   });
 

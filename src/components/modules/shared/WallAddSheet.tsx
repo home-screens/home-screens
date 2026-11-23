@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Check, Info, Plus, RotateCcw, Undo2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getThemeTokens, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
@@ -8,7 +8,7 @@ import { refusalSentence } from '@/lib/hub-request';
 import { RefusalError } from '@/lib/refusal';
 import { WALL_ITEM_MAX_LENGTH } from '@/lib/todo-wall';
 import { useWallOverlayScale } from './useWallOverlayScale';
-import { useWallTyping } from './useWallTyping';
+import { useWallTyping, type WallTyping } from './useWallTyping';
 import { WallNotice } from './WallNotice';
 import { WallTypingSheet } from './WallTypingSheet';
 import { wallPressProps } from './wallPress';
@@ -57,7 +57,8 @@ export interface WallAddSheetProps {
  * newest first on one line, with Undo until the sheet closes. Something
  * already on the list adds nothing and says so; something ticked off is put
  * back rather than added twice (the hub decides, `addItemIfNew`). A failed
- * add keeps the words and says what happened.
+ * add keeps the words and says what happened. The keys wait while an Add is
+ * on its way.
  */
 export function WallAddSheet({ listName, aside, source, accent, theme = SHEET_THEME, onAdd, failedText, onClose }: WallAddSheetProps) {
   const t = useTranslate('modules');
@@ -72,6 +73,17 @@ export function WallAddSheet({ listName, aside, source, accent, theme = SHEET_TH
   const nextKey = useRef(0);
   // A second tap on Add while the first is on its way would send the words twice.
   const busyRef = useRef(false);
+
+  // While an Add is on its way the words stay as they were sent: a letter
+  // typed then would be wiped with the box when the answer lands, or would
+  // change the words a failure is about and hide its message. Read from the
+  // ref, so a key in the same instant as Add is held back too.
+  const held = useMemo<WallTyping>(() => ({
+    ...typing,
+    onKey: (key) => { if (!busyRef.current) typing.onKey(key); },
+    onDelete: () => { if (!busyRef.current) typing.onDelete(); },
+    onShift: () => { if (!busyRef.current) typing.onShift(); },
+  }), [typing]);
 
   const explain = useCallback((err: unknown) => {
     if (err instanceof RefusalError) return refusalSentence(err, tCore) ?? failedText ?? t('wallAdd.failed');
@@ -157,7 +169,7 @@ export function WallAddSheet({ listName, aside, source, accent, theme = SHEET_TH
       aside={aside}
       theme={theme}
       accent={accent}
-      typing={typing}
+      typing={held}
       placeholder={t('wallAdd.placeholder')}
       actionLabel={t('wallAdd.action')}
       actionIcon={<Plus size={P(30)} strokeWidth={3} aria-hidden="true" />}

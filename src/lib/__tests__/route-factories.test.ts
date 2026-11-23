@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { createTagActionRoute } from '@/lib/route-factories';
+import { UPGRADE_RUNNING_CODE } from '@/lib/upgrade-refusal';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
@@ -36,6 +37,8 @@ describe('createTagActionRoute', () => {
     expect(res.status).toBe(409);
     const json = await res.json();
     expect(json.error).toBe('An upgrade is already in progress');
+    // The update window reads the code, not the sentence, to tell "one is already running" from a start that failed.
+    expect(json.code).toBe(UPGRADE_RUNNING_CODE);
     expect(actionFn).not.toHaveBeenCalled();
   });
 

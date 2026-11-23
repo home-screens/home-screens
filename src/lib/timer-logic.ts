@@ -270,6 +270,22 @@ export function cancelSession(s: TimerSession, now: number): TimerSession {
   return { ...s, status: 'cancelled', completedAt: now };
 }
 
+/**
+ * Whether a control press was made looking at the session the hub holds. A
+ * press may name the session it saw and, for a "Done!" tap, the step: the
+ * hub's timer can be replaced, or its step moved on, between a screen's last
+ * read and the press, and a press that names neither lands on whatever is
+ * there. A press that names nothing is taken as it is.
+ */
+export function pressIsForSession(
+  live: Pick<TimerSession, 'id' | 'stepIndex'>,
+  press: { sessionId?: unknown; stepIndex?: unknown },
+): boolean {
+  if (press.sessionId !== undefined && press.sessionId !== live.id) return false;
+  if (press.stepIndex !== undefined && press.stepIndex !== live.stepIndex) return false;
+  return true;
+}
+
 /** Returns an error message, or null when the routine list is valid. */
 export function validateRoutines(routines: unknown): string | null {
   if (!Array.isArray(routines)) return 'routines must be an array';

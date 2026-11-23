@@ -781,6 +781,7 @@
     }
   },
   "calendarChange": {
+    "longNote": "Deze afspraak duurt een dag of langer. De dag en de tijden verander je in je agenda-app.",
     "thisDayStays": "{day}. De andere dagen blijven staan.",
     "everyTimePastFuture": "Alle keren, ook die al geweest zijn",
     "askBody": "Alleen deze dag wijzigen, of elke keer?",

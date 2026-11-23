@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { getCalendarFetchWindow } from '@/lib/calendar-window';
+import { borrowedViewReach, getCalendarFetchWindow } from '@/lib/calendar-window';
+import { getModuleDefinition } from '@/lib/module-registry';
+import { CALENDAR_CARD_VIEW_ORDER, FULLSCREEN_CALENDAR_VIEW_ORDER, wallSwitchedConfig, wallViewChoices } from '@/lib/calendar-wall-switch';
 import { buildCalendarUrl, googleCalendarIdList, hasAnyCalendarSource, hasCalendarFeedSources } from '@/lib/calendar-sources';
-import type { CalendarSettings, ModuleInstance, ModuleType, Screen } from '@/types/config';
+import type { CalendarConfig, CalendarSettings, FullscreenCalendarConfig, ModuleInstance, ModuleType, Screen } from '@/types/config';
 
 function makeModule(type: ModuleType, config: Record<string, unknown>, enabled?: boolean): ModuleInstance {
   return {
@@ -323,6 +325,72 @@ describe('getCalendarFetchWindow', () => {
       [makeScreen([makeModule('calendar', { viewMode: 'rolling', weeksToShow: 1 })])], NOW, DAYS_AHEAD,
     );
     expect(lo!.timeMax).toBe(addDays(startOfDay(NOW), 8).toISOString());
+  });
+});
+
+/* A family switched the wall to Month and saw a month of empty days: the
+ * fetch still covered only the saved view's week. */
+describe('a view borrowed from the wall\'s buttons', () => {
+  // What the display fetches: the saved screens plus what the module registered while borrowed.
+  const fetched = (mod: ModuleInstance, reach: { start: Date; end: Date } | null) =>
+    getCalendarFetchWindow([makeScreen([mod])], NOW, DAYS_AHEAD, reach);
+  const covers = (win: ReturnType<typeof getCalendarFetchWindow>, saved: ReturnType<typeof getCalendarFetchWindow>) => {
+    expect(win).not.toBeNull();
+    expect(saved).not.toBeNull();
+    expect(new Date(win!.timeMin).getTime()).toBeLessThanOrEqual(new Date(saved!.timeMin).getTime());
+    expect(win!.timeMax).not.toBeNull();
+    expect(new Date(win!.timeMax!).getTime()).toBeGreaterThanOrEqual(new Date(saved!.timeMax!).getTime());
+  };
+
+  it('fetches the whole month for a Full-Screen Calendar with the starting settings switched to Month', () => {
+    const saved = getModuleDefinition('fullscreen-calendar')!.defaultConfig as unknown as FullscreenCalendarConfig;
+    expect(wallViewChoices(saved.view, saved.wallViews, FULLSCREEN_CALENDAR_VIEW_ORDER)).toContain('month-grid');
+    const mod = makeModule('fullscreen-calendar', saved as unknown as Record<string, unknown>);
+    const atRest = fetched(mod, null);
+    const drawn = wallSwitchedConfig(saved, 'view', 'month-grid', null);
+    const borrowed = fetched(mod, borrowedViewReach('fullscreen-calendar', drawn, NOW));
+    const asSaved = fetched(makeModule('fullscreen-calendar', { ...saved, view: 'month-grid' }), null);
+    // At rest it is the saved view's week and a bit, well short of the month.
+    expect(new Date(atRest!.timeMin).getTime()).toBeGreaterThan(new Date(asSaved!.timeMin).getTime());
+    covers(borrowed, asSaved);
+    // The grid's first drawn day (Sun 28 Jun) and its last (Sat 1 Aug).
+    expect(new Date(borrowed!.timeMin).getTime()).toBeLessThanOrEqual(new Date(2026, 5, 28).getTime());
+    expect(new Date(borrowed!.timeMax!).getTime()).toBeGreaterThanOrEqual(new Date(2026, 7, 2).getTime());
+  });
+
+  it('fetches the whole month for a Calendar card saved as Daily switched to Month', () => {
+    const saved: CalendarConfig = { ...(getModuleDefinition('calendar')!.defaultConfig as unknown as CalendarConfig), viewMode: 'daily' };
+    expect(wallViewChoices('daily', saved.wallViews, CALENDAR_CARD_VIEW_ORDER)).toContain('month');
+    const mod = makeModule('calendar', saved as unknown as Record<string, unknown>);
+    // A Daily at rest asks for nothing past the hub's own default.
+    expect(fetched(mod, null)).toBeNull();
+    const drawn = wallSwitchedConfig(saved, 'viewMode', 'month', null);
+    const borrowed = fetched(mod, borrowedViewReach('calendar', drawn, NOW));
+    covers(borrowed, fetched(makeModule('calendar', { ...saved, viewMode: 'month' }), null));
+  });
+
+  it('asks for exactly what the same view asks for when it is the saved one', () => {
+    for (const view of FULLSCREEN_CALENDAR_VIEW_ORDER) {
+      const asSaved = fetched(makeModule('fullscreen-calendar', { view }), null);
+      // A card that fetches nothing at rest, so only the borrowed view decides.
+      const borrowed = fetched(makeModule('calendar', { viewMode: 'daily' }), borrowedViewReach('fullscreen-calendar', { view }, NOW));
+      expect(borrowed, view).toEqual(asSaved);
+    }
+    for (const viewMode of CALENDAR_CARD_VIEW_ORDER) {
+      if (viewMode === 'daily') continue;
+      const asSaved = fetched(makeModule('calendar', { viewMode }), null);
+      const borrowed = fetched(makeModule('calendar', { viewMode: 'daily' }), borrowedViewReach('calendar', { viewMode }, NOW));
+      expect(borrowed, viewMode).toEqual(asSaved);
+    }
+  });
+
+  it('reaches a borrowed Daily\'s last column, and leaves the fetch alone for a view the default covers', () => {
+    // Ten columns from today end past the seven days the hub sends by default.
+    const wide = fetched(makeModule('calendar', { viewMode: 'agenda' }), borrowedViewReach('calendar', { viewMode: 'daily', daysToShow: 10 }, NOW));
+    expect(new Date(wide!.timeMax!).getTime()).toBeGreaterThanOrEqual(startOfDay(addDays(NOW, 10)).getTime());
+    // Three columns sit inside the default: no far edge is sent.
+    expect(fetched(makeModule('calendar', { viewMode: 'agenda' }), borrowedViewReach('calendar', { viewMode: 'daily', daysToShow: 3 }, NOW))!.timeMax).toBeNull();
+    expect(borrowedViewReach('calendar', { viewMode: 'agenda' }, NOW)).toBeNull();
   });
 });
 

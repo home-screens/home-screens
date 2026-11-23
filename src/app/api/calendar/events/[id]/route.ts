@@ -21,12 +21,14 @@ export const GET = withDisplayAuth(async (request: NextRequest, { params }: Cont
 }, 'Failed to load event');
 
 /**
- * PATCH: change an event, `{ draft, etag, scope, seriesId?, sourceRef?, dayWas, repeatChanged }`
+ * PATCH: change an event,
+ * `{ draft, etag, scope, seriesId?, sourceRef?, dayWas, timeWas?, repeatChanged, timesChanged }`
  * (`sourceRef` for iCloud).
  * `scope` is `instance` (this day) or `series` (every time); `etag` is the
- * version the form loaded, the series' for `series`. A change made elsewhere
- * since then answers 409 `calendarWrite.changedElsewhere`, and nothing is
- * overwritten.
+ * version the form loaded, the series' for `series`. `timesChanged: false`
+ * leaves the day and times exactly as the calendar holds them. A change made
+ * elsewhere since the form loaded answers 409
+ * `calendarWrite.changedElsewhere`, and nothing is overwritten.
  */
 export const PATCH = withDisplayAuth(async (request: NextRequest, { params }: Context) => {
   const { id } = await params;

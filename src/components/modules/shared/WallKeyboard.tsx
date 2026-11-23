@@ -6,6 +6,7 @@ import { useInteractionHold } from '@/lib/interaction-hold';
 import {
   WALL_KEYBOARD_NUMBER_ROWS,
   shiftLetter,
+  wallKeyboardAccents,
   wallKeyboardColumns,
   wallKeyboardLayout,
   type WallKeyboardKind,
@@ -16,14 +17,21 @@ import { wallPressProps } from './wallPress';
 /** A keyboard nobody has pressed for this long closes, so the screen can move on. */
 export const WALL_KEYBOARD_IDLE_MS = 60_000;
 
+const noIdle = () => {};
+
 export interface WallKeyboardProps {
   /** A key as it is drawn: a capital while Shift is lit, a digit or mark from the 123 page, or a space. */
   onKey: (key: string) => void;
   onDelete: () => void;
   /** The action key (Done, Add). */
   onAction: () => void;
-  /** Nobody pressed a key for a minute. */
-  onIdle: () => void;
+  /**
+   * Nobody pressed a key for a minute. Given by a keyboard that stands alone
+   * (the recipe search). Left out inside a sheet that closes itself: the sheet
+   * counts every touch on it, keys included, and a second minute counted here
+   * from the last key would close it under a finger on anything else.
+   */
+  onIdle?: () => void;
   /**
    * `search`: letters only, for the recipe search. `text`: Shift and a 123
    * page, for words someone will read (a list item, an event title).
@@ -61,12 +69,13 @@ export interface WallKeyboardProps {
  * The wall's own keyboard. A Pi kiosk has no on-screen keyboard of its own,
  * so this draws the keys in the hub's language (`wallKeyboardLayout`): the
  * letters with delete, space and an action key, plus (for `text`) Shift left
- * of the last letter row and a 123 page of digits and marks behind the key
- * bottom left. The page stays where it is put, so a space after a number does
+ * of the last letter row, a row of the language's accented letters on top
+ * where it has any, and a 123 page of digits and marks behind the key bottom
+ * left. The page stays where it is put, so a space after a number does
  * not flip back to the letters. Colours come from the `--wt-*` variables
  * (`wallTypingVars`) its opener sets. While it is open the screen holds still
  * and a sideways flick does not change screens; a minute without a key
- * closes it.
+ * closes it (`onIdle`), unless the sheet it sits in does its own closing.
  */
 export function WallKeyboard({
   onKey, onDelete, onAction, onIdle, kind = 'search', shift = false, onShift, actionLabel, actionIcon, actionDisabled = false,
@@ -82,7 +91,7 @@ export function WallKeyboard({
   const page = pages.round === round ? pages.page : 'letters';
   const setPage = (next: 'letters' | 'numbers') => setPages({ page: next, round });
   useInteractionHold();
-  const pressed = useAutoClose(onIdle, WALL_KEYBOARD_IDLE_MS, { paused });
+  const pressed = useAutoClose(onIdle ?? noIdle, WALL_KEYBOARD_IDLE_MS, { paused: paused || !onIdle });
 
   const gap = P(12);
   // One key's width; percentages resolve against each row, which spans the keyboard.
@@ -145,6 +154,9 @@ export function WallKeyboard({
   // Letter rows, or the 123 page's rows; delete closes the last one.
   const charRows = numbers ? WALL_KEYBOARD_NUMBER_ROWS : layout.rows;
   const last = charRows.length - 1;
+  // The language's accented letters, over both pages so the sheet keeps its
+  // height when the page changes. Shift makes capitals of them on the letters.
+  const accents = wallKeyboardAccents(layout, kind);
 
   return (
     <div
@@ -157,6 +169,7 @@ export function WallKeyboard({
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: P(14), maxWidth, margin: '0 auto' }}>
+        {accents && <div data-row="accents" style={row}>{charKeys(accents)}</div>}
         {charRows.map((chars, i) => (
           <div key={chars} style={row}>
             {i === last && text && !numbers && shiftButton}

@@ -13,6 +13,11 @@ import type { AddressInfo } from 'node:net';
  * series is `<seriesId>_<YYYYMMDD>`, an all-day or timed day alike, with
  * `recurringEventId` set. Times are naive local times with `timeZone`, which
  * the hub reads on the household's clock.
+ *
+ * A patch merges `start` and `end` field by field, as Google documents for
+ * `events.patch`: a field left out keeps its value and `null` clears it. An
+ * event left with both a `date` and a `dateTime` is answered 400, so a change
+ * between all day and timed that forgets to clear the old shape fails here.
  */
 
 export interface FakeCalendar {
@@ -87,6 +92,31 @@ function shiftTo(time: Stored['start'], day: string, firstDay: string): Stored['
 }
 
 const firstDayOf = (e: Stored) => (e.start.date ?? e.start.dateTime!.slice(0, 10));
+
+type When = Stored['start'];
+
+/** A start or end with a patch laid over it: named fields replace, `null` clears, the rest stay. */
+function mergeWhen(current: When | undefined, patch: unknown): When {
+  const merged: Record<string, unknown> = { ...current, ...(patch && typeof patch === 'object' ? patch : {}) };
+  return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== null && value !== undefined)) as When;
+}
+
+/** An event with a patch body laid over it, `start` and `end` merged rather than replaced. */
+function patched(event: Stored, body: Record<string, unknown> | undefined): Stored {
+  return {
+    ...event,
+    ...body,
+    start: mergeWhen(event.start, body?.start),
+    end: mergeWhen(event.end, body?.end),
+  } as Stored;
+}
+
+/** Google refuses a start or end that is both a day and a time, or neither. */
+function badTimes(event: Pick<Stored, 'start' | 'end'>): boolean {
+  return [event.start, event.end].some((when) => Boolean(when.date) === Boolean(when.dateTime));
+}
+
+const BAD_TIMES = { error: { code: 400, message: 'Invalid start time.', errors: [{ reason: 'invalid' }] } };
 
 function publicEvent(e: Stored, extra: Record<string, unknown> = {}) {
   const { overrides: _o, skipped: _s, ...rest } = e;
@@ -174,7 +204,8 @@ export async function startFakeGoogleCalendar(
       const calendarId = m[1];
       if (req.method === 'POST') {
         const id = `ev${++counter}`;
-        const stored: Stored = { ...body, id, etag: nextEtag(), overrides: {}, skipped: [] };
+        const stored: Stored = { ...body, start: mergeWhen(undefined, body?.start), end: mergeWhen(undefined, body?.end), id, etag: nextEtag(), overrides: {}, skipped: [] };
+        if (badTimes(stored)) return send(res, 400, BAD_TIMES);
         bucket(calendarId).set(id, stored);
         return send(res, 200, publicEvent(stored));
       }
@@ -201,12 +232,14 @@ export async function startFakeGoogleCalendar(
         return send(res, 204);
       }
       if (req.method === 'PATCH') {
+        const next = patched(event, body);
+        if (badTimes(next)) return send(res, 400, BAD_TIMES);
         if (series && day) {
-          const changed: Stored = { ...event, ...body, id: eventId, recurrence: undefined, overrides: {}, skipped: [], etag: nextEtag() };
+          const changed: Stored = { ...next, id: eventId, recurrence: undefined, overrides: {}, skipped: [], etag: nextEtag() };
           series.overrides[day] = changed;
           return send(res, 200, publicEvent(changed));
         }
-        Object.assign(event, body, { etag: nextEtag() });
+        Object.assign(event, next, { etag: nextEtag() });
         return send(res, 200, publicEvent(event));
       }
     }

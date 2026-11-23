@@ -775,6 +775,54 @@ describe('updateConfigAtomic: the household\'s calendar names and colours', () =
   });
 });
 
+/* A link renamed in Settings kept its old name on the wall for five minutes. */
+describe('updateConfigAtomic: the calendars events come from', () => {
+  const link = { id: 'school', type: 'ical' as const, name: 'School', url: 'https://example.com/school.ics', color: '#3b82f6', enabled: true };
+  const icloud = { id: 'icloud-1', accountId: 'acct', kind: 'calendar' as const, url: 'https://caldav.icloud.com/1/home/', name: 'Home', color: '#10b981', enabled: true };
+  const withSources = (icalSources: typeof link[], icloudSources: typeof icloud[]) => (c: ScreenConfiguration) =>
+    ({ ...c, settings: { ...c.settings, calendar: { ...c.settings.calendar, icalSources, icloudSources } } });
+
+  it('starts a new calendar revision when a calendar link is renamed, recoloured, added or removed', async () => {
+    await writeConfig({ ...(await readConfig()) });
+    await updateConfigAtomic(withSources([link], []));
+    const saved = calendarRevision();
+
+    await updateConfigAtomic(withSources([{ ...link, name: 'Lincoln School' }], []));
+    const renamed = calendarRevision();
+    expect(renamed).not.toBe(saved);
+
+    await updateConfigAtomic(withSources([{ ...link, name: 'Lincoln School', color: '#ef4444' }], []));
+    const recoloured = calendarRevision();
+    expect(recoloured).not.toBe(renamed);
+
+    await updateConfigAtomic(withSources([], []));
+    expect(calendarRevision()).not.toBe(recoloured);
+  });
+
+  it('starts one when an iCloud calendar is renamed or handed to another account', async () => {
+    await writeConfig({ ...(await readConfig()) });
+    await updateConfigAtomic(withSources([], [icloud]));
+    const saved = calendarRevision();
+
+    await updateConfigAtomic(withSources([], [{ ...icloud, name: 'Family' }]));
+    const renamed = calendarRevision();
+    expect(renamed).not.toBe(saved);
+
+    await updateConfigAtomic(withSources([], [{ ...icloud, name: 'Family', accountId: 'acct-2' }]));
+    expect(calendarRevision()).not.toBe(renamed);
+  });
+
+  it('keeps the revision when the same calendars are saved again, or something else changes', async () => {
+    await writeConfig({ ...(await readConfig()) });
+    await updateConfigAtomic(withSources([link], [icloud]));
+    const saved = calendarRevision();
+
+    await updateConfigAtomic(withSources([{ ...link }], [{ ...icloud }]));
+    await updateConfigAtomic((c) => ({ ...c, settings: { ...c.settings, rotationIntervalMs: 23_456 } }));
+    expect(calendarRevision()).toBe(saved);
+  });
+});
+
 describe('a restore that rewrites config.json', () => {
   it('starts a new calendar revision, so walls and the calendar cache read the restored names', async () => {
     await writeConfig({ ...(await readConfig()) });

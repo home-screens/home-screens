@@ -7,6 +7,7 @@ import { readMealData } from '@/lib/meal-data';
 import { addMealieShoppingItem, isMealieShoppingId, readMealieShopping } from '@/lib/mealie-shopping';
 import { mealieShoppingResponse, withMealieErrors } from '@/lib/mealie-api';
 import { tidyShoppingText } from '@/lib/shopping-list';
+import { asObject } from '@/lib/todo-api';
 import { textLength } from '@/lib/text-length';
 import { WALL_ITEM_MAX_LENGTH, wallMayAddToMealie } from '@/lib/todo-wall';
 import { noteWallAdded } from '@/lib/wall-added';
@@ -31,7 +32,9 @@ const MAX_TEXT = 200;
  * wall for a few minutes, so the wall's Undo can take it off again.
  */
 export const POST = withDisplayAuth(withMealieErrors(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ list?: unknown; text?: unknown }>(request, { maxBytes: 4 * 1024 });
+  const parsed = await parseJsonBody<unknown>(request, { maxBytes: 4 * 1024 });
+  if (parsed instanceof NextResponse) return parsed;
+  const body = asObject(parsed);
   if (body instanceof NextResponse) return body;
   const { list, text } = body;
   if (!isMealieShoppingId(list)) {

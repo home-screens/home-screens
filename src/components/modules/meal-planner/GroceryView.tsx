@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import { Check } from 'lucide-react';
 import type { MealPlannerConfig } from '@/types/config';
 import { DIVIDER, TEXT_OPACITY, hasAccentColor, ink } from '@/lib/constants';
@@ -93,17 +93,8 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
     />
   );
 
-  if (grocery.state !== 'ready' || flat.length === 0) {
-    if (!addRow || grocery.state !== 'ready') return <GroceryEmpty grocery={grocery} />;
-    // Nothing left to get, and the wall can add the first thing.
-    return (
-      <div data-testid="meal-grocery" className="flex flex-col h-full min-h-0">
-        <div className="flex-1 min-h-0"><GroceryEmpty grocery={grocery} /></div>
-        {addRow}
-        {sheet}
-      </div>
-    );
-  }
+  const empty = flat.length === 0;
+  if (grocery.state !== 'ready' || (empty && !addRow)) return <GroceryEmpty grocery={grocery} />;
 
   const rowViews = flat.map(({ item, heading: h, dot }, i) => (
     <div key={item.id} data-grocery-row style={{ display: visible !== null && !visible.has(i) ? 'none' : undefined }}>
@@ -124,8 +115,16 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   ));
 
   const title = listName ?? t('meal-planner.grocery.thisWeek');
-  return (
-    <div data-testid="meal-grocery" {...(tappable ? BROWSE_HOLD_ATTR : {})} className="flex flex-col h-full min-h-0">
+  // One root whatever the list holds, with the Add row and its sheet always
+  // the two children after the body. The sheet keeps what was just added (the
+  // chips and their Undo) in its own state, so it has to stay the same
+  // mounted sheet when the first thing added turns the empty card into a
+  // list, and when Undo turns it back.
+  const body = empty ? (
+    // Nothing left to get, and the wall can add the first thing.
+    <div key="empty" className="flex-1 min-h-0"><GroceryEmpty grocery={grocery} /></div>
+  ) : (
+    <Fragment key="list">
       <div className={`flex items-baseline gap-2 shrink-0 ${showTitle ? 'justify-between' : 'justify-end'}`}>
         {showTitle && <span data-testid="meal-grocery-title" className="font-semibold truncate" style={{ fontSize: '0.98em' }}>{title}</span>}
         <span
@@ -156,6 +155,11 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
         <span>{rows.got > 0 ? t('meal-planner.grocery.got', { count: rows.got }) : ''}</span>
         {pageCount > 1 && <span data-testid="meal-grocery-page">{t('meal-planner.grocery.page', { page: index + 1, pages: pageCount })}</span>}
       </div>
+    </Fragment>
+  );
+  return (
+    <div data-testid="meal-grocery" {...(tappable && !empty ? BROWSE_HOLD_ATTR : {})} className="flex flex-col h-full min-h-0">
+      {body}
       {addRow}
       {sheet}
     </div>

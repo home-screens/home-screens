@@ -8,7 +8,11 @@
  */
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { isAllowedDomain, isSafeExternalUrl, isSafeLocalOrExternalUrl, matchesAllowedHost } from '@/lib/url-safety';
+import { addressCheckedFetch } from '@/lib/pinned-fetch';
+import {
+  isAddressBlockedError, isAllowedDomain, isBlockedHost, isSafeExternalUrl, isSafeLocalOrExternalUrl, matchesAllowedHost,
+  type AddressRule,
+} from '@/lib/url-safety';
 
 // ── Why every hop is followed by hand ────────────────────────────────────
 //
@@ -18,6 +22,13 @@ import { isAllowedDomain, isSafeExternalUrl, isSafeLocalOrExternalUrl, matchesAl
 // no second check. So every hop is followed by hand and re-checked with the
 // same rules as the first URL, and the body is read against a byte cap so a
 // link to something enormous cannot exhaust memory.
+//
+// The check before a hop resolves the host's name, and so does the
+// connection that follows; a hostile DNS server can give the two different
+// answers. So every hop is fetched with `addressCheckedFetch`, which checks
+// the address it is about to connect to. The check before the hop stays as
+// the quick refusal; the one at connect time is the one that cannot be
+// talked around.
 //
 // This reads a URL with GET. The plugin proxy carries a method and a body
 // and streams the response straight back to its caller, so it keeps its own
@@ -68,6 +79,12 @@ export interface FetchWithAllowedRedirectsOptions {
    * `http://localhost` for local testing). `hop` is 0 for the URL passed in
    * and counts up with each redirect. `allowHosts` is still matched; with
    * this set, nothing else refuses a private address, so the function must.
+   *
+   * The connection is still held to an address rule, chosen from the URL
+   * this function accepted: a host that is itself a private address or
+   * `localhost` may connect within the home network (the function said yes
+   * to exactly that), and any other host must resolve to public addresses
+   * at connect time, whatever it resolved to when this function looked.
    */
   isSafe?: (url: string, hop: number) => Promise<boolean>;
 }
@@ -184,6 +201,11 @@ export async function fetchWithAllowedRedirects(
   // there, so only the host list is matched here.
   const hostAllowed = (candidate: string) =>
     customIsSafe ? matchesAllowedHost(candidate, allowHosts) : isAllowedDomain(candidate, allowHosts, allowPrivateNetwork);
+  // What the connection for an accepted URL may reach.
+  const connectRule = (accepted: string): AddressRule => {
+    if (allowPrivateNetwork) return 'home-network';
+    return customIsSafe && isBlockedHost(new URL(accepted).hostname) ? 'home-network' : 'public';
+  };
 
   let current: string;
   try {
@@ -206,8 +228,12 @@ export async function fetchWithAllowedRedirects(
         retries,
         redirect: 'manual',
         headers,
+        fetchImpl: addressCheckedFetch(connectRule(current)),
       });
     } catch (err) {
+      // The name answered the check with one address and the connection
+      // with another, forbidden one.
+      if (isAddressBlockedError(err)) return { ok: false, reason: 'blocked', url: current };
       return { ok: false, reason: fetchFailure(err), url: current };
     }
 

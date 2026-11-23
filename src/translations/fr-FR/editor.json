@@ -675,6 +675,10 @@
         "connecting": "Connexion…",
         "connectFailed": "Impossible de se connecter à iCloud. Vérifiez votre connexion Internet et réessayez.",
         "addAccount": "Ajouter un compte iCloud",
+        "orphanedHeading": "Le compte de ces calendriers n'est plus connecté",
+        "orphanedHint": "Ils ne peuvent pas s'afficher tant que leur compte iCloud n'a pas été ajouté de nouveau. Ajoutez-le ci-dessous pour les retrouver, ou retirez ceux dont vous n'avez plus besoin.",
+        "orphanedRemove": "Retirer",
+        "orphanedRemoveLabel": "Retirer {name}",
         "helpText": "Connectez-vous avec un mot de passe d'application, pas votre mot de passe Apple habituel. Créez-en un sur account.apple.com dans Connexion et sécurité > Mots de passe d'application."
       },
       "holidays": {
@@ -3850,6 +3854,7 @@
     "successDefault": "La mise à jour est terminée.",
     "successRollback": "Retour à {tag} terminé !",
     "restartNeeded": "Encore une étape : l'appareil doit redémarrer pour terminer. Une fois rechargée, cette page vous proposera de le faire.",
+    "alreadyRunning": "Une mise à jour est déjà en cours. Cette fenêtre montre où elle en est.",
     "reload": {
       "shuttingDown": "Home Screens redémarre…",
       "waitingNew": "En attente du retour de Home Screens… ({seconds} s)",

@@ -1502,6 +1502,22 @@ describe('fetchWithRetry', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('makes every attempt with the fetch it was given, never the global one', async () => {
+    const given = vi.fn()
+      .mockResolvedValueOnce(new Response('busy', { status: 503 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+    const pending = fetchWithRetry('https://example.com', { fetchImpl: given as never, retries: 1, headers: { accept: 'text/plain' } });
+    await vi.advanceTimersByTimeAsync(5_000);
+    const res = await pending;
+    expect(res.status).toBe(200);
+    expect(given).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    // The fetch itself is not passed on as a request option.
+    const init = given.mock.calls[0][1] as Record<string, unknown>;
+    expect(init).not.toHaveProperty('fetchImpl');
+    expect(init.headers).toEqual({ accept: 'text/plain' });
+  });
+
   it('does not retry on 4xx errors', async () => {
     fetchSpy.mockResolvedValue(new Response('bad', { status: 400 }));
     const res = await fetchWithRetry('https://example.com');

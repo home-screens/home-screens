@@ -781,6 +781,7 @@
     }
   },
   "calendarChange": {
+    "longNote": "This event lasts a day or more. To change its day or times, use your calendar app.",
     "thisDayStays": "{day}. The other days stay.",
     "everyTimePastFuture": "Every time, past and future",
     "askBody": "Change just this day, or every time it happens?",

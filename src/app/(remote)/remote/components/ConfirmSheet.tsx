@@ -44,6 +44,7 @@ export default function ConfirmSheet({
   onCancel,
   settleMs = 0,
   guardTaps = false,
+  busy = false,
 }: {
   title: string;
   description: string;
@@ -71,6 +72,8 @@ export default function ConfirmSheet({
   settleMs?: number;
   /** As on `BottomSheet`: over a list where a stray second tap would tick or pay for something. */
   guardTaps?: boolean;
+  /** The answer is on its way to the hub: it cannot be pressed a second time. */
+  busy?: boolean;
 }) {
   // Cancel defaults through `core.actions`, so callers need not translate it.
   const tCore = useTranslate('core');
@@ -109,8 +112,10 @@ export default function ConfirmSheet({
       </div>
       <button
         className="press-btn"
+        disabled={busy}
         onClick={settled(onConfirm)}
         style={{
+          opacity: busy ? 0.6 : 1,
           width: '100%',
           minHeight: 48,
           padding: 14,

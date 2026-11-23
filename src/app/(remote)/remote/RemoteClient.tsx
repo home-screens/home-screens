@@ -6,6 +6,7 @@ import type { DisplayStatus } from '@/lib/display-commands';
 import type { ChoreSnapshot } from '@/lib/chore-client';
 import { useTranslate } from '@/i18n';
 import { useRemoteStatus, useAllDisplayStatuses, usePendingCommand } from './hooks';
+import { useTabInAddress } from './hooks/useTabInAddress';
 import {
   DisplayTargetContext,
   type DisplayLiveEntry,
@@ -167,15 +168,10 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     const url = new URL(window.location.href);
     url.searchParams.delete('add');
     url.searchParams.delete('wall');
-    window.history.replaceState(null, '', url);
+    // The entry's state stays: an overlay that is up holds its Back entry through it.
+    window.history.replaceState(window.history.state, '', url);
   }, []);
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if ((url.searchParams.get('tab') ?? 'control') === activeTab) return;
-    if (activeTab === 'control') url.searchParams.delete('tab');
-    else url.searchParams.set('tab', activeTab);
-    window.history.replaceState(null, '', url);
-  }, [activeTab]);
+  useTabInAddress(activeTab);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const hasChores = initialData.choreConfig !== null;

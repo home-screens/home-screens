@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { CalendarPlus, ChevronRight, Repeat } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { upcomingDays } from '@/lib/day-notes';
@@ -9,6 +9,7 @@ import { daySheetHeading, daySheetRows } from '@/lib/calendar-day-sheet';
 import { formatEventTime } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { refusalText } from '@/lib/hub-request';
+import { afterChangeRefusal, changeRequestBody, saveScope } from '@/lib/calendar-event-form';
 import type { EditableGoogleEvent } from '@/lib/google-calendar-write';
 import type { EditableICloudEvent } from '@/lib/icloud-calendar-write';
 import type { EntryCalendar } from '@/lib/calendar-event-writes';
@@ -65,6 +66,20 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const [ask, setAsk] = useState<Ask | null>(null);
   // What the hub is doing just now: opening an event, saving the form, or removing the event.
   const [pending, setPending] = useState<'open' | 'save' | 'remove' | null>(null);
+  // One write at a time. A ref, since two presses can land before `pending`
+  // has drawn: a second save would carry the same version and come back as
+  // "changed somewhere else" over a form that had already saved.
+  const writing = useRef(false);
+  const begin = (what: 'save' | 'remove'): boolean => {
+    if (writing.current) return false;
+    writing.current = true;
+    setPending(what);
+    return true;
+  };
+  const end = () => {
+    writing.current = false;
+    setPending(null);
+  };
 
   const canAdd = Boolean(entry && entry.calendars.length > 0);
   // An iCloud event names the calendar object it lives in, which the hub checks before writing.
@@ -108,9 +123,9 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   };
 
   const add = async (value: EventFormSubmit) => {
-    setPending('save');
+    if (!begin('save')) return;
     const result = await write('/api/calendar/events', 'POST', { calendarId: value.calendarId, draft: value.draft });
-    setPending(null);
+    end();
     if (!result.ok) return failed(result);
     rememberCalendar(value.calendarId);
     const name = entry?.calendars.find((c) => c.id === value.calendarId)?.name ?? '';
@@ -122,17 +137,14 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const change = async (value: EventFormSubmit, scope: ChangeScope) => {
     if (form?.mode !== 'change') return;
     const { editable, event } = form;
-    setPending('save');
-    const result = await write(`/api/calendar/events/${encodeURIComponent(event.id)}`, 'PATCH', {
-      draft: value.draft,
-      etag: scope === 'series' ? editable.seriesEtag : editable.etag,
-      scope,
-      seriesId: editable.seriesId,
-      ...('sourceRef' in editable ? { sourceRef: editable.sourceRef } : {}),
-      dayWas: editable.draft.date,
-      repeatChanged: value.repeatChanged,
-    }, scope === 'series' ? tCore('grownUp.why.calendarChangeSeries', { title: value.draft.title }) : undefined);
-    setPending(null);
+    if (!begin('save')) return;
+    const result = await write(
+      `/api/calendar/events/${encodeURIComponent(event.id)}`,
+      'PATCH',
+      changeRequestBody(editable, { draft: value.draft, scope, repeatChanged: value.repeatChanged }),
+      scope === 'series' ? tCore('grownUp.why.calendarChangeSeries', { title: value.draft.title }) : undefined,
+    );
+    end();
     setAsk(null);
     if (result.ok) {
       close();
@@ -140,8 +152,8 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
       void reload();
       return;
     }
-    const code = codeOf(result);
-    if (code === 'calendarWrite.changedElsewhere') {
+    const next = afterChangeRefusal(codeOf(result));
+    if (next === 'reload') {
       // Reload the newest version into the form and say so; nothing was overwritten.
       const fresh = await write(editUrl(event), 'GET');
       if (fresh.ok) {
@@ -150,7 +162,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
         return;
       }
     }
-    if (code === 'calendarWrite.gone') {
+    if (next === 'close') {
       close();
       showToast(tCore('refusals.calendarWrite.gone'), 'info');
       void reload();
@@ -162,13 +174,13 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const remove = async (scope: ChangeScope) => {
     if (form?.mode !== 'change') return;
     const { editable, event, calendar } = form;
-    setPending('remove');
+    if (!begin('remove')) return;
     const result = await write(`/api/calendar/events/${encodeURIComponent(event.id)}`, 'DELETE', {
       scope,
       seriesId: editable.seriesId,
       ...('sourceRef' in editable ? { sourceRef: editable.sourceRef, etag: editable.etag } : {}),
     }, tCore('grownUp.why.calendarRemove', { title: editable.draft.title }));
-    setPending(null);
+    end();
     setAsk(null);
     if (!result.ok) return failed(result);
     close();
@@ -179,9 +191,9 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const submit = (value: EventFormSubmit) => {
     if (!form) return;
     if (form.mode === 'new') return void add(value);
-    // One day of a repeating event asks which days; a new repeat can only mean every time.
-    if (form.editable.seriesId && !value.repeatChanged) return setAsk({ kind: 'save', value });
-    void change(value, form.editable.seriesId ? 'series' : 'instance');
+    const scope = saveScope(form.editable, value.repeatChanged);
+    if (scope === 'ask') return setAsk({ kind: 'save', value });
+    void change(value, scope);
   };
 
   const rows = (date: string) => daySheetRows(events, dateOfIso(date), zone).map(({ event, allDay, start, end }) => {
@@ -280,6 +292,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
             { id: 'instance', label: t('calendarTab.justThisDay'), detail: editDay, tone: 'primary' },
             { id: 'series', label: t('calendarTab.everyTime'), detail: tCore('calendarChange.everyTimeFromFirst'), tone: 'plain' },
           ]}
+          busy={pending === 'save'}
           onPick={(id) => void change(ask.value, id as ChangeScope)}
           onCancel={() => setAsk(null)}
         />
@@ -295,6 +308,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
             { id: 'instance', label: t('calendarTab.justThisDay'), detail: tCore('calendarChange.thisDayStays', { day: capitalize(editDay) }), tone: 'danger' },
             { id: 'series', label: t('calendarTab.everyTime'), detail: tCore('calendarChange.everyTimePastFuture'), tone: 'dangerFill' },
           ]}
+          busy={pending === 'remove'}
           onPick={(id) => void remove(id as ChangeScope)}
           onCancel={() => setAsk(null)}
         />
@@ -304,6 +318,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
           description={t('calendarTab.removeAsk.body', { calendar: editing.calendar.name, app })}
           confirmLabel={t('calendarTab.form.remove')}
           cancelLabel={t('calendarTab.keepIt')}
+          busy={pending === 'remove'}
           onConfirm={() => void remove('instance')}
           onCancel={() => setAsk(null)}
         />

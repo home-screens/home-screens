@@ -44,7 +44,8 @@ describe('weather hourly labels follow the household clock', () => {
 
   it('uses 24-hour labels when the household picked 24h', () => {
     render(ui('en-US', { timeFormat: '24h' }));
-    expect(screen.getByText('21:00')).toBeTruthy();
+    // The bare hour: the label sits in a narrow column that never wraps.
+    expect(screen.getByText('21')).toBeTruthy();
     expect(screen.queryByText('9 PM')).toBeNull();
   });
 

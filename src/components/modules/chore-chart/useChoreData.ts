@@ -291,10 +291,17 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   // What a write answered with, or what the screen had before it: a refusal
   // answers with the lists as they stand, so the wall shows who has the chore
   // at once, not at the next poll; without them (an older hub, a broken
-  // body, a hub out of reach) the screen goes back to what it had.
+  // body, a hub out of reach, a grown-up pad closed unanswered) the screen
+  // goes back to the newest chores read. Not to the lists from before the tap:
+  // a write can stay out for as long as the pad is up, and a read that landed
+  // meanwhile (someone else's tick) is not read again while the hub's copy
+  // stays the same, so putting the older lists back would hide it until the
+  // next change. The lists from before the tap only cover a tap made before
+  // any read.
   const applyMarks = useCallback((marks: ChoreMarks | null, completionsBefore: ChoreCompletion[], grabsBefore: ChoreGrab[]) => {
-    setCompletions(marks?.completions ?? completionsBefore);
-    setGrabs(marks?.grabs ?? grabsBefore);
+    const read = latestChores.current;
+    setCompletions(marks?.completions ?? read?.completions ?? completionsBefore);
+    setGrabs(marks?.grabs ?? read?.grabs ?? grabsBefore);
     if (marks?.bonusResets) setBonusResets(marks.bonusResets);
     if (marks) publishMarks(marks);
   }, [publishMarks]);

@@ -214,8 +214,13 @@ export async function requireMealieShoppingList(listId: string): Promise<void> {
  * Mealie's update replaces the whole item. One carrying only the tick blanks
  * the note, so a typed "Paper towels" would read "1" afterwards (checked on
  * Mealie 3.29); the item is read and sent back whole.
+ *
+ * `onList` holds the tick to one list, for a caller that may only touch the
+ * list the family shops from (a wall): an item Mealie places on another list,
+ * or on none it names, is left alone and reads as gone, the same answer as an
+ * item that is not there.
  */
-export async function setMealieShoppingItemChecked(itemId: string, checked: boolean): Promise<boolean> {
+export async function setMealieShoppingItemChecked(itemId: string, checked: boolean, { onList }: { onList?: string } = {}): Promise<boolean> {
   const cfg = await requireMealieConfig();
   const path = `/api/households/shopping/items/${encodeURIComponent(itemId)}`;
   let item: MealieShoppingItem & Record<string, unknown>;
@@ -230,6 +235,7 @@ export async function setMealieShoppingItemChecked(itemId: string, checked: bool
       throw err;
     }
     if (!item || typeof item.id !== 'string') throw new MealieShoppingGoneError();
+    if (onList !== undefined && item.shoppingListId !== onList) throw new MealieShoppingGoneError();
     if (!!item.checked === checked) return false;
     await mealieJson(path, { method: 'PUT', json: { ...item, checked } }, cfg);
     return true;

@@ -113,7 +113,8 @@ export function WallTypingSheet({
             onKey={typing.onKey}
             onDelete={typing.onDelete}
             onAction={onAction}
-            onIdle={onClose}
+            // No `onIdle`: the overlay's minute closes the sheet, and every
+            // touch on the sheet (a key, Undo on a chip) starts it over.
             actionLabel={actionLabel}
             actionIcon={actionIcon}
             actionDisabled={disabled}

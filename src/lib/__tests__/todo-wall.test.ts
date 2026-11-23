@@ -84,6 +84,34 @@ describe('wallMayAddToMealie', () => {
   });
 });
 
+describe('a card left in the old screens after displays were added', () => {
+  // Adding the first display copies the screens into it and leaves the
+  // originals behind; no wall draws those, and no edit reaches them.
+  const withDisplays = (
+    legacy: Array<{ type: string; config: Record<string, unknown> }>,
+    live: Array<{ type: string; config: Record<string, unknown> }>,
+  ): ScreenConfiguration => ({
+    ...configWith(...legacy),
+    displays: [{ id: 'main', name: 'Main', screens: configWith(...live).screens }],
+  }) as unknown as ScreenConfiguration;
+
+  const todoOn = { type: 'todo', config: { view: 'list', listId: 'shop', interactive: true, wallAdd: true } };
+  const todoOff = { type: 'todo', config: { view: 'list', listId: 'shop', interactive: true, wallAdd: false } };
+  const groceryOn = { type: 'meal-planner', config: { view: 'grocery', wallAdd: true } };
+  const groceryOff = { type: 'meal-planner', config: { view: 'grocery', wallAdd: false } };
+
+  it('does not count for a to-do list', () => {
+    expect(wallMayAddToList(withDisplays([todoOn], [todoOff]), 'shop', {})).toBe(false);
+    expect(wallMayAddToList(withDisplays([todoOff], [todoOn]), 'shop', {})).toBe(true);
+  });
+
+  it('does not count for the grocery list, here or in Mealie', () => {
+    expect(wallMayAddToList(withDisplays([groceryOn], [groceryOff]), 'shop', { groceryExtrasListId: 'shop' })).toBe(false);
+    expect(wallMayAddToMealie(withDisplays([groceryOn], [groceryOff]), { planSource: 'mealie' })).toBe(false);
+    expect(wallMayAddToMealie(withDisplays([groceryOff], [groceryOn]), { planSource: 'mealie' })).toBe(true);
+  });
+});
+
 describe('sameItemText', () => {
   it('reads capitals and spacing as the same thing, different words as different', () => {
     expect(sameItemText('Milk', ' milk ')).toBe(true);

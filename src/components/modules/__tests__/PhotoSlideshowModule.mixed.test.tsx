@@ -10,6 +10,7 @@ import enUSModules from '@/translations/en-US/modules.json';
 beforeAll(() => {
   HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
   HTMLMediaElement.prototype.pause = vi.fn();
+  HTMLMediaElement.prototype.load = vi.fn();
 });
 
 let mockData: MediaListItem[] | null = null;

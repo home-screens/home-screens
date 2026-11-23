@@ -675,6 +675,10 @@
         "connecting": "Verbinden…",
         "connectFailed": "Verbindung zu iCloud fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut.",
         "addAccount": "iCloud-Konto hinzufügen",
+        "orphanedHeading": "Das Konto für diese Kalender ist nicht mehr verbunden",
+        "orphanedHint": "Sie können erst wieder angezeigt werden, wenn ihr iCloud-Konto wieder hinzugefügt wurde. Füge es unten hinzu, um sie zurückzuholen, oder entferne die, die du nicht mehr brauchst.",
+        "orphanedRemove": "Entfernen",
+        "orphanedRemoveLabel": "{name} entfernen",
         "helpText": "Melde dich mit einem App-Passwort an, nicht mit deinem normalen Apple-Passwort. Erstelle eines auf account.apple.com unter Anmeldung und Sicherheit > App-spezifische Passwörter."
       },
       "holidays": {
@@ -3850,6 +3854,7 @@
     "successDefault": "Das Update ist fertig.",
     "successRollback": "Zurück zu {tag} hat geklappt!",
     "restartNeeded": "Noch ein Schritt: Das Gerät muss neu gestartet werden, um das Update abzuschließen. Sobald die Seite neu geladen ist, kannst du das hier tun.",
+    "alreadyRunning": "Es läuft schon ein Update. Dieses Fenster zeigt, wie es vorangeht.",
     "reload": {
       "shuttingDown": "Home Screens startet neu …",
       "waitingNew": "Warten, bis Home Screens wieder da ist … ({seconds} s)",

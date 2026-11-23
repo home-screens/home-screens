@@ -222,6 +222,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 variant={bannerIsWarning ? 'warning' : 'primary'}
                 size="sm"
                 onClick={() => handleUpgrade(`v${versionInfo.latest}`)}
+                // The hub turns a second update down while one runs.
+                disabled={versionInfo.upgradeRunning}
               >
                 {bannerButton}
               </Button>
@@ -474,7 +476,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   {!isCurrent && !blockedText && (
                     <button
                       onClick={() => handleRollback(tagInfo.tag)}
-                      className="text-xs text-hs-text-muted hover:text-hs-warning-ink transition-colors"
+                      disabled={versionInfo.upgradeRunning}
+                      className="text-xs text-hs-text-muted hover:text-hs-warning-ink transition-colors disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {t('settings.systemPage.history.rollback')}
                     </button>

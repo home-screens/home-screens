@@ -64,6 +64,15 @@ describe('the code on the hub', () => {
     expect(await updateGrownUpPrefs({ actions: ['untick'] })).toBeNull();
   });
 
+  it('keeps both changes when the jobs and the unlock length are saved at the same moment', async () => {
+    await setGrownUpCode('2468');
+    await Promise.all([
+      updateGrownUpPrefs({ actions: ['redeem', 'untick'] }),
+      updateGrownUpPrefs({ unlockMinutes: 15 }),
+    ]);
+    expect(await readGrownUpStatus()).toEqual({ set: true, actions: ['redeem', 'untick'], unlockMinutes: 15 });
+  });
+
   it('answers a right code with an unlock that runs out after the set minutes', async () => {
     vi.useFakeTimers({ now: new Date('2026-11-21T12:00:00Z') });
     await setGrownUpCode('2468');

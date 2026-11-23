@@ -170,4 +170,61 @@ describe('useLookAhead', () => {
     act(() => result.current.home());
     expect(useLookAheadStore.getState().span).toBeNull();
   });
+
+  /* Month was picked from the wall's buttons and drew a month of empty days. */
+  describe('with a view borrowed from the wall\'s buttons', () => {
+    const MONTH = { start: addDays(TODAY, -8), end: addDays(TODAY, 34) };
+    const reach = (step: NonNullable<typeof WEEK>) => ({ start: addDays(TODAY, -7 * step.back), end: addDays(TODAY, 7 * step.forward + 7) });
+    const span = (s: { start: Date; end: Date }) => ({ start: s.start.getTime(), end: s.end.getTime() });
+
+    it('asks for the borrowed view\'s days at rest, and stops when the view goes back', () => {
+      const { rerender } = renderHook(({ reachNow }) => useLookAhead({ step: WEEK, enabled: true, today: TODAY, moduleId: 'cal', reach, reachNow }), {
+        initialProps: { reachNow: null as { start: Date; end: Date } | null },
+      });
+      expect(useLookAheadStore.getState().span).toBeNull();
+      rerender({ reachNow: MONTH });
+      expect(useLookAheadStore.getState().span).toEqual(span(MONTH));
+      // The same days in a new object are the same ask.
+      const held = useLookAheadStore.getState().span;
+      rerender({ reachNow: { start: new Date(MONTH.start), end: new Date(MONTH.end) } });
+      expect(useLookAheadStore.getState().span).toBe(held);
+      rerender({ reachNow: null });
+      expect(useLookAheadStore.getState().span).toBeNull();
+    });
+
+    it('asks for them in a view that does not step, and with the arrows off', () => {
+      const none = renderHook(() => useLookAhead({ step: null, enabled: true, today: TODAY, moduleId: 'up-next', reach, reachNow: MONTH }));
+      expect(none.result.current.on).toBe(false);
+      expect(useLookAheadStore.getState().reaches['up-next']).toEqual(span(MONTH));
+      none.unmount();
+      expect(useLookAheadStore.getState().span).toBeNull();
+    });
+
+    it('keeps them when the arrows come back to now while the view is still borrowed', () => {
+      const { result, rerender } = renderHook(({ reachNow }) => useLookAhead({ step: WEEK, enabled: true, today: TODAY, moduleId: 'cal', reach, reachNow }), {
+        initialProps: { reachNow: MONTH as { start: Date; end: Date } | null },
+      });
+      act(() => result.current.forward());
+      // Away: everything the arrows reach, which holds the borrowed days too.
+      expect(useLookAheadStore.getState().span).toEqual({ start: addDays(TODAY, -56).getTime(), end: addDays(TODAY, 63).getTime() });
+      act(() => result.current.back());
+      expect(result.current.offset).toBe(0);
+      expect(useLookAheadStore.getState().span).toEqual(span(MONTH));
+      // The minute running out does the same as the way-back button.
+      act(() => result.current.forward());
+      act(() => { vi.advanceTimersByTime(WALL_SCROLL_IDLE_MS + 10); });
+      expect(result.current.offset).toBe(0);
+      expect(useLookAheadStore.getState().span).toEqual(span(MONTH));
+      rerender({ reachNow: null });
+      expect(useLookAheadStore.getState().span).toBeNull();
+    });
+
+    it('never asks for less than the borrowed days while stepped away', () => {
+      // A reach that starts after the borrowed view's first day.
+      const short = () => ({ start: TODAY, end: addDays(TODAY, 14) });
+      const { result } = renderHook(() => useLookAhead({ step: WEEK, enabled: true, today: TODAY, moduleId: 'cal', reach: short, reachNow: MONTH }));
+      act(() => result.current.forward());
+      expect(useLookAheadStore.getState().span).toEqual(span(MONTH));
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import type { FullscreenMealPlannerConfig, MealPlannerConfig, MealSettings, ModuleInstance, ScreenConfiguration, TodoConfig } from '@/types/config';
-import { someConfigModule } from './config-modules';
+import { someConfigModule, type ModuleSite } from './config-modules';
 
 /**
  * What the wall may put on a list. A Pi kiosk holds the display token, and so
@@ -36,6 +36,16 @@ function isAddingGroceryCard(mod: ModuleInstance): boolean {
   return groceryCardAdds(mod.config as Partial<MealPlannerConfig>);
 }
 
+/**
+ * A card some wall draws: switched on, and not one left behind in the old
+ * top-level screens. Adding the first display copies those screens into it
+ * and every later edit goes to a display, so a card there keeps whatever it
+ * said that day and would go on allowing an Add row nobody can switch off.
+ */
+function onSomeWall(mod: ModuleInstance, site: ModuleSite): boolean {
+  return site.live && mod.enabled !== false;
+}
+
 /** The meal settings that decide where a grocery card's Add goes. */
 export type GroceryAddSettings = Pick<MealSettings, 'planSource' | 'groceryExtrasListId'>;
 
@@ -52,12 +62,12 @@ export function groceryAddListId(meals: GroceryAddSettings): string | null {
  * Whether some card in the config lets the wall add to this to-do list: a
  * List or Compact card showing it, a Board card (it shows every list), or a
  * grocery card adding to it as the family's other things to buy. A card that
- * is switched off counts for nothing.
+ * is switched off, or that no wall draws, counts for nothing.
  */
 export function wallMayAddToList(config: ScreenConfiguration, listId: string, meals: GroceryAddSettings): boolean {
   const groceryList = groceryAddListId(meals);
-  return someConfigModule(config, (mod) => {
-    if (mod.enabled === false) return false;
+  return someConfigModule(config, (mod, site) => {
+    if (!onSomeWall(mod, site)) return false;
     if (mod.type === 'todo') {
       const card = mod.config as Partial<TodoConfig>;
       return todoCardAdds(card) && (card.view === 'board' || card.listId === listId);
@@ -69,5 +79,5 @@ export function wallMayAddToList(config: ScreenConfiguration, listId: string, me
 /** Whether some grocery card lets the wall add to the Mealie list the family shops from. */
 export function wallMayAddToMealie(config: ScreenConfiguration, meals: GroceryAddSettings): boolean {
   if (meals.planSource !== 'mealie') return false;
-  return someConfigModule(config, (mod) => mod.enabled !== false && isAddingGroceryCard(mod));
+  return someConfigModule(config, (mod, site) => onSomeWall(mod, site) && isAddingGroceryCard(mod));
 }

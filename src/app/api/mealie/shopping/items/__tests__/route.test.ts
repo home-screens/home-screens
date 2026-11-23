@@ -55,6 +55,11 @@ describe('POST /api/mealie/shopping/items', () => {
     expect(addMealieShoppingItem).not.toHaveBeenCalled();
   });
 
+  it('refuses a body that is not an object', async () => {
+    for (const body of [null, [], 'Milk', 7]) expect((await POST(post(body))).status).toBe(400);
+    expect(addMealieShoppingItem).not.toHaveBeenCalled();
+  });
+
   it('says the list is gone when Mealie no longer has it', async () => {
     vi.mocked(addMealieShoppingItem).mockRejectedValue(new MealieShoppingGoneError());
     const res = await POST(post({ list: LIST, text: 'Milk' }));

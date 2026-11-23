@@ -20,12 +20,27 @@ const PEOPLE = [
 ];
 const GROUPS = [{ id: 'kids', name: 'Kids', memberIds: ['ben', 'cal'] }];
 
+/**
+ * An event this month that the week holding today does not reach: on the
+ * 1st once the week has left it behind, on the 25th before then. Only a
+ * fetch of the whole month brings it to the wall.
+ */
+function elsewhereThisMonth() {
+  const day = new Date();
+  day.setDate(day.getDate() >= 12 ? 1 : 25);
+  const date = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+  return { ...todayCalendarEvents()[0], id: 'far-1', title: 'FAR EVENT', start: `${date}T12:00:00`, end: `${date}T13:00:00`, sourceId: 'house', sourceName: 'House' };
+}
+
 async function openWall(page: Page, request: APIRequestContext, sandboxDir: string, instance: ModuleInstance, owners: Record<string, string[]> = { ann: ['ann-cal'], ben: ['ben-cal'], cal: ['cal-cal'] }) {
   seedFamily(sandboxDir, PEOPLE, GROUPS);
   const base = todayCalendarEvents()[0];
   await stubModuleData(page, {
+    // The hub's window rule: a borrowed view only draws what the wall asked for.
+    calendarWindow: true,
     overrides: {
       calendar: [
+        elsewhereThisMonth(),
         { ...base, id: 'ann-1', title: 'ANN EVENT', sourceId: 'ann-cal', sourceName: 'Ann' },
         { ...base, id: 'ben-1', title: 'BEN EVENT', sourceId: 'ben-cal', sourceName: 'Ben' },
         { ...base, id: 'house-1', title: 'HOUSE EVENT', sourceId: 'house', sourceName: 'House' },
@@ -62,6 +77,13 @@ test.describe('the full-screen calendar', () => {
     // The own view's button is the way home.
     await mod.locator('[data-wall-view="week-list"]').click();
     await expect(mod.locator('.fsc-header-title')).not.toHaveText(monthTitle());
+  });
+
+  test('fills a borrowed Month with the whole month, not only the days its own view fetched', async ({ page, request, sandboxDir }) => {
+    const mod = await openWall(page, request, sandboxDir, fullscreen());
+    await expect(mod.getByText('FAR EVENT')).toHaveCount(0);
+    await mod.locator('[data-wall-view="month-grid"]').click();
+    await expect(mod.getByText('FAR EVENT').first()).toBeVisible();
   });
 
   test('shows one person with the shared calendar, then everyone again', async ({ page, request, sandboxDir }) => {
