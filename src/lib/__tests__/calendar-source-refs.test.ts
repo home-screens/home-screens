@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  ownersAfterEdit,
   configuredCalendarSourceIds,
   hasCalendarOwners,
   livePersonSources,
@@ -90,13 +91,26 @@ describe('pruneCalendarSourceRefs', () => {
     };
   }
 
-  it('takes a removed calendar out of who owns it', () => {
-    const next = pruneCalendarSourceRefs(config(), new Set(['gone']));
+  /** The settings before the edit: the `gone` calendar link was still there. */
+  const linkBefore = () => calendar({ icalSources: [feed('keep'), feed('gone')] });
+
+  it('takes a removed calendar link out of who owns it', () => {
+    const next = pruneCalendarSourceRefs(config(), linkBefore());
     expect(next.settings.calendar.personSources).toEqual({ ann: ['keep'] });
   });
 
+  it('keeps who owns an unticked Google calendar, for when it is ticked again', () => {
+    const before = config();
+    const next = pruneCalendarSourceRefs(before, calendar({ icalSources: [feed('keep')], googleCalendarIds: ['gone'] }));
+    expect(next.settings.calendar.personSources).toBe(before.settings.calendar.personSources);
+    // Readers leave the owner out meanwhile.
+    expect(livePersonSources(next.settings.calendar)).toEqual({ ann: ['keep'] });
+    // The modules let go of it all the same.
+    expect(next.screens[0].modules[0].config.sourceFilter).toEqual(['keep']);
+  });
+
   it('takes it out of calendar module source lists on every display', () => {
-    const next = pruneCalendarSourceRefs(config(), new Set(['gone']));
+    const next = pruneCalendarSourceRefs(config(), linkBefore());
     expect(next.screens[0].modules[0].config.sourceFilter).toEqual(['keep']);
     // A list that named only the removed calendar goes back to every
     // calendar, as unticking its last box in the editor does.
@@ -105,7 +119,7 @@ describe('pruneCalendarSourceRefs', () => {
 
   it('leaves event rules and other modules alone', () => {
     const before = config();
-    const next = pruneCalendarSourceRefs(before, new Set(['gone']));
+    const next = pruneCalendarSourceRefs(before, linkBefore());
     // An emptied rule would match every event, and this one hides.
     expect(next.displays![0].screens[0].modules[1]).toBe(before.displays![0].screens[0].modules[1]);
     expect(next.displays![0].screens[0].modules[2]).toBe(before.displays![0].screens[0].modules[2]);
@@ -114,13 +128,25 @@ describe('pruneCalendarSourceRefs', () => {
   it('keeps a removed calendar\'s own name and colour for when it is ticked again', () => {
     const before = config();
     before.settings.calendar.calendarOverrides = { gone: { name: 'Soccer', color: '#10b981' } };
-    const next = pruneCalendarSourceRefs(before, new Set(['gone']));
+    const next = pruneCalendarSourceRefs(before, linkBefore());
     expect(next.settings.calendar.calendarOverrides).toEqual({ gone: { name: 'Soccer', color: '#10b981' } });
   });
 
   it('hands back the same config when nothing named the removed calendar', () => {
     const before = config();
-    expect(pruneCalendarSourceRefs(before, new Set(['never-used']))).toBe(before);
-    expect(pruneCalendarSourceRefs(before, new Set())).toBe(before);
+    expect(pruneCalendarSourceRefs(before, calendar({ icalSources: [feed('keep'), feed('never-used')] }))).toBe(before);
+    expect(pruneCalendarSourceRefs(before, before.settings.calendar)).toBe(before);
+  });
+});
+
+describe('ownersAfterEdit', () => {
+  const owners = { 'm-sam': ['family@group.calendar.google.com', 'feed-1'], 'm-ava': ['feed-1'] };
+
+  it('keeps everyone when no calendar link was removed, whatever was unticked', () => {
+    expect(ownersAfterEdit(owners, [{ id: 'feed-1' }], [{ id: 'feed-1' }])).toBe(owners);
+  });
+
+  it('lets a removed calendar link go, since its id never comes back', () => {
+    expect(ownersAfterEdit(owners, [{ id: 'feed-1' }], [])).toEqual({ 'm-sam': ['family@group.calendar.google.com'] });
   });
 });

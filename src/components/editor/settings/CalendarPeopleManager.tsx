@@ -7,18 +7,21 @@ import { settingsHref } from '@/lib/settings-route';
 import { useCalendarSources } from '@/components/editor/config-sections/CalendarSourceFilter';
 import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
 import { LoadingLine } from '@/components/ui/Spinner';
+import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 
 interface CalendarPeopleManagerProps {
   personSources: Record<string, string[]>;
   onChange: (personSources: Record<string, string[]>) => void;
+  /** Google's calendar list, which Settings > Calendar has already read for the page. */
+  googleCalendars?: GoogleCalendar[];
 }
 
 /** Calendar owns source mappings; names and colours come from the family roster. */
-export default function CalendarPeopleManager({ personSources, onChange }: CalendarPeopleManagerProps) {
+export default function CalendarPeopleManager({ personSources, onChange, googleCalendars }: CalendarPeopleManagerProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const { members, loading, error } = useFamilyData();
-  const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
+  const { availableSources } = useCalendarSources('configSections.fullscreen-calendar', googleCalendars);
   const sources = availableSources.filter((source) => source.id !== 'holidays');
   const familyHref = settingsHref({ kind: 'defaults', page: 'family' });
 

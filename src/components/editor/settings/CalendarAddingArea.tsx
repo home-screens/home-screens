@@ -9,7 +9,7 @@ import type { CalendarEventEntry, CalendarOverride, ICloudSource } from '@/types
 import { calendarLook } from '@/lib/calendar-overrides';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
-import { googleEntryStateWithSetting, type GoogleEntryState } from '@/lib/calendar-write';
+import { addingReadiness, googleEntryStateWithSetting, type GoogleEntryState } from '@/lib/calendar-write';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import Button from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Toggle';
@@ -40,11 +40,13 @@ function GoogleMark() {
  * Google calendars only appear while Home Screens may offer adding for them;
  * on Home Screens' own app before Google's review they are not mentioned.
  */
-export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, shownGoogleIds, icloudSources, calendarOverrides, onChange }: {
+export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, googleUnreadable = false, shownGoogleIds, icloudSources, calendarOverrides, onChange }: {
   eventEntry: CalendarEventEntry | null;
   wallEntry: boolean;
   /** Google's own list, with which calendars this account may write. */
   googleCalendars: GoogleCalendar[];
+  /** Signed in, but Google's list could not be read: an empty list then is an outage, not nothing picked. */
+  googleUnreadable?: boolean;
   /** The Google calendars ticked to show, whether or not Google is connected right now. */
   shownGoogleIds: string[];
   icloudSources: ICloudSource[];
@@ -89,6 +91,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   const entry: CalendarEventEntry = eventEntry ?? { enabled: false, calendarIds: [] };
   const setEntry = (patch: Partial<CalendarEventEntry>) => onChange({ eventEntry: { ...entry, ...patch } });
   const ticked = new Set(entry.calendarIds);
+
   const toggleCalendar = (id: string) => setEntry({
     calendarIds: ticked.has(id) ? entry.calendarIds.filter((c) => c !== id) : [...entry.calendarIds, id],
   });
@@ -133,6 +136,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
     })),
   ];
   const pickable = tickable.filter((c) => c.writable && ticked.has(c.id));
+  // Counted as the phone counts them: ticked, shown on the screens and able to take an event.
+  const readiness = addingReadiness({ enabled, google, calendars: pickable.length, googleUnreachable: googleUnreadable && googleOffered });
 
   const signInStep = (warn: boolean, title: string, body: string, button: string) => (
     <div className={`mt-4 rounded-lg border p-3.5 ${warn ? 'border-hs-warning/30 bg-hs-warning/10' : 'border-hs-border-strong bg-hs-card'}`} data-testid="calendar-adding-sign-in">
@@ -165,7 +170,13 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
       <div className="flex items-start justify-between gap-4" data-field-id="calendar.eventEntry">
         <div>
           <p className="text-[13px] font-medium text-hs-text-body">{t('settings.calendarPage.adding.switch')}</p>
-          {enabled && google === 'ready' ? (
+          {readiness === 'googleUnreachable' ? (
+            // The phone says the same: Google is out of reach, not that nothing is picked.
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-warning-ink"><StatusDot tone="warning" size="sm" />{t('settings.calendarPage.adding.googleNotAnswering')}</p>
+          ) : readiness === 'noCalendars' ? (
+            // Switched on with nothing ticked below: nothing can be added yet, whatever Google says.
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-warning-ink"><StatusDot tone="warning" size="sm" />{t('settings.calendarPage.adding.pickCalendars')}</p>
+          ) : readiness === 'ready' && google === 'ready' ? (
             <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-success"><StatusDot tone="success" size="sm" />{t('settings.calendarPage.adding.ready')}</p>
           ) : (
             <FieldHint className="mt-1">
@@ -194,6 +205,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
 
       {enabled && (
         <>
+          {/* Nothing to list (Google signed out, no iCloud calendars): the sign-in step above says what to do, so no empty box or blank picker sits under it. */}
+          {tickable.length > 0 && (<>
           <div className="my-3.5 border-t border-hs-border-strong" />
           <span className="mb-1.5 block text-[13px] text-hs-text-body">{t('settings.calendarPage.adding.calendarsLabel')}</span>
           <div className="rounded-md border border-hs-border-strong bg-hs-card">
@@ -224,9 +237,11 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
             })}
           </div>
           <FieldHint className="mt-2">{t('settings.calendarPage.adding.calendarsHelp')}</FieldHint>
+          </>)}
 
           <div className="my-3.5 border-t border-hs-border-strong" />
           <div className="flex flex-wrap gap-7">
+            {tickable.length > 0 && (
             <label className="block">
               <span className="mb-1.5 block text-[13px] text-hs-text-body">{t('settings.calendarPage.adding.defaultLabel')}</span>
               <select
@@ -238,6 +253,7 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
                 {pickable.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </label>
+            )}
             <div>
               <span className="mb-1.5 block text-[13px] text-hs-text-body">{t('settings.calendarPage.adding.lengthLabel')}</span>
               <SegmentedControl

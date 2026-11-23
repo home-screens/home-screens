@@ -2,7 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { localDate } from '../helpers/dates';
+import { localDate, weekdayCode } from '../helpers/dates';
 import { launchServer, type HsServer } from '../helpers/server';
 import { startFakeGoogleCalendar, type FakeGoogleCalendar } from '../helpers/fake-google-calendar';
 import type { ScreenConfiguration } from '@/types/config';
@@ -103,7 +103,8 @@ test('the phone adds a weekly event to the calendar picked, and lists events it 
     summary: 'Piano lesson',
     start: { dateTime: `${localDate(2)}T16:00:00` },
     end: { dateTime: `${localDate(2)}T17:00:00` },
-    recurrence: ['RRULE:FREQ=WEEKLY'],
+    // Anchored to the day the choice named ("Every week on <that day>").
+    recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${weekdayCode(localDate(2))}`],
     extendedProperties: { private: { homeScreens: '1' } },
   });
   await expect(page.locator('button[data-testid="calendar-event"]', { hasText: 'Piano lesson' }).first()).toBeVisible();
@@ -121,6 +122,43 @@ test('changing one day of a repeating event asks, and "Just this day" changes on
   expect(patched.path).toMatch(new RegExp(`/events/seed\\d+_\\d{8}$`));
   expect(patched.body).toMatchObject({ start: { dateTime: expect.stringMatching(/T09:30:00$/) } });
   expect(patched.body).not.toHaveProperty('recurrence');
+});
+
+test('"Every time" from a day moved to the next day moves the whole series, its named day too', async ({ page, google }) => {
+  await openCalendarTab(page);
+  await page.locator('button[data-testid="calendar-event"]', { hasText: 'Soccer practice' }).first().click();
+  const date = page.getByTestId('event-form-date');
+  const day = await date.inputValue();
+  const next = new Date(`${day}T12:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const nextDay = next.toISOString().slice(0, 10);
+  await date.fill(nextDay);
+  await page.getByTestId('event-form-save').click();
+  await page.getByTestId('event-save-choice').locator('[data-choice="series"]').click();
+  await expect(page.getByTestId('event-form')).toHaveCount(0);
+  const patched = writes(google, 'PATCH').at(-1)!;
+  // The series itself, its first day a day later, and its rule on the new weekday.
+  expect(patched.path).toMatch(new RegExp(`/events/seed\\d+$`));
+  expect(patched.body).toMatchObject({
+    start: { dateTime: `${localDate(-6)}T09:00:00` },
+    recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${weekdayCode(nextDay)}`],
+  });
+});
+
+test('a one-off event can be made to repeat, without asking which days', async ({ page, google }) => {
+  await openCalendarTab(page);
+  await page.locator('button[data-testid="calendar-event"]', { hasText: 'Pizza night' }).first().click();
+  await page.getByTestId('event-form-repeat').click();
+  await page.locator('[data-frequency="weekly"]').click();
+  await page.getByTestId('event-repeat-done').click();
+  await page.getByTestId('event-form-save').click();
+  await expect(page.getByTestId('event-save-choice')).toHaveCount(0);
+  await expect(page.getByTestId('event-form')).toHaveCount(0);
+  const patched = writes(google, 'PATCH').at(-1)!;
+  // The event itself, not a day of a series, and its times are left alone.
+  expect(patched.path).toMatch(new RegExp(`/calendars/${FAMILY}/events/seed\\d+$`));
+  expect(patched.body).toMatchObject({ summary: 'Pizza night', recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${weekdayCode(localDate(0))}`] });
+  expect(patched.body).not.toHaveProperty('start');
 });
 
 test.describe('on the wall', () => {
@@ -152,6 +190,23 @@ test('the wall adds an event on an empty day with its own keyboard, then removes
   await page.getByTestId('event-detail-remove-ask').locator('[data-choice="instance"]').click();
   await expect.poll(() => writes(google, 'DELETE').length).toBeGreaterThan(0);
   expect(writes(google, 'DELETE').at(-1)!.path).toMatch(new RegExp(`^/calendar/v3/calendars/${FAMILY}/events/ev\\d+$`));
+});
+
+test('the wall\'s "Type on your phone" code opens the phone form at an address a phone can reach', async ({ page, request }) => {
+  const day = localDate(3);
+  await page.goto('/display?screen=wall');
+  const cell = page.locator(`[data-open-day="${day}"]`).first();
+  await expect(cell).toBeVisible({ timeout: 30_000 });
+  await cell.click();
+  await page.getByTestId('day-sheet-add-event').click();
+  await page.getByTestId('wall-event-handoff').click();
+  // The test browser is on loopback, like the wall on the hub Pi itself, so the
+  // hub's LAN address is used (the page's own origin only on a runner with none).
+  const hub = (await (await request.get('/api/system/address')).json()) as { origin: string | null };
+  const expected = `${hub.origin ?? new URL(page.url()).origin}/remote?tab=calendar&add=${day}`;
+  const escaped = expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await expect(page.getByTestId('wall-event-phone-link')).toHaveAttribute('data-url', new RegExp(`^${escaped}(&wall=[^&]+)?$`));
+  if (hub.origin) expect(expected).not.toMatch(/localhost|127\.0\.0\.1/);
 });
 
 test('on the wall, a length picked with Other stays the same when the start moves', async ({ page, google }) => {

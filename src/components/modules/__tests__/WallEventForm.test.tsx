@@ -190,3 +190,23 @@ describe('WallEventForm: closing itself', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 });
+
+describe('WallEventForm: a double tap', () => {
+  // jsdom still fires a click on a button in a disabled fieldset; Chromium does not.
+  // So this checks the hold itself; the wall E2E drives the taps.
+  const held = () => (document.querySelector('[data-testid="wall-event-step"]') as HTMLFieldSetElement).disabled;
+
+  it('holds the new step\'s buttons for a double tap after each step change', async () => {
+    displayFetch.mockResolvedValue(answer(200, dentist));
+    renderForm();
+    await loaded('Dentist');
+    await waitFor(() => expect(held()).toBe(false));
+    // Repeats replaces the details where Save was.
+    fireEvent.click(screen.getByTestId('wall-event-repeats'));
+    expect(held()).toBe(true);
+    await waitFor(() => expect(held()).toBe(false));
+    // And Done puts Save back under the same finger.
+    fireEvent.click(screen.getByTestId('wall-event-repeat-done'));
+    expect(held()).toBe(true);
+  });
+});

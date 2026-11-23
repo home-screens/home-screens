@@ -206,10 +206,7 @@
       "viewsLabel": "Visualizações",
       "sheetEyebrow": "Mostrar só uma pessoa",
       "sheetTitle": "De quem é o calendário?",
-      "allPeople": {
-        "one": "{count} pessoa",
-        "other": "Todas as {count} pessoas"
-      },
+      "everyCalendar": "Todos os calendários",
       "peopleCount": {
         "one": "{count} pessoa",
         "other": "{count} pessoas"

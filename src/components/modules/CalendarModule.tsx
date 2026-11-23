@@ -106,9 +106,11 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   // offered, and show one person, for a minute (useWallCalendarSwitch), on a
   // card tall enough for the buttons. From here on `config` is the calendar
   // as it is drawn right now; at rest it is the saved config itself.
-  const [boxRef, box] = useElementBox<HTMLDivElement>();
+  // The card's own outer height, which is what the editor's note reads
+  // (`mod.size.h`): its padding, border and title all count.
+  const [cardRef, card] = useElementBox<HTMLDivElement>('border');
   // Measured first: a short card never flashes the buttons before it knows.
-  const tallEnough = box.height > 0 && box.height + 2 * style.padding >= CARD_SWITCH_MIN_HEIGHT;
+  const tallEnough = card.height > 0 && card.height >= CARD_SWITCH_MIN_HEIGHT;
   const switchOnWall = wallScrollOn(savedConfig.eventTapDetails === true, screenId, moduleId) && tallEnough;
   const homeView = savedConfig.viewMode ?? 'daily';
   const editorSelection = useMemo(
@@ -315,9 +317,8 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   if (status.kind === 'cantLoad') return <ModuleNotUpdatingState style={style} />;
 
   return (
-    <ModuleWrapper style={style}>
+    <ModuleWrapper style={style} cardRef={cardRef}>
       <div
-        ref={boxRef}
         className="h-full flex flex-col relative"
         data-tap-events={tapDetails ? '' : undefined}
         onClick={onRootClick}

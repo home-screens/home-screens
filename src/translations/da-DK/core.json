@@ -785,7 +785,9 @@
     "thisDayStays": "{day}. De andre dage bliver, som de er.",
     "everyTimePastFuture": "Alle gange, både de tidligere og de kommende",
     "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",
-    "everyTimeFromFirst": "Alle gange, helt fra den første"
+    "everyTimeFromFirst": "Alle gange, helt fra den første",
+    "everyTimeMovesTo": "Hver gang flyttes lige så meget, til {time}",
+    "nextDay": "næste dag"
   },
   "notice": {
     "title": "Bemærk"

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addingReadiness,
   CALENDAR_WRITE_LIMITS,
   CalendarWriteError,
   GOOGLE_EVENTS_SCOPE,
@@ -13,10 +14,12 @@ import {
   googleEntryStateWithSetting,
   grantedScopes,
   isLongTimed,
+  spansDays,
   normalizeEventDraft,
   readTimeWas,
   repeatFrequenciesFor,
   repeatFromRecurrence,
+  seriesRuleFollows,
   repeatToRRule,
   splitGoogleEventId,
   type EventDraft,
@@ -158,22 +161,48 @@ describe('repeats', () => {
     const rule = (frequency: never | string) => repeatToRRule(normalizeEventDraft(timed({ repeat: { frequency: frequency as 'daily' } }), opts));
     expect(rule('daily')).toBe('RRULE:FREQ=DAILY');
     expect(rule('weekdays')).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR');
-    expect(rule('weekly')).toBe('RRULE:FREQ=WEEKLY');
-    expect(rule('biweekly')).toBe('RRULE:FREQ=WEEKLY;INTERVAL=2');
-    expect(rule('monthly')).toBe('RRULE:FREQ=MONTHLY');
-    expect(rule('yearly')).toBe('RRULE:FREQ=YEARLY');
+    // Monday, November 23: the day each choice is worded from.
+    expect(rule('weekly')).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO');
+    expect(rule('biweekly')).toBe('RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO');
+    expect(rule('monthly')).toBe('RRULE:FREQ=MONTHLY;BYMONTHDAY=23');
+    expect(rule('yearly')).toBe('RRULE:FREQ=YEARLY;BYMONTH=11;BYMONTHDAY=23');
     expect(repeatToRRule(normalizeEventDraft(timed(), opts))).toBeNull();
+  });
+
+  it('names the day the choice is worded from, so a repeat changed from another day of a series lands where the form says', () => {
+    // "Every week on Wednesday" from a Wednesday of a series that began on a Tuesday.
+    expect(repeatToRRule(normalizeEventDraft(timed({ date: '2026-11-25', repeat: { frequency: 'weekly' } }), opts))).toBe('RRULE:FREQ=WEEKLY;BYDAY=WE');
+    // "Every month on the 22nd" from November 22, a series that began on the 15th.
+    expect(repeatToRRule(normalizeEventDraft({ title: 'Book club', date: '2026-11-22', allDay: true, repeat: { frequency: 'monthly' } }, opts))).toBe('RRULE:FREQ=MONTHLY;BYMONTHDAY=22');
+  });
+
+  it('writes the rule again when the series moves to another day, so the named day follows', () => {
+    const moved = normalizeEventDraft(timed({ date: '2026-11-26', repeat: { frequency: 'weekly' } }), opts);
+    expect(seriesRuleFollows(moved, { repeatChanged: false, timesChanged: true, dayWas: '2026-11-25' })).toBe(true);
+    // The same day at another time, a rule naming no day, or no times sent: the rule stays.
+    expect(seriesRuleFollows(moved, { repeatChanged: false, timesChanged: true, dayWas: '2026-11-26' })).toBe(false);
+    const daily = normalizeEventDraft(timed({ date: '2026-11-26', repeat: { frequency: 'daily' } }), opts);
+    expect(seriesRuleFollows(daily, { repeatChanged: false, timesChanged: true, dayWas: '2026-11-25' })).toBe(false);
+    expect(seriesRuleFollows(moved, { repeatChanged: false, timesChanged: false, dayWas: '2026-11-25' })).toBe(false);
+    expect(seriesRuleFollows(moved, { repeatChanged: true, timesChanged: false, dayWas: '2026-11-26' })).toBe(true);
+  });
+
+  it('reads back every choice it writes', () => {
+    for (const frequency of ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly', 'yearly'] as const) {
+      const line = repeatToRRule(normalizeEventDraft(timed({ date: '2026-11-25', repeat: { frequency } }), opts))!;
+      expect(repeatFromRecurrence([line]), line).toEqual({ kind: 'known', rule: { frequency } });
+    }
   });
 
   it('stops a timed repeat at the end of its last day on the household clock', () => {
     // December 18 ends at midnight Chicago time, 06:00 UTC on the 19th.
     const e = normalizeEventDraft(timed({ repeat: { frequency: 'weekly', until: '2026-12-18' } }), opts);
-    expect(repeatToRRule(e)).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261219T055959Z');
+    expect(repeatToRRule(e)).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20261219T055959Z');
   });
 
   it('stops an all-day repeat on a date', () => {
     const e = normalizeEventDraft({ title: 'Trash', date: '2026-11-23', allDay: true, repeat: { frequency: 'weekly', until: '2027-06-01' } }, opts);
-    expect(repeatToRRule(e)).toBe('RRULE:FREQ=WEEKLY;UNTIL=20270601');
+    expect(repeatToRRule(e)).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20270601');
   });
 
   it('reads the family choices back, with or without a stop', () => {
@@ -189,12 +218,22 @@ describe('repeats', () => {
     expect(repeatFromRecurrence(['RRULE:FREQ=MONTHLY;UNTIL=20270601'])).toEqual({ kind: 'known', rule: { frequency: 'monthly', until: '2027-06-01' } });
   });
 
+  it('reads a rule anchored to one day as the family choice, the way Google writes every weekly event', () => {
+    expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY;BYDAY=TU'])).toEqual({ kind: 'known', rule: { frequency: 'weekly' } });
+    expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY;WKST=SU;INTERVAL=2;BYDAY=WE'])).toEqual({ kind: 'known', rule: { frequency: 'biweekly' } });
+    expect(repeatFromRecurrence(['RRULE:FREQ=MONTHLY;BYMONTHDAY=22'])).toEqual({ kind: 'known', rule: { frequency: 'monthly' } });
+    expect(repeatFromRecurrence(['RRULE:FREQ=YEARLY;BYMONTH=11;BYMONTHDAY=23'])).toEqual({ kind: 'known', rule: { frequency: 'yearly' } });
+  });
+
   it('reads what it cannot edit as other', () => {
     expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY;BYDAY=TU,TH'])).toEqual({ kind: 'other' });
     expect(repeatFromRecurrence(['RRULE:FREQ=MONTHLY;BYDAY=1MO'])).toEqual({ kind: 'other' });
     expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY;COUNT=10'])).toEqual({ kind: 'other' });
     expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY;INTERVAL=3'])).toEqual({ kind: 'other' });
     expect(repeatFromRecurrence(['RRULE:FREQ=WEEKLY', 'RDATE:20261201'])).toEqual({ kind: 'other' });
+    expect(repeatFromRecurrence(['RRULE:FREQ=MONTHLY;BYMONTHDAY=1,15'])).toEqual({ kind: 'other' });
+    expect(repeatFromRecurrence(['RRULE:FREQ=DAILY;BYDAY=MO'])).toEqual({ kind: 'other' });
+    expect(repeatFromRecurrence(['RRULE:FREQ=YEARLY;BYMONTHDAY=23'])).toEqual({ kind: 'other' });
   });
 
   it('keeps EXDATE lines out of the reading: a skipped day is still every week', () => {
@@ -227,10 +266,14 @@ describe('form helpers', () => {
     expect(endKeepingLength('09:00', '10:00', '1', 60)).toBe('10:00');
   });
 
-  it('lets only every time change how an event repeats', () => {
-    expect(() => checkChangeScope('series', true)).not.toThrow();
-    expect(() => checkChangeScope('instance', false)).not.toThrow();
-    expect(code(() => checkChangeScope('instance', true))).toBe('calendarWrite.repeatNeedsEveryTime');
+  it('lets only every time change how a series repeats', () => {
+    expect(() => checkChangeScope('series', true, true)).not.toThrow();
+    expect(() => checkChangeScope('instance', false, true)).not.toThrow();
+    expect(code(() => checkChangeScope('instance', true, true))).toBe('calendarWrite.repeatNeedsEveryTime');
+  });
+
+  it('lets a one-off be given a repeat', () => {
+    expect(() => checkChangeScope('instance', true, false)).not.toThrow();
   });
 });
 
@@ -361,15 +404,23 @@ describe('normalizeEventDraft: a change that leaves the times alone', () => {
     expect(isLongTimed(timed())).toBe(false);
     expect(isLongTimed({ allDay: true, endDate: '2026-11-29' })).toBe(false);
   });
+
+  it('keeps an event across days its shape, all day or timed', () => {
+    expect(spansDays(weekend)).toBe(true);
+    expect(spansDays({ allDay: true, date: '2026-11-27', lastDate: '2026-11-28' })).toBe(true);
+    expect(spansDays({ allDay: true, date: '2026-11-27', lastDate: '2026-11-27' })).toBe(false);
+    expect(spansDays(timed())).toBe(false);
+  });
 });
 
 describe('repeatToRRule: whose shape the end takes', () => {
   it('writes the end as a time for a timed series changed from a day that was made all day', () => {
     const day = normalizeEventDraft({ title: 'Practice', date: '2026-11-24', allDay: true, repeat: { frequency: 'weekly', until: '2026-12-15' } }, opts);
-    expect(repeatToRRule(day)).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261215');
-    expect(repeatToRRule(day, { allDay: false, timeZone: TZ })).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261216T055959Z');
+    // Tuesday the 24th, and Monday the 23rd for the timed one.
+    expect(repeatToRRule(day)).toBe('RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=20261215');
+    expect(repeatToRRule(day, { allDay: false, timeZone: TZ })).toBe('RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=20261216T055959Z');
     const timedDay = normalizeEventDraft(timed({ repeat: { frequency: 'weekly', until: '2026-12-15' } }), opts);
-    expect(repeatToRRule(timedDay, { allDay: true })).toBe('RRULE:FREQ=WEEKLY;UNTIL=20261215');
+    expect(repeatToRRule(timedDay, { allDay: true })).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20261215');
   });
 });
 
@@ -443,5 +494,19 @@ describe('anyWallMayWrite', () => {
     expect(anyWallMayWrite({}, [display(false), display()])).toBe(true);
     expect(anyWallMayWrite({ calendarWallEntry: false }, [display(false), display(true)])).toBe(true);
     expect(anyWallMayWrite({ calendarWallEntry: false }, [display(), display(false)])).toBe(false);
+  });
+});
+
+describe('addingReadiness', () => {
+  it('is off, waits on Google, waits on a picked calendar, or is ready', () => {
+    expect(addingReadiness({ enabled: false, google: 'ready', calendars: 2 })).toBe('off');
+    expect(addingReadiness({ enabled: true, google: 'needsSignIn', calendars: 0 })).toBe('needsGoogle');
+    // Right after the switch is first turned on: signed in, nothing ticked.
+    expect(addingReadiness({ enabled: true, google: 'ready', calendars: 0 })).toBe('noCalendars');
+    expect(addingReadiness({ enabled: true, google: null, calendars: 0 })).toBe('noCalendars');
+    // An iCloud calendar can take events while Google waits on its sign-in.
+    expect(addingReadiness({ enabled: true, google: 'needsSignIn', calendars: 1 })).toBe('ready');
+    // Signed in, but Google could not be asked: not "no calendar is picked".
+    expect(addingReadiness({ enabled: true, google: 'ready', calendars: 0, googleUnreachable: true })).toBe('googleUnreachable');
   });
 });

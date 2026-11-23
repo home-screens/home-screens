@@ -8,6 +8,7 @@ import {
   repeatEditable,
   repeatWasChanged,
   saveScope,
+  seriesStartAfterMove,
   timeOfMinutes,
   timesWereChanged,
   type LoadedEvent,
@@ -130,12 +131,23 @@ describe('changeRequestBody', () => {
       timeWas: { allDay: false, startTime: '18:00', endTime: '19:00' },
       repeatChanged: false,
       timesChanged: false,
+      titleChanged: true,
+      placeChanged: false,
     });
   });
 
   it('sends the series version for every time, and says when the times changed', () => {
     const body = changeRequestBody(loaded, { draft: { ...timed, startTime: '18:30', endTime: '19:30' }, scope: 'series', repeatChanged: false });
     expect(body).toMatchObject({ etag: '"s1"', scope: 'series', timesChanged: true, dayWas: '2026-11-24', timeWas: { startTime: '18:00', endTime: '19:00' } });
+    // The day's own name and place go back as they were, marked unchanged, so they never spread to the series.
+    expect(body).toMatchObject({ titleChanged: false, placeChanged: false });
+  });
+
+  it('says the place changed only when it did, spaces aside', () => {
+    const atPark = { ...timed, location: 'Lakefront Park' };
+    const fromPark: LoadedEvent = { ...loaded, draft: atPark };
+    expect(changeRequestBody(fromPark, { draft: { ...atPark, location: ' Lakefront Park ' }, scope: 'series', repeatChanged: false })).toMatchObject({ placeChanged: false });
+    expect(changeRequestBody(fromPark, { draft: { ...atPark, location: '' }, scope: 'series', repeatChanged: false })).toMatchObject({ placeChanged: true });
   });
 
   it('names the iCloud object, and the day as it was for an all-day event', () => {
@@ -162,5 +174,19 @@ describe('afterChangeRefusal', () => {
     expect(afterChangeRefusal('calendarWrite.unreachable')).toBe('stay');
     expect(afterChangeRefusal('calendarWrite.notAllowed')).toBe('stay');
     expect(afterChangeRefusal(undefined)).toBe('stay');
+  });
+});
+
+describe('seriesStartAfterMove', () => {
+  const day = (startTime: string): EventDraft => ({ title: 'Practice', date: '2026-11-23', allDay: false, startTime, endTime: '23:00' });
+  it('moves the series by however far this day moved, from its own time', () => {
+    // A 9:30 series, this Monday kept at 9:00, now typed 10:00: every time lands at 10:30.
+    expect(seriesStartAfterMove({ seriesStartTime: '09:30', draft: day('09:00') }, day('10:00'))).toBe('10:30');
+  });
+  it('says nothing when the start did not move, the series is all day, or it would cross midnight', () => {
+    expect(seriesStartAfterMove({ seriesStartTime: '09:30', draft: day('09:00') }, day('09:00'))).toBeNull();
+    expect(seriesStartAfterMove({ draft: day('09:00') }, day('10:00'))).toBeNull();
+    expect(seriesStartAfterMove({ seriesStartTime: '23:30', draft: day('21:00') }, day('22:00'))).toBeNull();
+    expect(seriesStartAfterMove({ seriesStartTime: '09:30', draft: day('09:00') }, { title: 'Practice', date: '2026-11-23', allDay: true })).toBeNull();
   });
 });

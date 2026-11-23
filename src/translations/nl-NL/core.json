@@ -785,7 +785,9 @@
     "thisDayStays": "{day}. De andere dagen blijven staan.",
     "everyTimePastFuture": "Alle keren, ook die al geweest zijn",
     "askBody": "Alleen deze dag wijzigen, of elke keer?",
-    "everyTimeFromFirst": "Alle keren, vanaf de eerste"
+    "everyTimeFromFirst": "Alle keren, vanaf de eerste",
+    "everyTimeMovesTo": "Elke keer schuift evenveel op, naar {time}",
+    "nextDay": "de volgende dag"
   },
   "notice": {
     "title": "Melding"

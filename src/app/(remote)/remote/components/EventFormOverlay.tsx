@@ -16,6 +16,7 @@ import {
   endsNextDay,
   isLongTimed,
   normalizeEventDraft,
+  spansDays,
   type EventDraft,
   type RepeatReading,
   type RepeatRule,
@@ -113,6 +114,9 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
   }, [initial, date, entry.defaultMinutes, entry.timezone]);
 
   const [draft, setDraft] = useState<EventDraft>({ ...start, lastDate: start.lastDate ?? start.date });
+  // Locked while the event still runs over days: shortened to one day here,
+  // switching All day off loses nothing.
+  const shapeLocked = Boolean(initial && spansDays(initial) && spansDays(draft));
   const [calendarId, setCalendarId] = useState(() => {
     const remembered = lastCalendar();
     return entry.calendars.some((c) => c.id === remembered) ? remembered! : entry.defaultCalendarId ?? '';
@@ -239,8 +243,17 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
 
           <PhoneSwitch
             checked={draft.allDay}
-            onChange={(allDay) => set({ allDay })}
+            // Timed again: it gets a start and the usual length, as a new event does, never two empty times.
+            onChange={(allDay) => setDraft((d) => {
+              if (allDay || (d.startTime && d.endTime)) return { ...d, allDay };
+              const startTime = timeOfMinutes(Math.min(LATEST_DEFAULT_START, defaultStartMinutes(d.date, new Date(), entry.timezone)));
+              return { ...d, allDay, startTime, endTime: timeOfMinutes(minutesOfTime(startTime) + entry.defaultMinutes) };
+            })}
+            // An event across days keeps its shape; switching would quietly make it one day long.
+            disabled={shapeLocked}
             label={t('calendarTab.form.allDay')}
+            // A timed event across days has its own "lasts a day or more" note below.
+            description={shapeLocked && draft.allDay ? t('calendarTab.form.allDayLocked') : undefined}
             testId="event-form-all-day"
             style={{ marginTop: 12 }}
           />
@@ -271,7 +284,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
                 <label>
                   <span style={FIELD_LABEL}>
                     {t('calendarTab.form.ends')}
-                    {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--hs-warning-ink)', marginLeft: 6 }}>{t('calendarTab.form.nextDay')}</span>}
+                    {nextDay && <span data-testid="event-form-next-day" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--hs-warning-ink)', marginLeft: 6 }}>{tCore('calendarChange.nextDay')}</span>}
                   </span>
                   <input
                     type="time"

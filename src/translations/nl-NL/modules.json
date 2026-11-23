@@ -206,10 +206,7 @@
       "viewsLabel": "Weergaven",
       "sheetEyebrow": "Eén persoon tonen",
       "sheetTitle": "Wiens agenda?",
-      "allPeople": {
-        "one": "{count} persoon",
-        "other": "Alle {count} personen"
-      },
+      "everyCalendar": "Alle agenda's",
       "peopleCount": {
         "one": "{count} persoon",
         "other": "{count} personen"

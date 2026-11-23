@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ArrowLeft, ChevronRight, Info, Lock, Pencil, Repeat, Smartphone, WifiOff } from 'lucide-react';
+import { ArrowLeft, ChevronRight, CircleAlert, Info, Lock, Pencil, Repeat, Smartphone, WifiOff } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useOrigin } from '@/hooks/useOrigin';
+import { useSettling } from '@/hooks/useSheetTapGuard';
+import { STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 import { displayFetch } from '@/lib/display-fetch';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { displayCache } from '@/lib/display-cache';
@@ -16,6 +19,7 @@ import {
   CalendarWriteError,
   endKeepingLength,
   isLongTimed,
+  spansDays,
   normalizeEventDraft,
   repeatFrequenciesFor,
   type ChangeScope,
@@ -33,6 +37,7 @@ import {
   repeatWasChanged,
   saveScope,
   timeOfMinutes as clock,
+  seriesStartAfterMove,
   timesWereChanged,
   type LoadedEvent,
 } from '@/lib/calendar-event-form';
@@ -66,7 +71,8 @@ const LENGTHS = [30, 60, 90, 120, 180] as const;
 const LAST_CALENDAR_KEY = 'hs.wall.lastCalendar';
 
 type Step = 'typing' | 'details' | 'repeat' | 'ask' | 'handoff' | 'gone';
-type Notice = { tone: 'warning' | 'error'; text: string } | null;
+/** `offline`: no answer from the hub (or none it could word), drawn with the no-connection mark; a refusal is drawn as an alert. */
+type Notice = { tone: 'warning' | 'error'; text: string; offline?: boolean } | null;
 
 /** One event loaded for Change: the Google or iCloud shape, whichever the hub answered. */
 type Editable = LoadedEvent;
@@ -122,8 +128,13 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   const P = useCallback((n: number) => base(n) * (landscape ? 0.7 : 1) * fit.scale, [base, landscape, fit.scale]);
   const typing = useWallTyping({ maxLength: CALENDAR_WRITE_LIMITS.maxTitleLength, capitalize: true });
   const displayId = useDisplayId();
+  // The hub's own wall runs on localhost, which a phone cannot open: this is the hub's address on the home network.
+  const origin = useOrigin();
 
   const [step, setStep] = useState<Step>(mode === 'new' ? 'typing' : 'details');
+  const settling = useSettling(step, STEP_SETTLE_MS);
+  // Once anything in the form is touched, a tap on the dark part no longer closes it: Cancel does.
+  const [edited, setEdited] = useState(false);
   const [editable, setEditable] = useState<Editable | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
@@ -151,7 +162,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
     try {
       const res = await displayFetch(editUrl);
       const body = await res.json().catch(() => null);
-      if (!res.ok) return setNotice({ tone: 'error', text: refusalSentence(body, tCore) ?? tCore('refusals.calendarWrite.unreachable') });
+      if (!res.ok) return setNotice(refusalNotice(body));
       const loaded = body as Editable;
       setEditable(loaded);
       const d = loaded.draft;
@@ -169,7 +180,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       setRepeat(loaded.repeat.kind === 'known' ? loaded.repeat.rule : null);
       setNotice(changed ? { tone: 'warning', text: t('calendar.eventForm.changedElsewhere') } : null);
     } catch {
-      setNotice({ tone: 'error', text: tCore('refusals.calendarWrite.unreachable') });
+      setNotice({ tone: 'error', text: tCore('refusals.calendarWrite.unreachable'), offline: true });
     }
     // typing.setText is stable; the rest is what a load reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,6 +193,8 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
   const endMinutes = other ? end : start + length;
   // An event of a day or more: its day and times are shown, never changed here.
   const locked = Boolean(editable && isLongTimed(editable.draft));
+  // Nor does any event across days switch between all day and timed.
+  const shapeLocked = Boolean(editable && spansDays(editable.draft));
   const draft: EventDraft = useMemo(() => (allDay
     ? { title: typing.text, date: day, allDay: true, lastDate: editable?.draft.lastDate ?? day, location: editable?.draft.location, repeat }
     : {
@@ -193,6 +206,8 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
 
   // A change that leaves the day and times alone sends none, so they are not held to what this form can make.
   const timesChanged = editable ? timesWereChanged(draft, editable.draft) : true;
+  // Where "every time" puts the series, which moves by however far this day's start moved.
+  const movedTo = editable ? seriesStartAfterMove(editable, draft) : null;
   const problem = useMemo(() => {
     try {
       normalizeEventDraft(draft, { timezone: entry.timezone, timesChanged });
@@ -243,11 +258,11 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       }
       setStep('details');
       if (next === 'reload') return void load(true);
-      setNotice({ tone: 'error', text: refusalSentence(body, tCore) ?? tCore('refusals.calendarWrite.unreachable') });
+      setNotice(refusalNotice(body));
     } catch (err) {
       setStep('details');
       // Nobody gave the grown-up code: back to the form, nothing changed, nothing to say.
-      if (!isGrownUpCancelled(err)) setNotice({ tone: 'error', text: tCore('refusals.calendarWrite.unreachable') });
+      if (!isGrownUpCancelled(err)) setNotice({ tone: 'error', text: tCore('refusals.calendarWrite.unreachable'), offline: true });
     } finally {
       setBusy(false);
     }
@@ -271,6 +286,15 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
     const d = new Date(2000, 0, 1, Math.floor(minutes / 60) % 24, minutes % 60);
     return formatTimeOfDay(d, { timeFormat, locale });
   };
+  // The hub's own reason when it gave one; with none, it could not be reached.
+  const refusalNotice = (body: unknown): Notice => {
+    const text = refusalSentence(body, tCore);
+    return text ? { tone: 'error', text } : { tone: 'error', text: tCore('refusals.calendarWrite.unreachable'), offline: true };
+  };
+  // An end past midnight says so, as the phone's form does: "12:00 AM next day", never a bare "12:00 AM" for an 11 PM start.
+  const endWords = (endMinutes: number, startMinutes: number) => (endMinutes >= 24 * 60 || endMinutes % (24 * 60) < startMinutes
+    ? `${timeWords(endMinutes % (24 * 60))} ${tCore('calendarChange.nextDay')}`
+    : timeWords(endMinutes));
   const lengthWords = (minutes: number) => (minutes % 60 === 0
     ? t('calendar.eventForm.hours', { count: minutes / 60 })
     : minutes < 60 ? t('calendar.eventForm.minutes', { count: minutes }) : t('calendar.eventForm.hoursMinutes', { hours: Math.floor(minutes / 60), minutes: minutes % 60 }));
@@ -324,10 +348,10 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
     setStart(next);
   };
   /** A time folded to one line while the other one's grid is open; pressing it opens this one. */
-  const foldedTime = (minutes: number, onOpen: () => void, testId: string) => (
+  const foldedTime = (minutes: number, onOpen: () => void, testId: string, text = timeWords(minutes)) => (
     <button type="button" {...wallPressProps} onClick={onOpen}
       style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'transparent', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
-      <WallTextField P={P} text={timeWords(minutes)} placeholder="" typing={false} fontSize={40} minHeight={92} testId={testId}
+      <WallTextField P={P} text={text} placeholder="" typing={false} fontSize={40} minHeight={92} testId={testId}
         trailing={<span style={{ display: 'inline-flex', alignItems: 'center', gap: P(10), fontSize: P(26), fontWeight: 600, color: 'var(--wt-accent)' }}><Pencil size={P(28)} aria-hidden="true" />{t('event-detail.change')}</span>} />
     </button>
   );
@@ -359,13 +383,13 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
     );
   } else if (step === 'handoff') {
     // The phone opens its own form for this day, saying which wall sent it.
-    const url = `${window.location.origin}/remote?tab=calendar&add=${day}${displayId ? `&wall=${encodeURIComponent(displayId)}` : ''}`;
+    const url = origin ? `${origin}/remote?tab=calendar&add=${day}${displayId ? `&wall=${encodeURIComponent(displayId)}` : ''}` : null;
     body = (
       <>
         {header()}
         <div style={{ display: 'flex', gap: P(40), alignItems: 'center', marginTop: P(10) }}>
-          <div style={{ padding: P(22), background: '#fff', borderRadius: P(22), border: `${P(2)}px solid var(--wt-border)`, flexShrink: 0 }}>
-            <QRCodeSVG value={url} size={P(336)} />
+          <div data-testid="wall-event-phone-link" data-url={url ?? ''} style={{ padding: P(22), background: '#fff', borderRadius: P(22), border: `${P(2)}px solid var(--wt-border)`, flexShrink: 0 }}>
+            {url ? <QRCodeSVG value={url} size={P(336)} /> : <div style={{ width: P(336), height: P(336) }} />}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: P(36), fontWeight: 700, lineHeight: 1.25, marginBottom: P(16) }}>{t('calendar.eventForm.typeOnPhone')}</div>
@@ -429,7 +453,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
           cancelLabel={t('calendar.eventForm.backToForm')}
           choices={[
             { id: 'instance', label: t('event-detail.justThisDay'), detail: heading.full, tone: 'primary' },
-            { id: 'series', label: t('event-detail.everyTime'), detail: tCore('calendarChange.everyTimeFromFirst'), tone: 'plain' },
+            { id: 'series', label: t('event-detail.everyTime'), detail: movedTo === null ? tCore('calendarChange.everyTimeFromFirst') : tCore('calendarChange.everyTimeMovesTo', { time: timeWords(minutesOfTime(movedTo)) }), tone: 'plain' },
           ]}
           onPick={(id) => void send(id === 'series' ? 'series' : 'instance')}
           onCancel={() => setStep('details')}
@@ -445,7 +469,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
         {notice && (
           <div style={{ marginBottom: P(22) }}>
             <WallNotice tone={notice.tone} P={P} testId="wall-event-notice"
-              icon={notice.tone === 'warning' ? <Info size={P(34)} aria-hidden="true" /> : <WifiOff size={P(34)} aria-hidden="true" />}>
+              icon={notice.tone === 'warning' ? <Info size={P(34)} aria-hidden="true" /> : notice.offline ? <WifiOff size={P(34)} aria-hidden="true" /> : <CircleAlert size={P(34)} aria-hidden="true" />}>
               {notice.text}
             </WallNotice>
           </div>
@@ -456,8 +480,8 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             trailing={<span style={{ display: 'inline-flex', alignItems: 'center', gap: P(10), fontSize: P(26), fontWeight: 600, color: 'var(--wt-accent)' }}><Pencil size={P(28)} aria-hidden="true" />{t('event-detail.change')}</span>} />
         </button>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: P(14), marginTop: P(26) }}>
-          <button type="button" role="switch" aria-checked={allDay} disabled={locked} {...wallPressProps} data-testid="wall-event-all-day" onClick={() => setAllDay((v) => !v)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: Math.max(44, P(100)), padding: `${P(14)}px ${P(26)}px`, borderRadius: P(20), background: 'color-mix(in srgb, var(--wt-text) 4%, var(--wt-surface))', border: `1px solid var(--wt-border)`, font: 'inherit', fontSize: P(30), fontWeight: 600, color: 'var(--wt-text)', cursor: locked ? 'default' : 'pointer', opacity: locked ? 0.5 : 1 }}>
+          <button type="button" role="switch" aria-checked={allDay} disabled={shapeLocked} {...wallPressProps} data-testid="wall-event-all-day" onClick={() => setAllDay((v) => !v)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: Math.max(44, P(100)), padding: `${P(14)}px ${P(26)}px`, borderRadius: P(20), background: 'color-mix(in srgb, var(--wt-text) 4%, var(--wt-surface))', border: `1px solid var(--wt-border)`, font: 'inherit', fontSize: P(30), fontWeight: 600, color: 'var(--wt-text)', cursor: shapeLocked ? 'default' : 'pointer', opacity: shapeLocked ? 0.5 : 1 }}>
             {t('calendar.allDay')}
             <span aria-hidden="true" style={{ width: P(112), height: P(64), borderRadius: P(32), position: 'relative', background: allDay ? 'var(--wt-accent)' : 'var(--wt-border)', flexShrink: 0 }}>
               <span style={{ position: 'absolute', top: P(6), left: allDay ? P(54) : P(6), width: P(52), height: P(52), borderRadius: '50%', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
@@ -489,14 +513,14 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             <div style={label}>{t('calendar.eventForm.starts')}<span style={labelValue}>{timeWords(start)}</span></div>
             {hourGrid(start, setStart)}
             {minuteRow(start, setStart)}
-            <div style={label}>{t('calendar.eventForm.howLong')}<span style={labelValue}>{t('calendar.eventForm.endsAt', { time: timeWords(start + length) })}</span></div>
+            <div style={label}>{t('calendar.eventForm.howLong')}<span style={labelValue}>{t('calendar.eventForm.endsAt', { time: endWords(start + length, start) })}</span></div>
           </>
         )}
         {!locked && !allDay && other && otherOpen === 'end' && (
           <>
             <div style={label}>{t('calendar.eventForm.starts')}</div>
             {foldedTime(start, () => setOtherOpen('start'), 'wall-event-start-folded')}
-            <div style={label}>{t('calendar.eventForm.ends')}<span style={labelValue}>{t('calendar.eventForm.endsLength', { time: timeWords(end), length: lengthWords((((end - start) % 1440) + 1440) % 1440) })}</span></div>
+            <div style={label}>{t('calendar.eventForm.ends')}<span style={labelValue}>{t('calendar.eventForm.endsLength', { time: endWords(end, start), length: lengthWords((((end - start) % 1440) + 1440) % 1440) })}</span></div>
             {hourGrid(end, setEnd, start)}
             {minuteRow(end, setEnd)}
             <div style={label}>{t('calendar.eventForm.howLong')}</div>
@@ -508,7 +532,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             {hourGrid(start, moveStart)}
             {minuteRow(start, moveStart)}
             <div style={label}>{t('calendar.eventForm.ends')}<span style={labelValue}>{lengthWords((((end - start) % 1440) + 1440) % 1440)}</span></div>
-            {foldedTime(end, () => setOtherOpen('end'), 'wall-event-end-folded')}
+            {foldedTime(end, () => setOtherOpen('end'), 'wall-event-end-folded', endWords(end, start))}
             <div style={label}>{t('calendar.eventForm.howLong')}</div>
           </>
         )}
@@ -573,6 +597,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       label={mode === 'new' ? t('calendar.eventForm.newKicker', { weekday: heading.full }) : t('calendar.eventForm.changeKicker', { weekday: heading.full })}
       testId="wall-event-form"
       onClose={onClose}
+      closeOnScrim={!edited}
       autoCloseMs={WALL_KEYBOARD_IDLE_MS}
       // A save can wait on the grown-up pad, a separate overlay whose presses never reach this one's idle clock.
       paused={busy}
@@ -580,7 +605,9 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
     >
       <WallSheetPanel variant="sheet" theme={theme}>
-        <div ref={fit.ref} data-step={step} style={{ ...wallTypingVars(theme, accent), color: 'var(--wt-text)' }}>
+        <div ref={fit.ref} data-step={step} onPointerDown={edited ? undefined : () => setEdited(true)} style={{ ...wallTypingVars(theme, accent), color: 'var(--wt-text)' }}>
+          {/* Each step puts new buttons where the last step's were: the second tap of a double tap on Done must not land on Cancel or Save. */}
+          <fieldset data-testid="wall-event-step" disabled={settling} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           <div style={{ padding: `${P(36)}px ${P(56)}px ${P(40)}px`, borderTop: `${P(12)}px solid var(--wt-accent)` }}>{body}</div>
           {step === 'typing' && (
             <WallKeyboard
@@ -598,6 +625,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
               actionDisabled={typing.text.trim() === ''}
             />
           )}
+          </fieldset>
         </div>
       </WallSheetPanel>
     </WallOverlay>

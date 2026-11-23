@@ -65,6 +65,23 @@ export function prunePersonSources<T extends Record<string, string[]> | undefine
 }
 
 /**
+ * Whose calendars are whose after an edit in Settings > Calendar. A calendar
+ * that can be ticked again (Google, iCloud and the holidays keep their ids)
+ * keeps its owners, as it keeps its name and colour; a removed calendar link
+ * never comes back under its id, so its owners let go. The same object comes
+ * back when nothing goes.
+ */
+export function ownersAfterEdit<T extends Record<string, string[]> | undefined>(
+  personSources: T,
+  feedsBefore: readonly { id: string }[] | undefined,
+  feedsAfter: readonly { id: string }[] | undefined,
+): T {
+  const left = new Set((feedsAfter ?? []).map((feed) => feed.id));
+  const gone = new Set((feedsBefore ?? []).map((feed) => feed.id).filter((id) => !left.has(id)));
+  return gone.size === 0 ? personSources : prunePersonSources(personSources, (id) => !gone.has(id));
+}
+
+/**
  * The person-to-calendar mapping as it stands today: owners of sources that
  * are gone count for nothing. Readers of `personSources` go through this, so
  * an install that saved a dangling id before removals pruned it heals on read.
@@ -81,24 +98,31 @@ export function hasCalendarOwners(calendar: SourceSettings | undefined): boolean
 }
 
 /**
- * The config once the calendar sources in `removed` are gone: they come out
- * of whose-calendars-are-whose and out of every calendar module's own source
- * list. A module whose list named only removed calendars goes back to showing
- * every calendar, the same as unticking its last one in the editor.
+ * The config once the calendar sources `before` had and `config` no longer
+ * does are gone: they come out of every calendar module's own source list. A
+ * module whose list named only removed calendars goes back to showing every
+ * calendar, the same as unticking its last one in the editor.
+ *
+ * Whose calendars are whose follows `ownersAfterEdit`, as the open Settings
+ * page does: a removed calendar link lets its owners go, while an unticked
+ * Google or iCloud calendar keeps them for when it is ticked again (readers
+ * meanwhile go through `livePersonSources`, which leaves them out). Saving
+ * the untick used to drop them, so leaving Settings and coming back lost them.
  *
  * Event and day rules are left alone: a removed id there can no longer match
  * anything, while taking it out of a rule that named only that calendar would
  * widen the rule to every event on the wall. So are the household's names and
- * colours (`calendarOverrides`): ticking the calendar again brings them back. Returns `config` itself when
- * nothing named a removed source.
+ * colours (`calendarOverrides`): ticking the calendar again brings them back.
+ * Returns `config` itself when nothing named a removed source.
  */
-export function pruneCalendarSourceRefs(config: ScreenConfiguration, removed: ReadonlySet<string>): ScreenConfiguration {
+export function pruneCalendarSourceRefs(config: ScreenConfiguration, before: SourceSettings | undefined): ScreenConfiguration {
+  const calendar = config.settings.calendar;
+  const removed = removedCalendarSourceIds(before, calendar);
   if (removed.size === 0) return config;
   const keep = (id: string) => !removed.has(id);
   let next = config;
 
-  const calendar = config.settings.calendar;
-  const personSources = prunePersonSources(calendar?.personSources, keep);
+  const personSources = ownersAfterEdit(calendar?.personSources, before?.icalSources, calendar?.icalSources);
   if (calendar && personSources !== calendar.personSources) {
     next = { ...next, settings: { ...next.settings, calendar: { ...calendar, personSources } } };
   }

@@ -41,6 +41,12 @@ interface UseGoogleCalendarsReturn {
   googleConnected: boolean;
   googleCalendars: GoogleCalendar[];
   googleLoading: boolean;
+  /**
+   * Signed in, but the last read of Google's calendar list failed (Google or
+   * the hub's internet out of reach). The list is empty then for no reason of
+   * the family's, so nothing may read it as "these calendars are gone".
+   */
+  calendarsUnreadable: boolean;
   setGoogleConnected: (connected: boolean) => void;
   fetchCalendars: (autoSelectPrimary?: boolean) => Promise<void>;
   toggleCalendar: (id: string) => void;
@@ -59,6 +65,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleLoading, setGoogleLoading] = useState(true);
+  const [calendarsUnreadable, setCalendarsUnreadable] = useState(false);
   const [stillUsedBy, setStillUsedBy] = useState<'photos' | null>(null);
   const valuesRef = useRef(values);
   valuesRef.current = values;
@@ -80,6 +87,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
       if (res.ok) {
         const cals: GoogleCalendar[] = await res.json();
         setGoogleCalendars(cals);
+        setCalendarsUnreadable(false);
         // Auto-select primary calendar only on first-ever connection: no
         // calendars picked and no other source — ICS, iCloud, or holidays —
         // configured at all. Disabled sources count as configured: they are
@@ -98,9 +106,12 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
         const errData = await res.json().catch(() => null);
         setGoogleConnected(false);
         onAuthErrorRef.current(errData?.error || t('errors.googleExpired'));
+      } else {
+        setCalendarsUnreadable(true);
       }
     } catch (err) {
       log.debug('fetchCalendars failed (editorFetch handles 401 session errors):', err);
+      setCalendarsUnreadable(true);
     }
   }, [t]);
 
@@ -180,6 +191,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError, onSignedInEl
     googleConnected,
     googleCalendars,
     googleLoading,
+    calendarsUnreadable,
     setGoogleConnected,
     fetchCalendars,
     toggleCalendar,

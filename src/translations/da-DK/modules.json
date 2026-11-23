@@ -206,10 +206,7 @@
       "viewsLabel": "Visninger",
       "sheetEyebrow": "Vis én person",
       "sheetTitle": "Hvis kalender?",
-      "allPeople": {
-        "one": "{count} person",
-        "other": "{count} personer"
-      },
+      "everyCalendar": "Alle kalendere",
       "peopleCount": {
         "one": "{count} person",
         "other": "{count} personer"

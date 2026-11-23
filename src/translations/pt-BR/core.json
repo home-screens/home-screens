@@ -787,7 +787,9 @@
     "thisDayStays": "{day}. Os outros dias ficam como estão.",
     "everyTimePastFuture": "Todas as vezes, passadas e futuras",
     "askBody": "Mudar só este dia ou todas as vezes que ele acontece?",
-    "everyTimeFromFirst": "Todas as vezes que ele acontece, desde a primeira"
+    "everyTimeFromFirst": "Todas as vezes que ele acontece, desde a primeira",
+    "everyTimeMovesTo": "Todas as vezes mudam na mesma medida, para {time}",
+    "nextDay": "no dia seguinte"
   },
   "notice": {
     "title": "Aviso"

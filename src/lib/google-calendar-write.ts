@@ -5,6 +5,7 @@ import {
   CalendarWriteError,
   repeatFromRecurrence,
   repeatToRRule,
+  seriesRuleFollows,
   type ChangeScope,
   type EventDraft,
   type NormalizedEvent,
@@ -38,6 +39,8 @@ export interface EditableGoogleEvent {
   /** The series and its version, when this is one day of a repeating event. */
   seriesId?: string;
   seriesEtag?: string;
+  /** A timed series' usual start, `HH:MM` on the household clock. */
+  seriesStartTime?: string;
   draft: EventDraft;
   /** How the series repeats, as a family choice, or `other` when it was set up elsewhere in a way the forms cannot edit. */
   repeat: RepeatReading;
@@ -124,6 +127,11 @@ interface LocalTime {
 /** A timed start or end on the household's clock. */
 function localOf(when: calendar_v3.Schema$EventDateTime, timezone: string): LocalTime {
   return wallClockParts(parseDateInTZ(when.dateTime ?? '', when.timeZone ?? timezone), timezone);
+}
+
+/** `HH:MM` for minutes after midnight. */
+export function clockOfMinutes(minuteOfDay: number): string {
+  return `${String(Math.floor(minuteOfDay / 60)).padStart(2, '0')}:${String(minuteOfDay % 60).padStart(2, '0')}`;
 }
 
 /** Minutes from one clock time to another, as a clock on the wall counts them. */
@@ -290,6 +298,7 @@ export async function getGoogleEventForEdit(calendarId: string, eventId: string,
       eventId,
       etag: event.etag ?? '',
       ...(series?.id ? { seriesId: series.id, seriesEtag: series.etag ?? '' } : {}),
+      ...(series?.start?.dateTime ? { seriesStartTime: clockOfMinutes(localOf(series.start, timezone).minuteOfDay) } : {}),
       draft: draftFromGoogle(event, timezone, repeat),
       repeat,
     };
@@ -339,6 +348,13 @@ export async function updateGoogleEvent(input: {
    */
   timesChanged: boolean;
   /**
+   * Send the name and the place (they changed). Matters for "every time":
+   * the day the form opened may have a name or place of its own, which must
+   * not become the whole series'.
+   */
+  titleChanged: boolean;
+  placeChanged: boolean;
+  /**
    * Make sure a one-day change is not aimed at a series' own id, which
    * would change every time without the question (and the grown-up code)
    * that guards it. Costs one read, so it is asked for a wall, whose token
@@ -365,12 +381,12 @@ export async function updateGoogleEvent(input: {
           calendarId,
           eventId: input.seriesId,
           requestBody: {
-            summary: event.title,
-            location: event.location ?? '',
+            ...(input.titleChanged ? { summary: event.title } : {}),
+            ...(input.placeChanged ? { location: event.location ?? '' } : {}),
             ...(input.timesChanged
               ? seriesTimes(event, { start: series.start ?? {}, end: series.end }, input.dayWas, input.timezone, input.timeWas)
               : {}),
-            ...(input.repeatChanged ? { recurrence: withNewRRule(series.recurrence, repeatToRRule(event, untilShape)) } : {}),
+            ...(seriesRuleFollows(event, input) ? { recurrence: withNewRRule(series.recurrence, repeatToRRule(event, untilShape)) } : {}),
           },
         },
         { headers: { 'If-Match': input.etag } },

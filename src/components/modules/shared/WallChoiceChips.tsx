@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { wallPressProps } from './wallPress';
 
 export interface WallChoice<T extends string> {
@@ -15,9 +15,10 @@ export interface WallChoice<T extends string> {
 /**
  * One-of-many big chips for a wall sheet: a calendar, a length, a minute.
  * Reads the colours a wall sheet sets with `wallTypingVars`, so it matches
- * any full-screen theme. `fill` spreads the chips across one row instead of
- * wrapping them (the length chips). Sizes are on the 1080-wide canvas, scaled
- * by `P`.
+ * any full-screen theme. `fill` spreads the chips across the row (the length
+ * chips); when a longer language does not fit them on one row they wrap and
+ * keep their own widths, so a chip alone on the second row is not a full-width
+ * bar. Sizes are on the 1080-wide canvas, scaled by `P`.
  */
 export function WallChoiceChips<T extends string>({ P, label, options, value, onChange, fill = false, testId }: {
   P: (n: number) => number;
@@ -29,8 +30,10 @@ export function WallChoiceChips<T extends string>({ P, label, options, value, on
   fill?: boolean;
   testId?: string;
 }) {
+  const wrapped = useWrapped(fill);
+  const spread = fill && !wrapped.value;
   return (
-    <div role="radiogroup" aria-label={label} data-testid={testId} style={{ display: 'flex', flexWrap: fill ? 'nowrap' : 'wrap', gap: P(fill ? 12 : 14) }}>
+    <div ref={wrapped.ref} role="radiogroup" aria-label={label} data-testid={testId} style={{ display: 'flex', flexWrap: 'wrap', gap: P(fill ? 12 : 14) }}>
       {options.map((option) => {
         const on = option.value === value;
         const tinted = on && option.color;
@@ -45,7 +48,7 @@ export function WallChoiceChips<T extends string>({ P, label, options, value, on
             onClick={() => onChange(option.value)}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: P(14),
-              minHeight: Math.max(44, P(76)), padding: `0 ${P(fill ? 10 : 30)}px`, flex: fill ? '1 1 auto' : undefined,
+              minHeight: Math.max(44, P(76)), padding: `0 ${P(spread ? 10 : 30)}px`, flex: spread ? '1 1 auto' : undefined,
               borderRadius: P(38), whiteSpace: 'nowrap', font: 'inherit', fontSize: P(28), fontWeight: 600, cursor: 'pointer',
               background: tinted ? `color-mix(in srgb, ${option.color} 16%, var(--wt-surface))` : on ? 'var(--wt-accent)' : 'color-mix(in srgb, var(--wt-text) 4%, var(--wt-surface))',
               color: on && !tinted ? 'var(--wt-on-accent)' : 'var(--wt-text)',
@@ -59,6 +62,31 @@ export function WallChoiceChips<T extends string>({ P, label, options, value, on
       })}
     </div>
   );
+}
+
+/**
+ * Whether a row of chips has wrapped onto a second line. Line breaks go by
+ * each chip's own width before any stretching, so dropping the stretch once
+ * wrapped never unwraps the row.
+ */
+function useWrapped(watch: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [value, setValue] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!watch || !el) return;
+    const check = () => {
+      const first = el.firstElementChild as HTMLElement | null;
+      const last = el.lastElementChild as HTMLElement | null;
+      setValue(Boolean(first && last && last.offsetTop > first.offsetTop));
+    };
+    check();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [watch]);
+  return { ref, value };
 }
 
 /**

@@ -1,5 +1,6 @@
 import { addDays, startOfDay } from 'date-fns';
-import { compareEventStarts, isAllDayEvent, isEventOnDay, parseEventWallTime } from '@/lib/calendar-utils';
+import { compareEventStarts, formatEventTime, isAllDayEvent, isEventOnDay, parseEventWallTime } from '@/lib/calendar-utils';
+import type { TimeFormat } from '@/types/config';
 import { dayMonthPattern, formatDateSync, fullDatePattern } from '@/i18n';
 
 /**
@@ -62,6 +63,17 @@ export function daySheetRows<T extends SheetEvent>(events: readonly T[], moment:
       || a.end.getTime() - b.end.getTime()
       || a.event.title.localeCompare(b.event.title);
   });
+}
+
+/**
+ * A row's start or end as the sheet prints it: the clock time, with its
+ * weekday when it falls on another day than the row's ("Fri 4:00 PM"), so a
+ * camping trip listed on Sunday does not read as 4 PM to 11 AM that day.
+ * The wall's sheet and the phone's Calendar tab both say it this way.
+ */
+export function daySheetTime(d: Date, otherDay: boolean, timeFormat: TimeFormat, locale: string): string {
+  const clock = formatEventTime(d, timeFormat, locale);
+  return otherDay ? `${formatDateSync(d, 'EEE', { locale })} ${clock}` : clock;
 }
 
 export interface DaySheetHeading {

@@ -171,6 +171,11 @@ test.describe('the Calendar card', () => {
     await expect(mod.getByTestId('look-ahead-bar')).toContainText(monthTitle());
   });
 
+  test('shows the row on a card exactly as tall as the editor asks for, border and padding included', async ({ page, request, sandboxDir }) => {
+    const mod = await openWall(page, request, sandboxDir, card(400));
+    await expect(mod.getByTestId('calendar-switch-bar')).toBeVisible();
+  });
+
   test('leaves the row off a card too short for it', async ({ page, request, sandboxDir }) => {
     const mod = await openWall(page, request, sandboxDir, card(340));
     await expect(mod.getByTestId('calendar-switch-bar')).toHaveCount(0);

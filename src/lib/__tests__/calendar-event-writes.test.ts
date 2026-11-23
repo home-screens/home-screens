@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import type { ScreenConfiguration } from '@/types/config';
+import type { LoadedEvent } from '@/lib/calendar-event-form';
 
 let config: ScreenConfiguration;
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn(async () => config) }));
@@ -29,6 +30,7 @@ vi.mock('@/lib/calendar-revision', () => ({ bumpCalendarRevision: () => bump() }
 
 const { addEvent, changeEvent, removeEvent, clearWriteLimits, calendarEntryInfo } = await import('../calendar-event-writes');
 const { CalendarWriteError } = await import('../calendar-write');
+const { saveScope, changeRequestBody } = await import('../calendar-event-form');
 
 const draft = { title: 'Playdate with Sam', date: '2026-11-23', allDay: false, startTime: '15:30', endTime: '17:00' };
 const request = () => new NextRequest('http://hub.local/api/calendar/events', { method: 'POST' });
@@ -180,10 +182,27 @@ describe('changing and removing', () => {
     expect(updateGoogleEvent).not.toHaveBeenCalled();
   });
 
-  it('refuses a new repeat for just one day', async () => {
-    expect((await refusal(changeEvent(request(), id, { draft, etag: '"e1"', scope: 'instance', dayWas: '2026-11-21', repeatChanged: true }))).code).toBe(
-      'calendarWrite.repeatNeedsEveryTime',
-    );
+  it('refuses a new repeat for just one day of a series', async () => {
+    const body = { draft, etag: '"e1"', scope: 'instance', seriesId: 'soccer', dayWas: '2026-11-21', repeatChanged: true };
+    expect((await refusal(changeEvent(request(), id, body))).code).toBe('calendarWrite.repeatNeedsEveryTime');
+    expect(updateGoogleEvent).not.toHaveBeenCalled();
+  });
+
+  it('gives a one-off a repeat, with the body the forms send', async () => {
+    // The forms' own rules decide the scope and the body, so the two sides are tested together.
+    const loaded: LoadedEvent = { etag: '"e7"', draft, repeat: { kind: 'none' } };
+    const changed = { ...draft, repeat: { frequency: 'weekly' as const } };
+    const scope = saveScope(loaded, true);
+    if (scope === 'ask') throw new Error('a one-off has no days to ask about');
+    expect(scope).toBe('instance');
+    await changeEvent(request(), 'family@group.calendar.google.com:pizza1', changeRequestBody(loaded, { draft: changed, scope, repeatChanged: true }));
+    expect(updateGoogleEvent).toHaveBeenCalledWith(expect.objectContaining({
+      eventId: 'pizza1',
+      scope: 'instance',
+      seriesId: undefined,
+      repeatChanged: true,
+      event: expect.objectContaining({ repeat: { frequency: 'weekly' } }),
+    }));
   });
 
   it('refuses an event on a calendar that does not take changes', async () => {
@@ -220,6 +239,13 @@ describe('what the forms offer', () => {
       calendars: [{ id: 'ic-home', name: 'Home', color: '#ef4444', source: 'icloud' }],
       defaultCalendarId: 'ic-home',
     });
+  });
+
+  it('says Google could not be asked when no calendar of it is known, not that none is picked', async () => {
+    // A hub restarted while Google is out of reach: no last good read to answer from.
+    googleCalendarLabels.mockResolvedValueOnce(new Map());
+    const info = await calendarEntryInfo();
+    expect(info).toMatchObject({ calendars: [], googleUnreachable: true });
   });
 
   it('offers the Google calendars it is given from the last good read', async () => {

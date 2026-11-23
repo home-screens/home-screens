@@ -206,10 +206,7 @@
       "viewsLabel": "Views",
       "sheetEyebrow": "Show one person",
       "sheetTitle": "Whose calendar?",
-      "allPeople": {
-        "one": "{count} person",
-        "other": "All {count} people"
-      },
+      "everyCalendar": "Every calendar",
       "peopleCount": {
         "one": "{count} person",
         "other": "{count} people"

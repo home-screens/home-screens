@@ -178,7 +178,7 @@ describe('buildICloudEvent', () => {
       'SUMMARY:Soccer',
       'LOCATION:Lakefront Park',
       // The last second of December 26 in Chicago, in UTC.
-      'RRULE:FREQ=WEEKLY;UNTIL=20261227T055959Z',
+      'RRULE:FREQ=WEEKLY;BYDAY=SA;UNTIL=20261227T055959Z',
       'X-HOME-SCREENS:1',
     ]));
     expect(text.endsWith('END:VCALENDAR\r\n')).toBe(true);
@@ -187,7 +187,7 @@ describe('buildICloudEvent', () => {
   it('writes an all-day event as dates with an exclusive end and no VTIMEZONE', () => {
     const event = normalizeEventDraft({ title: 'Grandma visiting', date: '2026-11-21', allDay: true, lastDate: '2026-11-22', repeat: { frequency: 'yearly' } }, opts);
     const lines = w.unfoldIcsLines(w.buildICloudEvent(event, { uid: 'u@homescreens.dev', now: NOW }));
-    expect(lines).toEqual(expect.arrayContaining(['DTSTART;VALUE=DATE:20261121', 'DTEND;VALUE=DATE:20261123', 'RRULE:FREQ=YEARLY']));
+    expect(lines).toEqual(expect.arrayContaining(['DTSTART;VALUE=DATE:20261121', 'DTEND;VALUE=DATE:20261123', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYMONTHDAY=21']));
     expect(lines.some((l) => l.startsWith('BEGIN:VTIMEZONE'))).toBe(false);
     expect(lines.some((l) => l.startsWith('LOCATION'))).toBe(false);
   });
@@ -351,8 +351,8 @@ const change = (
   event: ReturnType<typeof timed>,
   dayWas: string,
   repeatChanged = false,
-  extra: { timesChanged?: boolean; timeWas?: import('../calendar-write').TimeWas } = {},
-) => ({ scope, event, dayWas, repeatChanged, timesChanged: true, timezone: TZ, now: NOW, ...extra }) as const;
+  extra: { timesChanged?: boolean; titleChanged?: boolean; placeChanged?: boolean; timeWas?: import('../calendar-write').TimeWas } = {},
+) => ({ scope, event, dayWas, repeatChanged, timesChanged: true, titleChanged: true, placeChanged: true, timezone: TZ, now: NOW, ...extra }) as const;
 
 describe('locateOccurrence', () => {
   it('finds one day of a series by its start and names it as RECURRENCE-ID would', () => {
@@ -734,6 +734,22 @@ describe('changeICloudObject: times are written only when they changed', () => {
     expect(lines.filter((l) => l === 'SUMMARY:Soccer practice')).toHaveLength(2);
   });
 
+  it('"Every time" from a day with a place of its own keeps that place off the series', () => {
+    // Saturdays at Lakefront Park; Nov 21 is an away game somewhere else.
+    const away = changedDay('20261121T090000', '20261121T090000', '20261121T100000', 'Soccer').map((l) => (l === 'LOCATION:Lakefront Park' ? 'LOCATION:Eastside fields' : l));
+    const text0 = appleSeries([], [away]);
+    const { located } = loadedDraft(text0, `${UID}:2026-11-21T15:00:00.000Z`);
+    // Only the start moved, half an hour; the form sends that day's own place back as it was.
+    const event = timed('2026-11-21', '09:30', '10:30', { title: 'Soccer', location: 'Eastside fields' });
+    const text = w.changeICloudObject(text0, located, change('series', event, '2026-11-21', false, {
+      titleChanged: false, placeChanged: false, timeWas: { allDay: false, startMinute: 9 * 60, minutes: 60 },
+    }));
+    const [master] = veventBlocks(text);
+    expect(master).toContain('LOCATION:Lakefront Park');
+    expect(master).not.toContain('Eastside');
+    expect(master).toContain('DTSTART;TZID=America/Chicago:20260905T093000');
+  });
+
   it('"Every time" from a moved day with a new time moves the series by as much as that day moved', () => {
     const text0 = appleSeries(['EXDATE;TZID=America/Chicago:20261107T090000'], [changedDay('20261121T090000', '20261121T113000', '20261121T123000', 'Soccer')]);
     const { located } = loadedDraft(text0, `${UID}:2026-11-21T17:30:00.000Z`);
@@ -897,6 +913,8 @@ describe('getICloudEventForEdit', () => {
       sourceRef: OBJECT_URL,
       seriesId: UID,
       seriesEtag: '"C=101@U=abc"',
+      // The series' usual start, where "every time" moves from.
+      seriesStartTime: '09:00',
       draft: { title: 'Soccer', location: 'Lakefront Park', allDay: false, date: '2026-11-21', startTime: '09:00', endTime: '10:00', repeat: { frequency: 'weekly' } },
       repeat: { kind: 'known', rule: { frequency: 'weekly' } },
     });
@@ -932,6 +950,8 @@ describe('updateICloudEvent', () => {
     scope: 'instance' as const,
     dayWas: '2026-11-21',
     timesChanged: true,
+    titleChanged: true,
+    placeChanged: true,
     event: timed('2026-11-21', '09:30', '10:30'),
     repeatChanged: false,
     timezone: TZ,
