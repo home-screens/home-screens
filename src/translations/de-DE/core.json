@@ -759,11 +759,18 @@
       "one": "Zu viele Versuche. Probier es in {count} Sekunde noch einmal.",
       "other": "Zu viele Versuche. Probier es in {count} Sekunden noch einmal."
     },
+    "tooManyMinutes": {
+      "one": "Zu viele Versuche. Probier es in {count} Minute noch einmal.",
+      "other": "Zu viele Versuche. Probier es in {count} Minuten noch einmal."
+    },
     "unlocked": {
       "one": "Noch 1 Minute entsperrt",
       "other": "Noch {count} Minuten entsperrt"
     },
-    "lockNow": "Jetzt sperren"
+    "lockNow": "Jetzt sperren",
+    "lockedTitle": "Zu viele falsche Versuche",
+    "letThemTry": "Jetzt wieder versuchen lassen",
+    "clearFailed": "Das Warten konnte nicht beendet werden. Versuch es noch einmal."
   },
   "calendarRepeat": {
     "none": "Wiederholt sich nicht",

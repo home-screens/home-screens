@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Beheer de mensen in je huishouden."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuut niet aan.",
+        "other": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuten niet aan."
+      }
     }
   },
   "photosTab": {

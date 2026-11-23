@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Gestiona las personas de tu hogar."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minuto más.",
+        "other": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minutos más."
+      }
     }
   },
   "photosTab": {

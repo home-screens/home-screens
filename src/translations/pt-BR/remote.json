@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Gerencie as pessoas da sua casa."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Os painéis e a página de tarefas não vão aceitar o código dos adultos por mais {count} minuto.",
+        "other": "Os painéis e a página de tarefas não vão aceitar o código dos adultos por mais {count} minutos."
+      }
     }
   },
   "photosTab": {

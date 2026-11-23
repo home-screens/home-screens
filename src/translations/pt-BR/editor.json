@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Depois do código certo, aquele painel faz o que está marcado sem pedir de novo durante esse tempo. Quem está conectado pelo celular nunca precisa digitar o código.",
         "removeConfirmTitle": "Remover o código dos adultos?",
-        "removeConfirmMessage": "O painel para de pedir o código antes do que você marcou. Você pode definir um código novo quando quiser."
+        "removeConfirmMessage": "O painel para de pedir o código antes do que você marcou. Você pode definir um código novo quando quiser.",
+        "lockedBody": {
+          "one": "Os painéis, a página de tarefas e os celulares sem login não vão aceitar o código dos adultos por mais {count} minuto.",
+          "other": "Os painéis, a página de tarefas e os celulares sem login não vão aceitar o código dos adultos por mais {count} minutos."
+        }
       }
     },
     "touchAlignment": {

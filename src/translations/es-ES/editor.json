@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Tras el código correcto, ese monitor hace lo marcado sin volver a pedirlo durante este tiempo. A quien haya iniciado sesión en el teléfono nunca se le pide.",
         "removeConfirmTitle": "¿Quitar el código de los mayores?",
-        "removeConfirmMessage": "El monitor deja de pedirlo antes de lo que marcaste. Puedes poner un código nuevo cuando quieras."
+        "removeConfirmMessage": "El monitor deja de pedirlo antes de lo que marcaste. Puedes poner un código nuevo cuando quieras.",
+        "lockedBody": {
+          "one": "Los monitores, la página de tareas y los móviles sin sesión no aceptarán el código de los mayores durante {count} minuto más.",
+          "other": "Los monitores, la página de tareas y los móviles sin sesión no aceptarán el código de los mayores durante {count} minutos más."
+        }
       }
     },
     "touchAlignment": {

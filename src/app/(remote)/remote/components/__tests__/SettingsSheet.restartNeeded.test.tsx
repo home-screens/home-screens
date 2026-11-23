@@ -117,3 +117,28 @@ describe('Settings sheet restart notice', () => {
     expect(button.style.minHeight).toBe('48px');
   });
 });
+
+describe('SettingsSheet: the grown-up code wait', () => {
+  it('shows the hub-wide wait to a signed-in phone and ends it on a press', async () => {
+    mocks.editorFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/stats') return json(mocks.stats);
+      if (url === '/api/grown-up-code') return json({ set: true, actions: ['redeem'], unlockMinutes: 5, signedIn: true, lockedSeconds: 125 });
+      if (url === '/api/grown-up-code/unlock' && init?.method === 'DELETE') return json({ lockedSeconds: 0 });
+      return json({ ok: true });
+    });
+    await renderSheet();
+    const card = screen.getByTestId('grown-up-lock-card');
+    expect(card.textContent).toContain(enUSCore.grownUp.lockedTitle);
+    expect(card.textContent).toContain(enUSRemote.settingsSheet.grownUpLock.body.other.replace('{count}', '3'));
+
+    await act(async () => { fireEvent.click(screen.getByTestId('grown-up-lock-clear')); });
+    expect(mocks.editorFetch).toHaveBeenCalledWith('/api/grown-up-code/unlock', { method: 'DELETE' });
+    expect(screen.queryByTestId('grown-up-lock-card')).toBeNull();
+  });
+
+  it('shows no card while nothing waits', async () => {
+    await renderSheet();
+    expect(screen.queryByTestId('grown-up-lock-card')).toBeNull();
+  });
+});
+

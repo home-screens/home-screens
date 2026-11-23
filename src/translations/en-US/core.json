@@ -759,11 +759,18 @@
       "one": "Too many tries. Try again in {count} second.",
       "other": "Too many tries. Try again in {count} seconds."
     },
+    "tooManyMinutes": {
+      "one": "Too many tries. Try again in {count} minute.",
+      "other": "Too many tries. Try again in {count} minutes."
+    },
     "unlocked": {
       "one": "Unlocked for 1 more minute",
       "other": "Unlocked for {count} more minutes"
     },
-    "lockNow": "Lock now"
+    "lockNow": "Lock now",
+    "lockedTitle": "Too many wrong tries",
+    "letThemTry": "Let them try now",
+    "clearFailed": "Couldn't end the wait. Try again."
   },
   "calendarRepeat": {
     "none": "Does not repeat",

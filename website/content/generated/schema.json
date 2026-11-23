@@ -11941,6 +11941,10 @@
         {
           "method": "POST",
           "access": "open"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
         }
       ]
     },

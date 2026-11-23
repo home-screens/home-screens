@@ -11,6 +11,8 @@
  * password is the lock.
  */
 
+import type { TranslateFn } from '@/i18n/types';
+
 /** The jobs that can ask for the code, in the order Settings lists them. */
 export const GROWN_UP_ACTIONS = ['redeem', 'untick', 'todoist-close', 'calendar-remove', 'calendar-change-series'] as const;
 export type GrownUpAction = typeof GROWN_UP_ACTIONS[number];
@@ -44,6 +46,12 @@ export interface GrownUpStatus {
    * code. Only in the hub's answer to that page (`GET /api/grown-up-code`).
    */
   signedIn?: boolean;
+  /**
+   * Seconds the whole hub still waits after too many wrong codes. Only in the
+   * answer to a page that may end it (`DELETE /api/grown-up-code/unlock`): a
+   * session, or any page on a hub with no password.
+   */
+  lockedSeconds?: number;
 }
 
 export const NO_GROWN_UP_CODE: GrownUpStatus = { set: false, actions: [], unlockMinutes: DEFAULT_UNLOCK_MINUTES };
@@ -66,4 +74,16 @@ export function cleanUnlockMinutes(value: unknown): number | null {
 /** Whether this job asks the page holding `status` for the code. */
 export function asksForCode(status: GrownUpStatus | null | undefined, action: GrownUpAction): boolean {
   return !!status?.set && !status.signedIn && status.actions.includes(action);
+}
+
+/**
+ * How long until the pad takes tries again, as the pad says it: whole
+ * minutes, rounded up, while it is longer than a minute ("Try again in 4
+ * minutes"), then the seconds. "234 seconds" is hard for anyone to read.
+ * The wall's pad and the phone's sheet both say it this way.
+ */
+export function grownUpWaitWords(secondsLeft: number, t: TranslateFn): string {
+  return secondsLeft > 60
+    ? t('grownUp.tooManyMinutes', { count: Math.ceil(secondsLeft / 60) })
+    : t('grownUp.tooMany', { count: secondsLeft });
 }

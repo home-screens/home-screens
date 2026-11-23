@@ -7,7 +7,7 @@ import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
-import { GROWN_UP_CODE_LENGTH } from '@/lib/grown-up-code';
+import { GROWN_UP_CODE_LENGTH, grownUpWaitWords } from '@/lib/grown-up-code';
 import { lockNow, registerGrownUpAsker } from '@/lib/grown-up-client';
 import { useGrownUpUnlock } from '@/hooks/useGrownUp';
 import { GROWN_UP_KEYS, useGrownUpEntry } from '@/hooks/useGrownUpEntry';
@@ -49,7 +49,7 @@ export function GrownUpPad({ why, onUnlocked, onCancel }: GrownUpPadProps) {
   const waiting = state.kind === 'waiting';
   const wrong = state.kind === 'wrong';
   const message = wrong ? t('grownUp.wrong')
-    : state.kind === 'waiting' ? t('grownUp.tooMany', { count: state.secondsLeft })
+    : state.kind === 'waiting' ? grownUpWaitWords(state.secondsLeft, t)
     : state.kind === 'offline' ? t('refusals.unreachable')
     : '';
 
@@ -71,7 +71,8 @@ export function GrownUpPad({ why, onUnlocked, onCancel }: GrownUpPadProps) {
   };
 
   return (
-    <WallOverlay label={t('grownUp.title')} onClose={onCancel} autoCloseMs={GROWN_UP_PAD_IDLE_MS} scrim="rgba(0,0,0,0.7)" testId="grown-up-pad">
+    // It opens while the long press that unticks a chore is still held: that press's lift must not type a key or close it.
+    <WallOverlay label={t('grownUp.title')} onClose={onCancel} autoCloseMs={GROWN_UP_PAD_IDLE_MS} scrim="rgba(0,0,0,0.7)" freshPressesOnly testId="grown-up-pad">
       <div
         onClick={(e) => e.stopPropagation()}
         className="wall-sheet-panel"

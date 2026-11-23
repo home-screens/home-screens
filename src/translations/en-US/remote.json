@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Manage the people in your household."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "The walls and the chores page won’t take the grown-up code for {count} more minute.",
+        "other": "The walls and the chores page won’t take the grown-up code for {count} more minutes."
+      }
     }
   },
   "photosTab": {

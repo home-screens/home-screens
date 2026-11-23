@@ -759,11 +759,18 @@
       "one": "Te veel pogingen. Probeer het over {count} seconde opnieuw.",
       "other": "Te veel pogingen. Probeer het over {count} seconden opnieuw."
     },
+    "tooManyMinutes": {
+      "one": "Te veel pogingen. Probeer het over {count} minuut opnieuw.",
+      "other": "Te veel pogingen. Probeer het over {count} minuten opnieuw."
+    },
     "unlocked": {
       "one": "Nog 1 minuut ontgrendeld",
       "other": "Nog {count} minuten ontgrendeld"
     },
-    "lockNow": "Nu vergrendelen"
+    "lockNow": "Nu vergrendelen",
+    "lockedTitle": "Te vaak een verkeerde code",
+    "letThemTry": "Laat ze het nu weer proberen",
+    "clearFailed": "Het wachten kon niet worden beëindigd. Probeer het opnieuw."
   },
   "calendarRepeat": {
     "none": "Wordt niet herhaald",

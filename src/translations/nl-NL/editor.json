@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Na de juiste code doet die muur de aangevinkte dingen zo lang zonder het opnieuw te vragen. Wie op de telefoon is aangemeld, krijgt de vraag nooit.",
         "removeConfirmTitle": "De volwassenencode weghalen?",
-        "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen."
+        "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen.",
+        "lockedBody": {
+          "one": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuut niet aan.",
+          "other": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuten niet aan."
+        }
       }
     },
     "touchAlignment": {

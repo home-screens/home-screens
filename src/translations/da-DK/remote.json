@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Administrer personerne i din husstand."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minut mere.",
+        "other": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minutter mere."
+      }
     }
   },
   "photosTab": {

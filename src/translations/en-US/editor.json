@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "After the right code, that wall does the ticked jobs without asking again for this long. Someone signed in on the phone is never asked.",
         "removeConfirmTitle": "Remove the grown-up code?",
-        "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time."
+        "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time.",
+        "lockedBody": {
+          "one": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minute.",
+          "other": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minutes."
+        }
       }
     },
     "touchAlignment": {

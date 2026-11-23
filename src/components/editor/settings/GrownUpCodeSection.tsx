@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 import { SETTINGS_INPUT_CLASS, CHECKBOX_CLASS } from '@/components/ui/input-classes';
@@ -15,6 +15,7 @@ import {
   type GrownUpStatus,
 } from '@/lib/grown-up-code';
 import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
 
 type Editing = null | 'set';
 
@@ -39,12 +40,20 @@ export default function GrownUpCodeSection() {
   // without the first one and undo it. The controls wait for the answer.
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+  // The hub-wide wait after too many wrong codes, in whole minutes left when
+  // the page read it; gone once it runs out or a grown-up ends it.
+  const [lockedMinutes, setLockedMinutes] = useState(0);
+  const [lockProblem, setLockProblem] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     editorFetch('/api/grown-up-code')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
-      .then((next: GrownUpStatus) => { if (!cancelled) setStatus(next); })
+      .then((next: GrownUpStatus) => {
+        if (cancelled) return;
+        setStatus(next);
+        if (next.lockedSeconds) setLockedMinutes(Math.ceil(next.lockedSeconds / 60));
+      })
       .catch(() => { if (!cancelled) setProblem('failed'); });
     return () => { cancelled = true; };
   }, []);
@@ -94,6 +103,25 @@ export default function GrownUpCodeSection() {
       variant: 'danger',
     });
     if (ok) void send('DELETE');
+  };
+
+  // The wait ends by itself; the notice goes with it.
+  useEffect(() => {
+    if (lockedMinutes === 0) return;
+    const timer = setTimeout(() => setLockedMinutes(0), lockedMinutes * 60_000);
+    return () => clearTimeout(timer);
+  }, [lockedMinutes]);
+
+  /** End the hub-wide wait, so the walls and the chores page take the code again. */
+  const clearLock = async () => {
+    setLockProblem(false);
+    try {
+      const res = await editorFetch('/api/grown-up-code/unlock', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setLockedMinutes(0);
+    } catch (err) {
+      if (!isSessionExpired(err)) setLockProblem(true);
+    }
   };
 
   const toggleAction = (action: GrownUpAction, on: boolean) => {
@@ -179,6 +207,17 @@ export default function GrownUpCodeSection() {
 
       {status?.set && (
         <>
+          {lockedMinutes > 0 && (
+            <Notice
+              tone="warning"
+              testId="grown-up-code-locked"
+              title={tCore('grownUp.lockedTitle')}
+              action={<Button size="sm" onClick={() => void clearLock()} data-testid="grown-up-code-clear-lock">{tCore('grownUp.letThemTry')}</Button>}
+            >
+              {t('settings.familyPage.grownUp.lockedBody', { count: lockedMinutes })}
+              {lockProblem && <p role="alert" className="text-hs-danger">{tCore('grownUp.clearFailed')}</p>}
+            </Notice>
+          )}
           <section data-field-id="family.grownUpJobs" className="rounded-lg border border-hs-border-strong bg-hs-card px-4 py-3">
             <div className="text-sm text-hs-text-body mb-1">{t('settings.familyPage.grownUp.jobsLabel')}</div>
             {GROWN_UP_ACTIONS.map((action) => (

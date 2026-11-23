@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Nach dem richtigen Code fragt das Display, an dem er eingegeben wurde, für diese Zeit nicht noch einmal. Wer am Handy angemeldet ist, wird nie gefragt.",
         "removeConfirmTitle": "Erwachsenen-Code entfernen?",
-        "removeConfirmMessage": "Das Display fragt dann nicht mehr danach, bevor es etwas tut, das du angehakt hast. Du kannst jederzeit einen neuen Code festlegen."
+        "removeConfirmMessage": "Das Display fragt dann nicht mehr danach, bevor es etwas tut, das du angehakt hast. Du kannst jederzeit einen neuen Code festlegen.",
+        "lockedBody": {
+          "one": "Die Displays, die Aufgabenseite und nicht angemeldete Handys nehmen den Erwachsenen-Code noch {count} Minute lang nicht an.",
+          "other": "Die Displays, die Aufgabenseite und nicht angemeldete Handys nehmen den Erwachsenen-Code noch {count} Minuten lang nicht an."
+        }
       }
     },
     "touchAlignment": {

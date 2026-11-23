@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Efter den rigtige kode gør den væg de ting, der er sat kryds ved, uden at spørge igen i så lang tid. Er man logget ind på telefonen, bliver man aldrig spurgt.",
         "removeConfirmTitle": "Fjern voksenkoden?",
-        "removeConfirmMessage": "Væggen spørger ikke længere efter koden, før den gør de ting, du har sat kryds ved. Du kan vælge en ny kode når som helst."
+        "removeConfirmMessage": "Væggen spørger ikke længere efter koden, før den gør de ting, du har sat kryds ved. Du kan vælge en ny kode når som helst.",
+        "lockedBody": {
+          "one": "Væggene, opgavesiden og telefoner, der ikke er logget ind, tager ikke imod voksenkoden i {count} minut mere.",
+          "other": "Væggene, opgavesiden og telefoner, der ikke er logget ind, tager ikke imod voksenkoden i {count} minutter mere."
+        }
       }
     },
     "touchAlignment": {

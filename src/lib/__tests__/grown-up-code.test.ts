@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/auth', () => ({ hasSignedInSession: vi.fn(async () => false) }));
 
 import { hasSignedInSession } from '@/lib/auth';
-import { asksForCode, cleanGrownUpActions, cleanUnlockMinutes, GROWN_UP_HEADER, isGrownUpCode, NO_GROWN_UP_CODE } from '@/lib/grown-up-code';
+import { asksForCode, cleanGrownUpActions, cleanUnlockMinutes, GROWN_UP_HEADER, grownUpWaitWords, isGrownUpCode, NO_GROWN_UP_CODE } from '@/lib/grown-up-code';
 import { checkGrownUpCode, isGrownUpUnlock, readGrownUpStatus, removeGrownUpCode, setGrownUpCode, updateGrownUpPrefs } from '@/lib/grown-up-code-data';
 import { requireGrownUp } from '@/lib/grown-up-gate';
 import { POST as unlock } from '@/app/api/grown-up-code/unlock/route';
@@ -153,5 +153,19 @@ describe('POST /api/grown-up-code/unlock', () => {
     expect((await waited.json()).retryAfterSeconds).toBeGreaterThan(0);
     // Another address is not held up by this one.
     expect((await ask('2468', '10.0.0.10')).status).toBe(200);
+  });
+});
+
+describe('grownUpWaitWords', () => {
+  const t = ((key: string, vars?: { count?: number }) => `${key}:${vars?.count}`) as Parameters<typeof grownUpWaitWords>[1];
+
+  it('says whole minutes, rounded up, while the wait is longer than a minute', () => {
+    expect(grownUpWaitWords(234, t)).toBe('grownUp.tooManyMinutes:4');
+    expect(grownUpWaitWords(61, t)).toBe('grownUp.tooManyMinutes:2');
+  });
+
+  it('counts the seconds in the last minute', () => {
+    expect(grownUpWaitWords(60, t)).toBe('grownUp.tooMany:60');
+    expect(grownUpWaitWords(9, t)).toBe('grownUp.tooMany:9');
   });
 });

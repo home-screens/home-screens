@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Gère les personnes de ta famille."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Les murs et la page des tâches n’accepteront pas le code parental pendant encore {count} minute.",
+        "other": "Les murs et la page des tâches n’accepteront pas le code parental pendant encore {count} minutes."
+      }
     }
   },
   "photosTab": {

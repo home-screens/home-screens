@@ -762,6 +762,12 @@
     },
     "family": {
       "description": "Verwalte die Personen in deinem Haushalt."
+    },
+    "grownUpLock": {
+      "body": {
+        "one": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minute lang nicht an.",
+        "other": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minuten lang nicht an."
+      }
     }
   },
   "photosTab": {

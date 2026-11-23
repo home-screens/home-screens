@@ -759,11 +759,18 @@
       "one": "Trop d'essais. Réessaie dans {count} seconde.",
       "other": "Trop d'essais. Réessaie dans {count} secondes."
     },
+    "tooManyMinutes": {
+      "one": "Trop d'essais. Réessaie dans {count} minute.",
+      "other": "Trop d'essais. Réessaie dans {count} minutes."
+    },
     "unlocked": {
       "one": "Déverrouillé encore {count} minute",
       "other": "Déverrouillé encore {count} minutes"
     },
-    "lockNow": "Verrouiller maintenant"
+    "lockNow": "Verrouiller maintenant",
+    "lockedTitle": "Trop d’essais ratés",
+    "letThemTry": "Les laisser réessayer",
+    "clearFailed": "Impossible d’arrêter l’attente. Réessaie."
   },
   "calendarRepeat": {
     "none": "Ne se répète pas",

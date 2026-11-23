@@ -2909,7 +2909,11 @@
         },
         "unlockHint": "Une fois le bon code saisi, ce mur fait les actions cochées sans le redemander pendant ce temps. On ne le demande jamais à quelqu'un qui est connecté sur le téléphone.",
         "removeConfirmTitle": "Retirer le code parental ?",
-        "removeConfirmMessage": "Le mur ne le demandera plus avant les actions que vous avez cochées. Vous pouvez définir un nouveau code à tout moment."
+        "removeConfirmMessage": "Le mur ne le demandera plus avant les actions que vous avez cochées. Vous pouvez définir un nouveau code à tout moment.",
+        "lockedBody": {
+          "one": "Les murs, la page des tâches et les téléphones non connectés n’accepteront pas le code parental pendant encore {count} minute.",
+          "other": "Les murs, la page des tâches et les téléphones non connectés n’accepteront pas le code parental pendant encore {count} minutes."
+        }
       }
     },
     "touchAlignment": {

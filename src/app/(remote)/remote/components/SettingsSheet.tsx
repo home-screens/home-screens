@@ -164,10 +164,34 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     }
   }, [t]);
 
+  // The hub-wide wait after too many wrong grown-up codes, which this
+  // signed-in phone may end: whole minutes left when the sheet opened.
+  const [lockedMinutes, setLockedMinutes] = useState(0);
+  const [lockState, setLockState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const readCodeLock = useCallback(() => {
+    editorFetch('/api/grown-up-code')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((status: { lockedSeconds?: number } | null) => setLockedMinutes(status?.lockedSeconds ? Math.ceil(status.lockedSeconds / 60) : 0))
+      .catch(() => setLockedMinutes(0));
+  }, []);
+  const clearCodeLock = async () => {
+    setLockState('busy');
+    try {
+      const res = await editorFetch('/api/grown-up-code/unlock', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setLockedMinutes(0);
+      setLockState('idle');
+    } catch {
+      setLockState('failed');
+    }
+  };
+
   // Re-fetch stats each time the sheet opens; reset data action states
   useEffect(() => {
     if (open && !loading) fetchStats();
     if (open) {
+      readCodeLock();
+      setLockState('idle');
       setFamilyOpen(false);
       setIconsOpen(false);
       setBackupDone(false);
@@ -313,6 +337,27 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         covered={familyOpen || iconsOpen}
       >
         <div className="px-5 pb-5">
+          {lockedMinutes > 0 && (
+            <div
+              data-testid="grown-up-lock-card"
+              style={{
+                margin: '0 0 20px', padding: '14px 16px', borderRadius: 14,
+                border: '1px solid color-mix(in srgb, var(--hs-warning) 45%, transparent)',
+                background: 'color-mix(in srgb, var(--hs-warning) 12%, transparent)',
+              }}
+            >
+              <b style={{ display: 'block', fontSize: 15, color: 'var(--hs-text-primary)' }}>{tCore('grownUp.lockedTitle')}</b>
+              <p style={{ fontSize: 13, lineHeight: 1.4, marginTop: 4, color: 'var(--hs-text-muted)' }}>
+                {t('settingsSheet.grownUpLock.body', { count: lockedMinutes })}
+              </p>
+              {lockState === 'failed' && (
+                <p role="alert" style={{ fontSize: 13, marginTop: 6, color: 'var(--hs-danger)' }}>{tCore('grownUp.clearFailed')}</p>
+              )}
+              <PrimaryButton compact busy={lockState === 'busy'} onClick={() => void clearCodeLock()} style={{ marginTop: 12 }} data-testid="grown-up-lock-clear">
+                {tCore('grownUp.letThemTry')}
+              </PrimaryButton>
+            </div>
+          )}
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
           {loading ? (
