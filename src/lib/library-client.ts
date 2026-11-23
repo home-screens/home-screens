@@ -132,6 +132,19 @@ export function moveLibraryFiles(files: string[], directory: string): Promise<Li
   return libraryAction('/api/backgrounds/move', 'POST', { files, directory });
 }
 
+export interface PairLiveResult {
+  /** Each video renamed to its picture's Live Photo clip. */
+  paired: { from: string; to: string }[];
+  rewritten: number;
+  revision: string;
+  previousRevision: string;
+}
+
+/** Pair a folder's iPhone exports ('' for the top level): each `IMG_1.MOV` beside `IMG_1.JPG` becomes its clip. */
+export function pairLiveClips(directory: string): Promise<LibraryActionResult<PairLiveResult>> {
+  return libraryAction('/api/backgrounds/pair-live', 'POST', { directory });
+}
+
 export function createLibraryFolder(name: string, parent?: string): Promise<LibraryActionResult<{ path: string }>> {
   return libraryAction('/api/backgrounds/directories', 'POST', parent ? { name, parent } : { name });
 }
@@ -226,11 +239,17 @@ export interface UploadOutcome {
   /** Videos held back because the wall cannot play them (see `isUnplayableVideo`), by name. */
   unplayable: string[];
   /**
-   * The last failure: the hub's answer (a refusal code a surface phrases
-   * with `uploadFailureText`) and status, or nulls when the request never got
-   * an answer.
+   * Every file that did not land, in order: the hub's answer (a refusal code
+   * a surface phrases with `uploadFailureText`, which names the file) and
+   * status, or nulls when the request never got an answer.
    */
-  error: { body: unknown; status: number | null; file: string } | null;
+  errors: UploadFailure[];
+}
+
+export interface UploadFailure {
+  body: unknown;
+  status: number | null;
+  file: string;
 }
 
 interface UploadOptions {
@@ -253,7 +272,7 @@ export async function uploadLibraryFiles(
   folder: string,
   { onProgress, replacePath }: UploadOptions = {},
 ): Promise<UploadOutcome> {
-  const outcome: UploadOutcome = { uploaded: [], unplayable: [], error: null };
+  const outcome: UploadOutcome = { uploaded: [], unplayable: [], errors: [] };
   const ordered = replacePath ? Array.from(files) : companionsLast(Array.from(files));
   const pairing = liveUploadPairing();
   for (let i = 0; i < ordered.length; i++) {
@@ -275,7 +294,7 @@ export async function uploadLibraryFiles(
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[]; error?: string } | null;
       if (!res.ok) {
-        outcome.error = { body: data, status: res.status, file: sent.name };
+        outcome.errors.push({ body: data, status: res.status, file: sent.name });
       } else if (data?.path) {
         outcome.uploaded.push(data.path);
         const saved = libraryFileFromServeUrl(data.path);
@@ -285,7 +304,7 @@ export async function uploadLibraryFiles(
       }
     } catch (err) {
       if (isSessionExpiredError(err)) throw err;
-      outcome.error = { body: null, status: null, file: sent.name };
+      outcome.errors.push({ body: null, status: null, file: sent.name });
     }
   }
   if (outcome.uploaded.length > 0) invalidateLibraryReads();
@@ -297,7 +316,7 @@ export async function uploadLibraryFiles(
  * (a file too big, a kind the library does not take) when it named one, else
  * `fallback`. `tCore` reads `core`, which holds `refusals.library.*`.
  */
-export function uploadFailureText(error: NonNullable<UploadOutcome['error']>, tCore: TranslateFn, fallback: string): string {
+export function uploadFailureText(error: UploadFailure, tCore: TranslateFn, fallback: string): string {
   return refusalSentence(error.body, tCore) ?? fallback;
 }
 

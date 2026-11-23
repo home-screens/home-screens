@@ -110,10 +110,14 @@ export function buildModuleDeleteConfirm(
  * picker's tiles. The picker once deleted on one click: both now ask the same
  * thing in the same words.
  */
-export function buildLibraryDeleteConfirm(count: number, t: TranslateFn): DeleteConfirmContent {
+export function buildLibraryDeleteConfirm(names: readonly string[], t: TranslateFn, tCore: TranslateFn, clips = 0): DeleteConfirmContent {
+  const count = names.length;
+  const message = t('settings.mediaPage.deleteMessage', { count });
   return {
-    title: t('settings.mediaPage.deleteTitle', { count }),
-    message: t('settings.mediaPage.deleteMessage', { count }),
+    // One picture is named, so the question says which: "Delete “IMG_1234.JPG”?".
+    title: count === 1 ? tCore('confirm.deleteTitle', { name: names[0] }) : t('settings.mediaPage.deleteTitle', { count }),
+    // A Live Photo's clip goes with its picture (`clips` of them), and the question says so.
+    message: clips > 0 ? `${message} ${t('settings.mediaPage.clipsGoToo', { count: clips })}` : message,
     confirmLabel: t('settings.mediaPage.deleteConfirm'),
     variant: 'danger',
   };

@@ -1478,7 +1478,7 @@
       "upload": "Upload",
       "dropzone": "Drop pictures or videos here, or click to pick, as many as you like",
       "saveInto": "Save into",
-      "wontPlay": "{name} is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
+      "wontPlay": "{name} is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.",
       "loadFailed": "Couldn't load your pictures and videos",
       "tryAgain": "Try again",
       "allFolders": "All pictures & videos",
@@ -1510,6 +1510,24 @@
         "one": "It'll be gone from this hub for good. A slideshow that shows it moves on to its other pictures, and if a screen depends on it, it's kept, so no screen goes empty.",
         "other": "They'll be gone from this hub for good. Slideshows move on to their other pictures, and files a screen depends on are kept, so no screen goes empty."
       },
+      "clipsGoToo": {
+        "one": "Its Live Photo clip goes with it.",
+        "other": "Their Live Photo clips go with them."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo isn’t paired yet",
+        "other": "{count} Live Photos aren’t paired yet"
+      },
+      "pairBody": {
+        "one": "{name} sits beside a picture of the same name, so it plays as a short video of its own. Pair it and it moves its picture instead.",
+        "other": "{name} and {more} more sit beside pictures of the same name, so each plays as a short video of its own. Pair them and each one moves its picture instead."
+      },
+      "pairButton": "Pair Live Photos",
+      "paired": {
+        "one": "Paired {count} Live Photo.",
+        "other": "Paired {count} Live Photos."
+      },
+      "pairFailed": "Couldn't pair the Live Photos. Try again.",
       "deleteConfirm": "Delete",
       "refused": "{file} is still in use and was not deleted.",
       "keptLast": "{file} was kept: it's the last picture in the slideshow on '{name}'.",

@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} ist größer als {size}.",
       "notMedia": "{name} ist kein Foto oder Video, das an der Wand gezeigt werden kann.",
-      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Wähle auf dem iPhone unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
+      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Kommt es von einem iPhone, wähle dort unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
       "failed": "{name} konnte nicht gesendet werden. Versuch es noch einmal.",
       "close": "Schließen",
       "showNow": "Jetzt an der Wand zeigen"

@@ -18,7 +18,7 @@ vi.mock('@/lib/config', () => ({
   }),
 }));
 
-import { moveLibraryFiles, renameLibraryFolder, LibraryMoveError, cleanFolderPath, cleanLibraryPath } from '@/lib/library-moves';
+import { moveLibraryFiles, pairLiveClips, renameLibraryFolder, LibraryMoveError, cleanFolderPath, cleanLibraryPath } from '@/lib/library-moves';
 
 let tmpDir: string;
 let origCwd: () => string;
@@ -142,6 +142,33 @@ describe('moveLibraryFiles', () => {
     expect(await exists('nature/b.jpg')).toBe(true);
   });
 
+  it('takes a Live Photo clip with its picture', async () => {
+    await seed('nature/IMG_1.jpg');
+    await seed('nature/IMG_1.live.mov');
+    await seed('nature/IMG_2.jpg');
+    await seed('trips/.keep');
+    const result = await moveLibraryFiles(['nature/IMG_1.jpg'], 'trips');
+    expect(result.moved).toEqual([
+      { from: 'nature/IMG_1.jpg', to: 'trips/IMG_1.jpg' },
+      { from: 'nature/IMG_1.live.mov', to: 'trips/IMG_1.live.mov' },
+    ]);
+    expect(await exists('nature/IMG_1.live.mov')).toBe(false);
+    expect(await exists('trips/IMG_1.live.mov')).toBe(true);
+  });
+
+  it('leaves a clip beside its picture when the picture has to stay', async () => {
+    await seed('nature/a.jpg');
+    await seed('nature/a.live.mov');
+    await seed('trips/.keep');
+    configState.config = { screens: [{ id: 's1', name: 'Hall', modules: [
+      { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
+    ] }] };
+    const result = await moveLibraryFiles(['nature/a.jpg'], 'trips');
+    expect(result.moved).toEqual([]);
+    expect(result.kept.map((k) => k.path)).toEqual(['nature/a.jpg']);
+    expect(await exists('nature/a.live.mov')).toBe(true);
+  });
+
   it('moves a slideshow picture out while another stays, and counts only what the slideshow plays', async () => {
     await seed('nature/a.jpg');
     await seed('nature/clip.mp4');
@@ -245,5 +272,26 @@ describe('renameLibraryFolder', () => {
     expect(await exists('trips/a.jpg')).toBe(true);
     expect(await exists('summer')).toBe(false);
     expect((configState.config.screens as { backgroundImage: string }[])[0].backgroundImage).toBe('trips/a.jpg');
+  });
+});
+
+describe('pairLiveClips', () => {
+  it('renames each iPhone export to its picture\'s clip, and screens that played it follow', async () => {
+    await seed('trip/IMG_1.JPG');
+    await seed('trip/IMG_1.MOV');
+    await seed('trip/party.mov');
+    configState.config = { screens: [{ id: 's1', name: 'Hall', modules: [
+      { id: 'v', type: 'video', config: { videoUrl: '/api/backgrounds/serve?file=trip/IMG_1.MOV' } },
+    ] }] };
+    const result = await pairLiveClips('trip');
+    expect(result.paired).toEqual([{ from: 'trip/IMG_1.MOV', to: 'trip/IMG_1.live.mov' }]);
+    expect(await exists('trip/IMG_1.live.mov')).toBe(true);
+    expect(await exists('trip/IMG_1.MOV')).toBe(false);
+    expect(await exists('trip/party.mov')).toBe(true);
+    expect(result.rewritten).toBe(1);
+  });
+
+  it('refuses a folder that is not there', async () => {
+    await expect(pairLiveClips('nowhere')).rejects.toBeInstanceOf(LibraryMoveError);
   });
 });

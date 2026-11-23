@@ -251,7 +251,7 @@ describe('uploadLibraryFiles', () => {
       return new Response(JSON.stringify({ path: `/api/backgrounds/serve?file=trips%2F${name.name}` }), { status: 200 });
     });
     const outcome = await uploadLibraryFiles([new File(['a'], 'a.jpg', { type: 'image/jpeg' }), new File(['b'], 'b.png', { type: 'image/png' })], 'trips');
-    expect(outcome).toEqual({ uploaded: ['/api/backgrounds/serve?file=trips%2Fa.jpg', '/api/backgrounds/serve?file=trips%2Fb.png'], unplayable: [], error: null });
+    expect(outcome).toEqual({ uploaded: ['/api/backgrounds/serve?file=trips%2Fa.jpg', '/api/backgrounds/serve?file=trips%2Fb.png'], unplayable: [], errors: [] });
     expect(posts().map((body) => [(body.get('file') as File).name, body.get('directory')])).toEqual([['a.jpg', 'trips'], ['b.png', 'trips']]);
   });
 
@@ -275,10 +275,20 @@ describe('uploadLibraryFiles', () => {
     const answer = { error: 'Too big', code: 'library.tooBig', params: { name: 'big.jpg' } };
     mockFetch.mockResolvedValue(new Response(JSON.stringify(answer), { status: 413 }));
     const outcome = await uploadLibraryFiles([new File(['a'], 'big.jpg', { type: 'image/jpeg' })], '');
-    expect(outcome).toEqual({ uploaded: [], unplayable: [], error: { body: answer, status: 413, file: 'big.jpg' } });
+    expect(outcome).toEqual({ uploaded: [], unplayable: [], errors: [{ body: answer, status: 413, file: 'big.jpg' }] });
     const tCore = ((key: string, vars?: Record<string, string | number>) => `${key}:${vars?.name ?? ''}`) as Parameters<typeof uploadFailureText>[1];
-    expect(uploadFailureText(outcome.error!, tCore, 'fallback')).toBe('refusals.library.tooBig:big.jpg');
+    expect(uploadFailureText(outcome.errors[0], tCore, 'fallback')).toBe('refusals.library.tooBig:big.jpg');
     expect(uploadFailureText({ body: { error: 'Too big' }, status: 413, file: 'big.jpg' }, tCore, 'fallback')).toBe('fallback');
+  });
+});
+
+describe('uploadLibraryFiles with several refused files', () => {
+  it('names every one, not only the last', async () => {
+    const refusal = (name: string) => new Response(JSON.stringify({ error: 'Not a picture', code: 'library.badType', params: { name } }), { status: 415 });
+    mockFetch.mockResolvedValueOnce(refusal('a.heic')).mockResolvedValueOnce(refusal('b.heic')).mockResolvedValueOnce(refusal('c.heic'));
+    const files = ['a.heic', 'b.heic', 'c.heic'].map((name) => new File(['a'], name, { type: 'image/heic' }));
+    const outcome = await uploadLibraryFiles(files, '');
+    expect(outcome.errors.map((e) => e.file)).toEqual(['a.heic', 'b.heic', 'c.heic']);
   });
 });
 

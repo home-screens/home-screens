@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} ocupa más de {size}.",
       "notMedia": "{name} no es una foto ni un vídeo que el monitor pueda mostrar.",
-      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
+      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. Si viene de un iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
       "failed": "No se pudo enviar {name}. Inténtalo de nuevo.",
       "close": "Cerrar",
       "showNow": "Mostrar en el monitor ahora"

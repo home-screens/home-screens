@@ -12,6 +12,7 @@ import {
   deleteLibraryFolder,
   invalidateLibraryReads,
   moveLibraryFiles,
+  pairLiveClips,
   renameLibraryFolder,
   uploadLibraryFiles,
 } from '@/lib/library-client';
@@ -25,7 +26,7 @@ import { MEDIA_SORTERS, type MediaInventory, type MediaInventoryItem, type Media
 import { isRotatingBackgroundUse, removalBlocksByFile, rewriteMediaRefs, type MediaUse, type MediaUseKind } from '@/lib/media-usage';
 import { TILE_THUMBNAIL_WIDTH, extensionOf, fileNameOf, folderOf, serveUrlFor, typeTagOf } from '@/lib/media-paths';
 import { formatBytes } from '@/lib/format-bytes';
-import { LIBRARY_PICKER_ACCEPT } from '@/lib/media-formats';
+import { LIBRARY_PICKER_ACCEPT, picturesWithClips, unpairedLiveClips } from '@/lib/media-formats';
 import MediaViewer, { UsedByEntry, type UsedByLine } from './MediaViewer';
 import { GooglePhotosImportSheet, ICloudImportSheet } from './MediaImportPanels';
 import { logger } from '@/lib/logger';
@@ -163,7 +164,7 @@ export default function MediaLibraryPage() {
   }, [refresh]);
 
   const loading = inventory === null && !loadFailed;
-  const items = inventory?.items ?? [];
+  const items = useMemo(() => inventory?.items ?? [], [inventory]);
   const uses = useMemo(() => inventory?.usage ?? {}, [inventory]);
   const directories = inventory?.directories ?? [];
   const missing = inventory?.missing ?? [];
@@ -188,6 +189,18 @@ export default function MediaLibraryPage() {
     return usesOf(path).map((use) => ({ label: usageLabel(t, use, lock.includes(use)), use }));
   };
   const currentFolder = folder === 'all' || folder === '' ? null : folder;
+  // iPhone exports in the folder on view (every folder, in All) still waiting
+  // to be paired with their pictures: IMG_1.MOV beside IMG_1.JPG.
+  const pairable = useMemo(() => {
+    const byFolder = new Map<string, string[]>();
+    for (const item of items) {
+      const f = folderOf(item.path);
+      if (folder !== 'all' && f !== folder) continue;
+      byFolder.set(f, [...(byFolder.get(f) ?? []), fileNameOf(item.path)]);
+    }
+    return [...byFolder].map(([f, names]) => ({ folder: f, renames: unpairedLiveClips(names) })).filter((p) => p.renames.length > 0);
+  }, [items, folder]);
+  const pairCount = pairable.reduce((n, p) => n + p.renames.length, 0);
   const allVisibleSelected = visible.length > 0 && visible.every((item) => selected.has(item.path));
 
   /** Checkbox click: shift extends from the last plain click across the
@@ -282,14 +295,15 @@ export default function MediaLibraryPage() {
     clearOutcome();
     try {
       // A video the wall cannot play stays behind with the reason and the rest go.
-      const { uploaded, unplayable, error } = await uploadLibraryFiles(files, uploadDir);
+      const { uploaded, unplayable, errors } = await uploadLibraryFiles(files, uploadDir);
       setWontPlay(unplayable);
-      if (error) {
-        setUploadError(uploadFailureText(error, tCore, tCore('errors.uploadFailedFor', { name: error.file })));
+      // Every file that did not go, each named: three refused pictures are three lines, not one.
+      if (errors.length > 0) {
+        setUploadError(errors.map((e) => uploadFailureText(e, tCore, tCore('errors.uploadFailedFor', { name: e.file }))).join(' '));
       }
       if (uploaded.length === 0) return;
       // Kept open while it says why a file stayed behind.
-      if (unplayable.length === 0 && !error) setUploadOpen(false);
+      if (unplayable.length === 0 && errors.length === 0) setUploadOpen(false);
       // Back to the unfiltered view so freshly uploaded files are on screen
       // instead of hidden behind a filter that predates them.
       setFolder('all');
@@ -315,7 +329,7 @@ export default function MediaLibraryPage() {
     const name = fileNameOf(path);
     try {
       // Same rule as an upload: a video the wall cannot play never replaces one it can.
-      const { uploaded, unplayable, error } = await uploadLibraryFiles([file], '', { replacePath: path });
+      const { uploaded, unplayable, errors: [error] } = await uploadLibraryFiles([file], '', { replacePath: path });
       if (unplayable.length > 0) {
         setOutcome({ ok: false, text: t('settings.mediaPage.wontPlay', { name: file.name }) });
         return;
@@ -348,7 +362,8 @@ export default function MediaLibraryPage() {
    *  and the per-tile buttons land here. */
   const deleteFiles = async (paths: string[]) => {
     if (paths.length === 0 || busy) return;
-    const confirmed = await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm(paths.length, t));
+    const clips = picturesWithClips(paths, items.map((item) => item.path));
+    const confirmed = await useConfirmStore.getState().confirm(buildLibraryDeleteConfirm(paths.map(fileNameOf), t, tCore, clips));
     if (!confirmed) return;
     setBusy(true);
     clearOutcome();
@@ -374,13 +389,45 @@ export default function MediaLibraryPage() {
     setBusy(false);
   };
 
+  /** Pair every waiting iPhone export on view with its picture, folder by folder. */
+  const pairLivePhotos = async () => {
+    if (busy || pairable.length === 0) return;
+    setBusy(true);
+    clearOutcome();
+    try {
+      let paired = 0;
+      let rewritten = 0;
+      for (const { folder: f } of pairable) {
+        const result = await pairLiveClips(f);
+        if (!result.ok || !result.data) {
+          setOutcome({ ok: false, text: refusalSentence(result, tCore) ?? t('settings.mediaPage.pairFailed') });
+          await refresh();
+          return;
+        }
+        paired += result.data.paired.length;
+        rewritten += result.data.rewritten;
+        const byFrom = new Map(result.data.paired.map((m) => [m.from, m.to]));
+        adoptConfigChange(result.data, (p) => byFrom.get(p) ?? null, () => null);
+      }
+      const refsText = rewritten > 0 ? ` ${t('settings.mediaPage.placesUpdated', { count: rewritten })}` : '';
+      await finish({ ok: true, text: t('settings.mediaPage.paired', { count: paired }) + refsText });
+    } catch (err) {
+      if (!isSessionExpired(err)) setOutcome({ ok: false, text: t('settings.mediaPage.pairFailed') });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /** Move the selection into a folder; the server rewrites every reference. */
   const moveSelected = async (directory: string) => {
     const paths = [...selected];
     if (paths.length === 0 || busy) return;
+    // A Live Photo's clip goes with its picture, and the question says so.
+    const clips = picturesWithClips(paths, items.map((item) => item.path));
+    const moveMessage = t('settings.mediaPage.moveMessage', { count: paths.length });
     const confirmed = await useConfirmStore.getState().confirm({
       title: t('settings.mediaPage.moveTitle', { count: paths.length }),
-      message: t('settings.mediaPage.moveMessage', { count: paths.length }),
+      message: clips > 0 ? `${moveMessage} ${t('settings.mediaPage.clipsGoToo', { count: clips })}` : moveMessage,
       confirmLabel: t('settings.mediaPage.moveConfirm'),
       variant: 'primary',
     });
@@ -396,7 +443,9 @@ export default function MediaLibraryPage() {
       setSelected(new Set());
       const byFrom = new Map(result.data.moved.map((m) => [m.from, m.to]));
       adoptConfigChange(result.data, (p) => byFrom.get(p) ?? null, () => null);
-      const movedText = t('settings.mediaPage.moved', { count: result.data.moved.length });
+      // Counted as the family chose them: a clip that went with its picture is not one more file.
+      const chosen = new Set(paths);
+      const movedText = t('settings.mediaPage.moved', { count: result.data.moved.filter((m) => chosen.has(m.from)).length });
       const refsText = result.data.rewritten > 0
         ? ` ${t('settings.mediaPage.placesUpdated', { count: result.data.rewritten })}`
         : '';
@@ -885,6 +934,22 @@ export default function MediaLibraryPage() {
             </p>
           )}
         </div>
+      )}
+
+      {pairCount > 0 && (
+        <Notice
+          tone="info"
+          className="mb-4"
+          testId="media-pair-live"
+          title={t('settings.mediaPage.pairTitle', { count: pairCount })}
+          action={(
+            <Button size="sm" variant="primary" disabled={busy} onClick={() => void pairLivePhotos()} data-testid="media-pair-live-button">
+              {t('settings.mediaPage.pairButton')}
+            </Button>
+          )}
+        >
+          {t('settings.mediaPage.pairBody', { count: pairCount, name: pairable[0].renames[0].from, more: pairCount - 1 })}
+        </Notice>
       )}
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2.5">

@@ -1478,7 +1478,7 @@
       "upload": "Subir",
       "dropzone": "Arrastra imágenes o vídeos aquí, o haz clic para elegir: tantos como quieras",
       "saveInto": "Guardar en",
-      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. En el iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
+      "wontPlay": "{name} es un tipo de vídeo que el monitor no puede reproducir. Si viene de un iPhone, elige «El más compatible» en Ajustes > Cámara > Formatos.",
       "loadFailed": "No se pudieron cargar tus imágenes y vídeos",
       "tryAgain": "Intentar de nuevo",
       "allFolders": "Todas las imágenes y vídeos",
@@ -1510,6 +1510,24 @@
         "one": "Desaparecerá de este hub para siempre. Un pase de fotos que lo muestre seguirá con sus otras imágenes. Si una pantalla depende de este archivo, se conservará, así que ninguna pantalla se quedará vacía.",
         "other": "Desaparecerán de este hub para siempre. Los pases de fotos seguirán con sus otras imágenes y se conservarán los archivos de los que depende una pantalla, así que ninguna pantalla se quedará vacía."
       },
+      "clipsGoToo": {
+        "one": "Su clip de Live Photo también se borra.",
+        "other": "Sus clips de Live Photo también se borran."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo aún no está emparejada",
+        "other": "{count} Live Photos aún no están emparejadas"
+      },
+      "pairBody": {
+        "one": "{name} está junto a una imagen con el mismo nombre, así que se reproduce como un vídeo corto aparte. Emparéjala y moverá su imagen.",
+        "other": "{name} y {more} más están junto a imágenes con el mismo nombre, así que cada una se reproduce como un vídeo corto aparte. Emparéjalas y cada una moverá su imagen."
+      },
+      "pairButton": "Emparejar Live Photos",
+      "paired": {
+        "one": "{count} Live Photo emparejada.",
+        "other": "{count} Live Photos emparejadas."
+      },
+      "pairFailed": "No se pudieron emparejar las Live Photos. Inténtalo de nuevo.",
       "deleteConfirm": "Eliminar",
       "refused": "{file} todavía se está usando y no se ha eliminado.",
       "keptLast": "{file} sigue en su sitio: es la última imagen del pase de fotos en '{name}'.",

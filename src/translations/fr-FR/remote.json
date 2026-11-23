@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} fait plus de {size}.",
       "notMedia": "{name} n'est pas une photo ou une vidéo que le mur peut afficher.",
-      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Sur un iPhone, choisis « Le plus compatible » dans Réglages > Appareil photo > Formats.",
+      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Si elle vient d'un iPhone, choisis « Le plus compatible » dans Réglages > Appareil photo > Formats.",
       "failed": "Impossible d'envoyer {name}. Réessaie.",
       "close": "Fermer",
       "showNow": "Afficher sur le mur maintenant"

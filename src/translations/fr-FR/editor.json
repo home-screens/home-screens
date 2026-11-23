@@ -1478,7 +1478,7 @@
       "upload": "Envoyer",
       "dropzone": "Déposez des photos ou vidéos ici, ou cliquez pour choisir, autant que vous voulez",
       "saveInto": "Enregistrer dans",
-      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Sur un iPhone, choisissez « Le plus compatible » dans Réglages > Appareil photo > Formats.",
+      "wontPlay": "{name} est une vidéo dans un format que le mur ne peut pas lire. Si elle vient d'un iPhone, choisissez « Le plus compatible » dans Réglages > Appareil photo > Formats.",
       "loadFailed": "Impossible de charger vos photos et vidéos",
       "tryAgain": "Réessayer",
       "allFolders": "Toutes les photos et vidéos",
@@ -1510,6 +1510,24 @@
         "one": "Il disparaîtra définitivement de ce hub. Un diaporama qui l'affiche continuera avec ses autres photos, et si un écran en a besoin, le fichier sera conservé, pour qu'aucun écran ne se retrouve vide.",
         "other": "Tout ce que vous supprimez disparaîtra définitivement de ce hub. Les diaporamas continueront avec leurs autres photos, et les fichiers dont un écran a besoin seront conservés, pour qu'aucun écran ne se retrouve vide."
       },
+      "clipsGoToo": {
+        "one": "Son extrait Live Photo part avec.",
+        "other": "Leurs extraits Live Photo partent avec."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo n’est pas encore associée",
+        "other": "{count} Live Photos ne sont pas encore associées"
+      },
+      "pairBody": {
+        "one": "{name} est à côté d’une image du même nom : elle passe donc comme une courte vidéo à part. Associez-la et elle animera plutôt son image.",
+        "other": "{name} et {more} autres sont à côté d’images du même nom : chacune passe donc comme une courte vidéo à part. Associez-les et chacune animera plutôt son image."
+      },
+      "pairButton": "Associer les Live Photos",
+      "paired": {
+        "one": "{count} Live Photo associée.",
+        "other": "{count} Live Photos associées."
+      },
+      "pairFailed": "Impossible d’associer les Live Photos. Réessayez.",
       "deleteConfirm": "Supprimer",
       "refused": "{file} est encore utilisé et n'a pas été supprimé.",
       "keptLast": "{file} a été conservé : c'est la seule photo du diaporama sur '{name}'.",

@@ -62,10 +62,14 @@ function activeElement(container: HTMLElement): Element | null {
       fireEvent.load(img);
     }
   }
-  return [...container.querySelectorAll('img, video')].find(
-    (el) => (el as HTMLElement).style.zIndex === '1',
-  ) ?? null;
+  // A picture is layered by the frame around it (its slide or zoom moves the
+  // frame, the pan the picture); a video by itself.
+  const top = [...container.querySelectorAll<HTMLElement>('[data-slide-layer], video')].find((el) => el.style.zIndex === '1');
+  return top?.hasAttribute('data-slide-layer') ? top.querySelector('img') : top ?? null;
 }
+
+/** The frame a slide's picture moves in, which carries its fade or slide. */
+const frameOf = (img: Element) => img.closest<HTMLElement>('[data-slide-layer]')!;
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -124,7 +128,7 @@ describe('PhotoSlideshowModule mixed media', () => {
 
     fireEvent(activeElement(container)!, new Event('ended'));
     const img = activeElement(container) as HTMLElement;
-    expect(img.style.transition).toBe('');
+    expect(frameOf(img).style.transition).toBe('');
   });
 
   it('fades between photos on an all-photo list', () => {
@@ -133,7 +137,7 @@ describe('PhotoSlideshowModule mixed media', () => {
 
     const img = activeElement(container) as HTMLElement;
     expect(img.tagName).toBe('IMG');
-    expect(img.style.transition).toContain('opacity'); // fade preserved
+    expect(frameOf(img).style.transition).toContain('opacity'); // fade preserved
     act(() => vi.advanceTimersByTime(10_001));
     expect(activeElement(container)?.getAttribute('src')).toContain('b.jpg');
   });

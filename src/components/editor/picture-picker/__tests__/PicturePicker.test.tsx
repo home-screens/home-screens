@@ -300,7 +300,7 @@ describe('PicturePicker library delete', () => {
     const deletes = () => calls.filter((c) => c.init?.method === 'DELETE');
 
     await act(async () => { fireEvent.click(tileDelete()); });
-    expect(useConfirmStore.getState().options).toMatchObject({ kind: 'confirm', title: 'Delete 1 file?', variant: 'danger' });
+    expect(useConfirmStore.getState().options).toMatchObject({ kind: 'confirm', title: 'Delete “party.mp4”?', variant: 'danger' });
     await act(async () => { useConfirmStore.getState().respond(false); });
     await settle();
     expect(deletes()).toEqual([]);

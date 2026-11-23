@@ -1478,7 +1478,7 @@
       "upload": "Enviar",
       "dropzone": "Arraste fotos ou vídeos para aqui, ou clique para escolher, quantos você quiser",
       "saveInto": "Salvar em",
-      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. No iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
+      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. Se veio de um iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
       "loadFailed": "Não foi possível carregar suas fotos e vídeos",
       "tryAgain": "Tentar de novo",
       "allFolders": "Todas as fotos e vídeos",
@@ -1510,6 +1510,24 @@
         "one": "Ele vai sumir deste hub para sempre. Se estiver em uma apresentação, ela segue com as outras fotos. Se uma tela depender dele, ele é mantido, para que nenhuma tela fique vazia.",
         "other": "Eles vão sumir deste hub para sempre. As apresentações seguem com as outras fotos, e os arquivos de que uma tela depende são mantidos, para que nenhuma tela fique vazia."
       },
+      "clipsGoToo": {
+        "one": "O clipe da Live Photo vai junto.",
+        "other": "Os clipes das Live Photos vão junto."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo ainda não está pareada",
+        "other": "{count} Live Photos ainda não estão pareadas"
+      },
+      "pairBody": {
+        "one": "{name} está ao lado de uma foto com o mesmo nome, então toca como um vídeo curto separado. Pareie e ela passa a animar a foto.",
+        "other": "{name} e mais {more} estão ao lado de fotos com o mesmo nome, então cada um toca como um vídeo curto separado. Pareie e cada um passa a animar sua foto."
+      },
+      "pairButton": "Parear Live Photos",
+      "paired": {
+        "one": "{count} Live Photo pareada.",
+        "other": "{count} Live Photos pareadas."
+      },
+      "pairFailed": "Não foi possível parear as Live Photos. Tente de novo.",
       "deleteConfirm": "Excluir",
       "refused": "{file} ainda está em uso e não foi excluído.",
       "keptLast": "{file} foi mantido: é a última foto da apresentação em '{name}'.",

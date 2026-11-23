@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { lookupKey } from '@/i18n/fallback';
-import { buildDeleteConfirm, buildModuleDeleteConfirm, buildScreenDeleteConfirm } from '@/lib/delete-confirmations';
+import { buildDeleteConfirm, buildLibraryDeleteConfirm, buildModuleDeleteConfirm, buildScreenDeleteConfirm } from '@/lib/delete-confirmations';
 import editor from '@/translations/en-US/editor.json';
 import core from '@/translations/en-US/core.json';
 import type { Dictionary } from '@/i18n/types';
@@ -116,5 +116,18 @@ describe('buildDeleteConfirm', () => {
       expect(lookupKey(core as Dictionary, `confirm.${verb}Title`), verb).toContain('“{name}”');
       expect(lookupKey(core as Dictionary, `actions.${verb}`), verb).toBeTruthy();
     }
+  });
+});
+
+describe('buildLibraryDeleteConfirm', () => {
+  it('names one picture, and counts several', () => {
+    expect(buildLibraryDeleteConfirm(['IMG_1234.JPG'], t, tCore).title).toBe('Delete “IMG_1234.JPG”?');
+    expect(buildLibraryDeleteConfirm(['a.jpg', 'b.jpg', 'c.jpg'], t, tCore).title).toBe('Delete 3 files?');
+  });
+
+  it('says a Live Photo clip goes with its picture', () => {
+    expect(buildLibraryDeleteConfirm(['IMG_1.JPG'], t, tCore, 1).message).toMatch(/Its Live Photo clip goes with it\.$/);
+    expect(buildLibraryDeleteConfirm(['a.jpg', 'b.jpg'], t, tCore, 2).message).toMatch(/Their Live Photo clips go with them\.$/);
+    expect(buildLibraryDeleteConfirm(['a.jpg'], t, tCore).message).not.toMatch(/Live Photo/);
   });
 });

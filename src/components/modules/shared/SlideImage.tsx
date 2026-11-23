@@ -28,21 +28,40 @@ export const KEN_BURNS_CSS = `
 /** How long a transition that moves the picture (rather than fading it) keeps it moving. */
 const SLIDE_MS = 800;
 const ZOOM_MS = 1000;
+const ZOOM_FADE_MS = 600;
 
+/**
+ * How a layer arrives and leaves, on the frame around the picture (the pan
+ * runs on the picture inside it, so the two never fight over one transform).
+ * Slide and zoom are keyframes (`hs-slide-in`, `hs-slide-out`, `hs-zoom-in`
+ * in globals.css) rather than transitions: each layer takes turns arriving
+ * and leaving, and a keyframe always starts from its own first frame, so the
+ * next picture always comes in from the right while the last one leaves to
+ * the left, even when a layer is handed back the picture it already held.
+ */
 function transitionStyle(transition: FullscreenPhotoTransition, active: boolean, fadeMs: number): React.CSSProperties {
   switch (transition) {
     case 'fade':
-      return { transition: `opacity ${fadeMs}ms ease-in-out` };
+      // The arriving picture fades in on top while the one before stays
+      // whole under it, then goes: two pictures fading at once showed the
+      // dark behind them, the screen dimming to three quarters mid-change.
+      // It goes with a short fade of its own, for a letterboxed picture
+      // whose edges it still shows around.
+      return active
+        ? { transition: `opacity ${fadeMs}ms ease-in-out` }
+        : { transition: `opacity ${Math.round(fadeMs / 2)}ms ease-in-out ${fadeMs}ms` };
     case 'slide':
-      return {
-        transform: active ? 'translateX(0)' : 'translateX(100%)',
-        transition: `transform ${SLIDE_MS}ms ease-in-out, opacity ${SLIDE_MS}ms ease-in-out`,
-      };
+      // The leaving picture stays painted until it is all the way out, so no
+      // gap opens beside the one coming in.
+      return active
+        ? { animation: `hs-slide-in ${SLIDE_MS}ms ease-in-out both` }
+        : { animation: `hs-slide-out ${SLIDE_MS}ms ease-in-out both`, transition: `opacity 0s linear ${SLIDE_MS}ms` };
     case 'zoom':
-      return {
-        transform: active ? 'scale(1)' : 'scale(1.3)',
-        transition: `transform ${ZOOM_MS}ms ease-out, opacity 600ms ease-in-out`,
-      };
+      // Only the arriving picture moves, fading in over the one before,
+      // which stays whole under it until it has.
+      return active
+        ? { animation: `hs-zoom-in ${ZOOM_MS}ms ease-out both`, transition: `opacity ${ZOOM_FADE_MS}ms ease-in-out` }
+        : { transition: `opacity ${ZOOM_FADE_MS / 2}ms ease-in-out ${ZOOM_FADE_MS}ms` };
     default:
       return {};
   }
@@ -86,21 +105,34 @@ export function SlideImage({ src, box, active, objectFit, transition, fadeMs, ke
   }, [status, src]);
 
   return (
-    <img
-      src={authSrc || undefined}
-      alt=""
-      className="absolute inset-0 w-full h-full"
+    <div
+      data-slide-layer={layerIndex}
+      className="absolute inset-0"
       style={{
-        objectFit,
         zIndex: active ? 1 : 0,
         visibility: authSrc ? 'visible' : 'hidden',
         opacity: active && authSrc ? 1 : 0,
         ...transitionStyle(transition, active, fadeMs),
-        ...(kenBurns && active ? { animation: `${layerIndex === 0 ? 'kb-a' : 'kb-b'} 20s ease-in-out alternate infinite` } : {}),
       }}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
-      onError={onFailed}
-    />
+    >
+      <img
+        src={authSrc || undefined}
+        alt=""
+        className="absolute inset-0 w-full h-full"
+        style={{
+          objectFit,
+          // The pan holds still where it is while the picture leaves, rather
+          // than snapping back to its first frame as it fades or slides out;
+          // a hidden layer's held pan costs nothing to draw.
+          ...(kenBurns ? {
+            animation: `${layerIndex === 0 ? 'kb-a' : 'kb-b'} 20s ease-in-out alternate infinite`,
+            animationPlayState: active ? 'running' : 'paused',
+          } : {}),
+        }}
+        onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
+        onError={onFailed}
+      />
+    </div>
   );
 }
 

@@ -1478,7 +1478,7 @@
       "upload": "Hochladen",
       "dropzone": "Ziehe Bilder oder Videos hierher oder klicke zum Auswählen, so viele du magst",
       "saveInto": "Speichern in",
-      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Wähle auf dem iPhone unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
+      "wontPlay": "{name} ist in einem Videoformat, das an der Wand nicht läuft. Kommt es von einem iPhone, wähle dort unter Einstellungen > Kamera > Formate „Maximale Kompatibilität“.",
       "loadFailed": "Deine Bilder und Videos konnten nicht geladen werden",
       "tryAgain": "Erneut versuchen",
       "allFolders": "Alle Bilder & Videos",
@@ -1510,6 +1510,24 @@
         "one": "Die Datei ist dann endgültig von diesem Hub verschwunden. Eine Diashow, die sie zeigt, macht mit ihren übrigen Bildern weiter. Wenn ein Bildschirm die Datei braucht, bleibt sie erhalten, damit kein Bildschirm leer wird.",
         "other": "Die Dateien sind dann endgültig von diesem Hub verschwunden. Diashows machen mit ihren übrigen Bildern weiter, und Dateien, die ein Bildschirm braucht, bleiben erhalten, damit kein Bildschirm leer wird."
       },
+      "clipsGoToo": {
+        "one": "Der Live-Photo-Clip wird mit gelöscht.",
+        "other": "Die Live-Photo-Clips werden mit gelöscht."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo ist noch nicht verbunden",
+        "other": "{count} Live Photos sind noch nicht verbunden"
+      },
+      "pairBody": {
+        "one": "{name} liegt neben einem Bild mit demselben Namen und läuft deshalb als eigenes kurzes Video. Verbinde es, dann bewegt es stattdessen sein Bild.",
+        "other": "{name} und {more} weitere liegen neben Bildern mit demselben Namen und laufen deshalb als eigene kurze Videos. Verbinde sie, dann bewegt jedes stattdessen sein Bild."
+      },
+      "pairButton": "Live Photos verbinden",
+      "paired": {
+        "one": "{count} Live Photo verbunden.",
+        "other": "{count} Live Photos verbunden."
+      },
+      "pairFailed": "Die Live Photos konnten nicht verbunden werden. Versuch es noch einmal.",
       "deleteConfirm": "Löschen",
       "refused": "{file} wird noch verwendet und wurde nicht gelöscht.",
       "keptLast": "{file} wurde behalten: Es ist das letzte Bild der Diashow auf '{name}'.",

@@ -1478,7 +1478,7 @@
       "upload": "Upload",
       "dropzone": "Træk billeder eller videoer herhen, eller klik for at vælge, lige så mange du vil",
       "saveInto": "Gem i",
-      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. På en iPhone skal du vælge Mest kompatibel under Indstillinger > Kamera > Formater.",
+      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. Kommer den fra en iPhone, så vælg Mest kompatibel under Indstillinger > Kamera > Formater.",
       "loadFailed": "Dine billeder og videoer kunne ikke indlæses",
       "tryAgain": "Prøv igen",
       "allFolders": "Alle billeder & videoer",
@@ -1510,6 +1510,24 @@
         "one": "Den forsvinder fra denne hub for altid. Et billedshow, der viser den, fortsætter med sine andre billeder, og har en skærm brug for filen, bliver den beholdt, så ingen skærm står tom.",
         "other": "De forsvinder fra denne hub for altid. Billedshows fortsætter med deres andre billeder, og filer, som en skærm har brug for, bliver beholdt, så ingen skærm står tom."
       },
+      "clipsGoToo": {
+        "one": "Live Photo-klippet slettes også.",
+        "other": "Live Photo-klippene slettes også."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo er ikke parret endnu",
+        "other": "{count} Live Photos er ikke parret endnu"
+      },
+      "pairBody": {
+        "one": "{name} ligger ved siden af et billede med samme navn og afspilles derfor som en kort video for sig. Par den, så bevæger den i stedet sit billede.",
+        "other": "{name} og {more} andre ligger ved siden af billeder med samme navn og afspilles derfor som korte videoer for sig. Par dem, så bevæger hver i stedet sit billede."
+      },
+      "pairButton": "Par Live Photos",
+      "paired": {
+        "one": "{count} Live Photo parret.",
+        "other": "{count} Live Photos parret."
+      },
+      "pairFailed": "Live Photos kunne ikke parres. Prøv igen.",
       "deleteConfirm": "Slet",
       "refused": "{file} bruges stadig og blev ikke slettet.",
       "keptLast": "{file} blev liggende, fordi det er det sidste billede i billedshowet på '{name}'.",

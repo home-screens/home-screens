@@ -7,6 +7,7 @@ import { bumpLibraryRevision } from '@/lib/library-revision';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
 import { removeThumbnails } from '@/lib/thumbnails';
 import { ROTATION_FILE_RE, fileNameOf, folderOf } from '@/lib/media-paths';
+import { clipIndex, unpairedLiveClips } from '@/lib/media-formats';
 import type { ScreenConfiguration } from '@/types/config';
 import { RefusalError, type RefusalParams } from '@/lib/refusal';
 
@@ -168,6 +169,37 @@ export async function moveLibraryFiles(files: string[], directory: string): Prom
     plan.push({ from, to, absFrom, absTo });
   }
 
+  // A Live Photo's clip goes where its picture goes. Moving pictures is how
+  // a family splits a folder, and a clip left behind played on its own as a
+  // three-second video slide.
+  const clipOf = new Map<string, string>();
+  for (const sourceFolder of new Set(plan.map((step) => folderOf(step.from)))) {
+    const clipFor = clipIndex((await listLibraryFolder(sourceFolder)).map(fileNameOf));
+    for (const step of plan.filter((s) => folderOf(s.from) === sourceFolder)) {
+      const clipName = clipFor(fileNameOf(step.from));
+      if (!clipName) continue;
+      const clipFrom = sourceFolder ? `${sourceFolder}/${clipName}` : clipName;
+      if (seenSources.has(clipFrom)) continue;
+      seenSources.add(clipFrom);
+      const absFrom = safeLibraryPath(clipFrom);
+      if (!absFrom) continue;
+      const clash = targetNames.get(clipName);
+      if (clash) {
+        throw new LibraryMoveError(409, 'library.nameClash', `${clash} and ${clipFrom} are both called ${clipName}; only one can go there`, { name: clipName });
+      }
+      targetNames.set(clipName, clipFrom);
+      const absTo = path.join(targetDir, clipName);
+      try {
+        await fs.access(absTo);
+        throw new LibraryMoveError(409, 'library.fileExists', `${clipName} is already in that folder`, { name: clipName });
+      } catch (err) {
+        if (err instanceof LibraryMoveError) throw err;
+      }
+      clipOf.set(step.from, clipFrom);
+      plan.push({ from: clipFrom, to: folder ? `${folder}/${clipName}` : clipName, absFrom, absTo });
+    }
+  }
+
   if (plan.length === 0) {
     const revision = configRevision(await readCurrentConfig());
     return { moved: [], kept: [], rewritten: 0, revision, previousRevision: revision };
@@ -189,6 +221,10 @@ export async function moveLibraryFiles(files: string[], directory: string): Prom
     next = await updateConfigAtomic(async (current) => {
       previousRevision = configRevision(current);
       moving = await withoutLastPictures(current, plan, kept);
+      // A picture that stays keeps its clip beside it.
+      const staying = new Set(kept.map((k) => k.path));
+      const stayingClips = new Set([...clipOf].filter(([picture]) => staying.has(picture)).map(([, clip]) => clip));
+      moving = moving.filter((step) => !stayingClips.has(step.from));
       try {
         for (const step of moving) {
           await moveNoClobber(step.absFrom, step.absTo);
@@ -211,6 +247,52 @@ export async function moveLibraryFiles(files: string[], directory: string): Prom
   await Promise.all(moving.map((step) => removeThumbnails(step.from)));
   if (moving.length > 0) bumpLibraryRevision();
   return { moved: moving.map(({ from, to }) => ({ from, to })), kept, rewritten, revision: configRevision(next), previousRevision };
+}
+
+export interface PairResult {
+  /** Each clip renamed to pair with its picture, as library paths. */
+  paired: { from: string; to: string }[];
+  /** Config references rewritten to follow the renames (a clip some screen played as a video). */
+  rewritten: number;
+  revision: string;
+  previousRevision: string;
+}
+
+/**
+ * Pair a folder's Live Photos as an iPhone exports them, renaming each
+ * `IMG_1234.MOV` beside `IMG_1234.JPG` to `IMG_1234.live.mov`
+ * (`unpairedLiveClips`), so it plays over its picture instead of as a slide
+ * of its own. One rename per photo used to be the family's job.
+ */
+export async function pairLiveClips(directory: string): Promise<PairResult> {
+  const folder = cleanFolderPath(directory);
+  if (folder == null) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid folder');
+  const dir = await requireFolder(folder);
+  const inFolder = (name: string) => (folder ? `${folder}/${name}` : name);
+  const done: { from: string; to: string; absFrom: string; absTo: string }[] = [];
+  let rewritten = 0;
+  let previousRevision = '';
+  const next = await updateConfigAtomic(async (current) => {
+    previousRevision = configRevision(current);
+    const renames = unpairedLiveClips((await listLibraryFolder(folder)).map(fileNameOf));
+    try {
+      for (const { from, to } of renames) {
+        const step = { from: inFolder(from), to: inFolder(to), absFrom: path.join(dir, from), absTo: path.join(dir, to) };
+        await moveNoClobber(step.absFrom, step.absTo);
+        done.push(step);
+      }
+    } catch (err) {
+      for (const step of done.splice(0).reverse()) await moveNoClobber(step.absTo, step.absFrom).catch(() => { /* best effort */ });
+      throw err;
+    }
+    const byFrom = new Map(done.map((step) => [step.from, step.to]));
+    const result = rewriteMediaRefs(current, (p) => byFrom.get(p) ?? null, () => null);
+    rewritten = result.changed;
+    return result.config;
+  });
+  await Promise.all(done.map((step) => removeThumbnails(step.from)));
+  if (done.length > 0) bumpLibraryRevision();
+  return { paired: done.map(({ from, to }) => ({ from, to })), rewritten, revision: configRevision(next), previousRevision };
 }
 
 /**

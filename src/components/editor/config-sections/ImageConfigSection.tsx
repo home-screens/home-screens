@@ -35,7 +35,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     if (!file) return;
     setUploading(true);
     setUploadError(null);
-    const { uploaded, error } = await uploadLibraryFiles([file], '');
+    const { uploaded, errors: [error] } = await uploadLibraryFiles([file], '');
     if (uploaded[0]) set({ src: uploaded[0] });
     else if (error) setUploadError(uploadFailureText(error, tCore, tCore('errors.uploadFailed')));
     setUploading(false);

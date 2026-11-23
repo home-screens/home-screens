@@ -1478,7 +1478,7 @@
       "upload": "Uploaden",
       "dropzone": "Sleep afbeeldingen of video's hierheen, of klik om te kiezen, zoveel als je wilt",
       "saveInto": "Opslaan in",
-      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Kies op een iPhone 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
+      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Komt hij van een iPhone, kies dan 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
       "loadFailed": "Je afbeeldingen en video's konden niet worden geladen",
       "tryAgain": "Opnieuw proberen",
       "allFolders": "Alle afbeeldingen & video's",
@@ -1510,6 +1510,24 @@
         "one": "Het verdwijnt voorgoed van deze hub. Een diavoorstelling die het toont, gaat verder met de andere afbeeldingen. Heeft een scherm het bestand nodig, dan blijft het staan, zodat er geen scherm leeg raakt.",
         "other": "Ze verdwijnen voorgoed van deze hub. Diavoorstellingen gaan verder met hun andere afbeeldingen. Bestanden die een scherm nodig heeft, blijven staan, zodat er geen scherm leeg raakt."
       },
+      "clipsGoToo": {
+        "one": "De Live Photo-clip gaat mee.",
+        "other": "De Live Photo-clips gaan mee."
+      },
+      "pairTitle": {
+        "one": "{count} Live Photo is nog niet gekoppeld",
+        "other": "{count} Live Photos zijn nog niet gekoppeld"
+      },
+      "pairBody": {
+        "one": "{name} staat naast een afbeelding met dezelfde naam en speelt daardoor als een los kort filmpje. Koppel het, dan beweegt het voortaan zijn afbeelding.",
+        "other": "{name} en {more} andere staan naast afbeeldingen met dezelfde naam en spelen daardoor als losse korte filmpjes. Koppel ze, dan beweegt elk voortaan zijn afbeelding."
+      },
+      "pairButton": "Live Photos koppelen",
+      "paired": {
+        "one": "{count} Live Photo gekoppeld.",
+        "other": "{count} Live Photos gekoppeld."
+      },
+      "pairFailed": "De Live Photos konden niet worden gekoppeld. Probeer het opnieuw.",
       "deleteConfirm": "Verwijderen",
       "refused": "{file} is nog in gebruik en is niet verwijderd.",
       "keptLast": "{file} is blijven staan: het is de laatste afbeelding in de diavoorstelling op '{name}'.",

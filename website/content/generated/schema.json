@@ -11372,6 +11372,15 @@
       ]
     },
     {
+      "path": "/api/backgrounds/pair-live",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backgrounds/rotate",
       "methods": [
         {

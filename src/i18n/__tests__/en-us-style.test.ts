@@ -45,6 +45,8 @@ const PROPER_PHRASES = [
   'Google Cloud Console', 'iCloud Calendar', 'Apple Calendar', 'Met Office', 'Environment Canada', 'Pirate Weather',
   'Visual Crossing', 'Dark Sky', 'Font Awesome', 'Ken Burns', 'Van Gogh', 'Dutch Golden Age', 'Picture of the Day',
   'Public Website', 'Most Compatible', 'Raspberry Pi', 'Open-Meteo', 'OpenWeatherMap',
+  // Apple's name for the moving photos, plural first so it is matched whole.
+  'Live Photos', 'Live Photo',
   // Settings page names, written as the sidebar writes them.
   'Pictures & videos', 'Location & language',
 ];

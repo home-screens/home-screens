@@ -123,6 +123,64 @@ export function clipIndex(names: Iterable<string>): (stillName: string) => strin
 }
 
 /**
+ * The renames that pair a folder's Live Photos as an iPhone exports them:
+ * `IMG_1234.JPG` beside `IMG_1234.MOV`, which plays as a slide of its own
+ * until it is called `IMG_1234.live.mov`. A video is paired only with the one
+ * picture of its name that has no clip yet, and never onto a name already
+ * taken. Names within one folder.
+ */
+export function unpairedLiveClips(names: readonly string[]): { from: string; to: string }[] {
+  const stemOf = (name: string) => name.replace(/\.[^.]+$/, '');
+  const taken = new Set(names.map((name) => name.toLowerCase()));
+  const clipFor = clipIndex(names);
+  const pictures = new Map<string, string[]>();
+  for (const name of names) {
+    if (mediaKindOf(name) !== 'image') continue;
+    const stem = stemOf(name).toLowerCase();
+    pictures.set(stem, [...(pictures.get(stem) ?? []), name]);
+  }
+  const renames: { from: string; to: string }[] = [];
+  // One clip per picture: a second video of its name stays a video.
+  const claimed = new Set<string>();
+  for (const name of names) {
+    const video = /\.(mov|mp4)$/i.exec(name);
+    if (!video || LIVE_COMPANION_RE.test(name)) continue;
+    const stem = stemOf(name).toLowerCase();
+    const owners = pictures.get(stem) ?? [];
+    // Two pictures of one name: no way to tell whose moment it was.
+    if (owners.length !== 1 || clipFor(owners[0]) || claimed.has(stem)) continue;
+    claimed.add(stem);
+    const to = `${stemOf(name)}.live.${video[1].toLowerCase()}`;
+    if (taken.has(to.toLowerCase())) continue;
+    taken.add(to.toLowerCase());
+    renames.push({ from: name, to });
+  }
+  return renames;
+}
+
+/**
+ * How many of `paths` are pictures with a Live Photo clip beside them, among
+ * the library's `allPaths`: the clips that go with them when they are moved
+ * or deleted.
+ */
+export function picturesWithClips(paths: readonly string[], allPaths: readonly string[]): number {
+  const folderOf = (p: string) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
+  const nameOf = (p: string) => p.slice(p.lastIndexOf('/') + 1);
+  const indexes = new Map<string, (stillName: string) => string | undefined>();
+  let count = 0;
+  for (const p of paths) {
+    const folder = folderOf(p);
+    let clipFor = indexes.get(folder);
+    if (!clipFor) {
+      clipFor = clipIndex(allPaths.filter((other) => folderOf(other) === folder).map(nameOf));
+      indexes.set(folder, clipFor);
+    }
+    if (clipFor(nameOf(p))) count += 1;
+  }
+  return count;
+}
+
+/**
  * Files to upload with each Live Photo clip after everything else, so the
  * picture it belongs to has landed (and has its final name) before the clip
  * is sent. Otherwise in the order given.

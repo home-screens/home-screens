@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} er større end {size}.",
       "notMedia": "{name} er ikke et billede eller en video, som væggen kan vise.",
-      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. På en iPhone skal du vælge Mest kompatibel under Indstillinger > Kamera > Formater.",
+      "wontPlay": "{name} er en slags video, som væggen ikke kan afspille. Kommer den fra en iPhone, så vælg Mest kompatibel under Indstillinger > Kamera > Formater.",
       "failed": "{name} kunne ikke sendes. Prøv igen.",
       "close": "Luk",
       "showNow": "Vis på væggen nu"

@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} is bigger than {size}.",
       "notMedia": "{name} isn't a photo or video the wall can show.",
-      "wontPlay": "{name} is a kind of video the wall can't play. On an iPhone, choose Most Compatible in Settings > Camera > Formats.",
+      "wontPlay": "{name} is a kind of video the wall can't play. If it came from an iPhone, choose Most Compatible in Settings > Camera > Formats.",
       "failed": "{name} couldn't be sent. Try again.",
       "close": "Close",
       "showNow": "Show it on the wall now"

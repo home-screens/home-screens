@@ -832,7 +832,7 @@
       },
       "tooBig": "{name} is groter dan {size}.",
       "notMedia": "{name} is geen foto of video die de muur kan tonen.",
-      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Kies op een iPhone 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
+      "wontPlay": "{name} is een soort video die de muur niet kan afspelen. Komt hij van een iPhone, kies dan 'Meest compatibel' bij Instellingen > Camera > Bestandsstructuren.",
       "failed": "{name} kon niet worden verstuurd. Probeer het opnieuw.",
       "close": "Sluiten",
       "showNow": "Nu op de muur tonen"

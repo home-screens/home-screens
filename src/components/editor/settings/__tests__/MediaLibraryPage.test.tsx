@@ -28,6 +28,7 @@ const libraryOps = vi.hoisted(() => ({
   createFolder: vi.fn(),
   renameFolder: vi.fn(),
   deleteFolder: vi.fn(),
+  pair: vi.fn(),
 }));
 vi.mock('@/lib/library-client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/library-client')>('@/lib/library-client');
@@ -37,6 +38,7 @@ vi.mock('@/lib/library-client', async () => {
     createLibraryFolder: (...args: unknown[]) => libraryOps.createFolder(...args),
     renameLibraryFolder: (...args: unknown[]) => libraryOps.renameFolder(...args),
     deleteLibraryFolder: (...args: unknown[]) => libraryOps.deleteFolder(...args),
+    pairLiveClips: (...args: unknown[]) => libraryOps.pair(...args),
   };
 });
 
@@ -83,6 +85,12 @@ const BLOB = {
         replaced: 'replaced {file}',
         replaceFailed: 'replace-failed {file}',
         moved: { one: 'moved:{count}', other: 'moved:{count}' },
+        pairTitle: { one: 'pair-title:{count}', other: 'pair-title:{count}' },
+        pairBody: { one: 'pair-body {name}', other: 'pair-body {name} +{more}' },
+        pairButton: 'pair-button',
+        clipsGoToo: { one: 'clips:{count}', other: 'clips:{count}' },
+        paired: { one: 'paired:{count}', other: 'paired:{count}' },
+        pairFailed: 'pair-failed',
         placesUpdated: { one: 'places:{count}', other: 'places:{count}' },
         folderCreated: 'created {name}',
         folderRenamed: 'renamed {name}',
@@ -934,3 +942,59 @@ describe('MediaLibraryPage upload', () => {
     expect(invalidateByPrefix).not.toHaveBeenCalled();
   });
 });
+
+describe('MediaLibraryPage: Live Photos from an iPhone', () => {
+  /** The seed plus a trip folder as an iPhone exports it: two pictures, each with a same-named video, and a plain video. */
+  function iphoneInventory(): MediaInventory {
+    const inv = seedInventory();
+    inv.items.push(
+      { path: 'trip/IMG_1.JPG', kind: 'image', bytes: 1000, mtimeMs: 7000, width: 400, height: 300 },
+      { path: 'trip/IMG_1.MOV', kind: 'video', bytes: 2000, mtimeMs: 7001 },
+      { path: 'trip/IMG_2.JPG', kind: 'image', bytes: 1000, mtimeMs: 7002, width: 400, height: 300 },
+      { path: 'trip/IMG_2.MOV', kind: 'video', bytes: 2000, mtimeMs: 7003 },
+    );
+    inv.directories.push({ name: 'trip', path: 'trip' });
+    return inv;
+  }
+
+  it('offers to pair the waiting exports, pairs each folder, and says how many', async () => {
+    mockApi([], [], { seed: iphoneInventory });
+    libraryOps.pair.mockResolvedValue({ ok: true, status: 200, data: { paired: [{ from: 'trip/IMG_1.MOV', to: 'trip/IMG_1.live.mov' }, { from: 'trip/IMG_2.MOV', to: 'trip/IMG_2.live.mov' }], rewritten: 0, revision: 'r1', previousRevision: 'r0' } });
+    render(<MediaLibraryPage />, { wrapper: Wrapper });
+    const notice = await screen.findByTestId('media-pair-live');
+    expect(notice.textContent).toContain('pair-title:2');
+    expect(notice.textContent).toContain('pair-body IMG_1.MOV +1');
+    fireEvent.click(screen.getByTestId('media-pair-live-button'));
+    await waitFor(() => expect(screen.getByTestId('media-outcome').textContent).toBe('paired:2'));
+    expect(libraryOps.pair).toHaveBeenCalledTimes(1);
+    expect(libraryOps.pair).toHaveBeenCalledWith('trip');
+  });
+
+  it('says a Live Photo clip goes with a moved picture, and counts only the picture moved', async () => {
+    mockApi([], [], {
+      seed: () => {
+        const inv = seedInventory();
+        inv.items.push(
+          { path: 'trip/IMG_1.JPG', kind: 'image', bytes: 1000, mtimeMs: 7000, width: 400, height: 300 },
+          { path: 'trip/IMG_1.live.mov', kind: 'video', bytes: 2000, mtimeMs: 7001 },
+        );
+        inv.directories.push({ name: 'trip', path: 'trip' });
+        return inv;
+      },
+    });
+    libraryOps.move.mockResolvedValue({ ok: true, status: 200, data: { moved: [{ from: 'trip/IMG_1.JPG', to: 'nature/IMG_1.JPG' }, { from: 'trip/IMG_1.live.mov', to: 'nature/IMG_1.live.mov' }], kept: [], rewritten: 0, revision: 'r1', previousRevision: 'r0' } });
+    render(<MediaLibraryPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByTestId('media-tile-trip/IMG_1.JPG')).toBeTruthy());
+    select('trip/IMG_1.JPG');
+    fireEvent.change(screen.getByTestId('media-move-select'), { target: { value: 'nature' } });
+    await waitFor(() => expect(screen.getByTestId('media-outcome').textContent).toBe('moved:1'));
+    expect(String(confirmState.ask.mock.calls.at(-1)?.[0]?.message)).toMatch(/clips:1$/);
+  });
+
+  it('says nothing about a folder with no iPhone exports waiting', async () => {
+    mockApi();
+    await renderLoaded();
+    expect(screen.queryByTestId('media-pair-live')).toBeNull();
+  });
+});
+

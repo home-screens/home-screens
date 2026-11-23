@@ -82,7 +82,10 @@ async function sampleFrames(mod: Locator, durationMs: number): Promise<FrameSamp
         const cs = getComputedStyle(img);
         const src = img.getAttribute('src') ?? '';
         if (cs.visibility !== 'visible' || !src) continue;
-        const opacity = Number(cs.opacity);
+        // A slide's picture fades with the frame it moves in (SlideImage):
+        // what shows is the two opacities together.
+        const frame = img.closest('[data-slide-layer]');
+        const opacity = Number(cs.opacity) * (frame ? Number(getComputedStyle(frame).opacity) : 1);
         visible += opacity;
         if (opacity > 0.95) shown.push(src);
       }
@@ -97,7 +100,7 @@ async function sampleFrames(mod: Locator, durationMs: number): Promise<FrameSamp
 async function settledOnFirstSlide(mod: Locator) {
   const first = mod.locator('img[src^="blob:"]').first();
   await expect(first).toBeAttached();
-  await expect(first).toHaveCSS('opacity', '1');
+  await expect(first.locator('xpath=ancestor::*[@data-slide-layer][1]')).toHaveCSS('opacity', '1');
 }
 
 function distinctShown(samples: FrameSample[]): Set<string> {

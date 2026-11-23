@@ -833,7 +833,7 @@
       },
       "tooBig": "{name} é maior que {size}.",
       "notMedia": "{name} não é uma foto ou vídeo que dê para mostrar no painel.",
-      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. No iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
+      "wontPlay": "{name} é um tipo de vídeo que não toca no painel. Se veio de um iPhone, escolha Mais Compatível em Ajustes > Câmera > Formatos.",
       "failed": "Não deu para enviar {name}. Tente de novo.",
       "close": "Fechar",
       "showNow": "Mostrar no painel agora"
