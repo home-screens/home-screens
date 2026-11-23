@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Acordar o painel",
     "sleepDisplay": "Pôr o painel para dormir",
+    "wakeAll": "Acordar todos os painéis",
+    "sleepAll": "Pôr todos os painéis para dormir",
     "sendAlert": "Enviar aviso",
     "waitingFor": "Aguardando {name}…",
     "waitingForAll": "Aguardando os painéis…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} não vai ver a meta enquanto isto estiver escondido.",
       "other": "{names} não vão ver as metas enquanto isto estiver escondido."
-    }
+    },
+    "whyNoSave": "Dê um nome à recompensa para salvar."
   },
   "alertSender": {
     "title": "Enviar aviso",
@@ -683,7 +686,7 @@
       "adjusted": "de adultos",
       "window": "Últimos 30 dias",
       "empty": "Nenhum ticket se moveu ainda.",
-      "failed": "Não foi possível carregar o histórico de tickets.",
+      "failed": "Não foi possível carregar o histórico de tickets. Confira se o Home Screens está ligado e tente de novo.",
       "removedChore": "Uma tarefa que foi removida",
       "tookOne": "Um adulto tirou alguns",
       "gaveSome": "Um adulto deu alguns",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Fechar configurações",
     "system": {
       "heading": "Sistema",
-      "errorFailedToLoad": "Não foi possível carregar isto. Tente de novo.",
+      "errorFailedToLoad": "Não foi possível carregar isto. Confira se o Home Screens está ligado e tente de novo.",
       "hostLabel": "Nome na rede",
       "uptimeLabel": "Tempo ligado",
       "memoryLabel": "Memória",
@@ -816,7 +819,7 @@
     "spaceLow": "Quase cheio: só restam {free} no Home Screens. Exclua as fotos que você não quer mais para liberar espaço.",
     "emptyTitle": "Nada em {folder} ainda",
     "emptyHint": "Adicione fotos ou vídeos deste celular.",
-    "loadFailed": "Não foi possível carregar suas fotos.",
+    "loadFailed": "Não foi possível carregar suas fotos. Confira se o Home Screens está ligado e tente de novo.",
     "showsOn": {
       "one": "Vai aparecer em {walls}.",
       "other": "Vão aparecer em {walls}."
@@ -1273,7 +1276,7 @@
       "title": "Nada no mural ainda",
       "body": "Escreva um recado aqui embaixo e ele aparece no painel alguns segundos depois. Os recados saem sozinhos quando acabar o tempo que você escolher."
     },
-    "loadError": "Não foi possível carregar os recados.",
+    "loadError": "Não foi possível carregar os recados. Confira se o Home Screens está ligado e tente de novo.",
     "editAria": "Editar recado de {name}",
     "dayNotes": {
       "sub": "Os recados do dia vão para os calendários do painel",
@@ -1286,7 +1289,7 @@
       "placeholder": "Dia da foto, sem aula…",
       "put": "Colocar no calendário",
       "remove": "Apagar",
-      "loadError": "Não foi possível carregar os recados do dia.",
+      "loadError": "Não foi possível carregar os recados do dia. Confira se o Home Screens está ligado e tente de novo.",
       "saved": "Salvo para {day}. Aparece no painel quando esse dia estiver em um calendário.",
       "removed": "Recado apagado",
       "undo": "Desfazer",

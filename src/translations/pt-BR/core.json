@@ -351,7 +351,7 @@
     "controls": "Botões do timer",
     "replaceTitle": "Começar um novo timer?",
     "replaceBody": "Já tem um timer rodando. Começar um novo vai parar o atual.",
-    "routinesLoadError": "Não foi possível carregar as rotinas. Verifique a conexão e tente de novo.",
+    "routinesLoadError": "Não foi possível carregar as rotinas. Confira se o Home Screens está ligado e tente de novo.",
     "routineMeta": {
       "one": "{steps} passo · {minutes} min",
       "other": "{steps} passos · {minutes} min"
@@ -392,7 +392,7 @@
     "color": "Cor",
     "emptyTitle": "Ainda não há ninguém",
     "emptyDescription": "Adicione as pessoas da sua casa. Elas estarão disponíveis nas tarefas, recompensas, calendários e horários escolares.",
-    "loadFailed": "Não foi possível carregar sua família. Verifique a conexão e tente de novo.",
+    "loadFailed": "Não foi possível carregar sua família. Confira se o Home Screens está ligado e tente de novo.",
     "retry": "Tentar de novo",
     "saved": "Família salva.",
     "removeTitle": "Remover {name}?",

@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Réveiller le mur",
     "sleepDisplay": "Mettre le mur en veille",
+    "wakeAll": "Réveiller tous les murs",
+    "sleepAll": "Mettre tous les murs en veille",
     "sendAlert": "Envoyer une alerte",
     "waitingFor": "En attente de {name}…",
     "waitingForAll": "En attente des murs…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} ne verra pas son objectif tant que c'est masqué.",
       "other": "{names} ne verront pas leurs objectifs tant que c'est masqué."
-    }
+    },
+    "whyNoSave": "Donne un nom à la récompense pour l'enregistrer."
   },
   "alertSender": {
     "title": "Envoyer une alerte",
@@ -683,7 +686,7 @@
       "adjusted": "des adultes",
       "window": "30 derniers jours",
       "empty": "Aucun ticket n'a encore bougé.",
-      "failed": "Impossible de charger l'historique des tickets.",
+      "failed": "Impossible de charger l'historique des tickets. Vérifie que Home Screens est allumé et réessaie.",
       "removedChore": "Une tâche supprimée",
       "tookOne": "Un adulte en a retiré",
       "gaveSome": "Un adulte en a donné",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Fermer les paramètres",
     "system": {
       "heading": "Système",
-      "errorFailedToLoad": "Impossible de charger ces informations. Réessaie.",
+      "errorFailedToLoad": "Impossible de charger ces informations. Vérifie que Home Screens est allumé et réessaie.",
       "hostLabel": "Nom sur le réseau",
       "uptimeLabel": "Temps de fonctionnement",
       "memoryLabel": "Mémoire",
@@ -815,7 +818,7 @@
     "spaceLow": "Presque plein : il ne reste que {free} sur Home Screens. Supprime les photos dont tu n'as plus besoin pour faire de la place.",
     "emptyTitle": "Rien dans {folder} pour l'instant",
     "emptyHint": "Ajoute des photos ou des vidéos depuis ce téléphone.",
-    "loadFailed": "Impossible de charger tes photos.",
+    "loadFailed": "Impossible de charger tes photos. Vérifie que Home Screens est allumé et réessaie.",
     "showsOn": {
       "one": "Elle s'affichera sur {walls}.",
       "other": "Elles s'afficheront sur {walls}."
@@ -1272,7 +1275,7 @@
       "title": "Rien sur le tableau pour le moment",
       "body": "Écris une note ci-dessous et elle apparaîtra sur le mur quelques secondes plus tard. Les notes s'en vont toutes seules après la durée choisie."
     },
-    "loadError": "Impossible de charger les notes.",
+    "loadError": "Impossible de charger les notes. Vérifie que Home Screens est allumé et réessaie.",
     "editAria": "Modifier la note de {name}",
     "dayNotes": {
       "sub": "Les notes du jour s'affichent sur les calendriers du mur",
@@ -1285,7 +1288,7 @@
       "placeholder": "Photo de classe, pas d'école…",
       "put": "Mettre dans le calendrier",
       "remove": "Retirer",
-      "loadError": "Impossible de charger les notes du jour.",
+      "loadError": "Impossible de charger les notes du jour. Vérifie que Home Screens est allumé et réessaie.",
       "saved": "Note enregistrée pour {day}. Elle s'affiche sur le mur dès qu'un calendrier montre ce jour.",
       "removed": "Note retirée",
       "undo": "Annuler",

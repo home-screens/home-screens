@@ -351,7 +351,7 @@
     "controls": "Timerknoppen",
     "replaceTitle": "Nieuwe timer starten?",
     "replaceBody": "Er loopt al een timer. Een nieuwe timer stopt de huidige.",
-    "routinesLoadError": "De routines konden niet worden geladen. Controleer de verbinding en probeer het opnieuw.",
+    "routinesLoadError": "De routines konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "routineMeta": {
       "one": "{steps} stap · {minutes} min",
       "other": "{steps} stappen · {minutes} min"
@@ -392,7 +392,7 @@
     "color": "Kleur",
     "emptyTitle": "Nog niemand toegevoegd",
     "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij klusjes, beloningen, kalenders en roosters.",
-    "loadFailed": "Kon je gezin niet laden. Controleer de verbinding en probeer het opnieuw.",
+    "loadFailed": "Je gezin kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
     "saved": "Gezin opgeslagen.",
     "removeTitle": "{name} verwijderen?",

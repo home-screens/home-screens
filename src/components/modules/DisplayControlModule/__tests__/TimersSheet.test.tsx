@@ -196,7 +196,7 @@ describe('Dock Timers button', () => {
   it('says so when the routines could not be read', async () => {
     routinesOk = false;
     await openSheet();
-    expect(screen.getByText("Couldn't load your routines. Check the connection and try again.")).toBeTruthy();
+    expect(screen.getByText(enUSCore.timer.routinesLoadError)).toBeTruthy();
   });
 });
 

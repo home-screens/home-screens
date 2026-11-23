@@ -73,7 +73,8 @@ test('broadcasting with All fans a command out to every display', async ({ page,
 
   // 'Every wall' is the default target when displays exist; click it to be explicit.
   await page.getByRole('button', { name: 'Every wall', exact: true }).click();
-  const sleepButton = page.getByRole('button', { name: 'Put the wall to sleep' });
+  // With every wall picked, the button says so.
+  const sleepButton = page.getByRole('button', { name: 'Put every wall to sleep' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();
 

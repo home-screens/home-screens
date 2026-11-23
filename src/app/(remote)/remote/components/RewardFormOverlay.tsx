@@ -86,6 +86,8 @@ export default function RewardFormOverlay({
             saveLabel={isEdit ? undefined : t('rewardForm.addSubmit')}
             canSave={Boolean(name.trim())}
             onSave={handleSave}
+            // A greyed-out Save with no word about it reads as broken, as on the chore and routine forms.
+            notice={name.trim() ? null : t('rewardForm.whyNoSave')}
             deleteLabel={isEdit && onDelete ? t('rewardForm.deleteButton') : undefined}
             onDelete={() => setConfirmDelete(true)}
           />

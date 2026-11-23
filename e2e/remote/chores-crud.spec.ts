@@ -766,6 +766,48 @@ test('admin adjusts a ticket balance up and down from the Balances tab', async (
   await expect.poll(readBalance).toBe(before + 1);
 });
 
+test('quick taps on a slow hub all count, and the number never drops back between them', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
+    members: [{ id: 'm-quick', name: 'Noor', emoji: '', color: '#22c55e' }],
+    chores: [],
+  });
+  const readBalance = async () => ((await (await request.get('/api/rewards')).json()).balances as Record<string, number>)['m-quick'] ?? 0;
+  const before = await readBalance();
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('tab', { name: 'Balances', exact: true }).click();
+  const shown = page.getByTestId('balance-m-quick');
+  await expect(shown).toBeVisible();
+
+  // A hub that takes 400 ms to answer each change.
+  await page.route('**/api/rewards/data', async (route) => {
+    if (route.request().method() === 'POST') await new Promise((resolve) => setTimeout(resolve, 400));
+    await route.continue();
+  });
+  // Every number the row shows, in order.
+  await shown.evaluate((el) => {
+    const seen: string[] = [el.textContent ?? ''];
+    (window as unknown as { __seen: string[] }).__seen = seen;
+    new MutationObserver(() => seen.push(el.textContent ?? '')).observe(el, { subtree: true, childList: true, characterData: true });
+  });
+
+  const add = page.getByRole('button', { name: 'Add a ticket to Noor' });
+  await add.click();
+  await add.click();
+  await add.click();
+
+  await expect.poll(readBalance).toBe(before + 3);
+  await expect(shown).toContainText(String(before + 3));
+  // Let any late answer land, then check the number only ever climbed.
+  await page.waitForTimeout(500);
+  const numbers = (await page.evaluate(() => (window as unknown as { __seen: string[] }).__seen))
+    .map((text) => Number(/\d+/.exec(text)?.[0]));
+  for (let i = 1; i < numbers.length; i++) expect(numbers[i], `shown ${numbers.join(', ')}`).toBeGreaterThanOrEqual(numbers[i - 1]);
+  expect(numbers.at(-1)).toBe(before + 3);
+});
+
 test('admin gives several people tickets at once with a reason, and the history shows it', async ({ page, request, sandboxDir }) => {
   await seedHouseholdChores(request, sandboxDir, {
     members: [

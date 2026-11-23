@@ -27,6 +27,7 @@ vi.mock('@/lib/grown-up-client', async (original) => ({
 import SheetFrame from '../SheetFrame';
 import BottomSheet from '../BottomSheet';
 import TallSheet from '../TallSheet';
+import FormOverlay from '../FormOverlay';
 import ConfirmSheet from '../ConfirmSheet';
 import ChoreActionSheet from '../ChoreActionSheet';
 import DayCompleteSheet from '../DayCompleteSheet';
@@ -246,6 +247,21 @@ describe('where a toast sits around a sheet', () => {
     const page = (sheet: boolean) => (
       <>
         {sheet && <TallSheet label="Dinner" title="Dinner" onClose={() => {}}><button type="button">7:00 PM</button></TallSheet>}
+        <RemoteToast />
+      </>
+    );
+    const { rerender } = render(page(false));
+    expect(toastEdge()).toBe('bottom');
+    rerender(page(true));
+    expect(toastEdge()).toBe('top');
+    rerender(page(false));
+    expect(toastEdge()).toBe('bottom');
+  });
+
+  it('moves to the top while a full-screen form is up, where it would cover Save at the bottom', () => {
+    const page = (form: boolean) => (
+      <>
+        {form && <FormOverlay title="New event" onBack={() => {}} footer={<button type="button">Save</button>}><span /></FormOverlay>}
         <RemoteToast />
       </>
     );

@@ -351,7 +351,7 @@
     "controls": "Timer buttons",
     "replaceTitle": "Start a new timer?",
     "replaceBody": "A timer is already running. Starting a new one will stop it.",
-    "routinesLoadError": "Couldn't load your routines. Check the connection and try again.",
+    "routinesLoadError": "Couldn't load your routines. Check that Home Screens is on and try again.",
     "routineMeta": {
       "one": "{steps} step · {minutes} min",
       "other": "{steps} steps · {minutes} min"
@@ -392,7 +392,7 @@
     "color": "Color",
     "emptyTitle": "No one here yet",
     "emptyDescription": "Add the people in your household. They will be available in chores, rewards, calendars and school timetables.",
-    "loadFailed": "Couldn't load your family. Check the connection and try again.",
+    "loadFailed": "Couldn't load your family. Check that Home Screens is on and try again.",
     "retry": "Try again",
     "saved": "Family saved.",
     "removeTitle": "Remove {name}?",

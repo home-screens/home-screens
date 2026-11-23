@@ -4,6 +4,7 @@ import { Fragment, type CSSProperties } from 'react';
 import { Check } from 'lucide-react';
 import { formatRemaining, formatStepLength, pillStyle, type TimerViewProps } from './shared';
 import Glyph from '@/components/ui/Glyph';
+import { clampLines } from '@/components/modules/shared/clampLines';
 
 const STAR_FIELD = [
   [12, 8, 2.5, 0.8], [78, 5, 2, 0.6], [90, 22, 3, 0.5], [30, 18, 2, 0.55],
@@ -131,7 +132,8 @@ export default function PathTimerView({
             />
             <div style={{ fontSize: 130 * s, lineHeight: 1 }}><Glyph value={step.icon} fallback="⏱️" pictureSize="0.75em" /></div>
             {step.label && (
-              <div style={{ marginTop: 20 * s, fontSize: 56 * s, fontWeight: 700, maxWidth: 460 * s }}>{step.label}</div>
+              // Two lines at most: a third pushed the countdown under the ring ("Put your pajamas on and brush your teeth").
+              <div style={{ marginTop: 20 * s, fontSize: 56 * s, fontWeight: 700, lineHeight: 1.15, maxWidth: 460 * s, ...clampLines(2) }}>{step.label}</div>
             )}
             {session.awaitingTap ? (
               <div style={{ ...pillStyle(s, '#06281c', '#34d399'), marginTop: 24 * s }}>{t('timer.done')}</div>

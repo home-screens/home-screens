@@ -351,7 +351,7 @@
     "controls": "Botones del temporizador",
     "replaceTitle": "¿Empezar un temporizador nuevo?",
     "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
-    "routinesLoadError": "No se pudieron cargar las rutinas. Revisa la conexión e inténtalo otra vez.",
+    "routinesLoadError": "No se pudieron cargar las rutinas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "routineMeta": {
       "one": "{steps} paso · {minutes} min",
       "other": "{steps} pasos · {minutes} min"
@@ -392,7 +392,7 @@
     "color": "Color",
     "emptyTitle": "Aún no hay nadie",
     "emptyDescription": "Añade a las personas de tu hogar. Estarán disponibles en tareas, recompensas, calendarios y horarios escolares.",
-    "loadFailed": "No se pudo cargar tu familia. Comprueba la conexión e inténtalo de nuevo.",
+    "loadFailed": "No se pudo cargar tu familia. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "retry": "Reintentar",
     "saved": "Familia guardada.",
     "removeTitle": "¿Eliminar a {name}?",

@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Maak de muur wakker",
     "sleepDisplay": "Laat de muur slapen",
+    "wakeAll": "Maak alle muren wakker",
+    "sleepAll": "Laat alle muren slapen",
     "sendAlert": "Melding sturen",
     "waitingFor": "Wachten op {name}…",
     "waitingForAll": "Wachten op de muren…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} ziet het spaardoel niet zolang dit verborgen is.",
       "other": "{names} zien hun spaardoelen niet zolang dit verborgen is."
-    }
+    },
+    "whyNoSave": "Geef de beloning een naam om op te slaan."
   },
   "alertSender": {
     "title": "Melding sturen",
@@ -683,7 +686,7 @@
       "adjusted": "van volwassenen",
       "window": "Laatste 30 dagen",
       "empty": "Er zijn nog geen tickets verplaatst.",
-      "failed": "De ticketgeschiedenis kon niet worden geladen.",
+      "failed": "De ticketgeschiedenis kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "removedChore": "Een klusje dat is verwijderd",
       "tookOne": "Een volwassene heeft er wat afgenomen",
       "gaveSome": "Een volwassene heeft er wat gegeven",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Instellingen sluiten",
     "system": {
       "heading": "Systeem",
-      "errorFailedToLoad": "Kon dit niet laden. Probeer het opnieuw.",
+      "errorFailedToLoad": "Dit kon niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "hostLabel": "Naam op het netwerk",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Geheugen",
@@ -815,7 +818,7 @@
     "spaceLow": "Bijna vol: nog {free} over op Home Screens. Verwijder foto's die je niet meer nodig hebt, dan komt er ruimte vrij.",
     "emptyTitle": "Nog niets in {folder}",
     "emptyHint": "Voeg foto's of video's toe vanaf deze telefoon.",
-    "loadFailed": "Je foto's konden niet worden geladen.",
+    "loadFailed": "Je foto's konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "showsOn": {
       "one": "Je ziet hem straks op {walls}.",
       "other": "Je ziet ze straks op {walls}."
@@ -1272,7 +1275,7 @@
       "title": "Nog niets op het prikbord",
       "body": "Schrijf hieronder een notitie en een paar seconden later staat hij op de muur. Notities verdwijnen vanzelf na de tijd die je kiest."
     },
-    "loadError": "De notities konden niet worden geladen.",
+    "loadError": "De notities konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
     "editAria": "Notitie van {name} bewerken",
     "dayNotes": {
       "sub": "Dagnotities komen in de kalenders aan de muur",
@@ -1285,7 +1288,7 @@
       "placeholder": "Schoolfotograaf, studiedag…",
       "put": "In de kalender zetten",
       "remove": "Weghalen",
-      "loadError": "De dagnotities konden niet worden geladen.",
+      "loadError": "De dagnotities konden niet worden geladen. Kijk of Home Screens aanstaat en probeer het opnieuw.",
       "saved": "Bewaard voor {day}. Je ziet het op de muur zodra een kalender die dag laat zien.",
       "removed": "Notitie weggehaald",
       "undo": "Ongedaan maken",

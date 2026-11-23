@@ -17,6 +17,10 @@ import CascadeTimerView from './timer-views/CascadeTimerView';
 import PathTimerView from './timer-views/PathTimerView';
 import TimerCelebration from './timer-views/TimerCelebration';
 import TimerControls from './timer-views/TimerControls';
+import { readRemembered, remember } from '@/lib/device-memory';
+
+/** The finished timer this wall's "Time's up!" was tapped away for. */
+const TIMES_UP_DISMISSED_KEY = 'hs-wall-times-up-dismissed';
 
 const TICK_MS = 250;
 
@@ -122,7 +126,9 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   }, [tickingSessionId, tickMs]);
 
   // "Time's up!" closed by a tap here. Other displays keep their linger.
-  const [dismissedId, setDismissedId] = useState<string | null>(null);
+  // Kept on this wall, so a reload (an update, a power blip) does not bring
+  // back a "Time's up!" somebody already tapped away.
+  const [dismissedId, setDismissedId] = useState<string | null>(() => readRemembered(TIMES_UP_DISMISSED_KEY));
   const dismissed = live?.status === 'done' && live.id === dismissedId;
 
   // Tell the status heartbeat which session is on this screen (null when the
@@ -210,7 +216,10 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   const onTap = live.awaitingTap
     ? () => act('step-done', live)
     : live.status === 'done'
-      ? () => setDismissedId(live.id)
+      ? () => {
+        setDismissedId(live.id);
+        remember(TIMES_UP_DISMISSED_KEY, live.id);
+      }
       : controls.poke;
 
   // 0 until the rotator has measured the viewport — same invisible-first-frame

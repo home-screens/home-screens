@@ -351,7 +351,7 @@
     "controls": "Boutons du minuteur",
     "replaceTitle": "Démarrer un nouveau minuteur ?",
     "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
-    "routinesLoadError": "Impossible de charger les routines. Vérifie la connexion et réessaie.",
+    "routinesLoadError": "Impossible de charger les routines. Vérifie que Home Screens est allumé et réessaie.",
     "routineMeta": {
       "one": "{steps} étape · {minutes} min",
       "other": "{steps} étapes · {minutes} min"
@@ -392,7 +392,7 @@
     "color": "Couleur",
     "emptyTitle": "Personne pour le moment",
     "emptyDescription": "Les personnes du foyer ajoutées ici se retrouvent dans les tâches, les récompenses, les calendriers et les emplois du temps.",
-    "loadFailed": "Impossible de charger la famille. Il faut vérifier la connexion, puis réessayer.",
+    "loadFailed": "Impossible de charger la famille. Vérifie que Home Screens est allumé et réessaie.",
     "retry": "Réessayer",
     "saved": "Famille enregistrée.",
     "removeTitle": "Supprimer {name} ?",

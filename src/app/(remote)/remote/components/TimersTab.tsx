@@ -51,6 +51,11 @@ export default function TimersTab() {
   const [pendingStart, setPendingStart] = useState<(() => void) | null>(null);
 
   const running = live && live.status === 'running' ? live : null;
+  // A finished timer the walls still hold on "Time's up!". A wall without a
+  // touchscreen holds it until the hub lets go, so the phone offers Stop for
+  // as long as some wall reports it on screen.
+  const finished = live && live.status === 'done'
+    && liveDisplays.some((d) => d.status?.timerSessionId === live.id) ? live : null;
 
   const requestStart = (start: () => void) => {
     if (running) setPendingStart(() => start);
@@ -101,6 +106,9 @@ export default function TimersTab() {
     : 0;
   const runningTitle = running
     ? running.name ?? formatQuickName(running.steps[0].durationSec, t, 'timers')
+    : '';
+  const finishedTitle = finished
+    ? finished.name ?? formatQuickName(finished.steps[0].durationSec, t, 'timers')
     : '';
 
   const handleCustomStart = () => {
@@ -207,6 +215,25 @@ export default function TimersTab() {
               <Square className="w-4 h-4" /> {t('timers.stop')}
             </button>
           </div>
+        </section>
+      )}
+
+      {finished && (
+        <section data-testid="timer-times-up" className="mb-4 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
+          <div className="flex items-center gap-3">
+            <div className="text-[34px] leading-none"><Glyph value={finished.icon ?? finished.steps[finished.steps.length - 1]?.icon} fallback="⏱️" /></div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] font-bold text-hs-text-primary truncate">{finishedTitle}</div>
+              {/* The wall's own words for it: a routine is all done, a quick timer's time is up. */}
+              <div className="text-[12px] text-hs-text-faint truncate">{tc(finished.kind === 'routine' ? 'timer.allDone' : 'timer.timesUp')}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => void control('cancel')}
+            className="mt-4 w-full min-h-[44px] rounded-xl bg-hs-danger/10 text-hs-danger text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
+          >
+            <Square className="w-4 h-4" /> {t('timers.stop')}
+          </button>
         </section>
       )}
 
@@ -396,6 +423,7 @@ export default function TimersTab() {
         <RoutineFormOverlay
           routine={editing === 'new' ? null : editing}
           onClose={() => setEditing(null)}
+          saveError={error}
           onSave={async (next) => {
             // In place when it is still in the list, else at the end: a new
             // routine, or one another phone deleted while it was being edited.

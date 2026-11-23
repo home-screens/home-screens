@@ -309,6 +309,22 @@ test('skip advances a routine to the next step', async ({ page, request }) => {
   await expect.poll(async () => (await getSession(request))?.stepIndex).toBe(1);
 });
 
+test('a finished timer a wall still shows offers Stop on the phone, which clears it everywhere', async ({ page, request }) => {
+  await startQuick(request, 5);
+  await expect.poll(async () => (await getSession(request))?.status, { timeout: 15_000 }).toBe('done');
+  const session = await getSession(request);
+  // A wall without a touchscreen holds "Time's up!" and says so in its heartbeat.
+  await postHeartbeat(request, { timerSessionId: session!.id });
+  await openTimers(page);
+
+  const card = page.getByTestId('timer-times-up');
+  await expect(card).toContainText("Time's up!", { timeout: 10_000 });
+  await card.getByRole('button', { name: 'Stop' }).click();
+  await expect.poll(async () => (await getSession(request))?.status ?? 'cleared').not.toBe('done');
+  await postHeartbeat(request, { timerSessionId: null });
+  await expect(card).toHaveCount(0);
+});
+
 test('stop ends the session and removes the control card', async ({ page, request }) => {
   await startQuick(request);
   await openTimers(page);

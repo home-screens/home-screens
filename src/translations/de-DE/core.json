@@ -351,7 +351,7 @@
     "controls": "Timer-Knöpfe",
     "replaceTitle": "Neuen Timer starten?",
     "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
-    "routinesLoadError": "Routinen konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "routinesLoadError": "Deine Routinen konnten nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "routineMeta": {
       "one": "{steps} Schritt · {minutes} Min.",
       "other": "{steps} Schritte · {minutes} Min."
@@ -392,7 +392,7 @@
     "color": "Farbe",
     "emptyTitle": "Noch niemand hier",
     "emptyDescription": "Füge die Personen in deinem Haushalt hinzu. Sie stehen dann in Aufgaben, Belohnungen, Kalendern und Stundenplänen zur Verfügung.",
-    "loadFailed": "Deine Familie konnte nicht geladen werden. Prüf die Verbindung und versuch es noch einmal.",
+    "loadFailed": "Deine Familie konnte nicht geladen werden. Prüf, ob Home Screens an ist, und versuch es noch einmal.",
     "retry": "Erneut versuchen",
     "saved": "Familie gespeichert.",
     "removeTitle": "{name} entfernen?",

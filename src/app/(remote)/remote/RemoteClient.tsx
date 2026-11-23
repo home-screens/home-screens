@@ -437,6 +437,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 disabled={controlsDisabled}
                 targetName={targetName}
                 targetUnnamed={targetUnnamed}
+                everyWall={allMode && initialData.displays.length > 1}
                 onSleepWake={handleSleepWake}
                 onAlertOpen={() => setAlertOpen(true)}
               />

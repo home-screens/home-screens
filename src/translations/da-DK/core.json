@@ -351,7 +351,7 @@
     "controls": "Timerknapper",
     "replaceTitle": "Start en ny timer?",
     "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
-    "routinesLoadError": "Rutinerne kunne ikke indlæses. Tjek forbindelsen og prøv igen.",
+    "routinesLoadError": "Dine rutiner kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "routineMeta": {
       "one": "{steps} trin · {minutes} min.",
       "other": "{steps} trin · {minutes} min."
@@ -392,7 +392,7 @@
     "color": "Farve",
     "emptyTitle": "Ingen endnu",
     "emptyDescription": "Tilføj personerne i din husstand. De bliver tilgængelige i pligter, belønninger, kalendere og skemaer.",
-    "loadFailed": "Kunne ikke hente din familie. Tjek forbindelsen, og prøv igen.",
+    "loadFailed": "Kunne ikke hente din familie. Tjek, at Home Screens er tændt, og prøv igen.",
     "retry": "Prøv igen",
     "saved": "Familie gemt.",
     "removeTitle": "Fjern {name}?",

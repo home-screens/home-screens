@@ -83,6 +83,8 @@
   "quickActions": {
     "wakeDisplay": "Despertar el monitor",
     "sleepDisplay": "Poner el monitor en reposo",
+    "wakeAll": "Despertar todos los monitores",
+    "sleepAll": "Poner todos los monitores en reposo",
     "sendAlert": "Enviar aviso",
     "waitingFor": "Esperando a {name}…",
     "waitingForAll": "Esperando a los monitores…",
@@ -551,7 +553,8 @@
     "hiddenWithSavers": {
       "one": "{names} no verá su meta mientras esté oculta.",
       "other": "{names} no verán sus metas mientras esté oculta."
-    }
+    },
+    "whyNoSave": "Ponle un nombre al premio para guardarlo."
   },
   "alertSender": {
     "title": "Enviar aviso",
@@ -683,7 +686,7 @@
       "adjusted": "de adultos",
       "window": "Últimos 30 días",
       "empty": "Todavía no se ha movido ningún ticket.",
-      "failed": "No se pudo cargar el historial de tickets.",
+      "failed": "No se pudo cargar el historial de tickets. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "removedChore": "Una tarea que se eliminó",
       "tookOne": "Un adulto quitó algunos",
       "gaveSome": "Un adulto dio algunos",
@@ -705,7 +708,7 @@
     "closeAriaLabel": "Cerrar ajustes",
     "system": {
       "heading": "Sistema",
-      "errorFailedToLoad": "No se pudo cargar. Inténtalo de nuevo.",
+      "errorFailedToLoad": "No se pudo cargar. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "hostLabel": "Nombre en la red",
       "uptimeLabel": "Tiempo activo",
       "memoryLabel": "Memoria",
@@ -815,7 +818,7 @@
     "spaceLow": "Casi lleno: quedan {free} en Home Screens. Elimina las fotos que no necesites para hacer sitio.",
     "emptyTitle": "Aún no hay nada en {folder}",
     "emptyHint": "Añade fotos o vídeos desde este móvil.",
-    "loadFailed": "No se pudieron cargar tus fotos.",
+    "loadFailed": "No se pudieron cargar tus fotos. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "showsOn": {
       "one": "Se verá en {walls}.",
       "other": "Se verán en {walls}."
@@ -1272,7 +1275,7 @@
       "title": "Todavía no hay nada en el tablón",
       "body": "Escribe una nota abajo y aparecerá en el monitor unos segundos después. Las notas se quitan solas cuando pasa el tiempo que elijas."
     },
-    "loadError": "No se pudieron cargar las notas.",
+    "loadError": "No se pudieron cargar las notas. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "editAria": "Editar la nota de {name}",
     "dayNotes": {
       "sub": "Las notas del día van en los calendarios del monitor",
@@ -1285,7 +1288,7 @@
       "placeholder": "Foto de clase, no hay cole…",
       "put": "Ponerla en el calendario",
       "remove": "Quitar",
-      "loadError": "No se pudieron cargar las notas del día.",
+      "loadError": "No se pudieron cargar las notas del día. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "saved": "Guardada para el {day}. Saldrá en el monitor cuando un calendario muestre ese día.",
       "removed": "Nota quitada",
       "undo": "Deshacer",
