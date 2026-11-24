@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { ModuleStyle, NotesConfig, NotesFilter, NotesView } from '@/types/config';
 import type { Note } from '@/types/notes';
 import ModuleWrapper from '../ModuleWrapper';
@@ -11,7 +11,19 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
-import { arrangeNotes, isMaterialView, NOTES_TITLE_ROW_VIEWS } from '@/lib/notes-rules';
+import { arrangeNotes, isLive, isMaterialView, NOTES_TITLE_ROW_VIEWS } from '@/lib/notes-rules';
+import { notesCardDraws } from '@/lib/notes-wall';
+import { createDrawingRequest, deleteNoteRequest, sendNotesWrite } from '@/lib/notes-client';
+import { displayCache } from '@/lib/display-cache';
+import { displayFetch } from '@/lib/display-fetch';
+import type { NoteSurface } from '@/lib/note-drawing';
+import type { NoteDrawingLine } from '@/types/notes';
+import { TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
+import { NoteDrawDoor } from './NoteDrawDoor';
+import { NoteDrawSheet, type NoteDrawPost } from './NoteDrawSheet';
+import { NoteDrawingOverlay, NotePostedNotice } from './NoteDrawingOverlay';
+import { forgetKeptDrawing, keepDrawing, useKeptDrawing } from './keptDrawing';
+import { ageOf, authorOf } from './shared';
 import { clampSetting, type NotesContext } from './shared';
 import { ModuleTitleRow } from '../shared/ModuleTitleRow';
 import { STEP_SECONDS } from './useStepper';
@@ -48,7 +60,20 @@ interface NotesModuleProps {
   timezone?: string;
   /** The household's saved 12/24-hour choice, applied to every module the same way. */
   timeFormat?: TimeFormat;
+  /** The card's address on a wall. Absent in the editor's canvas, where the card takes no touch. */
+  screenId?: string;
+  moduleId?: string;
 }
+
+/** The page a view's drawings are made on and drawn in: the whiteboard's marker, the chalkboard's chalk, paper, or the plain card. */
+const VIEW_SURFACE: Partial<Record<NotesView, NoteSurface>> = {
+  whiteboard: 'marker',
+  chalkboard: 'chalk',
+  fridge: 'paper',
+  notebook: 'paper',
+  receipt: 'paper',
+  headline: 'paper',
+};
 
 type NotesPayload = { notes: Note[] };
 
@@ -105,7 +130,7 @@ function resolveFilter(filter: unknown): NotesFilter {
   return filter === 'pinned' || filter === 'important' ? filter : 'all';
 }
 
-export default function NotesModule({ config, style, timezone, timeFormat: savedTimeFormat }: NotesModuleProps) {
+export default function NotesModule({ config, style, timezone, timeFormat: savedTimeFormat, screenId, moduleId }: NotesModuleProps) {
   const timeFormat = useHouseholdTimeFormat(savedTimeFormat);
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -139,6 +164,76 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     [payload, now, filter, max, capped],
   );
 
+  // A touch wall: the card knows its own address. The editor's canvas does
+  // not, and stays a picture.
+  const onWall = !!screenId && !!moduleId;
+  // The same rule the hub holds the wall to (`notesCardDraws`).
+  // The editor's canvas draws the button too, as a picture: the card then
+  // fits the same notes there as on the wall, and the switch visibly does something.
+  const draws = notesCardDraws({ ...config, view });
+  const surface: NoteSurface = VIEW_SURFACE[view] ?? 'card';
+  const kept = useKeptDrawing();
+  const [drawing, setDrawing] = useState(false);
+  const [opened, setOpened] = useState<string | null>(null);
+  const [posted, setPosted] = useState<{ id: string; words: string; detail?: string; lines: NoteDrawingLine[] } | null>(null);
+  const openDrawing = useCallback((note: Note) => setOpened(note.id), []);
+
+  // What the hub answered is every note, gone ones too; the wall's read holds only the live ones.
+  const showAnswer = useCallback((notes: Note[]) => {
+    const at = new Date();
+    displayCache.replace(notesUrl(), { notes: notes.filter((n) => isLive(n, at)) }, FETCH_KEY_REGISTRY.notes.ttlMs);
+  }, []);
+  const post = useCallback(async ({ drawing: lines, authorId, life }: NoteDrawPost) => {
+    const fallback = t('notes.draw.failed');
+    const { notes, created, madeRoom = 0 } = await sendNotesWrite(displayFetch, createDrawingRequest({ drawing: lines, authorId, life }), fallback);
+    showAnswer(notes);
+    forgetKeptDrawing();
+    setDrawing(false);
+    if (created) {
+      const who = authorId ? roster.find((m) => m.id === authorId)?.name : undefined;
+      setPosted({
+        id: created.id,
+        words: who ? t('notes.draw.posted', { name: who }) : t('notes.draw.postedNobody'),
+        // The board was full of drawings: say that one came down, so nobody wonders where it went.
+        detail: madeRoom > 0 ? t('notes.draw.madeRoom') : undefined,
+        lines: lines.lines,
+      });
+    }
+  }, [t, roster, showAnswer]);
+  const undoPost = useCallback(async (id: string, lines: NoteDrawingLine[]) => {
+    const { notes } = await sendNotesWrite(displayFetch, deleteNoteRequest(id), t('notes.draw.undoFailed'));
+    showAnswer(notes);
+    // Off the board, not thrown away: a child who taps Undo wants the page
+    // back, the way Undo works while drawing. The button reads "Finish your
+    // drawing" and opens on it.
+    keepDrawing(lines);
+  }, [t, showAnswer]);
+
+  const overlays = (
+    <>
+      {drawing && (
+        <NoteDrawSheet
+          surface={surface}
+          accent={TAP_CHECKBOX_ACCENT}
+          members={roster}
+          startWith={kept ?? undefined}
+          onPost={post}
+          onClose={(page) => {
+            if (page) keepDrawing(page);
+            else forgetKeptDrawing();
+            setDrawing(false);
+          }}
+        />
+      )}
+      {posted && (
+        <NotePostedNotice key={posted.id} words={posted.words} detail={posted.detail} onUndo={() => undoPost(posted.id, posted.lines)} onDone={() => setPosted(null)} />
+      )}
+    </>
+  );
+  const door = draws
+    ? { label: t(kept ? 'notes.draw.rowFinish' : 'notes.draw.row'), onPress: () => { if (!onWall) return; setPosted(null); setDrawing(true); } }
+    : undefined;
+
   // First fetch still in flight: a plain card, never a crash.
   if (!payload && !fetchError) {
     return (
@@ -161,7 +256,20 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
   // nothing to paint without notes, and its ink on a bare surface is
   // invisible on a dark wall.
   if (arranged.all.length === 0 && view !== 'count') {
-    return <ModuleEmptyState style={style} type="notes" message={emptyMessage} />;
+    // An empty board on a wall that draws still offers the button: the first
+    // note can be a drawing.
+    if (!door) return <ModuleEmptyState style={style} type="notes" message={emptyMessage} />;
+    return (
+      <ModuleWrapper style={style}>
+        <div ref={containerRef} data-testid="notes-empty-draw" data-view={view} className="flex flex-col h-full min-h-0 overflow-hidden" style={{ fontSize: `${scaledFontSize}px`, lineHeight: 1.2 }}>
+          <div className="flex flex-1 min-h-0 items-center justify-center text-center" style={{ fontSize: '0.8em', opacity: 0.6, padding: '0 0.5em' }}>
+            {filter === 'all' ? t('notes.emptyDraw') : emptyMessage}
+          </div>
+          <NoteDrawDoor label={door.label} accent={TAP_CHECKBOX_ACCENT} onPress={door.onPress} />
+        </div>
+        {overlays}
+      </ModuleWrapper>
+    );
   }
 
   const ctx: NotesContext = {
@@ -174,6 +282,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     timeFormat,
     t,
     fontPx: scaledFontSize,
+    onOpenDrawing: onWall ? openDrawing : undefined,
   };
   const stepSeconds = clampSetting(config.stepSeconds, STEP_SECONDS.min, STEP_SECONDS.max, STEP_SECONDS.fallback);
   const { all, shown, hidden } = arranged;
@@ -181,7 +290,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
   const showTitle = config.showTitle !== false;
   // What every material view takes: the surface is the card, so it also
   // gets the card's padding and the width to lay out against.
-  const material = { ctx, all, shown, hidden, max, stepSeconds, title, heading: config.title?.trim() ?? '', showTitle, padding: style.padding, width: boxWidth, height: boxHeight };
+  const material = { ctx, all, shown, hidden, max, stepSeconds, title, heading: config.title?.trim() ?? '', showTitle, padding: style.padding, width: boxWidth, height: boxHeight, door };
 
   let body: ReactNode;
   switch (view) {
@@ -214,6 +323,8 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
   }
 
   const count = all.length;
+  // The drawing opened large, while its note is still on the wall.
+  const openedNote = opened ? all.find((n) => n.id === opened && n.drawing) : undefined;
   // A material is its own card: the wrapper draws no surface, border, blur
   // or padding of its own and takes the material's ink and face, the way the
   // Sticky Note module replaces its paper. Radius, opacity and shadow stay.
@@ -240,7 +351,19 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
           />
         )}
         {body}
+        {door && !isMaterialView(view) && <NoteDrawDoor label={door.label} accent={TAP_CHECKBOX_ACCENT} onPress={door.onPress} />}
       </div>
+      {overlays}
+      {openedNote && (
+        <NoteDrawingOverlay
+          note={openedNote}
+          author={authorOf(openedNote, members, t)}
+          age={ageOf(openedNote, ctx)}
+          surface={surface}
+          accent={TAP_CHECKBOX_ACCENT}
+          onClose={() => setOpened(null)}
+        />
+      )}
     </ModuleWrapper>
   );
 }

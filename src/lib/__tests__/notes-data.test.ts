@@ -99,6 +99,24 @@ describe('validateNotesData', () => {
   });
 });
 
+describe('validateNotesData with drawn notes', () => {
+  const lines = [{ c: 'ink', w: 0, p: [10, 10, 500, 400] }];
+
+  it('accepts a drawing with no words', () => {
+    expect(validateNotesData({ notes: [note('a', { text: '', drawing: { lines } as never })] })).toBeNull();
+  });
+
+  it.each<[string, Record<string, unknown>, string]>([
+    ['words beside a drawing', { text: 'A house', drawing: { lines } }, 'Note 1: a drawing has no text'],
+    ['a drawing with no lines', { text: '', drawing: { lines: [] } }, 'Note 1: A drawing needs at least one line'],
+    ['a point off the page', { text: '', drawing: { lines: [{ c: 'ink', w: 0, p: [10, 99999] }] } }, 'Note 1: A point is off the page'],
+    ['a colour that is not a pen', { text: '', drawing: { lines: [{ c: 'gold', w: 0, p: [10, 10] }] } }, 'Note 1: Each line needs one of the pen colours'],
+    ['no words and no drawing', { text: '' }, 'Note 1 is missing its text'],
+  ])('refuses %s', (_label, overrides, message) => {
+    expect(validateNotesData({ notes: [{ ...note('a'), ...overrides }] })).toBe(message);
+  });
+});
+
 describe('NotesError', () => {
   it('is the same class whether imported from the store or its own file', () => {
     expect(ReexportedNotesError).toBe(NotesError);

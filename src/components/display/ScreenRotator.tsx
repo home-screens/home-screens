@@ -65,6 +65,7 @@ import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { usePixelShift } from '@/hooks/usePixelShift';
 import { pixelShiftTransform } from '@/lib/pixel-shift';
 import NoTimezoneBanner from '@/components/NoTimezoneBanner';
+import { setWallTouchGate } from '@/lib/wall-touch-gate';
 
 interface ScreenRotatorProps {
   screens: Screen[];
@@ -816,7 +817,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       }
     }
     window.addEventListener('click', onClickCapture, { capture: true });
-    return () => window.removeEventListener('click', onClickCapture, { capture: true });
+    // The same answer for the pieces that act on the finger itself, not on a click.
+    setWallTouchGate(() => contentIsLiveRef.current && Date.now() >= wakeGuardUntilRef.current && Date.now() >= screenChangeGuardUntilRef.current);
+    return () => {
+      window.removeEventListener('click', onClickCapture, { capture: true });
+      setWallTouchGate(null);
+    };
   }, []);
 
   // Rotation timer: schedules a single setTimeout per screen using the

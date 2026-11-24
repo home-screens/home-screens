@@ -14,6 +14,7 @@ import { isMaterialView, NOTES_HEADING_VIEWS } from '@/lib/notes-rules';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, NotesConfig, NotesFilter, NotesView } from '@/types/config';
 import FieldHint from '@/components/ui/FieldHint';
+import { NOTES_DRAW_VIEWS, notesCardShowsEveryNote } from '@/lib/notes-wall';
 
 // Which views read which field, from the NotesConfig JSDoc. The editor shows
 // only the controls the chosen view honours.
@@ -142,6 +143,15 @@ export function NotesConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ showAge: v })}
           />
         </>
+      )}
+
+      {NOTES_DRAW_VIEWS.has(view) && notesCardShowsEveryNote({ ...c, view }) && (
+        <Toggle
+          label={t('configSections.notes.wallDraw')}
+          checked={!!c.wallDraw}
+          onChange={(v) => set({ wallDraw: v })}
+          description={t('configSections.notes.wallDrawHelp')}
+        />
       )}
 
       {/* Notes are family data: written here with Edit notes, or on a phone in the Notes tab. */}

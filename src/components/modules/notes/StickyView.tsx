@@ -3,7 +3,7 @@
 import type { Note } from '@/types/notes';
 import { tiltFor } from '@/lib/notes-rules';
 import { useFittedNotes } from './useFittedNotes';
-import { DANGER, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
+import { DANGER, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /** Paper for a note with no author: the Sticky Note module's yellow. */
 const PLAIN_PAPER = '#fef08a';
@@ -59,9 +59,13 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
                 transform: `rotate(${tiltFor(note.id)}deg)`,
               }}
             >
-              <div className="line-clamp-4" style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
-                {note.text}
-              </div>
+              {note.drawing ? (
+                <NoteDrawingBody note={note} ctx={ctx} surface="paper" fill style={{ margin: '-0.3em -0.2em 0' }} />
+              ) : (
+                <div className="line-clamp-4" style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                  {note.text}
+                </div>
+              )}
               <div
                 className="flex items-center mt-auto min-w-0"
                 style={{ paddingTop: '0.62em', fontSize: '0.78em', color: PAPER_MUTED, gap: '0.3em', fontWeight: 600 }}

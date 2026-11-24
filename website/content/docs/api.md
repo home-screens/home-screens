@@ -914,7 +914,7 @@ Display access on purpose, touch kiosks post `step-done` when a kid taps Done. E
 
 The family notes board (see [Notes](/docs/notes)), written from the remote's Notes tab and drawn by the Notes module. Like lists and chores it is family data: it lives in `data/notes.json`, not in the display config.
 
-A note is `{ id, text, authorId?, pinned, important, life, createdAt, updatedAt, expiresAt }`. `text` is plain text, trimmed, at most 500 characters. `authorId` is a member ID from `/api/family`, absent for a note from nobody. `life` is how long it stays on the wall: `12h`, `1d`, `3d`, `7d` or `keep`. `expiresAt` is the instant it leaves the wall, or `null` for `keep`. A note whose `expiresAt` has passed is gone: off the wall and kept for the phone's Gone group for 7 days, after which the next write drops it. The board holds at most 200 notes.
+A note is `{ id, text, drawing?, authorId?, pinned, important, life, createdAt, updatedAt, expiresAt }`. `text` is plain text, trimmed, at most 500 characters, and empty for a note drawn on the wall, which has `drawing` in its place: `{ "lines": [{ "c": "red", "w": 1, "p": [x0, y0, x1, y1, ...] }] }`. Each line has a pen colour `c` (`ink`, `red`, `orange`, `green`, `blue` or `purple`; `ink` is whatever the view writes in), a pen `w` (`0` thin, `1` thick) and its points `p` as whole numbers on a page 1000 wide and 750 tall. A drawing holds at most 400 lines and 6000 points. `authorId` is a member ID from `/api/family`, absent for a note from nobody. `life` is how long it stays on the wall: `12h`, `1d`, `3d`, `7d` or `keep`. `expiresAt` is the instant it leaves the wall, or `null` for `keep`. A note whose `expiresAt` has passed is gone: off the wall and kept for the phone's Gone group for 7 days, after which the next write drops it. The board holds at most 200 notes.
 
 ### GET /api/notes
 
@@ -943,11 +943,15 @@ Returns `{ "notes": [...] }`, unsorted: every note the 7-day sweep has not dropp
 
 ### POST /api/notes
 
-Posts a note. Requires a valid session; a display token is not enough, because the wall only reads the board.
+Posts a note. A session may post words or a drawing. A display token may post a drawing only, as the wall's **Draw a note** does.
 
-**Body:** `{ "text": "...", "authorId": "member-1", "life": "1d", "pinned": false, "important": true }`. Only `text` is required. `life` defaults to `1d`, `pinned` and `important` to `false`, and an absent, empty or `null` `authorId` posts the note from nobody. The body is capped at 8 KB. Empty or overlong text, an unknown `life`, or a flag that is not `true` or `false` is answered with `400`. When the board already holds 200 notes, the oldest gone notes make room; a board of 200 live notes is answered with `409`.
+**Body:** `{ "text": "...", "authorId": "member-1", "life": "1d", "pinned": false, "important": true }`, or `drawing` in place of `text`. One of the two is required, never both. `life` defaults to `1d`, `pinned` and `important` to `false`, and an absent, empty or `null` `authorId` posts the note from nobody. The body is capped at 96 KB. Empty or overlong text, a drawing that is not sound, an unknown `life`, or a flag that is not `true` or `false` is answered with `400`. When the board already holds 200 notes, the oldest gone notes make room; a board of 200 live notes is answered with `409`.
 
-**Response:** `{ "notes": [...], "created": { ... } }`: every note, live and gone, so a phone can reconcile in one step, and the note just made.
+**Drawings:** a drawing from anyone is answered with `403` unless some Notes module on some display has **Draw on the wall** on and shows the button. The board keeps at most 12 drawings up: one more takes down the oldest drawing that is not pinned, which moves to Gone, and the answer's `madeRoom` says how many came down. Deleting the new drawing within five minutes puts them back.
+
+**From a display token:** only `drawing`, `authorId` and `life` are taken, and `life` may not be `keep`; anything else is answered as needing a session.
+
+**Response:** `{ "notes": [...], "created": { ... } }`: every note, live and gone, so a phone can reconcile in one step, and the note just made. A drawing's answer also carries `madeRoom`.
 
 ### PATCH /api/notes/:noteId
 
@@ -962,7 +966,7 @@ Any other `action` is answered with `400`, and an unknown `noteId` with `404`. *
 
 ### DELETE /api/notes/:noteId
 
-Removes the note for good. Requires a valid session. An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+Removes the note for good. Requires a valid session, except that a display token may remove a drawing the hub posted for a wall in the last five minutes (the wall's **Undo**). An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
 
 ---
 

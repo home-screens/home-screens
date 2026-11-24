@@ -1293,7 +1293,9 @@
       "removed": "Note removed",
       "undo": "Undo",
       "atLimit": "That's as long as a day note can be."
-    }
+    },
+    "drawing": "Drawing",
+    "drawingHelp": "Drawn on the wall. You can change who it is from and how long it stays."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

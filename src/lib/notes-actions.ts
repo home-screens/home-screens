@@ -2,7 +2,8 @@ import { NotesError } from './notes-errors';
 import { requiredText } from './refusal';
 import { expiryFor, isGone, isLive, isSweepable } from './notes-rules';
 import { uuid } from './uuid';
-import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife, type NotesData } from '@/types/notes';
+import { cleanDrawing, drawingsToTakeDown } from './note-drawing';
+import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteDrawing, type NoteLife, type NotesData } from '@/types/notes';
 
 /**
  * What each phone action does to the board, as pure functions over
@@ -12,7 +13,10 @@ import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife, 
  */
 
 export interface CreateNoteInput {
-  text: string;
+  /** The words. Left out for a drawing. */
+  text?: string;
+  /** The lines of a drawn note, in place of words. */
+  drawing?: NoteDrawing;
   authorId?: string | null;
   life?: NoteLife;
   pinned?: boolean;
@@ -77,7 +81,10 @@ function replace(data: NotesData, next: Note): NotesData {
  * note somebody can still read on the wall is worse than saying so.
  */
 export function createNote(data: NotesData, input: CreateNoteInput, now: Date): { data: NotesData; note: Note } {
-  const text = cleanText(input.text);
+  // Words or a drawing, never both: a drawing has no words to search, clamp or fit.
+  const drawing = input.drawing === undefined ? undefined : cleanDrawing(input.drawing);
+  if (drawing && input.text !== undefined && input.text !== '') throw new NotesError(400, 'notes.badRequest', 'A note has words or a drawing, not both.');
+  const text = drawing ? '' : cleanText(input.text);
   const authorId = cleanAuthor(input.authorId);
   const life = cleanLife(input.life, DEFAULT_NOTE_LIFE);
   const pinned = cleanFlag(input.pinned, false);
@@ -93,6 +100,7 @@ export function createNote(data: NotesData, input: CreateNoteInput, now: Date): 
   const note: Note = {
     id: uuid(),
     text,
+    ...(drawing ? { drawing } : {}),
     ...(authorId ? { authorId } : {}),
     pinned,
     important,
@@ -108,7 +116,14 @@ export function createNote(data: NotesData, input: CreateNoteInput, now: Date): 
 export function updateNote(data: NotesData, id: string, patch: NotePatch, now: Date): NotesData {
   const current = find(data, id);
   const next: Note = { ...current };
-  if (patch.text !== undefined) next.text = cleanText(patch.text);
+  if (patch.text !== undefined) {
+    // A drawing keeps no words: the phone shows the picture where the box would be.
+    if (current.drawing) {
+      if (patch.text !== '') throw new NotesError(400, 'notes.badRequest', 'A drawing has no words to change.');
+    } else {
+      next.text = cleanText(patch.text);
+    }
+  }
   if (patch.authorId !== undefined) {
     const authorId = cleanAuthor(patch.authorId);
     if (authorId) next.authorId = authorId;
@@ -141,6 +156,38 @@ export function repost(data: NotesData, id: string, now: Date): NotesData {
   const current = find(data, id);
   const at = now.toISOString();
   return replace(data, { ...current, createdAt: at, updatedAt: at, expiresAt: expiryFor(current.life, now) });
+}
+
+/**
+ * Make room for one more drawing from the wall: with the wall's cap of
+ * drawings already up, the oldest that is not pinned comes down. It goes to
+ * the phone's Gone group like any note taken down, so nothing is lost and a
+ * keen artist never buries the board.
+ */
+export function makeRoomForDrawing(data: NotesData, now: Date): NotesData {
+  const down = new Set(drawingsToTakeDown(data.notes.filter((n) => isLive(n, now))));
+  if (down.size === 0) return data;
+  const at = now.toISOString();
+  return { ...data, notes: data.notes.map((n) => (down.has(n.id) ? { ...n, expiresAt: at, updatedAt: at } : n)) };
+}
+
+/**
+ * Put back what a drawing took down to make room, when that drawing is taken
+ * off again: each one that is still down exactly as it was left goes back up
+ * until the time it had. One a phone has since reposted, changed or deleted
+ * is left alone.
+ */
+export function putBackTakenDown(data: NotesData, taken: readonly { id: string; expiresAt: string | null; downAt: string }[]): NotesData {
+  if (taken.length === 0) return data;
+  const byId = new Map(taken.map((t) => [t.id, t]));
+  let changed = false;
+  const notes = data.notes.map((n) => {
+    const was = byId.get(n.id);
+    if (!was || n.expiresAt !== was.downAt) return n;
+    changed = true;
+    return { ...n, expiresAt: was.expiresAt, updatedAt: was.downAt };
+  });
+  return changed ? { ...data, notes } : data;
 }
 
 export function deleteNote(data: NotesData, id: string): NotesData {

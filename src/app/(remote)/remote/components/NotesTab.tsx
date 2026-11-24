@@ -15,6 +15,7 @@ import NotesSheet from './NotesSheet';
 import { readRememberedAuthor, rememberAuthor } from './notes-author';
 import { DANGER_BUTTON, GHOST_BUTTON } from './remote-styles';
 import { NoteIcon } from '@/components/notes/NoteGlyph';
+import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
 import DayNotesPage from './DayNotesPage';
 import TabNotSetUp from './TabNotSetUp';
 import TabHeader from './TabHeader';
@@ -49,6 +50,9 @@ const TOP_ROW: CSSProperties = {
   color: 'var(--hs-text-muted)',
   minWidth: 0,
 };
+
+/** A drawn note on a card: 4 wide by 3 tall, in the card's own ink. */
+const DRAWING_BOX: CSSProperties = { display: 'block', width: 160, aspectRatio: '4 / 3', color: 'var(--hs-text-primary)' };
 
 const NOTE_TEXT: CSSProperties = {
   display: 'block',
@@ -264,7 +268,13 @@ function NotesBoard({ onOpenCalendar }: {
                     {left.unit === 'minute' ? <span style={MARK_SOON}>{leftText}</span> : leftText}
                   </span>
                 </span>
-                <span id={textId} style={NOTE_TEXT}>{note.text}</span>
+                {note.drawing ? (
+                  <span id={textId} data-testid="notes-row-drawing" style={DRAWING_BOX}>
+                    <NoteDrawingArt drawing={note.drawing} label={t('notes.drawing')} />
+                  </span>
+                ) : (
+                  <span id={textId} style={NOTE_TEXT}>{note.text}</span>
+                )}
                 {note.important && (
                   <span style={{ display: 'flex', gap: 6 }}>
                     <span style={MARK_IMPORTANT}>
@@ -319,7 +329,13 @@ function NotesBoard({ onOpenCalendar }: {
                             <b style={{ color: 'var(--hs-text-body)', fontWeight: 600 }}>{nameOf(note)}</b>
                             <span>{ageOf(note)}</span>
                           </span>
-                          <span style={NOTE_TEXT}>{note.text}</span>
+                          {note.drawing ? (
+                            <span style={{ ...DRAWING_BOX, width: 120 }}>
+                              <NoteDrawingArt drawing={note.drawing} label={t('notes.drawing')} />
+                            </span>
+                          ) : (
+                            <span style={NOTE_TEXT}>{note.text}</span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
                           <button
@@ -379,7 +395,7 @@ function NotesBoard({ onOpenCalendar }: {
             setRememberedAuthor(authorId);
             // A post that fails hands its words back to the bar, like the fast path.
             void api.post(input).then((saved) => {
-              if (!saved) setBarText((now) => (now.trim() ? now : input.text));
+              if (!saved) setBarText((now) => (now.trim() ? now : input.text ?? ''));
             });
           }}
           onDiscard={(draft) => {
@@ -405,7 +421,7 @@ function NotesBoard({ onOpenCalendar }: {
       {deletingNote && (
         <ConfirmSheet
           title={t('notes.deleteConfirm')}
-          description={deletingNote.text}
+          description={deletingNote.drawing ? t('notes.drawing') : deletingNote.text}
           confirmLabel={t('notes.delete')}
           onConfirm={() => {
             api.remove(deletingNote.id);

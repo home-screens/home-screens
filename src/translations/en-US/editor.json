@@ -3201,7 +3201,8 @@
       "title": "Delete this note?",
       "message": "This note goes away for good. It can't be posted again."
     },
-    "loadError": "Couldn't load the notes. Try closing and opening this again."
+    "loadError": "Couldn't load the notes. Try closing and opening this again.",
+    "drawing": "Drawing"
   },
   "mealPlannerModal": {
     "title": "Meal Planner",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Headline",
       "groupLayouts": "Layouts",
       "groupMaterials": "Materials",
-      "materialHelp": "This look brings its own colors and lettering, so the background, text color, border and font settings do not apply."
+      "materialHelp": "This look brings its own colors and lettering, so the background, text color, border and font settings do not apply.",
+      "wallDraw": "Draw on the wall",
+      "wallDrawHelp": "A \"Draw a note\" button on the card. Anyone at a touch wall can leave a drawing on the board; taking notes down stays on the phone."
     }
   },
   "modals": {

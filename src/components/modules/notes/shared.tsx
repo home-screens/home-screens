@@ -1,4 +1,5 @@
-import { Pin, TriangleAlert } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { Pencil, Pin, TriangleAlert } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { Note } from '@/types/notes';
 import type { TimeFormat } from '@/types/config';
@@ -7,6 +8,9 @@ import { INK, ink } from '@/lib/constants';
 import { formatNoteAge } from '@/lib/notes-rules';
 import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
 import { MoreLine as SharedMoreLine } from '../shared/MoreLine';
+import { WallButton } from '../shared/WallButton';
+import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
+import type { NoteSurface } from '@/lib/note-drawing';
 
 /**
  * Pieces every Notes view shares: who wrote a note, how old it reads, the
@@ -44,6 +48,84 @@ export interface NotesContext {
   t: TranslateFn;
   /** The fitted base font size in px, for the fit measurements. */
   fontPx: number;
+  /** On a wall that takes touch: a tap on a drawing opens it large. Unset in the editor's canvas. */
+  onOpenDrawing?: (note: Note) => void;
+}
+
+/**
+ * What a note says where only words fit (a one-line bar, a ticker, a row of
+ * a person's newest): its text, or "Drawing" for a note that was drawn.
+ */
+export function noteWords(note: Pick<Note, 'text' | 'drawing'>, t: TranslateFn): string {
+  return note.drawing ? t('notes.drawing') : note.text;
+}
+
+/** A small pencil and "Drawing", where a one-line view has no room for the picture. */
+export function DrawingWords({ t }: { t: TranslateFn }) {
+  return (
+    <span data-testid="notes-drawing-words" className="inline-flex items-center" style={{ gap: '0.3em' }}>
+      <Pencil size="0.85em" strokeWidth={2.2} className="shrink-0" aria-hidden="true" />
+      {t('notes.drawing')}
+    </span>
+  );
+}
+
+/** A note's words, or the pencil and "Drawing" for a drawn one, for a one-line view. */
+export function NoteLine({ note, t }: { note: Pick<Note, 'text' | 'drawing'>; t: TranslateFn }) {
+  return note.drawing ? <DrawingWords t={t} /> : <>{note.text}</>;
+}
+
+/**
+ * How tall a drawing sits where a note's words would be: the two lines of
+ * words a Board row shows at most, so a drawing costs the card exactly what
+ * a typed note does. Any taller and one drawing pushes the notes
+ * under it off the card; a tap opens it large.
+ */
+export const DRAWING_ROW_HEIGHT = '2.6em';
+
+/**
+ * A drawn note inside a view, where its words would be: 4 wide by 3 tall,
+ * `height` tall and left-aligned, or as wide as its box with `fill`. On a
+ * wall that takes touch the picture is a button that opens it large; in the
+ * editor's canvas it is only a picture.
+ */
+export function NoteDrawingBody({ note, ctx, surface = 'card', height = DRAWING_ROW_HEIGHT, fill = false, style }: {
+  note: Note;
+  ctx: NotesContext;
+  surface?: NoteSurface;
+  height?: string;
+  /** Take the box's whole width (a sticky paper) instead of a set height. */
+  fill?: boolean;
+  style?: CSSProperties;
+}) {
+  if (!note.drawing) return null;
+  const who = authorOf(note, ctx.members, ctx.t).name;
+  // A set height gets a set width beside it rather than `aspect-ratio`: a
+  // grid sizing its rows (the fridge's papers) takes an aspect-ratio box for
+  // shorter than it is drawn, and the name under the picture then hangs out
+  // of its paper. The picture inside keeps its shape either way.
+  const sized = /(em|px)$/.test(height);
+  const box: CSSProperties = {
+    display: 'block',
+    ...(fill ? { width: '100%', aspectRatio: '4 / 3' }
+      : sized ? { height, width: `calc(${height} * 4 / 3)`, maxWidth: '100%', flexShrink: 0 }
+        : { height, aspectRatio: '4 / 3', maxWidth: '100%' }),
+    ...style,
+  };
+  const art = <NoteDrawingArt drawing={note.drawing} surface={surface} label={ctx.t('notes.drawingFrom', { name: who })} />;
+  // A span, not a div: the newspaper's stories are paragraphs.
+  if (!ctx.onOpenDrawing) return <span data-testid="notes-drawing" style={box}>{art}</span>;
+  const open = ctx.onOpenDrawing;
+  return (
+    <WallButton
+      data-testid="notes-drawing"
+      aria-label={ctx.t('notes.openDrawing', { name: who })}
+      onClick={() => open(note)}
+      style={{ ...box, padding: 0, border: 0, background: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', touchAction: 'manipulation' }}
+    >
+      {art}
+    </WallButton>
+  );
 }
 
 /** Who wrote a note, ready to draw: a member, or "Someone" with no colour. */
@@ -91,7 +173,7 @@ export function fitKeyOf(notes: readonly Note[], ...extra: (string | number | bo
   // The wording itself, not its length: a space swapped for a line break
   // changes how a note wraps without changing how long it is.
   return notes
-    .map((n) => `${n.id}:${n.updatedAt}:${n.text}:${n.pinned ? 1 : 0}${n.important ? 1 : 0}:${n.authorId ?? ''}`)
+    .map((n) => `${n.id}:${n.updatedAt}:${n.text}:${n.drawing ? 'd' : ''}${n.pinned ? 1 : 0}${n.important ? 1 : 0}:${n.authorId ?? ''}`)
     .join('\u0000') + `#${extra.join(',')}`;
 }
 

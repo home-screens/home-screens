@@ -3201,7 +3201,8 @@
       "title": "Deze notitie verwijderen?",
       "message": "Deze notitie is dan voorgoed weg. Je kunt hem niet meer terugzetten."
     },
-    "loadError": "De notities konden niet worden geladen. Sluit dit venster en open het opnieuw."
+    "loadError": "De notities konden niet worden geladen. Sluit dit venster en open het opnieuw.",
+    "drawing": "Tekening"
   },
   "mealPlannerModal": {
     "title": "Maaltijdplanner",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Krant",
       "groupLayouts": "Indelingen",
       "groupMaterials": "Materialen",
-      "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet."
+      "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet.",
+      "wallDraw": "Tekenen op de muur",
+      "wallDrawHelp": "Een knop “Teken een notitie” op de kaart. Iedereen bij een muur met aanraakscherm kan een tekening op het prikbord hangen; notities weghalen blijft op de telefoon."
     }
   },
   "modals": {

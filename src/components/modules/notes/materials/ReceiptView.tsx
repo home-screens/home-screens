@@ -3,8 +3,9 @@
 import { useRef } from 'react';
 import { formatTimeOfDay } from '@/lib/timezone';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFitCount } from '../../shared/useFitCount';
-import { ageOf, authorOf, fitKeyOf, type NotesContext } from '../shared';
+import { ageOf, authorOf, fitKeyOf, type NotesContext, NoteDrawingBody } from '../shared';
 
 const PAPER = '#f7f4ea';
 const RULE = '#777777';
@@ -67,7 +68,7 @@ function Dash() {
  * before important ones; a total, the pinned and important tally, a barcode
  * and a thank-you. Rows fit whole; the rest are counted on a row of their own.
  */
-export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding, height }: MaterialViewProps) {
+export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding, height, door }: MaterialViewProps) {
   const printPx = ctx.fontPx * PRINT_EM;
   const fullFooter = height <= 0 || height / (printPx * ROW_LINE) >= FULL_FOOTER_LINES;
   const boxRef = useRef<HTMLDivElement>(null);
@@ -129,10 +130,10 @@ export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding
               className="flex shrink-0 min-w-0"
               style={{ gap: '0.67em', fontWeight: note.important ? 700 : 400 }}
             >
-              <span className="flex-1 min-w-0 line-clamp-4" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+              <span className={note.drawing ? 'flex-1 min-w-0' : 'flex-1 min-w-0 line-clamp-4'} style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
                 {note.pinned && `[${ctx.t('notes.pinnedOne')}] `}
                 {note.important && '*** '}
-                {note.text}
+                {note.drawing ? <NoteDrawingBody note={note} ctx={ctx} surface="paper" height="4.2em" /> : note.text}
               </span>
               {(name || age) && (
                 <span className="shrink-0 text-right" style={{ width: `${columnCh + 0.5}ch` }}>
@@ -172,6 +173,15 @@ export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding
         <div className="shrink-0 text-center truncate" style={{ marginTop: '0.54em' }}>
           {ctx.t('notes.receiptThanks')}
         </div>
+        {door && (
+          <MaterialDrawDoor
+            label={door.label}
+            onPress={door.onPress}
+            color="inherit"
+            border="2px dashed currentColor"
+            style={{ alignSelf: 'center', marginTop: '0.6em', textTransform: 'uppercase', fontSize: '1em' }}
+          />
+        )}
       </div>
     </div>
   );

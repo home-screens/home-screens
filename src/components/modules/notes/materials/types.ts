@@ -22,4 +22,6 @@ export interface MaterialViewProps {
   padding: number;
   width: number;
   height: number;
+  /** "Draw a note" on a touch wall with drawing on: the material draws the button in its own hand. Unset otherwise. */
+  door?: { label: string; onPress: () => void };
 }

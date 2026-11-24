@@ -1293,7 +1293,9 @@
       "removed": "Notiz entfernt",
       "undo": "Rückgängig",
       "atLimit": "Länger kann eine Tagesnotiz nicht sein."
-    }
+    },
+    "drawing": "Bild",
+    "drawingHelp": "An der Wand gemalt. Du kannst ändern, von wem die Notiz ist und wie lange sie hängt."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

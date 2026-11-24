@@ -25,7 +25,9 @@
       "badLife": "Vælg, hvor længe sedlen skal blive hængende.",
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen.",
       "noteGone": "Den seddel er her ikke længere.",
-      "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først."
+      "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først.",
+      "badDrawing": "Den tegning kunne ikke gemmes.",
+      "wallDrawOff": "Det er slået fra at tegne på væggen."
     },
     "family": {
       "revision": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",

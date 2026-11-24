@@ -12,7 +12,7 @@ nextjs:
 
 ## How the pieces fit
 
-- **The wall** shows a **Notes** module. Pick one of twenty-two views, from a full board or a single line along the bottom of the screen to a chalkboard or a neon sign. The wall only shows notes; nothing can be changed from it.
+- **The wall** shows a **Notes** module. Pick one of twenty-two views, from a full board or a single line along the bottom of the screen to a chalkboard or a neon sign. On a touchscreen, anyone can [draw a note](#5-draw-a-note-on-the-wall) right there. Changing notes and taking them down stays on the phone and in the editor.
 - **The family remote** at `/remote` has a **Notes** tab. That is where most notes are written, changed, taken down and posted again.
 - **The editor** puts the board on a screen and picks how it looks. Its **Edit notes** button writes and changes notes from the computer too.
 
@@ -22,7 +22,7 @@ There is one board for the whole house. Put the Notes module on as many screens 
 
 In the editor, drag **Notes** from the **Personal** group onto a screen, then pick a **View** in its settings. **Board** is the default: one row per note, newest first, with pinned notes on top. The settings below the view change with it, so you only see the ones that view uses. The [views](#the-views) are described further down.
 
-Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here."
+Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here." With **Draw on the wall** on, it says "Nothing on the board. Draw a note here, or write one on your phone." and shows the **Draw a note** button.
 
 ## 2. Write a note on your phone
 
@@ -58,6 +58,24 @@ Select the Notes module in the editor and press **Edit notes** at the top of its
 - **Gone** lists the notes that came down in the last week, each with **Post again** and **Delete**. Delete asks first.
 
 The canvas shows the change straight away, and the wall a few seconds later.
+
+## 5. Draw a note on the wall
+
+On a touchscreen wall, a Notes module with **Draw on the wall** switched on has a **Draw a note** button at the foot of the card (by the tray on the Whiteboard and the Chalkboard). It is on for a new Notes module, and off for one you already had until you switch it on in the module's settings.
+
+1. Tap **Draw a note**. A page opens with six colours, a thin pen and a thick pen. Draw with a finger. Two people can draw at once, each finger makes its own line.
+2. **Undo** takes back one line at a time. **Start over** empties the page, and **Undo** brings it back if that was a mistake.
+3. Tap **Next**, tap who drew it (or **Nobody**), and pick how long it stays: **12 hours**, **1 day**, **3 days** or **1 week**.
+4. Tap **Put it on the board**. The wall says it is up and offers **Undo** for a few seconds. Undo takes it off the board and hands the page back: the button reads **Finish your drawing**, so you can fix it and put it up again.
+
+Good to know:
+
+- A drawing is a note like any other. It shows in every view, on every screen, and comes down on its own when its time is up. Each view draws it in its own style: chalk on the Chalkboard, marker on the Whiteboard, dark ink on a Sticky paper. The one-line views (Strip, Ticker, Compact) have no room for a picture and say "Drawing".
+- On a card a drawing takes the room of a two-line note. Tap it to see it large.
+- **Close** with something on the page asks before throwing it away. If nobody touches the page for two minutes it closes by itself and keeps the drawing for ten minutes: the button then reads **Finish your drawing**.
+- On the phone and in the editor a drawing shows as a small picture. You can change who it is from, how long it stays, pin it, mark it important, take it down and post it again. The picture itself cannot be changed, and the phone cannot draw.
+- The board keeps at most 12 drawings up at once. One more takes down the oldest drawing that is not pinned, and the wall says so. It goes to **Gone** on the phone, where you can post it again for a week. Undo on the new drawing puts the old one back.
+- The views with no room for the button are Strip, Ticker, Compact, Count, Spotlight, Latest, Neon and Letterboard. Put a second Notes module in another view on the screen if you want to draw from there. A module set to show **Pinned only** or **Important only** has no button either, because a new drawing would never show on it.
 
 ## The views
 
@@ -105,6 +123,7 @@ Most views use every setting below. The editor hides the ones a view does not us
 - **Show who** and **Show how long ago**: the writer's initial and name, and the age of each note ("25m ago", "2h ago", then the day of the week, then the date once it is a week old). Both on unless you turn them off. Count and By person do not have these switches, because they are about who wrote what.
 - **Seconds per note**: how long Spotlight, Strip, Letterboard and Neon stay on each note before moving on, from 5 to 60. Ten unless you change it.
 - **Scroll speed (seconds per note)**: how slowly Ticker crawls, from 3 to 30. A higher number is slower.
+- **Draw on the wall**: shows the **Draw a note** button on a touchscreen wall. On for a new module. Switch it off on every Notes module and nobody can draw from the wall.
 
 ## Show the board only when there is something on it
 
@@ -118,7 +137,9 @@ The same values work in [display rules](/docs/profiles#display-rules), for examp
 
 ## Who can post
 
-Notes are written on the family remote or in the editor. Once you [set a password](/docs/remote-control#ask-for-a-password), that means a phone or computer that is signed in. The kids' page at `/chores` cannot post notes, so a kid who wants something on the wall asks a grown-up's phone. The wall itself only shows them.
+Typed notes are written on the family remote or in the editor. Once you [set a password](/docs/remote-control#ask-for-a-password), that means a phone or computer that is signed in. The kids' page at `/chores` cannot post notes.
+
+The wall can post one thing: a drawing, and only while some Notes module has **Draw on the wall** on. It cannot type words, pin, mark important, change a note or take one down, apart from **Undo** right after a drawing goes up. To stop drawing from the wall, switch **Draw on the wall** off on every Notes module.
 
 ## When someone leaves the family
 

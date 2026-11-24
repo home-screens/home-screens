@@ -3201,7 +3201,8 @@
       "title": "Diese Notiz löschen?",
       "message": "Diese Notiz ist dann endgültig weg. Sie kann nicht wieder aufgehängt werden."
     },
-    "loadError": "Die Notizen konnten nicht geladen werden. Schließe das Fenster und öffne es noch einmal."
+    "loadError": "Die Notizen konnten nicht geladen werden. Schließe das Fenster und öffne es noch einmal.",
+    "drawing": "Bild"
   },
   "mealPlannerModal": {
     "title": "Mahlzeitenplaner",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Zeitung",
       "groupLayouts": "Layouts",
       "groupMaterials": "Motive",
-      "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht."
+      "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht.",
+      "wallDraw": "An der Wand malen",
+      "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiter nur auf dem Handy."
     }
   },
   "modals": {

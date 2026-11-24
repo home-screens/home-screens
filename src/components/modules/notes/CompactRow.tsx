@@ -1,7 +1,7 @@
 import type { Note } from '@/types/notes';
 import { DIVIDER, ink } from '@/lib/constants';
 import { AuthorBubble } from './AuthorBubble';
-import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
+import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteLine } from './shared';
 
 /**
  * One Compact line: bubble, the text cut with an ellipsis, a marker column
@@ -23,7 +23,7 @@ export function CompactRow({ note, ctx, last }: { note: Note; ctx: NotesContext;
     >
       {ctx.showAuthor && <AuthorBubble author={author} em={0.78} />}
       <span className="truncate flex-1 min-w-0" style={{ fontWeight: 500, color: imp ? DANGER_INK : undefined }}>
-        {note.text}
+        <NoteLine note={note} t={ctx.t} />
       </span>
       <span className="inline-flex justify-center shrink-0" style={{ width: '1.1em' }}>
         {imp ? <WarnGlyph /> : note.pinned ? <PinGlyph color={ink(0.55)} /> : null}

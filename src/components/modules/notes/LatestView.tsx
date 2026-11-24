@@ -2,7 +2,7 @@ import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { sortByTime } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
-import { NoteMarks, ageOf, authorOf, type NotesContext } from './shared';
+import { NoteMarks, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /**
  * Latest: the newest note alone, large, with no stepping and no counter.
@@ -25,12 +25,16 @@ export function LatestView({ ctx, all }: { ctx: NotesContext; all: Note[] }) {
         {ctx.t('notes.latest')}
       </div>
       <div className="flex flex-1 min-h-0 items-center overflow-hidden">
-        <div
-          className="line-clamp-3"
-          style={{ fontSize: '1.5em', lineHeight: 1.22, fontWeight: 500, letterSpacing: '-0.015em', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
-        >
-          {note.text}
-        </div>
+        {note.drawing ? (
+          <NoteDrawingBody note={note} ctx={ctx} height="100%" />
+        ) : (
+          <div
+            className="line-clamp-3"
+            style={{ fontSize: '1.5em', lineHeight: 1.22, fontWeight: 500, letterSpacing: '-0.015em', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+          >
+            {note.text}
+          </div>
+        )}
       </div>
       {showWho && (
         <div className="flex items-center shrink-0 min-w-0" style={{ gap: '0.42em', fontSize: '0.7em', color: ink(0.65) }}>

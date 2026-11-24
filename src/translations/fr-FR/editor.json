@@ -3201,7 +3201,8 @@
       "title": "Supprimer cette note ?",
       "message": "Cette note disparaîtra pour de bon. Elle ne pourra plus être remise sur le mur."
     },
-    "loadError": "Impossible de charger les notes. Fermez cette fenêtre et rouvrez-la."
+    "loadError": "Impossible de charger les notes. Fermez cette fenêtre et rouvrez-la.",
+    "drawing": "Dessin"
   },
   "mealPlannerModal": {
     "title": "Planificateur de repas",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Journal",
       "groupLayouts": "Dispositions",
       "groupMaterials": "Décors",
-      "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas."
+      "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas.",
+      "wallDraw": "Dessiner sur le mur",
+      "wallDrawHelp": "Un bouton « Faire un dessin » sur le module. Tout le monde peut laisser un dessin sur le tableau depuis un mur tactile ; pour retirer une note, il faut passer par le téléphone."
     }
   },
   "modals": {

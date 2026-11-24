@@ -25,7 +25,9 @@
       "badLife": "Pick how long the note should stay.",
       "badRequest": "That change couldn't be understood. Reload the page and try again.",
       "noteGone": "That note is no longer here.",
-      "boardFull": "The board is full: {max} notes. Take some down first."
+      "boardFull": "The board is full: {max} notes. Take some down first.",
+      "badDrawing": "That drawing couldn't be saved.",
+      "wallDrawOff": "Drawing on the wall is turned off."
     },
     "family": {
       "revision": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",

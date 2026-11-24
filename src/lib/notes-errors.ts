@@ -11,7 +11,9 @@ export type NotesRefusalCode =
   | 'notes.badLife'
   | 'notes.badRequest'
   | 'notes.noteGone'
-  | 'notes.boardFull';
+  | 'notes.boardFull'
+  | 'notes.badDrawing'
+  | 'notes.wallDrawOff';
 
 /**
  * Thrown by the pure notes actions (`notes-actions.ts`); the route wrapper

@@ -14,10 +14,49 @@
  */
 export type NoteLife = '12h' | '1d' | '3d' | '7d' | 'keep';
 
+/** A pen colour. `ink` is whatever the surface writes in (white on a dark card, chalk, marker); the rest are fixed. */
+export type NoteInk = 'ink' | 'red' | 'orange' | 'green' | 'blue' | 'purple';
+
+/** Every pen colour, in the order the wall's drawing sheet offers them. */
+export const NOTE_INKS: readonly NoteInk[] = ['ink', 'red', 'orange', 'green', 'blue', 'purple'];
+
+/** One line of a drawing: a finger down, moved, and lifted. */
+export interface NoteDrawingLine {
+  /** The pen's colour. */
+  c: NoteInk;
+  /** The pen: 0 thin, 1 thick. */
+  w: 0 | 1;
+  /** The points as `x0, y0, x1, y1, ...`, whole numbers on the `NOTE_PAGE` page. One point is a dot. */
+  p: number[];
+}
+
+/**
+ * A note drawn on the wall with a finger. Kept as its lines, not as a
+ * picture, so each view draws it in its own ink and at its own size (rules
+ * in `lib/note-drawing.ts`).
+ */
+export interface NoteDrawing {
+  lines: NoteDrawingLine[];
+}
+
+/** The page every drawing is made on: 4 wide by 3 tall. */
+export const NOTE_PAGE = { width: 1000, height: 750 } as const;
+
+/** How much one drawing may hold; the wall's sheet stops the pens at these. */
+export const NOTE_DRAWING_LIMITS = {
+  maxLines: 400,
+  maxPoints: 6000,
+} as const;
+
 export interface Note {
   id: string;
-  /** Plain text, trimmed, at most `NOTES_LIMITS.maxTextLength` characters. No Markdown. */
+  /**
+   * Plain text, trimmed, at most `NOTES_LIMITS.maxTextLength` characters. No Markdown.
+   * Empty for a drawing, which has `drawing` in its place.
+   */
   text: string;
+  /** The lines of a note drawn on the wall. A note has words or a drawing, never both. */
+  drawing?: NoteDrawing;
   /**
    * The family member who wrote it (see `types/family.ts`). Unset when the
    * note was posted as nobody in particular, or when its author has since

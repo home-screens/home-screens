@@ -3201,7 +3201,8 @@
       "title": "¿Eliminar esta nota?",
       "message": "La nota desaparecerá para siempre y no se podrá volver a colgar."
     },
-    "loadError": "No se pudieron cargar las notas. Cierra esta ventana y vuelve a abrirla."
+    "loadError": "No se pudieron cargar las notas. Cierra esta ventana y vuelve a abrirla.",
+    "drawing": "Dibujo"
   },
   "mealPlannerModal": {
     "title": "Planificador de comidas",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Periódico",
       "groupLayouts": "Disposiciones",
       "groupMaterials": "Objetos reales",
-      "materialHelp": "Este aspecto tiene sus propios colores y su propia letra, así que los ajustes de fondo, color del texto, borde y tipo de letra no se aplican."
+      "materialHelp": "Este aspecto tiene sus propios colores y su propia letra, así que los ajustes de fondo, color del texto, borde y tipo de letra no se aplican.",
+      "wallDraw": "Dibujar en el monitor",
+      "wallDrawHelp": "Un botón «Dibuja una nota» en la tarjeta. Cualquiera puede dejar un dibujo en el tablón desde un monitor táctil; quitar notas sigue siendo cosa del móvil."
     }
   },
   "modals": {

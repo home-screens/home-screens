@@ -4,8 +4,9 @@ import { useRef } from 'react';
 import { Star } from 'lucide-react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFitCount } from '../../shared/useFitCount';
-import { ageOf, authorOf, fitKeyOf, type NotesContext } from '../shared';
+import { ageOf, authorOf, fitKeyOf, type NotesContext, NoteDrawingBody } from '../shared';
 
 const PAPER = '#fbf8ee';
 const RULE = 'rgba(110, 150, 210, 0.45)';
@@ -67,7 +68,7 @@ function initialInk(color: string | null): string {
  * in the margin. Important notes are in red pen; pinned ones get a star.
  * The page holds as many whole notes as its rules do and counts the rest.
  */
-export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, height }: MaterialViewProps) {
+export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, height, door }: MaterialViewProps) {
   const unit = ctx.fontPx / DESIGN_PX;
   const px = (design: number) => Math.round(design * unit);
   const rule = Math.max(8, px(RULE_PX));
@@ -134,6 +135,8 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
             const author = authorOf(note, ctx.members, ctx.t);
             const age = ageOf(note, ctx);
             const [head, tail] = splitLastWord(note.text);
+            // A drawing takes four rules whole, so the note under it starts on a rule.
+            const drawingRules = 3;
             return (
               <li
                 key={note.id}
@@ -162,6 +165,18 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
                     {author.initials}
                   </span>
                 )}
+                {note.drawing ? (
+                  <div className="flex items-end min-w-0" style={{ height: rule * drawingRules, gap: '0.5em' }}>
+                    {/* On a narrow page the picture gives way, never the age beside it. */}
+                    <NoteDrawingBody note={note} ctx={ctx} surface="paper" height={`${rule * drawingRules - 4}px`} style={{ flexShrink: 1, minWidth: 0 }} />
+                    {note.pinned && <Star size="0.7em" fill="currentColor" strokeWidth={1.5} aria-hidden="true" className="shrink-0" style={{ color: STAR, marginBottom: '0.4em' }} />}
+                    {age && (
+                      <small className="whitespace-nowrap" style={{ fontFamily: UI_SANS_STACK, fontSize: '0.62em', fontWeight: 500, color: PENCIL_GREY, lineHeight: 1, marginBottom: '0.6em' }}>
+                        {age}
+                      </small>
+                    )}
+                  </div>
+                ) : (
                 <div className="line-clamp-3" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
                   {head}
                   {/* The last word, the star and the age wrap as one, so an age
@@ -185,6 +200,7 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
                     )}
                   </span>
                 </div>
+                )}
               </li>
             );
           })}
@@ -195,6 +211,16 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
           </div>
         )}
       </div>
+      {door && (
+        <MaterialDrawDoor
+          label={door.label}
+          onPress={door.onPress}
+          color={HEADING_INK}
+          background={PAPER}
+          border={`2px solid ${HEADING_INK}`}
+          style={{ alignSelf: 'flex-start', marginTop: '0.2em' }}
+        />
+      )}
     </div>
   );
 }

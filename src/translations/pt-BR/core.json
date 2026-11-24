@@ -25,7 +25,9 @@
       "badLife": "Escolha por quanto tempo a nota deve ficar.",
       "badRequest": "Não deu para entender essa alteração. Recarregue a página e tente de novo.",
       "noteGone": "Essa nota não está mais aqui.",
-      "boardFull": "O mural está cheio: {max} notas. Tire algumas primeiro."
+      "boardFull": "O mural está cheio: {max} notas. Tire algumas primeiro.",
+      "badDrawing": "Não deu para salvar esse desenho.",
+      "wallDrawOff": "Desenhar no painel está desligado."
     },
     "family": {
       "revision": "Alguém alterou a família enquanto você editava. A lista atual está sendo exibida. Faça sua alteração novamente.",

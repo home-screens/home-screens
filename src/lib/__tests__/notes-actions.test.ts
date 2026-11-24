@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createNote, deleteNote, repost, takeDown, updateNote, type CreateNoteInput, type NotePatch } from '../notes-actions';
+import { createNote, deleteNote, makeRoomForDrawing, repost, takeDown, updateNote, type CreateNoteInput, type NotePatch } from '../notes-actions';
+import { WALL_DRAWING_CAP } from '../note-drawing';
 import { NotesError } from '../notes-errors';
 import { isGone, isLive } from '../notes-rules';
-import { NOTES_LIMITS, type Note, type NotesData } from '@/types/notes';
+import { NOTES_LIMITS, type Note, type NoteDrawing, type NotesData } from '@/types/notes';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -316,5 +317,76 @@ describe('deleteNote', () => {
 
   it('answers 404 for a note that is not there', () => {
     expectRefusal(() => deleteNote(board(note('a')), 'missing'), 404, 'That note is no longer here.');
+  });
+});
+
+describe('drawn notes', () => {
+  const HOUSE: NoteDrawing = { lines: [{ c: 'ink', w: 0, p: [100, 600, 100, 300, 400, 300] }, { c: 'red', w: 1, p: [250, 120] }] };
+
+  it('posts a drawing with no words, and keeps a copy of its lines', () => {
+    const { note: made } = createNote(board(), { drawing: HOUSE, authorId: 'mia', life: '3d' }, NOW);
+    expect(made).toMatchObject({ text: '', drawing: HOUSE, authorId: 'mia', life: '3d', pinned: false, important: false });
+    expect(made.drawing).not.toBe(HOUSE);
+    expect(made.drawing!.lines[0].p).not.toBe(HOUSE.lines[0].p);
+  });
+
+  it('refuses words with a drawing, and a drawing that is not one', () => {
+    expect(notesError(() => createNote(board(), { text: 'Hello', drawing: HOUSE }, NOW)).code).toBe('notes.badRequest');
+    expect(notesError(() => createNote(board(), { drawing: { lines: [] } }, NOW)).code).toBe('notes.badDrawing');
+    expect(notesError(() => createNote(board(), { drawing: 'house' as never }, NOW)).code).toBe('notes.badDrawing');
+    // Empty words beside a drawing are no words at all.
+    expect(createNote(board(), { text: '', drawing: HOUSE }, NOW).note.drawing).toEqual(HOUSE);
+  });
+
+  it('lets who, how long and the flags change, never words', () => {
+    const drawn = note('d', { text: '', drawing: HOUSE });
+    const next = updateNote(board(drawn), 'd', { authorId: 'dad', pinned: true, important: true, life: '7d' }, NOW).notes[0];
+    expect(next).toMatchObject({ text: '', drawing: HOUSE, authorId: 'dad', pinned: true, important: true, life: '7d' });
+    expect(notesError(() => updateNote(board(drawn), 'd', { text: 'A house' }, NOW)).code).toBe('notes.badRequest');
+    expect(updateNote(board(drawn), 'd', { text: '' }, NOW).notes[0].text).toBe('');
+  });
+
+  it('comes down, goes back up and is deleted like any note', () => {
+    const drawn = note('d', { text: '', drawing: HOUSE });
+    const down = takeDown(board(drawn), 'd', NOW);
+    expect(isGone(down.notes[0], NOW)).toBe(true);
+    const up = repost(down, 'd', NOW);
+    expect(isLive(up.notes[0], NOW)).toBe(true);
+    expect(up.notes[0].drawing).toEqual(HOUSE);
+    expect(deleteNote(up, 'd').notes).toEqual([]);
+  });
+
+  describe('makeRoomForDrawing', () => {
+    const drawn = (id: string, hoursAgo: number, overrides: Partial<Note> = {}) => note(id, { text: '', drawing: HOUSE, createdAt: at(-hoursAgo * HOUR), ...overrides });
+
+    it('leaves a board under the cap exactly as it was', () => {
+      const data = board(...Array.from({ length: WALL_DRAWING_CAP - 1 }, (_, i) => drawn(`d${i}`, i + 1)), note('words'));
+      expect(makeRoomForDrawing(data, NOW)).toBe(data);
+    });
+
+    it('takes down the oldest drawing that is not pinned, and nothing else', () => {
+      const data = board(
+        drawn('pinned', 23, { pinned: true }),
+        drawn('oldest', 22),
+        note('words', { createdAt: at(-23 * HOUR) }),
+        ...Array.from({ length: WALL_DRAWING_CAP - 2 }, (_, i) => drawn(`d${i}`, i + 1)),
+      );
+      const next = makeRoomForDrawing(data, NOW);
+      const live = next.notes.filter((n) => isLive(n, NOW)).map((n) => n.id);
+      expect(live).not.toContain('oldest');
+      expect(live).toEqual(expect.arrayContaining(['pinned', 'words']));
+      // Still in the store, for the phone's Gone group.
+      const gone = next.notes.find((n) => n.id === 'oldest')!;
+      expect(gone.expiresAt).toBe(NOW.toISOString());
+      expect(gone.drawing).toEqual(HOUSE);
+    });
+
+    it('does not count drawings already gone', () => {
+      const data = board(
+        ...Array.from({ length: WALL_DRAWING_CAP - 1 }, (_, i) => drawn(`d${i}`, i + 1)),
+        drawn('gone', 20, { expiresAt: at(-HOUR) }),
+      );
+      expect(makeRoomForDrawing(data, NOW)).toBe(data);
+    });
   });
 });

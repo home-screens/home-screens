@@ -1,7 +1,7 @@
 import type { Note } from '@/types/notes';
 import { DIVIDER, ink } from '@/lib/constants';
 import { AuthorBubble } from './AuthorBubble';
-import { NoteMarks, ageOf, authorOf, dangerTint, type NotesContext } from './shared';
+import { NoteMarks, ageOf, authorOf, dangerTint, type NotesContext, NoteDrawingBody } from './shared';
 
 /**
  * Inset of an important note's tinted block. The list it sits in is widened
@@ -63,9 +63,13 @@ export function NoteRow({ note, ctx, last, showPin = true }: {
             )}
           </div>
         )}
-        <div className="line-clamp-2" style={{ lineHeight: 1.3, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
-          {note.text}
-        </div>
+        {note.drawing ? (
+          <NoteDrawingBody note={note} ctx={ctx} />
+        ) : (
+          <div className="line-clamp-2" style={{ lineHeight: 1.3, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+            {note.text}
+          </div>
+        )}
       </div>
     </li>
   );

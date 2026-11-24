@@ -4,7 +4,7 @@ import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { AuthorBubble } from './AuthorBubble';
 import { useStepper } from './useStepper';
-import { NoteMarks, ageOf, authorOf, type NotesContext } from './shared';
+import { NoteMarks, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /** Past this many notes the dots stop helping; the "2 of 14" counter carries it alone. */
 const MAX_DOTS = 12;
@@ -39,12 +39,16 @@ export function SpotlightView({ ctx, all, stepSeconds }: { ctx: NotesContext; al
         </span>
       </div>
       <div className="flex flex-1 min-h-0 items-center overflow-hidden">
-        <div
-          className="line-clamp-3"
-          style={{ fontSize: '1.35em', lineHeight: 1.25, fontWeight: 500, letterSpacing: '-0.01em', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
-        >
-          {note.text}
-        </div>
+        {note.drawing ? (
+          <NoteDrawingBody note={note} ctx={ctx} height="100%" />
+        ) : (
+          <div
+            className="line-clamp-3"
+            style={{ fontSize: '1.35em', lineHeight: 1.25, fontWeight: 500, letterSpacing: '-0.01em', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+          >
+            {note.text}
+          </div>
+        )}
       </div>
       <div className="flex items-center shrink-0" style={{ gap: '0.25em', fontSize: '0.6em', color: ink(0.5) }}>
         {all.length > 1 && all.length <= MAX_DOTS && all.map((n, i) => (

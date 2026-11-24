@@ -2,8 +2,9 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import type { Note } from '@/types/notes';
-import { ageOf, authorOf, fitKeyOf } from '../shared';
+import { ageOf, authorOf, fitKeyOf, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 
 const NEWSPRINT_INK = '#1b1a17';
 const KICKER_RED = '#9a1b1b';
@@ -76,7 +77,7 @@ function useColumnFit(boxRef: RefObject<HTMLDivElement | null>, key: string): nu
  * led by a red "Important:". Honours "Notes to show"; stories that do not
  * fit are counted into "and N more" at the foot of the columns.
  */
-export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padding, width }: MaterialViewProps) {
+export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padding, width, door }: MaterialViewProps) {
   const [lead, ...rest] = shown;
   const colsRef = useRef<HTMLDivElement>(null);
   const columns = width > 0 && width - 2 * padding < ONE_COLUMN_BELOW_PX ? 1 : 2;
@@ -152,20 +153,24 @@ export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padd
               {kicker}
             </div>
           )}
-          <div
-            className="line-clamp-3"
-            style={{
-              fontFamily: HEADLINE_FACE,
-              fontWeight: 900,
-              fontSize: '1.45em',
-              lineHeight: 1.1,
-              margin: '0.057em 0 0.17em',
-              whiteSpace: 'pre-line',
-              overflowWrap: 'anywhere',
-            }}
-          >
-            {lead.text}
-          </div>
+          {lead.drawing ? (
+            <NoteDrawingBody note={lead} ctx={ctx} surface="paper" height="7em" style={{ margin: '0.2em 0 0.3em' }} />
+          ) : (
+            <div
+              className="line-clamp-3"
+              style={{
+                fontFamily: HEADLINE_FACE,
+                fontWeight: 900,
+                fontSize: '1.45em',
+                lineHeight: 1.1,
+                margin: '0.057em 0 0.17em',
+                whiteSpace: 'pre-line',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {lead.text}
+            </div>
+          )}
           {byline && (
             <div className="truncate" data-testid={ctx.showAuthor ? 'notes-author' : undefined} style={{ fontSize: '0.58em', fontStyle: 'italic', lineHeight: 1.3, color: BYLINE_INK, marginBottom: '1em' }}>
               {byline}
@@ -198,6 +203,15 @@ export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padd
           </div>
         </div>
       )}
+      {door && (
+        <MaterialDrawDoor
+          label={door.label}
+          onPress={door.onPress}
+          color={NEWSPRINT_INK}
+          border={`2px solid ${NEWSPRINT_INK}`}
+          style={{ alignSelf: 'center', marginTop: 'auto', fontSize: '0.74em' }}
+        />
+      )}
     </div>
   );
 }
@@ -214,7 +228,7 @@ function Story({ note, ctx }: { note: Note; ctx: MaterialViewProps['ctx'] }) {
       style={{ margin: '0 0 0.56em', breakInside: 'avoid' }}
     >
       <b
-        className="line-clamp-5"
+        className={note.drawing ? undefined : 'line-clamp-5'}
         style={{
           fontFamily: HEADLINE_FACE,
           fontWeight: 700,
@@ -231,7 +245,7 @@ function Story({ note, ctx }: { note: Note; ctx: MaterialViewProps['ctx'] }) {
             </span>{' '}
           </>
         )}
-        {note.text}
+        {note.drawing ? <NoteDrawingBody note={note} ctx={ctx} surface="paper" height="5em" /> : note.text}
       </b>
       {credit && <i className="block" data-testid={ctx.showAuthor ? 'notes-author' : undefined} style={{ fontSize: '0.85em', color: BYLINE_INK }}>{credit}</i>}
     </p>

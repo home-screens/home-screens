@@ -7,10 +7,14 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async () => {}),
   requireDisplayAuth: vi.fn(async () => {}),
+  // A phone or the editor unless a test says the wall is asking.
+  hasEditorSession: vi.fn(async () => true),
 }));
 
 import { DELETE, PATCH } from '../route';
-import { requireSession } from '@/lib/auth';
+import { hasEditorSession, requireSession } from '@/lib/auth';
+import { noteWallAdded, resetWallAdded, wallMayUndo } from '@/lib/wall-added';
+import { rememberMadeRoom, resetMadeRoom } from '@/lib/notes-made-room';
 import { isGone, isLive } from '@/lib/notes-rules';
 import type { Note, NotesData } from '@/types/notes';
 
@@ -175,9 +179,40 @@ describe('DELETE /api/notes/[noteId]', () => {
     expect(await res.json()).toEqual({ error: 'That note is no longer here.', code: 'notes.noteGone' });
   });
 
-  it('needs a signed-in session', async () => {
+  it('needs a signed-in session from a wall, except to undo a drawing the hub just posted for it', async () => {
+    resetWallAdded();
+    vi.mocked(hasEditorSession).mockResolvedValue(false);
+    vi.mocked(requireSession).mockRejectedValue(new Response(null, { status: 401 }));
+    try {
+      expect((await remove('a')).status).toBe(401);
+      expect((await saved()).notes).toHaveLength(3);
+      noteWallAdded('a');
+      expect((await remove('a')).status).toBe(200);
+      expect((await saved()).notes.map((n) => n.id)).not.toContain('a');
+      // Once, not twice: the hub forgets it with the Undo.
+      expect(wallMayUndo('a')).toBe(false);
+    } finally {
+      vi.mocked(hasEditorSession).mockResolvedValue(true);
+      vi.mocked(requireSession).mockResolvedValue(undefined);
+    }
+  });
+
+  it('puts back what a drawing took down to make room, when that drawing is taken off again', async () => {
+    resetMadeRoom();
+    const downAt = fromNow(-1000);
+    const stays = fromNow(20 * HOUR);
+    await seed({ notes: [note('new'), note('old', { expiresAt: downAt }), note('reposted', { expiresAt: fromNow(5 * HOUR) })] });
+    rememberMadeRoom('new', [{ id: 'old', expiresAt: stays, downAt }, { id: 'reposted', expiresAt: stays, downAt }]);
+    expect((await remove('new')).status).toBe(200);
+    const after = (await saved()).notes;
+    expect(after.map((n) => n.id)).toEqual(['old', 'reposted']);
+    expect(byId(after, 'old').expiresAt).toBe(stays);
+    // One a phone has touched since is left as the phone left it.
+    expect(byId(after, 'reposted').expiresAt).not.toBe(stays);
+  });
+
+  it('never lets a wall change a note', async () => {
     vi.mocked(requireSession).mockRejectedValueOnce(new Response(null, { status: 401 }));
-    expect((await remove('a')).status).toBe(401);
-    expect((await saved()).notes).toHaveLength(3);
+    expect((await patch('a', { pinned: true })).status).toBe(401);
   });
 });

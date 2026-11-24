@@ -7,7 +7,7 @@ import { DIVIDER, ink } from '@/lib/constants';
 import { sortByTime } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
 import { useFitCount } from './../shared/useFitCount';
-import { DANGER_INK, MORE_LINE_EM, MoreLine, WarnGlyph, authorOf, type NoteAuthor, type NotesContext } from './shared';
+import { DANGER_INK, MORE_LINE_EM, MoreLine, WarnGlyph, authorOf, type NoteAuthor, type NotesContext, NoteLine } from './shared';
 
 interface PersonRow {
   author: NoteAuthor;
@@ -50,7 +50,7 @@ function personRows(all: readonly Note[], roster: readonly FamilyMember[], ctx: 
 export function ByPersonView({ ctx, all, roster }: { ctx: NotesContext; all: Note[]; roster: readonly FamilyMember[] }) {
   const rows = personRows(all, roster, ctx);
   const listRef = useRef<HTMLUListElement>(null);
-  const key = rows.map((r) => `${r.author.id}:${r.newest?.id ?? ''}:${r.newest?.text.length ?? 0}:${r.count}`).join('|') + `#${ctx.fontPx}`;
+  const key = rows.map((r) => `${r.author.id}:${r.newest?.id ?? ''}:${r.newest?.text.length ?? 0}${r.newest?.drawing ? 'd' : ''}:${r.count}`).join('|') + `#${ctx.fontPx}`;
   const visible = useFitCount(listRef, key, ctx.fontPx * MORE_LINE_EM);
   const drawn = visible === null ? rows : rows.slice(0, visible);
   return (
@@ -76,7 +76,7 @@ export function ByPersonView({ ctx, all, roster }: { ctx: NotesContext; all: Not
                   style={{ gap: '0.3em', fontSize: '0.8em', color: imp ? DANGER_INK : ink(0.85) }}
                 >
                   {imp && <WarnGlyph />}
-                  <span className="truncate">{row.newest.text}</span>
+                  <span className="truncate"><NoteLine note={row.newest} t={ctx.t} /></span>
                 </span>
               ) : (
                 <span className="truncate flex-1 min-w-0" style={{ fontSize: '0.8em', color: ink(0.35) }}>{ctx.t('notes.noNotes')}</span>

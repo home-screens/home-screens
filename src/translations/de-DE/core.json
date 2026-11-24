@@ -25,7 +25,9 @@
       "badLife": "Wähle, wie lange die Notiz bleiben soll.",
       "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal.",
       "noteGone": "Diese Notiz ist nicht mehr da.",
-      "boardFull": "Die Pinnwand ist voll: {max} Notizen. Nimm erst einige ab."
+      "boardFull": "Die Pinnwand ist voll: {max} Notizen. Nimm erst einige ab.",
+      "badDrawing": "Dieses Bild konnte nicht gespeichert werden.",
+      "wallDrawOff": "Malen an der Wand ist ausgeschaltet."
     },
     "family": {
       "revision": "Die Familie wurde während deiner Bearbeitung geändert. Die aktuelle Liste wird angezeigt. Bitte führe deine Änderung erneut aus.",

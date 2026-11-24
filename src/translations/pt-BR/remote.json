@@ -1294,7 +1294,9 @@
       "removed": "Recado apagado",
       "undo": "Desfazer",
       "atLimit": "Um recado do dia não pode ser maior que isso."
-    }
+    },
+    "drawing": "Desenho",
+    "drawingHelp": "Desenhado no painel. Você pode mudar de quem é e quanto tempo fica."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

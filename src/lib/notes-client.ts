@@ -32,6 +32,11 @@ export function createNoteRequest(input: CreateNoteInput): NotesWriteRequest {
   return { url: '/api/notes', method: 'POST', body: input };
 }
 
+/** A drawing from the wall: its lines, who drew it and how long it stays. */
+export function createDrawingRequest(input: Pick<CreateNoteInput, 'drawing' | 'authorId' | 'life'>): NotesWriteRequest {
+  return { url: '/api/notes', method: 'POST', body: input };
+}
+
 export function updateNoteRequest(id: string, patch: NotePatch): NotesWriteRequest {
   return { url: `/api/notes/${encodeURIComponent(id)}`, method: 'PATCH', body: patch };
 }
@@ -48,6 +53,8 @@ export type NotesFetch = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface NotesWriteResult extends NotesPayload {
   created?: Note;
+  /** How many drawings a new drawing took down to make room. */
+  madeRoom?: number;
 }
 
 /**
@@ -60,5 +67,5 @@ export interface NotesWriteResult extends NotesPayload {
 export async function sendNotesWrite(fetchFn: NotesFetch, request: NotesWriteRequest, fallback: string): Promise<NotesWriteResult> {
   const payload = (await sendJsonWrite(fetchFn, request, fallback)) as Partial<NotesWriteResult> | null;
   if (!Array.isArray(payload?.notes)) throw new Error(fallback);
-  return { notes: payload.notes, created: payload.created };
+  return { notes: payload.notes, created: payload.created, madeRoom: typeof payload.madeRoom === 'number' ? payload.madeRoom : undefined };
 }

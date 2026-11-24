@@ -29,7 +29,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todos.json` | Shared to-do lists (items, due days, people, repeats) | `/api/todo/lists` |
-| `data/notes.json` | The family notes board: each note's text, who wrote it, pinned, important and when it comes down | `/api/notes` |
+| `data/notes.json` | The family notes board: each note's text or drawing, who made it, pinned, important and when it comes down | `/api/notes` |
 | `data/day-notes.json` | Day notes: short lines for a day, up to three per day, drawn on that day in every calendar | `/api/day-notes` |
 | `data/timetables.json` | School timetables: schools and bell times, the shared subject list, one week per person | `/api/timetables` |
 | `data/school-holidays.json` | Last-good copy of the school and public holiday dates looked up for a region | `/api/timetables/holidays` |
@@ -353,7 +353,7 @@ The family's shared to-do lists (see [Lists](/docs/lists)). Each list has a name
 
 ### data/notes.json
 
-The family notes board (see [Notes](/docs/notes)). Each note has its text, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down.
+The family notes board (see [Notes](/docs/notes)). Each note has its text, or the lines of a drawing made on the wall, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down, and posts drawings through the same route.
 
 ### data/day-notes.json
 

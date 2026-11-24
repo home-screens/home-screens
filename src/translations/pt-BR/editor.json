@@ -3201,7 +3201,8 @@
       "title": "Excluir este recado?",
       "message": "Este recado vai sumir de vez. Não dá para colocar de novo no painel."
     },
-    "loadError": "Não foi possível carregar os recados. Feche e abra de novo."
+    "loadError": "Não foi possível carregar os recados. Feche e abra de novo.",
+    "drawing": "Desenho"
   },
   "mealPlannerModal": {
     "title": "Planejador de refeições",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Jornal",
       "groupLayouts": "Layouts",
       "groupMaterials": "Temas",
-      "materialHelp": "Este tema tem cores e letras próprias, então os ajustes de fundo, cor do texto, borda e fonte não se aplicam."
+      "materialHelp": "Este tema tem cores e letras próprias, então os ajustes de fundo, cor do texto, borda e fonte não se aplicam.",
+      "wallDraw": "Desenhar no painel",
+      "wallDrawHelp": "Um botão “Desenhar um recado” no módulo. Qualquer pessoa num painel sensível ao toque pode deixar um desenho no mural; tirar recados do mural continua no celular."
     }
   },
   "modals": {

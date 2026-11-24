@@ -11,6 +11,7 @@ import BottomSheet from './BottomSheet';
 import { GHOST_BUTTON, HELPER_TEXT, SEGMENT_ROW, SHEET_FIELD, SHEET_LABEL, segmentStyle } from './remote-styles';
 import PersonChip from './PersonChip';
 import PrimaryButton from './PrimaryButton';
+import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
 
 type NotesSheetProps = {
   /** The family roster, in roster order. */
@@ -93,6 +94,8 @@ export default function NotesSheet(props: NotesSheetProps) {
   const [important, setImportant] = useState(editing ? editing.important : false);
 
   const clean = text.trim();
+  // A note drawn on the wall: the picture stands where the words would be and cannot be changed here.
+  const drawing = editing?.drawing;
   // An author since removed from the family reads as Nobody here, and saving
   // clears it, the way removing a person does.
   const knownAuthor = authorId !== null && members.some((m) => m.id === authorId) ? authorId : null;
@@ -103,7 +106,7 @@ export default function NotesSheet(props: NotesSheetProps) {
   };
 
   const submit = () => {
-    if (!clean) return;
+    if (!clean && !drawing) return;
     if (props.mode === 'new') {
       props.onPost({ text: clean, life, pinned, important, ...(knownAuthor ? { authorId: knownAuthor } : {}) });
       onClose();
@@ -111,7 +114,7 @@ export default function NotesSheet(props: NotesSheetProps) {
     }
     const note = props.note;
     const patch: NotePatch = {};
-    if (clean !== note.text) patch.text = clean;
+    if (!drawing && clean !== note.text) patch.text = clean;
     if (knownAuthor !== (note.authorId ?? null)) patch.authorId = knownAuthor;
     if (pinned !== note.pinned) patch.pinned = pinned;
     if (important !== note.important) patch.important = important;
@@ -147,19 +150,39 @@ export default function NotesSheet(props: NotesSheetProps) {
           submit();
         }}
       >
-        <label htmlFor={`${ids}-text`} style={{ ...SHEET_LABEL, marginTop: 0 }}>
-          {t('notes.noteLabel')}
-        </label>
-        <textarea
-          id={`${ids}-text`}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          maxLength={NOTES_LIMITS.maxTextLength}
-          rows={3}
-          autoFocus={props.mode === 'new'}
-          data-testid="notes-sheet-text"
-          style={{ ...SHEET_FIELD, display: 'block', minHeight: 96, lineHeight: 1.35, resize: 'none' }}
-        />
+        {drawing ? (
+          <span style={{ ...SHEET_LABEL, marginTop: 0 }}>{t('notes.noteLabel')}</span>
+        ) : (
+          <label htmlFor={`${ids}-text`} style={{ ...SHEET_LABEL, marginTop: 0 }}>
+            {t('notes.noteLabel')}
+          </label>
+        )}
+        {drawing ? (
+          <>
+            {/* The picture and its line side by side, no taller than the text box it stands in for, so "Take it down now" stays on screen. */}
+            <div
+              id={`${ids}-text`}
+              data-testid="notes-sheet-drawing"
+              style={{ ...SHEET_FIELD, display: 'flex', alignItems: 'center', gap: 12, height: 'auto', minHeight: 96, padding: 8, color: 'var(--hs-text-primary)' }}
+            >
+              <span style={{ display: 'block', width: 112, aspectRatio: '4 / 3', flex: 'none' }}>
+                <NoteDrawingArt drawing={drawing} label={t('notes.drawing')} />
+              </span>
+              <span style={{ ...HELPER_TEXT, margin: 0 }}>{t('notes.drawingHelp')}</span>
+            </div>
+          </>
+        ) : (
+          <textarea
+            id={`${ids}-text`}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={NOTES_LIMITS.maxTextLength}
+            rows={3}
+            autoFocus={props.mode === 'new'}
+            data-testid="notes-sheet-text"
+            style={{ ...SHEET_FIELD, display: 'block', minHeight: 96, lineHeight: 1.35, resize: 'none' }}
+          />
+        )}
 
         <span style={SHEET_LABEL} id={`${ids}-from`}>{t('notes.fromLabel')}</span>
         <div
@@ -231,7 +254,7 @@ export default function NotesSheet(props: NotesSheetProps) {
           </button>
         </div>
 
-        <PrimaryButton type="submit" data-testid="notes-sheet-submit" disabled={!clean} style={{ marginTop: 18 }}>
+        <PrimaryButton type="submit" data-testid="notes-sheet-submit" disabled={!clean && !drawing} style={{ marginTop: 18 }}>
           {props.mode === 'new' ? t('notes.post') : t('notes.save')}
         </PrimaryButton>
         {props.mode === 'edit' && (

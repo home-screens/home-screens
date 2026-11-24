@@ -4,8 +4,9 @@ import type { Note } from '@/types/notes';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { tiltFor } from '@/lib/notes-rules';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf, type NoteAuthor } from '../shared';
+import { ageOf, authorOf, type NoteAuthor, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 
 const PAPER = '#fffdf7';
 const PAPER_IMPORTANT = '#ffe9e9';
@@ -60,7 +61,7 @@ function Magnet({ color, place, author }: {
  * ink. Each paper leans by a constant from its id (`tiltFor`), never
  * animated. Papers that do not fit are counted into "and N more".
  */
-export function FridgeView({ ctx, shown, hidden, padding, width, height }: MaterialViewProps) {
+export function FridgeView({ ctx, shown, hidden, padding, width, height, door }: MaterialViewProps) {
   const frame = Math.round(Math.min(18, Math.max(6, Math.min(width, height) * FRAME_SHARE)));
   const columns = fridgeColumns(width - 2 * (frame + padding));
   const { ref: gridRef, drawn, more } = useFittedNotes<HTMLDivElement>(ctx, shown, hidden, { extraKey: [columns] });
@@ -85,7 +86,10 @@ export function FridgeView({ ctx, shown, hidden, padding, width, height }: Mater
         className="grid flex-1 min-h-0 overflow-hidden content-start"
         // The top padding is the first row's magnets, which stand above their
         // papers; the sides keep a leaning paper's corners inside the clip.
-        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: '0.92em 0.75em', padding: '0.56em 0.28em 0.34em' }}
+        // Rows as tall as their papers, never squeezed to fit the door: a paper
+        // that has no room is then counted into "and N more" by the fit, rather
+        // than every paper giving up its last line (the name, under a drawing).
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gridAutoRows: 'max-content', gap: '0.92em 0.75em', padding: '0.56em 0.28em 0.34em' }}
       >
         {drawn.map((note) => (
           <FridgePaper key={note.id} note={note} ctx={ctx} />
@@ -99,6 +103,17 @@ export function FridgeView({ ctx, shown, hidden, padding, width, height }: Mater
         >
           {ctx.t('notes.andMore', { n: more })}
         </div>
+      )}
+      {door && (
+        <MaterialDrawDoor
+          label={door.label}
+          onPress={door.onPress}
+          color="#2b2f33"
+          background="rgba(255, 255, 255, 0.55)"
+          border="2px solid rgba(43, 47, 51, 0.35)"
+          fontFamily={UI_SANS_STACK}
+          style={{ alignSelf: 'flex-start', marginTop: '0.4em', fontSize: '0.8em' }}
+        />
       )}
     </div>
   );
@@ -142,16 +157,23 @@ function FridgePaper({ note, ctx }: { note: Note; ctx: MaterialViewProps['ctx'] 
       ) : (
         <Magnet color={magnet} place="center" author={marker} />
       )}
-      <div
-        className={note.pinned ? 'line-clamp-3' : 'line-clamp-4'}
-        style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
-      >
-        {note.text}
-      </div>
+      {note.drawing ? (
+        <NoteDrawingBody note={note} ctx={ctx} surface="paper" height="3.6em" style={{ color: '#222' }} />
+      ) : (
+        <div
+          className={note.pinned ? 'line-clamp-3' : 'line-clamp-4'}
+          style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+        >
+          {note.text}
+        </div>
+      )}
       {credit && (
         <div
-          className="truncate"
-          style={{ fontFamily: UI_SANS_STACK, fontSize: '0.7em', fontWeight: 600, lineHeight: 1.3, marginTop: '0.5em', color: '#555' }}
+          // Never squeezed. The door's rows give up height when it is full, and a
+          // clipped line counts for nothing there unless it says how tall it is:
+          // under a drawing the name is the only words the paper has.
+          className="truncate shrink-0"
+          style={{ fontFamily: UI_SANS_STACK, fontSize: '0.7em', fontWeight: 600, lineHeight: 1.3, minHeight: '1.3em', marginTop: '0.5em', color: '#555' }}
         >
           {credit}
         </div>

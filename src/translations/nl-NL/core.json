@@ -25,7 +25,9 @@
       "badLife": "Kies hoe lang de notitie moet blijven.",
       "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens.",
       "noteGone": "Die notitie is er niet meer.",
-      "boardFull": "Het prikbord is vol: {max} notities. Haal er eerst een paar af."
+      "boardFull": "Het prikbord is vol: {max} notities. Haal er eerst een paar af.",
+      "badDrawing": "Die tekening kon niet worden opgeslagen.",
+      "wallDrawOff": "Tekenen op de muur staat uit."
     },
     "family": {
       "revision": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",

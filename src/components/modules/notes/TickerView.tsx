@@ -2,7 +2,7 @@ import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import TickerMarquee from '../TickerMarquee';
 import { AuthorBubble } from './AuthorBubble';
-import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
+import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteLine } from './shared';
 
 /** The right edge fades out, so a note runs off the card rather than being cut. */
 const FADE_MASK = 'linear-gradient(90deg, #000 0, #000 94%, transparent)';
@@ -36,7 +36,7 @@ export function TickerView({ ctx, all, speed }: { ctx: NotesContext; all: Note[]
               )}
               {age && <span style={{ fontSize: '0.62em', color: ink(0.5) }}>{age}</span>}
               {note.important ? <WarnGlyph /> : note.pinned ? <PinGlyph color={ink(0.55)} /> : null}
-              <span style={{ fontWeight: 500, color: note.important ? DANGER_INK : undefined }}>{note.text}</span>
+              <span style={{ fontWeight: 500, color: note.important ? DANGER_INK : undefined }}><NoteLine note={note} t={ctx.t} /></span>
               <i
                 aria-hidden="true"
                 className="rounded-full shrink-0"

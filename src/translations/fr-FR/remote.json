@@ -1293,7 +1293,9 @@
       "removed": "Note retirée",
       "undo": "Annuler",
       "atLimit": "Une note du jour ne peut pas être plus longue."
-    }
+    },
+    "drawing": "Dessin",
+    "drawingHelp": "Ce dessin a été fait sur le mur. Tu peux changer de qui il vient et combien de temps il reste affiché."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

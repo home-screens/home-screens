@@ -37,6 +37,7 @@ import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { DEFAULT_NOTE_LIFE, NOTE_LIVES, NOTES_LIMITS, type Note, type NoteLife } from '@/types/notes';
+import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
 import type { FamilyMember } from '@/types/family';
 import Notice from '@/components/ui/Notice';
 import FieldHint from '@/components/ui/FieldHint';
@@ -228,6 +229,12 @@ function NoteRow({ note, members, author, age, left, onSaveText, onPatch, onTake
         </div>
       </div>
 
+      {note.drawing ? (
+        // Drawn on the wall: the picture stands where the words would be and cannot be changed here.
+        <div data-testid="notes-modal-row-drawing" className="h-16 w-[5.5rem] text-hs-text-body" title={t('notesBoardModal.drawing')}>
+          <NoteDrawingArt drawing={note.drawing} label={t('notesBoardModal.drawing')} />
+        </div>
+      ) : (
       <textarea
         ref={textRef}
         rows={1}
@@ -248,6 +255,7 @@ function NoteRow({ note, members, author, age, left, onSaveText, onPatch, onTake
         data-testid="notes-modal-row-text"
         className={ROW_TEXT_CLASS}
       />
+      )}
     </li>
   );
 }
@@ -368,7 +376,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const saveText = (id: string, text: string) => {
     const current = notesRef.current.find((n) => n.id === id);
     const trimmed = text.trim();
-    if (!current || !trimmed) return;
+    if (!current || !trimmed || current.drawing) return;
     const base = sentTextRef.current.get(id) ?? current.text;
     if (trimmed === base) return;
     sentTextRef.current.set(id, trimmed);
@@ -570,9 +578,18 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
                             >
                               <AuthorDot member={author} />
                               <span className="sr-only">{author?.name ?? t('notesBoardModal.someone')}</span>
-                              <span className="min-w-0 flex-1 truncate text-sm text-hs-text-muted" title={note.text}>
-                                {note.text}
-                              </span>
+                              {note.drawing ? (
+                                // The picture, not the word: with several gone, it is how to tell which one to bring back.
+                                <span className="min-w-0 flex-1">
+                                  <span data-testid="notes-modal-gone-drawing" className="block h-12 w-16 text-hs-text-muted" title={t('notesBoardModal.drawing')}>
+                                    <NoteDrawingArt drawing={note.drawing} label={t('notesBoardModal.drawing')} />
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="min-w-0 flex-1 truncate text-sm text-hs-text-muted" title={note.text}>
+                                  {note.text}
+                                </span>
+                              )}
                               <Button size="sm" data-testid="notes-modal-repost" onClick={() => repost(note.id)}>
                                 {t('notesBoardModal.postAgain')}
                               </Button>

@@ -1293,7 +1293,9 @@
       "removed": "Notitie weggehaald",
       "undo": "Ongedaan maken",
       "atLimit": "Langer kan een dagnotitie niet zijn."
-    }
+    },
+    "drawing": "Tekening",
+    "drawingHelp": "Op de muur getekend. Je kunt veranderen van wie hij is en hoe lang hij zichtbaar blijft."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

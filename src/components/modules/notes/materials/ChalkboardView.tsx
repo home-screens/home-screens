@@ -2,8 +2,9 @@
 
 import { Star } from 'lucide-react';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf } from '../shared';
+import { ageOf, authorOf, NoteDrawingBody } from '../shared';
 
 /** The slate: two soft smudges of old chalk, a fine dust grain, and the green-black board. */
 const SLATE = [
@@ -31,7 +32,7 @@ const MORE_EM = 0.8 * 1.4 + 0.3;
  * colour; the pinned note is starred, the important one is in yellow chalk
  * behind a double bang. Rows, fitted whole like Board.
  */
-export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padding }: MaterialViewProps) {
+export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padding, door }: MaterialViewProps) {
   const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, shown, hidden, { extraKey: [showTitle], moreEm: MORE_EM });
   return (
     <div
@@ -125,6 +126,13 @@ export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padd
                     )}
                   </div>
                 )}
+                {note.drawing ? (
+                  <div className="flex items-end" style={{ gap: '0.4em', marginTop: '0.2em' }}>
+                    {note.important && <span aria-hidden="true" style={{ fontSize: '1.3em', lineHeight: 1 }}>!!</span>}
+                    <NoteDrawingBody note={note} ctx={ctx} surface="chalk" height="2.5em" style={{ opacity: 0.93 }} />
+                    {note.pinned && !showWho && <Star size="0.8em" fill="currentColor" strokeWidth={1.5} aria-hidden="true" className="shrink-0" />}
+                  </div>
+                ) : (
                 <div className="line-clamp-3" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
                   {note.pinned && !showWho && (
                     <Star
@@ -139,6 +147,7 @@ export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padd
                   {note.important && <span aria-hidden="true">!! </span>}
                   {note.text}
                 </div>
+                )}
               </li>
             );
           })}
@@ -151,6 +160,16 @@ export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padd
           >
             {ctx.t('notes.andMore', { n: more })}
           </div>
+        )}
+        {door && (
+          // By the chalk, in chalk: the board is full to its tray, so the button sits just above it.
+          <MaterialDrawDoor
+            label={door.label}
+            onPress={door.onPress}
+            color="#f1ede2"
+            border="2px solid rgba(241, 237, 226, 0.75)"
+            style={{ alignSelf: 'flex-end', marginTop: '0.3em' }}
+          />
         )}
       </div>
       <div

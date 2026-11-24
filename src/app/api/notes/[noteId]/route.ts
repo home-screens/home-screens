@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
-import { deleteNote, repost, takeDown, updateNote, type NoteAction, type NotePatch } from '@/lib/notes-actions';
+import { withAuth, withDisplayAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
+import { hasEditorSession, requireSession } from '@/lib/auth';
+import { forgetWallAdded, wallMayUndo } from '@/lib/wall-added';
+import { deleteNote, putBackTakenDown, repost, takeDown, updateNote, type NoteAction, type NotePatch } from '@/lib/notes-actions';
+import { takeMadeRoom } from '@/lib/notes-made-room';
 import { notesWrite } from '@/lib/notes-api';
 import { NotesError } from '@/lib/notes-errors';
 import { asObject } from '@/lib/todo-api';
@@ -33,8 +36,18 @@ export const PATCH = withAuth(async (request: NextRequest, ctx: RouteContext) =>
   }, undefined, { authorId: patch.authorId });
 }, 'Failed to update the note');
 
-/** DELETE /api/notes/[noteId]: remove the note for good. Session only. */
-export const DELETE = withAuth(async (_request: NextRequest, ctx: RouteContext) => {
+/**
+ * DELETE /api/notes/[noteId]: remove the note for good. A phone or the
+ * editor, with a session; or a wall's Undo, with the display token, for a
+ * drawing the hub posted for a wall in the last few minutes
+ * (`wall-added.ts`). Anything else from a wall needs a session.
+ */
+export const DELETE = withDisplayAuth(async (request: NextRequest, ctx: RouteContext) => {
   const { noteId } = await ctx.params;
-  return notesWrite((data) => deleteNote(data, noteId));
+  const fromWall = !(await hasEditorSession(request));
+  if (fromWall && !wallMayUndo(noteId)) await requireSession(request);
+  // A drawing that took others down to make room puts them back as it goes.
+  const response = await notesWrite((data) => putBackTakenDown(deleteNote(data, noteId), takeMadeRoom(noteId)));
+  if (fromWall && response.ok) forgetWallAdded(noteId);
+  return response;
 }, 'Failed to delete the note');

@@ -3201,7 +3201,8 @@
       "title": "Slet denne note?",
       "message": "Noten forsvinder for altid. Den kan ikke sættes op igen."
     },
-    "loadError": "Noterne kunne ikke hentes. Luk vinduet og åbn det igen."
+    "loadError": "Noterne kunne ikke hentes. Luk vinduet og åbn det igen.",
+    "drawing": "Tegning"
   },
   "mealPlannerModal": {
     "title": "Madplan",
@@ -5697,7 +5698,9 @@
       "viewHeadline": "Avis",
       "groupLayouts": "Layouts",
       "groupMaterials": "Materialer",
-      "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her."
+      "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her.",
+      "wallDraw": "Tegn på væggen",
+      "wallDrawHelp": "Kortet får knappen »Tegn en note«. Alle ved en væg med touchskærm kan sætte en tegning op på tavlen; noter tages stadig ned på telefonen."
     }
   },
   "modals": {

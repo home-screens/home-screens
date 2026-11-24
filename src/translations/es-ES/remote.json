@@ -1293,7 +1293,9 @@
       "removed": "Nota quitada",
       "undo": "Deshacer",
       "atLimit": "Una nota del día no puede ser más larga."
-    }
+    },
+    "drawing": "Dibujo",
+    "drawingHelp": "Esta nota se dibujó en el monitor. Puedes cambiar de parte de quién es y cuánto tiempo se queda."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

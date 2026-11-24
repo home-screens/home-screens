@@ -1293,7 +1293,9 @@
       "removed": "Noten er fjernet",
       "undo": "Fortryd",
       "atLimit": "Længere kan en dagsnote ikke være."
-    }
+    },
+    "drawing": "Tegning",
+    "drawingHelp": "Tegnet på væggen. Du kan ændre, hvem den er fra, og hvor længe den bliver hængende."
   },
   "mealSheet": {
     "ariaLabel": "{slot}, {date}",

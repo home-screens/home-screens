@@ -4906,6 +4906,16 @@
           },
           "description": "How slowly the ticker scrolls: seconds per note (3 to 30). Omitted = 8",
           "default": 8
+        },
+        {
+          "name": "wallDraw",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show a \"Draw a note\" button on a touch wall, so anyone can leave a drawing on the board. Omitted = off",
+          "default": true
         }
       ],
       "views": [
@@ -12360,7 +12370,7 @@
         },
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12373,7 +12383,7 @@
         },
         {
           "method": "DELETE",
-          "access": "session"
+          "access": "display"
         }
       ]
     },

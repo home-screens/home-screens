@@ -5,7 +5,7 @@ import { ink } from '@/lib/constants';
 import { cardColumns } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
 import { useFittedNotes } from './useFittedNotes';
-import { MoreLine, NoteMarks, ageOf, authorOf, dangerTint, type NotesContext } from './shared';
+import { MoreLine, NoteMarks, ageOf, authorOf, dangerTint, type NotesContext, NoteDrawingBody } from './shared';
 
 /**
  * Cards: a pinboard of plain cards, columns from the width (one under 400 px,
@@ -42,12 +42,16 @@ export function CardsView({ ctx, shown, hidden, width }: { ctx: NotesContext; sh
                 backgroundColor: note.important ? dangerTint(0.16) : ink(0.08),
               }}
             >
-              <div
-                className={note.pinned ? 'line-clamp-3' : 'line-clamp-2'}
-                style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
-              >
-                {note.text}
-              </div>
+              {note.drawing ? (
+                <NoteDrawingBody note={note} ctx={ctx} height="2.8em" />
+              ) : (
+                <div
+                  className={note.pinned ? 'line-clamp-3' : 'line-clamp-2'}
+                  style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+                >
+                  {note.text}
+                </div>
+              )}
               <div className="flex items-center mt-auto min-w-0" style={{ gap: '0.5em', fontSize: '0.68em', color: ink(0.6) }}>
                 {ctx.showAuthor && (
                   <>

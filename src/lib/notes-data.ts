@@ -1,6 +1,7 @@
 import { createJsonStore } from './json-store';
 import { withDataTransaction } from './data-transaction';
 import { isSweepable } from './notes-rules';
+import { drawingProblem } from './note-drawing';
 import { NOTE_LIVES, NOTES_LIMITS, type NoteLife, type NotesData } from '@/types/notes';
 
 /**
@@ -44,7 +45,12 @@ export function validateNotesData(raw: unknown): string | null {
     if (typeof note.id !== 'string' || !note.id) return `${where} is missing its id`;
     if (ids.has(note.id)) return `${where} repeats the id of another note`;
     ids.add(note.id);
-    if (typeof note.text !== 'string' || !note.text.trim()) return `${where} is missing its text`;
+    if (note.drawing !== undefined) {
+      const problem = drawingProblem(note.drawing);
+      if (problem) return `${where}: ${problem}`;
+      if (note.text !== '') return `${where}: a drawing has no text`;
+    } else if (typeof note.text !== 'string' || !note.text.trim()) return `${where} is missing its text`;
+    if (typeof note.text !== 'string') return `${where} is missing its text`;
     if (note.text.length > NOTES_LIMITS.maxTextLength) return `${where}: text is longer than ${NOTES_LIMITS.maxTextLength} characters`;
     if (note.authorId !== undefined && (typeof note.authorId !== 'string' || !note.authorId)) return `${where}: authorId must be an id`;
     if (typeof note.pinned !== 'boolean') return `${where}: pinned must be true or false`;

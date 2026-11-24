@@ -307,6 +307,14 @@ body {
   backdrop-filter: none !important;
 }
 
+/* The drawing sheet is open (`NoteDrawSheet`): every card behind its shade
+   rests its glass until it closes. Each new piece of a line redraws the wall,
+   and re-blurring the cards under the shade is most of a Pi 4's frame. */
+[data-wall-drawing] [data-module-card] {
+  /* Unprefixed only, as above. */
+  backdrop-filter: none !important;
+}
+
 /* Modules hard-code their designed font weights (font-light classes, inline
    300s), so a weight inherited from ModuleWrapper never reaches most text.
    ModuleWrapper adds this class only when the user picks a weight in the

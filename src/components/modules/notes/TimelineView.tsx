@@ -8,7 +8,7 @@ import { DAY_MS, isoDaysBetween } from '@/lib/iso-date';
 import { isoDateInTZ } from '@/lib/timezone';
 import { AuthorBubble } from './AuthorBubble';
 import { useFittedNotes } from './useFittedNotes';
-import { DANGER_INK, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
+import { DANGER_INK, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /** A day heading: Today, Yesterday, the short weekday inside the last week, else a short date. */
 function dayLabel(day: string, today: string, ctx: NotesContext): string {
@@ -69,12 +69,16 @@ export function TimelineView({ ctx, all, max }: { ctx: NotesContext; all: Note[]
                 >
                   {ctx.showAuthor && <AuthorBubble author={author} em={0.78} style={{ marginTop: '0.15em' }} />}
                   <div className="flex-1 min-w-0">
-                    <div
-                      className="line-clamp-2"
-                      style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere', color: note.important ? DANGER_INK : undefined }}
-                    >
-                      {note.text}
-                    </div>
+                    {note.drawing ? (
+                      <NoteDrawingBody note={note} ctx={ctx} height="2.6em" />
+                    ) : (
+                      <div
+                        className="line-clamp-2"
+                        style={{ lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere', color: note.important ? DANGER_INK : undefined }}
+                      >
+                        {note.text}
+                      </div>
+                    )}
                     {meta && (
                       <div className="flex items-center min-w-0" style={{ gap: '0.45em', marginTop: '0.15em', fontSize: '0.72em', color: ink(0.5) }}>
                         {ctx.showAuthor && <span className="truncate">{author.name}</span>}

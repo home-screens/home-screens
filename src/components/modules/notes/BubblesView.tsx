@@ -6,7 +6,7 @@ import { ink } from '@/lib/constants';
 import { sortByTime } from '@/lib/notes-rules';
 import { AuthorBubble } from './AuthorBubble';
 import { useFittedNotes } from './useFittedNotes';
-import { MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, dangerTint, type NotesContext } from './shared';
+import { MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, dangerTint, type NotesContext, NoteDrawingBody } from './shared';
 
 /**
  * Bubbles: the family group chat, read-only. Oldest at the top and newest at
@@ -56,9 +56,13 @@ export function BubblesView({ ctx, shown, hidden }: { ctx: NotesContext; shown: 
                     {note.pinned && <PinGlyph color={ink(0.6)} />}
                   </div>
                 )}
-                <div className="line-clamp-2" style={{ fontSize: '0.86em', lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
-                  {note.text}
-                </div>
+                {note.drawing ? (
+                  <NoteDrawingBody note={note} ctx={ctx} height="2.6em" />
+                ) : (
+                  <div className="line-clamp-2" style={{ fontSize: '0.86em', lineHeight: 1.28, fontWeight: 500, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                    {note.text}
+                  </div>
+                )}
               </div>
             </div>
           );

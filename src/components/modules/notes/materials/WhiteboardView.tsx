@@ -3,8 +3,9 @@
 import { Star } from 'lucide-react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
+import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf, type NoteAuthor } from '../shared';
+import { ageOf, authorOf, type NoteAuthor, NoteDrawingBody } from '../shared';
 
 /** The board: a glare from the top left over a white that greys a touch to the bottom right. */
 const BOARD = [
@@ -47,7 +48,7 @@ function magnetFill(color: string): string {
  * magnet beside it, the important one in red marker, underlined. Rows,
  * fitted whole like Board.
  */
-export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padding }: MaterialViewProps) {
+export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padding, door }: MaterialViewProps) {
   const { ref: listRef, drawn, more } = useFittedNotes<HTMLUListElement>(ctx, shown, hidden, { extraKey: [showTitle], moreEm: MORE_EM });
   return (
     <div
@@ -122,31 +123,40 @@ export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padd
                       )}
                     </div>
                   )}
-                  <div
-                    className="line-clamp-3"
-                    style={{
-                      fontSize: '1.12em',
-                      lineHeight: 1.2,
-                      fontWeight: 700,
-                      whiteSpace: 'pre-line',
-                      overflowWrap: 'anywhere',
-                      ...(note.important
-                        ? { color: RED_MARKER, textDecoration: 'underline', textDecorationThickness: '0.11em', textUnderlineOffset: '0.18em' }
-                        : null),
-                    }}
-                  >
-                    {note.text}
-                    {note.pinned && (
-                      <Star
-                        size="0.8em"
-                        fill="currentColor"
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                        className="inline-block"
-                        style={{ marginLeft: '0.3em', verticalAlign: '-0.05em' }}
-                      />
-                    )}
-                  </div>
+                  {note.drawing ? (
+                    // The marks a typed note carries in its words (red, underlined, a star) sit beside the picture.
+                    <div className="flex items-end" style={{ gap: '0.4em', marginTop: '0.15em' }}>
+                      <NoteDrawingBody note={note} ctx={ctx} surface="marker" height="2.5em" />
+                      {note.important && <span aria-hidden="true" style={{ color: RED_MARKER, fontSize: '1.5em', fontWeight: 700, lineHeight: 1 }}>!!</span>}
+                      {note.pinned && <Star size="0.9em" fill="currentColor" strokeWidth={1.5} aria-hidden="true" className="shrink-0" style={{ marginBottom: '0.15em' }} />}
+                    </div>
+                  ) : (
+                    <div
+                      className="line-clamp-3"
+                      style={{
+                        fontSize: '1.12em',
+                        lineHeight: 1.2,
+                        fontWeight: 700,
+                        whiteSpace: 'pre-line',
+                        overflowWrap: 'anywhere',
+                        ...(note.important
+                          ? { color: RED_MARKER, textDecoration: 'underline', textDecorationThickness: '0.11em', textUnderlineOffset: '0.18em' }
+                          : null),
+                      }}
+                    >
+                      {note.text}
+                      {note.pinned && (
+                        <Star
+                          size="0.8em"
+                          fill="currentColor"
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                          className="inline-block"
+                          style={{ marginLeft: '0.3em', verticalAlign: '-0.05em' }}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
             );
@@ -160,6 +170,18 @@ export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padd
           >
             {ctx.t('notes.andMore', { n: more })}
           </div>
+        )}
+        {door && (
+          // Above the tray at the right, the same place and shape as the
+          // chalkboard's, in the heading's blue marker. Never on the tray: it
+          // covered the markers.
+          <MaterialDrawDoor
+            label={door.label}
+            onPress={door.onPress}
+            color={BLUE_MARKER}
+            border={`2px solid ${BLUE_MARKER}`}
+            style={{ alignSelf: 'flex-end', marginTop: '0.3em' }}
+          />
         )}
       </div>
       <div

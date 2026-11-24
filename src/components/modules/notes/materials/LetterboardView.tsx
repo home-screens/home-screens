@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useStepper } from '../useStepper';
-import { PinGlyph, ageOf, authorOf } from '../shared';
+import { PinGlyph, ageOf, authorOf, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
 
 const FELT = '#171717';
@@ -39,7 +39,7 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
   const minLetter = ctx.fontPx * LETTER_MIN_EM;
   const { boxRef, contentRef, fontSize } = useFitFontSize(
     ctx.fontPx * LETTER_EM,
-    note ? `${note.id}:${note.text}` : '',
+    note ? `${note.id}:${note.text}:${note.drawing ? 'd' : ''}` : '',
     minLetter,
   );
   // Whole pixels, so the grooves repeat evenly and land on every line.
@@ -126,7 +126,7 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
           }}
         >
           <span ref={probeRef} aria-hidden="true" className="inline-block" style={{ width: 0, height: 0 }} />
-          {note.text}
+          {note.drawing ? <NoteDrawingBody note={note} ctx={ctx} height="3.4em" style={{ margin: '0 auto' }} /> : note.text}
         </div>
       </div>
       <div

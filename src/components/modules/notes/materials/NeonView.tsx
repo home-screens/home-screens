@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useStepper } from '../useStepper';
-import { ageOf, authorOf } from '../shared';
+import { ageOf, authorOf, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
 
 /** The tube for a note from nobody: plain white. */
@@ -132,7 +132,9 @@ export function NeonView({ ctx, all, stepSeconds, title, showTitle, padding, wid
                 : null),
             }}
           >
-            {note.text}
+            {note.drawing ? (
+              <NoteDrawingBody note={note} ctx={ctx} height="3.6em" style={{ margin: '0 auto', filter: `drop-shadow(0 0 0.12em ${tube})` }} />
+            ) : note.text}
           </div>
           {(ctx.showAuthor || age || marks.length > 0) && (
             <div

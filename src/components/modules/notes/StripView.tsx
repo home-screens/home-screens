@@ -4,7 +4,7 @@ import type { Note } from '@/types/notes';
 import { ink } from '@/lib/constants';
 import { AuthorBubble } from './AuthorBubble';
 import { useStepper } from './useStepper';
-import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext } from './shared';
+import { DANGER_INK, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteLine } from './shared';
 
 /**
  * Strip: a one-line bar for the top or bottom edge of a wall. Author, one
@@ -33,7 +33,7 @@ export function StripView({ ctx, all, stepSeconds }: { ctx: NotesContext; all: N
       {age && <span className="shrink-0 whitespace-nowrap" style={{ fontSize: '0.62em', color: ink(0.5) }}>{age}</span>}
       {note.important ? <WarnGlyph /> : note.pinned ? <PinGlyph color={ink(0.55)} /> : null}
       <span className="truncate flex-1 min-w-0" style={{ fontWeight: 500, color: note.important ? DANGER_INK : undefined }}>
-        {note.text}
+        <NoteLine note={note} t={ctx.t} />
       </span>
       <span data-testid="notes-step" className="shrink-0 tabular-nums whitespace-nowrap" style={{ fontSize: '0.62em', color: ink(0.5) }}>
         {ctx.t('notes.of', { index: position + 1, total: all.length })}

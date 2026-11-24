@@ -2,7 +2,7 @@ import type { Note } from '@/types/notes';
 import { DIVIDER, ink } from '@/lib/constants';
 import { AuthorBubble } from './AuthorBubble';
 import { CompactRow } from './CompactRow';
-import { MoreLine, NoteMarks, ageOf, authorOf, type NotesContext } from './shared';
+import { MoreLine, NoteMarks, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /** How many small lines follow the lead note. */
 const FOLLOWING = 2;
@@ -28,12 +28,16 @@ export function FocusView({ ctx, all, shown }: { ctx: NotesContext; all: Note[];
           data-pinned={lead.pinned ? '' : undefined}
           className="shrink-0"
         >
-          <div
-            className="line-clamp-3"
-            style={{ fontSize: '1.25em', lineHeight: 1.25, fontWeight: 500, letterSpacing: '-0.01em', whiteSpace: 'pre-line', overflowWrap: 'anywhere', marginBottom: '0.3em' }}
-          >
-            {lead.text}
-          </div>
+          {lead.drawing ? (
+            <NoteDrawingBody note={lead} ctx={ctx} height="4.6em" style={{ marginBottom: '0.3em' }} />
+          ) : (
+            <div
+              className="line-clamp-3"
+              style={{ fontSize: '1.25em', lineHeight: 1.25, fontWeight: 500, letterSpacing: '-0.01em', whiteSpace: 'pre-line', overflowWrap: 'anywhere', marginBottom: '0.3em' }}
+            >
+              {lead.text}
+            </div>
+          )}
           {showWho && (
             <div className="flex items-center min-w-0" style={{ gap: '0.5em', fontSize: '0.66em', color: ink(0.6), marginBottom: '1.1em' }}>
               {ctx.showAuthor && (

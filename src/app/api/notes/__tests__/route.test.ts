@@ -7,11 +7,23 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async () => {}),
   requireDisplayAuth: vi.fn(async () => {}),
+  // A phone or the editor unless a test says the wall is asking.
+  hasEditorSession: vi.fn(async () => true),
+}));
+vi.mock('@/lib/config', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/config')>()),
+  readConfig: vi.fn(),
 }));
 
 import { GET, POST } from '../route';
-import { requireDisplayAuth, requireSession } from '@/lib/auth';
-import { NOTES_LIMITS, type Note, type NotesData } from '@/types/notes';
+import { hasEditorSession, requireDisplayAuth, requireSession } from '@/lib/auth';
+import { readConfig } from '@/lib/config';
+import { WALL_DRAWING_CAP } from '@/lib/note-drawing';
+import { isLive } from '@/lib/notes-rules';
+import { resetWallAdded, wallMayUndo } from '@/lib/wall-added';
+import { resetMadeRoom, takeMadeRoom } from '@/lib/notes-made-room';
+import type { ScreenConfiguration } from '@/types/config';
+import { NOTES_LIMITS, type Note, type NoteDrawing, type NotesData } from '@/types/notes';
 
 const HOUR = 60 * 60 * 1000;
 const fromNow = (ms: number) => new Date(Date.now() + ms).toISOString();
@@ -28,6 +40,16 @@ function note(id: string, overrides: Partial<Note> = {}): Note {
     expiresAt: fromNow(23 * HOUR),
     ...overrides,
   };
+}
+
+const HOUSE: NoteDrawing = { lines: [{ c: 'ink', w: 0, p: [100, 600, 100, 300, 400, 300, 400, 600] }, { c: 'red', w: 1, p: [80, 310, 250, 120, 420, 310] }] };
+
+function configWith(...modules: Array<{ type: string; config: Record<string, unknown>; enabled?: boolean }>): ScreenConfiguration {
+  return {
+    version: 21,
+    settings: {},
+    screens: [{ id: 's', name: 'S', modules: modules.map((m, i) => ({ id: `m${i}`, position: { x: 0, y: 0 }, size: { w: 1, h: 1 }, style: {}, ...m })) }],
+  } as unknown as ScreenConfiguration;
 }
 
 let root: string;
@@ -50,6 +72,9 @@ beforeEach(async () => {
   await fs.mkdir(path.join(root, 'data'));
   vi.spyOn(process, 'cwd').mockReturnValue(root);
   await seedFamily();
+  // A Notes card with drawing on, unless a test says otherwise.
+  vi.mocked(readConfig).mockResolvedValue(configWith({ type: 'notes', config: { view: 'board', wallDraw: true } }));
+  resetMadeRoom();
 });
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -174,10 +199,118 @@ describe('POST /api/notes', () => {
     expect((await saved()).notes).toHaveLength(NOTES_LIMITS.maxNotes);
   });
 
-  it('needs a signed-in session, never a wall token', async () => {
-    vi.mocked(requireSession).mockRejectedValueOnce(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }));
-    const res = await post({ text: 'From the wall' });
+  it('needs the display guard at least', async () => {
+    vi.mocked(requireDisplayAuth).mockRejectedValueOnce(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }));
+    const res = await post({ text: 'From nowhere' });
     expect(res.status).toBe(401);
     await expect(fs.access(notesPath())).rejects.toThrow();
+  });
+
+  it('posts a drawing in place of words for a signed-in person', async () => {
+    const res = await post({ drawing: HOUSE, authorId: 'mom', pinned: true, life: 'keep' });
+    expect(res.status).toBe(200);
+    expect((await res.json()).created).toMatchObject({ text: '', drawing: HOUSE, authorId: 'mom', pinned: true, life: 'keep' });
+  });
+
+  it('keeps the cap of drawings for a signed-in caller too, as on a hub with no password', async () => {
+    await seed({ notes: Array.from({ length: WALL_DRAWING_CAP }, (_, i) => note(`d${i}`, { text: '', drawing: HOUSE, createdAt: fromNow(-(i + 1) * HOUR) })) });
+    expect((await post({ drawing: HOUSE })).status).toBe(200);
+    const now = new Date();
+    const live = (await saved()).notes.filter((n) => isLive(n, now));
+    expect(live).toHaveLength(WALL_DRAWING_CAP);
+    expect(live.map((n) => n.id)).not.toContain(`d${WALL_DRAWING_CAP - 1}`);
+    // The answer says one came down, and the hub remembers which for the Undo.
+    const again = await (await post({ drawing: HOUSE })).json();
+    expect(again.madeRoom).toBe(1);
+    expect(takeMadeRoom(again.created.id).map((t) => t.id)).toEqual([`d${WALL_DRAWING_CAP - 2}`]);
+    // Typed notes never take a drawing down.
+    expect((await post({ text: 'Words' })).status).toBe(200);
+    expect((await saved()).notes.filter((n) => isLive(n, new Date()))).toHaveLength(WALL_DRAWING_CAP + 1);
+  });
+
+  it('takes a drawing from nobody while every Notes card has drawing off, password or not', async () => {
+    vi.mocked(readConfig).mockResolvedValue(configWith({ type: 'notes', config: { view: 'board' } }));
+    const res = await post({ drawing: HOUSE });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ code: 'notes.wallDrawOff' });
+    // Words are not a drawing: the phone still posts.
+    expect((await post({ text: 'Words' })).status).toBe(200);
+  });
+
+  it('refuses words and a drawing together, and a drawing that is not one', async () => {
+    expect(await (await post({ text: 'Hello', drawing: HOUSE })).json()).toMatchObject({ code: 'notes.badRequest' });
+    for (const drawing of [{}, { lines: [] }, { lines: [{ c: 'gold', w: 0, p: [1, 1] }] }, { lines: [{ c: 'ink', w: 0, p: [1, 9999] }] }]) {
+      const res = await post({ drawing });
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: 'That drawing could not be saved.', code: 'notes.badDrawing' });
+    }
+    await expect(fs.access(notesPath())).rejects.toThrow();
+  });
+});
+
+describe('POST /api/notes from a wall', () => {
+  const noSession = () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  beforeEach(() => {
+    resetWallAdded();
+    vi.mocked(hasEditorSession).mockResolvedValue(false);
+    vi.mocked(requireSession).mockRejectedValue(noSession());
+    vi.mocked(readConfig).mockResolvedValue(configWith({ type: 'notes', config: { view: 'board', wallDraw: true } }));
+  });
+  afterEach(() => {
+    vi.mocked(hasEditorSession).mockResolvedValue(true);
+    vi.mocked(requireSession).mockResolvedValue(undefined);
+  });
+
+  it('posts a drawing with who drew it and how long it stays, and remembers it for Undo', async () => {
+    const res = await post({ drawing: HOUSE, authorId: 'dad', life: '3d' });
+    expect(res.status).toBe(200);
+    const { created } = await res.json();
+    expect(created).toMatchObject({ text: '', drawing: HOUSE, authorId: 'dad', life: '3d', pinned: false, important: false });
+    expect(wallMayUndo(created.id)).toBe(true);
+  });
+
+  it('takes no words, pin, important or "keep" from a wall', async () => {
+    for (const body of [{ text: 'From the wall' }, { drawing: HOUSE, text: '' }, { drawing: HOUSE, pinned: true }, { drawing: HOUSE, important: true }]) {
+      expect((await post(body)).status).toBe(401);
+    }
+    const kept = await post({ drawing: HOUSE, life: 'keep' });
+    expect(kept.status).toBe(400);
+    expect(await kept.json()).toMatchObject({ code: 'notes.badLife' });
+    await expect(fs.access(notesPath())).rejects.toThrow();
+  });
+
+  it('refuses while no Notes card on a wall offers drawing', async () => {
+    for (const config of [
+      configWith(),
+      configWith({ type: 'notes', config: { view: 'board' } }),
+      configWith({ type: 'notes', config: { view: 'ticker', wallDraw: true } }),
+      configWith({ type: 'notes', config: { view: 'board', wallDraw: true }, enabled: false }),
+    ]) {
+      vi.mocked(readConfig).mockResolvedValue(config);
+      const res = await post({ drawing: HOUSE });
+      expect(res.status).toBe(403);
+      expect(await res.json()).toEqual({ error: 'Drawing on the wall is turned off', code: 'notes.wallDrawOff' });
+    }
+    await expect(fs.access(notesPath())).rejects.toThrow();
+  });
+
+  it('takes down the oldest drawing that is not pinned once the wall has its fill', async () => {
+    const drawn = (id: string, hoursAgo: number, overrides: Partial<Note> = {}) => note(id, { text: '', drawing: HOUSE, createdAt: fromNow(-hoursAgo * HOUR), ...overrides });
+    await seed({ notes: [
+      drawn('oldest-pinned', 20, { pinned: true }),
+      drawn('oldest', 19),
+      ...Array.from({ length: WALL_DRAWING_CAP - 2 }, (_, i) => drawn(`d${i}`, i + 1)),
+      note('words', { createdAt: fromNow(-22 * HOUR) }),
+    ] });
+    const res = await post({ drawing: HOUSE });
+    expect(res.status).toBe(200);
+    const now = new Date();
+    const live = (await saved()).notes.filter((n) => isLive(n, now));
+    expect(live.filter((n) => n.drawing)).toHaveLength(WALL_DRAWING_CAP);
+    expect(live.map((n) => n.id)).not.toContain('oldest');
+    // Pinned drawings and typed notes are never the ones to go.
+    expect(live.map((n) => n.id)).toEqual(expect.arrayContaining(['oldest-pinned', 'words']));
+    // Taken down, not deleted: the phone can put it back.
+    expect((await saved()).notes.map((n) => n.id)).toContain('oldest');
   });
 });

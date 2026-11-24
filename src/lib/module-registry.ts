@@ -1178,6 +1178,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'notes',
     autoSizesText: true,
+    // The "Draw a note" button and a tap on a drawing only work on a real wall.
+    needsInstanceAddress: true,
     // A material view (chalkboard, letterboard, ...) is its own card: it
     // paints the surface, the ink and the face, so those controls are hidden
     // for it; the layout views take the card's style like any module.
@@ -1196,6 +1198,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       filter: 'all',
       stepSeconds: 10,
       tickerSpeed: 8,
+      // A "Draw a note" button for new cards; a card made before it stays without one (NotesConfig.wallDraw).
+      wallDraw: true,
     },
     defaultSize: { w: 440, h: 520 },
   },

@@ -3367,6 +3367,14 @@ export interface NotesConfig {
    * How slowly the ticker scrolls: seconds per note (3 to 30). Omitted = 8
    */
   tickerSpeed?: number;
+  /**
+   * Show a "Draw a note" button on a touch wall, so anyone can leave a drawing on the board. Omitted = off
+   *
+   * On for new cards (the registry default); a card made before it stays as it was. Read by the
+   * views that list notes (`NOTES_DRAW_VIEWS`); the hub takes a drawing from a wall only while
+   * some card has this on (`wallMayDraw`).
+   */
+  wallDraw?: boolean;
 }
 
 // Sticky note module config

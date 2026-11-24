@@ -345,6 +345,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "Pen" and "Orange" are the same words in Danish (the drawing sheet's pens).
+    'modules|notes.draw.pen',
+    'modules|notes.draw.inks.orange',
     // Standings column abbreviations, the 7D chart caption and "Final": the
     // short form this language uses is the English one.
     'modules|crypto.chartLabels.week',
@@ -407,6 +410,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.video.uploadVideo',
   ]),
   'de-DE': new Set([
+    // "Orange" is the same word in German (a pen colour on the drawing sheet).
+    'modules|notes.draw.inks.orange',
     // The calendar apps by their own names, as this language already writes them.
     'remote|calendarTab.appleCalendar',
     // Standings column abbreviations, the 7D chart caption and "Final": the
@@ -524,6 +529,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.date.viewBanner',
   ]),
   'es-ES': new Set([
+    // "Color" is the same word in Spanish (the label over the drawing sheet's pens).
+    'modules|notes.draw.color',
     // The calendar apps by their own names, as this language already writes them.
     'remote|calendarTab.googleCalendar',
     'remote|calendarTab.appleCalendar',
@@ -617,6 +624,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.date.viewBanner',
   ]),
   'fr-FR': new Set([
+    // "Orange" is the same word in French (a pen colour on the drawing sheet).
+    'modules|notes.draw.inks.orange',
     // Standings column abbreviations, the 7D chart caption and "Final": the
     // short form this language uses is the English one.
     'modules|standings.columns.diff',
@@ -819,6 +828,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'core|meal.tags.meal-prep',
   ]),
   'nl-NL': new Set([
+    // "Pen" is the same word in Dutch (the label over the drawing sheet's two pens).
+    'modules|notes.draw.pen',
     // "Letters" is the Dutch word too: what the wall keyboard's abc key goes back to.
     'modules|wallKeyboard.lettersAria',
     // Standings column abbreviations, the 7D chart caption and "Final": the
