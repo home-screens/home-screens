@@ -1969,6 +1969,7 @@
   "quick-timer": {
     "title": "Schnell-Timer",
     "unit": "Min.",
-    "startAriaLabel": "{minutes}-Minuten-Timer starten"
+    "startAriaLabel": "{minutes}-Minuten-Timer starten",
+    "busyElsewhere": "Auf einem anderen Display läuft ein Timer"
   }
 }

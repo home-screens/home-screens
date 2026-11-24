@@ -1969,6 +1969,7 @@
   "quick-timer": {
     "title": "Quick timer",
     "unit": "min",
-    "startAriaLabel": "Start a {minutes} minute timer"
+    "startAriaLabel": "Start a {minutes} minute timer",
+    "busyElsewhere": "A timer is running on another wall"
   }
 }

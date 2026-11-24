@@ -7596,8 +7596,8 @@
       "anchor": "quick-timer",
       "configInterface": "QuickTimerConfig",
       "defaultSize": {
-        "w": 260,
-        "h": 150
+        "w": 340,
+        "h": 200
       },
       "fillsCanvas": false,
       "fields": [

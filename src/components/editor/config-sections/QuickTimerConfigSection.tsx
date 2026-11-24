@@ -2,6 +2,10 @@
 
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import Toggle from '@/components/ui/Toggle';
+import FieldHint from '@/components/ui/FieldHint';
+import SegmentedControl from '@/components/ui/SegmentedControl';
+import LabeledSelect from '@/components/ui/LabeledSelect';
+import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, QuickTimerConfig } from '@/types/config';
 import { DEFAULT_PRESET_MINUTES, MAX_PRESETS } from '@/components/modules/QuickTimerModule';
@@ -10,7 +14,7 @@ import { DEFAULT_PRESET_MINUTES, MAX_PRESETS } from '@/components/modules/QuickT
  *  wants on a wall button, and 0, which is not a timer. */
 const PRESET_CHOICES = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60];
 
-const VIEWS: Array<QuickTimerConfig['timerView']> = ['ring', 'face', 'cascade', 'path'];
+const VIEWS: Array<NonNullable<QuickTimerConfig['timerView']>> = ['ring', 'face', 'cascade', 'path'];
 
 const chipClass = (active: boolean) =>
   `px-3 py-2 rounded-lg border text-sm transition-colors ${
@@ -26,6 +30,7 @@ export function QuickTimerConfigSection({ mod, screenId }: { mod: ModuleInstance
   const presets = c.presetMinutes ?? DEFAULT_PRESET_MINUTES;
   const atLimit = presets.length >= MAX_PRESETS;
   const fullScreen = c.fullScreen ?? true;
+  const severalDisplays = useEditorStore((s) => (s.config?.displays?.length ?? 0) > 1);
 
   /** Toggling keeps the menu's own order, so the buttons read 1, 5, 10, 15
    *  however they were picked. The last one cannot be removed: a Quick Timer
@@ -61,9 +66,9 @@ export function QuickTimerConfigSection({ mod, screenId }: { mod: ModuleInstance
             );
           })}
         </div>
-        <p className="text-xs text-hs-text-faint mt-1">
+        <FieldHint className="mt-1">
           {t('configSections.quick-timer.presetsHint', { max: MAX_PRESETS })}
-        </p>
+        </FieldHint>
       </div>
 
       <div data-field-id="fullScreen">
@@ -79,44 +84,37 @@ export function QuickTimerConfigSection({ mod, screenId }: { mod: ModuleInstance
           shows the same numbers, so the choice goes away rather than sitting
           there doing nothing. */}
       {fullScreen && (
-        <div className="flex flex-col gap-1" data-field-id="timerView">
-          <span className="text-xs text-hs-text-muted uppercase tracking-wider">
-            {t('configSections.quick-timer.view')}
-          </span>
-          <div className="grid grid-cols-2 gap-2 mt-1">
-            {VIEWS.map((view) => (
-              <button
-                key={view}
-                type="button"
-                aria-pressed={(c.timerView ?? 'face') === view}
-                onClick={() => set({ timerView: view })}
-                className={chipClass((c.timerView ?? 'face') === view)}
-              >
-                {t(`configSections.quick-timer.view-${view}`)}
-              </button>
-            ))}
-          </div>
+        <div data-field-id="timerView">
+          {/* Four one-word names do not fit side by side in the panel in
+              every language ("Sternenpfad"), so this one is a list. */}
+          <LabeledSelect
+            label={t('configSections.quick-timer.view')}
+            value={c.timerView ?? 'face'}
+            onChange={(view) => set({ timerView: view })}
+            options={VIEWS.map((view) => ({ value: view, label: t(`configSections.quick-timer.view-${view}`) }))}
+          />
         </div>
       )}
 
-      <div className="flex flex-col gap-1" data-field-id="timerTarget">
-        <span className="text-xs text-hs-text-muted uppercase tracking-wider">
-          {t('configSections.quick-timer.target')}
-        </span>
-        <div className="grid grid-cols-2 gap-2 mt-1">
-          {(['all', 'this'] as const).map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              aria-pressed={(c.timerTarget ?? 'all') === opt}
-              onClick={() => set({ timerTarget: opt })}
-              className={chipClass((c.timerTarget ?? 'all') === opt)}
-            >
-              {t(`configSections.quick-timer.target-${opt}`)}
-            </button>
-          ))}
+      {/* One wall has nothing to choose between: both answers start the
+          timer on it. The choice appears with the second display. */}
+      {severalDisplays && (
+        <div className="flex flex-col gap-1" data-field-id="timerTarget">
+          <span className="text-xs text-hs-text-muted uppercase tracking-wider">
+            {t('configSections.quick-timer.target')}
+          </span>
+          <SegmentedControl
+            className="mt-1"
+            value={c.timerTarget ?? 'all'}
+            onChange={(opt) => set({ timerTarget: opt })}
+            label={t('configSections.quick-timer.target')}
+            options={(['all', 'this'] as const).map((opt) => ({
+              value: opt,
+              label: t(`configSections.quick-timer.target-${opt}`),
+            }))}
+          />
         </div>
-      </div>
+      )}
 
       <div data-field-id="timerSound">
         <Toggle

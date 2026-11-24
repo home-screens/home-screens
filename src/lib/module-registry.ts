@@ -1596,10 +1596,11 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       // Every display, matching what the phone does when nothing is picked.
       timerTarget: 'all',
     },
-    // Four presets two-up with room for the countdown that replaces them.
-    // The widget sizes its type to whatever box it is given, so this is a
-    // comfortable starting box rather than a floor.
-    defaultSize: { w: 260, h: 150 },
+    // Four presets two-up with their unit words, and room for the countdown
+    // and all four buttons at a finger's height when a timer is kept in the
+    // box. The widget sizes its type to whatever box it is given, so this is
+    // a comfortable starting box rather than a floor.
+    defaultSize: { w: 340, h: 200 },
   },
 
   // -- Travel --

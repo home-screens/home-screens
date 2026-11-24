@@ -5744,7 +5744,7 @@
       "minutesShort": "{minutes} min",
       "fullScreen": "Preencher a tela inteira enquanto corre",
       "fullScreenHint": "Desligado, o timer fica nesta caixa e o resto da tela continua.",
-      "view": "Tela do timer",
+      "view": "Estilo do timer",
       "view-ring": "Anel brilhante",
       "view-face": "Mostrador",
       "view-cascade": "Cascata de cor",
@@ -5752,7 +5752,7 @@
       "target": "Mostrar em",
       "target-all": "Todas as telas",
       "target-this": "Esta tela",
-      "sound": "Som enquanto corre"
+      "sound": "Som"
     }
   },
   "modals": {

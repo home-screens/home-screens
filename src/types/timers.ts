@@ -71,6 +71,12 @@ export interface TimerSession {
   /** Soft chimes on nudge / step change / completion. */
   sound: boolean;
   /**
+   * Quick timers: the length it was started with, which is what it is named
+   * after. The step's own `durationSec` moves with every minute added or
+   * taken off.
+   */
+  quickSec?: number;
+  /**
    * Whether a targeted display covers its screen with the timer. Absent means
    * it does, so routines and every timer the phone starts are unaffected.
    *

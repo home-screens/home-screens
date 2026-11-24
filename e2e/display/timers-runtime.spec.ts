@@ -405,11 +405,17 @@ test('the panel\'s Timers button opens the sheet in an editor preview, which sta
   await putConfig(request, baseConfig({ screens: [makeScreen('s', 'S', [textModule(ROTATION_TEXT), panel])] }));
   await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
   await page.goto('/display?preview=1');
+  // A timer another test in this worker just stopped stays on file for a few
+  // seconds, so "starts nothing" is that the hub still holds no running
+  // timer and no new one, not that it holds nothing at all.
+  const before = (await hubSession(request)) as { id: string } | null;
 
   await page.getByRole('button', { name: 'Timers' }).click();
   const sheet = page.getByTestId('timers-sheet');
   await expect(sheet.getByTestId('timers-sheet-preview-note')).toBeVisible();
   await sheet.getByText('5 min', { exact: true }).click();
   await expect(sheet).toHaveCount(0);
-  expect(await hubSession(request)).toBeNull();
+  const after = (await hubSession(request)) as { id: string; status: string } | null;
+  expect(after?.id ?? null).toBe(before?.id ?? null);
+  expect(after?.status ?? 'cancelled').toBe('cancelled');
 });

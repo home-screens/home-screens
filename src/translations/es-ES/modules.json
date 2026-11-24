@@ -1977,6 +1977,7 @@
   "quick-timer": {
     "title": "Temporizador rápido",
     "unit": "min",
-    "startAriaLabel": "Empezar un temporizador de {minutes} minutos"
+    "startAriaLabel": "Empezar un temporizador de {minutes} minutos",
+    "busyElsewhere": "Hay un temporizador en marcha en otro monitor"
   }
 }

@@ -1980,6 +1980,7 @@
   "quick-timer": {
     "title": "Timer rápido",
     "unit": "min",
-    "startAriaLabel": "Começar um timer de {minutes} minutos"
+    "startAriaLabel": "Começar um timer de {minutes} minutos",
+    "busyElsewhere": "Há um timer rodando em outro painel"
   }
 }

@@ -1969,6 +1969,7 @@
   "quick-timer": {
     "title": "Hurtig timer",
     "unit": "min.",
-    "startAriaLabel": "Start en timer på {minutes} minutter"
+    "startAriaLabel": "Start en timer på {minutes} minutter",
+    "busyElsewhere": "Der kører en timer på en anden væg"
   }
 }

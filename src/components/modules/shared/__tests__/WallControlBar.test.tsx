@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { WallControlBar, WallControlButton, WallControlHoldButton } from '../WallControlBar';
+import { WallControlBar, WallControlButton, WallControlHoldButton, wallControlBarFit } from '../WallControlBar';
 
 afterEach(cleanup);
 
@@ -76,5 +76,40 @@ describe('WallControlHoldButton hint', () => {
     fireEvent.pointerUp(stop);
     expect(screen.getByRole('status').style.bottom).toBe('calc(100% + 82px)');
     vi.useRealTimers();
+  });
+});
+
+describe('wallControlBarFit', () => {
+  // A 1080 by 1920 wall: unit 1, 1080 px wide.
+  it('leaves three and four buttons at full size on a portrait wall', () => {
+    expect(wallControlBarFit(3, 1, 1080)).toBe(1);
+    expect(wallControlBarFit(4, 1, 1080)).toBe(1);
+  });
+
+  it('shrinks five and six buttons until the whole row is on the wall', () => {
+    for (const count of [5, 6]) {
+      const fit = wallControlBarFit(count, 1, 1080);
+      expect(fit).toBeLessThan(1);
+      const row = (count * 232 + (count - 1) * 20 + 44) * fit;
+      expect(row).toBeLessThanOrEqual(1080 - 2 * 20 + 0.001);
+    }
+  });
+
+  it('leaves a landscape wall alone, and a bar that was not told its room', () => {
+    // 1920 by 1080: the views scale by 0.5625 and the wall is 1920 wide.
+    expect(wallControlBarFit(6, 0.5625, 1920)).toBe(1);
+    expect(wallControlBarFit(6, 1)).toBe(1);
+  });
+
+  it('draws every button of a six button bar inside the given width', () => {
+    render(
+      <WallControlBar unit={1} maxWidth={1080} ariaLabel="Timer buttons" testId="fit-bar">
+        {[1, 2, 3, 4, 5].map((n) => <WallControlButton key={n} icon={<svg />} label={`B${n}`} onPress={() => {}} testId={`b${n}`} />)}
+        <WallControlHoldButton icon={<svg />} label="Stop" ariaLabel="Stop" hint="Keep holding" onConfirm={() => {}} testId="hold" />
+      </WallControlBar>,
+    );
+    const width = parseFloat(screen.getByTestId('b1').style.width);
+    expect(width).toBeLessThan(232);
+    expect(width * 6 + parseFloat(screen.getByTestId('fit-bar').style.gap) * 5).toBeLessThanOrEqual(1080 - 40);
   });
 });

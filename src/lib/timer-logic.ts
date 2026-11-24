@@ -223,8 +223,21 @@ export function startSession(input: StartSessionInput, now: number): TimerSessio
     kind: 'quick',
     view: input.view ?? 'face',
     steps: [{ id: 'quick', label: '', icon: '⏱️', durationSec: input.durationSec! }],
+    quickSec: input.durationSec!,
     sound: input.sound ?? false,
   };
+}
+
+/**
+ * The length a quick timer is named after: what it was started with.
+ *
+ * A minute added or taken off changes the step's own length, and a "5 minute
+ * timer" that turns into a "6 minute timer" (or a "4:23 timer") reads as a
+ * different timer. A session saved before the length was kept falls back to
+ * its step.
+ */
+export function quickTimerLengthSec(s: Pick<TimerSession, 'quickSec' | 'steps'>): number {
+  return s.quickSec ?? s.steps[0]?.durationSec ?? 0;
 }
 
 export function pauseSession(s: TimerSession, now: number): TimerSession {
@@ -309,17 +322,19 @@ export function sessionProgress(
   const remainingMs = live.awaitingTap
     ? 0
     : Math.max(0, durMs - (effectiveNow - live.stepStartedAt));
-  // No clamp needed above 1 any more: a nudge changes the step's own length,
-  // so remaining can never exceed it.
-  return { step, remainingMs, fraction: Math.max(0, remainingMs / durMs), paused };
+  // A nudge changes the step's own length, so remaining cannot exceed it; the
+  // clamp and the zero check only guard a session saved in an impossible shape.
+  const fraction = durMs > 0 ? Math.min(1, Math.max(0, remainingMs / durMs)) : 0;
+  return { step, remainingMs, fraction, paused };
 }
 
 /**
- * Take a minute off the running step, never more than is left.
+ * Take a minute off the running step, while more than a minute is left.
  *
- * Overshooting would run the clock backwards into the step before this one,
- * which is not what "one minute less" means to anyone. Landing exactly on 0
- * finishes the step, the same as waiting it out would have.
+ * With a minute or less to go the press does nothing. The buttons already
+ * hide the choice then, but they judge it on the wall's clock before the
+ * press leaves: one made at 1:00.3 can arrive at 0:59.9, and ending the timer
+ * on the spot is not what "one minute less" means to anyone.
  */
 export function subtractMinute(s: TimerSession, now: number): TimerSession {
   if (s.status !== 'running') return s;
@@ -328,11 +343,10 @@ export function subtractMinute(s: TimerSession, now: number): TimerSession {
   const effectiveNow = s.pausedAt ?? now;
   const elapsed = effectiveNow - s.stepStartedAt;
   const remaining = step.durationSec * 1000 - elapsed;
-  if (remaining <= 0) return s;
+  if (remaining <= 60_000) return s;
   // The mirror of `addMinute`: shrink the step, so the dial becomes a four
   // minute dial rather than jumping forward against a five minute one.
-  const nextRemaining = remaining - Math.min(60_000, remaining);
-  const durationSec = Math.round((elapsed + nextRemaining) / 1000);
+  const durationSec = Math.max(1, Math.round((elapsed + remaining - 60_000) / 1000));
   return { ...s, steps: s.steps.map((st, i) => (i === s.stepIndex ? { ...st, durationSec } : st)) };
 }
 

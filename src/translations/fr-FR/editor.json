@@ -5744,7 +5744,7 @@
       "minutesShort": "{minutes} min",
       "fullScreen": "Remplir tout l'écran pendant le minuteur",
       "fullScreenHint": "Désactivé, le minuteur reste dans cette case et le reste de l'écran demeure.",
-      "view": "Écran du minuteur",
+      "view": "Style du minuteur",
       "view-ring": "Anneau lumineux",
       "view-face": "Cadran",
       "view-cascade": "Cascade de couleur",
@@ -5752,7 +5752,7 @@
       "target": "Afficher sur",
       "target-all": "Tous les écrans",
       "target-this": "Cet écran",
-      "sound": "Son pendant le minuteur"
+      "sound": "Son"
     }
   },
   "modals": {

@@ -5744,7 +5744,7 @@
       "minutesShort": "{minutes} min",
       "fullScreen": "Llenar toda la pantalla mientras corre",
       "fullScreenHint": "Apagado, el temporizador se queda en esta caja y el resto de la pantalla sigue.",
-      "view": "Pantalla del temporizador",
+      "view": "Estilo del temporizador",
       "view-ring": "Anillo brillante",
       "view-face": "Esfera",
       "view-cascade": "Cascada de color",
@@ -5752,7 +5752,7 @@
       "target": "Mostrarlo en",
       "target-all": "Todas las pantallas",
       "target-this": "Esta pantalla",
-      "sound": "Sonido mientras corre"
+      "sound": "Sonido"
     }
   },
   "modals": {

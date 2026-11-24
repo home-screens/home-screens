@@ -30,6 +30,8 @@ export interface TimerControlsProps {
   view: TimerView;
   paused: boolean;
   s: number;
+  /** The wall's width in its own pixels, so the bar can fit all its buttons. */
+  maxWidth?: number;
   t: TimerTranslate;
   onPause: () => void;
   onResume: () => void;
@@ -60,7 +62,7 @@ export interface TimerControlsProps {
  * "Paused" pill.
  */
 export default function TimerControls({
-  view, paused, s, t, onPause, onResume, onAddMinute, onStop,
+  view, paused, s, maxWidth, t, onPause, onResume, onAddMinute, onStop,
   onSubtractMinute, canSubtractMinute = false, onToggleSound, soundOn = true, onStepDone,
 }: TimerControlsProps) {
   const look = LOOK[view] ?? LOOK.ring;
@@ -71,6 +73,7 @@ export default function TimerControls({
       tone={look.tone}
       shade={look.shade}
       shadeHeight={shadeHeight(view, paused)}
+      maxWidth={maxWidth}
       label={paused ? t('timer.paused') : undefined}
       ariaLabel={t('timer.controls')}
       testId="timer-controls"

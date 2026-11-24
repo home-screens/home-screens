@@ -1980,6 +1980,7 @@
   "quick-timer": {
     "title": "Minuteur rapide",
     "unit": "min",
-    "startAriaLabel": "Lancer un minuteur de {minutes} minutes"
+    "startAriaLabel": "Lancer un minuteur de {minutes} minutes",
+    "busyElsewhere": "Un minuteur tourne sur un autre mur"
   }
 }

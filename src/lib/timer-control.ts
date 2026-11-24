@@ -1,5 +1,5 @@
 import { displayFetch } from './display-fetch';
-import type { TimerTargets, TimerView } from '@/types/timers';
+import type { TimerSession, TimerTargets, TimerView } from '@/types/timers';
 
 /**
  * The timer session as a wall touches it.
@@ -37,8 +37,21 @@ async function post(body: Record<string, unknown>): Promise<boolean> {
   }
 }
 
-export function postTimerControl(action: TimerControlAction): Promise<boolean> {
-  return post({ action });
+/**
+ * A press on a running timer. It names the timer it was made looking at and,
+ * for "Done!", the step: the hub's timer can be another one by now (started
+ * from a phone inside the last heartbeat), and a second "Done!" tap must not
+ * skip the next step. The hub turns a press for anything else down.
+ */
+export function postTimerControl(
+  action: TimerControlAction,
+  on: Pick<TimerSession, 'id' | 'stepIndex'>,
+): Promise<boolean> {
+  return post({
+    action,
+    sessionId: on.id,
+    ...(action === 'step-done' ? { stepIndex: on.stepIndex } : {}),
+  });
 }
 
 export function startQuickTimer(input: {

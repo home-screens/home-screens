@@ -5744,7 +5744,7 @@
       "minutesShort": "{minutes} Min.",
       "fullScreen": "Das ganze Display füllen, während er läuft",
       "fullScreenHint": "Aus bleibt der Timer in diesem Feld, und der Rest des Bildschirms bleibt.",
-      "view": "Timer-Anzeige",
+      "view": "Timer-Stil",
       "view-ring": "Leuchtring",
       "view-face": "Zifferblatt",
       "view-cascade": "Farbfall",
@@ -5752,7 +5752,7 @@
       "target": "Anzeigen auf",
       "target-all": "Alle Displays",
       "target-this": "Diesem Display",
-      "sound": "Ton, während er läuft"
+      "sound": "Ton"
     }
   },
   "modals": {

@@ -423,6 +423,13 @@ body {
   50% { opacity: 0.55; }
 }
 
+/* "Time's up!" in a Quick Timer box breathes a few times, then rests.
+   Opacity only, so it stays on the compositor on a Pi. */
+@keyframes hs-quick-timer-done {
+  from { opacity: 1; }
+  to { opacity: 0.62; }
+}
+
 /* Slow confetti drift on the timer celebration screen. Each piece sets its
    own base rotation via --hs-confetti-rotate (an animated transform would
    otherwise override the inline one). */

@@ -5744,7 +5744,7 @@
       "minutesShort": "{minutes} min",
       "fullScreen": "Fill the whole display while it runs",
       "fullScreenHint": "Off keeps the timer in this box, so the rest of the screen stays.",
-      "view": "Timer screen",
+      "view": "Timer look",
       "view-ring": "Glow ring",
       "view-face": "Timer face",
       "view-cascade": "Color fall",
@@ -5752,7 +5752,7 @@
       "target": "Show it on",
       "target-all": "All displays",
       "target-this": "This display",
-      "sound": "Chime while it runs"
+      "sound": "Sound"
     }
   },
   "modals": {
