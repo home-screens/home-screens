@@ -1939,5 +1939,10 @@
     "play": "Abspielen",
     "position": "{at} von {count}",
     "allPictures": "Alle Bilder"
+  },
+  "quick-timer": {
+    "title": "Schnell-Timer",
+    "unit": "Min.",
+    "startAriaLabel": "{minutes}-Minuten-Timer starten"
   }
 }

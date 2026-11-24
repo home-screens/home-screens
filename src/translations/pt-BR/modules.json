@@ -1950,5 +1950,10 @@
     "play": "Reproduzir",
     "position": "{at} de {count}",
     "allPictures": "Todas as fotos"
+  },
+  "quick-timer": {
+    "title": "Timer rápido",
+    "unit": "min",
+    "startAriaLabel": "Começar um timer de {minutes} minutos"
   }
 }

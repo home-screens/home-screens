@@ -373,7 +373,15 @@
       "one": "{steps} Schritt · {minutes} Min.",
       "other": "{steps} Schritte · {minutes} Min."
     },
-    "holdShort": "halten"
+    "holdShort": "halten",
+    "oneMinute": "1 Min.",
+    "holdToStop": "Zum Stoppen halten",
+    "subtractMinuteSpoken": "Eine Minute weniger",
+    "addMinuteSpoken": "Eine Minute mehr",
+    "subtractMinute": "-1 Min.",
+    "soundOff": "Ton aus",
+    "soundOn": "Ton an",
+    "stepDone": "Nächster Schritt"
   },
   "launcher": {
     "heading": "Wohin möchtest du?",

@@ -54,9 +54,11 @@ export interface TimerSession {
   steps: RoutineStep[];
   stepIndex: number;
   /**
-   * Epoch ms the current step's countdown is anchored to. Resume and
-   * add-a-minute shift it forward; lazy materialization advances it by
-   * exactly the elapsed steps' durations so mid-run history stays exact.
+   * Epoch ms the current step's countdown is anchored to. Resume shifts it
+   * forward by the pause; lazy materialization advances it by exactly the
+   * elapsed steps' durations so mid-run history stays exact. A nudge leaves
+   * it alone and changes the step's own `durationSec` instead, so a dial
+   * drawn against that length grows and shrinks with it.
    */
   stepStartedAt: number;
   /** Set while paused; countdown freezes at (pausedAt - stepStartedAt). */
@@ -68,6 +70,17 @@ export interface TimerSession {
   completedAt?: number;
   /** Soft chimes on nudge / step change / completion. */
   sound: boolean;
+  /**
+   * Whether a targeted display covers its screen with the timer. Absent means
+   * it does, so routines and every timer the phone starts are unaffected.
+   *
+   * False only reaches here from a Quick Timer module set to stay in its box:
+   * the choice has to travel with the session because the takeover has no way
+   * to know which module started it, and a module on one display can start a
+   * timer on all of them. A display with no Quick Timer module on the screen
+   * then shows nothing, which is why the two settings sit together.
+   */
+  fullScreen?: boolean;
 }
 
 /** A session after lazy materialization — what GET /api/timers/session returns. */

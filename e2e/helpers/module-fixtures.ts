@@ -186,6 +186,14 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
       await expect(mod.locator('button[aria-label="Next screen"]')).toBeVisible();
     },
   },
+  'quick-timer': {
+    type: 'quick-timer', kind: 'network-free',
+    expect: async (mod) => {
+      await expect(mod.getByTestId('quick-timer')).toHaveAttribute('data-state', 'idle');
+      await expect(mod.getByTestId('quick-timer-preset')).toHaveCount(4);
+      await expect(mod.locator('button[aria-label="Start a 10 minute timer"]')).toBeVisible();
+    },
+  },
   // Word + italic part-of-speech line (the module's two-part layout).
   'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: matchesText(/noun|verb|adjective|adverb/) },
   affirmations: { type: 'affirmations', kind: 'network-free', expect: rendersText },

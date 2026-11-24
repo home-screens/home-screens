@@ -399,7 +399,8 @@
       "shape": "Figur og skillelinje",
       "display-control": "Skærmstyring",
       "traffic": "Trafik / pendling",
-      "notes": "Opslagstavle"
+      "notes": "Opslagstavle",
+      "quick-timer": "Hurtig timer"
     },
     "descriptions": {
       "fullscreen-calendar": "Hele ugen eller måneden, så den fylder skærmen",
@@ -447,7 +448,8 @@
       "shape": "Streger og felter til at dele tingene op med",
       "display-control": "Knapper til at vække, slukke eller skifte skærm med et tryk",
       "traffic": "Hvor lang tid turen til arbejde eller skole tager",
-      "notes": "Noter, som familien skriver på telefonen, og som hænger på væggen, til tiden er gået"
+      "notes": "Noter, som familien skriver på telefonen, og som hænger på væggen, til tiden er gået",
+      "quick-timer": "Tryk på en længde, så kører timeren på skærmen"
     },
     "keywords": {
       "fullscreen-calendar": "kalender aftaler begivenheder uge måned familie",
@@ -495,7 +497,8 @@
       "shape": "streg skillelinje boks kant ramme figur",
       "display-control": "tryk knapper tænd sluk vække lysstyrke skærm",
       "traffic": "pendling køretur rute trafik arbejde skole",
-      "notes": "noter opslagstavle beskeder familie køleskab seddel sedler huskeseddel"
+      "notes": "noter opslagstavle beskeder familie køleskab seddel sedler huskeseddel",
+      "quick-timer": "timer nedtælling minutter køkken madlavning hurtig start"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5732,6 +5735,22 @@
       "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her.",
       "wallDraw": "Tegn på væggen",
       "wallDrawHelp": "Kortet får knappen »Tegn en note«. Alle ved en væg med touchskærm kan sætte en tegning op på tavlen; noter tages stadig ned på telefonen."
+    },
+    "quick-timer": {
+      "presets": "Længder",
+      "presetsHint": "Op til {max} knapper, i denne rækkefølge.",
+      "minutesShort": "{minutes} min.",
+      "fullScreen": "Fyld hele skærmen, mens den kører",
+      "fullScreenHint": "Slået fra bliver timeren i denne boks, så resten af skærmen bliver.",
+      "view": "Timerskærm",
+      "view-ring": "Lysende ring",
+      "view-face": "Urskive",
+      "view-cascade": "Farvefald",
+      "view-path": "Stjernesti",
+      "target": "Vis den på",
+      "target-all": "Alle skærme",
+      "target-this": "Denne skærm",
+      "sound": "Lyd mens den kører"
     }
   },
   "modals": {

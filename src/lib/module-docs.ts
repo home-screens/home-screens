@@ -57,6 +57,7 @@ export const MODULE_DOCS_ANCHOR: Record<BuiltinModuleType, string> = {
   icon: 'icon',
   shape: 'shape-and-divider',
   'display-control': 'display-control',
+  'quick-timer': 'quick-timer',
   traffic: 'traffic-commute',
 };
 

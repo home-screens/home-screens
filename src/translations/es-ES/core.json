@@ -373,7 +373,15 @@
       "one": "{steps} paso · {minutes} min",
       "other": "{steps} pasos · {minutes} min"
     },
-    "holdShort": "mantener"
+    "holdShort": "mantener",
+    "oneMinute": "1 min",
+    "holdToStop": "Mantén pulsado para parar",
+    "subtractMinuteSpoken": "Quitar un minuto",
+    "addMinuteSpoken": "Añadir un minuto",
+    "subtractMinute": "-1 min",
+    "soundOff": "Sin sonido",
+    "soundOn": "Con sonido",
+    "stepDone": "Siguiente paso"
   },
   "launcher": {
     "heading": "¿A dónde quieres ir?",

@@ -174,25 +174,31 @@ describe('advanceStep', () => {
 });
 
 describe('addMinute', () => {
-  it('extends a mid-countdown step by exactly 60s', () => {
-    // 40s into the 300s first step: plain shift, no revive clamp.
+  it('grows the step itself, so a dial drawn against it grows too', () => {
+    // 40s into the 300s first step. The start stays put and the step becomes
+    // 360s, which is what lets a five minute ring redraw as a six minute one
+    // instead of sitting full while the extra minute runs off.
     const extended = addMinute(start(), T0 + 40_000);
-    expect(extended.stepStartedAt).toBe(T0 + 60_000);
+    expect(extended.stepStartedAt).toBe(T0);
+    expect(extended.steps[0].durationSec).toBe(360);
+    const m = materializeSession(extended, T0 + 40_000)!;
+    expect(m.steps[0].durationSec * 1000 - (T0 + 40_000 - m.stepStartedAt)).toBe(320_000);
   });
 
   it('revives an awaiting-tap hold with a full 60s regardless of overshoot', () => {
     const s = start({
       steps: [{ id: 'a', label: 'x', icon: '⏱️', durationSec: 60, waitForTap: true }],
     });
-    // Held 5 minutes — a plain += 60s would leave it still held (dead button).
+    // Held 5 minutes — a plain +60s would leave it still held (dead button).
     const now = T0 + 360_000;
     expect(materializeSession(s, now)!.awaitingTap).toBe(true);
 
     const extended = addMinute(s, now);
     const m = materializeSession(extended, now)!;
     expect(m.awaitingTap).toBe(false);
-    // Anchored so exactly 60s remain from now.
-    expect(m.stepStartedAt).toBe(now - 60_000 + 60_000);
+    // Exactly 60s left from now, carried by the step's length rather than a
+    // slid start, so the dial reads a whole minute rather than a sliver.
+    expect(m.steps[0].durationSec * 1000 - (now - m.stepStartedAt)).toBe(60_000);
   });
 });
 

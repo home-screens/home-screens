@@ -1939,5 +1939,10 @@
     "play": "Play",
     "position": "{at} of {count}",
     "allPictures": "All pictures"
+  },
+  "quick-timer": {
+    "title": "Quick timer",
+    "unit": "min",
+    "startAriaLabel": "Start a {minutes} minute timer"
   }
 }

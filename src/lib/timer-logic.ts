@@ -2,6 +2,7 @@ import {
   TIMER_VIEWS,
   type MaterializedTimerSession,
   type Routine,
+  type RoutineStep,
   type TimerSession,
   type TimerSessionStatus,
   type TimerTargets,
@@ -188,6 +189,8 @@ export interface StartSessionInput {
   /** Overrides the routine's own view; required for quick timers. */
   view?: TimerView;
   sound?: boolean;
+  /** False keeps the timer out of the full-screen takeover. Defaults to on. */
+  fullScreen?: boolean;
 }
 
 export function startSession(input: StartSessionInput, now: number): TimerSession {
@@ -198,6 +201,10 @@ export function startSession(input: StartSessionInput, now: number): TimerSessio
     targets: input.targets,
     startedAt: now,
     status: 'running' as const,
+    // Written only when it is off, so a session file from before this
+    // setting, and every session that never asks, reads the same as it
+    // always did.
+    ...(input.fullScreen === false ? { fullScreen: false } : {}),
   };
   if (input.kind === 'routine') {
     const routine = input.routine!;
@@ -260,8 +267,105 @@ export function addMinute(s: TimerSession, now: number): TimerSession {
   const step = s.steps[s.stepIndex];
   if (!step) return s;
   const effectiveNow = s.pausedAt ?? now;
-  const revivedStart = effectiveNow - step.durationSec * 1000 + 60_000;
-  return { ...s, stepStartedAt: Math.max(s.stepStartedAt + 60_000, revivedStart) };
+  const elapsed = effectiveNow - s.stepStartedAt;
+  const remaining = step.durationSec * 1000 - elapsed;
+  // Grow the step rather than slide its start, so a dial drawn against the
+  // step's own length becomes a six minute dial when a minute goes on a five
+  // minute timer. Sliding the start left the dial full for the extra minute
+  // and then draining over the old length, which reads as a stuck timer.
+  //
+  // A step already overshot (one waiting for a tap) revives with a whole
+  // minute rather than a minute on top of a debt it has already run past.
+  const nextRemaining = Math.max(remaining + 60_000, 60_000);
+  const durationSec = Math.round((elapsed + nextRemaining) / 1000);
+  return { ...s, steps: s.steps.map((st, i) => (i === s.stepIndex ? { ...st, durationSec } : st)) };
+}
+
+/** Where a running session has got to, for anything that draws it. */
+export interface TimerProgress {
+  /** The step being counted, absent once the session is no longer running. */
+  step?: RoutineStep;
+  remainingMs: number;
+  /** Remaining share of the step, 0..1. */
+  fraction: number;
+  paused: boolean;
+}
+
+/**
+ * The countdown as of `now`.
+ *
+ * Shared by the takeover and the Quick Timer module, which must not disagree
+ * about the number on screen by a rounding rule.
+ */
+export function sessionProgress(
+  live: MaterializedTimerSession | null,
+  now: number,
+): TimerProgress {
+  const paused = live?.pausedAt !== undefined;
+  const step = live && live.status === 'running' ? live.steps[live.stepIndex] : undefined;
+  if (!live || !step) return { step: undefined, remainingMs: 0, fraction: 0, paused };
+  const durMs = step.durationSec * 1000;
+  const effectiveNow = live.pausedAt ?? now;
+  const remainingMs = live.awaitingTap
+    ? 0
+    : Math.max(0, durMs - (effectiveNow - live.stepStartedAt));
+  // No clamp needed above 1 any more: a nudge changes the step's own length,
+  // so remaining can never exceed it.
+  return { step, remainingMs, fraction: Math.max(0, remainingMs / durMs), paused };
+}
+
+/**
+ * Take a minute off the running step, never more than is left.
+ *
+ * Overshooting would run the clock backwards into the step before this one,
+ * which is not what "one minute less" means to anyone. Landing exactly on 0
+ * finishes the step, the same as waiting it out would have.
+ */
+export function subtractMinute(s: TimerSession, now: number): TimerSession {
+  if (s.status !== 'running') return s;
+  const step = s.steps[s.stepIndex];
+  if (!step) return s;
+  const effectiveNow = s.pausedAt ?? now;
+  const elapsed = effectiveNow - s.stepStartedAt;
+  const remaining = step.durationSec * 1000 - elapsed;
+  if (remaining <= 0) return s;
+  // The mirror of `addMinute`: shrink the step, so the dial becomes a four
+  // minute dial rather than jumping forward against a five minute one.
+  const nextRemaining = remaining - Math.min(60_000, remaining);
+  const durationSec = Math.round((elapsed + nextRemaining) / 1000);
+  return { ...s, steps: s.steps.map((st, i) => (i === s.stepIndex ? { ...st, durationSec } : st)) };
+}
+
+/**
+ * Turn this session's chimes on or off.
+ *
+ * Stored on the session rather than held in the overlay, because a timer is
+ * one household thing shown on every wall at once: silencing it on the one
+ * you are standing at has to silence it everywhere, and has to survive the
+ * next heartbeat rather than being undone by it.
+ *
+ * It does not reach back into the routine or the module that started the
+ * timer — the next one starts with whatever those say, which is what "on the
+ * fly" means.
+ */
+export function toggleSound(s: TimerSession): TimerSession {
+  return { ...s, sound: !s.sound };
+}
+
+/**
+ * Whether a session belongs on this display.
+ *
+ * `undefined` is the legacy single-display route, which has no id to match
+ * and therefore shows every session.
+ */
+export function sessionTargetsDisplay(
+  session: Pick<TimerSession, 'targets'> | null,
+  displayId: string | undefined,
+): boolean {
+  if (!session) return true;
+  if (session.targets === 'all') return true;
+  if (displayId === undefined) return true;
+  return session.targets.includes(displayId);
 }
 
 /** Stop a running timer, or end a finished one's "Time's up!" everywhere. */

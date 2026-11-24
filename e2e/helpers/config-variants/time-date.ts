@@ -1128,4 +1128,31 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
     },
   },
+  // -- quick-timer --
+  // The lengths are the module: a different list is a different set of
+  // buttons, named by the aria-label a wall tap would read out.
+  {
+    type: 'quick-timer', name: 'preset-lengths', kind: 'network-free',
+    config: { presetMinutes: [3, 20] },
+    expect: async (mod) => {
+      await count('[data-testid="quick-timer-preset"]', 2)(mod);
+      await child('button[aria-label="Start a 3 minute timer"]')(mod);
+      await child('button[aria-label="Start a 20 minute timer"]')(mod);
+      await expect(mod.locator('button[aria-label="Start a 1 minute timer"]')).toHaveCount(0);
+    },
+  },
+  // Six is the most it takes, and the grid goes three across rather than six
+  // so the numbers stay readable (see metrics.ts).
+  {
+    type: 'quick-timer', name: 'preset-six', kind: 'network-free',
+    config: { presetMinutes: [1, 2, 3, 5, 10, 15] },
+    size: { w: 420, h: 260 },
+    expect: async (mod) => {
+      await count('[data-testid="quick-timer-preset"]', 6)(mod);
+      const first = (await mod.locator('[data-testid="quick-timer-preset"]').first().boundingBox())!;
+      const fourth = (await mod.locator('[data-testid="quick-timer-preset"]').nth(3).boundingBox())!;
+      // Fourth button starts a new row, so it sits below the first.
+      expect(fourth.y).toBeGreaterThan(first.y);
+    },
+  },
 ];

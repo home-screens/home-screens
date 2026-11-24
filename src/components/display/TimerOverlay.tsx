@@ -30,7 +30,7 @@ export const TIMER_CONTROLS_IDLE_MS = 8_000;
 /** "Time's up!" stays for minutes, so it checks for its end once a second rather than four times. */
 const DONE_TICK_MS = 1_000;
 
-type SessionAction = 'pause' | 'resume' | 'add-minute' | 'cancel' | 'step-done';
+type SessionAction = 'pause' | 'resume' | 'add-minute' | 'subtract-minute' | 'toggle-sound' | 'cancel' | 'step-done';
 
 interface TimerOverlayProps {
   /** Undefined on the legacy single-display route — matches every session. */
@@ -105,11 +105,18 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
 
   // Target match derives from the raw session (targets are immutable per
   // session).
-  const matches =
+  const targeted =
     !serverSession ||
     serverSession.targets === 'all' ||
     displayId === undefined ||
     serverSession.targets.includes(displayId);
+
+  // A Quick Timer set to stay in its own box asks for no takeover: this
+  // display is still one the timer is running on, so it keeps the tick and
+  // keeps chiming, and the module draws the countdown. Only the cover comes
+  // off. The two are separate on purpose — a timer that ends silently
+  // because it was left in its box is not what the sound setting says.
+  const matches = targeted && serverSession?.fullScreen !== false;
 
   // Fast local tick only while this display is actually showing the session.
   // Keyed on the session id, not `live` — materialization returns a fresh
@@ -117,7 +124,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   // Non-targeted displays skip the tick entirely. The tick stops once the
   // session expires here: the hub keeps the finished session on file, so no
   // new revision (and no fetch) ever arrives to clear `serverSession`.
-  const tickingSessionId = live && matches ? live.id : null;
+  const tickingSessionId = live && targeted ? live.id : null;
   const tickMs = live?.status === 'done' ? DONE_TICK_MS : TICK_MS;
   useEffect(() => {
     if (!tickingSessionId) return;
@@ -145,7 +152,8 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   const remainingMs = step && !live?.awaitingTap
     ? Math.max(0, durMs - (effectiveNow - (live?.stepStartedAt ?? 0)))
     : 0;
-  // add-a-minute can push remaining past the step's duration — clamp to full.
+  // A nudge changes the step's own length, so remaining can never exceed it;
+  // the clamp only guards a session hand-edited to an impossible shape.
   const fraction = step ? Math.min(1, Math.max(0, remainingMs / durMs)) : 0;
   const nudge = !!step && !live?.awaitingTap && remainingMs > 0 && fraction <= NUDGE_FRACTION;
   const paused = live?.pausedAt !== undefined;
@@ -172,7 +180,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   // Sound transitions — compare against the previous materialized frame.
   const prevRef = useRef<{ id: string; stepIndex: number; nudge: boolean; status: string } | null>(null);
   useEffect(() => {
-    const current = live && matches
+    const current = live && targeted
       ? { id: live.id, stepIndex: live.stepIndex, nudge, status: live.status }
       : null;
     const prev = prevRef.current;
@@ -182,7 +190,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     if (current.status === 'done' && prev.status !== 'done') playTimerSound('done');
     else if (current.stepIndex !== prev.stepIndex) playTimerSound('step');
     else if (current.nudge && !prev.nudge) playTimerSound('nudge');
-  }, [live, matches, nudge]);
+  }, [live, targeted, nudge]);
 
   // A press names the timer on this screen and, for "Done!", the step: the
   // hub's timer can be another one by now (started from a phone inside the
@@ -275,6 +283,15 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
           onPause={() => act('pause', live)}
           onResume={() => act('resume', live)}
           onAddMinute={() => act('add-minute', live)}
+          // Only offered while there is a whole minute to take back, so the
+          // button never appears able to run the timer past its own end.
+          onSubtractMinute={() => act('subtract-minute', live)}
+          canSubtractMinute={remainingMs > 60_000}
+          onToggleSound={() => act('toggle-sound', live)}
+          soundOn={live.sound !== false}
+          // A routine of several steps can be moved on by hand; a plain timer
+          // has nothing to move on to, so it gets no button.
+          onStepDone={live.steps.length > 1 ? () => act('step-done', live) : undefined}
           onStop={() => {
             controls.hide();
             act('cancel', live);

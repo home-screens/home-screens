@@ -1939,5 +1939,10 @@
     "play": "Afspil",
     "position": "{at} af {count}",
     "allPictures": "Alle billeder"
+  },
+  "quick-timer": {
+    "title": "Hurtig timer",
+    "unit": "min.",
+    "startAriaLabel": "Start en timer på {minutes} minutter"
   }
 }

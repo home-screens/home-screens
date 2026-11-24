@@ -178,19 +178,34 @@ export interface WallControlButtonProps {
   onPress: () => void;
   /** The one that carries on (Resume), filled in green. */
   primary?: boolean;
+  /**
+   * Shown, but not pressable: the action exists and simply cannot be taken
+   * yet (a minute cannot come off a step with less than a minute left).
+   * Dropping the button instead would re-centre the bar under a finger
+   * already travelling towards Stop, so it stays and dims.
+   */
+  disabled?: boolean;
   testId?: string;
 }
 
 /** One button of the bar: an icon with its word under it, pressed the moment a finger lands. */
-export function WallControlButton({ icon, label, onPress, primary = false, testId }: WallControlButtonProps) {
+export function WallControlButton({ icon, label, onPress, primary = false, disabled = false, testId }: WallControlButtonProps) {
   const { unit, tone } = useContext(BarCtx);
   return (
     <button
       type="button"
-      {...wallPress(FACE_CLASS)}
+      // Disabled drops the press feedback but keeps FACE_CLASS: that class
+      // carries the centring, so spreading nothing left the icon and its
+      // word laid out as a plain button's content instead of stacked and
+      // centred.
+      {...(disabled ? { className: FACE_CLASS } : wallPress(FACE_CLASS))}
       data-testid={testId}
-      onClick={onPress}
-      style={{ ...buttonStyle(unit, tone, primary), gap: 12 * unit }}
+      disabled={disabled}
+      onClick={disabled ? undefined : onPress}
+      style={{
+        ...buttonStyle(unit, tone, primary), gap: 12 * unit,
+        ...(disabled ? { opacity: 0.38, cursor: 'default' } : {}),
+      }}
     >
       <ButtonFace icon={icon} label={label} unit={unit} />
     </button>

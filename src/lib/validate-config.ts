@@ -35,6 +35,7 @@ const BUILTIN_MODULE_TYPE_MAP: Record<BuiltinModuleType, true> = {
   'air-quality': true, 'todoist': true, 'rain-map': true, 'multi-month': true,
   'garbage-day': true, 'standings': true, 'affirmations': true, 'date': true,
   'display-control': true, 'meal-planner': true, 'iframe': true,
+  'quick-timer': true,
   'icon': true, 'shape': true,
   'chore-chart': true, 'timetable': true,
   'fullscreen-calendar': true, 'fullscreen-chore-chart': true,

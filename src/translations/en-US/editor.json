@@ -399,7 +399,8 @@
       "shape": "Shape & Divider",
       "display-control": "Display Control",
       "traffic": "Traffic / Commute",
-      "notes": "Notes"
+      "notes": "Notes",
+      "quick-timer": "Quick Timer"
     },
     "descriptions": {
       "fullscreen-calendar": "Your whole week or month, filling the screen",
@@ -447,7 +448,8 @@
       "shape": "Lines and blocks for separating things",
       "display-control": "Buttons to wake, sleep or change screens by touch",
       "traffic": "How long the drive to work or school takes",
-      "notes": "Notes the family writes on the phone, shown on the wall until they expire"
+      "notes": "Notes the family writes on the phone, shown on the wall until they expire",
+      "quick-timer": "Tap a length to start a kitchen timer on the wall"
     },
     "keywords": {
       "fullscreen-calendar": "agenda schedule events week month family",
@@ -495,7 +497,8 @@
       "shape": "line divider box border separator rule",
       "display-control": "touch buttons sleep wake brightness next screen",
       "traffic": "commute drive route traffic school work",
-      "notes": "notes board message family fridge post"
+      "notes": "notes board message family fridge post",
+      "quick-timer": "timer countdown minutes kitchen cooking quick start"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5732,6 +5735,22 @@
       "materialHelp": "This look brings its own colors and lettering, so the background, text color, border and font settings do not apply.",
       "wallDraw": "Draw on the wall",
       "wallDrawHelp": "A \"Draw a note\" button on the card. Anyone at a touch wall can leave a drawing on the board; taking notes down stays on the phone."
+    },
+    "quick-timer": {
+      "presets": "Lengths",
+      "presetsHint": "Up to {max} buttons. They are drawn in this order.",
+      "minutesShort": "{minutes} min",
+      "fullScreen": "Fill the whole display while it runs",
+      "fullScreenHint": "Off keeps the timer in this box, so the rest of the screen stays.",
+      "view": "Timer screen",
+      "view-ring": "Glow ring",
+      "view-face": "Timer face",
+      "view-cascade": "Color fall",
+      "view-path": "Star path",
+      "target": "Show it on",
+      "target-all": "All displays",
+      "target-this": "This display",
+      "sound": "Chime while it runs"
     }
   },
   "modals": {

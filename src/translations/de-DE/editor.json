@@ -399,7 +399,8 @@
       "shape": "Form & Trenner",
       "display-control": "Anzeigesteuerung",
       "traffic": "Verkehr & Pendelwege",
-      "notes": "Pinnwand"
+      "notes": "Pinnwand",
+      "quick-timer": "Schnell-Timer"
     },
     "descriptions": {
       "fullscreen-calendar": "Deine ganze Woche oder der ganze Monat, bildschirmfüllend",
@@ -447,7 +448,8 @@
       "shape": "Linien und Flächen zum Abtrennen",
       "display-control": "Per Fingertipp aufwecken, schlafen legen oder Bildschirme wechseln",
       "traffic": "Wie lange die Fahrt zur Arbeit oder zur Schule dauert",
-      "notes": "Familiennotizen vom Handy, die an der Wand hängen, bis ihre Zeit um ist"
+      "notes": "Familiennotizen vom Handy, die an der Wand hängen, bis ihre Zeit um ist",
+      "quick-timer": "Eine Länge antippen und der Timer läuft am Display"
     },
     "keywords": {
       "fullscreen-calendar": "kalender termine agenda woche monat familie",
@@ -495,7 +497,8 @@
       "shape": "linie trenner strich kasten rahmen form",
       "display-control": "touch tippen knoepfe knöpfe aufwecken schlafen helligkeit bildschirm",
       "traffic": "verkehr pendeln fahrt route stau arbeit schule",
-      "notes": "notizen pinnwand nachricht mitteilung familie kühlschrank kuehlschrank zettel"
+      "notes": "notizen pinnwand nachricht mitteilung familie kühlschrank kuehlschrank zettel",
+      "quick-timer": "timer countdown minuten küche kochen schnell start"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5732,6 +5735,22 @@
       "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht.",
       "wallDraw": "An der Wand malen",
       "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiter nur auf dem Handy."
+    },
+    "quick-timer": {
+      "presets": "Längen",
+      "presetsHint": "Bis zu {max} Tasten, in dieser Reihenfolge.",
+      "minutesShort": "{minutes} Min.",
+      "fullScreen": "Das ganze Display füllen, während er läuft",
+      "fullScreenHint": "Aus bleibt der Timer in diesem Feld, und der Rest des Bildschirms bleibt.",
+      "view": "Timer-Anzeige",
+      "view-ring": "Leuchtring",
+      "view-face": "Zifferblatt",
+      "view-cascade": "Farbfall",
+      "view-path": "Sternenpfad",
+      "target": "Anzeigen auf",
+      "target-all": "Alle Displays",
+      "target-this": "Diesem Display",
+      "sound": "Ton, während er läuft"
     }
   },
   "modals": {

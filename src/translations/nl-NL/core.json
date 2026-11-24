@@ -373,7 +373,15 @@
       "one": "{steps} stap · {minutes} min",
       "other": "{steps} stappen · {minutes} min"
     },
-    "holdShort": "vasthouden"
+    "holdShort": "vasthouden",
+    "oneMinute": "1 min",
+    "holdToStop": "Houd vast om te stoppen",
+    "subtractMinuteSpoken": "Een minuut eraf",
+    "addMinuteSpoken": "Een minuut erbij",
+    "subtractMinute": "-1 min",
+    "soundOff": "Geluid uit",
+    "soundOn": "Geluid aan",
+    "stepDone": "Volgende stap"
   },
   "launcher": {
     "heading": "Waar wil je heen?",

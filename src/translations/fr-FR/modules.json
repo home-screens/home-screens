@@ -1950,5 +1950,10 @@
     "play": "Lecture",
     "position": "{at} sur {count}",
     "allPictures": "Toutes les images"
+  },
+  "quick-timer": {
+    "title": "Minuteur rapide",
+    "unit": "min",
+    "startAriaLabel": "Lancer un minuteur de {minutes} minutes"
   }
 }

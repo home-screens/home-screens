@@ -37,6 +37,7 @@ export type BuiltinModuleType =
   | 'affirmations'
   | 'date'
   | 'display-control'
+  | 'quick-timer'
   | 'meal-planner'
   | 'iframe'
   | 'icon'
@@ -4907,6 +4908,52 @@ export interface DockButton {
 }
 
 // Display control module config
+// Quick Timer module config
+export interface QuickTimerConfig {
+  /**
+   * Timer lengths the buttons start, in whole minutes
+   *
+   * Drawn in the order given. Six is the most that stays tappable in a
+   * wall-sized box; the editor offers a menu rather than free entry so a
+   * preset can always be read at a glance from across the room.
+   */
+  presetMinutes: number[];
+  /**
+   * Let the running timer cover the whole display
+   *
+   * On, a tap here fills every display the timer runs on with the big
+   * countdown until it ends. Off, the timer stays in this box, which is the
+   * one to pick when the rest of the screen is wanted while it runs. Either
+   * way the countdown, the buttons and the chimes are the same.
+   *
+   * Travels with the session rather than being read by the display, because
+   * the takeover cannot tell which module started the timer. A display that
+   * is sent a boxed timer and has no Quick Timer module on its screen shows
+   * nothing, so this usually goes with "Show it on this display".
+   */
+  fullScreen: boolean;
+  /**
+   * Which full-screen timer the wall shows while one of these runs
+   *
+   * The same four the phone offers. Kept as a literal union rather than an
+   * import so the generated schema stays self-contained; it is passed
+   * straight to the session as a `TimerView`, so tsc catches any drift.
+   * Unused when the timer stays in its box.
+   */
+  timerView: 'ring' | 'face' | 'cascade' | 'path';
+  /**
+   * Soft chimes on the display while the timer runs
+   */
+  timerSound: boolean;
+  /**
+   * Which displays show the timer this module starts
+   *
+   * 'this' resolves to the display the module is rendered on, falling back to
+   * every display on the legacy single-display route, which has no id.
+   */
+  timerTarget: 'all' | 'this';
+}
+
 export interface DisplayControlConfig {
   /**
    * Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap,

@@ -7580,6 +7580,85 @@
       ]
     },
     {
+      "type": "quick-timer",
+      "label": "Quick Timer",
+      "category": "Time & Date",
+      "anchor": "quick-timer",
+      "configInterface": "QuickTimerConfig",
+      "defaultSize": {
+        "w": 260,
+        "h": 150
+      },
+      "fillsCanvas": false,
+      "fields": [
+        {
+          "name": "presetMinutes",
+          "optional": false,
+          "type": {
+            "kind": "array",
+            "text": "number[]"
+          },
+          "description": "Timer lengths the buttons start, in whole minutes",
+          "default": [
+            1,
+            5,
+            10,
+            15
+          ]
+        },
+        {
+          "name": "fullScreen",
+          "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Let the running timer cover the whole display",
+          "default": true
+        },
+        {
+          "name": "timerView",
+          "optional": false,
+          "type": {
+            "kind": "string",
+            "text": "\"ring\" | \"face\" | \"cascade\" | \"path\"",
+            "values": [
+              "ring",
+              "face",
+              "cascade",
+              "path"
+            ]
+          },
+          "description": "Which full-screen timer the wall shows while one of these runs",
+          "default": "face"
+        },
+        {
+          "name": "timerSound",
+          "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Soft chimes on the display while the timer runs",
+          "default": true
+        },
+        {
+          "name": "timerTarget",
+          "optional": false,
+          "type": {
+            "kind": "string",
+            "text": "\"all\" | \"this\"",
+            "values": [
+              "all",
+              "this"
+            ]
+          },
+          "description": "Which displays show the timer this module starts",
+          "default": "all"
+        }
+      ]
+    },
+    {
       "type": "traffic",
       "label": "Traffic / Commute",
       "category": "Travel",
@@ -9315,6 +9394,7 @@
               "affirmations",
               "date",
               "display-control",
+              "quick-timer",
               "meal-planner",
               "iframe",
               "icon",
@@ -10204,6 +10284,7 @@
         "affirmations",
         "date",
         "display-control",
+        "quick-timer",
         "meal-planner",
         "iframe",
         "icon",

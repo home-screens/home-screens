@@ -1947,5 +1947,10 @@
     "play": "Reproducir",
     "position": "{at} de {count}",
     "allPictures": "Todas las fotos"
+  },
+  "quick-timer": {
+    "title": "Temporizador rápido",
+    "unit": "min",
+    "startAriaLabel": "Empezar un temporizador de {minutes} minutos"
   }
 }

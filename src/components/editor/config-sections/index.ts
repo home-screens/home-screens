@@ -42,4 +42,5 @@ export { FullscreenNewsConfigSection } from './FullscreenNewsConfigSection';
 export { FullscreenWeatherConfigSection } from './FullscreenWeatherConfigSection';
 export { WordOfDayConfigSection } from './WordOfDayConfigSection';
 export { DisplayControlConfigSection } from './DisplayControlConfigSection';
+export { QuickTimerConfigSection } from './QuickTimerConfigSection';
 export { TimetableConfigSection } from './TimetableConfigSection';

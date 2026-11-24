@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 46 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 47 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---

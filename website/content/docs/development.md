@@ -21,7 +21,7 @@ src/
     (remote)/chores/         # The kids' chore page
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 46 module components + ModuleWrapper
+    modules/                 # All 47 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)

@@ -30,6 +30,26 @@ describe('WallControlBar', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps a disabled button stacked and centred, and unpressable', () => {
+    const onPress = vi.fn();
+    render(
+      <WallControlBar unit={1} ariaLabel="b">
+        <WallControlButton icon={<svg />} label="-1 min" onPress={onPress} disabled testId="minus" />
+      </WallControlBar>,
+    );
+    const minus = screen.getByTestId('minus');
+    // The centring rides on this class. Dropping it with the press handlers
+    // left the icon and its word laid out as plain button content, which on
+    // the wall read as the minus sliding out of the middle.
+    expect(minus.className).toContain('flex-col');
+    expect(minus.className).toContain('items-center');
+    expect(minus.className).toContain('justify-center');
+    // No pressed look on something that cannot be pressed.
+    expect(minus.className).not.toContain('wall-btn');
+    fireEvent.click(minus);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
   it('gives a held button\'s word the full width of the button, like the others', () => {
     render(
       <WallControlBar unit={1} ariaLabel="b">

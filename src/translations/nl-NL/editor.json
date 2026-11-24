@@ -399,7 +399,8 @@
       "shape": "Vorm & scheidingslijn",
       "display-control": "Displaybediening",
       "traffic": "Verkeer / Forenzen",
-      "notes": "Prikbord"
+      "notes": "Prikbord",
+      "quick-timer": "Snelle timer"
     },
     "descriptions": {
       "fullscreen-calendar": "Je hele week of maand, schermvullend",
@@ -447,7 +448,8 @@
       "shape": "Lijnen en blokken om dingen te scheiden",
       "display-control": "Knoppen om met een tik te wekken, te laten slapen of van scherm te wisselen",
       "traffic": "Hoe lang de rit naar werk of school duurt",
-      "notes": "Notities die het gezin op de telefoon schrijft, op de muur tot hun tijd om is"
+      "notes": "Notities die het gezin op de telefoon schrijft, op de muur tot hun tijd om is",
+      "quick-timer": "Tik op een tijd om een timer op het scherm te starten"
     },
     "keywords": {
       "fullscreen-calendar": "agenda kalender afspraken evenementen week maand gezin",
@@ -495,7 +497,8 @@
       "shape": "lijn vorm scheidingslijn kader blok rand",
       "display-control": "aanraken knoppen slapen wekken helderheid volgend scherm",
       "traffic": "verkeer file reistijd route werk school woon-werk",
-      "notes": "notities prikbord briefjes berichten mededelingen gezin koelkast memo"
+      "notes": "notities prikbord briefjes berichten mededelingen gezin koelkast memo",
+      "quick-timer": "timer aftellen minuten keuken koken snel starten"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5732,6 +5735,22 @@
       "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet.",
       "wallDraw": "Tekenen op de muur",
       "wallDrawHelp": "Een knop “Teken een notitie” op de kaart. Iedereen bij een muur met aanraakscherm kan een tekening op het prikbord hangen; notities weghalen blijft op de telefoon."
+    },
+    "quick-timer": {
+      "presets": "Tijden",
+      "presetsHint": "Maximaal {max} knoppen, in deze volgorde.",
+      "minutesShort": "{minutes} min",
+      "fullScreen": "Het hele scherm vullen tijdens het lopen",
+      "fullScreenHint": "Uit blijft de timer in dit vak en blijft de rest van het scherm staan.",
+      "view": "Timerscherm",
+      "view-ring": "Gloeiende ring",
+      "view-face": "Wijzerplaat",
+      "view-cascade": "Kleurenwaterval",
+      "view-path": "Sterrenpad",
+      "target": "Laten zien op",
+      "target-all": "Alle schermen",
+      "target-this": "Dit scherm",
+      "sound": "Geluid tijdens het lopen"
     }
   },
   "modals": {

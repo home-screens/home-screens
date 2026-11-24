@@ -399,7 +399,8 @@
       "shape": "Forma e divisor",
       "display-control": "Controle do display",
       "traffic": "Trânsito / Trajeto",
-      "notes": "Recados"
+      "notes": "Recados",
+      "quick-timer": "Timer rápido"
     },
     "descriptions": {
       "fullscreen-calendar": "Sua semana ou seu mês, ocupando a tela toda",
@@ -447,7 +448,8 @@
       "shape": "Linhas e blocos para separar as coisas",
       "display-control": "Botões para acordar, dormir ou trocar de tela com um toque",
       "traffic": "Quanto tempo leva para chegar ao trabalho ou à escola",
-      "notes": "Recados que a família escreve no celular e que ficam no painel pelo tempo escolhido"
+      "notes": "Recados que a família escreve no celular e que ficam no painel pelo tempo escolhido",
+      "quick-timer": "Toque em uma duração para começar um timer na parede"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendario compromissos eventos semana mes familia",
@@ -495,7 +497,8 @@
       "shape": "linha divisor caixa borda separador forma",
       "display-control": "toque botoes dormir acordar brilho trocar tela",
       "traffic": "transito trajeto rota caminho trabalho escola",
-      "notes": "recados mural bilhete mensagem familia geladeira notas aviso lembrete quadro"
+      "notes": "recados mural bilhete mensagem familia geladeira notas aviso lembrete quadro",
+      "quick-timer": "timer contagem regressiva minutos cozinha rápido começar"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5732,6 +5735,22 @@
       "materialHelp": "Este tema tem cores e letras próprias, então os ajustes de fundo, cor do texto, borda e fonte não se aplicam.",
       "wallDraw": "Desenhar no painel",
       "wallDrawHelp": "Um botão “Desenhar um recado” no módulo. Qualquer pessoa num painel sensível ao toque pode deixar um desenho no mural; tirar recados do mural continua no celular."
+    },
+    "quick-timer": {
+      "presets": "Durações",
+      "presetsHint": "Até {max} botões, nesta ordem.",
+      "minutesShort": "{minutes} min",
+      "fullScreen": "Preencher a tela inteira enquanto corre",
+      "fullScreenHint": "Desligado, o timer fica nesta caixa e o resto da tela continua.",
+      "view": "Tela do timer",
+      "view-ring": "Anel brilhante",
+      "view-face": "Mostrador",
+      "view-cascade": "Cascata de cor",
+      "view-path": "Caminho de estrelas",
+      "target": "Mostrar em",
+      "target-all": "Todas as telas",
+      "target-this": "Esta tela",
+      "sound": "Som enquanto corre"
     }
   },
   "modals": {
