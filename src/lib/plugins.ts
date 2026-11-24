@@ -89,7 +89,7 @@ export function getPluginBundlePath(pluginId: string): string {
  *
  * Caller owns cleanup of both the tarball file and the tmp directory.
  */
-async function extractPluginTarball(tarPath: string, tmpDir: string): Promise<void> {
+export async function extractPluginTarball(tarPath: string, tmpDir: string): Promise<void> {
   const { stdout } = await execFileAsync('tar', ['-tzf', tarPath]);
   if (stdout.split('\n').some((entry) => entry.split('/').includes('..'))) {
     throw new Error('Tarball contains path traversal entries');
@@ -97,6 +97,35 @@ async function extractPluginTarball(tarPath: string, tmpDir: string): Promise<vo
   await fs.rm(tmpDir, { recursive: true, force: true });
   await fs.mkdir(tmpDir, { recursive: true });
   await execFileAsync('tar', ['-xzf', tarPath, '-C', tmpDir, '--strip-components=1']);
+  await assertOnlyPlainFiles(tmpDir);
+}
+
+/** More entries than any real plugin ships; a tarball past it is refused. */
+const MAX_PLUGIN_ENTRIES = 5000;
+
+/**
+ * Refuse an extracted plugin that holds anything but ordinary files and
+ * folders. The name check above cannot see where a link points, and the
+ * routes that serve a plugin's files would follow one out of its folder to
+ * any file the hub can read (saved keys, other plugins' sign-ins).
+ */
+async function assertOnlyPlainFiles(root: string): Promise<void> {
+  let seen = 0;
+  const pending = [root];
+  while (pending.length > 0) {
+    const dir = pending.pop()!;
+    for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+      if (++seen > MAX_PLUGIN_ENTRIES) throw new Error('Plugin holds too many files');
+      const full = path.join(dir, entry.name);
+      // lstat, not the dirent alone: a hard link reads as an ordinary file,
+      // and its link count is the only thing that gives it away.
+      const stat = await fs.lstat(full);
+      if (stat.isDirectory()) pending.push(full);
+      else if (!stat.isFile() || stat.nlink > 1) {
+        throw new Error('Plugin holds a link or special file, which is not allowed');
+      }
+    }
+  }
 }
 
 /**

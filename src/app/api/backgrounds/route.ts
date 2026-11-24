@@ -106,7 +106,11 @@ async function svgSizeProblem(file: File): Promise<NextResponse | null> {
 
 /** A file the library does not take, with the refusal code the editor phrases. */
 function refuseFile(file: File, isVideo: boolean): NextResponse | null {
-  if (!isVideo && !IMAGE_MIME_TYPES.includes(file.type)) {
+  // The name's ending decides how the file is later handed out, so it has to
+  // be a picture or video ending too. The type alone is only what the
+  // sender says it is: `page.html` sent as a PNG would be kept as a web page.
+  const knownEnding = (isVideo ? VIDEO_FILE_RE : IMAGE_FILE_RE).test(file.name);
+  if ((!isVideo && !IMAGE_MIME_TYPES.includes(file.type)) || !knownEnding) {
     return NextResponse.json({ error: `Invalid file type: ${file.name}`, code: 'library.badType', params: { name: file.name } }, { status: 400 });
   }
   if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {

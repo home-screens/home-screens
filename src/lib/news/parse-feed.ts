@@ -53,6 +53,13 @@ function attr(node: Node, name: string): string {
   return typeof v === 'string' ? v : '';
 }
 
+/**
+ * How many of a feed's items are read. The news route shows the first 50;
+ * reading every item of a very long feed only to drop most of them is work a
+ * hostile feed can make arbitrarily large.
+ */
+const MAX_PARSED_ITEMS = 100;
+
 function list(node: Node): Node[] {
   if (node == null) return [];
   return Array.isArray(node) ? node : [node];
@@ -215,6 +222,7 @@ function parseRss(rss: Node, format: 'rss' | 'rdf'): ParsedFeed {
   const title = cleanText(text(child(channel, 'title')));
   // RSS 2.0 nests <item> in <channel>; RDF puts them next to it.
   const items = [...list(child(channel, 'item')), ...list(child(rss, 'item'))]
+    .slice(0, MAX_PARSED_ITEMS)
     .map((item) => rssItem(item, title));
   return { title, format, items };
 }
@@ -244,7 +252,7 @@ function atomImage(entry: Node): string | null {
 
 function parseAtom(feed: Node): ParsedFeed {
   const title = cleanText(text(child(feed, 'title')));
-  const items = list(child(feed, 'entry')).map((entry): NewsItem => {
+  const items = list(child(feed, 'entry')).slice(0, MAX_PARSED_ITEMS).map((entry): NewsItem => {
     const rawTitle = cleanText(text(child(entry, 'title')));
     const link = atomLink(entry);
     const id = text(child(entry, 'id')) || link || rawTitle;
@@ -291,7 +299,7 @@ function parseJsonFeed(raw: string): ParsedFeed {
     throw new FeedParseError('Not a JSON Feed document');
   }
   const title = cleanText(feed.title ?? '');
-  const items = (Array.isArray(feed.items) ? feed.items : []).map((item): NewsItem => {
+  const items = (Array.isArray(feed.items) ? feed.items : []).slice(0, MAX_PARSED_ITEMS).map((item): NewsItem => {
     const link = httpUrl(item.url) ?? httpUrl(item.external_url);
     // Only content_html is markup; title / summary / content_text are plain
     // text by spec, so they must not go through the HTML stripper.

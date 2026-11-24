@@ -222,6 +222,29 @@ describe('POST /api/auth/login', () => {
     expect(verifyPassword).toHaveBeenCalledTimes(LOGIN_MAX_ATTEMPTS);
   });
 
+  it('gives a burst of wrong passwords sent at once no more guesses than one at a time', async () => {
+    // The check is slow on purpose (it is a password hash), so every request
+    // in a burst arrives before the first wrong answer has been counted.
+    vi.mocked(verifyPassword).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(false), 5)),
+    );
+
+    const answers = await Promise.all(
+      Array.from({ length: 60 }, (_, i) =>
+        loginRoute.POST(
+          makePostRequest('/api/auth/login', { password: `wrong-${i}` }, {
+            'x-hs-client-ip': '10.0.0.77',
+          }),
+        ),
+      ),
+    );
+
+    const statuses = answers.map((res) => res.status);
+    expect(statuses.filter((s) => s === 401)).toHaveLength(LOGIN_MAX_ATTEMPTS);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(60 - LOGIN_MAX_ATTEMPTS);
+    expect(verifyPassword).toHaveBeenCalledTimes(LOGIN_MAX_ATTEMPTS);
+  });
+
   it('rate limit does not affect different IPs', async () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
 

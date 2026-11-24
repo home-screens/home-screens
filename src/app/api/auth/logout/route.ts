@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { buildClearCookie } from '@/lib/auth';
-import { errorResponse } from '@/lib/api-utils';
+import { publicErrorResponse } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +12,6 @@ export async function POST(request: NextRequest) {
       headers: { 'Set-Cookie': cookie },
     });
   } catch (error) {
-    return errorResponse(error, 'Failed to logout');
+    return publicErrorResponse(error, 'Failed to logout');
   }
 }

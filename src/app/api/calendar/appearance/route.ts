@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateConfigAtomic } from '@/lib/config';
-import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { recolorCalendars, recolorRequestProblem, type RecolorProblem } from '@/lib/calendar-recolor';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,7 @@ const PROBLEM_TEXT: Record<RecolorProblem, string> = {
  * of the two landed first.
  */
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ sourceIds?: unknown; color?: unknown }>(request);
+  const body = await parseJsonBody<{ sourceIds?: unknown; color?: unknown }>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
 
   const asked = recolorRequestProblem(body.sourceIds, body.color);
