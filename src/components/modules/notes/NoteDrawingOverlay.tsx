@@ -7,6 +7,7 @@ import { useTranslate } from '@/i18n';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { NOTE_PAGE_LOOKS, type NoteSurface } from '@/lib/note-drawing';
+import { textLength } from '@/lib/text-length';
 import { UNDO_WINDOW_MS } from '@/lib/undo-window';
 import type { Note } from '@/types/notes';
 import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
@@ -21,9 +22,16 @@ import type { NoteAuthor } from './shared';
 
 const SHEET_THEME = getThemeTokens('charcoal');
 
+/** The type a note's words are read at when opened large, in authored pixels: the longer the note, the smaller. */
+function wordsSize(text: string): number {
+  const length = textLength(text);
+  return length <= 80 ? 60 : length <= 200 ? 48 : 38;
+}
+
 /**
- * A drawing opened large: who drew it and when, the drawing as big as the
- * wall allows, and Close. Nothing here changes the note. A tap on the dark
+ * A note opened large: who it is from and when, then the drawing as big as
+ * the wall allows or every word of a typed note (a card shows two or three
+ * lines of it), and Close. Nothing here changes the note. A tap on the dark
  * part closes it, and so does nobody touching it for a while.
  */
 export function NoteDrawingOverlay({ note, author, age, surface, accent, onClose }: {
@@ -39,12 +47,12 @@ export function NoteDrawingOverlay({ note, author, age, surface, accent, onClose
   const { w, h, P } = useWallOverlayScale();
   // A double tap on Close must not reach the drawing underneath and open it again.
   useSheetTapGuard();
-  if (!note.drawing) return null;
+  // The note on the page of the card it was opened from: chalk on the chalkboard, dark ink on paper.
   const look = NOTE_PAGE_LOOKS[surface];
   // As wide as the wall allows with the card's own margins, and never taller than the window.
   const pageWidth = Math.min(w - P(180), (h - P(330)) * (4 / 3));
   return (
-    <WallOverlay label={t('notes.drawingFrom', { name: author.name })} testId="note-drawing-overlay" onClose={onClose} autoCloseMs={EVENT_DETAIL_AUTO_DISMISS_MS}>
+    <WallOverlay label={t(note.drawing ? 'notes.drawingFrom' : 'notes.noteFrom', { name: author.name })} testId="note-drawing-overlay" onClose={onClose} autoCloseMs={EVENT_DETAIL_AUTO_DISMISS_MS}>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -72,14 +80,28 @@ export function NoteDrawingOverlay({ note, author, age, surface, accent, onClose
             {t('wallKeyboard.close')}
           </WallButton>
         </div>
-        <div
-          style={{
-            width: pageWidth, aspectRatio: '4 / 3', borderRadius: P(28), padding: P(10), boxSizing: 'border-box',
-            background: look.background, color: look.ink, boxShadow: `0 0 0 ${P(2)}px var(--wt-border)`,
-          }}
-        >
-          <NoteDrawingArt drawing={note.drawing} surface={surface} label={t('notes.drawing')} />
-        </div>
+        {note.drawing ? (
+          <div
+            style={{
+              width: pageWidth, aspectRatio: '4 / 3', borderRadius: P(28), padding: P(10), boxSizing: 'border-box',
+              background: look.background, color: look.ink, boxShadow: `0 0 0 ${P(2)}px var(--wt-border)`,
+            }}
+          >
+            <NoteDrawingArt drawing={note.drawing} surface={surface} label={t('notes.drawing')} />
+          </div>
+        ) : (
+          <div
+            data-testid="note-words-large"
+            style={{
+              width: Math.min(pageWidth, P(900)), minHeight: P(260), maxHeight: h - P(330), overflowY: 'auto', scrollbarWidth: 'none', touchAction: 'pan-y',
+              borderRadius: P(28), padding: `${P(34)}px ${P(40)}px`, boxSizing: 'border-box', background: look.background, color: look.ink,
+              boxShadow: `0 0 0 ${P(2)}px var(--wt-border)`, fontSize: P(wordsSize(note.text)), fontWeight: 600, lineHeight: 1.28,
+              whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
+            }}
+          >
+            {note.text}
+          </div>
+        )}
       </div>
     </WallOverlay>
   );

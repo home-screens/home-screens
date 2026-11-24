@@ -71,6 +71,7 @@ export function ByPersonView({ ctx, all, roster }: { ctx: NotesContext; all: Not
               {row.newest ? (
                 <span
                   data-testid="notes-note"
+                  data-note={row.newest.id}
                   data-important={imp ? '' : undefined}
                   className="flex items-center flex-1 min-w-0"
                   style={{ gap: '0.3em', fontSize: '0.8em', color: imp ? DANGER_INK : ink(0.85) }}

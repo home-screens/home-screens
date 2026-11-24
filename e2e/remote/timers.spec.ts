@@ -284,15 +284,16 @@ test('+1 min gives the running step another minute', async ({ page, request }) =
   await expect(page.getByRole('button', { name: '+1 min' })).toBeVisible();
 
   const before = await remainingSeconds(page);
-  const startedAtBefore = (await getSession(request))!.stepStartedAt;
+  const lengthBefore = (await getSession(request))!.steps[0].durationSec;
 
   await page.getByRole('button', { name: '+1 min' }).click();
 
-  // Exactly one minute of anchor shift, and the readout grows to match — an
-  // assertion on the timestamp, so no wall-clock waiting is involved.
+  // The step itself grows by exactly one minute and the readout grows to
+  // match: an assertion on the saved length, so no wall-clock waiting is
+  // involved.
   await expect
-    .poll(async () => (await getSession(request))!.stepStartedAt - startedAtBefore)
-    .toBe(60_000);
+    .poll(async () => (await getSession(request))!.steps[0].durationSec - lengthBefore)
+    .toBe(60);
   await expect.poll(async () => remainingSeconds(page)).toBeGreaterThan(before);
 });
 

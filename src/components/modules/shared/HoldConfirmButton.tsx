@@ -28,6 +28,13 @@ export interface HoldConfirmButtonProps {
   hintPlacement?: 'inside' | 'above';
   /** With `above`: how far over the button the hint sits, px (clear of a word over the button row, say). */
   hintGap?: number;
+  /**
+   * `center` (the default) centres the hint on the button. `end` lines its
+   * far edge up with the button's, for a button at the end of a row: the
+   * hint is usually wider than the button, and centred it runs off the edge
+   * of the wall or the card.
+   */
+  hintAlign?: 'center' | 'end';
   /** Corner radius and any other box styling from the sizing model. */
   style?: CSSProperties;
   /** Merged over `style` while a finger is holding it (a red border on a button whose border is styled inline). */
@@ -53,6 +60,7 @@ export function HoldConfirmButton({
   hintFontSize = 20,
   hintPlacement = 'inside',
   hintGap,
+  hintAlign = 'center',
   style,
   holdingStyle,
 }: HoldConfirmButtonProps) {
@@ -96,7 +104,7 @@ export function HoldConfirmButton({
         <span
           role="status"
           style={hintStyle}
-          className="absolute left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-white font-semibold leading-tight text-black pointer-events-none shadow-lg"
+          className={`absolute z-20 whitespace-nowrap rounded-full bg-white font-semibold leading-tight text-black pointer-events-none shadow-lg ${hintAlign === 'end' ? 'right-0' : 'left-1/2 -translate-x-1/2'}`}
         >
           {hint}
         </span>

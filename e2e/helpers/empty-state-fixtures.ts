@@ -42,9 +42,9 @@ const showsCopy = (copy: string) => async (mod: Locator): Promise<void> => {
   await expect(mod).toContainText(copy);
 };
 
-/** The notes board's empty words: where notes come from, and the same with drawing on the wall offered. */
+/** The notes board's empty words: where notes come from, and the same with drawing and writing on the wall offered. */
 const NOTES_EMPTY = 'Nothing on the board. Write a note on your phone and it shows up here.';
-const NOTES_EMPTY_DRAW = 'Nothing on the board. Draw a note here, or write one on your phone.';
+const NOTES_EMPTY_LEAVE = 'Nothing on the board. Draw or write a note here, or write one on your phone.';
 
 export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
   {
@@ -244,21 +244,21 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('No timetable yet. A grown-up can add one in the editor.'),
   },
   {
-    // Nothing posted. A new card can draw from the wall (registry default),
-    // so the empty board offers its own button instead of sending everyone
-    // to the phone.
+    // Nothing posted. A new card takes drawings and typed notes from the wall
+    // (registry defaults), so the empty board offers its own button instead
+    // of sending everyone to the phone.
     type: 'notes', name: 'no-notes', kind: 'local-data',
     config: {},
     expect: async (mod) => {
-      await showsCopy(NOTES_EMPTY_DRAW)(mod);
-      await expect(mod.getByRole('button', { name: 'Draw a note' })).toBeVisible();
+      await showsCopy(NOTES_EMPTY_LEAVE)(mod);
+      await expect(mod.getByRole('button', { name: 'Leave a note' })).toBeVisible();
     },
   },
   {
-    // A card made before wall drawing (or with it switched off) keeps the
-    // phone-only empty state.
+    // A card made before the wall could leave notes (or with both switched
+    // off) keeps the phone-only empty state.
     type: 'notes', name: 'no-notes-no-draw', kind: 'local-data',
-    config: { wallDraw: false },
+    config: { wallDraw: false, wallWrite: false },
     expect: async (mod) => {
       await showsCopy(NOTES_EMPTY)(mod);
       await expect(mod.getByTestId('note-draw-door')).toHaveCount(0);
@@ -271,7 +271,7 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     notesSeed: { notes: [{ text: 'Gone note', ageMinutes: 120, expiresInMinutes: -5 }] },
     config: {},
     expect: async (mod) => {
-      await showsCopy(NOTES_EMPTY_DRAW)(mod);
+      await showsCopy(NOTES_EMPTY_LEAVE)(mod);
       await expect(mod).not.toContainText('Gone note');
     },
   },
@@ -295,7 +295,7 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     config: { view },
     expect: async (mod) => {
       const draws = NOTES_DRAW_VIEWS.has(view as NotesView);
-      await showsCopy(draws ? NOTES_EMPTY_DRAW : NOTES_EMPTY)(mod);
+      await showsCopy(draws ? NOTES_EMPTY_LEAVE : NOTES_EMPTY)(mod);
       await expect(mod.getByTestId('note-draw-door')).toHaveCount(draws ? 1 : 0);
       await expect(mod.getByTestId('notes-module')).toHaveCount(0);
     },

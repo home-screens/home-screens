@@ -965,13 +965,13 @@ Returns `{ "notes": [...] }`, unsorted: every note the 7-day sweep has not dropp
 
 ### POST /api/notes
 
-Posts a note. A session may post words or a drawing. A display token may post a drawing only, as the wall's **Draw a note** does.
+Posts a note. A session may post words or a drawing. A display token may post a drawing or a short typed note, as the wall's **Draw a note** and **Write a note** do.
 
 **Body:** `{ "text": "...", "authorId": "member-1", "life": "1d", "pinned": false, "important": true }`, or `drawing` in place of `text`. One of the two is required, never both. `life` defaults to `1d`, `pinned` and `important` to `false`, and an absent, empty or `null` `authorId` posts the note from nobody. The body is capped at 96 KB. Empty or overlong text, a drawing that is not sound, an unknown `life`, or a flag that is not `true` or `false` is answered with `400`. When the board already holds 200 notes, the oldest gone notes make room; a board of 200 live notes is answered with `409`.
 
 **Drawings:** a drawing from anyone is answered with `403` unless some Notes module on some display has **Draw on the wall** on and shows the button. The board keeps at most 12 drawings up: one more takes down the oldest drawing that is not pinned, which moves to Gone, and the answer's `madeRoom` says how many came down. Deleting the new drawing within five minutes puts them back.
 
-**From a display token:** only `drawing`, `authorId` and `life` are taken, and `life` may not be `keep`; anything else is answered as needing a session.
+**From a display token:** only `drawing` or `text`, `authorId` and `life` are taken, and `life` may not be `keep`; anything else is answered as needing a session. Typed `text` is taken only while some Notes module on some display has **Write on the wall** on and shows the button (`403` otherwise), and may be 200 characters at most (`400`).
 
 **Response:** `{ "notes": [...], "created": { ... } }`: every note, live and gone, so a phone can reconcile in one step, and the note just made. A drawing's answer also carries `madeRoom`.
 
@@ -988,7 +988,7 @@ Any other `action` is answered with `400`, and an unknown `noteId` with `404`. *
 
 ### DELETE /api/notes/:noteId
 
-Removes the note for good. Requires a valid session, except that a display token may remove a drawing the hub posted for a wall in the last five minutes (the wall's **Undo**). An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+Removes the note for good. Requires a valid session, except that a display token may remove a drawing or typed note the hub posted for a wall in the last five minutes (the wall's **Undo**). An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
 
 ---
 

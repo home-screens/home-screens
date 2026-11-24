@@ -1880,8 +1880,11 @@
     "receiptSummary": "Fastgjorte {pinned} · Vigtige {important}",
     "pinnedOne": "Fastgjort",
     "emptyDraw": "Intet på opslagstavlen. Tegn en note her, eller skriv en på din telefon.",
+    "emptyWrite": "Intet på opslagstavlen. Skriv en note her eller på din telefon.",
+    "emptyLeave": "Intet på opslagstavlen. Tegn eller skriv en note her, eller skriv en på din telefon.",
     "drawing": "Tegning",
     "drawingFrom": "Tegning fra {name}",
+    "noteFrom": "Note fra {name}",
     "openDrawing": "Se tegningen fra {name} i stor størrelse",
     "draw": {
       "row": "Tegn en note",
@@ -1930,6 +1933,29 @@
       "undoing": "Tager den ned…",
       "posting": "Sætter den op…",
       "madeRoom": "Den ældste tegning blev taget ned for at gøre plads."
+    },
+    "write": {
+      "row": "Skriv en note",
+      "rowFinish": "Gør din note færdig",
+      "title": "Skriv en note",
+      "placeholder": "Skriv din note",
+      "askTitle": "Vil du smide noten ud?",
+      "askKeep": "Skriv videre",
+      "askThrow": "Smid den ud",
+      "whoTitle": "Hvem er den fra?",
+      "back": "Skriv videre",
+      "failed": "Den blev ikke sat op. Din note er her stadig.",
+      "unreachable": "Den blev ikke sat op. Home Screens svarer ikke. Din note er her stadig.",
+      "off": "Det er lige blevet slået fra at skrive på væggen. Din note kan ikke sættes op.",
+      "pickAgain": "Den person er ikke med i familien længere. Vælg, hvem den er fra."
+    },
+    "leave": {
+      "row": "Sæt en note op",
+      "title": "Sæt en note op",
+      "draw": "Tegn",
+      "write": "Skriv",
+      "pageWaits": "Din tegning venter stadig på dig.",
+      "wordsWait": "Det, du skrev, venter stadig på dig."
     }
   },
   "photoControls": {
@@ -1939,5 +1965,11 @@
     "play": "Afspil",
     "position": "{at} af {count}",
     "allPictures": "Alle billeder"
+  },
+  "quick-timer": {
+    "title": "Hurtig timer",
+    "unit": "min.",
+    "startAriaLabel": "Start en timer på {minutes} minutter",
+    "busyElsewhere": "Der kører en timer på en anden væg"
   }
 }

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 /**
- * TimerOverlay fetches the session only when the heartbeat names a new
- * revision (a start, skip, pause or cancel was saved) and derives everything
+ * TimerOverlay fetches the session once when the page loads and then only
+ * when the heartbeat names a new revision (a start, skip, pause or cancel was saved) and derives everything
  * else on the display. The hub keeps a finished session on file, so no new
  * revision arrives when it expires: the overlay's own tick has to notice and
  * stop, or a wall would re-render four times a second until the next timer.
@@ -56,34 +56,45 @@ afterEach(() => {
 });
 
 describe('TimerOverlay follows the heartbeat', () => {
-  it('fetches the session only when the beat names a new revision', async () => {
+  it('reads once when the page loads, then only when the beat names a new revision', async () => {
     render(<TimerOverlay />);
     await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
-    expect(fetchSession).not.toHaveBeenCalled();
+    // The first heartbeat can be seconds away; a timer already running must
+    // not wait for it.
+    expect(fetchSession).toHaveBeenCalledTimes(1);
 
     session = quickTimer(60);
     await beat('t1');
-    expect(fetchSession).toHaveBeenCalledTimes(1);
+    expect(fetchSession).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId('timer-overlay')).toBeTruthy();
 
     await beat('t1');
-    expect(fetchSession).toHaveBeenCalledTimes(1);
+    expect(fetchSession).toHaveBeenCalledTimes(2);
 
     await beat('t2');
-    expect(fetchSession).toHaveBeenCalledTimes(2);
+    expect(fetchSession).toHaveBeenCalledTimes(3);
+  });
+
+  it('shows a timer that was already running when the page loaded, before any heartbeat', async () => {
+    session = quickTimer(60);
+    render(<TimerOverlay />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(screen.getByTestId('timer-overlay')).toBeTruthy();
   });
 
   it('retries a failed fetch on the next beat', async () => {
-    render(<TimerOverlay />);
     sessionOk = false;
+    render(<TimerOverlay />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(fetchSession).toHaveBeenCalledTimes(1);
     await beat('t1');
     await beat('t1');
-    expect(fetchSession).toHaveBeenCalledTimes(2);
+    expect(fetchSession).toHaveBeenCalledTimes(3);
 
     sessionOk = true;
     await beat('t1');
     await beat('t1');
-    expect(fetchSession).toHaveBeenCalledTimes(3);
+    expect(fetchSession).toHaveBeenCalledTimes(4);
   });
 
   it('stops its local tick once a finished session has lingered out', async () => {

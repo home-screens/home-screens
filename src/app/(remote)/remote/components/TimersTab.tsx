@@ -7,7 +7,7 @@ import { formatQuickName, formatRemaining } from '@/components/display/timer-vie
 import type { Routine, TimerView } from '@/types/timers';
 import { useDisplayTarget } from '../display-target';
 import { useTimersData } from '../hooks/useTimersData';
-import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, QUICK_TIMER_PRESETS_SEC, routineTotalSec, secondsFromFields } from '@/lib/timer-logic';
+import { DEFAULT_TIMER_SOUND, MIN_STEP_SEC, QUICK_TIMER_PRESETS_SEC, quickTimerLengthSec, routineTotalSec, secondsFromFields } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
 import PrimaryButton from './PrimaryButton';
 import { ACCENT_SOFT_BUTTON, toggleChipStyle } from './remote-styles';
@@ -105,10 +105,10 @@ export default function TimersTab() {
     ? Math.max(0, step.durationSec * 1000 - (effectiveNow - running.stepStartedAt))
     : 0;
   const runningTitle = running
-    ? running.name ?? formatQuickName(running.steps[0].durationSec, t, 'timers')
+    ? running.name ?? formatQuickName(quickTimerLengthSec(running), t, 'timers')
     : '';
   const finishedTitle = finished
-    ? finished.name ?? formatQuickName(finished.steps[0].durationSec, t, 'timers')
+    ? finished.name ?? formatQuickName(quickTimerLengthSec(finished), t, 'timers')
     : '';
 
   const handleCustomStart = () => {

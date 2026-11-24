@@ -17,6 +17,7 @@ export function LatestView({ ctx, all }: { ctx: NotesContext; all: Note[] }) {
   return (
     <div
       data-testid="notes-note"
+      data-note={note.id}
       data-important={note.important ? '' : undefined}
       data-pinned={note.pinned ? '' : undefined}
       className="flex flex-col flex-1 min-h-0"

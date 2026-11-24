@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 46 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 47 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
@@ -164,6 +164,14 @@ Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calenda
 Counts down to one or more future events with visual progress rings. Each event can have a background picture, chosen in the [Pictures & videos window](/docs/backgrounds#choosing-a-picture) from your library, Immich, Unsplash or NASA.
 {% /module %}
 
+{% module type="quick-timer" %}
+A kitchen timer on the wall for touchscreens: a few lengths, one tap each. A tap starts the same family timer the phone's Timers tab runs, so the phone can pause, add a minute or stop it.
+
+{% fields /%}
+
+**Behavior:** With `fullScreen` on (the default) the timer covers the display until it ends; a tap brings up Pause, one minute less, one minute more, the sound switch and Stop, which has to be held. With it off the timer stays in the module's box with the same buttons, and the box says "Time's up!" until a tap puts it away; if the rotation is on another screen when the time runs out, "Time's up!" comes up full screen instead. While a timer runs the box offers no lengths, so a tap cannot replace a running timer or routine. A box whose timer belongs to another display only (`timerTarget` set to `this` there) dims its lengths until that timer is over. In a small box the minute buttons and then the words on the buttons drop out so Pause and Stop stay big enough for a finger. In the editor and its preview window a tap starts nothing.
+{% /module %}
+
 {% module type="date" %}
 A dedicated date display module with multiple visual layouts and optional metadata (week number, day of year).
 
@@ -322,7 +330,7 @@ When every item is done the heading shows a green tick and "All done" in every v
 {% /module %}
 
 {% module type="notes" %}
-Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/notes.json`, not on the module, so one board can sit on any number of screens, each in its own view. They are written from the family remote's Notes tab or from the editor's **Family notes** window (`NotesBoardModal`, opened with **Edit notes** at the top of the module's settings), which has the phone's fields: post with From, Show for, Pin to top and Important, edit a live note's text, author and life, take it down, and post again or delete from Gone. The module reads them, and with `wallDraw` on it also posts drawings: a **Draw a note** button on a touchscreen wall, in the views that list notes (Board, Cards, Sticky, Bubbles, Timeline, Focus, By person, Pinned and new, Chalkboard, Whiteboard, Fridge, Notebook, Receipt, Headline), unless `filter` hides new notes (`pinned` or `important`). A drawing is a note whose `drawing` holds its lines in place of `text`; each view draws it in its own ink, and the one-line views say "Drawing".
+Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/notes.json`, not on the module, so one board can sit on any number of screens, each in its own view. They are written from the family remote's Notes tab or from the editor's **Family notes** window (`NotesBoardModal`, opened with **Edit notes** at the top of the module's settings), which has the phone's fields: post with From, Show for, Pin to top and Important, edit a live note's text, author and life, take it down, and post again or delete from Gone. The module reads them, and with `wallDraw` on it also posts drawings: a **Draw a note** button on a touchscreen wall, in the views that list notes (Board, Cards, Sticky, Bubbles, Timeline, Focus, By person, Pinned and new, Chalkboard, Whiteboard, Fridge, Notebook, Receipt, Headline), unless `filter` hides new notes (`pinned` or `important`). A drawing is a note whose `drawing` holds its lines in place of `text`; each view draws it in its own ink, and the one-line views say "Drawing". With `wallWrite` on, the same views show a **Write a note** button that opens the wall's keyboard for a note of up to 200 characters (`WALL_NOTE_MAX_LENGTH`); with both on, one **Leave a note** button opens a sheet with a Draw / Write switch. On a touchscreen wall a tap on any note opens it large with its whole text.
 
 {% fields /%}
 

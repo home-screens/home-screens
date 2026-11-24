@@ -24,6 +24,7 @@ export function FocusView({ ctx, all, shown }: { ctx: NotesContext; all: Note[];
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         <div
           data-testid="notes-note"
+          data-note={lead.id}
           data-important={lead.important ? '' : undefined}
           data-pinned={lead.pinned ? '' : undefined}
           className="shrink-0"

@@ -27,7 +27,8 @@
       "noteGone": "That note is no longer here.",
       "boardFull": "The board is full: {max} notes. Take some down first.",
       "badDrawing": "That drawing couldn't be saved.",
-      "wallDrawOff": "Drawing on the wall is turned off."
+      "wallDrawOff": "Drawing on the wall is turned off.",
+      "wallWriteOff": "Writing on the wall is turned off."
     },
     "family": {
       "revision": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",
@@ -373,7 +374,15 @@
       "one": "{steps} step · {minutes} min",
       "other": "{steps} steps · {minutes} min"
     },
-    "holdShort": "hold"
+    "holdShort": "hold",
+    "oneMinute": "1 min",
+    "holdToStop": "Hold to stop",
+    "subtractMinuteSpoken": "Take off one minute",
+    "addMinuteSpoken": "Add one minute",
+    "subtractMinute": "-1 min",
+    "soundOff": "Sound off",
+    "soundOn": "Sound on",
+    "stepDone": "Next step"
   },
   "launcher": {
     "heading": "Where do you want to go?",

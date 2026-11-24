@@ -27,7 +27,8 @@
       "noteGone": "Esa nota ya no está aquí.",
       "boardFull": "El tablón está lleno: {max} notas. Quita algunas primero.",
       "badDrawing": "No se pudo guardar ese dibujo.",
-      "wallDrawOff": "Dibujar en el monitor está desactivado."
+      "wallDrawOff": "Dibujar en el monitor está desactivado.",
+      "wallWriteOff": "Escribir en el monitor está desactivado."
     },
     "family": {
       "revision": "Alguien cambió la familia mientras la editabas. Se muestra la lista actual. Vuelve a realizar tu cambio.",
@@ -373,7 +374,15 @@
       "one": "{steps} paso · {minutes} min",
       "other": "{steps} pasos · {minutes} min"
     },
-    "holdShort": "mantener"
+    "holdShort": "mantener",
+    "oneMinute": "1 min",
+    "holdToStop": "Mantén pulsado para parar",
+    "subtractMinuteSpoken": "Quitar un minuto",
+    "addMinuteSpoken": "Añadir un minuto",
+    "subtractMinute": "-1 min",
+    "soundOff": "Sin sonido",
+    "soundOn": "Con sonido",
+    "stepDone": "Siguiente paso"
   },
   "launcher": {
     "heading": "¿A dónde quieres ir?",

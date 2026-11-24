@@ -20,6 +20,7 @@ export const MODULE_SHOWCASE: Record<string, string[]> = {
     'Clock',
     'Calendar',
     'Countdown',
+    'Quick Timer',
     'Date',
     'Year Progress',
     'Multi-Month',

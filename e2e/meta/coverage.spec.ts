@@ -83,7 +83,7 @@ test('every built-in module type has an E2E fixture, and no fixture is stale', (
   expect(stale, `Fixtures reference unknown module types: ${stale.join(', ')}`).toEqual([]);
 
   // Guards against a silent registry shrink (e.g. a bad merge dropping types).
-  expect(builtin.length).toBe(46);
+  expect(builtin.length).toBe(47);
 });
 
 /**
@@ -498,6 +498,14 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'dad-joke.refreshIntervalMs': 'timing-only',
   'display-control.allowRetargeting': 'covered-elsewhere',
   'display-control.defaultTarget': 'covered-elsewhere',
+  // All four describe the session a tap STARTS, not how the module's own box
+  // draws, so no render matrix can see them: display/quick-timer.spec.ts taps
+  // a preset and reads the session back, and checks fullScreen against the
+  // rotation content the takeover would have covered.
+  'quick-timer.timerView': 'covered-elsewhere',   // display/quick-timer.spec.ts
+  'quick-timer.timerSound': 'covered-elsewhere',  // display/quick-timer.spec.ts
+  'quick-timer.timerTarget': 'covered-elsewhere', // display/quick-timer.spec.ts
+  'quick-timer.fullScreen': 'covered-elsewhere',  // display/quick-timer.spec.ts
   'fullscreen-calendar.dimPastEvents': 'timing-only',
   'fullscreen-calendar.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'fullscreen-calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
@@ -532,6 +540,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-meal-planner.wallPlan': 'covered-elsewhere', // wall-meal-plan.spec.ts (Put on the menu, the plus, nothing when off)
   'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   'notes.wallDraw': 'covered-elsewhere', // wall-note-draw.spec.ts (draw, post, open large, Undo; no button when off)
+  'notes.wallWrite': 'covered-elsewhere', // wall-note-write.spec.ts (type, post, Undo; the Draw / Write switch with both on)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'multi-month.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'news.showNewMarker': 'not-observable',

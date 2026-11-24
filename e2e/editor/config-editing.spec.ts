@@ -1416,6 +1416,26 @@ test('display-control: selecting a layout persists (regression: no crash in lega
   expect((await moduleConfig(request, 'display-control')).layout).toBe('bar');
 });
 
+test('quick-timer: adding a length and choosing a timer look persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('quick-timer'));
+
+  // The lengths are a menu of chips rather than free entry, so a preset is
+  // always a number that reads from across the room. 30 is off by default.
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: '30 min', exact: true }).click();
+  });
+  expect((await moduleConfig(request, 'quick-timer')).presetMinutes).toEqual([1, 5, 10, 15, 30]);
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Timer look').selectOption({ label: 'Glow ring' });
+  });
+  expect((await moduleConfig(request, 'quick-timer')).timerView).toBe('ring');
+
+  // One wall has nothing to choose between, so "Show it on" stays away until
+  // there is a second display.
+  await expect(page.getByRole('radiogroup', { name: 'Show it on' })).toHaveCount(0);
+});
+
 // ── Task 6: Full Screen ────────────────────────────────────────────────────
 // Covers fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner,
 // fullscreen-photo. These are fillsCanvas modules (no Position/Style test).

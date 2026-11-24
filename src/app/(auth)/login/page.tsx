@@ -35,11 +35,28 @@ function messageForFailure(
     : t('login.loginFailed');
 }
 
+/**
+ * Where to go after signing in: a page on this hub, or the editor.
+ *
+ * The address is resolved the way the browser will resolve it and then
+ * compared, because a prefix test is not enough: `/\other.example` and a
+ * path with a tab in it both start with one slash and both leave the hub.
+ */
+function safeReturnPath(raw: string | null): string {
+  if (!raw || typeof window === 'undefined') return '/editor';
+  try {
+    const target = new URL(raw, window.location.origin);
+    if (target.origin !== window.location.origin) return '/editor';
+    return target.pathname + target.search + target.hash;
+  } catch {
+    return '/editor';
+  }
+}
+
 function LoginForm() {
   const t = useTranslate('core');
   const searchParams = useSearchParams();
-  const rawFrom = searchParams.get('from') || '/editor';
-  const from = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/editor';
+  const from = safeReturnPath(searchParams.get('from'));
 
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);

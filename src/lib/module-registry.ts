@@ -2,13 +2,7 @@ import { DEFAULT_MODULE_STYLE, type ModuleInstance, type ModuleType } from '@/ty
 import { defaultPresetForLocale } from './news-presets';
 import type { LucideIcon } from 'lucide-react';
 import {
-  Clock, CalendarDays, CloudSun, Hourglass, Laugh, Type, ImageIcon,
-  Quote, ListTodo, StickyNote, HandMetal,
-  Newspaper, TrendingUp, Bitcoin, BookOpen, History,
-  Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
-  ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles, CloudSunRain,
-  Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
-  Star, Shapes, Video, School, MessageSquareText,
+  BarChart3, Bitcoin, BookOpen, Calendar, CalendarDays, CalendarRange, Car, ClipboardList, Clock, CloudRain, CloudSun, CloudSunRain, Columns3, Globe, HandMetal, History, Hourglass, Image, ImageIcon, Laugh, LayoutGrid, ListChecks, ListTodo, Medal, MessageSquareText, Moon, Newspaper, QrCode, Quote, School, Shapes, Sparkles, Star, StickyNote, Sunrise, Timer, Trash2, TrendingUp, Trophy, Type, UtensilsCrossed, Video, Wind,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { FETCH_KEY_REGISTRY } from './fetch-keys';
@@ -1200,6 +1194,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       tickerSpeed: 8,
       // A "Draw a note" button for new cards; a card made before it stays without one (NotesConfig.wallDraw).
       wallDraw: true,
+      // And a keyboard for a typed note, the same way (NotesConfig.wallWrite).
+      wallWrite: true,
     },
     defaultSize: { w: 440, h: 520 },
   },
@@ -1575,10 +1571,36 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       allowRetargeting: false,
       compact: false,
     },
+
     // Four word-and-icon buttons plus the brightness slider. The widget sizes
     // its type and spacing to whatever box it is given, so this is a
     // comfortable starting box rather than a floor.
     defaultSize: { w: 440, h: 320 },
+  },
+
+  {
+    type: 'quick-timer',
+    // "Show it on this display" has to resolve to a real id, and the legacy
+    // route renders main inline, so the URL alone cannot say which.
+    rendersAsDisplay: true,
+    label: 'Quick Timer',
+    icon: Timer,
+    category: 'Time & Date',
+    defaultConfig: {
+      presetMinutes: [1, 5, 10, 15],
+      // The timer covering the wall is what a kitchen timer is for; the box
+      // is the opt-out.
+      fullScreen: true,
+      timerView: 'face',
+      timerSound: true,
+      // Every display, matching what the phone does when nothing is picked.
+      timerTarget: 'all',
+    },
+    // Four presets two-up with their unit words, and room for the countdown
+    // and all four buttons at a finger's height when a timer is kept in the
+    // box. The widget sizes its type to whatever box it is given, so this is
+    // a comfortable starting box rather than a floor.
+    defaultSize: { w: 340, h: 200 },
   },
 
   // -- Travel --

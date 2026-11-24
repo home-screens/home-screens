@@ -32,6 +32,11 @@ export function createNoteRequest(input: CreateNoteInput): NotesWriteRequest {
   return { url: '/api/notes', method: 'POST', body: input };
 }
 
+/** Words typed on the wall: the note, who it is from and how long it stays. */
+export function createWallNoteRequest(input: Pick<CreateNoteInput, 'text' | 'authorId' | 'life'>): NotesWriteRequest {
+  return { url: '/api/notes', method: 'POST', body: input };
+}
+
 /** A drawing from the wall: its lines, who drew it and how long it stays. */
 export function createDrawingRequest(input: Pick<CreateNoteInput, 'drawing' | 'authorId' | 'life'>): NotesWriteRequest {
   return { url: '/api/notes', method: 'POST', body: input };

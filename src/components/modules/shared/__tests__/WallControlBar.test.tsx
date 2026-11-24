@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { WallControlBar, WallControlButton, WallControlHoldButton } from '../WallControlBar';
+import { WallControlBar, WallControlButton, WallControlHoldButton, wallControlBarFit } from '../WallControlBar';
 
 afterEach(cleanup);
 
@@ -28,6 +28,26 @@ describe('WallControlBar', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a disabled button stacked and centred, and unpressable', () => {
+    const onPress = vi.fn();
+    render(
+      <WallControlBar unit={1} ariaLabel="b">
+        <WallControlButton icon={<svg />} label="-1 min" onPress={onPress} disabled testId="minus" />
+      </WallControlBar>,
+    );
+    const minus = screen.getByTestId('minus');
+    // The centring rides on this class. Dropping it with the press handlers
+    // left the icon and its word laid out as plain button content, which on
+    // the wall read as the minus sliding out of the middle.
+    expect(minus.className).toContain('flex-col');
+    expect(minus.className).toContain('items-center');
+    expect(minus.className).toContain('justify-center');
+    // No pressed look on something that cannot be pressed.
+    expect(minus.className).not.toContain('wall-btn');
+    fireEvent.click(minus);
+    expect(onPress).not.toHaveBeenCalled();
   });
 
   it('gives a held button\'s word the full width of the button, like the others', () => {
@@ -56,5 +76,40 @@ describe('WallControlHoldButton hint', () => {
     fireEvent.pointerUp(stop);
     expect(screen.getByRole('status').style.bottom).toBe('calc(100% + 82px)');
     vi.useRealTimers();
+  });
+});
+
+describe('wallControlBarFit', () => {
+  // A 1080 by 1920 wall: unit 1, 1080 px wide.
+  it('leaves three and four buttons at full size on a portrait wall', () => {
+    expect(wallControlBarFit(3, 1, 1080)).toBe(1);
+    expect(wallControlBarFit(4, 1, 1080)).toBe(1);
+  });
+
+  it('shrinks five and six buttons until the whole row is on the wall', () => {
+    for (const count of [5, 6]) {
+      const fit = wallControlBarFit(count, 1, 1080);
+      expect(fit).toBeLessThan(1);
+      const row = (count * 232 + (count - 1) * 20 + 44) * fit;
+      expect(row).toBeLessThanOrEqual(1080 - 2 * 20 + 0.001);
+    }
+  });
+
+  it('leaves a landscape wall alone, and a bar that was not told its room', () => {
+    // 1920 by 1080: the views scale by 0.5625 and the wall is 1920 wide.
+    expect(wallControlBarFit(6, 0.5625, 1920)).toBe(1);
+    expect(wallControlBarFit(6, 1)).toBe(1);
+  });
+
+  it('draws every button of a six button bar inside the given width', () => {
+    render(
+      <WallControlBar unit={1} maxWidth={1080} ariaLabel="Timer buttons" testId="fit-bar">
+        {[1, 2, 3, 4, 5].map((n) => <WallControlButton key={n} icon={<svg />} label={`B${n}`} onPress={() => {}} testId={`b${n}`} />)}
+        <WallControlHoldButton icon={<svg />} label="Stop" ariaLabel="Stop" hint="Keep holding" onConfirm={() => {}} testId="hold" />
+      </WallControlBar>,
+    );
+    const width = parseFloat(screen.getByTestId('b1').style.width);
+    expect(width).toBeLessThan(232);
+    expect(width * 6 + parseFloat(screen.getByTestId('fit-bar').style.gap) * 5).toBeLessThanOrEqual(1080 - 40);
   });
 });

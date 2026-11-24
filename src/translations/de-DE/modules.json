@@ -1880,8 +1880,11 @@
     "receiptSummary": "Angepinnt {pinned} · Wichtig {important}",
     "pinnedOne": "Angepinnt",
     "emptyDraw": "Nichts an der Pinnwand. Male hier eine Notiz oder schreib eine auf dem Handy.",
+    "emptyWrite": "Nichts an der Pinnwand. Schreib eine Notiz, hier oder auf dem Handy.",
+    "emptyLeave": "Nichts an der Pinnwand. Male oder schreib hier eine Notiz, oder schreib eine auf dem Handy.",
     "drawing": "Bild",
     "drawingFrom": "Bild von {name}",
+    "noteFrom": "Notiz von {name}",
     "openDrawing": "Bild von {name} groß anzeigen",
     "draw": {
       "row": "Notiz malen",
@@ -1930,6 +1933,29 @@
       "undoing": "Wird abgenommen…",
       "posting": "Wird aufgehängt…",
       "madeRoom": "Das älteste Bild wurde abgenommen, damit Platz ist."
+    },
+    "write": {
+      "row": "Notiz schreiben",
+      "rowFinish": "Notiz fertig schreiben",
+      "title": "Notiz schreiben",
+      "placeholder": "Schreib hier deine Notiz",
+      "askTitle": "Diese Notiz wegwerfen?",
+      "askKeep": "Weiterschreiben",
+      "askThrow": "Wegwerfen",
+      "whoTitle": "Von wem ist das?",
+      "back": "Weiterschreiben",
+      "failed": "Das Aufhängen hat nicht geklappt. Deine Notiz ist noch da.",
+      "unreachable": "Das Aufhängen hat nicht geklappt. Home Screens antwortet nicht. Deine Notiz ist noch da.",
+      "off": "Das Schreiben an der Wand wurde gerade ausgeschaltet. Deine Notiz kann nicht aufgehängt werden.",
+      "pickAgain": "Diese Person gehört nicht mehr zur Familie. Wähle, von wem das ist."
+    },
+    "leave": {
+      "row": "Notiz hinterlassen",
+      "title": "Notiz hinterlassen",
+      "draw": "Malen",
+      "write": "Schreiben",
+      "pageWaits": "Dein Bild wartet noch auf dich.",
+      "wordsWait": "Was du geschrieben hast, wartet noch auf dich."
     }
   },
   "photoControls": {
@@ -1939,5 +1965,11 @@
     "play": "Abspielen",
     "position": "{at} von {count}",
     "allPictures": "Alle Bilder"
+  },
+  "quick-timer": {
+    "title": "Schnell-Timer",
+    "unit": "Min.",
+    "startAriaLabel": "{minutes}-Minuten-Timer starten",
+    "busyElsewhere": "Auf einem anderen Display läuft ein Timer"
   }
 }

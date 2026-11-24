@@ -66,6 +66,11 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.calendarPage.adding.groupGoogle',
   'editor|settings.calendarPage.adding.groupICloud',
   'core|pagination.seconds',
+  // Unit abbreviations beside the timer's plus and minus, on its preset
+  // buttons, and in the editor's list of lengths ("{minutes} min").
+  'core|timer.oneMinute',
+  'modules|quick-timer.unit',
+  'editor|configSections.quick-timer.minutesShort',
   'core|meal.tags.snack',
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',
@@ -611,6 +616,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|tabs.control',
     'remote|timers.addMinute',
     'core|timer.addMinute',
+    'core|timer.subtractMinute',
     'remote|timers.minUnit',
     'remote|timers.minutesShort',
     // "Total" is what a Spanish till receipt prints (the notes Receipt view).
@@ -795,6 +801,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|tabs.photos',
     'remote|timers.addMinute',
     'core|timer.addMinute',
+    'core|timer.subtractMinute',
     'modules|display-control.routines',
     'remote|timers.minUnit',
     'remote|timers.minutesShort',
@@ -993,6 +1000,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|tabs.timers',
     'remote|timers.addMinute',
     'core|timer.addMinute',
+    'core|timer.subtractMinute',
     'core|timer.secondsShort',
     'modules|display-control.routines',
     'modules|display-control.timers',
@@ -1103,6 +1111,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|tabs.timers',
     'remote|timers.addMinute',
     'core|timer.addMinute',
+    'core|timer.subtractMinute',
     'modules|display-control.timers',
     'remote|timers.minUnit',
     'remote|timers.minutesShort',

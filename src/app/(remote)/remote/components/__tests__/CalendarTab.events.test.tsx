@@ -70,7 +70,10 @@ beforeEach(() => {
   try { localStorage.clear(); } catch { /* no storage in this run */ }
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe('CalendarTab: switching All day', () => {
   const party = (lastDate: string) => ({
@@ -215,6 +218,11 @@ describe('CalendarTab: one write at a time', () => {
   });
 
   it('sends one new event when Add is pressed twice', async () => {
+    // The form asks the real clock whether the day is today, and today's
+    // events start at the next hour. Hold the clock on the day the rest of
+    // this file calls today, so the day below is never today.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-21T18:00:00.000Z'));
     events = [];
     const out = pendingWrite();
     write.mockImplementation(() => out.promise);

@@ -113,7 +113,7 @@ export async function stageRestoreArchive(body: ReadableStream<Uint8Array> | nul
     },
   });
   try {
-    await pipeline(Readable.fromWeb(body as import('stream/web').ReadableStream), cap, createWriteStream(part));
+    await pipeline(Readable.fromWeb(body as import('stream/web').ReadableStream), cap, createWriteStream(part, { mode: 0o600 }));
     await fs.rename(part, final);
   } catch (err) {
     await fs.rm(part, { force: true }).catch(() => {});

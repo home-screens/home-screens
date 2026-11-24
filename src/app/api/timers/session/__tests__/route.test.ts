@@ -124,10 +124,41 @@ describe('/api/timers/session', () => {
     expect(session.status).toBe('done');
   });
 
-  it('add-minute extends the current step', async () => {
+  it('add-minute grows the step rather than sliding its start', async () => {
     await postSession(req({ action: 'start', kind: 'quick', durationSec: 60, targets: 'all' }));
     const { session } = await (await postSession(req({ action: 'add-minute' }))).json();
-    expect(session.stepStartedAt).toBe(T0 + 60_000);
+    // The anchor stays put and the step becomes two minutes, which is what
+    // lets a dial drawn against the step's own length redraw at the new one.
+    expect(session.stepStartedAt).toBe(T0);
+    expect(session.steps[0].durationSec).toBe(120);
+  });
+
+  it('subtract-minute takes a minute back off the step', async () => {
+    await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }));
+    const { session } = await (await postSession(req({ action: 'subtract-minute' }))).json();
+    expect(session.stepStartedAt).toBe(T0);
+    expect(session.steps[0].durationSec).toBe(240);
+  });
+
+  it('toggle-sound turns the chimes off and back on', async () => {
+    await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all', sound: true }));
+    let { session } = await (await postSession(req({ action: 'toggle-sound' }))).json();
+    expect(session.sound).toBe(false);
+    ({ session } = await (await postSession(req({ action: 'toggle-sound' }))).json());
+    expect(session.sound).toBe(true);
+  });
+
+  it('carries a quick timer\'s "stay in the box" choice onto the session, and omits it otherwise', async () => {
+    let { session } = await (await postSession(
+      req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all', fullScreen: false }),
+    )).json();
+    expect(session.fullScreen).toBe(false);
+
+    ({ session } = await (await postSession(
+      req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }),
+    )).json());
+    // Absent, not true: a session from before the setting reads the same.
+    expect(session.fullScreen).toBeUndefined();
   });
 
   it('cancel ends the session and a later GET expires it', async () => {

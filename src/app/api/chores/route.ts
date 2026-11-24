@@ -19,6 +19,9 @@ import { householdToday } from '@/lib/household-day';
 import { contentRevision } from '@/lib/content-revision';
 import { addIsoDays } from '@/lib/iso-date';
 
+/** Chore ids are short generated strings; this is far above any real one. */
+const MAX_CHORE_ID_LENGTH = 128;
+
 export const dynamic = 'force-dynamic';
 
 /** The first day of history kept: anything older than CHORE_HISTORY_DAYS days goes. */
@@ -135,6 +138,12 @@ export const POST = async (request: NextRequest) => {
       { error: 'Missing choreId, memberId, or date' },
       { status: 400 },
     );
+  }
+
+  // An id is a short piece of text. Anything else can never name a chore, and
+  // a tick for it would only pile up in the saved file.
+  if (typeof choreId !== 'string' || choreId.length > MAX_CHORE_ID_LENGTH) {
+    return NextResponse.json({ error: 'Invalid choreId' }, { status: 400 });
   }
 
   if (direction !== undefined && direction !== 'complete' && direction !== 'uncomplete') {

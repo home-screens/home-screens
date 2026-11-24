@@ -27,7 +27,8 @@
       "noteGone": "Cette note n'est plus là.",
       "boardFull": "Le tableau est plein : {max} notes. Retires-en quelques-unes d'abord.",
       "badDrawing": "Ce dessin n'a pas pu être enregistré.",
-      "wallDrawOff": "Le dessin sur le mur est désactivé."
+      "wallDrawOff": "Le dessin sur le mur est désactivé.",
+      "wallWriteOff": "L'écriture sur le mur est désactivée."
     },
     "family": {
       "revision": "La famille a été modifiée entre-temps. La liste à jour est affichée : il faut refaire la modification.",
@@ -373,7 +374,15 @@
       "one": "{steps} étape · {minutes} min",
       "other": "{steps} étapes · {minutes} min"
     },
-    "holdShort": "maintenir"
+    "holdShort": "maintenir",
+    "oneMinute": "1 min",
+    "holdToStop": "Maintiens pour arrêter",
+    "subtractMinuteSpoken": "Enlever une minute",
+    "addMinuteSpoken": "Ajouter une minute",
+    "subtractMinute": "-1 min",
+    "soundOff": "Son coupé",
+    "soundOn": "Son activé",
+    "stepDone": "Étape suivante"
   },
   "launcher": {
     "heading": "Où voulez-vous aller ?",

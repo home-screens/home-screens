@@ -399,7 +399,8 @@
       "shape": "Forma y separador",
       "display-control": "Control del display",
       "traffic": "Tráfico / trayecto",
-      "notes": "Notas"
+      "notes": "Notas",
+      "quick-timer": "Temporizador rápido"
     },
     "descriptions": {
       "fullscreen-calendar": "Toda tu semana o tu mes, a pantalla completa",
@@ -447,7 +448,8 @@
       "shape": "Líneas y bloques para separar cosas",
       "display-control": "Botones táctiles para encender, apagar o cambiar de pantalla",
       "traffic": "Cuánto se tarda en llegar al trabajo o al cole",
-      "notes": "Notas que la familia escribe en el móvil y que se ven en el monitor durante el tiempo elegido"
+      "notes": "Notas que la familia escribe en el móvil y que se ven en el monitor durante el tiempo elegido",
+      "quick-timer": "Toca una duración para empezar un temporizador en la pared"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendario eventos semana mes familia",
@@ -495,7 +497,8 @@
       "shape": "linea línea separador caja borde recuadro",
       "display-control": "tactil táctil botones encender apagar brillo pantalla",
       "traffic": "trafico tráfico trayecto ruta coche trabajo cole",
-      "notes": "notas tablón corcho mensaje familia nevera frigorífico pósit recado aviso"
+      "notes": "notas tablón corcho mensaje familia nevera frigorífico pósit recado aviso",
+      "quick-timer": "temporizador cuenta atrás minutos cocina rápido empezar"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5731,7 +5734,25 @@
       "groupMaterials": "Objetos reales",
       "materialHelp": "Este aspecto tiene sus propios colores y su propia letra, así que los ajustes de fondo, color del texto, borde y tipo de letra no se aplican.",
       "wallDraw": "Dibujar en el monitor",
-      "wallDrawHelp": "Un botón «Dibuja una nota» en la tarjeta. Cualquiera puede dejar un dibujo en el tablón desde un monitor táctil; quitar notas sigue siendo cosa del móvil."
+      "wallDrawHelp": "Un botón «Dibuja una nota» en la tarjeta. Cualquiera puede dejar un dibujo en el tablón desde un monitor táctil; quitar notas sigue siendo cosa del móvil.",
+      "wallWrite": "Escribir en el monitor",
+      "wallWriteHelp": "Un botón «Escribe una nota» en la tarjeta. Cualquiera puede escribir una nota corta en el tablón desde un monitor táctil. Si también se puede dibujar, un solo botón «Deja una nota» sirve para las dos cosas."
+    },
+    "quick-timer": {
+      "presets": "Duraciones",
+      "presetsHint": "Hasta {max} botones, en este orden.",
+      "minutesShort": "{minutes} min",
+      "fullScreen": "Llenar toda la pantalla mientras corre",
+      "fullScreenHint": "Apagado, el temporizador se queda en esta caja y el resto de la pantalla sigue.",
+      "view": "Estilo del temporizador",
+      "view-ring": "Anillo brillante",
+      "view-face": "Esfera",
+      "view-cascade": "Cascada de color",
+      "view-path": "Camino de estrellas",
+      "target": "Mostrarlo en",
+      "target-all": "Todas las pantallas",
+      "target-this": "Esta pantalla",
+      "sound": "Sonido"
     }
   },
   "modals": {

@@ -12,7 +12,9 @@ import type { Note } from '@/types/notes';
  * draw, say who drew it, see it land on the card and in the store, open it
  * large, Undo. The rules the hub holds a wall's token to are unit-tested
  * beside the routes (`api/notes/__tests__/route.test.ts`); the E2E hub runs
- * with no password, so here every caller is let in.
+ * with no password, so here every caller is let in. These cards have writing
+ * off, so the button only draws; `wall-note-write.spec.ts` has the keyboard
+ * and the card that offers both.
  */
 
 /** Every note on the board, read back through the route every surface reads. */
@@ -46,7 +48,7 @@ async function openSheet(page: Page, card: Locator): Promise<{ sheet: Locator; c
 
 test('draw a note, say who drew it, see it on the board, open it large, and Undo takes it off', async ({ page, request, sandboxDir }) => {
   seedNotes(sandboxDir);
-  const notes = buildModuleInstance('notes', { view: 'board', wallDraw: true });
+  const notes = buildModuleInstance('notes', { view: 'board', wallDraw: true, wallWrite: false });
   const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [notes])] }));
   const card = display.module('notes');
   const before = (await board(request)).length;
@@ -110,7 +112,7 @@ test('draw a note, say who drew it, see it on the board, open it large, and Undo
 
 test('Close with lines on the page asks first; an empty page just closes', async ({ page, request, sandboxDir }) => {
   seedNotes(sandboxDir);
-  const notes = buildModuleInstance('notes', { view: 'sticky', wallDraw: true });
+  const notes = buildModuleInstance('notes', { view: 'sticky', wallDraw: true, wallWrite: false });
   const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [notes])] }));
   const card = display.module('notes');
 
@@ -138,7 +140,7 @@ test('Close with lines on the page asks first; an empty page just closes', async
 
 test('a hub that does not answer keeps the drawing in the sheet, and the same button tries again', async ({ page, request, sandboxDir }) => {
   seedNotes(sandboxDir);
-  const notes = buildModuleInstance('notes', { view: 'whiteboard', wallDraw: true });
+  const notes = buildModuleInstance('notes', { view: 'whiteboard', wallDraw: true, wallWrite: false });
   const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [notes])] }));
   const { sheet, canvas } = await openSheet(page, display.module('notes'));
   await drawLine(page, canvas, [[0.3, 0.3], [0.7, 0.7]]);
@@ -161,7 +163,7 @@ test('a hub that does not answer keeps the drawing in the sheet, and the same bu
 
 test('two at the wall: a colour tapped while another finger is still drawing takes, and Next cannot be double-tapped into posting', async ({ page, request, sandboxDir }) => {
   seedNotes(sandboxDir);
-  const notes = buildModuleInstance('notes', { view: 'board', wallDraw: true });
+  const notes = buildModuleInstance('notes', { view: 'board', wallDraw: true, wallWrite: false });
   const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [notes])] }));
   const { sheet, canvas, lines } = await openSheet(page, display.module('notes'));
 
@@ -229,10 +231,10 @@ test('two at the wall: a colour tapped while another finger is still drawing tak
   expect(await page.evaluate(() => (window as unknown as { passedThrough: number }).passedThrough)).toBe(0);
 });
 
-test('no button with drawing off, or in a view with no room for one', async ({ page, request, sandboxDir }) => {
+test('no button with drawing and writing off, or in a view with no room for one', async ({ page, request, sandboxDir }) => {
   seedNotes(sandboxDir);
-  const off = buildModuleInstance('notes', { view: 'board', wallDraw: false });
-  const ticker = { ...buildModuleInstance('notes', { view: 'ticker', wallDraw: true }), id: 'notes-ticker', position: { x: 40, y: 700 } };
+  const off = buildModuleInstance('notes', { view: 'board', wallDraw: false, wallWrite: false });
+  const ticker = { ...buildModuleInstance('notes', { view: 'ticker', wallDraw: true, wallWrite: false }), id: 'notes-ticker', position: { x: 40, y: 700 } };
   const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [off, ticker])] }));
   await expect(display.module('notes').first()).toBeVisible();
   await expect(page.getByTestId('note-draw-door')).toHaveCount(0);

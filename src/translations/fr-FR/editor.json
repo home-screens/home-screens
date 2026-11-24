@@ -399,7 +399,8 @@
       "shape": "Forme et séparateur",
       "display-control": "Contrôle de l'affichage",
       "traffic": "Trafic / trajet",
-      "notes": "Notes"
+      "notes": "Notes",
+      "quick-timer": "Minuteur rapide"
     },
     "descriptions": {
       "fullscreen-calendar": "Toute votre semaine ou votre mois, en plein écran",
@@ -447,7 +448,8 @@
       "shape": "Des traits et des blocs pour séparer les éléments",
       "display-control": "Des boutons tactiles pour réveiller, mettre en veille ou changer d'écran",
       "traffic": "Le temps de trajet jusqu'au travail ou à l'école",
-      "notes": "Des notes que la famille écrit sur le téléphone, affichées sur le mur pendant la durée choisie"
+      "notes": "Des notes que la famille écrit sur le téléphone, affichées sur le mur pendant la durée choisie",
+      "quick-timer": "Touche une durée pour lancer un minuteur sur le mur"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendrier evenements rendez-vous semaine mois famille",
@@ -495,7 +497,8 @@
       "shape": "trait ligne separateur bloc cadre bordure",
       "display-control": "tactile boutons veille reveil luminosite ecran suivant",
       "traffic": "trajet route circulation embouteillage bouchons travail ecole",
-      "notes": "notes tableau message messages mot memo pense-bete rappel frigo post-it famille"
+      "notes": "notes tableau message messages mot memo pense-bete rappel frigo post-it famille",
+      "quick-timer": "minuteur compte à rebours minutes cuisine rapide départ"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -5731,7 +5734,25 @@
       "groupMaterials": "Décors",
       "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas.",
       "wallDraw": "Dessiner sur le mur",
-      "wallDrawHelp": "Un bouton « Faire un dessin » sur le module. Tout le monde peut laisser un dessin sur le tableau depuis un mur tactile ; pour retirer une note, il faut passer par le téléphone."
+      "wallDrawHelp": "Un bouton « Faire un dessin » sur le module. Tout le monde peut laisser un dessin sur le tableau depuis un mur tactile ; pour retirer une note, il faut passer par le téléphone.",
+      "wallWrite": "Écrire sur le mur",
+      "wallWriteHelp": "Un bouton « Écrire une note » sur le module. Tout le monde peut écrire une courte note sur le tableau depuis un mur tactile. Si le dessin est activé aussi, un seul bouton « Laisser une note » propose les deux."
+    },
+    "quick-timer": {
+      "presets": "Durées",
+      "presetsHint": "Jusqu'à {max} boutons, dans cet ordre.",
+      "minutesShort": "{minutes} min",
+      "fullScreen": "Remplir tout l'écran pendant le minuteur",
+      "fullScreenHint": "Désactivé, le minuteur reste dans cette case et le reste de l'écran demeure.",
+      "view": "Style du minuteur",
+      "view-ring": "Anneau lumineux",
+      "view-face": "Cadran",
+      "view-cascade": "Cascade de couleur",
+      "view-path": "Chemin d'étoiles",
+      "target": "Afficher sur",
+      "target-all": "Tous les écrans",
+      "target-this": "Cet écran",
+      "sound": "Son"
     }
   },
   "modals": {

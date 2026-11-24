@@ -86,6 +86,7 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
   return (
     <div
       data-testid="notes-note"
+      data-note={note.id}
       data-important={note.important ? '' : undefined}
       data-pinned={note.pinned ? '' : undefined}
       className="relative flex flex-col h-full min-h-0 overflow-hidden"

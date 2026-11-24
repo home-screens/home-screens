@@ -27,7 +27,8 @@
       "noteGone": "Diese Notiz ist nicht mehr da.",
       "boardFull": "Die Pinnwand ist voll: {max} Notizen. Nimm erst einige ab.",
       "badDrawing": "Dieses Bild konnte nicht gespeichert werden.",
-      "wallDrawOff": "Malen an der Wand ist ausgeschaltet."
+      "wallDrawOff": "Malen an der Wand ist ausgeschaltet.",
+      "wallWriteOff": "Schreiben an der Wand ist ausgeschaltet."
     },
     "family": {
       "revision": "Die Familie wurde während deiner Bearbeitung geändert. Die aktuelle Liste wird angezeigt. Bitte führe deine Änderung erneut aus.",
@@ -373,7 +374,15 @@
       "one": "{steps} Schritt · {minutes} Min.",
       "other": "{steps} Schritte · {minutes} Min."
     },
-    "holdShort": "halten"
+    "holdShort": "halten",
+    "oneMinute": "1 Min.",
+    "holdToStop": "Zum Stoppen halten",
+    "subtractMinuteSpoken": "Eine Minute weniger",
+    "addMinuteSpoken": "Eine Minute mehr",
+    "subtractMinute": "-1 Min.",
+    "soundOff": "Ton aus",
+    "soundOn": "Ton an",
+    "stepDone": "Nächster Schritt"
   },
   "launcher": {
     "heading": "Wohin möchtest du?",

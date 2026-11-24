@@ -39,7 +39,7 @@ export const PATCH = withAuth(async (request: NextRequest, ctx: RouteContext) =>
 /**
  * DELETE /api/notes/[noteId]: remove the note for good. A phone or the
  * editor, with a session; or a wall's Undo, with the display token, for a
- * drawing the hub posted for a wall in the last few minutes
+ * drawing or typed note the hub posted for a wall in the last few minutes
  * (`wall-added.ts`). Anything else from a wall needs a session.
  */
 export const DELETE = withDisplayAuth(async (request: NextRequest, ctx: RouteContext) => {

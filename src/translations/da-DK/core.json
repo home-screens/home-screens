@@ -27,7 +27,8 @@
       "noteGone": "Den seddel er her ikke længere.",
       "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først.",
       "badDrawing": "Den tegning kunne ikke gemmes.",
-      "wallDrawOff": "Det er slået fra at tegne på væggen."
+      "wallDrawOff": "Det er slået fra at tegne på væggen.",
+      "wallWriteOff": "Det er slået fra at skrive på væggen."
     },
     "family": {
       "revision": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
@@ -373,7 +374,15 @@
       "one": "{steps} trin · {minutes} min.",
       "other": "{steps} trin · {minutes} min."
     },
-    "holdShort": "hold inde"
+    "holdShort": "hold inde",
+    "oneMinute": "1 min.",
+    "holdToStop": "Hold inde for at stoppe",
+    "subtractMinuteSpoken": "Et minut mindre",
+    "addMinuteSpoken": "Et minut mere",
+    "subtractMinute": "-1 min.",
+    "soundOff": "Lyd fra",
+    "soundOn": "Lyd til",
+    "stepDone": "Næste trin"
   },
   "launcher": {
     "heading": "Hvor vil du hen?",

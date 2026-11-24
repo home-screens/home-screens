@@ -43,6 +43,7 @@ const builtinComponentEntries = {
   affirmations: dynamic(() => import('@/components/modules/AffirmationsModule')),
   date: dynamic(() => import('@/components/modules/date/DateModule')),
   'display-control': dynamic(() => import('@/components/modules/DisplayControlModule')),
+  'quick-timer': dynamic(() => import('@/components/modules/QuickTimerModule')),
   'meal-planner': dynamic(() => import('@/components/modules/meal-planner/MealPlannerModule')),
   iframe: dynamic(() => import('@/components/modules/IframeModule')),
   icon: dynamic(() => import('@/components/modules/IconModule')),

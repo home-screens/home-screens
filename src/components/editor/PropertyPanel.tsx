@@ -98,6 +98,7 @@ import {
   FullscreenWeatherConfigSection,
   WordOfDayConfigSection,
   DisplayControlConfigSection,
+  QuickTimerConfigSection,
   TimetableConfigSection,
 } from '@/components/editor/config-sections';
 
@@ -509,6 +510,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
   'fullscreen-news': FullscreenNewsConfigSection,
   'fullscreen-weather': FullscreenWeatherConfigSection,
   'display-control': DisplayControlConfigSection,
+  'quick-timer': QuickTimerConfigSection,
 };
 
 /**

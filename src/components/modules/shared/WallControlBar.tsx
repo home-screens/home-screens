@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, type CSSProperties, type ReactNode } from 'react';
+import { Children, createContext, useContext, type CSSProperties, type ReactNode } from 'react';
 import { WALL_BUTTON_CLASS, wallPress } from './wallPress';
 import { HoldConfirmButton } from './HoldConfirmButton';
 
@@ -77,6 +77,12 @@ export interface WallControlBarProps {
   shade?: WallControlShade;
   /** How far up the shade reaches, canvas pixels; short over a light picture whose words sit low. */
   shadeHeight?: number;
+  /**
+   * The width the bar may take, in this screen's pixels (the wall's own
+   * width). Given, a bar with more buttons than fit is drawn smaller so every
+   * button stays on the screen; left out, the buttons keep their full size.
+   */
+  maxWidth?: number;
   /** A word over the buttons that says what state things are in ("Paused"). */
   label?: string;
   ariaLabel: string;
@@ -84,10 +90,28 @@ export interface WallControlBarProps {
   children: ReactNode;
 }
 
+/** Room kept clear between the bar and each edge of the wall, canvas pixels. */
+const BAR_SIDE_MARGIN_PX = 20;
+
+/**
+ * How much a bar of `count` buttons has to shrink to fit `maxWidth` screen
+ * pixels at `unit`: 1 when it fits, less when it does not. Five buttons are
+ * wider than a portrait wall at full size, six by half as much again.
+ */
+export function wallControlBarFit(count: number, unit: number, maxWidth?: number): number {
+  if (!maxWidth || maxWidth <= 0 || unit <= 0 || count <= 0) return 1;
+  const natural = (count * WALL_CONTROL_BUTTON_PX.w + (count - 1) * 20 + 2 * 20 + 2 * 2) * unit;
+  const room = maxWidth - 2 * BAR_SIDE_MARGIN_PX * unit;
+  return Math.min(1, room / natural);
+}
+
 export function WallControlBar({
-  unit, tone = 'dark', shade = 'dark', shadeHeight = 760, label, ariaLabel, testId, children,
+  unit: canvasUnit, tone = 'dark', shade = 'dark', shadeHeight = 760, maxWidth, label, ariaLabel, testId, children,
 }: WallControlBarProps) {
   const T = TONES[tone];
+  // Everything in the bar is drawn at one size, so shrinking the unit shrinks
+  // buttons, gaps, type and the pill together.
+  const unit = canvasUnit * wallControlBarFit(Children.toArray(children).length, canvasUnit, maxWidth);
   return (
     <>
       {shade !== 'none' && (
@@ -95,7 +119,7 @@ export function WallControlBar({
           aria-hidden="true"
           className="wall-control-shade"
           style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0, height: shadeHeight * unit,
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: shadeHeight * canvasUnit,
             background: SHADES[shade], pointerEvents: 'none',
           }}
         />
@@ -106,7 +130,7 @@ export function WallControlBar({
         data-testid={testId}
         className="wall-control-bar"
         style={{
-          position: 'absolute', left: '50%', bottom: 72 * unit, transform: 'translateX(-50%)',
+          position: 'absolute', left: '50%', bottom: 72 * canvasUnit, transform: 'translateX(-50%)',
           display: 'flex', gap: 20 * unit,
           padding: `${(label ? 70 : 20) * unit}px ${20 * unit}px ${20 * unit}px`,
           borderRadius: 66 * unit, background: T.bar, border: `${2 * unit}px solid ${T.barBorder}`,
@@ -178,19 +202,34 @@ export interface WallControlButtonProps {
   onPress: () => void;
   /** The one that carries on (Resume), filled in green. */
   primary?: boolean;
+  /**
+   * Shown, but not pressable: the action exists and simply cannot be taken
+   * yet (a minute cannot come off a step with less than a minute left).
+   * Dropping the button instead would re-centre the bar under a finger
+   * already travelling towards Stop, so it stays and dims.
+   */
+  disabled?: boolean;
   testId?: string;
 }
 
 /** One button of the bar: an icon with its word under it, pressed the moment a finger lands. */
-export function WallControlButton({ icon, label, onPress, primary = false, testId }: WallControlButtonProps) {
+export function WallControlButton({ icon, label, onPress, primary = false, disabled = false, testId }: WallControlButtonProps) {
   const { unit, tone } = useContext(BarCtx);
   return (
     <button
       type="button"
-      {...wallPress(FACE_CLASS)}
+      // Disabled drops the press feedback but keeps FACE_CLASS: that class
+      // carries the centring, so spreading nothing left the icon and its
+      // word laid out as a plain button's content instead of stacked and
+      // centred.
+      {...(disabled ? { className: FACE_CLASS } : wallPress(FACE_CLASS))}
       data-testid={testId}
-      onClick={onPress}
-      style={{ ...buttonStyle(unit, tone, primary), gap: 12 * unit }}
+      disabled={disabled}
+      onClick={disabled ? undefined : onPress}
+      style={{
+        ...buttonStyle(unit, tone, primary), gap: 12 * unit,
+        ...(disabled ? { opacity: 0.38, cursor: 'default' } : {}),
+      }}
     >
       <ButtonFace icon={icon} label={label} unit={unit} />
     </button>
@@ -221,6 +260,8 @@ export function WallControlHoldButton({ icon, label, onConfirm, ariaLabel, hint,
         hint={hint}
         hintFontSize={30 * unit}
         hintPlacement="above"
+        // The held button closes the row, and its hint is wider than it is.
+        hintAlign="end"
         // Over the whole bar when it carries a word ("Paused"), so the hint never covers it.
         hintGap={(labelled ? 82 : 18) * unit}
         className={WALL_BUTTON_CLASS}

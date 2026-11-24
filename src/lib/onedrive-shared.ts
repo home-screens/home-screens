@@ -17,5 +17,6 @@ export const ONEDRIVE_MAX_SAMPLE = 1000;
 const ITEM_ID = /^[A-Za-z0-9!_.=-]{1,200}$/;
 
 export function isOneDriveItemId(value: string): boolean {
-  return ITEM_ID.test(value);
+  // An id made only of dots would be read as a path step by Graph.
+  return ITEM_ID.test(value) && !/^\.+$/.test(value);
 }

@@ -121,15 +121,20 @@ export const GET = withMediaTokenAuth(async (request: NextRequest) => {
   // original, and so does any copy that cannot be made (an undecodable file)
   // or would not be worth it (the original is already about that size).
   const params = request.nextUrl.searchParams;
+  // Copies are named after the picture's one true place in the library, not
+  // the text that was asked for: `x.jpg`, `./x.jpg` and `a/../x.jpg` are the
+  // same picture and must share the same copies, or asking under ever new
+  // spellings would fill the disk.
+  const libraryPath = path.relative(BGS, filePath).split(path.sep).join('/');
   if (canResizePicture(filePath)) {
     try {
       let copy: string | null = null;
       if (params.has('h')) {
         const box = displaySizeBox(params.get('w'), params.get('h'));
-        if (box) copy = await wallCopyPath(filePath, filename, box);
+        if (box) copy = await wallCopyPath(filePath, libraryPath, box);
       } else {
         const width = thumbnailWidth(params.get('w'));
-        if (width) copy = await thumbnailPath(filePath, filename, width);
+        if (width) copy = await thumbnailPath(filePath, libraryPath, width);
       }
       if (copy) {
         return new NextResponse(await fs.readFile(copy), {

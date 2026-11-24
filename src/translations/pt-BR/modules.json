@@ -1891,8 +1891,11 @@
     "receiptSummary": "Fixados {pinned} · Importantes {important}",
     "pinnedOne": "Fixado",
     "emptyDraw": "Nada no mural. Desenhe um recado aqui ou escreva um no celular.",
+    "emptyWrite": "Nada no mural. Escreva um recado aqui ou no celular.",
+    "emptyLeave": "Nada no mural. Desenhe ou escreva um recado aqui, ou escreva um no celular.",
     "drawing": "Desenho",
     "drawingFrom": "Desenho de {name}",
+    "noteFrom": "Recado de {name}",
     "openDrawing": "Ver o desenho de {name} bem grande",
     "draw": {
       "row": "Desenhar um recado",
@@ -1941,6 +1944,29 @@
       "undoing": "Tirando do mural…",
       "posting": "Colocando no mural…",
       "madeRoom": "O desenho mais antigo saiu para abrir espaço."
+    },
+    "write": {
+      "row": "Escrever um recado",
+      "rowFinish": "Terminar o recado",
+      "title": "Escrever um recado",
+      "placeholder": "Digite seu recado",
+      "askTitle": "Jogar este recado fora?",
+      "askKeep": "Continuar escrevendo",
+      "askThrow": "Jogar fora",
+      "whoTitle": "De quem é o recado?",
+      "back": "Continuar escrevendo",
+      "failed": "Não deu para colocar no mural. Seu recado continua aqui.",
+      "unreachable": "Não deu para colocar no mural. O Home Screens não está respondendo. Seu recado continua aqui.",
+      "off": "Escrever no painel acabou de ser desligado. Não dá para colocar seu recado no mural.",
+      "pickAgain": "Essa pessoa não está mais na família. Escolha de quem é o recado."
+    },
+    "leave": {
+      "row": "Deixar um recado",
+      "title": "Deixar um recado",
+      "draw": "Desenhar",
+      "write": "Escrever",
+      "pageWaits": "Seu desenho ainda está esperando você.",
+      "wordsWait": "O que você escreveu ainda está esperando você."
     }
   },
   "photoControls": {
@@ -1950,5 +1976,11 @@
     "play": "Reproduzir",
     "position": "{at} de {count}",
     "allPictures": "Todas as fotos"
+  },
+  "quick-timer": {
+    "title": "Timer rápido",
+    "unit": "min",
+    "startAriaLabel": "Começar um timer de {minutes} minutos",
+    "busyElsewhere": "Há um timer rodando em outro painel"
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanText, htmlToText, httpUrl, normalizeWhitespace, stripTitleTags } from '../sanitize';
+import { MAX_HTML_CHARS, cleanText, htmlToText, httpUrl, normalizeWhitespace, stripTitleTags } from '../sanitize';
 
 describe('normalizeWhitespace', () => {
   it('collapses runs of whitespace, newlines and nbsp into one space', () => {
@@ -124,5 +124,25 @@ describe('stripTitleTags', () => {
 
   it('trims surrounding whitespace', () => {
     expect(stripTitleTags('  Story  ', [])).toBe('Story');
+  });
+});
+
+describe('htmlToText on hostile markup', () => {
+  // Each of these opens something that never closes. Unbounded, a few
+  // megabytes of any one of them held the whole hub for minutes.
+  const openers = ['<img ', '<!--', '<script>', '<p ', '<'];
+
+  it.each(openers)('stays quick on megabytes of %j', (opener) => {
+    const hostile = opener.repeat(Math.ceil(2_000_000 / opener.length));
+    const started = performance.now();
+    htmlToText(hostile);
+    expect(performance.now() - started).toBeLessThan(1500);
+  });
+
+  it('reads only the start of a very long item', () => {
+    const long = `<p>first</p>${'x'.repeat(MAX_HTML_CHARS)}<p>never read</p>`;
+    const { text } = htmlToText(long);
+    expect(text).toContain('first');
+    expect(text).not.toContain('never read');
   });
 });

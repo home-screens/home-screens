@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import {
   MAX_STEP_SEC,
   MIN_STEP_SEC,
   addMinute,
+  subtractMinute,
+  toggleSound,
   advanceStep,
   cancelSession,
   isValidTargets,
@@ -43,6 +45,8 @@ interface SessionActionBody {
   targets?: unknown;
   view?: TimerView;
   sound?: boolean;
+  /** start, quick only: false keeps the timer out of the full-screen takeover */
+  fullScreen?: boolean;
   /** control: the session the press was made looking at */
   sessionId?: unknown;
   /** control: the step it was made looking at (the wall's "Done!" tap) */
@@ -52,7 +56,7 @@ interface SessionActionBody {
 /**
  * POST /api/timers/session — start a session or control the running one.
  *
- * Actions: `start`, `pause`, `resume`, `skip`, `step-done`, `add-minute`,
+ * Actions: `start`, `pause`, `resume`, `skip`, `step-done`, `add-minute`, `subtract-minute`, `toggle-sound`,
  * `cancel`. `skip` and `step-done` are the same transition (advance now);
  * both names exist because remotes skip and touch displays tap Done.
  * Starting while a session is running replaces it — one active session at a
@@ -67,7 +71,7 @@ interface SessionActionBody {
  * route wrapper answers with its code.
  */
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<SessionActionBody>(request);
+  const body = await parseJsonBody<SessionActionBody>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const now = Date.now();
 
@@ -82,6 +86,8 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
     skip: advanceStep,
     'step-done': advanceStep,
     'add-minute': addMinute,
+    'subtract-minute': subtractMinute,
+    'toggle-sound': (session) => toggleSound(session),
     cancel: cancelSession,
   };
   const op = body.action ? CONTROL_ACTIONS[body.action] : undefined;
@@ -113,6 +119,7 @@ async function handleStart(
   if (!isValidTargets(body.targets)) throw new TimerError(400, 'timers.badRequest', 'Invalid targets');
   if (body.view !== undefined && !TIMER_VIEWS.includes(body.view)) throw new TimerError(400, 'timers.badRequest', 'Invalid view');
   if (body.sound !== undefined && typeof body.sound !== 'boolean') throw new TimerError(400, 'timers.badRequest', 'Invalid sound');
+  if (body.fullScreen !== undefined && typeof body.fullScreen !== 'boolean') throw new TimerError(400, 'timers.badRequest', 'Invalid fullScreen');
 
   if (body.kind === 'routine') {
     if (typeof body.routineId !== 'string' || !body.routineId) throw new TimerError(400, 'timers.badRequest', 'Missing routineId');
@@ -139,7 +146,14 @@ async function handleStart(
     }
     const { session } = await updateSessionAtomic(() => ({
       session: startSession(
-        { kind: 'quick', durationSec: body.durationSec, targets: body.targets as 'all' | string[], view: body.view, sound: body.sound },
+        {
+          kind: 'quick',
+          durationSec: body.durationSec,
+          targets: body.targets as 'all' | string[],
+          view: body.view,
+          sound: body.sound,
+          fullScreen: body.fullScreen,
+        },
         now,
       ),
     }));
