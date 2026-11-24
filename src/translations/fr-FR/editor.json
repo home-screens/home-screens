@@ -662,7 +662,8 @@
         "searchLabel": "Noms et couleurs des calendriers",
         "ownColor": "Couleur d'origine",
         "customColor": "Choisir une autre couleur",
-        "changeInSettings": "Changer les noms et les couleurs des calendriers dans les Paramètres"
+        "changeInSettings": "Changer les noms et les couleurs des calendriers dans les Paramètres",
+        "reorder": "Déplacer {name}"
       },
       "icloud": {
         "heading": "Calendrier iCloud",
@@ -766,6 +767,20 @@
         "length120": "2 heures",
         "wallSwitch": "Permettre au mur d'ajouter, de modifier et de retirer des événements",
         "wallHelp": "Seulement dans les calendriers cochés ci-dessus. Le mur demande toujours avant de retirer. Chaque affichage peut le désactiver sur sa propre page."
+      },
+      "ordering": {
+        "heading": "Ordre des agendas",
+        "description": "Quels agendas gardent leur place un jour chargé.",
+        "help": "Fais glisser pour définir l’ordre. Un jour où il y a plus d’événements que de place, les agendas du haut gardent leurs lignes et ceux du bas disparaissent en premier.",
+        "empty": "Active d’abord un agenda.",
+        "reset": "Revenir à l’ordre par heure"
+      },
+      "swatches": {
+        "heading": "Couleurs proposées",
+        "help": "Les couleurs proposées quand on change la couleur d’un agenda sur le mur. Le mur ne peut pas créer de nouvelle couleur, alors choisis-les ici.",
+        "slot": "Couleur {number}",
+        "reset": "Rétablir les couleurs d’origine",
+        "wallHint": "Sur le mur, touche la légende des couleurs d’un agenda pour y masquer un agenda ou changer sa couleur."
       }
     },
     "dataPage": {

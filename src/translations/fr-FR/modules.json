@@ -212,6 +212,17 @@
         "other": "{count} personnes"
       },
       "showEveryone": "Afficher tout le monde"
+    },
+    "calendarsSheet": {
+      "eyebrow": "Sur ce mur",
+      "title": "Agendas",
+      "show": "Afficher",
+      "hidden": "Masqué sur ce mur",
+      "pickColor": "Choisis une couleur",
+      "color": "Couleur",
+      "allCalendars": "Tous les agendas",
+      "colorOf": "Couleur de {name}",
+      "showName": "Afficher {name}"
     }
   },
   "fullscreen-calendar": {

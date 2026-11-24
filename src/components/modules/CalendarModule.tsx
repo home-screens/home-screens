@@ -14,6 +14,9 @@ import type { FamilyGroup } from '@/types/family';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
+import { calendarRanker } from '@/lib/calendar-order';
+import { useCalendarRecolor } from './shared/useCalendarRecolor';
+import { useWallCalendarKey } from './shared/useWallCalendarKey';
 import { CalendarTapOverlays } from './shared/CalendarTapOverlays';
 import { useWallCalendarAdding } from './shared/useWallCalendarAdding';
 import { DaySheetContext, useDaySheet } from './shared/useDaySheet';
@@ -61,6 +64,10 @@ interface CalendarModuleProps {
   people?: CalendarPerson[];
   /** Family groups, for the color key and the people filter (see buildModuleProps). */
   groups?: FamilyGroup[];
+  /** Calendar order, most wanted first; absent means plain time order (see buildModuleProps). */
+  calendarOrder?: string[];
+  /** The household's own colours for recolouring from the wall; absent means the built-in ones. */
+  swatches?: string[];
   /** Roster fetch state while calendar owners exist; a filtered module holds its events until it settles. */
   peopleState?: 'loading' | 'failed';
   /** Only on a real display (see the registry's `needsInstanceAddress`); the editor preview has none. */
@@ -96,7 +103,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   rolling: GridView,
 };
 
-export default function CalendarModule({ config: savedConfig, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState, screenId, moduleId }: CalendarModuleProps) {
+export default function CalendarModule({ config: savedConfig, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, calendarOrder, swatches, peopleState, screenId, moduleId }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -208,6 +215,9 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
     const cutoff = listFrom ?? listViewCutoff(now, keepFinishedToday);
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone, listFrom]);
+  // The wall can recolour a calendar from the key's sheet: everything below
+  // draws from these, which carry a colour being tried.
+  const recolor = useCalendarRecolor(allEvents);
   const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
   // The family's day notes, shared by every calendar; the switch is on unless set off.
   const dayNotes = useDayNotes(config.showDayNotes !== false);
@@ -224,8 +234,9 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   const viewWindow = useMemo(() => (viewMode === 'agenda' ? null : windowAt(anchor)), [viewMode, windowAt, anchor]);
   const legend = useMemo<LegendRow[]>(() => {
     if (legendPlacement === 'off') return [];
-    return buildLegendRows(allEvents, viewWindow, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
-  }, [legendPlacement, viewWindow, allEvents, timezone, t, config.legendMode, people, groups]);
+    // From the painted events, so a colour being tried shows on the key too.
+    return buildLegendRows(recolor.events, viewWindow, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups, calendarOrder);
+  }, [legendPlacement, viewWindow, recolor.events, timezone, t, config.legendMode, people, groups, calendarOrder]);
   // Whether a day the view draws has a note. The agenda lists note days from
   // today for at least a week (AgendaView), so that week is its range here.
   const notesInView = useMemo(() => {
@@ -235,6 +246,16 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   }, [viewWindow, today, listFrom, dayNotes]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
+  const detailTheme = getThemeTokens('charcoal');
+  // On the wall the key opens the Calendars sheet (hide a calendar here,
+  // change its colour). From here on the card draws `shownEvents`: what is
+  // left once the calendars hidden on this wall are dropped.
+  const wallKey = useWallCalendarKey({ legend, recolor, window: viewWindow, timezone, swatches, calendarOrder, theme: detailTheme, accentColor });
+  // As a button the key keeps the card's own ink and no fill of its own.
+  // Its type is a step up from the plain key's small print, since it has to be read to be found.
+  const keyButtonStyle: React.CSSProperties = { background: 'transparent', color: 'inherit', padding: 0, fontSize: '0.75em' };
+  const { visible: dropHidden } = wallKey;
+  const shownEvents = useMemo(() => dropHidden(recolor.events), [dropHidden, recolor.events]);
   const gridEventStyle = config.gridEventStyle;
   const gridEventPillBackground = config.gridEventPillBackground;
   const showEventBackground = config.showEventBackground !== false;
@@ -243,6 +264,8 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   // The module renders light-on-dark over a photo background with no theme
   // system, so the overlay uses the Charcoal tokens.
+  // Built only when an order is set, so a household without one sorts as it always did.
+  const rank = useMemo(() => (calendarOrder?.length ? calendarRanker(calendarOrder) : undefined), [calendarOrder]);
   const eventStyle = useMemo<EventDisplayStyle>(() => {
     const gridStyle = gridEventStyle === 'colored' ? 'colored' : 'classic';
     return {
@@ -254,13 +277,14 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
       failingSourceIds,
       tapDetails,
       owners,
+      rank,
     };
-  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners]);
-  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
+  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners, rank]);
+  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(shownEvents, tapDetails);
   // "+N more" and the grid day numbers open the whole day (the grid views only).
   // Add, Change and Remove from the wall, once the household turned adding on (S9: the module can say no).
   const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
-  const daySheet = useDaySheet(allEvents, tapDetails, dayNotes, adding !== null);
+  const daySheet = useDaySheet(shownEvents, tapDetails, dayNotes, adding !== null);
   // The picker's counts: each person's events in what the view shows, before
   // any one person is picked. Worked out only while the picker is open.
   const pickerCounts = useMemo(() => {
@@ -270,7 +294,6 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
     });
     return personEventCounts(everyone, peopleChoices.people, viewWindow ?? windowAt(listFrom ?? anchor), timezone);
   }, [peopleOpen, rawEvents, sourceFilter, editorSelection, config.titleFilter, eventRules, timezone, rulesNow, peopleChoices, viewWindow, windowAt, listFrom, anchor]);
-  const detailTheme = getThemeTokens('charcoal');
   // A grid that draws its own title (every Month, and every grid in the
   // modern looks) puts the arrows in it; the other views get a heading row.
   const titledGrid = viewMode === 'month' || ((viewMode === 'multi-week' || viewMode === 'rolling') && (config.gridTheme ?? 'banner') !== 'banner');
@@ -353,9 +376,13 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
             rows={legend}
             label={t('calendar.legendLabel')}
             failingIds={failingSourceIds}
+            {...wallKey.keyProps}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
-            style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
+            clipLines={2}
+            style={wallKey.active
+              ? { flexShrink: 0, opacity: 0.85, marginBottom: 6, ...keyButtonStyle }
+              : { flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
           />
         )}
         {!titledGrid && <LookAheadBar look={look} dates={lookDates} shortDates={lookShortDates} accent={accentColor} datesOnly={spansWeeks} />}
@@ -376,7 +403,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
         <div className="flex-1 min-h-0">
           <DaySheetContext.Provider value={daySheet.opener}>
             <LookAheadContext.Provider value={lookContext}>
-              <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} anchor={listFrom ?? anchor} stepped={look.away} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
+              <ViewComponent events={shownEvents} config={config} style={style} today={today} now={now} anchor={listFrom ?? anchor} stepped={look.away} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
             </LookAheadContext.Provider>
           </DaySheetContext.Provider>
         </div>
@@ -385,9 +412,13 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
             rows={legend}
             label={t('calendar.legendLabel')}
             failingIds={failingSourceIds}
+            {...wallKey.keyProps}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
-            style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', maxHeight: '3.4em', overflow: 'hidden' }}
+            clipLines={2}
+            style={wallKey.active
+              ? { flexShrink: 0, opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', ...keyButtonStyle }
+              : { flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', maxHeight: '3.4em', overflow: 'hidden' }}
           />
         )}
       </div>
@@ -422,6 +453,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
           onClose={() => setPeopleOpen(false)}
         />
       )}
+      {wallKey.sheet}
     </ModuleWrapper>
   );
 }

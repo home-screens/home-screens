@@ -34,6 +34,31 @@ export const CALENDAR_COLOR_PALETTE: readonly string[] = [
   '#10b981', '#f59e0b', '#ec4899', '#06b6d4',
 ];
 
+/**
+ * The palette to offer, given whatever the household has saved.
+ *
+ * Forgiving on purpose. The saved list is the only part of calendar settings
+ * a person edits colour by colour, so a half-finished edit, a shorter list
+ * from an older save, or one bad value must still produce a usable palette
+ * rather than an empty sheet on the wall. Each slot falls back to its own
+ * default, so the result is always the same length and always valid hex, and
+ * a single mistyped colour costs that one swatch instead of the whole set.
+ *
+ * Always eight different colours: a slot that repeats an earlier one would
+ * be a second swatch nobody can tell from the first, so it takes the first
+ * default not already offered.
+ */
+export function resolveSwatches(saved: readonly string[] | undefined): string[] {
+  if (!saved?.length) return [...CALENDAR_COLOR_PALETTE];
+  const wanted = CALENDAR_COLOR_PALETTE.map((fallback, index) => {
+    const value = saved[index];
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;
+  });
+  // A repeat takes a default nobody asked for, so it never steals a colour a later slot holds.
+  const spares = CALENDAR_COLOR_PALETTE.filter((color) => !wanted.includes(color));
+  return wanted.map((color, index) => (wanted.indexOf(color) < index ? spares.shift() ?? color : color));
+}
+
 const PILL_DARK_TEXT = '#1b1b1f';
 
 /**

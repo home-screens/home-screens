@@ -1,5 +1,6 @@
 'use client';
 
+import { keepMostWanted, wantedFirst } from '@/lib/calendar-order';
 import { memo, useCallback, useMemo, useRef } from 'react';
 import { isSameDay, isSameMonth, addDays, differenceInCalendarDays } from 'date-fns';
 import {
@@ -226,6 +227,15 @@ function MoreCount({ date, events, count, fontSize, accentColor, textColor, modu
   );
 }
 
+/**
+ * The events a full cell keeps: all-day ones first, then by the household's
+ * calendar order, and the ones kept still in the order the day lists them
+ * (all-day, then by time). With no order saved it is the first `count`.
+ */
+function keepInCell(events: CalendarEvent[], count: number, rank: EventDisplayStyle['rank']): CalendarEvent[] {
+  return keepMostWanted(events, count, wantedFirst(events, rank, (ev) => ev.sourceId, isAllDayEvent));
+}
+
 export function DayCellEvents({ date, events, maxPerCell, textColor, moduleBackground, accentColor, eventStyle, t, locale, gapClass = 'gap-px', showTime = false }: {
   date: Date;
   events: CalendarEvent[];
@@ -246,7 +256,7 @@ export function DayCellEvents({ date, events, maxPerCell, textColor, moduleBackg
 }) {
   return (
     <div className={`flex flex-col ${gapClass} overflow-hidden`}>
-      {events.slice(0, maxPerCell).map((ev) => (
+      {keepInCell(events, maxPerCell, eventStyle.rank).map((ev) => (
         <EventCard key={ev.id} event={ev} textColor={textColor} showTime={showTime} showLocation={false} compact dayMs={date.getTime()} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
       ))}
       {events.length > maxPerCell && (
@@ -652,7 +662,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
               const notes = dayNotesFor(dayNotes, date);
               const listed = listIn(dayEvents, notes.length);
-              const shown = listed.kind === 'pills' ? dayEvents.slice(0, listed.shown) : [];
+              const shown = listed.kind === 'pills' ? keepInCell(dayEvents, listed.shown, eventStyle.rank) : [];
               const overflow = listed.kind === 'pills' ? dayEvents.length - shown.length : 0;
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
               const cellShadow = [isToday ? todayRing : null, marksMonthStart ? monthRule : null]

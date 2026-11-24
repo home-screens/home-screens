@@ -662,7 +662,8 @@
         "searchLabel": "Navne og farver på kalendere",
         "ownColor": "Kalenderens egen farve",
         "customColor": "Vælg en anden farve",
-        "changeInSettings": "Skift kalendernes navne og farver under Indstillinger"
+        "changeInSettings": "Skift kalendernes navne og farver under Indstillinger",
+        "reorder": "Flyt {name}"
       },
       "icloud": {
         "heading": "iCloud-kalender",
@@ -766,6 +767,20 @@
         "length120": "2 timer",
         "wallSwitch": "Lad væggen tilføje, ændre og fjerne begivenheder",
         "wallHelp": "Kun i de kalendere, der er sat kryds ved ovenfor. Væggen spørger, før noget bliver fjernet. Hvert display kan slå det fra på sin egen side."
+      },
+      "ordering": {
+        "heading": "Rækkefølge for kalendere",
+        "description": "Hvilke kalendere beholder deres plads på en travl dag.",
+        "help": "Træk for at sætte rækkefølgen. På en dag med flere begivenheder, end der er plads til, beholder kalenderne øverst deres rækker, og dem nederst ryger først.",
+        "empty": "Slå en kalender til først.",
+        "reset": "Tilbage til tidsrækkefølge"
+      },
+      "swatches": {
+        "heading": "Farver at vælge mellem",
+        "help": "De farver, du kan vælge, når du skifter en kalenders farve på væggen. Væggen kan ikke blande nye farver, så vælg dem her.",
+        "slot": "Farve {number}",
+        "reset": "Sæt de oprindelige farver tilbage",
+        "wallHint": "Tryk på farvenøglen i en kalender på væggen for at skjule en kalender dér eller skifte dens farve."
       }
     },
     "dataPage": {
@@ -6426,5 +6441,6 @@
       "add": "Tilføj {name}",
       "takeOut": "Fjern {name}"
     }
-  }
+  },
+  "modal": {}
 }

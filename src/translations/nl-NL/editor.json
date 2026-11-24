@@ -662,7 +662,8 @@
         "searchLabel": "Namen en kleuren van agenda's",
         "ownColor": "Kleur van de agenda zelf",
         "customColor": "Andere kleur kiezen",
-        "changeInSettings": "Namen en kleuren van agenda's wijzigen in Instellingen"
+        "changeInSettings": "Namen en kleuren van agenda's wijzigen in Instellingen",
+        "reorder": "{name} verplaatsen"
       },
       "icloud": {
         "heading": "iCloud-agenda",
@@ -766,6 +767,20 @@
         "length120": "2 uur",
         "wallSwitch": "Laat de muur afspraken toevoegen, wijzigen en weghalen",
         "wallHelp": "Alleen in de agenda's die je hierboven hebt aangevinkt. Weghalen vraagt eerst of je het zeker weet. Op de eigen pagina van elk display kun je dit apart uitzetten."
+      },
+      "ordering": {
+        "heading": "Volgorde van agenda’s",
+        "description": "Welke agenda’s hun plek houden op een drukke dag.",
+        "help": "Sleep om de volgorde te bepalen. Op een dag met meer afspraken dan passen houden de agenda’s bovenaan hun regels en vallen die onderaan het eerst af.",
+        "empty": "Zet eerst een agenda aan.",
+        "reset": "Terug naar volgorde op tijd"
+      },
+      "swatches": {
+        "heading": "Kleuren om uit te kiezen",
+        "help": "De kleuren waaruit je kiest als je op de muur de kleur van een agenda verandert. De muur kan zelf geen kleur mengen, kies ze dus hier.",
+        "slot": "Kleur {number}",
+        "reset": "Oorspronkelijke kleuren terugzetten",
+        "wallHint": "Tik op de muur op de kleurlegenda van een agenda om daar een agenda te verbergen of de kleur te veranderen."
       }
     },
     "dataPage": {
@@ -6426,5 +6441,6 @@
       "add": "{name} toevoegen",
       "takeOut": "{name} weghalen"
     }
-  }
+  },
+  "modal": {}
 }

@@ -277,7 +277,9 @@ describe('Google Calendar on the Calendar page', () => {
 
       await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
 
-      expect(view.getByText('Family')).toBeTruthy();
+      // Scoped to the Google list: the calendar is named in the ordering
+      // section further down the page too.
+      expect(view.container.querySelector('[data-testid="google-calendar-row"]')?.textContent).toContain('Family');
       expect(view.container.querySelector('[data-source-health="ok"]')).toBeTruthy();
       expect(view.container.querySelector('[data-source-health="failing"]')).toBeNull();
       const reads = editorFetch.mock.calls.map(([url]) => url as string).filter((url) => url.startsWith('/api/calendar?') || url === '/api/calendar');

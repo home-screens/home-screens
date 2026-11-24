@@ -212,6 +212,17 @@
         "other": "{count} pessoas"
       },
       "showEveryone": "Mostrar todos"
+    },
+    "calendarsSheet": {
+      "eyebrow": "Neste painel",
+      "title": "Calendários",
+      "show": "Mostrar",
+      "hidden": "Oculto neste painel",
+      "pickColor": "Escolha uma cor",
+      "color": "Cor",
+      "allCalendars": "Todos os calendários",
+      "colorOf": "Cor de {name}",
+      "showName": "Mostrar {name}"
     }
   },
   "fullscreen-calendar": {

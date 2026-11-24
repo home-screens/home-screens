@@ -18,6 +18,8 @@ import ICloudCalendarManager from './ICloudCalendarManager';
 import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
 import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
+import CalendarSwatchesManager from './CalendarSwatchesManager';
+import CalendarOrderManager from './CalendarOrderManager';
 import { SettingsArea, SourceBlock, SourceHealthBadge, SourceHealthError, useCalendarSourceHealth } from './calendar-settings-bits';
 import { useLocale, useTranslate } from '@/i18n';
 import { localizedHolidayCountries, type HolidayCountry } from '@/lib/holiday-countries';
@@ -41,6 +43,8 @@ interface CalendarSettings {
   eventEntry: CalendarEventEntry | null;
   wallEntry: boolean;
   calendarOverrides?: Record<string, CalendarOverride>;
+  calendarOrder?: string[];
+  swatches?: string[];
 }
 
 interface Props {
@@ -49,7 +53,7 @@ interface Props {
 }
 
 export default function CalendarSection({ values, onChange: stageChange }: Props) {
-  const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides, calendarOrder, swatches } = values;
 
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
@@ -485,7 +489,42 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         onChange={onChange}
       />
 
-      {/* 4. People: who the calendars belong to */}
+      {/* 4. The order a day draws its calendars in, across every source:
+             a day mixes them, so one flat list is the only place that can
+             say which calendar outranks which. */}
+      <SettingsArea
+        title={t('settings.calendarPage.ordering.heading')}
+        description={t('settings.calendarPage.ordering.description')}
+        testId="calendar-area-ordering"
+      >
+        <div data-field-id="calendar.calendarOrder">
+          <CalendarOrderManager
+            googleCalendars={googleCalendars}
+            selectedIds={selectedCalendarIds}
+            icalSources={icalSources}
+            icloudSources={icloudSources}
+            overrides={calendarOverrides}
+            order={calendarOrder}
+            onChange={(next) => onChange({ calendarOrder: next })}
+          />
+        </div>
+      </SettingsArea>
+
+      {/* 5. The colours the wall's own picker can reach. Beside the names and
+             colours it feeds, not in a display section: it is about calendars,
+             and it is the only way to change what that sheet offers. */}
+      <SettingsArea
+        title={t('settings.calendarPage.swatches.heading')}
+        description={t('settings.calendarPage.swatches.help')}
+        testId="calendar-area-swatches"
+      >
+        <CalendarSwatchesManager
+          swatches={swatches}
+          onChange={(next) => onChange({ swatches: next })}
+        />
+      </SettingsArea>
+
+      {/* 6. People: who the calendars belong to */}
       <SettingsArea
         title={t('settings.calendarPage.people.heading')}
         description={t('settings.calendarPage.people.help')}

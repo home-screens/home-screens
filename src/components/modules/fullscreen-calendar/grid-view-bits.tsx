@@ -1,5 +1,6 @@
 'use client';
 
+import { keepMostWanted, wantedFirst } from '@/lib/calendar-order';
 import { isSameDay } from 'date-fns';
 import { dayMonthPattern, formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { birthdayAge, formatEventTimeCompact, gridPillTimeLabel, parseEventWallTime } from '@/lib/calendar-utils';
@@ -111,9 +112,14 @@ export interface GridCellBodyProps {
   /** For the pills' start times (`gridShowTimes`). */
   timezone?: string;
   timeFormat: TimeFormat;
+  /**
+   * The household's calendar order (`calendarRanker`): which timed events
+   * keep a row when the cell is full. Absent, the earliest keep theirs.
+   */
+  rank?: (sourceId: string | undefined) => number;
 }
 
-export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName = false, fontSize, scale, config, today, decor, owners, timezone, timeFormat }: GridCellBodyProps) {
+export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName = false, fontSize, scale, config, today, decor, owners, timezone, timeFormat, rank }: GridCellBodyProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const wrapTitles = config.wrapEventTitles === true;
@@ -231,7 +237,7 @@ export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName =
       })}
 
       {/* Event pills */}
-      {timedEvs.slice(0, maxShow).map(ev => {
+      {keepMostWanted(timedEvs, maxShow, wantedFirst(timedEvs, rank, (ev) => ev.sourceId)).map(ev => {
         const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
         const glyph = eventGlyph(ev);
         const owner = eventOwner(ev, owners);

@@ -662,7 +662,8 @@
         "searchLabel": "Namen und Farben der Kalender",
         "ownColor": "Originalfarbe",
         "customColor": "Eigene Farbe wählen",
-        "changeInSettings": "Namen und Farben der Kalender in den Einstellungen ändern"
+        "changeInSettings": "Namen und Farben der Kalender in den Einstellungen ändern",
+        "reorder": "{name} verschieben"
       },
       "icloud": {
         "heading": "iCloud-Kalender",
@@ -766,6 +767,20 @@
         "length120": "2 Stunden",
         "wallSwitch": "Das Display darf Termine hinzufügen, ändern und entfernen",
         "wallHelp": "Nur in den Kalendern, die oben angehakt sind. Vor dem Entfernen wird nachgefragt. Jedes Display kann das auf seiner eigenen Seite ausschalten."
+      },
+      "ordering": {
+        "heading": "Kalenderreihenfolge",
+        "description": "Welche Kalender an einem vollen Tag ihren Platz behalten.",
+        "help": "Zum Sortieren ziehen. An einem Tag mit mehr Terminen als Platz behalten die Kalender oben ihre Zeilen, die unteren fallen zuerst weg.",
+        "empty": "Schalte zuerst einen Kalender ein.",
+        "reset": "Zurück zur zeitlichen Reihenfolge"
+      },
+      "swatches": {
+        "heading": "Farben zur Auswahl",
+        "help": "Die Farben, die es gibt, wenn du an der Wand die Farbe eines Kalenders änderst. Die Wand kann keine neue Farbe mischen, lege sie also hier fest.",
+        "slot": "Farbe {number}",
+        "reset": "Ursprüngliche Farben wiederherstellen",
+        "wallHint": "Tippe an der Wand auf die Farblegende eines Kalenders, um dort einen Kalender auszublenden oder seine Farbe zu ändern."
       }
     },
     "dataPage": {

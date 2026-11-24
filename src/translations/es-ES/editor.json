@@ -662,7 +662,8 @@
         "searchLabel": "Nombres y colores de los calendarios",
         "ownColor": "El color que trae el calendario",
         "customColor": "Elegir otro color",
-        "changeInSettings": "Cambia los nombres y colores de los calendarios en Ajustes"
+        "changeInSettings": "Cambia los nombres y colores de los calendarios en Ajustes",
+        "reorder": "Mover {name}"
       },
       "icloud": {
         "heading": "Calendario de iCloud",
@@ -766,6 +767,20 @@
         "length120": "2 horas",
         "wallSwitch": "Dejar que el monitor añada, cambie y quite eventos",
         "wallHelp": "Solo en los calendarios marcados arriba. Antes de quitar un evento, siempre pregunta. Cada display puede desactivarlo en su propia página."
+      },
+      "ordering": {
+        "heading": "Orden de los calendarios",
+        "description": "Qué calendarios mantienen su sitio en un día lleno.",
+        "help": "Arrastra para ordenarlos. En un día con más eventos de los que caben, los calendarios de arriba mantienen sus filas y los de abajo son los primeros en caerse.",
+        "empty": "Activa primero un calendario.",
+        "reset": "Volver al orden por hora"
+      },
+      "swatches": {
+        "heading": "Colores disponibles",
+        "help": "Los colores que se ofrecen al cambiar el color de un calendario en el monitor. El monitor no puede crear colores nuevos, así que elígelos aquí.",
+        "slot": "Color {number}",
+        "reset": "Restaurar los colores originales",
+        "wallHint": "En el monitor, toca la leyenda de colores de un calendario para ocultar un calendario ahí o cambiar su color."
       }
     },
     "dataPage": {

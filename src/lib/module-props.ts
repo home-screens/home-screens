@@ -46,6 +46,8 @@ export interface PreviewSettings {
   timeFormat: TimeFormat | undefined;
   /** Settings > Family, for the per-person calendar views. */
   calendarPeople: CalendarPerson[] | undefined;
+  /** The household's calendar priority order, so the preview orders events as the wall does. */
+  calendarOrder?: string[];
   calendarPeopleState?: 'loading' | 'failed';
   /**
    * Family groups. Only the calendar modules are handed them as a prop (color
@@ -112,6 +114,16 @@ export interface ModuleDataSource {
   calendarSourceStatus: CalendarSourceStatus[] | null;
   /** People with assigned calendars; null when none are set up. */
   calendarPeople: CalendarPerson[] | null;
+  /**
+   * The household's calendar priority order, most wanted first. Null means
+   * none chosen, which leaves every surface in plain time order.
+   */
+  calendarOrder: string[] | null;
+  /**
+   * The colours the wall's own recolour sheet offers. Null means the ones
+   * every calendar is offered in Settings, which is the normal case.
+   */
+  calendarSwatches: string[] | null;
   calendarPeopleState?: 'loading' | 'failed';
   /** Family groups; null when there are none. */
   familyGroups: FamilyGroup[] | null;
@@ -229,6 +241,15 @@ export function buildModuleProps(
   }
   if (needsCalendar && source.familyGroups && source.familyGroups.length > 0) {
     props.groups = source.familyGroups;
+  }
+  if (needsCalendar && source.calendarOrder && source.calendarOrder.length > 0) {
+    props.calendarOrder = source.calendarOrder;
+  }
+  // Same presence semantic as the rest: attached only once a household has
+  // chosen its own colours, so the default case builds the props it always
+  // did and the sheet falls back on its own.
+  if (needsCalendar && source.calendarSwatches && source.calendarSwatches.length > 0) {
+    props.swatches = source.calendarSwatches;
   }
 
   if (needsWeather) {
@@ -352,6 +373,8 @@ export function toDisplaySource(
       ? ((calendarData as Record<string, unknown>).sourceStatus as CalendarSourceStatus[] | undefined) ?? null
       : null,
     calendarPeople: calendarPeopleForFamily(sharedData.familyMembers ?? [], settings.calendar),
+    calendarOrder: settings.calendar?.calendarOrder ?? null,
+    calendarSwatches: settings.calendar?.swatches ?? null,
     calendarPeopleState: hasCalendarOwners(settings.calendar) ? sharedData.familyState : undefined,
     familyGroups: sharedData.familyGroups ?? null,
     calendarConfigured: hasAnyCalendarSource(settings.calendar),
@@ -393,6 +416,12 @@ export function toEditorSource(
     calendarStatus: null,
     calendarSourceStatus: previewData.calendarSourceStatus,
     calendarPeople: settings?.calendarPeople ?? null,
+    // The preview orders events the same way the wall does, so a change to
+    // the order can be judged without walking to the screen.
+    calendarOrder: settings?.calendarOrder ?? null,
+    // The preview never shows the sheet (it is display-only), but the
+    // field is required, so it is answered rather than left to drift.
+    calendarSwatches: null,
     calendarPeopleState: settings?.calendarPeopleState,
     familyGroups: settings?.familyGroups ?? null,
     // No settings yet means the editor is still loading, not that the

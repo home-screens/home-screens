@@ -212,6 +212,17 @@
         "other": "{count} Personen"
       },
       "showEveryone": "Alle zeigen"
+    },
+    "calendarsSheet": {
+      "eyebrow": "An dieser Wand",
+      "title": "Kalender",
+      "show": "Anzeigen",
+      "hidden": "An dieser Wand ausgeblendet",
+      "pickColor": "Farbe wählen",
+      "color": "Farbe",
+      "allCalendars": "Alle Kalender",
+      "colorOf": "Farbe für {name}",
+      "showName": "{name} anzeigen"
     }
   },
   "fullscreen-calendar": {

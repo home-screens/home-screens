@@ -212,6 +212,17 @@
         "other": "{count} personer"
       },
       "showEveryone": "Vis alle"
+    },
+    "calendarsSheet": {
+      "eyebrow": "På denne væg",
+      "title": "Kalendere",
+      "show": "Vis",
+      "hidden": "Skjult på denne væg",
+      "pickColor": "Vælg en farve",
+      "color": "Farve",
+      "allCalendars": "Alle kalendere",
+      "colorOf": "Farve til {name}",
+      "showName": "Vis {name}"
     }
   },
   "fullscreen-calendar": {

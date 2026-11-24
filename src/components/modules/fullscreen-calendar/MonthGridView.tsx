@@ -1,5 +1,6 @@
 'use client';
 
+import { calendarRanker } from '@/lib/calendar-order';
 import { useMemo } from 'react';
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -14,7 +15,9 @@ import { GridDayCell, GridWeekdayHeader, autoMaxEvents, gridNotesHeight } from '
 import { dayNotesFor } from '@/lib/day-notes';
 import { dayGridFontSize } from '@/lib/day-grid-type';
 
-export function MonthGridView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners, dayNotes }: CalendarViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, calendarOrder, owners, dayNotes }: CalendarViewProps) {
+  // The household's calendar order: which timed events keep a row in a full cell.
+  const rank = useMemo(() => (calendarOrder?.length ? calendarRanker(calendarOrder) : undefined), [calendarOrder]);
   const locale = useFormattingLocale();
   const showWeekNumbers = config.showWeekNumbers === true;
   const wrapTitles = config.wrapEventTitles === true;
@@ -124,6 +127,7 @@ export function MonthGridView({ events, timezone, config, scale, today, anchor =
                 timezone={timezone}
                 timeFormat={timeFormat}
                 owners={owners}
+                rank={rank}
               />
             </div>
           );

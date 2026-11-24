@@ -8399,6 +8399,24 @@
           "default": []
         },
         {
+          "name": "calendarOrder",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "The order calendars are shown in within a day, most wanted first"
+        },
+        {
+          "name": "swatches",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "The colours offered when a calendar is recoloured by tapping its dot on the wall"
+        },
+        {
           "name": "calendarOverrides",
           "optional": true,
           "type": {
@@ -11564,6 +11582,15 @@
       "methods": [
         {
           "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/calendar/appearance",
+      "methods": [
+        {
+          "method": "POST",
           "access": "display"
         }
       ]
