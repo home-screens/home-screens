@@ -6270,6 +6270,7 @@
       "genre": "Motiv",
       "choose": "Vælg…",
       "genres": {
+        "famous": "Berømte malerier",
         "landscape": "Landskaber",
         "still-life": "Stilleben",
         "seascape": "Havbilleder",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter.",
       "noMatches": "Ingen malerier passer. Prøv at løsne et filter.",
+      "noArtistMatches": "Samlingen rummer berømte malerier, landskaber, havbilleder, bybilleder og stilleben, der er gamle nok til frit at kunne deles. Malere fra de seneste hundrede år er for det meste ikke med, og malere, der er kendt for billeder af mennesker, er kun med deres mest kendte værker.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",

@@ -6270,6 +6270,7 @@
       "genre": "Onderwerp",
       "choose": "Kies…",
       "genres": {
+        "famous": "Beroemde schilderijen",
         "landscape": "Landschappen",
         "still-life": "Stillevens",
         "seascape": "Zeegezichten",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer.",
       "noMatches": "Er komt geen schilderij overeen. Maak een filter ruimer.",
+      "noArtistMatches": "De collectie bevat beroemde schilderijen, landschappen, zeegezichten, stadsgezichten en stillevens die oud genoeg zijn om vrij te delen. Schilders uit de laatste honderd jaar zitten er meestal niet in, en van schilders die bekend zijn om afbeeldingen van mensen alleen de bekendste werken.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",

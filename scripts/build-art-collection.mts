@@ -23,13 +23,18 @@
 // drawn on a sheet.
 //
 // What makes a candidate:
-// - a painting on Wikidata with a picture, by a named artist, whose genre is
+// - a painting on Wikidata with a picture, by a named artist (named as their English Wikipedia page is), whose genre is
 //   landscape, seascape, cityscape or still life, and no other genre from UNSAFE_GENRES,
 //   with a title of its own in English (not "Untitled", not a file name)
 // - none of the NUDE_TAGS as a genre or as something it depicts, no TITLE_WORDS in its title
 //   (all three lists are in src/lib/photo-sources/art-safety.ts, shared with the picture picker's search)
 // - the Commons file is public domain or CC0, at least ART_MIN_SHORT_SIDE pixels on its shorter side
 // - at most PER_ARTIST paintings by one artist in each subject, better-known artists first
+//
+// Famous paintings are gathered as well, whatever their subject: a painting written about in FAMOUS_LINKS or more
+// languages of Wikipedia, at most PER_ARTIST_FAMOUS by one artist. The same checks apply, except that a religious,
+// mythological or history scene is not left out by its tag: the person looking decides. One that is not a landscape,
+// seascape, cityscape or still life gets the subject `famous`; the others keep their subject and a mark.
 //
 // The tags are only a first sieve. They are added by volunteers and miss a lot,
 // which is why a person looks at every picture before it ships.
@@ -52,12 +57,21 @@ const COMMONS_API = 'https://commons.wikimedia.org/w/api.php';
 const COMMONS_FILE = 'https://commons.wikimedia.org/wiki/Special:FilePath';
 const PAINTING = 'Q3305213';
 
-/** How many candidates to gather for each subject. */
-const WANT: Record<ArtGenre, number> = { 'landscape': 3000, 'still-life': 1300, 'cityscape': 1300, 'seascape': 1000 };
+/** How many candidates to gather for each subject. `famous` counts the well-known paintings of any other subject. */
+const WANT: Record<ArtGenre, number> = { 'famous': 700, 'landscape': 3000, 'still-life': 1300, 'cityscape': 1300, 'seascape': 1000 };
+type Subject = keyof typeof SAFE_GENRES;
+/**
+ * A painting written about in at least this many languages of Wikipedia counts as famous. Asked for in slices,
+ * because Wikidata gives up on the whole range in one go.
+ */
+const FAMOUS_LINKS = [13, 15, 17, 20, 25, 100000];
+/** Most famous paintings by one artist, so the famous set is not a hundred Van Goghs. */
+const PER_ARTIST_FAMOUS = 12;
 
 /** Wider or taller than this and a painting is a strip on any screen. */
 const MAX_ASPECT = 2.6;
 const PER_ARTIST = 30;
+const PER_ARTIST_FOUND = PER_ARTIST * 3;
 /** A file on Commons marked public domain for a painting later than this is more often a mistake than not. */
 const LATEST_YEAR = 1955;
 /** Wikidata's mark for a date given to the year (a decade is 8, a century 7). */
@@ -136,20 +150,30 @@ function commonsFileName(imageUrl: string): string | null {
 const isPublicDomain = (license: string | null) => /^(public domain|pd\b|pdm|cc0|no restrictions)/i.test((license ?? '').trim());
 /** Wikidata answers a missing label with the bare id or a URL. */
 const named = (label: string | undefined) => (label && !/^(Q\d+|https?:\/\/.*)$/.test(label) ? label.replace(/\s+/g, ' ').trim() : undefined);
+/**
+ * The name an artist is known by is the title of their English Wikipedia page ("Canaletto"), which Wikidata's own
+ * label is not always ("Giovanni Antonio Canal"). A page title can end in a note to tell namesakes apart.
+ */
+const artistName = (page: string | undefined) => named(page?.replace(/\s*\([^)]*\)$/, ''));
 const yearOf = (date: string | undefined) => { const year = /^(-?\d{1,4})-/.exec(date ?? '')?.[1]; return year && Number(year) > 0 ? Number(year) : undefined; };
 
 /** Every painting of a genre that has a picture and a named artist, with how widely the artist is written about. */
 interface Found { id: string; file: string; links: number; artistId: string; artistLinks: number }
-interface Fact { key: string; title?: string; artist?: string; year?: number; genres: string[]; museums: Array<[name: string, links: number]>; nude: boolean }
+type Chosen = Found & { genre: ArtGenre; famous?: true };
+interface Fact { key: string; title?: string; artist?: string; /** Each artist's Wikidata label, with the name they go by. */ artistNames: Record<string, string>; year?: number; genres: string[]; museums: Array<[name: string, links: number]>; nude: boolean }
 interface FileInfo { key: string; width: number; height: number; license: string | null }
-interface Candidate { id: string; file: string; title: string; artist: string; year?: number; museum?: string; width: number; height: number; genre: ArtGenre }
-type CollectionRow = [id: string, file: string, title: string, artist: string, year: number | null, museum: string | null, width: number, height: number, genre: ArtGenre];
+interface Candidate { id: string; file: string; title: string; artist: string; year?: number; museum?: string; width: number; height: number; genre: ArtGenre; famous?: true }
+type CollectionRow = [id: string, file: string, title: string, artist: string, year: number | null, museum: string | null, width: number, height: number, genre: ArtGenre, famous?: 1];
 
 async function paintingsOf(genreId: string): Promise<Found[]> {
   const rows = await sparql(`SELECT ?item ?image ?links ?creator ?clinks WHERE {
   ?item wdt:P136 wd:${genreId} ; wdt:P31 wd:${PAINTING} ; wdt:P18 ?image ; wdt:P170 ?creator ; wikibase:sitelinks ?links .
   ?creator wikibase:sitelinks ?clinks .
 }`);
+  return foundFrom(rows);
+}
+
+const foundFrom = (rows: Binding[]): Found[] => {
   const byItem = new Map<string, Found>();
   for (const row of rows) {
     const id = qidOf(row.item?.value);
@@ -159,9 +183,35 @@ async function paintingsOf(genreId: string): Promise<Found[]> {
     byItem.set(id, { id, file, links: Number(row.links?.value), artistId, artistLinks: Number(row.clinks?.value) });
   }
   return [...byItem.values()];
+};
+
+/** The famous paintings of any subject that have a picture and a named artist, best known first. */
+async function famousPaintings(): Promise<Found[]> {
+  const ids: string[] = [];
+  for (let i = 0; i + 1 < FAMOUS_LINKS.length; i++) {
+    const rows = await sparql(`SELECT ?item WHERE {
+  ?item wikibase:sitelinks ?links . hint:Prior hint:rangeSafe true .
+  FILTER(?links >= ${FAMOUS_LINKS[i]} && ?links < ${FAMOUS_LINKS[i + 1]}) ?item wdt:P31 wd:${PAINTING} .
+}`);
+    ids.push(...rows.flatMap((row) => qidOf(row.item?.value) ?? []));
+    log(`  ${ids.length} famous paintings so far`);
+    await sleep(2000);
+  }
+  const found: Found[] = [];
+  for (let i = 0; i < ids.length; i += 200) {
+    found.push(...foundFrom(await sparql(`SELECT ?item ?image ?links ?creator ?clinks WHERE {
+  VALUES ?item { ${ids.slice(i, i + 200).map((id) => `wd:${id}`).join(' ')} }
+  ?item wdt:P18 ?image ; wdt:P170 ?creator ; wikibase:sitelinks ?links . ?creator wikibase:sitelinks ?clinks .
+}`)));
+    await sleep(500);
+  }
+  return found.sort((a, b) => b.links - a.links || a.id.localeCompare(b.id));
 }
 
-/** Better-known artists first, each artist's better-known paintings first, no more than PER_ARTIST from one artist. */
+/**
+ * Better-known artists first, each artist's better-known paintings first. Up to PER_ARTIST_FOUND from one artist go
+ * forward, because the checks that follow drop a good share: a cut to PER_ARTIST here left Chardin with 17 of his 120.
+ */
 function choose(paintings: Found[], want: number, taken: Set<string>): Found[] {
   const perArtist = new Map<string, number>();
   const sorted = [...paintings].sort((a, b) => b.artistLinks - a.artistLinks || b.links - a.links || a.id.localeCompare(b.id));
@@ -169,7 +219,7 @@ function choose(paintings: Found[], want: number, taken: Set<string>): Found[] {
   for (const painting of sorted) {
     if (chosen.length >= want) break;
     const count = perArtist.get(painting.artistId) ?? 0;
-    if (taken.has(painting.id) || count >= PER_ARTIST) continue;
+    if (taken.has(painting.id) || count >= PER_ARTIST_FOUND) continue;
     taken.add(painting.id);
     perArtist.set(painting.artistId, count + 1);
     chosen.push(painting);
@@ -179,18 +229,22 @@ function choose(paintings: Found[], want: number, taken: Set<string>): Found[] {
 
 async function details(ids: string[]): Promise<Fact[]> {
   const values = ids.map((id) => `wd:${id}`).join(' ');
-  const facts = new Map(ids.map((id) => [id, { key: id, genres: [], museums: [], nude: false } as Fact]));
-  for (const row of await sparql(`SELECT ?item ?itemLabel ?creatorLabel ?date ?precision ?genre ?collectionLabel ?colLinks WHERE {
+  const facts = new Map(ids.map((id) => [id, { key: id, artistNames: {}, genres: [], museums: [], nude: false } as Fact]));
+  for (const row of await sparql(`SELECT ?item ?itemLabel ?creatorLabel ?creatorPage ?date ?precision ?genre ?collectionLabel ?colLinks WHERE {
   VALUES ?item { ${values} }
-  OPTIONAL { ?item wdt:P170 ?creator } OPTIONAL { ?item wdt:P136 ?genre }
+  OPTIONAL { ?item wdt:P170 ?creator OPTIONAL { ?page schema:about ?creator ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?creatorPage } }
+  OPTIONAL { ?item wdt:P136 ?genre }
   OPTIONAL { ?item p:P571/psv:P571 ?when . ?when wikibase:timeValue ?date ; wikibase:timePrecision ?precision }
   OPTIONAL { ?item wdt:P195 ?collection . ?collection wikibase:sitelinks ?colLinks }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul" . }
 }`)) {
     const fact = facts.get(qidOf(row.item?.value) ?? '');
     if (!fact) continue;
     fact.title ??= named(row.itemLabel?.value);
-    fact.artist ??= named(row.creatorLabel?.value);
+    const label = named(row.creatorLabel?.value);
+    const artist = artistName(row.creatorPage?.value) ?? label;
+    fact.artist ??= artist;
+    if (label && artist) fact.artistNames[label] = artist;
     // Only a date known to the year: "19th century" and "the 1880s" are stored as a year too, and would read as one.
     if (Number(row.precision?.value) >= YEAR_PRECISION) fact.year ??= yearOf(row.date?.value);
     const genre = qidOf(row.genre?.value);
@@ -231,8 +285,10 @@ async function commonsInfo(files: string[]): Promise<FileInfo[]> {
 
 async function candidates(work: string) {
   const taken = new Set<string>();
-  const chosen: Array<Found & { genre: ArtGenre }> = [];
-  for (const genre of Object.keys(WANT) as ArtGenre[]) {
+  const chosen: Chosen[] = [];
+  const subjects = Object.keys(SAFE_GENRES) as Subject[];
+  const found = {} as Record<Subject, Found[]>;
+  for (const genre of subjects) {
     const cachePath = join(work, `found-${genre}.json`);
     let all = readJson<Found[] | null>(cachePath, null);
     if (!all) {
@@ -241,6 +297,27 @@ async function candidates(work: string) {
       writeFileSync(cachePath, JSON.stringify(all));
       await sleep(2000);
     }
+    found[genre] = all;
+  }
+
+  // The famous paintings go first, so no limit on a subject or an artist leaves one out. One that is a landscape,
+  // seascape, cityscape or still life keeps that subject and is marked famous as well.
+  const famousPath = join(work, 'found-famous.json');
+  let famous = readJson<Found[] | null>(famousPath, null);
+  if (!famous) {
+    log('famous: asking Wikidata');
+    famous = await famousPaintings();
+    writeFileSync(famousPath, JSON.stringify(famous));
+  }
+  for (const painting of famous) {
+    const genre = subjects.find((subject) => found[subject].some((other) => other.id === painting.id)) ?? 'famous';
+    taken.add(painting.id);
+    chosen.push({ ...painting, genre, famous: true });
+  }
+  log(`famous: ${famous.length} paintings taken forward`);
+
+  for (const genre of subjects) {
+    const all = found[genre];
     // Twice what is wanted: the checks below drop a good share.
     const picked = choose(all, WANT[genre] * 2, taken).map((painting) => ({ ...painting, genre }));
     log(`${genre}: ${all.length} paintings, ${picked.length} taken forward`);
@@ -271,7 +348,8 @@ async function candidates(work: string) {
     const title = fact.title.replace(/_/g, ' ').replace(/\s*\(\d{4}\)$/, '').trim();
     // "Untitled", "Painting", or a file name that starts with the artist.
     if (/^(untitled|painting)$/i.test(title) || title.toLowerCase().startsWith(fact.artist.toLowerCase())) return drop('no title of its own');
-    if (fact.nude || UNSAFE_GENRES.some((id) => fact.genres.includes(id))) return drop('tagged nude or an unsafe subject');
+    // A famous painting may be a religious or a history scene; whether it suits a family room is for the person looking.
+    if (fact.nude || (!painting.famous && UNSAFE_GENRES.some((id) => fact.genres.includes(id)))) return drop('tagged nude or an unsafe subject');
     if (TITLE_WORDS.test(title)) return drop('title word');
     const year = fact.year;
     if (year && year > LATEST_YEAR) return drop('too recent');
@@ -281,10 +359,20 @@ async function candidates(work: string) {
     return [{
       id: painting.id, file: painting.file, title, artist: fact.artist, ...(year ? { year } : {}),
       ...(museum ? { museum } : {}), width: painting.width, height: painting.height, genre: painting.genre,
+      ...(painting.famous ? { famous: true as const } : {}),
     }];
   });
   const counts: Record<string, number> = {};
-  const final = kept.filter((painting) => (counts[painting.genre] = (counts[painting.genre] ?? 0) + 1) <= WANT[painting.genre]);
+  const count = (key: string) => (counts[key] = (counts[key] ?? 0) + 1);
+  const final = kept
+    // Past an artist's share of the famous set, a painting is kept only as one of its subject.
+    .flatMap((painting): Candidate[] => {
+      if (!painting.famous || count(`famous ${painting.artist}`) <= PER_ARTIST_FAMOUS) return [painting];
+      const { famous: _dropped, ...plain } = painting;
+      return plain.genre === 'famous' ? [] : [plain];
+    })
+    .filter((painting) => painting.genre === 'famous' || count(`${painting.genre} ${painting.artist}`) <= PER_ARTIST)
+    .filter((painting) => count(painting.genre) <= WANT[painting.genre]);
   writeFileSync(join(work, 'candidates.json'), JSON.stringify(final, null, 1));
   console.log(`Left out: ${JSON.stringify(dropped)}`);
   console.log(`Wrote ${final.length} candidates to ${join(work, 'candidates.json')}`);
@@ -371,7 +459,17 @@ function apply(work: string) {
   const byId = new Map(readJson<CollectionRow[]>(COLLECTION_PATH, []).map((row) => [row[0], row]));
   for (const p of readJson<Candidate[]>(join(work, 'candidates.json'), [])) {
     if (looked.has(p.id)) byId.set(p.id, [p.id, p.file, p.title, p.artist, p.year ?? null, p.museum ?? null, p.width, p.height, p.genre]);
+    // A painting that was already in the collection has been looked at; being famous is only a mark on it.
+    const row = byId.get(p.id);
+    if (!row) continue;
+    row.length = 9;
+    // The mark is only for a famous painting kept under its own subject; `famous` as the subject says it already.
+    if (p.famous && p.genre !== 'famous') row[9] = 1;
   }
+  // A painting already in the collection keeps what was looked at, and takes its artist's name as it is written now,
+  // so one artist is never in the collection under two names.
+  const artistNames = Object.assign({}, ...readJson<Fact[]>(join(work, 'facts.json'), []).map((fact) => fact.artistNames)) as Record<string, string>;
+  for (const row of byId.values()) row[3] = artistNames[row[3]] ?? row[3];
   const rows = [...byId.values()].filter((row) => !turnedDown[row[0]]).sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)));
   // One painting per line keeps a refresh readable in a diff.
   writeFileSync(COLLECTION_PATH, `[\n${rows.map((row) => JSON.stringify(row)).join(',\n')}\n]\n`);

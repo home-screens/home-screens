@@ -128,7 +128,7 @@ test.describe('rotation sources', () => {
     const narrow = page.getByRole('combobox', { name: 'Narrow down' });
     await narrow.selectOption('genre');
     // Only the subjects the collection is made of.
-    await expect(page.getByRole('combobox', { name: 'Subject' }).getByRole('option')).toHaveText(['Choose…', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
+    await expect(page.getByRole('combobox', { name: 'Subject' }).getByRole('option')).toHaveText(['Choose…', 'Famous paintings', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
     await autosaved(page, async () => { await page.getByRole('combobox', { name: 'Subject' }).selectOption('seascape'); });
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', genre: 'seascape' }]);
 

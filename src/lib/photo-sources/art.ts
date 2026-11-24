@@ -19,8 +19,10 @@ import { PhotoSourceError, type BrowseItem, type BrowseMatch, type BrowsePage, t
  * show, so nothing a person has not looked at can turn up on its own.
  *
  * The picture picker's Art tab is the one place that searches Wikidata live.
- * A person chooses each picture there, and the search is held to the same
- * subjects and leaves out the same tags (`art-safety.ts`).
+ * A person chooses each picture there, and the search is held to the four
+ * subjects the collection is gathered by and leaves out the same tags
+ * (`art-safety.ts`). The collection's famous paintings of other subjects were
+ * each chosen by hand, which a live search cannot do.
  */
 
 type ArtSource = PhotoSourceOf<'art'>;
@@ -62,13 +64,15 @@ interface Painting {
   license?: string;
 }
 
-type CollectionRow = [id: string, file: string, title: string, artist: string, year: number | null, museum: string | null, width: number, height: number, genre: ArtGenre];
+type CollectionRow = [id: string, file: string, title: string, artist: string, year: number | null, museum: string | null, width: number, height: number, genre: ArtGenre, famous?: 1];
 
 /** Names compare without accents or case, so `Cezanne` finds Cézanne. */
 const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
-const COLLECTION = (collection as unknown as CollectionRow[]).map(([id, file, title, artist, year, museum, width, height, genre]) => ({
+const COLLECTION = (collection as unknown as CollectionRow[]).map(([id, file, title, artist, year, museum, width, height, genre, famous]) => ({
   id, file, title, artist, width, height, genre,
+  // A well-known painting of any subject. One that is a landscape, say, is found under both.
+  famous: genre === 'famous' || famous === 1,
   ...(year !== null ? { year } : {}),
   ...(museum !== null ? { museum } : {}),
   artistFolded: fold(artist),
@@ -97,7 +101,7 @@ async function matching(source: ArtSource) {
   const hidden = await hiddenNow();
   return COLLECTION.filter((painting) => (
     !hidden.has(painting.id)
-    && (!source.genre || painting.genre === source.genre)
+    && (!source.genre || (source.genre === 'famous' ? painting.famous : painting.genre === source.genre))
     && (artists.length === 0 || artists.some((artist) => painting.artistFolded.includes(artist)))
     && (source.fromYear === undefined || (painting.year !== undefined && painting.year >= source.fromYear))
     && (source.toYear === undefined || (painting.year !== undefined && painting.year <= source.toYear))
@@ -224,7 +228,7 @@ const FLAGS = wd([...new Set([...NUDE_TAGS, ...UNSAFE_GENRES])]);
 const paintingQuery = (where: string) => `SELECT ?item ?itemLabel ?creatorLabel ?image ?date ?collectionLabel WHERE {
   ${where}
   OPTIONAL { ?item wdt:P170 ?creator } OPTIONAL { ?item wdt:P571 ?date } OPTIONAL { ?item wdt:P195 ?collection }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul" . }
 }`;
 // The page is cut first and its paintings described afterwards: describing everything a big museum or a whole subject
 // holds before cutting takes Wikidata 20 s or more.

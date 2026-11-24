@@ -6270,6 +6270,7 @@
       "genre": "Sujet",
       "choose": "Choisir…",
       "genres": {
+        "famous": "Tableaux célèbres",
         "landscape": "Paysages",
         "still-life": "Natures mortes",
         "seascape": "Marines",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre.",
       "noMatches": "Aucun tableau ne correspond. Essayez d’assouplir un filtre.",
+      "noArtistMatches": "La collection réunit des tableaux célèbres, des paysages, des marines, des vues de villes et des natures mortes assez anciens pour être partagés librement. Les peintres des cent dernières années n’y figurent presque pas, et ceux connus pour leurs tableaux de personnes n’y ont que leurs œuvres les plus célèbres.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionnisme",

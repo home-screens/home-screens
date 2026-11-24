@@ -183,13 +183,13 @@ As a **Photo source**, NASA shows the newest pictures of the day in a slideshow,
 
 **Paintings from museums** is a photo source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup.
 
-The paintings come from a collection that ships with Home Screens: several thousand landscapes, seascapes, city views and still lifes from museums around the world, all in the public domain. The collection is made for a family room. Only those four subjects are in it, and every painting was looked at before it was added, to keep nudes and violent scenes out. Drawings, prints and digital works are left out too. New releases of Home Screens can add more paintings.
+The paintings come from a collection that ships with Home Screens: several thousand landscapes, seascapes, city views and still lifes from museums around the world, plus a few hundred of the best-known paintings of any subject (the Mona Lisa, Girl with a Pearl Earring, The Night Watch), all in the public domain. The collection is made for a family room. Every painting was looked at before it was added, to keep nudes and violent scenes out, which leaves out some famous paintings too. Drawings, prints and digital works are left out too. New releases of Home Screens can add more paintings.
 
 Nothing is filtered at first. Choose **Add a filter…** to narrow the paintings down; each filter you add shows as its own field, with a cross to take it away again:
 
-- **Subject** picks landscapes, seascapes, cityscapes or still life.
+- **Subject** picks famous paintings, landscapes, seascapes, cityscapes or still life. A famous landscape is found under both.
 - **Period** takes a first and a last year, either of which can be left empty. A painting with no year on record is left out once a period is set.
-- **Artist** (for example `Claude Monet`) takes free text. Part of a name is enough, and accents don't matter: `cezanne` finds Cézanne. For more than one artist, put a comma between the names: `Monet, Cézanne` shows paintings by either.
+- **Artist** (for example `Claude Monet`) takes free text. Part of a name is enough, and accents don't matter: `cezanne` finds Cézanne. For more than one artist, put a comma between the names: `Monet, Cézanne` shows paintings by either. An artist whose work is still in copyright, which covers most painters of the last hundred years (Picasso, Dalí, Warhol), is not in the collection. Painters known mainly for pictures of people (Vermeer, Rembrandt, Leonardo) have only their famous paintings in it.
 - **Shape** (tall, wide or either) skips paintings that are the wrong way up for where they go. A rotating background also has **Match the screen's shape**, which skips paintings whose shape is too far from your display's; a slideshow fits pictures into its own box, so it does not have this one.
 
 Under the filters the editor says how many paintings match and shows a few of them. It warns when only a few match, because the same ones would then come back often, and says so when none do.
@@ -227,7 +227,7 @@ When a wall is showing a painting, the **Photos** tab of the [family remote](/do
 
 To choose one painting, open the **Art** tab of the Pictures & videos window. Pick an idea down the side (Impressionism, Dutch Golden Age, Landscapes, Still life, Louvre, Rijksmuseum and more) or type a word above the pictures.
 
-This tab searches Wikidata and Wikimedia Commons as you go, so it reaches many more paintings than the collection the wall draws from. It keeps to the same four subjects, leaves out paintings that are tagged or titled as nudes and scans too small for a wall, but nobody has looked at these one by one. You see each picture before you choose it, and only the one you choose is ever shown.
+This tab searches Wikidata and Wikimedia Commons as you go, so it reaches many more paintings than the collection the wall draws from. It keeps to landscapes, seascapes, cityscapes and still lifes, leaves out paintings that are tagged or titled as nudes and scans too small for a wall, but nobody has looked at these one by one. You see each picture before you choose it, and only the one you choose is ever shown.
 
 A word can be a museum, an artist, a style or a subject: **Louvre**, **Munkácsy** and **Renaissance** all work. A line above the pictures says what the word was taken for, for example *Matched: Louvre Museum (museum)*; a word that is none of those is searched for in what Wikidata says about each painting. Choosing a painting shows its title, artist, year and museum in the footer, and the licence when it asks for credit.
 

@@ -9042,6 +9042,7 @@
                 "kind": "string",
                 "text": "ArtGenre",
                 "values": [
+                  "famous",
                   "landscape",
                   "seascape",
                   "cityscape",

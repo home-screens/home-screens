@@ -16,7 +16,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import {
   ART_FITS, ART_FRAMES, ART_GENRES, ART_LABELS, ART_MATS, ART_ORIENTATIONS, ART_WALLS, ART_YEAR_MAX, ART_YEAR_MIN,
   DEFAULT_ART_FIT, DEFAULT_ART_FRAME, DEFAULT_ART_LABEL, DEFAULT_ART_MAT, DEFAULT_ART_WALL,
-  PHOTO_SOURCE_MEDIA_PATH, artNumber, photoSourceParams, type PhotoSourceUse,
+  PHOTO_SOURCE_MEDIA_PATH, artArtists, artNumber, photoSourceParams, type PhotoSourceUse,
 } from '@/lib/photo-source';
 import { ART_FRAME_COLORS, ART_MAT_COLORS, ART_WALL_COLORS } from '@/lib/art-presentation';
 import type { ArtGenre, MediaListItem, PhotoSource } from '@/types/config';
@@ -176,6 +176,9 @@ export default function ArtSourceFields({ use, source, onChange }: {
       )}
       {counted && counted.count === 0 && (
         <p className="text-[10px] text-hs-warning-ink" data-testid="art-none">{t('photoSources.art.noMatches')}</p>
+      )}
+      {counted && counted.count === 0 && artArtists(source.artist).length > 0 && (
+        <FieldHint data-testid="art-none-why">{t('photoSources.art.noArtistMatches')}</FieldHint>
       )}
       {hiddenCount > 0 && (
         <FieldHint data-testid="art-hidden">

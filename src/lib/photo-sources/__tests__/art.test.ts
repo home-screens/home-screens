@@ -13,7 +13,8 @@ const hiddenList = vi.hoisted(() => ({ ids: [] as string[] }));
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn(async () => ({ settings: { artHidden: hiddenList.ids } })) }));
 vi.mock('../art-collection.json', () => ({
   default: [
-    ['Q1', 'Wheat Field.jpg', 'Wheat Field', 'Vincent van Gogh', 1888, 'Van Gogh Museum', 4000, 3000, 'landscape'],
+    // The trailing 1 marks a famous painting that is a landscape as well.
+    ['Q1', 'Wheat Field.jpg', 'Wheat Field', 'Vincent van Gogh', 1888, 'Van Gogh Museum', 4000, 3000, 'landscape', 1],
     ['Q2', 'Harbour.jpg', 'Harbour at Dusk', 'Paul Cézanne', 1870, null, 2000, 3000, 'seascape'],
     ['Q3', 'Apples.jpg', 'Apples', 'Paul Cézanne', null, 'Louvre Museum', 1500, 1200, 'still-life'],
     ['Q4', 'Canal.jpg', 'Canal', 'Canaletto', 1730, 'National Gallery', 1600, 1000, 'cityscape'],
@@ -96,6 +97,9 @@ describe('the collection on a wall', () => {
 
   it('narrows by subject, by part of an artist\'s name without accents, by period and by tall or wide', async () => {
     expect(await titles(art({ genre: 'cityscape' }))).toEqual(['Canal']);
+    // A famous landscape is found under both subjects.
+    expect(await titles(art({ genre: 'famous' }))).toEqual(['Wheat Field']);
+    expect(await titles(art({ genre: 'landscape' }))).toEqual(['Wheat Field']);
     expect(await titles(art({ artist: ' cezanne ' }))).toEqual(['Apples', 'Harbour at Dusk']);
     // Commas part several artists, and a painting by any of them matches.
     expect(await titles(art({ artist: 'cezanne, van gogh,' }))).toEqual(['Apples', 'Harbour at Dusk', 'Wheat Field']);

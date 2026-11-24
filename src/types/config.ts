@@ -571,7 +571,7 @@ export type PhotoSource =
     };
 
 /** The subjects the `art` source can be narrowed to: the ones its collection is made of */
-export type ArtGenre = 'landscape' | 'seascape' | 'cityscape' | 'still-life';
+export type ArtGenre = 'famous' | 'landscape' | 'seascape' | 'cityscape' | 'still-life';
 /** Which paintings by shape the `art` source takes */
 export type ArtOrientation = 'portrait' | 'landscape' | 'any';
 /** When a screen's background is warmed and dimmed (see Screen.eveningLight) */

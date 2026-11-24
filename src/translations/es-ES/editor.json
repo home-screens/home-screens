@@ -6270,6 +6270,7 @@
       "genre": "Tema",
       "choose": "Elegir…",
       "genres": {
+        "famous": "Pinturas famosas",
         "landscape": "Paisajes",
         "still-life": "Bodegones",
         "seascape": "Marinas",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro.",
       "noMatches": "No coincide ninguna pintura. Prueba a relajar un filtro.",
+      "noArtistMatches": "La colección reúne pinturas famosas, paisajes, marinas, vistas urbanas y bodegones lo bastante antiguos como para compartirse libremente. Los pintores de los últimos cien años casi no aparecen, y de los conocidos por sus cuadros de personas solo están las obras más célebres.",
       "picker": {
         "ideas": {
           "impressionism": "Impresionismo",

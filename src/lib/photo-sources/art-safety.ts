@@ -9,8 +9,8 @@ import type { ArtGenre } from '@/types/config';
  * person, picture by picture (`scripts/build-art-collection.mts`).
  */
 
-/** Wikidata's ids for the subjects the source offers. */
-export const SAFE_GENRES: Readonly<Record<ArtGenre, string>> = {
+/** Wikidata's ids for the subjects paintings are gathered by. `famous` is not one of them: those are chosen by how well known they are. */
+export const SAFE_GENRES: Readonly<Record<Exclude<ArtGenre, 'famous'>, string>> = {
   'landscape': 'Q191163',
   'seascape': 'Q158607',
   'cityscape': 'Q1935974',

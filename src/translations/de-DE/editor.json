@@ -6270,6 +6270,7 @@
       "genre": "Motiv",
       "choose": "Auswählen…",
       "genres": {
+        "famous": "Berühmte Gemälde",
         "landscape": "Landschaften",
         "still-life": "Stillleben",
         "seascape": "Seestücke",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
       "noMatches": "Keine Gemälde passen. Lockere einen Filter.",
+      "noArtistMatches": "Die Sammlung enthält berühmte Gemälde, Landschaften, Seestücke, Stadtansichten und Stillleben, die alt genug sind, um frei geteilt zu werden. Maler der letzten hundert Jahre fehlen meist, und von Malern, die für Bilder von Menschen bekannt sind, gibt es nur die bekanntesten Werke.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionismus",

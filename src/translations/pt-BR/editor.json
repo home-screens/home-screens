@@ -6270,6 +6270,7 @@
       "genre": "Tema",
       "choose": "Escolher…",
       "genres": {
+        "famous": "Pinturas famosas",
         "landscape": "Paisagens",
         "still-life": "Naturezas-mortas",
         "seascape": "Marinhas",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Poucas pinturas correspondem, então as mesmas voltarão com frequência. Tente afrouxar um filtro.",
       "noMatches": "Nenhuma pintura corresponde. Tente afrouxar um filtro.",
+      "noArtistMatches": "A coleção reúne pinturas famosas, paisagens, marinhas, vistas urbanas e naturezas-mortas antigas o bastante para serem compartilhadas livremente. Pintores dos últimos cem anos quase não aparecem, e os conhecidos por retratar pessoas têm só as obras mais famosas.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionismo",

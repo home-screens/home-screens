@@ -6270,6 +6270,7 @@
       "genre": "Subject",
       "choose": "Choose…",
       "genres": {
+        "famous": "Famous paintings",
         "landscape": "Landscapes",
         "still-life": "Still life",
         "seascape": "Seascapes",
@@ -6281,6 +6282,7 @@
       },
       "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter.",
       "noMatches": "No paintings match. Try loosening a filter.",
+      "noArtistMatches": "The collection holds famous paintings, landscapes, seascapes, cityscapes and still lifes old enough to be free to share. Painters from the last hundred years are mostly not in it, and painters known for pictures of people have only their best-known works.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionism",

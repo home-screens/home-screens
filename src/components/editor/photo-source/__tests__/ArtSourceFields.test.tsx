@@ -122,7 +122,7 @@ describe('ArtSourceFields', () => {
   it('offers only the subjects the collection is made of', () => {
     renderArt({ genre: 'landscape' });
     const subject = screen.getByDisplayValue('Landscapes') as HTMLSelectElement;
-    expect(Array.from(subject.options).map((o) => o.text)).toEqual(['Choose…', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
+    expect(Array.from(subject.options).map((o) => o.text)).toEqual(['Choose…', 'Famous paintings', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
   });
 
   it('saves the period as whole years and the genre as a choice', () => {
@@ -158,5 +158,14 @@ describe('ArtSourceFields', () => {
     expect(screen.getByTestId('art-none').textContent).toBe('No paintings match. Try loosening a filter.');
     expect(screen.queryByTestId('art-count')).toBeNull();
     expect(screen.queryByTestId('art-few')).toBeNull();
+    expect(screen.getByTestId('art-none-why').textContent).toContain('old enough to be free to share');
+  });
+
+  it('keeps the reason about artists to itself when no artist was named', async () => {
+    answer = { count: 0 };
+    renderArt({ genre: 'seascape', fromYear: 1990 });
+    await afterDebounce();
+    expect(screen.getByTestId('art-none')).toBeTruthy();
+    expect(screen.queryByTestId('art-none-why')).toBeNull();
   });
 });
