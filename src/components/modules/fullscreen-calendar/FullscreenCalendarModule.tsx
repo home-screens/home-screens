@@ -1,6 +1,7 @@
 'use client';
 
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { PAGINATION_BOTTOM_PX, PAGINATION_HIT_PX } from '@/lib/constants';
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { startOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX } from 'lucide-react';
@@ -11,9 +12,8 @@ import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { clampRollingWeeks, listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { buildLegendRows } from '@/lib/calendar-legend';
-import { useModuleSurface } from '../module-surface';
-import { useMutedCalendarSources } from '../shared/useMutedCalendarSources';
-import { useLegendColorPicker } from '../shared/useLegendColorPicker';
+import { useCalendarRecolor } from '../shared/useCalendarRecolor';
+import { useWallCalendarKey } from '../shared/useWallCalendarKey';
 import { ownerBySource, peopleForSelection, peopleSelection, type PeopleSelection } from '@/lib/calendar-people';
 import type { FamilyGroup } from '@/types/family';
 import { effectiveWeatherPlacement, viewTraits, VIEW_TRAITS } from './view-traits';
@@ -85,11 +85,16 @@ export type { CalendarEvent } from '@/types/config';
 
 // ─── Helpers ───
 
-/** Shared chrome for the header/footer legend strips; the caller adds the one differing border. */
-function legendStripStyle(scale: CalendarScale): React.CSSProperties {
+/**
+ * Shared chrome for the header/footer legend strips; the caller adds the one
+ * differing border. As the button that opens the Calendars sheet (`opens`)
+ * the strip is finger-sized, with larger type.
+ */
+function legendStripStyle(scale: CalendarScale, opens = false): React.CSSProperties {
   return {
     flexShrink: 0,
-    fontSize: `${scale.bu * 1.1 * scale.typoMul}px`,
+    fontSize: `${scale.bu * (opens ? 1.7 : 1.1) * scale.typoMul}px`,
+    ...(opens ? { minHeight: Math.max(44, scale.bu * 5.6) } : {}),
     color: 'var(--cal-text-secondary)',
     background: 'var(--cal-header-bg)',
     padding: `${scale.bu * 0.6}px 1.5%`,
@@ -183,6 +188,8 @@ interface FullscreenCalendarModuleProps {
   calendarSetup?: CalendarSetupNeed;
   /** Calendar priority order, most wanted first; absent means plain time order. */
   calendarOrder?: string[];
+  /** The household's own colours for recolouring from the wall; absent means the built-in ones. */
+  swatches?: string[];
   /** People with assigned calendars from Settings > Family (see buildModuleProps). */
   people?: CalendarPerson[];
   /** Avoid rendering source fallback rows before the configured people arrive. */
@@ -210,6 +217,7 @@ export default function FullscreenCalendarModule({
   sourceStatus,
   calendarSetup,
   calendarOrder,
+  swatches,
   people,
   peopleState,
   groups,
@@ -355,26 +363,24 @@ export default function FullscreenCalendarModule({
   // Legend rows come from the events the current view actually draws — the
   // shared fetch window is wider than any single view, so scope to the
   // view's day range first (the registry knows each view's range).
-  const surface = useModuleSurface();
-  const mutedSources = useMutedCalendarSources();
-  const legendToggle = surface === 'display' ? mutedSources.toggle : undefined;
-  // Tap the dot rather than the row to recolour that calendar. Repaints the
-  // events the legend is derived from, so dot and bars move together.
-  const colourFor = useCallback((name: string) => t('calendar.colourFor', { name }), [t]);
-  const legendColor = useLegendColorPicker({
-    enabled: surface === 'display',
-    events,
-    label: colourFor,
-  });
-  // Filtered AFTER `legend` is derived: a hidden calendar keeps its row
-  // (dimmed) and stays restorable. Filtering first would delete the way back.
-  const visibleEvents = useMemo(() => mutedSources.filter(legendColor.events), [mutedSources, legendColor.events]);
+  // The wall can recolour a calendar from the key's sheet: the key and the
+  // view both draw from these, which carry a colour being tried.
+  const recolor = useCalendarRecolor(events);
   const legendPlacement = config.showLegend ?? 'off';
+  const legendWindow = useMemo(
+    () => (legendPlacement === 'off' ? null : traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width })),
+    [legendPlacement, traits, today, anchor, weekStartsOn, config, scale.width],
+  );
   const legend = useMemo(() => {
     if (legendPlacement === 'off') return [];
-    const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
-    return buildLegendRows(legendColor.events, window, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
-  }, [legendPlacement, legendColor.events, timezone, today, anchor, weekStartsOn, t, traits, config, scale.width, people, groups]);
+    return buildLegendRows(recolor.events, legendWindow, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups, calendarOrder);
+  }, [legendPlacement, recolor.events, legendWindow, timezone, t, config.legendMode, people, groups, calendarOrder]);
+  // On the wall the key opens the Calendars sheet (hide a calendar here,
+  // change its colour). The view draws what is left once the calendars
+  // hidden on this wall are dropped; the key keeps a hidden one's row.
+  const wallKey = useWallCalendarKey({ legend, recolor, window: legendWindow, timezone, swatches, calendarOrder, theme, accentColor: drawnAccent });
+  const { visible: dropHidden } = wallKey;
+  const visibleEvents = useMemo(() => dropHidden(recolor.events), [dropHidden, recolor.events]);
 
   const currentTemp = hourly?.[0]?.temp;
   const weatherIconId = hourly?.[0]?.icon;
@@ -483,11 +489,11 @@ export default function FullscreenCalendarModule({
 
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   const tapDetails = config.eventTapDetails === true;
-  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(events, tapDetails);
+  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(visibleEvents, tapDetails);
   // "+N more" and the grid day numbers open the whole day (see useDaySheet).
   // Add, Change and Remove from the wall, once the household turned adding on (S9: the module can say no).
   const adding = useWallCalendarAdding(tapDetails && config.addEvents !== false);
-  const daySheet = useDaySheet(events, tapDetails, dayNotes, adding !== null);
+  const daySheet = useDaySheet(visibleEvents, tapDetails, dayNotes, adding !== null);
 
   // The picker's counts: each person's events in what the view shows, before
   // any one person is picked. Worked out only while the picker is open.
@@ -654,13 +660,10 @@ export default function FullscreenCalendarModule({
 
       {legendPlacement === 'header' && (
         <CalendarLegend
-          mutedIds={mutedSources.muted}
-          onToggle={legendToggle}
-          onPickColor={legendColor.open}
-          colorLabel={colourFor}
+          {...wallKey.keyProps}
           rows={legend}
           label={t('fullscreen-calendar.ariaLabels.legend')}
-          style={{ ...legendStripStyle(scale), borderBottom: '1px solid var(--cal-border-subtle)' }}
+          style={{ ...legendStripStyle(scale, wallKey.active), borderBottom: '1px solid var(--cal-border-subtle)' }}
           failingIds={failingSourceIds}
         />
       )}
@@ -730,13 +733,16 @@ export default function FullscreenCalendarModule({
 
       {legendPlacement === 'footer' && (
         <CalendarLegend
-          mutedIds={mutedSources.muted}
-          onToggle={legendToggle}
-          onPickColor={legendColor.open}
-          colorLabel={colourFor}
+          {...wallKey.keyProps}
           rows={legend}
           label={t('fullscreen-calendar.ariaLabels.legend')}
-          style={{ ...legendStripStyle(scale), borderTop: '1px solid var(--cal-border-subtle)' }}
+          style={{
+            ...legendStripStyle(scale, wallKey.active),
+            borderTop: '1px solid var(--cal-border-subtle)',
+            // As a button at the foot of the screen its words and its pill sit
+            // above the screen dots, which would otherwise take a tap meant for it.
+            ...(wallKey.active ? { paddingBottom: PAGINATION_BOTTOM_PX + PAGINATION_HIT_PX + 8, alignItems: 'flex-start' } : {}),
+          }}
           failingIds={failingSourceIds}
         />
       )}
@@ -772,7 +778,7 @@ export default function FullscreenCalendarModule({
           onClose={() => setPeopleOpen(false)}
         />
       )}
-      {legendColor.popover}
+      {wallKey.sheet}
     </div>
   );
 }

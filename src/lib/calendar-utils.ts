@@ -439,21 +439,10 @@ export function gridPillTimeLabel(
  * grid; `eventsForDay` stays the segment-unaware variant the compact grids
  * use.
  */
-export function bucketEventsForDay<T extends { start: string; end: string; allDay?: boolean; sourceId?: string }>(
+export function bucketEventsForDay<T extends { start: string; end: string; allDay?: boolean }>(
   events: T[],
   day: Date,
   timezone?: string,
-  /**
-   * The household's calendar priority, from `calendarRanker`. Taken as a
-   * built function rather than the order list so this file keeps importing
-   * nothing: `calendar-order` reads `compareEventStarts` from here, and
-   * importing back would close the cycle.
-   *
-   * Applied inside the all-day band, never across it: a day that opens with
-   * a half-finished holiday banner reads as broken whatever calendar the
-   * banner is on.
-   */
-  rank?: (sourceId: string | undefined) => number,
 ): { ev: T; segment: EventDaySegment; isAllDayRow: boolean }[] {
   return events
     .filter((ev) => isEventOnDay(ev, day, timezone))
@@ -463,10 +452,6 @@ export function bucketEventsForDay<T extends { start: string; end: string; allDa
     })
     .sort((a, b) => {
       if (a.isAllDayRow !== b.isAllDayRow) return a.isAllDayRow ? -1 : 1;
-      if (rank) {
-        const difference = rank(a.ev.sourceId) - rank(b.ev.sourceId);
-        if (difference !== 0) return difference;
-      }
       return compareEventStarts(a.ev.start, b.ev.start, timezone);
     });
 }

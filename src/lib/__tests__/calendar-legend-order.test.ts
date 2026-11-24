@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildLegendRows } from '@/lib/calendar-legend';
+import { buildLegendRows, sourceEventCounts } from '@/lib/calendar-legend';
 
 const LABELS = { holidays: 'Holidays', everyone: 'Everyone' };
 
@@ -43,3 +43,22 @@ describe('legend order follows the household order', () => {
     expect(legend(events, [])).toEqual(['friends', 'fam', 'birthdays']);
   });
 });
+
+describe('sourceEventCounts', () => {
+  const events = [
+    { start: '2026-03-02T09:00:00', end: '2026-03-02T10:00:00', sourceId: 'work' },
+    { start: '2026-03-03T09:00:00', end: '2026-03-03T10:00:00', sourceId: 'work' },
+    { start: '2026-03-20T09:00:00', end: '2026-03-20T10:00:00', sourceId: 'family' },
+    { start: '2026-03-02T09:00:00', end: '2026-03-02T10:00:00' },
+  ];
+
+  it('counts each calendar in the days a view draws', () => {
+    const counts = sourceEventCounts(events, { start: new Date(2026, 2, 1), end: new Date(2026, 2, 8) });
+    expect([...counts]).toEqual([['work', 2]]);
+  });
+
+  it('counts everything for a list with no day bound', () => {
+    expect([...sourceEventCounts(events, null)]).toEqual([['work', 2], ['family', 1]]);
+  });
+});
+

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calendarRanker, byCalendarThenTime } from '@/lib/calendar-order';
+import { calendarRanker, keepMostWanted, wantedFirst } from '@/lib/calendar-order';
 
 const ev = (sourceId: string | undefined, start: string, allDay = false) =>
   ({ id: start + sourceId, start, sourceId, allDay });
@@ -34,32 +34,33 @@ describe('calendarRanker', () => {
   });
 });
 
-describe('byCalendarThenTime', () => {
-  const order = ['birthdays', 'fam'];
+describe('keepMostWanted', () => {
+  const rank = calendarRanker(['birthdays', 'fam']);
+  // A day as a view lists it: in time order.
+  const day = [ev('bins', '2026-03-02T07:00:00'), ev('fam', '2026-03-02T09:00:00'), ev('work', '2026-03-02T13:00:00'), ev('birthdays', '2026-03-02T18:00:00')];
+  const keep = (count: number, ordered = true) =>
+    titles(keepMostWanted(day, count, wantedFirst(day, ordered ? rank : undefined, (e) => e.sourceId)));
 
-  it('puts the higher calendar first even when it is later in the day', () => {
-    const list = [ev('fam', '2026-11-19T07:00'), ev('birthdays', '2026-11-19T17:00')];
-    expect(titles([...list].sort(byCalendarThenTime(order)))).toEqual(['birthdays@17:00', 'fam@07:00']);
+  it('keeps the calendars that matter, and still reads in time order', () => {
+    // Birthdays and fam win the two rows; fam is earlier, so it is drawn first.
+    expect(keep(2)).toEqual(['fam@09:00', 'birthdays@18:00']);
   });
 
-  it('falls back to time within one calendar', () => {
-    const list = [ev('fam', '2026-11-19T17:00'), ev('fam', '2026-11-19T07:00')];
-    expect(titles([...list].sort(byCalendarThenTime(order)))).toEqual(['fam@07:00', 'fam@17:00']);
+  it('gives a spare row to the earliest of the calendars nobody ranked', () => {
+    expect(keep(3)).toEqual(['bins@07:00', 'fam@09:00', 'birthdays@18:00']);
   });
 
-  it('is plain chronological order when nothing is saved', () => {
-    const list = [ev('fam', '2026-11-19T17:00'), ev('birthdays', '2026-11-19T07:00')];
-    expect(titles([...list].sort(byCalendarThenTime(undefined))))
-      .toEqual(['birthdays@07:00', 'fam@17:00']);
+  it('is the first few in time order when no order is saved', () => {
+    expect(keep(2, false)).toEqual(['bins@07:00', 'fam@09:00']);
   });
 
-  it('sends unlisted calendars to the end, still in time order', () => {
-    const list = [
-      ev('other', '2026-11-19T08:00'),
-      ev('fam', '2026-11-19T18:00'),
-      ev('another', '2026-11-19T06:00'),
-    ];
-    expect(titles([...list].sort(byCalendarThenTime(order))))
-      .toEqual(['fam@18:00', 'another@06:00', 'other@08:00']);
+  it('changes nothing when everything fits', () => {
+    expect(keep(9)).toEqual(titles(day));
+  });
+
+  it('keeps a pinned (all-day) event ahead of any calendar', () => {
+    const list = [ev('bins', '2026-03-02T00:00:00', true), ...day.slice(1)];
+    const kept = keepMostWanted(list, 2, wantedFirst(list, rank, (e) => e.sourceId, (e) => e.allDay));
+    expect(titles(kept)).toEqual(['bins@00:00', 'birthdays@18:00']);
   });
 });

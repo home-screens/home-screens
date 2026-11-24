@@ -1,5 +1,6 @@
 'use client';
 
+import { calendarRanker } from '@/lib/calendar-order';
 import { useMemo } from 'react';
 import { addDays, startOfDay } from 'date-fns';
 import { clampRollingWeeks, isEventOnDay, isWeekendDay } from '@/lib/calendar-utils';
@@ -20,7 +21,9 @@ import type { CalendarViewProps } from './view-support';
  * the whole window a week; stepped back, the days before today dim as the
  * month grid's do.
  */
-export function RollingWeeksView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners, dayNotes }: CalendarViewProps) {
+export function RollingWeeksView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, calendarOrder, owners, dayNotes }: CalendarViewProps) {
+  // The household's calendar order: which timed events keep a row in a full cell.
+  const rank = useMemo(() => (calendarOrder?.length ? calendarRanker(calendarOrder) : undefined), [calendarOrder]);
   const locale = useFormattingLocale();
   const wrapTitles = config.wrapEventTitles === true;
   const weeks = clampRollingWeeks(config.rollingWeeksToShow);
@@ -76,6 +79,7 @@ export function RollingWeeksView({ events, timezone, config, scale, today, ancho
               timezone={timezone}
               timeFormat={timeFormat}
               owners={owners}
+              rank={rank}
             />
           );
         })}

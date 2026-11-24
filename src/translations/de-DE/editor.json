@@ -772,13 +772,15 @@
         "heading": "Kalenderreihenfolge",
         "description": "Welche Kalender an einem vollen Tag ihren Platz behalten.",
         "help": "Zum Sortieren ziehen. An einem Tag mit mehr Terminen als Platz behalten die Kalender oben ihre Zeilen, die unteren fallen zuerst weg.",
-        "empty": "Schalte zuerst einen Kalender ein."
+        "empty": "Schalte zuerst einen Kalender ein.",
+        "reset": "Zurück zur zeitlichen Reihenfolge"
       },
       "swatches": {
         "heading": "Farben zur Auswahl",
-        "help": "Die Farben, die erscheinen, wenn du am Wandbildschirm auf den Punkt eines Kalenders tippst. Der Bildschirm kann keine neue Farbe mischen, lege sie also hier fest.",
+        "help": "Die Farben, die es gibt, wenn du an der Wand die Farbe eines Kalenders änderst. Die Wand kann keine neue Farbe mischen, lege sie also hier fest.",
         "slot": "Farbe {number}",
-        "reset": "Ursprüngliche Farben wiederherstellen"
+        "reset": "Ursprüngliche Farben wiederherstellen",
+        "wallHint": "Tippe an der Wand auf die Farblegende eines Kalenders, um dort einen Kalender auszublenden oder seine Farbe zu ändern."
       }
     },
     "dataPage": {

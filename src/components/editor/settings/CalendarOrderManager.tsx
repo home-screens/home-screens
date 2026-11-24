@@ -7,6 +7,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { useSortableSensors } from '@/hooks/useDndSensors';
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 import { calendarLook } from '@/lib/calendar-overrides';
 import type { CalendarOverride, ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
@@ -99,9 +100,7 @@ export default function CalendarOrderManager({
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('settings.calendarPage.ordering.help')}
-      </p>
+      <FieldHint>{t('settings.calendarPage.ordering.help')}</FieldHint>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={ordered.map((row) => row.id)} strategy={verticalListSortingStrategy}>
           <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
@@ -109,6 +108,18 @@ export default function CalendarOrderManager({
           </div>
         </SortableContext>
       </DndContext>
+      {/* Any saved order switches every calendar to it, so there has to be a
+          way back to plain time order that is not "drag them all somewhere". */}
+      {(order?.length ?? 0) > 0 && (
+        <button
+          type="button"
+          data-testid="calendar-order-reset"
+          onClick={() => onChange(undefined)}
+          className="text-xs text-hs-text-muted hover:text-hs-text-body"
+        >
+          {t('settings.calendarPage.ordering.reset')}
+        </button>
+      )}
     </div>
   );
 }

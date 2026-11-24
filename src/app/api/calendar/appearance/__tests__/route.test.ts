@@ -99,14 +99,32 @@ describe('POST /api/calendar/appearance', () => {
   it('creates an override for a calendar that had none', async () => {
     const saved = captureWrite(configWith(BASE));
     await POST(postRequest({ sourceIds: ['work'], color: '#ABCDEF' }));
-    expect(saved()!.settings.calendar!.calendarOverrides).toEqual({ work: { color: '#ABCDEF' } });
+    // Lowercase, as every other colour control writes it.
+    expect(saved()!.settings.calendar!.calendarOverrides).toEqual({ work: { color: '#abcdef' } });
   });
 
   it('recolours every calendar behind one legend row', async () => {
-    const saved = captureWrite(configWith(BASE));
+    const saved = captureWrite(configWith({ ...BASE, googleCalendarIds: ['a', 'b'] }));
     await POST(postRequest({ sourceIds: ['a', 'b'], color: '#10b981' }));
     const overrides = saved()!.settings.calendar!.calendarOverrides!;
     expect(overrides).toEqual({ a: { color: '#10b981' }, b: { color: '#10b981' } });
+  });
+
+  it('refuses a calendar that is not set up, and changes nothing', async () => {
+    const saved = captureWrite(configWith(BASE));
+    const res = await POST(postRequest({ sourceIds: ['work', 'made-up'], color: '#10b981' }));
+    expect(res.status).toBe(400);
+    expect(saved()!.settings.calendar!.calendarOverrides).toBeUndefined();
+  });
+
+  it('changes a calendar link on the link itself, where Settings shows it', async () => {
+    const link = { id: 'ical-1', type: 'ical', name: 'School', url: 'https://example.com/a.ics', color: '#3b82f6', enabled: true };
+    const saved = captureWrite(configWith({ ...BASE, icalSources: [link] }));
+    const res = await POST(postRequest({ sourceIds: ['ical-1'], color: '#10b981' }));
+    expect(res.status).toBe(200);
+    const calendar = saved()!.settings.calendar!;
+    expect(calendar.icalSources).toEqual([{ ...link, color: '#10b981' }]);
+    expect(calendar.calendarOverrides).toBeUndefined();
   });
 
   it('leaves the rest of the settings alone', async () => {

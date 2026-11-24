@@ -14,7 +14,7 @@ describe('resolveSwatches', () => {
   });
 
   it('takes the saved colours', () => {
-    const saved = CALENDAR_COLOR_PALETTE.map(() => '#123456');
+    const saved = CALENDAR_COLOR_PALETTE.map((_, index) => `#12345${index}`);
     expect(resolveSwatches(saved)).toEqual(saved);
   });
 
@@ -45,5 +45,17 @@ describe('resolveSwatches', () => {
   it('ignores anything past the end of the grid', () => {
     const out = resolveSwatches([...CALENDAR_COLOR_PALETTE, '#000000', '#111111']);
     expect(out).toHaveLength(CALENDAR_COLOR_PALETTE.length);
+  });
+
+  it('never offers the same colour twice', () => {
+    const saved = [...CALENDAR_COLOR_PALETTE];
+    saved[1] = saved[0];
+    saved[5] = saved[0].toUpperCase();
+    const resolved = resolveSwatches(saved);
+    expect(new Set(resolved).size).toBe(CALENDAR_COLOR_PALETTE.length);
+    // The first holder keeps it; the repeats take the defaults nobody else holds.
+    expect(resolved[0]).toBe(CALENDAR_COLOR_PALETTE[0]);
+    expect(resolved[1]).toBe(CALENDAR_COLOR_PALETTE[1]);
+    expect(resolved[5]).toBe(CALENDAR_COLOR_PALETTE[5]);
   });
 });

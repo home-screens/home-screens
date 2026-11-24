@@ -772,13 +772,15 @@
         "heading": "Orden de los calendarios",
         "description": "Qué calendarios mantienen su sitio en un día lleno.",
         "help": "Arrastra para ordenarlos. En un día con más eventos de los que caben, los calendarios de arriba mantienen sus filas y los de abajo son los primeros en caerse.",
-        "empty": "Activa primero un calendario."
+        "empty": "Activa primero un calendario.",
+        "reset": "Volver al orden por hora"
       },
       "swatches": {
         "heading": "Colores disponibles",
-        "help": "Los colores que aparecen al tocar el punto de un calendario en la pantalla. La pantalla no puede crear colores nuevos, así que elígelos aquí.",
+        "help": "Los colores que se ofrecen al cambiar el color de un calendario en el monitor. El monitor no puede crear colores nuevos, así que elígelos aquí.",
         "slot": "Color {number}",
-        "reset": "Restaurar los colores originales"
+        "reset": "Restaurar los colores originales",
+        "wallHint": "En el monitor, toca la leyenda de colores de un calendario para ocultar un calendario ahí o cambiar su color."
       }
     },
     "dataPage": {

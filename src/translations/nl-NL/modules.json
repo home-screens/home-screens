@@ -213,7 +213,17 @@
       },
       "showEveryone": "Iedereen tonen"
     },
-    "colourFor": "Kleur voor {name}"
+    "calendarsSheet": {
+      "eyebrow": "Op deze muur",
+      "title": "Agenda’s",
+      "show": "Tonen",
+      "hidden": "Verborgen op deze muur",
+      "pickColor": "Kies een kleur",
+      "color": "Kleur",
+      "allCalendars": "Alle agenda’s",
+      "colorOf": "Kleur voor {name}",
+      "showName": "{name} tonen"
+    }
   },
   "fullscreen-calendar": {
     "noEvents": "Geen afspraken",

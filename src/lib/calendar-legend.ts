@@ -83,6 +83,19 @@ export interface LegendAvatar {
   name: string;
 }
 
+/** How many events each calendar has in what a view draws, for the wall's Calendars sheet. */
+export function sourceEventCounts(
+  events: readonly { start: string; end: string; sourceId?: string }[],
+  window: { start: Date; end: Date } | null,
+  timezone?: string,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const ev of window ? eventsInWindow(events, window.start, window.end, timezone) : events) {
+    if (ev.sourceId) counts.set(ev.sourceId, (counts.get(ev.sourceId) ?? 0) + 1);
+  }
+  return counts;
+}
+
 /**
  * A color key row in any mode. `kind: 'source'` is the classic dot row;
  * `person` is one avatar; `group` is a stack of avatars; `everyone` is the

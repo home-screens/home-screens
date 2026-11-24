@@ -772,13 +772,15 @@
         "heading": "Volgorde van agenda’s",
         "description": "Welke agenda’s hun plek houden op een drukke dag.",
         "help": "Sleep om de volgorde te bepalen. Op een dag met meer afspraken dan passen houden de agenda’s bovenaan hun regels en vallen die onderaan het eerst af.",
-        "empty": "Zet eerst een agenda aan."
+        "empty": "Zet eerst een agenda aan.",
+        "reset": "Terug naar volgorde op tijd"
       },
       "swatches": {
         "heading": "Kleuren om uit te kiezen",
-        "help": "De kleuren die verschijnen als je op het bolletje van een agenda op het scherm tikt. Het scherm kan zelf geen kleur mengen, kies ze dus hier.",
+        "help": "De kleuren waaruit je kiest als je op de muur de kleur van een agenda verandert. De muur kan zelf geen kleur mengen, kies ze dus hier.",
         "slot": "Kleur {number}",
-        "reset": "Oorspronkelijke kleuren terugzetten"
+        "reset": "Oorspronkelijke kleuren terugzetten",
+        "wallHint": "Tik op de muur op de kleurlegenda van een agenda om daar een agenda te verbergen of de kleur te veranderen."
       }
     },
     "dataPage": {

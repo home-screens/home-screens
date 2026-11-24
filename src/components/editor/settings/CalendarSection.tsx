@@ -52,7 +52,6 @@ interface Props {
   onChange: (updates: Partial<CalendarSettings>) => void;
 }
 
-
 export default function CalendarSection({ values, onChange: stageChange }: Props) {
   const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined, calendarOverrides, calendarOrder, swatches } = values;
 
@@ -152,8 +151,6 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
     }
     fetchCountries();
   }, []);
-
-
 
   const googleBlock = googleLoading ? (
     <FieldHint>{t('settings.calendarPage.google.checkingConnection')}</FieldHint>

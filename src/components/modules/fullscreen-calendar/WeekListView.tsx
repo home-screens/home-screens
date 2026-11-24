@@ -32,14 +32,10 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
-import { calendarRanker } from '@/lib/calendar-order';
 import { openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { WallScroller } from '../shared/WallScroller';
 
-export function WeekListView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, calendarOrder, weather, failingSourceIds, owners, extras, dayNotes, scroll = false }: CalendarViewProps) {
-  // The household's calendar priority, built once: it decides which events
-  // keep the rows on a day with more than fits.
-  const rank = useMemo(() => calendarRanker(calendarOrder), [calendarOrder]);
+export function WeekListView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -71,7 +67,7 @@ export function WeekListView({ events, timezone, config, scale, today, anchor = 
     // A week someone stepped back to is read whole, not collapsed or faded.
     const isPast = !stepped && day < today && !isToday;
     // Middle days of split multi-day events promote to the all-day group.
-    const dayEvents = bucketEventsForDay(events, day, timezone, rank);
+    const dayEvents = bucketEventsForDay(events, day, timezone);
     const allDayEvs = dayEvents.filter((e) => e.isAllDayRow);
     const timedEvs = dayEvents.filter((e) => !e.isAllDayRow);
 

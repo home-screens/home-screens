@@ -1,15 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateConfigAtomic } from '@/lib/config';
 import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
-import type { CalendarOverride } from '@/types/config';
+import { recolorCalendars, recolorRequestProblem, type RecolorProblem } from '@/lib/calendar-recolor';
 
 export const dynamic = 'force-dynamic';
 
-/** Only the form the wall's swatches produce, and the only one `<input type="color">` round-trips. */
-const HEX = /^#[0-9a-fA-F]{6}$/;
-
-/** One legend row can stand for several calendars, so a tap may recolour more than one. */
-const MAX_SOURCES = 32;
+const PROBLEM_TEXT: Record<RecolorProblem, string> = {
+  badColor: 'Colour must be written as #rrggbb.',
+  badCalendars: 'Name the calendars to recolour.',
+  unknownCalendar: 'One of those calendars is not set up here.',
+};
 
 /**
  * Recolour a calendar from the wall.
@@ -19,7 +19,8 @@ const MAX_SOURCES = 32;
  * the one appearance change worth making from the wall itself, because that
  * is where the clash is visible. So this route exists instead of relaxing
  * `PUT /api/config`: display auth, and the only thing it can reach is the
- * colour on an existing per-calendar override.
+ * colour of a calendar the household already has set up
+ * (`src/lib/calendar-recolor.ts` holds the rules).
  *
  * Writes through `updateConfigAtomic`, which serialises against the editor
  * saving at the same moment. A straight read-modify-write would lose whichever
@@ -29,39 +30,29 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
   const body = await parseJsonBody<{ sourceIds?: unknown; color?: unknown }>(request);
   if (body instanceof NextResponse) return body;
 
-  const { sourceIds, color } = body;
-  if (typeof color !== 'string' || !HEX.test(color)) {
-    return NextResponse.json({ error: 'Colour must be written as #rrggbb.' }, { status: 400 });
-  }
-  if (!Array.isArray(sourceIds) || sourceIds.length === 0 || sourceIds.length > MAX_SOURCES
-      || !sourceIds.every((id) => typeof id === 'string' && id.length > 0)) {
-    return NextResponse.json({ error: 'Name the calendars to recolour.' }, { status: 400 });
-  }
+  const asked = recolorRequestProblem(body.sourceIds, body.color);
+  if (asked) return NextResponse.json({ error: PROBLEM_TEXT[asked] }, { status: 400 });
+  const sourceIds = body.sourceIds as string[];
+  const color = (body.color as string).toLowerCase();
 
-  let missingCalendarSettings = false;
+  let problem: RecolorProblem | 'noCalendars' | null = null;
   await updateConfigAtomic((current) => {
     const calendar = current.settings.calendar;
-    // Nothing to recolour on a display with no calendars configured, and
-    // inventing a settings block here would mean guessing at its required
-    // fields. Refused rather than half-written.
     if (!calendar) {
-      missingCalendarSettings = true;
+      problem = 'noCalendars';
       return current;
     }
-
-    const overrides: Record<string, CalendarOverride> = { ...(calendar.calendarOverrides ?? {}) };
-    for (const id of sourceIds as string[]) {
-      overrides[id] = { ...(overrides[id] ?? {}), color };
+    const result = recolorCalendars(calendar, sourceIds, color);
+    if ('problem' in result) {
+      problem = result.problem;
+      return current;
     }
-
-    return {
-      ...current,
-      settings: { ...current.settings, calendar: { ...calendar, calendarOverrides: overrides } },
-    };
+    return { ...current, settings: { ...current.settings, calendar: result.calendar } };
   });
 
-  if (missingCalendarSettings) {
-    return NextResponse.json({ error: 'This display has no calendars set up.' }, { status: 409 });
+  if (problem === 'noCalendars') {
+    return NextResponse.json({ error: 'This hub has no calendars set up.' }, { status: 409 });
   }
+  if (problem) return NextResponse.json({ error: PROBLEM_TEXT[problem as RecolorProblem] }, { status: 400 });
   return NextResponse.json({ ok: true, color, sourceIds });
 }, 'Failed to set the calendar colour');

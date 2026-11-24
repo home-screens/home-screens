@@ -772,13 +772,15 @@
         "heading": "Ordem dos calendários",
         "description": "Quais calendários mantêm o lugar num dia cheio.",
         "help": "Arraste para definir a ordem. Num dia com mais eventos do que cabe, os calendários de cima mantêm as linhas e os de baixo saem primeiro.",
-        "empty": "Ligue um calendário primeiro."
+        "empty": "Ligue um calendário primeiro.",
+        "reset": "Voltar à ordem por horário"
       },
       "swatches": {
         "heading": "Cores para escolher",
-        "help": "As cores oferecidas ao tocar no ponto de um calendário na tela. A tela não cria cores novas, então defina aqui as que você usa.",
+        "help": "As cores oferecidas ao mudar a cor de um calendário no painel. O painel não cria cores novas, então defina aqui as que você usa.",
         "slot": "Cor {number}",
-        "reset": "Voltar às cores originais"
+        "reset": "Voltar às cores originais",
+        "wallHint": "No painel, toque na legenda de cores de um calendário para ocultar um calendário ali ou mudar a cor dele."
       }
     },
     "dataPage": {

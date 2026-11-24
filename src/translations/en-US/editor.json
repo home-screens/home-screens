@@ -769,16 +769,18 @@
         "wallHelp": "Only on the calendars ticked above. Removing asks first. Each display can turn this off on its own page."
       },
       "ordering": {
-        "heading": "Calendar ordering",
+        "heading": "Calendar order",
         "description": "Which calendars keep their place on a busy day.",
         "help": "Drag to set the order. On a day with more events than fit, the calendars at the top keep their rows and the ones at the bottom are first to drop off.",
-        "empty": "Turn a calendar on first."
+        "empty": "Turn a calendar on first.",
+        "reset": "Back to time order"
       },
       "swatches": {
-        "heading": "Colours to choose from",
-        "help": "The colours offered when you tap a calendar’s dot on the wall. The wall cannot mix a new colour, so put the ones you actually use within reach here.",
-        "slot": "Colour {number}",
-        "reset": "Put the original colours back"
+        "heading": "Colors to choose from",
+        "help": "The colors offered when you change a calendar’s color on the wall. The wall cannot mix a new color, so put the ones you actually use within reach here.",
+        "slot": "Color {number}",
+        "reset": "Put the original colors back",
+        "wallHint": "On a wall, tap a calendar’s color key to hide a calendar there or change its color."
       }
     },
     "dataPage": {

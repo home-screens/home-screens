@@ -28,6 +28,8 @@ export interface EventDisplayStyle {
   tapDetails?: boolean;
   /** Name tags: calendar source id -> owner. Absent when tags are off. */
   owners?: ReadonlyMap<string, EventOwner>;
+  /** The household's calendar order (`calendarRanker`): which events a full grid cell keeps. Absent with no order set. */
+  rank?: (sourceId: string | undefined) => number;
 }
 
 /** "Today" / "Tomorrow" / "Yesterday" / "Friday, Mar 6" for a day header. */

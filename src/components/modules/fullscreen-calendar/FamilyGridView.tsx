@@ -27,7 +27,7 @@ import { fitChips } from './chip-budget';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
-import { calendarRanker } from '@/lib/calendar-order';
+import { calendarRanker, keepMostWanted, wantedFirst } from '@/lib/calendar-order';
 import { openDayCellProps, openDayProps, useDaySheetOpener, type OpenDaySheet } from '../shared/useDaySheet';
 import { moreButtonStyle } from './grid-view-bits';
 import { WallButton } from '../shared/WallButton';
@@ -84,9 +84,9 @@ interface CellEvent {
  * than shrinking its text — the board must stay legible at seven people.
  */
 export function FamilyGridView({ events, timezone, config, scale, today, anchor = today, now, timeFormat, calendarOrder, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
-  // The household's calendar priority, built once: it decides which events
-  // keep the rows on a day with more than fits.
-  const rank = useMemo(() => calendarRanker(calendarOrder), [calendarOrder]);
+  // The household's calendar order: which events keep a chip in a cell with
+  // more than fits. What is kept still reads in time order.
+  const rank = useMemo(() => (calendarOrder?.length ? calendarRanker(calendarOrder) : undefined), [calendarOrder]);
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -121,9 +121,9 @@ export function FamilyGridView({ events, timezone, config, scale, today, anchor 
   // Per row: the week's events bucketed by day, all-day first then by start.
   const grid = useMemo(() => rows.map((row) => {
     const own = eventsForRow(weekEvents, row, rows);
-    const cells: CellEvent[][] = days.map((day) => bucketEventsForDay(own, day, timezone, rank));
+    const cells: CellEvent[][] = days.map((day) => bucketEventsForDay(own, day, timezone));
     return { row, cells, count: own.length };
-  }), [rows, weekEvents, days, timezone, rank]);
+  }), [rows, weekEvents, days, timezone]);
 
   const decorByDay = useDayDecors(days, weekEvents, config, { today, now, timezone, isDark: scale.isDark });
 
@@ -224,6 +224,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, anchor 
             key={row.id}
             row={row}
             cells={cells}
+            rank={rank}
             count={count}
             days={days}
             today={today}
@@ -246,9 +247,11 @@ export function FamilyGridView({ events, timezone, config, scale, today, anchor 
   );
 }
 
-function PersonRowCells({ row, cells, count, days, today, thisWeek, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds, openDay }: {
+function PersonRowCells({ row, cells, rank, count, days, today, thisWeek, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds, openDay }: {
   row: PersonRow;
   cells: CellEvent[][];
+  /** The household's calendar order (`calendarRanker`); absent with none set. */
+  rank?: (sourceId: string | undefined) => number;
   count: number;
   days: Date[];
   today: Date;
@@ -311,8 +314,11 @@ function PersonRowCells({ row, cells, count, days, today, thisWeek, now, ctx, ce
           descriptionLines: chipDescription(ev, config) ? CHIP_DESCRIPTION_LINES : 0,
           fontSize, bu: scale.bu, borderPx: chipBorderPx(scale.eventStyle),
         }));
-        const budget = fitChips({ chipHeights, budgetH: cellBudgetH, gap: chipGap, moreH: fontSize * CHIP_MORE_FONT * CHIP_MORE_LINE_HEIGHT });
-        const visible = cell.slice(0, budget.visible);
+        // Room is handed out to the most wanted first (all-day, then the
+        // household's calendar order); what fits is still drawn in time order.
+        const wanted = wantedFirst(cell, rank, ({ ev }) => ev.sourceId, ({ ev, segment }) => ev.allDay === true || segment === 'middle');
+        const budget = fitChips({ chipHeights: wanted.map((index) => chipHeights[index]), budgetH: cellBudgetH, gap: chipGap, moreH: fontSize * CHIP_MORE_FONT * CHIP_MORE_LINE_HEIGHT });
+        const visible = keepMostWanted(cell, budget.visible, wanted);
         const { hidden, cornerBadge } = budget;
         const dayTap = hidden > 0 ? openDayProps(openDay, day, cell.map(({ ev }) => ev), t, locale) : undefined;
         // The rest of the cell, outside its chips, opens this person's day as its "+N" does.

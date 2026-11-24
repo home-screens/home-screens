@@ -996,6 +996,10 @@ Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "
 
 Removes an event. **Body:** `{ "scope", "seriesId" }`, as for `PATCH`. An event that is already gone counts as removed. **Response:** `{ "ok": true }`.
 
+### POST /api/calendar/appearance
+
+Changes a calendar's color from the wall. **Body:** `{ "sourceIds": ["..."], "color": "#rrggbb" }`. Every id must be a calendar that is set up (a Google calendar that is ticked, a calendar link, or an iCloud calendar); one that is not refuses the whole request with `400`. A calendar link's own color changes; a Google or iCloud calendar gets the same color override the pencil in Settings writes. **Response:** `{ "ok": true, "color", "sourceIds" }`. Requires a session or the display token.
+
 ### GET /api/auth/google/web, POST /api/auth/google/web
 
 The Google web sign-in that lets Home Screens add events, for the editor. `GET ?origin=` answers `{ "url", "returnsToHub" }`; `POST { "code" }` redeems a code pasted from the sign-in page and answers `{ "connected": true, "canAddEvents" }`. Requires a valid session.

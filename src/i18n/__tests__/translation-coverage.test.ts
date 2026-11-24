@@ -546,6 +546,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "{key}: no" is the Spanish "no" as well.
     'editor|conditionSummary.isNo',
     'remote|lists.colourSwatch',
+    'editor|settings.calendarPage.swatches.slot',
+    'modules|calendar.calendarsSheet.color',
     'remote|lists.listSheet.colourLabel',
     // "Diagonal" is the same word in Spanish.
     'editor|backgroundPicker.starters.pattern-diagonal',

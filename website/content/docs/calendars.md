@@ -78,6 +78,12 @@ A Google or iCloud calendar arrives with the name and colour it has there, which
 
 The first colour is the one the calendar came with: pick it to put that colour back and keep your name. The round box at the end picks any other colour. Leave the name empty to go back to the calendar's own name, or click **Reset** to put back both. An event you gave its own colour in Google keeps that colour, and the calendar's colour key still shows the colour you picked. Unticking a calendar, or signing out, keeps the name and colour you gave it, so ticking it again brings them back. Calendar links don't need this: you name them and pick their colour when you add them.
 
+## Which calendars matter most {% #calendar-order %}
+
+A day on the wall only has room for so many events. By default the earliest ones keep their rows, so a 7 AM bin collection can push a birthday dinner into "+3 more". Under **Settings > Calendar > Calendar order**, drag your calendars into the order you care about, most wanted first. On a full day the calendars at the top keep their rows and the ones at the bottom drop off first. The events that stay are still listed by time, all-day events first, and the colour key lists calendars in the order you chose. **Back to time order** undoes it.
+
+The order matters wherever a day can run out of room: the month, rolling weeks and family grid views, and the Week and Month views of the small Calendar module. Views that show a whole day, like the agenda and the week list, list everything by time.
+
 ## Who is who
 
 Add your household under **Settings > Family** (see [Family](/docs/family)), then return to **Settings > Calendar > Whose calendars?** and pick which calendars are theirs. The Full-Screen Calendar's **family grid** and **free time** views draw one row per person from this list. A calendar you do not give to anyone counts as shared by the whole house.
@@ -117,6 +123,15 @@ With **Tap an event to see details** on (it is on for new calendar modules), tap
 The **Multi-Month Calendar** can do the same for a whole season. Its **Mark days with events** switch puts up to three dots under each day that has something on it, one per event in the colour of its calendar, and **Tap a day to see its events** opens that same day list on a touchscreen. Both are on for new Multi-Month cards; a card added before them keeps its plain look until you switch them on. Its own calendar picker keeps, say, a work calendar off the family's months, and **Day notes** marks a day that only has a note and shows the note in the list.
 
 The same setting puts two arrows at the top of the calendar to look ahead: **›** shows next week (next month on a month, the next few days on a view that shows a few days), and **‹** goes back. A sideways swipe on the calendar does the same, instead of changing screens. While you look, the top says which week it is ("Next week, November 8 – 14") and **Back to this week** comes straight back. A minute after the last touch anywhere on the screen, the calendar slides back to this week on its own, and the screen does not move on while someone is looking. A week you step back to is shown whole, not faded. The arrows reach eight weeks either way, or two months back and six ahead on a month; tap past the end and the calendar says how far it goes. The views about right now, Up next and Free time, have no arrows.
+
+### Hide a calendar or change its colour {% #calendars-sheet %}
+
+When a calendar shows its **Color key** as a list of calendars, the key is a button on the wall, marked **Calendars**. Tap it to open the list:
+
+- **Show** hides a calendar from this wall, or brings it back. A hidden calendar stays in the key, crossed out, and other walls are not changed. A calendar screen with no colour key always shows every calendar.
+- **Color** opens eight colours for that calendar and folds the list away, so you can see the wall behind. Tap a colour to see it on the wall straight away; it is saved for every wall when you close the sheet. **All calendars** brings the list back. To change which eight colours are offered, see **Settings > Calendar > Colors to choose from**.
+
+Public holidays can be hidden but not recoloured.
 
 ### Switch views and show one person {% #switch-views %}
 

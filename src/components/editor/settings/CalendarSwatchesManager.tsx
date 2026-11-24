@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
+import FieldHint from '@/components/ui/FieldHint';
 import { CALENDAR_COLOR_PALETTE, resolveSwatches } from '@/lib/calendar-color';
 
 /**
@@ -8,10 +9,10 @@ import { CALENDAR_COLOR_PALETTE, resolveSwatches } from '@/lib/calendar-color';
  *
  * The wall's sheet cannot show a colour mixer: the operating system's picker
  * opens a window the kiosk has no way to dismiss by touch. So the choice of
- * which sixteen colours are reachable has to be made somewhere with a
+ * which eight colours are reachable has to be made somewhere with a
  * keyboard, which is here.
  *
- * Every slot is always filled, so this edits sixteen colours in place rather
+ * Every slot is always filled, so this edits eight colours in place rather
  * than managing a list: there is no empty state to design, no way to end up
  * with a ragged last row in the sheet's grid, and resetting is one button
  * instead of a rebuild.
@@ -57,6 +58,10 @@ export default function CalendarSwatchesManager({
           </label>
         ))}
       </div>
+      {/* The one place Settings says a wall can hide a calendar: nothing here
+          can see or undo that, so a grown-up looking for a missing calendar
+          is at least pointed at the wall. */}
+      <FieldHint>{t('settings.calendarPage.swatches.wallHint')}</FieldHint>
       {!isDefault && (
         <button
           type="button"

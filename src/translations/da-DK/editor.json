@@ -772,13 +772,15 @@
         "heading": "Rækkefølge for kalendere",
         "description": "Hvilke kalendere beholder deres plads på en travl dag.",
         "help": "Træk for at sætte rækkefølgen. På en dag med flere begivenheder, end der er plads til, beholder kalenderne øverst deres rækker, og dem nederst ryger først.",
-        "empty": "Slå en kalender til først."
+        "empty": "Slå en kalender til først.",
+        "reset": "Tilbage til tidsrækkefølge"
       },
       "swatches": {
         "heading": "Farver at vælge mellem",
-        "help": "De farver, der vises, når du trykker på en kalenders prik på skærmen. Skærmen kan ikke blande nye farver, så vælg dem her.",
+        "help": "De farver, du kan vælge, når du skifter en kalenders farve på væggen. Væggen kan ikke blande nye farver, så vælg dem her.",
         "slot": "Farve {number}",
-        "reset": "Sæt de oprindelige farver tilbage"
+        "reset": "Sæt de oprindelige farver tilbage",
+        "wallHint": "Tryk på farvenøglen i en kalender på væggen for at skjule en kalender dér eller skifte dens farve."
       }
     },
     "dataPage": {

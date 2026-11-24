@@ -213,7 +213,17 @@
       },
       "showEveryone": "Show everyone"
     },
-    "colourFor": "Colour for {name}"
+    "calendarsSheet": {
+      "eyebrow": "On this wall",
+      "title": "Calendars",
+      "show": "Show",
+      "hidden": "Hidden on this wall",
+      "pickColor": "Pick a color",
+      "color": "Color",
+      "allCalendars": "All calendars",
+      "colorOf": "Color for {name}",
+      "showName": "Show {name}"
+    }
   },
   "fullscreen-calendar": {
     "noEvents": "No events",
