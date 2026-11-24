@@ -5,7 +5,7 @@ import { ART_HANGING_VERSION, artLayout, cornerLabel, matLettering, type ArtCapt
 import { normalizeArtHidden } from '@/lib/art-hidden';
 import { readConfig } from '@/lib/config';
 import { importPictureToLibrary } from '@/lib/library-import';
-import { DEFAULT_ART_FIT, DEFAULT_ART_FRAME, DEFAULT_ART_LABEL, DEFAULT_ART_MAT, DEFAULT_ART_WALL, type PhotoSourceOf } from '@/lib/photo-source';
+import { DEFAULT_ART_FIT, DEFAULT_ART_FRAME, DEFAULT_ART_LABEL, DEFAULT_ART_MAT, DEFAULT_ART_WALL, artArtists, type PhotoSourceOf } from '@/lib/photo-source';
 import { shuffleArray } from '@/lib/shuffle';
 import type { ArtGenre, MediaListItem } from '@/types/config';
 import collection from './art-collection.json';
@@ -93,12 +93,12 @@ export const artThumbUrl = (file: string) => `${COMMONS_FILE}/${encodeURICompone
 
 /** The collection's paintings that pass the source's subject, artist, period and tall-or-wide filters, less the hidden ones. */
 async function matching(source: ArtSource) {
-  const artist = fold(source.artist?.trim() ?? '');
+  const artists = artArtists(source.artist).map(fold);
   const hidden = await hiddenNow();
   return COLLECTION.filter((painting) => (
     !hidden.has(painting.id)
     && (!source.genre || painting.genre === source.genre)
-    && (!artist || painting.artistFolded.includes(artist))
+    && (artists.length === 0 || artists.some((artist) => painting.artistFolded.includes(artist)))
     && (source.fromYear === undefined || (painting.year !== undefined && painting.year >= source.fromYear))
     && (source.toYear === undefined || (painting.year !== undefined && painting.year <= source.toYear))
     && paintingFits(painting, { orientation: source.orientation }, DEFAULT_CANVAS)

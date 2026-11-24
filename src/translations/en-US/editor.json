@@ -6219,7 +6219,7 @@
     },
     "art": {
       "artist": "Artist",
-      "artistPlaceholder": "Claude Monet",
+      "artistPlaceholder": "Claude Monet, Paul Cézanne",
       "orientation": "Shape",
       "orientations": {
         "any": "Any",

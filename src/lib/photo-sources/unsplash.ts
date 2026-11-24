@@ -1,7 +1,7 @@
 import { createTTLCache, fetchWithTimeout, SetupError } from '@/lib/api-utils';
 import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { importPictureToLibrary } from '@/lib/library-import';
-import { sourceCacheKey } from '@/lib/photo-source';
+import { sourceCacheKey, unsplashWords } from '@/lib/photo-source';
 import type { MediaListItem } from '@/types/config';
 import { PhotoSourceError, type BrowseItem, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
 
@@ -150,7 +150,7 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
    */
   async list({ source, count }) {
     const mode = unsplashMode(source);
-    if (mode === 'collections' ? source.collections!.length === 0 : mode === 'words' && !source.query) return [];
+    if (mode === 'collections' ? source.collections!.length === 0 : mode === 'words' && !unsplashWords(source)) return [];
     const n = Math.min(count, PAGE_SIZE);
     const cacheKey = `${sourceCacheKey(source)}-${n}`;
     const cached = listCache.get(cacheKey);
@@ -177,7 +177,7 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
       listCache.set(cacheKey, []);
       return [];
     }
-    const res = await unsplashGet(`/photos/random?${randomParams(collections, source.query)}&count=${n}&content_filter=high`, key);
+    const res = await unsplashGet(`/photos/random?${randomParams(collections, unsplashWords(source))}&count=${n}&content_filter=high`, key);
     // No photos for these words is an empty slideshow, not an error.
     if (res.status === 404) return [];
     if (!res.ok) throw new PhotoSourceError('Could not load photos from Unsplash', 502);
@@ -207,13 +207,13 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
       if (!res.ok) return null;
       photo = await res.json() as UnsplashPhoto;
     } else {
-      if (mode === 'collections' ? source.collections!.length === 0 : !source.query) return null;
+      if (mode === 'collections' ? source.collections!.length === 0 : !unsplashWords(source)) return null;
       const collections = mode === 'collections' ? await knownCollections(source.collections!, key) : null;
       if (collections && collections.length === 0) return null;
       // A photo shaped like the wall: a portrait photo on a landscape wall was
       // blown up to fill the width and cropped to a strip.
       const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
-      const res = await unsplashGet(`/photos/random?${randomParams(collections, source.query)}&orientation=${orientation}&content_filter=high`, key);
+      const res = await unsplashGet(`/photos/random?${randomParams(collections, unsplashWords(source))}&orientation=${orientation}&content_filter=high`, key);
       if (!res.ok) return null;
       photo = await res.json() as UnsplashPhoto;
     }

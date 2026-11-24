@@ -57,6 +57,24 @@ describe('PhotoSourceFields', () => {
     ]);
   });
 
+  it.each([
+    ['an artist', { kind: 'art', artist: 'Claude' }, 'Claude', 'Claude Monet, Paul Cézanne'],
+    ['search words', { kind: 'unsplash', query: 'mountain' }, 'mountain', 'mountain lake'],
+  ] as Array<[string, PhotoSource, string, string]>)('keeps a space typed at the end of %s, so a second word can follow', async (_name, start, first, full) => {
+    // The panel shows what was saved, as the editor does: each keystroke goes out and comes back in.
+    function Panel() {
+      const [value, setValue] = React.useState<{ photoSource?: unknown }>({ photoSource: start });
+      return <PhotoSourceFields use="stream" value={value} onChange={(patch) => setValue((v) => ({ ...v, ...patch }))} />;
+    }
+    render(wrap(<Panel />));
+    await settle();
+    const box = screen.getByDisplayValue(first) as HTMLInputElement;
+    fireEvent.change(box, { target: { value: `${first} ` } });
+    expect(box.value).toBe(`${first} `);
+    fireEvent.change(box, { target: { value: full } });
+    expect(box.value).toBe(full);
+  });
+
   it('starts a fresh source when the kind changes', async () => {
     const { onChange, sourceSelect } = renderFields('stream', { kind: 'library', folder: 'kids' });
     await settle();

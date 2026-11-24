@@ -148,7 +148,16 @@ const UNSPLASH_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const UNSPLASH_COLLECTION_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const WALL_ID = /^[a-z0-9-]{1,64}$/;
 const UNSPLASH_QUERY_MAX = 100;
-const ART_TEXT_MAX = 100;
+const ART_TEXT_MAX = 300;
+
+/**
+ * The names in an art source's artist text. Commas part them, and a painting
+ * by any one of them matches.
+ */
+export const artArtists = (text: string | undefined): string[] => (text ?? '').split(',').map((name) => name.trim()).filter(Boolean);
+
+/** An Unsplash source's search words, as they are searched for. */
+export const unsplashWords = (source: { query: string }): string => source.query.trim();
 const WIKIDATA_ID = /^Q\d{1,12}$/;
 export const ART_ORIENTATIONS: readonly ArtOrientation[] = ['any', 'portrait', 'landscape'];
 export const ART_FITS: readonly ArtFit[] = ['framed', 'mat', 'matte', 'cover', 'contain'];
@@ -240,7 +249,9 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
       const photoIds = idList(v.photoIds, (id) => UNSPLASH_ID.test(id), { keepEmpty: true });
       return {
         kind: 'unsplash',
-        query: text('query').trim().slice(0, UNSPLASH_QUERY_MAX),
+        // Kept as typed, spaces at the ends included: the editor's box shows this value while
+        // someone is still typing, and a trim here would eat the space between two words.
+        query: text('query').slice(0, UNSPLASH_QUERY_MAX),
         ...(collections ? { collections } : {}),
         ...(photoIds ? { photoIds } : {}),
       };
@@ -248,7 +259,8 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
     case 'nasa':
       return { kind: 'nasa' };
     case 'art': {
-      const artist = text('artist').trim().slice(0, ART_TEXT_MAX);
+      // Kept as typed, like Unsplash's words: `artArtists` reads the names out of it.
+      const artist = text('artist').slice(0, ART_TEXT_MAX);
       const orientation = ART_ORIENTATIONS.find((o) => o === v.orientation);
       const fit = ART_FITS.find((f) => f === v.fit);
       const genre = ART_GENRES.find((g) => g === v.genre);
@@ -262,7 +274,7 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
       const label = ART_LABELS.find((l) => l === v.label);
       return {
         kind: 'art',
-        ...(artist ? { artist } : {}),
+        ...(artist.trim() ? { artist } : {}),
         ...(fromYear !== undefined ? { fromYear } : {}),
         ...(toYear !== undefined ? { toYear } : {}),
         ...(genre ? { genre } : {}),
@@ -307,7 +319,7 @@ export function hasContent(source: PhotoSource): boolean {
     case 'immich': return source.assetIds ? source.assetIds.length > 0 : true;
     case 'icloud': return !!(parseICloudSharedAlbumUrl(source.albumUrl) || parseICloudAlbumToken(source.albumUrl));
     case 'onedrive': return source.folderId !== '';
-    case 'unsplash': return source.photoIds ? source.photoIds.length > 0 : source.collections ? source.collections.length > 0 : source.query.trim() !== '';
+    case 'unsplash': return source.photoIds ? source.photoIds.length > 0 : source.collections ? source.collections.length > 0 : unsplashWords(source) !== '';
     case 'nasa': return true;
     case 'art': return true;
   }
@@ -382,13 +394,13 @@ export function sourceCacheKey(source: PhotoSource): string {
     case 'onedrive': return JSON.stringify(['onedrive', source.folderId]);
     case 'unsplash': return JSON.stringify([
       'unsplash',
-      source.query.trim().toLowerCase(),
+      unsplashWords(source).toLowerCase(),
       [...(source.collections ?? [])].sort(),
       source.photoIds ? [...source.photoIds].sort() : null,
     ]);
     case 'nasa': return JSON.stringify(['nasa']);
     case 'art': return JSON.stringify([
-      'art', (source.artist ?? '').toLowerCase(), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
+      'art', artArtists(source.artist).map((name) => name.toLowerCase()).sort().join(','), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
       source.orientation ?? 'any', source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT,
       source.wall ?? null, source.mat ?? null, source.frame ?? null, source.label ?? null, source.texture ?? null, source.drift ?? null,
     ]);
@@ -507,14 +519,14 @@ export function photoSourceParams(source: PhotoSource): URLSearchParams {
       if (source.folderId) params.set('folderId', source.folderId);
       break;
     case 'unsplash':
-      if (source.query) params.set('query', source.query);
+      if (unsplashWords(source)) params.set('query', unsplashWords(source));
       list('collections', source.collections);
       list('photos', source.photoIds);
       break;
     case 'nasa':
       break;
     case 'art':
-      if (source.artist) params.set('artist', source.artist);
+      if (artArtists(source.artist).length > 0) params.set('artist', artArtists(source.artist).join(', '));
       if (source.fromYear !== undefined) params.set('from', String(source.fromYear));
       if (source.toYear !== undefined) params.set('to', String(source.toYear));
       if (source.genre) params.set('genre', source.genre);
