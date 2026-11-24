@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import {
   MAX_STEP_SEC,
   MIN_STEP_SEC,
@@ -71,7 +71,7 @@ interface SessionActionBody {
  * route wrapper answers with its code.
  */
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<SessionActionBody>(request);
+  const body = await parseJsonBody<SessionActionBody>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const now = Date.now();
 

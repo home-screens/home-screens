@@ -80,7 +80,15 @@ async function handler(
 
   let content: Buffer;
   try {
-    content = await fs.readFile(requested);
+    // The check above is on the path as written. A link inside the folder
+    // can still point out of it, so the place the path really leads to is
+    // checked too before anything is read.
+    const realBase = await fs.realpath(absoluteBase);
+    const realRequested = await fs.realpath(requested);
+    if (!realRequested.startsWith(realBase + path.sep)) {
+      return NextResponse.json({ error: 'Invalid asset path' }, { status: 400 });
+    }
+    content = await fs.readFile(realRequested);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT'
       || (error as NodeJS.ErrnoException).code === 'EISDIR') {

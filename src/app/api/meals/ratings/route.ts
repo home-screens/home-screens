@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { parseJsonBody, withDisplayAuth } from '@/lib/api-utils';
+import { parseJsonBody, withDisplayAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { updateMealData } from '@/lib/meal-data';
 import { readFamilyData } from '@/lib/family-data';
 import { withDataTransaction } from '@/lib/data-transaction';
@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
  * read with the rest of the meals (`GET /api/meals/data`).
  */
 export const POST = withDisplayAuth(withMealieErrors(async (req: NextRequest) => {
-  const body = await parseJsonBody<{ mealId?: unknown; memberId?: unknown; rating?: unknown }>(req);
+  const body = await parseJsonBody<{ mealId?: unknown; memberId?: unknown; rating?: unknown }>(req, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'A rating must be an object.' }, { status: 400 });
   const { mealId, memberId, rating } = body;

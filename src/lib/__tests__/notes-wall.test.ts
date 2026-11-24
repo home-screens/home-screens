@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NOTES_DRAW_VIEWS, notesCardDraws, wallMayDraw } from '../notes-wall';
+import { NOTES_DRAW_VIEWS, notesCardDoor, notesCardDraws, notesCardWrites, wallMayDraw, wallMayWrite } from '../notes-wall';
 import type { ScreenConfiguration } from '@/types/config';
 
 function configWith(...modules: Array<{ type: string; config: Record<string, unknown>; enabled?: boolean }>): ScreenConfiguration {
@@ -45,5 +45,32 @@ describe('wallMayDraw', () => {
     expect(wallMayDraw(configWith({ type: 'notes', config: { view: 'sticky', wallDraw: true }, enabled: false }))).toBe(false);
     // Another card's setting of the same name counts for nothing.
     expect(wallMayDraw(configWith({ type: 'todo', config: { wallDraw: true } }))).toBe(false);
+  });
+});
+
+describe('writing on the wall', () => {
+  it('has its own switch, with the room and the reach a drawing needs', () => {
+    expect(notesCardWrites({ view: 'board', wallWrite: true })).toBe(true);
+    expect(notesCardWrites({ wallWrite: true })).toBe(true);
+    expect(notesCardWrites({ view: 'board', wallDraw: true })).toBe(false);
+    expect(notesCardWrites({ view: 'ticker', wallWrite: true })).toBe(false);
+    expect(notesCardWrites({ view: 'board', wallWrite: true, filter: 'pinned' })).toBe(false);
+    expect(notesCardWrites({ view: 'timeline', wallWrite: true, filter: 'pinned' })).toBe(true);
+  });
+
+  it('gives the card one button: for drawing, for writing, or for both', () => {
+    expect(notesCardDoor({ view: 'board' })).toBeNull();
+    expect(notesCardDoor({ view: 'board', wallDraw: true })).toBe('draw');
+    expect(notesCardDoor({ view: 'board', wallWrite: true })).toBe('write');
+    expect(notesCardDoor({ view: 'board', wallDraw: true, wallWrite: true })).toBe('both');
+    expect(notesCardDoor({ view: 'count', wallDraw: true, wallWrite: true })).toBeNull();
+  });
+
+  it('is allowed only while a Notes card some wall draws offers it, whatever drawing says', () => {
+    expect(wallMayWrite(configWith({ type: 'notes', config: { view: 'sticky', wallWrite: true } }))).toBe(true);
+    expect(wallMayWrite(configWith({ type: 'notes', config: { view: 'sticky', wallDraw: true } }))).toBe(false);
+    expect(wallMayDraw(configWith({ type: 'notes', config: { view: 'sticky', wallWrite: true } }))).toBe(false);
+    expect(wallMayWrite(configWith({ type: 'notes', config: { view: 'sticky', wallWrite: true }, enabled: false }))).toBe(false);
+    expect(wallMayWrite(configWith({ type: 'todo', config: { wallWrite: true } }))).toBe(false);
   });
 });

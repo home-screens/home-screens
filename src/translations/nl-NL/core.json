@@ -27,7 +27,8 @@
       "noteGone": "Die notitie is er niet meer.",
       "boardFull": "Het prikbord is vol: {max} notities. Haal er eerst een paar af.",
       "badDrawing": "Die tekening kon niet worden opgeslagen.",
-      "wallDrawOff": "Tekenen op de muur staat uit."
+      "wallDrawOff": "Tekenen op de muur staat uit.",
+      "wallWriteOff": "Schrijven op de muur staat uit."
     },
     "family": {
       "revision": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",

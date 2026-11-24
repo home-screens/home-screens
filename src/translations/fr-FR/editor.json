@@ -5734,7 +5734,9 @@
       "groupMaterials": "Décors",
       "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas.",
       "wallDraw": "Dessiner sur le mur",
-      "wallDrawHelp": "Un bouton « Faire un dessin » sur le module. Tout le monde peut laisser un dessin sur le tableau depuis un mur tactile ; pour retirer une note, il faut passer par le téléphone."
+      "wallDrawHelp": "Un bouton « Faire un dessin » sur le module. Tout le monde peut laisser un dessin sur le tableau depuis un mur tactile ; pour retirer une note, il faut passer par le téléphone.",
+      "wallWrite": "Écrire sur le mur",
+      "wallWriteHelp": "Un bouton « Écrire une note » sur le module. Tout le monde peut écrire une courte note sur le tableau depuis un mur tactile. Si le dessin est activé aussi, un seul bouton « Laisser une note » propose les deux."
     },
     "quick-timer": {
       "presets": "Durées",

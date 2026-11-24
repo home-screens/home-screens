@@ -7,7 +7,8 @@ import { readConfig } from '@/lib/config';
 import { createNote, makeRoomForDrawing, type CreateNoteInput } from '@/lib/notes-actions';
 import { NotesError } from '@/lib/notes-errors';
 import { WALL_DRAWING_LIVES } from '@/lib/note-drawing';
-import { wallMayDraw } from '@/lib/notes-wall';
+import { WALL_NOTE_MAX_LENGTH, wallMayDraw, wallMayWrite } from '@/lib/notes-wall';
+import { textLength } from '@/lib/text-length';
 import { noteWallAdded } from '@/lib/wall-added';
 import { rememberMadeRoom, type TakenDown } from '@/lib/notes-made-room';
 import { notesWrite } from '@/lib/notes-api';
@@ -40,18 +41,20 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
 /** A full drawing is about 50 KB of points; words alone are far smaller. */
 const NOTE_BODY_BYTES = 96 * 1024;
 
-/** What a wall may send with a drawing: who drew it and how long it stays. */
-const WALL_FIELDS: ReadonlySet<string> = new Set(['drawing', 'authorId', 'life']);
+/** What a wall may send: a drawing or words, who it is from and how long it stays. */
+const WALL_FIELDS: ReadonlySet<string> = new Set(['drawing', 'text', 'authorId', 'life']);
 
 /**
  * POST /api/notes: post a note `{ text, authorId?, life?, pinned?, important? }`,
  * or a drawing with `drawing` in place of `text`. Answers `{ notes, created }`,
  * `created` being the new note.
  *
- * A phone or the editor posts with a session. A wall's "Draw a note" lands
- * here too, with the display token, held back to the least it needs: a
- * drawing only (no words, pin or important; anything else needs a session),
- * for one of the timed lives. A drawing from anyone is taken only while some
+ * A phone or the editor posts with a session. A wall's "Draw a note" and
+ * "Write a note" land here too, with the display token, held back to the
+ * least they need: a drawing, or words no longer than the wall's keyboard
+ * allows (`WALL_NOTE_MAX_LENGTH`) and only while some Notes card offers
+ * writing (`wallMayWrite`); no pin or important (anything else needs a
+ * session), for one of the timed lives. A drawing from anyone is taken only while some
  * Notes card offers the button (`wallMayDraw`). The board keeps a cap of drawings up, whoever
  * posts them, so one more takes down the oldest that is not pinned
  * (`makeRoomForDrawing`); the answer's `madeRoom` says how many, and taking
@@ -67,7 +70,16 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
   if (fields instanceof NextResponse) return fields;
   const fromWall = !(await hasEditorSession(request));
   if (fromWall) {
-    if (fields.drawing === undefined || Object.keys(fields).some((f) => !WALL_FIELDS.has(f))) await requireSession(request);
+    if (Object.keys(fields).some((f) => !WALL_FIELDS.has(f))) await requireSession(request);
+    if (fields.drawing === undefined) {
+      // Words from the wall. The switch is asked of the wall's key only: a
+      // phone posts words whatever the cards say, and a hub with no password
+      // lets every caller post them already.
+      if (!wallMayWrite(await readConfig())) throw new NotesError(403, 'notes.wallWriteOff', 'Writing on the wall is turned off');
+      if (typeof fields.text === 'string' && textLength(fields.text.trim()) > WALL_NOTE_MAX_LENGTH) {
+        throw new NotesError(400, 'notes.textTooLong', `A note can be ${WALL_NOTE_MAX_LENGTH} characters at most.`, { max: WALL_NOTE_MAX_LENGTH });
+      }
+    }
     if (fields.life !== undefined && !WALL_DRAWING_LIVES.includes(fields.life as never)) {
       throw new NotesError(400, 'notes.badLife', 'Pick how long the note should stay.');
     }

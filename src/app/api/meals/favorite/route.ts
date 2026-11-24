@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { parseJsonBody, withDisplayAuth } from '@/lib/api-utils';
+import { parseJsonBody, withDisplayAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { updateMealData } from '@/lib/meal-data';
 import { setSavedMealFavorite } from '@/lib/meal-plan-actions';
 import { setMealieFavorite } from '@/lib/mealie';
@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
  * flips, so a tap sent twice is still one heart.
  */
 export const POST = withDisplayAuth(withMealieErrors(async (req: NextRequest) => {
-  const body = await parseJsonBody<{ mealId?: unknown; favorite?: unknown }>(req);
+  const body = await parseJsonBody<{ mealId?: unknown; favorite?: unknown }>(req, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const { mealId, favorite } = body;
   if (typeof mealId !== 'string' || !mealId || mealId.length > 200) {

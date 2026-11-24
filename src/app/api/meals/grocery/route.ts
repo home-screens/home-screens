@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData } from '@/lib/meal-data';
-import { withDisplayAuth, parseJsonBody, isValidISODate } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody, isValidISODate, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { householdToday } from '@/lib/household-day';
 import {
   groceryChecksForWeek,
@@ -56,7 +56,7 @@ export const GET = withDisplayAuth(async (req: NextRequest) => {
  *  Mealie list has no weeks. `matched` says how many items carry the name,
  *  so a caller can tell "not on the list" (0) from "already done". */
 export const POST = withDisplayAuth(async (req: NextRequest) => {
-  const body = await parseJsonBody<{ item?: unknown; direction?: unknown; week?: unknown }>(req);
+  const body = await parseJsonBody<{ item?: unknown; direction?: unknown; week?: unknown }>(req, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const { item, direction, week } = body;
 

@@ -1880,8 +1880,11 @@
     "receiptSummary": "Pinned {pinned} · Important {important}",
     "pinnedOne": "Pinned",
     "emptyDraw": "Nothing on the board. Draw a note here, or write one on your phone.",
+    "emptyWrite": "Nothing on the board. Write a note here or on your phone.",
+    "emptyLeave": "Nothing on the board. Draw or write a note here, or write one on your phone.",
     "drawing": "Drawing",
     "drawingFrom": "Drawing from {name}",
+    "noteFrom": "Note from {name}",
     "openDrawing": "See {name}'s drawing big",
     "draw": {
       "row": "Draw a note",
@@ -1930,6 +1933,29 @@
       "undoing": "Taking it down…",
       "posting": "Putting it up…",
       "madeRoom": "The oldest drawing came down to make room."
+    },
+    "write": {
+      "row": "Write a note",
+      "rowFinish": "Finish your note",
+      "title": "Write a note",
+      "placeholder": "Type your note",
+      "askTitle": "Throw this note away?",
+      "askKeep": "Keep writing",
+      "askThrow": "Throw it away",
+      "whoTitle": "Who is it from?",
+      "back": "Keep writing",
+      "failed": "That didn't go up. Your note is still here.",
+      "unreachable": "That didn't go up. Home Screens isn't answering. Your note is still here.",
+      "off": "Writing on the wall was just turned off. Your note can't go up.",
+      "pickAgain": "That person isn't in the family any more. Pick who it is from."
+    },
+    "leave": {
+      "row": "Leave a note",
+      "title": "Leave a note",
+      "draw": "Draw",
+      "write": "Write",
+      "pageWaits": "Your drawing is still waiting for you.",
+      "wordsWait": "What you wrote is still waiting for you."
     }
   },
   "photoControls": {

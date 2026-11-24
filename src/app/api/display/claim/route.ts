@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { hasSignedInSession, isAuthEnabled, wallFromCookies } from '@/lib/auth';
-import { createRateLimiter, errorResponse, getClientIP, parseJsonBody } from '@/lib/api-utils';
+import { createRateLimiter, publicErrorResponse, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { admitWithoutAsking } from '@/lib/display-admission';
 import { drainCommands, recordViewportReport } from '@/lib/display-commands';
 import { isValidDisplayId } from '@/lib/display-filter';
@@ -146,6 +146,6 @@ export async function POST(request: NextRequest) {
     return answer('waiting', cookie);
   } catch (error) {
     if (error instanceof Response) return error;
-    return errorResponse(error, 'Could not ask to be let in');
+    return publicErrorResponse(error, 'Could not ask to be let in');
   }
 }

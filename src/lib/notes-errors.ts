@@ -13,7 +13,8 @@ export type NotesRefusalCode =
   | 'notes.noteGone'
   | 'notes.boardFull'
   | 'notes.badDrawing'
-  | 'notes.wallDrawOff';
+  | 'notes.wallDrawOff'
+  | 'notes.wallWriteOff';
 
 /**
  * Thrown by the pure notes actions (`notes-actions.ts`); the route wrapper

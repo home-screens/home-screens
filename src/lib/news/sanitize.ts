@@ -23,6 +23,9 @@ export function httpUrl(s: string | null | undefined): string | null {
   return /^https?:\/\//i.test(v) ? v : null;
 }
 
+/** How much of one item's markup is read. */
+export const MAX_HTML_CHARS = 10_000;
+
 const FIRST_IMG_RE = /<img\b[^>]*\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i;
 const BLOCK_TAG_RE = /<\/?(?:p|div|br|li|ul|ol|h[1-6]|tr|blockquote|section|article|figure|figcaption|table)\b[^>]*>/gi;
 const TAG_RE = /<[^>]*>/g;
@@ -35,8 +38,13 @@ const COMMENT_RE = /<!--[\s\S]*?-->/g;
  * Entities are decoded after tags are stripped, so a literal `&lt;b&gt;` in
  * the source text stays visible instead of being eaten as markup.
  */
-export function htmlToText(html: string): SanitizedHtml {
-  if (!html) return { text: '', firstImage: null };
+export function htmlToText(input: string): SanitizedHtml {
+  if (!input) return { text: '', firstImage: null };
+  // The patterns above look ahead for a closing mark from every opening one,
+  // so their cost grows with the square of the length when the closing mark
+  // never comes. A headline card needs a few sentences, not the whole
+  // article, so only the start is read.
+  const html = input.length > MAX_HTML_CHARS ? input.slice(0, MAX_HTML_CHARS) : input;
   const img = FIRST_IMG_RE.exec(html);
   const firstImage = httpUrl(decodeHTML(img?.[1] ?? img?.[2] ?? img?.[3] ?? ''));
   const stripped = html

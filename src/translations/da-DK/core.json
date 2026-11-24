@@ -27,7 +27,8 @@
       "noteGone": "Den seddel er her ikke længere.",
       "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først.",
       "badDrawing": "Den tegning kunne ikke gemmes.",
-      "wallDrawOff": "Det er slået fra at tegne på væggen."
+      "wallDrawOff": "Det er slået fra at tegne på væggen.",
+      "wallWriteOff": "Det er slået fra at skrive på væggen."
     },
     "family": {
       "revision": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",

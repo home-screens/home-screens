@@ -19,6 +19,7 @@ import { GET, POST } from '../route';
 import { hasEditorSession, requireDisplayAuth, requireSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
 import { WALL_DRAWING_CAP } from '@/lib/note-drawing';
+import { WALL_NOTE_MAX_LENGTH } from '@/lib/notes-wall';
 import { isLive } from '@/lib/notes-rules';
 import { resetWallAdded, wallMayUndo } from '@/lib/wall-added';
 import { resetMadeRoom, takeMadeRoom } from '@/lib/notes-made-room';
@@ -269,13 +270,53 @@ describe('POST /api/notes from a wall', () => {
     expect(wallMayUndo(created.id)).toBe(true);
   });
 
-  it('takes no words, pin, important or "keep" from a wall', async () => {
-    for (const body of [{ text: 'From the wall' }, { drawing: HOUSE, text: '' }, { drawing: HOUSE, pinned: true }, { drawing: HOUSE, important: true }]) {
+  it('takes no pin, important or "keep" from a wall, and no words while only drawing is on', async () => {
+    for (const body of [{ drawing: HOUSE, pinned: true }, { drawing: HOUSE, important: true }, { text: 'From the wall', pinned: true }]) {
       expect((await post(body)).status).toBe(401);
     }
+    const words = await post({ text: 'From the wall' });
+    expect(words.status).toBe(403);
+    expect(await words.json()).toEqual({ error: 'Writing on the wall is turned off', code: 'notes.wallWriteOff' });
     const kept = await post({ drawing: HOUSE, life: 'keep' });
     expect(kept.status).toBe(400);
     expect(await kept.json()).toMatchObject({ code: 'notes.badLife' });
+    await expect(fs.access(notesPath())).rejects.toThrow();
+  });
+
+  it('posts typed words while some Notes card offers writing, and remembers them for Undo', async () => {
+    vi.mocked(readConfig).mockResolvedValue(configWith({ type: 'notes', config: { view: 'board', wallWrite: true } }));
+    const res = await post({ text: '  Back at 5  ', authorId: 'dad', life: '12h' });
+    expect(res.status).toBe(200);
+    const { created } = await res.json();
+    expect(created).toMatchObject({ text: 'Back at 5', authorId: 'dad', life: '12h', pinned: false, important: false });
+    expect(created.drawing).toBeUndefined();
+    expect(wallMayUndo(created.id)).toBe(true);
+    // Writing on says nothing about drawing.
+    expect((await post({ drawing: HOUSE })).status).toBe(403);
+  });
+
+  it('holds typed words from a wall to the wall keyboard\'s length, a timed life and somebody in the family', async () => {
+    vi.mocked(readConfig).mockResolvedValue(configWith({ type: 'notes', config: { view: 'board', wallWrite: true } }));
+    expect((await post({ text: 'x'.repeat(WALL_NOTE_MAX_LENGTH) })).status).toBe(200);
+    const long = await post({ text: 'x'.repeat(WALL_NOTE_MAX_LENGTH + 1) });
+    expect(long.status).toBe(400);
+    expect(await long.json()).toMatchObject({ code: 'notes.textTooLong', params: { max: WALL_NOTE_MAX_LENGTH } });
+    expect(await (await post({ text: 'Stay', life: 'keep' })).json()).toMatchObject({ code: 'notes.badLife' });
+    expect(await (await post({ text: '   ' })).json()).toMatchObject({ code: 'notes.textRequired' });
+    expect(await (await post({})).json()).toMatchObject({ code: 'notes.textRequired' });
+    expect((await post({ text: 'Hi', authorId: 'stranger' })).status).toBe(409);
+  });
+
+  it('refuses words from a wall while no Notes card on a wall offers writing', async () => {
+    for (const config of [
+      configWith(),
+      configWith({ type: 'notes', config: { view: 'board', wallDraw: true } }),
+      configWith({ type: 'notes', config: { view: 'ticker', wallWrite: true } }),
+      configWith({ type: 'notes', config: { view: 'board', wallWrite: true }, enabled: false }),
+    ]) {
+      vi.mocked(readConfig).mockResolvedValue(config);
+      expect(await (await post({ text: 'From the wall' })).json()).toMatchObject({ code: 'notes.wallWriteOff' });
+    }
     await expect(fs.access(notesPath())).rejects.toThrow();
   });
 

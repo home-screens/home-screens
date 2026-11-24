@@ -79,6 +79,7 @@ export function NeonView({ ctx, all, stepSeconds, title, showTitle, padding, wid
   return (
     <div
       data-testid="notes-note"
+      data-note={note.id}
       data-important={note.important ? '' : undefined}
       data-pinned={note.pinned ? '' : undefined}
       className="relative flex flex-col h-full min-h-0 overflow-hidden"

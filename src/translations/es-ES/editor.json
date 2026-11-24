@@ -5734,7 +5734,9 @@
       "groupMaterials": "Objetos reales",
       "materialHelp": "Este aspecto tiene sus propios colores y su propia letra, así que los ajustes de fondo, color del texto, borde y tipo de letra no se aplican.",
       "wallDraw": "Dibujar en el monitor",
-      "wallDrawHelp": "Un botón «Dibuja una nota» en la tarjeta. Cualquiera puede dejar un dibujo en el tablón desde un monitor táctil; quitar notas sigue siendo cosa del móvil."
+      "wallDrawHelp": "Un botón «Dibuja una nota» en la tarjeta. Cualquiera puede dejar un dibujo en el tablón desde un monitor táctil; quitar notas sigue siendo cosa del móvil.",
+      "wallWrite": "Escribir en el monitor",
+      "wallWriteHelp": "Un botón «Escribe una nota» en la tarjeta. Cualquiera puede escribir una nota corta en el tablón desde un monitor táctil. Si también se puede dibujar, un solo botón «Deja una nota» sirve para las dos cosas."
     },
     "quick-timer": {
       "presets": "Duraciones",

@@ -1194,6 +1194,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       tickerSpeed: 8,
       // A "Draw a note" button for new cards; a card made before it stays without one (NotesConfig.wallDraw).
       wallDraw: true,
+      // And a keyboard for a typed note, the same way (NotesConfig.wallWrite).
+      wallWrite: true,
     },
     defaultSize: { w: 440, h: 520 },
   },

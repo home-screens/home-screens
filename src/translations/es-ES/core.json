@@ -27,7 +27,8 @@
       "noteGone": "Esa nota ya no está aquí.",
       "boardFull": "El tablón está lleno: {max} notas. Quita algunas primero.",
       "badDrawing": "No se pudo guardar ese dibujo.",
-      "wallDrawOff": "Dibujar en el monitor está desactivado."
+      "wallDrawOff": "Dibujar en el monitor está desactivado.",
+      "wallWriteOff": "Escribir en el monitor está desactivado."
     },
     "family": {
       "revision": "Alguien cambió la familia mientras la editabas. Se muestra la lista actual. Vuelve a realizar tu cambio.",

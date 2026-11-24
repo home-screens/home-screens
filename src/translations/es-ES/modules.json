@@ -1888,8 +1888,11 @@
     "receiptSummary": "Fijadas {pinned} · Importantes {important}",
     "pinnedOne": "Fijada",
     "emptyDraw": "No hay nada en el tablón. Dibuja una nota aquí o escribe una en el móvil.",
+    "emptyWrite": "No hay nada en el tablón. Escribe una nota aquí o en el móvil.",
+    "emptyLeave": "No hay nada en el tablón. Dibuja o escribe una nota aquí, o escribe una en el móvil.",
     "drawing": "Dibujo",
     "drawingFrom": "Dibujo de {name}",
+    "noteFrom": "Nota de {name}",
     "openDrawing": "Ver en grande el dibujo de {name}",
     "draw": {
       "row": "Dibuja una nota",
@@ -1938,6 +1941,29 @@
       "undoing": "Quitándolo…",
       "posting": "Colgándolo…",
       "madeRoom": "Se ha quitado el dibujo más antiguo para hacer sitio."
+    },
+    "write": {
+      "row": "Escribe una nota",
+      "rowFinish": "Termina tu nota",
+      "title": "Escribe una nota",
+      "placeholder": "Escribe tu nota",
+      "askTitle": "¿Tirar esta nota?",
+      "askKeep": "Seguir escribiendo",
+      "askThrow": "Tirarla",
+      "whoTitle": "¿De parte de quién?",
+      "back": "Seguir escribiendo",
+      "failed": "No se pudo colgar. Tu nota sigue aquí.",
+      "unreachable": "No se pudo colgar. Home Screens no responde. Tu nota sigue aquí.",
+      "off": "Acaban de desactivar la escritura en el monitor, así que tu nota no se puede colgar.",
+      "pickAgain": "Esa persona ya no está en la familia. Elige de parte de quién es."
+    },
+    "leave": {
+      "row": "Deja una nota",
+      "title": "Deja una nota",
+      "draw": "Dibujar",
+      "write": "Escribir",
+      "pageWaits": "Tu dibujo te sigue esperando.",
+      "wordsWait": "Lo que has escrito te sigue esperando."
     }
   },
   "photoControls": {

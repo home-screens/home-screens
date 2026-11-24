@@ -5734,7 +5734,9 @@
       "groupMaterials": "Materialer",
       "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her.",
       "wallDraw": "Tegn på væggen",
-      "wallDrawHelp": "Kortet får knappen »Tegn en note«. Alle ved en væg med touchskærm kan sætte en tegning op på tavlen; noter tages stadig ned på telefonen."
+      "wallDrawHelp": "Kortet får knappen »Tegn en note«. Alle ved en væg med touchskærm kan sætte en tegning op på tavlen; noter tages stadig ned på telefonen.",
+      "wallWrite": "Skriv på væggen",
+      "wallWriteHelp": "Kortet får knappen »Skriv en note«. Alle ved en væg med touchskærm kan skrive en kort note på tavlen. Er tegning også slået til, er der én knap »Sæt en note op« til begge dele."
     },
     "quick-timer": {
       "presets": "Længder",

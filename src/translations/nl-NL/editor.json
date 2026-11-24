@@ -5734,7 +5734,9 @@
       "groupMaterials": "Materialen",
       "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet.",
       "wallDraw": "Tekenen op de muur",
-      "wallDrawHelp": "Een knop “Teken een notitie” op de kaart. Iedereen bij een muur met aanraakscherm kan een tekening op het prikbord hangen; notities weghalen blijft op de telefoon."
+      "wallDrawHelp": "Een knop “Teken een notitie” op de kaart. Iedereen bij een muur met aanraakscherm kan een tekening op het prikbord hangen; notities weghalen blijft op de telefoon.",
+      "wallWrite": "Schrijven op de muur",
+      "wallWriteHelp": "Een knop “Schrijf een notitie” op de kaart. Iedereen bij een muur met aanraakscherm kan een korte notitie op het prikbord typen. Staat tekenen ook aan, dan is er één knop “Laat een notitie achter” voor allebei."
     },
     "quick-timer": {
       "presets": "Tijden",

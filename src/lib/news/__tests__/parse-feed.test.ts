@@ -590,3 +590,21 @@ describe('decodeFeedBody', () => {
     expect(text).toContain('Ünïcode');
   });
 });
+
+describe('a feed built to waste the hub\'s time', () => {
+  it('is read in bounded time however long it is', () => {
+    // 4 MB, the most the news route downloads: 400 items, each 10 KB of an
+    // opening mark that never closes.
+    const item = { id: 'x', content_html: '<img '.repeat(2000) };
+    const feed = JSON.stringify({
+      version: 'https://jsonfeed.org/version/1',
+      title: 'Hostile',
+      items: Array.from({ length: 400 }, (_, i) => ({ ...item, id: String(i) })),
+    });
+    const started = performance.now();
+    const parsed = parseFeed(feed);
+    const took = performance.now() - started;
+    expect(parsed.items.length).toBeLessThanOrEqual(100);
+    expect(took).toBeLessThan(5000);
+  });
+});

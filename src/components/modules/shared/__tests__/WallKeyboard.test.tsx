@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/provider';
 import modules from '@/translations/en-US/modules.json';
-import { WALL_KEYBOARD_IDLE_MS, WallKeyboard, type WallKeyboardProps } from '../WallKeyboard';
+import { DELETE_HOLD_MS, DELETE_REPEAT_MS, WALL_KEYBOARD_IDLE_MS, WallKeyboard, type WallKeyboardProps } from '../WallKeyboard';
 
 afterEach(() => {
   cleanup();
@@ -79,5 +79,95 @@ describe('WallKeyboard idle minute', () => {
     vi.useFakeTimers();
     keyboard('en-US', { kind: 'text' });
     expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+describe('WallKeyboard under two hands', () => {
+  const finger = (id: number, x = 10, y = 10) => ({ pointerId: id, pointerType: 'touch', clientX: x, clientY: y });
+
+  it('types a key whose finger landed before the last one lifted, where the browser makes no click', () => {
+    const { onKey, key } = keyboard('en-US', { kind: 'text' });
+    fireEvent.pointerDown(key('a')!, finger(1));
+    fireEvent.pointerDown(key('b')!, finger(2));
+    fireEvent.pointerUp(key('a')!, finger(1));
+    fireEvent.pointerUp(key('b')!, finger(2));
+    expect(onKey.mock.calls.map(([k]) => k)).toEqual(['a', 'b']);
+  });
+
+  it('types one letter for one tap when the click follows the finger, and two for a double letter', () => {
+    const { onKey, key } = keyboard('en-US', { kind: 'text' });
+    for (let tap = 0; tap < 2; tap++) {
+      fireEvent.pointerDown(key('l')!, finger(1));
+      fireEvent.pointerUp(key('l')!, finger(1));
+      fireEvent.click(key('l')!);
+    }
+    expect(onKey.mock.calls.map(([k]) => k)).toEqual(['l', 'l']);
+  });
+
+  it('types nothing for a finger that slid off, and still answers a mouse or a keyboard click', () => {
+    const { onKey, key } = keyboard('en-US', { kind: 'text' });
+    fireEvent.pointerDown(key('a')!, finger(1, 10, 10));
+    fireEvent.pointerUp(key('a')!, finger(1, 90, 10));
+    expect(onKey).not.toHaveBeenCalled();
+    fireEvent.click(key('a')!);
+    expect(onKey).toHaveBeenCalledWith('a');
+  });
+});
+
+describe('WallKeyboard with two fingers on one key', () => {
+  it('types a letter for each finger', () => {
+    const { onKey, key } = keyboard('en-US', { kind: 'text' });
+    const finger = (id: number) => ({ pointerId: id, pointerType: 'touch', clientX: 10, clientY: 10 });
+    fireEvent.pointerDown(key('z')!, finger(1));
+    fireEvent.pointerDown(key('z')!, finger(2));
+    fireEvent.pointerUp(key('z')!, finger(1));
+    fireEvent.pointerUp(key('z')!, finger(2));
+    expect(onKey.mock.calls.map(([k]) => k)).toEqual(['z', 'z']);
+  });
+});
+
+describe('WallKeyboard delete', () => {
+  const finger = { pointerId: 1, pointerType: 'touch', clientX: 10, clientY: 10 };
+
+  it('takes one letter for a tap', () => {
+    vi.useFakeTimers();
+    const onDelete = vi.fn();
+    const { key } = keyboard('en-US', { kind: 'text', onDelete });
+    fireEvent.pointerDown(key('delete')!, finger);
+    act(() => { vi.advanceTimersByTime(100); });
+    fireEvent.pointerUp(key('delete')!, finger);
+    fireEvent.click(key('delete')!);
+    act(() => { vi.advanceTimersByTime(DELETE_HOLD_MS * 3); });
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps taking letters while it is held, stops when the finger lifts, and the lift takes no more', () => {
+    vi.useFakeTimers();
+    const onDelete = vi.fn();
+    const { key } = keyboard('en-US', { kind: 'text', onDelete });
+    fireEvent.pointerDown(key('delete')!, finger);
+    act(() => { vi.advanceTimersByTime(DELETE_HOLD_MS - 10); });
+    expect(onDelete).not.toHaveBeenCalled();
+    act(() => { vi.advanceTimersByTime(10 + DELETE_REPEAT_MS * 5); });
+    expect(onDelete).toHaveBeenCalledTimes(6);
+    fireEvent.pointerUp(key('delete')!, finger);
+    fireEvent.click(key('delete')!);
+    act(() => { vi.advanceTimersByTime(DELETE_REPEAT_MS * 10); });
+    expect(onDelete).toHaveBeenCalledTimes(6);
+    // The next tap is a plain tap again.
+    fireEvent.click(key('delete')!);
+    expect(onDelete).toHaveBeenCalledTimes(7);
+  });
+
+  it('stops when the finger slides off the key', () => {
+    vi.useFakeTimers();
+    const onDelete = vi.fn();
+    const { key } = keyboard('en-US', { kind: 'text', onDelete });
+    fireEvent.pointerDown(key('delete')!, finger);
+    act(() => { vi.advanceTimersByTime(DELETE_HOLD_MS + DELETE_REPEAT_MS); });
+    fireEvent.pointerLeave(key('delete')!, finger);
+    const taken = onDelete.mock.calls.length;
+    act(() => { vi.advanceTimersByTime(DELETE_REPEAT_MS * 10); });
+    expect(onDelete).toHaveBeenCalledTimes(taken);
   });
 });
