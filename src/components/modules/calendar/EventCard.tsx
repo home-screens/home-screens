@@ -190,13 +190,15 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       )}
       <div className="min-w-0 flex-1">
         {showTime && (
-          <div className="flex items-center gap-1.5">
+          // Wraps: in a narrow day column the countdown drops under the time
+          // instead of hanging out over the next column.
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             {/* A step under the title, never as faint as the location: the
                 time is what people read the list for. */}
-            <span className="font-medium tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>{timeContent}</span>
+            <span className="min-w-0 font-medium tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>{timeContent}</span>
             {countdown && (
               <span
-                className="shrink-0 rounded-full font-semibold whitespace-nowrap"
+                className="max-w-full truncate rounded-full font-semibold"
                 style={{
                   fontSize: '0.6em',
                   color: accentColor,
