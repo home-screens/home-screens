@@ -164,10 +164,12 @@ describe('normalizePhotoSource', () => {
     expect(normalizePhotoSource({ kind: 'icloud', albumUrl: `  ${ICLOUD_LINK}  ` })).toEqual({ kind: 'icloud', albumUrl: ICLOUD_LINK });
     expect(normalizePhotoSource({ kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' }))
       .toEqual({ kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' });
-    expect(normalizePhotoSource({ kind: 'unsplash', query: ' lakes ' })).toEqual({ kind: 'unsplash', query: 'lakes' });
+    // Words are kept as typed, so the editor's box can hold the space between two of them.
+    expect(normalizePhotoSource({ kind: 'unsplash', query: 'mountain ' })).toEqual({ kind: 'unsplash', query: 'mountain ' });
     expect(normalizePhotoSource({ kind: 'nasa', query: 'x' })).toEqual({ kind: 'nasa' });
-    expect(normalizePhotoSource({ kind: 'art', artist: ' Monet ', orientation: 'any', fit: 'sideways', aspectTolerance: 3, extra: 1 }))
-      .toEqual({ kind: 'art', artist: 'Monet', aspectTolerance: 1 });
+    expect(normalizePhotoSource({ kind: 'art', artist: 'Claude ', orientation: 'any', fit: 'sideways', aspectTolerance: 3, extra: 1 }))
+      .toEqual({ kind: 'art', artist: 'Claude ', aspectTolerance: 1 });
+    expect(normalizePhotoSource({ kind: 'art', artist: '  ' })).toEqual({ kind: 'art' });
     // Only the subjects the collection is made of are kept.
     expect(normalizePhotoSource({ kind: 'art', fromYear: -5, toYear: 9999.4, genre: 'nude' })).toEqual({ kind: 'art', fromYear: 0, toYear: 2100 });
     expect(normalizePhotoSource({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' }))
@@ -343,6 +345,15 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
     { kind: 'wall', group: 'color', ids: [] },
   ])('round-trips %j', (source) => {
     expect(parsePhotoSourceParams(new URLSearchParams(photoSourceParams(source).toString()))).toEqual(source);
+  });
+
+  it('asks for words and artists without the spaces left around them while typing', () => {
+    expect(photoSourceParams({ kind: 'unsplash', query: ' mountain ' }).get('query')).toBe('mountain');
+    expect(photoSourceParams({ kind: 'art', artist: 'Claude Monet , cezanne, ' }).get('artist')).toBe('Claude Monet, cezanne');
+    expect(photoSourceParams({ kind: 'art', artist: ' , ' }).has('artist')).toBe(false);
+    // A space being typed, or the names in another order, is the same pictures: nothing is fetched again.
+    expect(sourceCacheKey({ kind: 'art', artist: 'Monet, Turner ' })).toBe(sourceCacheKey({ kind: 'art', artist: 'turner,monet' }));
+    expect(sourceCacheKey({ kind: 'unsplash', query: 'lakes ' })).toBe(sourceCacheKey({ kind: 'unsplash', query: 'lakes' }));
   });
 
   it('leaves the OneDrive label out of the URL', () => {

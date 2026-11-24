@@ -189,7 +189,7 @@ Nothing is filtered at first. Choose **Add a filter…** to narrow the paintings
 
 - **Subject** picks landscapes, seascapes, cityscapes or still life.
 - **Period** takes a first and a last year, either of which can be left empty. A painting with no year on record is left out once a period is set.
-- **Artist** (for example `Claude Monet`) takes free text. Part of a name is enough, and accents don't matter: `cezanne` finds Cézanne.
+- **Artist** (for example `Claude Monet`) takes free text. Part of a name is enough, and accents don't matter: `cezanne` finds Cézanne. For more than one artist, put a comma between the names: `Monet, Cézanne` shows paintings by either.
 - **Shape** (tall, wide or either) skips paintings that are the wrong way up for where they go. A rotating background also has **Match the screen's shape**, which skips paintings whose shape is too far from your display's; a slideshow fits pictures into its own box, so it does not have this one.
 
 Under the filters the editor says how many paintings match and shows a few of them. It warns when only a few match, because the same ones would then come back often, and says so when none do.

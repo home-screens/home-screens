@@ -97,6 +97,9 @@ describe('the collection on a wall', () => {
   it('narrows by subject, by part of an artist\'s name without accents, by period and by tall or wide', async () => {
     expect(await titles(art({ genre: 'cityscape' }))).toEqual(['Canal']);
     expect(await titles(art({ artist: ' cezanne ' }))).toEqual(['Apples', 'Harbour at Dusk']);
+    // Commas part several artists, and a painting by any of them matches.
+    expect(await titles(art({ artist: 'cezanne, van gogh,' }))).toEqual(['Apples', 'Harbour at Dusk', 'Wheat Field']);
+    expect(await titles(art({ artist: ' , ' }))).toHaveLength(4);
     // A painting with no year on record is left out once a period is asked for.
     expect(await titles(art({ fromYear: 1800 }))).toEqual(['Harbour at Dusk', 'Wheat Field']);
     expect(await titles(art({ fromYear: 1700, toYear: 1880 }))).toEqual(['Canal', 'Harbour at Dusk']);

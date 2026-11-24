@@ -91,6 +91,7 @@ const CAPITALS_KEPT: Record<string, string> = {
   'editor:configSections.countdown.formatWordsTitle': 'shows the capitalised format it offers',
   'editor:configSections.todoist.filterProjectsPlaceholder': 'example project names',
   'editor:modals.icalFeeds.newFeedNamePlaceholder': 'example feed names',
+  'editor:photoSources.art.artistPlaceholder': 'two painters by name',
   'editor:configSections.calendarRules.artNames.new-year': 'a holiday name',
   'editor:choreChartModal.title': 'the module name',
   'editor:mealPlannerModal.title': 'the module name',
