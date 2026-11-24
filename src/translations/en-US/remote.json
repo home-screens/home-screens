@@ -1539,5 +1539,12 @@
       "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
       "noCalendars": "No calendar takes new events yet. Pick some in {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "A wall is waiting to be let in.",
+      "other": "{count} walls are waiting to be let in."
+    },
+    "openEditor": "Open the editor to let them in"
   }
 }

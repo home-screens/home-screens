@@ -113,10 +113,14 @@ const PUBLIC_AUTH_ROUTES = [
  *   route-side by requireAdoptedDisplay (displayId must appear in
  *   config.displays), which replaces password auth for this one path. The
  *   reporter runs on a display-only Pi with no session and no bearer token.
+ * - /api/display/claim: a wall page with no cookie asking to be let in. It
+ *   has nothing to prove itself with yet; the route decides what, if
+ *   anything, it gets (src/lib/display-admission.ts).
  */
 function isDisplayAccessiblePost(pathname: string): boolean {
   if (pathname.startsWith('/api/plugins/proxy/')) return true;
   if (pathname === '/api/display/hw-stats') return true;
+  if (pathname === '/api/display/claim') return true;
   return false;
 }
 
@@ -277,9 +281,12 @@ export function proxy(request: NextRequest) {
 
   // Cheap credential-presence check (no signature validation here — real
   // validation happens in requireSession / requireDisplayAuth in route handlers).
-  // Accept session cookie, Bearer token, or ?token= query param.
+  // Accept session cookie, Bearer token, or ?token= query param. A wall's
+  // own cookie counts for API routes only: a wall is not the editor, so it
+  // must never be what gets someone past the gate to /editor or /remote.
   const session = request.cookies.get('hs-session');
   if (session?.value) return NextResponse.next();
+  if (pathname.startsWith('/api/') && request.cookies.get('hs-display')?.value) return NextResponse.next();
   const authHeader = request.headers.get('authorization') ?? '';
   if (authHeader.startsWith('Bearer ')) return NextResponse.next();
   if (request.nextUrl.searchParams.has('token')) return NextResponse.next();

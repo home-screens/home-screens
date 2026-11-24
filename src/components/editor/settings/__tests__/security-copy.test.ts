@@ -46,7 +46,7 @@ afterEach(async () => {
 });
 
 describe('the allowed-networks toggle', () => {
-  it('waives the display key and not the password, and says so', async () => {
+  it('lets displays in without asking, never skips the password, and says so', async () => {
     await setPassword('testpassword123');
     await setIpAllowlistConfig({
       allowlist: ['192.168.1.0/24'],
@@ -61,8 +61,10 @@ describe('the allowed-networks toggle', () => {
     await expect(requireSession(request)).rejects.toBeInstanceOf(Response);
 
     const { label, help } = copy.ipAllowlist.bypassAuth;
-    expect(label).toMatch(/key/i);
-    expect(label).not.toMatch(/password/i);
+    // Displays no longer use the key, so the label must not promise to
+    // waive it; what it waives is being asked.
+    expect(label).toMatch(/without asking/i);
+    expect(label).not.toMatch(/key|password/i);
     expect(help).toMatch(/password/i);
   });
 });

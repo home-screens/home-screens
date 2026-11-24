@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslate } from '@/i18n';
-import { setDisplayToken, displayFetch } from '@/lib/display-fetch';
+import { displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
 import { WallButton } from '@/components/modules/shared/WallButton';
 import { settingsPlaceText } from '@/lib/settings-route';
 
 interface DisplayNotFoundProps {
   displayId: string;
-  displayToken: string | null;
 }
 
 const COMMAND_POLL_MS = 3_000;
@@ -43,10 +42,8 @@ const AUTO_RECOVER_MS = 60_000;
  * network round trips, no browser flicker, and the heartbeat keeps flowing
  * the entire time the user is browsing the editor.
  */
-export default function DisplayNotFound({ displayId, displayToken }: DisplayNotFoundProps) {
+export default function DisplayNotFound({ displayId }: DisplayNotFoundProps) {
   const t = useTranslate('core');
-  // The display token must be set before any displayFetch fires.
-  useLayoutEffect(() => { setDisplayToken(displayToken); }, [displayToken]);
 
   const reloadingRef = useRef(false);
   const navigatingRef = useRef(false);
@@ -186,6 +183,56 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
   }, [recoverDeadline]);
 
   return (
+    <NotAddedYet displayId={displayId}>
+      {/* Auto-recovery — only when the hub already has other registered
+           displays. A fresh bootstrap install never sees this. */}
+      {recoverDeadline !== null && msRemaining !== null && (
+        <div
+          style={{
+            marginTop: 32,
+            padding: 20,
+            borderRadius: 12,
+            backgroundColor: '#171717',
+            border: '1px solid #262626',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 13, color: '#a3a3a3', marginBottom: 12, lineHeight: 1.5 }}>
+            {t('displayNotFound.recoveryNotice', { seconds: Math.ceil(msRemaining / 1000) })}
+          </div>
+          <WallButton
+            onClick={goToDefault}
+            style={{
+              display: 'inline-block',
+              padding: '10px 20px',
+              borderRadius: 8,
+              border: '1px solid #3b82f6',
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              minHeight: 44,
+              minWidth: 44,
+            }}
+          >
+            {t('displayNotFound.goToDefault')}
+          </WallButton>
+        </div>
+      )}
+    </NotAddedYet>
+  );
+}
+
+/**
+ * The words a display shows while it waits to be added, with room below
+ * them for whatever the caller has to add. Shared with `WallGate`, which
+ * shows the same thing to a browser that has not been let in yet.
+ */
+export function NotAddedYet({ displayId, children }: { displayId: string; children?: ReactNode }) {
+  const t = useTranslate('core');
+  return (
     <div
       style={{
         width: '100vw',
@@ -276,43 +323,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
           {t('displayNotFound.waitingForAdoption')}
         </div>
 
-        {/* Auto-recovery — only when the hub already has other registered
-             displays. A fresh bootstrap install never sees this. */}
-        {recoverDeadline !== null && msRemaining !== null && (
-          <div
-            style={{
-              marginTop: 32,
-              padding: 20,
-              borderRadius: 12,
-              backgroundColor: '#171717',
-              border: '1px solid #262626',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: 13, color: '#a3a3a3', marginBottom: 12, lineHeight: 1.5 }}>
-              {t('displayNotFound.recoveryNotice', { seconds: Math.ceil(msRemaining / 1000) })}
-            </div>
-            <WallButton
-              onClick={goToDefault}
-              style={{
-                display: 'inline-block',
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: '1px solid #3b82f6',
-                backgroundColor: '#3b82f6',
-                color: '#ffffff',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                minHeight: 44,
-                minWidth: 44,
-              }}
-            >
-              {t('displayNotFound.goToDefault')}
-            </WallButton>
-          </div>
-        )}
+        {children}
       </div>
       <style>{`
         @keyframes hs-pulse {

@@ -1,7 +1,8 @@
 /**
  * Stamps the real TCP peer address onto every incoming HTTP request as
  * `x-hs-client-ip`, whether that peer is a trusted proxy as
- * `x-hs-via-trusted-proxy`, and the address the request arrived on as
+ * `x-hs-via-trusted-proxy`, whether a forwarding header came with it as
+ * `x-hs-forwarded`, and the address the request arrived on as
  * `x-hs-local-ip`, before Next.js (proxy or route handlers) sees it.
  *
  * Why a prototype patch: App Router route handlers receive a web-standard
@@ -19,6 +20,7 @@ import http from 'node:http';
 import https from 'node:https';
 import {
   CLIENT_IP_HEADER,
+  FORWARDED_HEADER,
   LOCAL_IP_HEADER,
   VIA_TRUSTED_PROXY_HEADER,
   isTrustedProxyPeer,
@@ -38,6 +40,7 @@ function stampClientIp(req: http.IncomingMessage, trustedProxies: string[]): voi
     Array.isArray(xff) ? xff.join(',') : xff,
     trustedProxies,
   );
+  req.headers[FORWARDED_HEADER] = xff || req.headers['forwarded'] || req.headers['x-real-ip'] ? '1' : '0';
   req.headers[VIA_TRUSTED_PROXY_HEADER] = isTrustedProxyPeer(req.socket?.remoteAddress, trustedProxies) ? '1' : '0';
   // Overwrites any client-supplied value, like the headers above.
   const local = req.socket?.localAddress;

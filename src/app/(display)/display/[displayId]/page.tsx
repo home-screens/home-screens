@@ -1,5 +1,7 @@
 import { readConfig } from '@/lib/config';
-import { getDisplayToken } from '@/lib/auth';
+import { wallPageAccess } from '@/lib/wall-page-access';
+import WallGate from '@/components/display/WallGate';
+import KeepAsWallLine from '@/components/display/KeepAsWallLine';
 import { displayDescriptors, filterConfigForDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import { hubTimezone } from '@/lib/household-day';
@@ -23,6 +25,9 @@ export const dynamic = 'force-dynamic';
  * editor adds the display to `displays`. The display ID still gets registered
  * in `knownDisplays` via the command poll, so it shows up in the editor's
  * "Unadopted Displays" section automatically.
+ *
+ * On a hub with a password, a browser that has not been let in sees neither:
+ * it gets `WallGate` (see `wall-page-access.ts`).
  */
 export default async function DisplayPage({
   params,
@@ -32,11 +37,16 @@ export default async function DisplayPage({
   searchParams: Promise<DisplaySearchParams>;
 }) {
   const { displayId } = await params;
-  const [config, displayToken, preview] = await Promise.all([readConfig(), getDisplayToken(), searchParams.then(parseDisplaySearchParams)]);
+  const [config, access, preview] = await Promise.all([readConfig(), wallPageAccess(), searchParams.then(parseDisplaySearchParams)]);
 
   const filtered = filterConfigForDisplay(config, displayId);
+  // Before anything about the layout is rendered: a browser that has not
+  // been let in gets the gate, which asks the hub and never sees the wall.
+  // For a display the hub does not know yet, asking is also what puts it on
+  // the editor's "waiting to be added" list.
+  if (!access.show) return <WallGate displayId={displayId} known={Boolean(filtered)} />;
   if (!filtered) {
-    return <DisplayNotFound displayId={displayId} displayToken={displayToken ?? null} />;
+    return <DisplayNotFound displayId={displayId} />;
   }
 
   const availableDisplays = displayDescriptors(config.displays);
@@ -48,13 +58,13 @@ export default async function DisplayPage({
         settings={filtered.settings}
         profiles={filtered.profiles}
         rules={filtered.rules}
-        displayToken={displayToken}
         hubTimezone={hubTimezone()}
         configEtag={wallConfigEtag(config)}
         displayId={displayId}
         initialDisplays={availableDisplays}
         {...preview}
       />
+      {access.onSignInOnly && !preview.preview && <KeepAsWallLine displayId={displayId} />}
     </div>
   );
 }

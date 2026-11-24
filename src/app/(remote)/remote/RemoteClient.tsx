@@ -27,6 +27,7 @@ import DisplayPicker from './components/DisplayPicker';
 import AlertSender from './components/AlertSender';
 import SettingsSheet, { type PowerAction } from './components/SettingsSheet';
 import BackupReminderBanner from './components/BackupReminderBanner';
+import WallWaitingBanner from './components/WallWaitingBanner';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
 import { useHouseholdTimezone } from './household-clock';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
@@ -419,6 +420,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 onBackup={backup.handleBackup}
                 onDismiss={backup.handleDismiss}
               />
+              <WallWaitingBanner />
               <DisplayPicker />
               <DisplayHero
                 status={effectiveStatus}

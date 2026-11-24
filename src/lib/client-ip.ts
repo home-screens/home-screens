@@ -47,6 +47,16 @@ export const LOCAL_IP_HEADER = 'x-hs-local-ip';
 export const VIA_TRUSTED_PROXY_HEADER = 'x-hs-via-trusted-proxy';
 
 /**
+ * Server-stamped header: `1` when the request arrived carrying a forwarding
+ * header (`X-Forwarded-For`, `Forwarded`, `X-Real-IP`), `0` when it carried
+ * none. A request from the hub's own address with one of those came through
+ * something else running on the hub, not from the screen plugged into it.
+ * Written by `server-ip-patch.ts` over anything the client sent, and before
+ * Next adds an `X-Forwarded-For` of its own.
+ */
+export const FORWARDED_HEADER = 'x-hs-forwarded';
+
+/**
  * The `X-Forwarded-Host` a trusted proxy sent, or null. Any client can write
  * the header, so it counts only when the TCP peer is one of
  * HS_TRUSTED_PROXIES; from anywhere else it is ignored and the `Host` header

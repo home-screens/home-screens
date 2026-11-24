@@ -1539,5 +1539,12 @@
       "repeatsNote": "{title} se repite. Al guardar, eliges si cambia solo este día o todas las veces.",
       "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "Un monitor espera a que lo dejen entrar.",
+      "other": "{count} monitores esperan a que los dejen entrar."
+    },
+    "openEditor": "Abre el editor para dejarlos entrar"
   }
 }

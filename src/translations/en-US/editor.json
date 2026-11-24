@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Display key",
-        "description": "Your displays use this key to open Home Screens without typing the password. It was created for you when you set the password.",
+        "description": "For Home Assistant, shortcuts and bookmark links that control a display without the password. Your displays don't use it: each one is remembered by Home Screens once it has been let in.",
         "reveal": "Reveal",
         "hide": "Hide",
         "copy": "Copy",
@@ -2383,7 +2383,7 @@
         "regenerating": "Regenerating…",
         "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
-        "regenerateWarning": "Each display reloads once to pick up the new key.",
+        "regenerateWarning": "Anything using the old key stops working until you give it the new one. Your displays keep working.",
         "errorRegenerate": "Couldn't make a new key.",
         "errorCopy": "Couldn't copy it. Select the key and copy it yourself.",
         "phoneHintIntro": "To control a display from a phone, bookmark a link like this one:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Allowed networks",
         "bypassAuth": {
-          "label": "Let displays on these networks in without the key",
+          "label": "Let displays on these networks in without asking",
           "help": "The editor and the family remote still ask for the password."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Changing…",
         "disableSubmit": "Disable",
         "disabling": "Disabling…",
-        "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it."
+        "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
+        "wallsStay": {
+          "one": "Your {count} display stays let in.",
+          "other": "Your {count} displays stay let in."
+        },
+        "wallsOff": "A display that is switched off right now will ask to be let in when it comes back."
       },
       "errors": {
         "passwordsDoNotMatch": "Passwords do not match",
@@ -2944,6 +2949,32 @@
       "customLabel": "Touch alignment numbers",
       "help": "For a touchscreen plugged into this device. When the screen is turned, taps turn with it. Pick \"Leave touch as it is\" if taps already land in the right place.",
       "customHelp": "Six numbers with spaces between them, such as 0 1 0 -1 0 1. Use this when taps land mirrored or a little off. This is the touchscreen calibration matrix."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} display is waiting to be let in",
+        "other": "{count} displays are waiting to be let in"
+      },
+      "waitingHint": "These opened the wall but Home Screens does not know them yet. Let in the ones that are yours. The others can be left: they go away by themselves.",
+      "forDisplay": "for {name}",
+      "askingSince": "asked {time}",
+      "looksFamiliar": "This looks like a display you let in before.",
+      "letIn": "Let in",
+      "letInFailed": "Couldn't let it in. Try again.",
+      "letInByItself": "Let in by itself",
+      "windowTitle": {
+        "one": "{count} display was let in by itself after the update",
+        "other": "{count} displays were let in by themselves after the update"
+      },
+      "windowBody": "Home Screens now remembers each display, and yours carried over. Check that the ones marked “{tag}” are yours. This note goes away by itself in {days} days.",
+      "showingIn": {
+        "one": "Showing in {count} place",
+        "other": "Showing in {count} places"
+      },
+      "showingHint": "Each browser that shows this display. Remove one and it has to be let in again.",
+      "seen": "seen {time}",
+      "removeConsequence": "This browser stops showing the wall and has to be let in again.",
+      "removeFailed": "Couldn't remove it. Try again."
     }
   },
   "backgroundPicker": {

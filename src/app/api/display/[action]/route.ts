@@ -29,6 +29,7 @@ import { safeLibraryPath } from '@/lib/library-files';
 import { cleanLibraryPath } from '@/lib/library-moves';
 import { mediaKindOf } from '@/lib/media-formats';
 import { mintMediaToken } from '@/lib/media-token';
+import { wallCookieForHeartbeat } from '@/lib/wall-heartbeat';
 import { readImageDimensions } from '@/lib/image-dimensions';
 import { readMealData } from '@/lib/meal-data';
 import { mealHasRecipe } from '@/lib/meal-recipe';
@@ -142,16 +143,22 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
       // only in this response, so nothing may be awaited between the two.
       // The id is the wall's own, never resolveTarget's: an untargeted
       // drain is a single-display wall emptying the legacy queue.
+      // The wall cookie first: once drained, commands exist only in this
+      // answer, so nothing slow may come after the drain. A cookie that
+      // could not be worked out costs the wall nothing it had before.
+      const wallCookie = await wallCookieForHeartbeat(request, displayId).catch(() => null);
       const revisions = await readDisplayRevisions();
       const commands = drainCommands(displayId);
       // `sharedStateWatched` tells the display whether an editor is
       // currently polling its shared-state snapshot — only then does the
       // client arm its fast bus-change status re-reporting.
-      return NextResponse.json({
+      const answer = NextResponse.json({
         commands,
         sharedStateWatched: hasSharedStateInterest(displayId),
         revisions,
       });
+      if (wallCookie) answer.headers.set('Set-Cookie', wallCookie);
+      return answer;
     }
     case 'revisions': {
       // An editor preview window follows edits like a wall does, but must

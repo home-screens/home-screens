@@ -217,6 +217,19 @@
     "recoveryNotice": "Este display ainda não está configurado, mas os outros estão. Mudando para o display principal em {seconds} s.",
     "goToDefault": "Ir para o display principal agora"
   },
+  "wallGate": {
+    "title": "Este painel precisa de permissão para entrar",
+    "line": "Um adulto pode fazer isso no editor do Home Screens. Vá em {place} e clique em Deixar entrar.",
+    "waiting": "Aguardando permissão para entrar…",
+    "signIn": "Só quer dar uma olhada? Entre",
+    "noCookieTitle": "Este navegador não está guardando o lugar dele",
+    "noCookieLine": "O Home Screens lembra de um painel com um cookie, e este navegador não o guardou. Ative os cookies para este endereço e carregue a página de novo.",
+    "keepLine": "Você entrou com a senha, então está só olhando.",
+    "keepButton": "Manter como painel",
+    "keepClose": "Fechar",
+    "kept": "Este navegador agora é um painel.",
+    "keepFailed": "Não deu certo. Tente de novo."
+  },
   "login": {
     "checkingAuth": "Verificando autenticação…",
     "title": "Entrar",
@@ -845,5 +858,21 @@
     "putBack": "Item de volta na lista: {item}",
     "deleted": "Item tirado da lista: {item}",
     "undo": "Desfazer"
+  },
+  "wallNames": {
+    "hubScreen": "A tela do próprio Home Screens",
+    "someBrowser": "Um navegador",
+    "browserOn": "{browser} em {device}",
+    "justDevice": "Um navegador em {device}",
+    "device": {
+      "iphone": "um iPhone",
+      "ipad": "um iPad",
+      "androidPhone": "um celular Android",
+      "androidTablet": "um tablet Android",
+      "mac": "um Mac",
+      "windows": "um PC com Windows",
+      "chromebook": "um Chromebook",
+      "linux": "um computador com Linux"
+    }
   }
 }

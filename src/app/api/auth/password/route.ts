@@ -12,6 +12,7 @@ import {
 } from '@/lib/auth';
 import { errorResponse, createRateLimiter, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
+import { keepShowingWallsOnFirstPassword } from '@/lib/display-walls';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +100,11 @@ export async function POST(request: NextRequest) {
       }
       limiter.clear(ip);
     }
+
+    // A first password closes the open door. The walls showing right now
+    // stay let in; ones that stopped showing are dropped. Done before the
+    // password lands so no wall is ever refused in between.
+    if (!authEnabled) await keepShowingWallsOnFirstPassword();
 
     const token = await setPassword(newPassword);
     clearAuthCache();

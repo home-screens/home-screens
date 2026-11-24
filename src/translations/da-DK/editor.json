@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Skærmnøgle",
-        "description": "Dine skærme åbner Home Screens med denne nøgle uden at skrive adgangskoden. Den blev lavet, da du valgte adgangskoden.",
+        "description": "Til Home Assistant, genveje og bogmærker, der styrer en skærm uden adgangskoden. Dine skærme bruger den ikke: Home Screens husker hver skærm, når den er lukket ind.",
         "reveal": "Vis",
         "hide": "Skjul",
         "copy": "Kopiér",
@@ -2383,7 +2383,7 @@
         "regenerating": "Laver ny token…",
         "regenerateConfirm": "Lav en ny nøgle",
         "regenerateCancel": "Annullér",
-        "regenerateWarning": "Hver skærm genindlæser én gang for at bruge den nye nøgle.",
+        "regenerateWarning": "Alt, der bruger den gamle nøgle, holder op med at virke, indtil du giver det den nye. Dine skærme virker stadig.",
         "errorRegenerate": "Kunne ikke lave en ny nøgle.",
         "errorCopy": "Kopieringen mislykkedes. Markér nøglen, og kopiér den selv.",
         "phoneHintIntro": "Vil du styre en skærm fra telefonen, så gem et bogmærke med et link som dette:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Tilladte netværk",
         "bypassAuth": {
-          "label": "Luk skærme på disse netværk ind uden nøglen",
+          "label": "Luk skærme på disse netværk ind uden at spørge",
           "help": "Editoren og familiefjernbetjeningen spørger stadig efter adgangskoden."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Skifter…",
         "disableSubmit": "Slå fra",
         "disabling": "Slår fra…",
-        "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden."
+        "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden.",
+        "wallsStay": {
+          "one": "Din {count} skærm er stadig lukket ind.",
+          "other": "Dine {count} skærme er stadig lukket ind."
+        },
+        "wallsOff": "En skærm, der er slukket lige nu, beder om at blive lukket ind, når den kommer tilbage."
       },
       "errors": {
         "passwordsDoNotMatch": "Adgangskoderne er ikke ens",
@@ -2944,6 +2949,32 @@
       "customLabel": "Tal til justering af berøring",
       "help": "Til en berøringsskærm, der er sluttet til denne enhed. Når skærmen drejes, drejer trykkene med. Vælg \"Lad berøring være, som den er\", hvis trykkene allerede rammer det rigtige sted.",
       "customHelp": "Seks tal med mellemrum imellem, for eksempel 0 1 0 -1 0 1. Brug det, når trykkene rammer spejlvendt eller lidt ved siden af. Det er berøringsskærmens kalibreringsmatrix."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} skærm venter på at blive lukket ind",
+        "other": "{count} skærme venter på at blive lukket ind"
+      },
+      "waitingHint": "De har åbnet væggen, men Home Screens kender dem ikke endnu. Luk dem ind, der er dine. Resten kan du lade være: de forsvinder af sig selv.",
+      "forDisplay": "til {name}",
+      "askingSince": "spurgte {time}",
+      "looksFamiliar": "Det ligner en skærm, du har lukket ind før.",
+      "letIn": "Luk ind",
+      "letInFailed": "Den kunne ikke lukkes ind. Prøv igen.",
+      "letInByItself": "Lukket ind af sig selv",
+      "windowTitle": {
+        "one": "{count} skærm blev lukket ind af sig selv efter opdateringen",
+        "other": "{count} skærme blev lukket ind af sig selv efter opdateringen"
+      },
+      "windowBody": "Home Screens husker nu hver skærm, og dine er fulgt med. Tjek, at dem med mærket “{tag}” er dine. Denne besked forsvinder af sig selv om {days} dage.",
+      "showingIn": {
+        "one": "Vises {count} sted",
+        "other": "Vises {count} steder"
+      },
+      "showingHint": "Hver browser, der viser denne skærm. Fjerner du en, skal den lukkes ind igen.",
+      "seen": "set {time}",
+      "removeConsequence": "Denne browser holder op med at vise væggen og skal lukkes ind igen.",
+      "removeFailed": "Den kunne ikke fjernes. Prøv igen."
     }
   },
   "backgroundPicker": {

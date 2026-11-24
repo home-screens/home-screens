@@ -15,7 +15,7 @@ Use it whenever a change has to be seen working: a fix on `/remote`, a new contr
 
 ## Scripts (in `scripts/`, run from the repo root)
 
-- `hub.sh start <port> [--household] [--seed <data-dir>] [--config <file>] [--assets <dir>] [--root <tree>] [--dev]` builds the sandbox for that port, starts the server and prints the base URL once it answers. `hub.sh stop <port>` stops it and deletes the sandbox (`--keep` leaves the folder). `hub.sh path <port>` prints the sandbox folder; `data/` and `server.log` are inside. `hub.sh sync <port>` refreshes a `--dev` sandbox after an edit.
+- `hub.sh start <port> [--household] [--seed <data-dir>] [--config <file>] [--assets <dir>] [--root <tree>] [--dev] [--lan]` builds the sandbox for that port, starts the server and prints the base URL once it answers. `hub.sh stop <port>` stops it and deletes the sandbox (`--keep` leaves the folder). `hub.sh path <port>` prints the sandbox folder; `data/` and `server.log` are inside. `hub.sh sync <port>` refreshes a `--dev` sandbox after an edit.
 - `seed.mts <data-dir>` writes the made-up household. `--household` runs it for you.
 - `harness.mjs` exports `open()`, the browser harness described below.
 
@@ -49,6 +49,7 @@ Any free port from 1024 up works. The script refuses a port that is in use, so i
 - `--config <file>` uses one file as `data/config.json`, applied last. It is the short form when the config is all you need to set.
 - None of the three gives a brand-new hub with no data, which is the right start for testing first-run and setup flows.
 - `--assets <dir>` puts pictures into `public/backgrounds/` before boot. Next lists `public/` once at startup, so a picture added later answers 404 until a restart.
+- `--lan` makes the sandbox answer on this machine's network address as well as `127.0.0.1`. Use it when the visitor must not look like the hub itself: a request from localhost counts as the hub's own screen, and browsers send different headers to localhost than to a plain-http network address. Anything on the network can reach the sandbox while it runs.
 - `TZ=Europe/Berlin` in front of the command sets the hub's own time zone. It is the only way to test what the server thinks "today" is.
 
 No `auth.json` means no password: `/editor` and `/remote` open without signing in. To test the sign-in itself, set a password through the editor's Security page inside the sandbox.

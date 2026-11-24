@@ -22,7 +22,11 @@ import {
   revokeAllSessions,
   getIpAllowlistConfig,
   setIpAllowlistConfig,
+  carriesDisplayKey,
+  hasEditorSession,
+  wallFromCookies,
 } from '../auth';
+import { __resetWallsForTests, createWall, letWallIn, removeWall } from '../display-walls';
 
 // Per-test filesystem isolation: each test gets its own tmp cwd so writes to
 // data/auth.json never touch the real project directory. This is safe under
@@ -35,6 +39,7 @@ beforeEach(async () => {
   await fs.mkdir(path.join(tmpCwd, 'data'), { recursive: true });
   process.chdir(tmpCwd);
   clearAuthCache();
+  __resetWallsForTests();
 });
 
 afterEach(async () => {
@@ -447,6 +452,93 @@ describe('requireDisplayAuth', () => {
       expect(err).toBeInstanceOf(Response);
       expect((err as Response).status).toBe(401);
     }
+  });
+});
+
+describe('requireDisplayAuth with a wall cookie', () => {
+  const newWall = (status: 'in' | 'waiting') =>
+    createWall({
+      status,
+      ...(status === 'in' ? { admittedBy: 'let-in' as const } : {}),
+      displayId: 'kitchen',
+      address: '192.168.1.50',
+      userAgent: 'Chromium on a Pi',
+      passwordSet: true,
+    });
+  const asWall = (value: string, url = 'http://localhost/api/config') => new Request(url, { headers: { cookie: `hs-display=${value}` } });
+
+  it('accepts a wall that has been let in', async () => {
+    await setPassword('testpassword123');
+    const made = (await newWall('in'))!;
+    await expect(requireDisplayAuth(asWall(made.cookieValue))).resolves.toBeUndefined();
+  });
+
+  it('refuses a wall that is still waiting, and accepts it once let in', async () => {
+    await setPassword('testpassword123');
+    const made = (await newWall('waiting'))!;
+    await expect(requireDisplayAuth(asWall(made.cookieValue))).rejects.toBeInstanceOf(Response);
+    await letWallIn(made.entry.id, 'let-in');
+    await expect(requireDisplayAuth(asWall(made.cookieValue))).resolves.toBeUndefined();
+  });
+
+  it('refuses a removed wall on its next request', async () => {
+    await setPassword('testpassword123');
+    const made = (await newWall('in'))!;
+    await removeWall(made.entry.id);
+    await expect(requireDisplayAuth(asWall(made.cookieValue))).rejects.toBeInstanceOf(Response);
+  });
+
+  it('refuses a made-up cookie', async () => {
+    await setPassword('testpassword123');
+    await newWall('in');
+    await expect(requireDisplayAuth(asWall('garbage'))).rejects.toBeInstanceOf(Response);
+    await expect(requireDisplayAuth(asWall('abc.def'))).rejects.toBeInstanceOf(Response);
+  });
+
+  it('is not an editor session: a wall cannot do what only the editor may', async () => {
+    await setPassword('testpassword123');
+    const made = (await newWall('in'))!;
+    expect(await hasEditorSession(asWall(made.cookieValue))).toBe(false);
+    await expect(requireSession(asWall(made.cookieValue))).rejects.toBeInstanceOf(Response);
+  });
+
+  it('survives a new display key and a changed password', async () => {
+    await setPassword('testpassword123');
+    const made = (await newWall('in'))!;
+    await regenerateDisplayToken();
+    await setPassword('anotherpassword456');
+    clearAuthCache();
+    await expect(requireDisplayAuth(asWall(made.cookieValue))).resolves.toBeUndefined();
+  });
+
+  it('finds no wall for a request with no wall cookie', async () => {
+    await setPassword('testpassword123');
+    expect(await wallFromCookies('hs-session=abc')).toBeNull();
+  });
+});
+
+describe('carriesDisplayKey', () => {
+  it('is true for the key in the Authorization header', async () => {
+    await setPassword('testpassword123');
+    const key = (await getDisplayToken())!;
+    expect(await carriesDisplayKey(new Request('http://localhost/api/display/commands', { headers: { authorization: `Bearer ${key}` } }))).toBe(true);
+  });
+
+  it('is true for the key in the query of a display route, and nowhere else', async () => {
+    await setPassword('testpassword123');
+    const key = (await getDisplayToken())!;
+    expect(await carriesDisplayKey(new Request(`http://localhost/api/display/commands?token=${key}`))).toBe(true);
+    expect(await carriesDisplayKey(new Request(`http://localhost/api/config?token=${key}`))).toBe(false);
+  });
+
+  it('is false for a wrong key, a session, or nothing', async () => {
+    await setPassword('testpassword123');
+    expect(await carriesDisplayKey(new Request('http://localhost/api/display/commands', { headers: { authorization: 'Bearer nope' } }))).toBe(false);
+    expect(await carriesDisplayKey(new Request('http://localhost/api/display/commands'))).toBe(false);
+  });
+
+  it('is false when no password is set: there is no key to carry', async () => {
+    expect(await carriesDisplayKey(new Request('http://localhost/api/display/commands', { headers: { authorization: 'Bearer anything' } }))).toBe(false);
   });
 });
 

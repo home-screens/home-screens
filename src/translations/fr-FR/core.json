@@ -217,6 +217,19 @@
     "recoveryNotice": "Cet affichage n'est pas encore configuré, mais tes autres affichages le sont. Passage à l'affichage principal dans {seconds} s.",
     "goToDefault": "Aller à l'affichage principal maintenant"
   },
+  "wallGate": {
+    "title": "Il faut laisser entrer ce mur",
+    "line": "Un adulte peut le faire dans l'éditeur Home Screens. Va dans {place} et clique sur Laisser entrer.",
+    "waiting": "En attente d'être autorisé à entrer…",
+    "signIn": "Juste un coup d'œil ? Connecte-toi",
+    "noCookieTitle": "Ce navigateur ne garde pas sa place",
+    "noCookieLine": "Home Screens reconnaît un mur grâce à un cookie, et ce navigateur ne l'a pas gardé. Active les cookies pour cette adresse, puis recharge la page.",
+    "keepLine": "Tu es connecté, donc tu ne fais que regarder.",
+    "keepButton": "Garder comme mur",
+    "keepClose": "Fermer",
+    "kept": "Ce navigateur est maintenant un mur.",
+    "keepFailed": "Ça n'a pas marché. Réessaie."
+  },
   "login": {
     "checkingAuth": "Vérification de l'authentification…",
     "title": "Connexion",
@@ -843,5 +856,21 @@
     "putBack": "De retour sur la liste : {item}",
     "deleted": "Élément retiré de la liste : {item}.",
     "undo": "Annuler"
+  },
+  "wallNames": {
+    "hubScreen": "L'écran de Home Screens lui-même",
+    "someBrowser": "Un navigateur",
+    "browserOn": "{browser} sur {device}",
+    "justDevice": "Un navigateur sur {device}",
+    "device": {
+      "iphone": "un iPhone",
+      "ipad": "un iPad",
+      "androidPhone": "un téléphone Android",
+      "androidTablet": "une tablette Android",
+      "mac": "un Mac",
+      "windows": "un PC Windows",
+      "chromebook": "un Chromebook",
+      "linux": "un ordinateur Linux"
+    }
   }
 }

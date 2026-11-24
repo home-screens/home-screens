@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import ModalFrame, { ModalBody, ModalFooter, ModalHeader, ModalPanel } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
@@ -46,6 +46,22 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
   const [confirmPassword, setConfirmPassword] = useState('');
   const [modalStatus, setModalStatus] = useState<ModalStatus | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // How many displays are showing right now, for the line that says they
+  // stay let in. Only asked when a first password is being set.
+  const [showingCount, setShowingCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (mode !== 'set') return;
+    let live = true;
+    editorFetch('/api/display/walls')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { showingCount?: number } | null) => {
+        if (live && data && typeof data.showingCount === 'number') setShowingCount(data.showingCount);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [mode]);
 
   async function handleSetPassword() {
     if (newPassword !== confirmPassword) {
@@ -229,6 +245,13 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
               <FieldHint>
                 {t('settings.securityPage.modal.disableWarning')}
               </FieldHint>
+            )}
+
+            {mode === 'set' && showingCount !== null && showingCount > 0 && (
+              <p className="text-xs text-hs-text-muted border-t border-hs-border pt-3" data-testid="first-password-walls">
+                <span className="font-medium text-hs-text-body">{t('settings.securityPage.modal.wallsStay', { count: showingCount })}</span>{' '}
+                {t('settings.securityPage.modal.wallsOff')}
+              </p>
             )}
 
             {modalStatus && (

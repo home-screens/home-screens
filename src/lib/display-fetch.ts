@@ -1,14 +1,11 @@
 /**
- * Authenticated fetch wrapper for the display client.
+ * Fetch wrapper for the display client.
  *
- * The display page reads the display token server-side from auth.json and
- * passes it as a prop to ScreenRotator, which calls setDisplayToken() once
- * on mount. All subsequent display-side fetches use displayFetch() to
- * automatically include the Authorization: Bearer header.
+ * A wall proves itself with its `hs-display` cookie (`display-walls.ts`),
+ * which the browser sends with every same-origin request, so nothing is
+ * added here for that. The display key is never given to a page.
  *
- * When auth is disabled (token is null), fetches are made without the header.
- *
- * Every request is also bounded in time. After a Wi-Fi drop on a Pi, or
+ * Every request is bounded in time. After a Wi-Fi drop on a Pi, or
  * while the hub is busy with an upgrade, a request can sit half-open until
  * TCP gives up on it, which is minutes. The 3 s pollers keep starting new
  * ones meanwhile, Chromium's six connections to the hub fill with dead
@@ -32,13 +29,6 @@ export interface DisplayFetchInit extends RequestInit {
    * `DISPLAY_FETCH_TIMEOUT_MS`; `null` leaves the request unbounded.
    */
   timeoutMs?: number | null;
-}
-
-let token: string | null = null;
-
-/** Called once by ScreenRotator on mount with the server-provided token. */
-export function setDisplayToken(t: string | null) {
-  token = t;
 }
 
 /**
@@ -71,18 +61,10 @@ export function timeoutSignal(
   return controller.signal;
 }
 
-/** Fetch wrapper that injects the display Bearer token and bounds the request in time. */
+/** Fetch wrapper that bounds the request in time. */
 export function displayFetch(input: string | URL | Request, init?: DisplayFetchInit): Promise<Response> {
   const { timeoutMs = DISPLAY_FETCH_TIMEOUT_MS, ...rest } = init ?? {};
   const options: RequestInit = rest;
   if (timeoutMs !== null) options.signal = timeoutSignal(timeoutMs, rest.signal);
-
-  if (token) {
-    const headers = new Headers(options.headers);
-    if (!headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
-    options.headers = headers;
-  }
   return fetch(input, options);
 }

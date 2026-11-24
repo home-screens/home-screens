@@ -14,6 +14,10 @@ export async function register(): Promise<void> {
     // power cut). Nothing else ever removes them.
     const { sweepStaleTempFiles } = await import('./lib/json-store');
     await sweepStaleTempFiles().catch(() => {});
+    // On a hub that already has a password, the first boot of a version
+    // with walls is when the 30 days for existing walls to move over begin.
+    const [{ isAuthEnabled }, { initWalls }] = await Promise.all([import('./lib/auth'), import('./lib/display-walls')]);
+    await isAuthEnabled().then(initWalls).catch(() => {});
     // Installs updates at the owner's chosen time when that is switched on.
     // Does nothing outside a production server or with HS_DISABLE_AUTO_UPDATE=1.
     const { startAutoUpdateScheduler } = await import('./lib/auto-update-scheduler');

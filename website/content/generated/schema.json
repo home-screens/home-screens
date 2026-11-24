@@ -11836,6 +11836,15 @@
       ]
     },
     {
+      "path": "/api/display/claim",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "open"
+        }
+      ]
+    },
+    {
       "path": "/api/display/console-log",
       "methods": [
         {
@@ -11877,6 +11886,32 @@
         {
           "method": "GET",
           "access": "adopted"
+        }
+      ]
+    },
+    {
+      "path": "/api/display/walls",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        },
+        {
+          "method": "POST",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/display/walls/keep",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
         }
       ]
     },

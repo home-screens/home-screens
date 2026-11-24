@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   displayFetch,
-  setDisplayToken,
   DISPLAY_FETCH_TIMEOUT_MS,
   DISPLAY_FETCH_LONG_TIMEOUT_MS,
 } from '../display-fetch';
@@ -15,7 +14,6 @@ function lastInit(): RequestInit {
 describe('displayFetch', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    setDisplayToken(null);
     vi.stubGlobal(
       'fetch',
       vi.fn(() =>
@@ -24,49 +22,24 @@ describe('displayFetch', () => {
     );
   });
 
-  it('calls fetch without Authorization header when no token is set', async () => {
+  it('adds no Authorization header: a wall proves itself with its cookie', async () => {
     await displayFetch('http://localhost/api/config');
 
     expect(fetch).toHaveBeenCalledWith('http://localhost/api/config', expect.any(Object));
     expect(lastInit().headers).toBeUndefined();
   });
 
-  it('adds Authorization header when token is set', async () => {
-    setDisplayToken('my-display-token');
-
-    await displayFetch('http://localhost/api/config');
-
-    const call = vi.mocked(fetch).mock.calls[0];
-    const init = call[1] as RequestInit;
-    const headers = new Headers(init.headers);
-    expect(headers.get('Authorization')).toBe('Bearer my-display-token');
-  });
-
-  it('does not overwrite existing Authorization header', async () => {
-    setDisplayToken('my-display-token');
-
-    await displayFetch('http://localhost/api/config', {
-      headers: { Authorization: 'Bearer custom-token' },
-    });
-
-    const call = vi.mocked(fetch).mock.calls[0];
-    const init = call[1] as RequestInit;
-    const headers = new Headers(init.headers);
-    expect(headers.get('Authorization')).toBe('Bearer custom-token');
-  });
-
-  it('passes through other init options when adding token', async () => {
-    setDisplayToken('my-token');
-
+  it('passes the caller\'s headers and other options through untouched', async () => {
     await displayFetch('http://localhost/api/config', {
       method: 'POST',
       body: '{}',
+      headers: { Authorization: 'Bearer custom-token' },
     });
 
-    const call = vi.mocked(fetch).mock.calls[0];
-    const init = call[1] as RequestInit;
+    const init = lastInit();
     expect(init.method).toBe('POST');
     expect(init.body).toBe('{}');
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer custom-token');
   });
 
   it('works with URL objects', async () => {
@@ -76,14 +49,6 @@ describe('displayFetch', () => {
     expect(fetch).toHaveBeenCalledWith(url, expect.any(Object));
   });
 
-  it('resumes unauthenticated fetch after clearing token', async () => {
-    setDisplayToken('my-token');
-    setDisplayToken(null);
-
-    await displayFetch('http://localhost/api/config');
-
-    expect(lastInit().headers).toBeUndefined();
-  });
 });
 
 /**
@@ -94,7 +59,6 @@ describe('displayFetch', () => {
 describe('displayFetch timeouts', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    setDisplayToken(null);
     // A hub that never answers: fetch settles only when its signal fires.
     vi.stubGlobal('fetch', vi.fn((_input: unknown, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
       init?.signal?.addEventListener('abort', () => reject(init.signal!.reason));

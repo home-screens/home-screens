@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Clé d'affichage",
-        "description": "Vos affichages ouvrent Home Screens avec cette clé, sans taper le mot de passe. Elle a été créée quand vous avez défini le mot de passe.",
+        "description": "Pour Home Assistant, les raccourcis et les favoris qui commandent un affichage sans le mot de passe. Vos affichages ne s'en servent pas : Home Screens se souvient de chacun dès qu'on l'a laissé entrer.",
         "reveal": "Afficher",
         "hide": "Masquer",
         "copy": "Copier",
@@ -2383,7 +2383,7 @@
         "regenerating": "Régénération…",
         "regenerateConfirm": "Créer une nouvelle clé",
         "regenerateCancel": "Annuler",
-        "regenerateWarning": "Chaque affichage se recharge une fois pour prendre la nouvelle clé.",
+        "regenerateWarning": "Tout ce qui utilise l'ancienne clé cesse de fonctionner tant que vous n'y mettez pas la nouvelle. Vos affichages continuent de fonctionner.",
         "errorRegenerate": "Impossible de créer une nouvelle clé.",
         "errorCopy": "Impossible de copier. Sélectionnez la clé et copiez-la vous-même.",
         "phoneHintIntro": "Pour piloter un affichage depuis votre téléphone, mettez en favori un lien comme celui-ci :",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Réseaux autorisés",
         "bypassAuth": {
-          "label": "Laisser entrer les affichages de ces réseaux sans la clé",
+          "label": "Laisser entrer les affichages de ces réseaux sans demander",
           "help": "L'éditeur et la télécommande familiale demandent toujours le mot de passe."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Changement…",
         "disableSubmit": "Désactiver",
         "disabling": "Désactivation…",
-        "setExplanation": "Un seul mot de passe pour toute la maison. Ensuite, la télécommande familiale et l'éditeur le demandent. Le mur et la page des tâches des enfants continuent sans."
+        "setExplanation": "Un seul mot de passe pour toute la maison. Ensuite, la télécommande familiale et l'éditeur le demandent. Le mur et la page des tâches des enfants continuent sans.",
+        "wallsStay": {
+          "one": "Votre {count} affichage reste autorisé.",
+          "other": "Vos {count} affichages restent autorisés."
+        },
+        "wallsOff": "Un affichage éteint en ce moment demandera à entrer quand il reviendra."
       },
       "errors": {
         "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
@@ -2944,6 +2949,32 @@
       "customLabel": "Nombres d’alignement du tactile",
       "help": "Pour un écran tactile branché sur cet appareil. Quand l’écran est tourné, les appuis tournent avec lui. Choisissez « Laisser le tactile tel quel » si les appuis arrivent déjà au bon endroit.",
       "customHelp": "Six nombres séparés par des espaces, par exemple 0 1 0 -1 0 1. À utiliser quand les appuis arrivent en miroir ou un peu décalés. C’est la matrice de calibration de l’écran tactile."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} affichage attend d'être autorisé à entrer",
+        "other": "{count} affichages attendent d'être autorisés à entrer"
+      },
+      "waitingHint": "Ils ont ouvert le mur, mais Home Screens ne les connaît pas encore. Laissez entrer ceux qui sont à vous. Les autres peuvent rester là : ils disparaissent tout seuls.",
+      "forDisplay": "pour {name}",
+      "askingSince": "demandé {time}",
+      "looksFamiliar": "Cela ressemble à un affichage que vous avez déjà laissé entrer.",
+      "letIn": "Laisser entrer",
+      "letInFailed": "Impossible de le laisser entrer. Réessayez.",
+      "letInByItself": "Entré tout seul",
+      "windowTitle": {
+        "one": "{count} affichage est entré tout seul après la mise à jour",
+        "other": "{count} affichages sont entrés tout seuls après la mise à jour"
+      },
+      "windowBody": "Home Screens se souvient maintenant de chaque affichage, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {days} jours.",
+      "showingIn": {
+        "one": "Affiché à {count} endroit",
+        "other": "Affiché à {count} endroits"
+      },
+      "showingHint": "Chaque navigateur qui montre cet affichage. Si vous en retirez un, il faudra le laisser entrer à nouveau.",
+      "seen": "vu {time}",
+      "removeConsequence": "Ce navigateur ne montre plus le mur et devra être autorisé à entrer à nouveau.",
+      "removeFailed": "Impossible de le retirer. Réessayez."
     }
   },
   "backgroundPicker": {

@@ -217,6 +217,19 @@
     "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} s.",
     "goToDefault": "Gå til hovedskærmen nu"
   },
+  "wallGate": {
+    "title": "Denne væg skal lukkes ind",
+    "line": "Det kan en voksen gøre i Home Screens-editoren. Gå til {place}, og klik på Luk ind.",
+    "waiting": "Venter på at blive lukket ind…",
+    "signIn": "Vil du bare kigge? Log ind",
+    "noCookieTitle": "Denne browser husker ikke sin plads",
+    "noCookieLine": "Home Screens husker en væg med en cookie, og denne browser beholdt den ikke. Slå cookies til for denne adresse, og indlæs siden igen.",
+    "keepLine": "Du er logget ind, så du kigger bare med.",
+    "keepButton": "Behold som væg",
+    "keepClose": "Luk",
+    "kept": "Denne browser er nu en væg.",
+    "keepFailed": "Det lykkedes ikke. Prøv igen."
+  },
   "login": {
     "checkingAuth": "Kontrollerer godkendelse…",
     "title": "Log ind",
@@ -843,5 +856,21 @@
     "putBack": "{item} står på listen igen",
     "deleted": "{item} er fjernet fra listen.",
     "undo": "Fortryd"
+  },
+  "wallNames": {
+    "hubScreen": "Home Screens' egen skærm",
+    "someBrowser": "En browser",
+    "browserOn": "{browser} på {device}",
+    "justDevice": "En browser på {device}",
+    "device": {
+      "iphone": "en iPhone",
+      "ipad": "en iPad",
+      "androidPhone": "en Android-telefon",
+      "androidTablet": "en Android-tablet",
+      "mac": "en Mac",
+      "windows": "en Windows-pc",
+      "chromebook": "en Chromebook",
+      "linux": "en Linux-computer"
+    }
   }
 }

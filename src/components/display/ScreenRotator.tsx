@@ -53,7 +53,6 @@ import { RULE_WAKE_HOLD_MS, WAKE_TAP_GUARD_MS } from '@/hooks/useSleepManager';
 import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
-import { setDisplayToken } from '@/lib/display-fetch';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
 import { BurnInProtectionProvider } from '@/components/display/burn-in-context';
@@ -79,7 +78,6 @@ interface ScreenRotatorProps {
   profiles?: Profile[];
   /** Condition → action rules owned by this display (config.rules in legacy mode). */
   rules?: DisplayRule[];
-  displayToken?: string | null;
   /**
    * Multi-display routing key. When set, the live config hook re-filters
    * each `/api/config` poll for this display, and command/status traffic
@@ -139,10 +137,7 @@ export function placeAfterSetChange(previous: Screen[], previousIndex: number, n
   return 0;
 }
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false, configEtag }: ScreenRotatorProps) {
-  // Set display token before any fetches fire — useLayoutEffect runs before useEffect
-  useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
-
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayId, initialDisplays, initialScreenId, preview = false, configEtag }: ScreenRotatorProps) {
   const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules, configEtag, preview ? 'preview' : 'display');
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading

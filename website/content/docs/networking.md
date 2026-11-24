@@ -440,6 +440,8 @@ No inbound ports beyond the web server port are required. All external service c
 
 ## Security best practices
 
+Home Screens is made for a network you trust: your own home Wi-Fi, where everyone who can connect is family. If guests, staff or customers share the network, set a password. It keeps the editor, the family remote and the wall itself to the people and displays you have let in. It does not cover the kids' chores page, which stays open to anyone on the network, and it is not built to hold against someone determined who is already on your network; for that, put Home Screens on a network of its own.
+
 Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your Wi-Fi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here. Backing up your API keys and connected accounts is the one thing that always needs a password, since without one the hub cannot tell you from anyone else on the network.
 
 ### Enable password protection
@@ -450,17 +452,35 @@ Set a password in the editor under **Settings > Security**. When enabled:
 - All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie, **except** the chore-toggle endpoint (`POST /api/chores`), the bonus-chore grab endpoint (`POST /api/chores/grab`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
 - Every display-control endpoint (`/api/display/*`) requires either a login or the display token, described under [Remote display control](#if-you-have-set-a-password)
-- The display view (`/display`) remains accessible without login
+- The wall (`/display`) shows only on a display that has been let in, or in a browser where you are signed in. See [Which displays are let in](#which-displays-are-let-in)
 - The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
-- Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
+- Read-only data endpoints (weather, calendar, etc.) answer a display that has been let in, the display key, or a login
 
-Password protection is the right default for most LANs. If you want to lock things down further, including the kids' chores page and the display itself, add an IP allowlist on top as described below.
+Password protection is the right default for most LANs. If you want to lock things down further, including the kids' chores page, add an IP allowlist on top as described below.
+
+### Which displays are let in
+
+With a password set, Home Screens remembers each display's browser once it has been let in, and from then on that display just works: through restarts, updates, a new password and a new display key. A browser that has not been let in sees "This wall needs to be let in" and nothing of your screens.
+
+A display is let in without anyone clicking anything when it is:
+
+- **The screen plugged into the hub itself.**
+- **A new display-only Pi you add.** It waits under its new name, and clicking **Add** in **Settings > Displays** lets it in.
+- **On a network you listed** under Allowed networks with **Let displays on these networks in without asking** turned on.
+- **Already showing when you first set a password.** Displays that are switched off at that moment ask to be let in when they come back.
+- **One of your displays in the 30 days after updating** to the version that introduced this. Displays that were on during the update carry over by themselves, and one that was off is let in on its first visit. The editor lists any display let in this way so you can check it is yours.
+
+Anything else waits until you click **Let in** next to it in **Settings > Displays**. To look at the wall from your own laptop, sign in; that shows it for as long as you stay signed in and does not add a display. If you do want that browser to be a display (an old tablet on a shelf, say), tap **Keep as a wall** on the line that appears at the bottom for the first few seconds, and it goes on showing after you sign out. Each display's own page lists where it is showing, with **Remove** next to each one.
+
+A display is remembered by a cookie in its browser, so one whose browser data is wiped (a re-flashed SD card, a browser reset) asks to be let in again. If a display's browser forgets its cookies every time it restarts, list its network under Allowed networks instead.
+
+If something else on the hub forwards requests to Home Screens (a reverse proxy, a tunnel), make sure it sends `X-Forwarded-For`, as the nginx example on this page does. That header is how Home Screens tells the proxy's visitors from the screen plugged into the hub. A proxy that adds no forwarding header at all makes every visitor look like the hub's own screen, and they are let in. The Docker image has no screen of its own and never lets one in this way (`HS_NO_HUB_SCREEN=1`).
 
 ### Restrict access by IP
 
 In addition to (or instead of) a password, Home Screens can gate every route on the server by the caller's IP address. The editor surfaces this under **Settings > Security > Allowed networks** and it has two independent toggles, both opt-in and both off by default.
 
-**Let displays on these networks in without the key.** Add your LAN subnets (for example `192.168.1.0/24`) and turn on the first toggle. Requests from an allowlisted address then read display data with no display token: the kiosk's polls, the cached data endpoints and every `requireDisplayAuth` route, plus the `GET` form of the simple commands such as `/api/display/wake`. A `POST` still needs the display token or a session, because the password check in front of every write runs first. The editor and the family remote still ask for the password; this toggle never skips the login.
+**Let displays on these networks in without asking.** Add your LAN subnets (for example `192.168.1.0/24`) and turn on the first toggle. A display on one of those networks is then let in the first time it opens the wall, with no click in the editor, and stays let in if you later turn the toggle off. Scripts on those networks can also read display data and send the `GET` form of the simple commands such as `/api/display/wake` with no display key; a `POST` from a script still needs the display key or a session, because the password check in front of every write runs first. The editor and the family remote still ask for the password; this toggle never skips the login.
 
 **Only allow these networks.** The second toggle is the harder wall. When enabled, Home Screens blocks every non-allowlisted IP from every route except `/login`, `/api/auth/status` and `/api/health` (which says only which version is running, see the [API reference](/docs/api#is-the-hub-up)); API callers receive `403 JSON`, browsers are redirected to the login page, which shows an "Access restricted" note. The check runs before the password gate, so an attacker who somehow knows the password still can't get in. Enabling the toggle from a client whose own IP is not in the allowlist returns `409 Conflict` without saving, the UI then shows a lockout warning and a **Save anyway** button for the rare case where you really want to lock yourself out immediately.
 

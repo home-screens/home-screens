@@ -115,14 +115,14 @@ const KEY_RELOAD_AT = 'hs-display-key-reload-at';
 const KEY_RELOAD_EVERY_MS = 60_000;
 
 /**
- * Whether a wall the hub just refused should reload to pick up a new key.
+ * Whether a wall the hub just refused should reload.
  *
- * The key is handed to the page when it is rendered, so a wall that was open
- * when a grown-up made a new key (or first set a password) holds one the hub
- * no longer accepts, and every beat after that is refused: no commands, no
- * layout changes, no way to tell it to reload. Loading the page again gets
- * the current key. At most once a minute, remembered across the reload, so
- * a wall the hub keeps refusing for another reason does not spin.
+ * A wall is refused when a grown-up removed it, or when its sign-in ran
+ * out on a browser that was only looking. Every beat after that is refused
+ * too: no commands, no layout changes, no way to tell it to reload. Loading
+ * the page again lands on the page that asks to be let in. At most once a
+ * minute, remembered across the reload, so a wall the hub keeps refusing
+ * for another reason does not spin.
  */
 function reloadForNewKey(): boolean {
   try {

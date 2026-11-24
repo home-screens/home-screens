@@ -217,6 +217,19 @@
     "recoveryNotice": "Dit display is nog niet ingesteld, je andere displays wel. Over {seconds} s wordt overgeschakeld naar het hoofddisplay.",
     "goToDefault": "Nu naar het hoofddisplay"
   },
+  "wallGate": {
+    "title": "Deze muur moet nog worden binnengelaten",
+    "line": "Een volwassene kan dat doen in de Home Screens-editor. Ga naar {place} en klik op Binnenlaten.",
+    "waiting": "Wachten om binnengelaten te worden…",
+    "signIn": "Alleen even kijken? Meld je aan",
+    "noCookieTitle": "Deze browser onthoudt zijn plek niet",
+    "noCookieLine": "Home Screens onthoudt een muur met een cookie, en deze browser heeft die niet bewaard. Zet cookies aan voor dit adres en laad de pagina opnieuw.",
+    "keepLine": "Je bent aangemeld, dus je kijkt alleen even mee.",
+    "keepButton": "Houden als muur",
+    "keepClose": "Sluiten",
+    "kept": "Deze browser is nu een muur.",
+    "keepFailed": "Dat lukte niet. Probeer het opnieuw."
+  },
   "login": {
     "checkingAuth": "Authenticatie controleren…",
     "title": "Aanmelden",
@@ -843,5 +856,21 @@
     "putBack": "Weer op de lijst: {item}",
     "deleted": "{item} van de lijst gehaald.",
     "undo": "Ongedaan maken"
+  },
+  "wallNames": {
+    "hubScreen": "Het eigen scherm van Home Screens",
+    "someBrowser": "Een browser",
+    "browserOn": "{browser} op {device}",
+    "justDevice": "Een browser op {device}",
+    "device": {
+      "iphone": "een iPhone",
+      "ipad": "een iPad",
+      "androidPhone": "een Android-telefoon",
+      "androidTablet": "een Android-tablet",
+      "mac": "een Mac",
+      "windows": "een Windows-pc",
+      "chromebook": "een Chromebook",
+      "linux": "een Linux-computer"
+    }
   }
 }

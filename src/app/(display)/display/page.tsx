@@ -1,5 +1,7 @@
 import { readConfig } from '@/lib/config';
-import { getDisplayToken } from '@/lib/auth';
+import { wallPageAccess } from '@/lib/wall-page-access';
+import WallGate from '@/components/display/WallGate';
+import KeepAsWallLine from '@/components/display/KeepAsWallLine';
 import { displayDescriptors, filterConfigForDisplay, findMainDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import { hubTimezone } from '@/lib/household-day';
@@ -29,15 +31,18 @@ export default async function DisplayPage({
 }: {
   searchParams: Promise<DisplaySearchParams>;
 }) {
-  const [config, displayToken, preview] = await Promise.all([readConfig(), getDisplayToken(), searchParams.then(parseDisplaySearchParams)]);
+  const [config, access, preview] = await Promise.all([readConfig(), wallPageAccess(), searchParams.then(parseDisplaySearchParams)]);
 
   const availableDisplays = displayDescriptors(config.displays);
 
   const target = findMainDisplay(config.displays);
+  // Before anything about the layout is rendered: a browser that has not
+  // been let in gets the gate, which asks the hub and never sees the wall.
+  if (!access.show) return <WallGate displayId={target?.id} known />;
   if (target) {
     const filtered = filterConfigForDisplay(config, target.id);
     if (!filtered) {
-      return <DisplayNotFound displayId={target.id} displayToken={displayToken ?? null} />;
+      return <DisplayNotFound displayId={target.id} />;
     }
     return (
       <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#000' }}>
@@ -46,13 +51,13 @@ export default async function DisplayPage({
           settings={filtered.settings}
           profiles={filtered.profiles}
           rules={filtered.rules}
-          displayToken={displayToken}
           hubTimezone={hubTimezone()}
           configEtag={wallConfigEtag(config)}
           displayId={target.id}
           initialDisplays={availableDisplays}
           {...preview}
         />
+        {access.onSignInOnly && !preview.preview && <KeepAsWallLine displayId={target.id} />}
       </div>
     );
   }
@@ -64,12 +69,12 @@ export default async function DisplayPage({
         settings={config.settings}
         profiles={config.profiles}
         rules={config.rules}
-        displayToken={displayToken}
         hubTimezone={hubTimezone()}
         configEtag={wallConfigEtag(config)}
         initialDisplays={availableDisplays}
         {...preview}
       />
+      {access.onSignInOnly && !preview.preview && <KeepAsWallLine />}
     </div>
   );
 }

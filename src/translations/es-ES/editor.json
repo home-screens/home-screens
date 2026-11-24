@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Clave del display",
-        "description": "Tus pantallas abren Home Screens con esta clave, sin escribir la contraseña. Se creó cuando definiste la contraseña.",
+        "description": "Para Home Assistant, atajos y marcadores que controlan un display sin la contraseña. Tus displays no la usan: Home Screens recuerda cada uno desde que se le deja entrar.",
         "reveal": "Mostrar",
         "hide": "Ocultar",
         "copy": "Copiar",
@@ -2383,7 +2383,7 @@
         "regenerating": "Regenerando…",
         "regenerateConfirm": "Crear una clave nueva",
         "regenerateCancel": "Cancelar",
-        "regenerateWarning": "Cada pantalla se recarga una vez para tomar la clave nueva.",
+        "regenerateWarning": "Todo lo que use la clave antigua deja de funcionar hasta que le des la nueva. Tus displays siguen funcionando.",
         "errorRegenerate": "No se pudo crear una clave nueva.",
         "errorCopy": "No se pudo copiar. Selecciona la clave y cópiala a mano.",
         "phoneHintIntro": "Para controlar un display desde el teléfono, guarda un marcador con un enlace como este:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Redes permitidas",
         "bypassAuth": {
-          "label": "Dejar entrar a los displays de estas redes sin la clave",
+          "label": "Dejar entrar a los displays de estas redes sin preguntar",
           "help": "El editor y el mando familiar siguen pidiendo la contraseña."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Cambiando…",
         "disableSubmit": "Desactivar",
         "disabling": "Desactivando…",
-        "setExplanation": "Una contraseña para toda la casa. A partir de ahí, el mando familiar y el editor la piden. El monitor y la página de tareas de los niños siguen funcionando sin ella."
+        "setExplanation": "Una contraseña para toda la casa. A partir de ahí, el mando familiar y el editor la piden. El monitor y la página de tareas de los niños siguen funcionando sin ella.",
+        "wallsStay": {
+          "one": "Tu {count} display sigue teniendo permiso para entrar.",
+          "other": "Tus {count} displays siguen teniendo permiso para entrar."
+        },
+        "wallsOff": "Un display que esté apagado ahora mismo pedirá entrar cuando vuelva."
       },
       "errors": {
         "passwordsDoNotMatch": "Las contraseñas no coinciden",
@@ -2944,6 +2949,32 @@
       "customLabel": "Números de alineación táctil",
       "help": "Para una pantalla táctil conectada a este dispositivo. Cuando la pantalla se gira, los toques giran con ella. Elige «Dejar el táctil como está» si los toques ya caen en el lugar correcto.",
       "customHelp": "Seis números separados por espacios, por ejemplo 0 1 0 -1 0 1. Úsalo cuando los toques caen reflejados o un poco desviados. Es la matriz de calibración de la pantalla táctil."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} display espera a que lo dejen entrar",
+        "other": "{count} displays esperan a que los dejen entrar"
+      },
+      "waitingHint": "Han abierto el monitor, pero Home Screens aún no los conoce. Deja entrar a los que sean tuyos. Los demás puedes dejarlos: desaparecen solos.",
+      "forDisplay": "para {name}",
+      "askingSince": "lo pidió {time}",
+      "looksFamiliar": "Parece un display al que ya dejaste entrar.",
+      "letIn": "Dejar entrar",
+      "letInFailed": "No se ha podido dejar entrar. Inténtalo de nuevo.",
+      "letInByItself": "Entró solo",
+      "windowTitle": {
+        "one": "{count} display entró solo después de la actualización",
+        "other": "{count} displays entraron solos después de la actualización"
+      },
+      "windowBody": "Home Screens ahora recuerda cada display, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {days} días.",
+      "showingIn": {
+        "one": "Se muestra en {count} sitio",
+        "other": "Se muestra en {count} sitios"
+      },
+      "showingHint": "Cada navegador que muestra este display. Si quitas uno, habrá que dejarlo entrar otra vez.",
+      "seen": "visto {time}",
+      "removeConsequence": "Este navegador deja de mostrar el monitor y habrá que dejarlo entrar otra vez.",
+      "removeFailed": "No se ha podido quitar. Inténtalo de nuevo."
     }
   },
   "backgroundPicker": {

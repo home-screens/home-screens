@@ -20,6 +20,8 @@ import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
 import DisplaySoftwareCard from './DisplaySoftwareCard';
+import { WallsBlock } from './WallsPanels';
+import { useWalls } from '@/hooks/useWalls';
 import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
 import { NO_VALUE } from '@/lib/constants';
 
@@ -69,6 +71,7 @@ export default function OverviewSubtab({
   reporterIp,
 }: OverviewSubtabProps) {
   const t = useTranslate('editor');
+  const { data: walls, remove: removeWall } = useWalls();
   const dims = display.displayWidth && display.displayHeight
     ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
@@ -124,6 +127,9 @@ export default function OverviewSubtab({
         </KvCard>
         <KvCard label={t('settings.perDisplayPage.overview.screensLabel')}>{screenCount}</KvCard>
       </div>
+
+      {/* Hidden on a hub with no password, where every browser is let in. */}
+      <WallsBlock walls={walls?.walls ?? []} displayId={display.id} onRemove={removeWall} className="mb-5" />
 
       {panelPowerEnabled && (
         <div

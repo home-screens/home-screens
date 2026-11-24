@@ -1539,5 +1539,12 @@
       "repeatsNote": "{title} gentages. Når du gemmer, vælger du, om det gælder denne dag eller alle gange.",
       "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "En væg venter på at blive lukket ind.",
+      "other": "{count} vægge venter på at blive lukket ind."
+    },
+    "openEditor": "Åbn editoren for at lukke dem ind"
   }
 }

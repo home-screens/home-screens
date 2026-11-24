@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Displaysleutel",
-        "description": "Je displays openen Home Screens met deze sleutel, zonder het wachtwoord te typen. Hij is gemaakt toen je het wachtwoord instelde.",
+        "description": "Voor Home Assistant, snelkoppelingen en bladwijzers die een display bedienen zonder het wachtwoord. Je displays gebruiken hem niet: Home Screens onthoudt elk display zodra het is binnengelaten.",
         "reveal": "Tonen",
         "hide": "Verbergen",
         "copy": "Kopiëren",
@@ -2383,7 +2383,7 @@
         "regenerating": "Opnieuw genereren…",
         "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
-        "regenerateWarning": "Elk display herlaadt één keer om de nieuwe sleutel op te pikken.",
+        "regenerateWarning": "Alles wat de oude sleutel gebruikt, werkt pas weer als je daar de nieuwe invult. Je displays blijven werken.",
         "errorRegenerate": "Nieuwe sleutel maken is niet gelukt.",
         "errorCopy": "Kopiëren is niet gelukt. Selecteer de sleutel en kopieer hem zelf.",
         "phoneHintIntro": "Wil je een display vanaf je telefoon bedienen, maak dan een bladwijzer van een link als deze:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Toegestane netwerken",
         "bypassAuth": {
-          "label": "Displays op deze netwerken zonder de sleutel binnenlaten",
+          "label": "Displays op deze netwerken binnenlaten zonder te vragen",
           "help": "De editor en de gezinsafstandsbediening blijven om het wachtwoord vragen."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Wijzigen…",
         "disableSubmit": "Uitschakelen",
         "disabling": "Uitschakelen…",
-        "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken."
+        "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken.",
+        "wallsStay": {
+          "one": "Je {count} display blijft binnengelaten.",
+          "other": "Je {count} displays blijven binnengelaten."
+        },
+        "wallsOff": "Een display dat nu uit staat, vraagt om binnengelaten te worden zodra het terug is."
       },
       "errors": {
         "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
@@ -2944,6 +2949,32 @@
       "customLabel": "Getallen voor de uitlijning van aanraking",
       "help": "Voor een aanraakscherm dat op dit apparaat is aangesloten. Als het scherm wordt gedraaid, draaien de tikken mee. Kies \"Aanraking laten zoals die is\" als tikken al op de juiste plek terechtkomen.",
       "customHelp": "Zes getallen met spaties ertussen, bijvoorbeeld 0 1 0 -1 0 1. Gebruik dit als tikken gespiegeld of een beetje verschoven terechtkomen. Dit is de kalibratiematrix van het aanraakscherm."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} display wacht om binnengelaten te worden",
+        "other": "{count} displays wachten om binnengelaten te worden"
+      },
+      "waitingHint": "Ze hebben de muur geopend, maar Home Screens kent ze nog niet. Laat de displays binnen die van jou zijn. De rest kun je laten staan: die verdwijnen vanzelf.",
+      "forDisplay": "voor {name}",
+      "askingSince": "gevraagd {time}",
+      "looksFamiliar": "Dit lijkt op een display dat je eerder hebt binnengelaten.",
+      "letIn": "Binnenlaten",
+      "letInFailed": "Binnenlaten is niet gelukt. Probeer het opnieuw.",
+      "letInByItself": "Vanzelf binnengelaten",
+      "windowTitle": {
+        "one": "{count} display is na de update vanzelf binnengelaten",
+        "other": "{count} displays zijn na de update vanzelf binnengelaten"
+      },
+      "windowBody": "Home Screens onthoudt nu elk display, en die van jou zijn meegekomen. Controleer of de displays met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {days} dagen.",
+      "showingIn": {
+        "one": "Te zien op {count} plek",
+        "other": "Te zien op {count} plekken"
+      },
+      "showingHint": "Elke browser die dit display toont. Haal je er een weg, dan moet die opnieuw worden binnengelaten.",
+      "seen": "gezien {time}",
+      "removeConsequence": "Deze browser toont de muur niet meer en moet opnieuw worden binnengelaten.",
+      "removeFailed": "Weghalen is niet gelukt. Probeer het opnieuw."
     }
   },
   "backgroundPicker": {

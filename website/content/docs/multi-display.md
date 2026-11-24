@@ -38,7 +38,7 @@ The new display shows up on the hub within a few seconds. In the editor, open **
 
 {% screenshot name="settings-all-displays" caption="Settings > Displays. Every display in the home, and a new one waiting to be added." /%}
 
-1. Under **waiting to be added**, click **Add** next to the new display.
+1. Under **waiting to be added**, click **Add** next to the new display. If you have set a password, this is also what lets the new display in.
 2. Give it a name, such as "Kitchen" or "Bedroom TV".
 3. Check the size and orientation, which are filled in from what the display reported, and save.
 
@@ -76,6 +76,8 @@ A **Display Control** module on a touchscreen can do the same from the wall, aim
 ## If something goes wrong
 
 **The new display does not appear under waiting to be added.** Check that it is on and can reach the hub's address (the same one you typed into the installer). It appears within about ten seconds of booting and disappears from the list again if it has not been heard from for two minutes, so restart it and look again. On the display itself, the waiting screen names the hub address it is trying.
+
+**A display says "This wall needs to be let in".** You have a password set and this display's browser is not one Home Screens remembers: its browser data was wiped, it is a second browser opened on a display you already have, or it was off for more than 30 days around the update that introduced this. Open **Settings > Displays** and click **Let in** next to it. See [Which displays are let in](/docs/networking#which-displays-are-let-in).
 
 **A display shows "display not found" with a countdown.** Its entry was deleted from the hub. Let the countdown finish, or press **Go to the main display now**, and it shows the hub's main display; or add a display with the same ID again.
 

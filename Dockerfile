@@ -60,7 +60,8 @@ ENV NODE_ENV=production \
     PORT=3000 \
     UV_THREADPOOL_SIZE=8 \
     NEXT_TELEMETRY_DISABLED=1 \
-    HS_DISABLE_AUTO_UPDATE=1
+    HS_DISABLE_AUTO_UPDATE=1 \
+    HS_NO_HUB_SCREEN=1
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates tini \

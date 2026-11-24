@@ -1540,5 +1540,12 @@
       "repeatsNote": "{title} se repete. Ao salvar, você escolhe só este dia ou todas as vezes.",
       "noCalendars": "Nenhum calendário recebe eventos novos ainda. Escolha alguns em {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "Um painel está esperando para entrar.",
+      "other": "{count} painéis estão esperando para entrar."
+    },
+    "openEditor": "Abra o editor para deixá-los entrar"
   }
 }

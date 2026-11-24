@@ -16,6 +16,7 @@ Every answer here starts with what to check in the editor or on the phone, then 
 - [Wi-Fi did not connect on first boot](#wi-fi-did-not-connect-on-first-boot)
 - [I cannot find the Pi on my network](#i-cannot-find-my-pi-on-the-network)
 - [The display is blank or shows a faint address](#display-is-blank)
+- [The display says This wall needs to be let in](#the-display-says-this-wall-needs-to-be-let-in)
 - [A module says Needs setup or Location not set](#a-module-says-needs-setup)
 - [Modules are not updating](#modules-not-updating)
 - [Weather is not loading](#weather-not-loading)
@@ -96,6 +97,18 @@ If a sleeping screen lights up for a moment every few seconds, your monitor is r
    Both environment variables are required; over SSH they are not set for you.
 
 ---
+
+## The display says This wall needs to be let in
+
+You have set a password, and Home Screens does not remember this display's browser. Nothing is broken: open the editor, go to **Settings > Displays**, and click **Let in** next to the display that is waiting. It shows its screens within a few seconds.
+
+This happens after a display's browser data is wiped (a re-flashed SD card, a browser reset), when you open the wall in a browser that has never shown it, or when the hub's address changed and the display now reaches it under a different name.
+
+- **Just want to look at the wall on your own computer?** Use **Just looking? Sign in** on that page. Signing in shows the wall without adding a display.
+- **It asks again after every restart.** That browser is not keeping cookies: a private window, a kiosk app set to clear its data, or a Pi with the read-only file system turned on. Either let it keep cookies for the hub's address, or list its network under **Settings > Security > Allowed networks** and turn on **Let displays on these networks in without asking**.
+- **The page says "This browser isn't keeping its place".** Same cause: turn on cookies for the hub's address and load the page again.
+
+More on who is let in automatically: [Which displays are let in](/docs/networking#which-displays-are-let-in).
 
 ## A module says Needs setup
 

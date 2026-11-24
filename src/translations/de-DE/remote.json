@@ -1539,5 +1539,12 @@
       "repeatsNote": "„{title}“ wiederholt sich. Beim Speichern wählst du: nur an diesem Tag oder an allen Tagen.",
       "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "Eine Wand wartet darauf, hereingelassen zu werden.",
+      "other": "{count} Wände warten darauf, hereingelassen zu werden."
+    },
+    "openEditor": "Öffne den Editor, um sie hereinzulassen"
   }
 }

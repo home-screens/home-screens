@@ -339,16 +339,16 @@ Pictures your family added to use as icons for meals, chores, rewards, people, r
 
 ### Security
 
-The editor has no password until you set one. Once set, it covers the editor and the family remote; the display signs in on its own with a display key, and the kids' chores page deliberately stays open.
+The editor has no password until you set one. Once set, it covers the editor and the family remote; each display is remembered once it has been [let in](/docs/networking#which-displays-are-let-in), and the kids' chores page deliberately stays open.
 
 - **No password yet** and a **Set a password** button is the starting state. With a password on, the page offers **Change password**, **Turn the password off**, **Sign out**, and **Sign everyone out**, which ends every session on every device.
 - Ticking **Remember me for 90 days** on the login page keeps you signed in for 90 days instead of 30.
-- **Display key** is the long string displays and bookmarked commands use instead of the password. **Reveal**, **Copy**, or **Make a new key**; each display reloads once to pick up a new one.
+- **Display key** is the long string Home Assistant, shortcuts and bookmarked commands use instead of the password. **Reveal**, **Copy**, or **Make a new key**; anything using the old key stops until you give it the new one. Your displays do not use it and keep working.
 - **Forgot the password?** Run `home-screens-reset-password` on the Pi and set a new one. The login page says the same.
 
 #### Allowed networks
 
-Two switches over one list of network ranges (most home networks are `192.168.1.0/24`). **Let displays on these networks in without the key** lets a display on them show the wall without its display key (the editor and the family remote still ask for the password); **Only allow these networks** blocks everything else, apart from the login page. Your own address is shown above the list, and turning on the second switch without your address in the list gets a **You may lock yourself out** warning with **Save anyway**.
+Two switches over one list of network ranges (most home networks are `192.168.1.0/24`). **Let displays on these networks in without asking** lets a display on them show the wall without being let in by hand (the editor and the family remote still ask for the password); **Only allow these networks** blocks everything else, apart from the login page. Your own address is shown above the list, and turning on the second switch without your address in the list gets a **You may lock yourself out** warning with **Save anyway**.
 
 Two things to know: addresses with colons (IPv6) never match, so add the IPv4 range and connect over IPv4; and behind a reverse proxy the check reads the proxy's forwarded-for header, so make sure the proxy sets it rather than passing a client's own through.
 

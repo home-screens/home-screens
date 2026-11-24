@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Chave do display",
-        "description": "Seus displays abrem o Home Screens com esta chave, sem digitar a senha. Ela foi criada quando você definiu a senha.",
+        "description": "Para o Home Assistant, atalhos e favoritos que controlam um display sem a senha. Seus displays não usam esta chave: o Home Screens lembra de cada um depois que ele é autorizado a entrar.",
         "reveal": "Revelar",
         "hide": "Ocultar",
         "copy": "Copiar",
@@ -2383,7 +2383,7 @@
         "regenerating": "Regenerando…",
         "regenerateConfirm": "Criar uma chave nova",
         "regenerateCancel": "Cancelar",
-        "regenerateWarning": "Cada display recarrega uma vez para pegar a chave nova.",
+        "regenerateWarning": "Tudo o que usa a chave antiga para de funcionar até você colocar a nova. Seus displays continuam funcionando.",
         "errorRegenerate": "Não foi possível criar uma chave nova.",
         "errorCopy": "Não foi possível copiar. Selecione a chave e copie você mesmo.",
         "phoneHintIntro": "Para controlar um display pelo celular, salve nos favoritos um link como este:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Redes permitidas",
         "bypassAuth": {
-          "label": "Deixar os displays dessas redes entrarem sem a chave",
+          "label": "Deixar os displays dessas redes entrarem sem perguntar",
           "help": "O editor e o controle da família continuam pedindo a senha."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Alterando…",
         "disableSubmit": "Desativar",
         "disabling": "Desativando…",
-        "setExplanation": "Uma senha para a casa toda. Depois disso, o controle da família e o editor pedem a senha. O painel e a página de tarefas das crianças continuam funcionando sem ela."
+        "setExplanation": "Uma senha para a casa toda. Depois disso, o controle da família e o editor pedem a senha. O painel e a página de tarefas das crianças continuam funcionando sem ela.",
+        "wallsStay": {
+          "one": "Seu {count} display continua com permissão para entrar.",
+          "other": "Seus {count} displays continuam com permissão para entrar."
+        },
+        "wallsOff": "Um display que esteja desligado agora vai pedir para entrar quando voltar."
       },
       "errors": {
         "passwordsDoNotMatch": "As senhas não coincidem",
@@ -2944,6 +2949,32 @@
       "customLabel": "Números de alinhamento do toque",
       "help": "Para uma tela sensível ao toque ligada a este dispositivo. Quando a tela é girada, os toques giram junto. Escolha \"Deixar o toque como está\" se os toques já caem no lugar certo.",
       "customHelp": "Seis números separados por espaços, por exemplo 0 1 0 -1 0 1. Use quando os toques caem espelhados ou um pouco fora do lugar. Esta é a matriz de calibração da tela sensível ao toque."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} display está esperando para entrar",
+        "other": "{count} displays estão esperando para entrar"
+      },
+      "waitingHint": "Eles abriram o painel, mas o Home Screens ainda não os conhece. Deixe entrar os que são seus. Os outros podem ficar aí: eles somem sozinhos.",
+      "forDisplay": "para {name}",
+      "askingSince": "pediu {time}",
+      "looksFamiliar": "Parece um display que você já deixou entrar.",
+      "letIn": "Deixar entrar",
+      "letInFailed": "Não foi possível deixar entrar. Tente de novo.",
+      "letInByItself": "Entrou sozinho",
+      "windowTitle": {
+        "one": "{count} display entrou sozinho depois da atualização",
+        "other": "{count} displays entraram sozinhos depois da atualização"
+      },
+      "windowBody": "O Home Screens agora lembra de cada display, e os seus foram mantidos. Confira se os marcados com “{tag}” são seus. Este aviso some sozinho em {days} dias.",
+      "showingIn": {
+        "one": "Aparecendo em {count} lugar",
+        "other": "Aparecendo em {count} lugares"
+      },
+      "showingHint": "Cada navegador que mostra este display. Se você remover um, ele precisará de permissão para entrar de novo.",
+      "seen": "visto {time}",
+      "removeConsequence": "Este navegador para de mostrar o painel e precisará de permissão para entrar de novo.",
+      "removeFailed": "Não foi possível remover. Tente de novo."
     }
   },
   "backgroundPicker": {

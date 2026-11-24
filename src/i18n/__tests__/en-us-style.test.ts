@@ -52,7 +52,7 @@ const PROPER_PHRASES = [
 ];
 
 const PROPER_WORDS = new Set([
-  'Google', 'iCloud', 'Apple', 'iPhone', 'iPad', 'Mac', 'macOS', 'Windows', 'Linux', 'Mealie', 'Todoist', 'OneDrive',
+  'Google', 'iCloud', 'Apple', 'iPhone', 'iPad', 'Mac', 'macOS', 'Windows', 'Linux', 'Android', 'Chromebook', 'Mealie', 'Todoist', 'OneDrive',
   'Immich', 'Unsplash', 'NASA', 'Wi-Fi', 'Pi', 'Chromium', 'Chrome', 'Firefox', 'Safari', 'YouTube', 'ESPN', 'GitHub',
   'Garmin', 'Strava', 'Celsius', 'Fahrenheit', 'Microsoft', 'DataHub', 'TomTom', 'Vite', 'CoinGecko', 'OpenStreetMap',
   'OpenHolidays', 'Wikipedia', 'Unicode', 'WeatherAPI', 'NOAA', 'SMHI', 'LibreWXR', 'RainViewer', 'Markdown', 'CalDAV',

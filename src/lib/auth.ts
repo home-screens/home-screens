@@ -6,6 +6,7 @@ import { getDataRoot } from './data-root';
 import { authPosture, hasPassword } from './auth-posture';
 import { statSignature } from './stat-signature';
 import { safeEqual, signPayload, verifySignedPayload } from './signed-payload';
+import { findWall, touchWall, type WallEntry } from './display-walls';
 
 /* ─── Types ──────────────────────────────────── */
 
@@ -266,11 +267,41 @@ export async function hasEditorSession(request: Request): Promise<boolean> {
  * has to ask everyone.
  */
 export async function hasSignedInSession(request: Request): Promise<boolean> {
+  return cookiesHoldSignIn(request.headers.get('cookie') ?? '');
+}
+
+/** `hasSignedInSession` for a caller that has the `Cookie` header but no request, such as a page. */
+export async function cookiesHoldSignIn(cookieHeader: string): Promise<boolean> {
   const state = await getCachedAuthState();
   if (!hasPassword(state) || !state.cookieSecret) return false;
-  const cookieHeader = request.headers.get('cookie') ?? '';
   const token = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/)?.[1];
   return Boolean(token && verifySession(token, state.cookieSecret, state.sessionEpoch));
+}
+
+/**
+ * The wall a request's `hs-display` cookie belongs to, let in or still
+ * waiting, or null. On a hub with no password every caller may show the
+ * wall, and the entry is only a record kept in case a password comes later.
+ */
+export async function wallFromCookies(cookieHeader: string): Promise<WallEntry | null> {
+  if (!cookieHeader.includes('hs-display=')) return null;
+  return findWall(cookieHeader, hasPassword(await getCachedAuthState()));
+}
+
+/**
+ * Whether the request carries the display key itself, in the `Authorization`
+ * header or (for `/api/display/*`) the `token` query parameter. False when no
+ * password is set: there is no key to carry.
+ */
+export async function carriesDisplayKey(request: Request): Promise<boolean> {
+  const state = await getCachedAuthState();
+  if (!hasPassword(state) || !state.displayToken) return false;
+  const bearer = (request.headers.get('authorization') ?? '').match(/^Bearer\s+(.+)$/)?.[1];
+  if (bearer && safeEqual(bearer, state.displayToken)) return true;
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith('/api/display/')) return false;
+  const queryToken = url.searchParams.get('token');
+  return Boolean(queryToken && safeEqual(queryToken, state.displayToken));
 }
 
 /**
@@ -303,9 +334,10 @@ export async function requireSession(request: Request): Promise<void> {
 }
 
 /**
- * Validates either a session cookie OR a display Bearer token.
+ * Validates a session cookie, the display key (a Bearer token), or the
+ * `hs-display` cookie of a wall that has been let in.
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
- * and neither credential is valid.
+ * and none of them is valid. A wall that is still waiting is refused.
  */
 export async function requireDisplayAuth(request: Request, clientIp?: string): Promise<void> {
   let state = await getCachedAuthState();
@@ -348,6 +380,14 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
     }
   }
 
+  // A wall that has been let in proves itself with its own cookie.
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const wall = await wallFromCookies(cookieHeader);
+  if (wall?.status === 'in') {
+    await touchWall(wall, clientIp ? { address: clientIp } : {});
+    return;
+  }
+
   // Fall back to session cookie
   if (!state.cookieSecret) {
     throw new Response(JSON.stringify({ error: 'Authentication required' }), {
@@ -356,7 +396,6 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
     });
   }
 
-  const cookieHeader = request.headers.get('cookie') ?? '';
   const cookieMatch = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/);
   const sessionToken = cookieMatch?.[1];
 

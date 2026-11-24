@@ -217,6 +217,19 @@
     "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Hauptdisplay in {seconds} s.",
     "goToDefault": "Jetzt zum Hauptdisplay wechseln"
   },
+  "wallGate": {
+    "title": "Diese Wand muss noch hereingelassen werden",
+    "line": "Das kann ein Erwachsener im Editor von Home Screens erledigen. Gehe zu {place} und klicke auf Hereinlassen.",
+    "waiting": "Wartet darauf, hereingelassen zu werden…",
+    "signIn": "Nur kurz schauen? Anmelden",
+    "noCookieTitle": "Dieser Browser merkt sich seinen Platz nicht",
+    "noCookieLine": "Home Screens merkt sich eine Wand mit einem Cookie, und dieser Browser hat es nicht behalten. Erlaube Cookies für diese Adresse und lade die Seite neu.",
+    "keepLine": "Du bist angemeldet und schaust nur kurz rein.",
+    "keepButton": "Als Wand behalten",
+    "keepClose": "Schließen",
+    "kept": "Dieser Browser ist jetzt eine Wand.",
+    "keepFailed": "Das hat nicht geklappt. Versuch es noch einmal."
+  },
   "login": {
     "checkingAuth": "Authentifizierung wird geprüft…",
     "title": "Anmelden",
@@ -843,5 +856,21 @@
     "putBack": "Wieder auf der Liste: {item}",
     "deleted": "Von der Liste genommen: {item}",
     "undo": "Rückgängig"
+  },
+  "wallNames": {
+    "hubScreen": "Der eigene Bildschirm von Home Screens",
+    "someBrowser": "Ein Browser",
+    "browserOn": "{browser} auf {device}",
+    "justDevice": "Ein Browser auf {device}",
+    "device": {
+      "iphone": "einem iPhone",
+      "ipad": "einem iPad",
+      "androidPhone": "einem Android-Handy",
+      "androidTablet": "einem Android-Tablet",
+      "mac": "einem Mac",
+      "windows": "einem Windows-PC",
+      "chromebook": "einem Chromebook",
+      "linux": "einem Linux-Computer"
+    }
   }
 }

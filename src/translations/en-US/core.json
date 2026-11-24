@@ -217,6 +217,19 @@
     "recoveryNotice": "This display isn't set up yet, but your other displays are. Switching to the main display in {seconds}s.",
     "goToDefault": "Go to the main display now"
   },
+  "wallGate": {
+    "title": "This wall needs to be let in",
+    "line": "A grown-up can do that in the Home Screens editor. Go to {place} and click Let in.",
+    "waiting": "Waiting to be let in…",
+    "signIn": "Just looking? Sign in",
+    "noCookieTitle": "This browser isn't keeping its place",
+    "noCookieLine": "Home Screens remembers a wall with a cookie, and this browser did not keep it. Turn on cookies for this address, then load the page again.",
+    "keepLine": "You are signed in, so this is just a look.",
+    "keepButton": "Keep as a wall",
+    "keepClose": "Close",
+    "kept": "This browser is now a wall.",
+    "keepFailed": "Couldn't keep it. Try again."
+  },
   "login": {
     "checkingAuth": "Checking authentication…",
     "title": "Sign in",
@@ -843,5 +856,21 @@
     "putBack": "Back on the list: {item}",
     "deleted": "Took {item} off the list.",
     "undo": "Undo"
+  },
+  "wallNames": {
+    "hubScreen": "This Home Screens' own screen",
+    "someBrowser": "A browser",
+    "browserOn": "{browser} on {device}",
+    "justDevice": "A browser on {device}",
+    "device": {
+      "iphone": "an iPhone",
+      "ipad": "an iPad",
+      "androidPhone": "an Android phone",
+      "androidTablet": "an Android tablet",
+      "mac": "a Mac",
+      "windows": "a Windows PC",
+      "chromebook": "a Chromebook",
+      "linux": "a Linux computer"
+    }
   }
 }

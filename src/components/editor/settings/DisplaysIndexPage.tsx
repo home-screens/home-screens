@@ -27,34 +27,18 @@ import type {
   ViewportReport,
 } from '@/lib/displays-api-types';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
+import { useWalls } from '@/hooks/useWalls';
+import { WaitingWallsNotice, WallsBlock, WindowWallsNotice, wallsShowing } from '@/components/editor/settings/display/WallsPanels';
 import { resolveDisplaySoftwareState } from '@/lib/display-software-status';
 import { dashSlug } from '@/lib/slug';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 import FieldHint from '@/components/ui/FieldHint';
+import { formatClientAddress } from '@/lib/client-address';
 import Notice from '@/components/ui/Notice';
 import StatusPill from '@/components/ui/StatusPill';
 
-/**
- * Humanize the raw client address that `getClientIP` returned from the
- * server-stamped `x-hs-client-ip` header (the TCP peer address). IPv6 loopback
- * collapses to "localhost"; IPv4-mapped-IPv6 addresses drop their
- * `::ffff:` prefix so the editor shows plain dotted-quad IPs instead of
- * mixed-form strings; everything else is passed through. Returns null
- * for an empty / missing value so the caller can skip rendering the row.
- */
-// Exported for unit tests — these are pure helpers with no React dependencies.
-export function formatClientAddress(addr: string | undefined | null): string | null {
-  if (!addr) return null;
-  const trimmed = addr.trim();
-  if (!trimmed) return null;
-  if (trimmed === '::1' || trimmed === '127.0.0.1' || trimmed === 'localhost') {
-    return 'localhost';
-  }
-  if (trimmed.toLowerCase().startsWith('::ffff:')) {
-    return trimmed.slice(7);
-  }
-  return trimmed;
-}
+// Lives in `src/lib/client-address.ts`; re-exported for the callers and tests that import it from here.
+export { formatClientAddress };
 
 export interface CollapsedReport {
   width: number;
@@ -442,6 +426,9 @@ export default function DisplaysIndexPage() {
   // see useDisplayHeartbeats for the cadence/caching contract. `refresh`
   // also backs the manual Refresh button and the post-save reload.
   const { data: apiData, refresh, refreshing } = useDisplayHeartbeats();
+  // Which browsers have been let in as walls, and which are waiting. Empty
+  // on a hub with no password, where every browser is let in.
+  const { data: wallsData, letIn, remove: removeWall } = useWalls();
   const [adding, setAdding] = useState(false);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -453,6 +440,19 @@ export default function DisplaysIndexPage() {
   const takenIds = new Set(displays.map((d) => d.id));
   const unadopted = apiData?.unadopted ?? [];
   const heartbeats = new Map(apiData?.displays.map((d) => [d.id, d]) ?? []);
+  const walls = wallsData?.walls ?? [];
+  // "for Kitchen" on a waiting row. A hub with one display has no names to
+  // give, and a name the hub does not know yet is the "waiting to be added"
+  // list's business.
+  const displayNameFor = (displayId: string | null): string | null => {
+    if (displays.length === 0) return null;
+    const match = displays.find((d) => (displayId === null ? isMainDisplay(d.id) : d.id === displayId));
+    return match?.name ?? null;
+  };
+  // A wall waiting under a name the hub does not have is let in by Add, in
+  // the list below; it is not offered a second button here.
+  const knownIds = new Set(displays.map((d) => d.id));
+  const waitingForKnown = walls.filter((w) => w.status === 'waiting' && (w.displayId === null || knownIds.has(w.displayId) || displays.length === 0 && isMainDisplay(w.displayId)));
 
   /**
    * Run a local mutation and immediately persist it to disk. Display CRUD
@@ -556,6 +556,11 @@ export default function DisplaysIndexPage() {
         </div>
       </div>
 
+      <WaitingWallsNotice walls={waitingForKnown} displayName={displayNameFor} onLetIn={letIn} />
+      {wallsData && <WindowWallsNotice data={wallsData} />}
+      {/* A hub with one display has no card to open, so its walls are listed here. */}
+      {displays.length === 0 && <WallsBlock walls={walls} displayId={null} onRemove={removeWall} className="mb-5" />}
+
       {/* Registered displays — 2-column card grid, or first-visit explainer */}
       {displays.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
@@ -565,6 +570,7 @@ export default function DisplaysIndexPage() {
               display={display}
               heartbeat={heartbeats.get(display.id) ?? null}
               hubVersion={apiData?.hubVersion}
+              showingIn={wallsData?.passwordSet ? wallsShowing(walls, display.id).length : null}
               onOpen={() => openDisplay(display.id)}
             />
           ))}
@@ -764,11 +770,14 @@ function DisplayCard({
   display,
   heartbeat,
   hubVersion,
+  showingIn,
   onOpen,
 }: {
   display: DisplayNode;
   heartbeat: DisplayApiEntry | null;
   hubVersion?: string;
+  /** How many browsers have been let in for this display; null on a hub with no password. */
+  showingIn: number | null;
   onOpen: () => void;
 }) {
   const t = useTranslate('editor');
@@ -837,6 +846,11 @@ function DisplayCard({
             {t('settings.displaysIndex.currentScreenLabel', { name: currentScreenName })}
           </span>
         )}
+        {showingIn !== null && showingIn > 0 && (
+          <span className="text-hs-text-secondary" data-testid="display-showing-in">
+            {t('settings.walls.showingIn', { count: showingIn })}
+          </span>
+        )}
         {reporterIp ? (
           <span className="font-mono text-hs-text-faint">{reporterIp}</span>
         ) : (
@@ -850,7 +864,10 @@ function DisplayCard({
           </StatusPill>
         )}
       </div>
-      {multipleReporters && (
+      {/* With a password set, "Showing in N places" and the display's own
+          page say who is showing it; this older list is for a hub without
+          one, where no walls are kept. */}
+      {multipleReporters && showingIn === null && (
         <Notice tone="warning" size="sm" className="mt-3" title={t('settings.displaysIndex.multipleClientsCardHeading', { count: reports.length })}>
           <ul className="mt-1 space-y-0.5 text-hs-text-muted">
             {reports.map((v, i) => {

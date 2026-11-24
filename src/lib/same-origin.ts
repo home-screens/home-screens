@@ -74,6 +74,29 @@ export interface OriginCheckInput {
   allowedOrigins: string[];
 }
 
+/** The names this hub answers to for a request: its `Host`, a forwarded host, and the extra allowed ones. */
+export interface OwnHosts {
+  host: string | null;
+  forwardedHost: string | null;
+  allowedOrigins: string[];
+}
+
+/**
+ * Whether `candidate` (a `host[:port]`) is one of the hub's own names for
+ * this request. The one rule for "did this come from one of our own pages",
+ * shared by the cross-origin write gate below and by the check that tells a
+ * wall page from an automation (`wall-request.ts`), so a hub behind a proxy
+ * that rewrites `Host` passes both or neither.
+ */
+export function isOwnHost(candidate: string, own: OwnHosts): boolean {
+  const wanted = candidate.toLowerCase();
+  if (!wanted) return false;
+  const candidates = [own.host, own.forwardedHost]
+    .filter((h): h is string => typeof h === 'string' && h.length > 0)
+    .map((h) => h.toLowerCase());
+  return candidates.includes(wanted) || own.allowedOrigins.includes(wanted);
+}
+
 /**
  * True when this is a state-changing request from a browser on a different
  * origin, i.e. one that should be refused.
@@ -94,11 +117,5 @@ export function isDisallowedCrossOriginWrite(input: OriginCheckInput): boolean {
   }
   if (!originHost) return true;
 
-  const candidates = [input.host, input.forwardedHost]
-    .filter((h): h is string => typeof h === 'string' && h.length > 0)
-    .map((h) => h.toLowerCase());
-
-  if (candidates.includes(originHost)) return false;
-  if (input.allowedOrigins.includes(originHost)) return false;
-  return true;
+  return !isOwnHost(originHost, input);
 }

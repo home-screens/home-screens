@@ -2375,7 +2375,7 @@
       },
       "displayToken": {
         "heading": "Display-Schlüssel",
-        "description": "Deine Displays öffnen Home Screens mit diesem Schlüssel, ohne das Passwort einzugeben. Er wurde erstellt, als du das Passwort festgelegt hast.",
+        "description": "Für Home Assistant, Kurzbefehle und Lesezeichen, die ein Display ohne Passwort steuern. Deine Displays brauchen ihn nicht: Home Screens merkt sich jedes Display, sobald es hereingelassen wurde.",
         "reveal": "Anzeigen",
         "hide": "Verbergen",
         "copy": "Kopieren",
@@ -2383,7 +2383,7 @@
         "regenerating": "Wird erzeugt …",
         "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
-        "regenerateWarning": "Jedes Display lädt einmal neu, um den neuen Schlüssel zu übernehmen.",
+        "regenerateWarning": "Alles, was den alten Schlüssel nutzt, funktioniert erst wieder, wenn du dort den neuen einträgst. Deine Displays laufen weiter.",
         "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden.",
         "errorCopy": "Kopieren hat nicht geklappt. Markiere den Schlüssel und kopiere ihn selbst.",
         "phoneHintIntro": "Um ein Display vom Telefon aus zu steuern, setze ein Lesezeichen auf einen Link wie diesen:",
@@ -2393,7 +2393,7 @@
       "ipAllowlist": {
         "heading": "Zugelassene Netzwerke",
         "bypassAuth": {
-          "label": "Displays in diesen Netzwerken ohne Schlüssel hereinlassen",
+          "label": "Displays in diesen Netzwerken ohne Nachfrage hereinlassen",
           "help": "Der Editor und die Familien-Fernbedienung fragen weiterhin nach dem Passwort."
         },
         "restrictAccess": {
@@ -2449,7 +2449,12 @@
         "changing": "Wird geändert …",
         "disableSubmit": "Deaktivieren",
         "disabling": "Wird deaktiviert …",
-        "setExplanation": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne."
+        "setExplanation": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne.",
+        "wallsStay": {
+          "one": "Dein {count} Display bleibt hereingelassen.",
+          "other": "Deine {count} Displays bleiben hereingelassen."
+        },
+        "wallsOff": "Ein Display, das gerade ausgeschaltet ist, bittet darum, hereingelassen zu werden, sobald es wieder da ist."
       },
       "errors": {
         "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
@@ -2944,6 +2949,32 @@
       "customLabel": "Zahlen für die Touch-Ausrichtung",
       "help": "Für einen Touchscreen, der an diesem Gerät angeschlossen ist. Wird der Bildschirm gedreht, drehen sich die Berührungen mit. Wähle „Touch unverändert lassen“, wenn Berührungen schon an der richtigen Stelle ankommen.",
       "customHelp": "Sechs Zahlen mit Leerzeichen dazwischen, zum Beispiel 0 1 0 -1 0 1. Nutze das, wenn Berührungen gespiegelt oder leicht versetzt ankommen. Das ist die Kalibrierungsmatrix des Touchscreens."
+    },
+    "walls": {
+      "waitingTitle": {
+        "one": "{count} Display wartet darauf, hereingelassen zu werden",
+        "other": "{count} Displays warten darauf, hereingelassen zu werden"
+      },
+      "waitingHint": "Sie haben die Wand geöffnet, aber Home Screens kennt sie noch nicht. Lass die herein, die dir gehören. Die anderen kannst du stehen lassen: Sie verschwinden von selbst.",
+      "forDisplay": "für {name}",
+      "askingSince": "gefragt {time}",
+      "looksFamiliar": "Das sieht nach einem Display aus, das du schon einmal hereingelassen hast.",
+      "letIn": "Hereinlassen",
+      "letInFailed": "Das Hereinlassen hat nicht geklappt. Versuch es noch einmal.",
+      "letInByItself": "Von selbst hereingelassen",
+      "windowTitle": {
+        "one": "{count} Display wurde nach dem Update von selbst hereingelassen",
+        "other": "{count} Displays wurden nach dem Update von selbst hereingelassen"
+      },
+      "windowBody": "Home Screens merkt sich jetzt jedes Display, und deine wurden übernommen. Prüfe, ob die mit „{tag}“ markierten dir gehören. Dieser Hinweis verschwindet in {days} Tagen von selbst.",
+      "showingIn": {
+        "one": "Wird an {count} Ort gezeigt",
+        "other": "Wird an {count} Orten gezeigt"
+      },
+      "showingHint": "Jeder Browser, der dieses Display zeigt. Entfernst du einen, muss er wieder hereingelassen werden.",
+      "seen": "gesehen {time}",
+      "removeConsequence": "Dieser Browser zeigt die Wand nicht mehr und muss wieder hereingelassen werden.",
+      "removeFailed": "Das Entfernen hat nicht geklappt. Versuch es noch einmal."
     }
   },
   "backgroundPicker": {

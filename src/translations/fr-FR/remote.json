@@ -1539,5 +1539,12 @@
       "repeatsNote": "{title} se répète. Quand tu enregistres, tu choisis ce jour-là ou toutes les fois.",
       "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "Un mur attend d'être autorisé à entrer.",
+      "other": "{count} murs attendent d'être autorisés à entrer."
+    },
+    "openEditor": "Ouvre l'éditeur pour les laisser entrer"
   }
 }

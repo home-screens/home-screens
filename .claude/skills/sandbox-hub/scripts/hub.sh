@@ -3,7 +3,7 @@
 # be tried in the real app without touching the real household.
 #
 #   hub.sh start <port> [--household] [--seed <data-dir>] [--config <file>]
-#                       [--assets <dir>] [--root <tree>] [--dev]
+#                       [--assets <dir>] [--root <tree>] [--dev] [--lan]
 #   hub.sh sync  <port>
 #   hub.sh path  <port>
 #   hub.sh stop  <port> [--keep]
@@ -21,6 +21,10 @@
 #          --dev          `next dev` on a copy of src/ instead of the
 #                         production build; for /editor and /remote on work
 #                         that is not built yet. /display needs the default.
+#          --lan          also answer on this machine's network address, for
+#                         a test that must not come from localhost (the hub
+#                         treats its own address as its own screen). Anything
+#                         on the network can reach the sandbox while it runs.
 #        Without --dev the tree needs a production build (`npm run build`).
 #        TZ=<zone> in front of the command sets the hub's own time zone.
 # sync   --dev only: copy the tree's src/ into the sandbox again after an edit.
@@ -73,11 +77,12 @@ cmd=${1:-}
 case "$cmd" in
   start)
     port=${2:-}; need_port "$port"; shift 2
-    root=$default_root; seed=; config=; assets=; household=0; mode=prod
+    root=$default_root; seed=; config=; assets=; household=0; mode=prod; host=127.0.0.1
     while [ $# -gt 0 ]; do
       case "$1" in
         --household) household=1; shift ;;
         --dev) mode=dev; shift ;;
+        --lan) host=0.0.0.0; shift ;;
         --seed) seed=${2:-}; shift 2 ;;
         --config) config=${2:-}; shift 2 ;;
         --assets) assets=${2:-}; shift 2 ;;
@@ -142,10 +147,10 @@ case "$cmd" in
     launch() {
       if [ "$mode" = prod ]; then
         (cd "$sb" && exec env -u HOME_SCREENS_DIR NODE_ENV=production HS_DISABLE_AUTO_UPDATE=1 HS_DISABLE_TELEMETRY=1 \
-          "$root/node_modules/.bin/next" start -p "$port" -H 127.0.0.1 >> "$sb/server.log" 2>&1 < /dev/null) &
+          "$root/node_modules/.bin/next" start -p "$port" -H "$host" >> "$sb/server.log" 2>&1 < /dev/null) &
       else
         (cd "$sb" && exec env -u HOME_SCREENS_DIR -u NODE_ENV HS_DISABLE_AUTO_UPDATE=1 HS_DISABLE_TELEMETRY=1 \
-          "$root/node_modules/.bin/next" dev --webpack -p "$port" -H 127.0.0.1 >> "$sb/server.log" 2>&1 < /dev/null) &
+          "$root/node_modules/.bin/next" dev --webpack -p "$port" -H "$host" >> "$sb/server.log" 2>&1 < /dev/null) &
       fi
       server=$!
     }

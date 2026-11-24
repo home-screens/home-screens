@@ -1539,5 +1539,12 @@
       "repeatsNote": "{title} komt vaker terug. Als je opslaat, kies je: alleen deze dag of elke keer.",
       "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}."
     }
+  },
+  "wallWaiting": {
+    "title": {
+      "one": "Een muur wacht om binnengelaten te worden.",
+      "other": "{count} muren wachten om binnengelaten te worden."
+    },
+    "openEditor": "Open de editor om ze binnen te laten"
   }
 }

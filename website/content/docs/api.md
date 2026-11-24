@@ -19,12 +19,14 @@ There are three levels of protection:
 | Level | What it accepts | Used by |
 |---|---|---|
 | Session | The `hs-session` cookie set by `POST /api/auth/login` | Endpoints that change settings or read credentials |
-| Display | The session cookie **or** a display token | Everything a screen polls: config, weather, calendar, commands, chore data |
+| Display | The session cookie, a display token, **or** the `hs-display` cookie of a display that has been let in | Everything a screen polls: config, weather, calendar, commands, chore data |
 | Media | Display access **or** a signed `mt` token bound to one file | The routes that serve photos and videos into `<img>` and `<video>` tags |
 
 Endpoints below that say "requires a valid session" are the first level. Endpoints that say "display access" are the second, and a browser session works for those too.
 
-A few endpoints are open at every level on purpose, and each one says so where it appears: `GET`/`POST /api/chores`, `POST /api/chores/grab` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, `GET /api/health`, `GET /api/i18n/<locale>` (the UI's words, needed before anyone signs in), and `GET /api/plugins/auth/callback`.
+A display's own browser never holds the display token. Once it has been [let in](/docs/networking#which-displays-are-let-in) the hub gives it an `hs-display` cookie that page code cannot read, and that cookie is what its requests carry. It opens the display level only: a display can never read the token, the secrets or the editor's routes. The token is for your own scripts.
+
+A few endpoints are open at every level on purpose, and each one says so where it appears: `POST /api/display/claim` (a wall page with no cookie asking to be let in; see below), `GET`/`POST /api/chores`, `POST /api/chores/grab` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, `GET /api/health`, `GET /api/i18n/<locale>` (the UI's words, needed before anyone signs in), and `GET /api/plugins/auth/callback`.
 
 ### Is the hub up?
 
@@ -46,7 +48,7 @@ Authorization: Bearer hs_abc123...
 
 For bookmarkable links, the `/api/display/*` routes also accept the token as a `?token=` query parameter, for example `/api/display/wake?display=kitchen&token=hs_abc123...`. That shortcut is scoped to `/api/display/*` and nowhere else; every other endpoint needs the header or the session cookie. Query tokens end up in browser history and server logs, so use the header wherever you can send one.
 
-If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without the key** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie.
+If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without asking** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie.
 
 ### Cross-origin writes
 
@@ -132,6 +134,26 @@ The configuration behind this response is re-read at most every 1.5 seconds, so 
 `settings` is that display's full set of [per-display overrides](/docs/multi-display): rotation interval, transitions, sleep schedule, screensaver, theme, alerts, and so on. It only contains the values that display actually overrides. `lastSeen` is `null`, rather than missing, for a display that has never checked in.
 
 This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo and validation stay consistent.
+
+### POST /api/display/claim
+
+What a wall page calls when its browser has not been let in. Open with no session, because the caller has nothing to prove itself with yet. **Body:** `{ "displayId": "kitchen", "width": 1080, "height": 1920 }`, all optional. **Response:** `{ "status": "in" }` with an `hs-display` cookie when the caller is let in at once (the hub's own screen, an allowed network, one of your displays in the 30 days after the update), or `{ "status": "waiting" }` with a cookie that opens nothing until someone clicks **Let in**. A display waiting under a name the hub does not know is let in when that display is added. `{ "status": "no-cookie" }` means the browser did not keep the cookie it was just given. Only a wall page can call it (it checks the `Referer` or the page's own header), and it is rate limited per address.
+
+### GET /api/display/walls
+
+The displays that have been let in and the ones waiting, for the editor. Requires a valid session. **Response:** `{ "passwordSet": true, "windowOpen": false, "walls": [{ "id", "status": "in" | "waiting", "displayId", "address", "userAgent", "viewport", "lastSeenAt", "createdAt", "letInByItself", "hubScreen" }] }`. With no password set every browser is let in and the list is empty.
+
+### POST /api/display/walls
+
+Lets a waiting display in. Requires a valid session. **Body:** `{ "action": "let-in", "id": "<wall id>" }`.
+
+### DELETE /api/display/walls
+
+Removes a display's browser: `?id=<wall id>`. Requires a valid session. Its cookie is refused on its next request and it goes back to waiting.
+
+### POST /api/display/walls/keep
+
+Keeps the browser that sends it as a wall, so it goes on showing after you sign out. Requires a real sign-in, so it answers 401 on a hub with no password. **Body:** `{ "displayId": "kitchen" }`, optional.
 
 ### GET /api/display/commands
 

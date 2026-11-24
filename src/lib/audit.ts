@@ -76,7 +76,8 @@ type AuditEvent =
   | { action: 'grown_up_code_set' }
   | { action: 'grown_up_code_removed' }
   | { action: 'grown_up_code_wrong'; ip: string }
-  | { action: 'grown_up_code_lock_cleared' };
+  | { action: 'grown_up_code_lock_cleared' }
+  | { action: 'wall_let_in' | 'wall_removed' | 'wall_kept'; ip: string };
 
 type AuditEntry = AuditEvent & { ts: string }; // ISO 8601
 
