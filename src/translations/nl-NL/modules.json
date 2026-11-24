@@ -1880,8 +1880,11 @@
     "receiptSummary": "Vastgezet {pinned} · Belangrijk {important}",
     "pinnedOne": "Vastgezet",
     "emptyDraw": "Niets op het prikbord. Teken hier een notitie of schrijf er een op je telefoon.",
+    "emptyWrite": "Niets op het prikbord. Schrijf een notitie, hier of op je telefoon.",
+    "emptyLeave": "Niets op het prikbord. Teken of schrijf hier een notitie, of schrijf er een op je telefoon.",
     "drawing": "Tekening",
     "drawingFrom": "Tekening van {name}",
+    "noteFrom": "Notitie van {name}",
     "openDrawing": "Tekening van {name} groot bekijken",
     "draw": {
       "row": "Teken een notitie",
@@ -1930,6 +1933,29 @@
       "undoing": "Weghalen…",
       "posting": "Ophangen…",
       "madeRoom": "De oudste tekening ging eraf om plek te maken."
+    },
+    "write": {
+      "row": "Schrijf een notitie",
+      "rowFinish": "Maak je notitie af",
+      "title": "Schrijf een notitie",
+      "placeholder": "Typ je notitie",
+      "askTitle": "Deze notitie weggooien?",
+      "askKeep": "Verder schrijven",
+      "askThrow": "Weggooien",
+      "whoTitle": "Van wie is dit?",
+      "back": "Verder schrijven",
+      "failed": "Ophangen lukte niet. Je notitie is er nog.",
+      "unreachable": "Ophangen lukte niet. Home Screens reageert niet. Je notitie is er nog.",
+      "off": "Schrijven op de muur is net uitgezet. Je notitie kan niet op het prikbord.",
+      "pickAgain": "Die persoon hoort niet meer bij het gezin. Kies van wie dit is."
+    },
+    "leave": {
+      "row": "Laat een notitie achter",
+      "title": "Laat een notitie achter",
+      "draw": "Tekenen",
+      "write": "Schrijven",
+      "pageWaits": "Je tekening wacht nog op je.",
+      "wordsWait": "Wat je schreef wacht nog op je."
     }
   },
   "photoControls": {

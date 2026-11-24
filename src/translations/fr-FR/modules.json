@@ -1891,8 +1891,11 @@
     "receiptSummary": "Épinglées {pinned} · Importantes {important}",
     "pinnedOne": "Épinglée",
     "emptyDraw": "Rien sur le tableau. Fais un dessin ici, ou écris une note sur ton téléphone.",
+    "emptyWrite": "Rien sur le tableau. Écris une note ici ou sur ton téléphone.",
+    "emptyLeave": "Rien sur le tableau. Fais un dessin ou écris une note ici, ou écris-en une sur ton téléphone.",
     "drawing": "Dessin",
     "drawingFrom": "Dessin fait par {name}",
+    "noteFrom": "Note écrite par {name}",
     "openDrawing": "Voir en grand le dessin fait par {name}",
     "draw": {
       "row": "Faire un dessin",
@@ -1941,6 +1944,29 @@
       "undoing": "On le retire…",
       "posting": "On l'accroche…",
       "madeRoom": "Le plus vieux dessin a été retiré pour faire de la place."
+    },
+    "write": {
+      "row": "Écrire une note",
+      "rowFinish": "Finir ta note",
+      "title": "Écrire une note",
+      "placeholder": "Écris ta note",
+      "askTitle": "Jeter cette note ?",
+      "askKeep": "Continuer à écrire",
+      "askThrow": "La jeter",
+      "whoTitle": "C'est de la part de qui ?",
+      "back": "Continuer à écrire",
+      "failed": "Ça n'a pas marché. Ta note est toujours là.",
+      "unreachable": "Ça n'a pas marché. Home Screens ne répond pas. Ta note est toujours là.",
+      "off": "On ne peut plus écrire sur le mur, ça vient d'être désactivé. Ta note ne peut pas être accrochée.",
+      "pickAgain": "Cette personne ne fait plus partie de la famille. Choisis de qui vient la note."
+    },
+    "leave": {
+      "row": "Laisser une note",
+      "title": "Laisser une note",
+      "draw": "Dessiner",
+      "write": "Écrire",
+      "pageWaits": "Ton dessin t'attend encore.",
+      "wordsWait": "Ce que tu as écrit t'attend encore."
     }
   },
   "photoControls": {

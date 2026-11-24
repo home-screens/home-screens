@@ -48,7 +48,10 @@ export interface NotesContext {
   t: TranslateFn;
   /** The fitted base font size in px, for the fit measurements. */
   fontPx: number;
-  /** On a wall that takes touch: a tap on a drawing opens it large. Unset in the editor's canvas. */
+  /**
+   * On a wall that takes touch: a tap on a drawing's picture opens it large. Unset in the editor's canvas.
+   * A tap anywhere else on a note's row opens it too, typed notes included (`openFromTap` in `NotesModule`).
+   */
   onOpenDrawing?: (note: Note) => void;
 }
 

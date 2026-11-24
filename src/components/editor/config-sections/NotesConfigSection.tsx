@@ -153,6 +153,14 @@ export function NotesConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           description={t('configSections.notes.wallDrawHelp')}
         />
       )}
+      {NOTES_DRAW_VIEWS.has(view) && notesCardShowsEveryNote({ ...c, view }) && (
+        <Toggle
+          label={t('configSections.notes.wallWrite')}
+          checked={!!c.wallWrite}
+          onChange={(v) => set({ wallWrite: v })}
+          description={t('configSections.notes.wallWriteHelp')}
+        />
+      )}
 
       {/* Notes are family data: written here with Edit notes, or on a phone in the Notes tab. */}
       <PhoneSurfaceLinks context="notes" />

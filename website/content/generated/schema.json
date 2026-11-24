@@ -4916,6 +4916,16 @@
           },
           "description": "Show a \"Draw a note\" button on a touch wall, so anyone can leave a drawing on the board. Omitted = off",
           "default": true
+        },
+        {
+          "name": "wallWrite",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show a \"Write a note\" button on a touch wall, so anyone can type a short note onto the board. With drawing on too, one \"Leave a note\" button offers both. Omitted = off",
+          "default": true
         }
       ],
       "views": [

@@ -5731,7 +5731,9 @@
       "groupMaterials": "Motive",
       "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht.",
       "wallDraw": "An der Wand malen",
-      "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiter nur auf dem Handy."
+      "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiter nur auf dem Handy.",
+      "wallWrite": "An der Wand schreiben",
+      "wallWriteHelp": "Ein Knopf „Notiz schreiben“ auf der Karte. Alle an einem Touch-Display können eine kurze Notiz tippen und an die Pinnwand hängen. Ist auch das Malen an, gibt es stattdessen einen Knopf „Notiz hinterlassen“ für beides."
     }
   },
   "modals": {

@@ -5731,7 +5731,9 @@
       "groupMaterials": "Materials",
       "materialHelp": "This look brings its own colors and lettering, so the background, text color, border and font settings do not apply.",
       "wallDraw": "Draw on the wall",
-      "wallDrawHelp": "A \"Draw a note\" button on the card. Anyone at a touch wall can leave a drawing on the board; taking notes down stays on the phone."
+      "wallDrawHelp": "A \"Draw a note\" button on the card. Anyone at a touch wall can leave a drawing on the board; taking notes down stays on the phone.",
+      "wallWrite": "Write on the wall",
+      "wallWriteHelp": "A \"Write a note\" button on the card. Anyone at a touch wall can type a short note onto the board. With drawing on too, one \"Leave a note\" button does both."
     }
   },
   "modals": {

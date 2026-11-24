@@ -3375,6 +3375,14 @@ export interface NotesConfig {
    * some card has this on (`wallMayDraw`).
    */
   wallDraw?: boolean;
+  /**
+   * Show a "Write a note" button on a touch wall, so anyone can type a short note onto the board. With drawing on too, one "Leave a note" button offers both. Omitted = off
+   *
+   * On for new cards (the registry default); a card made before it stays as it was. Read by the
+   * same views as `wallDraw`; the hub takes typed words from a wall only while some card has
+   * this on (`wallMayWrite`).
+   */
+  wallWrite?: boolean;
 }
 
 // Sticky note module config

@@ -27,7 +27,8 @@
       "noteGone": "Cette note n'est plus là.",
       "boardFull": "Le tableau est plein : {max} notes. Retires-en quelques-unes d'abord.",
       "badDrawing": "Ce dessin n'a pas pu être enregistré.",
-      "wallDrawOff": "Le dessin sur le mur est désactivé."
+      "wallDrawOff": "Le dessin sur le mur est désactivé.",
+      "wallWriteOff": "L'écriture sur le mur est désactivée."
     },
     "family": {
       "revision": "La famille a été modifiée entre-temps. La liste à jour est affichée : il faut refaire la modification.",

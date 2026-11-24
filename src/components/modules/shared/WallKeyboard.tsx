@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useLocale, useTranslate } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
+import { wallTakesTouch } from '@/lib/wall-touch-gate';
 import {
   WALL_KEYBOARD_NUMBER_ROWS,
   shiftLetter,
@@ -12,12 +13,28 @@ import {
   type WallKeyboardKind,
 } from '@/lib/wall-keyboard';
 import { useAutoClose } from './useAutoClose';
+import { useFingerTap } from './useFingerTap';
+import { WallButton, type WallButtonProps } from './WallButton';
 import { wallPressProps } from './wallPress';
 
 /** A keyboard nobody has pressed for this long closes, so the screen can move on. */
 export const WALL_KEYBOARD_IDLE_MS = 60_000;
 
 const noIdle = () => {};
+
+/** How long delete is held before it starts taking letters by itself, and how fast it then goes. */
+export const DELETE_HOLD_MS = 450;
+export const DELETE_REPEAT_MS = 80;
+
+/**
+ * A key that types: a letter, space, delete, Shift. It answers its own
+ * finger (`useFingerTap`), so two hands typing never lose a letter whose key
+ * went down before the last one came up. The action key and the 123 key
+ * stay on the click: they change what is under the finger.
+ */
+function TypingKey({ onPress, ...rest }: Omit<WallButtonProps, 'onClick'> & { onPress: () => void }) {
+  return <WallButton {...rest} {...useFingerTap(onPress)} />;
+}
 
 export interface WallKeyboardProps {
   /** A key as it is drawn: a capital while Shift is lit, a digit or mark from the 123 page, or a space. */
@@ -63,6 +80,50 @@ export interface WallKeyboardProps {
    * Within one line the 123 page stays where it is put.
    */
   round?: number;
+}
+
+/**
+ * Delete: one letter for a tap, and held down it keeps taking letters until
+ * the finger lifts, so a long note is cleared without a tap for each letter.
+ * The lift after a hold deletes nothing more.
+ */
+function DeleteKey({ onPress, ...rest }: Omit<WallButtonProps, 'onClick'> & { onPress: () => void }) {
+  const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repeat = useRef<ReturnType<typeof setInterval> | null>(null);
+  const repeated = useRef(false);
+  const press = useRef(onPress);
+  useEffect(() => { press.current = onPress; });
+  const stop = () => {
+    if (hold.current) clearTimeout(hold.current);
+    if (repeat.current) clearInterval(repeat.current);
+    hold.current = null;
+    repeat.current = null;
+  };
+  useEffect(() => stop, []);
+  const tap = useFingerTap(() => {
+    if (repeated.current) repeated.current = false;
+    else onPress();
+  });
+  return (
+    <WallButton
+      {...rest}
+      {...tap}
+      onPointerDown={(e) => {
+        tap.onPointerDown(e);
+        stop();
+        repeated.current = false;
+        if (e.currentTarget.matches(':disabled') || !wallTakesTouch()) return;
+        hold.current = setTimeout(() => {
+          repeated.current = true;
+          press.current();
+          repeat.current = setInterval(() => press.current(), DELETE_REPEAT_MS);
+        }, DELETE_HOLD_MS);
+      }}
+      onPointerUp={(e) => { stop(); tap.onPointerUp(e); }}
+      onPointerCancel={(e) => { stop(); tap.onPointerCancel(e); }}
+      onPointerLeave={stop}
+    />
+  );
 }
 
 /**
@@ -115,41 +176,32 @@ export function WallKeyboard({
   const charKeys = (chars: string) => [...chars].map((char) => {
     const shown = text && !numbers && shift ? shiftLetter(char, locale) : char;
     return (
-      <button key={char} type="button" {...wallPressProps} data-key={shown} onClick={press(() => onKey(shown))} style={keyStyle(1)}>
+      <TypingKey key={char} data-key={shown} onPress={press(() => onKey(shown))} style={keyStyle(1)}>
         {shown}
-      </button>
+      </TypingKey>
     );
   });
   const deleteButton = (keys: number) => (
-    <button
-      type="button"
-      {...wallPressProps}
-      data-key="delete"
-      aria-label={t('wallKeyboard.deleteKey')}
-      onClick={press(onDelete)}
-      style={fnStyle(keys)}
-    >
+    <DeleteKey data-key="delete" aria-label={t('wallKeyboard.deleteKey')} onPress={press(onDelete)} style={fnStyle(keys)}>
       <svg viewBox="0 0 24 24" width={P(42)} height={P(42)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" />
         <path d="m12 9 6 6" />
         <path d="m18 9-6 6" />
       </svg>
-    </button>
+    </DeleteKey>
   );
   const shiftButton = (
-    <button
-      type="button"
-      {...wallPressProps}
+    <TypingKey
       data-key="shift"
       aria-label={t('wallKeyboard.shiftKey')}
       aria-pressed={shift}
-      onClick={press(() => onShift?.())}
+      onPress={press(() => onShift?.())}
       style={fnStyle(1.5, shift ? { background: 'color-mix(in srgb, var(--wt-accent) 22%, var(--wt-surface))', color: 'var(--wt-accent)' } : undefined)}
     >
       <svg viewBox="0 0 24 24" width={P(40)} height={P(40)} fill={shift ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinejoin="round" aria-hidden="true">
         <path d="M9 18v-6H5l7-7 7 7h-4v6H9z" />
       </svg>
-    </button>
+    </TypingKey>
   );
 
   // Letter rows, or the 123 page's rows; delete closes the last one.
@@ -191,9 +243,9 @@ export function WallKeyboard({
               {t(numbers ? 'wallKeyboard.lettersKey' : 'wallKeyboard.numbersKey')}
             </button>
           )}
-          <button type="button" {...wallPressProps} data-key="space" onClick={press(() => onKey(' '))} style={keyStyle(text ? 5.5 : 6, { fontSize: P(28), color: 'var(--wt-text-3)' })}>
+          <TypingKey data-key="space" onPress={press(() => onKey(' '))} style={keyStyle(text ? 5.5 : 6, { fontSize: P(28), color: 'var(--wt-text-3)' })}>
             {t('wallKeyboard.spaceKey')}
-          </button>
+          </TypingKey>
           <button
             type="button"
             {...wallPressProps}

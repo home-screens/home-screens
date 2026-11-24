@@ -12,7 +12,7 @@ nextjs:
 
 ## How the pieces fit
 
-- **The wall** shows a **Notes** module. Pick one of twenty-two views, from a full board or a single line along the bottom of the screen to a chalkboard or a neon sign. On a touchscreen, anyone can [draw a note](#5-draw-a-note-on-the-wall) right there. Changing notes and taking them down stays on the phone and in the editor.
+- **The wall** shows a **Notes** module. Pick one of twenty-two views, from a full board or a single line along the bottom of the screen to a chalkboard or a neon sign. On a touchscreen, anyone can [draw a note](#5-draw-a-note-on-the-wall) or [type one](#6-write-a-note-on-the-wall) right there. Changing notes and taking them down stays on the phone and in the editor.
 - **The family remote** at `/remote` has a **Notes** tab. That is where most notes are written, changed, taken down and posted again.
 - **The editor** puts the board on a screen and picks how it looks. Its **Edit notes** button writes and changes notes from the computer too.
 
@@ -22,7 +22,7 @@ There is one board for the whole house. Put the Notes module on as many screens 
 
 In the editor, drag **Notes** from the **Personal** group onto a screen, then pick a **View** in its settings. **Board** is the default: one row per note, newest first, with pinned notes on top. The settings below the view change with it, so you only see the ones that view uses. The [views](#the-views) are described further down.
 
-Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here." With **Draw on the wall** on, it says "Nothing on the board. Draw a note here, or write one on your phone." and shows the **Draw a note** button.
+Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here." With **Draw on the wall** on, it says "Nothing on the board. Draw a note here, or write one on your phone." and shows the **Draw a note** button. With **Write on the wall** on as well, the words and the button cover both: **Leave a note**.
 
 ## 2. Write a note on your phone
 
@@ -68,14 +68,33 @@ On a touchscreen wall, a Notes module with **Draw on the wall** switched on has 
 3. Tap **Next**, tap who drew it (or **Nobody**), and pick how long it stays: **12 hours**, **1 day**, **3 days** or **1 week**.
 4. Tap **Put it on the board**. The wall says it is up and offers **Undo** for a few seconds. Undo takes it off the board and hands the page back: the button reads **Finish your drawing**, so you can fix it and put it up again.
 
+If the module has **Write on the wall** on too, the button reads **Leave a note** and the page has a **Draw / Write** switch at the top. See the next section.
+
 Good to know:
 
 - A drawing is a note like any other. It shows in every view, on every screen, and comes down on its own when its time is up. Each view draws it in its own style: chalk on the Chalkboard, marker on the Whiteboard, dark ink on a Sticky paper. The one-line views (Strip, Ticker, Compact) have no room for a picture and say "Drawing".
-- On a card a drawing takes the room of a two-line note. Tap it to see it large.
+- On a card a drawing takes the room of a two-line note. Tap it to see it large. A typed note opens the same way: a card shows two or three lines of a long one, and a tap on it shows every word.
 - **Close** with something on the page asks before throwing it away. If nobody touches the page for two minutes it closes by itself and keeps the drawing for ten minutes: the button then reads **Finish your drawing**.
 - On the phone and in the editor a drawing shows as a small picture. You can change who it is from, how long it stays, pin it, mark it important, take it down and post it again. The picture itself cannot be changed, and the phone cannot draw.
 - The board keeps at most 12 drawings up at once. One more takes down the oldest drawing that is not pinned, and the wall says so. It goes to **Gone** on the phone, where you can post it again for a week. Undo on the new drawing puts the old one back.
 - The views with no room for the button are Strip, Ticker, Compact, Count, Spotlight, Latest, Neon and Letterboard. Put a second Notes module in another view on the screen if you want to draw from there. A module set to show **Pinned only** or **Important only** has no button either, because a new drawing would never show on it.
+
+
+## 6. Write a note on the wall
+
+On a touchscreen wall, a Notes module with **Write on the wall** switched on has a **Write a note** button in the same place as the drawing one. It is on for a new Notes module, and off for one you already had until you switch it on. When both switches are on there is one button, **Leave a note**, and the page that opens has **Draw** and **Write** at the top.
+
+1. Tap **Write a note** (or **Leave a note**, then **Write**). A box and the wall's keyboard open.
+2. Type the note, up to 200 letters. The first letter of a sentence is a capital by itself, and **123** has numbers and marks. Hold the delete key to take back several letters.
+3. Tap **Next**, tap who it is from (or **Nobody**), and pick how long it stays.
+4. Tap **Put it on the board**. **Undo** takes it off again and keeps the words: the button reads **Finish your note**.
+
+Good to know:
+
+- A note typed on the wall is an ordinary note. On the phone and in the editor you can change its words, pin it, mark it important or take it down.
+- **Draw** and **Write** each keep what is on them while you look at the other. One note goes up, the side you are on. If the other side has something on it, it waits on the button for ten minutes (**Finish your drawing** or **Finish your note**).
+- **Close** with words in the box asks before throwing them away, and a sheet nobody touches for two minutes closes and keeps them for ten minutes, the same as a drawing.
+- Longer notes, and notes that stay up for good, are written on the phone.
 
 ## The views
 
@@ -124,6 +143,7 @@ Most views use every setting below. The editor hides the ones a view does not us
 - **Seconds per note**: how long Spotlight, Strip, Letterboard and Neon stay on each note before moving on, from 5 to 60. Ten unless you change it.
 - **Scroll speed (seconds per note)**: how slowly Ticker crawls, from 3 to 30. A higher number is slower.
 - **Draw on the wall**: shows the **Draw a note** button on a touchscreen wall. On for a new module. Switch it off on every Notes module and nobody can draw from the wall.
+- **Write on the wall**: shows a **Write a note** button on a touchscreen wall, for typing a short note on the wall's own keyboard. On for a new module. With **Draw on the wall** on too, one **Leave a note** button offers both. Switch it off on every Notes module and nobody can type a note from the wall.
 
 ## Show the board only when there is something on it
 
@@ -139,7 +159,7 @@ The same values work in [display rules](/docs/profiles#display-rules), for examp
 
 Typed notes are written on the family remote or in the editor. Once you [set a password](/docs/remote-control#ask-for-a-password), that means a phone or computer that is signed in. The kids' page at `/chores` cannot post notes.
 
-The wall can post one thing: a drawing, and only while some Notes module has **Draw on the wall** on. It cannot type words, pin, mark important, change a note or take one down, apart from **Undo** right after a drawing goes up. To stop drawing from the wall, switch **Draw on the wall** off on every Notes module.
+The wall can post two things: a drawing, while some Notes module has **Draw on the wall** on, and a short typed note of up to 200 letters, while some Notes module has **Write on the wall** on. Anyone standing at the wall can use them, and there is no code to type first. The wall cannot pin, mark important, keep a note for good, change a note or take one down, apart from **Undo** right after its own note goes up. To stop either, switch it off on every Notes module.
 
 ## When someone leaves the family
 

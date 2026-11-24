@@ -141,6 +141,7 @@ export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padd
       {lead && (
         <div
           data-testid="notes-note"
+          data-note={lead.id}
           data-important={lead.important ? '' : undefined}
           data-pinned={lead.pinned ? '' : undefined}
           className="shrink-0 min-w-0"

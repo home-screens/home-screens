@@ -19,6 +19,7 @@ export function StripView({ ctx, all, stepSeconds }: { ctx: NotesContext; all: N
   return (
     <div
       data-testid="notes-note"
+      data-note={note.id}
       data-important={note.important ? '' : undefined}
       data-pinned={note.pinned ? '' : undefined}
       className="flex items-center flex-1 min-h-0 min-w-0"

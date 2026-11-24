@@ -532,6 +532,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-meal-planner.wallPlan': 'covered-elsewhere', // wall-meal-plan.spec.ts (Put on the menu, the plus, nothing when off)
   'todo.wallAdd': 'covered-elsewhere', // wall-list-add.spec.ts (type, Add, see it land, Undo)
   'notes.wallDraw': 'covered-elsewhere', // wall-note-draw.spec.ts (draw, post, open large, Undo; no button when off)
+  'notes.wallWrite': 'covered-elsewhere', // wall-note-write.spec.ts (type, post, Undo; the Draw / Write switch with both on)
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'multi-month.addEvents': 'covered-elsewhere', // calendar-events.spec.ts
   'news.showNewMarker': 'not-observable',
