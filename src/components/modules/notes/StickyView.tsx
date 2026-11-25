@@ -3,7 +3,7 @@
 import type { Note } from '@/types/notes';
 import { tiltFor } from '@/lib/notes-rules';
 import { useFittedNotes } from './useFittedNotes';
-import { DANGER, MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
+import { MoreLine, PinGlyph, WarnGlyph, ageOf, authorOf, type NotesContext, NoteDrawingBody } from './shared';
 
 /** Paper for a note with no author: the Sticky Note module's yellow. */
 const PLAIN_PAPER = '#fef08a';
@@ -18,8 +18,17 @@ const PAPER_MUTED = 'rgba(0, 0, 0, 0.6)';
 const TWO_COLUMNS_BELOW_PX = 500;
 
 /**
+ * The band across the top of an important paper. Papers are always at least
+ * 45% white, so no person's colour can come close to this red: the band, not
+ * the paper, says a note is important, and someone whose colour is red still
+ * writes ordinary notes. White reads on it at 4.8 to 1.
+ */
+const IMPORTANT_BAND = '#dc2626';
+
+/**
  * Sticky: the fridge door. Paper squares in the author's colour, lightened,
- * with dark ink; an important note on red paper. Each paper leans by a
+ * with dark ink; an important note keeps its author's paper and carries a
+ * red band with the warning sign and the word. Each paper leans by a
  * constant from its id (`tiltFor`), never animated. The card behind keeps
  * the module's own style; only the papers carry their own colours.
  */
@@ -37,9 +46,7 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
         {drawn.map((note) => {
           const author = authorOf(note, ctx.members, ctx.t);
           const age = ageOf(note, ctx);
-          const paper = note.important
-            ? `color-mix(in srgb, ${DANGER} 62%, #fff)`
-            : `color-mix(in srgb, ${author.color ?? PLAIN_PAPER} 55%, #fff)`;
+          const paper = `color-mix(in srgb, ${author.color ?? PLAIN_PAPER} 55%, #fff)`;
           return (
             <div
               key={note.id}
@@ -59,6 +66,33 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
                 transform: `rotate(${tiltFor(note.id)}deg)`,
               }}
             >
+              {note.important && (
+                <div
+                  data-testid="notes-sticky-band"
+                  className="flex flex-wrap items-center content-start min-w-0 shrink-0 overflow-hidden"
+                  // One line tall, reaching the paper's edges through its padding
+                  // (0.75em of the paper is 0.9615em here). A word with no room
+                  // wraps to a hidden second line, so a narrow paper keeps the
+                  // sign alone and never shows half a word.
+                  style={{
+                    fontSize: '0.78em',
+                    margin: '-0.9615em -0.9615em 0.55em',
+                    padding: '0 0.9615em',
+                    height: '2em',
+                    background: IMPORTANT_BAND,
+                    color: '#fff',
+                    borderRadius: '0.385em 0.385em 0 0',
+                    columnGap: '0.3em',
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {/* A full-height strut, so the first line is the band's height and the sign and word centre in it. */}
+                  <span aria-hidden="true" style={{ width: 0, height: '2em', marginRight: '-0.3em' }} />
+                  <WarnGlyph color="currentColor" />
+                  <span className="whitespace-nowrap" style={{ flex: 'none' }}>{ctx.t('notes.important')}</span>
+                </div>
+              )}
               {note.drawing ? (
                 <NoteDrawingBody note={note} ctx={ctx} surface="paper" fill style={{ margin: '-0.3em -0.2em 0' }} />
               ) : (
@@ -72,9 +106,6 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
               >
                 {ctx.showAuthor && <span className="truncate">{author.name}</span>}
                 {note.pinned && <PinGlyph />}
-                {/* The glyph alone: the red paper already says it, and the word
-                    would squeeze the author's name out of a paper this narrow. */}
-                {note.important && <WarnGlyph color="currentColor" />}
                 {age && <span className="ml-auto shrink-0 whitespace-nowrap" style={{ fontWeight: 500 }}>{age}</span>}
               </div>
             </div>
