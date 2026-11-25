@@ -226,7 +226,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). Scheduled profiles take
 
 ### DisplayRule
 
-A condition → action rule owned by a display. Rules reuse the `VisibilityCondition` tree and evaluator unchanged, but are edge-triggered: a rule fires only on the false→true transition of its conditions, never while they merely stay true, so a reboot or a restarting state producer never slams the display onto an alert screen for a condition that has been true for hours. Rules live under **Settings > Automation > Rules** and are per-display in multi-display setups.
+A rule owned by a display: when its conditions come true, it takes an action. Rules reuse the `VisibilityCondition` tree and evaluator unchanged, but are edge-triggered: a rule fires only at the moment its conditions turn from false to true, never while they merely stay true, so a reboot or a restarting state producer never slams the display onto an alert screen for a condition that has been true for hours. Rules live under **Settings > Automation > Rules** and are per-display in multi-display setups.
 
 {% type-reference name="DisplayRule" /%}
 

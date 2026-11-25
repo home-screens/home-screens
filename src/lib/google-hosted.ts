@@ -6,9 +6,11 @@ import type { HostedGoogleClient } from './google-token-store';
  *
  * On by default now that Google has approved the apps; HS_GOOGLE_HOSTED=0
  * switches it off, which leaves a hub exactly as it was before the hosted
- * apps existed. Either way a household's own Google app, saved in Settings,
- * always wins (google-token-store.ts), so the hosted apps change nothing for
- * a household that already set one up.
+ * apps existed. A household's own Google app, saved in Settings, is used
+ * while `settings.googleApp` is `own` (the default) or whenever the hosted
+ * apps are switched off, so they change nothing for a household that already
+ * set one up until it flips the switch to Home Screens' app. The rule is
+ * `chooseGoogleApp` (google-app-choice.ts).
  *
  * Client ids are public (they appear in every sign-in link). Both secrets
  * stay in the sign-in helper (infrastructure/google-oauth-worker), never in

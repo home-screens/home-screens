@@ -14,11 +14,13 @@ import {
   entryCalendarIds,
   googleEntryStateWithSetting,
   normalizeEventDraft,
+  readOnlyCalendars,
   readTimeWas,
   splitGoogleEventId,
   type ChangeScope,
   type EventDraft,
   type GoogleEntryState,
+  type ReadOnlyCalendars,
 } from '@/lib/calendar-write';
 import { isoDateInTZ } from '@/lib/timezone';
 import { logger } from '@/lib/logger';
@@ -288,6 +290,8 @@ export interface CalendarEntryInfo {
   calendars: EntryCalendar[];
   /** Google is signed in but could not be asked about the calendars ticked for adding, so none of them is listed. */
   googleUnreachable?: true;
+  /** Shown calendars left out of `calendars` because they can only be read (`readOnlyCalendars`); absent when none are. */
+  readOnlyShown?: ReadOnlyCalendars;
   defaultCalendarId: string | null;
   /** How long a new event lasts until changed, in minutes. */
   defaultMinutes: number;
@@ -312,9 +316,11 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   const googleEntry = ctx.entryIds.filter((id) => ctx.googleIds.includes(id));
   let labels = new Map<string, { name: string; color: string; writable: boolean }>();
   let googleUnreachable = false;
-  if (google === 'ready' && googleEntry.length > 0) {
+  // Every shown Google calendar, not only the ticked ones: the form says when
+  // some it leaves out can only be read. The same hourly list the event fetch reads.
+  if (google === 'ready' && ctx.googleIds.length > 0) {
     try {
-      labels = await (await import('@/lib/google-calendar')).googleCalendarLabels(googleEntry);
+      labels = await (await import('@/lib/google-calendar')).googleCalendarLabels(ctx.googleIds);
     } catch (err) {
       // Google or the internet is down. The form still gets everything else
       // (iCloud calendars, the settings), so one a phone has open stays open.
@@ -322,7 +328,7 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
     }
     // None known, not even from before (a hub just restarted with Google out
     // of reach): say so, rather than that no calendar is picked.
-    googleUnreachable = labels.size === 0;
+    googleUnreachable = googleEntry.length > 0 && !googleEntry.some((id) => labels.has(id));
   }
   const icloud = new Map((calendar.icloudSources ?? []).map((s) => [s.id, s]));
   const looks = calendar.calendarOverrides;
@@ -336,5 +342,11 @@ export async function calendarEntryInfo(): Promise<CalendarEntryInfo> {
   }
   const preferred = entry?.defaultCalendarId;
   const defaultCalendarId = calendars.find((c) => c.id === preferred)?.id ?? calendars[0]?.id ?? null;
-  return { ...base, google, googleIfOn, calendars, defaultCalendarId, ...(googleUnreachable ? { googleUnreachable: true as const } : {}) };
+  // Home Screens' own app before Google allows it to add: no Google calendar can take an event.
+  const readOnlyShown = readOnlyCalendars(calendar, (id) => (google === 'notOffered' ? false : labels.get(id)?.writable));
+  return {
+    ...base, google, googleIfOn, calendars, defaultCalendarId,
+    ...(googleUnreachable ? { googleUnreachable: true as const } : {}),
+    ...(readOnlyShown ? { readOnlyShown } : {}),
+  };
 }

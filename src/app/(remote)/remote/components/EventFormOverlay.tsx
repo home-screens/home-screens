@@ -326,22 +326,30 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
         <div style={gap}>
           {label('calendarTab.form.calendar')}
           {mode === 'new' ? (
-            <div role="radiogroup" aria-label={t('calendarTab.form.calendar')} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {entry.calendars.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={c.id === calendarId}
-                  className="press-scale"
-                  data-calendar={c.id}
-                  onClick={() => setCalendarId(c.id)}
-                  style={{ ...toggleChipStyle(c.id === calendarId), fontSize: 14 }}
-                >
-                  <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: c.color }} />{c.name}
-                </button>
-              ))}
-            </div>
+            <>
+              <div role="radiogroup" aria-label={t('calendarTab.form.calendar')} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {entry.calendars.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={c.id === calendarId}
+                    className="press-scale"
+                    data-calendar={c.id}
+                    onClick={() => setCalendarId(c.id)}
+                    style={{ ...toggleChipStyle(c.id === calendarId), fontSize: 14 }}
+                  >
+                    <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: c.color }} />{c.name}
+                  </button>
+                ))}
+              </div>
+              {/* Why a calendar on the wall is not in this choice, so nobody hunts for it. */}
+              {entry.calendars.length > 0 && entry.readOnlyShown && (
+                <p data-testid="event-form-read-only" style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 8 }}>
+                  {t(`calendarTab.form.onlySome.${entry.readOnlyShown}`)}
+                </p>
+              )}
+            </>
           ) : (
             <>
               <div style={{ ...FIELD, background: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>

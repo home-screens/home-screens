@@ -11,7 +11,7 @@ import { parseSetupSystemChanges, restartNeededFor, RESTART_NEEDED_CHANGES } fro
  */
 
 /** Every change name setup-system can print, sorted by whether the wall needs a restart for it. */
-const NEEDS_RESTART = ['launcher', 'bash-profile', 'labwc-autostart', 'legacy-kiosk', 'session-packages'];
+const NEEDS_RESTART = ['launcher', 'power-agent', 'bash-profile', 'labwc-autostart', 'legacy-kiosk', 'session-packages'];
 const NO_NOTICE = [
   // Only matter at the next boot, and nothing on the wall looks wrong until then.
   'cmdline', 'config-txt', 'plymouth', 'plymouth-packages', 'plymouth-delay', 'boot-target', 'autologin',
@@ -75,6 +75,13 @@ describe('restartNeededFor', () => {
 
   it('is empty after an install of packages the kiosk session does not run', () => {
     expect(restartNeededFor(['packages'])).toEqual([]);
+  });
+
+  it('asks for a restart after an update that changed only the panel power agent', () => {
+    // The launcher stayed the same, so without its own name the new agent
+    // would wait for a reboot the nightly update never makes.
+    expect(restartNeededFor(parseSetupSystemChanges('{"ok":true,"changed":"packages,power-agent,labwc-rc"}')))
+      .toEqual(['power-agent']);
   });
 
   it.each(NEEDS_RESTART)('asks for a restart after %s', (name) => {

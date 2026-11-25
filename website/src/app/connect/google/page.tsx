@@ -214,17 +214,19 @@ export default function ConnectGooglePage() {
         ) : view?.kind === 'unreachable' ? (
           <>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
-              Copy this code, then paste it in the editor under Import from
-              Google Photos. Check this computer is on the same Wi-Fi as your
-              Home Screens.
+              Copy this code and go back to the editor. Click “Didn&apos;t come
+              back? Paste a code”, paste it there, then click “Finish
+              sign-in”. Check this computer is on the same Wi-Fi as your Home
+              Screens.
             </p>
             {codeBlock(view.code)}
           </>
         ) : view?.kind === 'code' ? (
           <>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
-              Copy this code, then go back to Home Screens and paste it in the
-              box under Import from Google Photos.
+              Copy this code and go back to the editor. If you see
+              “Didn&apos;t come back? Paste a code”, click it first. Paste the
+              code, then click “Finish sign-in”.
             </p>
             {codeBlock(view.code)}
             <p className="mt-4 text-xs text-slate-500">
@@ -235,16 +237,16 @@ export default function ConnectGooglePage() {
         ) : view?.kind === 'cancelled' ? (
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             No problem. Close this tab and start again from the editor whenever
-            you like: open a Photo Slideshow or Full-Screen Photo Viewer, set its
-            source to Local Photos, then choose Import from Google Photos.
+            you like: open Settings &gt; Pictures &amp; videos, click “Add from
+            Google Photos”, then “Sign in to add from Google Photos”.
           </p>
         ) : view?.kind === 'intro' ? (
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
-            Google sends you back to this page after you sign in for the Google
-            Photos import. Start the sign-in from the editor (open a Photo
-            Slideshow or Full-Screen Photo Viewer, set its source to Local
-            Photos, then choose Import from Google Photos) and you will land
-            back here with a code to copy.
+            Google sends you to this page after you sign in to Google Photos
+            from Home Screens, and it takes you straight back to your Home
+            Screens or gives you a code to paste there. Start the sign-in from
+            the editor: open Settings &gt; Pictures &amp; videos, click “Add
+            from Google Photos”, then “Sign in to add from Google Photos”.
           </p>
         ) : null}
 

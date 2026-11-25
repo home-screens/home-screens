@@ -1481,6 +1481,7 @@
     "googleCalendar": "Google Agenda",
     "appleCalendar": "Apple Agenda",
     "unreachable": "Home Screens was niet bereikbaar, dus er is nog niets veranderd. Alles wat je hebt getypt, staat er nog.",
+    "loadError": "De afspraken konden niet worden geladen, dus sommige dagen zien er misschien leeg uit. Probeer het zo opnieuw.",
     "added": "Toegevoegd aan {calendar}. Over een paar seconden staat hij op de muur.",
     "changed": "Gewijzigd. Over een paar seconden zie je het op de muur.",
     "removed": "Uit {calendar} gehaald.",
@@ -1537,7 +1538,12 @@
       "fromWall": "Begonnen op de muur {wall}, voor {day}.",
       "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd, dus je ziet nu de nieuwste versie. Doe je wijziging nog een keer en sla dan op.",
       "repeatsNote": "{title} komt vaker terug. Als je opslaat, kies je: alleen deze dag of elke keer.",
-      "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}."
+      "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}.",
+      "onlySome": {
+        "links": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agendalinks zijn alleen te bekijken.",
+        "readOnly": "Nieuwe afspraken kunnen alleen in sommige agenda's. Sommige zijn alleen te bekijken.",
+        "both": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agendalinks en een paar andere zijn alleen te bekijken."
+      }
     }
   },
   "wallWaiting": {

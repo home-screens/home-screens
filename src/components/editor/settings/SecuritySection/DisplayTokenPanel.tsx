@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
@@ -8,9 +9,13 @@ import { useOrigin } from '@/hooks/useOrigin';
 import { useCopyFlash } from '@/hooks/useCopyFlash';
 import { useEditorStore } from '@/stores/editor-store';
 import { findMainDisplay } from '@/lib/display-filter';
+import { settingsPath } from '@/lib/settings-route';
+import { wallsLetInByThemselves } from '@/lib/walls-api-types';
+import { useWalls } from '@/hooks/useWalls';
 import type { DisplayNode } from '@/types/config';
 import FieldHint from '@/components/ui/FieldHint';
 import { SettingsSubHeading } from '@/components/editor/settings/shared/SettingsPanel';
+import { wallsShowing } from '@/components/editor/settings/display/WallsPanels';
 
 /**
  * The address a phone bookmark points at. `/api/display/<command>` takes the
@@ -60,6 +65,15 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
   const [tokenRegenerating, setTokenRegenerating] = useState(false);
   const [tokenConfirmRegen, setTokenConfirmRegen] = useState(false);
   const [tokenStatus, setTokenStatus] = useState<string | null>(null);
+
+  // Read only while the warning is open. A new key does not take out the
+  // walls the changeover let in by themselves, so the warning counts them
+  // and links to where they are listed: the one display they all show on,
+  // or every display.
+  const { data: wallsData } = useWalls({ enabled: tokenConfirmRegen });
+  const letInByThemselves = wallsLetInByThemselves(wallsData?.walls ?? []);
+  const theirDisplay = displays?.find((d) => wallsShowing(letInByThemselves, d.id).length === letInByThemselves.length);
+  const theirList = settingsPath(theirDisplay ? { kind: 'display', displayId: theirDisplay.id, subtab: 'overview' } : { kind: 'displays' });
 
   async function handleCopyToken() {
     if (!(await copy(token))) {
@@ -134,6 +148,15 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
           <div className="flex items-center gap-2">
             <span className="text-xs text-hs-warning-ink">
               {t('settings.securityPage.displayToken.regenerateWarning')}
+              {letInByThemselves.length > 0 && (
+                <span data-testid="regenerate-walls-let-in-by-themselves">
+                  {' '}
+                  {t('settings.securityPage.displayToken.regenerateWallsLetInByThemselves', { count: letInByThemselves.length })}{' '}
+                  <Link href={theirList} className="text-hs-accent hover:text-hs-accent-hover underline">
+                    {t('settings.securityPage.displayToken.regenerateWallsCheck', { count: letInByThemselves.length })}
+                  </Link>
+                </span>
+              )}
             </span>
             <Button
               variant="danger"

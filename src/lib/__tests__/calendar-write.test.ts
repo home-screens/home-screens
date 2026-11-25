@@ -16,6 +16,7 @@ import {
   isLongTimed,
   spansDays,
   normalizeEventDraft,
+  readOnlyCalendars,
   readTimeWas,
   repeatFrequenciesFor,
   repeatFromRecurrence,
@@ -508,5 +509,30 @@ describe('addingReadiness', () => {
     expect(addingReadiness({ enabled: true, google: 'needsSignIn', calendars: 1 })).toBe('ready');
     // Signed in, but Google could not be asked: not "no calendar is picked".
     expect(addingReadiness({ enabled: true, google: 'ready', calendars: 0, googleUnreachable: true })).toBe('googleUnreachable');
+  });
+});
+
+describe('readOnlyCalendars', () => {
+  const link = { id: 'ical-school', type: 'ical' as const, name: 'School', url: 'https://example.com/school.ics', color: '#f97316', enabled: true };
+  const birthdays = { id: 'ic-bd', accountId: 'acct', kind: 'birthdays' as const, url: '', name: 'Birthdays', color: '#ef4444', enabled: true };
+  const home = { id: 'ic-home', accountId: 'acct', kind: 'calendar' as const, url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true };
+  const writable = (id: string) => ({ family: true, team: false } as Record<string, boolean | undefined>)[id];
+
+  it('names calendar links, calendars that can only be read, or both', () => {
+    expect(readOnlyCalendars({ googleCalendarIds: ['family'], icalSources: [link] }, writable)).toBe('links');
+    expect(readOnlyCalendars({ googleCalendarIds: ['family', 'team'], icalSources: [] }, writable)).toBe('readOnly');
+    expect(readOnlyCalendars({ googleCalendarIds: ['family', 'team'], icalSources: [link] }, writable)).toBe('both');
+    // A birthdays calendar comes from Contacts and never takes an event.
+    expect(readOnlyCalendars({ googleCalendarIds: [], icalSources: [], icloudSources: [home, birthdays] }, writable)).toBe('readOnly');
+  });
+
+  it('counts only calendars the screens show', () => {
+    expect(readOnlyCalendars({ googleCalendarIds: ['family'], icalSources: [{ ...link, enabled: false }], icloudSources: [{ ...birthdays, enabled: false }] }, writable)).toBeNull();
+  });
+
+  it('does not count a Google calendar nobody can say about yet, nor one that can take events', () => {
+    // Google not answering, or its sign-in still needing the extra step.
+    expect(readOnlyCalendars({ googleCalendarIds: ['unknown'], icalSources: [] }, writable)).toBeNull();
+    expect(readOnlyCalendars({ googleCalendarIds: ['family'], icalSources: [], icloudSources: [home] }, writable)).toBeNull();
   });
 });

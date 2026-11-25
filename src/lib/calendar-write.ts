@@ -2,7 +2,7 @@ import { addIsoDays, isIsoDate, isoDaysBetween, isoWeekday } from './iso-date';
 import { oneLineText, textLength } from './text-length';
 import { isoDateInTZ, parseDateInTZ } from './timezone';
 import { RefusalError, type RefusalParams } from './refusal';
-import type { CalendarEventEntry, CalendarEvent, GlobalSettings } from '@/types/config';
+import type { CalendarEventEntry, CalendarEvent, CalendarSettings, GlobalSettings } from '@/types/config';
 
 /**
  * The rules for adding and changing calendar events from Home Screens: what a
@@ -567,6 +567,35 @@ export function googleEntryStateWithSetting(ifOn: GoogleEntryState, settingOn: b
 /** The scope string Google saved with a grant, as a list. */
 export function grantedScopes(scope: string | null | undefined): string[] {
   return (scope ?? '').split(/\s+/).filter(Boolean);
+}
+
+/**
+ * Why some calendars the screens show are never in the forms' calendar
+ * choice: `links` when a calendar link (an ICS feed, which Home Screens can
+ * only read) is shown, `readOnly` when another shown calendar can only be
+ * read (a Google calendar Home Screens may not add to, or a birthdays
+ * calendar from Contacts), `both` for the two at once, and null for neither.
+ *
+ * `googleWritable` says whether Home Screens may add to a shown Google
+ * calendar: false for one this account may only look at, and for every one
+ * while Home Screens' own Google app may not add yet; `undefined` when that
+ * is not known (Google not answering, or its sign-in still needing the extra
+ * step a grown-up can take), which does not count. Nor does a calendar that
+ * could take events but is not ticked for them, the household's choice in
+ * Settings, nor the public holidays, which nobody looks for in that choice.
+ */
+export type ReadOnlyCalendars = 'links' | 'readOnly' | 'both';
+
+export function readOnlyCalendars(
+  calendar: Pick<CalendarSettings, 'googleCalendarIds' | 'icalSources' | 'icloudSources'>,
+  googleWritable: (id: string) => boolean | undefined,
+): ReadOnlyCalendars | null {
+  const links = (calendar.icalSources ?? []).some((s) => s.enabled);
+  const readOnly = (calendar.googleCalendarIds ?? []).some((id) => googleWritable(id) === false)
+    || (calendar.icloudSources ?? []).some((s) => s.enabled && s.kind === 'birthdays');
+  if (links && readOnly) return 'both';
+  if (links) return 'links';
+  return readOnly ? 'readOnly' : null;
 }
 
 /** Calendars events may go on: ticked for adding, and in the household's list of shown calendars. */

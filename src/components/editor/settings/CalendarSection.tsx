@@ -483,6 +483,7 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
         wallEntry={values.wallEntry}
         googleCalendars={googleCalendars}
         googleUnreadable={googleConnected && calendarsUnreadable}
+        googleSignedOut={!googleLoading && !googleConnected}
         shownGoogleIds={selectedCalendarIds}
         icloudSources={icloudSources}
         calendarOverrides={calendarOverrides}

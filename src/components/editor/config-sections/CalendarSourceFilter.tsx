@@ -8,6 +8,7 @@ import { useTranslate } from '@/i18n';
 import type { ICalSource, ICloudSource } from '@/types/config';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 import { calendarLook } from '@/lib/calendar-overrides';
+import { googleAccountName } from '@/lib/calendar-sources';
 import { settingsPath } from '@/lib/settings-route';
 import { CHECKBOX_CLASS } from '@/components/ui/input-classes';
 
@@ -75,22 +76,15 @@ export function useCalendarSources(
   let unnamedCount = 0;
   for (const gid of googleCalendarIds) {
     const cal = googleCalendars.find((c) => c.id === gid);
-    let name = cal?.summary;
-    if (!name) {
-      // Fallback: email-style IDs show local part, opaque hashes get a generic label
-      const local = gid.split('@')[0];
-      if (/^[a-z0-9]{20,}$/i.test(local)) {
-        unnamedCount++;
-        name = unnamedCount > 1
-          ? t(`${keyPrefix}.googleCalendarNumbered`, { n: unnamedCount })
-          : t(`${keyPrefix}.googleCalendar`);
-      } else {
-        name = local;
-      }
-    }
     // The household's own name and colour where it gave one, so a picker
-    // names a calendar the way the wall does.
-    availableSources.push({ id: gid, ...calendarLook(gid, { name, color: cal?.backgroundColor ?? '#3b82f6' }, calendarOverrides) });
+    // names a calendar the way the wall does. It is saved with the settings,
+    // so it holds while Google is signed out; Google's own name does not.
+    const look = calendarLook(gid, { name: cal?.summary || googleAccountName(gid) || '', color: cal?.backgroundColor ?? '#3b82f6' }, calendarOverrides);
+    // No name anywhere: a plain "Google Calendar", numbered, never the calendar's id.
+    const name = look.name || (++unnamedCount > 1
+      ? t(`${keyPrefix}.googleCalendarNumbered`, { n: unnamedCount })
+      : t(`${keyPrefix}.googleCalendar`));
+    availableSources.push({ id: gid, name, color: look.color });
   }
   for (const src of icalSources) {
     if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });

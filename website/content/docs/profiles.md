@@ -296,7 +296,7 @@ During the dimmed state, a screensaver can be shown:
 
 - **Drifting clock**: a minimal clock that moves around the screen to prevent burn-in
 - **Blank (dim only)**: just the dim overlay, no clock
-- **Off (skip to sleep)**: no screensaver; the display still dims, it just shows nothing extra
+- **Off (still dims)**: no screensaver. The display still dims and goes to sleep at its usual time; nothing is drawn over the dimmed screen, so it looks the same as Blank
 
 ### Scheduled dimming
 

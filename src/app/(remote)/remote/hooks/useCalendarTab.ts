@@ -31,6 +31,9 @@ const CALENDAR_TAB_POLL_MS = 60_000;
  * and the events for the days on screen (`/api/calendar`), read again after
  * every change so the list shows what Google or iCloud now holds, every
  * minute while the tab shows, and when the phone comes back to it.
+ * `loadError` says the events for those days could not be read (the hub did
+ * not answer, or the calendars could not be reached), so empty days are not
+ * taken for free ones.
  */
 export function useCalendarTab(days: readonly string[]) {
   const [entry, setEntry] = useState<CalendarEntryInfo | null>(null);
@@ -65,10 +68,14 @@ export function useCalendarTab(days: readonly string[]) {
       if (mine !== generation.current) return;
       entryRef.current = info;
       setEntry(info);
-      // No calendar at all answers an error; the tab still shows the days and their notes.
-      // In the background an error keeps the events already shown.
-      if (body || !quiet) setEvents(body?.events ?? []);
-      setLoadError(false);
+      // A 400 is something to set up, not a failure (no calendar at all answers
+      // it), and the tab still shows the days and their notes. In the
+      // background an error keeps the events already shown, and whether they
+      // could be read.
+      if (body || !quiet) {
+        setEvents(body?.events ?? []);
+        setLoadError(!body && res.status !== 400);
+      }
     } catch {
       if (mine === generation.current && !quiet) setLoadError(true);
     } finally {

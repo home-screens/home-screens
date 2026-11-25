@@ -87,15 +87,16 @@ interface Props {
 /**
  * The Google card on the API keys page.
  *
- * With Home Screens' own Google app off (the default, and whenever the hub's
- * answer is missing) this is exactly the card it always was: five boxes in
- * three labelled bands. With it on, Calendar and Photos need nothing here, so
- * the card leads with "ready to use", keeps the Maps key in the open (it has
- * nothing to do with signing in), and folds the four sign-in boxes under
- * "Use your own Google app". A household that saved its own app finds that
- * section open, and its sign-ins carry on exactly as before; a switch on its
- * header row lets it hand sign-ins to Home Screens' app and back without
- * losing the saved details (the rule is in google-app-choice.ts).
+ * With Home Screens' own Google apps switched off (HS_GOOGLE_HOSTED=0, and
+ * whenever the hub's answer is missing) this is exactly the card it always
+ * was: five boxes in three labelled bands. With them on (the default),
+ * Calendar and Photos need nothing here, so the card leads with "ready to
+ * use", keeps the Maps key in the open (it has nothing to do with signing
+ * in), and folds the four sign-in boxes under "Use your own Google app". A
+ * household that saved its own app finds that section open, and its
+ * sign-ins carry on exactly as before; a switch on its header row lets it
+ * hand sign-ins to Home Screens' app and back without losing the saved
+ * details (the rule is in google-app-choice.ts).
  */
 export default function GoogleIntegrationCard({ status, onSaved, apps }: Props) {
   const t = useTranslate('editor');

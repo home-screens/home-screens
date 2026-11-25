@@ -1481,6 +1481,7 @@
     "googleCalendar": "Google Calendar",
     "appleCalendar": "Apple Calendar",
     "unreachable": "Couldn't reach Home Screens, so nothing changed yet. Everything you typed is still here.",
+    "loadError": "Couldn't load the events, so some days may look empty. Try again in a minute.",
     "added": "Added to {calendar}. It shows on the wall in a few seconds.",
     "changed": "Changed. The wall shows it in a few seconds.",
     "removed": "Removed from {calendar}.",
@@ -1537,7 +1538,12 @@
       "fromWall": "Started on the {wall} wall for {day}.",
       "changedElsewhere": "Someone changed this event a moment ago, so this is the newest version. Make your change again, then save.",
       "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
-      "noCalendars": "No calendar takes new events yet. Pick some in {place}."
+      "noCalendars": "No calendar takes new events yet. Pick some in {place}.",
+      "onlySome": {
+        "links": "Only some calendars can take new events. Calendar links can only be read.",
+        "readOnly": "Only some calendars can take new events. Some can only be read.",
+        "both": "Only some calendars can take new events. Calendar links and some others can only be read."
+      }
     }
   },
   "wallWaiting": {

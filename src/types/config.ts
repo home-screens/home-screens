@@ -2643,9 +2643,10 @@ export interface CalendarConfig {
 
 // Unified weather module config
 /**
- * The last five are the Full-Screen Weather module's pieces, one per option:
- * `ribbon` the temperature curve, `week` the day bands, `timeline` the
- * hour-by-hour chart, `stats` the readouts, `sun` the sun arc and moon.
+ * The last six came with the Full-Screen Weather pieces. Five are those
+ * pieces, one per option: `ribbon` the temperature curve, `week` the day
+ * bands, `timeline` the hour-by-hour chart, `stats` the readouts, `sun` the
+ * sun arc and moon. `narrative` is the written forecast, one row per day.
  */
 export type WeatherView = 'current' | 'hourly' | 'daily' | 'combined' | 'compact' | 'table' | 'precipitation' | 'alerts'
   | 'ribbon' | 'week' | 'timeline' | 'stats' | 'sun' | 'narrative';

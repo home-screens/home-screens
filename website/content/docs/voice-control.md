@@ -111,9 +111,9 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 | "what's for dinner this week" | The week ahead, one meal per day |
 | "what do we need for dinner [tomorrow]" | The planned meal's ingredient list, with amounts |
 | "did Alice finish her chores" | An honest yes or no, "Yes! Alice finished all 4 chores today" or "Not yet. Alice has done 2 of 4, with 2 left." |
-| "what chores does Alice have [left] [tomorrow]" / "what's left for Alice" | The actual chore names still to do, with points |
+| "what chores does Alice have [left] [tomorrow]" / "what's left for Alice" | The actual chore names still to do, with their tickets |
 | "who hasn't done their chores [today]" | Names anyone with nothing checked off yet |
-| "how many tickets does Alice have" | Their reward-point balance |
+| "how many tickets does Alice have" | How many tickets they have to spend |
 | "what can Alice get with her tickets" | Rewards they can afford right now, or how far the closest one is |
 | "what's on the grocery list" | Everything still to buy from this week's planned meals and the list you picked for other things to buy, or from your Mealie shopping list while your meal plan is in Mealie |
 | "what's showing on the kitchen display" | The current screen's name, or that it's asleep |
@@ -122,7 +122,7 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 
 | Say | What happens |
 |---|---|
-| "Alice finished the dishes" / "mark the dishes done for Alice" | Checks it off for today and credits the points, the answer confirms them ("Nice! That's 2 points for Alice.") |
+| "Alice finished the dishes" / "mark the dishes done for Alice" | Checks it off for today and adds its tickets, the answer confirms them ("Nice! Dishes is done. That's 2 tickets for Alice.") |
 | "check off the tortillas" / "we got milk" | Checks it off the grocery list |
 | "put milk back on the list" / "we still need milk" | Puts it back on the list |
 

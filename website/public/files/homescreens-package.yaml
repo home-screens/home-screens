@@ -139,7 +139,7 @@ rest:
           - date
           - members
 
-  # Reward catalog + point balances (the public kid-view endpoint; the auth
+  # Reward catalog + ticket balances (the public kid-view endpoint; the auth
   # header is harmless there). Balances are keyed by member id, names
   # resolve through the chore roster sensor.
   - resource_template: "http://{{ states('input_text.homescreens_host') }}/api/rewards"
@@ -308,7 +308,7 @@ rest_command:
       Authorization: !secret homescreens_auth
 
   # Flips one chore completion for today. The same call checks AND unchecks
-  # (and credits/debits reward points), so the HomeScreensChoreDone intent
+  # (and adds or takes back its tickets), so the HomeScreensChoreDone intent
   # refreshes the completions sensor and skips the call when the chore is
   # already checked off, a repeated "I finished the dishes" must never
   # silently un-complete it.
@@ -481,7 +481,7 @@ intent_script:
 
   # "Tenley finished the dishes", resolves spoken names against the roster
   # sensor (case-insensitive; duplicate names resolve to the first match),
-  # then toggles today's completion. Points credit on the hub side.
+  # then toggles today's completion. Tickets are credited on the hub side.
   # The completions sensor is refreshed BEFORE the guard so a stale sensor
   # can't let a repeat command un-complete the chore.
   HomeScreensChoreDone:
@@ -557,7 +557,7 @@ intent_script:
         {% elif was_done %}
           {{ ns.cname }} is already checked off for {{ ns.mname }} today.
         {% elif ns.pts | int > 0 %}
-          Nice! {{ ns.cname }} is done. That's {{ ns.pts | int }} point{{ '' if ns.pts | int == 1 else 's' }} for {{ ns.mname }}.
+          Nice! {{ ns.cname }} is done. That's {{ ns.pts | int }} ticket{{ '' if ns.pts | int == 1 else 's' }} for {{ ns.mname }}.
         {% else %}
           Nice! {{ ns.cname }} is checked off for {{ ns.mname }}.
         {% endif %}
@@ -617,7 +617,7 @@ intent_script:
               {% for comp in mine %}
                 {% for c in roster if c.id == comp.choreId %}{% set pts.total = pts.total + c.points %}{% endfor %}
               {% endfor %}
-              {{ ns.name }} has checked off {{ mine | count }} chore{{ '' if mine | count == 1 else 's' }} today, worth {{ pts.total }} point{{ '' if pts.total == 1 else 's' }}.
+              {{ ns.name }} has checked off {{ mine | count }} chore{{ '' if mine | count == 1 else 's' }} today, worth {{ pts.total }} ticket{{ '' if pts.total == 1 else 's' }}.
             {% endif %}
           {% endif %}
         {% endif %}
@@ -657,7 +657,7 @@ intent_script:
               {% set names = left | map(attribute='name') | list %}
               {% set listed = names[:-1] | join(', ') ~ ' and ' ~ names[-1] if names | count > 1 else names[0] %}
               {% set pts = left | map(attribute='points') | sum %}
-              {{ ns.m.name }} has {{ listed }} left {{ when }}{% if done | count > 0 %}, with {{ done | count }} already done{% endif %}{% if pts > 0 %}, worth {{ pts }} point{{ '' if pts == 1 else 's' }}{% endif %}.
+              {{ ns.m.name }} has {{ listed }} left {{ when }}{% if done | count > 0 %}, with {{ done | count }} already done{% endif %}{% if pts > 0 %}, worth {{ pts }} ticket{{ '' if pts == 1 else 's' }}{% endif %}.
             {% endif %}
           {% endif %}
         {% endif %}
@@ -713,7 +713,7 @@ intent_script:
           {% endif %}
         {% endif %}
 
-  # "how many points does Tenley have", balances come from the rewards
+  # "how many tickets does Tenley have", balances come from the rewards
   # sensor (keyed by member id); names resolve through the chore roster.
   HomeScreensRewardPoints:
     action:
@@ -732,10 +732,10 @@ intent_script:
         {% else %}
           {% set balances = state_attr('sensor.home_screens_rewards', 'balances') or {} %}
           {% set pts = balances.get(ns.id, 0) | int %}
-          {{ ns.name }} has {{ pts }} point{{ '' if pts == 1 else 's' }}.
+          {{ ns.name }} has {{ pts }} ticket{{ '' if pts == 1 else 's' }}.
         {% endif %}
 
-  # "what can Tenley get with her points", rewards the member can afford
+  # "what can Tenley get with her tickets", rewards the member can afford
   # right now (enabled, unrestricted or restricted to them, cost within
   # balance). When nothing is affordable, says how far the closest one is.
   HomeScreensRewardAfford:
@@ -768,13 +768,13 @@ intent_script:
             There are no rewards set up yet.
           {% elif buckets.afford | count == 0 %}
             {% set closest = buckets.locked | sort(attribute='cost') | first %}
-            {{ ns.name }} has {{ pts }} point{{ '' if pts == 1 else 's' }}. The closest reward is {{ closest.name }} at {{ closest.cost }}, so {{ closest.cost - pts }} more to go!
+            {{ ns.name }} has {{ pts }} ticket{{ '' if pts == 1 else 's' }}. The closest reward is {{ closest.name }} at {{ closest.cost }}, so {{ closest.cost - pts }} more to go!
           {% else %}
             {% set fmt = namespace(l=[]) %}
             {% for r in buckets.afford | sort(attribute='cost') %}
               {% set fmt.l = fmt.l + [r.name ~ ' for ' ~ r.cost] %}
             {% endfor %}
-            With {{ pts }} point{{ '' if pts == 1 else 's' }}, {{ ns.name }} can get {{ fmt.l[:6] | join(', ') }}{% if fmt.l | count > 6 %}, and {{ fmt.l | count - 6 }} more{% endif %}.
+            With {{ pts }} ticket{{ '' if pts == 1 else 's' }}, {{ ns.name }} can get {{ fmt.l[:6] | join(', ') }}{% if fmt.l | count > 6 %}, and {{ fmt.l | count - 6 }} more{% endif %}.
           {% endif %}
         {% endif %}
 

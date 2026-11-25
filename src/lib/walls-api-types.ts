@@ -21,3 +21,12 @@ export interface WallsApiResponse {
   showingCount: number;
   walls: WallApiEntry[];
 }
+
+/**
+ * The walls the changeover let in with no click, which a grown-up should
+ * check are theirs. The one count behind the note on Settings > Displays and
+ * the warning under "Make a new key", so the two never disagree.
+ */
+export function wallsLetInByThemselves(walls: readonly WallApiEntry[]): WallApiEntry[] {
+  return walls.filter((w) => w.status === 'in' && w.letInByItself);
+}

@@ -140,6 +140,19 @@ hs_launcher_changed() {
   [ ! -f "${before}" ] || [ "$(cat "${before}")" != "${desired}" ]
 }
 
+# hs_power_agent_changed <agent> <previous-agent>
+# True when the panel power agent in this tree differs from the one the
+# running kiosk session started. The launcher starts it once and it lives as
+# long as Chromium, so the session keeps the old one until it restarts. The
+# agent ships in the tree, and the tree it replaced, kept beside it as
+# current.rollback until the new release has started, holds the running
+# session's copy. With no such tree (a fresh install, an update in place)
+# there is nothing to compare against, and nothing is reported.
+hs_power_agent_changed() {
+  local agent="$1" previous="$2"
+  [ -f "${agent}" ] && [ -f "${previous}" ] && [ "$(cat "${agent}")" != "$(cat "${previous}")" ]
+}
+
 # hs_installs_session_package <package>...
 # True when one of the packages just installed or updated is a program the
 # kiosk session runs (SYSTEM_PACKAGES in lib/common.sh: Chromium, labwc,
@@ -360,7 +373,7 @@ hs_scheduled_install_owes_restart() {
   [ -n "${version}" ] || return 1
   HS_STATE="${state}" HS_MARKER="${marker}" HS_TAG="v${version}" node -e '
     const fs = require("fs");
-    const needs = ["launcher", "bash-profile", "labwc-autostart", "legacy-kiosk", "session-packages"];
+    const needs = ["launcher", "power-agent", "bash-profile", "labwc-autostart", "legacy-kiosk", "session-packages"];
     let scheduled = false, owed = false;
     try {
       const state = JSON.parse(fs.readFileSync(process.env.HS_STATE, "utf8"));
@@ -1158,7 +1171,8 @@ EOF_JOB
     # functions of lib/setup-system.sh. Safe to run on every deploy and
     # upgrade: each step only changes what is not already as it should be.
     # The helpers above (hs_daemon_reload, hs_launcher_changed,
-    # hs_record_restart_changes and the package ones) are part of it.
+    # hs_power_agent_changed, hs_record_restart_changes and the package ones)
+    # are part of it.
     source "${SCRIPT_DIR}/lib/setup-system.sh"
     hs_setup_system
     ;;

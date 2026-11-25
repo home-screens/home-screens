@@ -322,7 +322,7 @@ export function SubmitPlugin({ currentAppVersion }: { currentAppVersion: string 
           {preview && entry && (
             <Field label="How it will look in the directory">
               <div className="max-w-[420px]">
-                <PluginCard plugin={preview} icon={<Package />} />
+                <PluginCard plugin={preview} icon={<Package />} linked={false} />
               </div>
               <button
                 type="button"

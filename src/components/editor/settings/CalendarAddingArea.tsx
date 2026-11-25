@@ -40,13 +40,18 @@ function GoogleMark() {
  * Google calendars only appear while Home Screens may offer adding for them;
  * on Home Screens' own app before Google's review they are not mentioned.
  */
-export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, googleUnreadable = false, shownGoogleIds, icloudSources, calendarOverrides, onChange }: {
+export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalendars, googleUnreadable = false, googleSignedOut = false, shownGoogleIds, icloudSources, calendarOverrides, onChange }: {
   eventEntry: CalendarEventEntry | null;
   wallEntry: boolean;
   /** Google's own list, with which calendars this account may write. */
   googleCalendars: GoogleCalendar[];
   /** Signed in, but Google's list could not be read: an empty list then is an outage, not nothing picked. */
   googleUnreadable?: boolean;
+  /**
+   * Not signed in to Google at all, so there is no sign-in to add to: the
+   * one Google asks for here is the first, and it shows the calendars too.
+   */
+  googleSignedOut?: boolean;
   /** The Google calendars ticked to show, whether or not Google is connected right now. */
   shownGoogleIds: string[];
   icloudSources: ICloudSource[];
@@ -180,8 +185,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
             <p className="mt-1 flex items-center gap-1.5 text-xs text-hs-success"><StatusDot tone="success" size="sm" />{t('settings.calendarPage.adding.ready')}</p>
           ) : (
             <FieldHint className="mt-1">
-              {googleOffered && icloudCalendars.length > 0 ? t('settings.calendarPage.adding.switchHelpBoth')
-                : googleOffered ? t('settings.calendarPage.adding.switchHelpGoogle')
+              {googleOffered && icloudCalendars.length > 0 ? t(googleSignedOut ? 'settings.calendarPage.adding.switchHelpBothSignedOut' : 'settings.calendarPage.adding.switchHelpBoth')
+                : googleOffered ? t(googleSignedOut ? 'settings.calendarPage.adding.switchHelpGoogleSignedOut' : 'settings.calendarPage.adding.switchHelpGoogle')
                   : t('settings.calendarPage.adding.switchHelpICloud')}
             </FieldHint>
           )}
@@ -190,7 +195,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
       </div>
 
       {enabled && googleOffered && google === 'needsSignIn' && signInStep(false,
-        t('settings.calendarPage.adding.signInTitle'), t('settings.calendarPage.adding.signInBody'), t('settings.calendarPage.adding.signInButton'))}
+        t(googleSignedOut ? 'settings.calendarPage.adding.signInTitleSignedOut' : 'settings.calendarPage.adding.signInTitle'),
+        t('settings.calendarPage.adding.signInBody'), t('settings.calendarPage.adding.signInButton'))}
       {enabled && googleOffered && google === 'scopeMissing' && signInStep(true,
         t('settings.calendarPage.adding.scopeMissingTitle'), t('settings.calendarPage.adding.scopeMissingBody'), t('settings.calendarPage.adding.signInAgain'))}
       {enabled && googleOffered && google === 'needsWebClient' && (

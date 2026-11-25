@@ -245,6 +245,18 @@ describe('finalize-deploy', () => {
     expect(noteKept).toBe(false);
   });
 
+  it('restart without the flag cycles the kiosk for a pending automatic install that changed only the power agent', () => {
+    // The agent lives as long as Chromium, so a new one only starts with a
+    // new kiosk session, and the nightly update never reboots.
+    writeFileSync(path.join(current, 'data/auto-update-state.json'), scheduledState('v2.0.0', true));
+    const note = path.join(current, 'data/restart-needed.json');
+    const { job, pkills, noteKept } = runRestartJob(false, '200', () =>
+      writeFileSync(note, '{"bootId":"b","changed":["packages","power-agent"],"version":"2.0.0","at":"now"}'));
+    expect(job.status).toBe(0);
+    expect(pkills).toBe('-TERM chromium');
+    expect(noteKept).toBe(false);
+  });
+
   it('restart without the flag leaves the kiosk alone when the record is settled, names another version, or the note needs no restart', () => {
     writeFileSync(path.join(current, 'data/auto-update-state.json'), scheduledState('v2.0.0', false));
     expect(runRestartJob(false, '200').pkills).toBe('');

@@ -739,12 +739,15 @@
         "description": "Adicione, mude e remova eventos pelo celular e pelo painel.",
         "switch": "Deixar o Home Screens adicionar e mudar eventos",
         "switchHelpBoth": "Para os calendários do Google, o Google pede que você entre mais uma vez. Os calendários do iCloud não precisam de mais nada. Mostrar seus calendários funciona igual de qualquer jeito.",
+        "switchHelpBothSignedOut": "Para os calendários do Google, o Google pede que você entre na sua conta, e ao entrar eles também aparecem. Os calendários do iCloud não precisam de mais nada.",
         "switchHelpGoogle": "O Google pede que você entre mais uma vez para permitir isso. Mostrar seus calendários funciona igual de qualquer jeito.",
+        "switchHelpGoogleSignedOut": "O Google pede que você entre na sua conta para permitir isso. Ao entrar, seus calendários do Google também aparecem.",
         "switchHelpICloud": "Seus calendários do iCloud não precisam de mais nada. Mostrar os calendários funciona igual de qualquer jeito.",
         "ready": "Conectado, já pode adicionar eventos",
         "pickCalendars": "Escolha abaixo pelo menos um calendário para receber os eventos novos.",
         "googleNotAnswering": "O Google não está respondendo agora. Dá para adicionar eventos nos calendários dele de novo assim que ele responder.",
         "signInTitle": "Mais um passo: entre no Google de novo",
+        "signInTitleSignedOut": "Mais um passo: entre no Google",
         "signInBody": "O Google vai pedir para você deixar o Home Screens “Ver e editar eventos em todas as suas agendas”. Uma aba do Google se abre e, no fim, você volta para cá automaticamente.",
         "signInButton": "Entrar com o Google",
         "signInAgain": "Entrar de novo",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Protetor de tela",
       "screensaverClock": "Relógio flutuante",
       "screensaverBlank": "Em branco (apenas escurecer)",
-      "screensaverOff": "Desligado (ir direto para suspensão)",
+      "screensaverOff": "Desligado (ainda escurece)",
       "dimmedSectionHelp": "O protetor de tela aparece sempre que o display está escurecido, por exemplo pelo celular.",
       "nothingDimsNote": "Este display não escurece sozinho no momento. O protetor de tela ainda aparece se ele for escurecido pelo controle remoto.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Criar uma chave nova",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Tudo o que usa a chave antiga para de funcionar até você colocar a nova. Seus displays continuam funcionando.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} display entrou sozinho depois da atualização. Uma chave nova não tira a permissão dele.",
+          "other": "{count} displays entraram sozinhos depois da atualização. Uma chave nova não tira a permissão deles."
+        },
+        "regenerateWallsCheck": {
+          "one": "Confira se é seu",
+          "other": "Confira se são seus"
+        },
         "errorRegenerate": "Não foi possível criar uma chave nova.",
         "errorCopy": "Não foi possível copiar. Selecione a chave e copie você mesmo.",
         "phoneHintIntro": "Para controlar um display pelo celular, salve nos favoritos um link como este:",

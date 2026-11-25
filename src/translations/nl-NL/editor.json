@@ -739,12 +739,15 @@
         "description": "Voeg afspraken toe, wijzig ze of haal ze weg vanaf je telefoon en de muur.",
         "switch": "Laat Home Screens afspraken toevoegen en wijzigen",
         "switchHelpBoth": "Voor Google-agenda's meld je je nog één keer aan bij Google. Voor iCloud-agenda's hoef je niets meer te doen. Het tonen van je agenda's blijft gewoon hetzelfde.",
+        "switchHelpBothSignedOut": "Voor Google-agenda's meld je je aan bij Google, en met diezelfde aanmelding worden ze ook getoond. Voor iCloud-agenda's hoef je niets meer te doen.",
         "switchHelpGoogle": "Om dit toe te staan, meld je je nog één keer aan bij Google. Het tonen van je agenda's blijft gewoon hetzelfde.",
+        "switchHelpGoogleSignedOut": "Om dit toe te staan, meld je je aan bij Google. Met diezelfde aanmelding worden ook je Google-agenda's getoond.",
         "switchHelpICloud": "Voor je iCloud-agenda's hoef je niets meer te doen. Ze worden gewoon op dezelfde manier getoond.",
         "ready": "Aangemeld, je kunt afspraken toevoegen",
         "pickCalendars": "Kies hieronder minstens één agenda waar nieuwe afspraken in kunnen komen.",
         "googleNotAnswering": "Google reageert nu niet. Zodra het weer reageert, kun je weer afspraken aan die agenda's toevoegen.",
         "signInTitle": "Nog één stap: meld je opnieuw aan bij Google",
+        "signInTitleSignedOut": "Nog één stap: meld je aan bij Google",
         "signInBody": "Google vraagt of Home Screens “Afspraken in al je agenda's bekijken en bewerken” mag. Er gaat een Google-tabblad open en daarna kom je vanzelf hier terug.",
         "signInButton": "Aanmelden met Google",
         "signInAgain": "Opnieuw aanmelden",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Screensaver",
       "screensaverClock": "Bewegende klok",
       "screensaverBlank": "Leeg (alleen dimmen)",
-      "screensaverOff": "Uit (direct slapen)",
+      "screensaverOff": "Uit (dimt nog steeds)",
       "dimmedSectionHelp": "De schermbeveiliging verschijnt zodra het scherm gedimd is, bijvoorbeeld vanaf de telefoon.",
       "nothingDimsNote": "Dit display dimt op dit moment niet vanzelf. De screensaver verschijnt wel als het via de afstandsbediening wordt gedimd.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Alles wat de oude sleutel gebruikt, werkt pas weer als je daar de nieuwe invult. Je displays blijven werken.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} display is na de update vanzelf binnengelaten. Een nieuwe sleutel haalt het niet weg.",
+          "other": "{count} displays zijn na de update vanzelf binnengelaten. Een nieuwe sleutel haalt ze niet weg."
+        },
+        "regenerateWallsCheck": {
+          "one": "Controleer of het van jou is",
+          "other": "Controleer of ze van jou zijn"
+        },
         "errorRegenerate": "Nieuwe sleutel maken is niet gelukt.",
         "errorCopy": "Kopiëren is niet gelukt. Selecteer de sleutel en kopieer hem zelf.",
         "phoneHintIntro": "Wil je een display vanaf je telefoon bedienen, maak dan een bladwijzer van een link als deze:",

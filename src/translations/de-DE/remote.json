@@ -1481,6 +1481,7 @@
     "googleCalendar": "Google Kalender",
     "appleCalendar": "Apple Calendar",
     "unreachable": "Home Screens war nicht erreichbar, deshalb hat sich noch nichts geändert. Alles, was du eingegeben hast, ist noch da.",
+    "loadError": "Die Termine konnten nicht geladen werden, deshalb sehen manche Tage vielleicht leer aus. Versuch es gleich noch einmal.",
     "added": "In „{calendar}“ eingetragen. Der Termin erscheint ein paar Sekunden später an der Wand.",
     "changed": "Geändert. Ein paar Sekunden später ist das auch an der Wand zu sehen.",
     "removed": "Aus „{calendar}“ entfernt.",
@@ -1537,7 +1538,12 @@
       "fromWall": "Für {day}, angefangen am Display „{wall}“.",
       "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert, deshalb siehst du jetzt den neuesten Stand. Mach deine Änderung noch einmal und speichere dann.",
       "repeatsNote": "„{title}“ wiederholt sich. Beim Speichern wählst du: nur an diesem Tag oder an allen Tagen.",
-      "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus."
+      "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus.",
+      "onlySome": {
+        "links": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks sind nur zum Ansehen.",
+        "readOnly": "Nur manche Kalender nehmen neue Termine an. Manche sind nur zum Ansehen.",
+        "both": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks und einige andere sind nur zum Ansehen."
+      }
     }
   },
   "wallWaiting": {

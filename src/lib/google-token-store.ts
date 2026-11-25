@@ -17,9 +17,11 @@ import { googleProjectOf } from './google-grant-project';
  *   flow), tokens in data/google-picker-tokens.json.
  *
  * Either grant can come from the household's own Google app (the secrets
- * saved in Settings) or from Home Screens' own app (google-hosted.ts). The
- * household's own app always wins; Home Screens' app is only used when no
- * own credential is saved at all and it is available.
+ * saved in Settings) or from Home Screens' own app (google-hosted.ts), as
+ * `chooseGoogleApp` (google-app-choice.ts) decides: saved own credentials are
+ * used while `settings.googleApp` is `own` (the default) or whenever Home
+ * Screens' app is unavailable; otherwise Home Screens' app is used when it
+ * is available.
  *
  * The flows differ per integration and stay in their own modules; everything
  * about holding a grant — persistence, proactive refresh, revocation — lives

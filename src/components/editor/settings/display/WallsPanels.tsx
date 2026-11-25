@@ -11,7 +11,7 @@ import { buildDeleteConfirm } from '@/lib/delete-confirmations';
 import { isMainDisplay } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { wallBrowserName } from '@/lib/wall-names';
-import type { WallApiEntry, WallsApiResponse } from '@/lib/walls-api-types';
+import { wallsLetInByThemselves, type WallApiEntry, type WallsApiResponse } from '@/lib/walls-api-types';
 import { formatClientAddress } from '@/lib/client-address';
 
 /**
@@ -116,7 +116,7 @@ function LetInByItselfTag() {
  */
 export function WindowWallsNotice({ data }: { data: WallsApiResponse }) {
   const t = useTranslate('editor');
-  const count = data.walls.filter((w) => w.status === 'in' && w.letInByItself).length;
+  const count = wallsLetInByThemselves(data.walls).length;
   if (!data.windowOpen || count === 0 || data.windowEndsAt === null) return null;
   const days = Math.max(1, Math.ceil((data.windowEndsAt - Date.now()) / (24 * 60 * 60 * 1000)));
   return (

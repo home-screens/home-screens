@@ -739,12 +739,15 @@
         "description": "Añade, cambia y quita eventos desde el teléfono y el monitor.",
         "switch": "Dejar que Home Screens añada y cambie eventos",
         "switchHelpBoth": "Para los calendarios de Google, Google te pedirá que inicies sesión una vez más. Los de iCloud no necesitan nada más. Tus calendarios se ven igual que siempre, lo actives o no.",
+        "switchHelpBothSignedOut": "Para los calendarios de Google, Google te pedirá que inicies sesión, y con ese mismo inicio de sesión también se ven. Los de iCloud no necesitan nada más.",
         "switchHelpGoogle": "Google te pedirá que inicies sesión una vez más para permitirlo. Tus calendarios se ven igual que siempre, lo actives o no.",
+        "switchHelpGoogleSignedOut": "Google te pedirá que inicies sesión para permitirlo. Con ese mismo inicio de sesión también se ven tus calendarios de Google.",
         "switchHelpICloud": "Tus calendarios de iCloud no necesitan nada más. Se ven igual que siempre, lo actives o no.",
         "ready": "Sesión iniciada: ya se pueden añadir eventos",
         "pickCalendars": "Elige abajo al menos un calendario para los eventos nuevos.",
         "googleNotAnswering": "Google no responde ahora mismo. Podrás volver a añadir eventos a sus calendarios en cuanto responda.",
         "signInTitle": "Un paso más: vuelve a iniciar sesión en Google",
+        "signInTitleSignedOut": "Un paso más: inicia sesión en Google",
         "signInBody": "Google te preguntará si Home Screens puede «Ver y editar eventos de todos tus calendarios». Se abrirá una pestaña de Google y después volverás aquí automáticamente.",
         "signInButton": "Iniciar sesión con Google",
         "signInAgain": "Volver a iniciar sesión",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Salvapantallas",
       "screensaverClock": "Reloj a la deriva",
       "screensaverBlank": "En negro (solo atenuar)",
-      "screensaverOff": "Desactivado (pasar a suspensión)",
+      "screensaverOff": "Desactivado (se sigue atenuando)",
       "dimmedSectionHelp": "El salvapantallas aparece siempre que la pantalla está atenuada, por ejemplo desde el móvil.",
       "nothingDimsNote": "Este display no se atenúa solo por ahora. El salvapantallas aparece igualmente si se atenúa desde el control remoto.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Crear una clave nueva",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Todo lo que use la clave antigua deja de funcionar hasta que le des la nueva. Tus displays siguen funcionando.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} display entró solo después de la actualización. Una clave nueva no lo quita.",
+          "other": "{count} displays entraron solos después de la actualización. Una clave nueva no los quita."
+        },
+        "regenerateWallsCheck": {
+          "one": "Comprueba que es tuyo",
+          "other": "Comprueba que son tuyos"
+        },
         "errorRegenerate": "No se pudo crear una clave nueva.",
         "errorCopy": "No se pudo copiar. Selecciona la clave y cópiala a mano.",
         "phoneHintIntro": "Para controlar un display desde el teléfono, guarda un marcador con un enlace como este:",

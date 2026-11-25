@@ -739,12 +739,15 @@
         "description": "Termine vom Handy und von der Wand aus hinzufügen, ändern und entfernen.",
         "switch": "Home Screens darf Termine hinzufügen und ändern",
         "switchHelpBoth": "Bei Google-Kalendern meldest du dich dafür noch einmal bei Google an. iCloud-Kalender brauchen nichts weiter. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpBothSignedOut": "Bei Google-Kalendern meldest du dich dafür bei Google an, und mit dieser einen Anmeldung werden sie auch angezeigt. iCloud-Kalender brauchen nichts weiter.",
         "switchHelpGoogle": "Damit Google das erlaubt, meldest du dich noch einmal an. Deine Kalender werden so oder so genauso angezeigt wie bisher.",
+        "switchHelpGoogleSignedOut": "Damit Google das erlaubt, meldest du dich bei Google an. Mit dieser einen Anmeldung werden auch deine Google-Kalender angezeigt.",
         "switchHelpICloud": "Deine iCloud-Kalender brauchen nichts weiter. Sie werden so oder so genauso angezeigt wie bisher.",
         "ready": "Angemeldet und bereit für neue Termine",
         "pickCalendars": "Wähle unten mindestens einen Kalender aus, in den neue Termine eingetragen werden.",
         "googleNotAnswering": "Google antwortet gerade nicht. Sobald es wieder antwortet, kannst du wieder Termine in seine Kalender eintragen.",
         "signInTitle": "Noch ein Schritt: noch einmal bei Google anmelden",
+        "signInTitleSignedOut": "Noch ein Schritt: bei Google anmelden",
         "signInBody": "Google fragt dich, ob Home Screens „Termine in allen Ihren Kalendern ansehen und bearbeiten“ darf. Ein Google-Tab öffnet sich, und danach kommst du von selbst hierher zurück.",
         "signInButton": "Mit Google anmelden",
         "signInAgain": "Noch einmal anmelden",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Bildschirmschoner",
       "screensaverClock": "Treibende Uhr",
       "screensaverBlank": "Schwarz (nur dimmen)",
-      "screensaverOff": "Aus (direkt schlafen)",
+      "screensaverOff": "Aus (wird trotzdem gedimmt)",
       "dimmedSectionHelp": "Der Bildschirmschoner erscheint immer, wenn das Display gedimmt ist, zum Beispiel per Fernbedienung.",
       "nothingDimsNote": "Dieses Display dimmt sich gerade nicht von selbst. Der Bildschirmschoner erscheint trotzdem, wenn es über die Fernbedienung gedimmt wird.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Alles, was den alten Schlüssel nutzt, funktioniert erst wieder, wenn du dort den neuen einträgst. Deine Displays laufen weiter.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} Display wurde nach dem Update von selbst hereingelassen. Ein neuer Schlüssel entfernt es nicht.",
+          "other": "{count} Displays wurden nach dem Update von selbst hereingelassen. Ein neuer Schlüssel entfernt sie nicht."
+        },
+        "regenerateWallsCheck": {
+          "one": "Prüfe, ob es dir gehört",
+          "other": "Prüfe, ob sie dir gehören"
+        },
         "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden.",
         "errorCopy": "Kopieren hat nicht geklappt. Markiere den Schlüssel und kopiere ihn selbst.",
         "phoneHintIntro": "Um ein Display vom Telefon aus zu steuern, setze ein Lesezeichen auf einen Link wie diesen:",

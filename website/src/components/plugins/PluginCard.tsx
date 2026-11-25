@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { BadgeCheck } from 'lucide-react'
@@ -9,19 +10,30 @@ import { NO_PERMISSIONS_LABEL, orderedPermissions } from '@/lib/plugin-permissio
 
 export const VERIFIED_TITLE = 'Verified by the Home Screens team'
 
+const CARD_CLASS = 'relative flex min-h-[230px] min-w-0 flex-col rounded-2xl border border-[#222] bg-[#161616] p-[22px]'
+
 /**
  * One plugin in the directory grid. The whole card is the link; the icon is
  * rendered by the server page and handed in, so this component can live in
  * the client bundle without the Lucide lookup table.
+ *
+ * `linked={false}` draws the same card without the link, for a plugin that
+ * has no page yet: the submit page's preview would otherwise point at a
+ * `/plugins/<id>` that does not exist until the plugin is listed.
  */
-export function PluginCard({ plugin, icon }: { plugin: DirectoryCard; icon: ReactNode }) {
+export function PluginCard({
+  plugin,
+  icon,
+  linked = true,
+}: {
+  plugin: DirectoryCard
+  icon: ReactNode
+  linked?: boolean
+}) {
   const permissions = orderedPermissions(plugin.permissions)
   const version = plugin.shownVersion
-  return (
-    <Link
-      href={`/plugins/${plugin.id}`}
-      className="relative flex min-h-[230px] min-w-0 flex-col rounded-2xl border border-[#222] bg-[#161616] p-[22px] transition-colors hover:border-cyan-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50"
-    >
+  const body = (
+    <>
       {(plugin.isNew || plugin.isBeta) && (
         <div className="absolute right-[18px] top-[18px] flex gap-1.5">
           {plugin.isNew && <Badge color="green">New</Badge>}
@@ -74,6 +86,18 @@ export function PluginCard({ plugin, icon }: { plugin: DirectoryCard; icon: Reac
           <span className="text-neutral-600">{NO_PERMISSIONS_LABEL}</span>
         )}
       </div>
+    </>
+  )
+  if (!linked) return <div className={CARD_CLASS}>{body}</div>
+  return (
+    <Link
+      href={`/plugins/${plugin.id}`}
+      className={clsx(
+        CARD_CLASS,
+        'transition-colors hover:border-cyan-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50',
+      )}
+    >
+      {body}
     </Link>
   )
 }

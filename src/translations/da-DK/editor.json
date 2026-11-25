@@ -739,12 +739,15 @@
         "description": "Tilføj, ændr og fjern begivenheder fra din telefon og fra væggen.",
         "switch": "Lad Home Screens tilføje og ændre begivenheder",
         "switchHelpBoth": "Til Google-kalendere beder Google dig om at logge ind én gang til. For iCloud-kalendere skal du ikke gøre mere. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpBothSignedOut": "Til Google-kalendere beder Google dig om at logge ind, og det samme login viser dem også. For iCloud-kalendere skal du ikke gøre mere.",
         "switchHelpGoogle": "Google beder dig om at logge ind én gang til for at give lov. Dine kalendere vises på samme måde, uanset om det er slået til eller ej.",
+        "switchHelpGoogleSignedOut": "Google beder dig om at logge ind for at give lov. Det samme login viser også dine Google-kalendere.",
         "switchHelpICloud": "For dine iCloud-kalendere skal du ikke gøre mere. De vises på samme måde, uanset om det er slået til eller ej.",
         "ready": "Logget ind og klar til at tilføje begivenheder",
         "pickCalendars": "Vælg mindst én kalender nedenfor, som nye begivenheder kan lægges i.",
         "googleNotAnswering": "Google svarer ikke lige nu. Du kan tilføje begivenheder til dets kalendere igen, så snart det svarer.",
         "signInTitle": "Et trin mere: log ind med Google igen",
+        "signInTitleSignedOut": "Et trin mere: log ind med Google",
         "signInBody": "Google beder dig om at give Home Screens lov til at “Se og redigere begivenheder i alle dine kalendere”. Der åbnes en Google-fane, og bagefter kommer du automatisk tilbage hertil.",
         "signInButton": "Log ind med Google",
         "signInAgain": "Log ind igen",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Pauseskærm",
       "screensaverClock": "Svævende ur",
       "screensaverBlank": "Sort (kun dæmpet)",
-      "screensaverOff": "Fra (gå direkte i slumre)",
+      "screensaverOff": "Fra (dæmpes stadig)",
       "dimmedSectionHelp": "Pauseskærmen vises, når skærmen er dæmpet, for eksempel fra telefonen.",
       "nothingDimsNote": "Dette display dæmpes ikke af sig selv lige nu. Pauseskærmen vises stadig, hvis det dæmpes fra fjernbetjeningen.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Lav en ny nøgle",
         "regenerateCancel": "Annullér",
         "regenerateWarning": "Alt, der bruger den gamle nøgle, holder op med at virke, indtil du giver det den nye. Dine skærme virker stadig.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} skærm blev lukket ind af sig selv efter opdateringen. En ny nøgle fjerner den ikke.",
+          "other": "{count} skærme blev lukket ind af sig selv efter opdateringen. En ny nøgle fjerner dem ikke."
+        },
+        "regenerateWallsCheck": {
+          "one": "Tjek, at den er din",
+          "other": "Tjek, at de er dine"
+        },
         "errorRegenerate": "Kunne ikke lave en ny nøgle.",
         "errorCopy": "Kopieringen mislykkedes. Markér nøglen, og kopiér den selv.",
         "phoneHintIntro": "Vil du styre en skærm fra telefonen, så gem et bogmærke med et link som dette:",

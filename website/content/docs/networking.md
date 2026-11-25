@@ -95,7 +95,7 @@ The `data/port.conf` file is preserved across upgrades and deployments, and upgr
 
 ---
 
-## Network settings (Settings → Network)
+## Network settings (Settings > Network)
 
 The editor has a **Network** page under **Settings** that configures Wi-Fi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi, Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
 

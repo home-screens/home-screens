@@ -12,7 +12,7 @@ import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
 
 const TZ = 'America/Chicago';
 const CAL = 'family@group.calendar.google.com';
-const entry: CalendarEntryInfo = {
+const ENTRY: CalendarEntryInfo = {
   enabled: true,
   google: 'ready',
   googleIfOn: 'ready',
@@ -22,19 +22,21 @@ const entry: CalendarEntryInfo = {
   timezone: TZ,
   wallDefault: true,
 };
+let entry: CalendarEntryInfo = ENTRY;
 
 let events: CalendarEvent[] = [];
+let loadError = false;
 const write = vi.fn();
 const reload = vi.fn(async () => {});
-vi.mock('../../hooks/useCalendarTab', () => ({ useCalendarTab: () => ({ entry, events, reload, write }) }));
+vi.mock('../../hooks/useCalendarTab', () => ({ useCalendarTab: () => ({ entry, events, loadError, reload, write }) }));
 vi.mock('../../household-clock', () => ({
   useHouseholdToday: () => '2026-11-21',
   useHouseholdTimezone: () => 'America/Chicago',
   useHouseholdClockFormat: () => '12h',
 }));
-// The page of days is its own component; here it only has to draw one day's event rows.
+// The page of days is its own component; here it only has to draw the card above the days and one day's event rows.
 vi.mock('../DayNotesPage', () => ({
-  default: ({ events: e }: { events: { rows: (date: string) => ReactNode } }) => <div>{e.rows(shownDay)}</div>,
+  default: ({ events: e, card }: { events: { rows: (date: string) => ReactNode }; card?: ReactNode }) => <div>{card}<div data-testid="day-rows">{e.rows(shownDay)}</div></div>,
 }));
 let shownDay = '2026-11-27';
 
@@ -65,6 +67,8 @@ async function openEvent() {
 const sent = (method: string) => write.mock.calls.filter((call) => call[1] === method);
 
 beforeEach(() => {
+  entry = ENTRY;
+  loadError = false;
   write.mockReset();
   reload.mockClear();
   try { localStorage.clear(); } catch { /* no storage in this run */ }
@@ -237,5 +241,43 @@ describe('CalendarTab: one write at a time', () => {
     // Any day but today starts at 9, whatever the phone's own clock says.
     expect(sent('POST')[0][2]).toMatchObject({ calendarId: CAL, draft: { title: 'Piano', date: '2026-11-24', startTime: '09:00', endTime: '10:00' } });
     await act(async () => { out.finish({ ok: true, json: { id: `${CAL}:new1` } }); });
+  });
+});
+
+describe('CalendarTab: what it says it could not load or cannot offer', () => {
+  it('says over the days when their events could not be loaded, and the days still show', async () => {
+    loadError = true;
+    shownDay = '2026-11-27';
+    events = [row({ id: `${CAL}:soccer`, title: 'Soccer', start: '2026-11-27T15:00:00.000Z', end: '2026-11-27T16:00:00.000Z' })];
+    render(<CalendarTab />);
+    const failed = screen.getByTestId('calendar-load-error');
+    expect(failed.textContent).toContain(remote.calendarTab.loadError);
+    expect(screen.getByTestId('day-rows').textContent).toContain('Soccer');
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: remote.loadFailed.retry })); });
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it('says nothing about loading when the events came', () => {
+    events = [];
+    render(<CalendarTab />);
+    expect(screen.queryByTestId('calendar-load-error')).toBeNull();
+  });
+
+  it('says in the Add form why calendar links are not in its calendar choice', () => {
+    entry = { ...ENTRY, readOnlyShown: 'links' };
+    render(<CalendarTab openAdd={{ date: '2026-11-24' }} />);
+    expect(screen.getByTestId('event-form-read-only').textContent).toBe(remote.calendarTab.form.onlySome.links);
+  });
+
+  it('names both reasons when calendar links and other calendars can only be read', () => {
+    entry = { ...ENTRY, readOnlyShown: 'both' };
+    render(<CalendarTab openAdd={{ date: '2026-11-24' }} />);
+    expect(screen.getByTestId('event-form-read-only').textContent).toBe(remote.calendarTab.form.onlySome.both);
+  });
+
+  it('adds no line when every calendar shown can take events', () => {
+    render(<CalendarTab openAdd={{ date: '2026-11-24' }} />);
+    expect(screen.getByTestId('event-form')).toBeTruthy();
+    expect(screen.queryByTestId('event-form-read-only')).toBeNull();
   });
 });

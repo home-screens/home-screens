@@ -254,6 +254,49 @@ describe('what the forms offer', () => {
     expect((await calendarEntryInfo()).calendars).toEqual([{ id: 'family@group.calendar.google.com', name: 'Family', color: '#4073ff', source: 'google' }]);
   });
 
+  it('says why shown calendars are missing from the choice: a calendar link, and a Google calendar that can only be read', async () => {
+    const calendar = config.settings.calendar;
+    calendar.icalSources = [{ id: 'ical-school', type: 'ical', name: 'School', url: 'https://example.com/school.ics', color: '#f97316', enabled: true }];
+    googleCalendarLabels.mockImplementationOnce(async (ids: string[]) => new Map(ids.map((id) => [id, { name: id, color: '#4073ff', writable: id !== 'primary' }])));
+    const info = await calendarEntryInfo();
+    // Asked about every shown Google calendar, not only the one ticked for adding.
+    expect(googleCalendarLabels).toHaveBeenLastCalledWith(['family@group.calendar.google.com', 'primary']);
+    expect(info).toMatchObject({ calendars: [{ id: 'family@group.calendar.google.com' }], readOnlyShown: 'both' });
+    expect(info.googleUnreachable).toBeUndefined();
+  });
+
+  it('says nothing is missing for that reason when every shown calendar can take events', async () => {
+    const info = await calendarEntryInfo();
+    expect(info.calendars).toHaveLength(1);
+    expect(info.readOnlyShown).toBeUndefined();
+  });
+
+  it('counts no Google calendar while Google cannot be asked about it, only the calendar links', async () => {
+    config.settings.calendar.icalSources = [{ id: 'ical-school', type: 'ical', name: 'School', url: 'https://example.com/school.ics', color: '#f97316', enabled: true }];
+    // The last good read knows the ticked calendar, and nothing about the other.
+    googleCalendarLabels.mockResolvedValueOnce(new Map([['family@group.calendar.google.com', { name: 'Family', color: '#4073ff', writable: true }]]));
+    expect((await calendarEntryInfo()).readOnlyShown).toBe('links');
+  });
+
+  it('counts every Google calendar while Home Screens\' own app may not add to them', async () => {
+    entryState = 'notOffered';
+    const calendar = config.settings.calendar;
+    calendar.icloudSources = [{ id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true }];
+    calendar.eventEntry = { enabled: true, calendarIds: ['ic-home'] };
+    const info = await calendarEntryInfo();
+    expect(info).toMatchObject({ google: 'notOffered', calendars: [{ id: 'ic-home' }], readOnlyShown: 'readOnly' });
+  });
+
+  it('counts no Google calendar while its sign-in still needs the extra step a grown-up can take', async () => {
+    entryState = 'needsSignIn';
+    const calendar = config.settings.calendar;
+    calendar.icloudSources = [{ id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true }];
+    calendar.eventEntry = { enabled: true, calendarIds: ['family@group.calendar.google.com', 'ic-home'] };
+    const info = await calendarEntryInfo();
+    expect(info).toMatchObject({ google: 'needsSignIn', calendars: [{ id: 'ic-home' }] });
+    expect(info.readOnlyShown).toBeUndefined();
+  });
+
   it('says where Google would stand with adding on, while the saved switch is still off', async () => {
     config.settings.calendar.eventEntry = { enabled: false, calendarIds: [] };
     entryState = 'needsSignIn';

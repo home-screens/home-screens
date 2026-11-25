@@ -9,12 +9,15 @@ import path from 'path';
  *
  * It writes the marker itself because an update runs the pipeline of the
  * release it replaces, which may know nothing about it, while setup-system
- * always comes from the release being installed. Two functions in upgrade.sh
- * do the work, run here exactly as the script defines them:
+ * always comes from the release being installed. These functions in
+ * upgrade.sh do the work, run here exactly as the script defines them, and
+ * setup-system's launcher step is run with them:
  *
  * - hs_launcher_changed: a tarball update arrives without the generated
  *   launcher, so "missing here" is not "changed". The tree it replaced
  *   (current.rollback) has the launcher the running session came from.
+ * - hs_power_agent_changed: the panel power agent ships in the tree and runs
+ *   as long as Chromium, so the copy in current.rollback is the one running.
  * - hs_record_restart_changes: adds this run's changes to the boot's marker,
  *   only while a kiosk session is running to be out of date.
  * - hs_installs_session_package: whether an install brought a program the
@@ -59,6 +62,7 @@ function run(snippet: string, { sessionRunning = true, env = {} }: { sessionRunn
     'set -euo pipefail',
     `APP_DIR="${app}"`,
     definition('hs_launcher_changed'),
+    definition('hs_power_agent_changed'),
     definition('hs_installs_session_package'),
     definition('hs_record_restart_changes'),
     snippet,
@@ -102,6 +106,75 @@ describe('hs_launcher_changed', () => {
 
   it('says changed on a fresh install, with no launcher anywhere', () => {
     expect(ask('LAUNCHER v1')).toBe('changed');
+  });
+});
+
+describe('hs_power_agent_changed', () => {
+  const agent = () => path.join(app, 'scripts', 'kiosk-power-agent.sh');
+  const previous = () => path.join(`${app}.rollback`, 'scripts', 'kiosk-power-agent.sh');
+  const ask = () => run(`if hs_power_agent_changed "${agent()}" "${previous()}"; then echo changed; else echo same; fi`);
+  const placeBefore = (content: string) => {
+    mkdirSync(path.dirname(previous()), { recursive: true });
+    writeFileSync(previous(), content);
+  };
+
+  it('says changed after a tarball update that brought a different agent', () => {
+    writeFileSync(agent(), 'AGENT v2\n');
+    placeBefore('AGENT v1\n');
+    expect(ask()).toBe('changed');
+  });
+
+  it('says same after a tarball update that brought the same agent', () => {
+    writeFileSync(agent(), 'AGENT v1\n');
+    placeBefore('AGENT v1\n');
+    expect(ask()).toBe('same');
+  });
+
+  it('says same with no tree to compare against (a fresh install, an update in place)', () => {
+    writeFileSync(agent(), 'AGENT v1\n');
+    expect(ask()).toBe('same');
+  });
+});
+
+describe("setup-system's launcher step", () => {
+  // A tarball update as setup-system meets it: the new tree has the hub
+  // launcher's source and the power agent but no generated launcher yet,
+  // and the tree it replaced holds both as the running session started them.
+  function afterTarballUpdate({ launcherBefore, agentBefore }: { launcherBefore: string; agentBefore: string }) {
+    writeFileSync(path.join(app, 'scripts', 'kiosk-launcher-hub.sh'), 'LAUNCHER v2\n');
+    writeFileSync(path.join(app, 'scripts', 'kiosk-power-agent.sh'), 'AGENT v2\n');
+    mkdirSync(path.join(`${app}.rollback`, 'scripts'), { recursive: true });
+    writeFileSync(path.join(`${app}.rollback`, 'scripts', 'kiosk-launcher.sh'), launcherBefore);
+    writeFileSync(path.join(`${app}.rollback`, 'scripts', 'kiosk-power-agent.sh'), agentBefore);
+  }
+  // Runs the step as setup-system does, then `after` with its change list.
+  const step = (after = 'echo "changed=${changed}"') => run([
+    `SCRIPT_DIR="${app}/scripts"`,
+    `source "${path.join(process.cwd(), 'scripts', 'lib', 'setup-system.sh')}"`,
+    'changed=""',
+    'hs_step_launcher',
+    after,
+  ].join('\n'));
+
+  it('reports power-agent when only the agent changed', () => {
+    afterTarballUpdate({ launcherBefore: 'LAUNCHER v2\n', agentBefore: 'AGENT v1\n' });
+    expect(step()).toBe('changed=power-agent,');
+  });
+
+  it('reports nothing when neither changed', () => {
+    afterTarballUpdate({ launcherBefore: 'LAUNCHER v2\n', agentBefore: 'AGENT v2\n' });
+    expect(step()).toBe('changed=');
+  });
+
+  it('reports both when both changed', () => {
+    afterTarballUpdate({ launcherBefore: 'LAUNCHER v1\n', agentBefore: 'AGENT v1\n' });
+    expect(step()).toBe('changed=launcher,power-agent,');
+  });
+
+  it('records an agent-only change as one that needs a restart, while the kiosk runs', () => {
+    afterTarballUpdate({ launcherBefore: 'LAUNCHER v2\n', agentBefore: 'AGENT v1\n' });
+    step('hs_record_restart_changes "${changed%,}"');
+    expect(readMarker()).toMatchObject({ bootId: 'boot-1', changed: ['power-agent'], version: '1.14.0' });
   });
 });
 

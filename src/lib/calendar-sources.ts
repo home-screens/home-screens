@@ -74,6 +74,26 @@ export function buildCalendarUrl(
   return `/api/calendar${params ? `?${params}` : ''}`;
 }
 
+/**
+ * What a Google calendar is called when Google cannot be asked (signed out,
+ * or not answering) and the household gave it no name of its own: for a
+ * person's own calendar, whose id is their address, the part before the @
+ * ("sam.rivera" for sam.rivera@gmail.com), since Google names that calendar
+ * by the address. Every other id is a code rather than a name ("primary", a
+ * shared calendar's `c_…@group.calendar.google.com`, a holiday calendar's
+ * `…#holiday@group.v.calendar.google.com`), so it has none, and the caller
+ * says "Google Calendar" instead of showing the code. The hub keeps no copy
+ * of Google's names that outlasts a sign-out or a restart, so the
+ * household's own name for a calendar is the only one that always holds.
+ */
+export function googleAccountName(id: string): string | undefined {
+  const at = id.lastIndexOf('@');
+  if (at <= 0) return undefined;
+  const domain = id.slice(at + 1).toLowerCase();
+  if (!domain || domain === 'calendar.google.com' || domain.endsWith('.calendar.google.com')) return undefined;
+  return id.slice(0, at);
+}
+
 /** Whether a data URL is a calendar read `buildCalendarUrl` made (not the status or calendar-list routes). */
 export function isCalendarReadUrl(url: string): boolean {
   return url.split('?')[0] === '/api/calendar';

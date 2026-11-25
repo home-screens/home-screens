@@ -739,12 +739,15 @@
         "description": "Add, change and remove events from your phone and the wall.",
         "switch": "Let Home Screens add and change events",
         "switchHelpBoth": "For Google calendars, Google asks you to sign in once more. iCloud calendars need nothing more. Showing your calendars works the same either way.",
+        "switchHelpBothSignedOut": "For Google calendars, Google asks you to sign in, and that one sign-in also shows them. iCloud calendars need nothing more.",
         "switchHelpGoogle": "Google asks you to sign in once more to allow it. Showing your calendars works the same either way.",
+        "switchHelpGoogleSignedOut": "Google asks you to sign in to allow it. That one sign-in also shows your Google calendars.",
         "switchHelpICloud": "Your iCloud calendars need nothing more. Showing them works the same either way.",
         "ready": "Signed in, can add events",
         "pickCalendars": "Pick at least one calendar below for new events to go on.",
         "googleNotAnswering": "Google isn't answering right now. Adding events to its calendars comes back once it does.",
         "signInTitle": "One more step: sign in to Google again",
+        "signInTitleSignedOut": "One more step: sign in to Google",
         "signInBody": "Google will ask you to let Home Screens “View and edit events on all your calendars”. A Google tab opens, and you'll come back here on your own.",
         "signInButton": "Sign in with Google",
         "signInAgain": "Sign in again",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Screensaver",
       "screensaverClock": "Drifting clock",
       "screensaverBlank": "Blank (dim only)",
-      "screensaverOff": "Off (skip to sleep)",
+      "screensaverOff": "Off (still dims)",
       "dimmedSectionHelp": "The screensaver appears whenever the display is dimmed, for example from the remote.",
       "nothingDimsNote": "Nothing dims this display on its own right now. The screensaver still shows if someone dims it from the remote.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
         "regenerateWarning": "Anything using the old key stops working until you give it the new one. Your displays keep working.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} display was let in by itself after the update. A new key doesn't remove it.",
+          "other": "{count} displays were let in by themselves after the update. A new key doesn't remove them."
+        },
+        "regenerateWallsCheck": {
+          "one": "Check it's yours",
+          "other": "Check they're yours"
+        },
         "errorRegenerate": "Couldn't make a new key.",
         "errorCopy": "Couldn't copy it. Select the key and copy it yourself.",
         "phoneHintIntro": "To control a display from a phone, bookmark a link like this one:",

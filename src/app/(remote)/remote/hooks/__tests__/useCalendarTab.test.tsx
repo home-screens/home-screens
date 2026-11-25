@@ -87,12 +87,48 @@ describe('useCalendarTab', () => {
     expect(view.result.current.loadError).toBe(false);
   });
 
-  it('the first read still shows the days with no events and no adding when the hub turns both down', async () => {
+  it('the first read still shows the days with no events and no adding when the hub turns both down, and says the events could not be read', async () => {
     request.mockImplementation(async () => refused());
     const view = renderHook(() => useCalendarTab(DAYS));
     await settle();
     expect(view.result.current.loaded).toBe(true);
     expect(view.result.current.entry).toBeNull();
+    expect(view.result.current.events).toEqual([]);
+    expect(view.result.current.loadError).toBe(true);
+  });
+
+  it('says the events could not be read when only they fail, as when Google is out of reach after a restart', async () => {
+    const answer = good();
+    request.mockImplementation(async (url: string) => (url === '/api/calendar/entry' ? answer(url) : refused()));
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
+    expect(view.result.current.entry).not.toBeNull();
+    expect(view.result.current.events).toEqual([]);
+    expect(view.result.current.loadError).toBe(true);
+
+    // The next good read takes it away.
+    request.mockImplementation(answer);
+    await act(async () => { await view.result.current.reload(); });
+    await settle();
+    expect(view.result.current.events).toHaveLength(1);
+    expect(view.result.current.loadError).toBe(false);
+  });
+
+  it('says the events could not be read when the hub does not answer at all', async () => {
+    request.mockRejectedValue(new TypeError('offline'));
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
+    expect(view.result.current.loaded).toBe(true);
+    expect(view.result.current.loadError).toBe(true);
+  });
+
+  it('says nothing failed when there is no calendar at all to read', async () => {
+    const answer = good();
+    request.mockImplementation(async (url: string) => (url === '/api/calendar/entry'
+      ? answer(url)
+      : new Response(JSON.stringify({ error: 'No calendars configured.' }), { status: 400, headers: { 'Content-Type': 'application/json' } })));
+    const view = renderHook(() => useCalendarTab(DAYS));
+    await settle();
     expect(view.result.current.events).toEqual([]);
     expect(view.result.current.loadError).toBe(false);
   });

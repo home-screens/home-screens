@@ -26,6 +26,7 @@ import enUSEditor from '@/translations/en-US/editor.json';
 import enUSCore from '@/translations/en-US/core.json';
 import type { GoogleEntryState } from '@/lib/calendar-write';
 import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
+import type { ICloudSource } from '@/types/config';
 
 const copy = enUSEditor.settings.calendarPage.adding;
 const FAMILY = 'family@group.calendar.google.com';
@@ -37,7 +38,9 @@ function answer(googleIfOn: GoogleEntryState, saved = true) {
   })));
 }
 
-function renderArea(googleCalendars: GoogleCalendar[], enabled = true, googleUnreadable = false) {
+const HOME: ICloudSource = { id: 'ic-home', accountId: 'acct', kind: 'calendar', url: 'https://caldav.example.com/home/', name: 'Home', color: '#ef4444', enabled: true };
+
+function renderArea(googleCalendars: GoogleCalendar[], enabled = true, googleUnreadable = false, { googleSignedOut = false, icloudSources = [] as ICloudSource[] } = {}) {
   return render(
     <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>
       <CalendarAddingArea
@@ -45,8 +48,9 @@ function renderArea(googleCalendars: GoogleCalendar[], enabled = true, googleUnr
         wallEntry
         googleCalendars={googleCalendars}
         googleUnreadable={googleUnreadable}
+        googleSignedOut={googleSignedOut}
         shownGoogleIds={[FAMILY]}
-        icloudSources={[]}
+        icloudSources={icloudSources}
         onChange={() => {}}
       />
     </I18nProvider>,
@@ -94,5 +98,33 @@ describe('CalendarAddingArea', () => {
     renderArea([], true, true);
     await waitFor(() => expect(screen.getByText(copy.googleNotAnswering)).toBeTruthy());
     expect(screen.queryByText(copy.pickCalendars)).toBeNull();
+  });
+
+  it('asks for a first sign-in, not one more, while Google is signed out', async () => {
+    answer('needsSignIn', false);
+    renderArea([], false, false, { googleSignedOut: true });
+    await waitFor(() => expect(screen.getByText(copy.switchHelpGoogleSignedOut)).toBeTruthy());
+    expect(screen.queryByText(copy.switchHelpGoogle)).toBeNull();
+  });
+
+  it('says the sign-in step is a first one while Google is signed out, switched on', async () => {
+    answer('needsSignIn');
+    renderArea([], true, false, { googleSignedOut: true });
+    await waitFor(() => expect(screen.getByText(copy.signInTitleSignedOut)).toBeTruthy());
+    expect(screen.getByText(copy.switchHelpGoogleSignedOut)).toBeTruthy();
+    expect(screen.queryByText(copy.signInTitle)).toBeNull();
+  });
+
+  it('says the same beside iCloud calendars', async () => {
+    answer('needsSignIn', false);
+    renderArea([], false, false, { googleSignedOut: true, icloudSources: [HOME] });
+    await waitFor(() => expect(screen.getByText(copy.switchHelpBothSignedOut)).toBeTruthy());
+  });
+
+  it('keeps "once more" for a household signed in to show calendars only', async () => {
+    answer('needsSignIn', false);
+    renderArea([{ id: FAMILY, summary: 'Family', backgroundColor: '#4073ff', primary: false, writable: true }], false);
+    await waitFor(() => expect(screen.getByText(copy.switchHelpGoogle)).toBeTruthy());
+    expect(screen.queryByText(copy.switchHelpGoogleSignedOut)).toBeNull();
   });
 });

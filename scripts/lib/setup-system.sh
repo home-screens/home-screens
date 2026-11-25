@@ -13,9 +13,9 @@
 #
 # Expects upgrade.sh's APP_DIR, CONFIG_FILE, SCRIPT_DIR and PI_VARIANT, its
 # hs_daemon_reload, hs_installs_session_package, hs_upgrade_system_packages,
-# hs_launcher_changed and hs_record_restart_changes, and lib/common.sh (PORT,
-# setup_font_aliases, write_kiosk_block, setup_boot_splash,
-# hs_install_if_changed, hs_render_template).
+# hs_launcher_changed, hs_power_agent_changed and hs_record_restart_changes,
+# and lib/common.sh (PORT, setup_font_aliases, write_kiosk_block,
+# setup_boot_splash, hs_install_if_changed, hs_render_template).
 [[ -n "${_SETUP_SYSTEM_SH_LOADED:-}" ]] && return 0; _SETUP_SYSTEM_SH_LOADED=1
 
 HS_SYSTEM_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../system-files" && pwd)"
@@ -258,7 +258,8 @@ hs_step_kiosk_conf() {
 # scripts/kiosk-launcher-hub.sh. Installed as kiosk-launcher.sh because that
 # path is baked into the ~/.bash_profile autologin block on every Pi in the
 # field (write_kiosk_block in lib/common.sh); the display-only launcher
-# installs at the same path on spokes.
+# installs at the same path on spokes. The panel power agent the launcher
+# starts ships in the tree as it is, so it is only compared.
 hs_step_launcher() {
   local launcher="${APP_DIR}/scripts/kiosk-launcher.sh" desired
   desired="$(cat "${SCRIPT_DIR}/kiosk-launcher-hub.sh")"
@@ -266,6 +267,9 @@ hs_step_launcher() {
   # the file itself is (re)written whenever this tree's copy is not current.
   if hs_launcher_changed "${desired}" "${launcher}" "${APP_DIR}.rollback/scripts/kiosk-launcher.sh"; then
     changed="${changed}launcher,"
+  fi
+  if hs_power_agent_changed "${APP_DIR}/scripts/kiosk-power-agent.sh" "${APP_DIR}.rollback/scripts/kiosk-power-agent.sh"; then
+    changed="${changed}power-agent,"
   fi
   if [ ! -f "${launcher}" ] || [ "$(cat "${launcher}")" != "${desired}" ]; then
     echo "${desired}" > "${launcher}"

@@ -739,12 +739,15 @@
         "description": "Ajoutez, modifiez et retirez des événements depuis votre téléphone et le mur.",
         "switch": "Permettre à Home Screens d'ajouter et de modifier des événements",
         "switchHelpBoth": "Pour les agendas Google, Google vous demande de vous reconnecter une fois. Les calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpBothSignedOut": "Pour les agendas Google, Google vous demande de vous connecter, et cette même connexion les affiche aussi. Les calendriers iCloud n'ont besoin de rien de plus.",
         "switchHelpGoogle": "Google vous demande de vous reconnecter une fois pour l'autoriser. Dans tous les cas, vos calendriers s'affichent comme avant.",
+        "switchHelpGoogleSignedOut": "Google vous demande de vous connecter pour l'autoriser. Cette même connexion affiche aussi vos agendas Google.",
         "switchHelpICloud": "Vos calendriers iCloud n'ont besoin de rien de plus. Dans tous les cas, ils s'affichent comme avant.",
         "ready": "Connecté, prêt à ajouter des événements",
         "pickCalendars": "Choisissez ci-dessous au moins un calendrier pour les nouveaux événements.",
         "googleNotAnswering": "Google ne répond pas pour le moment. L'ajout d'événements à ses calendriers reviendra dès qu'il répondra.",
         "signInTitle": "Encore une étape : reconnectez-vous à Google",
+        "signInTitleSignedOut": "Encore une étape : connectez-vous à Google",
         "signInBody": "Google vous demandera d'autoriser Home Screens à « Afficher et modifier les événements de tous vos agendas ». Un onglet Google s'ouvre, puis vous revenez ici automatiquement.",
         "signInButton": "Se connecter avec Google",
         "signInAgain": "Se reconnecter",
@@ -1477,7 +1480,7 @@
       "screensaverLabel": "Économiseur d'écran",
       "screensaverClock": "Horloge flottante",
       "screensaverBlank": "Vide (atténuation seule)",
-      "screensaverOff": "Désactivé (passer à la veille)",
+      "screensaverOff": "Désactivé (l'écran s'atténue quand même)",
       "dimmedSectionHelp": "L'économiseur d'écran apparaît dès que l'écran est en veille douce, par exemple depuis le téléphone.",
       "nothingDimsNote": "Cet affichage ne s'atténue pas tout seul pour le moment. L'économiseur d'écran apparaît quand même s'il est atténué depuis la télécommande.",
       "legend": {
@@ -2387,6 +2390,14 @@
         "regenerateConfirm": "Créer une nouvelle clé",
         "regenerateCancel": "Annuler",
         "regenerateWarning": "Tout ce qui utilise l'ancienne clé cesse de fonctionner tant que vous n'y mettez pas la nouvelle. Vos affichages continuent de fonctionner.",
+        "regenerateWallsLetInByThemselves": {
+          "one": "{count} affichage est entré tout seul après la mise à jour. Une nouvelle clé ne le retire pas.",
+          "other": "{count} affichages sont entrés tout seuls après la mise à jour. Une nouvelle clé ne les retire pas."
+        },
+        "regenerateWallsCheck": {
+          "one": "Vérifiez qu'il est bien à vous",
+          "other": "Vérifiez qu'ils sont bien à vous"
+        },
         "errorRegenerate": "Impossible de créer une nouvelle clé.",
         "errorCopy": "Impossible de copier. Sélectionnez la clé et copiez-la vous-même.",
         "phoneHintIntro": "Pour piloter un affichage depuis votre téléphone, mettez en favori un lien comme celui-ci :",

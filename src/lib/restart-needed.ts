@@ -18,9 +18,11 @@ import { parseLastLineObject } from './script-output';
 
 /**
  * setup-system's names for the changes a running kiosk session does not pick
- * up: the launcher it started from, the login script that starts it, labwc's
- * autostart, the legacy kiosk service, and new packages the session runs
- * (wlopm for the panel power agent, kanshi for the screen settings).
+ * up: the launcher it started from, the panel power agent that launcher
+ * started (it runs as long as Chromium does), the login script that starts
+ * the launcher, labwc's autostart, the legacy kiosk service, and new
+ * packages the session runs (wlopm for the panel power agent, kanshi for the
+ * screen settings).
  *
  * Left out on purpose: `labwc-rc` (the app reloads labwc itself), `kiosk-conf`
  * (setup-system puts the new screen settings on the screen itself), `packages`
@@ -31,6 +33,7 @@ import { parseLastLineObject } from './script-output';
  */
 export const RESTART_NEEDED_CHANGES: readonly string[] = [
   'launcher',
+  'power-agent',
   'bash-profile',
   'labwc-autostart',
   'legacy-kiosk',

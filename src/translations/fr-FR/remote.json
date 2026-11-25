@@ -1481,6 +1481,7 @@
     "googleCalendar": "Google Agenda",
     "appleCalendar": "Calendrier Apple",
     "unreachable": "Impossible de joindre Home Screens, donc rien n'a encore changé. Tout ce que tu as écrit est toujours là.",
+    "loadError": "Impossible de charger les événements, donc certains jours peuvent sembler vides. Réessaie dans une minute.",
     "added": "Ajouté au calendrier {calendar}. Il apparaît sur le mur dans quelques secondes.",
     "changed": "C'est modifié. Le changement apparaît sur le mur dans quelques secondes.",
     "removed": "Retiré du calendrier {calendar}.",
@@ -1537,7 +1538,12 @@
       "fromWall": "Commencé sur le mur {wall} pour le {day}.",
       "changedElsewhere": "Quelqu'un vient de modifier cet événement, voici donc la dernière version. Refais ta modification, puis enregistre.",
       "repeatsNote": "{title} se répète. Quand tu enregistres, tu choisis ce jour-là ou toutes les fois.",
-      "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans {place}."
+      "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans {place}.",
+      "onlySome": {
+        "links": "Seuls certains calendriers reçoivent de nouveaux événements. Les liens de calendrier sont en lecture seule.",
+        "readOnly": "Seuls certains calendriers reçoivent de nouveaux événements. Certains sont en lecture seule.",
+        "both": "Seuls certains calendriers reçoivent de nouveaux événements. Les liens de calendrier et quelques autres sont en lecture seule."
+      }
     }
   },
   "wallWaiting": {

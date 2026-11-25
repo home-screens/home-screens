@@ -24,6 +24,7 @@ import EventChoiceSheet from './EventChoiceSheet';
 import ConfirmSheet from './ConfirmSheet';
 import { dateOfIso } from './DayNoteSheet';
 import TabHeader from './TabHeader';
+import { LoadFailed } from './RetryButton';
 import { settingsPlaceText } from '@/lib/settings-route';
 
 const ROW: CSSProperties = {
@@ -60,7 +61,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const timeFormat = useHouseholdClockFormat();
   const [page, setPage] = useState(0);
   const days = upcomingDays(today, page);
-  const { entry, events, reload, write } = useCalendarTab(days);
+  const { entry, events, loadError, reload, write } = useCalendarTab(days);
   const [form, setForm] = useState<Form | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [ask, setAsk] = useState<Ask | null>(null);
@@ -279,7 +280,11 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
       <DayNotesPage
         events={{ rows, ...(canAdd ? { onAdd: (date: string) => setForm({ mode: 'new', date }) } : {}) }}
         sub={t('calendarTab.sub')}
-        card={card}
+        card={<>
+          {/* Over the days rather than in their place: they still show, with their notes. */}
+          {loadError && <LoadFailed testId="calendar-load-error" message={t('calendarTab.loadError')} onRetry={reload} style={{ marginTop: 0, marginBottom: 16 }} />}
+          {card}
+        </>}
         page={page}
         onPageChange={setPage}
       />
