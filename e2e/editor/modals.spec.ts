@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig, seedFamily, seedHouseholdChores, seedMeals } from '../helpers/api';
+import { getConfig, putConfig, seedChores, seedFamily, seedHouseholdChores, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen, textModule, choreChartModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, selectModule, moduleConfig } from '../helpers/editor';
@@ -172,6 +172,9 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
       { id: 'k1', name: 'Ada', emoji: '', color: '#f472b6' },
       { id: 'k2', name: 'Bram', emoji: '', color: '#60a5fa' },
     ]);
+    // The chore list outlives a test: an earlier spec in this worker may have
+    // left a chore behind, and the starter offer only shows on an empty list.
+    await seedChores(request, { chores: [] });
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Screen 1', [choreChartModule()])],
     }));
