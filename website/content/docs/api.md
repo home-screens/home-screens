@@ -26,7 +26,7 @@ Endpoints below that say "requires a valid session" are the first level. Endpoin
 
 A display's own browser never holds the display token. Once it has been [let in](/docs/networking#which-displays-are-let-in) the hub gives it an `hs-display` cookie that page code cannot read, and that cookie is what its requests carry. It opens the display level only: a display can never read the token, the secrets or the editor's routes. The token is for your own scripts.
 
-A few endpoints are open at every level on purpose, and each one says so where it appears: `POST /api/display/claim` (a wall page with no cookie asking to be let in; see below), `GET`/`POST /api/chores`, `POST /api/chores/grab` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, `GET /api/health`, `GET /api/i18n/<locale>` (the UI's words, needed before anyone signs in), and `GET /api/plugins/auth/callback`.
+A few endpoints are open at every level on purpose, and each one says so where it appears: `POST /api/display/claim` (a wall page with no cookie asking to be let in; see below), `GET`/`POST /api/chores`, `POST /api/chores/grab`, `GET`/`POST /api/rewards`, `POST /api/rewards/goal`, `GET /api/rewards/ledger`, `GET /api/grown-up-code` and `POST /api/grown-up-code/unlock` (so the kid-facing `/chores` page keeps working when a password is set), `POST /api/auth/login`, `POST /api/auth/logout` and `GET /api/auth/status` (so anyone can sign in), `GET /api/plugins/registry`, `GET /api/system/build-id`, `GET /api/health`, `GET /api/i18n/<locale>` (the UI's words, needed before anyone signs in), and `GET /api/plugins/auth/callback`.
 
 ### Is the hub up?
 
@@ -40,15 +40,15 @@ A few endpoints are open at every level on purpose, and each one says so where i
 
 ### Using the display token
 
-`GET /api/auth/display-token` returns the token (session required). Send it as a header:
+`GET /api/auth/display-token` returns the token (session required): 64 hexadecimal characters with no prefix, the same display key **Settings > Security** shows. Send it as a header:
 
 ```
-Authorization: Bearer hs_abc123...
+Authorization: Bearer <your display key>
 ```
 
-For bookmarkable links, the `/api/display/*` routes also accept the token as a `?token=` query parameter, for example `/api/display/wake?display=kitchen&token=hs_abc123...`. That shortcut is scoped to `/api/display/*` and nowhere else; every other endpoint needs the header or the session cookie. Query tokens end up in browser history and server logs, so use the header wherever you can send one.
+For bookmarkable links, the `/api/display/*` routes also accept the token as a `?token=` query parameter, for example `/api/display/wake?display=kitchen&token=<your display key>`. That shortcut is scoped to `/api/display/*` and nowhere else; every other endpoint needs the header or the session cookie. Query tokens end up in browser history and server logs, so use the header wherever you can send one.
 
-If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without asking** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie.
+If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without asking** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie, except `POST /api/plugins/proxy/:pluginId`, which the password gate lets through and which then takes those addresses like any display read.
 
 ### Cross-origin writes
 
@@ -78,7 +78,7 @@ A command or a status read with no display target goes to the main display (the 
 **Bookmarks need a token once you set a password.** Every endpoint in this section is protected at the display level, and a link you tap from your phone can't send an `Authorization` header. Add the display token to the link instead:
 
 ```
-/api/display/wake?display=kitchen&token=hs_abc123...
+/api/display/wake?display=kitchen&token=<your display key>
 ```
 
 Get the token from `GET /api/auth/display-token`. This `?token=` shortcut works on `/api/display/*` and nowhere else; anything outside that path needs the header or a signed-in browser session. With no password set, none of this is needed and the plain URL works.
@@ -137,23 +137,25 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
 
 ### POST /api/display/claim
 
-What a wall page calls when its browser has not been let in. Open with no session, because the caller has nothing to prove itself with yet. **Body:** `{ "displayId": "kitchen", "width": 1080, "height": 1920 }`, all optional. **Response:** `{ "status": "in" }` with an `hs-display` cookie when the caller is let in at once (the hub's own screen, an allowed network, one of your displays in the 30 days after the update), or `{ "status": "waiting" }` with a cookie that opens nothing until someone clicks **Let in**. A display waiting under a name the hub does not know is let in when that display is added. `{ "status": "no-cookie" }` means the browser did not keep the cookie it was just given. Only a wall page can call it (it checks the `Referer` or the page's own header), and it is rate limited per address.
+What a wall page calls when its browser has not been let in. Open with no session, because the caller has nothing to prove itself with yet. **Body:** `{ "displayId": "kitchen", "width": 1080, "height": 1920, "again": true }`, all optional; `width` and `height` are the page's size, for the editor's list. **Response:** `{ "status": "in" }` with an `hs-display` cookie when the caller is let in at once (the hub's own screen, an allowed network with **Let displays on these networks in without asking** on, or one of your displays in the 30 days after the update, at most four browsers per display that way), or `{ "status": "waiting" }` with a cookie that opens nothing until someone clicks **Let in**. A display waiting under a name the hub does not know is let in when that display is added. A browser that was removed still holds its old cookie, and the 30 days never let it back in.
+
+`{ "status": "in" }` comes with no cookie when there is no password, when the browser has already been let in, and when it is signed in. `again: true` says the page was told it is in, reloaded, and is asking again; if it carries no wall cookie at all the answer is `{ "status": "no-cookie" }`, meaning the browser did not keep the cookie it was just given. **Errors:** `400` for a `displayId` that is not a valid display id, `400` when the request does not come from a wall page (it needs an `x-hs-wall: 1` header or a `Referer` naming a `/display` page on the hub), and `429` past 90 asks a minute from one address.
 
 ### GET /api/display/walls
 
-The displays that have been let in and the ones waiting, for the editor. Requires a valid session. **Response:** `{ "passwordSet": true, "windowOpen": false, "walls": [{ "id", "status": "in" | "waiting", "displayId", "address", "userAgent", "viewport", "lastSeenAt", "createdAt", "letInByItself", "hubScreen" }] }`. With no password set every browser is let in and the list is empty.
+The displays that have been let in and the ones waiting, for the editor. Requires a valid session. **Response:** `{ "passwordSet": true, "windowOpen": false, "windowEndsAt": null, "showingCount": 2, "walls": [{ "id", "status": "in" | "waiting", "displayId", "address", "userAgent", "viewport", "lastSeenAt", "createdAt", "letInByItself", "hubScreen", "looksFamiliar" }] }`. `windowEndsAt` is when the 30 days after the update end, while they are running, else `null`. `letInByItself` marks a browser those 30 days let in on its first visit. `looksFamiliar` marks a waiting browser with the same address and the same browser description as one already let in: most likely that wall after its browser lost its cookie. With no password set every browser is let in, `walls` is empty, and `showingCount` counts the browsers seen in the last 10 minutes; with a password it counts the ones let in.
 
 ### POST /api/display/walls
 
-Lets a waiting display in. Requires a valid session. **Body:** `{ "action": "let-in", "id": "<wall id>" }`.
+Lets a waiting display in. Requires a valid session. **Body:** `{ "action": "let-in", "id": "<wall id>" }`. **Response:** `{ "ok": true }`, `400` for any other `action`, or `404` "That wall is no longer waiting" when no browser has that id (a waiting browser is forgotten 10 minutes after it stops asking).
 
 ### DELETE /api/display/walls
 
-Removes a display's browser: `?id=<wall id>`. Requires a valid session. Its cookie is refused on its next request and it goes back to waiting.
+Removes a display's browser: `?id=<wall id>`. Requires a valid session. Its cookie is refused on its next request, and its next ask goes through [`POST /api/display/claim`](#post-api-display-claim) like any other browser's: the hub's own screen, and a display on an allowed network with **Let displays on these networks in without asking** on, are let straight back in; anything else waits for **Let in**, since the 30 days after the update never take a removed browser back. `404` for an unknown id; `500` with `code: "not_saved"` when the removal could not be written to disk (it holds until the hub restarts).
 
 ### POST /api/display/walls/keep
 
-Keeps the browser that sends it as a wall, so it goes on showing after you sign out. Requires a real sign-in, so it answers 401 on a hub with no password. **Body:** `{ "displayId": "kitchen" }`, optional.
+Keeps the browser that sends it as a wall, so it goes on showing after you sign out. Requires a real sign-in, so it answers 401 on a hub with no password. **Body:** `{ "displayId": "kitchen", "width": 1080, "height": 1920 }`, all optional; `width` and `height` are the page's size, for the editor's list. **Response:** `{ "ok": true }`, with an `hs-display` cookie when the browser had none.
 
 ### GET /api/display/commands
 
@@ -183,7 +185,7 @@ Keeps the browser that sends it as a wall, so it goes on showing after you sign 
 
 `revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with), the notes board (`notes` is the `ETag` of `GET /api/notes`), and the day notes (`dayNotes` is the `ETag` of `GET /api/day-notes`). The display fetches each of those only when its value differs from the one it last applied.
 
-`library` and `calendar` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in or disconnect changes what the hub can read, or when the household switches between its own Google app and Home Screens' app on the API keys page. Once a new value has held for a whole beat, the display re-reads its slideshow lists or its calendar at once instead of waiting for their next 10-minute or 5-minute poll, so a burst of uploads from a phone causes one re-read. Both are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
+`library` and `calendar` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in (on a TV-style code or the web sign-in for adding events) or disconnect changes what the hub can read; when the household switches between its own Google app and Home Screens' app on the API keys page; on every event added, changed or removed through [Calendar events](#calendar-events); on a config write that changes `settings.calendar.eventEntry`, `calendarOverrides`, `icalSources` or `icloudSources` (so a renamed or recoloured calendar shows in seconds); and on a restore (any journaled write of `config.json`). Once a new value has held for a whole beat, the display re-reads its slideshow lists or its calendar at once instead of waiting for their next 10-minute or 5-minute poll, so a burst of uploads from a phone causes one re-read. Both are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
 
 `sharedStateWatched` tells the screen whether anyone is currently watching its shared values in the editor. While it is `true`, the screen reports changes as they happen instead of waiting for its next 30-second heartbeat, so the editor sees live values; while it is `false`, it stays on the slower schedule. A display client that ignores this flag still works, it just never speeds up.
 
@@ -552,6 +554,8 @@ The response also carries `grabs` and `bonusResets`, as `GET` does.
 
 Ticking a **bonus chore** follows its rules. The person must be someone it is open to. An up-for-grabs chore can be finished once each time it comes round, and only by whoever grabbed it, if anyone has. A refusal is a `409` with a `reason` (`not-yours`, `taken` or `grabbed`) and, for `taken` and `grabbed`, the `memberId` who has it. An everyone-can chore already done this time round is a no-op (`changed: false`). A bonus chore is also refused (`not-today`) on a day it does not show up, and a tick for any day of the round someone is holding today is refused while they hold it. A refusal carries `completions`, `grabs` and `bonusResets` as they stand. Finishing an up-for-grabs chore in today's round ends its grab; ticking an earlier round (yesterday's daily chore) leaves today's grab alone; un-ticking one that finished the person's own grab today gives the grab back, unless they now hold as many grabs as the household allows, when it goes back up for grabs. A completion that finished a grab carries `endedGrab`, the date of that grab, and an un-tick hands the grab back with that same date. Ticking a chore marked "not today" replaces the mark.
 
+An un-tick that would go ahead can be guarded by the [grown-up code](#grown-up-code): without a session or a live unlock it answers `403` with `needsGrownUpCode: true` and `action: "untick"`, and nothing is written.
+
 `changed` reports whether this call actually flipped anything, `false` means the directional request found the chore already in the requested state (and no points moved). `rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `overspent` is only present in the deficit case described above.
 
 ### GET /api/chores/today
@@ -611,6 +615,118 @@ Returns `{ "chores": [...], "settings": {...}, "revision": "..." }` from `data/c
 Replaces the chore definitions. Requires a valid session. Send `{ "chores": [...], "revision": "..." }` with the revision the edit started from; a save without one is answered with `400`. An empty replacement of non-empty chore data requires `force: true`. Payloads containing the former `members` field are rejected with a refresh-required error; use `/api/family` for family edits. Assignments must refer to current family members and groups; one that does not is answered with `409`. A list built from an older copy is also answered with `409`, with `reason: "revision"` and the current list, so reload and apply the change again.
 
 **Response:** The saved `{ "chores": [...], "revision": "..." }`, where `revision` is the one to quote on the next save.
+
+---
+
+## Grown-up code
+
+An optional four-number code that keeps little hands off the bigger jobs. The wall, the kids' `/chores` page and a phone that is not signed in ask for it before any job the household ticked under **Settings > Family**; a signed-in session is never asked. It is a speed bump, not a lock: the password is the lock. The code is kept hashed in `data/grown-up-code.json` and is never sent anywhere.
+
+The jobs, as the API names them: `redeem` (spending tickets), `untick` (unticking a chore), `todoist-close` (closing a Todoist task), `calendar-remove` (removing a calendar event), `calendar-change-series` (changing every day of a repeating event) and `menu-change` (planning a meal from the wall). A first code guards `redeem` only.
+
+### GET /api/grown-up-code
+
+Whether a code is set, which jobs ask for it, and how long a right code unlocks. Public on the LAN with no authentication, since the wall and the kids' page label their buttons from it; it never carries the code. Answers with `Cache-Control: no-store`.
+
+**Response:**
+```json
+{ "set": true, "actions": ["redeem", "untick"], "unlockMinutes": 5, "signedIn": false }
+```
+
+`signedIn` is `true` for a signed-in caller, who is never asked. `lockedSeconds` is added while the whole hub is waiting after too many wrong codes, and only for a caller that may end the wait (a session, or anyone on a hub with no password).
+
+### PUT /api/grown-up-code
+
+Sets or changes the code, or what it guards. Requires a valid session. **Body:** any of `{ "code": "4821", "actions": ["redeem", "untick"], "unlockMinutes": 5 }`. `code` must be four numbers, else `400` with `code: "bad_code"`; a new code ends every unlock given for the old one. `actions` must be a list (`400` otherwise), and names it does not know are dropped. `unlockMinutes` is `1`, `5` or `15` (`400` otherwise). Changing `actions` or `unlockMinutes` with no code set answers `409` with `code: "no_code"`. **Response:** `{ "set", "actions", "unlockMinutes" }` as saved.
+
+### DELETE /api/grown-up-code
+
+Removes the code, so nothing asks for it. Requires a valid session. **Response:** `{ "set": false, "actions": [], "unlockMinutes": 5 }`.
+
+### POST /api/grown-up-code/unlock
+
+Checks a code. Public on the LAN like `POST /api/chores`: the code is the proof, and wrong tries are limited. **Body:** `{ "code": "4821" }`.
+
+**Response:**
+```json
+{ "token": "<unlock>", "expiresAt": 1709914200000 }
+```
+
+Send `token` in the `x-hs-grown-up` header on a guarded request. It works until `expiresAt` (`unlockMinutes` after the check), and only while the code it was given for is the hub's code.
+
+**Errors:** `400` (`code: "bad_code"`) when `code` is not four numbers; `409` (`no_code`) when no code is set, so every job goes ahead without one; `422` (`wrong_code`, never `401`) for a wrong code; `429` (`rate_limited`, with `retryAfterSeconds` and a `Retry-After` header) after five wrong codes from one address within a minute, which waits out that minute, or 30 from everywhere together within ten minutes, which makes the whole hub wait out those ten. A right code clears its address's count. The counts are kept in memory, so a hub restart forgets them.
+
+### DELETE /api/grown-up-code/unlock
+
+Ends the hub-wide wait after too many wrong codes, so the walls, `/chores` and signed-out phones take the code again. Each address's own minute stays. Requires a valid session. **Response:** `{ "lockedSeconds": 0 }`.
+
+### The refusal
+
+A guarded job sent with no session and no live unlock answers `403`:
+
+```json
+{ "error": "This needs the grown-up code.", "needsGrownUpCode": true, "action": "untick" }
+```
+
+The guarded routes: `POST /api/chores` when it would untick (`untick`), `POST /api/rewards` (`redeem`, asked after the balance check, so a redeem that would fail anyway says why first), `POST /api/todoist/close` (`todoist-close`), `DELETE /api/calendar/events/:id` (`calendar-remove`), `PATCH /api/calendar/events/:id` with `scope: "series"` (`calendar-change-series`) and `POST /api/meals/plan/wall` (`menu-change`). With no password set nobody counts as signed in, so the code is asked of every caller, the family remote included.
+
+---
+
+## Lists
+
+The family's shared to-do lists (see [Lists](/docs/lists)), kept in `data/todos.json`. A To-Do module only names the list it shows (`listId`) and never carries items; these routes are the only way in. Every write answers `{ "lists": [...] }`, every list as it stands after the change, plus the fields named below. A refusal answers `{ "error", "code" }` with `code` one of `lists.*`: `404` for a list or item that is gone (`lists.listGone`, `lists.itemGone`), `400` for anything not valid. Up to 64 lists, 500 items a list, 200 characters an item and 60 a list name.
+
+### GET /api/todo/lists
+
+Every list, with any due repeat applied. Display access.
+
+**Response:**
+```json
+{
+  "lists": [
+    {
+      "id": "3f0c…",
+      "name": "Shopping",
+      "slug": "shopping",
+      "color": "#22c55e",
+      "repeat": "never",
+      "items": [
+        { "id": "9a1e…", "text": "Milk", "completed": false, "createdAt": "2026-11-20T15:02:00.000Z", "dueDate": "2026-11-26", "assigneeIds": ["member-1"] }
+      ],
+      "createdAt": "2026-10-01T12:00:00.000Z",
+      "updatedAt": "2026-11-20T15:02:00.000Z"
+    }
+  ]
+}
+```
+
+`repeat` is `never`, `daily` or `weekly`: a repeating list unticks every item at the start of each day, or each week on `repeatDay` (`0` is Sunday, `6` Saturday), in the household's time zone. A ticked item is dropped 30 days after it was ticked.
+
+### POST /api/todo/lists
+
+Creates a list. Requires a valid session. **Body:** `{ "name": "Shopping", "color": "#22c55e", "repeat": "weekly", "repeatDay": 6 }`; only `name` is required. **Response:** `{ "lists": [...], "created": { ... } }`, `created` being the new list.
+
+### PATCH /api/todo/lists/:listId
+
+Renames, recolours or changes the repeat (`name`, `color`, `repeat`, `repeatDay`), reorders the items (`itemOrder`, a list of item ids), or tidies up with `action`: `uncheck-all` or `clear-completed`. Requires a valid session.
+
+### DELETE /api/todo/lists/:listId
+
+Removes the list and everything on it. Requires a valid session.
+
+### POST /api/todo/lists/:listId/items
+
+Adds an item. Display access. **Body:** `{ "text": "Milk", "dueDate": "2026-11-26", "assigneeIds": ["member-1"], "position": "top" }`; only `text` is required, and `"position": "top"` puts it first instead of last. A list keeps one of each thing: words already on it (ignoring capitals, extra spaces and accents) change nothing while that item is still to do, and put it back if it was ticked. **Response:** `{ "lists": [...], "created": { ... }, "outcome": "added" }`, where `created` is the item the add landed on and `outcome` is `added`, `already` or `putBack`. `"restore": true` (the phone's Undo after a remove) always makes a new item.
+
+Display access without a session (a display that has been let in, or the display key) is held back to what a wall's Add row needs. It may send `text` only (any other field needs a session), at most 80 characters (`400` with `code: "lists.textTooLong"`), and only to a list some card on some wall offers Add for: a To-Do card in the List or Compact view showing that list, a To-Do card in the Board view, or a Meal Planner in the grocery view adding to the list picked for the other things to buy. Any other list answers `403` with `code: "lists.wallAddOff"`.
+
+### PATCH /api/todo/lists/:listId/items/:itemId
+
+Changes an item: any of `completed`, `text`, `dueDate` and `assigneeIds`. Display access, but a body with anything other than `completed` needs a session, so a wall can only tick. **Response:** `{ "lists": [...] }`.
+
+### DELETE /api/todo/lists/:listId/items/:itemId
+
+Removes one item. Requires a valid session, except that display access may remove an item the hub added for a wall in the last 5 minutes (the wall's **Undo**). **Response:** `{ "lists": [...] }`.
 
 ---
 
@@ -713,6 +829,8 @@ Returns the **resolved** grocery list for the current week, ingredients aggregat
   "checked": 1
 }
 ```
+
+When the household has picked a list for the other things to buy (`settings.groceryExtrasListId`, while the plan is kept in Home Screens), that to-do list comes last as one more category named after the list, holding what is still on it and what was ticked this week (`amount` is always `""`). Its items count in `total` and `checked`. They are to-do items: tick them through [`PATCH /api/todo/lists/:listId/items/:itemId`](#patch-api-todo-lists-list-id-items-item-id), not `POST /api/meals/grocery`.
 
 ### POST /api/meals/grocery
 
@@ -868,7 +986,7 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 
 ### POST /api/mealie/shopping/items
 
-Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). The list keeps one of each thing, the way every list does: words already on it (ignoring capitals, extra spaces and accents) add nothing if the item is still to get, and put it back if it was ticked off. Answers like `GET`, with the list read fresh, plus `outcome` (`added`, `merged`, `already` or `putBack`), `item`: the id of the item the add landed on (`null` when Mealie merged the words into an item already on the list), and `added`: the new item's id, or `null` when nothing new was made. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). The list keeps one of each thing, the way every list does: words already on it (ignoring capitals, extra spaces and accents) add nothing if the item is still to get, and put it back if it was ticked off. Answers like `GET`, with the list read fresh, plus `outcome` (`added`, `merged`, `already` or `putBack`), `item`: the id of the item the add landed on (`null` when Mealie merged the words into an item already on the list), and `added`: the new item's id, or `null` when nothing new was made. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. Display access without a session (a display that has been let in, or the display key) may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
 
 ### POST /api/mealie/shopping/recipe
 
@@ -876,7 +994,7 @@ Puts a Mealie recipe's ingredients on the list the family shops from, the way Me
 
 ### PATCH /api/mealie/shopping/items/:itemId
 
-Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can change. One-way: **Response** `{ "changed": false }` when it was already that way. `404` with `"reason": "gone"` when the item is no longer in Mealie. A session may tick on any of the household's lists. A display token may tick only on the list the family shops from; an item on another list answers `404` the same way.
+Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can change. One-way: **Response** `{ "changed": false }` when it was already that way. `404` with `"reason": "gone"` when the item is no longer in Mealie. A session may tick on any of the household's lists. Display access without a session (a display that has been let in, or the display key) may tick only on the list the family shops from; an item on another list answers `404` the same way.
 
 ### DELETE /api/mealie/shopping/items/:itemId
 
@@ -912,22 +1030,23 @@ When someone else saved first, the answer is a `409` with `"reason": "revision"`
 
 ### GET /api/timers/session
 
-Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays fetch this when their 3-second heartbeat says the session changed, and compute the live countdown, step changes and the end locally from the returned timestamps, so request latency only delays the start, it never affects countdown accuracy. Display access.
+Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. A session's `status` is `running`, `done` or `cancelled`: a finished timer stays readable as `done` for 10 minutes (the wall's **Time's up!**), and a stopped one as `cancelled` for 15 seconds, so an automation asking "is a timer running?" should check `status`, not only whether `session` is there. A quick timer's session carries `quickSec`, the length it was started with (its step's own `durationSec` moves with every minute added or taken off), and `fullScreen: false` when it stays in its box. Displays fetch this when their 3-second heartbeat says the session changed, and compute the live countdown, step changes and the end locally from the returned timestamps, so request latency only delays the start, it never affects countdown accuracy. Display access.
 
 ### POST /api/timers/session
 
 Starts a session or controls the running one, selected by `action`:
 
-- `start`: begin a timer. For a routine: `{ "action": "start", "kind": "routine", "routineId": "...", "targets": "all" }`. For a quick timer: `{ "action": "start", "kind": "quick", "durationSec": 300, "targets": "all" }`, with optional `view` and `sound`. `targets` is required and picks which displays the timer takes over: `"all"` or a non-empty array of display IDs. Starting while a session is already running replaces it, one active session at a time is the intended family-display behavior.
+- `start`: begin a timer. For a routine: `{ "action": "start", "kind": "routine", "routineId": "...", "targets": "all" }`. For a quick timer: `{ "action": "start", "kind": "quick", "durationSec": 300, "targets": "all" }` (5 seconds to 4 hours), with optional `view`, `sound` and `fullScreen` (`false` keeps the timer out of the full-screen takeover, as a Quick Timer module set to stay in its box sends). `targets` is required and picks which displays the timer takes over: `"all"` or a non-empty array of display IDs. Starting while a session is already running replaces it, one active session at a time is the intended family-display behavior.
 - `pause`, `resume`: pause and resume the countdown
 - `skip` and `step-done`: the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
 - `add-minute`: add a minute to the current step
 - `subtract-minute`: take a minute off the current step, only while two minutes or more are left, so it always leaves at least one; with less left it changes nothing
-- `cancel`: stop the session
+- `toggle-sound`: turn the session's chimes off or on. The sound belongs to the session, so it changes on every wall showing it
+- `cancel`: stop the session. It also ends a `done` session, which clears **Time's up!** from every wall
 
-Every action but `start` may also send `sessionId` (the `id` of the session the button was pressed on) and `stepIndex` (the step it was on). When the running session is a different one by then, or has moved to another step, the hub answers `404` with code `timers.notRunning` and changes nothing. Wall displays and the remote's Timers tab send them, so a press never lands on a timer started a moment earlier from somewhere else and two quick Done or Skip taps move on one step. Without them the action applies to whatever is running.
+Every action but `cancel` needs a `running` session; on a `done` one, or with nothing running, the hub answers `404` with code `timers.notRunning`. Every action but `start` may also send `sessionId` (the `id` of the session the button was pressed on) and `stepIndex` (the step it was on). When the running session is a different one by then, or has moved to another step, the hub answers `404` with code `timers.notRunning` and changes nothing. Wall displays and the remote's Timers tab send them, so a press never lands on a timer started a moment earlier from somewhere else and two quick Done or Skip taps move on one step. Without them the action applies to whatever is running.
 
-Display access on purpose, touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
+Display access on purpose: a touch wall sends every one of these actions from its own buttons, from `step-done` when a kid taps Done to a held Stop. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
 
 **Response:** `{ "session": { ... } }` with the updated session.
 
@@ -966,13 +1085,13 @@ Returns `{ "notes": [...] }`, unsorted: every note the 7-day sweep has not dropp
 
 ### POST /api/notes
 
-Posts a note. A session may post words or a drawing. A display token may post a drawing or a short typed note, as the wall's **Draw a note** and **Write a note** do.
+Posts a note. A session may post words or a drawing. Display access without a session (a display that has been let in, or the display key) may post a drawing or a short typed note, as the wall's **Draw a note** and **Write a note** do.
 
 **Body:** `{ "text": "...", "authorId": "member-1", "life": "1d", "pinned": false, "important": true }`, or `drawing` in place of `text`. One of the two is required, never both. `life` defaults to `1d`, `pinned` and `important` to `false`, and an absent, empty or `null` `authorId` posts the note from nobody. The body is capped at 96 KB. Empty or overlong text, a drawing that is not sound, an unknown `life`, or a flag that is not `true` or `false` is answered with `400`. When the board already holds 200 notes, the oldest gone notes make room; a board of 200 live notes is answered with `409`.
 
 **Drawings:** a drawing from anyone is answered with `403` unless some Notes module on some display has **Draw on the wall** on and shows the button. The board keeps at most 12 drawings up: one more takes down the oldest drawing that is not pinned, which moves to Gone, and the answer's `madeRoom` says how many came down. Deleting the new drawing within five minutes puts them back.
 
-**From a display token:** only `drawing` or `text`, `authorId` and `life` are taken, and `life` may not be `keep`; anything else is answered as needing a session. Typed `text` is taken only while some Notes module on some display has **Write on the wall** on and shows the button (`403` otherwise), and may be 200 characters at most (`400`).
+**From display access without a session:** only `drawing` or `text`, `authorId` and `life` are taken, and `life` may not be `keep`; anything else is answered as needing a session. Typed `text` is taken only while some Notes module on some display has **Write on the wall** on and shows the button (`403` otherwise), and may be 200 characters at most (`400`).
 
 **Response:** `{ "notes": [...], "created": { ... } }`: every note, live and gone, so a phone can reconcile in one step, and the note just made. A drawing's answer also carries `madeRoom`.
 
@@ -989,23 +1108,23 @@ Any other `action` is answered with `400`, and an unknown `noteId` with `404`. *
 
 ### DELETE /api/notes/:noteId
 
-Removes the note for good. Requires a valid session, except that a display token may remove a drawing or typed note the hub posted for a wall in the last five minutes (the wall's **Undo**). An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+Removes the note for good. Requires a valid session, except that display access (a display that has been let in, or the display key) may remove a drawing or typed note the hub posted for a wall in the last five minutes (the wall's **Undo**). An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
 
 ---
 
 ## Calendar events
 
-Adding, changing and removing events on Google and iCloud calendars from the phone and the wall (see [Add and change events](/docs/calendars#add-events)). Nothing here works until **Settings > Calendar > Adding events** is on; each calendar must also be ticked there and shown. Every route takes a valid session or a display token. A display token is accepted only while the walls may add (`settings.calendarWallEntry` is not `false`, or some display turned it on for itself); one token serves every display, so each wall checks its own switch. Writes count against a limit of 20 a minute per address.
+Adding, changing and removing events on Google and iCloud calendars from the phone and the wall (see [Add and change events](/docs/calendars#add-events)). Nothing here works until **Settings > Calendar > Adding events** is on; each calendar must also be ticked there and shown. Every route takes display access (a session, a display that has been let in, or the display key). Without a session a write is accepted only while the walls may add (`settings.calendarWallEntry` is not `false`, or some display turned it on for itself); the hub does not ask which wall wrote, so each wall checks its own switch. On a hub with no password every caller counts as signed in, so the walls' switch is enforced on the wall itself and nowhere else. Writes count against a limit of 20 a minute per address.
 
 Events in `GET /api/calendar` that may be changed carry `canEdit: true`, plus `etag` (the version to send back), `repeats` and `seriesId` for one day of a repeating Google event, and `sourceRef` for an iCloud event. Every other event has none of them.
 
-An event is sent as a draft on the household's clock: `{ "title", "date": "YYYY-MM-DD", "allDay", "startTime": "HH:MM", "endTime": "HH:MM", "lastDate": "YYYY-MM-DD", "location", "repeat": { "frequency", "until": "YYYY-MM-DD" } }`. `startTime` and `endTime` are for timed events, and an end earlier than the start is the next day; `lastDate` is the last day of an all-day event, inclusive. `frequency` is `daily`, `weekdays`, `weekly`, `biweekly`, `monthly` or `yearly`, and `until` is the last day it may happen. Titles are at most 80 characters (an emoji counts as one).
+An event is sent as a draft on the household's clock: `{ "title", "date": "YYYY-MM-DD", "allDay", "startTime": "HH:MM", "endTime": "HH:MM", "lastDate": "YYYY-MM-DD", "location", "repeat": { "frequency", "until": "YYYY-MM-DD" } }`. `startTime` and `endTime` are for timed events, and an end earlier than the start is the next day; `lastDate` is the last day of an all-day event, inclusive. `frequency` is `daily`, `weekdays`, `weekly`, `biweekly`, `monthly` or `yearly`, and `until` is the last day it may happen. Titles are at most 80 characters and places 200 (an emoji counts as one); an event may start at most 5 years from today either way, an all-day event may run at most 366 days from first day to last, and a repeat's `until` may be at most 10 years after its first day.
 
 A refusal answers `{ "error", "code" }`, with `code` one of `calendarWrite.*`: `400` for a draft that is not valid (`titleRequired`, `endsWhenItStarts`, `repeatNeedsEveryTime` and the rest), `403` when adding is off or the calendar is not ticked (`notOffered`, `calendarNotTicked`, `notEditable`), Google or iCloud refused (`notAllowed`) or Google needs a new sign-in (`signInNeeded`), `404` for an event that was already removed (`gone`), `409` when it changed since the form loaded it (`changedElsewhere`), `429` past the limit, and `502` when Google or iCloud could not be reached (`unreachable`). Every write moves the calendar revision, so walls read the change within seconds.
 
 ### GET /api/calendar/entry
 
-What the forms offer: `{ "enabled", "google", "calendars": [{ "id", "name", "color", "source": "google" | "icloud" }], "defaultCalendarId", "defaultMinutes", "timezone", "wallDefault" }`. `calendars` lists the calendars a new event can go on now; empty means no "Add event". `google` is where Google stands: `ready`, `off`, `needsSignIn`, `scopeMissing` (Google's "View and edit events" box was left empty), `needsWebClient` (an own Google app with no web sign-in saved), `notOffered`, or `null` on a hub with no Google calendars.
+What the forms offer: `{ "enabled", "google", "calendars": [{ "id", "name", "color", "source": "google" | "icloud" }], "defaultCalendarId", "defaultMinutes", "timezone", "wallDefault" }`. `calendars` lists the calendars a new event can go on now; empty means no "Add event". `google` is where Google stands: `ready`, `off`, `needsSignIn`, `scopeMissing` (Google's "View and edit events" box was left empty), `needsWebClient` (an own Google app with no web sign-in saved), `notOffered`, or `null` on a hub with no Google calendars. `googleIfOn` is where Google would stand with adding switched on, whatever is saved now, so Settings can show the sign-in step the moment the switch flips. `googleUnreachable: true` means Google is signed in but could not be asked about the calendars ticked for adding, so none of them is listed. `readOnlyShown` names the shown calendars left out of `calendars` because they can only be read: `links` (calendar links), `readOnly` (a read-only Google calendar or iCloud's birthdays), or `both`; it is absent when there are none.
 
 ### POST /api/calendar/events
 
@@ -1017,15 +1136,15 @@ One event ready for the Change form: `{ "calendarId", "eventId", "etag", "series
 
 ### PATCH /api/calendar/events/:id
 
-Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "timeWas", "repeatChanged", "timesChanged" }`. `scope` is `instance` (this event, or this one day of a series) or `series` (every time); `etag` is the version the form loaded (the series' for `series`); `dayWas` is the day the form opened on, so moving a series by a day moves every time by a day, and `timeWas` is that day's own times as loaded (`{ "allDay": false, "startTime", "endTime" }` or `{ "allDay": true, "lastDate" }`), so a new time moves every time by the same amount. `timesChanged: false` says the day and times were left alone: none are written, and the event keeps exactly the times its calendar holds. An event of 24 hours or more comes back from `GET` with `draft.endDate`, and its times can only be left alone. A new repeat can only change every time. **Response:** `{ "ok": true }`.
+Changes an event. **Body:** `{ "draft", "etag", "scope", "seriesId", "dayWas", "timeWas", "repeatChanged", "timesChanged" }`. `scope` is `instance` (this event, or this one day of a series) or `series` (every time); `etag` is the version the form loaded (the series' for `series`); `dayWas` is the day the form opened on, so moving a series by a day moves every time by a day, and `timeWas` is that day's own times as loaded (`{ "allDay": false, "startTime", "endTime" }` or `{ "allDay": true, "lastDate" }`), so a new time moves every time by the same amount. `timesChanged: false` says the day and times were left alone: none are written, and the event keeps exactly the times its calendar holds. An event of 24 hours or more comes back from `GET` with `draft.endDate`, and its times can only be left alone. A new repeat can only change every time. With `scope: "series"` the [grown-up code](#grown-up-code) can guard the change: without a session or a live unlock it answers `403` with `needsGrownUpCode: true` and `action: "calendar-change-series"`. **Response:** `{ "ok": true }`.
 
 ### DELETE /api/calendar/events/:id
 
-Removes an event. **Body:** `{ "scope", "seriesId" }`, as for `PATCH`. An event that is already gone counts as removed. **Response:** `{ "ok": true }`.
+Removes an event. **Body:** `{ "scope", "seriesId" }`, as for `PATCH`. An event that is already gone counts as removed. The [grown-up code](#grown-up-code) can guard removing: without a session or a live unlock it answers `403` with `needsGrownUpCode: true` and `action: "calendar-remove"`. **Response:** `{ "ok": true }`.
 
 ### POST /api/calendar/appearance
 
-Changes a calendar's color from the wall. **Body:** `{ "sourceIds": ["..."], "color": "#rrggbb" }`. Every id must be a calendar that is set up (a Google calendar that is ticked, a calendar link, or an iCloud calendar); one that is not refuses the whole request with `400`. A calendar link's own color changes; a Google or iCloud calendar gets the same color override the pencil in Settings writes. **Response:** `{ "ok": true, "color", "sourceIds" }`. Requires a session or the display token.
+Changes a calendar's color from the wall. **Body:** `{ "sourceIds": ["..."], "color": "#rrggbb" }`. Every id must be a calendar that is set up (a Google calendar that is ticked, a calendar link, or an iCloud calendar); one that is not refuses the whole request with `400`. A calendar link's own color changes; a Google or iCloud calendar gets the same color override the pencil in Settings writes. **Response:** `{ "ok": true, "color", "sourceIds" }`. Display access (a session, a display that has been let in, or the display key). A config with no calendar settings at all answers `409` ("This hub has no calendars set up.").
 
 ### GET /api/auth/google/web, POST /api/auth/google/web
 
@@ -1039,7 +1158,7 @@ Where the hub's return page (`/editor/connect/google`) hands a Google web sign-i
 
 ## Day notes
 
-Short lines for a day that every calendar draws on that day (see [Day notes](/docs/calendars#day-notes)), written from the remote's Notes tab, Calendar page. They live in `data/day-notes.json`, not in the display config. Each note is `{ "id", "date", "text" }`: `date` is `YYYY-MM-DD` on the household's calendar (the time zone in Settings, or the hub's own), and `text` is plain words, trimmed, with runs of spaces and line breaks made one space, at most 60 characters (an emoji counts as one). A day holds up to 3 notes. Notes are kept for 42 days after their day; the next write drops older ones.
+Short lines for a day that every calendar draws on that day (see [Day notes](/docs/calendars#day-notes)), written from the remote's Calendar tab, or the Notes tab's Calendar page. They live in `data/day-notes.json`, not in the display config. Each note is `{ "id", "date", "text" }`: `date` is `YYYY-MM-DD` on the household's calendar (the time zone in Settings, or the hub's own), and `text` is plain words, trimmed, with runs of spaces and line breaks made one space, at most 60 characters (an emoji counts as one). A day holds up to 3 notes. Notes are kept for 42 days after their day; the next write drops older ones.
 
 ### GET /api/day-notes
 
@@ -1105,7 +1224,7 @@ Take and restore a full household backup, the same thing **Settings > Backups & 
 
 ### GET/POST /api/backup
 
-Full household backup bundle, exports `config`, `family`, `chores`, `choreCompletions`, `meals`, `rewards`, `routines`, `todos`, `notes`, and `timetables` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+Full household backup bundle, exports `config`, `family`, `chores`, `choreCompletions`, `meals`, `rewards`, `routines`, `todos`, `notes`, `dayNotes` and `timetables` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
 GET never returns credentials or icon pictures. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. It can also carry an optional `customIcons` section, the pictures the family added as icons: the editor and the phone fetch it from `GET /api/backup/custom-icons` (session required; `?summary=1` answers only `{ "count": ..., "bytes": ... }`) and add it when **Include your icons** is on. Restoring a bundle without it keeps the icons already on the hub, and anything pointing at an icon the hub does not have shows a standard icon. This is what **Save or restore a file** in **Settings > Backups & data** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
@@ -1113,9 +1232,23 @@ To restore a bundle whose `credentials` section is encrypted, add a transient `_
 
 A restore body is capped at 100 MB, room for a full icon library. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
 
-**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family` and `customIcons`, `true` for the ones the bundle actually contained. `missingIcons` counts the icons the restored data points at that this hub does not have, which happens only when the bundle was made without its icons. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family` and `customIcons`, `true` for the ones the bundle actually contained. `missingIcons` counts the icons the restored data points at that this hub does not have, which happens only when the bundle was made without its icons. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). `missingPictures` counts the pictures and folders the restored screens point at that the library does not hold. A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format", "code": "backup.notABackup" }`. A zip whose pictures will not fit on the hub returns `400` with `code: "backup.noRoomForPictures"`, and nothing is written.
 
 To restore a backup the hub saved by itself, post `{ "_auto": "<name>" }` instead of a bundle, with a name from `GET /api/backup/auto`. A JSON copy and a zip copy (pictures included) restore exactly as an uploaded one does, and the copy is never removed afterwards. Add `"_useSavedPassword": true` to unlock its keys with the backup password saved on the hub, which never leaves it; `"_passphrase"` and `"_withoutKeys": true` work as they do for a bundle. A name that is not an automatic backup's returns `400` and touches nothing.
+
+A zip backup from a computer goes up first through [`POST /api/backup/upload`](#post-api-backup-upload), then restores with `{ "_archive": "<id>" }` in place of a bundle; `_passphrase` and `_withoutKeys` work the same way. An id that is no longer staged returns `400` ("That backup is no longer on the hub. Pick the file again."). The staged zip is removed once the restore is over, whatever the outcome. A zip restore's answer also carries `pictures`: `{ "added", "replaced", "kept", "skipped", "failed" }`, where `skipped` counts zip entries that are not library pictures, and `failed` ones written but not moved into place. A picture already on the hub with the same name is kept when it is the same size and replaced when it is not; nothing is removed.
+
+### POST /api/backup/upload
+
+Stages a zip backup on the hub, so a wrong password costs a re-post, not a re-upload. Session required. **Body:** the zip file itself, as the raw request body. **Response:** `{ "id", "hasCredentials", "credentialsEncrypted", "hasCustomIcons", "usesCustomIcons", "pictures": { "count", "bytes", "skipped" } }`, enough for the same prompts a JSON backup gets (the password, missing icons, plaintext keys); then post `{ "_archive": "<id>" }` to `/api/backup`. A staged zip that is not used is removed after 15 minutes. A file that is not a Home Screens backup returns `400` with `code: "backup.notABackup"`; a zip bigger than the room on the hub (less 200 MB kept free for the pictures to be copied out) returns `413` with `code: "backup.noRoom"`.
+
+### POST /api/backup/archive
+
+Builds a backup with pictures, as a zip. Session required. **Body:** `{ "bundle": { ... }, "pictures": "used" }`: the bundle exactly as the JSON backup would be written (from `GET /api/backup`, plus any icons and keys), and which pictures go with it, `used` (the ones the bundle's screens use) or `all` (the whole library). **Response:** an `application/zip` stream holding `backup.json` and the chosen pictures, or `204` when that set holds no files, in which case the JSON file is the backup. A body without a backup bundle, or `pictures` missing or `"off"`, returns `400`.
+
+### GET /api/backup/pictures
+
+Counts and sizes for the **Pictures** choice. Session required. Only `?summary=1` is answered (`400` otherwise): `{ "used": { "count", "bytes" }, "all": { "count", "bytes" }, "missing": 3 }`, where `missing` counts the files and folders the screens point at that the library does not hold, which no backup can carry.
 
 ### POST /api/backup/credentials
 
@@ -1219,7 +1352,7 @@ Every route the hub serves, generated from the route files, with the access each
 
 - **Open**: nothing, even once a password is set.
 - **Session**: a signed-in browser (the `hs-session` cookie).
-- **Display**: a session or the display token (see [Access](#access)).
+- **Display**: display access: a session, a display that has been let in, or the display key (see [Access](#access)).
 - **Media**: display access, or a signed link to one photo or video.
 - **Adopted display**: no token, but the `display` ID has to be one the hub has adopted (see [Display-only Pis](/docs/raspberry-pi#display-only-pis)).
 

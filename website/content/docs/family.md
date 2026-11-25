@@ -34,6 +34,13 @@ Open **Settings > Calendar > Whose calendars?** and tick the calendars that belo
 
 The Full-Screen Calendar's family grid and free time views show people who have at least one calendar assigned. Adding someone to the family without choosing their calendars does not add an empty personal row. Shared events still appear under Everyone in the family grid and count as busy time for every person in the free time view. Add calendar sources first if there are no calendars to choose from. See [Calendars](/docs/calendars).
 
+## Also on this page
+
+**Settings > Family** in the editor holds two more things under the family list:
+
+- **Bonus chores**: how many bonus chores one person can grab at once, and when a grab ends. See [Bonus chores](/docs/chores#5-bonus-chores-and-up-for-grabs).
+- **Grown-up code for the wall**: four numbers the wall and the kids' page ask for before the jobs you tick, such as spending tickets. See [What kids can and cannot do](/docs/chores#what-kids-can-and-cannot-do).
+
 ## Remove someone
 
 Choose the bin beside their name. The confirmation names the person, shows how many chores they are assigned to, and explains what will be deleted: chore assignments and schedules, completion history, ticket balance, reward access, calendar assignments and their meal ratings. Chores with no one left assigned are also deleted; chores still assigned to someone else, or to a group, stay. Confirm only when you intend to remove those records.

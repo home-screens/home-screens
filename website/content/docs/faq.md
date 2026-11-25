@@ -42,7 +42,7 @@ If you sign in with Google using Home Screens' own app, the sign-in, and each re
 
 Home Screens has a separate kid-friendly view at `/chores`. It is **not password-protected**, even when you have set a password for the editor: anyone on your home network who opens that address can use it. That is deliberate, so a kid never has to log in, and it is worth knowing before you open your network up to guests.
 
-Bookmark `http://<your-pi>:3000/chores` on a kid's tablet or old phone, or scan the code on **Settings > On your phone**. They can check off today's chores and spend the tickets they have earned. They cannot add or change chores, adjust anyone's ticket balance, change settings, or check off a chore for an earlier day. All of that lives on the family remote, which does ask for the password once you have set one. See [Chores and rewards](/docs/chores) for the whole setup.
+Bookmark `http://<your-pi>:3000/chores` on a kid's tablet or old phone, or scan the code on **Settings > On your phone**. They can check off today's chores and spend the tickets they have earned. They cannot add or change chores, adjust anyone's ticket balance, change settings, or check off a chore for an earlier day. All of that lives on the family remote, which does ask for the password once you have set one. To make spending tickets or unticking a chore wait for a grown-up, set a [grown-up code](/docs/chores#what-kids-can-and-cannot-do) under **Settings > Family**. See [Chores and rewards](/docs/chores) for the whole setup.
 
 ### What hardware do I need?
 
@@ -84,7 +84,7 @@ Going back downloads that version from GitHub and installs it the same way an up
 
 ### How do I backup my configuration?
 
-Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, timers and school timetables. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. **Pictures** decides whether your picture library comes too: only the pictures and videos your screens use, everything in the library, or none, with the size shown beside each. A backup with pictures is a zip file. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Back up everything**.
+Go to **Settings > Backups & data** and, under **Save or restore a file**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, the notes board, day notes, timers and school timetables. The grown-up code is never in a backup, so set it again under **Settings > Family** after restoring onto a new hub. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. **Pictures** decides whether your picture library comes too: only the pictures and videos your screens use, everything in the library, or none, with the size shown beside each. A backup with pictures is a zip file. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Back up everything**.
 
 Your API keys and connected accounts are left out unless you ask for them. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file. You will need an editor password set first (Settings > Security). See [Backing up your keys](/docs/configuration#backing-up-your-keys) for what that covers and what happens if you forget the password.
 
@@ -194,7 +194,7 @@ Some modules also have a refresh interval, and their data won't update more ofte
 
 ### Which weather provider should I choose?
 
-Regional providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate option within the area they cover. Of those, only Met Office asks you to sign up for a key. For global coverage with no signup at all, use **Open-Meteo**, which is what a fresh install starts on. For the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
+Regional providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate option within the area they cover. Of those, only Met Office asks you to sign up for a key. For global coverage with no signup at all, use **Open-Meteo**, which is what a fresh install starts on. For the most features (minute-by-minute rain, weather warnings, UV index, visibility), go with **Pirate Weather**. Air quality needs an OpenWeatherMap key whichever provider you pick.
 
 All {% $stats.weatherProviderCount %} providers, their coverage, and which ones need a key are listed on the [Weather](/docs/weather) page.
 
@@ -228,11 +228,11 @@ The cursor hides on its own after a few seconds without movement. **Hide cursor 
 
 Several built-in features help prevent burn-in:
 
-- **Protect the screen from burn-in**: under **Settings > Screen > Rotation & appearance**, moves everything on the display a few pixels once a minute. The Full-Screen Photo Viewer's clock and a Display Control dock also drift a little inside their own space. Each display can have its own setting under **Per display**
+- **Protect the screen from burn-in**: under **Settings > Screen > Rotation & appearance**, moves everything on the display a few pixels once a minute. The Full-Screen Photo Viewer's clock, the clock on Full-Screen News's Story view and a Display Control dock also drift a little inside their own space. Each display can have its own setting under **Per display**
 - **Screen rotation**: cycle through multiple screens at a set interval so no single layout stays on screen indefinitely
 - **Sleep schedule**: configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule**: reduce brightness during certain hours without fully blanking the screen
-- **Screensaver**: while the display is dimmed, before it fully sleeps, a minimal clock can drift slowly around the screen so nothing sits in one place. Once the display is fully asleep the screen is blank, which protects it even better
+- **Screensaver**: when the display dims by itself (after a few quiet minutes or during the evening dim), before it fully sleeps, a minimal clock can drift slowly around the screen so nothing sits in one place. Once the display is fully asleep the screen is blank, which protects it even better
 - **Background rotation**: change a screen's background every so often, drawn from any mix of the walls that come with Home Screens, your library, Immich, an iCloud shared album, OneDrive, Unsplash, NASA and paintings from museums
 
 ### Can I control the display remotely?

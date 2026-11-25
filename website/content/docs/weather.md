@@ -18,7 +18,7 @@ One location serves every module that needs one: **Weather**, **Full-Screen Weat
 
 ## Pick a weather service
 
-Open **Settings > Weather**. Each service has its own card with a status pill: **Ready** means it works as it is, **Needs setup** means it wants a key, and **Default** marks the one your modules use unless told otherwise.
+Open **Settings > Weather**. Each service has its own card with a status pill: **Ready** needs no key, **Configured** has its key saved, **Needs setup** wants a key, and **Default ·** in front marks the one your modules use unless told otherwise.
 
 {% screenshot name="settings-weather" caption="One card per service. Open-Meteo is ready without a key; the four services that need one take it right on their card." /%}
 
@@ -32,7 +32,7 @@ Open **Settings > Weather**. Each service has its own card with a status pill: *
 | OpenWeatherMap | Worldwide | Free account key |
 | WeatherAPI.com | Worldwide | Free account key (a free key sends 3 forecast days) |
 | Pirate Weather | Worldwide | Free account key |
-| Met Office | United Kingdom | Free account key from datahub.metoffice.gov.uk (subscribe to the Site-Specific API) |
+| UK Met Office | United Kingdom | Free account key from datahub.metoffice.gov.uk (subscribe to the Site-Specific API) |
 
 **Which one?** The regional services (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate inside the area they cover. Open-Meteo is the easy worldwide choice. Pirate Weather adds minute-by-minute rain for the next hour, and Pirate Weather and NOAA are the two that send weather warnings.
 

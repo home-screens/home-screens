@@ -228,14 +228,14 @@ Click an empty area of the canvas to deselect any module; the **Background** sec
 ### Choose a background
 
 1. Under **Picture**, click **Choose a picture**. The **Pictures & videos** window opens
-2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Pictures & videos** (your own library, with **Upload pictures**), **Immich**, **Unsplash** or **NASA**
+2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Pictures & videos** (your own library, with **Upload pictures**), **Immich**, **Unsplash**, **NASA** or **Art** (paintings from museums)
 3. Click a picture, then **Use this picture**. **None** removes the background
 
-A picture from Immich, Unsplash or NASA is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Pictures & videos** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#choosing-a-picture) for every tab.
+A picture from Immich, Unsplash, NASA or the Art tab is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Pictures & videos** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#choosing-a-picture) for every tab.
 
 ### Rotating backgrounds
 
-Under **Sources**, tick what the screen should rotate through: the walls that come with Home Screens, your library, Immich, an iCloud shared album, OneDrive, Unsplash or NASA's picture of the day, in any mix. Each source's settings are the same ones the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
+Under **Sources**, tick what the screen should rotate through: the walls that come with Home Screens, your library, Immich, an iCloud shared album, OneDrive, Unsplash, NASA's picture of the day or paintings from museums, in any mix. Each source's settings are the same ones the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
 
 ### Per-Screen Backgrounds
 
@@ -279,7 +279,7 @@ Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most
 - **Allow pause on touchscreen** (on by default, needs Screen dots), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
 - **Swipe to change screens** (on by default), flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.
 - **Theme** sets the color scheme used by the full-screen modules, not the editor.
-- **Protect the screen from burn-in** (off by default) moves everything on the display a few pixels once a minute, so nothing sits on the same spot for long. Turn it on for an OLED or any other screen that can burn in; you will not notice it from across the room, and it steps rather than glides so a Raspberry Pi has nothing extra to draw. The picture is enlarged by about one percent so its edges stay filled while it moves. The Full-Screen Photo Viewer's clock also drifts a little inside its own band, a pixel a minute, since a clock is the thing most likely to leave a mark. A Display Control dock does the same inside its module, a little up and down and further side to side when the module is wider than the dock needs.
+- **Protect the screen from burn-in** (off by default) moves everything on the display a few pixels once a minute, so nothing sits on the same spot for long. Turn it on for an OLED or any other screen that can burn in; you will not notice it from across the room, and it steps rather than glides so a Raspberry Pi has nothing extra to draw. The picture is enlarged by about one percent so its edges stay filled while it moves. The Full-Screen Photo Viewer's clock and the Full-Screen News Story clock also drift a little inside their own space, a pixel a minute, since a clock is the thing most likely to leave a mark. A Display Control dock does the same inside its module, a little up and down and further side to side when the module is wider than the dock needs.
 
 Out of the box, sleep and dimming draw a black layer over the page rather than powering the panel down, so a dimmed or sleeping display is still backlit. **Switch the screen's power off too** is what changes that for sleep; dimming always keeps the screen lit. The distinction matters when [diagnosing a black screen](/docs/troubleshooting#display-is-blank).
 
@@ -287,7 +287,7 @@ Out of the box, sleep and dimming draw a black layer over the page rather than p
 
 - **Your town or zip code**: type it and click **Look up**, or click **Use my internet location** to guess from your connection. Every module that needs a location (weather, sunrise, moon, air quality, rain map, local news) uses this one. **Edit coordinates manually** takes exact numbers.
 - **Time zone**: looking up a town fills it in if none is picked yet; after that it only changes when you change it. Every clock, schedule and "today" on the wall, the phone and the editor follows it. Until one is picked, this page shows **Pick your time zone** and your screens use the hub's own clock. **Clock check** shows the time on your screens, on this computer and on the hub side by side. If the hub's own clock is on a different zone, **Set the hub to** matches it; that is optional and only makes its log files easier to read.
-- **Language** sets the words on the editor, every display and the family remote. **More options** holds a separate formatting locale for dates and numbers, for English text with European date order.
+- **Language** sets the words on the editor, every display and the family remote. **More options** holds a separate **Formatting locale** for how dates, times and numbers are written, for English text with European date order. Times are written the way the language writes them, for example 08.05 in Danish.
 - **Time format** picks 12-hour or 24-hour for every time the display shows: calendar events, weather, sports, sunrise and sunset, moon rise and set, the full-screen photo clock and Todoist due times. Until you pick one, it follows the usual clock for the household's language. It is also the default the meal planner follows. New clocks follow it too; a clock can pick its own 12-hour or 24-hour under its **Hour format** setting, and clocks added before that setting existed keep the choice they had.
 
 ### Weather
@@ -331,7 +331,7 @@ Which service needs which key is listed under [API keys](/docs/calendars#api-key
 
 ### Pictures & videos
 
-Everything uploaded to this hub, in one place: upload, sort into folders, move and delete. A file a screen depends on can't be deleted, and a slideshow always keeps its last picture. See [Managing your library](/docs/backgrounds#managing-your-library).
+Everything uploaded to this hub, in one place: upload, sort into folders, move and delete. A file a screen depends on can't be deleted, and a slideshow always keeps its last picture. See [Managing your library](/docs/backgrounds#managing-your-library). When an iPhone photo and its video are uploaded side by side, **Pair Live Photos** pairs them so the photo moves on the wall; see [Live Photos](/docs/backgrounds#live-photos).
 
 ### Your icons
 
@@ -356,7 +356,7 @@ Two things to know: addresses with colons (IPv6) never match, so add the IPv4 ra
 
 The page is in four parts:
 
-- **Save or restore a file**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. **Restore from a file** puts a backup back; a locked backup asks for its password and offers **Restore without my keys**. **Backup reminder** is here too: **Remind me if I haven't backed up**, with **Remind after** a number of days.
+- **Save or restore a file**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. **Pictures** picks **Leave them out**, **Only the ones your screens use** or **Everything in Pictures & videos**; a backup with pictures is saved as a zip file. **Restore from a file** puts a backup back; a locked backup asks for its password and offers **Restore without my keys**. **Backup reminder** is here too: **Remind me if I haven't backed up**, with **Remind after** a number of days.
 - **Automatic backups**: **Back up by itself** saves a backup on the hub every day, week or month at the **Time** you pick, keeps the last few (**Keep the last**), and can carry **Pictures** and your keys (locked with a backup password the hub keeps). **Back up now** saves one straight away. **Send a copy somewhere else** sends each one to a **Storage folder** (a network share on a NAS, Windows PC or Mac, or Nextcloud and other WebDAV storage) or offers a **Private download link** for a home server to fetch. **Backups on this hub** lists them with **Download**, **Restore** and **Delete** ([details](/docs/configuration#automatic-backups)).
 - **Undo an update** lists the snapshots taken before every update, each with **Download** and **Restore**. Nothing to set up.
 - **Layouts and templates**: **Export layout** writes only screens and modules, with no personal data, and is the safe one to hand to someone else. **Import layout** brings one in as new screens. **Browse templates** starts a screen from a ready-made layout while keeping your settings.

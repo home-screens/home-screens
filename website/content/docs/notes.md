@@ -22,7 +22,7 @@ There is one board for the whole house. Put the Notes module on as many screens 
 
 In the editor, drag **Notes** from the **Personal** group onto a screen, then pick a **View** in its settings. **Board** is the default: one row per note, newest first, with pinned notes on top. The settings below the view change with it, so you only see the ones that view uses. The [views](#the-views) are described further down.
 
-Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here." With **Draw on the wall** on, it says "Nothing on the board. Draw a note here, or write one on your phone." and shows the **Draw a note** button. With **Write on the wall** on as well, the words and the button cover both: **Leave a note**.
+Until someone writes a note, the module says "Nothing on the board. Write a note on your phone and it shows up here." With **Draw on the wall** on, it says "Nothing on the board. Draw a note here, or write one on your phone." and shows the **Draw a note** button. With only **Write on the wall** on, it says "Nothing on the board. Write a note here or on your phone." and shows **Write a note**. With both on, it says "Nothing on the board. Draw or write a note here, or write one on your phone." and the one button is **Leave a note**.
 
 ## 2. Write a note on your phone
 
@@ -106,7 +106,7 @@ The layouts sit on the module's own card, which follows the **Style** section li
 
 - **Board**: one row per note with the writer's initial in their colour, their name, how long ago, and up to two lines of the note. The default, and the one most families want.
 - **Cards**: each note on its own card. A wider module gets more columns, up to three, and a pinned note spans the whole row.
-- **Sticky**: paper notes in each person's colour, each leaning a little, like a fridge door. Important notes are on red paper.
+- **Sticky**: paper notes in each person's colour, each leaning a little, like a fridge door. Important notes keep their writer's paper and get a red band across the top with a warning sign and the word Important (the sign alone on a narrow note).
 - **Bubbles**: the family group chat. Newest at the bottom, the name in the writer's colour.
 - **Spotlight**: one note at a time in large type, with "2 of 6" underneath. Moves on every few seconds, and pinned or important notes stay up for two turns.
 - **Compact**: one line per note, cut short if it is long, with the age on the right. Fits a lot in a small box next to a clock.
@@ -157,7 +157,7 @@ The same values work in [display rules](/docs/profiles#display-rules), for examp
 
 ## Who can post
 
-Typed notes are written on the family remote or in the editor. Once you [set a password](/docs/remote-control#ask-for-a-password), that means a phone or computer that is signed in. The kids' page at `/chores` cannot post notes.
+Notes with every choice (up to 500 letters, pinned, important, or kept for good) are written on the family remote or in the editor. Once you [set a password](/docs/remote-control#ask-for-a-password), that means a phone or computer that is signed in. The kids' page at `/chores` cannot post notes.
 
 The wall can post two things: a drawing, while some Notes module has **Draw on the wall** on, and a short typed note of up to 200 letters, while some Notes module has **Write on the wall** on. Anyone standing at the wall can use them, and there is no code to type first. The wall cannot pin, mark important, keep a note for good, change a note or take one down, apart from **Undo** right after its own note goes up. To stop either, switch it off on every Notes module.
 
@@ -171,7 +171,7 @@ The Notes tab on the phone has two pages, switched at the top: **Board** is this
 
 ## Where the data lives
 
-Notes are kept on the hub in `data/notes.json`, next to lists, chores and meals, and are included in backups. They are not part of the layout, so editing a screen in the editor never touches a note.
+Notes are kept on the hub, next to lists, chores and meals, and are included in backups. They are not part of the layout, so editing a screen in the editor never touches a note.
 
 ## Next steps
 

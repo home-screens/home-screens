@@ -22,26 +22,26 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Features
 
-- **46 built-in modules**: clock (18 views), calendar (6 views), weather (14 views), countdown, dad jokes, text (rich with gradient/marquee), image, video (library file, direct URL, or YouTube link), quote, to-do list (5 views), family notes board (22 views, including chalkboard, letterboard, neon and newspaper looks), sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow (photos, videos, or both), QR code (custom + Wi-Fi), year progress, traffic/commute, sports scores (15 leagues, your teams first), air quality, todoist, rain map, multi-month calendar, garbage day, standings (15 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (7 views), chore chart (7 views), school timetable (2 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 6 fullscreen modules: fullscreen calendar (9 views), fullscreen weather (8 views), fullscreen news (2 views), fullscreen chore chart (5 views), fullscreen meal planner (7 views), and fullscreen photo viewer
+- **47 built-in modules**: clock (18 views), calendar (6 views), weather (14 views), countdown, dad jokes, text (rich with gradient/marquee), image, video (library file, direct URL, or YouTube link), quote, to-do list (5 views), family notes board (22 views, including chalkboard, letterboard, neon and newspaper looks), sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow (photos, videos, or both), QR code (custom + Wi-Fi), year progress, traffic/commute, sports scores (15 leagues, your teams first), air quality, todoist, rain map, multi-month calendar, garbage day, standings (15 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation and timers), quick timer (one-tap kitchen timer for the wall), meal planner (7 views), chore chart (7 views), school timetable (2 views), iframe, icon (Font Awesome, emoji or your own picture), shape & divider (15 views), and 6 fullscreen modules: fullscreen calendar (9 views), fullscreen weather (8 views), fullscreen news (2 views), fullscreen chore chart (5 views), fullscreen meal planner (7 views), and fullscreen photo viewer
 - **Drag-and-drop editor**: visually arrange modules on a configurable canvas
 - **Multi-screen rotation**: cycle through screens with 7 transition effects, or none
 - **Multi-display hub-and-spoke**: one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
-- **9 weather providers**: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free, US), Open-Meteo (free, global), Yr.no (free, global), SMHI (free, Nordic), Met Office (free, UK), Environment Canada (free, Canada)
+- **9 weather providers**: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free, US), Open-Meteo (free, global), Yr.no (free, global), SMHI (free, Nordic), Met Office (free key, UK), Environment Canada (free, Canada)
 - **Plugin system**: add new modules from the **Plugins** panel in the editor, or from a link with **Install from URL**; browse them in the [plugin directory](https://homescreens.dev/plugins) or build your own from the [template](https://github.com/home-screens/home-screens-plugin-template)
 - **Profile system**: named screen groups with schedule-based auto-activation
 - **Remote display control**: wake, sleep, brightness, navigation, and alerts via HTTP
-- **Visual timers & routines**: start a quick timer or a saved routine (get dressed, brush teeth, shoes on) from your phone and it takes over the display with one of 4 kid-friendly countdown views, step-by-step, with an optional chime and a celebration at the end
-- **Family organizer**: chores and rewards (start from a list of ready-made chores, bonus chores kids can grab, a rewards store kids can save up for), the meal planner and grocery list (plan from your own meals or a Mealie recipe library, with a recipe book on the wall and star ratings from everyone in the family), shared to-do lists, a notes board that clears itself, and short notes on calendar days, all run from the family remote on your phone, plus school timetables; one family list names everyone across chores, calendars, lists and timetables, and you can add your own pictures as icons
-- **Touch-friendly display**: swipe left or right to change screens, tap a calendar event for its details, tap chores done, scroll long lists with a finger, and put an Open button under any module to jump to another screen, all on the display itself
+- **Visual timers & routines**: start a quick timer or a saved routine (get dressed, brush teeth, shoes on) from your phone or the wall and it takes over the display with one of 4 kid-friendly countdown views, step-by-step, with an optional chime and a celebration at the end
+- **Family organizer**: chores and rewards (start from a list of ready-made chores, bonus chores kids can grab, a rewards store kids can save up for), the meal planner and grocery list (plan from your own meals or a Mealie recipe library, with a recipe book on the wall and star ratings from everyone in the family), shared to-do lists, a notes board that clears itself, and short notes on calendar days, run from the family remote on your phone, with the everyday bits on the wall too, plus school timetables; one family list names everyone across chores, calendars, lists and timetables, and you can add your own pictures as icons
+- **Touch-friendly display**: swipe left or right to change screens, tap a calendar event for its details, add or change events, hide a calendar, change its color or switch its view, tap chores done, add to a list or the grocery list, plan a meal, draw or type a note, start a timer, pause or step through photos, scroll long lists with a finger, and put an Open button under any module to jump to another screen, all on the display itself
 - **Per-module scheduling**: show or hide modules by day of week and time window
 - **Conditional visibility**: show or hide any module, or a whole screen, based on live values such as the weather (hide the rain map on dry days), your calendar (busy now, events today), or anything a plugin publishes (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
-- **Google Calendar, iCloud + iCal**: display events from Google Calendar (sign in with a short code, no Google setup needed), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed, and once you turn it on, add, change and remove Google and iCloud events from your phone or the wall
-- **Background management**: upload images and videos, choose a picture from the walls that come with Home Screens, Unsplash, NASA, museum paintings or an Immich library in one Image Library, import hand-picked photos from Google Photos, and rotate a screen's background through any mix of those, an iCloud shared album, a OneDrive folder or Home Screens' own collection of paintings
+- **Google Calendar, iCloud + iCal**: display events from Google Calendar (sign in with a short code, no Google setup needed), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed, and once you turn it on, add, change and remove iCloud events from your phone or the wall, and Google events too on your own Google app
+- **Background management**: upload images and videos, choose a picture from the walls that come with Home Screens, Unsplash, NASA, museum paintings or an Immich library in one picture picker, add hand-picked photos from Google Photos, and rotate a screen's background through any mix of those, an iCloud shared album, a OneDrive folder or Home Screens' own collection of paintings
 - **Per-module styling**: opacity, blur, colors, fonts, border radius, padding
 - **System management**: upgrade, rollback, backup/restore, power control, and network settings (Wi-Fi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk**: one-command setup with boot splash, auto-login, display orientation, and optional burn-in protection that shifts the picture a few pixels each minute
 - **Password-protected editor**: optional authentication for the configuration interface
-- **Multi-language UI**: ships in 7 languages (English, German, French, Spanish, Dutch, Brazilian Portuguese, and Danish); date and number formatting can be locked to a separate locale
+- **Multi-language UI**: ships in 7 languages (English, German, French, Spanish, Dutch, Brazilian Portuguese, and Danish); how dates, times and numbers are written can follow a separate locale
 - **Updates your way**: stay on tested releases or opt into early access or beta builds, get a note in the editor and on the phone when one is out, or let it install itself at a set time each day
 - **No cloud required**: all data stored locally as JSON, no accounts or external services needed
 
@@ -125,6 +125,7 @@ Then open `http://<your-server>:3000/editor`.
 - The container runs as user 1000. If saving fails with a permission error, make the folders owned by that user or run the container as their owner.
 - Names ending in `.local` (like `homeassistant.local`) often don't resolve inside containers. Use the IP address instead.
 - If a reverse proxy sits in front, set `HS_TRUSTED_PROXIES` to its IP address.
+- With a password set, each browser you use as a display asks to be let in once, even one on the server itself: click **Let in** under **Settings > Displays**, or list its network under **Allowed networks** in **Settings > Security** with **Let displays on these networks in without asking** on.
 
 ### Local Development
 
@@ -150,7 +151,7 @@ No Google Cloud project needed: Home Screens brings its own Google app.
 - **Calendar:** **Settings > Calendar > Sign in with Google**, enter the short code at `google.com/device` on any phone or computer, then tick the calendars to show.
 - **Photos:** in a Photo Slideshow or Full-Screen Photo Viewer module, click **Sign in with Google**, approve, and the browser comes straight back to your hub. Then **Choose photos** opens Google's own picker.
 
-Prefer your own Google app? Expand **Use your own Google app** on the Google card under **Settings > API keys**. Calendar takes a **TVs and Limited Input devices** OAuth client with the Google Calendar API enabled; Photos takes a **Web application** client with `https://homescreens.dev/connect/google` as its redirect URI and the Google Photos Picker API enabled. Then publish the app in the Google Cloud console (**Google Auth Platform > Audience > Publish app**): until you do, only the test users you list there can sign in, and Google ends every sign-in after 7 days. Google may then warn that it hasn't verified the app; it is your own, so choose **Advanced** and carry on. Once your own app is saved, a switch on the **Use your own Google app** row lets you go back to Home Screens' app without losing your details. Saving or switching apps signs Google out, so sign in again afterwards on the Calendar page or in the photo module.
+Prefer your own Google app? Expand **Use your own Google app** on the Google card under **Settings > API keys**. Calendar takes a **TVs and Limited Input devices** OAuth client with the Google Calendar API enabled; Photos takes a **Web application** client with `https://homescreens.dev/connect/google` as its redirect URI and the Google Photos Picker API enabled. Adding calendar events uses the same **Web application** client as Photos. Then publish the app in the Google Cloud console (**Google Auth Platform > Audience > Publish app**): until you do, only the test users you list there can sign in, and Google ends every sign-in after 7 days. Google may then warn that it hasn't verified the app; it is your own, so choose **Advanced** and carry on. Once your own app is saved, a switch on the **Use your own Google app** row lets you go back to Home Screens' app without losing your details. Saving or switching apps signs Google out, so sign in again afterwards on the Calendar page or in the photo module.
 
 ### iCloud Calendar
 
@@ -189,7 +190,7 @@ The `--display-only` flag installs just Chromium, labwc, wtype, wlr-randr, wlopm
 
 ### Adopt the spoke
 
-On the hub, open the editor and go to **Settings > Per display > All displays**. Any spoke that's powered on and pointed at this hub shows up in the unadopted list; click to adopt it, give it a name, and pick its resolution and rotation. The display appears in the editor's **Display Switcher** pill in the toolbar so you can flip between which display you're editing, and in the sidebar's **Per display** group as its own drill-down page with Overview and Overrides sub-tabs.
+On the hub, open the editor and go to **Settings > Per display > All displays**. Any spoke that's powered on and pointed at this hub shows up in the unadopted list; click to adopt it, give it a name, and pick its resolution and rotation. With a password set, adding it is also what lets it in. The display appears in the editor's **Display Switcher** pill in the toolbar so you can flip between which display you're editing, and in the sidebar's **Per display** group as its own drill-down page with Overview and Overrides sub-tabs.
 
 Each display card has an **Edit screens** shortcut, an online/offline dot driven by live heartbeats, and the spoke's reported viewport (including its source IP), so you can tell which physical Pi is reporting at a glance.
 
@@ -220,7 +221,7 @@ journalctl -u home-screens -f         # view logs
 
 ### Backups
 
-The editor has built-in backups at **Settings > Backups & data**. For a copy off the Pi:
+The editor has built-in backups at **Settings > Backups & data**. It can also [back up by itself](https://homescreens.dev/docs/configuration#automatic-backups) every day, week or month and keep each copy on a NAS, a shared folder or Nextcloud. For a copy off the Pi by hand:
 
 ```bash
 # Settings, screens, keys, family, chores, meals, lists, timers, your icons, plugins
@@ -230,7 +231,7 @@ scp -r hs@home-screens.local:/opt/home-screens/current/data/ ./hs-backup/
 scp -r hs@home-screens.local:/opt/home-screens/current/public/backgrounds/ ./hs-backup/
 ```
 
-Copy whole directories rather than picking out files. Some data is split across more files than you would guess: chore definitions and chore completions are separate, so grabbing only `chores.json` leaves every earned point behind. [Configuration](https://homescreens.dev/docs/configuration) lists every file and what writes it.
+Copy whole directories rather than picking out files. Some data is split across more files than you would guess: chore definitions and chore completions are separate, so grabbing only `chores.json` leaves every ticket earned behind. [Configuration](https://homescreens.dev/docs/configuration) lists every file and what writes it.
 
 ### Custom Port
 
@@ -276,20 +277,20 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 - [What to Buy](https://homescreens.dev/docs/what-to-buy): the Pi, power supply, memory card and cable, about $90 plus a screen you may already own
 - [Your First Screen](https://homescreens.dev/docs/first-screen): a template, your location, a calendar and a chore chart in about ten minutes
 - [Editor Guide](https://homescreens.dev/docs/editor): visual editor walkthrough
-- [Modules](https://homescreens.dev/docs/modules): overview of the 46 built-in modules
+- [Modules](https://homescreens.dev/docs/modules): overview of the 47 built-in modules
 - [Module Reference](https://homescreens.dev/docs/module-reference): every setting, default value, and allowed option for each module
 - [Weather](https://homescreens.dev/docs/weather): nine weather services, five free with no account, one location for every module
 - [Calendars](https://homescreens.dev/docs/calendars): Google, iCloud, Outlook and any calendar link, with the right colors
 - [Family](https://homescreens.dev/docs/family): the people in your home, and groups of them, shared by chores, calendars, lists and timetables
 - [Chores and Rewards](https://homescreens.dev/docs/chores): chore charts kids tick off on the wall or a phone, bonus chores, and tickets to spend on rewards
 - [Meals](https://homescreens.dev/docs/meals): the meal library, the weekly plan and the grocery list
-- [Lists](https://homescreens.dev/docs/lists): shared to-do lists, added on your phone and ticked off anywhere
-- [Notes](https://homescreens.dev/docs/notes): a family notes board, written on your phone, that takes each note down on its own when its time is up
+- [Lists](https://homescreens.dev/docs/lists): shared to-do lists, added on your phone or a touchscreen and ticked off anywhere
+- [Notes](https://homescreens.dev/docs/notes): a family notes board, written on your phone or drawn and typed on the wall, that takes each note down on its own when its time is up
 - [School Timetable](https://homescreens.dev/docs/school-timetable): each child's school week, typed in or imported from a spreadsheet
 - [Backgrounds](https://homescreens.dev/docs/backgrounds): uploads, the picture library, Unsplash, NASA APOD, Immich, iCloud, Google Photos, rotation
 - [News](https://homescreens.dev/docs/news): headlines from any site, blog, YouTube channel or subreddit, plus a full-screen front page
 - [Profiles & Scheduling](https://homescreens.dev/docs/profiles): automation and time-based layouts
-- [Remote Control](https://homescreens.dev/docs/remote-control): the phone remote for display control, chores, meals, lists, notes, timers and photos
+- [Remote Control](https://homescreens.dev/docs/remote-control): the phone remote for display control, chores, lists, calendar, notes, meals, timers and photos
 - [Multi-Display](https://homescreens.dev/docs/multi-display): hub-and-spoke setup for driving several displays from one Pi
 - [Voice Control](https://homescreens.dev/docs/voice-control): drive displays, chores, and grocery lists from Home Assistant voice
 - [Raspberry Pi](https://homescreens.dev/docs/raspberry-pi): kiosk deployment

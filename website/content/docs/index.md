@@ -38,7 +38,7 @@ A free, open-source smart display for your kitchen, hallway, or family command c
 - **Orientation**: whether the picture is portrait or landscape. Also under Settings > Screen.
 - **Module**: one thing on a screen. A clock, a weather forecast, a chore chart, a photo slideshow.
 - **Plugin**: an extra module you install from the Plugins button in the editor. Home Assistant, Garmin and Strava are plugins.
-- **Family remote**: the phone page for grown-ups, at `/remote`. Chores, meals, lists, timers, photos, and control of the wall.
+- **Family remote**: the phone page for grown-ups, at `/remote`. Chores, lists, calendar, notes, meals, timers, photos, and control of the wall.
 - **Kids' chores**: the phone page for children, at `/chores`. Check off today's chores and spend tickets, nothing else.
 - **Hub**: the Pi that runs Home Screens. It only comes up when you have more than one display; the others show what the hub serves.
 
@@ -46,7 +46,7 @@ A free, open-source smart display for your kitchen, hallway, or family command c
 
 - **Your content stays on your Pi.** Your screens, photos, calendars, chores, and API keys live in files on the device. No cloud accounts, no database, no required servers.
 - **One anonymous usage report a day.** Home Screens sends its version, platform, and how many screens and modules you have. Never your calendar events, photos, notes, or API keys, and nothing with your name on it. The report itself carries no location and no network address, though the server that receives it can see where the request came from, the same as any website you visit. Turn it off in Settings > Status, or read exactly what it sends in the [FAQ](/docs/faq#does-home-screens-collect-any-data).
-- **The editor has no password until you set one.** Anyone on your home network can open it and change your screens. Set a password in Settings > Security; it covers the editor and the family remote, and the kids' chores page stays open on purpose.
+- **The editor has no password until you set one.** Anyone on your home network can open it and change your screens. Set a password in Settings > Security; it covers the editor and the family remote. Each display's screen is let in once and remembered, and the kids' chores page stays open on purpose.
 - **You can always roll back.** Settings > System & updates lists every published version; pick an older one and Home Screens re-installs it, which needs an internet connection. If an update fails its health check, the previous version is put back automatically.
 
 ## Getting help

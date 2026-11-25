@@ -235,6 +235,9 @@ You can also install a plugin directly from any HTTPS tarball URL, useful for pr
 - The URL may include a `{version}` placeholder (e.g. `https://example.com/my-plugin-{version}.tgz`) so the editor can swap versions on later updates without asking you to re-enter the full URL.
 - Externally installed plugins show an **External** pill in the Installed tab and get a per-plugin **Update** button that re-downloads from the stored URL.
 - URL installs run through the same extract/validate pipeline as marketplace installs. They **cannot overwrite** a plugin ID already installed from the marketplace (checked again after acquiring the per-ID lock to close the TOCTOU race).
+- A tarball may be at most 50 MB, for registry installs too; a larger download is dropped while it is still arriving.
+- A tarball that holds a link (symbolic or hard) or any other special file is refused.
+- `http://localhost` and `http://127.0.0.1` work only as the address you type, for local testing. Every redirect must go to a public https address.
 
 ### API Endpoints
 
@@ -496,7 +499,7 @@ Clear a key only when its value genuinely no longer exists, such as an entity be
 How keys work:
 
 - Every key is force-prefixed with your plugin's namespace: publishing `binary_sensor.door` from plugin `my-plugin` stores `plugin:my-plugin:binary_sensor.door`. Plugin ids are lowercased in the prefix. This prevents accidental collisions between producers; it is not a security boundary.
-- Home Screens publishes a few values of its own on the same bus, `calendar.*` and `weather.*` (listed under [ModuleVisibility](/docs/configuration#module-visibility)). They have no `plugin:` prefix, so your keys never collide with them, and you cannot publish under those names.
+- Home Screens publishes a few values of its own on the same bus, `calendar.*`, `weather.*` and `notes.*` (listed under [ModuleVisibility](/docs/configuration#module-visibility)). They have no `plugin:` prefix, so your keys never collide with them, and you cannot publish under those names.
 - Keys use lowercase letters, digits, and `_ : . -`, up to 128 characters after prefixing. Values are strings; anything over 1&nbsp;KB is truncated to 1&nbsp;KB and published, with a console warning. An invalid key is dropped, and so is a new key that would push the store past its 256-key cap.
 - Values live in the display's browser tab only. They are not persisted and not shared across displays; each kiosk tab sees only what its own plugin instances publish.
 - A **reload** (a config change, a dev hot-reload) deliberately keeps your published keys, so modules conditioned on them don't blink out while your producer remounts. Only plugins missing from the new installed set get purged. The exception is a failed reload: if the installed-plugins fetch itself errors, every preserved key is purged, because nothing is going to remount and republish.
@@ -564,7 +567,7 @@ reportProviderHealth('my-plugin', { ok: true });
 For a value to stay fresh while the display rotates through screens, the publishing module instance must keep running. There are two ways to do that:
 
 - **`backgroundProvider` instance**: users mark an instance "Run hidden in the background" in the editor, which mounts it in a persistent background layer independent of screen rotation. Simple, but the plugin still needs a module instance on the canvas to act as the publisher.
-- **`stateProvider` export** (recommended), a headless component the host mounts once per plugin, with no module instance required. It's fed a demand-driven `demandedKeys` list, every shared-state key of your plugin's namespace that's actually referenced by a visibility condition, a display rule, or a Text-module token anywhere on the display, and should publish only those, clearing a key when it drops out of the list. Because it's demand-driven, it also runs live in the editor tab (fed from the draft config), so condition verdicts update as you build them without needing an actual display open. See the manifest's `exports.stateProvider` field for the full contract.
+- **`stateProvider` export** (recommended), a headless component the host mounts once per plugin, with no module instance required. It's fed a demand-driven `demandedKeys` list, every shared-state key of your plugin's namespace that's actually referenced by a module's or a screen's visibility conditions, a display rule, a Text-module token, or a Text look's conditions or replacement text anywhere on the display, and should publish only those, clearing a key when it drops out of the list. Because it's demand-driven, it also runs live in the editor tab (fed from the draft config), so condition verdicts update as you build them without needing an actual display open. See the manifest's `exports.stateProvider` field for the full contract.
 
 ### Dev Mode
 
@@ -646,8 +649,8 @@ const res = await pluginFetch('my-plugin', {
 | `url` | string | (required) | The upstream URL to fetch. Must match a domain in `allowedDomains`. |
 | `method` | string | `"GET"` | HTTP method. Allowed: `GET`, `POST`, `PUT`, `PATCH`. |
 | `headers` | object | `{}` | Headers to send to the upstream server. |
-| `payload` | string |, | Request body for POST/PUT/PATCH requests. Capped at 1 MB. |
-| `secretInjections` | object |, | Secret placeholders to resolve (see below). |
+| `payload` | string | none | Request body for POST/PUT/PATCH requests. Capped at 1 MB. |
+| `secretInjections` | object | none | Secret placeholders to resolve (see below). |
 | `cacheTtlMs` | number | `60000` | Cache TTL for GET responses (0 to disable, max 1 hour). |
 | `skipAuth` | boolean | `false` | Skip auth-adapter token injection for this one request. Use it for a public endpoint that lives on a `tokenTargetDomains` host and would reject an `Authorization` header. |
 
@@ -667,7 +670,7 @@ For example, if a plugin declares a secret with key `api_key` and the user has c
 - **Request body**: `payload` is capped at 1 MB; anything larger comes back as HTTP 413.
 - **Response size**: maximum 5 MB per response.
 - **Timeout**: upstream requests time out after 15 seconds on the hub. On the display, `pluginFetch` gives up after 60 seconds and the SDK's `useFetchData` after 15, so a request can never hang a module after a network drop. A timed-out `pluginFetch` rejects like any other network error; `useFetchData` reports it as its error and keeps the last data.
-- **Redirects**: followed manually, up to 5 hops. Every hop is re-checked against `allowedDomains` and the SSRF rules, so an upstream that redirects to a host you did not declare fails rather than being followed. Exceeding the hop limit returns HTTP 502.
+- **Redirects**: followed manually, up to 5 hops. Every hop is re-checked against `allowedDomains` and the SSRF rules, so an upstream that redirects to a host you did not declare fails rather than being followed. A hop to another origin goes on without the headers the proxy added (the `secretInjections.header` values and the sign-in token), the way a browser drops `Authorization`; headers your plugin set itself ride on. A hop from https down to http is refused with HTTP 403 when the request carries saved keys or a sign-in token. Exceeding the hop limit returns HTTP 502.
 - **Caching**: GET responses with text/JSON/XML content types are cached per URL + headers hash, with the TTL specified by `cacheTtlMs`. The cache holds at most 50 entries across all plugins, so a plugin fetching many distinct URLs will evict its own earlier entries.
 
 ---
@@ -844,7 +847,7 @@ emit({ type: 'log', level: 'info', message: 'Data loaded successfully' });
 | Type | Fields | Description |
 |---|---|---|
 | `navigate` | `direction`: `"next"`, `"prev"`, or `"screen"`; `screenIndex?`: number | Navigate between screens |
-| `refresh` |, | Request the display to refresh its data |
+| `refresh` | none | Request the display to refresh its data |
 | `log` | `level`: `"info"`, `"warn"`, or `"error"`; `message`: string | Log a message to the browser console |
 
 Unknown event types are silently dropped. Event handlers are wrapped in try-catch to ensure a misbehaving plugin can never crash the host.
@@ -994,7 +997,7 @@ Plugins that legitimately need to talk to a LAN device (a Hue bridge, Home Assis
 - Cloud metadata endpoints (`169.254.169.254`, `fd00:ec2::254`)
 - The unspecified addresses (`0.0.0.0`, `::`) and empty or invalid hostnames
 
-Only `http` and `https` schemes are permitted, and every address the hostname resolves to is re-checked against that blocklist, so a DNS-rebinding attempt still fails.
+Only `http` and `https` schemes are permitted, and every address the hostname resolves to is re-checked against that blocklist. The address the hub then connects to is checked again at connect time, on every redirect hop too, so a DNS server that answers the check and the connection differently still fails, with HTTP 403 and "resolves to a blocked address".
 
 ```json
 {

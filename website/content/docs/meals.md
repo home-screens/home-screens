@@ -101,7 +101,7 @@ Mealie 2.0 or newer is needed. Only want the meals on your calendar? Mealie 3.29
 On a touchscreen, anyone standing at the wall can put a recipe on the menu, with no phone and no typing. Turn on **Plan meals on the wall** in the settings of either Meal Planner module (it is on for a new one). There are two ways in:
 
 - **From a recipe.** Open a recipe card (from the recipe book, a search or a planned meal) and tap **Put on the menu**. Pick the meal of the day, then tap a day: this week and next are shown, each day saying what is already on it. On a meal that is already planned the button reads **Change the menu**, and it is the way to move that meal to another day or take it off.
-- **From a day.** In the week views, every meal your household plans shows a small plus while it is empty, even in a week that only has dinners so far. Tap it and the recipe book opens for that day and meal; tap a recipe and it is planned.
+- **From a day.** In the week views, every meal your household plans shows a small plus while it is empty, even in a week that only has dinners so far, and the small planner's list view has **Plan a meal** on a day with nothing planned. Tap it and the recipe book opens for that day and meal; tap a recipe and it is planned.
 
 A free day is planned straight away. A day that already has a main dish asks first: **Swap it**, **Have both** or leave the day alone. A side, dessert or drink joins the meal that is already there (with Mealie, that is a recipe filed under your Side, Dessert or Drink category). Tapping the day a recipe is already on offers to take it off again. After every change there is an **Undo** for a few seconds.
 
@@ -111,7 +111,7 @@ The wall plans recipes only, for today up to the end of next week. Typing a meal
 - If you plan with Mealie, the meal goes into Mealie's plan, and the wall offers **Add ingredients to the shopping list**, which puts them on the list your family shops from.
 - With Mealie connected but the plan kept in Home Screens, the recipe book shows Mealie's recipes, and those cannot go on a Home Screens plan: their cards have no **Put on the menu** button. The plus on an empty meal opens your own saved meals instead.
 
-To keep little hands from rearranging the week, tick **Changing the menu** under the [grown-up code](/docs/chores) in **Settings > Family**. The wall then asks for the code before it plans, swaps or takes off a meal.
+To keep little hands from rearranging the week, tick **Changing the menu** under the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) in **Settings > Family**. The wall then asks for the code before it plans, swaps or takes off a meal.
 
 ## Recipes on the wall
 

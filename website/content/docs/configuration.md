@@ -21,11 +21,13 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/config.json` | Screens, modules, profiles, global settings, multi-display registry | `/api/config` |
 | `data/secrets.json` | API keys for external integrations (weather, calendar, photos, etc.) | `/api/secrets` |
 | `data/auth.json` | Password hash and session secret for editor authentication | (internal) |
+| `data/display-walls.json` | The wall browsers this hub has let in (a SHA-256 of each one's `hs-display` cookie secret, the display it last showed and how it was let in), the ids of removed walls, when the changeover window began and how many walls it has let in per display. Mode 600. A file that is there but cannot be read fails closed: no wall is known and no window is open. In no backup, and a restore leaves it alone | `/api/display/walls` |
+| `data/grown-up-code.json` | The grown-up code's hash and salt, the secret its unlocks are signed with, the jobs it guards and how long an unlock lasts. Mode 600, never sent to a browser, in no backup | `/api/grown-up-code` |
 | `data/meals.json` | Meal library, weekly plan, checked-off grocery items, the family's meal ratings, household meal settings | `/api/meals/data` |
 | `data/family.json` | Shared family members, family groups, and legacy identity aliases | `/api/family` |
 | `data/chores.json` | Chore definitions | `/api/chores/data` |
 | `data/chore-completions.json` | Chore completion history (last 90 days) | `/api/chores` |
-| `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
+| `data/rewards.json` | Reward definitions, ticket balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todos.json` | Shared to-do lists (items, due days, people, repeats) | `/api/todo/lists` |
@@ -46,11 +48,11 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/plugin-secrets/` | Per-plugin secrets you enter yourself, kept outside `data/plugins/` because a plugin upgrade replaces that folder wholesale | `/api/plugins/secrets` |
 | `data/custom-icons/` | The family's own icons: `index.json` lists them, and each picture sits beside it as a `.webp` named by its content | `/api/custom-icons` |
 
-Chore definitions and chore completions are **two separate files**. Copying only `data/chores.json` leaves every completion (and therefore every earned point) behind.
+Chore definitions and chore completions are **two separate files**. Copying only `data/chores.json` leaves every completion (and therefore every ticket earned) behind.
 
 Other files under `data/` are written and managed by the app and are not meant to be edited by hand: `backups/`, `thumbnails/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`, `icloud-albums.json` (the list of pictures in each iCloud shared album, kept so a restarted hub can show them straight away), `weather-today.json`, `audit.log`, the update records (`auto-update-setting.json`, `auto-update-state.json`, `update-notification-state.json`, `upgrade-failed.json`, `restart-needed.json`), the automatic backup record (`auto-backup-state.json`), the Pi program records (`system-packages.json`, `system-package-holds`), the change journal behind family and restore writes (`family-transaction.json`), and the records of the one-time move to a shared family list (`family-migration.json`, `family-migrations/`).
 
-The main config is read via `GET /api/config` and written via `PUT /api/config`. If you have set an editor password, both endpoints require an `hs-session` cookie: `PUT` accepts nothing else, and `GET` also accepts a display bearer token. With no password set, authentication is off and both are open on your local network.
+The main config is read via `GET /api/config` and written via `PUT /api/config`. If you have set an editor password, both endpoints require an `hs-session` cookie: `PUT` accepts nothing else, and `GET` also answers a display that has been let in, and the display key. With no password set, authentication is off and both are open on your local network.
 
 {% callout type="warning" %}
 **Close the editor tab before hand-editing `data/config.json`.** The editor loads the whole config into memory when the page opens and writes the whole file back when you save, so any change you made on disk in between is silently overwritten. `PUT /api/config` works the same way; it replaces the file wholesale rather than merging your changes into it.
@@ -92,6 +94,7 @@ A few behaviors are set in the Home Screens service's environment rather than in
 | `HS_DISABLE_TELEMETRY=1` | Never sends the anonymous usage report, whatever the setting says |
 | `HS_TRUSTED_PROXIES` | Comma-separated proxy addresses whose forwarded client address is believed; see [Restrict access by IP](/docs/networking#restrict-access-by-ip) |
 | `HS_ALLOWED_ORIGINS` | Other sites allowed to send changes to the API; see [Requests from other websites](/docs/networking#requests-from-other-websites) |
+| `HS_NO_HUB_SCREEN=1` | Nothing counts as the hub's own screen, so no browser is let in as a wall just because it loads `/display` from the hub itself (a loopback address with no forwarding header). The Docker image sets it. Set it on a hub with no screen of its own, or one behind a proxy on the same machine that cannot send `X-Forwarded-For`; see [Which displays are let in](/docs/networking#which-displays-are-let-in) |
 | `HOME_SCREENS_DIR` | Where an install that is not under `/opt/home-screens/current` lives, so updates and the data folder are found |
 
 ## Schema
@@ -289,11 +292,11 @@ Each `ModuleInstance.config` object holds the fields for its module type. Those 
 
 ## Shared data files
 
-Several features deliberately keep their data **outside** `config.json`: the four below, and the timetables, routines and running timer listed in [Data files](#data-files). The per-module config holds display options only; the data itself lives in a shared file so every module instance stays in sync, and so a save from the editor can never clobber something changed from `/remote` or tapped on a display.
+Several features deliberately keep their data **outside** `config.json`: the six below, and the timetables, routines and running timer listed in [Data files](#data-files). The per-module config holds display options only; the data itself lives in a shared file so every module instance stays in sync, and so a save from the editor can never clobber something changed from `/remote` or tapped on a display.
 
 ### data/meals.json
 
-The meal library, weekly plan, grocery check-offs, and household-wide planning settings, written atomically via `/api/meals/data`. Settings live here rather than on each module so `/remote` and every meal-planner instance agree.
+The meal library, weekly plan, grocery check-offs, the family's meal ratings, and household-wide planning settings, written atomically via `/api/meals/data`. Four narrower routes change one thing each in the same file: `/api/meals/plan/wall` (a recipe put on the menu from the wall), `/api/meals/grocery` (a grocery tick), `/api/meals/ratings` and `/api/meals/favorite`. With Mealie connected, `/api/mealie/plan` and `/api/mealie/shopping` keep their own small records here too. Settings live here rather than on each module so `/remote` and every meal-planner instance agree.
 
 {% type-reference name="MealData" /%}
 
@@ -353,7 +356,7 @@ The family's shared to-do lists (see [Lists](/docs/lists)). Each list has a name
 
 ### data/notes.json
 
-The family notes board (see [Notes](/docs/notes)). Each note has its text, or the lines of a drawing made on the wall, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down, and posts drawings through the same route.
+The family notes board (see [Notes](/docs/notes)). Each note has its text, or the lines of a drawing made on the wall, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down, and posts drawings and short typed notes (200 characters at most, never pinned, important or kept for good) through the same route.
 
 ### data/day-notes.json
 
@@ -380,6 +383,8 @@ Config files include a `version` number. When the schema changes between release
 
 Migration runs when the config is read and the result is written back to disk automatically, so `version` in `data/config.json` updates itself the first time newer code reads an older config. If a migration fails, the un-migrated config is returned as-is rather than falling back to defaults, so a bad upgrade can never quietly replace your setup with an empty one.
 
+A config sent to `PUT /api/config` with an older `version` is brought up to date before it is stored, and the response carries the updated config (with its revision header). An editor left open across an update takes that answer in place of its own copy, so its next save is not refused as changed somewhere else.
+
 Do not hand-edit `version`. A config marked with a version newer than the running code is left alone; there is no downgrade path.
 
 ## Validation CLI
@@ -394,7 +399,7 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 ## Backup & Restore
 
-- **Save a backup** (under **Save or restore a file** in **Settings > Backups & data**) in the editor, or **Back up everything** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
+- **Save a backup** (under **Save or restore a file** in **Settings > Backups & data**) in the editor, or **Back up everything** in the remote's Settings sheet, downloads a backup (a zip when it carries pictures, otherwise JSON). The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists, the notes board, day notes and school timetables, plus your icons when **Include your icons** is on and your pictures and videos when **Pictures** is not set to **Leave them out**.
 - **Restore from a file** in the editor, or **Restore a backup** in the remote's Settings sheet, replaces everything the uploaded file carries; a section the file leaves out, such as the icons, is kept as it is
 - **Automatic backups** save a backup on the hub by themselves on a schedule, keep the newest ones, and can send each one somewhere else ([details](#automatic-backups))
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
@@ -499,7 +504,7 @@ A backup that carries keys is named `home-screens-backup-with-keys-<date>.json`,
 
 There is no way to recover the password. If you lose it you can still restore the backup, choose **Restore without my keys** at the prompt, and everything except the keys comes back. Losing the password costs you the keys, not your setup.
 
-Restoring a backup that includes your editor password signs you out, because the password on this device becomes the one from the backup. Sign in again with that password. If the backup also had network address rules turned on and this device isn't on the restored list, the rules are left switched off so you can't lock yourself out; turn them back on in Settings once you've added this device.
+Restoring a backup that includes your editor password signs you out, because the password on this device becomes the one from the backup. Sign in again with that password. If the backup also had network address rules turned on and this device isn't on the restored list, the rules are left switched off so you can't lock yourself out; turn them back on in Settings once you've added this device. Displays you have let in stay let in: that list (`data/display-walls.json`) belongs to the hub, not the backup, and so does the grown-up code.
 
 The remote control's Settings sheet has no password prompt. Restoring a key-carrying backup there restores everything except the keys and tells you so, finish that part in the editor.
 
@@ -528,7 +533,6 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
       "units": "imperial"
     },
     "calendar": {
-      "googleCalendarId": "",
       "googleCalendarIds": ["primary"],
       "icalSources": [],
       "daysAhead": 7

@@ -4,7 +4,7 @@ Detail for work under `src/components/modules/`; the root `CLAUDE.md` has the pr
 
 ## Adding a built-in module
 
-Adding a built-in module touches these places, and the `meta` E2E project (`npx playwright test --project=meta`) names exactly which ones are still missing:
+Adding a built-in module touches these places; the `meta` E2E project (`npx playwright test --project=meta`) names the E2E ones still missing, and tsc and `npm test` name the rest:
 
 1. Component in `src/components/modules/`
 2. Type added to the `BuiltinModuleType` union and a config interface in `src/types/config.ts`, with a JSDoc comment on every field (the first paragraph is shown on the website, so keep it plain; developer notes go after a blank line), then `npm run docs:schema`
@@ -15,7 +15,8 @@ Adding a built-in module touches these places, and the `meta` E2E project (`npx 
 7. Fixture row in `e2e/helpers/module-fixtures.ts`; a JSON stub under `e2e/fixtures/module-data/` plus a `stubKey` if it fetches data; a `CONFIG_VARIANTS` row per config field (or a reasoned `FIELD_DECISIONS` entry in `e2e/meta/coverage.spec.ts`); an `EXTRA_DISCRIMINATORS` row or a `DISCRIMINATOR_UNION_DECISIONS` entry for any other string union its config uses; an `EMPTY_STATE_FIXTURES` row if it uses `ModuleEmptyState` / `LocationRequired` / `WeatherEmptyState`
 8. A `buildModuleInstance('<type>')` field-edit case in `e2e/editor/config-editing.spec.ts`
 9. If it declares a `*View` union: a `VIEW_MATRIX` row in `e2e/helpers/view-matrix.ts` (rendered by `e2e/display/module-views.spec.ts`) or a `SINGLE_VIEW_TESTED_MODULES` entry in `e2e/meta/coverage.spec.ts`
+10. The places the meta project does not check, which tsc or `npm test` catch: `MODULE_DOCS_ANCHOR` (`src/lib/module-docs.ts`), `BUILTIN_MODULE_TYPE_MAP` (`src/lib/validate-config.ts`), `registry.types.<type>`, `registry.descriptions.<type>` and `registry.keywords.<type>` in every locale's `editor.json`, `ALL_MODULE_TYPES` and the counts in `src/lib/__tests__/module-registry.test.ts`, and the website's `MODULE_COUNT` (`website/src/lib/stats.ts`) and `MODULE_SHOWCASE` (`website/src/lib/module-showcase-data.ts`)
 
 ## Wall building blocks
 
-In `src/components/modules/shared/`: `WallButton` for every tap target, `useWallSheet` / `WallOverlay` for a sheet, `FullscreenStateShell` / `fullscreenStateStyle` for a full-screen module's loading, setup and empty states, `ModuleTitleRow`, `MemberBadge`, `WallNotice`.
+In `src/components/modules/shared/`: `WallButton` for every tap target, `useWallSheet` / `WallOverlay` for a sheet, `FullscreenStateShell` / `fullscreenStateStyle` for a full-screen module's loading, setup and empty states, `ModuleTitleRow`, `MemberBadge`, `WallNotice`, `HoldConfirmButton` for an action a passing tap must not set off, `WallTextField` / `useWallTyping` for typing on the wall's keyboard, `WallChoiceChips` for one-of-many choices in a sheet, `WallPersonSheet` for "Whose calendar?", `useTouchReveal` for controls a tap brings up and idle time takes away, `useFitCount` / `MoreLine` for a list cut to its card with "and N more".

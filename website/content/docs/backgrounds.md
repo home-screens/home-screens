@@ -12,6 +12,8 @@ Each screen can have its own background, and your photos can fill a whole screen
 
 Photos and backgrounds share one library on the Pi. Anything you upload or import from a photo module is available as a background, and anything you set as a background can be shown by the **Photo Slideshow** and **Full-Screen Photo Viewer** modules. From a phone, the family remote's **Photos** tab uploads into the same library.
 
+On a touchscreen, a tap on a Photo Slideshow or Full-Screen Photo Viewer brings up back, pause and next for a few seconds, and a sideways swipe on a Photo Slideshow card moves to the next photo. See [Modules you can touch](/docs/modules#modules-you-can-touch).
+
 {% callout type="note" title="Finding the Background section" %}
 The **Background** section appears in the editor's right sidebar only when no module is selected. If you can't find it, click an empty part of the canvas first to deselect whatever module you were editing. Every procedure on this page assumes you've done that.
 {% /callout %}
@@ -88,6 +90,7 @@ To upload many pictures at once, or drag files in, use **Settings > Pictures & v
 
 - **Maximum file size:** 10 MB per image, 200 MB per video
 - **Allowed types:** JPEG, PNG, WebP, GIF, AVIF, SVG images; MP4, WebM, MOV videos (used by the Video module and mixed-media slideshows)
+- A video the wall can't play (HEVC, which iPhones record by default, or an older camera's format) is turned away with a note naming the file. Convert it to MP4 (H.264) first
 - Filenames are sanitized on upload, special characters are replaced with underscores
 
 ---
@@ -116,22 +119,24 @@ Deleting happens here, one file at a time from the trash button on its tile, or 
 
 ### Live Photos
 
-An iPhone Live Photo is a photo plus a short video, about three seconds, of the moment around it. A Photo Slideshow or Full-screen Photo showing a library folder can play that video over the photo, so the picture moves for a moment and then settles.
+An iPhone Live Photo is a photo plus a short video, about three seconds, of the moment around it. A Photo Slideshow or Full-Screen Photo Viewer showing a library folder can play that video over the photo, so the picture moves for a moment and then settles.
 
 Both halves have to be in the same folder, with the video named after its photo plus `.live`: `IMG_1234.jpg` pairs with `IMG_1234.live.mov` (or `.live.mp4`; capital letters don't matter). Uploading from the phone only sends the photo, so this takes a computer:
 
 1. On the iPhone, set **Settings > Camera > Formats** to **Most Compatible** before taking the photos. The photo is then a JPEG and the video is one the wall can play. Photos taken on **High Efficiency** (the iPhone's default) are HEIC with HEVC video, which the library can't take: convert them to JPEG and H.264 first, or the upload will turn the video away with a note saying it won't play.
 2. Copy both files to the computer. On a Mac, select them in Photos and choose **File > Export > Export Unmodified Original**; on Windows, copy them from the iPhone's DCIM folder. You get `IMG_1234.JPG` and `IMG_1234.MOV`.
-3. Rename the video by adding `.live` before `.MOV`: `IMG_1234.live.MOV`.
-4. Upload both into the same folder from **Settings > Pictures & videos**. If the folder already has an `IMG_1234.JPG`, the new photo is saved as `IMG_1234-2.JPG` and its video follows it to `IMG_1234-2.live.MOV`, so the pair stays together.
+3. Upload both, as they are, into the same folder from **Settings > Pictures & videos**.
+4. The page then says the Live Photos aren't paired yet. Click **Pair Live Photos**, and each video is renamed to go with the photo of the same name: `IMG_1234.MOV` becomes `IMG_1234.live.MOV`.
 
-The `.live` part is what makes a pair. A photo and a video that only share a name stay two separate files.
+You can also rename the video yourself before uploading, by adding `.live` before `.MOV`. If the folder already has an `IMG_1234.JPG`, the new photo is saved as `IMG_1234-2.JPG` and its video follows it to `IMG_1234-2.live.MOV`, so the pair stays together.
 
-The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and in the Pictures & videos window, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone plays as the plain video it is.
+The `.live` part is what makes a pair. A photo and a video that only share a name stay two separate files until you pair them.
+
+The video stays an ordinary file in your library. It shows in **Settings > Pictures & videos** and in the Pictures & videos window, and wears the **Slideshow** badge while a slideshow plays it, so it is never listed under **Unused only**. Deleting it just stops the photo moving. Deleting or moving the photo takes its video with it, and the delete question says so; only a video that a screen also uses on its own stays behind when its photo is deleted. A slideshow showing photos and videos won't also play a paired video as a slide of its own; one set to **Videos only** plays it like any other video; and a video whose photo is gone some other way plays as the plain video it is.
 
 If two pictures in one folder share a name with different extensions, say `beach.jpg` and `beach.png`, there is no telling which of them `beach.live.mov` belongs to, so neither takes it and it plays on its own.
 
-What happens to the movement is set per module, under **Live photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-screen Photo showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
+What happens to the movement is set per module, under **Live photos**: **Don't play**, **Play once** as the photo arrives, **Play twice** (again halfway through the slide), or **Play on repeat** for the whole slide. A photo that moves skips the Ken Burns pan, because the video can't pan with it. The setting appears on a Photo Slideshow or Full-Screen Photo Viewer showing a library folder; it is hidden for hand-picked pictures, for the other photo sources, and when the module shows videos only.
 
 ---
 
@@ -153,7 +158,7 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 
 The photo is saved into your library's `unsplash` folder, up to 2560 pixels wide, and the wall shows that copy, so Unsplash is never contacted again for it. When you are choosing a screen's background, searches ask for photos shaped like your display.
 
-Unsplash can also feed a Photo Slideshow or Full-Screen Photo Viewer directly, and a rotating background: choose **Unsplash** as the **Photo source** and type the search words. A slideshow shows Unsplash's own photos with each photographer's name in a corner, as Unsplash asks, and takes up to 30 fresh photos an hour.
+Unsplash can also feed a Photo Slideshow or Full-Screen Photo Viewer directly, and a rotating background: choose **Unsplash** as the **Photo source** and type the search words. A slideshow shows Unsplash's own photos and takes up to 30 fresh photos an hour. A slideshow and a rotating background both show the photographer's name in a corner, as Unsplash asks.
 
 ---
 
@@ -324,14 +329,14 @@ To go back to Home Screens' app later, flip the switch next to **Use your own Go
 
 ## Background rotation
 
-A rotating background changes the picture behind a screen every so often, drawn from any of the sources you tick under **Sources**: the walls that come with Home Screens, a folder or a few chosen pictures from your library, Immich, an iCloud shared album, a OneDrive folder, Unsplash, or NASA's picture of the day. Tick as many as you like; each change picks one of them.
+A rotating background changes the picture behind a screen every so often, drawn from any of the sources you tick under **Sources**: the walls that come with Home Screens, a folder or a few chosen pictures from your library, Immich, an iCloud shared album, a OneDrive folder, Unsplash, NASA's picture of the day, or paintings from museums. Tick as many as you like; each change picks one of them.
 
 ### Turning it on
 
 1. Click an empty part of the canvas to deselect any module
 2. Open the **Background** section in the right sidebar and find **Sources**
 3. Tick a source. Its settings open underneath; the chevron on the right hides or shows them
-4. Fill in what that source needs. **Colors** and **Patterns** show their walls as tiles: click the ones you want in the rotation. **Pictures & videos** takes a **Folder** (**Browse…** opens a **Pick a folder** window that only chooses; adding and deleting pictures stays on **Settings > Pictures & videos**), or switch it to **Pictures** and click the pictures you want. A folder that holds only videos says so, since a background needs a still picture. **Immich** takes **Filters** (any of your albums and people, people to leave out, favorites only) or **Pictures** you pick one by one. **iCloud shared album** takes the album's link. **OneDrive** takes a folder. **Unsplash** takes **Words**, **Collections** or **Pictures** you pick. **NASA picture of the day** needs nothing
+4. Fill in what that source needs. **Colors** and **Patterns** show their walls as tiles: click the ones you want in the rotation. **Pictures & videos** takes a **Folder** (**Browse…** opens a **Pick a folder** window that only chooses; adding and deleting pictures stays on **Settings > Pictures & videos**), or switch it to **Pictures** and click the pictures you want. A folder that holds only videos says so, since a background needs a still picture. **Immich** takes **Filters** (any of your albums and people, people to leave out, favorites only) or **Pictures** you pick one by one. **iCloud shared album** takes the album's link. **OneDrive** takes a folder. **Unsplash** takes **Words**, **Collections** or **Pictures** you pick. **NASA picture of the day** needs nothing. **Paintings from museums** takes filters (**Add a filter…**) and **On the screen** (see [Paintings from museums](#paintings-from-museums))
 5. Set **New picture every** at the bottom
 
 In a **Pictures** mode, everything you have picked is listed as small tiles above the grid, whichever folder, album or search the grid is showing. Click one to take it out.
@@ -361,7 +366,7 @@ Every minute the wall asks the Pi whether it is time for a new background. When 
 
 - **Colors** and **Patterns** show one of the walls you picked. They are files the wall already has, so nothing is downloaded.
 - **Pictures & videos** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
-- **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. A collection is checked with Unsplash when you add it and before it is drawn from, so a mistyped id reads "Couldn't find this collection" instead of putting random photos on the wall. Download tracking is triggered per the Unsplash API terms.
+- **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. A collection is checked with Unsplash when you add it and before it is drawn from, so a mistyped id reads "Couldn't find this collection" instead of putting random photos on the wall. The photographer's name shows in a corner of the screen, and download tracking is triggered per the Unsplash API terms.
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
 - **Paintings from museums** takes a random painting from the collection that matches the filters you chose (subject, period, artist and shape), fitted to your screen as set under **On the screen**.
 - **Immich** fetches a random photo matching the filters (any of the albums ticked, any of the people ticked, none of the people left out, favorites only), or one of the photos you picked. Changing a filter fetches a fresh photo straight away.

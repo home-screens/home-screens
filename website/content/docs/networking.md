@@ -33,7 +33,7 @@ Any device on the same LAN can reach these URLs. The display view is designed fo
 
 The editor is a standard web page, open `http://<pi-ip>:3000/editor` from any browser on your network. No app install is needed. The editor works well on phones and tablets in addition to desktops.
 
-If password protection is enabled (Settings > Security), you will be prompted to log in before accessing the editor or any write API endpoint. The display view remains accessible without authentication so your kiosk does not need credentials.
+If password protection is enabled (Settings > Security), you will be prompted to log in before accessing the editor or any write API endpoint. The wall at `/display` never asks for the password: each display's browser is let in once and remembered. See [Which displays are let in](#which-displays-are-let-in).
 
 ---
 
@@ -368,7 +368,7 @@ Add the header value to Home Assistant's `secrets.yaml`, including the word `Bea
 homescreens_auth: "Bearer your-display-token-here"
 ```
 
-If you have not set a Home Screens password the `headers` blocks are simply ignored, so it is safe to include them from the start; that way your automations keep working the day you do add a password.
+If you have not set a Home Screens password the `headers` blocks are simply ignored, so it is safe to include them from the start. There is no display key until a password exists, though, so a placeholder value is answered with `401` from the moment you set one: that day, copy the new display key into `secrets.yaml`. Changing the password keeps the key; turning the password off and on again, resetting it (`scripts/reset-password.sh`) or pressing **Make a new key** makes a new one.
 
 Then use these in automations, scripts, or dashboards.
 
@@ -449,9 +449,9 @@ Password protection is **off by default**. Until you set one, anyone on your net
 Set a password in the editor under **Settings > Security**. When enabled:
 
 - The editor (`/editor`) requires login
-- All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie, **except** the chore-toggle endpoint (`POST /api/chores`), the bonus-chore grab endpoint (`POST /api/chores/grab`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
+- All write API endpoints (`PUT`, `POST`, `PATCH`, `DELETE`) require a session cookie. The writes a wall makes (ticking a to-do, adding to a list, putting a recipe on the menu, leaving a note, running a timer, adding an event once the household allows it, posting status) also take a display that has been let in, or the display key. A few `POST` endpoints are let through with no credential and decide for themselves: the chore toggle (`/api/chores`), the bonus-chore grab (`/api/chores/grab`), the reward redeem (`/api/rewards`), the reward goal (`/api/rewards/goal`) and the grown-up code check (`/api/grown-up-code/unlock`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password; `/api/display/claim`, where a wall with no cookie asks to be let in; `/api/display/hw-stats`, checked by display name instead; the plugin proxy (`/api/plugins/proxy/*`), which asks for display access itself; and `/api/auth/login` and `/api/auth/logout`
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
-- Every display-control endpoint (`/api/display/*`) requires either a login or the display token, described under [Remote display control](#if-you-have-set-a-password)
+- Every display-control endpoint (`/api/display/*`) requires a login, the display key (described under [Remote display control](#if-you-have-set-a-password)), or a display that has been let in. The exceptions: the endpoints a Pi's own scripts call (`hw-stats`, `power-state`, `kiosk-bundle`, `kiosk-bootstrap`) are checked by display name, answering only a display that has been added; `POST /api/display/claim` is open, since a wall asking to be let in has nothing to show yet; and the walls list (`/api/display/walls`) takes a login only
 - The wall (`/display`) shows only on a display that has been let in, or in a browser where you are signed in. See [Which displays are let in](#which-displays-are-let-in)
 - The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
 - Read-only data endpoints (weather, calendar, etc.) answer a display that has been let in, the display key, or a login
@@ -468,11 +468,13 @@ A display is let in without anyone clicking anything when it is:
 - **A new display-only Pi you add.** It waits under its new name, and clicking **Add** in **Settings > Displays** lets it in.
 - **On a network you listed** under Allowed networks with **Let displays on these networks in without asking** turned on.
 - **Already showing when you first set a password.** Displays that are switched off at that moment ask to be let in when they come back.
-- **One of your displays in the 30 days after updating** to the version that introduced this. Displays that were on during the update carry over by themselves, and one that was off is let in on its first visit. The editor lists any display let in this way so you can check it is yours.
+- **One of your displays in the 30 days after updating** to the version that introduced this. The 30 days start the first time the hub runs that version with a password already set; a hub that had no password then has no such window. Displays that were on during the update carry over by themselves. Any other browser asking for one of your displays, such as one that was off, is let in on its first visit, up to four per display that way, counted for good (removing one does not free its place); a fifth waits for **Let in**. The editor marks those first-visit ones **Let in by itself** so you can check each is yours.
 
-Anything else waits until you click **Let in** next to it in **Settings > Displays**. To look at the wall from your own laptop, sign in; that shows it for as long as you stay signed in and does not add a display. If you do want that browser to be a display (an old tablet on a shelf, say), tap **Keep as a wall** on the line that appears at the bottom for the first few seconds, and it goes on showing after you sign out. Each display's own page lists where it is showing, with **Remove** next to each one.
+Anything else waits until you click **Let in** next to it in **Settings > Displays**. To look at the wall from your own laptop, sign in; that shows it for as long as you stay signed in and does not add a display. If you do want that browser to be a display (an old tablet on a shelf, say), tap **Keep as a wall** on the line that appears at the bottom for the first twenty seconds, and it goes on showing after you sign out. Each display's own page lists where it is showing, with **Remove** next to each one; with only one display, that list is on **Settings > Displays** itself.
 
 A display is remembered by a cookie in its browser, so one whose browser data is wiped (a re-flashed SD card, a browser reset) asks to be let in again. If a display's browser forgets its cookies every time it restarts, list its network under Allowed networks instead.
+
+Scripts and Home Assistant keep using the display key exactly as before. The key does not open the wall page itself, though: `/display` is shown only to a browser holding a wall cookie that has been let in, or to someone signed in. So anything that loads `/display` (a kiosk app on a tablet, a screenshot tool that feeds an e-ink screen) is a wall like any other. It has to keep cookies like a browser and be let in once; one that forgets them between visits only works from an allowed network with **Let displays on these networks in without asking** on.
 
 If something else on the hub forwards requests to Home Screens (a reverse proxy, a tunnel), make sure it sends `X-Forwarded-For`, as the nginx example on this page does. That header is how Home Screens tells the proxy's visitors from the screen plugged into the hub. A proxy that adds no forwarding header at all makes every visitor look like the hub's own screen, and they are let in. The Docker image has no screen of its own and never lets one in this way (`HS_NO_HUB_SCREEN=1`).
 
@@ -480,7 +482,7 @@ If something else on the hub forwards requests to Home Screens (a reverse proxy,
 
 In addition to (or instead of) a password, Home Screens can gate every route on the server by the caller's IP address. The editor surfaces this under **Settings > Security > Allowed networks** and it has two independent toggles, both opt-in and both off by default.
 
-**Let displays on these networks in without asking.** Add your LAN subnets (for example `192.168.1.0/24`) and turn on the first toggle. A display on one of those networks is then let in the first time it opens the wall, with no click in the editor, and stays let in if you later turn the toggle off. Scripts on those networks can also read display data and send the `GET` form of the simple commands such as `/api/display/wake` with no display key; a `POST` from a script still needs the display key or a session, because the password check in front of every write runs first. The editor and the family remote still ask for the password; this toggle never skips the login.
+**Let displays on these networks in without asking.** Add your LAN subnets (for example `192.168.1.0/24`) and turn on the first toggle. A display on one of those networks is then let in the first time it opens the wall, with no click in the editor, and stays let in if you later turn the toggle off. Scripts on those networks can also read display data and send the `GET` form of the simple commands such as `/api/display/wake` with no display key; a `POST` from a script still needs the display key or a session, because the password check in front of every write runs first. The one exception is the plugin proxy (`POST /api/plugins/proxy/*`), which that check lets through and which then accepts a caller on these networks like any other display read. The editor and the family remote still ask for the password; this toggle never skips the login.
 
 **Only allow these networks.** The second toggle is the harder wall. When enabled, Home Screens blocks every non-allowlisted IP from every route except `/login`, `/api/auth/status` and `/api/health` (which says only which version is running, see the [API reference](/docs/api#is-the-hub-up)); API callers receive `403 JSON`, browsers are redirected to the login page, which shows an "Access restricted" note. The check runs before the password gate, so an attacker who somehow knows the password still can't get in. Enabling the toggle from a client whose own IP is not in the allowlist returns `409 Conflict` without saving, the UI then shows a lockout warning and a **Save anyway** button for the rare case where you really want to lock yourself out immediately.
 
@@ -543,7 +545,7 @@ API keys are stored in `data/secrets.json` and never sent to the browser. All ex
 Home Screens is designed for local network use. If you need remote access, consider:
 
 - A **VPN** (WireGuard, Tailscale) to access your home network securely
-- An **SSH tunnel** for temporary access: `ssh -L 3000:localhost:3000 pi@your-pi`
+- An **SSH tunnel** for temporary access: `ssh -L 3000:localhost:3000 pi@your-pi`. Use it for the editor. A tunnel adds no forwarding header, so the hub takes every request through it as coming from its own screen, and opening `/display` that way lets your laptop's browser in as a wall. If that happens, remove it under **Settings > Displays** afterwards; opening the wall through the tunnel again lets it straight back in.
 - A reverse proxy with HTTPS and strong authentication if you must expose it publicly
 
 ### Backup sensitive data

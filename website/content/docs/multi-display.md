@@ -71,13 +71,15 @@ Each display has its own [profiles](/docs/profiles). Switching a profile from th
 
 Once there is more than one display, the family remote's Control tab gets a **Send to** row: pick a wall, or **Every wall** to send brightness, sleep, wake and alerts to every display at once. Changing screens and switching profiles work on one wall at a time. Timers get their own **Send to** row for the same reason.
 
-A **Display Control** module on a touchscreen can do the same from the wall, aimed at itself, another display by name, or all of them. See [Display Control](/docs/module-reference#display-control).
+A **Display Control** module on a touchscreen can do the same from the wall, aimed at itself, another display by name, or all of them. Its **Timers** button starts a timer on its own display only. See [Display Control](/docs/module-reference#display-control).
+
+A **Quick Timer** starts its timer on every display unless **Show it on** is set to **This display** in its settings. See [Quick Timer](/docs/module-reference#quick-timer).
 
 ## If something goes wrong
 
 **The new display does not appear under waiting to be added.** Check that it is on and can reach the hub's address (the same one you typed into the installer). It appears within about ten seconds of booting and disappears from the list again if it has not been heard from for two minutes, so restart it and look again. On the display itself, the waiting screen names the hub address it is trying.
 
-**A display says "This wall needs to be let in".** You have a password set and this display's browser is not one Home Screens remembers: its browser data was wiped, it is a second browser opened on a display you already have, or it was off for more than 30 days around the update that introduced this. Open **Settings > Displays** and click **Let in** next to it. See [Which displays are let in](/docs/networking#which-displays-are-let-in).
+**A display says "This wall needs to be let in".** You have a password set and this display's browser is not one Home Screens remembers: its browser data was wiped, it is a second browser opened on a display you already have (more than 30 days after the update, or once four browsers on that display have been let in by themselves), or it was off for more than 30 days around the update that introduced this. Open **Settings > Displays** and click **Let in** next to it. See [Which displays are let in](/docs/networking#which-displays-are-let-in).
 
 **A display shows "display not found" with a countdown.** Its entry was deleted from the hub. Let the countdown finish, or press **Go to the main display now**, and it shows the hub's main display; or add a display with the same ID again.
 

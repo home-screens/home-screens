@@ -70,10 +70,11 @@ Home Assistant and other scripts can also move the module along: `POST /api/disp
 
 One broken feed never blanks the module: its stories are simply missing and a small line at the bottom names the feeds that didn't answer. Use the feed row's **Check** button to see the reason. The usual ones:
 
-- **Not a feed.** The link is a normal web page. Look for an RSS or Atom link on the site, often in the footer.
-- **Blocked address.** The link points at a private or local address. Turn on **Home network** for that feed if it really is on your network.
+- **That link doesn't look like a news feed.** The link is a normal web page. Look for an RSS or Atom link on the site, often in the footer.
+- **That link can't be used.** Most often the link points at a private or local address. Turn on **Home network** for that feed if it really is on your network.
 - **Set your location first.** The *Local news* feed needs a location under **Settings > Location & language**.
-- **No response.** The site is down or slow; the module will try again on its next refresh.
+- **Couldn't reach that feed.** The site is down, or the link has a typo in it. Check the link; the module will try again on its next refresh.
+- **That feed took too long to answer.** The site is slow right now; the module will try again on its next refresh.
 
 ---
 

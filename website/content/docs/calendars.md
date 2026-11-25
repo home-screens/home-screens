@@ -82,13 +82,13 @@ The first colour is the one the calendar came with: pick it to put that colour b
 
 A day on the wall only has room for so many events. By default the earliest ones keep their rows, so a 7 AM bin collection can push a birthday dinner into "+3 more". Under **Settings > Calendar > Calendar order**, drag your calendars into the order you care about, most wanted first. On a full day the calendars at the top keep their rows and the ones at the bottom drop off first. The events that stay are still listed by time, all-day events first, and the colour key lists calendars in the order you chose. **Back to time order** undoes it.
 
-The order matters wherever a day can run out of room: the month, rolling weeks and family grid views, and the Week and Month views of the small Calendar module. Views that show a whole day, like the agenda and the week list, list everything by time.
+The order matters wherever a day can run out of room: the month, rolling weeks and family grid views of the Full-Screen Calendar, and the Week grid, Multi-week grid, Month grid and Rolling weeks views of the small Calendar module. Views that show a whole day, like the agenda and the week list, list everything by time.
 
 ## Who is who
 
 Add your household under **Settings > Family** (see [Family](/docs/family)), then return to **Settings > Calendar > Whose calendars?** and pick which calendars are theirs. The Full-Screen Calendar's **family grid** and **free time** views draw one row per person from this list. A calendar you do not give to anyone counts as shared by the whole house.
 
-Taking a calendar away (removing a feed, unticking a Google or iCloud calendar, or signing out) also takes it off whoever it belonged to, and out of any calendar module's own list of calendars to show. A module that showed only that calendar goes back to showing them all. Switching a feed off with its tick box keeps its owner.
+Removing a calendar link also takes it off whoever it belonged to. Unticking a Google or iCloud calendar, or signing out, keeps who it belongs to, so ticking it again puts it back with its owner, just as it keeps its name and colour. Either way the calendar comes out of the Calendar and Full-Screen Calendar modules' own lists, and a module that showed only that calendar goes back to showing them all. Switching a calendar link off with its tick box keeps its owner and its place in those lists.
 
 The same list drives three options on both calendar modules, under **What shows** in the module's settings:
 
@@ -100,11 +100,11 @@ The same list drives three options on both calendar modules, under **What shows*
 
 "Picture day." "Bring boots." "Late start, school at 10." A day note is a short line for a day, written on a phone and shown on that day in every calendar on the wall, above the day's events. It is not an event: it has no time, no calendar and no person, so it never needs a calendar account. It shows on a calendar that is set to one person's events, and on a calendar module before any calendar is picked.
 
-To write one, open the family remote on a phone, tap **Notes**, then **Calendar** at the top (the Board page has a link to it too). The page lists today and the six days after it; the arrows move a week at a time, up to a year ahead. Tap **Add a note for this day** to write one, or tap a note to change it or remove it; a removed note can be put back with **Undo** for a few seconds. A note is up to 60 characters, and a day holds up to three, each its own line on the wall. A note shows once its day is on a calendar: a calendar that shows this week does not show next week's notes yet.
+To write one, open the family remote on a phone, tap **Notes**, then **Calendar** at the top (the Board page has a link to it too). The page lists today and the six days after it; the arrows move a week at a time, up to a year ahead. Tap **Add a note for this day** to write one, or tap a note to change it or remove it; a removed note can be put back with **Undo** for a few seconds. A note is up to 60 characters, and a day holds up to three, each its own line on the wall. A note shows once its day is on a calendar: a calendar that shows this week does not show next week's notes yet. The family remote's **Calendar** tab lists the same days with their events, and day notes are written there the same way (the button reads **Add note** once adding events is on).
 
 Where the notes go depends on the view: under the date in the daily columns, the week grid, the schedule and the family grid; on their own lines under the day number in the month, multi-week and rolling grids (they take their room before the events are counted, so "+2 more" stays true); as the first rows under the day's heading in the agenda and the week list, where a day with only notes still gets its heading; beside the date on the full-screen calendar's Day timeline and Free time views, with tomorrow's at the top of Free time's Tomorrow list; and under the date and in the Tomorrow list on Up next.
 
-Each calendar module has a **Day notes** switch under **What shows**, on unless you turn it off. Notes from days that have passed stay on their day for six weeks, then are tidied away. They live in `data/day-notes.json` and are included in backups.
+The Calendar and Full-Screen Calendar modules have a **Day notes** switch under **What shows**, on unless you turn it off. On the Multi-Month Calendar it sits under **Events**, appears once **Mark days with events** or **Tap a day to see its events** is on, and starts off. Notes from days that have passed stay on their day for six weeks, then are tidied away. Day notes are included in backups.
 
 ## Public holidays
 
@@ -137,11 +137,13 @@ Public holidays can be hidden but not recoloured.
 
 A calendar can also put a row of buttons under its heading. On the left, **Week**, **Month** and the other views you pick: tap one to see the calendar that way. On the right, **Everyone**: tap it, pick a person or a family group, and the calendar shows only their events, plus the family's shared calendars and holidays. Tap **×** to see everyone again. A minute after the last touch the calendar goes back to its own view and everyone, and the screen waits while someone is using it.
 
-Pick the views under **Touch** in the calendar's settings, with **Switch views on the wall**: its own view is always there, plus up to three more. **Show one person** turns on the person button. It needs at least two people with calendars of their own (set under **Settings > Calendar**, matching calendars to people). New calendars start with Week and Month and the person button. A calendar added before these settings keeps its look until you pick them. On a **Calendar** card, the buttons show only when the card is at least 400 pixels tall.
+Under **Touch** in the calendar's settings, with **Tap an event to see details** on, pick the views under **Switch views on the wall**: its own view is always there, plus up to three more. **Show one person** turns on the person button. It needs at least two people with calendars of their own (set under **Settings > Calendar**, matching calendars to people). New calendars start with Week and Month and the person button. A calendar added before these settings keeps its look until you pick them. On a **Calendar** card, the buttons show only when the card is at least 400 pixels tall.
 
 ## Add and change events {% #add-events %}
 
 Your family can add, change and remove events from a phone and from the wall, on Google and iCloud calendars. It is off until you turn it on.
+
+With Home Screens' own Google app, adding to Google calendars comes later, once Google has reviewed the wider sign-in. iCloud calendars, and Google calendars on your own Google app, can add events now. Until then, a home with only Google calendars on Home Screens' app does not see **Adding events** in Settings.
 
 1. In the editor, open **Settings > Calendar** and turn on **Let Home Screens add and change events** under **Adding events**.
 2. For Google calendars, sign in once more: click **Sign in with Google**, and Google asks to let Home Screens "View and edit events on all your calendars". Showing your calendars works the same either way. iCloud calendars need nothing more, since the app-specific password you saved already allows it.
@@ -157,9 +159,9 @@ On the wall, with **Tap an event to see details** on (**Tap a day to see its eve
 - **Moving an event to another calendar** is done in Google Calendar or Apple Calendar; here an event stays on its calendar.
 - **Changed somewhere else:** if someone changed the event in the meantime, saving shows you the newest version instead of overwriting it.
 
-**Let the wall add, change and remove events** is on for every wall once adding is on. Turn it off here for all of them, or for one display on that display's page in Settings. Each calendar module also has **Add events from a day** in its settings, on unless you turn it off.
+**Let the wall add, change and remove events** is on for every wall once adding is on. Turn it off here for all of them, or for one display: on its page in Settings, open **Overrides** and override **Add, change and remove events on this wall**. Each calendar module also has **Add events from a day** in its settings, on unless you turn it off.
 
-With Home Screens' own Google app, adding to Google calendars comes later, once Google has reviewed the wider sign-in. iCloud calendars, and Google calendars on your own Google app, can add events now.
+To keep little hands off, tick **Removing a calendar event** or **Changing every day of a repeating event** under the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) in **Settings > Family**. The wall then asks for the code first, and so does a phone when Home Screens has no password.
 
 ### Adding events with your own Google app {% #own-app-add-events %}
 

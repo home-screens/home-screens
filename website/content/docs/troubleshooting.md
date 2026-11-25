@@ -26,8 +26,11 @@ Every answer here starts with what to check in the editor or on the phone, then 
 - [The display shows a Wi-Fi icon](#display-shows-a-wi-fi-icon-at-the-bottom)
 - [The mouse cursor is showing on a touchscreen](#cursor-visible-on-touchscreen)
 - [Taps land in the wrong place on a touchscreen](#taps-land-in-the-wrong-place)
+- [A button is missing on a touchscreen](#a-button-is-missing-on-a-touchscreen)
+- [The wall says Too many tries](#the-wall-says-too-many-tries)
 - [An update failed](#upgrade-failed)
 - [The automatic backup did not work](#the-automatic-backup-did-not-work)
+- [A backup won't restore](#a-backup-wont-restore)
 - [I want to add a second display](#i-want-to-add-a-second-display)
 - [How do I update or roll back?](#how-do-i-update-or-roll-back)
 - [Getting a diagnostics bundle](#getting-a-diagnostics-bundle)
@@ -106,7 +109,7 @@ This happens after a display's browser data is wiped (a re-flashed SD card, a br
 
 - **Just want to look at the wall on your own computer?** Use **Just looking? Sign in** on that page. Signing in shows the wall without adding a display.
 - **It asks again after every restart.** That browser is not keeping cookies: a private window, a kiosk app set to clear its data, or a Pi with the read-only file system turned on. Either let it keep cookies for the hub's address, or list its network under **Settings > Security > Allowed networks** and turn on **Let displays on these networks in without asking**.
-- **The page says "This browser isn't keeping its place".** Same cause: turn on cookies for the hub's address and load the page again.
+- **The page says "This browser keeps forgetting it's a wall".** Same cause: turn on cookies for the hub's address and load the page again.
 
 More on who is let in automatically: [Which displays are let in](/docs/networking#which-displays-are-let-in).
 
@@ -146,6 +149,7 @@ Some modules cannot show anything until they have one thing from you, and say so
 2. **The key.** On **Settings > Weather**, open the card for the provider you use. OpenWeatherMap, WeatherAPI, Pirate Weather and Met Office need a key, pasted on the card; the other five do not. Click **Test** on the card.
 3. **Try another provider.** Set Open-Meteo as the default for a moment; it needs no key. If that works, the problem is the other provider's key or an outage on their side.
 4. **The module's source.** Each weather module has a **Weather source** setting; make sure it is **Same as Settings** or a provider that is ready.
+5. **No weather data** (or **No forecast data** on the forecast views) means the service answered but sent nothing for your location. Click **Test** on that provider's card, or set the module's **Weather source** to Open-Meteo to see whether it has data there.
 
 See the [Weather](/docs/weather) page for how the providers compare.
 
@@ -177,6 +181,10 @@ Open **Settings > Calendar**. Every connected calendar shows when it last brough
 4. Each iCloud calendar is fetched on its own, so one blank calendar does not stop the others. Untick and re-tick it; if it stays blank, check it still exists in the Calendar app.
 
 The [Calendars](/docs/calendars) page walks through all three ways of connecting.
+
+### One calendar is missing on one wall only
+
+Someone may have hidden it there. On that wall, tap the **Calendars** key (a hidden calendar is crossed out in it) and switch **Show** back on. Hiding a calendar only changes the wall it was done on. See [Hide a calendar](/docs/calendars#calendars-sheet).
 
 ---
 
@@ -248,6 +256,23 @@ This setting covers the screen plugged into the device that runs Home Screens. A
 
 ---
 
+## A button is missing on a touchscreen
+
+**No Draw a note, Write a note, Add or Put on the menu button?** These buttons are on for modules added since they arrived. A module you already had keeps its old look until you switch them on in its settings:
+
+- **Draw a note** and **Write a note**: **Draw on the wall** and **Write on the wall** on the Notes module.
+- **Add** under a list: **Add on the wall** on the To-Do List, with **Tap on the wall** on too.
+- **Add** on the grocery list: **Add on the wall** on either Meal Planner.
+- **Put on the menu**, and the plus on an empty meal: **Plan meals on the wall** on either Meal Planner.
+
+Some views have no room for these buttons; [Notes](/docs/notes#5-draw-a-note-on-the-wall) and [Lists](/docs/lists#5-adding-on-the-wall) say which ones do.
+
+## The wall says Too many tries
+
+Someone typed the wrong [grown-up code](/docs/chores#what-kids-can-and-cannot-do) too often. After five wrong tries on one wall or phone, its number pad waits a minute ("Too many tries. Try again in 45 seconds."), then takes the code again. After thirty wrong tries around the house, every wall, the chores page and signed-out phones wait ten minutes. To end that wait early, click **Let them try now** under **Settings > Family** in the editor, or tap it in the family remote's gear sheet.
+
+---
+
 ## Upgrade failed
 
 1. **Roll back.** **Settings > System & updates**, under **If an update caused trouble**, lists earlier versions. Pick the one you were on. Rolling back downloads that release again, so it needs an internet connection and takes about as long as an update. Your settings are saved before every update, so they come through intact.
@@ -306,6 +331,14 @@ When the backup was saved but **could not be sent** to your storage folder, the 
 - **The security certificate could not be checked.** The storage uses its own certificate. Use its `http` address inside your home, or give it a proper certificate.
 
 **Check it works** on the storage folder card tries the folder without waiting for the next backup.
+
+## A backup won't restore
+
+A restore from **Settings > Backups & data**, or from **Restore a backup** in the family remote's gear, can stop with one of these:
+
+- **That file isn't a Home Screens backup.** Pick a file made with **Save a backup**, with **Back up everything** on the phone, or one from **Backups on this hub**. A file from **Share layout** is not a backup: bring it in with **Import layout** instead.
+- **There isn't enough room on Home Screens for this backup** (or for the pictures in it). The hub's memory card is nearly full. Free some space, for example by removing old backups from **Backups on this hub**, or restore a backup made without pictures.
+- **Couldn't reach Home Screens.** Check that the hub is switched on and connected, then try again.
 
 ## I want to add a second display
 

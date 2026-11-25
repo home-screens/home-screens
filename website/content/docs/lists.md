@@ -54,17 +54,17 @@ The gear next to the count opens the list: rename it, give it a colour, or tidy 
 
 **Tap on the wall** is on for new To-Do modules. On a touchscreen a tap ticks the item in the **List** and **Board** views; the other views and any display without touch just show the list. Turn it off in the module's settings if you would rather the wall be read-only.
 
-With it on, a **List** or **Compact** view that holds more than fits scrolls with a finger too. A **Back to the top** button shows while the list is away, and a minute after the last touch it slides back to the top on its own. With it off, the list shows what fits and says how many more there are.
+A **List** or **Compact** view that holds more than fits shows what fits and says how many more there are ("and 4 more"). With it on, a finger scrolls on to the rest too. A **Back to the top** button shows while the list is away, and a minute after the last touch it slides back to the top on its own.
 
 ## 5. Adding on the wall
 
-**Add on the wall** is on for new To-Do modules (it sits under **Tap on the wall** in the module's settings). The **List**, **Compact** and **Board** views get an **Add to Shopping** row under the list; on the Board each column has its own **Add**.
+**Add on the wall** is on for new To-Do modules (it sits under **Tap on the wall** in the module's settings). The **List**, **Compact** and **Board** views get an Add row under the list, named for the list (**Add to Shopping** on a list called Shopping, or just **Add** when the card's heading is hidden); on the Board each column has its own **Add**.
 
 Tap it and a sheet rises with the wall's own keyboard. Type one thing, tap **Add**, and the box empties for the next one; each thing added shows as a chip with **Undo** until you close the sheet. The first letter is a capital by itself, and **123** has numbers and the marks a list needs, for "Batteries (AA)".
 
 A list keeps one of each thing, on the wall and on the phone alike. Typing something that is already on the list adds nothing and says so; typing something that was ticked off puts it back. Capitals and accents don't count, so "creme fraiche" finds "Crème fraîche" and the item keeps its own spelling. Danish æ, ø and å are letters of their own, so "Al" is not "Ål".
 
-The wall only adds words. Due days, who it is for, editing and removing stay on the phone. A wall can only add to a list that one of the walls shows with this switched on.
+The wall only adds words. Due days, who it is for, editing and removing stay on the phone. A wall can only add to a list that one of the walls shows with this switched on, or to the list picked for **Other things to buy** under **Settings > Meals** while a meal planner's grocery list has **Add on the wall** on (see [the grocery list](/docs/meals#4-the-grocery-list)).
 
 ## Where the data lives
 

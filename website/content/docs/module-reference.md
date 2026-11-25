@@ -21,7 +21,7 @@ Where a module has a `refreshIntervalMs` option, its default comes from that mod
 {% category name="Full Screen" %}
 These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag, position, size, and style controls are hidden in the editor since the module always occupies the full display area.
 
-**Themes:** all six full-screen modules share one `theme` field with twelve color palettes: `linen`, `paper`, `mist`, `sandstone`, `vellum`, and `bloom` (light), `charcoal`, `midnight`, `slate`, `aurora`, `obsidian`, and `horizon` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`); with neither set, the photo viewer paints Midnight and the others Linen. Anything that isn't one of the twelve ids falls back to Linen.
+**Themes:** all six full-screen modules share one `theme` field with twelve color palettes: `linen`, `paper`, `mist`, `sandstone`, `vellum`, and `bloom` (light), `charcoal`, `midnight`, `slate`, `aurora`, `obsidian`, and `horizon` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`); with neither set, the photo viewer paints Midnight, the chore chart Charcoal, and the others Linen. Anything that isn't one of the twelve ids falls back to Linen.
 
 The six newer themes (`sandstone`, `vellum`, `bloom`, `aurora`, `obsidian`, `horizon`) additionally carry their own accent color and, on the Full-Screen Calendar only, an event style deciding how event blocks are painted: a faint tint (`linen` and the other original themes), a translucent card, a solid color fill, or a plain surface with a colored edge. All but `vellum` also paint a static gradient behind the module. On the calendar, chore chart, meal planner, and news, setting `accentColor` overrides the theme's own accent and leaving it empty follows the theme. On Full-Screen Weather an empty `accentColor` follows the weather (amber for clear, blue for rain, violet for storms), the Forecast and Conditions views draw no accent, and the theme only shows when `skyLayer` is `still` or `off`, since the living sky paints its own colors. The photo viewer has no accent.
 
@@ -52,6 +52,8 @@ The up next view is a fixed box, so when descriptions would push its last row of
 **Looking ahead:** with `eventTapDetails` on, every view but **up-next** and **free-time** has arrows on the right of its header that step it a week (a month on **month-grid**, a day on **day-timeline**, its columns on **schedule**) forward or back, up to eight weeks either way (two months back and six ahead on a month); a sideways swipe on it does the same instead of changing screens. While away the title names the period, a tag says which (Next week, In 3 weeks), past days are not faded or collapsed, and **Back to this week** goes straight back; a minute after the last touch on the screen it slides back by itself.
 
 **People:** the family grid and free time views read the household list under **Settings > Family**. Choose each person’s calendars under **Settings > Calendar > Whose calendars?** A calendar picked for nobody is shared.
+
+**On the wall:** with `eventTapDetails` on, `wallViews` puts view buttons under the heading: the calendar's own `view` plus up to three more, in the editor's order (new modules get **week-list** and **month-grid**). `showOnePerson` adds a person button that shows one person's or one family group's events, with the shared calendars and holidays; it needs at least two people with calendars of their own. A minute after the last touch the calendar goes back to its own view and everyone. When the color key lists calendars, it becomes a **Calendars** button: **Show** hides a calendar from this browser only (kept in the browser's storage as `hs.calendar.hiddenSources`), and **Color** recolors it for every wall through `POST /api/calendar/appearance`. On a day with more events than fit, the calendars listed in `calendarOrder` (**Settings > Calendar > Calendar order**) keep their rows first. See [On a touchscreen](/docs/calendars#touch).
 {% /module %}
 
 {% module type="fullscreen-chore-chart" %}
@@ -67,7 +69,7 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 
 **Rewards store view:**
 
-The `rewards-store` view displays a fullscreen rewards browsing and redemption interface. A member picker at the top shows each member's ticket balance. The main area shows a grid of available rewards with ticket costs and eligibility indicators. Members can redeem rewards directly from the display when they have enough tickets. When `showRewardsButton` is enabled, a toggle button in the chore board header lets users switch between the chore board and rewards store without changing the module config.
+The `rewards-store` view displays a fullscreen rewards browsing and redemption interface. A member picker at the top shows each member's ticket balance. The main area shows a grid of available rewards with ticket costs and eligibility indicators. Members can redeem rewards directly from the display when they have enough tickets. When the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) guards spending tickets, the confirm button reads **Ask a grown-up** and takes the code first. When `showRewardsButton` is enabled, a toggle button in the chore board header lets users switch between the chore board and rewards store without changing the module config; a store opened that way goes back to the chore board a minute after the last touch.
 
 **Reward history views:**
 
@@ -83,7 +85,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 
 {% fields /%}
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json`: edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json`: edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (**Settings > Location & language**); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
 
 **View details:**
 
@@ -102,6 +104,10 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 **Scrolling:** with `interactive` on, the grocery list scrolls with a finger instead of turning its pages, and a week or today too long to fit even at the smallest text scrolls too. Each slides back home a minute after the last touch.
 
 **Looking ahead:** with `interactive` on, the **week** view has arrows (or a sideways swipe) to step to next week's plan and back, eight weeks either way (three ahead and one back while the plan lives in Mealie), with **Back to this week**; a minute after the last touch it slides back by itself.
+
+**Planning from the wall:** with `interactive` and `wallPlan` on, the recipe card (opened from a meal or the recipe book) carries **Put on the menu**, and the **week** view a plus on each empty meal. Planning works as on the [Meal Planner](#meal-planner).
+
+**Adding to the grocery list:** with `interactive` and `wallAdd` on, the **grocery** view has an Add button that opens the wall's keyboard. It adds as on the [Meal Planner](#meal-planner).
 {% /module %}
 
 {% module type="fullscreen-weather" %}
@@ -115,6 +121,7 @@ Some panels depend on what your weather source provides, and hide themselves whe
 
 - **Next-hour rain** needs minute-by-minute data, which only Pirate Weather offers today.
 - **Weather warnings** need alerts, available from Pirate Weather and NOAA.
+- **Feels like** comes from every source except Yr.no, SMHI and Environment Canada.
 - **Pressure** comes from every source except WeatherAPI and Environment Canada.
 - **Dew point** comes from Pirate Weather, NOAA, Open-Meteo, and the Met Office.
 - **UV index** comes from Pirate Weather, the Met Office, WeatherAPI, and Open-Meteo.
@@ -137,6 +144,8 @@ Until both **Server URL** and **API key** are saved on the Immich card in Settin
 {% callout type="note" title="OneDrive source" %}
 Until a Microsoft **Application (client) ID** is saved in Settings > API keys, the OneDrive option in the **Photo source** list says it needs setting up. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
 {% /callout %}
+
+**Touch:** with `interactive` on (unset counts as on), a tap on the photo brings up back, pause and next for six seconds after the last touch, with where the show is ("3 of 12") and, for a library folder, the folder's name. The tap itself never moves the photo. A pause from the wall plays again a minute after the last touch, with a small pause mark in the corner once the bar is gone. A sideways swipe still changes screens. The family remote's Photos tab sends the same back, pause and next. A single pinned photo has no bar, and the editor shows none.
 {% /module %}
 
 {% module type="fullscreen-news" %}
@@ -152,11 +161,15 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 
 {% fields /%}
 
-Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calendars). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
+Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calendars). Supports multiple calendars with color-coding: each calendar starts in its own color (Google's, Apple's or the one set on a link), which **Settings > Calendar** can replace (`calendarOverrides`).
 
 **Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color, the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time, in both styles.
 
 **Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View mode picker. The rolling weeks view (`viewMode: "rolling"`, 1–8 weeks via `weeksToShow`) uses the same themes; its top-left cell is always today, weekend cells are shaded under every theme (banner included), and each new month is marked on its first day.
+
+**Looking ahead:** with `eventTapDetails` on, arrows in the header step the view forward or back: the **daily** view by its own run of days (`daysToShow`), **month** by a month, and **agenda**, **week**, **multi-week** and **rolling** by a week, up to eight weeks either way (two months back and six ahead on a month). A sideways swipe on the card does the same instead of changing screens, **Back to this week** (**Back to this month**, **Back to today**) goes straight back, and a minute after the last touch it slides back by itself.
+
+**On the wall:** with `eventTapDetails` on and a card at least 400 px tall, `wallViews` and `showOnePerson` work as on the [Full-Screen Calendar](#full-screen-calendar): view buttons for the card's own `viewMode` plus up to three more (new cards get **week** and **month**), and a person button for one person's or one family group's events, both back to normal a minute after the last touch. The **Calendars** button on the color key, and `calendarOrder` for the grid views, work the same way too.
 
 {% /module %}
 
@@ -169,7 +182,7 @@ A kitchen timer on the wall for touchscreens: a few lengths, one tap each. A tap
 
 {% fields /%}
 
-**Behavior:** With `fullScreen` on (the default) the timer covers the display until it ends; a tap brings up Pause, one minute less (only while two minutes or more are left, so a few quick taps cannot run the timer down), one minute more, the sound switch and Stop, which has to be held. With it off the timer stays in the module's box with the same buttons, and the box says "Time's up!" until a tap puts it away; if the rotation is on another screen when the time runs out, "Time's up!" comes up full screen instead. While a timer runs the box offers no lengths, so a tap cannot replace a running timer or routine. A box whose timer belongs to another display only (`timerTarget` set to `this` there) dims its lengths until that timer is over. In a small box the minute buttons and then the words on the buttons drop out so Pause and Stop stay big enough for a finger. In the editor and its preview window a tap starts nothing.
+**Behavior:** With `fullScreen` on (the default) the timer covers the display until it ends; a tap brings up Pause, one minute less (only while two minutes or more are left, so a few quick taps cannot run the timer down), one minute more, the sound switch and Stop, which has to be held. With it off the timer stays in the module's box with Pause (Resume while paused), one minute less (on the same terms), one minute more and a held Stop, but no sound switch; a routine step that waits for a tap shows just **Done** and Stop. The box says "Time's up!" until a tap puts it away; if the rotation is on another screen when the time runs out, "Time's up!" comes up full screen instead. While a timer runs the box offers no lengths, so a tap cannot replace a running timer or routine. A box whose timer belongs to another display only (`timerTarget` set to `this` there) dims its lengths until that timer is over. In a small box the minute buttons and then the words on the buttons drop out so Pause and Stop stay big enough for a finger. In the editor and its preview window a tap starts nothing.
 {% /module %}
 
 {% module type="date" %}
@@ -204,6 +217,8 @@ Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), 
 {% /callout %}
 
 {% fields /%}
+
+**Switches that follow the source:** **Feels like**, **Precipitation amount**, **Pressure**, **Visibility**, **Dew point** and **UV index** appear in the module's settings only while its weather source sends that figure. Feels like comes from every source except Yr.no, SMHI and Environment Canada, and the precipitation amount from every source except NOAA and Environment Canada; the others follow the list under [Full-Screen Weather](#full-screen-weather).
 
 **View details:**
 
@@ -285,7 +300,7 @@ Live and recent scores from ESPN for the leagues you turn on. College teams in t
 - **scoreboard**: One game at a time with logos, records and the score or kickoff, moving on every `rotateIntervalMs` (10 seconds by default; **Next page every** in the editor).
 - **cards**: A two-column grid of compact game cards. When the games do not all fit, the grid is cut into pages of whole rows that turn every `rotateIntervalMs`, with page dots underneath (a count such as 3 / 12 past eight pages), so no game is clipped.
 - **list**: One line per game, league code first, for many games at once. It pages the same way as **cards** when the games do not fit.
-- **ticker**: A scrolling marquee of scores; `tickerSpeed` sets seconds per game.
+- **ticker**: A scrolling marquee of games; `tickerSpeed` sets seconds per game. A game that has not started shows its start time where the score goes, a live one its score with ESPN's clock and period beside a pulsing dot, and a finished one Final (Final/OT after overtime). Each game leads with its league code once the line mixes leagues, and a favorite's game carries the strip in its team's color.
 - **team**: One card per favorite team showing its record, standing line, the live or next game with broadcast and venue, and the last result. Several favorites take turns every `rotateIntervalMs`. A team whose league is switched off in **Leagues** gets no card.
 {% /module %}
 
@@ -326,7 +341,7 @@ Shows one of the family's shared lists (see [Lists](/docs/lists)). Items live in
 
 When every item is done the heading shows a green tick and "All done" in every view. A list with a repeat schedule says when it starts fresh.
 
-**Scrolling:** with `interactive` on, a **list** or **compact** view longer than the module's box scrolls with a finger, shows **Back to the top** while it is away, and slides back to the top a minute after the last touch. With it off, the rows that do not fit are left out and the list says "and N more".
+**Scrolling:** a **list** or **compact** view longer than the module's box shows the rows that fit and says "and N more". With `interactive` on, a finger scrolls on to the rest, **Back to the top** shows while the list is away, and it slides back to the top a minute after the last touch. With it off, the rows that do not fit are left out.
 {% /module %}
 
 {% module type="notes" %}
@@ -334,13 +349,13 @@ Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/not
 
 {% fields /%}
 
-Every view takes the live notes (no expiry, or one still ahead), applies `filter`, and sorts them pinned first, then newest first. Views that read `maxNotes` draw that many and say "and N more" for the rest. In the layouts, important notes are drawn in the danger colour and pinned notes carry a pin; the materials mark them their own way. Neither has a colour setting. A board with nothing on it shows "Nothing on the board. Write a note on your phone and it shows up here." (or, with the Draw a note button showing, "Nothing on the board. Draw a note here, or write one on your phone."), and a filter with nothing matching says "No pinned notes right now." or "No important notes right now."
+Every view takes the live notes (no expiry, or one still ahead), applies `filter`, and sorts them pinned first, then newest first. Views that read `maxNotes` draw that many and say "and N more" for the rest. In the layouts, important notes are drawn in the danger colour and pinned notes carry a pin; the materials mark them their own way. Neither has a colour setting. A board with nothing on it shows "Nothing on the board. Write a note on your phone and it shows up here." (or, with the Draw a note button showing, "Nothing on the board. Draw a note here, or write one on your phone."; with Write a note, "Nothing on the board. Write a note here or on your phone."; with Leave a note, "Nothing on the board. Draw or write a note here, or write one on your phone."), and a filter with nothing matching says "No pinned notes right now." or "No important notes right now."
 
 **View details** (the fourteen layouts, which take the card's style):
 
 - **board**: One row per note: the author's initial in their colour, name and age, and up to two lines of text. The default.
 - **cards**: A card per note. One column under 400 px wide, two up to 900 px, three above; a pinned note spans the row.
-- **sticky**: Paper notes in a lightened version of each author's colour with dark ink, each at a small fixed lean worked out from the note, never animated. Important notes are on red paper.
+- **sticky**: Paper notes in a lightened version of each author's colour with dark ink, each at a small fixed lean worked out from the note, never animated. Important notes keep their writer's paper and get a red band across the top with a warning sign and the word Important (the sign alone on a narrow note).
 - **bubbles**: A read-only family chat: avatar, name in the author's colour and a speech bubble, newest at the bottom.
 - **spotlight**: One note in large type with dots and "2 of 6". Steps every `stepSeconds` with a plain swap and no transition; a pinned or important note gets two turns in a row.
 - **compact**: One line per note, cut with an ellipsis, the age on the right.
@@ -421,7 +436,7 @@ A meal planning module for organizing daily meals across configurable slots (bre
 
 **Tapping a meal:** With `card`, tapping a meal shows its recipe on a card over the wall: the ingredients, the numbered steps with **Back** and **Next step**, the meal's other dishes (tap one to see its recipe), and, for a meal with a recipe link, a QR code to open the recipe on your phone. It works for every Mealie recipe and for any meal saved with ingredients or notes, even without a recipe link. It is made for cooking along: tap an ingredient to tick it off (nothing is saved). From the first tick, step or dish tapped, the screen does not dim or go to sleep while the card is open (a sleep schedule still does), and the card closes after an hour with nobody touching it; a card nobody uses closes after 10 minutes. New meal planners open the card when a meal is tapped; one added before stays as it was set. The card uses the display's full-screen theme (Settings > Screen). Meals saved with a recipe link (added from `/remote` > Meals) can also open that link: with `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding, and a Mealie page asks the display to sign in, so the QR option or the card work better). With either, a meal with no link but with ingredients or notes opens the card instead. In the editor preview, tapping opens the recipe link in a new browser tab instead.
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings, every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings, every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (**Settings > Location & language**); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
 **View details:**
 
@@ -438,6 +453,10 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 **Scrolling:** with `interactive` on, a **list** or **week** that runs past the module's box scrolls with a finger, shows **Back to today** while it is away, and slides back to today a minute after the last touch. The grocery list scrolls instead of turning its pages.
 
 **Looking ahead:** with `interactive` on, the **week** and **list** views get a heading row with arrows (or a sideways swipe) that step to next week's plan and back, eight weeks either way (three ahead and one back while the plan lives in Mealie), and **Back to this week** while away; a minute after the last touch they slide back by themselves.
+
+**Planning from the wall:** with `interactive` and `wallPlan` on (new modules have both; a module saved before `wallPlan` existed has it off), the recipe card carries **Put on the menu** (**Change the menu** for a recipe already on that meal), the **week** view a plus on each empty meal, and the **list** view a **Plan a meal** row on a day with nothing planned, which opens the recipe book for that day. Anyone at the wall can then put a recipe on the menu for this week or next, one meal at a time. It is always a recipe, never typed words, and one that lives where the plan does: Mealie's recipes for a plan kept in Mealie, otherwise the saved meals with ingredients or notes. A day that already has a different main dish asks whether to swap it or have both, a side, dessert or drink joins the meal already there, and a recipe already on that day can be taken off. Days gone by can't be planned. When the grown-up code guards **Changing the menu**, the wall asks for the code first. The hub takes the change only while some meal card on a wall has `wallPlan` on.
+
+**Adding to the grocery list:** with `interactive` and `wallAdd` on, the **grocery** view has an Add row under the list that opens the wall's keyboard for one thing at a time, up to 80 characters. While the plan lives in Mealie it goes on the Mealie list the family shops from; otherwise it goes on the to-do list picked as **Other things to buy go on** (`groceryExtrasListId` in the meal settings, shared by every grocery card), whose open items also show at the end of the grocery list. With no list picked there is no Add row. Apart from **Undo** on something just added, changing and removing stay with the phone.
 {% /module %}
 
 {% module type="chore-chart" %}
@@ -455,7 +474,9 @@ A chore tracking module for families or housemates. Assign chores to members wit
 - **progress**: Progress bars showing completion rates per member.
 - **compact**: Condensed view for small module sizes.
 - **reward-history**: The latest rewards the family has redeemed, newest first: who, what, how many tickets, and how long ago. `historyLimit` sets how many to list (1 to 50). The type shrinks so the list fits the card, down to a readable floor; past that the card says how many more are below.
-- **rewards-store**: Spend tickets from the card itself. `storeLayout` picks how it looks: `list` (pick a person, then one reward per row with a Redeem button or how many more tickets to go), `tiles` (the same, as a grid of tiles), or `price-list` (every reward with how many people can afford it; tapping one asks who it is for). Redeeming always asks first. A wide, short card moves the person picker to the side. With `allowDisplayComplete` off the view is a price list with nothing to tap. The **History** button in the title opens the reward history in place.
+- **rewards-store**: Spend tickets from the card itself. `storeLayout` picks how it looks: `list` (pick a person, then one reward per row with a Redeem button or how many more tickets to go), `tiles` (the same, as a grid of tiles), or `price-list` (every reward with how many people can afford it; tapping one asks who it is for). Redeeming always asks first, and when the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) guards spending tickets the confirm button reads **Ask a grown-up** and takes the code. A wide, short card moves the person picker to the side. With `allowDisplayComplete` off the view is a price list with nothing to tap. The **History** button in the title opens the reward history in place, which goes back to the store a minute after the last touch.
+
+**Bonus chores:** the **board**, **today** and **compact** views list today's [bonus chores](/docs/chores#5-bonus-chores-and-up-for-grabs) after the regular ones. An everyone-can chore has a dot per person to tick; an up-for-grabs chore is read-only here, since grabbing it needs the Full-Screen Chore Chart or a phone.
 
 **Rotation modes:**
 
@@ -556,7 +577,7 @@ Plays a video clip, a file from your media library, a direct video URL, or a You
 {% fields /%}
 
 {% callout type="note" title="Best format for Raspberry Pi" %}
-MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4, if a clip shows a black box, convert it to MP4 (H.264) first. If a video fails to load or stalls, playback stops cleanly instead of freezing the screen, and in a photo slideshow the show advances to the next slide.
+MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. An upload the wall can't play, such as an iPhone recording in HEVC (the iPhone's default), is turned away with a note naming the file, so convert it to MP4 (H.264) first. A pasted direct link is not checked: if a linked clip shows a black box, convert it the same way. If a video fails to load or stalls, playback stops cleanly instead of freezing the screen, and in a photo slideshow the show advances to the next slide.
 {% /callout %}
 
 **Sound:** Videos are silent by default. To play sound, turn on the module's sound toggle. Sound also needs a setting on the display itself, which every install and upgrade turns on automatically. If sound stays off on an older Pi, re-run the upgrade.
@@ -580,6 +601,8 @@ A library folder plays in name order, so `2.jpg` comes before `10.jpg`. Turn on 
 When using Unsplash as the source, type the search words. The slideshow shows Unsplash's own photos, up to 30 fresh ones an hour, with each photographer's name in a corner as Unsplash asks. When using NASA, it shows the newest Astronomy Pictures of the Day.
 
 **Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; library videos are any MP4/WebM/MOV files in the same folder.
+
+**Touch:** `interactive` works as on the [Full-Screen Photo Viewer](#full-screen-photo-viewer): a tap brings up back, pause and next for six seconds without moving the photo, and a pause from the wall plays again a minute after the last touch. On the card a sideways swipe on the photo moves to the next or previous one instead of changing screens.
 {% /module %}
 
 {% module type="qr-code" %}
@@ -653,6 +676,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Stable identifier for the rule |
+| `name` | string | Shown in the editor only |
 | `match` | object | What the rule applies to (see below) |
 | `hide` | boolean | Drop matching events from the view entirely |
 | `color` | string | Replace the calendar's color for these events |
@@ -665,6 +689,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Stable identifier for the rule |
+| `name` | string | Shown in the editor only |
 | `match` | object | Which days the rule applies to (see below) |
 | `background` | string | A color, or `auto` to tint the day from its own events' colors |
 | `backgroundImage` | string | A picture painted on the day, under its number and events: a built-in path such as `/starter-day-art/birthday.svg`, or the serve URL of a picture in the media library (usually its `calendar-art` folder) |
@@ -741,9 +766,9 @@ Every module supports these style properties, configurable in the Property Panel
 | `backgroundColor` | string | `"rgba(0, 0, 0, 0.4)"` | Background color |
 | `textColor` | string | `"#ffffff"` | Text color |
 | `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
-| `fontSize` | number | `16` | Text size in pixels: the size on most modules, the smallest size on the ones that fit their text to their box (clock, countdown, date, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, multi-month calendar). Not edited directly any more: the editor's **Text size** slider is a percent, and a module with only this value shows it as a percent of what it shows on its own |
-| `textScale` | number |, | **Text size**, a percent (10–450) of what the module shows on its own: the fitted size on the modules that fit their text to their box, the registry base `fontSize` everywhere else. Unset = the stored `fontSize` stands. Setting it in the editor resets `fontSize` to the base |
-| `fontWeight` | number |, | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
+| `fontSize` | number | `16` | Text size in pixels: the size on most modules, the smallest size on the ones that fit their text to their box (clock, countdown, date, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, notes board, school timetable, multi-month calendar). Not edited directly any more: the editor's **Text size** slider is a percent, and a module with only this value shows it as a percent of what it shows on its own |
+| `textScale` | number | unset | **Text size**, a percent (10–450) of what the module shows on its own: the fitted size on the modules that fit their text to their box, the registry base `fontSize` everywhere else. Unset = the stored `fontSize` stands. Setting it in the editor resets `fontSize` to the base |
+| `fontWeight` | number | unset | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
 | `borderWidth` | number | `1` | Border width in pixels |
 | `borderColor` | string | `"rgba(255, 255, 255, 0.15)"` | Border color |
@@ -755,4 +780,4 @@ These are the values a newly added module starts with. A few modules override so
 
 ## Settings every module shares
 
-Alongside the options above, every module on a screen carries four instance settings that decide *whether* it renders: an on/off switch, a day-and-time schedule, conditional visibility driven by live values that Home Screens itself (weather and calendar facts) or add-ons publish, and a background-provider flag that keeps a module's data loop running while other screens are showing. See the [Configuration reference](/docs/configuration#module-instance) for their exact shape, and the [Editor guide](/docs/editor) for how to set them.
+Alongside the options above, every module on a screen carries four instance settings that decide *whether* it renders: an on/off switch, a day-and-time schedule, conditional visibility driven by live values that Home Screens itself (weather, calendar and notes facts) or add-ons publish, and a background-provider flag that keeps a module's data loop running while other screens are showing. See the [Configuration reference](/docs/configuration#module-instance) for their exact shape, and the [Editor guide](/docs/editor) for how to set them.

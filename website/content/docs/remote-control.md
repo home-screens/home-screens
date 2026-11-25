@@ -3,7 +3,7 @@ title: On your phone
 nextjs:
   metadata:
     title: Home Screens on your phone
-    description: Two addresses for the family. The family remote lets grown-ups run chores, lists, notes, meals, timers and photos and control the wall. The kids' page lets children check off today's chores. Nothing to install.
+    description: Two addresses for the family. The family remote lets grown-ups run chores, lists, calendar, notes, meals, timers and photos and control the wall. The kids' page lets children check off today's chores. Nothing to install.
     alternates:
       canonical: /docs/remote-control
 ---
@@ -16,7 +16,7 @@ Home Screens has two phone pages. Nothing needs installing; both open in the pho
 |---|---|---|
 | Address | `/chores` | `/remote` |
 | Who | Children, or a shared tablet in the kitchen | Grown-ups |
-| What it does | Today's chores and the rewards store. Nothing else can be changed. | Chores, lists, notes, meals, timers, photos, and control of the wall |
+| What it does | Today's chores and the rewards store. Nothing else can be changed. | Chores, lists, calendar, notes, meals, timers, photos, and control of the wall |
 | Password | Never asks for one, on purpose | Asks once you set one |
 
 Opening the plain address (`http://home-screens.local:3000` on the pre-built image) on a phone shows a menu with both, plus the display itself.
@@ -40,7 +40,7 @@ Until you set one, anyone on your Wi-Fi can open the family remote and the edito
 
 ## The family remote
 
-Seven tabs along the bottom: **Control**, **Timers**, **Chores**, **Lists**, **Notes**, **Meals** and **Photos**. Chores, Lists, Notes, Meals and Photos come alive once the matching module is on a screen; until then they explain what to add.
+Eight tabs along the bottom: **Control**, **Timers**, **Chores**, **Lists**, **Calendar**, **Notes**, **Meals** and **Photos**. Chores, Lists, Notes, Meals and Photos come alive once the matching module is on a screen; until then they explain what to add. Calendar works from the start.
 
 ### Control the wall
 
@@ -60,12 +60,15 @@ The **Timers** tab starts a big countdown that takes over the whole wall, made f
 
 A **routine** is a saved list of timed steps, each with its own emoji and length: get dressed, brush teeth, shoes on. Steps run one after another; a step can instead be set to **Wait for a Done tap** on the wall before the next one starts. While a timer runs, the tab shows pause, skip, add a minute, and stop. One timer runs at a time for the whole house; starting another asks first. With more than one display, **Send to** picks which walls the timer takes over (it reads **Next timer shows on** while one is running).
 
-On a touchscreen, the wall has its own buttons too: **Pause**, **+1 min** and **Stop** (hold Stop for a second, so a passing tap cannot end bedtime). They show for a few seconds when a timer starts, then tuck away; a tap on the timer brings them back, and they stay up while it is paused. A step set to **Wait for a Done tap** still takes a tap anywhere as Done. **Time's up!** stays on the wall until someone taps it, so nobody misses the end, and goes by itself after 10 minutes. A [Display Control](/docs/module-reference#display-control) set to Dock or Panel can also start one from the wall: turn on **Also show timers** and its Timers button lists your routines and the quick lengths.
+On a touchscreen, the wall has its own buttons too: **Next step** (in a routine with a step still to come), **Pause** (**Resume** while paused), **-1 min** (only while 2:00 or more is left, so a few quick taps cannot run the timer down), **+1 min**, **Sound on** or **Sound off** (it says how the sound is now, and a tap changes it on every wall), and **Stop** (hold Stop for a second, so a passing tap cannot end bedtime). They show for a few seconds when a timer starts, then tuck away; a tap on the timer brings them back, and they stay up while it is paused. A step set to **Wait for a Done tap** still takes a tap anywhere as Done. **Time's up!** stays on the wall until someone taps it, so nobody misses the end, and goes by itself after 10 minutes; **Stop** on the Timers tab clears it from every wall at once. A [Display Control](/docs/module-reference#display-control) set to Dock or Panel can also start one from the wall: turn on **Also show timers** and its Timers button lists your routines and the quick lengths.
 
-### Chores, Lists, Notes, Meals, Photos
+For a kitchen timer with no phone at all, put a [Quick Timer](/docs/module-reference#quick-timer) on a touchscreen: a few lengths, one tap each. It starts the same family timer, so the Timers tab can pause it, add a minute or stop it. It shows on every display unless **Show it on** is set to **This display** in its settings.
+
+### Chores, Lists, Calendar, Notes, Meals, Photos
 
 - **Chores** is where grown-ups add people, chores (from scratch or from a ready-made list) and rewards, and fix a missed day. See [Chores and rewards](/docs/chores).
 - **Lists** holds the family's to-do lists: add, tick, reorder, give things a due day or a person, and make new lists. See [Lists](/docs/lists).
+- **Calendar** lists the coming week day by day, with each day's events and day notes. The button under a day puts a short note on it. Once [adding events](/docs/calendars#add-events) is on, **Add event** sits beside **Add note**, and tapping an event changes or removes it.
 - **Notes** is the family notes board. Type a note in the bar above the tabs and press return to put it up for a day, or tap **+** to say who it is from, how long it stays on the wall, and whether it is pinned or important. Tap a note to change it or take it down. Notes that came down sit in **Gone** for a week, where you can post them again or delete them. See [Notes](/docs/notes). The tab's **Calendar** page holds day notes: tap a day to put a short line on it (up to three a day), and every calendar on the wall shows it on that day. See [Day notes](/docs/calendars#day-notes).
 - **Meals** holds the meal library, the weekly plan and the grocery list, and **Rate dinner** lets everyone give last night's dinner their stars. See [Meals](/docs/meals).
 - **Photos** appears when a photo slideshow is on a screen, and opens on the folder the wall shows. Folders a wall shows come first and say which wall. Add photos and videos from the phone (big photos are made smaller before they are sent), from an iCloud link, or from Google Photos once the hub is signed in to Google from a computer. Tap a photo to see it full size, delete it, move it to another folder, or put it on the wall for a minute; **Select** picks several at once. Folders can be made, renamed and deleted here too. It is the same library **Settings > Pictures & videos** manages. A slideshow always keeps its last picture, and a photo a screen uses on its own (a background) stays put.
@@ -83,6 +86,8 @@ The gear in the top corner opens a sheet with:
 - **Restart Home Screens** and **Restart everything**, each of which asks you to confirm first
 
 After an update that needs the Pi restarted to finish, **Restart to finish the update** sits above those two, and its **Restart now** asks the same question as **Restart everything**. Everything on this sheet needs you signed in once a password is set.
+
+After too many wrong tries at the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) around the house, a **Too many wrong tries** card at the top of the sheet says how long the walls and the chores page will wait before taking the code again. **Let them try now** ends the wait.
 
 Two banners can appear above the Control tab: a reminder when you have not backed up in a while (the interval is under Settings > Backups & data in the editor), and a note when a new version is out (switched on under Settings > System & updates).
 
@@ -103,14 +108,15 @@ It stays open even when a password is set, so a bookmark on a tablet just works.
 | Control | When a password is set |
 |---|---|
 | Screens, sleep, brightness, alerts, profiles | Signed in, or a display key in the address |
+| Timers: starting, pausing, changing or stopping one | Signed in, or the wall itself |
 | The gear (backup, restore, restart, reboot) | Signed in |
-| Chores: checking off today and spending tickets | Open to anyone on your network |
+| Chores: checking off today and spending tickets | Open to anyone on your network; the [grown-up code](/docs/chores#what-kids-can-and-cannot-do) can guard some jobs |
 | Chores: adding or editing people, chores, rewards, balances, earlier days | Signed in |
 | Lists: ticking an item | Signed in, or the wall itself |
-| Lists: adding, editing, moving or removing, and making or deleting lists | Signed in |
-| Notes: writing, changing, taking down or deleting a note, and day notes | Signed in |
+| Lists: adding, editing, moving or removing, and making or deleting lists | Signed in, apart from the wall adding to a list from a card with **Add on the wall** on |
+| Notes: writing, changing, taking down or deleting a note, and day notes | Signed in, apart from the wall putting up a drawing or a short note while a Notes card allows it |
 | Meals: ticking a grocery item | Signed in, or with the display key, as [Voice Control](/docs/voice-control) does |
-| Meals: the plan, the library and meal settings | Signed in |
+| Meals: the plan, the library and meal settings | Signed in, apart from the wall putting a recipe on the menu while a meal planner has **Plan meals on the wall** on |
 | Photos | Signed in |
 
 Sending you to the login page and back is automatic. Sessions last 30 days, or 90 if you tick **Remember me for 90 days**.
