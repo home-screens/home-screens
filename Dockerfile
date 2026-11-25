@@ -40,6 +40,7 @@ RUN rm -rf .next/standalone/public .next/standalone/scripts \
     && cp -r public .next/standalone/public \
     && cp -r .next/static .next/standalone/.next/static \
     && cp -r scripts .next/standalone/scripts \
+    && rm -rf .next/standalone/scripts/dev .next/standalone/scripts/generate \
     && cp .node-version .next/standalone/.node-version \
     && rm -rf .next/standalone/website .next/standalone/docs .next/standalone/e2e \
         .next/standalone/RELEASE_NOTES .next/standalone/infrastructure \

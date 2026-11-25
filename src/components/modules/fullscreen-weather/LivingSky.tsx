@@ -160,7 +160,7 @@ function Keyframes() {
 
 /**
  * The star field: one generated tile (public/sky/stars.png, white on
- * transparent, from scripts/sky-sprites.mjs) repeated in both directions,
+ * transparent, from scripts/generate/sky-sprites.mjs) repeated in both directions,
  * twice at different scales so the repeat never reads. A cool haze sits
  * behind it up and to the right.
  *
@@ -275,7 +275,7 @@ function Mist({ night, sheet, width }: { night: boolean; sheet: string | null; w
 }
 
 /**
- * Rain and snow fall as generated sprites (scripts/sky-sprites.mjs): random
+ * Rain and snow fall as generated sprites (scripts/generate/sky-sprites.mjs): random
  * drops and flakes over tiles too tall to read as a loop. Each layer has its
  * own tile height and speed, and the snow layers their own sway periods, so
  * no two ever line up and the composite never visibly repeats. A layer is

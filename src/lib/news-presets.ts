@@ -1,6 +1,6 @@
 /**
  * Curated news feeds, grouped by locale and section. Every URL here is
- * checked by `scripts/verify-news-presets.ts` (fetch + parse, at least one
+ * checked by `scripts/generate/verify-news-presets.ts` (fetch + parse, at least one
  * story) before a release; a preset that goes dark gets removed, not left to
  * fail silently on displays.
  *

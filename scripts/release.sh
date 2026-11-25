@@ -112,7 +112,7 @@ fi
 # from the GitHub release body (see src/lib/update-policy.ts). A release
 # without notes gets a notes file holding only the markers, so the stamp
 # never depends on the notes generator having run.
-MARKERS="$(npx tsx scripts/print-release-markers.ts)" || {
+MARKERS="$(npx tsx scripts/dev/print-release-markers.ts)" || {
   echo "Error: could not compute the release markers" >&2
   exit 1
 }

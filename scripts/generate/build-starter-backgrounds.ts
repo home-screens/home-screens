@@ -11,10 +11,10 @@
 import { mkdirSync, writeFileSync, readdirSync, unlinkSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { STARTER_BACKGROUNDS, STARTER_BACKGROUNDS_DIR } from '../src/lib/starter-backgrounds';
-import { buildStarterBackgroundSvg } from '../src/lib/starter-background-svg';
+import { STARTER_BACKGROUNDS, STARTER_BACKGROUNDS_DIR } from '../../src/lib/starter-backgrounds';
+import { buildStarterBackgroundSvg } from '../../src/lib/starter-background-svg';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const dir = path.join(root, STARTER_BACKGROUNDS_DIR);
 mkdirSync(dir, { recursive: true });
 

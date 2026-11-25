@@ -29,7 +29,7 @@ import { DEFAULT_CONFIG } from '@/lib/config';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 
 export const SCHEMA_OUTPUT = path.join(REPO_ROOT, 'website/content/generated/schema.json');
 
@@ -311,7 +311,7 @@ function extractModules(
       if (!decl) {
         throw new Error(
           `Module "${def.type}" has no exported ${iface} in src/types/config.ts ` +
-            '(add a CONFIG_INTERFACE_OVERRIDES entry in scripts/extract-docs-schema.ts if the name is irregular)',
+            '(add a CONFIG_INTERFACE_OVERRIDES entry in scripts/generate/extract-docs-schema.ts if the name is irregular)',
         );
       }
       const extracted = extractType(iface, decl, checker);

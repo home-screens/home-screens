@@ -14,7 +14,7 @@
  * self-hosting these in the build output; the only difference is whether the
  * files come from the repo or from a network fetch during every build.
  *
- * Usage:  node scripts/fetch-fonts.mjs
+ * Usage:  node scripts/generate/fetch-fonts.mjs
  *
  * Re-run when a family or weight changes in src/app/layout.tsx. Keep this
  * file in step with the FAMILIES table below and with the `next/font/local`
@@ -25,7 +25,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_DIR = path.join(REPO_ROOT, 'src', 'app', 'fonts');
 const LICENSE_DIR = path.join(OUT_DIR, 'licenses');
 

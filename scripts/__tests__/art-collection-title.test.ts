@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { paintingTitle, type TitleSources } from '../art-collection-title';
+import { paintingTitle, type TitleSources } from '../generate/art-collection-title';
 
 /**
  * paintingTitle: which name the paintings collection keeps for a painting.

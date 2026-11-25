@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import collection from '../art-collection.json';
-import turnedDown from '../../../../scripts/art-collection-turned-down.json';
+import turnedDown from '../../../../scripts/generate/art-collection-turned-down.json';
 import { TITLE_WORDS } from '../art-safety';
 import { ART_GENRES } from '@/lib/photo-source';
 import { ART_MIN_SHORT_SIDE } from '@/lib/art-fit';
 
 /**
  * The shipped collection is the only thing a wall draws paintings from, so a
- * refresh (`scripts/build-art-collection.mts`) must not let through a row the
+ * refresh (`scripts/generate/build-art-collection.mts`) must not let through a row the
  * adapter cannot show or the sieve was meant to stop.
  */
 const rows = collection as unknown[][];

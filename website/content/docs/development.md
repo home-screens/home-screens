@@ -550,6 +550,8 @@ The `--webpack` flag is **required**, not optional: the docs search index is bui
 
 ## Scripts
 
+The top level of `scripts/` holds what installs, updates and runs a Home Screens device, plus `release.sh` and `deploy.sh`. Those paths are relied on by devices already in use, so they do not move. Maintainer tools live in `scripts/dev/` and the generators that rebuild checked-in data or pictures live in `scripts/generate/`; neither folder is shipped in a release.
+
 | Script | Description |
 |---|---|
 | `scripts/install.sh` | Full Raspberry Pi setup |
@@ -559,6 +561,6 @@ The `--webpack` flag is **required**, not optional: the docs search index is bui
 | `scripts/release.sh` | Version release process |
 | `scripts/upgrade.sh` | Download, deploy, and restart |
 | `scripts/reporter.sh` | Per-Pi hardware telemetry posted to `/api/display/hw-stats`, run by `home-screens-reporter.service` and its timer |
-| `scripts/emulate-install.sh` | Boot a Debian ARM64 image in QEMU, run `install.sh` against it, and verify the result |
+| `scripts/dev/emulate-install.sh` | Boot a Debian ARM64 image in QEMU, run `install.sh` against it, and verify the result |
 | `scripts/check-config.mjs` | Validate `data/config.json` (`npm run config:check`) |
 | `scripts/copy-font-awesome.mjs` | Copy Font Awesome assets into `public/`; runs automatically on `postinstall` |

@@ -4,7 +4,7 @@ import * as path from 'path'
 
 /**
  * The Reference pages' generated parts. `content/generated/schema.json` is
- * written by `npm run docs:schema` in the main repo (scripts/extract-docs-schema.ts)
+ * written by `npm run docs:schema` in the main repo (scripts/generate/extract-docs-schema.ts)
  * from the module registry, the config types and the API route files. Three
  * tags read it:
  *

@@ -12,7 +12,7 @@ name: Nightly
 #     release tag and would rank an older nightly above a newer one until
 #     the older one was pruned.
 #
-# Version shape: vX.Y.Z-dev.YYYYMMDD, decided by scripts/nightly-version.sh
+# Version shape: vX.Y.Z-dev.YYYYMMDD, decided by scripts/dev/nightly-version.sh
 # (which explains the base rule and is covered by scripts/__tests__). A
 # second build on the same day gets a .2 suffix. The Pi image is not built:
 # it is a two-hour ARM job, and nightly users install through the upgrade
@@ -86,7 +86,7 @@ jobs:
         id: decide
         env:
           FORCE: ${{ inputs.force || 'false' }}
-        run: bash scripts/nightly-version.sh >> "$GITHUB_OUTPUT"
+        run: bash scripts/dev/nightly-version.sh >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
@@ -145,7 +145,7 @@ jobs:
       # assets need auth to download, so a draft is not installable), and
       # they would bury every real release: the app only searches the newest
       # 30 releases and the Settings list shows 20. So only the current one
-      # is kept. That is safe for versioning because scripts/nightly-version.sh
+      # is kept. That is safe for versioning because scripts/dev/nightly-version.sh
       # takes the version from release tags alone, and reads nightly tags only
       # to see whether main moved since the newest one, which prune leaves.
       # It does mean a nightly that boots but is broken falls all the way back

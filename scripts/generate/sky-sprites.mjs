@@ -9,7 +9,7 @@
  * wide to read as a loop, with every mark that crosses a tile edge drawn
  * again on the far side so the repeat is seamless.
  *
- *   node scripts/sky-sprites.mjs
+ *   node scripts/generate/sky-sprites.mjs
  *
  * Each sprite is a 2160x640 grey-plus-alpha PNG: the grey channel is how lit
  * each pixel is (1 = the crown in full light, 0 = the deepest shade) and the
@@ -40,7 +40,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'sky');
+const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'sky');
 
 // Sprites are designed in half-resolution units and rendered at S times that.
 const S = 2;

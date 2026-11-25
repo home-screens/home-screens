@@ -6,7 +6,7 @@ import { CLOUD_PALETTES, type CloudPalette } from './sky-layer';
 /**
  * The cloud sprites the living sky drifts across the screen.
  *
- * `scripts/sky-sprites.mjs` renders three grey-plus-alpha PNGs under
+ * `scripts/generate/sky-sprites.mjs` renders three grey-plus-alpha PNGs under
  * public/sky, each two screens wide so no silhouette repeats on one wall: the grey is how lit each pixel is, the alpha its coverage. A
  * sky tints them once, here, between its palette's shade and light colours,
  * and keeps the result as a blob URL for the rest of the session. That is

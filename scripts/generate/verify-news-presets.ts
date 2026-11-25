@@ -2,13 +2,13 @@
  * Fetch and parse every curated news preset so a dead URL is caught before a
  * release instead of on someone's kitchen display.
  *
- *   npx tsx scripts/verify-news-presets.ts            # all presets
- *   npx tsx scripts/verify-news-presets.ts de-DE      # one locale
+ *   npx tsx scripts/generate/verify-news-presets.ts            # all presets
+ *   npx tsx scripts/generate/verify-news-presets.ts de-DE      # one locale
  *
  * Exit code 1 when any preset fails. Network access required.
  */
-import { NEWS_PRESETS } from '../src/lib/news-presets';
-import { parseFeed, decodeFeedBody } from '../src/lib/news/parse-feed';
+import { NEWS_PRESETS } from '../../src/lib/news-presets';
+import { parseFeed, decodeFeedBody } from '../../src/lib/news/parse-feed';
 
 const USER_AGENT = 'HomeScreens/1.0 (+https://homescreens.dev)';
 const only = process.argv[2];

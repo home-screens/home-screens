@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Exercise scripts/nightly-version.sh against a scratch tag history. The
+# Exercise scripts/dev/nightly-version.sh against a scratch tag history. The
 # version a nightly gets must name the next version cut from main, and sort
 # above every release, beta, candidate, hotfix and earlier nightly, or the
 # test-builds channel ranks an older build newest.
 set -euo pipefail
 
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/nightly-version.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/dev/nightly-version.sh"
 REPO="$(mktemp -d)"
 trap 'rm -rf "${REPO}"' EXIT
 

@@ -1,4 +1,4 @@
-// Which of a painting's names the collection keeps as its title. Used by scripts/build-art-collection.mts.
+// Which of a painting's names the collection keeps as its title. Used by scripts/generate/build-art-collection.mts.
 
 /** What Wikidata says a painting is called, each keyed by language code ("fr", "en-gb", "mul"). */
 export interface TitleSources {

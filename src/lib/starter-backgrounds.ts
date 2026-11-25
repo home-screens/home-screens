@@ -15,7 +15,7 @@
  *  - `pattern` quiet textures.
  *
  * The SVG files are generated from this catalog by
- * `npm run backgrounds:build` (`scripts/build-starter-backgrounds.ts`); a
+ * `npm run backgrounds:build` (`scripts/generate/build-starter-backgrounds.ts`); a
  * unit test fails when a committed file no longer matches its entry here, so
  * the picker thumbnail (which is the same file) and the wall can never
  * disagree, and a new theme cannot ship without its wall.

@@ -6,7 +6,7 @@ import type { ArtGenre } from '@/types/config';
  * Wikidata tags otherwise is left out. The tags are added by volunteers and
  * miss a lot, so they are a first sieve and never the whole answer: the
  * collection the wall shows (`art-collection.json`) is also looked at by a
- * person, picture by picture (`scripts/build-art-collection.mts`).
+ * person, picture by picture (`scripts/generate/build-art-collection.mts`).
  */
 
 /** Wikidata's ids for the subjects paintings are gathered by. `famous` is not one of them: those are chosen by how well known they are. */

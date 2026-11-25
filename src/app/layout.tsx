@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 // browser are identical — next/font/google was already self-hosting these in
 // the build output — so this only changes where the files come from.
 //
-// Run `node scripts/fetch-fonts.mjs` to refresh or add a family.
+// Run `node scripts/generate/fetch-fonts.mjs` to refresh or add a family.
 import localFont from 'next/font/local';
 import ThemeListener from '@/components/ThemeListener';
 import { RenderInstantProvider } from '@/hooks/useRenderInstant';

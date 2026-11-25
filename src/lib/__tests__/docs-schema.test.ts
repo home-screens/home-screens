@@ -8,11 +8,11 @@ import {
   SCHEMA_OUTPUT,
   type DocsField,
   type DocsSchema,
-} from '../../../scripts/extract-docs-schema';
+} from '../../../scripts/generate/extract-docs-schema';
 
 /**
  * The docs' Module Reference, Configuration and API pages render their tables
- * from website/content/generated/schema.json (see scripts/extract-docs-schema.ts).
+ * from website/content/generated/schema.json (see scripts/generate/extract-docs-schema.ts).
  * These tests keep that file in step with the code and every documented field
  * described, so drift fails here instead of on the website.
  */

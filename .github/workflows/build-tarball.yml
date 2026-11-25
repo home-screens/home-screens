@@ -120,6 +120,8 @@ jobs:
           cp -r public .next/standalone/public
           cp -r .next/static .next/standalone/.next/static
           cp -r scripts .next/standalone/scripts
+          # Maintainer tools and one-off generators never run on a device.
+          rm -rf .next/standalone/scripts/{dev,generate}
           cp .node-version .next/standalone/.node-version
 
           # Bundle the config-check CLI so `npm run config:check` works on

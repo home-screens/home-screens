@@ -49,7 +49,7 @@ function helperPackages(): string[] {
 }
 
 function emulatorStubs(): { packages: string[]; binaries: string[] } {
-  const source = read('scripts/emulate-install.sh');
+  const source = read('scripts/dev/emulate-install.sh');
   const packages = source.match(/^for pkg in (chromium [^;]+); do$/m);
   const binaries = source.match(/^for b in ([^;]+); do$/m);
   if (!packages || !binaries) throw new Error('no stub lists in emulate-install.sh');

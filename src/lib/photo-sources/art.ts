@@ -15,7 +15,7 @@ import { PhotoSourceError, type BrowseItem, type BrowseMatch, type BrowsePage, t
 /**
  * Paintings for the wall come from one place only: the collection that ships
  * with Home Screens (`art-collection.json`, built and looked through with
- * `scripts/build-art-collection.mts`). A wall never asks Wikidata what to
+ * `scripts/generate/build-art-collection.mts`). A wall never asks Wikidata what to
  * show, so nothing a person has not looked at can turn up on its own.
  *
  * The picture picker's Art tab is the one place that searches Wikidata live.

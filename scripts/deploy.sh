@@ -90,7 +90,7 @@ rsync -azP --delete \
   --include 'public/backgrounds/default.svg' \
   --exclude 'public/backgrounds/*' \
   --exclude '.emulate' \
-  --exclude 'scripts/emulate-install.sh' \
+  --exclude 'scripts/dev/emulate-install.sh' \
   "$PROJECT_DIR/" "$HOST:$REMOTE_DIR/"
 
 # --- Build locally ---

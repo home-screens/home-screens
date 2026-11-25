@@ -34,17 +34,17 @@ set -euo pipefail
 #                npm run build   (--display-only serves the local build)
 #
 # Usage:
-#   ./scripts/emulate-install.sh                      # Test latest release
-#   ./scripts/emulate-install.sh --version v0.20.0    # Test specific version
-#   ./scripts/emulate-install.sh --keep --verbose      # Debug mode (VM stays up)
-#   ./scripts/emulate-install.sh --display-only        # Test a spoke + self-update
-#   ./scripts/emulate-install.sh --display-only --hub http://10.0.2.2:3000
+#   ./scripts/dev/emulate-install.sh                      # Test latest release
+#   ./scripts/dev/emulate-install.sh --version v0.20.0    # Test specific version
+#   ./scripts/dev/emulate-install.sh --keep --verbose      # Debug mode (VM stays up)
+#   ./scripts/dev/emulate-install.sh --display-only        # Test a spoke + self-update
+#   ./scripts/dev/emulate-install.sh --display-only --hub http://10.0.2.2:3000
 #                                                      # ...against your own dev server
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 EMULATE_DIR="${PROJECT_DIR}/.emulate"
 WORK_DIR="${EMULATE_DIR}/work"
 

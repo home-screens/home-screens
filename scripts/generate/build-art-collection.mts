@@ -18,7 +18,7 @@
 //
 //   012: 17 nude, 33 frame
 //
-// `apply` adds those to scripts/art-collection-turned-down.json (committed, so a
+// `apply` adds those to scripts/generate/art-collection-turned-down.json (committed, so a
 // later run never offers them again) and keeps every other candidate that was
 // drawn on a sheet.
 //
@@ -26,7 +26,7 @@
 // - a painting on Wikidata with a picture, by a named artist (named as their English Wikipedia page is), whose genre is
 //   landscape, seascape, cityscape or still life, and no other genre from UNSAFE_GENRES,
 //   with a title of its own (not "Untitled", not a file name): in English, or else as it was named in its own
-//   language, never translated (paintingTitle in scripts/art-collection-title.ts)
+//   language, never translated (paintingTitle in scripts/generate/art-collection-title.ts)
 // - none of the NUDE_TAGS as a genre or as something it depicts, no TITLE_WORDS in its title
 //   (all three lists are in src/lib/photo-sources/art-safety.ts, shared with the picture picker's search)
 // - the Commons file is public domain or CC0, at least ART_MIN_SHORT_SIDE pixels on its shorter side
@@ -44,14 +44,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { ART_MIN_SHORT_SIDE } from '../src/lib/art-fit';
-import { NUDE_TAGS, SAFE_GENRES, TITLE_WORDS, UNSAFE_GENRES } from '../src/lib/photo-sources/art-safety';
-import type { ArtGenre } from '../src/types/config';
+import { ART_MIN_SHORT_SIDE } from '../../src/lib/art-fit';
+import { NUDE_TAGS, SAFE_GENRES, TITLE_WORDS, UNSAFE_GENRES } from '../../src/lib/photo-sources/art-safety';
+import type { ArtGenre } from '../../src/types/config';
 import { paintingTitle, type TitleSources } from './art-collection-title';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const COLLECTION_PATH = join(root, 'src/lib/photo-sources/art-collection.json');
-const TURNED_DOWN_PATH = join(root, 'scripts/art-collection-turned-down.json');
+const TURNED_DOWN_PATH = join(root, 'scripts/generate/art-collection-turned-down.json');
 
 const USER_AGENT = 'HomeScreens/1.0 (https://homescreens.dev; self-hosted display) art-collection-build';
 const SPARQL = 'https://query.wikidata.org/sparql';

@@ -13,7 +13,7 @@ import { ECCC_STATIONS, type EcccStation } from './eccc-stations';
 // not coordinates. Exposing that through WeatherSettings would pollute the
 // shared provider contract with a one-off config shape, so this provider
 // bundles the station list (src/lib/weather/eccc-stations.ts, regenerated
-// via scripts/fetch-eccc-stations.mjs) and picks the nearest station by
+// via scripts/generate/fetch-eccc-stations.mjs) and picks the nearest station by
 // great-circle distance. Kept hidden inside this file so the rest of the
 // system keeps talking lat/lon like every other provider.
 //
