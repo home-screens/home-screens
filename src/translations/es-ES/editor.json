@@ -226,9 +226,8 @@
     "opensOnlyBadge": "Al abrirse",
     "opensOnlyTooltip": "solo aparece cuando se abre",
     "deleteConfirmOpeners": {
-      "zero": "{names} tiene un botón que abre esta pantalla. Ese botón también se va, y esta pantalla está vacía. Puedes deshacerlo.",
-      "one": "{names} tiene un botón que abre esta pantalla. Ese botón, el módulo de esta pantalla y sus ajustes se van. Puedes deshacerlo.",
-      "other": "{names} tiene un botón que abre esta pantalla. Ese botón, los {count} módulos de esta pantalla y sus ajustes se van. Puedes deshacerlo."
+      "one": "{names} tiene un botón que abre esta pantalla. Ese botón también se va.",
+      "other": "{names} tienen botones que abren esta pantalla. Esos botones también se van."
     },
     "orphanedBadge": "Nada la abre",
     "orphanedTooltip": "solo aparece cuando se abre, y nada la abre",
@@ -449,7 +448,7 @@
       "display-control": "Botones táctiles para encender, apagar o cambiar de pantalla",
       "traffic": "Cuánto se tarda en llegar al trabajo o al cole",
       "notes": "Notas que la familia escribe en el móvil y que se ven en el monitor durante el tiempo elegido",
-      "quick-timer": "Toca una duración para empezar un temporizador en la pared"
+      "quick-timer": "Toca una duración para poner un temporizador de cocina en el monitor"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendario eventos semana mes familia",
@@ -777,16 +776,16 @@
       "ordering": {
         "heading": "Orden de los calendarios",
         "description": "Qué calendarios mantienen su sitio en un día lleno.",
-        "help": "Arrastra para ordenarlos. En un día con más eventos de los que caben, los calendarios de arriba mantienen sus filas y los de abajo son los primeros en caerse.",
+        "help": "Arrastra para ordenarlos. En un día con más eventos de los que caben, los calendarios de arriba mantienen sus filas y los de abajo son los primeros en quedarse fuera.",
         "empty": "Activa primero un calendario.",
         "reset": "Volver al orden por hora"
       },
       "swatches": {
         "heading": "Colores disponibles",
-        "help": "Los colores que se ofrecen al cambiar el color de un calendario en el monitor. El monitor no puede crear colores nuevos, así que elígelos aquí.",
+        "help": "Los colores que se ofrecen al cambiar el color de un calendario en el monitor. El monitor no puede crear colores nuevos, así que pon aquí los que de verdad uses.",
         "slot": "Color {number}",
         "reset": "Restaurar los colores originales",
-        "wallHint": "En el monitor, toca la leyenda de colores de un calendario para ocultar un calendario ahí o cambiar su color."
+        "wallHint": "En un monitor, toca un calendario en la leyenda de colores para ocultarlo ahí o cambiar su color."
       }
     },
     "dataPage": {
@@ -1282,13 +1281,13 @@
         "statusOffline": "Sin conexión",
         "screenCountSingular": "1 pantalla",
         "screenCountPlural": "{count} pantallas",
-        "notFound": "No hay ninguna pantalla llamada «{id}»",
+        "notFound": "No hay ningún display llamado «{id}»",
         "subtabs": {
           "overview": "resumen",
           "overrides": "anulaciones"
         },
         "notFoundDesc": "Puede que se haya eliminado o que el enlace esté desactualizado.",
-        "notFoundAction": "Ver todas las pantallas"
+        "notFoundAction": "Ver todos los displays"
       },
       "overview": {
         "activeProfileLabel": "Perfil activo",
@@ -1396,12 +1395,12 @@
       },
       "sleep": {
         "label": "Suspensión y atenuación",
-        "infoPart1": "La suspensión y la atenuación se anulan juntas. Activa la anulación para cambiar cualquiera de ellas en esta pantalla. El valor predeterminado está en ",
+        "infoPart1": "La suspensión y la atenuación se anulan juntas. Activa la anulación para cambiar cualquiera de ellas en este display. El valor predeterminado está en ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposición de avisos",
-        "infoPart1": "Los ajustes de alertas se anulan juntos. Activa la anulación para cambiar cualquiera de ellos en esta pantalla. El valor predeterminado está en ",
+        "infoPart1": "Los ajustes de alertas se anulan juntos. Activa la anulación para cambiar cualquiera de ellos en este display. El valor predeterminado está en ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1410,20 +1409,20 @@
         "usingDefaultPart2": "."
       },
       "displaySoftware": {
-        "heading": "Software de la pantalla",
+        "heading": "Software del display",
         "upToDate": "Actualizado ({version})",
         "updateWaiting": "Actualización pendiente ({version})",
-        "updateWaitingHint": "Esta pantalla instalará {version} durante la noche o al reiniciarse.",
+        "updateWaitingHint": "Este display instalará {version} durante la noche o al reiniciarse.",
         "pending": "Preparándose",
-        "pendingHint": "Esta pantalla copiará el software del servidor en su próxima comprobación.",
+        "pendingHint": "Este display copiará el software del servidor en su próxima comprobación.",
         "unreported": "Sin datos",
-        "unreportedHint": "Esta pantalla todavía no ha indicado al servidor qué software utiliza.",
-        "needsSetupBody": "Esta pantalla se configuró antes de que existieran las actualizaciones automáticas. Ejecuta esto en ella una vez y a partir de entonces se mantiene al día sola.",
+        "unreportedHint": "Este display todavía no ha indicado al servidor qué software utiliza.",
+        "needsSetupBody": "Este display se configuró antes de que existieran las actualizaciones automáticas. Ejecuta esto en él una vez y a partir de entonces se mantiene al día solo.",
         "copy": "Copiar",
         "needsSetupTitle": "Activar las actualizaciones automáticas",
-        "connectLabel": "Conéctate a ella",
+        "connectLabel": "Conéctate a él",
         "runLabel": "Luego ejecuta esto",
-        "connectUnknown": "Conéctate a la Pi de esta pantalla desde un terminal (el usuario es {user}) y luego ejecuta:"
+        "connectUnknown": "Conéctate a la Pi de este display desde un terminal (el usuario es {user}) y luego ejecuta:"
       },
       "calendar": {
         "wallEntryLabel": "Añadir, cambiar y quitar eventos en este monitor",
@@ -1480,9 +1479,8 @@
       "screensaverLabel": "Salvapantallas",
       "screensaverClock": "Reloj a la deriva",
       "screensaverBlank": "En negro (solo atenuar)",
-      "screensaverOff": "Desactivado (se sigue atenuando)",
-      "dimmedSectionHelp": "El salvapantallas aparece siempre que la pantalla está atenuada, por ejemplo desde el móvil.",
-      "nothingDimsNote": "Este display no se atenúa solo por ahora. El salvapantallas aparece igualmente si se atenúa desde el control remoto.",
+      "dimmedSectionHelp": "El salvapantallas aparece únicamente cuando el display se atenúa solo, tras unos minutos sin uso o a la hora que hayas fijado. Si bajas el brillo desde el mando, se oscurece sin salvapantallas.",
+      "nothingDimsNote": "Ahora mismo este display no se atenúa solo, así que el salvapantallas no aparecerá hasta que actives la atenuación arriba.",
       "legend": {
         "bright": "Brillante",
         "dim": "Atenuado",
@@ -1987,7 +1985,7 @@
       },
       "planSource": {
         "heading": "Tu plan de comidas está en",
-        "description": "Planea las comidas aquí o, si tu familia guarda sus recetas en la app Mealie, usa el plan de comidas que tienes allí.",
+        "description": "Planifica las comidas aquí o, si tu familia guarda sus recetas en la app Mealie, usa el plan de comidas que tienes allí.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Se planifica aquí",
         "mealie": "Mealie",
@@ -1999,7 +1997,7 @@
         "mealieSetup": "No se puede usar",
         "tokenRefused": "Mealie ya no acepta el token guardado, así que el plan de comidas no se actualiza. Crea un token nuevo en Mealie y pégalo en la página de",
         "setup": "Home Screens no puede usar este Mealie, así que el plan de comidas no se actualiza. Si la dirección es correcta, puede que Mealie necesite una actualización. Comprueba la dirección en la página de",
-        "connectFirst": "Solo si tu familia usa Mealie, una app de recetas aparte. Para planear en ella, conéctala primero en la página de",
+        "connectFirst": "Solo si tu familia usa Mealie, una app de recetas aparte. Para planificar en ella, conéctala primero en la página de",
         "apiKeysLink": "Claves de API",
         "connectedOffer": "Mealie está conectado. Elígelo para planificar con las recetas y el plan que tienes allí.",
         "onMealie": "Todas las vistas de comidas, el móvil y este editor usan ahora tu plan de Mealie, y lo que planifiques aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
@@ -2309,18 +2307,18 @@
     },
     "sharedStatePage": {
       "heading": "Estado compartido",
-      "description": "Todos los valores que esta pantalla publica para condiciones, reglas y variables de texto, y todo lo referenciado que nunca llega.",
+      "description": "Todos los valores que este display publica para condiciones, reglas y variables de texto, y todo lo referenciado que nunca llega.",
       "intro": {
         "heading": "Cómo funciona",
-        "body1": "Las pantallas pueden reaccionar a lo que pasa en tu casa. Los complementos (como Home Assistant) comparten aquí pequeños valores con nombre, por ejemplo si una puerta está abierta o quién está en casa.",
-        "body2": "La pestaña «Vigilando» muestra lo que esta pantalla usa ahora mismo, para comprobar que llega la información correcta. La pestaña «Disponible» enumera todo lo que tus complementos pueden compartir, para ver a qué podrías reaccionar."
+        "body1": "Los displays pueden reaccionar a lo que pasa en tu casa. Los complementos (como Home Assistant) comparten aquí pequeños valores con nombre, por ejemplo si una puerta está abierta o quién está en casa.",
+        "body2": "La pestaña «Vigilando» muestra lo que este display usa ahora mismo, para comprobar que llega la información correcta. La pestaña «Disponible» enumera todo lo que tus complementos pueden compartir, para ver a qué podrías reaccionar."
       },
       "tabs": {
         "watching": "Vigilando",
         "available": "Disponible"
       },
       "available": {
-        "description": "Todo lo que tus complementos pueden compartir con esta pantalla, se use ya o no. Explora por complemento o busca para acotar.",
+        "description": "Todo lo que tus complementos pueden compartir con este display, se use ya o no. Explora por complemento o busca para acotar.",
         "searchPlaceholder": "Buscar valores disponibles…",
         "summary": {
           "one": "{count} valor disponible de tus complementos",
@@ -2335,16 +2333,16 @@
         "showLess": "Mostrar menos"
       },
       "displayPicker": {
-        "label": "Pantalla",
+        "label": "Display",
         "optionLabel": "{name} ({id})"
       },
-      "lastReportLabel": "Último informe de la pantalla: {time}",
-      "noReportHint": "Esta pantalla aún no ha informado de ningún valor. Los valores aparecerán aquí cuando la pantalla esté encendida y algo los publique.",
-      "editorValuesHint": "Valores en vivo de este editor. Enciende la pantalla para ver lo que realmente informa.",
-      "offlineSinceHint": "La pantalla no informa desde {time}. Las filas muestran los últimos valores que envió.",
+      "lastReportLabel": "Último informe del display: {time}",
+      "noReportHint": "Este display aún no ha informado de ningún valor. Los valores aparecerán aquí cuando el display esté encendido y algo los publique.",
+      "editorValuesHint": "Valores en vivo de este editor. Enciende el display para ver lo que realmente informa.",
+      "offlineSinceHint": "El display no informa desde {time}. Las filas muestran los últimos valores que envió.",
       "emptyHint": "Aún no hay nada aquí. Los valores aparecen solos cuando algo los usa, como una condición en un módulo o un valor en vivo en un módulo de Texto. No hace falta preparar nada de antemano.",
       "neverPublished": "Nunca publicada",
-      "neverPublishedDetail": "Nada en la pantalla publica esta clave, así que todo lo que la usa sigue su ajuste 'Antes de que lleguen los datos'.",
+      "neverPublishedDetail": "Nada en el display publica esta clave, así que todo lo que la usa sigue su ajuste 'Antes de que lleguen los datos'.",
       "unreferencedLabel": "Nada referencia esta clave.",
       "referencedByLabel": "Usada por",
       "ruleRefLabel": "Regla: {name}",
@@ -2381,18 +2379,18 @@
       },
       "displayToken": {
         "heading": "Clave del display",
-        "description": "Para Home Assistant, atajos y marcadores que controlan un display sin la contraseña. Tus displays no la usan: Home Screens recuerda cada uno desde que se le deja entrar.",
+        "description": "Para Home Assistant, atajos y marcadores que controlan un display sin la contraseña. Tus displays no la usan: Home Screens recuerda cada uno en cuanto lo dejas entrar.",
         "reveal": "Mostrar",
         "hide": "Ocultar",
         "copy": "Copiar",
         "regenerateButton": "Crear una clave nueva",
-        "regenerating": "Regenerando…",
+        "regenerating": "Creando una clave nueva…",
         "regenerateConfirm": "Crear una clave nueva",
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "Todo lo que use la clave antigua deja de funcionar hasta que le des la nueva. Tus displays siguen funcionando.",
         "regenerateWallsLetInByThemselves": {
-          "one": "{count} display entró solo después de la actualización. Una clave nueva no lo quita.",
-          "other": "{count} displays entraron solos después de la actualización. Una clave nueva no los quita."
+          "one": "{count} navegador entró solo después de la actualización. Una clave nueva no lo deja fuera.",
+          "other": "{count} navegadores entraron solos después de la actualización. Una clave nueva no los deja fuera."
         },
         "regenerateWallsCheck": {
           "one": "Comprueba que es tuyo",
@@ -2465,7 +2463,7 @@
         "disabling": "Desactivando…",
         "setExplanation": "Una contraseña para toda la casa. A partir de ahí, el mando familiar y el editor la piden. El monitor y la página de tareas de los niños siguen funcionando sin ella.",
         "wallsStay": {
-          "one": "Tu {count} display sigue teniendo permiso para entrar.",
+          "one": "Tu display sigue teniendo permiso para entrar.",
           "other": "Tus {count} displays siguen teniendo permiso para entrar."
         },
         "wallsOff": "Un display que esté apagado ahora mismo pedirá entrar cuando vuelva."
@@ -2683,9 +2681,9 @@
       "previouslyThrottled": "Limitado previamente",
       "throttleOk": "OK",
       "temperature": "Temperatura",
-      "displayPrograms": "Programas de la pantalla",
+      "displayPrograms": "Programas del display",
       "programsChecked": "Programas comprobados",
-      "noHardwareStats": "Aún no se han reportado estadísticas de hardware para esta pantalla. Instala home-screens-reporter.timer en su Pi.",
+      "noHardwareStats": "Aún no se han reportado estadísticas de hardware para este display. Instala home-screens-reporter.timer en su Pi.",
       "storageTitle": "Almacenamiento",
       "used": "Usado",
       "free": "libre",
@@ -2715,8 +2713,8 @@
       "cacheState": "Estado",
       "cacheStaleLabel": "caducada",
       "cacheFreshLabel": "reciente",
-      "cacheNoDisplay": "Estos números vienen de una pantalla. Ahora mismo no hay ninguna conectada.",
-      "cacheNoDisplayForName": "Estos números vienen de una pantalla. {name} no está conectada ahora mismo.",
+      "cacheNoDisplay": "Estos números vienen de un display. Ahora mismo no hay ninguno conectado.",
+      "cacheNoDisplayForName": "Estos números vienen de un display. {name} no está conectado ahora mismo.",
       "telemetryTitle": "Telemetría anónima",
       "telemetryDescription": "Home Screens recopila estadísticas de uso anónimas para priorizar funciones y entender cómo se usa la app. Nunca se recopilan datos personales, direcciones IP ni contenido.",
       "telemetryToggle": "Enviar datos de uso anónimos",
@@ -2741,14 +2739,14 @@
       "dataBackups": "Copias de configuración",
       "dataConfiguration": "Configuración",
       "noAppData": "Aún no hay datos de la app.",
-      "displayTitle": "Pantalla",
-      "offline": "Desconectada",
+      "displayTitle": "Display",
+      "offline": "Sin conexión",
       "displayStates": {
         "active": "Activo",
         "dimmed": "Atenuado",
         "asleep": "En reposo"
       },
-      "switchDisplay": "Cambiar pantalla",
+      "switchDisplay": "Cambiar de display",
       "screen": "Pantalla",
       "indexOf": "{index} de {total}",
       "profile": "Perfil",
@@ -2756,43 +2754,43 @@
       "notChromium": "Otro navegador",
       "lastSeen": "Visto por última vez",
       "timeAgo": "hace {age}",
-      "noDisplayPrefix": "Ninguna pantalla conectada. Abre",
-      "noDisplayForNamePrefix": "Ninguna pantalla conectada para {name}. Abre",
+      "noDisplayPrefix": "Ningún display conectado. Abre",
+      "noDisplayForNamePrefix": "Ningún display conectado para {name}. Abre",
       "noDisplayOpenSuffix": "para empezar.",
-      "displayHardwareTitle": "Hardware de pantalla",
+      "displayHardwareTitle": "Hardware del display",
       "webglUnavailable": "WebGL no disponible",
       "cpuCoresLabel": "Núcleos de CPU",
       "deviceMemoryLabel": "Memoria del dispositivo",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "La información del navegador la reporta el cliente de pantalla. Ninguna pantalla conectada.",
-      "noBrowserStatsForName": "La información del navegador la reporta el cliente de pantalla. Ninguna pantalla conectada para {name}.",
-      "description": "Cómo están tus pantallas y este dispositivo ahora mismo."
+      "noBrowserStats": "La información del navegador la reporta el cliente del display. Ningún display conectado.",
+      "noBrowserStatsForName": "La información del navegador la reporta el cliente del display. Ningún display conectado para {name}.",
+      "description": "Cómo están tus displays y este dispositivo ahora mismo."
     },
     "displaysIndex": {
-      "breadcrumb": "Pantallas",
-      "heroNew": "Ejecuta Home Screens en varias pantallas",
+      "breadcrumb": "Displays",
+      "heroNew": "Ejecuta Home Screens en varios displays",
       "heroExisting": {
-        "one": "{count} pantalla en este hogar",
-        "other": "{count} pantallas en este hogar"
+        "one": "{count} display en este hogar",
+        "other": "{count} displays en este hogar"
       },
-      "emptyDescriptionPrefix": "Controla más de una pantalla desde esta Pi (una pantalla táctil de cocina, un monitor de dormitorio, una TV de salón), cada una con su propia disposición, resolución y rotación. Esta Pi se convierte en el hub (la que ejecuta Home Screens y sirve todas las pantallas); las pantallas secundarias pueden ser Pi Zeros económicos ejecutando ",
+      "emptyDescriptionPrefix": "Controla más de un display desde esta Pi (una pantalla táctil de cocina, un monitor de dormitorio, una TV de salón), cada uno con su propia disposición, resolución y rotación. Esta Pi se convierte en el hub (la que ejecuta Home Screens y sirve todos los displays); los displays secundarios pueden ser Pi Zero económicas que ejecuten ",
       "emptyDescriptionSuffix": ".",
-      "populatedDescriptionPrefix": "Haz clic en una pantalla para editar sus ajustes. Todo lo demás usa los ",
+      "populatedDescriptionPrefix": "Haz clic en un display para editar sus ajustes. Todo lo demás usa los ",
       "populatedDescriptionSuffix": " compartidos.",
       "defaultsLink": "Valores predeterminados",
       "refreshHeartbeatsTitle": "Actualizar latidos",
-      "addDisplay": "Añadir pantalla",
-      "emptyTitle": "Esta instalación funciona en modo de pantalla única",
-      "emptyParagraphPart1": "Tu configuración actual cuenta como una pantalla pero aún no está añadida aquí; la compatibilidad multipantalla es opcional para que las instalaciones existentes permanezcan iguales hasta que añadas explícitamente una segunda pantalla. En cuanto añadas la primera, la disposición actual de esta Pi se convierte en una pantalla llamada ",
+      "addDisplay": "Añadir display",
+      "emptyTitle": "Esta instalación funciona en modo de un solo display",
+      "emptyParagraphPart1": "Tu configuración actual cuenta como un display pero aún no está añadida aquí; la compatibilidad con varios displays es opcional para que las instalaciones existentes permanezcan iguales hasta que añadas explícitamente un segundo display. En cuanto añadas el primero, la disposición actual de esta Pi se convierte en un display llamado ",
       "emptyParagraphPart2": " y sigue funcionando exactamente igual que hoy.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Haz clic en ",
-      "emptyBullet1Suffix": " arriba para añadir una nueva pantalla. Dale nombre, resolución y rotación, y luego diseña su disposición en el editor.",
-      "emptyBullet2": "O graba otra Pi con {command}. Cuando arranque, aparecerá abajo como una {label}, y se añade con un clic.",
-      "unadoptedLabel": "pantalla esperando a ser añadida",
+      "emptyBullet1Suffix": " arriba para añadir un nuevo display. Dale nombre, resolución y rotación, y luego diseña su disposición en el editor.",
+      "emptyBullet2": "O graba otra Pi con {command}. Cuando arranque, aparecerá abajo como un {label}, y se añade con un clic.",
+      "unadoptedLabel": "display esperando a ser añadido",
       "unadoptedWaiting": {
-        "one": "{count} pantalla esperando a ser añadida",
-        "other": "{count} pantallas esperando a ser añadidas"
+        "one": "{count} display esperando a ser añadido",
+        "other": "{count} displays esperando a ser añadidos"
       },
       "unadoptedHintPrefix": "Estas Pis están conectadas al hub pero aún no se han añadido. Haz clic en ",
       "unadoptedHintSuffix": " para asignarles pantallas.",
@@ -2802,11 +2800,11 @@
       "reportedDimensions": "{width}×{height} informado",
       "reportedFrom": "desde {address}",
       "multipleClientsHeading": "{count} clientes informan con este ID",
-      "multipleClientsParagraphPrefix": "Dos o más clientes están haciendo POST con este ID de pantalla. Revisa las IP de origen arriba para identificar qué dispositivo está informando; normalmente una instalación con ",
+      "multipleClientsParagraphPrefix": "Dos o más clientes están haciendo POST con este ID de display. Revisa las IP de origen arriba para identificar qué dispositivo está informando; normalmente una instalación con ",
       "multipleClientsParagraphSuffix": " duplicado, una pestaña del navegador perdida o un display apuntando a la dirección equivocada.",
       "statusOnline": "En línea · {time}",
-      "statusIdle": "Inactiva · {time}",
-      "statusOffline": "Desconectada · {time}",
+      "statusIdle": "Inactivo · {time}",
+      "statusOffline": "Sin conexión · {time}",
       "rotationDegrees": "rotación de {degrees}°",
       "rotationNormal": "Sin rotación",
       "screenCount": {
@@ -2814,18 +2812,18 @@
         "other": "{count} pantallas"
       },
       "currentScreenLabel": "Mostrando {name}",
-      "multipleClientsCardHeading": "{count} clientes distintos informan para esta pantalla",
+      "multipleClientsCardHeading": "{count} clientes distintos informan para este display",
       "tabsSuffix": "×{count} pestañas",
-      "formEditTitle": "Editar pantalla",
+      "formEditTitle": "Editar display",
       "formAdoptTitle": "Añadir {id}",
-      "formAddTitle": "Añadir pantalla",
+      "formAddTitle": "Añadir display",
       "formNameLabel": "Nombre",
       "formNamePlaceholder": "Pantalla táctil de cocina",
       "formIdLabel": "ID",
       "formIdHint": "(usado en la URL: /display/<id>)",
       "formIdPlaceholder": "cocina",
-      "formIdLocked": "El ID está fijado al de la pantalla que informa.",
-      "formReportedViewport": "(informado por la pantalla: {width} × {height})",
+      "formIdLocked": "El ID está fijado al del display que informa.",
+      "formReportedViewport": "(informado por el display: {width} × {height})",
       "formWidth": "Ancho",
       "formHeight": "Alto",
       "formResolutionHint": "Ajusta esto para que coincida con la pantalla física donde se muestra este display. Los módulos se colocan dentro de esa área cuando editas las pantallas de este display.",
@@ -2833,15 +2831,15 @@
       "formRotation90": "90° horaria (vertical)",
       "formRotation180": "180° (invertida)",
       "formRotation270": "270° horaria (vertical)",
-      "formRotationHint": "Elige en qué sentido se coloca el área de pantalla. El ancho y el alto de arriba se intercambian automáticamente para que el lado más largo coincida con la rotación que elijas.",
+      "formRotationHint": "Elige en qué sentido se coloca el display. El ancho y el alto de arriba se intercambian automáticamente para que el lado más largo coincida con la rotación que elijas.",
       "formCancel": "Cancelar",
-      "formAddDisplay": "Añadir pantalla",
+      "formAddDisplay": "Añadir display",
       "formErrorName": "El nombre es obligatorio",
       "formErrorId": "El ID solo puede contener letras minúsculas, dígitos y guiones (p. ej. «kitchen»)",
-      "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a las pantallas. Elige otro ID, p. ej. «kitchen» o «bedroom-tv»",
-      "formErrorIdTaken": "Ya existe una pantalla con el ID «{id}»",
-      "formErrorWidth": "El ancho tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de las pantallas miden 1080 o 1920 de ancho.",
-      "formErrorHeight": "El alto tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de las pantallas miden 1080 o 1920 de alto.",
+      "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a los displays. Elige otro ID, p. ej. «kitchen» o «bedroom-tv»",
+      "formErrorIdTaken": "Ya existe un display con el ID «{id}»",
+      "formErrorWidth": "El ancho tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays miden 1080 o 1920 de ancho.",
+      "formErrorHeight": "El alto tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays miden 1080 o 1920 de alto.",
       "softwareUpdateWaiting": "Actualización pendiente",
       "softwareNeedsSetup": "Requiere configuración",
       "mainDisplayName": "Display principal"
@@ -2892,7 +2890,7 @@
       }
     },
     "familyPage": {
-      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, recompensas, calendarios y horarios escolares.",
+      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, premios, calendarios y horarios escolares.",
       "chores": {
         "heading": "Tareas extra",
         "description": "Cómo se piden las tareas extra. Los Ajustes de tareas del teléfono cambian estas mismas dos cosas.",
@@ -2917,7 +2915,7 @@
         "jobsLabel": "Pedirlo antes de",
         "jobs": {
           "redeem": {
-            "label": "Gastar tickets en la tienda de recompensas",
+            "label": "Gastar tickets en la tienda de premios",
             "hint": "En el monitor y en la página de tareas de los niños."
           },
           "untick": {
@@ -2966,21 +2964,24 @@
     },
     "walls": {
       "waitingTitle": {
-        "one": "{count} display espera a que lo dejen entrar",
-        "other": "{count} displays esperan a que los dejen entrar"
+        "one": "{count} navegador espera a que lo dejen entrar",
+        "other": "{count} navegadores esperan a que los dejen entrar"
       },
-      "waitingHint": "Han abierto el monitor, pero Home Screens aún no los conoce. Deja entrar a los que sean tuyos. Los demás puedes dejarlos: desaparecen solos.",
+      "waitingHint": "Han abierto el monitor, pero Home Screens aún no los conoce. Deja entrar a los que sean tuyos. Los demás puedes dejarlos como están: desaparecen solos.",
       "forDisplay": "para {name}",
-      "askingSince": "lo pidió {time}",
-      "looksFamiliar": "Parece un display al que ya dejaste entrar.",
+      "askingSince": "pidió entrar {time}",
+      "looksFamiliar": "Parece un navegador al que ya dejaste entrar.",
       "letIn": "Dejar entrar",
       "letInFailed": "No se ha podido dejar entrar. Inténtalo de nuevo.",
       "letInByItself": "Entró solo",
       "windowTitle": {
-        "one": "{count} display entró solo después de la actualización",
-        "other": "{count} displays entraron solos después de la actualización"
+        "one": "{count} navegador entró solo después de la actualización",
+        "other": "{count} navegadores entraron solos después de la actualización"
       },
-      "windowBody": "Home Screens ahora recuerda cada display, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {days} días.",
+      "windowBody": {
+        "one": "Home Screens ahora recuerda cada navegador, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {count} día.",
+        "other": "Home Screens ahora recuerda cada navegador, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {count} días."
+      },
       "showingIn": {
         "one": "Se muestra en {count} sitio",
         "other": "Se muestra en {count} sitios"
@@ -3869,7 +3870,7 @@
       "label": "Abre",
       "none": "Nada",
       "andMore": "y {count} más",
-      "help": "Añade en la esquina inferior del módulo un botón con el nombre de esa pantalla. Al tocarlo en una pantalla táctil se muestra la pantalla.",
+      "help": "Añade en la esquina inferior del módulo un botón con el nombre de esa pantalla. Al tocarlo en un display táctil, se muestra esa pantalla.",
       "sectionTitle": "Abrir una pantalla",
       "offBadge": "{name} (apagada)",
       "holds": "Muestra {what}",
@@ -4196,7 +4197,7 @@
       "viewToday": "Hoy (franja del día)",
       "viewProgress": "Progreso (anillos)",
       "viewCompact": "Compacto (cuadrícula densa)",
-      "viewRewardHistory": "Historial de recompensas",
+      "viewRewardHistory": "Historial de premios",
       "historyLimit": "Límite del historial",
       "weekStartsOn": "La semana empieza el",
       "showTickets": "Mostrar tickets",
@@ -4513,9 +4514,9 @@
     "fullscreen-chore-chart": {
       "view": "Vista",
       "viewChoreBoard": "Tablero de tareas",
-      "viewRewardsStore": "Tienda de recompensas",
-      "showRewardsButton": "Mostrar botón de recompensas",
-      "showRewardsButtonHelp": "Añade un botón en el tablero de tareas para que los peques pasen a la tienda de recompensas. Ideal para displays táctiles.",
+      "viewRewardsStore": "Tienda de premios",
+      "showRewardsButton": "Mostrar botón de premios",
+      "showRewardsButtonHelp": "Añade un botón en el tablero de tareas para que los peques pasen a la tienda de premios. Ideal para displays táctiles.",
       "themeDefault": "Predeterminado (de Ajustes)",
       "typographySize": "Tamaño del texto",
       "accentColor": "Color de acento",
@@ -4779,7 +4780,7 @@
       "wallAdd": "Añadir desde el monitor",
       "wallAddHelpMealie": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista de Mealie con la que compra la familia.",
       "wallAddHelpLocal": "Cualquiera puede añadir a la lista de la compra desde el monitor. Va a la lista elegida abajo.",
-      "wallPlan": "Planear comidas en el monitor",
+      "wallPlan": "Planificar comidas en el monitor",
       "wallPlanHelp": "Cualquiera puede poner una receta en el menú desde el monitor, para esta semana y la que viene: un botón «Poner en el menú» en cada receta y un signo más en las comidas vacías de las vistas de la semana. Escribir una comida o crear una receta nueva se sigue haciendo desde el móvil.",
       "extrasList": "Las demás compras van a",
       "extrasListNone": "Ninguna (sin fila «Añadir»)",
@@ -5753,16 +5754,16 @@
       "presets": "Duraciones",
       "presetsHint": "Hasta {max} botones, en este orden.",
       "minutesShort": "{minutes} min",
-      "fullScreen": "Llenar toda la pantalla mientras corre",
-      "fullScreenHint": "Apagado, el temporizador se queda en esta caja y el resto de la pantalla sigue.",
+      "fullScreen": "Ocupar todo el display mientras está en marcha",
+      "fullScreenHint": "Si está desactivado, el temporizador se queda en este recuadro y el resto del display sigue igual.",
       "view": "Estilo del temporizador",
       "view-ring": "Anillo brillante",
       "view-face": "Esfera",
       "view-cascade": "Cascada de color",
       "view-path": "Camino de estrellas",
       "target": "Mostrarlo en",
-      "target-all": "Todas las pantallas",
-      "target-this": "Esta pantalla",
+      "target-all": "Todos los displays",
+      "target-this": "Este display",
       "sound": "Sonido"
     }
   },
@@ -6022,7 +6023,7 @@
     "surfaces": {
       "chores": {
         "audience": "Para los niños",
-        "description": "Las tareas de hoy y las recompensas. No se puede cambiar nada más."
+        "description": "Las tareas de hoy y los premios. No se puede cambiar nada más."
       },
       "remote": {
         "audience": "Para los mayores",

@@ -232,8 +232,6 @@
     "noEventsToday": "No events today",
     "noUpcomingEvents": "No upcoming events",
     "moreCount": "+{count} more",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "Upcoming",
     "viewLabels": {
       "schedule": "Schedule",
@@ -1926,11 +1924,7 @@
       "failed": "That didn't go up. Your drawing is still here.",
       "unreachable": "That didn't go up. Home Screens isn't answering. Your drawing is still here.",
       "off": "Drawing on the wall was just turned off. Your drawing can't go up.",
-      "posted": "{name}'s note is on the board",
-      "postedNobody": "Your note is on the board",
-      "undoFailed": "That note is still on the board. Take it down on a phone.",
       "pickAgain": "That person isn't in the family any more. Pick who drew it.",
-      "undoing": "Taking it down…",
       "posting": "Putting it up…",
       "madeRoom": "The oldest drawing came down to make room."
     },
@@ -1956,6 +1950,13 @@
       "write": "Write",
       "pageWaits": "Your drawing is still waiting for you.",
       "wordsWait": "What you wrote is still waiting for you."
+    },
+    "wallPost": {
+      "posted": "{name}'s note is on the board",
+      "postedNobody": "Your note is on the board",
+      "undoFailed": "That note is still on the board. Take it down on a phone.",
+      "undoing": "Taking it down…",
+      "undo": "Undo"
     }
   },
   "photoControls": {
@@ -1967,9 +1968,12 @@
     "allPictures": "All pictures"
   },
   "quick-timer": {
-    "title": "Quick timer",
+    "title": "Quick Timer",
     "unit": "min",
-    "startAriaLabel": "Start a {minutes} minute timer",
+    "startAriaLabel": {
+      "one": "Start a {minutes} minute timer",
+      "other": "Start a {minutes} minute timer"
+    },
     "busyElsewhere": "A timer is running on another wall"
   }
 }

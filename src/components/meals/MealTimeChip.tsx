@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
 import { withAlpha } from '@/lib/hex-color';
@@ -117,6 +117,7 @@ export default function MealTimeChip({
   // Core, not the phone's list: the editor draws this chip too, and loads
   // `remote` only after the page is up, so the words arrived late there.
   const t = useTranslate('core');
+  const locale = useFormattingLocale();
   const [isEditing, setIsEditing] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -165,7 +166,7 @@ export default function MealTimeChip({
   }, [isEditing]);
 
   const presets = getSlotTimePresets(slot);
-  const formattedValue = value ? formatMealTime(value, timeFormat) : '';
+  const formattedValue = value ? formatMealTime(value, timeFormat, locale) : '';
   const padding = compact ? '2px 6px' : '6px 10px';
   const fontSize = compact ? 10 : 12;
   // The chip reads as a small label but is tapped with a thumb on the phone.
@@ -398,7 +399,7 @@ export default function MealTimeChip({
                     if (!isSelected) e.currentTarget.style.background = colors.presetBg;
                   }}
                 >
-                  {formatMealTime(preset, timeFormat)}
+                  {formatMealTime(preset, timeFormat, locale)}
                 </button>
               );
             })}

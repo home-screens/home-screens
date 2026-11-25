@@ -1017,7 +1017,10 @@
   "timers": {
     "title": "Timers",
     "quickTimer": "Timer rápido",
-    "quickName": "Timer de {minutes} minutos",
+    "quickName": {
+      "one": "Timer de {minutes} minuto",
+      "other": "Timer de {minutes} minutos"
+    },
     "start": "Começar",
     "sound": "Som",
     "routines": "Rotinas",
@@ -1060,7 +1063,10 @@
     "minUnit": "min",
     "secUnit": "s",
     "stepSeconds": "Segundos",
-    "quickNameSeconds": "Timer de {seconds} segundos",
+    "quickNameSeconds": {
+      "one": "Timer de {seconds} segundo",
+      "other": "Timer de {seconds} segundos"
+    },
     "quickNameClock": "Timer de {time}",
     "secondsShort": "{seconds} s",
     "showingOn": "Aparecendo em {names}",
@@ -1521,8 +1527,8 @@
         "one": "{count} hora",
         "other": "{count} horas"
       },
-      "minutes": "{count}min",
-      "hoursMinutes": "{hours}h{minutes}min",
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
       "repeats": "Repetição",
       "stops": "Para de repetir",
       "stopsNever": "Nunca",

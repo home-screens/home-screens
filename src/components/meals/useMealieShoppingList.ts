@@ -20,6 +20,7 @@ import {
   setShoppingItemChecked,
   shoppingAddPlan,
   shoppingCounts,
+  shoppingItems,
   shoppingListView,
   shoppingPutBack,
   tidyShoppingText,
@@ -343,8 +344,16 @@ export function useMealieShoppingList(
     setAdding(true);
     const seq = ++seqRef.current;
     try {
-      const { wire, added: newId } = await addToMealieShoppingList(fetcher, shown.id, words);
+      const { wire, added: newId, outcome, item } = await addToMealieShoppingList(fetcher, shown.id, words);
       if (!mounted.current) return true;
+      if (outcome === 'already' || outcome === 'putBack') {
+        // On the list by now (added elsewhere since this list was read): the hub kept one.
+        adopt(wire, seq, 'write');
+        if (outcome === 'putBack') onSavedRef.current?.();
+        const there = item ? shoppingItems(wire.list ?? shown).find((i) => i.id === item) : undefined;
+        showAdded({ kind: outcome, text: there?.text ?? words, list: wire.list?.name ?? shown.name, label: labelOf(wire.list, item ?? undefined) });
+        return true;
+      }
       // The new item leads its group this visit. Mealie may file it under a
       // label by itself ("Lemons" under Produce), so the line under the box
       // says where it went rather than the page scrolling away from the box.

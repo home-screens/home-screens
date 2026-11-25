@@ -93,8 +93,6 @@ function ZoneBand({
 export function DayTimelineView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const am = t('fullscreen-calendar.am');
-  const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
   const openDay = useDaySheetOpener();
   // The day drawn: today at rest, another day after the look-ahead arrows.
@@ -233,7 +231,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, anchor
             <HourGutter
               hourStart={hourStart} totalHours={totalHours} hourHeight={hourHeight}
               fontSize={fontSize * 0.8} weight={500} inset={scale.bu * 0.6}
-              timeFormat={timeFormat} am={am} pm={pm}
+              timeFormat={timeFormat} locale={locale}
             />
             {/* Now badge */}
             {config.showNowLine && nowInRange && (
@@ -376,7 +374,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, anchor
       </div>
 
       {rolling && (
-        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} am={am} pm={pm} t={t} />
+        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} locale={locale} t={t} />
       )}
     </div>
   );

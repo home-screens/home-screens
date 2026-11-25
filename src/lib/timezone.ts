@@ -14,7 +14,6 @@
  * locale-independent integers.
  */
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
-import { formatDateSync } from '@/i18n/formatters';
 import type { TimeFormat } from '@/types/config';
 import { NO_VALUE } from './constants';
 import { DAY_MS } from './iso-date';
@@ -412,49 +411,120 @@ export interface TimeOfDayFormat {
   /** 12-hour only: a leading zero on the hour (`08:05 AM`), for times that line up in a column. */
   pad?: boolean;
   /**
-   * An hour label on a forecast, with no minutes: `8 AM` in 12-hour mode and
-   * the bare two-digit hour (`08`) in 24-hour mode. The labels sit in narrow
-   * columns that never wrap, where `08:00` under every hour does not fit.
+   * The hour alone, with no minutes, as the language writes it: `8 AM`,
+   * `8 a. m.` in Spanish and `8 a.m.` in Dutch in 12-hour mode; `08` in
+   * 24-hour mode, which German writes `08 Uhr`, French `08 h` and Spanish `8`.
    */
   hourOnly?: boolean;
+  /**
+   * The numbers alone: no day period in 12-hour mode (`8:05`, `8` with
+   * `hourOnly`) and no word after a 24-hour hour (`08`, never `08 Uhr`). For a
+   * place too narrow for the words, where the hour cannot be mistaken or the
+   * caller adds its own short day period.
+   */
+  bare?: boolean;
+}
+
+type TimeOfDayShape = '24h' | '12h' | '12h-pad' | '24h-hour' | '12h-hour' | '12h-pad-hour';
+
+/**
+ * The Intl options for each way `formatTimeOfDay` writes a time. They read a
+ * UTC probe, so the zone is added when the formatter is built.
+ *
+ * 24-hour is the language's short time style with a 24-hour clock rather than
+ * `hour: 'numeric', minute: '2-digit'`: Chromium, Safari and Node take
+ * `numeric` as "no leading zero" and write German `8:05` and Danish `8.05`,
+ * where the language's own pattern (and Firefox) writes `08:05` and `08.05`.
+ * The short style is the language's pattern in all of them, Spanish `8:05`
+ * included. In 12-hour mode it is the other way round (Chromium keeps the
+ * German leading zero in the short style, `08:05 AM`), so 12-hour asks for
+ * the fields.
+ */
+const TIME_OF_DAY_OPTIONS: Record<TimeOfDayShape, Intl.DateTimeFormatOptions> = {
+  '24h': { timeStyle: 'short', hourCycle: 'h23' },
+  '12h': { hour: 'numeric', minute: '2-digit', hour12: true },
+  '12h-pad': { hour: '2-digit', minute: '2-digit', hour12: true },
+  '24h-hour': { hour: 'numeric', hourCycle: 'h23' },
+  '12h-hour': { hour: 'numeric', hour12: true },
+  '12h-pad-hour': { hour: '2-digit', hour12: true },
+};
+
+// Building a formatter is the slow half of Intl, and a wall formats times
+// every second (the screensaver) and on every forecast and calendar render.
+const timeOfDayFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function timeOfDayFormatter(shape: TimeOfDayShape, locale: string): Intl.DateTimeFormat {
+  const key = `${shape}|${locale}`;
+  let formatter = timeOfDayFormatters.get(key);
+  if (!formatter) {
+    const options: Intl.DateTimeFormatOptions = { ...TIME_OF_DAY_OPTIONS[shape], timeZone: 'UTC' };
+    try {
+      formatter = new Intl.DateTimeFormat(locale, options);
+    } catch {
+      // A tag Intl cannot read (a hand-edited formattingLocale) writes in the default language.
+      formatter = new Intl.DateTimeFormat(DEFAULT_LOCALE, options);
+    }
+    timeOfDayFormatters.set(key, formatter);
+  }
+  return formatter;
 }
 
 /**
- * A time of day, written the one way every surface writes it: `08:05` in
- * 24-hour mode in every language (leading zero, colon), and `8:05 AM` in
- * 12-hour mode. The day period is the one date-fns has for the language:
- * `AM` / `PM` in every shipped language but German, which reads
- * `8:05 vorm.` / `3:30 nachm.`. With `hourOnly` the minutes go: `8 AM`,
- * `8 vorm.`, and `08` in 24-hour mode.
+ * A time of day, written the way the household's formatting language writes
+ * it (the Unicode CLDR pattern Intl has for it), so every surface reads the
+ * same as the language's own calendars and clocks:
  *
- * Intl's `hour: 'numeric'` writes `8:05` in German and `8.05` in Danish, so
- * a wall that used it beside the calendar read `08:05` on an event and `8:05`
- * on the sunrise card next to it. The hour and minute come from the zone's
- * wall clock as plain numbers, so a household time that falls in the
- * machine's own spring-forward gap still prints as itself.
+ * | | 24-hour | 12-hour | hour only, 24 / 12 |
+ * |---|---|---|---|
+ * | en-US, pt-BR | `08:05` | `8:05 AM` | `08` / `8 AM` |
+ * | de-DE | `08:05` | `8:05 AM` | `08 Uhr` / `8 AM` |
+ * | fr-FR | `08:05` | `8:05 AM` | `08 h` / `8 AM` |
+ * | es-ES | `8:05` | `8:05 a. m.` | `8` / `8 a. m.` |
+ * | nl-NL | `08:05` | `8:05 a.m.` | `08` / `8 a.m.` |
+ * | da-DK | `08.05` | `8.05 AM` | `08` / `8 AM` |
+ *
+ * `pad` writes `08:05 AM` in 12-hour mode, and `bare` keeps the numbers
+ * alone (`8:05`, `08`). Spaces come back as plain spaces: engines disagree on
+ * whether the one before the day period is a narrow no-break space, and the
+ * server's render has to match the wall's.
+ *
+ * The hour and minute come from the zone's wall clock as plain numbers and are
+ * written from a UTC probe, so a household time that falls in the machine's
+ * own spring-forward gap still prints as itself.
  */
 export function formatTimeOfDay(
   instant: Date,
-  { timeFormat, locale, timezone, pad = false, hourOnly = false }: TimeOfDayFormat,
+  { timeFormat, locale, timezone, pad = false, hourOnly = false, bare = false }: TimeOfDayFormat,
 ): string {
   if (isNaN(instant.getTime())) return NO_VALUE;
   const { minuteOfDay } = wallClockParts(instant, timezone);
-  // A day with no clock change in any zone, so the probe reads as the time itself.
-  const probe = new Date(2000, 0, 1, Math.floor(minuteOfDay / 60), minuteOfDay % 60);
-  const hours = pad ? 'hh' : 'h';
-  const pattern = timeFormat === '24h'
-    ? (hourOnly ? 'HH' : 'HH:mm')
-    : hourOnly ? `${hours} a` : `${hours}:mm a`;
-  return formatDateSync(probe, pattern, { locale }).trim();
+  const probe = new Date(minuteOfDay * 60_000);
+  const shape: TimeOfDayShape = timeFormat === '24h'
+    ? (hourOnly ? '24h-hour' : '24h')
+    : `12h${pad ? '-pad' : ''}${hourOnly ? '-hour' : ''}` as TimeOfDayShape;
+  const formatter = timeOfDayFormatter(shape, locale);
+  const text = bare ? numbersOnly(formatter.formatToParts(probe)) : formatter.format(probe);
+  return text.replace(/[\u00a0\u202f]/g, ' ');
+}
+
+/** The hour through the minute, with whatever the language puts between them (`8:05`, `8.05`, `8 h 05`). */
+function numbersOnly(parts: Intl.DateTimeFormatPart[]): string {
+  const first = parts.findIndex((part) => part.type === 'hour');
+  const last = parts.findLastIndex((part) => part.type === 'hour' || part.type === 'minute');
+  return parts.slice(first, last + 1).map((part) => part.value).join('');
 }
 
 /**
- * An hour label (`formatTimeOfDay` with `hourOnly`) for a strip too tight for
- * the space: a two-letter day period closes up to the hour (`8AM`), a longer
- * one keeps its space, since `8vorm.` reads as a typo.
+ * An hour label for a forecast strip too tight for the words: the number alone
+ * in 24-hour mode (`08`, `8` in Spanish, where `08 Uhr` under every column
+ * runs together), and in 12-hour mode the day period closed up to the hour
+ * when it is two letters, with or without points (`8AM`, `8am`, `8a.m.` for
+ * Spanish `8 a. m.`). A longer one keeps its space, since `8vorm.` reads as a
+ * typo.
  */
-export function tightHourLabel(label: string): string {
-  return label.replace(/^(\d+) (\p{L}{2})$/u, '$1$2');
+export function tightHourLabel(instant: Date, fmt: Omit<TimeOfDayFormat, 'hourOnly' | 'bare'>): string {
+  if (fmt.timeFormat === '24h') return formatTimeOfDay(instant, { ...fmt, hourOnly: true, bare: true });
+  return formatTimeOfDay(instant, { ...fmt, hourOnly: true }).replace(/^(\d+)\s(\p{L}\.?)\s?(\p{L}\.?)$/u, '$1$2$3');
 }
 
 /**

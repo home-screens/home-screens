@@ -232,8 +232,6 @@
     "noEventsToday": "Sin eventos hoy",
     "noUpcomingEvents": "Sin eventos próximos",
     "moreCount": "+{count} más",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "Próximamente",
     "viewLabels": {
       "schedule": "Agenda",
@@ -632,14 +630,14 @@
       "put": "Poner en el menú",
       "change": "Cambiar el menú",
       "codeWhy": "Para cambiar el menú",
-      "whichMeal": "Qué comida",
+      "whichMeal": "¿Qué comida?",
       "thisWeek": "Esta semana",
       "nextWeek": "La semana que viene",
       "free": "Libre",
       "undo": "Deshacer",
       "undone": "Vuelve a estar como antes.",
-      "hint": "Toca un día. Si ese día ya tiene algo planeado, se pregunta antes de cambiar nada.",
-      "hintMine": "La marca enseña los días que ya tienen {meal}. Toca ese día para quitar la receta, u otro día para repetirla.",
+      "hint": "Toca un día. Si ese día ya tiene comida, se te pregunta antes de cambiar nada.",
+      "hintMine": "Una marca indica los días que ya tienen {meal}. Toca uno de ellos para quitar la receta, u otro día para repetirla.",
       "when": {
         "breakfast": "el desayuno del {day}",
         "lunch": "la comida del {day}",
@@ -648,7 +646,7 @@
       },
       "did": {
         "planned": "Hay {meal} para {when}.",
-        "joined": "Hay {meal} con {when}.",
+        "joined": "También hay {meal} para {when}.",
         "swapped": "Ahora hay {meal} para {when}.",
         "both": "También hay {meal} para {when}.",
         "off": "Ya no hay {meal} en {when}."
@@ -665,7 +663,7 @@
         "swap": "Cambiar",
         "swapDetail": "{meal} en vez de {dish}",
         "both": "Los dos",
-        "bothDetail": "{meal} con {dish}",
+        "bothDetail": "{meal} además de {dish}",
         "leave": "Dejar el {day} como está",
         "offTitle": "Ya hay {meal} en {when}",
         "offBody": "¿Se quita del menú de ese día?",
@@ -676,10 +674,10 @@
         "changed": "Alguien acaba de cambiar el {day}.",
         "changedDetail": "Así está el menú ahora. Toca un día para volver a intentarlo.",
         "full": "En esa comida ya no caben más platos.",
-        "off": "Planear desde el monitor se acaba de desactivar.",
+        "off": "Acaban de desactivar la planificación desde el monitor.",
         "undoLate": "No se pudo deshacer. El día ha vuelto a cambiar.",
         "undoFailed": "No se pudo deshacer.",
-        "day": "Ese día no se puede planear desde el monitor.",
+        "day": "Ese día no se puede planificar desde el monitor.",
         "failed": "No se pudo poner en el menú.",
         "failedDetail": "Home Screens no responde. Inténtalo de nuevo en un momento.",
         "listFailed": "Los ingredientes no se añadieron a la lista."
@@ -687,9 +685,9 @@
       "pick": {
         "hint": "Toca una receta para ponerla en el menú.",
         "on": "Planeada: {day}",
-        "plan": "Planear comida",
-        "planAria": "Planear {when}",
-        "noneTitle": "Aún no hay recetas para planear",
+        "plan": "Planificar comida",
+        "planAria": "Planificar {when}",
+        "noneTitle": "Aún no hay recetas para planificar",
         "noneHint": "Añade una comida con ingredientes o notas desde tu móvil y aparecerá aquí."
       }
     }
@@ -831,8 +829,8 @@
     "noRecipeTomorrowHint": "Ninguna comida planeada para mañana tiene receta todavía."
   },
   "chore-chart": {
-    "rewardHistory": "Historial de recompensas",
-    "noRewardHistory": "Aún no se han canjeado recompensas",
+    "rewardHistory": "Historial de premios",
+    "noRewardHistory": "Aún no se han canjeado premios",
     "familyChores": "Tareas de la familia",
     "familyProgress": "Progreso de la familia",
     "starChart": "Tabla de estrellas",
@@ -1650,7 +1648,7 @@
     "holidayLine": "{holiday}, vuelta al cole el {date}",
     "holidayBrief": "{holiday}, al cole el {date}",
     "pickWho": "Elige una persona en el editor y su semana aparecerá aquí",
-    "noTimetableYet": "Todavía no hay horario. Un adulto puede añadirlo en el editor.",
+    "noTimetableYet": "Todavía no hay horario. Una persona mayor puede añadirlo en el editor.",
     "tomorrow": "Mañana",
     "startsWord": "empieza",
     "endsWord": "Sale",
@@ -1934,11 +1932,7 @@
       "failed": "No se pudo colgar. Tu dibujo sigue aquí.",
       "unreachable": "No se pudo colgar. Home Screens no responde. Tu dibujo sigue aquí.",
       "off": "Acaban de desactivar los dibujos en el monitor, así que el tuyo no se puede colgar.",
-      "posted": "La nota de {name} ya está en el tablón",
-      "postedNobody": "Tu nota ya está en el tablón",
-      "undoFailed": "Esa nota sigue en el tablón. Quítala desde un móvil.",
       "pickAgain": "Esa persona ya no está en la familia. Elige quién lo ha dibujado.",
-      "undoing": "Quitándolo…",
       "posting": "Colgándolo…",
       "madeRoom": "Se ha quitado el dibujo más antiguo para hacer sitio."
     },
@@ -1964,6 +1958,13 @@
       "write": "Escribir",
       "pageWaits": "Tu dibujo te sigue esperando.",
       "wordsWait": "Lo que has escrito te sigue esperando."
+    },
+    "wallPost": {
+      "posted": "La nota de {name} ya está en el tablón",
+      "postedNobody": "Tu nota ya está en el tablón",
+      "undoFailed": "Esa nota sigue en el tablón. Quítala desde un móvil.",
+      "undoing": "Quitándola…",
+      "undo": "Deshacer"
     }
   },
   "photoControls": {
@@ -1977,7 +1978,10 @@
   "quick-timer": {
     "title": "Temporizador rápido",
     "unit": "min",
-    "startAriaLabel": "Empezar un temporizador de {minutes} minutos",
+    "startAriaLabel": {
+      "one": "Empezar un temporizador de {minutes} minuto",
+      "other": "Empezar un temporizador de {minutes} minutos"
+    },
     "busyElsewhere": "Hay un temporizador en marcha en otro monitor"
   }
 }

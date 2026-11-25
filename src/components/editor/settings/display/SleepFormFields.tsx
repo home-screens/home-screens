@@ -52,9 +52,9 @@ const TIME_INPUT_CLASS =
  * idle dimming ("when nobody's using it"), the two schedules ("every day at
  * set times"), and the shared dimmed appearance ("while dimmed") — with a
  * 24-hour preview bar up top so the resulting day is visible at a glance. The
- * "while dimmed" fields apply to any dimming source, which is why they live
- * in their own section instead of under the idle toggle; when nothing can dim
- * the display the section collapses to an explanatory note.
+ * "while dimmed" fields apply to both the idle and the scheduled dim, which is
+ * why they live in their own section instead of under the idle toggle; when
+ * neither is on the brightness slider gives way to an explanatory note.
  */
 export default function SleepFormFields({ values, onChange, disabled = false }: SleepFormFieldsProps) {
   const t = useTranslate('editor');
@@ -264,12 +264,12 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
           </div>
 
           {/* ── While dimmed ───────────────────────────────────────── */}
-          {/* The screensaver select stays visible even when nothing here can
-              dim the display: remote brightness (display-control module or
-              /remote) dims through its own brightnessOverride and still shows
-              the screensaver, so its control must remain reachable. Only the
-              brightness slider is truly inert in that state — remote dimming
-              supplies its own level. */}
+          {/* Both fields belong to the idle and scheduled dims only. Remote
+              brightness (the phone, a Display Control slider) dims through its
+              own brightnessOverride, at its own level and with no screensaver
+              (SleepOverlay). So with neither dim on, the brightness slider
+              goes and the note says the screensaver will not show; the select
+              stays, keeping the choice for when a dim is turned on. */}
           <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
             <SettingsSubHeading>
               {t('settings.sleepFormFields.dimmedSectionTitle')}
@@ -300,7 +300,6 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               >
                 <option value="clock">{t('settings.sleepFormFields.screensaverClock')}</option>
                 <option value="blank">{t('settings.sleepFormFields.screensaverBlank')}</option>
-                <option value="off">{t('settings.sleepFormFields.screensaverOff')}</option>
               </select>
             </label>
             <FieldHint>{t('settings.sleepFormFields.dimmedSectionHelp')}</FieldHint>

@@ -112,7 +112,7 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
     [contexts, day],
   );
 
-  const clock = useCallback((time: string) => formatClockTime(time, timeFormat), [timeFormat]);
+  const clock = useCallback((time: string) => formatClockTime(time, timeFormat, formatting), [timeFormat, formatting]);
 
   // The heading is the one the Style panel's title control writes.
   const heading = style.title?.trim() ?? '';
@@ -180,9 +180,9 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
       packSub: packSub.length,
       nothing: t('timetable.bringNothing').length,
       time: Math.max(5, ...times),
-      tick: Math.max(0, ...axisTicks60.ticks.map((tick) => tickLabel(tick, timeFormat).length)),
+      tick: Math.max(0, ...axisTicks60.ticks.map((tick) => tickLabel(tick, timeFormat, formatting).length)),
     };
-  }, [rows, clock, t, packTitle, packSub, axisTicks60, timeFormat]);
+  }, [rows, clock, t, packTitle, packSub, axisTicks60, timeFormat, formatting]);
 
   // The course this person is mostly in, so only the lessons in another one
   // carry a badge, as on the Week card.
@@ -269,11 +269,12 @@ export default function TimetableDayModule({ config, style, timezone, timeFormat
       base: fontSize,
       timeFormat,
       locale,
+      formattingLocale: formatting,
       detail,
       shed,
       inset,
     }),
-    [style.backgroundColor, style.textColor, fontSize, timeFormat, locale, detail, shed, inset],
+    [style.backgroundColor, style.textColor, fontSize, timeFormat, locale, formatting, detail, shed, inset],
   );
 
   const persons = useMemo<DayPerson[]>(

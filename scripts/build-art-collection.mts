@@ -25,7 +25,8 @@
 // What makes a candidate:
 // - a painting on Wikidata with a picture, by a named artist (named as their English Wikipedia page is), whose genre is
 //   landscape, seascape, cityscape or still life, and no other genre from UNSAFE_GENRES,
-//   with a title of its own in English (not "Untitled", not a file name)
+//   with a title of its own (not "Untitled", not a file name): in English, or else as it was named in its own
+//   language, never translated (paintingTitle in scripts/art-collection-title.ts)
 // - none of the NUDE_TAGS as a genre or as something it depicts, no TITLE_WORDS in its title
 //   (all three lists are in src/lib/photo-sources/art-safety.ts, shared with the picture picker's search)
 // - the Commons file is public domain or CC0, at least ART_MIN_SHORT_SIDE pixels on its shorter side
@@ -46,6 +47,7 @@ import sharp from 'sharp';
 import { ART_MIN_SHORT_SIDE } from '../src/lib/art-fit';
 import { NUDE_TAGS, SAFE_GENRES, TITLE_WORDS, UNSAFE_GENRES } from '../src/lib/photo-sources/art-safety';
 import type { ArtGenre } from '../src/types/config';
+import { paintingTitle, type TitleSources } from './art-collection-title';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const COLLECTION_PATH = join(root, 'src/lib/photo-sources/art-collection.json');
@@ -127,9 +129,12 @@ async function sparql(query: string): Promise<Binding[]> {
   }
 }
 
-/** Runs `run` over `items` a batch at a time, keeping the answers in `cachePath` so a stopped run resumes. */
-async function inBatches<T extends { key: string }>(items: string[], size: number, cachePath: string, run: (batch: string[]) => Promise<T[]>): Promise<Map<string, T>> {
-  const known = new Map(readJson<T[]>(cachePath, []).map((entry) => [entry.key, entry]));
+/**
+ * Runs `run` over `items` a batch at a time, keeping the answers in `cachePath` so a stopped run resumes. A kept
+ * answer that `settled` turns down is asked for again.
+ */
+async function inBatches<T extends { key: string }>(items: string[], size: number, cachePath: string, run: (batch: string[]) => Promise<T[]>, settled: (entry: T) => boolean = () => true): Promise<Map<string, T>> {
+  const known = new Map(readJson<T[]>(cachePath, []).filter(settled).map((entry) => [entry.key, entry]));
   const todo = items.filter((item) => !known.has(item));
   for (let i = 0; i < todo.length; i += size) {
     for (const entry of await run(todo.slice(i, i + size))) known.set(entry.key, entry);
@@ -252,6 +257,34 @@ async function details(ids: string[]): Promise<Fact[]> {
     const museum = named(row.collectionLabel?.value);
     if (museum && !fact.museums.some(([name]) => name === museum)) fact.museums.push([museum, Number(row.colLinks?.value ?? 0)]);
   }
+  // A painting with no title in English or `mul` keeps the one it was given in its own language.
+  const untitled = [...facts.values()].filter((fact) => !fact.title).map((fact) => fact.key);
+  if (untitled.length > 0) {
+    const sources = new Map(untitled.map((id) => [id, { labels: {}, ownTitles: {}, artistLanguages: [] } as TitleSources]));
+    const spoken = new Map<string, string[]>();
+    for (const row of await sparql(`SELECT ?item ?kind ?text ?lang WHERE {
+  VALUES ?item { ${untitled.map((id) => `wd:${id}`).join(' ')} }
+  { ?item rdfs:label ?text . BIND("label" AS ?kind) BIND(LANG(?text) AS ?lang) }
+  UNION { ?item wdt:P1476 ?text . BIND("own" AS ?kind) BIND(LANG(?text) AS ?lang) }
+  UNION { ?item wdt:P170/wdt:P103/wdt:P424 ?lang . BIND("native" AS ?kind) }
+  UNION { ?item wdt:P170/wdt:P1412/wdt:P424 ?lang . BIND("spoken" AS ?kind) }
+}`)) {
+      const id = qidOf(row.item?.value) ?? '';
+      const source = sources.get(id);
+      const lang = row.lang?.value;
+      const text = row.text?.value;
+      if (!source || !lang) continue;
+      if (row.kind?.value === 'label' && text) source.labels[lang] = text;
+      else if (row.kind?.value === 'own' && text) source.ownTitles[lang] ??= text;
+      else if (row.kind?.value === 'native' && !source.artistLanguages.includes(lang)) source.artistLanguages.push(lang);
+      else if (row.kind?.value === 'spoken') spoken.set(id, [...(spoken.get(id) ?? []), lang]);
+    }
+    for (const [id, source] of sources) {
+      // The languages an artist wrote in come in no order of their own, so in the order of their codes.
+      source.artistLanguages.push(...[...new Set(spoken.get(id))].sort().filter((lang) => !source.artistLanguages.includes(lang)));
+      facts.get(id)!.title = named(paintingTitle(source));
+    }
+  }
   for (const row of await sparql(`SELECT DISTINCT ?item WHERE {
   VALUES ?item { ${values} } VALUES ?tag { ${NUDE_TAGS.map((id) => `wd:${id}`).join(' ')} }
   ?item wdt:P136|wdt:P180 ?tag .
@@ -341,7 +374,8 @@ async function candidates(work: string) {
   });
 
   log('Titles, artists, museums and tags');
-  const facts = await inBatches(usable.map((c) => c.id), 100, join(work, 'facts.json'), details);
+  // A painting with no title at all is asked about again, as it may have been given one since.
+  const facts = await inBatches(usable.map((c) => c.id), 100, join(work, 'facts.json'), details, (fact) => fact.title !== undefined);
   const kept = usable.flatMap((painting): Candidate[] => {
     const fact = facts.get(painting.id);
     if (!fact?.title || !fact.artist) return drop('no title or artist');
@@ -364,7 +398,10 @@ async function candidates(work: string) {
   });
   const counts: Record<string, number> = {};
   const count = (key: string) => (counts[key] = (counts[key] ?? 0) + 1);
-  const final = kept
+  // The paintings already in the collection are counted first, so a refresh only fills the room left under each
+  // limit and never pushes out one that was looked at (`apply` keeps it either way, and the limit would be passed).
+  const inCollection = new Set(readJson<CollectionRow[]>(COLLECTION_PATH, []).map((row) => row[0]));
+  const final = [...kept.filter((painting) => inCollection.has(painting.id)), ...kept.filter((painting) => !inCollection.has(painting.id))]
     // Past an artist's share of the famous set, a painting is kept only as one of its subject.
     .flatMap((painting): Candidate[] => {
       if (!painting.famous || count(`famous ${painting.artist}`) <= PER_ARTIST_FAMOUS) return [painting];

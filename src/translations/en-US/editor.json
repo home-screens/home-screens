@@ -226,9 +226,8 @@
     "opensOnlyBadge": "When opened",
     "opensOnlyTooltip": "shows only when opened",
     "deleteConfirmOpeners": {
-      "zero": "{names} has a button that opens this screen. That button goes too, and this screen is empty. You can undo this.",
-      "one": "{names} has a button that opens this screen. That button, this screen’s module and its settings all go. You can undo this.",
-      "other": "{names} has a button that opens this screen. That button, this screen’s {count} modules and their settings all go. You can undo this."
+      "one": "{names} has a button that opens this screen. That button goes with it.",
+      "other": "{names} have buttons that open this screen. Those buttons go with it."
     },
     "orphanedBadge": "Nothing opens it",
     "orphanedTooltip": "shows only when opened, and nothing opens it",
@@ -252,7 +251,7 @@
       "move": "move",
       "go": "go"
     },
-    "settingsHint": "Looking for a setting? Select a module for its settings, or click an empty spot on the screen for the screen’s own settings. Household settings are under Settings."
+    "settingsHint": "Looking for a setting? Select a module for its settings, or click an empty spot on the screen for the screen's own settings. Household settings are under Settings."
   },
   "screenSettings": {
     "sectionTitle": "Screen settings",
@@ -335,9 +334,9 @@
     "opened": {
       "enableLabel": "Only let it open at certain times",
       "summaryShows": "Can be opened {when}.",
-      "summaryHides": "Can’t be opened {when}. Can be opened the rest of the time.",
+      "summaryHides": "Can't be opened {when}. Can be opened the rest of the time.",
       "allDayHint": "Leave both empty to let it open all day.",
-      "invertLabel": "Don’t let it open during these hours instead",
+      "invertLabel": "Don't let it open during these hours instead",
       "neverShows": "With these settings it can never be opened."
     }
   },
@@ -502,7 +501,7 @@
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
-        "recipes": "The family’s recipes, filling the screen"
+        "recipes": "The family's recipes, filling the screen"
       }
     }
   },
@@ -755,7 +754,7 @@
         "pastePlaceholder": "Paste the code from the sign-in page",
         "pasteButton": "Finish",
         "scopeMissingTitle": "Google only allowed showing events",
-        "scopeMissingBody": "On Google’s page, the box for “View and edit events” was left empty, so Home Screens can still only show your calendars. Sign in again and tick that box.",
+        "scopeMissingBody": "On Google's page, the box for “View and edit events” was left empty, so Home Screens can still only show your calendars. Sign in again and tick that box.",
         "webClientTitle": "First, add a Google web sign-in",
         "webClientBody": "Adding events signs in with the same Google web sign-in that Google Photos import uses. Add its Client ID and Secret, then come back here.",
         "webClientLink": "Open API keys",
@@ -783,10 +782,10 @@
       },
       "swatches": {
         "heading": "Colors to choose from",
-        "help": "The colors offered when you change a calendar’s color on the wall. The wall cannot mix a new color, so put the ones you actually use within reach here.",
+        "help": "The colors offered when you change a calendar's color on the wall. The wall cannot mix a new color, so put the ones you actually use within reach here.",
         "slot": "Color {number}",
         "reset": "Put the original colors back",
-        "wallHint": "On a wall, tap a calendar’s color key to hide a calendar there or change its color."
+        "wallHint": "On a wall, tap a calendar's color key to hide a calendar there or change its color."
       }
     },
     "dataPage": {
@@ -1480,9 +1479,8 @@
       "screensaverLabel": "Screensaver",
       "screensaverClock": "Drifting clock",
       "screensaverBlank": "Blank (dim only)",
-      "screensaverOff": "Off (still dims)",
-      "dimmedSectionHelp": "The screensaver appears whenever the display is dimmed, for example from the remote.",
-      "nothingDimsNote": "Nothing dims this display on its own right now. The screensaver still shows if someone dims it from the remote.",
+      "dimmedSectionHelp": "The screensaver shows only when the display dims by itself, after a few quiet minutes or at the dim time you set. Turning the brightness down from the remote just darkens the display.",
+      "nothingDimsNote": "Nothing dims this display by itself right now, so the screensaver won't show until you turn on dimming above.",
       "legend": {
         "bright": "Bright",
         "dim": "Dimmed",
@@ -1536,8 +1534,8 @@
         "other": "Their Live Photo clips go with them."
       },
       "pairTitle": {
-        "one": "{count} Live Photo isn’t paired yet",
-        "other": "{count} Live Photos aren’t paired yet"
+        "one": "{count} Live Photo isn't paired yet",
+        "other": "{count} Live Photos aren't paired yet"
       },
       "pairBody": {
         "one": "{name} sits beside a picture of the same name, so it plays as a short video of its own. Pair it and it moves its picture instead.",
@@ -1670,7 +1668,7 @@
         },
         "photosBand": {
           "title": "For Google Photos and adding events",
-          "help": "A separate login from the calendar one, of type “Web application”. Only needed to pull photos in or to add calendar events. Skip this if you don’t.",
+          "help": "A separate login from the calendar one, of type “Web application”. Only needed to pull photos in or to add calendar events. Skip this if you don't.",
           "helpOwnApp": "A separate login from the calendar one, of type “Web application”. Google Photos import and adding calendar events use it."
         },
         "mapsBand": {
@@ -2386,13 +2384,13 @@
         "hide": "Hide",
         "copy": "Copy",
         "regenerateButton": "Make a new key",
-        "regenerating": "Regenerating…",
+        "regenerating": "Making a new key…",
         "regenerateConfirm": "Make a new key",
         "regenerateCancel": "Cancel",
         "regenerateWarning": "Anything using the old key stops working until you give it the new one. Your displays keep working.",
         "regenerateWallsLetInByThemselves": {
-          "one": "{count} display was let in by itself after the update. A new key doesn't remove it.",
-          "other": "{count} displays were let in by themselves after the update. A new key doesn't remove them."
+          "one": "{count} browser was let in by itself after the update. A new key doesn't remove it.",
+          "other": "{count} browsers were let in by themselves after the update. A new key doesn't remove them."
         },
         "regenerateWallsCheck": {
           "one": "Check it's yours",
@@ -2465,7 +2463,7 @@
         "disabling": "Disabling…",
         "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
         "wallsStay": {
-          "one": "Your {count} display stays let in.",
+          "one": "Your display stays let in.",
           "other": "Your {count} displays stay let in."
         },
         "wallsOff": "A display that is switched off right now will ask to be let in when it comes back."
@@ -2775,7 +2773,7 @@
         "one": "{count} display in this home",
         "other": "{count} displays in this home"
       },
-      "emptyDescriptionPrefix": "Drive more than one screen from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub (the one that runs Home Screens and serves every display); secondary displays can be cheap Pi Zeros running ",
+      "emptyDescriptionPrefix": "Drive more than one display from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub (the one that runs Home Screens and serves every display); secondary displays can be cheap Pi Zeros running ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Click a display to edit its own settings. Everything else uses the shared ",
       "populatedDescriptionSuffix": ".",
@@ -2783,11 +2781,11 @@
       "refreshHeartbeatsTitle": "Refresh heartbeats",
       "addDisplay": "Add display",
       "emptyTitle": "This install is running in single-display mode",
-      "emptyParagraphPart1": "Your current setup counts as one display but isn't added here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi's current layout becomes a display called ",
+      "emptyParagraphPart1": "Your current setup counts as one display but isn't added here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second display. The moment you add your first display, this Pi's current layout becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Click ",
-      "emptyBullet1Suffix": " above to add a new screen. Give it a name, resolution, and rotation, then design its own layout in the editor.",
+      "emptyBullet1Suffix": " above to add a new display. Give it a name, resolution, and rotation, then design its own layout in the editor.",
       "emptyBullet2": "Or flash another Pi with {command}. Once it boots it will appear below as a {label}, and one click adds it.",
       "unadoptedLabel": "display waiting to be added",
       "unadoptedWaiting": {
@@ -2833,15 +2831,15 @@
       "formRotation90": "90° clockwise (portrait)",
       "formRotation180": "180° (inverted)",
       "formRotation270": "270° clockwise (portrait)",
-      "formRotationHint": "Picks which way round the screen area sits. The width and height above swap automatically so the longer edge matches the rotation you picked.",
+      "formRotationHint": "Picks which way round the display sits. The width and height above swap automatically so the longer edge matches the rotation you picked.",
       "formCancel": "Cancel",
       "formAddDisplay": "Add display",
       "formErrorName": "Name is required",
       "formErrorId": "ID must be lowercase letters, digits, and hyphens (e.g. \"kitchen\")",
       "formErrorIdReserved": "\"{id}\" already has a special meaning when sending commands to displays. Please pick a different ID, like \"kitchen\" or \"bedroom-tv\"",
       "formErrorIdTaken": "A display with ID \"{id}\" already exists",
-      "formErrorWidth": "Width must be between {min} and {max}. Check for a missing digit: most screens are 1080 or 1920 across.",
-      "formErrorHeight": "Height must be between {min} and {max}. Check for a missing digit: most screens are 1080 or 1920 tall.",
+      "formErrorWidth": "Width must be between {min} and {max}. Check for a missing digit: most displays are 1080 or 1920 across.",
+      "formErrorHeight": "Height must be between {min} and {max}. Check for a missing digit: most displays are 1080 or 1920 tall.",
       "softwareUpdateWaiting": "Update waiting",
       "softwareNeedsSetup": "Needs setup",
       "mainDisplayName": "Main display"
@@ -2950,8 +2948,8 @@
         "removeConfirmTitle": "Remove the grown-up code?",
         "removeConfirmMessage": "The wall stops asking for it before the jobs you ticked. You can set a new code any time.",
         "lockedBody": {
-          "one": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minute.",
-          "other": "The walls, the chores page and signed-out phones won’t take the grown-up code for {count} more minutes."
+          "one": "The walls, the chores page and signed-out phones won't take the grown-up code for {count} more minute.",
+          "other": "The walls, the chores page and signed-out phones won't take the grown-up code for {count} more minutes."
         }
       }
     },
@@ -2966,21 +2964,24 @@
     },
     "walls": {
       "waitingTitle": {
-        "one": "{count} display is waiting to be let in",
-        "other": "{count} displays are waiting to be let in"
+        "one": "{count} browser is waiting to be let in",
+        "other": "{count} browsers are waiting to be let in"
       },
       "waitingHint": "These opened the wall but Home Screens does not know them yet. Let in the ones that are yours. The others can be left: they go away by themselves.",
       "forDisplay": "for {name}",
       "askingSince": "asked {time}",
-      "looksFamiliar": "This looks like a display you let in before.",
+      "looksFamiliar": "This looks like a browser you let in before.",
       "letIn": "Let in",
       "letInFailed": "Couldn't let it in. Try again.",
       "letInByItself": "Let in by itself",
       "windowTitle": {
-        "one": "{count} display was let in by itself after the update",
-        "other": "{count} displays were let in by themselves after the update"
+        "one": "{count} browser was let in by itself after the update",
+        "other": "{count} browsers were let in by themselves after the update"
       },
-      "windowBody": "Home Screens now remembers each display, and yours carried over. Check that the ones marked “{tag}” are yours. This note goes away by itself in {days} days.",
+      "windowBody": {
+        "one": "Home Screens now remembers each browser, and yours carried over. Check that the ones marked “{tag}” are yours. This message goes away by itself in {count} day.",
+        "other": "Home Screens now remembers each browser, and yours carried over. Check that the ones marked “{tag}” are yours. This message goes away by itself in {count} days."
+      },
       "showingIn": {
         "one": "Showing in {count} place",
         "other": "Showing in {count} places"
@@ -3639,7 +3640,7 @@
         "other": "Found {count} timetables in the files you picked"
       },
       "unlistedTitle": "This sheet would not list its tabs",
-      "unlistedHelp": "Paste the link to each person’s own tab instead. In Google Sheets, click their tab at the bottom, then copy the link from the address bar: it ends in #gid= and a number.",
+      "unlistedHelp": "Paste the link to each person's own tab instead. In Google Sheets, click their tab at the bottom, then copy the link from the address bar: it ends in #gid= and a number.",
       "linkFor": "Link to {name}'s tab",
       "mapTo": "Who is this tab for?",
       "skip": "Skip this tab",
@@ -3869,7 +3870,7 @@
       "label": "Opens",
       "none": "Nothing",
       "andMore": "and {count} more",
-      "help": "Adds a button in the module’s bottom corner with that screen’s name on it. Tapping it on a touch display shows the screen.",
+      "help": "Adds a button in the module's bottom corner with that screen's name on it. Tapping it on a touch display shows the screen.",
       "sectionTitle": "Open a screen",
       "offBadge": "{name} (off)",
       "holds": "Shows {what}",
@@ -3902,7 +3903,7 @@
       "turnOnTap": "Turn on “Tap on the wall”",
       "switchOn": "Switch it on",
       "onlyWhen": "The button only shows {when}.",
-      "onlyConditions": "The button only shows while that screen’s conditions match.",
+      "onlyConditions": "The button only shows while that screen's conditions match.",
       "openWith": "Open it with",
       "openWithButton": "The button",
       "openWithCard": "A tap on the card",
@@ -5751,10 +5752,10 @@
     },
     "quick-timer": {
       "presets": "Lengths",
-      "presetsHint": "Up to {max} buttons. They are drawn in this order.",
+      "presetsHint": "Up to {max} buttons, shown in this order.",
       "minutesShort": "{minutes} min",
       "fullScreen": "Fill the whole display while it runs",
-      "fullScreenHint": "Off keeps the timer in this box, so the rest of the screen stays.",
+      "fullScreenHint": "Off keeps the timer in this box, and the rest of the display stays as it is.",
       "view": "Timer look",
       "view-ring": "Glow ring",
       "view-face": "Timer face",
@@ -5987,7 +5988,7 @@
       "enableHelp": "Let this screen be opened only while live values from your connected services match (for example the next calendar event is less than an hour away).",
       "noConditionsHint": "No conditions yet. The screen can be opened any time until you add one.",
       "allMustMatchHint": "All conditions must match for the screen to be opened.",
-      "whenUnknownHide": "Don’t let it open",
+      "whenUnknownHide": "Don't let it open",
       "whenUnknownShow": "Let it open"
     },
     "matchTitle": "What must match"

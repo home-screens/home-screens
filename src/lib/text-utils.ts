@@ -6,6 +6,7 @@
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { UI_MONO_STACK } from '@/lib/font-registry';
 import { dayPartFor, type DayPart } from '@/lib/day-part';
+import { formatTimeOfDay } from '@/lib/timezone';
 
 /** The `{{greeting}}` token's word for each part of the day. */
 const GREETING_WORDS: Record<DayPart, string> = {
@@ -73,8 +74,8 @@ export function resolveTemplateVariables(
   const greeting = GREETING_WORDS[dayPartFor(hour)];
 
   return text
-    .replace(/\{\{time\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, hour: '2-digit', minute: '2-digit', hour12: false }).format(now))
-    .replace(/\{\{time12\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, hour: '2-digit', minute: '2-digit', hour12: true }).format(now))
+    .replace(/\{\{time\}\}/g, formatTimeOfDay(now, { timeFormat: '24h', locale, timezone }))
+    .replace(/\{\{time12\}\}/g, formatTimeOfDay(now, { timeFormat: '12h', locale, timezone }))
     .replace(/\{\{date\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, month: 'long', day: 'numeric', year: 'numeric' }).format(now))
     .replace(/\{\{day\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, weekday: 'long' }).format(now))
     .replace(/\{\{month\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, month: 'long' }).format(now))

@@ -42,12 +42,21 @@ describe('buildScreenDeleteConfirm', () => {
 
   it('names the buttons that open the screen, since they go with it', () => {
     for (const count of [0, 1, 4]) {
-      const built = buildScreenDeleteConfirm({ name: 'Recipe Book', modules: modules(count) }, t, tCore, ['Meal Planner on Kitchen']);
+      const built = buildScreenDeleteConfirm({ name: 'Recipe Book', modules: modules(count) }, t, tCore, { names: ['Meal Planner on Kitchen'], count: 1 });
       expect(built.message).toContain('Meal Planner on Kitchen has a button that opens this screen');
       expect(built.message.toLowerCase()).toContain('undo');
       expect(built.message).not.toMatch(/\{\w+\}/);
     }
-    expect(buildScreenDeleteConfirm({ name: 'R', modules: modules(4) }, t, tCore, ['X on Y']).message).toContain('4 modules');
+    expect(buildScreenDeleteConfirm({ name: 'R', modules: modules(4) }, t, tCore, { names: ['X on Y'], count: 1 }).message).toContain('4 modules');
+  });
+
+  it('says "buttons" when more than one module opens the screen', () => {
+    const several = buildScreenDeleteConfirm({ name: 'R', modules: modules(1) }, t, tCore, { names: ['Clock on Hall', 'Meals on Kitchen'], count: 2 });
+    expect(several.message).toContain('Clock on Hall, Meals on Kitchen have buttons that open this screen');
+    expect(several.message).toContain('1 module');
+    // Two of the same module on one screen are named once, but still two buttons.
+    const twins = buildScreenDeleteConfirm({ name: 'R', modules: [] }, t, tCore, { names: ['Clock on Hall (2)'], count: 2 });
+    expect(twins.message).toContain('Clock on Hall (2) have buttons that open this screen');
   });
 
   it('resolves every string it returns, leaving no raw key behind', () => {

@@ -88,15 +88,22 @@ describe('hoursWithin', () => {
 
 describe('hourLabel', () => {
   it('formats 12-hour labels compactly', () => {
-    expect(hourLabel(0)).toBe('12a');
-    expect(hourLabel(9)).toBe('9a');
-    expect(hourLabel(12)).toBe('12p');
-    expect(hourLabel(13)).toBe('1p');
+    expect(hourLabel(0, '12h', 'en-US')).toBe('12a');
+    expect(hourLabel(9, '12h', 'en-US')).toBe('9a');
+    expect(hourLabel(12, '12h', 'en-US')).toBe('12p');
+    expect(hourLabel(13, '12h', 'en-US')).toBe('1p');
   });
 
   it('follows the household 24-hour setting', () => {
-    expect(hourLabel(0, '24h')).toBe('00');
-    expect(hourLabel(13, '24h')).toBe('13');
+    expect(hourLabel(0, '24h', 'en-US')).toBe('00');
+    expect(hourLabel(13, '24h', 'en-US')).toBe('13');
+  });
+
+  it("writes a 24-hour tick as the language's hour number, without a word after it", () => {
+    expect(hourLabel(8, '24h', 'es-ES')).toBe('8');
+    expect(hourLabel(8, '24h', 'de-DE')).toBe('08');
+    expect(hourLabel(8, '24h', 'fr-FR')).toBe('08');
+    expect(hourLabel(8, '24h', 'da-DK')).toBe('08');
   });
 });
 

@@ -176,7 +176,7 @@
         "other": "{count} timer"
       },
       "minutes": "{count} min",
-      "hoursMinutes": "{hours} t. {minutes} min",
+      "hoursMinutes": "{hours} t {minutes} min",
       "length30": "30 min",
       "length60": "1 time",
       "length90": "1½ time",
@@ -232,8 +232,6 @@
     "noEventsToday": "Ingen begivenheder i dag",
     "noUpcomingEvents": "Ingen kommende begivenheder",
     "moreCount": "+{count} mere",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "Kommende",
     "viewLabels": {
       "schedule": "Tidsplan",
@@ -636,7 +634,7 @@
       "undo": "Fortryd",
       "undone": "Sat tilbage, som det var.",
       "hint": "Tryk på en dag. Hvis dagen allerede har et måltid, bliver du spurgt, før noget ændres.",
-      "hintMine": "Et flueben viser, hvor {meal} allerede står. Tryk på den dag for at fjerne retten, eller på en anden dag for at få den en gang til.",
+      "hintMine": "Et flueben viser de dage, hvor {meal} allerede står. Tryk på en af dem for at fjerne retten, eller på en anden dag for at få den en gang til.",
       "when": {
         "breakfast": "{day} til morgenmad",
         "lunch": "{day} til frokost",
@@ -645,7 +643,7 @@
       },
       "did": {
         "planned": "{meal} er på madplanen {when}.",
-        "joined": "{meal} er kommet med {when}.",
+        "joined": "{meal} er også på madplanen {when}.",
         "swapped": "{meal} er nu på madplanen {when}.",
         "both": "{meal} er også på madplanen {when}.",
         "off": "{meal} er fjernet fra madplanen {when}."
@@ -1926,11 +1924,7 @@
       "failed": "Den blev ikke sat op. Din tegning er her stadig.",
       "unreachable": "Den blev ikke sat op. Home Screens svarer ikke. Din tegning er her stadig.",
       "off": "Det er lige blevet slået fra at tegne på væggen. Din tegning kan ikke sættes op.",
-      "posted": "Noten fra {name} er på tavlen",
-      "postedNobody": "Din note er på tavlen",
-      "undoFailed": "Noten er stadig på tavlen. Tag den ned på en telefon.",
       "pickAgain": "Den person er ikke med i familien længere. Vælg, hvem der har tegnet den.",
-      "undoing": "Tager den ned…",
       "posting": "Sætter den op…",
       "madeRoom": "Den ældste tegning blev taget ned for at gøre plads."
     },
@@ -1956,6 +1950,13 @@
       "write": "Skriv",
       "pageWaits": "Din tegning venter stadig på dig.",
       "wordsWait": "Det, du skrev, venter stadig på dig."
+    },
+    "wallPost": {
+      "posted": "Noten fra {name} er på tavlen",
+      "postedNobody": "Din note er på tavlen",
+      "undoFailed": "Noten er stadig på tavlen. Tag den ned på en telefon.",
+      "undoing": "Tager den ned…",
+      "undo": "Fortryd"
     }
   },
   "photoControls": {
@@ -1968,8 +1969,11 @@
   },
   "quick-timer": {
     "title": "Hurtig timer",
-    "unit": "min.",
-    "startAriaLabel": "Start en timer på {minutes} minutter",
+    "unit": "min",
+    "startAriaLabel": {
+      "one": "Start en timer på {minutes} minut",
+      "other": "Start en timer på {minutes} minutter"
+    },
     "busyElsewhere": "Der kører en timer på en anden væg"
   }
 }

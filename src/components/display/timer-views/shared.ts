@@ -45,8 +45,13 @@ export function formatQuickName(
   t: TimerTranslate,
   keyPrefix: 'timer' | 'timers',
 ): string {
-  if (durationSec < 60) return t(`${keyPrefix}.quickNameSeconds`, { seconds: durationSec });
-  if (durationSec % 60 === 0) return t(`${keyPrefix}.quickName`, { minutes: durationSec / 60 });
+  // `count` picks the plural form: "1 seconde" and "30 seconden" in Dutch,
+  // "1 Minute" and "5 Minuten" in German.
+  if (durationSec < 60) return t(`${keyPrefix}.quickNameSeconds`, { count: durationSec, seconds: durationSec });
+  if (durationSec % 60 === 0) {
+    const minutes = durationSec / 60;
+    return t(`${keyPrefix}.quickName`, { count: minutes, minutes });
+  }
   return t(`${keyPrefix}.quickNameClock`, { time: formatRemaining(durationSec * 1000) });
 }
 

@@ -205,7 +205,7 @@
       "moreToGoSingular": "falta {n} ticket",
       "moreToGoPlural": "faltan {n} tickets",
       "ready": "¡Ya hay suficiente!",
-      "ariaLabel": "Ahorrando para {name}. Abrir recompensas",
+      "ariaLabel": "Ahorrando para {name}. Abrir premios",
       "label": "Ahorrando para {name}"
     },
     "steps": {
@@ -583,7 +583,7 @@
     "clearOnUnnamed": "Borrar los avisos del monitor"
   },
   "rewardsView": {
-    "changedElsewhere": "Otra persona ha cambiado las recompensas. Tu último cambio no se guardó. Inténtalo de nuevo.",
+    "changedElsewhere": "Otra persona ha cambiado los premios. Tu último cambio no se guardó. Inténtalo de nuevo.",
     "nav": {
       "redeem": "Canjear",
       "rewards": "Editar la lista",
@@ -613,7 +613,7 @@
       "goalClears": "Es la meta de {name}. Se borra al canjearla.",
       "goalFurther": "Después faltarán {n} tickets para {goal}.",
       "gotIt": "{name} consiguió {reward}.",
-      "gotItKid": "¡Conseguiste {reward}! Enséñaselo a un adulto.",
+      "gotItKid": "¡Conseguiste {reward}! Enséñaselo a una persona mayor.",
       "noTicketsHint": "Haz tus tareas en la pestaña Hoy para ganar tickets.",
       "alreadyGot": "{name} ya consiguió {reward} hace un momento.",
       "alreadyGotKid": "¡Ya conseguiste {reward} hace un momento!",
@@ -645,7 +645,7 @@
       "savingChip": "Ahorrando",
       "sheetTitle": "Ahorrar para…",
       "sheetHint": "Los tickets de {name} cuentan para esto. Cuando {name} lo consiga, elige otra cosa.",
-      "sheetEmpty": "Aún no hay recompensas para las que ahorrar.",
+      "sheetEmpty": "Aún no hay premios para los que ahorrar.",
       "stop": "Dejar de ahorrar",
       "headingFor": "{name} está ahorrando para",
       "pickFor": "Elige algo para lo que {name} ahorre",
@@ -683,24 +683,24 @@
     "tickets": {
       "earned": "ganados",
       "spent": "gastados",
-      "adjusted": "de adultos",
+      "adjusted": "de los mayores",
       "window": "Últimos 30 días",
       "empty": "Todavía no se ha movido ningún ticket.",
       "failed": "No se pudo cargar el historial de tickets. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
       "removedChore": "Una tarea que se eliminó",
-      "tookOne": "Un adulto quitó algunos",
-      "gaveSome": "Un adulto dio algunos",
-      "rewardLine": "Recompensa",
+      "tookOne": "Una persona mayor quitó algunos",
+      "gaveSome": "Una persona mayor dio algunos",
+      "rewardLine": "Premio",
       "bonusLine": "Extra",
-      "grownUpLine": "Adulto",
+      "grownUpLine": "Persona mayor",
       "bucket": {
         "today": "Hoy",
         "yesterday": "Ayer",
         "thisWeek": "Esta semana",
         "earlier": "Antes"
       },
-      "gaveAdmin": "Dado por un adulto",
-      "tookAdmin": "Quitado por un adulto"
+      "gaveAdmin": "Dado por una persona mayor",
+      "tookAdmin": "Quitado por una persona mayor"
     }
   },
   "settingsSheet": {
@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Temporizadores",
     "quickTimer": "Temporizador rápido",
-    "quickName": "Temporizador de {minutes} minutos",
+    "quickName": {
+      "one": "Temporizador de {minutes} minuto",
+      "other": "Temporizador de {minutes} minutos"
+    },
     "start": "Empezar",
     "sound": "Sonido",
     "routines": "Rutinas",
@@ -1059,7 +1062,10 @@
     "minUnit": "min",
     "secUnit": "s",
     "stepSeconds": "Segundos",
-    "quickNameSeconds": "Temporizador de {seconds} segundos",
+    "quickNameSeconds": {
+      "one": "Temporizador de {seconds} segundo",
+      "other": "Temporizador de {seconds} segundos"
+    },
     "quickNameClock": "Temporizador de {time}",
     "secondsShort": "{seconds} s",
     "showingOn": "En marcha en {names}",

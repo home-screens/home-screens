@@ -1,9 +1,9 @@
 'use client';
 
 import { useElementBox } from '@/hooks/useElementBox';
-import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import { formatHourMark } from '@/lib/clock-time';
 import type { TimedEventLayout } from '@/lib/calendar-event-layout';
 import { eventOwner, type EventOwner } from '@/lib/calendar-people';
 import { eventGlyph } from '@/lib/calendar-rules';
@@ -17,17 +17,12 @@ import { WallButton } from '../shared/WallButton';
 
 /**
  * Format an hour number (0-24) as a gutter/axis label in the household time
- * format: "8 PM" / "20:00". Owns the 24h branch so no call site can forget
- * it. Pass the resolved AM/PM strings from `useTranslate('modules')` so the
- * 12-hour label honors the active locale.
+ * format and the formatting language: "8 PM", "8 p. m.", "20:00", "20.00".
+ * Owns the 24h branch so no call site can forget it.
  */
-export function formatHourLabel(h: number, timeFormat: TimeFormat, am: string, pm: string): string {
+export function formatHourLabel(h: number, timeFormat: TimeFormat, locale: string): string {
   // 24 is the end-of-day gutter label (an hourEnd of 24), which is midnight.
-  const hour = h % 24;
-  if (timeFormat === '24h') return `${String(hour).padStart(2, '0')}:00`;
-  if (hour === 0) return `12 ${am}`;
-  if (hour === 12) return `12 ${pm}`;
-  return hour > 12 ? `${hour - 12} ${pm}` : `${hour} ${am}`;
+  return formatHourMark((h % 24) * 60, timeFormat, locale);
 }
 
 /**
@@ -116,18 +111,17 @@ export function useContainerHeight() {
  * it opens, so a board that starts at 2 PM never reads as "nothing happened
  * this morning".
  */
-export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize, scale, timeFormat, am, pm, t }: {
+export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize, scale, timeFormat, locale, t }: {
   hourStart: number;
   hourEnd: number;
   hiddenEarlier: number;
   fontSize: number;
   scale: { bu: number };
   timeFormat: TimeFormat;
-  am: string;
-  pm: string;
+  locale: string;
   t: TranslateFn;
 }) {
-  const label = (h: number) => formatHourLabel(h, timeFormat, am, pm);
+  const label = (h: number) => formatHourLabel(h, timeFormat, locale);
   return (
     <div
       data-rolling-window=""
@@ -157,7 +151,7 @@ export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize
  * little differently (size, weight, how far from the grid), so those are the
  * caller's; `highlightHour` marks the hour it is now, where a view does that.
  */
-export function HourGutter({ hourStart, totalHours, hourHeight, fontSize, weight, inset, highlightHour, timeFormat, am, pm }: {
+export function HourGutter({ hourStart, totalHours, hourHeight, fontSize, weight, inset, highlightHour, timeFormat, locale }: {
   hourStart: number;
   totalHours: number;
   hourHeight: number;
@@ -168,8 +162,7 @@ export function HourGutter({ hourStart, totalHours, hourHeight, fontSize, weight
   inset: number;
   highlightHour?: number | null;
   timeFormat: TimeFormat;
-  am: string;
-  pm: string;
+  locale: string;
 }) {
   return (
     <>
@@ -192,7 +185,7 @@ export function HourGutter({ hourStart, totalHours, hourHeight, fontSize, weight
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {formatHourLabel(h, timeFormat, am, pm)}
+            {formatHourLabel(h, timeFormat, locale)}
           </div>
         );
       })}
@@ -359,7 +352,7 @@ interface NowBadgeProps {
   scale: { bu: number };
   fontSize: number;
   position: 'left' | 'right';
-  /** Household time format; the badge derives its own date-fns pattern from it. */
+  /** Household time format. */
   timeFormat: TimeFormat;
   /** Active formatting locale tag (e.g. "en-US") — used for the time label. */
   locale: string;
@@ -367,7 +360,6 @@ interface NowBadgeProps {
 
 /** Small pill badge showing the current time, positioned in the time gutter. */
 export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat, locale }: NowBadgeProps) {
-  const timePattern = timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
   const posStyle = position === 'right'
     ? { right: scale.bu * 0.3 }
     : { left: scale.bu * 0.5 };
@@ -387,7 +379,7 @@ export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat, loc
       zIndex: 11,
       lineHeight: 1.3,
     }}>
-      {formatDateSync(now, timePattern, { locale })}
+      {formatEventTime(now, timeFormat, locale)}
     </div>
   );
 }

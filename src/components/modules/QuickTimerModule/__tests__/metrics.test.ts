@@ -125,6 +125,17 @@ describe('quickTimerMetrics', () => {
     }
   });
 
+  it('gives the heading\'s line to the box when there is no heading', () => {
+    const titled = quickTimerMetrics(DEFAULT_BOX);
+    const untitled = quickTimerMetrics({ ...DEFAULT_BOX, heading: false });
+    expect(titled.head).toBeGreaterThan(0);
+    expect(untitled.head).toBe(0);
+    expect(untitled.number).toBeGreaterThan(titled.number);
+    const running = quickTimerMetrics({ ...DEFAULT_BOX, running: true, heading: false });
+    expect(running.head).toBe(0);
+    expect(running.time).toBeGreaterThanOrEqual(quickTimerMetrics({ ...DEFAULT_BOX, running: true }).time);
+  });
+
   it('falls back to the default box when nothing has been measured yet', () => {
     // jsdom reports zero, and so does the first frame before the observer runs.
     expect(quickTimerMetrics({ w: 0, h: 0, presets: 4, running: false }))

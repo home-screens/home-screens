@@ -2,7 +2,7 @@
 
 import type { MealSettings, TimeFormat } from '@/types/config';
 import { formatMealTime } from '@/lib/meal-constants';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { SECTION_HEADING, selectedPillStyle } from './remote-styles';
 
 interface MealsSettingsTimeFormatSectionProps {
@@ -34,6 +34,7 @@ export default function MealsSettingsTimeFormatSection({
   onChange,
 }: MealsSettingsTimeFormatSectionProps) {
   const t = useTranslate('remote');
+  const locale = useFormattingLocale();
 
   return (
     <section style={{ marginBottom: 24 }}>
@@ -53,7 +54,7 @@ export default function MealsSettingsTimeFormatSection({
         >
           <span style={{ fontSize: 14, fontWeight: 700 }}>{t('mealsSettings.timeFormat.followLabel')}</span>
           <span style={{ fontSize: 11, fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>
-            {formatMealTime('18:30', globalTimeFormat)}
+            {formatMealTime('18:30', globalTimeFormat, locale)}
           </span>
         </button>
         {(['12h', '24h'] as const).map((fmt) => {

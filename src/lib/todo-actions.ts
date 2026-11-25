@@ -266,12 +266,36 @@ export function addItem(data: TodoData, listId: string, input: AddItemInput, now
 }
 
 /**
+ * Danish æ, ø and å are letters of their own, not a, o or ae with a mark: to
+ * a Dane "ål" is eel and "al" is nothing. Every Danish keyboard, the wall's
+ * included, has them as keys, so they are kept as they are.
+ */
+const OWN_LETTERS: ReadonlySet<string> = new Set(['æ', 'ø', 'å']);
+
+/** Letters with no mark to take off, as people write them without the letter: "Strasse", "boeuf", "kielbasa". */
+const SPELLED_WITHOUT: Readonly<Record<string, string>> = { 'ß': 'ss', 'œ': 'oe', 'ł': 'l' };
+
+/**
+ * What two list items are compared by: the words on one line, in small
+ * letters, with their accents taken off ("Crème  Fraîche" is "creme
+ * fraiche"), since kids often type without them. Only for comparing; an item
+ * keeps the spelling it was added with.
+ */
+export function itemTextKey(text: string): string {
+  let key = '';
+  for (const ch of oneLineText(text).toLowerCase().normalize('NFC')) {
+    key += OWN_LETTERS.has(ch) ? ch : SPELLED_WITHOUT[ch] ?? ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  return key;
+}
+
+/**
  * Two items the family would call the same thing: the same words, whatever
- * their capitals and spacing. "Milk" and "milk " are one thing; "Milk" and
- * "2% milk" are two.
+ * their capitals, spacing and accents (`itemTextKey`). "Milk" and "milk " are
+ * one thing, and so are "Pão" and "pao"; "Milk" and "2% milk" are two.
  */
 export function sameItemText(a: string, b: string): boolean {
-  return oneLineText(a).toLocaleLowerCase() === oneLineText(b).toLocaleLowerCase();
+  return itemTextKey(a) === itemTextKey(b);
 }
 
 /**

@@ -4,6 +4,7 @@ import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { mealData, seedMeals, seedTodos, E2E_TODO_LIST_ID } from '../helpers/api';
+import { connectFakeMealie, disconnectFakeMealie, startFakeMealie, FAKE_GROCERIES_ID } from '../helpers/fake-mealie';
 
 /**
  * Adding to a list from the wall: the Add row under a to-do card or a grocery
@@ -181,6 +182,46 @@ test('full-screen meal planner: the grocery view adds the same way, from a butto
   await posted;
   await expect(sheet.getByTestId('wall-add-chip')).toContainText('Dish soap');
   await expect.poll(async () => (await items(request)).map((it) => it.text)).toContain('Dish soap');
+});
+
+test('grocery card on a Mealie list: words already there add nothing, accents or not, and a ticked one comes back', async ({ page, request }) => {
+  const mealie = await startFakeMealie();
+  try {
+    const groceries = mealie.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!;
+    groceries.items.push({ id: 'dddd0001-0000-4000-8000-000000000005', checked: false, position: 4, quantity: 0, note: 'Crème fraîche' });
+    await connectFakeMealie(request, mealie);
+    const grocery = buildModuleInstance('meal-planner', { view: 'grocery', interactive: true, wallAdd: true });
+    const display = await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [grocery])] }));
+    const card = display.module('meal-planner');
+    await expect(card).toContainText('Crème fraîche');
+    const sheet = await openSheet(card.getByTestId('meal-grocery-add'), page);
+    const addToMealie = async () => {
+      const posted = page.waitForResponse((r) => r.url().endsWith('/api/mealie/shopping/items') && r.request().method() === 'POST' && r.ok());
+      await sheet.locator('[data-key="action"]').click();
+      await posted;
+    };
+
+    // Typed the way a kid types it, small letters and no accents: the line keeps its own spelling.
+    await sheet.locator('[data-key="shift"]').click();
+    await typeOnWall(page, 'creme fraiche');
+    await addToMealie();
+    await expect(sheet.getByTestId('wall-add-chip').first()).toHaveAttribute('data-outcome', 'already');
+    await expect(sheet.getByTestId('wall-add-chip').first()).toContainText('Crème fraîche');
+
+    // Bread was ticked off: it comes back rather than going on twice.
+    await sheet.locator('[data-key="shift"]').click();
+    await typeOnWall(page, 'bread');
+    await addToMealie();
+    await expect(sheet.getByTestId('wall-add-chip').first()).toHaveAttribute('data-outcome', 'putBack');
+    await expect(card).toContainText('Bread');
+
+    expect(groceries.items.map((i) => i.note).filter(Boolean)).toEqual(['Paper towels', 'Bread', 'Crème fraîche']);
+    expect(groceries.items.find((i) => i.note === 'Bread')!.checked).toBe(false);
+    expect(mealie.requests.some((r) => r === 'POST /api/households/shopping/items')).toBe(false);
+  } finally {
+    await disconnectFakeMealie(request);
+    await mealie.close();
+  }
 });
 
 test('grocery card: no Add row while no list is picked for other things to buy', async ({ page, request, sandboxDir }) => {

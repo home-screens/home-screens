@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { HubUnreachableError, readJson, refusalSentence } from '@/lib/hub-request';
+import { isRefusalBody } from '@/lib/refusal';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { ROUTINES_URL, asRoutineSnapshot, saveRoutineList } from '@/lib/timer-client';
-import { materializeSession } from '@/lib/timer-logic';
+import { timerControlBody, type TimerControlAction } from '@/lib/timer-control';
+import { materializeSession, type TimerRefusalCode } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, Routine, TimerSession, TimerTargets, TimerView } from '@/types/timers';
 import { resolveTimerTargets, useDisplayTarget } from '../display-target';
 
@@ -14,8 +16,6 @@ const SESSION_POLL_MS = 2_000;
 const ROUTINES_POLL_MS = 15_000;
 /** How many times a save is made again on top of a list another phone just saved. */
 const SAVE_ATTEMPTS = 3;
-
-export type TimerControlAction = 'pause' | 'resume' | 'skip' | 'add-minute' | 'step-done' | 'cancel';
 
 /**
  * Data + actions behind the /remote Timers tab. Polls the active session
@@ -41,18 +41,32 @@ export function useTimersData() {
   // atomic write can't flash stale state back (same guard as useMealsData).
   const holdUntilRef = useRef(0);
 
-  const refreshSession = useCallback(async () => {
+  /** The hub's session as it stands, or undefined when it could not be read. */
+  const readSession = useCallback(async (): Promise<TimerSession | null | undefined> => {
     try {
       const res = await editorFetch('/api/timers/session');
-      if (!res.ok) return;
-      const json = (await res.json()) as { session: TimerSession | null };
-      if (Date.now() < holdUntilRef.current) return;
-      setServerSession(json.session);
-      setNow(Date.now());
-    } catch (e) {
-      if (isSessionExpired(e)) return;
+      if (!res.ok) return undefined;
+      return ((await res.json()) as { session: TimerSession | null }).session;
+    } catch {
+      // A sign-in that ran out is already on its way to the login page, and a
+      // poll that failed keeps what is on screen.
+      return undefined;
     }
   }, []);
+
+  /** Show `session`, and keep the polls off it for a moment (see `holdUntilRef`). */
+  const showSession = useCallback((session: TimerSession | null) => {
+    holdUntilRef.current = Date.now() + SESSION_POLL_MS;
+    setServerSession(session);
+    setNow(Date.now());
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    const session = await readSession();
+    if (session === undefined || Date.now() < holdUntilRef.current) return;
+    setServerSession(session);
+    setNow(Date.now());
+  }, [readSession]);
 
   usePolledFetch(() => { void refreshSession(); }, [refreshSession], { intervalMs: SESSION_POLL_MS, pauseWhenHidden: true });
 
@@ -119,8 +133,13 @@ export function useTimersData() {
     [targetIds, displays],
   );
 
+  /**
+   * Send `body` and show the session the hub answers with. A refusal with
+   * code `quiet` is not shown as an error: the card is read again instead,
+   * so it shows what the hub really holds.
+   */
   const post = useCallback(
-    async (body: Record<string, unknown>) => {
+    async (body: Record<string, unknown>, quiet?: TimerRefusalCode) => {
       setError(null);
       try {
         const res = await editorFetch('/api/timers/session', {
@@ -130,17 +149,20 @@ export function useTimersData() {
         });
         const json = (await readJson(res)) as { session?: TimerSession | null } | null;
         if (!res.ok) {
+          if (quiet && isRefusalBody(json) && json.code === quiet) {
+            const session = await readSession();
+            if (session !== undefined) showSession(session);
+            return;
+          }
           setError(failureText(json));
           return;
         }
-        holdUntilRef.current = Date.now() + SESSION_POLL_MS;
-        setServerSession(json?.session ?? null);
-        setNow(Date.now());
+        showSession(json?.session ?? null);
       } catch (e) {
         if (!isSessionExpired(e)) setError(failureText(e));
       }
     },
-    [failureText],
+    [failureText, readSession, showSession],
   );
 
   const startRoutine = useCallback(
@@ -155,8 +177,16 @@ export function useTimersData() {
     [post, targets],
   );
 
+  /**
+   * A press on the card's timer. It names that timer (`timerControlBody`),
+   * so one that another phone or wall replaced a moment ago, or moved on a
+   * step, is left alone. The hub then answers "no timer is running", which
+   * is not what the family sees: the card just catches up to the timer that
+   * is running now, with no error.
+   */
   const control = useCallback(
-    (action: TimerControlAction) => post({ action }),
+    (action: TimerControlAction, on: Pick<TimerSession, 'id' | 'stepIndex'>) =>
+      post(timerControlBody(action, on), 'timers.notRunning'),
     [post],
   );
 

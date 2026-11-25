@@ -27,8 +27,8 @@ interface SleepOverlayProps {
  * What each path shows:
  *   - brightness slider / remote brightness: content dimmed to the chosen
  *     level, no overlay content
- *   - idle dim: content dimmed, screensaver if enabled
- *   - scheduled dim window: content dimmed, screensaver if enabled
+ *   - idle dim: content dimmed, the clock screensaver unless it is set to blank
+ *   - scheduled dim window: content dimmed, the clock screensaver unless it is set to blank
  *   - sleep: black
  */
 export default function SleepOverlay({
@@ -42,7 +42,7 @@ export default function SleepOverlay({
   if (displayState === 'active') return null;
 
   const screensaverMode = screensaver?.mode ?? 'clock';
-  const showScreensaver = displayState === 'dimmed' && brightnessOverride === null && screensaverMode !== 'off';
+  const showScreensaver = displayState === 'dimmed' && brightnessOverride === null && screensaverMode === 'clock';
 
   return (
     <div

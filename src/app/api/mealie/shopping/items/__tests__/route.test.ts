@@ -35,7 +35,7 @@ describe('POST /api/mealie/shopping/items', () => {
     vi.clearAllMocks();
     resetWallAdded();
     vi.mocked(hasEditorSession).mockResolvedValue(true);
-    vi.mocked(addMealieShoppingItem).mockResolvedValue('new-1');
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'added', item: 'new-1' });
     vi.mocked(readMealieShopping).mockResolvedValue({ status: 'ok', lists: [], list: { id: LIST, name: 'Groceries', groups: [] }, fetchedAt: 1, baseUrl: 'http://mealie.local' });
   });
 
@@ -45,7 +45,14 @@ describe('POST /api/mealie/shopping/items', () => {
     expect(addMealieShoppingItem).toHaveBeenCalledWith(LIST, 'oat milk');
     expect(readMealieShopping).toHaveBeenCalledWith(LIST, { fresh: true });
     // The new item's id comes back, for Undo.
-    expect(await res.json()).toMatchObject({ list: { id: LIST }, added: 'new-1' });
+    expect(await res.json()).toMatchObject({ list: { id: LIST }, added: 'new-1', outcome: 'added', item: 'new-1' });
+  });
+
+  it('says what the hub did with words already on the list, with nothing new to undo', async () => {
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'already', item: 'milk-1' });
+    expect(await (await POST(post({ list: LIST, text: 'milk' }))).json()).toMatchObject({ added: null, outcome: 'already', item: 'milk-1' });
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'putBack', item: 'milk-1' });
+    expect(await (await POST(post({ list: LIST, text: 'milk' }))).json()).toMatchObject({ added: null, outcome: 'putBack', item: 'milk-1' });
   });
 
   it('refuses nothing typed, too much typed, or no list', async () => {
@@ -86,7 +93,7 @@ describe('POST /api/mealie/shopping/items from a wall', () => {
     resetWallAdded();
     vi.mocked(hasEditorSession).mockResolvedValue(false);
     vi.mocked(requireSession).mockRejectedValue(new Response('{}', { status: 401 }));
-    vi.mocked(addMealieShoppingItem).mockResolvedValue('new-1');
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'added', item: 'new-1' });
     vi.mocked(readMealieShopping).mockResolvedValue({ status: 'ok', lists: [], list: { id: LIST, name: 'Groceries', groups: [] }, fetchedAt: 1, baseUrl: 'http://mealie.local' });
     vi.mocked(readConfig).mockResolvedValue(groceryCard({ view: 'grocery', wallAdd: true }));
     vi.mocked(readMealData).mockResolvedValue(meals('mealie'));
@@ -121,8 +128,17 @@ describe('POST /api/mealie/shopping/items from a wall', () => {
   });
 
   it('has nothing to undo when Mealie folded the words into a line already there', async () => {
-    vi.mocked(addMealieShoppingItem).mockResolvedValue(null);
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'merged', item: null });
     const res = await POST(post({ list: LIST, text: 'Milk' }));
-    expect(await res.json()).toMatchObject({ added: null });
+    expect(await res.json()).toMatchObject({ added: null, outcome: 'merged' });
+  });
+
+  it('never lets a wall undo a line it did not make: one already there, or one it put back', async () => {
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'already', item: 'made-in-mealie' });
+    await POST(post({ list: LIST, text: 'creme fraiche' }));
+    vi.mocked(addMealieShoppingItem).mockResolvedValue({ outcome: 'putBack', item: 'ticked-in-mealie' });
+    await POST(post({ list: LIST, text: 'pao' }));
+    expect(wallMayUndo('made-in-mealie')).toBe(false);
+    expect(wallMayUndo('ticked-in-mealie')).toBe(false);
   });
 });

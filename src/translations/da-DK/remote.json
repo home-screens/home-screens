@@ -567,11 +567,11 @@
     "messageLabel": "Besked",
     "messagePlaceholder": "Hvad skal væggen vise?",
     "durationLabel": "Varighed",
-    "duration10s": "10s",
-    "duration30s": "30s",
+    "duration10s": "10 sek",
+    "duration30s": "30 sek",
     "duration1Min": "1 min",
     "duration5Min": "5 min",
-    "durationPersistent": "Sticky",
+    "durationPersistent": "Bliver stående",
     "sendButton": "Send besked",
     "sendingButton": "Sender…",
     "sentButton": "Sendt!",
@@ -768,8 +768,8 @@
     },
     "grownUpLock": {
       "body": {
-        "one": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minut mere.",
-        "other": "Væggene og opgavesiden tager ikke imod voksenkoden i {count} minutter mere."
+        "one": "Væggene og pligtsiden tager ikke imod voksenkoden i {count} minut mere.",
+        "other": "Væggene og pligtsiden tager ikke imod voksenkoden i {count} minutter mere."
       }
     }
   },
@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Timere",
     "quickTimer": "Hurtig timer",
-    "quickName": "{minutes} minutters timer",
+    "quickName": {
+      "one": "{minutes} minuts timer",
+      "other": "{minutes} minutters timer"
+    },
     "start": "Start",
     "sound": "Lyd",
     "routines": "Rutiner",
@@ -1029,7 +1032,7 @@
     "resume": "Fortsæt",
     "skip": "Spring over",
     "stop": "Stop",
-    "addMinute": "+1 min.",
+    "addMinute": "+1 min",
     "done": "Færdig!",
     "deleteRoutine": "Slet",
     "routineName": "Navn",
@@ -1049,19 +1052,22 @@
     "moveDown": "Flyt ned",
     "removeStep": "Fjern trin",
     "addStep": "Tilføj trin",
-    "minutesShort": "{minutes} min.",
+    "minutesShort": "{minutes} min",
     "onAllDisplays": "På alle vægge",
     "onDisplay": "På {name}",
     "showOn": "Send til",
     "allDisplays": "Alle vægge",
     "showOnNext": "Næste timer på",
     "onDisplays": "På {count} vægge",
-    "minUnit": "min.",
-    "secUnit": "sek.",
+    "minUnit": "min",
+    "secUnit": "sek",
     "stepSeconds": "Sekunder",
-    "quickNameSeconds": "{seconds} sekunders timer",
+    "quickNameSeconds": {
+      "one": "{seconds} sekunds timer",
+      "other": "{seconds} sekunders timer"
+    },
     "quickNameClock": "{time}-timer",
-    "secondsShort": "{seconds} sek.",
+    "secondsShort": "{seconds} sek",
     "showingOn": "Vises på {names}",
     "showingOnDisplay": "Vises på væggen",
     "waitingForDisplay": "Venter på, at en væg tager den…",
@@ -1258,12 +1264,12 @@
     "keeps": "Bliver hængende",
     "timeLeft": {
       "minute": {
-        "one": "{count} min. tilbage",
-        "other": "{count} min. tilbage"
+        "one": "{count} min tilbage",
+        "other": "{count} min tilbage"
       },
       "hour": {
-        "one": "{count} t. tilbage",
-        "other": "{count} t. tilbage"
+        "one": "{count} t tilbage",
+        "other": "{count} t tilbage"
       },
       "day": {
         "one": "{count} dag tilbage",
@@ -1521,7 +1527,7 @@
         "other": "{count} timer"
       },
       "minutes": "{count} min",
-      "hoursMinutes": "{hours} t. {minutes} min",
+      "hoursMinutes": "{hours} t {minutes} min",
       "repeats": "Gentages",
       "stops": "Stopper",
       "stopsNever": "Aldrig",

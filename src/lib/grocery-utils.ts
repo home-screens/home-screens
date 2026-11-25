@@ -4,6 +4,7 @@ import { planEntryMealIds } from '@/lib/meal-courses';
 import { sumGroceryAmounts } from '@/lib/grocery-amounts';
 import { SLOT_ORDER } from '@/lib/meal-constants';
 import { groceryItemKey } from '@/lib/grocery-checks';
+import { oneLineText } from '@/lib/text-length';
 import { formatList } from '@/i18n/formatters';
 
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
@@ -87,9 +88,18 @@ export function shortNameList(names: readonly string[], locale: string, more: (c
  * says where the list will put the item rather than "Other".
  */
 export function groceryAisle(ing: Pick<MealIngredient, 'name' | 'category'>): string {
+  return aisleOf(ing).aisle;
+}
+
+/**
+ * `groceryAisle`, with how it was found: 2 the household named the aisle, 1
+ * the name placed it, 0 neither (Other).
+ */
+function aisleOf(ing: Pick<MealIngredient, 'name' | 'category'>): { aisle: string; sure: 0 | 1 | 2 } {
   const said = ing.category && ing.category !== 'other' ? ing.category : undefined;
-  const cat = said || guessGroceryCategory(typeof ing.name === 'string' ? ing.name : '') || 'other';
-  return cat === 'seafood' ? 'meat' : cat;
+  const guessed = said ? null : guessGroceryCategory(typeof ing.name === 'string' ? ing.name : '');
+  const cat = said || guessed || 'other';
+  return { aisle: cat === 'seafood' ? 'meat' : cat, sure: said ? 2 : guessed ? 1 : 0 };
 }
 
 export type GroceryList = Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>;
@@ -100,7 +110,10 @@ export type GroceryList = Map<string, { items: Array<{ name: string; amount: str
  * `checkedItems` is that same week's ticks (`groceryChecksForWeek`): a tick
  * belongs to the list it was made on, never to every week's. Items are keyed
  * the way ticks are stored (`groceryItemKey`), so an ingredient saved as
- * "Milk " is the same item as a tick on "milk".
+ * "Milk " is the same item as a tick on "milk", and "Crème fraîche" in one
+ * meal and "creme fraiche" in another are one item, spelled the way the
+ * first meal spells it. One item is one row in one aisle: the first aisle the
+ * household named for it, else the first its name places it in.
  */
 export function generateGroceryList(
   planArr: readonly PlannedMeal[],
@@ -108,7 +121,8 @@ export function generateGroceryList(
   checkedItems: readonly string[],
 ): GroceryList {
   const mealMap = new Map(meals.map((m) => [m.id, m]));
-  const grouped = new Map<string, Map<string, string[]>>(); // category -> name -> amounts
+  // item key -> its first spelling, its aisle and every amount
+  const found = new Map<string, { spelled: string; aisle: string; sure: number; amounts: string[] }>();
 
   // A meal's courses are shopped for like its main dish: the side and the
   // dessert need their ingredients too.
@@ -118,25 +132,29 @@ export function generateGroceryList(
     for (const ing of meal.ingredients) {
       // A row saved with no name (older meals from the phone) is not an item.
       if (typeof ing.name !== 'string' || !ing.name.trim()) continue;
-      const displayCat = groceryAisle(ing);
-      if (!grouped.has(displayCat)) grouped.set(displayCat, new Map());
-      const catMap = grouped.get(displayCat)!;
       const key = groceryItemKey(ing.name);
-      if (!catMap.has(key)) catMap.set(key, []);
-      catMap.get(key)!.push(ing.amount ?? '');
+      const { aisle, sure } = aisleOf(ing);
+      const item = found.get(key);
+      if (!item) {
+        found.set(key, { spelled: oneLineText(ing.name).toLowerCase(), aisle, sure, amounts: [ing.amount ?? ''] });
+        continue;
+      }
+      item.amounts.push(ing.amount ?? '');
+      if (sure > item.sure) Object.assign(item, { aisle, sure });
     }
   }
 
   const result: GroceryList = new Map();
   for (const catKey of GROCERY_CATEGORY_ORDER) {
-    const catMap = grouped.get(catKey);
-    if (!catMap || catMap.size === 0) continue;
-    const items = Array.from(catMap.entries()).map(([name, amounts]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      // "Ground beef 5 lb" for a week that plans it three times, not "2 lb, 2 lb, 1 lb".
-      amount: sumGroceryAmounts(amounts),
-      checked: checkedItems.includes(name),
-    }));
+    const items = [...found.entries()]
+      .filter(([, item]) => item.aisle === catKey)
+      .map(([key, { spelled, amounts }]) => ({
+        name: spelled.charAt(0).toUpperCase() + spelled.slice(1),
+        // "Ground beef 5 lb" for a week that plans it three times, not "2 lb, 2 lb, 1 lb".
+        amount: sumGroceryAmounts(amounts),
+        checked: checkedItems.includes(key),
+      }));
+    if (items.length === 0) continue;
     items.sort((a, b) => {
       if (a.checked !== b.checked) return a.checked ? 1 : -1;
       return a.name.localeCompare(b.name);

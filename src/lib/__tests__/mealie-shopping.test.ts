@@ -26,7 +26,7 @@ const TOWELS = {
   labelId: 'l-house', label: { id: 'l-house', name: 'Household' }, recipeReferences: [{ recipeId: 'r1' }], groupId: 'g', householdId: 'h',
 };
 
-type FakeItem = { id: string; checked?: boolean; position?: number; recipeReferences?: { recipeId: string }[] };
+type FakeItem = { id: string; note?: string; checked?: boolean; position?: number; recipeReferences?: { recipeId: string }[] };
 
 function household(lists: Record<string, { name: string; createdAt?: string; recipes?: Record<string, string>; items: FakeItem[] }>) {
   json.mockImplementation(async (path: string) => {
@@ -227,9 +227,39 @@ describe('mealie-shopping', () => {
       household({ 'list-g': { name: 'Groceries', items: [] } });
       const lists = json.getMockImplementation()!;
       json.mockImplementation(async (path, init, cfg) => (init?.method === 'POST' ? { createdItems: [{ id: 'new-1' }] } as never : lists(path, init, cfg)));
-      expect(await addMealieShoppingItem('list-g', 'Milk')).toBe('new-1');
+      expect(await addMealieShoppingItem('list-g', 'Milk')).toEqual({ outcome: 'added', item: 'new-1' });
       json.mockImplementation(async (path, init, cfg) => (init?.method === 'POST' ? { createdItems: [], updatedItems: [{ id: 'old' }] } as never : lists(path, init, cfg)));
-      expect(await addMealieShoppingItem('list-g', 'Milk')).toBeNull();
+      expect(await addMealieShoppingItem('list-g', 'Milk')).toEqual({ outcome: 'merged', item: null });
+    });
+
+    it('adds nothing for words already on the list to get, whatever their capitals and accents', async () => {
+      household({ 'list-g': { name: 'Groceries', items: [{ id: 'cf', note: 'Crème fraîche' }, { id: 'milk', note: 'Milk' }] } });
+      expect(await addMealieShoppingItem('list-g', 'creme fraiche')).toEqual({ outcome: 'already', item: 'cf' });
+      expect(await addMealieShoppingItem('list-g', 'MILK')).toEqual({ outcome: 'already', item: 'milk' });
+      expect(json.mock.calls.some(([, init]) => init?.method === 'POST' || init?.method === 'PUT')).toBe(false);
+    });
+
+    it('puts a ticked one back instead of adding it again, keeping its own spelling', async () => {
+      const pao = { id: 'pao', shoppingListId: 'list-g', note: 'Pão', checked: true, quantity: 0, position: 2 };
+      household({ 'list-g': { name: 'Groceries', items: [pao] } });
+      const lists = json.getMockImplementation()!;
+      json.mockImplementation(async (path, init, cfg) => {
+        if (path === '/api/households/shopping/items/pao') return (init?.method === 'PUT' ? {} : pao) as never;
+        return lists(path, init, cfg);
+      });
+      expect(await addMealieShoppingItem('list-g', 'pao')).toEqual({ outcome: 'putBack', item: 'pao' });
+      expect(json).toHaveBeenCalledWith('/api/households/shopping/items/pao', { method: 'PUT', json: { ...pao, checked: false } }, expect.anything());
+      expect(json.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    });
+
+    it('asks Mealie what is on the list now, not the copy a read kept a moment ago', async () => {
+      household({ 'list-g': { name: 'Groceries', items: [{ id: 'milk', note: 'Milk' }] } });
+      await readMealieShopping(undefined);
+      // Cleared in Mealie's app since that read: the words are new again.
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      const lists = json.getMockImplementation()!;
+      json.mockImplementation(async (path, init, cfg) => (init?.method === 'POST' ? { createdItems: [{ id: 'new-1' }] } as never : lists(path, init, cfg)));
+      expect(await addMealieShoppingItem('list-g', 'milk')).toEqual({ outcome: 'added', item: 'new-1' });
     });
 
     it('says the list is gone when it went in the seconds since the hub last looked', async () => {

@@ -901,6 +901,13 @@ describe('formatEventTimeCompact', () => {
     expect(formatEventTimeCompact(new Date(2026, 6, 15, 17, 30), '24h', 'en-US')).toBe('17:30');
     expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 0), '24h', 'en-US')).toBe('08:00');
   });
+
+  it("writes the numbers the language's way", () => {
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 0), '24h', 'da-DK')).toBe('08.00');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 0), '24h', 'es-ES')).toBe('8:00');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 17, 30), '12h', 'da-DK')).toBe('5.30p');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 17, 0), '12h', 'es-ES')).toBe('5p');
+  });
 });
 
 describe('allDaySpanSegment', () => {

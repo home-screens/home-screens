@@ -11,7 +11,7 @@ import { moonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
 import { formatNumber } from '@/i18n/formatters';
 import { NO_VALUE } from '@/lib/constants';
-import { formatTimeOfDay, tightHourLabel } from '@/lib/timezone';
+import { tightHourLabel } from '@/lib/timezone';
 import {
   windFootline, feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount, precipitationReading,
   airQualityLevel, airQualityPosition, uvLevel, uvRestOfDay, pressureTrend, pressurePosition, type Sentence as SentenceKey,
@@ -242,7 +242,7 @@ export function Hero({ p, compact, land }: { p: WeatherViewProps; compact?: bool
 export function HourlyCard({ p, count, style }: { p: WeatherViewProps; count: number; style?: React.CSSProperties }) {
   const { s, u } = p.scale;
   const hrs = hoursWithin(p.hourly, 36).slice(0, count);
-  const hourText = (h: { time: string }) => tightHourLabel(formatTimeOfDay(new Date(h.time), { timeFormat: p.timeFormat, locale: p.locale, timezone: p.timezone, hourOnly: true }));
+  const hourText = (h: { time: string }) => tightHourLabel(new Date(h.time), { timeFormat: p.timeFormat, locale: p.locale, timezone: p.timezone });
   return (
     <Card u={u} testId="fsw-hours" style={{ flex: 'none', ...style }}>
       <CardLabel icon={Clock} s={s}>{t(p, 'hourly')}</CardLabel>

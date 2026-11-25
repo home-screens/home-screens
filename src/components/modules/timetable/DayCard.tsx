@@ -36,7 +36,10 @@ export interface DayTokens {
   /** The size the day is drawn at, which every pixel floor below is capped to. */
   base: number;
   timeFormat: TimeFormat;
+  /** The language the words are hyphenated in. */
   locale: string;
+  /** The formatting language times are written in. */
+  formattingLocale: string;
   detail: TimetableDetail;
   /** What the rows have given up: 1 drops the rooms and times, 2 the names. */
   shed: TimetableShed;
@@ -223,7 +226,7 @@ function StartsLine({ row, tokens }: { row: FamilyDayRow; tokens: DayTokens }) {
     <div data-testid="timetable-day-start" style={{ display: 'flex', alignItems: 'baseline', gap: '0.3em', marginTop: '0.08em', ...NOWRAP }}>
       <span style={{ fontSize: small, fontWeight: 600, color: ink(0.62) }}>{t('timetable.startsWord')}</span>
       <b style={{ fontSize: '1.12em', fontWeight: 750, letterSpacing: '-0.01em', ...TABULAR }}>
-        {formatClockTime(row.span.start, tokens.timeFormat)}
+        {formatClockTime(row.span.start, tokens.timeFormat, tokens.formattingLocale)}
       </b>
     </div>
   );
@@ -233,7 +236,7 @@ function StartsLine({ row, tokens }: { row: FamilyDayRow; tokens: DayTokens }) {
 function EndLines({ row, tokens, align, availablePx }: { row: FamilyDayRow; tokens: DayTokens; align: 'start' | 'center'; availablePx?: number }) {
   const t = useTranslate('modules');
   const small = atLeast(15, 0.56, tokens.base);
-  const clock = (time: string) => formatClockTime(time, tokens.timeFormat);
+  const clock = (time: string) => formatClockTime(time, tokens.timeFormat, tokens.formattingLocale);
   // A column foot too narrow for "OGS until 15:00" says "until 15:00": the
   // time is the half that matters, and the band on the clock names the care.
   let careLine: string | null = null;
@@ -343,7 +346,7 @@ function LessonBody({ block, tokens, icons, usualCourse, availablePx }: { block:
       )}
       {subs && block.room && <div style={subStyle}>{t('timetable.room', { room: block.room })}</div>}
       {subs && tokens.detail === 'more' && (
-        <div style={subStyle}>{formatClockTime(block.start, tokens.timeFormat)}</div>
+        <div style={subStyle}>{formatClockTime(block.start, tokens.timeFormat, tokens.formattingLocale)}</div>
       )}
       {block.off && (
         <div style={{ fontSize: atLeast(14, 0.5, tokens.base), fontWeight: 700, marginTop: '0.14em', ...NOWRAP }}>
@@ -522,7 +525,7 @@ function Block({
         {block.label}
       </b>
       <span style={{ fontSize: atLeast(15, 0.54, tokens.base), fontWeight: 600, color: ink(0.7), marginTop: '0.1em', ...TABULAR, ...NOWRAP }}>
-        {t('timetable.careUntilShort', { time: formatClockTime(block.end, tokens.timeFormat) })}
+        {t('timetable.careUntilShort', { time: formatClockTime(block.end, tokens.timeFormat, tokens.formattingLocale) })}
       </span>
     </div>
   );
@@ -606,7 +609,7 @@ function Lane({
         />
       )}
       {nowMin !== null && (
-        <NowLine nowShare={share(nowMin)} orientation={orientation} time={formatClockMinutes(nowMin, tokens.timeFormat)} />
+        <NowLine nowShare={share(nowMin)} orientation={orientation} time={formatClockMinutes(nowMin, tokens.timeFormat, tokens.formattingLocale)} />
       )}
       {leader && lastEnd !== null && (
         <div
@@ -747,7 +750,7 @@ export function DayHeaderCard({ pill, title, weekLetter, weekNumber, banner, axi
     );
   }
   const g = geometry as RowsGeometry;
-  const nowTime = nowMin === null ? '' : formatClockMinutes(nowMin, tokens.timeFormat);
+  const nowTime = nowMin === null ? '' : formatClockMinutes(nowMin, tokens.timeFormat, tokens.formattingLocale);
   const covered = ticksUnderPill(axis, nowMin, 'rows', g.lanePx, tokens.base, nowTime);
   return (
     <div data-testid="timetable-day-header" style={{ ...rowGrid(g, tokens.base), gridTemplateRows: '56% 44%' }}>
@@ -769,7 +772,7 @@ export function DayHeaderCard({ pill, title, weekLetter, weekNumber, banner, axi
               ...NOWRAP,
             }}
           >
-            {tickLabel(tick, tokens.timeFormat)}
+            {tickLabel(tick, tokens.timeFormat, tokens.formattingLocale)}
           </span>
         ))}
         {nowMin !== null && <NowPill nowShare={axisShare(axis, nowMin)} orientation="rows" tokens={tokens} time={nowTime} />}
@@ -835,7 +838,7 @@ export function DayRowCard({ person, axis, share, geometry, tokens, nowMin = nul
 /** The narrow card on the left in columns, carrying the hour labels. */
 export function DayRulerCard({ axis, geometry, tokens, nowMin = null }: { axis: DayAxis; geometry: DayGeometry; tokens: DayTokens; nowMin?: number | null }) {
   const g = geometry as ColumnsGeometry;
-  const nowTime = nowMin === null ? '' : formatClockMinutes(nowMin, tokens.timeFormat);
+  const nowTime = nowMin === null ? '' : formatClockMinutes(nowMin, tokens.timeFormat, tokens.formattingLocale);
   const covered = ticksUnderPill(axis, nowMin, 'columns', g.lanePx, tokens.base, nowTime);
   return (
     <div data-testid="timetable-day-ruler" style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, fontSize: `${tokens.base.toFixed(2)}px` }}>
@@ -856,7 +859,7 @@ export function DayRulerCard({ axis, geometry, tokens, nowMin = null }: { axis: 
               ...NOWRAP,
             }}
           >
-            {tickLabel(tick, tokens.timeFormat)}
+            {tickLabel(tick, tokens.timeFormat, tokens.formattingLocale)}
           </span>
         ))}
         {nowMin !== null && <NowPill nowShare={axisShare(axis, nowMin)} orientation="columns" tokens={tokens} time={nowTime} />}

@@ -27,6 +27,10 @@ vi.mock('@/components/modules/ModuleWrapper', () => ({
 vi.mock('@/components/display/timer-views/RingTimerView', () => ({ default: () => <div data-testid="ring" /> }));
 vi.mock('@/components/display/timer-views/TimerCelebration', () => ({ default: () => <div data-testid="celebration" /> }));
 vi.mock('@/components/display/timer-views/timer-sounds', () => ({ playTimerSound: vi.fn() }));
+// jsdom measures nothing, so the box falls back to its unmeasured size unless
+// a test gives it one.
+const measured = vi.hoisted(() => ({ box: { width: 0, height: 0 } }));
+vi.mock('@/hooks/useElementBox', () => ({ useElementBox: () => [() => {}, measured.box] }));
 
 let session: TimerSession | null = null;
 const bodies: Array<Record<string, unknown>> = [];
@@ -100,6 +104,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   session = null;
   bodies.length = 0;
+  measured.box = { width: 0, height: 0 };
   __resetTimerPresenceForTests();
 });
 
@@ -274,6 +279,90 @@ describe('a tap that was not meant for what is now under the finger', () => {
     fireEvent.click(document.querySelector('[data-testid="quick-timer-preset"]')!, { detail: 1 });
     await settle();
     expect(bodies.map((b) => b.action)).toEqual(['start']);
+  });
+});
+
+describe('-1 min near the end', () => {
+  const row = () => screen.getByTestId('quick-timer-pause').parentElement!;
+  /** Let the countdown run until "-1 min" goes, a tick at a time. */
+  const runUntilSubtractGoes = async () => {
+    for (let i = 0; i < 40 && screen.queryByTestId('quick-timer-subtract'); i++) await settle(250);
+  };
+
+  it('goes as 2:00 turns to 1:59, the row closes up, and a tap landing there does nothing for a moment', async () => {
+    render(<QuickTimerModule key="box" config={{ fullScreen: false, presetMinutes: [5] }} style={style} />);
+    session = boxed(125);
+    await beat('t1');
+    await ready();
+    expect(screen.getByTestId('quick-timer-subtract')).not.toBeNull();
+    expect(row().style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))');
+
+    await runUntilSubtractGoes();
+    expect(screen.queryByTestId('quick-timer-subtract')).toBeNull();
+    expect(screen.getByTestId('quick-timer-remaining').textContent).toBe('1:59');
+    // Three across, no hole where it was.
+    expect(row().style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+    expect(screen.getByTestId('quick-timer-pause').style.gridColumn).toBe('');
+
+    // A tap meant for "-1 min" lands on whatever slid into its place.
+    fireEvent.click(screen.getByTestId('quick-timer-add'));
+    fireEvent.click(screen.getByTestId('quick-timer-pause'));
+    await settle();
+    expect(bodies).toEqual([]);
+
+    // Once the moment has passed the buttons answer, and a minute more
+    // brings "-1 min" back.
+    await ready();
+    fireEvent.click(screen.getByTestId('quick-timer-add'));
+    await settle();
+    expect(bodies.map((b) => b.action)).toEqual(['add-minute']);
+    expect(screen.getByTestId('quick-timer-subtract')).not.toBeNull();
+    expect(row().style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))');
+  });
+
+  it('in a tall strip, gives Pause the top row so +1 min and Stop stay where they were', async () => {
+    measured.box = { width: 200, height: 420 };
+    render(<QuickTimerModule key="box" config={{ fullScreen: false, presetMinutes: [5] }} style={style} />);
+    session = boxed(125);
+    await beat('t1');
+    await ready();
+    expect(row().style.gridTemplateColumns).toBe('repeat(2, minmax(0, 1fr))');
+    expect(screen.getByTestId('quick-timer-subtract')).not.toBeNull();
+
+    await runUntilSubtractGoes();
+    expect(row().style.gridTemplateColumns).toBe('repeat(2, minmax(0, 1fr))');
+    expect(screen.getByTestId('quick-timer-pause').style.gridColumn).toBe('1 / -1');
+    expect(screen.getByTestId('quick-timer-add')).not.toBeNull();
+  });
+
+  it('is never offered on a timer that starts under two minutes', async () => {
+    render(<QuickTimerModule key="box" config={{ fullScreen: false, presetMinutes: [1] }} style={style} />);
+    await ready();
+    tapPreset(1);
+    await ready();
+    expect(state()).toBe('running');
+    expect(screen.queryByTestId('quick-timer-subtract')).toBeNull();
+    expect(screen.getByTestId('quick-timer-add')).not.toBeNull();
+  });
+});
+
+describe('the heading', () => {
+  it('is drawn by default and gone with "No title"', async () => {
+    const { unmount } = render(<QuickTimerModule config={{ presetMinutes: [5] }} style={style} />);
+    expect(box().textContent).toContain('quick-timer.title');
+    unmount();
+    render(<QuickTimerModule config={{ presetMinutes: [5], showTitle: false }} style={style} />);
+    expect(box().textContent).not.toContain('quick-timer.title');
+    expect(screen.getAllByTestId('quick-timer-preset')).toHaveLength(1);
+  });
+
+  it('is gone with "No title" while a timer runs in the box too', async () => {
+    render(<QuickTimerModule key="box" config={{ fullScreen: false, presetMinutes: [5], showTitle: false }} style={style} />);
+    await ready();
+    tapPreset(5);
+    await ready();
+    expect(state()).toBe('running');
+    expect(box().textContent).not.toContain('quick-timer.title');
   });
 });
 

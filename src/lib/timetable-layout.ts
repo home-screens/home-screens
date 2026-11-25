@@ -48,7 +48,7 @@ import type {
 } from '@/types/timetables';
 import { DAY_KEYS } from '@/types/timetables';
 import { memberInitials } from '@/lib/family-avatar';
-import { parseTimeToMinutes } from './clock-time';
+import { formatClockMinutes, parseTimeToMinutes } from './clock-time';
 import { addIsoDays, isoWeekday, mondayOf } from './iso-date';
 import { isoDateInTZ, toTZWallTime } from '@/lib/timezone';
 
@@ -385,6 +385,28 @@ const TIME_WIDTH_EM: Record<TimeFormat, number> = { '24h': 3.3, '12h': 5.3 };
  * card showing nothing at all.
  */
 const TIME_FIT_EM: Record<TimeFormat, number> = { '24h': 3.01, '12h': 4.82 };
+
+/** The widest time each table above was measured on, in characters: "12:45 PM" and "12:45". */
+const MEASURED_TIME_CHARS: Record<TimeFormat, number> = { '24h': 5, '12h': 8 };
+const timeCharsCache = new Map<string, number>();
+
+/**
+ * A width from one of the tables above for a time written in `locale`,
+ * stretched by how much longer that language's widest time is than the one
+ * measured ("12:45 p. m." in Spanish is three characters over "12:45 PM").
+ * The widest face is a mono one, where every character is as wide as the next,
+ * so stretching by characters keeps the estimate an over-estimate. A language
+ * whose time is no longer keeps the table's width.
+ */
+function timeEm(table: Record<TimeFormat, number>, format: TimeFormat, locale = 'en-US'): number {
+  const key = `${format}|${locale}`;
+  let chars = timeCharsCache.get(key);
+  if (chars === undefined) {
+    chars = formatClockMinutes(12 * 60 + 45, format, locale).length;
+    timeCharsCache.set(key, chars);
+  }
+  return table[format] * Math.max(1, chars / MEASURED_TIME_CHARS[format]);
+}
 
 /**
  * How long the words the component wraps a value in are, in characters, and
@@ -1261,6 +1283,8 @@ export interface CardMetricsInput {
   hasLegend?: boolean;
   /** The household's clock. A 12-hour time is half as wide again. */
   timeFormat: TimeFormat;
+  /** The formatting language the times are written in, which can make them longer. Omitted = en-US. */
+  locale?: string;
   /**
    * What the card has given up to draw at the size it was asked for. Omitted,
    * it has given up nothing, which is the case whenever the card chose its own
@@ -1534,7 +1558,7 @@ function gutterMetrics(input: CardMetricsInput, base: number, times: GutterTimes
   // fallback here that disagreed with the component's was a bug: a household
   // that never touched the clock setting drew "12:45 PM" in a gutter budgeted
   // for "12:45", so every row lost its last characters.
-  const width = TIME_WIDTH_EM[input.timeFormat];
+  const width = timeEm(TIME_WIDTH_EM, input.timeFormat, input.locale);
   let px = Math.max(wanted, timePx * width + GUTTER_PAD_PX);
   const cap = Math.max(wanted, input.cardWidth * GUTTER_MAX_SHARE);
   let bare = false;
@@ -1547,7 +1571,7 @@ function gutterMetrics(input: CardMetricsInput, base: number, times: GutterTimes
       // ("10:35 AI"). A school day does not need the day period to be read,
       // so it goes, and the hour and minutes are drawn whole.
       bare = true;
-      const bareWidth = TIME_WIDTH_EM['24h'];
+      const bareWidth = timeEm(TIME_WIDTH_EM, '24h', input.locale);
       timePx = Math.min(timePx, Math.max(GUTTER_MIN_TIME_PX, (px - GUTTER_PAD_PX) / bareWidth));
       px = Math.min(cap, Math.max(wanted, timePx * bareWidth + GUTTER_PAD_PX));
     } else {
@@ -2546,6 +2570,8 @@ export interface TimetableCardInput {
   showStartTimes?: boolean;
   /** The household's clock, which decides how wide every time on the card is. */
   timeFormat: TimeFormat;
+  /** The formatting language the times are written in, which can make them longer. Omitted = en-US. */
+  locale?: string;
   /**
    * The length of the words the component will put around a time, a room or a
    * date, and of the sentences it composes out of them, in characters.
@@ -2580,6 +2606,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
   const badgedCourse = usualCourse(timetable);
   const words = input.words ?? DEFAULT_WORDS;
   const format = input.timeFormat;
+  const timeFit = timeEm(TIME_FIT_EM, format, input.locale);
 
   /**
    * How much width a cell in one of the two kinds of column has, in pixels.
@@ -2649,7 +2676,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
   const endCapForm = (): 'sentence' | 'time' | 'bare' | 'none' => {
     const px = printPx(CARD_TEXT.tail);
     const available = columnRawPx(true);
-    const time = TIME_FIT_EM[format];
+    const time = timeFit;
     if ((END_CAP_FURNITURE_EM + labelWidthEm(words.endCap) + time) * px <= available) return 'sentence';
     if ((END_CAP_FURNITURE_EM + time) * px <= available) return 'time';
     if ((END_CAP_BARE_EM + time) * px <= available) return 'bare';
@@ -2667,7 +2694,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
   const careForm = (name: string, rich: boolean, withName: boolean): CareCardCell['form'] => {
     const px = printPx(CARD_TEXT.care);
     const available = columnRawPx(rich);
-    const time = TIME_FIT_EM[format];
+    const time = timeFit;
     if (withName && (labelWidthEm(name.length + words.careFull) + time + CARE_NAME_PAD_EM) * px <= available) {
       return 'full';
     }
@@ -2802,7 +2829,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
 
   /** Whether the words around a late start fit the cell the note is drawn in. */
   const lateStartWordFits = (rich: boolean): boolean =>
-    (labelWidthEm(words.lateStart) + TIME_FIT_EM[format]) * printPx(CARD_TEXT.late) <= columnPx(rich);
+    (labelWidthEm(words.lateStart) + timeFit) * printPx(CARD_TEXT.late) <= columnPx(rich);
 
   /**
    * How much of the day line the header row has the width for.
@@ -2841,11 +2868,11 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
     const classPx = classChars ? chip(classChars, HEADER_ROW.classEm) : 0;
     // The week badge is one letter inside a lozenge of its own.
     const badgePx = badge ? chip(1, HEADER_ROW.badgeEm) + HEADER_ROW.badgeEm * base : 0;
-    const times = 2 * TIME_FIT_EM[format] + labelWidthEm(1);
+    const times = 2 * timeFit + labelWidthEm(1);
     const meta = {
       care: (labelWidthEm(focusWordChars + words.timeRange) + times
         + labelWidthEm(careChars + words.careFull + SEPARATOR_CHARS)
-        + TIME_FIT_EM[format]) * metaPx,
+        + timeFit) * metaPx,
       full: (labelWidthEm(focusWordChars + words.timeRange) + times) * metaPx,
       compact: times * metaPx,
       none: 0,
@@ -3079,7 +3106,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
       // the afternoon to itself, and half of it less the gap between them
       // where two share the row.
       const width = foldEntryWidthPx(metrics, rich, folded.length);
-      const timePx = TIME_FIT_EM[format] * printPx(CARD_TEXT.room);
+      const timePx = timeFit * printPx(CARD_TEXT.room);
       cells.push({
         rowStart: foldRow,
         rowEnd: foldRow + 1,

@@ -125,7 +125,7 @@
       "needsVersion": "That link needs a version number. Type which version to install.",
       "notAPlugin": "That link isn't a Home Screens plugin. Check that it points at the plugin's .tar.gz file.",
       "tooBig": "That file is too big to be a plugin. Plugins can be up to {max} MB.",
-      "alreadyInstalled": "That plugin is already installed. Update it from the plugin store instead."
+      "alreadyInstalled": "That plugin is already installed from the plugin marketplace. Update it from the Updates tab instead."
     },
     "icloud": {
       "signInRefused": "Couldn't sign in to iCloud. Double-check the Apple ID, and make sure the password is an app password created at account.apple.com; your regular Apple password won't work here."
@@ -223,7 +223,7 @@
     "line": "A grown-up can do that in the Home Screens editor. Go to {place} and click Let in.",
     "waiting": "Waiting to be let in…",
     "signIn": "Just looking? Sign in",
-    "noCookieTitle": "This browser isn't keeping its place",
+    "noCookieTitle": "This browser keeps forgetting it's a wall",
     "noCookieLine": "Home Screens remembers a wall with a cookie, and this browser did not keep it. Turn on cookies for this address, then load the page again.",
     "keepLine": "You are signed in, so this is just a look.",
     "keepButton": "Keep as a wall",
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Step {current} of {total}",
-    "quickName": "{minutes} minute timer",
+    "quickName": {
+      "one": "{minutes} minute timer",
+      "other": "{minutes} minute timer"
+    },
     "almostDone": "Almost done!",
     "done": "Done!",
     "paused": "Paused",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} min",
     "moreSteps": "+{count} more",
     "progressWords": "{done} done · {left} to go",
-    "quickNameSeconds": "{seconds} second timer",
+    "quickNameSeconds": {
+      "one": "{seconds} second timer",
+      "other": "{seconds} second timer"
+    },
     "quickNameClock": "{time} timer",
     "pause": "Pause",
     "resume": "Resume",
@@ -627,7 +633,7 @@
     "rate": "Rate meal",
     "dinner": "Rate dinner",
     "close": "Done",
-    "hint": "Each person has one rating per recipe. Rate it again to update your vote; the family average uses everyone’s current vote.",
+    "hint": "Each person has one rating per recipe. Rate it again to update your vote; the family average uses everyone's current vote.",
     "noDinner": "No dinner is planned for this day.",
     "typed": {
       "one": "There is no recipe to rate for {dishes}, because it was only typed in.",
@@ -867,7 +873,7 @@
     "undo": "Undo"
   },
   "wallNames": {
-    "hubScreen": "This Home Screens' own screen",
+    "hubScreen": "The browser on Home Screens itself",
     "someBrowser": "A browser",
     "browserOn": "{browser} on {device}",
     "justDevice": "A browser on {device}",

@@ -59,7 +59,7 @@ test('/chores finds a chore chart that lives only on a non-inherited display', a
 
   // Renders the real chore board, not the empty state.
   await expect(page.getByText('Feed the dog')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Avery\u2019s chores' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "Avery's chores" })).toBeVisible();
 });
 
 test('/remote finds a chore chart on a non-inherited display', async ({ page, request }) => {

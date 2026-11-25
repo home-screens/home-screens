@@ -175,11 +175,11 @@
         "one": "{count} hora",
         "other": "{count} horas"
       },
-      "minutes": "{count}min",
-      "hoursMinutes": "{hours}h{minutes}min",
+      "minutes": "{count} min",
+      "hoursMinutes": "{hours} h {minutes} min",
       "length30": "Meia hora",
       "length60": "1 hora",
-      "length90": "1h30",
+      "length90": "1 hora e meia",
       "length120": "2 horas",
       "length180": "3 horas",
       "lengthOther": "Outro",
@@ -232,8 +232,6 @@
     "noEventsToday": "Sem eventos hoje",
     "noUpcomingEvents": "Sem eventos próximos",
     "moreCount": "+{count} mais",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "Próximos",
     "viewLabels": {
       "schedule": "Agenda",
@@ -648,7 +646,7 @@
       },
       "did": {
         "planned": "O {when} vai ter {meal}.",
-        "joined": "O {when} ganhou {meal}.",
+        "joined": "O {when} também vai ter {meal}.",
         "swapped": "O {when} agora vai ter {meal}.",
         "both": "O {when} também vai ter {meal}.",
         "off": "O {when} não tem mais {meal}."
@@ -1333,7 +1331,7 @@
     "loss": "D",
     "tie": "E",
     "vs": "contra",
-    "at": "fora com",
+    "at": "fora contra",
     "final": "Encerrado",
     "inProgress": "Em andamento"
   },
@@ -1452,8 +1450,8 @@
     "timeAgo": {
       "justNow": "agora mesmo",
       "minutes": "há {count} min",
-      "hours": "há {count}h",
-      "days": "há {count}d"
+      "hours": "há {count} h",
+      "days": "há {count} d"
     }
   },
   "fullscreen-news": {
@@ -1537,9 +1535,9 @@
       "todayAtTime": "Hoje {time}",
       "tomorrow": "Amanhã",
       "daysOverdue": {
-        "one": "{count}d atrasada",
-        "other": "{count}d atrasadas",
-        "many": "{count}d atrasadas"
+        "one": "{count} dia de atraso",
+        "other": "{count} dias de atraso",
+        "many": "{count} dias de atraso"
       }
     },
     "focus": {
@@ -1937,11 +1935,7 @@
       "failed": "Não deu para colocar no mural. Seu desenho continua aqui.",
       "unreachable": "Não deu para colocar no mural. O Home Screens não está respondendo. Seu desenho continua aqui.",
       "off": "Desenhar no painel acabou de ser desligado. Não dá para colocar seu desenho no mural.",
-      "posted": "O recado de {name} já está no mural",
-      "postedNobody": "Seu recado já está no mural",
-      "undoFailed": "Esse recado ainda está no mural. Tire pelo celular.",
       "pickAgain": "Essa pessoa não está mais na família. Escolha quem desenhou.",
-      "undoing": "Tirando do mural…",
       "posting": "Colocando no mural…",
       "madeRoom": "O desenho mais antigo saiu para abrir espaço."
     },
@@ -1967,6 +1961,13 @@
       "write": "Escrever",
       "pageWaits": "Seu desenho ainda está esperando você.",
       "wordsWait": "O que você escreveu ainda está esperando você."
+    },
+    "wallPost": {
+      "posted": "O recado de {name} já está no mural",
+      "postedNobody": "Seu recado já está no mural",
+      "undoFailed": "Esse recado ainda está no mural. Para tirar, use o celular.",
+      "undoing": "Tirando do mural…",
+      "undo": "Desfazer"
     }
   },
   "photoControls": {
@@ -1980,7 +1981,10 @@
   "quick-timer": {
     "title": "Timer rápido",
     "unit": "min",
-    "startAriaLabel": "Começar um timer de {minutes} minutos",
+    "startAriaLabel": {
+      "one": "Começar um timer de {minutes} minuto",
+      "other": "Começar um timer de {minutes} minutos"
+    },
     "busyElsewhere": "Há um timer rodando em outro painel"
   }
 }

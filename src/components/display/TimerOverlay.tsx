@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useTranslate } from '@/i18n';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
-import { quickTimerLengthSec, sessionProgress, sessionTargetsDisplay } from '@/lib/timer-logic';
+import { canSubtractMinute, quickTimerLengthSec, sessionProgress, sessionTargetsDisplay } from '@/lib/timer-logic';
 import { postTimerControl, type TimerControlAction } from '@/lib/timer-control';
 import {
   dismissTimesUp,
@@ -210,10 +210,10 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
           onPause={() => act('pause', live)}
           onResume={() => act('resume', live)}
           onAddMinute={() => act('add-minute', live)}
-          // Only offered while there is a whole minute to take back, so the
-          // button never appears able to run the timer past its own end.
-          onSubtractMinute={() => act('subtract-minute', live)}
-          canSubtractMinute={remainingMs > 60_000}
+          // Only offered while it leaves a minute on the clock: under two
+          // minutes a few plain taps would run the timer down to nothing,
+          // where Stop asks for a hold.
+          onSubtractMinute={canSubtractMinute(remainingMs) ? () => act('subtract-minute', live) : undefined}
           onToggleSound={() => act('toggle-sound', live)}
           soundOn={live.sound !== false}
           // A routine can be moved on by hand while there is a step to move

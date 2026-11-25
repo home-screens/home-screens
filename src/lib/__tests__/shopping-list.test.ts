@@ -14,7 +14,6 @@ import {
   shoppingListByName,
   shoppingListView,
   shoppingShareText,
-  shoppingTextKey,
   shoppingTicksForName,
   tidyShoppingText,
   type ShoppingItem,
@@ -87,6 +86,15 @@ describe('voice', () => {
   it('finds every item of a name, ignoring case and spaces', () => {
     expect(shoppingItemsNamed(LIST, '  FLOUR ').map((i) => i.id)).toEqual(['flour', 'flour2']);
     expect(shoppingItemsNamed(LIST, ' ')).toEqual([]);
+  });
+
+  it('finds a name said without its accents, and says one thing once', () => {
+    const cream: ShoppingList = { id: 'g', name: 'G', groups: [{ label: 'Dairy', items: [
+      it_('cf1', '200 ml crème fraîche', { name: 'crème fraîche' }),
+      it_('cf2', 'Creme fraiche', { checked: true }),
+    ] }] };
+    expect(shoppingItemsNamed(cream, 'creme fraiche').map((i) => i.id)).toEqual(['cf1', 'cf2']);
+    expect(shoppingListByName(cream)).toEqual([{ label: 'Dairy', items: [{ name: 'crème fraîche', checked: false }] }]);
   });
 
   it('says each name once, ticked only when every one is', () => {
@@ -172,6 +180,13 @@ describe('shoppingAddPlan', () => {
     expect(shoppingAddPlan(LIST, 'flour')).toEqual({ kind: 'new' });
   });
 
+  it('does not add twice what is there to get, whatever the accents, and names it as the list spells it', () => {
+    const list: ShoppingList = { id: 'g', name: 'G', groups: [{ label: null, items: [it_('cf', 'Crème fraîche'), it_('pao', 'Pão', { checked: true })] }] };
+    expect(shoppingAddPlan(list, 'creme fraiche')).toEqual({ kind: 'already', item: list.groups[0].items[0] });
+    expect(shoppingAddPlan(list, 'PAO')).toEqual({ kind: 'putBack', item: list.groups[0].items[1] });
+    expect(shoppingAddPlan(list, 'Crème')).toEqual({ kind: 'new' });
+  });
+
   it('matches words typed with extra spaces, the way the hub tidies them before adding', () => {
     const towels: ShoppingList = { id: 'g', name: 'G', groups: [{ label: null, items: [it_('pt', 'Paper towels')] }] };
     expect(shoppingAddPlan(towels, 'Paper  towels')).toEqual({ kind: 'already', item: towels.groups[0].items[0] });
@@ -180,10 +195,9 @@ describe('shoppingAddPlan', () => {
 });
 
 describe('shopping text', () => {
-  it('tidies typed words as a list line keeps them, and keys them ignoring capitals', () => {
+  it('tidies typed words as a list line keeps them, keeping their capitals and accents', () => {
     expect(tidyShoppingText('  Paper  towels ')).toBe('Paper towels');
-    expect(shoppingTextKey('Paper  towels')).toBe('paper towels');
-    expect(shoppingTextKey('Milk ')).toBe('milk');
+    expect(tidyShoppingText(' Crème  fraîche')).toBe('Crème fraîche');
   });
 });
 

@@ -77,16 +77,24 @@ export function buildScreenDeleteConfirm(
   screen: { name: string; modules: ModuleInstance[] },
   t: TranslateFn,
   tCore: TranslateFn,
-  /** The modules on other screens whose open button opens this one ("Kitchen: Meal Planner"); their buttons go with it. */
-  openers: readonly string[] = [],
+  /**
+   * The modules on other screens whose open button opens this one: their
+   * names ("Meal Planner on Kitchen", "Clock on Hall (2)") and how many
+   * modules that is. Their buttons go with it.
+   */
+  openers: { names: readonly string[]; count: number } = { names: [], count: 0 },
 ): DeleteConfirmContent {
+  // Plural-form entries, so each locale picks its own branch rather than
+  // having a count glued onto a sentence: one on how many buttons open the
+  // screen, one on how many modules sit on it.
   const detail = t('screenTabs.deleteConfirmDetail', { count: screen.modules.length });
+  const buttons = openers.count > 0
+    ? t('screenTabs.deleteConfirmOpeners', { names: openers.names.join(', '), count: openers.count })
+    : null;
   return buildDeleteConfirm({
     verb: 'delete',
     name: screen.name,
-    // A plural-form entry, so each locale picks its own branch rather than
-    // having a count glued onto a sentence.
-    consequence: openers.length > 0 ? t('screenTabs.deleteConfirmOpeners', { names: openers.join(', '), count: screen.modules.length }) : detail,
+    consequence: buttons ? `${buttons} ${detail}` : detail,
   }, tCore);
 }
 

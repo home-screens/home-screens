@@ -2,7 +2,7 @@
 
 import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
 import { SECTION_HEADING } from './remote-styles';
 import ChipButton from './ChipButton';
@@ -22,6 +22,7 @@ export default function MealsSettingsDefaultTimesSection({
   onSetTime,
 }: MealsSettingsDefaultTimesSectionProps) {
   const t = useTranslate('remote');
+  const locale = useFormattingLocale();
   // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
   // so we need a second translator to resolve `getMealSlotLabelKey` against
   // the dictionary that already ships those keys.
@@ -108,7 +109,7 @@ export default function MealsSettingsDefaultTimesSection({
                         fontFamily: 'inherit',
                       }}
                     >
-                      {formatMealTime(preset, timeFormat)}
+                      {formatMealTime(preset, timeFormat, locale)}
                     </button>
                   );
                 })}

@@ -349,7 +349,7 @@ export default function MealSheet({
               {/* Never "No usual time" beside "6:30 PM", which read as a
                   contradiction: without a usual time, say what the chip is for. */}
               {usual
-                ? t('mealSheet.usualTime', { time: formatMealTime(usual, timeFormat) })
+                ? t('mealSheet.usualTime', { time: formatMealTime(usual, timeFormat, locale) })
                 : t(time ? 'mealSheet.timeThisMeal' : 'mealSheet.timePick')}
             </span>
             <MealTimeChip

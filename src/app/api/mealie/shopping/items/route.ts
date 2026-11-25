@@ -20,9 +20,12 @@ const MAX_TEXT = 200;
 /**
  * POST /api/mealie/shopping/items `{ list, text }`: put a typed item on one
  * of the household's Mealie lists ("Milk"), the way Mealie's own box does.
- * Answers like `GET /api/mealie/shopping` for that list, read fresh, so the
- * new item is in it, plus `added`: the new item's id, for Undo, or null when
- * Mealie merged the words into an item already on the list.
+ * The list keeps one of each thing, by the rule every list keeps
+ * (`addMealieShoppingItem`), whoever adds. Answers like
+ * `GET /api/mealie/shopping` for that list, read fresh, so the new item is in
+ * it, plus `outcome` (`added`, `merged`, `already`, `putBack`), `item`: the
+ * id of the line the add landed on (null when Mealie merged it), and `added`:
+ * the new item's id, for Undo, or null when nothing new was made.
  *
  * The phone adds with a session, to any of the household's lists. A wall's
  * grocery card adds with the display token, held back to the least it needs:
@@ -58,7 +61,8 @@ export const POST = withDisplayAuth(withMealieErrors(async (request: NextRequest
     }
   }
 
-  const added = await addMealieShoppingItem(list, words);
+  const { outcome, item } = await addMealieShoppingItem(list, words);
+  const added = outcome === 'added' ? item : null;
   if (fromWall && added) noteWallAdded(added);
-  return mealieShoppingResponse(await readMealieShopping(list, { fresh: true }), { added });
+  return mealieShoppingResponse(await readMealieShopping(list, { fresh: true }), { added, outcome, item });
 }), 'Failed to add to the Mealie shopping list');

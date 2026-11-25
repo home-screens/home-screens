@@ -1,5 +1,6 @@
 import type { MealieClientProblem } from './meal-client';
 import type { MealieProblem } from './meal-sources';
+import { itemTextKey, sameItemText } from './todo-actions';
 
 /**
  * A shopping list as the Grocery tab draws it, and the rules the phone and
@@ -107,24 +108,19 @@ export function tidyShoppingText(text: string): string {
   return text.trim().replace(/\s+/g, ' ');
 }
 
-/** What two lines are compared by: their tidied words, ignoring capitals ("Paper  towels" is "paper towels"). */
-export function shoppingTextKey(text: string): string {
-  return tidyShoppingText(text).toLowerCase();
-}
-
 /**
  * What adding `words` means for this list. Something already there to get is
- * not added twice ("Milk" when "milk" is on it); something there and ticked is
- * put back rather than added again. Anything else is new. Matched on the
- * whole line (`shoppingTextKey`), so "milk" never stands in for a recipe's
+ * not added twice ("Milk" when "milk" is on it, "creme fraiche" when "Crème
+ * fraîche" is); something there and ticked is put back rather than added
+ * again. Anything else is new. Matched on the whole line by the rule every
+ * list keeps (`sameItemText`), so "milk" never stands in for a recipe's
  * "200 milliliters milk".
  */
 export function shoppingAddPlan(
   list: ShoppingList,
   words: string,
 ): { kind: 'new' } | { kind: 'already' | 'putBack'; item: ShoppingItem } {
-  const wanted = shoppingTextKey(words);
-  const same = shoppingItems(list).filter((i) => shoppingTextKey(i.text) === wanted);
+  const same = shoppingItems(list).filter((i) => sameItemText(i.text, words));
   const left = same.find((i) => !i.checked);
   if (left) return { kind: 'already', item: left };
   if (same[0]) return { kind: 'putBack', item: same[0] };
@@ -144,14 +140,15 @@ export function setShoppingItemChecked(list: ShoppingList, id: string, checked: 
 
 /**
  * Every item called `name` (as the line says it, or by its food's own name),
- * ignoring case and spaces at the ends: "check off salt" means each salt on the
- * list (a recipe's teaspoon and another's pinch are separate items), and
- * "eggs" and "egg" both find "4 eggs".
+ * compared the way a list compares its items (`itemTextKey`): "check off salt"
+ * means each salt on the list (a recipe's teaspoon and another's pinch are
+ * separate items), "eggs" and "egg" both find "4 eggs", and "creme fraiche"
+ * finds "Crème fraîche".
  */
 export function shoppingItemsNamed(list: ShoppingList, name: string): ShoppingItem[] {
-  const wanted = name.trim().toLowerCase();
+  const wanted = itemTextKey(name);
   if (!wanted) return [];
-  return shoppingItems(list).filter((i) => [i.name, i.alsoCalled].some((n) => n?.trim().toLowerCase() === wanted));
+  return shoppingItems(list).filter((i) => [i.name, i.alsoCalled].some((n) => n !== undefined && itemTextKey(n) === wanted));
 }
 
 /** One heading's worth of a shared list: its name and what is still to get under it. */
@@ -212,7 +209,7 @@ export function shoppingListByName(list: ShoppingList): { label: string | null; 
   for (const group of list.groups) {
     const items: SpokenShoppingItem[] = [];
     for (const item of group.items) {
-      const key = (item.alsoCalled ?? item.name).trim().toLowerCase();
+      const key = itemTextKey(item.alsoCalled ?? item.name);
       const known = seen.get(key);
       if (known) {
         known.checked &&= item.checked;

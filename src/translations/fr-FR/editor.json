@@ -226,9 +226,8 @@
     "opensOnlyBadge": "À l’ouverture",
     "opensOnlyTooltip": "n’apparaît que lorsqu’on l’ouvre",
     "deleteConfirmOpeners": {
-      "zero": "{names} a un bouton qui ouvre cet écran. Ce bouton disparaît aussi, et cet écran est vide. Vous pouvez annuler.",
-      "one": "{names} a un bouton qui ouvre cet écran. Ce bouton, le module de cet écran et ses réglages disparaissent. Vous pouvez annuler.",
-      "other": "{names} a un bouton qui ouvre cet écran. Ce bouton, les {count} modules de cet écran et leurs réglages disparaissent. Vous pouvez annuler."
+      "one": "{names} a un bouton qui ouvre cet écran. Ce bouton disparaît aussi.",
+      "other": "{names} ont des boutons qui ouvrent cet écran. Ces boutons disparaissent aussi."
     },
     "orphanedBadge": "Rien ne l’ouvre",
     "orphanedTooltip": "n’apparaît que lorsqu’on l’ouvre, et rien ne l’ouvre",
@@ -337,7 +336,7 @@
       "summaryShows": "Peut être ouvert {when}.",
       "summaryHides": "Ne peut pas être ouvert {when}. Peut l’être le reste du temps.",
       "allDayHint": "Laissez les deux vides pour l’ouvrir toute la journée.",
-      "invertLabel": "Ne pas l’ouvrir pendant ces heures à la place",
+      "invertLabel": "Empêcher l’ouverture pendant ces heures au lieu de l’autoriser",
       "neverShows": "Avec ces réglages, il ne peut jamais être ouvert."
     }
   },
@@ -449,7 +448,7 @@
       "display-control": "Des boutons tactiles pour réveiller, mettre en veille ou changer d'écran",
       "traffic": "Le temps de trajet jusqu'au travail ou à l'école",
       "notes": "Des notes que la famille écrit sur le téléphone, affichées sur le mur pendant la durée choisie",
-      "quick-timer": "Touche une durée pour lancer un minuteur sur le mur"
+      "quick-timer": "Touchez une durée pour lancer un minuteur de cuisine sur le mur"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendrier evenements rendez-vous semaine mois famille",
@@ -775,18 +774,18 @@
         "wallHelp": "Seulement dans les calendriers cochés ci-dessus. Le mur demande toujours avant de retirer. Chaque affichage peut le désactiver sur sa propre page."
       },
       "ordering": {
-        "heading": "Ordre des agendas",
-        "description": "Quels agendas gardent leur place un jour chargé.",
-        "help": "Fais glisser pour définir l’ordre. Un jour où il y a plus d’événements que de place, les agendas du haut gardent leurs lignes et ceux du bas disparaissent en premier.",
-        "empty": "Active d’abord un agenda.",
+        "heading": "Ordre des calendriers",
+        "description": "Les calendriers qui gardent leur place les jours chargés.",
+        "help": "Faites glisser pour choisir l’ordre. Les jours où il y a plus d’événements que de place, les calendriers du haut gardent leurs lignes et ceux du bas disparaissent en premier.",
+        "empty": "Activez d’abord un calendrier.",
         "reset": "Revenir à l’ordre par heure"
       },
       "swatches": {
         "heading": "Couleurs proposées",
-        "help": "Les couleurs proposées quand on change la couleur d’un agenda sur le mur. Le mur ne peut pas créer de nouvelle couleur, alors choisis-les ici.",
+        "help": "Les couleurs proposées quand on change la couleur d’un calendrier sur le mur. Le mur ne peut pas créer de nouvelle couleur, alors placez ici celles que vous utilisez vraiment.",
         "slot": "Couleur {number}",
         "reset": "Rétablir les couleurs d’origine",
-        "wallHint": "Sur le mur, touche la légende des couleurs d’un agenda pour y masquer un agenda ou changer sa couleur."
+        "wallHint": "Sur un mur, touchez la légende des couleurs d’un module calendrier pour y masquer un calendrier ou changer sa couleur."
       }
     },
     "dataPage": {
@@ -827,7 +826,7 @@
       },
       "templates": {
         "heading": "Modèles",
-        "description": "Démarre depuis un modèle préconçu. Tes paramètres existants (lieu, calendriers, etc.) sont conservés.",
+        "description": "Démarrez depuis un modèle préconçu. Vos paramètres existants (lieu, calendriers, etc.) sont conservés.",
         "browseButton": "Parcourir les modèles"
       },
       "fullBackup": {
@@ -1254,7 +1253,7 @@
         "pixelShiftToggle": "Décaler légèrement l'image",
         "pixelShiftHelp": "Déplace tout l'affichage de quelques pixels une fois par minute, pour que rien ne reste longtemps au même endroit. Utile pour les écrans OLED et les autres écrans qui peuvent se marquer. Cela ne se remarque pas de loin.",
         "fullscreenThemeLabel": "Thème plein écran",
-        "fullscreenThemeHelp": "S'applique à tous les modules plein écran (Calendrier, Tâches, Repas) pour une apparence cohérente lors de la rotation. Tu peux le changer par module dans l'éditeur."
+        "fullscreenThemeHelp": "S'applique à tous les modules plein écran (Calendrier, Tâches, Repas) pour une apparence cohérente lors de la rotation. Vous pouvez le changer par module dans l'éditeur."
       },
       "transitionOptions": {
         "fade": "Fondu",
@@ -1480,9 +1479,8 @@
       "screensaverLabel": "Économiseur d'écran",
       "screensaverClock": "Horloge flottante",
       "screensaverBlank": "Vide (atténuation seule)",
-      "screensaverOff": "Désactivé (l'écran s'atténue quand même)",
-      "dimmedSectionHelp": "L'économiseur d'écran apparaît dès que l'écran est en veille douce, par exemple depuis le téléphone.",
-      "nothingDimsNote": "Cet affichage ne s'atténue pas tout seul pour le moment. L'économiseur d'écran apparaît quand même s'il est atténué depuis la télécommande.",
+      "dimmedSectionHelp": "L'économiseur d'écran n'apparaît que lorsque l'affichage s'atténue tout seul, après quelques minutes de calme ou à l'heure d'atténuation que vous avez choisie. Baisser la luminosité depuis la télécommande ne fait qu'assombrir l'affichage.",
+      "nothingDimsNote": "Cet affichage ne s'atténue pas tout seul pour le moment, donc l'économiseur d'écran n'apparaîtra pas tant que vous n'aurez pas activé l'atténuation ci-dessus.",
       "legend": {
         "bright": "Lumineux",
         "dim": "Atténué",
@@ -1670,7 +1668,7 @@
         },
         "photosBand": {
           "title": "Pour Google Photos et l'ajout d'événements",
-          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement pour importer des photos ou ajouter des événements au calendrier. Sinon, passez.",
+          "help": "Un identifiant distinct de celui de l'agenda, de type « Web application ». Utile seulement pour importer des photos ou ajouter des événements au calendrier. Sinon, vous pouvez l'ignorer.",
           "helpOwnApp": "Un identifiant distinct de celui de l'agenda, de type « Web application ». L'import Google Photos et l'ajout d'événements au calendrier s'en servent."
         },
         "mapsBand": {
@@ -1770,9 +1768,9 @@
           "switching": "Changement…",
           "notNow": "Pas maintenant",
           "failed": "Le changement n'a pas été enregistré. Réessayez.",
-          "switched": "Ton planning des repas vient maintenant de Mealie.",
+          "switched": "Votre planning des repas vient maintenant de Mealie.",
           "undo": "Annuler",
-          "onMealie": "Ton planning des repas vient de Mealie.",
+          "onMealie": "Votre planning des repas vient de Mealie.",
           "mealsSettingsLink": "Réglages Repas"
         }
       },
@@ -1846,7 +1844,7 @@
           "unavailable": "Indisponible",
           "unmanaged": "Non géré"
         },
-        "managementBadge": "Ta connexion",
+        "managementBadge": "Votre connexion",
         "ipSettingsButton": "Paramètres IP",
         "disconnectButton": "Déconnecter",
         "disconnectingButton": "Déconnexion…",
@@ -1986,7 +1984,7 @@
         "text": "Réglages partagés du planificateur de repas. Ils apparaissent aussi dans la télécommande familiale, et les modifications restent synchronisées."
       },
       "planSource": {
-        "heading": "Ton planning des repas est dans",
+        "heading": "Votre planning des repas est dans",
         "description": "Planifiez les repas ici ou, si votre famille garde ses recettes dans l'appli Mealie, utilisez le planning qui s'y trouve.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Planifié ici",
@@ -2075,7 +2073,7 @@
         "updateTitle": "Mise à jour disponible : v{version}",
         "rcTitle": "Version candidate disponible : v{version}",
         "betaTitle": "Bêta disponible : v{version}",
-        "currentLine": "Tu es en v{version}",
+        "currentLine": "Vous êtes en v{version}",
         "updateButton": "Mettre à jour maintenant",
         "installButton": "Installer",
         "nightlyTitle": "Build de test disponible : v{version}",
@@ -2145,7 +2143,7 @@
           "unreachable": "{when}. Impossible de joindre le serveur de mises à jour. Nouvel essai demain.",
           "stepBack": "{when}. La {tag} n'a pas été installée, car elle est plus ancienne que la version actuelle. Les mises à jour automatiques ne reviennent jamais en arrière.",
           "missingStep": "{when}. La {tag} a d'abord besoin de la {step}, et la {step} est introuvable.",
-          "noDownload": "{when}. La {tag} n'a pas été installée, car elle n'est pas proposée en téléchargement prêt à l'emploi. Tu peux quand même l'installer depuis l'encadré ci-dessus.",
+          "noDownload": "{when}. La {tag} n'a pas été installée, car elle n'est pas proposée en téléchargement prêt à l'emploi. Vous pouvez quand même l'installer depuis l'encadré ci-dessus.",
           "alreadyUpdating": "{when}. Une mise à jour était déjà en cours d'installation.",
           "interrupted": "{when}. La mise à jour vers {tag} a été interrompue. Installez-la depuis l'encadré ci-dessus pour réessayer.",
           "notInstalledBuild": "Cette installation de Home Screens ne vient pas d'une version officielle, elle ne peut donc pas se mettre à jour toute seule."
@@ -2156,7 +2154,7 @@
         "description": "Recevez une notification dans l'éditeur et sur /remote quand une nouvelle version est disponible.",
         "enableLabel": "Me notifier quand une mise à jour est disponible"
       },
-      "upToDate": "Tu es sur la dernière version",
+      "upToDate": "Vous êtes sur la dernière version",
       "checkFailed": "Impossible de vérifier les mises à jour pour le moment",
       "changelog": {
         "heading": "Journal des modifications",
@@ -2386,13 +2384,13 @@
         "hide": "Masquer",
         "copy": "Copier",
         "regenerateButton": "Créer une nouvelle clé",
-        "regenerating": "Régénération…",
+        "regenerating": "Création d'une nouvelle clé…",
         "regenerateConfirm": "Créer une nouvelle clé",
         "regenerateCancel": "Annuler",
         "regenerateWarning": "Tout ce qui utilise l'ancienne clé cesse de fonctionner tant que vous n'y mettez pas la nouvelle. Vos affichages continuent de fonctionner.",
         "regenerateWallsLetInByThemselves": {
-          "one": "{count} affichage est entré tout seul après la mise à jour. Une nouvelle clé ne le retire pas.",
-          "other": "{count} affichages sont entrés tout seuls après la mise à jour. Une nouvelle clé ne les retire pas."
+          "one": "{count} navigateur est entré tout seul après la mise à jour. Une nouvelle clé ne le retire pas.",
+          "other": "{count} navigateurs sont entrés tout seuls après la mise à jour. Une nouvelle clé ne les retire pas."
         },
         "regenerateWallsCheck": {
           "one": "Vérifiez qu'il est bien à vous",
@@ -2424,7 +2422,7 @@
           "invalidPrefix": "Le nombre après la barre oblique doit être entre 0 et 32.",
           "alreadyInList": "Déjà dans la liste."
         },
-        "callerIpLabel": "Ton IP : ",
+        "callerIpLabel": "Votre IP : ",
         "lockoutWarning": {
           "title": "Vous risquez de vous bloquer vous-même",
           "messagePart1": "Votre IP actuelle (",
@@ -2454,7 +2452,7 @@
         "disableTitle": "Désactiver l'authentification",
         "currentPasswordPlaceholder": "Mot de passe actuel",
         "newPasswordPlaceholder": "Nouveau mot de passe (min. 8 caractères)",
-        "confirmPasswordPlaceholder": "Confirme le nouveau mot de passe",
+        "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
         "disableWarning": "Cela supprimera le mot de passe et permettra à n'importe qui sur votre réseau d'accéder à l'éditeur.",
         "cancel": "Annuler",
         "setSubmit": "Activer",
@@ -2465,10 +2463,10 @@
         "disabling": "Désactivation…",
         "setExplanation": "Un seul mot de passe pour toute la maison. Ensuite, la télécommande familiale et l'éditeur le demandent. Le mur et la page des tâches des enfants continuent sans.",
         "wallsStay": {
-          "one": "Votre {count} affichage reste autorisé.",
+          "one": "Votre affichage reste autorisé.",
           "other": "Vos {count} affichages restent autorisés."
         },
-        "wallsOff": "Un affichage éteint en ce moment demandera à entrer quand il reviendra."
+        "wallsOff": "Un affichage éteint en ce moment demandera à entrer quand il sera rallumé."
       },
       "errors": {
         "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
@@ -2488,7 +2486,7 @@
         "heading": "Accès réseau avancé",
         "description": "Clé d'affichage, appareils connectés et limitation à certains réseaux."
       },
-      "grownUpPointerPrefix": "Tu veux que le mur demande un code avant que les enfants dépensent des tickets ? C'est la section « ",
+      "grownUpPointerPrefix": "Vous voulez que le mur demande un code avant que les enfants dépensent des tickets ? C'est la section « ",
       "grownUpPointerSuffix": " » de la page Famille."
     },
     "shared": {
@@ -2614,7 +2612,7 @@
         "tryBetaButton": "Essayer la bêta v{version}",
         "tryingBetaButton": "Installation de la bêta…",
         "backToStableButton": "Revenir à la version stable v{version}",
-        "backToStableHint": "Tu utilises une version de test. Tu peux revenir à la version normale."
+        "backToStableHint": "Vous utilisez une version de test. Vous pouvez revenir à la version normale."
       },
       "beta": {
         "showToggleLabel": "Afficher les plugins bêta",
@@ -2775,7 +2773,7 @@
         "one": "{count} affichage dans ce foyer",
         "other": "{count} affichages dans ce foyer"
       },
-      "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi (un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon), chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub (celui qui fait tourner Home Screens et alimente tous les affichages) ; les affichages secondaires peuvent être de petits Pi Zero exécutant ",
+      "emptyDescriptionPrefix": "Pilotez plus d’un affichage depuis ce Pi (un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon), chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub (celui qui fait tourner Home Screens et alimente tous les affichages) ; les affichages secondaires peuvent être de petits Pi Zero exécutant ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Cliquez sur un affichage pour modifier ses propres paramètres. Tout le reste utilise les ",
       "populatedDescriptionSuffix": " partagés.",
@@ -2783,7 +2781,7 @@
       "refreshHeartbeatsTitle": "Actualiser les battements",
       "addDisplay": "Ajouter un affichage",
       "emptyTitle": "Cette installation fonctionne en mode affichage unique",
-      "emptyParagraphPart1": "Votre configuration actuelle compte comme un affichage mais n’est pas encore ajoutée ici ; la prise en charge de plusieurs affichages est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second écran. Dès que vous ajoutez votre premier affichage, la disposition actuelle de ce Pi devient un affichage appelé ",
+      "emptyParagraphPart1": "Votre configuration actuelle compte comme un affichage mais n’est pas encore ajoutée ici ; la prise en charge de plusieurs affichages est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second affichage. Dès que vous ajoutez votre premier affichage, la disposition actuelle de ce Pi devient un affichage appelé ",
       "emptyParagraphPart2": " et continue de fonctionner exactement comme aujourd’hui.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Cliquez sur ",
@@ -2833,15 +2831,15 @@
       "formRotation90": "90° horaire (portrait)",
       "formRotation180": "180° (inversé)",
       "formRotation270": "270° horaire (portrait)",
-      "formRotationHint": "Définit le sens de la zone d'affichage. La largeur et la hauteur ci-dessus sont permutées automatiquement pour que le côté le plus long aille dans le sens choisi.",
+      "formRotationHint": "Définit le sens de l'affichage. La largeur et la hauteur ci-dessus sont permutées automatiquement pour que le côté le plus long aille dans le sens choisi.",
       "formCancel": "Annuler",
       "formAddDisplay": "Ajouter l’affichage",
       "formErrorName": "Le nom est requis",
       "formErrorId": "L’ID ne doit contenir que des lettres minuscules, des chiffres et des tirets (par ex. « kitchen »)",
       "formErrorIdReserved": "« {id} » a déjà une signification particulière lors de l’envoi de commandes aux affichages. Veuillez choisir un autre ID, par ex. « kitchen » ou « bedroom-tv »",
       "formErrorIdTaken": "Un affichage avec l’ID « {id} » existe déjà",
-      "formErrorWidth": "La largeur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des écrans font 1080 ou 1920 de large.",
-      "formErrorHeight": "La hauteur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des écrans font 1080 ou 1920 de haut.",
+      "formErrorWidth": "La largeur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des affichages font 1080 ou 1920 de large.",
+      "formErrorHeight": "La hauteur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des affichages font 1080 ou 1920 de haut.",
       "softwareUpdateWaiting": "Mise à jour en attente",
       "softwareNeedsSetup": "Configuration requise",
       "mainDisplayName": "Affichage principal"
@@ -2966,21 +2964,24 @@
     },
     "walls": {
       "waitingTitle": {
-        "one": "{count} affichage attend d'être autorisé à entrer",
-        "other": "{count} affichages attendent d'être autorisés à entrer"
+        "one": "{count} navigateur attend d'être autorisé à entrer",
+        "other": "{count} navigateurs attendent d'être autorisés à entrer"
       },
       "waitingHint": "Ils ont ouvert le mur, mais Home Screens ne les connaît pas encore. Laissez entrer ceux qui sont à vous. Les autres peuvent rester là : ils disparaissent tout seuls.",
       "forDisplay": "pour {name}",
       "askingSince": "demandé {time}",
-      "looksFamiliar": "Cela ressemble à un affichage que vous avez déjà laissé entrer.",
+      "looksFamiliar": "Cela ressemble à un navigateur que vous avez déjà laissé entrer.",
       "letIn": "Laisser entrer",
       "letInFailed": "Impossible de le laisser entrer. Réessayez.",
       "letInByItself": "Entré tout seul",
       "windowTitle": {
-        "one": "{count} affichage est entré tout seul après la mise à jour",
-        "other": "{count} affichages sont entrés tout seuls après la mise à jour"
+        "one": "{count} navigateur est entré tout seul après la mise à jour",
+        "other": "{count} navigateurs sont entrés tout seuls après la mise à jour"
       },
-      "windowBody": "Home Screens se souvient maintenant de chaque affichage, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {days} jours.",
+      "windowBody": {
+        "one": "Home Screens se souvient maintenant de chaque navigateur, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {count} jour.",
+        "other": "Home Screens se souvient maintenant de chaque navigateur, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {count} jours."
+      },
       "showingIn": {
         "one": "Affiché à {count} endroit",
         "other": "Affiché à {count} endroits"
@@ -3239,7 +3240,7 @@
     },
     "takeDown": "Retirer du mur",
     "gone": "Retirées ({count})",
-    "goneHelp": "Les notes retirées du mur ces 7 derniers jours. Tu peux en remettre une sur le mur.",
+    "goneHelp": "Les notes retirées du mur ces 7 derniers jours. Vous pouvez en remettre une sur le mur.",
     "postAgain": "Remettre sur le mur",
     "delete": "Supprimer",
     "deleteConfirm": {
@@ -3869,7 +3870,7 @@
       "label": "Ouvre",
       "none": "Rien",
       "andMore": "et {count} de plus",
-      "help": "Ajoute dans le coin bas du module un bouton portant le nom de cet écran. Sur un écran tactile, le toucher affiche l’écran.",
+      "help": "Ajoute dans le coin inférieur du module un bouton portant le nom de cet écran. Sur un écran tactile, le toucher affiche cet écran.",
       "sectionTitle": "Ouvrir un écran",
       "offBadge": "{name} (éteint)",
       "holds": "Affiche {what}",
@@ -4041,7 +4042,7 @@
     "tarballUrlHelpPart3": " à la place du numéro de version : les prochaines mises à jour n'auront besoin que du numéro.",
     "exampleLabel": "Exemple :",
     "versionLabel": "Version à installer",
-    "externalSourceWarning": "Tu installes hors de la marketplace de plugins. N'installe que des plugins de sources de confiance.",
+    "externalSourceWarning": "Vous installez un plugin hors de la marketplace. N'installez que des plugins de sources de confiance.",
     "installingMessage": "Téléchargement et installation…",
     "doneButton": "Terminé",
     "tryAgainButton": "Réessayer",
@@ -4780,7 +4781,7 @@
       "wallAddHelpMealie": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste Mealie que la famille utilise pour ses courses.",
       "wallAddHelpLocal": "Tout le monde peut ajouter à la liste de courses depuis le mur. Ça va sur la liste choisie ci-dessous.",
       "wallPlan": "Planifier les repas sur le mur",
-      "wallPlanHelp": "Tout le monde peut mettre une recette au menu depuis le mur, pour cette semaine et la suivante : un bouton « Mettre au menu » sur chaque recette, et un bouton + sur les repas libres dans les vues qui montrent la semaine. Les repas écrits à la main et les nouvelles recettes restent sur le téléphone.",
+      "wallPlanHelp": "Tout le monde peut mettre une recette au menu depuis le mur, pour cette semaine et la suivante : un bouton « Mettre au menu » sur chaque recette, et un bouton + sur les repas libres dans les vues qui montrent la semaine. Les repas tapés à la main et les nouvelles recettes restent sur le téléphone.",
       "extrasList": "Les autres achats vont sur",
       "extrasListNone": "Aucune (pas de ligne Ajouter)",
       "extrasListHelp": "Une de vos listes. Ce qui reste dessus apparaît à la fin de la liste de courses, ici et sur le téléphone. Toutes les cartes de courses la partagent."
@@ -5751,18 +5752,18 @@
     },
     "quick-timer": {
       "presets": "Durées",
-      "presetsHint": "Jusqu'à {max} boutons, dans cet ordre.",
+      "presetsHint": "Jusqu'à {max} boutons, affichés dans cet ordre.",
       "minutesShort": "{minutes} min",
-      "fullScreen": "Remplir tout l'écran pendant le minuteur",
-      "fullScreenHint": "Désactivé, le minuteur reste dans cette case et le reste de l'écran demeure.",
+      "fullScreen": "Remplir tout l'affichage pendant le minuteur",
+      "fullScreenHint": "Désactivé, le minuteur reste dans son cadre et le reste de l'affichage ne change pas.",
       "view": "Style du minuteur",
       "view-ring": "Anneau lumineux",
       "view-face": "Cadran",
-      "view-cascade": "Cascade de couleur",
+      "view-cascade": "Cascade de couleurs",
       "view-path": "Chemin d'étoiles",
       "target": "Afficher sur",
-      "target-all": "Tous les écrans",
-      "target-this": "Cet écran",
+      "target-all": "Tous les affichages",
+      "target-this": "Cet affichage",
       "sound": "Son"
     }
   },
@@ -5794,7 +5795,7 @@
       "scaleToFit": "Ajuster à l'écran",
       "scaleToFitDescription": "réduit tous les modules proportionnellement pour que rien ne soit coupé.",
       "switchAnyway": "Changer quand même",
-      "switchAnywayDescription": "conserve les modules à leur position actuelle. Tu pourras les repositionner manuellement."
+      "switchAnywayDescription": "conserve les modules à leur position actuelle. Vous pourrez les repositionner manuellement."
     }
   },
   "viewSelect": {
@@ -5987,7 +5988,7 @@
       "enableHelp": "N’autoriser l’ouverture de cet écran que lorsque les valeurs en direct de vos services connectés correspondent (par exemple le prochain événement est dans moins d’une heure).",
       "noConditionsHint": "Aucune condition pour l’instant. L’écran peut être ouvert à tout moment jusqu’à ce que vous en ajoutiez une.",
       "allMustMatchHint": "Toutes les conditions doivent correspondre pour que l’écran puisse être ouvert.",
-      "whenUnknownHide": "Ne pas l’ouvrir",
+      "whenUnknownHide": "Ne pas le laisser s’ouvrir",
       "whenUnknownShow": "Le laisser s’ouvrir"
     },
     "matchTitle": "Ce qui doit correspondre"
@@ -6345,7 +6346,7 @@
       },
       "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre.",
       "noMatches": "Aucun tableau ne correspond. Essayez d’assouplir un filtre.",
-      "noArtistMatches": "La collection réunit des tableaux célèbres, des paysages, des marines, des vues de villes et des natures mortes assez anciens pour être partagés librement. Les peintres des cent dernières années n’y figurent presque pas, et ceux connus pour leurs tableaux de personnes n’y ont que leurs œuvres les plus célèbres.",
+      "noArtistMatches": "La collection réunit des tableaux célèbres, des paysages, des marines, des vues de villes et des natures mortes assez anciens pour être partagés librement. Les peintres des cent dernières années n’y figurent presque pas, et ceux qui peignaient surtout des personnages n’y ont que leurs œuvres les plus célèbres.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionnisme",

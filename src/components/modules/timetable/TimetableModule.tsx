@@ -154,6 +154,7 @@ export default function TimetableModule({ config, style, timezone, timeFormat: s
       padding: 0,
       showStartTimes: config.showStartTimes,
       timeFormat,
+      locale: formatting,
       rows: buildRows(card.timetable, card.school, detail).rows,
       longestLabelChars: longestSubjectLabel(card.timetable, subjects),
       courseChars: longestCourseBadge(card.timetable),
@@ -161,7 +162,7 @@ export default function TimetableModule({ config, style, timezone, timeFormat: s
       icons: card.timetable.icons === true,
       hasLegend: detail === 'more' && card.timetable.weeks.B !== undefined,
     }),
-    [cardBox.width, cardBox.height, detail, config.showStartTimes, timeFormat, subjects],
+    [cardBox.width, cardBox.height, detail, config.showStartTimes, timeFormat, formatting, subjects],
   );
 
   // One size for the row: the smallest any card in it can hold. Settled card

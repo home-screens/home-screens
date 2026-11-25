@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 21,
+  "schemaVersion": 22,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -7665,6 +7665,15 @@
           },
           "description": "Which displays show the timer this module starts",
           "default": "all"
+        },
+        {
+          "name": "showTitle",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show the built-in \"Quick timer\" heading"
         }
       ]
     },
@@ -7727,7 +7736,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 21
+          "default": 22
         },
         {
           "name": "settings",
@@ -8323,11 +8332,10 @@
             "text": "ScreensaverMode",
             "values": [
               "clock",
-              "blank",
-              "off"
+              "blank"
             ]
           },
-          "description": "What a dimmed display shows: `clock`, `blank`, or `off`"
+          "description": "What the display shows while it dims by itself: `clock` or `blank`"
         }
       ]
     },

@@ -100,6 +100,12 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
     config: { view: 'week', showTitle: false },
     expect: lacks('Spaghetti Night', "This week's meals"),
   },
+  {
+    // The box's own heading goes, the lengths and their unit word stay.
+    type: 'quick-timer', name: 'hide-title', kind: 'network-free',
+    config: { showTitle: false },
+    expect: lacks('min', 'Quick timer'),
+  },
 ];
 
 /** One row per remaining per-view guard, so a dropped guard in any view fails here. */

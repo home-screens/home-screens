@@ -30,24 +30,30 @@ describe('WallControlBar', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a disabled button stacked and centred, and unpressable', () => {
+  it('while the bar settles, takes no tap and keeps its look, stacked and centred', () => {
     const onPress = vi.fn();
-    render(
-      <WallControlBar unit={1} ariaLabel="b">
-        <WallControlButton icon={<svg />} label="-1 min" onPress={onPress} disabled testId="minus" />
-      </WallControlBar>,
+    const bar = (settling: boolean) => (
+      <WallControlBar unit={1} ariaLabel="b" settling={settling}>
+        <WallControlButton icon={<svg />} label="+1 min" onPress={onPress} testId="plus" />
+      </WallControlBar>
     );
-    const minus = screen.getByTestId('minus');
+    const { rerender } = render(bar(true));
+    const plus = screen.getByTestId('plus');
     // The centring rides on this class. Dropping it with the press handlers
     // left the icon and its word laid out as plain button content, which on
-    // the wall read as the minus sliding out of the middle.
-    expect(minus.className).toContain('flex-col');
-    expect(minus.className).toContain('items-center');
-    expect(minus.className).toContain('justify-center');
-    // No pressed look on something that cannot be pressed.
-    expect(minus.className).not.toContain('wall-btn');
-    fireEvent.click(minus);
+    // the wall read as the icon sliding out of the middle.
+    expect(plus.className).toContain('flex-col');
+    expect(plus.className).toContain('items-center');
+    expect(plus.className).toContain('justify-center');
+    // No pressed look on a tap that does nothing, and no dimming either.
+    expect(plus.className).not.toContain('wall-btn');
+    expect(plus.style.opacity).toBe('');
+    fireEvent.click(plus);
     expect(onPress).not.toHaveBeenCalled();
+
+    rerender(bar(false));
+    fireEvent.click(screen.getByTestId('plus'));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('gives a held button\'s word the full width of the button, like the others', () => {

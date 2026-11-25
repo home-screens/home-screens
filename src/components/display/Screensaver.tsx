@@ -101,7 +101,7 @@ function DriftingClock({ timezone, timeFormat }: { timezone?: string; timeFormat
 }
 
 export default function Screensaver({ mode, timezone, timeFormat }: ScreensaverProps) {
-  if (mode === 'off' || mode === 'blank') return null;
+  if (mode === 'blank') return null;
 
   return (
     <div

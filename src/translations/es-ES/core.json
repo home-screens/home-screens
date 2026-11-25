@@ -125,7 +125,7 @@
       "needsVersion": "Ese enlace necesita un número de versión. Escribe qué versión quieres instalar.",
       "notAPlugin": "Ese enlace no es un plugin de Home Screens. Comprueba que lleva al archivo .tar.gz del plugin.",
       "tooBig": "Ese archivo es demasiado grande para ser un plugin. Los plugins pueden ocupar hasta {max} MB.",
-      "alreadyInstalled": "Ese plugin ya está instalado. Actualízalo desde la tienda de plugins."
+      "alreadyInstalled": "Ese plugin ya está instalado desde el marketplace de plugins. Actualízalo en la pestaña Actualizaciones."
     },
     "icloud": {
       "signInRefused": "No se pudo iniciar sesión en iCloud. Revisa el Apple ID y comprueba que la contraseña sea una contraseña de aplicación creada en account.apple.com; tu contraseña normal de Apple no sirve aquí."
@@ -220,16 +220,16 @@
   },
   "wallGate": {
     "title": "Hay que dejar entrar a este monitor",
-    "line": "Puede hacerlo un adulto en el editor de Home Screens. Ve a {place} y haz clic en Dejar entrar.",
+    "line": "Una persona mayor puede hacerlo en el editor de Home Screens. Ve a {place} y haz clic en «Dejar entrar».",
     "waiting": "Esperando a que lo dejen entrar…",
     "signIn": "¿Solo quieres mirar? Inicia sesión",
-    "noCookieTitle": "Este navegador no guarda su sitio",
+    "noCookieTitle": "Este navegador se olvida de que es un monitor",
     "noCookieLine": "Home Screens recuerda cada monitor con una cookie, y este navegador no la ha guardado. Activa las cookies para esta dirección y vuelve a cargar la página.",
     "keepLine": "Has iniciado sesión, así que solo estás mirando.",
-    "keepButton": "Mantener como monitor",
+    "keepButton": "Dejar como monitor",
     "keepClose": "Cerrar",
     "kept": "Este navegador ya es un monitor.",
-    "keepFailed": "No se ha podido. Inténtalo de nuevo."
+    "keepFailed": "No se ha podido dejar como monitor. Inténtalo de nuevo."
   },
   "login": {
     "checkingAuth": "Comprobando autenticación…",
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Paso {current} de {total}",
-    "quickName": "Temporizador de {minutes} minutos",
+    "quickName": {
+      "one": "Temporizador de {minutes} minuto",
+      "other": "Temporizador de {minutes} minutos"
+    },
     "almostDone": "¡Casi listo!",
     "done": "¡Hecho!",
     "paused": "En pausa",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} min",
     "moreSteps": "+{count} más",
     "progressWords": "{done} hechos · {left} por hacer",
-    "quickNameSeconds": "Temporizador de {seconds} segundos",
+    "quickNameSeconds": {
+      "one": "Temporizador de {seconds} segundo",
+      "other": "Temporizador de {seconds} segundos"
+    },
     "quickNameClock": "Temporizador de {time}",
     "pause": "Pausa",
     "resume": "Seguir",
@@ -417,12 +423,12 @@
     "emoji": "Emoji (opcional)",
     "color": "Color",
     "emptyTitle": "Aún no hay nadie",
-    "emptyDescription": "Añade a las personas de tu hogar. Estarán disponibles en tareas, recompensas, calendarios y horarios escolares.",
+    "emptyDescription": "Añade a las personas de tu hogar. Estarán disponibles en tareas, premios, calendarios y horarios escolares.",
     "loadFailed": "No se pudo cargar tu familia. Comprueba que Home Screens está encendido e inténtalo de nuevo.",
     "retry": "Reintentar",
     "saved": "Familia guardada.",
     "removeTitle": "¿Eliminar a {name}?",
-    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de vales, valoraciones de platos y acceso a recompensas. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
+    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de tickets, valoraciones de platos y acceso a premios. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
     "remove": "Eliminar persona",
     "editName": "Editar a {name}",
     "moveUp": "Subir a {name}",
@@ -460,7 +466,7 @@
       },
       "saved": "Grupos guardados.",
       "limit": "Puedes tener hasta {count} grupos.",
-      "hint": "Los grupos se usan en la leyenda de colores del calendario y en su filtro \"Mostrar solo\". Una tarea también se puede dar a un grupo. Las recompensas se siguen asignando a personas."
+      "hint": "Los grupos se usan en la leyenda de colores del calendario y en su filtro \"Mostrar solo\". Una tarea también se puede dar a un grupo. Los premios se siguen asignando a personas."
     }
   },
   "customIcons": {
@@ -644,7 +650,7 @@
   "rewards": {
     "redeem": {
       "removed": "Esa persona ya no está en la familia.",
-      "notOffered": "Esa recompensa ya no está disponible."
+      "notOffered": "Ese premio ya no está disponible."
     }
   },
   "imports": {
@@ -867,7 +873,7 @@
     "undo": "Deshacer"
   },
   "wallNames": {
-    "hubScreen": "La pantalla del propio Home Screens",
+    "hubScreen": "El navegador del propio Home Screens",
     "someBrowser": "Un navegador",
     "browserOn": "{browser} en {device}",
     "justDevice": "Un navegador en {device}",

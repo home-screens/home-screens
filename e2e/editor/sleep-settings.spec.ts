@@ -53,8 +53,8 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
     .toBe(false);
 
   // With idle dimming off and no dim schedule, nothing here can dim the
-  // display: the brightness slider collapses, but the screensaver select
-  // stays reachable (remote dimming still shows the screensaver).
+  // display: the brightness slider collapses, and the screensaver select
+  // stays so the choice is kept for when a dim is turned on.
   await expect(page.locator('label', { hasText: 'Brightness while dimmed (%)' })).toBeHidden();
   await expect(page.locator('label', { hasText: 'Screensaver' }).locator('select')).toBeVisible();
 
@@ -169,11 +169,11 @@ test.describe('per-display sleep override', () => {
 
     // Back on the subtab, the form is now editable: change the screensaver mode.
     await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
-    await page.locator('label', { hasText: 'Screensaver' }).locator('select').selectOption('off');
+    await page.locator('label', { hasText: 'Screensaver' }).locator('select').selectOption('blank');
 
     await expect
       .poll(async () => (await displaySettings(request, 'kitchen')).screensaver?.mode)
-      .toBe('off');
+      .toBe('blank');
 
     // Reset to default drops the whole fork (both keys deleted from the node).
     // Scoped to the sleep card — per-field OverrideRows and the alerts card

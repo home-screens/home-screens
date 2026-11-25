@@ -41,18 +41,28 @@ export function useSettledTap(windowMs = DOUBLE_TAP_MS): (action: () => void) =>
  * second tap of a double tap on what changed it lands on nothing, rather than
  * on whatever now sits under the finger (Cancel, Save, "Just this day").
  * Disabled is also what a test runner waits out before it clicks.
+ *
+ * `fromMount: false` is for buttons that come up on a tap and only move
+ * later (a row that loses one of its buttons while it is up): they take taps
+ * at once, and hold only after `key` changes.
  */
-export function useSettling(key: unknown, windowMs = DOUBLE_TAP_MS): boolean {
-  const [settled, setSettled] = useState<{ key: unknown } | null>(null);
+export function useSettling(
+  key: unknown,
+  windowMs = DOUBLE_TAP_MS,
+  { fromMount = true }: { fromMount?: boolean } = {},
+): boolean {
+  // Each change of key is numbered, so coming back to a key seen before
+  // settles again from then. Counted here rather than reset in the effect's
+  // cleanup, which a development build runs once on mount as well.
+  const seen = useRef({ key, change: 0 });
+  if (!Object.is(seen.current.key, key)) seen.current = { key, change: seen.current.change + 1 };
+  const change = seen.current.change;
+  const [settledChange, setSettledChange] = useState(fromMount ? -1 : 0);
   useEffect(() => {
-    const timer = setTimeout(() => setSettled({ key }), windowMs);
-    return () => {
-      clearTimeout(timer);
-      // Back to a key seen before: it settles again from now.
-      setSettled(null);
-    };
-  }, [key, windowMs]);
-  return !settled || !Object.is(settled.key, key);
+    const timer = setTimeout(() => setSettledChange(change), windowMs);
+    return () => clearTimeout(timer);
+  }, [change, windowMs]);
+  return settledChange !== change;
 }
 
 /**

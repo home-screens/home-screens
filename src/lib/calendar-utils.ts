@@ -278,13 +278,15 @@ export function eventEndLabel(start: Date, end: Date, timeFormat: TimeFormat, lo
 /**
  * Compact grid-pill time: "8a", "5:30p" (12h) or "17:30" (24h). The modern
  * multi-week themes use this so the title, not the timestamp, owns the pill
- * width. 'aaaaa' is date-fns' narrow day period ("a"/"p" in en-US); locales
- * without a short day period keep whatever their narrow form is.
+ * width. The numbers are written the language's way (`17.30`, `5.30p` in
+ * Danish); 'aaaaa' is date-fns' narrow day period ("a"/"p" in en-US), since
+ * Intl has none, and locales without a short one keep whatever their narrow
+ * form is.
  */
 export function formatEventTimeCompact(date: Date, timeFormat: TimeFormat, locale: string): string {
-  if (timeFormat === '24h') return formatDateSync(date, 'HH:mm', { locale });
-  const pattern = date.getMinutes() === 0 ? 'haaaaa' : 'h:mmaaaaa';
-  return formatDateSync(date, pattern, { locale }).trim();
+  if (timeFormat === '24h') return formatTimeOfDay(date, { timeFormat, locale });
+  const numbers = formatTimeOfDay(date, { timeFormat, locale, bare: true, hourOnly: date.getMinutes() === 0 });
+  return `${numbers}${formatDateSync(date, 'aaaaa', { locale }).trim()}`;
 }
 
 /**

@@ -121,7 +121,7 @@ export function WindowWallsNotice({ data }: { data: WallsApiResponse }) {
   const days = Math.max(1, Math.ceil((data.windowEndsAt - Date.now()) / (24 * 60 * 60 * 1000)));
   return (
     <Notice tone="info" icon={Info} className="mb-4" testId="window-walls" title={t('settings.walls.windowTitle', { count })}>
-      {t('settings.walls.windowBody', { tag: t('settings.walls.letInByItself'), days })}
+      {t('settings.walls.windowBody', { tag: t('settings.walls.letInByItself'), count: days })}
     </Notice>
   );
 }

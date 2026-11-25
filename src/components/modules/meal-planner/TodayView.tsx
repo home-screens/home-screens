@@ -5,7 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotT
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, mealDayLead, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { mealTagLabel } from '@/lib/meal-dish-rules';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
@@ -52,6 +52,7 @@ function SlotCard({
 }) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
   const mealMinutes = useMealMinutes();
   const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
@@ -83,7 +84,7 @@ function SlotCard({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {formatMealTime(time, timeFormat)}
+            {formatMealTime(time, timeFormat, locale)}
           </span>
         )}
         {isActive && (

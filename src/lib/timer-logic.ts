@@ -328,13 +328,34 @@ export function sessionProgress(
   return { step, remainingMs, fraction, paused };
 }
 
+/** What "-1 min" takes off. */
+const MINUTE_MS = 60_000;
+/** The least "-1 min" leaves on the clock, in the whole seconds the clock shows. */
+const LEAST_LEFT_AFTER_SUBTRACT_SEC = 60;
+
 /**
- * Take a minute off the running step, while more than a minute is left.
+ * Whether a minute may come off a step with `remainingMs` to go: only while
+ * the clock shows 2:00 or more, so a press always leaves at least 1:00.
  *
- * With a minute or less to go the press does nothing. The buttons already
- * hide the choice then, but they judge it on the wall's clock before the
- * press leaves: one made at 1:00.3 can arrive at 0:59.9, and ending the timer
- * on the spot is not what "one minute less" means to anyone.
+ * Under that, one tap at 1:03 would leave 0:03, and a child could run a
+ * grown-up's timer down with plain taps while Stop asks for a hold. The wall
+ * offers "-1 min" by this rule and the hub takes the press by the same one,
+ * so a press made on the wall just before the button went is turned down
+ * when it arrives just after. Judged on the seconds the clock shows (rounded
+ * up, as `formatRemaining` does), so the button goes as 2:00 turns to 1:59.
+ * A step waiting for its "Done!" has nothing left and never takes one.
+ */
+export function canSubtractMinute(remainingMs: number): boolean {
+  return Math.ceil((remainingMs - MINUTE_MS) / 1000) >= LEAST_LEFT_AFTER_SUBTRACT_SEC;
+}
+
+/**
+ * Take a minute off the running step, while `canSubtractMinute` allows it.
+ *
+ * Otherwise the press does nothing. The wall already hides the button then,
+ * but it judges on its own clock before the press leaves: one made at 2:00.2
+ * can arrive at 1:59.9, and leaving the timer under a minute is not what the
+ * button offered.
  */
 export function subtractMinute(s: TimerSession, now: number): TimerSession {
   if (s.status !== 'running') return s;
@@ -343,10 +364,10 @@ export function subtractMinute(s: TimerSession, now: number): TimerSession {
   const effectiveNow = s.pausedAt ?? now;
   const elapsed = effectiveNow - s.stepStartedAt;
   const remaining = step.durationSec * 1000 - elapsed;
-  if (remaining <= 60_000) return s;
+  if (!canSubtractMinute(remaining)) return s;
   // The mirror of `addMinute`: shrink the step, so the dial becomes a four
   // minute dial rather than jumping forward against a five minute one.
-  const durationSec = Math.max(1, Math.round((elapsed + remaining - 60_000) / 1000));
+  const durationSec = Math.round((elapsed + remaining - MINUTE_MS) / 1000);
   return { ...s, steps: s.steps.map((st, i) => (i === s.stepIndex ? { ...st, durationSec } : st)) };
 }
 

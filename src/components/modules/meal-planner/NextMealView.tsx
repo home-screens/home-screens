@@ -101,7 +101,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {t('meal-planner.servingAt', { time: formatMealTime(time, timeFormat) })}
+            {t('meal-planner.servingAt', { time: formatMealTime(time, timeFormat, locale) })}
           </p>
         )}
 

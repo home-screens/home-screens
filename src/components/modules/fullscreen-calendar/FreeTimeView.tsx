@@ -45,8 +45,6 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
-  const am = t('fullscreen-calendar.am');
-  const pm = t('fullscreen-calendar.pm');
   const hourStart = Math.max(0, Math.min(23, config.freeTimeHourStart ?? 7));
   const hourEnd = Math.max(hourStart + 1, Math.min(24, config.freeTimeHourEnd ?? 22));
   const showTomorrow = config.freeTimeShowTomorrow !== false;
@@ -108,7 +106,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
   const rowMaxH = fontSize * 10;
   const noPeople = !people || people.length === 0;
   const sidePad = scale.bu * 3;
-  const fmtHour = (h: number) => formatHourAt(today, h, timeFormat, locale, am, pm);
+  const fmtHour = (h: number) => formatHourAt(today, h, timeFormat, locale);
   const fmtRange = (g: FreeGap) => `${fmtHour(g.start)} – ${fmtHour(g.end)}`;
   const fmtLen = (g: FreeGap) => formatGapLength(g.end - g.start, t);
 
@@ -124,7 +122,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
         </span>
         <DayBadges badges={todayBadges} style={{ fontSize: fontSize * 1.5, alignSelf: 'center', color: 'var(--cal-text-primary)' }} />
       </div>
-      <HourAxis hourStart={hourStart} hourEnd={hourEnd} nameColW={nameColW} sidePad={sidePad} fontSize={fontSize} am={am} pm={pm} timeFormat={timeFormat} />
+      <HourAxis hourStart={hourStart} hourEnd={hourEnd} nameColW={nameColW} sidePad={sidePad} fontSize={fontSize} locale={locale} timeFormat={timeFormat} />
 
       {/* Today: one track per person. The block grows with the household but
           stops at the row cap, so the card follows a short household closely
@@ -202,8 +200,8 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
   );
 }
 
-function HourAxis({ hourStart, hourEnd, nameColW, sidePad, fontSize, am, pm, timeFormat }: {
-  hourStart: number; hourEnd: number; nameColW: number; sidePad: number; fontSize: number; am: string; pm: string; timeFormat: TimeFormat;
+function HourAxis({ hourStart, hourEnd, nameColW, sidePad, fontSize, locale, timeFormat }: {
+  hourStart: number; hourEnd: number; nameColW: number; sidePad: number; fontSize: number; locale: string; timeFormat: TimeFormat;
 }) {
   const hours = Array.from({ length: hourEnd - hourStart }, (_, i) => hourStart + i);
   // Label every hour like the schedule gutter; only a very long window
@@ -215,7 +213,7 @@ function HourAxis({ hourStart, hourEnd, nameColW, sidePad, fontSize, am, pm, tim
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${hours.length}, 1fr)`, fontSize: fontSize * 0.75, color: 'var(--cal-text-tertiary)', fontVariantNumeric: 'tabular-nums', padding: `${fontSize * 0.4}px 0` }}>
         {hours.map((h, i) => (
           <span key={h} style={{ whiteSpace: 'nowrap', visibility: i % step === 0 ? 'visible' : 'hidden' }}>
-            {formatHourLabel(h, timeFormat, am, pm)}
+            {formatHourLabel(h, timeFormat, locale)}
           </span>
         ))}
       </div>
@@ -355,10 +353,11 @@ function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLe
 }
 
 /** "7:30 PM" (or "19:30") for a fractional hour on `day`. */
-function formatHourAt(day: Date, hour: number, timeFormat: TimeFormat, locale: string, am: string, pm: string): string {
+function formatHourAt(day: Date, hour: number, timeFormat: TimeFormat, locale: string): string {
   const whole = Math.floor(hour);
   const minutes = Math.round((hour - whole) * 60);
-  if (whole >= 24) return timeFormat === '24h' ? '24:00' : formatHourLabel(24, timeFormat, am, pm);
+  // The end of the day: "24:00" in the language's own pattern ("24.00" in Danish), "12 AM" on a 12-hour clock.
+  if (whole >= 24) return timeFormat === '24h' ? formatHourLabel(0, '24h', locale).replace(/^0+/, '24') : formatHourLabel(24, timeFormat, locale);
   const d = new Date(day.getFullYear(), day.getMonth(), day.getDate(), whole, minutes);
   return formatEventTime(d, timeFormat, locale);
 }

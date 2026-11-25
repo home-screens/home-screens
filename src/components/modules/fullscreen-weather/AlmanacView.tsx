@@ -418,7 +418,7 @@ function Next12Card({ p, place }: CardProps) {
               borderRight: i === hrs.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
             }}>
               <div style={{ fontSize: s * 1.35, fontWeight: 600, color: 'var(--fsw-text-3)' }}>
-                {hourLabel(Math.floor(tzHour(new Date(h.time), p.timezone)), p.timeFormat)}
+                {hourLabel(Math.floor(tzHour(new Date(h.time), p.timezone)), p.timeFormat, p.locale)}
               </div>
               <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? RAIN_COLOR : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
               <div style={{ fontSize: s * 2.3, fontWeight: 600, letterSpacing: '-.02em', color: tempColor(h.temp, p.units) }}>{Math.round(h.temp)}°</div>

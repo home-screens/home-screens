@@ -1049,10 +1049,10 @@ export interface SleepSettings {
   panelPowerOff?: boolean;
 }
 
-export type ScreensaverMode = 'clock' | 'blank' | 'off';
+export type ScreensaverMode = 'clock' | 'blank';
 
 export interface ScreensaverSettings {
-  /** What a dimmed display shows: `clock`, `blank`, or `off` */
+  /** What the display shows while it dims by itself: `clock` or `blank` */
   mode: ScreensaverMode;
 }
 
@@ -4961,6 +4961,13 @@ export interface QuickTimerConfig {
    * every display on the legacy single-display route, which has no id.
    */
   timerTarget: 'all' | 'this';
+  /**
+   * Show the built-in "Quick timer" heading
+   *
+   * Show the built-in "Quick timer" heading. Omitted = shown. The box also
+   * drops it by itself when it is too small to spare the line.
+   */
+  showTitle?: boolean;
 }
 
 export interface DisplayControlConfig {

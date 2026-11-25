@@ -95,6 +95,7 @@ const CAPITALS_KEPT: Record<string, string> = {
   'editor:configSections.calendarRules.artNames.new-year': 'a holiday name',
   'editor:choreChartModal.title': 'the module name',
   'editor:mealPlannerModal.title': 'the module name',
+  'modules:quick-timer.title': 'the module name',
   'modules:weather.highLow': 'H and L are abbreviations',
   'modules:notes.masthead': "the notes board's newspaper name",
   'remote:choresTab.goalLine.ariaLabel': 'names the Rewards view',

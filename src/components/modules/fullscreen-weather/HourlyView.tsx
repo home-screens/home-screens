@@ -52,7 +52,7 @@ function timeline(p: WeatherViewProps) {
         ? p.t('fullscreen-weather.nowcast.now')
         : midnight
           ? dayFormat.format(new Date(h.time))
-          : hourLabel(Math.floor(hour), p.timeFormat),
+          : hourLabel(Math.floor(hour), p.timeFormat, p.locale),
       rain: Math.round(h.precipProbability ?? 0),
       wind: h.windSpeed != null ? Math.round(h.windSpeed) : null,
       /** 0-1 position along the temperature axis. */

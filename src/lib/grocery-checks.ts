@@ -1,5 +1,6 @@
 import type { PlannedMeal, WeekStartDay } from '@/types/config';
 import { fromISODate, getWeekRange, toISODate } from './meal-constants';
+import { itemTextKey } from './todo-actions';
 
 /**
  * Grocery ticks, one list per week.
@@ -13,8 +14,8 @@ import { fromISODate, getWeekRange, toISODate } from './meal-constants';
  */
 
 /**
- * Item names (trimmed, lowercase) ticked off each week's list, keyed by the
- * YYYY-MM-DD the week starts on (the household's week start day).
+ * Item names (as `groceryItemKey` keeps them) ticked off each week's list,
+ * keyed by the YYYY-MM-DD the week starts on (the household's week start day).
  */
 export type GroceryChecked = Record<string, string[]>;
 
@@ -23,9 +24,13 @@ export type GroceryCheckDirection = 'check' | 'uncheck';
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const NONE: readonly string[] = Object.freeze([]);
 
-/** An item's stored form: what every writer saves and every reader compares. */
+/**
+ * An item's stored form: what every writer saves and every reader compares.
+ * The rule every list keeps (`itemTextKey`), so "Crème fraîche" from one meal
+ * and "creme fraiche" from another are one item with one tick.
+ */
 export function groceryItemKey(name: string): string {
-  return name.trim().toLowerCase();
+  return itemTextKey(name);
 }
 
 /** The key one week's ticks live under: the first day of the week holding `date` (YYYY-MM-DD). */

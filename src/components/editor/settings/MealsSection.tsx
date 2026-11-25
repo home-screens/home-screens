@@ -33,7 +33,7 @@ import { useMealieCheck, type MealieCheck } from '@/hooks/useMealieCheck';
 import { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
@@ -67,6 +67,7 @@ interface SaveStatus {
 
 export default function MealsSection() {
   const t = useTranslate('editor');
+  const locale = useFormattingLocale();
   // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
   // so we need a second translator to resolve `getMealSlotLabelKey` against
   // the dictionary that already ships those keys (Step 4 / task 6.1).
@@ -389,7 +390,7 @@ export default function MealsSection() {
             <span className="text-sm font-semibold">
               {t('settings.mealsPage.timeFormat.followLabel')}
             </span>
-            <span className="text-[11px] tabular-nums opacity-80">{formatMealTime('18:30', globalTf)}</span>
+            <span className="text-[11px] tabular-nums opacity-80">{formatMealTime('18:30', globalTf, locale)}</span>
           </button>
           {(['12h', '24h'] as const).map((fmt) => {
             const isSelected = settings.timeFormat === fmt;
@@ -483,7 +484,7 @@ export default function MealsSection() {
                             backgroundColor: withAlpha(meta.color, 0.08),
                           } : undefined}
                         >
-                          {formatMealTime(preset, tf)}
+                          {formatMealTime(preset, tf, locale)}
                         </button>
                       );
                     })}

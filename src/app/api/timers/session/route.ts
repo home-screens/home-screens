@@ -59,6 +59,10 @@ interface SessionActionBody {
  * Actions: `start`, `pause`, `resume`, `skip`, `step-done`, `add-minute`, `subtract-minute`, `toggle-sound`,
  * `cancel`. `skip` and `step-done` are the same transition (advance now);
  * both names exist because remotes skip and touch displays tap Done.
+ * `subtract-minute` takes a minute off only while that leaves at least one
+ * on the clock (`canSubtractMinute`, the rule the wall offers the button by);
+ * under two minutes it changes nothing, so a press that left the wall just
+ * before the button went cannot run the timer down either.
  * Starting while a session is running replaces it — one active session at a
  * time is the intended family-display behavior. A control may name the
  * `sessionId` it was pressed on and the `stepIndex` it saw; when the hub's

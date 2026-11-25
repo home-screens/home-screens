@@ -651,6 +651,20 @@ describe('cardMetrics', () => {
     expect(tight.quietColumnEm).toBeGreaterThanOrEqual(2.19);
   });
 
+  it("widens the gutter for a language whose 12-hour times are longer", () => {
+    // "12:45 p. m." in Spanish is three characters over "12:45 PM", and a
+    // gutter built for the English one painted it across the first lesson.
+    const english = cardMetrics({ ...ONE_UP, detail: 'some', timeFormat: '12h' });
+    const spanish = cardMetrics({ ...ONE_UP, detail: 'some', timeFormat: '12h', locale: 'es-ES' });
+    const danish = cardMetrics({ ...ONE_UP, detail: 'some', timeFormat: '12h', locale: 'da-DK' });
+    // The widest face is System Mono, 0.602em a character ("12:45 PM" is 4.816em).
+    const spanishTimeEm = 11 * 0.602;
+    expect(spanish.gutterPx).toBeGreaterThanOrEqual(spanish.gutterTimePx * spanishTimeEm);
+    expect(english.gutterPx).toBeLessThan(english.gutterTimePx * spanishTimeEm);
+    // "12.45 PM" is as long as "12:45 PM", so the gutter stays as it was.
+    expect(danish.gutterPx).toBe(english.gutterPx);
+  });
+
   it('falls back to one even share when nothing else fits', () => {
     const m = cardMetrics({ timeFormat: '12h', cardWidth: 240, baseFontSize: 22, detail: 'more' });
     expect(m.focusRatio).toBe(1);

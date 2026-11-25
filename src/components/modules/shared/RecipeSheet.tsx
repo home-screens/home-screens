@@ -10,7 +10,7 @@ import { holdRotationFor } from '@/lib/interaction-hold';
 import { wallPressProps } from './wallPress';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFontsReady } from '@/hooks/useFontsReady';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { useMinutesText } from './useMealMinutes';
 import type { MealRecipeState } from './useMealRecipe';
@@ -109,6 +109,7 @@ const SECTION_LABEL: CSSProperties = {
 export function RecipeSheet(props: RecipeSheetProps) {
   const { meal, recipe, scale = 1, serving, courses, timeFormat, P, padding, headerFont, layout, showPicture, interactive, stepButtons = 'always', onCourse, resetKey, footer, headerEndGap, held = false, onCook } = props;
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const minutesText = useMinutesText();
   const fontsReady = useFontsReady();
   const detail: RecipeDetail | null = recipe.status === 'ready' ? recipe.recipe : null;
@@ -311,7 +312,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
         <span>{t(getMealSlotLabelKey(serving.slot))}</span>
         {serving.time && (
           <span style={{ fontWeight: 600, color: 'var(--fmp-text-3)', letterSpacing: 0, textTransform: 'none', fontVariantNumeric: 'tabular-nums' }}>
-            {formatMealTime(serving.time, timeFormat)}
+            {formatMealTime(serving.time, timeFormat, locale)}
           </span>
         )}
       </span>

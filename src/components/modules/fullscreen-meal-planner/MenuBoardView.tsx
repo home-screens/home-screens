@@ -149,7 +149,7 @@ export default function MenuBoardView({
                       fontWeight: 600, color: 'var(--fmp-text-3)', letterSpacing: 0,
                       textTransform: 'none' as const, fontVariantNumeric: 'tabular-nums',
                     }}>
-                      {formatMealTime(course.time, timeFormat)}
+                      {formatMealTime(course.time, timeFormat, locale)}
                     </span>
                   )}
                 </span>

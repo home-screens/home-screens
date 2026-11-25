@@ -58,6 +58,8 @@ export interface CardTokens {
   /** Lines a label is held to when drawn, per kind of column. */
   clamp: { focus: number; quiet: number };
   timeFormat: TimeFormat;
+  /** The formatting language times are written in (the card's `locale` hyphenates its words). */
+  formattingLocale: string;
 }
 
 /**
@@ -407,7 +409,7 @@ export function LessonCell({
         {[
           roomText,
           cell.timeRange
-            ? `${formatClockTime(cell.timeRange.start, tokens.timeFormat)}–${formatClockTime(cell.timeRange.end, tokens.timeFormat)}`
+            ? `${formatClockTime(cell.timeRange.start, tokens.timeFormat, tokens.formattingLocale)}–${formatClockTime(cell.timeRange.end, tokens.timeFormat, tokens.formattingLocale)}`
             : null,
         ]
           .filter((line): line is string => line !== null)
@@ -532,8 +534,8 @@ export function FreeCell({ cell, tokens }: { cell: FreeCardCell; tokens: CardTok
                   and the time is the half that matters: where the words do not
                   fit the cell, the time stands on its own. */}
               {cell.lateStartWord === false
-                ? formatClockTime(cell.lateStart, tokens.timeFormat)
-                : t('timetable.lateStart', { time: formatClockTime(cell.lateStart, tokens.timeFormat) })}
+                ? formatClockTime(cell.lateStart, tokens.timeFormat, tokens.formattingLocale)
+                : t('timetable.lateStart', { time: formatClockTime(cell.lateStart, tokens.timeFormat, tokens.formattingLocale) })}
             </div>
           )}
         </div>
@@ -571,7 +573,7 @@ export function LunchCell({ cell, tokens }: { cell: LunchCardCell; tokens: CardT
 
 export function CareCell({ cell, tokens }: { cell: CareCardCell; tokens: CardTokens }) {
   const t = useTranslate('modules');
-  const time = formatClockTime(cell.until, tokens.timeFormat);
+  const time = formatClockTime(cell.until, tokens.timeFormat, tokens.formattingLocale);
   const named = cell.form === 'full';
   return (
     <div
@@ -681,7 +683,7 @@ export function FoldedCell({
                 ...KEEPS_HEIGHT,
               }}
             >
-              {formatClockTime(entry.start, tokens.timeFormat)}
+              {formatClockTime(entry.start, tokens.timeFormat, tokens.formattingLocale)}
             </div>}
             {entry.bring && <BringChip text={entry.bring} tokens={tokens} />}
           </div>

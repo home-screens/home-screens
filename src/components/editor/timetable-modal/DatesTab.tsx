@@ -84,7 +84,7 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
     const date = parseIsoDate(iso);
     return date ? formatDateSync(date, pattern, { locale }) : iso;
   };
-  const clock = (time: string) => formatClockTime(time, timeFormat);
+  const clock = (time: string) => formatClockTime(time, timeFormat, locale);
 
   // Every date still to come, for everyone, in date order and then roster order.
   const upcoming = useMemo<Dated[]>(() => {

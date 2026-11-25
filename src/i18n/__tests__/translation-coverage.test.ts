@@ -350,6 +350,13 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "min" is the Danish minute abbreviation too (the timer's buttons and lengths).
+    'core|timer.minutesShort',
+    'core|timer.addMinute',
+    'core|timer.subtractMinute',
+    'remote|timers.addMinute',
+    'remote|timers.minUnit',
+    'remote|timers.minutesShort',
     // "Pen" and "Orange" are the same words in Danish (the drawing sheet's pens).
     'modules|notes.draw.pen',
     'modules|notes.draw.inks.orange',
@@ -628,6 +635,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // The English is now sentence case, so this language's own words match it.
     'core|meal.tags.meal-prep',
     'editor|configSections.date.viewBanner',
+    // "Display" is this language's word for one of the editor's displays,
+    // as on the Displays page.
+    'editor|settings.sharedStatePage.displayPicker.label',
+    'editor|settings.statsSection.displayTitle',
   ]),
   'fr-FR': new Set([
     // "Orange" is the same word in French (a pen colour on the drawing sheet).

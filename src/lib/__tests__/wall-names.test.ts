@@ -21,7 +21,7 @@ const UA = {
 
 describe('wallBrowserName', () => {
   it('names the hub\'s own screen as that, whatever its browser says', () => {
-    expect(wallBrowserName(t, { userAgent: UA.pi, hubScreen: true })).toBe("This Home Screens' own screen");
+    expect(wallBrowserName(t, { userAgent: UA.pi, hubScreen: true })).toBe('The browser on Home Screens itself');
   });
 
   it('calls a Pi a Raspberry Pi and leaves its browser out', () => {

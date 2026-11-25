@@ -1,8 +1,5 @@
 'use client';
 
-/** A minute, the unit the add and subtract buttons work in. */
-const MINUTE_MS = 60_000;
-
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Minus, Pause, Play, Plus, Square } from 'lucide-react';
 import type { ModuleStyle, QuickTimerConfig } from '@/types/config';
@@ -17,7 +14,7 @@ import { useSettling } from '@/hooks/useSheetTapGuard';
 import { STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 import ModuleWrapper from '@/components/modules/ModuleWrapper';
 import { resolveTextScale } from '@/lib/module-style';
-import { quickTimerLengthSec, sessionProgress, sessionTargetsDisplay } from '@/lib/timer-logic';
+import { canSubtractMinute, quickTimerLengthSec, sessionProgress, sessionTargetsDisplay } from '@/lib/timer-logic';
 import {
   dismissTimesUp,
   getDismissedTimesUp,
@@ -104,13 +101,6 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
       ? live
       : null;
 
-  // What the box shows changes in place, under whatever finger made it
-  // change: the lengths come back where "Time's up!" and Stop were, and the
-  // buttons appear where a length was. For a moment after each change nothing
-  // new takes a tap, so the second half of a double tap starts nothing.
-  const boxState = running ? 'running' : finished ? 'finished' : busyElsewhere ? 'busy' : 'idle';
-  const settling = useSettling(boxState, STEP_SETTLE_MS);
-
   // Tell the page a box is drawing this timer in place: the phone's "Showing
   // on" line reads it, and the takeover leaves the finish to this box.
   const [boxKey] = useState(() => ({}));
@@ -120,6 +110,10 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
   }, [boxKey, inBox]);
   useEffect(() => () => setBoxTimerSession(boxKey, null), [boxKey]);
 
+  // "No title" in the Title setting means no heading at all, as on every
+  // module with a heading of its own; a card title stands in for it.
+  const showHeading = config.showTitle !== false && !style.title?.trim();
+
   // Measured inside the card, so the box is what the card's padding left.
   const [boxRef, box] = useElementBox('content');
   const m = quickTimerMetrics({
@@ -127,8 +121,23 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
     h: box.height,
     presets: presets.length,
     running: !!running,
+    heading: showHeading,
     textScale: resolveTextScale(style),
   });
+
+  // "-1 min" is drawn only while it leaves a minute on the clock, in a box
+  // with room for the minute buttons.
+  const subtract = !!running && m.nudges && canSubtractMinute(remainingMs);
+
+  // What the box shows changes in place, under whatever finger made it
+  // change: the lengths come back where "Time's up!" and Stop were, the
+  // buttons appear where a length was, and the row closes up when "-1 min"
+  // goes under two minutes (and opens again for it after "+1 min"). For a
+  // moment after each change nothing new takes a tap, so the second half of
+  // a double tap starts nothing, and a tap meant for "-1 min" lands on
+  // nothing rather than on the button that took its place.
+  const boxState = running ? 'running' : finished ? 'finished' : busyElsewhere ? 'busy' : 'idle';
+  const settling = useSettling(`${boxState}:${subtract}`, STEP_SETTLE_MS);
 
   // A press names the timer and step it was made looking at, so the hub can
   // turn down one meant for a timer that is no longer the one running.
@@ -154,7 +163,7 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
     })();
   };
 
-  const heading = m.head > 0 && !style.title?.trim() && (
+  const heading = m.head > 0 && (
     <div
       style={{
         fontSize: m.head,
@@ -184,7 +193,12 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
   } as const;
 
   if (running && step) {
-    const canSubtract = !running.awaitingTap && remainingMs > MINUTE_MS;
+    // The row closes up when "-1 min" is not offered: three across in a wide
+    // box, and in a two-by-two box Pause takes the whole top row, so +1 min
+    // and Stop stay where they were. A step waiting for its tap has two
+    // buttons whatever the box.
+    const cols = running.awaitingTap ? 2 : m.ctrlRows === 1 && m.nudges && !subtract ? 3 : m.ctrlCols;
+    const pauseRow = m.ctrlRows === 2 && m.nudges && !subtract;
     const label = [
       running.name ?? formatQuickName(quickTimerLengthSec(running), tCore, 'timer'),
       running.kind === 'routine' ? step.label : null,
@@ -259,8 +273,7 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
         <div
           style={{
             display: 'grid',
-            // A step waiting for its tap has two buttons whatever the box.
-            gridTemplateColumns: `repeat(${running.awaitingTap ? 2 : m.ctrlCols}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
             gap: m.gap,
             flexShrink: 0,
           }}
@@ -281,23 +294,25 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
                 aria-label={tCore(paused ? 'timer.resume' : 'timer.pause')}
                 disabled={settling}
                 onClick={() => act(paused ? 'resume' : 'pause')}
-                style={ctrl}
+                style={pauseRow ? { ...ctrl, gridColumn: '1 / -1' } : ctrl}
               >
                 {paused ? <Play style={icon} /> : <Pause style={icon} />}
                 {m.ctrlWords && tCore(paused ? 'timer.resume' : 'timer.pause')}
               </WallButton>
               {m.nudges && (
                 <>
-                  <WallButton
-                    data-testid="quick-timer-subtract"
-                    aria-label={tCore('timer.subtractMinuteSpoken')}
-                    disabled={!canSubtract || settling}
-                    onClick={() => canSubtract && act('subtract-minute')}
-                    style={{ ...ctrl, opacity: canSubtract ? 1 : 0.35, cursor: canSubtract ? 'pointer' : 'default' }}
-                  >
-                    <Minus style={icon} />
-                    {m.ctrlWords ? tCore('timer.oneMinute') : '1'}
-                  </WallButton>
+                  {subtract && (
+                    <WallButton
+                      data-testid="quick-timer-subtract"
+                      aria-label={tCore('timer.subtractMinuteSpoken')}
+                      disabled={settling}
+                      onClick={() => act('subtract-minute')}
+                      style={ctrl}
+                    >
+                      <Minus style={icon} />
+                      {m.ctrlWords ? tCore('timer.oneMinute') : '1'}
+                    </WallButton>
+                  )}
                   <WallButton
                     data-testid="quick-timer-add"
                     aria-label={tCore('timer.addMinuteSpoken')}
@@ -411,7 +426,7 @@ export default function QuickTimerModule({ config = {}, style, renderDisplayId }
             type="button"
             data-testid="quick-timer-preset"
             data-minutes={minutes}
-            aria-label={t('quick-timer.startAriaLabel', { minutes })}
+            aria-label={t('quick-timer.startAriaLabel', { count: minutes, minutes })}
             // Until the hub has said what is running, a tap could replace a
             // timer this box has not heard of yet.
             disabled={busyElsewhere || settling || !loaded}

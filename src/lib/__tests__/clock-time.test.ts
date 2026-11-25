@@ -1,51 +1,51 @@
 import { describe, it, expect } from 'vitest';
-import { formatClockTime, formatClockMinutes, householdTimeFormat, localeTimeFormat, settingsTimeFormat } from '@/lib/clock-time';
+import { formatClockTime, formatClockMinutes, formatClockTimeBare, formatHourMark, householdTimeFormat, localeTimeFormat, settingsTimeFormat } from '@/lib/clock-time';
 import { formatMealTime } from '@/lib/meal-constants';
 
 // ── formatClockTime ──
 
 describe('formatClockTime', () => {
   it('formats midnight, noon and the ends of the day in 12h', () => {
-    expect(formatClockTime('00:00', '12h')).toBe('12:00 AM');
-    expect(formatClockTime('12:00', '12h')).toBe('12:00 PM');
-    expect(formatClockTime('12:05', '12h')).toBe('12:05 PM');
-    expect(formatClockTime('23:59', '12h')).toBe('11:59 PM');
+    expect(formatClockTime('00:00', '12h', 'en-US')).toBe('12:00 AM');
+    expect(formatClockTime('12:00', '12h', 'en-US')).toBe('12:00 PM');
+    expect(formatClockTime('12:05', '12h', 'en-US')).toBe('12:05 PM');
+    expect(formatClockTime('23:59', '12h', 'en-US')).toBe('11:59 PM');
   });
 
   it('formats the same times in 24h', () => {
-    expect(formatClockTime('00:00', '24h')).toBe('00:00');
-    expect(formatClockTime('12:00', '24h')).toBe('12:00');
-    expect(formatClockTime('12:05', '24h')).toBe('12:05');
-    expect(formatClockTime('23:59', '24h')).toBe('23:59');
+    expect(formatClockTime('00:00', '24h', 'en-US')).toBe('00:00');
+    expect(formatClockTime('12:00', '24h', 'en-US')).toBe('12:00');
+    expect(formatClockTime('12:05', '24h', 'en-US')).toBe('12:05');
+    expect(formatClockTime('23:59', '24h', 'en-US')).toBe('23:59');
   });
 
   it('drops the leading zero on the hour in 12h and keeps it in 24h', () => {
-    expect(formatClockTime('07:30', '12h')).toBe('7:30 AM');
-    expect(formatClockTime('07:30', '24h')).toBe('07:30');
-    expect(formatClockTime('9:00', '24h')).toBe('09:00');
-    expect(formatClockTime('9:00', '12h')).toBe('9:00 AM');
+    expect(formatClockTime('07:30', '12h', 'en-US')).toBe('7:30 AM');
+    expect(formatClockTime('07:30', '24h', 'en-US')).toBe('07:30');
+    expect(formatClockTime('9:00', '24h', 'en-US')).toBe('09:00');
+    expect(formatClockTime('9:00', '12h', 'en-US')).toBe('9:00 AM');
   });
 
   it('switches the day period at noon, not at 1 PM', () => {
-    expect(formatClockTime('11:59', '12h')).toBe('11:59 AM');
-    expect(formatClockTime('13:00', '12h')).toBe('1:00 PM');
+    expect(formatClockTime('11:59', '12h', 'en-US')).toBe('11:59 AM');
+    expect(formatClockTime('13:00', '12h', 'en-US')).toBe('1:00 PM');
   });
 
   it('returns an empty string for missing input', () => {
-    expect(formatClockTime(undefined, '12h')).toBe('');
-    expect(formatClockTime(null, '12h')).toBe('');
-    expect(formatClockTime('', '12h')).toBe('');
+    expect(formatClockTime(undefined, '12h', 'en-US')).toBe('');
+    expect(formatClockTime(null, '12h', 'en-US')).toBe('');
+    expect(formatClockTime('', '12h', 'en-US')).toBe('');
   });
 
   it('returns an empty string for malformed or out-of-range input', () => {
-    expect(formatClockTime('abc', '12h')).toBe('');
-    expect(formatClockTime('12', '12h')).toBe('');
-    expect(formatClockTime('12:5', '12h')).toBe('');
-    expect(formatClockTime('12:005', '12h')).toBe('');
-    expect(formatClockTime('24:00', '12h')).toBe('');
-    expect(formatClockTime('25:00', '12h')).toBe('');
-    expect(formatClockTime('12:60', '12h')).toBe('');
-    expect(formatClockTime(' 12:00', '12h')).toBe('');
+    expect(formatClockTime('abc', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('12', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('12:5', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('12:005', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('24:00', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('25:00', '12h', 'en-US')).toBe('');
+    expect(formatClockTime('12:60', '12h', 'en-US')).toBe('');
+    expect(formatClockTime(' 12:00', '12h', 'en-US')).toBe('');
   });
 });
 
@@ -53,34 +53,34 @@ describe('formatClockTime', () => {
 
 describe('formatClockMinutes', () => {
   it('formats minutes from midnight in both formats', () => {
-    expect(formatClockMinutes(0, '12h')).toBe('12:00 AM');
-    expect(formatClockMinutes(0, '24h')).toBe('00:00');
-    expect(formatClockMinutes(720, '12h')).toBe('12:00 PM');
-    expect(formatClockMinutes(720, '24h')).toBe('12:00');
-    expect(formatClockMinutes(725, '12h')).toBe('12:05 PM');
-    expect(formatClockMinutes(725, '24h')).toBe('12:05');
-    expect(formatClockMinutes(1439, '12h')).toBe('11:59 PM');
-    expect(formatClockMinutes(1439, '24h')).toBe('23:59');
+    expect(formatClockMinutes(0, '12h', 'en-US')).toBe('12:00 AM');
+    expect(formatClockMinutes(0, '24h', 'en-US')).toBe('00:00');
+    expect(formatClockMinutes(720, '12h', 'en-US')).toBe('12:00 PM');
+    expect(formatClockMinutes(720, '24h', 'en-US')).toBe('12:00');
+    expect(formatClockMinutes(725, '12h', 'en-US')).toBe('12:05 PM');
+    expect(formatClockMinutes(725, '24h', 'en-US')).toBe('12:05');
+    expect(formatClockMinutes(1439, '12h', 'en-US')).toBe('11:59 PM');
+    expect(formatClockMinutes(1439, '24h', 'en-US')).toBe('23:59');
   });
 
   it('returns an empty string outside a single day', () => {
-    expect(formatClockMinutes(-1, '12h')).toBe('');
-    expect(formatClockMinutes(1440, '12h')).toBe('');
-    expect(formatClockMinutes(99999, '12h')).toBe('');
+    expect(formatClockMinutes(-1, '12h', 'en-US')).toBe('');
+    expect(formatClockMinutes(1440, '12h', 'en-US')).toBe('');
+    expect(formatClockMinutes(99999, '12h', 'en-US')).toBe('');
   });
 
   it('returns an empty string for missing or non-integer input', () => {
-    expect(formatClockMinutes(undefined, '12h')).toBe('');
-    expect(formatClockMinutes(null, '12h')).toBe('');
-    expect(formatClockMinutes(NaN, '12h')).toBe('');
-    expect(formatClockMinutes(90.5, '12h')).toBe('');
+    expect(formatClockMinutes(undefined, '12h', 'en-US')).toBe('');
+    expect(formatClockMinutes(null, '12h', 'en-US')).toBe('');
+    expect(formatClockMinutes(NaN, '12h', 'en-US')).toBe('');
+    expect(formatClockMinutes(90.5, '12h', 'en-US')).toBe('');
   });
 
   it('agrees with formatClockTime across every minute of the day', () => {
     for (let minutes = 0; minutes < 1440; minutes++) {
       const hhmm = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-      expect(formatClockMinutes(minutes, '12h')).toBe(formatClockTime(hhmm, '12h'));
-      expect(formatClockMinutes(minutes, '24h')).toBe(formatClockTime(hhmm, '24h'));
+      expect(formatClockMinutes(minutes, '12h', 'en-US')).toBe(formatClockTime(hhmm, '12h', 'en-US'));
+      expect(formatClockMinutes(minutes, '24h', 'en-US')).toBe(formatClockTime(hhmm, '24h', 'en-US'));
     }
   });
 });
@@ -137,28 +137,69 @@ const MEAL_PARITY_REJECTS = ['', 'abc', '25:00', '12:60', '12', '12:5'];
 describe('parity with formatMealTime', () => {
   for (const row of MEAL_PARITY_TABLE) {
     it(`${row.time} still renders as before`, () => {
-      expect(formatClockTime(row.time, '12h')).toBe(row.twelve);
-      expect(formatClockTime(row.time, '24h')).toBe(row.twentyFour);
-      expect(formatMealTime(row.time, '12h')).toBe(row.twelve);
-      expect(formatMealTime(row.time, '24h')).toBe(row.twentyFour);
+      expect(formatClockTime(row.time, '12h', 'en-US')).toBe(row.twelve);
+      expect(formatClockTime(row.time, '24h', 'en-US')).toBe(row.twentyFour);
+      expect(formatMealTime(row.time, '12h', 'en-US')).toBe(row.twelve);
+      expect(formatMealTime(row.time, '24h', 'en-US')).toBe(row.twentyFour);
     });
   }
 
   it('rejects the same inputs the meal planner rejected', () => {
     for (const bad of MEAL_PARITY_REJECTS) {
-      expect(formatClockTime(bad, '12h')).toBe('');
-      expect(formatMealTime(bad, '12h')).toBe('');
+      expect(formatClockTime(bad, '12h', 'en-US')).toBe('');
+      expect(formatMealTime(bad, '12h', 'en-US')).toBe('');
     }
-    expect(formatMealTime(undefined, '12h')).toBe('');
+    expect(formatMealTime(undefined, '12h', 'en-US')).toBe('');
   });
 });
 
 describe('formatClockTimeBare', () => {
-  it('leaves the AM or PM off a 12-hour time, and a 24-hour time as it is', async () => {
-    const { formatClockTimeBare } = await import('../clock-time');
-    expect(formatClockTimeBare('10:35', '12h')).toBe('10:35');
-    expect(formatClockTimeBare('13:20', '12h')).toBe('1:20');
-    expect(formatClockTimeBare('13:20', '24h')).toBe('13:20');
-    expect(formatClockTimeBare('', '12h')).toBe('');
+  it('leaves the AM or PM off a 12-hour time, and a 24-hour time as it is', () => {
+    expect(formatClockTimeBare('10:35', '12h', 'en-US')).toBe('10:35');
+    expect(formatClockTimeBare('13:20', '12h', 'en-US')).toBe('1:20');
+    expect(formatClockTimeBare('13:20', '24h', 'en-US')).toBe('13:20');
+    expect(formatClockTimeBare('', '12h', 'en-US')).toBe('');
+  });
+
+  it("leaves off the language's own day period and keeps its separator", () => {
+    expect(formatClockTimeBare('13:20', '12h', 'es-ES')).toBe('1:20');
+    expect(formatClockTimeBare('13:20', '12h', 'nl-NL')).toBe('1:20');
+    expect(formatClockTimeBare('13:20', '12h', 'da-DK')).toBe('1.20');
+  });
+});
+
+// ── The formatting language ──
+
+describe('times in the formatting language', () => {
+  // A serving time, a bell and a ruler mark, in every shipped language: the
+  // language's own pattern from Intl, the same as the calendar beside them.
+  const READS: Array<[locale: string, h24: string, h12: string, mark24: string, mark12: string]> = [
+    ['en-US', '07:30', '7:30 AM', '07:00', '7 AM'],
+    ['de-DE', '07:30', '7:30 AM', '07:00', '7 AM'],
+    ['fr-FR', '07:30', '7:30 AM', '07:00', '7 AM'],
+    ['es-ES', '7:30', '7:30 a. m.', '7:00', '7 a. m.'],
+    ['nl-NL', '07:30', '7:30 a.m.', '07:00', '7 a.m.'],
+    ['pt-BR', '07:30', '7:30 AM', '07:00', '7 AM'],
+    ['da-DK', '07.30', '7.30 AM', '07.00', '7 AM'],
+  ];
+
+  it.each(READS)('%s writes 07:30 as %s and %s, and the 7 o\'clock mark as %s and %s', (locale, h24, h12, mark24, mark12) => {
+    expect(formatClockTime('07:30', '24h', locale)).toBe(h24);
+    expect(formatClockTime('07:30', '12h', locale)).toBe(h12);
+    expect(formatMealTime('07:30', '24h', locale)).toBe(h24);
+    expect(formatClockMinutes(450, '24h', locale)).toBe(h24);
+    expect(formatHourMark(420, '24h', locale)).toBe(mark24);
+    expect(formatHourMark(420, '12h', locale)).toBe(mark12);
+  });
+
+  it('writes the afternoon in each language', () => {
+    expect(formatClockTime('18:30', '24h', 'da-DK')).toBe('18.30');
+    expect(formatClockTime('18:30', '12h', 'es-ES')).toBe('6:30 p. m.');
+    expect(formatClockTime('18:30', '12h', 'nl-NL')).toBe('6:30 p.m.');
+    expect(formatClockTime('00:00', '24h', 'es-ES')).toBe('0:00');
+  });
+
+  it('writes a tag Intl cannot read in US English rather than throwing', () => {
+    expect(formatClockTime('18:30', '12h', 'not a tag')).toBe('6:30 PM');
   });
 });

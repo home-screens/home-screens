@@ -166,7 +166,7 @@ export function NotePostedNotice({ words, detail, onUndo, onDone }: {
     >
       {state === 'offered' && <Check size={P(38)} strokeWidth={3} style={{ color: '#4ade80', flexShrink: 0 }} aria-hidden="true" />}
       <span data-state={state} style={{ padding: `${P(16)}px ${state === 'offered' ? 0 : P(18)}px ${P(16)}px 0` }}>
-        {failed ? t('notes.draw.undoFailed') : state === 'asking' ? t('notes.draw.undoing') : words}
+        {failed ? t('notes.wallPost.undoFailed') : state === 'asking' ? t('notes.wallPost.undoing') : words}
         {state === 'offered' && detail && (
           <span data-testid="note-posted-detail" style={{ display: 'block', fontSize: P(23), fontWeight: 500, color: 'var(--wt-text-2)', marginTop: P(2) }}>{detail}</span>
         )}
@@ -182,7 +182,7 @@ export function NotePostedNotice({ words, detail, onUndo, onDone }: {
           }}
         >
           <Undo2 size={P(28)} strokeWidth={2.4} aria-hidden="true" />
-          {t('notes.draw.undo')}
+          {t('notes.wallPost.undo')}
         </WallButton>
       )}
     </div>,

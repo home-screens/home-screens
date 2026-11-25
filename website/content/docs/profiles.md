@@ -292,11 +292,12 @@ Any mouse, touch, or keyboard input immediately brings a dimmed or sleeping disp
 
 ### Screensaver
 
-During the dimmed state, a screensaver can be shown:
+When the display dims by itself, after a few quiet minutes or during **Dim in the evening**, it can show a screensaver:
 
 - **Drifting clock**: a minimal clock that moves around the screen to prevent burn-in
 - **Blank (dim only)**: just the dim overlay, no clock
-- **Off (still dims)**: no screensaver. The display still dims and goes to sleep at its usual time; nothing is drawn over the dimmed screen, so it looks the same as Blank
+
+Turning the brightness down from the phone, a script, or a Display Control slider never shows the screensaver: the screen just gets darker, and everything on it stays readable and works when tapped.
 
 ### Scheduled dimming
 

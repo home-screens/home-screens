@@ -33,7 +33,7 @@ import {
   type TimetableBlock,
 } from '@/lib/timetable-layout';
 
-import { formatClockMinutes, parseTimeToMinutes } from '@/lib/clock-time';
+import { formatHourMark, parseTimeToMinutes } from '@/lib/clock-time';
 import type { TimeFormat } from '@/types/config';
 import { addIsoDays } from './iso-date';
 
@@ -340,10 +340,9 @@ export function axisShare(axis: DayAxis, minutes: number): number {
   return Math.min(1, Math.max(0, (minutes - axis.startMin) / span));
 }
 
-/** The hour label on the ruler: "07:00", or "7 AM" on a 12 hour clock. */
-export function tickLabel(minutes: number, timeFormat: TimeFormat): string {
-  const label = formatClockMinutes(minutes, timeFormat);
-  return timeFormat === '12h' ? label.replace(':00 ', ' ') : label;
+/** The hour label on the ruler: "07:00", or the hour alone on a 12 hour clock ("7 AM", "7 a. m."). */
+export function tickLabel(minutes: number, timeFormat: TimeFormat, locale: string): string {
+  return formatHourMark(minutes, timeFormat, locale);
 }
 
 /**

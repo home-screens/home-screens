@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Timers",
     "quickTimer": "Snelle timer",
-    "quickName": "Timer van {minutes} minuten",
+    "quickName": {
+      "one": "Timer van {minutes} minuut",
+      "other": "Timer van {minutes} minuten"
+    },
     "start": "Start",
     "sound": "Geluid",
     "routines": "Routines",
@@ -1059,7 +1062,10 @@
     "minUnit": "min",
     "secUnit": "sec",
     "stepSeconds": "Seconden",
-    "quickNameSeconds": "Timer van {seconds} seconden",
+    "quickNameSeconds": {
+      "one": "Timer van {seconds} seconde",
+      "other": "Timer van {seconds} seconden"
+    },
     "quickNameClock": "Timer van {time}",
     "secondsShort": "{seconds} sec",
     "showingOn": "Te zien op {names}",

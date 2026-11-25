@@ -828,22 +828,23 @@ export function servingTimeView(
 }
 
 /**
- * Format an "HH:MM" 24-hour time string for display.
+ * Format an "HH:MM" 24-hour time string for display in `locale`.
  * Honors the global timeFormat preference. Returns empty string for invalid input.
  *
  * Thin wrapper over the shared clock-time formatter so the meal planner and
  * every other surface that shows a time of day render it identically.
  *
  * Examples:
- *   formatMealTime('18:30', '12h') → '6:30 PM'
- *   formatMealTime('18:30', '24h') → '18:30'
- *   formatMealTime('07:00', '12h') → '7:00 AM'
+ *   formatMealTime('18:30', '12h', 'en-US') → '6:30 PM'
+ *   formatMealTime('18:30', '24h', 'en-US') → '18:30'
+ *   formatMealTime('07:00', '24h', 'da-DK') → '07.00'
  */
 export function formatMealTime(
   time: string | undefined,
   format: TimeFormat,
+  locale: string,
 ): string {
-  return formatClockTime(time, format);
+  return formatClockTime(time, format, locale);
 }
 
 /**

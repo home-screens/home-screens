@@ -20,12 +20,12 @@
     },
     "notes": {
       "textRequired": "Skriv noget først.",
-      "textTooLong": "En seddel må højst være {max} tegn.",
+      "textTooLong": "En note må højst være {max} tegn.",
       "badAuthor": "Afsenderen skal være en fra familien.",
-      "badLife": "Vælg, hvor længe sedlen skal blive hængende.",
+      "badLife": "Vælg, hvor længe noten skal blive hængende.",
       "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen.",
-      "noteGone": "Den seddel er her ikke længere.",
-      "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først.",
+      "noteGone": "Den note er her ikke længere.",
+      "boardFull": "Tavlen er fuld: {max} noter. Tag nogle ned først.",
       "badDrawing": "Den tegning kunne ikke gemmes.",
       "wallDrawOff": "Det er slået fra at tegne på væggen.",
       "wallWriteOff": "Det er slået fra at skrive på væggen."
@@ -125,7 +125,7 @@
       "needsVersion": "Det link mangler et versionsnummer. Skriv, hvilken version der skal installeres.",
       "notAPlugin": "Det link er ikke et Home Screens-plugin. Tjek, at det peger på pluginnets .tar.gz-fil.",
       "tooBig": "Den fil er for stor til at være et plugin. Plugins må højst fylde {max} MB.",
-      "alreadyInstalled": "Det plugin er allerede installeret. Opdatér det fra pluginbutikken i stedet."
+      "alreadyInstalled": "Det plugin er allerede installeret fra pluginbutikken. Opdatér det på fanen Opdateringer i stedet."
     },
     "icloud": {
       "signInRefused": "Kunne ikke logge ind på iCloud. Tjek Apple-id'et, og sørg for, at adgangskoden er en app-adgangskode, der er oprettet på account.apple.com; din almindelige Apple-adgangskode virker ikke her."
@@ -204,7 +204,7 @@
     "resumesIn": "Fortsætter om {time} · tryk for at fortsætte nu",
     "tapToResume": "tryk for at fortsætte",
     "minutes": "{count} min",
-    "seconds": "{count} sek.",
+    "seconds": "{count} sek",
     "heldInPreview": "Rotationen står stille i forhåndsvisningen"
   },
   "displayNotFound": {
@@ -215,7 +215,7 @@
     "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
     "waitingForAdoption": "Venter på at blive tilføjet…",
-    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} s.",
+    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} sek.",
     "goToDefault": "Gå til hovedskærmen nu"
   },
   "wallGate": {
@@ -223,7 +223,7 @@
     "line": "Det kan en voksen gøre i Home Screens-editoren. Gå til {place}, og klik på Luk ind.",
     "waiting": "Venter på at blive lukket ind…",
     "signIn": "Vil du bare kigge? Log ind",
-    "noCookieTitle": "Denne browser husker ikke sin plads",
+    "noCookieTitle": "Denne browser glemmer hele tiden, at den er en væg",
     "noCookieLine": "Home Screens husker en væg med en cookie, og denne browser beholdt den ikke. Slå cookies til for denne adresse, og indlæs siden igen.",
     "keepLine": "Du er logget ind, så du kigger bare med.",
     "keepButton": "Behold som væg",
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Trin {current} af {total}",
-    "quickName": "{minutes} minutters timer",
+    "quickName": {
+      "one": "{minutes} minuts timer",
+      "other": "{minutes} minutters timer"
+    },
     "almostDone": "Næsten færdig!",
     "done": "Færdig!",
     "paused": "På pause",
@@ -353,16 +356,19 @@
     "stepsDone": "trin klaret",
     "totalTime": "samlet tid",
     "nextUp": "Næste:",
-    "minutesShort": "{minutes} min.",
+    "minutesShort": "{minutes} min",
     "moreSteps": "+{count} mere",
     "progressWords": "{done} klaret · {left} tilbage",
-    "quickNameSeconds": "{seconds} sekunders timer",
+    "quickNameSeconds": {
+      "one": "{seconds} sekunds timer",
+      "other": "{seconds} sekunders timer"
+    },
     "quickNameClock": "{time}-timer",
     "pause": "Pause",
     "resume": "Fortsæt",
     "stop": "Stop",
-    "addMinute": "+1 min.",
-    "secondsShort": "{seconds} sek.",
+    "addMinute": "+1 min",
+    "secondsShort": "{seconds} sek",
     "stopHoldHint": "Stop (hold inde for at bekræfte)",
     "keepHoldingToStop": "Bliv ved med at holde for at stoppe",
     "tapToClose": "Tryk for at lukke",
@@ -371,15 +377,15 @@
     "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
     "routinesLoadError": "Dine rutiner kunne ikke hentes. Tjek, at Home Screens er tændt, og prøv igen.",
     "routineMeta": {
-      "one": "{steps} trin · {minutes} min.",
-      "other": "{steps} trin · {minutes} min."
+      "one": "{steps} trin · {minutes} min",
+      "other": "{steps} trin · {minutes} min"
     },
     "holdShort": "hold inde",
-    "oneMinute": "1 min.",
+    "oneMinute": "1 min",
     "holdToStop": "Hold inde for at stoppe",
     "subtractMinuteSpoken": "Et minut mindre",
     "addMinuteSpoken": "Et minut mere",
-    "subtractMinute": "-1 min.",
+    "subtractMinute": "-1 min",
     "soundOff": "Lyd fra",
     "soundOn": "Lyd til",
     "stepDone": "Næste trin"
@@ -867,7 +873,7 @@
     "undo": "Fortryd"
   },
   "wallNames": {
-    "hubScreen": "Home Screens' egen skærm",
+    "hubScreen": "Browseren på selve Home Screens",
     "someBrowser": "En browser",
     "browserOn": "{browser} på {device}",
     "justDevice": "En browser på {device}",

@@ -498,7 +498,7 @@ function TempRibbon({ p, strip = false }: { p: WeatherViewProps; strip?: boolean
           const tx = atStart ? 2 : atEnd ? W - 2 : x(i);
           return (
             <text key={`a${i}`} x={tx} y={VH - AXIS * .25} fontSize={13 * r} fontWeight={500} fill="var(--fsw-text-3)" textAnchor={anchor}>
-              {hourLabel(Math.floor(m.hour), p.timeFormat)}
+              {hourLabel(Math.floor(m.hour), p.timeFormat, p.locale)}
             </text>
           );
         })}

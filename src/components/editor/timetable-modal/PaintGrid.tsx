@@ -80,7 +80,7 @@ export default function PaintGrid({
   // household on a 12-hour clock read its own schedule in a format it uses
   // nowhere else, next to native time pickers showing the other one.
   const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings.timeFormat));
-  const clock = (time: string) => formatClockTime(time, timeFormat);
+  const clock = (time: string) => formatClockTime(time, timeFormat, locale);
   const tModules = useTranslate('modules');
   const locale = useFormattingLocale();
 

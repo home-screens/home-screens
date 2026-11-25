@@ -180,14 +180,14 @@ export default function TimersTab() {
           <div className="mt-4 grid grid-cols-4 gap-2">
             {running.awaitingTap ? (
               <button
-                onClick={() => void control('step-done')}
+                onClick={() => void control('step-done', running)}
                 className="col-span-2 min-h-[44px] rounded-xl bg-emerald-500 text-white text-[14px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.97]"
               >
                 <Check className="w-4 h-4" /> {t('timers.done')}
               </button>
             ) : (
               <button
-                onClick={() => void control(running.pausedAt !== undefined ? 'resume' : 'pause')}
+                onClick={() => void control(running.pausedAt !== undefined ? 'resume' : 'pause', running)}
                 className="min-h-[44px] rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
               >
                 {running.pausedAt !== undefined ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
@@ -195,21 +195,21 @@ export default function TimersTab() {
               </button>
             )}
             <button
-              onClick={() => void control('add-minute')}
+              onClick={() => void control('add-minute', running)}
               className="min-h-[44px] rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold flex items-center justify-center active:scale-[0.97]"
             >
               {t('timers.addMinute')}
             </button>
             {running.kind === 'routine' && !running.awaitingTap && (
               <button
-                onClick={() => void control('skip')}
+                onClick={() => void control('skip', running)}
                 className="min-h-[44px] rounded-xl bg-hs-hover text-hs-text-primary text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
               >
                 <SkipForward className="w-4 h-4" /> {t('timers.skip')}
               </button>
             )}
             <button
-              onClick={() => void control('cancel')}
+              onClick={() => void control('cancel', running)}
               className="min-h-[44px] rounded-xl bg-hs-danger/10 text-hs-danger text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
             >
               <Square className="w-4 h-4" /> {t('timers.stop')}
@@ -229,7 +229,7 @@ export default function TimersTab() {
             </div>
           </div>
           <button
-            onClick={() => void control('cancel')}
+            onClick={() => void control('cancel', finished)}
             className="mt-4 w-full min-h-[44px] rounded-xl bg-hs-danger/10 text-hs-danger text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97]"
           >
             <Square className="w-4 h-4" /> {t('timers.stop')}

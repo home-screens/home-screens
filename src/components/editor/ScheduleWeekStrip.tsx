@@ -5,7 +5,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { describeSchedule } from '@/lib/schedule-summary';
 import { EVERY_DAY } from '@/lib/schedule';
-import { parseTimeToMinutes } from '@/lib/clock-time';
+import { formatClockMinutes, householdTimeFormat, parseTimeToMinutes } from '@/lib/clock-time';
 
 import {
   computeWeekSegments,
@@ -261,12 +261,15 @@ export default function ScheduleWeekStrip({
     window.addEventListener('pointercancel', up);
   };
 
-  // 12 AM / 6 AM / 12 PM / 6 PM / 12 AM in en-US; 24-hour locales vary by Intl
-  // data. The final tick reuses hour 0, meaning midnight of the next day.
-  const hourLabels = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(formattingLocale, { hour: 'numeric' });
-    return HOUR_TICKS.map((h) => fmt.format(new Date(2000, 0, 1, h)));
-  }, [formattingLocale]);
+  // The hours as the language writes them alone, on the household's clock:
+  // 12 AM / 6 AM / 12 PM / 6 PM / 12 AM, or 00 / 06 / 12 / 18 / 00 (German
+  // "00 Uhr", French "00 h"). The final tick reuses hour 0, meaning midnight
+  // of the next day.
+  const clock = householdTimeFormat(timeFormat, formattingLocale);
+  const hourLabels = useMemo(
+    () => HOUR_TICKS.map((h) => formatClockMinutes(h * 60, clock, formattingLocale, { hourOnly: true })),
+    [clock, formattingLocale],
+  );
 
   // The strip is the only description of the schedule on screen, and a bar
   // chart says nothing to a screen reader. `describeSchedule` already produces

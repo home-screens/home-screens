@@ -158,7 +158,7 @@ export function WeekListView({ events, timezone, config, scale, today, anchor = 
 
           {/* Household rows: planned meals, then the day's chore progress */}
           {dayExtras && extras && (
-            <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} band={decor.background ?? dayFill} mealLabels={mealLabels} mealTimeFormat={mealTimeFormat} t={t} />
+            <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} band={decor.background ?? dayFill} mealLabels={mealLabels} mealTimeFormat={mealTimeFormat} locale={locale} t={t} />
           )}
 
           {/* Empty day: a note alone already says something */}
@@ -232,7 +232,7 @@ export function WeekListView({ events, timezone, config, scale, today, anchor = 
  * that day): the household has five kids, and a per-kid line each would
  * crowd out the events.
  */
-function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLabels, mealTimeFormat, t }: {
+function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLabels, mealTimeFormat, locale, t }: {
   day: DayExtras;
   members: ExtrasIndex['members'];
   fontSize: number;
@@ -243,6 +243,8 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLab
   /** Every slot and serving time the week's meal rows name (see `weekMealLabels`). */
   mealLabels: { slots: MealSlotType[]; times: string[] } | null;
   mealTimeFormat: TimeFormat;
+  /** The formatting language the serving times are written in. */
+  locale: string;
   t: TranslateFn;
 }) {
   const rowStyle: React.CSSProperties = {
@@ -276,7 +278,7 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLab
               border: '1px dashed var(--cal-border)',
             }}
           >
-            <MealSlotLabel slot={meal.slot} time={meal.time} labels={mealLabels} timeFormat={mealTimeFormat} fontSize={fontSize} t={t} />
+            <MealSlotLabel slot={meal.slot} time={meal.time} labels={mealLabels} timeFormat={mealTimeFormat} locale={locale} fontSize={fontSize} t={t} />
             {pictured && (
               <MealPicture meal={meal.meal} photoSize={`${fontSize * 1.75}px`} emojiStyle={{ fontSize, lineHeight: 1 }} />
             )}
@@ -340,11 +342,12 @@ const WIDTH_ONLY: React.CSSProperties = { gridArea: '1 / 1', visibility: 'hidden
  * height, so the column is as wide as the longest in every row and the
  * pictures and names line up down the week.
  */
-function MealSlotLabel({ slot, time, labels, timeFormat, fontSize, t }: {
+function MealSlotLabel({ slot, time, labels, timeFormat, locale, fontSize, t }: {
   slot: MealSlotType;
   time?: string;
   labels: { slots: MealSlotType[]; times: string[] } | null;
   timeFormat: TimeFormat;
+  locale: string;
   fontSize: number;
   t: TranslateFn;
 }) {
@@ -360,9 +363,9 @@ function MealSlotLabel({ slot, time, labels, timeFormat, fontSize, t }: {
       </span>
       {(time || (labels?.times.length ?? 0) > 0) && (
         <span style={{ display: 'grid' }}>
-          {time && <span data-day-meal-time="" style={{ ...timeStyle, gridArea: '1 / 1' }}>{formatMealTime(time, timeFormat)}</span>}
+          {time && <span data-day-meal-time="" style={{ ...timeStyle, gridArea: '1 / 1' }}>{formatMealTime(time, timeFormat, locale)}</span>}
           {labels?.times.filter((other) => other !== time).map((other) => (
-            <span key={other} aria-hidden="true" style={{ ...timeStyle, ...WIDTH_ONLY }}>{formatMealTime(other, timeFormat)}</span>
+            <span key={other} aria-hidden="true" style={{ ...timeStyle, ...WIDTH_ONLY }}>{formatMealTime(other, timeFormat, locale)}</span>
           ))}
         </span>
       )}

@@ -338,10 +338,10 @@ test('brightness dims the display, and brightness 100 restores it', async ({ pag
   await openDisplay(
     page,
     request,
-    // Screensaver off so the dim overlay is a single child div whose opacity
-    // is the value under test (no clock screensaver layered on top).
+    // A blank screensaver so the dim overlay is a single child div whose
+    // opacity is the value under test (no clock screensaver layered on top).
     displayConfig(id, [makeScreen('s', 'S', [textModule('BRIGHTNESS SCREEN')])], {
-      screensaver: { mode: 'off' },
+      screensaver: { mode: 'blank' },
     }),
     id,
   );
@@ -374,7 +374,7 @@ test('a todo still checks off while the display sits at a standing brightness', 
   await openDisplay(
     page,
     request,
-    displayConfig(id, [makeScreen('s1', 'S1', [todo])], { screensaver: { mode: 'off' } }),
+    displayConfig(id, [makeScreen('s1', 'S1', [todo])], { screensaver: { mode: 'blank' } }),
     id,
   );
 
@@ -522,7 +522,7 @@ test('brightness 0 blacks the display out, a mid value dims it, and the dim surv
     // Sleep ENABLED (idle windows pushed far out so they never fire during the
     // test) because brightness 0 routes through the asleep state with a null
     // override — dimOpacity only resolves to 1 there when sleep is enabled
-    // (otherwise it short-circuits to 0). Screensaver off so the overlay's
+    // (otherwise it short-circuits to 0). A blank screensaver so the overlay's
     // single child div is the dim layer under test. Two screens with the global
     // 1h rotation frozen, so ONLY the next-screen command changes which screen
     // is mounted.
@@ -533,7 +533,7 @@ test('brightness 0 blacks the display out, a mid value dims it, and the dim surv
         makeScreen('b', 'B', [textModule('BRIGHT SCREEN BRAVO')]),
       ],
       {
-        screensaver: { mode: 'off' },
+        screensaver: { mode: 'blank' },
         sleep: { enabled: true, dimAfterMinutes: 600, sleepAfterMinutes: 600, dimBrightness: 20 },
       },
     ),
@@ -674,7 +674,7 @@ test('the heartbeat reports brightness, the alert count and the timer session th
     page,
     request,
     displayConfig(id, [makeScreen('a', 'A', [textModule('FACTS SCREEN')])], {
-      screensaver: { mode: 'off' },
+      screensaver: { mode: 'blank' },
     }),
     id,
   );

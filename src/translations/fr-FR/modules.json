@@ -215,12 +215,12 @@
     },
     "calendarsSheet": {
       "eyebrow": "Sur ce mur",
-      "title": "Agendas",
+      "title": "Calendriers",
       "show": "Afficher",
       "hidden": "Masqué sur ce mur",
       "pickColor": "Choisis une couleur",
       "color": "Couleur",
-      "allCalendars": "Tous les agendas",
+      "allCalendars": "Tous les calendriers",
       "colorOf": "Couleur de {name}",
       "showName": "Afficher {name}"
     }
@@ -232,8 +232,6 @@
     "noEventsToday": "Aucun événement aujourd'hui",
     "noUpcomingEvents": "Aucun événement à venir",
     "moreCount": "+{count} de plus",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "À venir",
     "viewLabels": {
       "schedule": "Planning",
@@ -639,7 +637,7 @@
       "undo": "Annuler",
       "undone": "Remis comme avant.",
       "hint": "Touche un jour. S'il y a déjà un repas ce jour-là, on te demande avant de changer quoi que ce soit.",
-      "hintMine": "La coche montre où il y a déjà {meal}. Touche ce jour-là pour l'enlever, ou un autre jour pour en remanger.",
+      "hintMine": "Une coche marque les jours où {meal} est déjà au menu. Touche l'un d'eux pour l'enlever, ou un autre jour pour l'ajouter aussi.",
       "when": {
         "breakfast": "{day} au petit-déjeuner",
         "lunch": "{day} au déjeuner",
@@ -657,7 +655,7 @@
       "groceryNext": "Ses ingrédients seront sur la liste de courses de la semaine prochaine.",
       "savedMealie": "Enregistré dans le planning de Mealie.",
       "addIngredients": "Ajouter les ingrédients à la liste de courses",
-      "listAdded": "Les ingrédients sont sur {list}.",
+      "listAdded": "Les ingrédients sont dans la liste « {list} ».",
       "listAddedPlain": "Les ingrédients sont sur la liste de courses.",
       "ask": {
         "title": "{when}, il y a déjà {dish}",
@@ -668,7 +666,7 @@
         "bothDetail": "{meal} et {dish}",
         "leave": "Ne rien changer {day}",
         "offTitle": "{meal}, c'est déjà au menu {when}",
-        "offBody": "À retirer du menu ce jour-là ?",
+        "offBody": "On l'enlève du menu ce jour-là ?",
         "offYes": "Retirer du menu {day}",
         "offNo": "Garder"
       },
@@ -1894,9 +1892,9 @@
     "emptyWrite": "Rien sur le tableau. Écris une note ici ou sur ton téléphone.",
     "emptyLeave": "Rien sur le tableau. Fais un dessin ou écris une note ici, ou écris-en une sur ton téléphone.",
     "drawing": "Dessin",
-    "drawingFrom": "Dessin fait par {name}",
-    "noteFrom": "Note écrite par {name}",
-    "openDrawing": "Voir en grand le dessin fait par {name}",
+    "drawingFrom": "Dessin de {name}",
+    "noteFrom": "Note de {name}",
+    "openDrawing": "Voir en grand le dessin de {name}",
     "draw": {
       "row": "Faire un dessin",
       "rowFinish": "Finir ton dessin",
@@ -1934,14 +1932,10 @@
       "back": "Continuer à dessiner",
       "post": "Accrocher au tableau",
       "retry": "Réessayer",
-      "failed": "Ça n'a pas marché. Ton dessin est toujours là.",
-      "unreachable": "Ça n'a pas marché. Home Screens ne répond pas. Ton dessin est toujours là.",
+      "failed": "Ton dessin n'a pas été accroché, mais il est toujours là.",
+      "unreachable": "Home Screens ne répond pas, donc ton dessin n'a pas été accroché. Il est toujours là.",
       "off": "On ne peut plus dessiner sur le mur, ça vient d'être désactivé. Ton dessin ne peut pas être accroché.",
-      "posted": "Ton dessin est sur le tableau, {name}",
-      "postedNobody": "Ton dessin est sur le tableau",
-      "undoFailed": "Ce dessin est encore sur le tableau. Retire-le avec un téléphone.",
       "pickAgain": "Cette personne ne fait plus partie de la famille. Choisis qui l'a dessiné.",
-      "undoing": "On le retire…",
       "posting": "On l'accroche…",
       "madeRoom": "Le plus vieux dessin a été retiré pour faire de la place."
     },
@@ -1955,8 +1949,8 @@
       "askThrow": "La jeter",
       "whoTitle": "C'est de la part de qui ?",
       "back": "Continuer à écrire",
-      "failed": "Ça n'a pas marché. Ta note est toujours là.",
-      "unreachable": "Ça n'a pas marché. Home Screens ne répond pas. Ta note est toujours là.",
+      "failed": "Ta note n'a pas été accrochée, mais elle est toujours là.",
+      "unreachable": "Home Screens ne répond pas, donc ta note n'a pas été accrochée. Elle est toujours là.",
       "off": "On ne peut plus écrire sur le mur, ça vient d'être désactivé. Ta note ne peut pas être accrochée.",
       "pickAgain": "Cette personne ne fait plus partie de la famille. Choisis de qui vient la note."
     },
@@ -1967,6 +1961,13 @@
       "write": "Écrire",
       "pageWaits": "Ton dessin t'attend encore.",
       "wordsWait": "Ce que tu as écrit t'attend encore."
+    },
+    "wallPost": {
+      "posted": "La note de {name} est sur le tableau",
+      "postedNobody": "Ta note est sur le tableau",
+      "undoFailed": "Cette note est encore sur le tableau. Retire-la avec un téléphone.",
+      "undoing": "On la retire…",
+      "undo": "Annuler"
     }
   },
   "photoControls": {
@@ -1980,7 +1981,10 @@
   "quick-timer": {
     "title": "Minuteur rapide",
     "unit": "min",
-    "startAriaLabel": "Lancer un minuteur de {minutes} minutes",
+    "startAriaLabel": {
+      "one": "Lancer un minuteur de {minutes} minute",
+      "other": "Lancer un minuteur de {minutes} minutes"
+    },
     "busyElsewhere": "Un minuteur tourne sur un autre mur"
   }
 }

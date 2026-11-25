@@ -257,7 +257,7 @@ test('sending an alert lands the payload on the targeted display queue only', as
   await page.getByRole('button', { name: 'Warning', exact: true }).click();
   await page.getByLabel('Title', { exact: true }).fill('Dinner');
   await page.getByLabel('Message', { exact: true }).fill('Time to eat');
-  await page.getByRole('button', { name: '30s', exact: true }).click();
+  await page.getByRole('button', { name: '30 sec', exact: true }).click();
   await page.getByRole('button', { name: 'Send alert', exact: true }).last().click();
 
   let alert: { type: string; payload?: Record<string, unknown> } | undefined;

@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Minuteurs",
     "quickTimer": "Minuteur rapide",
-    "quickName": "Minuteur de {minutes} minutes",
+    "quickName": {
+      "one": "Minuteur de {minutes} minute",
+      "other": "Minuteur de {minutes} minutes"
+    },
     "start": "Démarrer",
     "sound": "Son",
     "routines": "Routines",
@@ -1059,7 +1062,10 @@
     "minUnit": "min",
     "secUnit": "s",
     "stepSeconds": "Secondes",
-    "quickNameSeconds": "Minuteur de {seconds} secondes",
+    "quickNameSeconds": {
+      "one": "Minuteur de {seconds} seconde",
+      "other": "Minuteur de {seconds} secondes"
+    },
     "quickNameClock": "Minuteur de {time}",
     "secondsShort": "{seconds} s",
     "showingOn": "Affiché sur {names}",

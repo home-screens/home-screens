@@ -1586,6 +1586,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Quick Timer',
     icon: Timer,
     category: 'Time & Date',
+    // Its "Quick timer" heading, which "No title" turns off.
+    hasOwnTitle: true,
     defaultConfig: {
       presetMinutes: [1, 5, 10, 15],
       // The timer covering the wall is what a kitchen timer is for; the box

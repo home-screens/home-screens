@@ -125,7 +125,7 @@
       "needsVersion": "Die link heeft een versienummer nodig. Typ welke versie je wilt installeren.",
       "notAPlugin": "Die link is geen Home Screens-plugin. Controleer of hij naar het .tar.gz-bestand van de plugin wijst.",
       "tooBig": "Dat bestand is te groot voor een plugin. Plugins mogen tot {max} MB groot zijn.",
-      "alreadyInstalled": "Die plugin is al geïnstalleerd. Werk hem liever bij via de pluginwinkel."
+      "alreadyInstalled": "Die plugin is al geïnstalleerd vanuit de plugin-marketplace. Werk hem liever bij op het tabblad Updates."
     },
     "icloud": {
       "signInRefused": "Inloggen bij iCloud lukte niet. Controleer de Apple ID en zorg dat het wachtwoord een app-wachtwoord is dat je op account.apple.com hebt gemaakt; je gewone Apple-wachtwoord werkt hier niet."
@@ -223,10 +223,10 @@
     "line": "Een volwassene kan dat doen in de Home Screens-editor. Ga naar {place} en klik op Binnenlaten.",
     "waiting": "Wachten om binnengelaten te worden…",
     "signIn": "Alleen even kijken? Meld je aan",
-    "noCookieTitle": "Deze browser onthoudt zijn plek niet",
+    "noCookieTitle": "Deze browser vergeet steeds dat hij een muur is",
     "noCookieLine": "Home Screens onthoudt een muur met een cookie, en deze browser heeft die niet bewaard. Zet cookies aan voor dit adres en laad de pagina opnieuw.",
     "keepLine": "Je bent aangemeld, dus je kijkt alleen even mee.",
-    "keepButton": "Houden als muur",
+    "keepButton": "Als muur houden",
     "keepClose": "Sluiten",
     "kept": "Deze browser is nu een muur.",
     "keepFailed": "Dat lukte niet. Probeer het opnieuw."
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Stap {current} van {total}",
-    "quickName": "Timer van {minutes} minuten",
+    "quickName": {
+      "one": "Timer van {minutes} minuut",
+      "other": "Timer van {minutes} minuten"
+    },
     "almostDone": "Bijna klaar!",
     "done": "Klaar!",
     "paused": "Gepauzeerd",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} min",
     "moreSteps": "+{count} meer",
     "progressWords": "{done} gedaan · {left} te gaan",
-    "quickNameSeconds": "Timer van {seconds} seconden",
+    "quickNameSeconds": {
+      "one": "Timer van {seconds} seconde",
+      "other": "Timer van {seconds} seconden"
+    },
     "quickNameClock": "Timer van {time}",
     "pause": "Pauze",
     "resume": "Verder",
@@ -867,7 +873,7 @@
     "undo": "Ongedaan maken"
   },
   "wallNames": {
-    "hubScreen": "Het eigen scherm van Home Screens",
+    "hubScreen": "De browser op Home Screens zelf",
     "someBrowser": "Een browser",
     "browserOn": "{browser} op {device}",
     "justDevice": "Een browser op {device}",

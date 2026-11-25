@@ -16,6 +16,7 @@ import { v17ToV18 } from './v17-to-v18';
 import { v18ToV19 } from './v18-to-v19';
 import { v19ToV20 } from './v19-to-v20';
 import { v20ToV21 } from './v20-to-v21';
+import { v21ToV22 } from './v21-to-v22';
 
 interface Migration {
   version: number;
@@ -122,6 +123,9 @@ const migrations: Migration[] = [
   // Migration 021: a full-screen news front page of several feeds keeps its
   // heading as a title of its own.
   v20ToV21,
+  // Migration 022: the screensaver's Off choice, which looked and behaved
+  // exactly like Blank, is written down as Blank.
+  v21ToV22,
 ];
 
 /** @internal Get all migrations sorted by version */

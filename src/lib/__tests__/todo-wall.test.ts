@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addItemIfNew, orderWithItemAt, sameItemText } from '../todo-actions';
+import { addItemIfNew, itemTextKey, orderWithItemAt, sameItemText } from '../todo-actions';
 import { groceryAddListId, groceryCardAdds, todoCardAdds, wallMayAddToList, wallMayAddToMealie } from '../todo-wall';
 import type { ScreenConfiguration } from '@/types/config';
 import type { TodoData } from '@/types/todos';
@@ -115,8 +115,48 @@ describe('a card left in the old screens after displays were added', () => {
 describe('sameItemText', () => {
   it('reads capitals and spacing as the same thing, different words as different', () => {
     expect(sameItemText('Milk', ' milk ')).toBe(true);
+    expect(sameItemText('MILK', 'milk')).toBe(true);
     expect(sameItemText('Paper  towels', 'paper towels')).toBe(true);
     expect(sameItemText('Milk', '2% milk')).toBe(false);
+  });
+
+  it('reads words typed without their accents as the same thing', () => {
+    expect(sameItemText('Pão', 'Pao')).toBe(true);
+    expect(sameItemText('Crème fraîche', 'Creme fraiche')).toBe(true);
+    expect(sameItemText('crème fraîche', 'CREME FRAICHE')).toBe(true);
+    expect(sameItemText('Äpfel', 'apfel')).toBe(true);
+    expect(sameItemText('Açúcar', 'acucar')).toBe(true);
+    // English keyboards, the wall's included, have no ñ.
+    expect(sameItemText('Jalapeños', 'jalapenos')).toBe(true);
+    // A phone or a paste can send an accent as a letter plus a mark of its own.
+    expect(sameItemText('Cre\u0300me', 'crème')).toBe(true);
+  });
+
+  it('spells out letters with no mark to take off: ß, œ and ł', () => {
+    expect(sameItemText('Süßkartoffeln', 'Susskartoffeln')).toBe(true);
+    expect(sameItemText('STRASSE', 'Straße')).toBe(true);
+    expect(sameItemText('Bœuf', 'boeuf')).toBe(true);
+    expect(sameItemText('Œufs', 'oeufs')).toBe(true);
+    expect(sameItemText('Kiełbasa', 'kielbasa')).toBe(true);
+  });
+
+  it("keeps Danish æ, ø and å as letters of their own: to a Dane 'Ål' is not 'Al'", () => {
+    expect(sameItemText('Ål', 'Al')).toBe(false);
+    expect(sameItemText('Ål', 'ål')).toBe(true);
+    expect(sameItemText('A\u030Al', 'ål')).toBe(true);
+    expect(sameItemText('Æg', 'ag')).toBe(false);
+    expect(sameItemText('Æg', 'aeg')).toBe(false);
+    expect(sameItemText('ÆG', 'æg')).toBe(true);
+    expect(sameItemText('Øl', 'ol')).toBe(false);
+    expect(sameItemText('Øl', 'øl')).toBe(true);
+    expect(sameItemText('Rødkål', 'rodkal')).toBe(false);
+    expect(sameItemText('RØDKÅL', 'rødkål')).toBe(true);
+  });
+
+  it('compares by one key, which is never what the list shows', () => {
+    expect(itemTextKey('  Crème   Fraîche ')).toBe('creme fraiche');
+    expect(itemTextKey('Rødkål')).toBe('rødkål');
+    expect(itemTextKey(itemTextKey('Süßkartoffeln'))).toBe(itemTextKey('Süßkartoffeln'));
   });
 });
 
@@ -147,6 +187,28 @@ describe('addItemIfNew', () => {
     expect(result.item.completedAt).toBeUndefined();
     expect(result.data.lists[0].items.find((it) => it.id === 'eggs-old')?.completed).toBe(true);
     expect(result.data.lists[0].items).toHaveLength(3);
+  });
+
+  it('refuses words typed without their accents, and the item keeps its own spelling', () => {
+    const before: TodoData = { lists: [{ ...data().lists[0], items: [
+      { id: 'cf', text: 'Crème fraîche', completed: false, createdAt: NOW },
+      { id: 'pao', text: 'Pão', completed: true, createdAt: NOW, completedAt: '2026-11-18T09:00:00.000Z' },
+    ] }] };
+    const already = addItemIfNew(before, 'shop', { text: 'creme fraiche' }, new Date(NOW));
+    expect(already.outcome).toBe('already');
+    expect(already.data).toBe(before);
+    expect(already.item).toMatchObject({ id: 'cf', text: 'Crème fraîche' });
+    const putBack = addItemIfNew(before, 'shop', { text: 'pao' }, new Date(NOW));
+    expect(putBack.outcome).toBe('putBack');
+    expect(putBack.item).toMatchObject({ id: 'pao', text: 'Pão', completed: false });
+    expect(putBack.data.lists[0].items.map((it) => it.text)).toEqual(['Crème fraîche', 'Pão']);
+  });
+
+  it('adds a Danish word that only looks like one on the list', () => {
+    const before: TodoData = { lists: [{ ...data().lists[0], items: [{ id: 'eel', text: 'Ål', completed: false, createdAt: NOW }] }] };
+    const result = addItemIfNew(before, 'shop', { text: 'Al' }, new Date(NOW));
+    expect(result.outcome).toBe('added');
+    expect(result.data.lists[0].items.map((it) => it.text)).toEqual(['Ål', 'Al']);
   });
 
   it('adds something new at the end', () => {

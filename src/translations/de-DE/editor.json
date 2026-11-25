@@ -79,7 +79,7 @@
       "settingsButton": "Einstellungen",
       "previewButton": "Vorschau",
       "retryButton": "Erneut versuchen",
-      "unsaved": "Ungespeicherte Änderungen …",
+      "unsaved": "Ungespeicherte Änderungen…",
       "couldntSave": "Speichern fehlgeschlagen",
       "reasonNetwork": "Der Hub ist nicht erreichbar. Prüfe das Netzwerk und versuche es erneut.",
       "reasonServer": "Der Hub konnte das Layout nicht speichern.",
@@ -208,8 +208,8 @@
     "addScreenAriaLabel": "Bildschirm hinzufügen",
     "addMenu": {
       "blank": "Leerer Bildschirm",
-      "fromTemplate": "Aus Vorlage …",
-      "fromFile": "Aus Datei …"
+      "fromTemplate": "Aus Vorlage…",
+      "fromFile": "Aus Datei…"
     },
     "contextMenu": {
       "moveLeft": "Nach links verschieben",
@@ -226,9 +226,8 @@
     "opensOnlyBadge": "Beim Öffnen",
     "opensOnlyTooltip": "erscheint nur, wenn er geöffnet wird",
     "deleteConfirmOpeners": {
-      "zero": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf verschwindet auch, und dieser Bildschirm ist leer. Du kannst das rückgängig machen.",
-      "one": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf, das Modul dieses Bildschirms und seine Einstellungen verschwinden. Du kannst das rückgängig machen.",
-      "other": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf, die {count} Module dieses Bildschirms und ihre Einstellungen verschwinden. Du kannst das rückgängig machen."
+      "one": "{names} hat einen Knopf, der diesen Bildschirm öffnet. Der Knopf verschwindet auch.",
+      "other": "{names} haben Knöpfe, die diesen Bildschirm öffnen. Die Knöpfe verschwinden auch."
     },
     "orphanedBadge": "Nichts öffnet ihn",
     "orphanedTooltip": "erscheint nur, wenn er geöffnet wird, und nichts öffnet ihn",
@@ -449,7 +448,7 @@
       "display-control": "Per Fingertipp aufwecken, schlafen legen oder Bildschirme wechseln",
       "traffic": "Wie lange die Fahrt zur Arbeit oder zur Schule dauert",
       "notes": "Familiennotizen vom Handy, die an der Wand hängen, bis ihre Zeit um ist",
-      "quick-timer": "Eine Länge antippen und der Timer läuft am Display"
+      "quick-timer": "Eine Dauer antippen und ein Küchentimer läuft an der Wand"
     },
     "keywords": {
       "fullscreen-calendar": "kalender termine agenda woche monat familie",
@@ -498,7 +497,7 @@
       "display-control": "touch tippen knoepfe knöpfe aufwecken schlafen helligkeit bildschirm",
       "traffic": "verkehr pendeln fahrt route stau arbeit schule",
       "notes": "notizen pinnwand nachricht mitteilung familie kühlschrank kuehlschrank zettel",
-      "quick-timer": "timer countdown minuten küche kochen schnell start"
+      "quick-timer": "timer countdown minuten küche kueche kochen schnell start küchentimer kuechentimer küchenwecker kuechenwecker eieruhr"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -588,10 +587,10 @@
       "latitudePlaceholder": "40.7128",
       "longitudePlaceholder": "-74.006",
       "status": {
-        "lookingUp": "Wird gesucht …",
+        "lookingUp": "Wird gesucht…",
         "found": "{name} gefunden.",
         "lookupFailed": "Dieser Ort wurde nicht gefunden. Prüf die Schreibweise und versuch es noch einmal.",
-        "detecting": "Erkennen …",
+        "detecting": "Erkennen…",
         "detected": "{name} gefunden.",
         "detectedViaIp": "{name} über deine Internetverbindung gefunden.",
         "detectedCoords": "{lat}, {lon} gefunden.",
@@ -622,7 +621,7 @@
     "calendarPage": {
       "google": {
         "heading": "Google Kalender",
-        "checkingConnection": "Verbindung wird geprüft …",
+        "checkingConnection": "Verbindung wird geprüft…",
         "connected": "Mit Google verbunden",
         "disconnect": "Verbindung trennen",
         "noCalendars": "Keine Kalender gefunden.",
@@ -631,7 +630,7 @@
         "hideDeclinedLabel": "Abgesagte Termine ausblenden",
         "credentialsRequired": "Um deinen Kalender zu verbinden, brauchst du eine Google-Anmeldung, die du selbst anlegst. Trage sie unter API-Schlüssel ein.",
         "deviceCodeIntro": "Öffne den unten stehenden Link auf deinem Telefon oder Computer und gib dann den Code ein:",
-        "waitingForAuthorization": "Warte auf Autorisierung …",
+        "waitingForAuthorization": "Warte auf Autorisierung…",
         "usingClientIdLabel": "Verwendete Client-ID:",
         "verifyCredentialsPart1": "Überprüfe deine Anmeldedaten unter ",
         "verifyCredentialsPart2": " oder prüfe die ",
@@ -651,7 +650,7 @@
         "hosted": {
           "codeIntroPart1": "Öffne auf deinem Handy oder Computer ",
           "codeIntroPart2": " und gib diesen Code ein:",
-          "waiting": "Warten, bis du bei Google fertig bist …",
+          "waiting": "Warten, bis du bei Google fertig bist…",
           "cancel": "Abbrechen",
           "help": "Zeigt deine Google-Kalender auf deinen Displays an. Du schließt die Anmeldung mit einem kurzen Code auf deinem Handy oder Computer ab."
         }
@@ -783,7 +782,7 @@
       },
       "swatches": {
         "heading": "Farben zur Auswahl",
-        "help": "Die Farben, die es gibt, wenn du an der Wand die Farbe eines Kalenders änderst. Die Wand kann keine neue Farbe mischen, lege sie also hier fest.",
+        "help": "Die Farben, die zur Wahl stehen, wenn du an der Wand die Farbe eines Kalenders änderst. An der Wand lässt sich keine neue Farbe mischen, leg also hier die Farben bereit, die du wirklich nutzt.",
         "slot": "Farbe {number}",
         "reset": "Ursprüngliche Farben wiederherstellen",
         "wallHint": "Tippe an der Wand auf die Farblegende eines Kalenders, um dort einen Kalender auszublenden oder seine Farbe zu ändern."
@@ -832,7 +831,7 @@
       },
       "fullBackup": {
         "description": "Eine Datei mit allem: Bildschirme, Einstellungen, Aufgaben und der Verlauf der Familie. Damit ziehst du auf ein neues Gerät um.",
-        "working": "Arbeitet …",
+        "working": "Arbeitet…",
         "backupButton": "Sicherung speichern",
         "restoreButton": "Aus einer Datei wiederherstellen",
         "includeCredentialsLabel": "Meine Schlüssel und verbundenen Konten mitnehmen",
@@ -867,7 +866,7 @@
           "messageNoDate": "{what}. Deine jetzigen Einstellungen werden dadurch ersetzt."
         },
         "restoreStatus": {
-          "restoring": "Wird wiederhergestellt …",
+          "restoring": "Wird wiederhergestellt…",
           "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
           "failed": "Dieses Backup konnte nicht wiederhergestellt werden. Versuch es noch einmal."
         },
@@ -974,7 +973,7 @@
         },
         "onlyHere": "Diese Backups liegen nur auf diesem Hub. Schick eine Kopie an einen anderen Ort, damit sie sicher sind.",
         "backUpNow": "Jetzt sichern",
-        "backingUp": "Wird gesichert …",
+        "backingUp": "Wird gesichert…",
         "runRefused": {
           "busy": "Gerade wird schon ein Backup gespeichert. Versuch es gleich noch einmal.",
           "updating": "Gerade wird ein Update installiert. Versuch es noch einmal, wenn es fertig ist.",
@@ -991,7 +990,7 @@
           "setUp": "Einrichten",
           "change": "Ändern",
           "check": "Testen",
-          "checking": "Wird getestet …",
+          "checking": "Wird getestet…",
           "sendingTo": "Geht an {host}, angemeldet als {user}",
           "sendingToShare": "Geht an die Freigabe {share} auf {host}, angemeldet als {user}",
           "lastSent": "zuletzt geschickt: {when}",
@@ -1113,7 +1112,7 @@
       "metricOption": "Metrisch (°C, km/h)",
       "locationWarning": "Lege deinen Standort fest, damit das Wetter funktioniert. Gib eine Postleitzahl oder einen Ortsnamen ein oder verwende „Erkennen“.",
       "providersLabel": "Anbieter",
-      "loadingProviderStatus": "Anbieterstatus wird geladen …",
+      "loadingProviderStatus": "Anbieterstatus wird geladen…",
       "radar": {
         "heading": "Regenradar",
         "serverLabel": "Radar-Server",
@@ -1124,7 +1123,7 @@
         "currentlyDefault": "Aktueller Standard",
         "setAsDefault": "Als Standard festlegen",
         "testButton": "Testen",
-        "testingButton": "Teste …",
+        "testingButton": "Teste…",
         "testStatus": {
           "success": "Funktioniert! Aktuelle Temperatur: {temp}°",
           "connectedNoData": "Verbunden, aber keine Daten erhalten",
@@ -1209,7 +1208,7 @@
         "heading": "Anzeigefläche",
         "orientationPortrait": "Hochformat",
         "orientationLandscape": "Querformat",
-        "resolutionCustom": "Benutzerdefiniert …",
+        "resolutionCustom": "Benutzerdefiniert…",
         "resolutionWidthPlaceholder": "Breite",
         "resolutionHeightPlaceholder": "Höhe",
         "resolutionHelp": "Wähle hier die Auflösung deines Monitors. Änderst du sie, ändert sich auch die Anzeigefläche, auf der du deine Module anordnest.",
@@ -1444,7 +1443,7 @@
       "alertSizeLabel": "Hinweisgröße",
       "activeAlertsHeading": "Aktive Hinweise",
       "clearAllButton": "Alle Hinweise löschen",
-      "clearingButton": "Wird gelöscht …",
+      "clearingButton": "Wird gelöscht…",
       "cleared": "Gelöscht",
       "failed": "Fehlgeschlagen",
       "clearHelp": "Verwirft alle aktiven Hinweise auf dem Display. Wird innerhalb von 3 Sekunden wirksam.",
@@ -1480,9 +1479,8 @@
       "screensaverLabel": "Bildschirmschoner",
       "screensaverClock": "Treibende Uhr",
       "screensaverBlank": "Schwarz (nur dimmen)",
-      "screensaverOff": "Aus (wird trotzdem gedimmt)",
-      "dimmedSectionHelp": "Der Bildschirmschoner erscheint immer, wenn das Display gedimmt ist, zum Beispiel per Fernbedienung.",
-      "nothingDimsNote": "Dieses Display dimmt sich gerade nicht von selbst. Der Bildschirmschoner erscheint trotzdem, wenn es über die Fernbedienung gedimmt wird.",
+      "dimmedSectionHelp": "Der Bildschirmschoner erscheint nur, wenn sich das Display von selbst dimmt, nach ein paar ruhigen Minuten oder zur eingestellten Zeit. Drehst du die Helligkeit über die Fernbedienung herunter, wird das Display nur dunkler.",
+      "nothingDimsNote": "Dieses Display dimmt sich im Moment nicht von selbst, deshalb erscheint der Bildschirmschoner erst, wenn du oben das Dimmen einschaltest.",
       "legend": {
         "bright": "Hell",
         "dim": "Gedimmt",
@@ -1636,7 +1634,7 @@
     },
     "integrationsPage": {
       "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät. Eine Google-Anmeldung über die App von Home Screens wird über deren Anmeldehelfer erneuert, der nichts speichert.",
-      "loadingStatus": "Integrationsstatus wird geladen …",
+      "loadingStatus": "Integrationsstatus wird geladen…",
       "summary": {
         "configuredCountPart1": " von ",
         "configuredCountPart2": " verbunden"
@@ -1812,7 +1810,7 @@
       }
     },
     "networkPage": {
-      "loading": "Netzwerkinformationen werden geladen …",
+      "loading": "Netzwerkinformationen werden geladen…",
       "unavailable": {
         "heading": "Netzwerk",
         "message": "Netzwerkeinstellungen sind nur auf dem Anzeigegerät verfügbar."
@@ -1822,7 +1820,7 @@
         "noneDetected": "Keine Netzwerkschnittstellen gefunden."
       },
       "hiddenNetwork": {
-        "connectButton": "Mit verstecktem Netzwerk verbinden …"
+        "connectButton": "Mit verstecktem Netzwerk verbinden…"
       },
       "hostname": {
         "heading": "Gerätename",
@@ -1849,7 +1847,7 @@
         "managementBadge": "Deine Verbindung",
         "ipSettingsButton": "IP-Einstellungen",
         "disconnectButton": "Trennen",
-        "disconnectingButton": "Wird getrennt …",
+        "disconnectingButton": "Wird getrennt…",
         "signalLabel": "Signal {percent}%",
         "addressing": {
           "static": "Statisch",
@@ -1860,7 +1858,7 @@
         "heading": "Verfügbare WLAN-Netzwerke",
         "scanningInterface": "Suche auf {device}",
         "scanButton": "Suchen",
-        "scanningButton": "Suche läuft …",
+        "scanningButton": "Suche läuft…",
         "scanCooldownButton": "Suchen ({seconds} s)",
         "defaultScanError": "Die Netzwerksuche hat nicht geklappt. Versuch es noch einmal.",
         "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
@@ -1882,7 +1880,7 @@
         "interfaceLabel": "Schnittstelle",
         "cancelButton": "Abbrechen",
         "connectButton": "Verbinden",
-        "connectingButton": "Wird verbunden …",
+        "connectingButton": "Wird verbunden…",
         "defaultConnectError": "Die Verbindung mit diesem Netzwerk hat nicht geklappt. Prüf das Passwort und versuch es noch einmal.",
         "savedPasswordPlaceholder": "Leer lassen, um das gespeicherte Passwort zu verwenden"
       },
@@ -1902,7 +1900,7 @@
       },
       "rollback": {
         "polling": {
-          "heading": "Verbindung wird geprüft …",
+          "heading": "Verbindung wird geprüft…",
           "remaining": "Noch {seconds} s bis zum automatischen Zurücksetzen",
           "warning": "Wird diese Seite unerreichbar, werden die vorherigen Einstellungen automatisch wiederhergestellt."
         },
@@ -1918,7 +1916,7 @@
       },
       "savedNetworks": {
         "heading": "Gespeicherte Netzwerke",
-        "loading": "Gespeicherte Netzwerke werden geladen …",
+        "loading": "Gespeicherte Netzwerke werden geladen…",
         "loadError": "Die gespeicherten Netzwerke konnten nicht geladen werden. Versuch es noch einmal.",
         "empty": "Keine gespeicherten WLAN-Netzwerke.",
         "showPasswords": "Passwörter anzeigen",
@@ -1930,7 +1928,7 @@
         "forgetButton": "Vergessen",
         "forgetConfirmYes": "Vergessen",
         "forgetConfirmNo": "Behalten",
-        "forgettingButton": "Wird entfernt …",
+        "forgettingButton": "Wird entfernt…",
         "onAdapter": "über {device}",
         "forgetError": "Das Netzwerk konnte nicht entfernt werden. Prüfe, ob das Gerät noch erreichbar ist, und versuche es noch einmal."
       },
@@ -1976,12 +1974,12 @@
         "unavailable": "Diagnose ist auf diesem Gerät nicht verfügbar.",
         "requestFailed": "Die Prüfung hat nicht geklappt. Versuch es noch einmal.",
         "testButton": "Verbindung testen",
-        "testingButton": "Wird getestet …"
+        "testingButton": "Wird getestet…"
       },
       "description": "Das WLAN und die Netzwerkadresse, die dieses Gerät nutzt."
     },
     "mealsPage": {
-      "loading": "Mahlzeiten-Einstellungen werden geladen …",
+      "loading": "Mahlzeiten-Einstellungen werden geladen…",
       "intro": {
         "text": "Gemeinsame Einstellungen für die Mahlzeitenplanung. Sie erscheinen auch in der Familien-Fernbedienung, und Änderungen bleiben überall gleich."
       },
@@ -2047,7 +2045,7 @@
       "description": "Welche Mahlzeiten du planst und wann sie üblicherweise stattfinden."
     },
     "systemPage": {
-      "loading": "System-Informationen werden geladen …",
+      "loading": "System-Informationen werden geladen…",
       "loadFailed": "Die Systemdetails konnten nicht geladen werden. Versuch es noch einmal.",
       "advanced": {
         "heading": "Erweitert",
@@ -2060,7 +2058,7 @@
         "branchLabel": "Branch: {branch}",
         "installedFromRelease": "Aus Release installiert",
         "checkButton": "Nach Updates suchen",
-        "checking": "Wird geprüft …",
+        "checking": "Wird geprüft…",
         "currentLabel": "Du nutzt Version {version}",
         "rcBuildBadge": "Release-Kandidat",
         "betaBuildBadge": "Beta-Build",
@@ -2354,7 +2352,7 @@
       "providerHealthSince": "seit {time}"
     },
     "securityPage": {
-      "loading": "Wird geprüft …",
+      "loading": "Wird geprüft…",
       "status": {
         "enabled": "Passwort ist an",
         "disabled": "Noch kein Passwort",
@@ -2374,9 +2372,9 @@
         "button": "Alle abmelden",
         "warning": "Alle Angemeldeten werden abgemeldet, auch du auf diesem Gerät.",
         "confirmButton": "Alle abmelden",
-        "revoking": "Wird abgemeldet …",
+        "revoking": "Wird abgemeldet…",
         "cancel": "Abbrechen",
-        "success": "Alle sind abgemeldet. Weiter zur Anmeldung …",
+        "success": "Alle sind abgemeldet. Weiter zur Anmeldung…",
         "failed": "Abmelden fehlgeschlagen"
       },
       "displayToken": {
@@ -2386,16 +2384,16 @@
         "hide": "Verbergen",
         "copy": "Kopieren",
         "regenerateButton": "Neuen Schlüssel erstellen",
-        "regenerating": "Wird erzeugt …",
+        "regenerating": "Neuer Schlüssel wird erstellt…",
         "regenerateConfirm": "Neuen Schlüssel erstellen",
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Alles, was den alten Schlüssel nutzt, funktioniert erst wieder, wenn du dort den neuen einträgst. Deine Displays laufen weiter.",
         "regenerateWallsLetInByThemselves": {
-          "one": "{count} Display wurde nach dem Update von selbst hereingelassen. Ein neuer Schlüssel entfernt es nicht.",
-          "other": "{count} Displays wurden nach dem Update von selbst hereingelassen. Ein neuer Schlüssel entfernt sie nicht."
+          "one": "{count} Browser wurde nach dem Update automatisch hereingelassen. Ein neuer Schlüssel entfernt ihn nicht.",
+          "other": "{count} Browser wurden nach dem Update automatisch hereingelassen. Ein neuer Schlüssel entfernt sie nicht."
         },
         "regenerateWallsCheck": {
-          "one": "Prüfe, ob es dir gehört",
+          "one": "Prüfe, ob er dir gehört",
           "other": "Prüfe, ob sie dir gehören"
         },
         "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden.",
@@ -2458,14 +2456,14 @@
         "disableWarning": "Dadurch wird das Passwort entfernt und jeder in deinem Netzwerk kann den Editor nutzen.",
         "cancel": "Abbrechen",
         "setSubmit": "Einschalten",
-        "setting": "Wird festgelegt …",
+        "setting": "Wird festgelegt…",
         "changeSubmit": "Passwort ändern",
-        "changing": "Wird geändert …",
+        "changing": "Wird geändert…",
         "disableSubmit": "Deaktivieren",
-        "disabling": "Wird deaktiviert …",
+        "disabling": "Wird deaktiviert…",
         "setExplanation": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne.",
         "wallsStay": {
-          "one": "Dein {count} Display bleibt hereingelassen.",
+          "one": "Dein Display bleibt hereingelassen.",
           "other": "Deine {count} Displays bleiben hereingelassen."
         },
         "wallsOff": "Ein Display, das gerade ausgeschaltet ist, bittet darum, hereingelassen zu werden, sobald es wieder da ist."
@@ -2531,7 +2529,7 @@
       "connectionRequired": "Dieses Plugin erfordert nach der Installation die Verbindung eines Kontos."
     },
     "pluginSecrets": {
-      "loading": "Secret-Status wird geladen …",
+      "loading": "Secret-Status wird geladen…",
       "requiredBadge": "Erforderlich",
       "enterPlaceholder": "{label} eingeben"
     },
@@ -2581,14 +2579,14 @@
         "developer": "Entwickler"
       },
       "browse": {
-        "searchPlaceholder": "Plugins durchsuchen …",
-        "installFromUrlButton": "Aus URL installieren …",
+        "searchPlaceholder": "Plugins durchsuchen…",
+        "installFromUrlButton": "Aus URL installieren…",
         "noMatches": "Keine Plugins passen zu deiner Suche",
         "empty": "Keine Plugins in der Registry verfügbar",
         "installedBadge": "Installiert",
         "installedBadgeVersion": "Installiert (v{version})",
         "installButton": "Installieren",
-        "installingButton": "Wird installiert …"
+        "installingButton": "Wird installiert…"
       },
       "installed": {
         "empty": "Keine Plugins installiert",
@@ -2610,9 +2608,9 @@
       "updates": {
         "allUpToDate": "Alle Plugins sind auf dem neuesten Stand",
         "updateButton": "Aktualisieren",
-        "updatingButton": "Wird aktualisiert …",
+        "updatingButton": "Wird aktualisiert…",
         "tryBetaButton": "Beta v{version} testen",
-        "tryingBetaButton": "Beta wird installiert …",
+        "tryingBetaButton": "Beta wird installiert…",
         "backToStableButton": "Zurück zur stabilen Version v{version}",
         "backToStableHint": "Du nutzt eine Testversion. Du kannst zur regulären Version zurückwechseln."
       },
@@ -2833,15 +2831,15 @@
       "formRotation90": "90° im Uhrzeigersinn (Hochformat)",
       "formRotation180": "180° (umgekehrt)",
       "formRotation270": "270° im Uhrzeigersinn (Hochformat)",
-      "formRotationHint": "Legt fest, wie herum die Anzeigefläche steht. Breite und Höhe oben werden automatisch getauscht, sodass die längere Kante zur gewählten Drehung passt.",
+      "formRotationHint": "Legt fest, wie herum das Display steht. Breite und Höhe oben werden automatisch getauscht, sodass die längere Kante zur gewählten Drehung passt.",
       "formCancel": "Abbrechen",
       "formAddDisplay": "Display hinzufügen",
       "formErrorName": "Name ist erforderlich",
       "formErrorId": "Die ID darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten (z. B. „kitchen“)",
       "formErrorIdReserved": "„{id}“ hat beim Senden von Befehlen an Displays bereits eine besondere Bedeutung. Bitte wähle eine andere ID, z. B. „kitchen“ oder „bedroom-tv“",
       "formErrorIdTaken": "Es gibt schon ein Display mit der ID „{id}“",
-      "formErrorWidth": "Die Breite muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Bildschirme sind 1080 oder 1920 breit.",
-      "formErrorHeight": "Die Höhe muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Bildschirme sind 1080 oder 1920 hoch.",
+      "formErrorWidth": "Die Breite muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Displays sind 1080 oder 1920 breit.",
+      "formErrorHeight": "Die Höhe muss zwischen {min} und {max} liegen. Prüfe, ob eine Ziffer fehlt: die meisten Displays sind 1080 oder 1920 hoch.",
       "softwareUpdateWaiting": "Update steht an",
       "softwareNeedsSetup": "Einrichtung nötig",
       "mainDisplayName": "Hauptdisplay"
@@ -2878,7 +2876,7 @@
       },
       "password": {
         "label": "Passwort für die Familien-Fernbedienung verlangen",
-        "checking": "Wird geprüft …",
+        "checking": "Wird geprüft…",
         "on": "An. Die Fernbedienung und der Editor fragen danach; die Aufgabenseite der Kinder bleibt offen.",
         "off": "Aus. Alle im WLAN können sie öffnen.",
         "setUpAction": "Einrichten",
@@ -2966,28 +2964,31 @@
     },
     "walls": {
       "waitingTitle": {
-        "one": "{count} Display wartet darauf, hereingelassen zu werden",
-        "other": "{count} Displays warten darauf, hereingelassen zu werden"
+        "one": "{count} Browser wartet darauf, hereingelassen zu werden",
+        "other": "{count} Browser warten darauf, hereingelassen zu werden"
       },
-      "waitingHint": "Sie haben die Wand geöffnet, aber Home Screens kennt sie noch nicht. Lass die herein, die dir gehören. Die anderen kannst du stehen lassen: Sie verschwinden von selbst.",
+      "waitingHint": "Diese Browser haben ein Display geöffnet, aber Home Screens kennt sie noch nicht. Lass die herein, die dir gehören. Die anderen kannst du einfach ignorieren, sie verschwinden von selbst.",
       "forDisplay": "für {name}",
       "askingSince": "gefragt {time}",
-      "looksFamiliar": "Das sieht nach einem Display aus, das du schon einmal hereingelassen hast.",
+      "looksFamiliar": "Das sieht nach einem Browser aus, den du schon einmal hereingelassen hast.",
       "letIn": "Hereinlassen",
       "letInFailed": "Das Hereinlassen hat nicht geklappt. Versuch es noch einmal.",
-      "letInByItself": "Von selbst hereingelassen",
+      "letInByItself": "Automatisch hereingelassen",
       "windowTitle": {
-        "one": "{count} Display wurde nach dem Update von selbst hereingelassen",
-        "other": "{count} Displays wurden nach dem Update von selbst hereingelassen"
+        "one": "{count} Browser wurde nach dem Update automatisch hereingelassen",
+        "other": "{count} Browser wurden nach dem Update automatisch hereingelassen"
       },
-      "windowBody": "Home Screens merkt sich jetzt jedes Display, und deine wurden übernommen. Prüfe, ob die mit „{tag}“ markierten dir gehören. Dieser Hinweis verschwindet in {days} Tagen von selbst.",
+      "windowBody": {
+        "one": "Home Screens merkt sich jetzt jeden Browser, und deine wurden übernommen. Prüfe, ob die mit „{tag}“ markierten dir gehören. Dieser Hinweis verschwindet in {count} Tag von selbst.",
+        "other": "Home Screens merkt sich jetzt jeden Browser, und deine wurden übernommen. Prüfe, ob die mit „{tag}“ markierten dir gehören. Dieser Hinweis verschwindet in {count} Tagen von selbst."
+      },
       "showingIn": {
         "one": "Wird an {count} Ort gezeigt",
         "other": "Wird an {count} Orten gezeigt"
       },
       "showingHint": "Jeder Browser, der dieses Display zeigt. Entfernst du einen, muss er wieder hereingelassen werden.",
       "seen": "gesehen {time}",
-      "removeConsequence": "Dieser Browser zeigt die Wand nicht mehr und muss wieder hereingelassen werden.",
+      "removeConsequence": "Dieser Browser zeigt das Display nicht mehr an und muss wieder hereingelassen werden.",
       "removeFailed": "Das Entfernen hat nicht geklappt. Versuch es noch einmal."
     }
   },
@@ -3098,7 +3099,7 @@
     "newFolderButton": "Neuer Ordner",
     "deleteFolderButton": "Ordner löschen",
     "uploadButton": "Bilder hochladen",
-    "uploadingButton": "Lädt hoch …",
+    "uploadingButton": "Lädt hoch…",
     "loadingImages": "Bilder werden geladen…",
     "emptyPhotos": "Noch keine Bilder. Lade welche hoch!",
     "photoCountSingular": "{count} Bild",
@@ -3202,7 +3203,7 @@
     },
     "newNote": "Neue Notiz",
     "textLabel": "Notiz",
-    "textPlaceholder": "Schreib eine Notiz für die Familie …",
+    "textPlaceholder": "Schreib eine Notiz für die Familie…",
     "counter": "{used} / {max}",
     "fromLabel": "Von",
     "nobody": "Niemand",
@@ -3629,7 +3630,7 @@
       "sample": "Beispieltabelle herunterladen",
       "sampleHelp": "{link} und den Aufbau ansehen: die Tage oben nebeneinander, eine Zeile pro Stunde und die Zeiten links.",
       "check": "Prüfen",
-      "checking": "Wird geprüft …",
+      "checking": "Wird geprüft…",
       "found": {
         "one": "{count} Blatt in „{title}“ gefunden",
         "other": "{count} Blätter in „{title}“ gefunden"
@@ -3639,7 +3640,7 @@
         "other": "{count} Stundenpläne in den gewählten Dateien gefunden"
       },
       "unlistedTitle": "Diese Tabelle wollte ihre Tabs nicht auflisten",
-      "unlistedHelp": "Füge stattdessen den Link zum eigenen Tab jeder Person ein. Klicke in Google Sheets unten auf den Tab und kopiere dann den Link aus der Adresszeile: er endet auf #gid= und eine Zahl.",
+      "unlistedHelp": "Füge stattdessen den Link zum eigenen Tab jeder Person ein. Klicke in Google Sheets unten auf den Tab und kopiere dann den Link aus der Adresszeile: Er endet auf #gid= und eine Zahl.",
       "linkFor": "Link zum Tab von {name}",
       "mapTo": "Für wen ist dieses Blatt?",
       "skip": "Dieses Blatt überspringen",
@@ -3667,7 +3668,7 @@
         "one": "{count} Stundenplan importieren",
         "other": "{count} Stundenpläne importieren"
       },
-      "working": "Wird importiert …",
+      "working": "Wird importiert…",
       "footerNote": "Ein Import füllt Stundenpläne für Personen, die schon in Familie sind. Er legt niemanden neu an.",
       "errors": {
         "linkNotUnderstood": "Das sieht nicht nach einem Google-Sheets-Link aus. Kopiere den Link aus der Adresszeile der Tabelle.",
@@ -3680,7 +3681,7 @@
       "orFile": "Oder wähle eine Datei von diesem Computer",
       "chooseFile": "Datei auswählen",
       "fileHelp": "Eine CSV-Datei aus Excel, Numbers oder Google Sheets. Benenne die Datei nach der Person, zu der sie gehört, zum Beispiel Lena.csv, dann wird sie gleich zugeordnet. Die Datei wird nirgendwohin hochgeladen.",
-      "reading": "Wird gelesen …",
+      "reading": "Wird gelesen…",
       "shapeTitle": "So sollte die Tabelle aussehen",
       "shapeIntro": "Die Tage oben nebeneinander, eine Zeile pro Stunde und die Zeiten links. Was nicht erkannt wird, bleibt weg, statt geraten zu werden.",
       "shapePeriod": "Stunde",
@@ -3723,7 +3724,7 @@
       "inSync": "Aktuell",
       "notFollowing": "Folgt der Tabelle nicht",
       "couldNotCheck": "Konnte nicht nachsehen",
-      "checking": "Wird nachgesehen …",
+      "checking": "Wird nachgesehen…",
       "lastChecked": "Zuletzt nachgesehen {when}. Der nächste Blick kommt innerhalb einer Stunde.",
       "neverChecked": "Noch nicht nachgesehen. Der erste Blick kommt innerhalb einer Stunde.",
       "failed": "Beim letzten Blick, {when}, konnten wir die Tabelle nicht lesen. Auf dem Display steht weiter die Woche, die wir schon hatten.",
@@ -3875,8 +3876,8 @@
       "holds": "Zeigt {what}",
       "targetOff": "Der Knopf ist ausgeblendet, solange dieser Bildschirm ausgeschaltet ist.",
       "goBackAfterLabel": "Zurück nach",
-      "inRotationHint": "{name} kommt mit den anderen Bildschirmen an die Reihe, ein Tipp zeigt ihn also für die üblichen {seconds} Sekunden, dann geht die Rotation weiter. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
-      "inRotationStaysHint": "{name} kommt mit den anderen Bildschirmen an die Reihe und bleibt, bis jemand weitergeht. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "inRotationHint": "{name} kommt mit den anderen Bildschirmen an die Reihe, ein Tipp zeigt ihn also für die üblichen {seconds} Sekunden, dann geht die Rotation weiter. Soll das Display zu {home} zurückkehren, wenn es eine Weile niemand berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "inRotationStaysHint": "{name} kommt mit den anderen Bildschirmen an die Reihe und bleibt, bis jemand weitergeht. Soll das Display zu {home} zurückkehren, wenn es eine Weile niemand berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
       "openScreenSettings": "Seine Bildschirmeinstellungen öffnen",
       "groupOpened": "Erscheint nur, wenn geöffnet",
       "groupRotation": "In der Rotation",
@@ -3948,11 +3949,11 @@
     "restartNeeded": "Noch ein Schritt: Das Gerät muss neu gestartet werden, um das Update abzuschließen. Sobald die Seite neu geladen ist, kannst du das hier tun.",
     "alreadyRunning": "Es läuft schon ein Update. Dieses Fenster zeigt, wie es vorangeht.",
     "reload": {
-      "shuttingDown": "Home Screens startet neu …",
-      "waitingNew": "Warten, bis Home Screens wieder da ist … ({seconds} s)",
-      "waitingOld": "Die letzten Schritte laufen noch … ({seconds} s)",
-      "ready": "Alles bereit. Die Seite wird neu geladen …",
-      "reloading": "Die Seite wird neu geladen …"
+      "shuttingDown": "Home Screens startet neu…",
+      "waitingNew": "Warten, bis Home Screens wieder da ist… ({seconds} s)",
+      "waitingOld": "Die letzten Schritte laufen noch… ({seconds} s)",
+      "ready": "Alles bereit. Die Seite wird neu geladen…",
+      "reloading": "Die Seite wird neu geladen…"
     },
     "doneButton": "Fertig",
     "status": {
@@ -3980,8 +3981,8 @@
   "holidayPickerModal": {
     "title": "Feiertage hinzufügen",
     "countryLabel": "Land",
-    "countryPlaceholder": "Land wählen …",
-    "loadingHolidays": "Feiertage werden geladen …",
+    "countryPlaceholder": "Land wählen…",
+    "loadingHolidays": "Feiertage werden geladen…",
     "selectionCount": "{selected} von {total} ausgewählt",
     "selectAll": "Alle auswählen",
     "deselectAll": "Auswahl aufheben",
@@ -4042,7 +4043,7 @@
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
     "externalSourceWarning": "Du installierst von außerhalb des Plugin-Marketplace. Installiere nur Plugins aus Quellen, denen du vertraust.",
-    "installingMessage": "Wird heruntergeladen und installiert …",
+    "installingMessage": "Wird heruntergeladen und installiert…",
     "doneButton": "Fertig",
     "tryAgainButton": "Erneut versuchen",
     "installFailed": "Das Plugin konnte nicht installiert werden. Versuch es noch einmal.",
@@ -4057,7 +4058,7 @@
     "tarballUrlHelpPart2": " dort ein, wo die Versionsnummer steht. Dann musst du nächstes Mal nur die Nummer eintippen.",
     "exampleLabel": "Beispiel:",
     "versionLabel": "Zu installierende Version",
-    "workingMessage": "Wird heruntergeladen und aktualisiert …",
+    "workingMessage": "Wird heruntergeladen und aktualisiert…",
     "updatedToVersion": "Auf v{version} aktualisiert.",
     "doneButton": "Fertig",
     "tryAgainButton": "Erneut versuchen",
@@ -4118,7 +4119,7 @@
       "showCategoryLabel": "Kategorie-Bezeichnung anzeigen",
       "accentColor": "Akzentfarbe",
       "customEntriesCount": "Eigene Einträge ({count})",
-      "newEntryPlaceholder": "Neuer Affirmationstext …",
+      "newEntryPlaceholder": "Neuer Affirmationstext…",
       "attributionPlaceholder": "Quelle (optional)",
       "addEntry": "Eintrag hinzufügen",
       "removeEntry": "Diese Zeile entfernen"
@@ -4264,7 +4265,7 @@
       "verticalAlign": "Vertikale Ausrichtung",
       "showDate": "Datum anzeigen",
       "dateFormat": "Datumsformat",
-      "customOption": "Benutzerdefiniert …",
+      "customOption": "Benutzerdefiniert…",
       "dateFormatPlaceholder": "z. B. EEEE, MMMM d",
       "showWeekNumber": "Kalenderwoche anzeigen",
       "showDayOfYear": "Tag des Jahres anzeigen",
@@ -4272,7 +4273,7 @@
       "flipAnimation": "Flip-Animation",
       "accentColor": "Akzentfarbe",
       "timeZonesCount": "Zeitzonen ({count}/{max})",
-      "addTimezone": "Zeitzone hinzufügen …",
+      "addTimezone": "Zeitzone hinzufügen…",
       "referenceTime": "Referenzzeit",
       "referenceTimezoneHint": "Wird als {timezone}-Zeit gelesen",
       "referenceLabel": "Beschriftung",
@@ -4318,14 +4319,14 @@
       "stayOnDayHelp": "Wenn ein Ereignis auf null fällt, bleibt es bis zum Ende des Tages eingeblendet.",
       "scalePercent": "Skalierung ({percent} %)",
       "events": "Ereignisse",
-      "holidaysButton": "Feiertage …",
+      "holidaysButton": "Feiertage…",
       "backgroundImageHelp": "Das Hintergrundbild des nächsten Ereignisses wird als Seitenhintergrund verwendet.",
       "holidayBadge": "Feiertag",
       "namePlaceholder": "Name",
       "repeatYearly": "Jährlich wiederholen",
       "holidayRecurringInfo": "Jährlich wiederkehrend · {date}",
       "clear": "Löschen",
-      "setBackground": "Hintergrund festlegen …",
+      "setBackground": "Hintergrund festlegen…",
       "removeEvent": "Diesen Countdown entfernen"
     },
     "dad-joke": {
@@ -4348,7 +4349,7 @@
       "datePresetIso": "2026-01-05",
       "invalidFormat": "Ungültiges Format",
       "dateFormat": "Datumsformat",
-      "customOption": "Benutzerdefiniert …",
+      "customOption": "Benutzerdefiniert…",
       "dateFormatPlaceholder": "z. B. EEEE, MMMM d",
       "showDayName": "Wochentag anzeigen",
       "showYear": "Jahr anzeigen",
@@ -4590,7 +4591,7 @@
       "modeSingle": "Einzelnes Foto",
       "photo": "Foto",
       "noneSelected": "Nichts ausgewählt",
-      "choose": "Auswählen …",
+      "choose": "Auswählen…",
       "slideIntervalSeconds": "Bildwechsel (Sekunden)",
       "transition": "Übergang",
       "transitionFade": "Überblenden",
@@ -4687,7 +4688,7 @@
       "imageUrl": "Bild-URL",
       "browseLibrary": "Deine Bilder durchsuchen…",
       "uploadImage": "Bild hochladen",
-      "uploading": "Lädt hoch …",
+      "uploading": "Lädt hoch…",
       "preview": "Vorschau",
       "altText": "Alternativtext"
     },
@@ -4704,7 +4705,7 @@
       "soundHint": "Für Ton ist eine einmalige Einrichtung am Display nötig (siehe Video-Anleitung). Bis dahin werden Videos stumm abgespielt.",
       "loop": "Wiederholt abspielen",
       "maxDurationSeconds": "Stoppen nach (Sekunden, 0 = weiterlaufen)",
-      "uploading": "Lädt hoch …",
+      "uploading": "Lädt hoch…",
       "browseLibrary": "Deine Videos durchsuchen…",
       "urlHint": "Du kannst einen YouTube-Link oder einen direkten Videolink (MP4/WebM) einfügen.",
       "icloudLinkDetected": "Das ist ein iCloud-Fotolink, der nicht direkt abgespielt werden kann. Speichere seine Videos in deiner Mediathek und nutze sie von dort.",
@@ -4780,7 +4781,7 @@
       "wallAddHelpMealie": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die Mealie-Liste, nach der die Familie einkauft.",
       "wallAddHelpLocal": "Alle an der Wand können etwas zur Einkaufsliste hinzufügen. Es kommt auf die unten gewählte Liste.",
       "wallPlan": "Mahlzeiten an der Wand planen",
-      "wallPlanHelp": "Alle an der Wand können ein Rezept auf den Essensplan setzen, für diese und nächste Woche: mit dem Knopf „Auf den Essensplan“ bei jedem Rezept und einem Plus bei leeren Mahlzeiten in den Wochenansichten. Eingetippte Mahlzeiten und neue Rezepte gehen weiter nur am Handy.",
+      "wallPlanHelp": "Alle an der Wand können ein Rezept auf den Essensplan setzen, für diese und nächste Woche: mit dem Knopf „Auf den Essensplan“ bei jedem Rezept und einem Plus bei leeren Mahlzeiten in den Wochenansichten. Mahlzeiten eintippen und neue Rezepte anlegen geht weiterhin nur am Handy.",
       "extrasList": "Andere Einkäufe kommen auf",
       "extrasListNone": "Keine (keine Zeile zum Hinzufügen)",
       "extrasListHelp": "Eine eurer Listen. Was noch darauf steht, erscheint am Ende der Einkaufsliste, hier und auf dem Handy. Alle Einkaufskarten teilen sie."
@@ -4837,7 +4838,7 @@
       "feedHomeNetwork": "Heimnetzwerk",
       "feedHomeNetworkHint": "Erlaubt dem Display, einen Feed von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst gehosteten Reader.",
       "feedCheck": "Prüfen",
-      "feedChecking": "Wird geprüft …",
+      "feedChecking": "Wird geprüft…",
       "feedCheckResult": "{title} · {count} Meldungen · neueste {ago}",
       "feedCheckResultNoDate": "{title} · {count} Meldungen",
       "feedCheckNoStories": "{title} · gerade keine Meldungen",
@@ -4901,7 +4902,7 @@
       "addRedditPlaceholder": "space",
       "addRedditInvalid": "Gib nur den Namen des Subreddits ein, zum Beispiel „space“",
       "preview": "Vorschau",
-      "previewLoading": "Meldungen werden geladen …",
+      "previewLoading": "Meldungen werden geladen…",
       "previewNoFeeds": "Füge eine Nachrichtenquelle hinzu, um eine Vorschau zu sehen.",
       "previewEmpty": "Gerade passt keine Meldung.",
       "previewFailed": "Die Vorschau konnte gerade nicht geladen werden.",
@@ -5301,7 +5302,7 @@
     },
     "todoist": {
       "apiToken": "API-Token",
-      "checking": "Wird geprüft …",
+      "checking": "Wird geprüft…",
       "connected": "Verbunden",
       "notConfigured": "Nicht konfiguriert.",
       "title": "Name der Liste",
@@ -5745,16 +5746,16 @@
       "groupMaterials": "Motive",
       "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht.",
       "wallDraw": "An der Wand malen",
-      "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiter nur auf dem Handy.",
+      "wallDrawHelp": "Ein Knopf „Notiz malen“ auf der Karte. Alle an einem Touch-Display können ein Bild an die Pinnwand hängen; Notizen abnehmen geht weiterhin nur auf dem Handy.",
       "wallWrite": "An der Wand schreiben",
       "wallWriteHelp": "Ein Knopf „Notiz schreiben“ auf der Karte. Alle an einem Touch-Display können eine kurze Notiz tippen und an die Pinnwand hängen. Ist auch das Malen an, gibt es stattdessen einen Knopf „Notiz hinterlassen“ für beides."
     },
     "quick-timer": {
-      "presets": "Längen",
-      "presetsHint": "Bis zu {max} Tasten, in dieser Reihenfolge.",
+      "presets": "Zeiten",
+      "presetsHint": "Bis zu {max} Knöpfe, in dieser Reihenfolge.",
       "minutesShort": "{minutes} Min.",
-      "fullScreen": "Das ganze Display füllen, während er läuft",
-      "fullScreenHint": "Aus bleibt der Timer in diesem Feld, und der Rest des Bildschirms bleibt.",
+      "fullScreen": "Das ganze Display füllen, während der Timer läuft",
+      "fullScreenHint": "Ist das aus, bleibt der Timer in dieser Box, und der Rest des Displays bleibt, wie er ist.",
       "view": "Timer-Stil",
       "view-ring": "Leuchtring",
       "view-face": "Zifferblatt",
@@ -5762,7 +5763,7 @@
       "view-path": "Sternenpfad",
       "target": "Anzeigen auf",
       "target-all": "Alle Displays",
-      "target-this": "Diesem Display",
+      "target-this": "Dieses Display",
       "sound": "Ton"
     }
   },
@@ -6228,7 +6229,7 @@
     },
     "library": {
       "folder": "Ordner",
-      "browse": "Durchsuchen …",
+      "browse": "Durchsuchen…",
       "photoCount": {
         "one": "{count} Foto",
         "other": "{count} Fotos"

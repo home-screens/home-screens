@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { isNightHour } from '@/lib/weather/sun-times';
 import { HOURLY_RAIN_SHOWN_PCT, hourLabel, smoothPath, spanHours, tzHour } from '../fullscreen-weather/weather-view-utils';
@@ -101,6 +101,7 @@ function Ribbon({ hrs, width: W, height: H, fontSize: fs, units, timezone, timeF
   units: 'metric' | 'imperial'; timezone?: string; timeFormat: '12h' | '24h';
   sun: ReturnType<typeof useSunTimes>; uid: string;
 }) {
+  const locale = useFormattingLocale();
   const tempGradId = `${uid}-temp`;
   const areaGradId = `${uid}-area`;
 
@@ -172,7 +173,7 @@ function Ribbon({ hrs, width: W, height: H, fontSize: fs, units, timezone, timeF
     const tx = atStart ? 1 : atEnd ? W - 1 : x(i);
     return (
       <text key={`a${i}`} x={tx} y={H - AXIS * 0.2} fontSize={axisPx} fontWeight={500} fill="currentColor" opacity={TEXT_OPACITY.dim} textAnchor={anchor}>
-        {hourLabel(Math.floor(m.hour), timeFormat)}
+        {hourLabel(Math.floor(m.hour), timeFormat, locale)}
       </text>
     );
   });

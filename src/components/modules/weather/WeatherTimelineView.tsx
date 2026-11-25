@@ -50,7 +50,7 @@ export default function WeatherTimelineView({ config, hourly, units, timezone, t
     return {
       h, i, midnight,
       night: isNightHour(hour, sun),
-      label: i === 0 ? t('fullscreen-weather.nowcast.now') : midnight ? dayFormat.format(new Date(h.time)) : hourLabel(Math.floor(hour), timeFormat),
+      label: i === 0 ? t('fullscreen-weather.nowcast.now') : midnight ? dayFormat.format(new Date(h.time)) : hourLabel(Math.floor(hour), timeFormat, locale),
       rain: Math.round(h.precipProbability ?? 0),
       wind: h.windSpeed != null ? Math.round(h.windSpeed) : null,
       k: axis.k(h.temp),

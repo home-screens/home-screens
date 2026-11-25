@@ -1,7 +1,11 @@
 'use client';
 
 import { Thermometer } from 'lucide-react';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import { formatDateInTZ, formatTimeOfDay } from '@/lib/timezone';
+import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { HardwareStats } from '@/lib/hardware-stats';
 import { SectionHeading } from './shared/SectionHeading';
@@ -16,12 +20,19 @@ export function HardwareCard({
   hubHardware: HardwareStats | null;
 }) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   // Pick best hardware source: reporter > hub fallback.
   const reporterStats = displayStatus?.hwStats ?? null;
   const hubStats = hubHardware;
   const hwStats = reporterStats ?? hubStats;
   const hwSource: 'reporter' | 'hub' | null = reporterStats ? 'reporter' : hubStats ? 'hub' : null;
 
+  // On the household's clock and in its date style, like every other time the
+  // editor shows, not the laptop's zone and browser language.
+  const checkedAtText = (at: Date) =>
+    `${formatDateInTZ(at, timezone, { dateStyle: 'medium' }, formattingLocale)}, ${formatTimeOfDay(at, { timeFormat, locale: formattingLocale, timezone })}`;
   // "Chromium 154.0.8037.92 · labwc 0.20.2": the upstream version without
   // the epoch and Debian revision, which say nothing to a person.
   const programs = hwStats?.packages
@@ -115,7 +126,7 @@ export function HardwareCard({
               <>
                 <div className="text-hs-text-faint">{t('settings.statsSection.programsChecked')}</div>
                 <div className="text-hs-text-secondary text-right tabular-nums">
-                  {new Date(hwStats.packagesCheckedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  {checkedAtText(new Date(hwStats.packagesCheckedAt))}
                 </div>
               </>
             )}

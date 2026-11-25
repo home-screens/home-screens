@@ -7,6 +7,7 @@ import {
   familyDayRow,
   nowOnAxis,
   resolveFamilyDay,
+  tickLabel,
   tomorrowFromMinutes,
   type FamilyDayPerson,
 } from '../timetable-day';
@@ -269,6 +270,17 @@ describe('nowOnAxis', () => {
     expect(nowOnAxis(new Date('2026-09-10T17:10:00Z'), 'Europe/Berlin', axis)).toBeNull();
     // Same instant, another wall: 09:52 in Berlin is 02:52 in Minnesota.
     expect(nowOnAxis(new Date('2026-09-10T07:52:00Z'), 'America/Chicago', axis)).toBeNull();
+  });
+});
+
+describe('tickLabel', () => {
+  it("writes the ruler's hours the way the formatting language does", () => {
+    expect(tickLabel(7 * 60, '24h', 'de-DE')).toBe('07:00');
+    expect(tickLabel(7 * 60, '24h', 'da-DK')).toBe('07.00');
+    expect(tickLabel(7 * 60, '24h', 'es-ES')).toBe('7:00');
+    expect(tickLabel(7 * 60, '12h', 'en-US')).toBe('7 AM');
+    expect(tickLabel(13 * 60, '12h', 'es-ES')).toBe('1 p. m.');
+    expect(tickLabel(13 * 60, '12h', 'da-DK')).toBe('1 PM');
   });
 });
 

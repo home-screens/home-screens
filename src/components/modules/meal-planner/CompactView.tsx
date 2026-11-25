@@ -100,7 +100,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
                             fontVariantNumeric: 'tabular-nums',
                           }}
                         >
-                          {formatMealTime(time, timeFormat)}
+                          {formatMealTime(time, timeFormat, formattingLocale)}
                         </span>
                       )}
                     </div>

@@ -757,12 +757,23 @@ export async function chooseMealieShoppingList(fetcher: MealFetch, listId: strin
   }), 'save');
 }
 
+/** What a typed add did, as the hub answers it (`MealieShoppingAdd`). */
+export type MealieShoppingAddOutcome = 'added' | 'merged' | 'already' | 'putBack';
+
+const ADD_OUTCOMES: ReadonlySet<string> = new Set<MealieShoppingAddOutcome>(['added', 'merged', 'already', 'putBack']);
+
 /**
  * Put a typed item ("Milk") on a Mealie list. Answers with the list read
- * fresh and the new item's id (null when Mealie merged the words into an item
- * already on the list), for Undo.
+ * fresh, what the add did (`outcome`: the hub keeps one of each thing, so
+ * words already on the list come back `already` or `putBack`), the line it
+ * landed on (`item`) and the new item's id for Undo (`added`, null when
+ * nothing new was made).
  */
-export async function addToMealieShoppingList(fetcher: MealFetch, listId: string, text: string): Promise<{ wire: MealieShoppingAnswer; added: string | null }> {
+export async function addToMealieShoppingList(
+  fetcher: MealFetch,
+  listId: string,
+  text: string,
+): Promise<{ wire: MealieShoppingAnswer; added: string | null; outcome: MealieShoppingAddOutcome; item: string | null }> {
   const res = await fetcher(`${SHOPPING_URL}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -771,8 +782,14 @@ export async function addToMealieShoppingList(fetcher: MealFetch, listId: string
   const json = await readJson(res);
   const wire = res.ok ? asShopping(json) : null;
   if (!wire) throw shoppingRefusal(json, 'save');
-  const added = (json as { added?: unknown }).added;
-  return { wire, added: typeof added === 'string' ? added : null };
+  const { added, outcome, item } = json as { added?: unknown; outcome?: unknown; item?: unknown };
+  const made = typeof added === 'string' ? added : null;
+  return {
+    wire,
+    added: made,
+    outcome: typeof outcome === 'string' && ADD_OUTCOMES.has(outcome) ? outcome as MealieShoppingAddOutcome : made ? 'added' : 'merged',
+    item: typeof item === 'string' ? item : made,
+  };
 }
 
 /** Tick an item on a Mealie list, or put it back. */

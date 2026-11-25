@@ -60,9 +60,17 @@ describe('setGroceryCheck', () => {
     expect(setGroceryCheck(ticked, THIS_WEEK, 'eggs')).toEqual({});
   });
 
-  it('stores trimmed lowercase names', () => {
+  it('stores names the way every list compares items: trimmed, small letters, no accents', () => {
     expect(setGroceryCheck({}, THIS_WEEK, '  Ground Beef ', 'check')).toEqual({ [THIS_WEEK]: ['ground beef'] });
     expect(groceryItemKey('  Milk ')).toBe('milk');
+    expect(groceryItemKey('Crème  Fraîche')).toBe('creme fraiche');
+    expect(groceryItemKey('Rødkål')).toBe('rødkål');
+  });
+
+  it('reads a tick on a name typed without its accents as a tick on the item', () => {
+    const ticked = setGroceryCheck({}, THIS_WEEK, 'Crème fraîche', 'check');
+    expect(groceryTapDirection(ticked, THIS_WEEK, 'creme fraiche')).toBe('uncheck');
+    expect(setGroceryCheck(ticked, THIS_WEEK, 'CREME FRAICHE', 'check')).toBe(ticked);
   });
 
   it('hands back the same object when a direction is already met', () => {
@@ -142,6 +150,10 @@ describe('normalizeGroceryChecked', () => {
       'next tuesday': ['eggs'],
       '2026-10-11': 'eggs',
     })).toEqual({ [THIS_WEEK]: ['milk'] });
+  });
+
+  it('keys a stored tick with its accents the way the list keys the item now', () => {
+    expect(normalizeGroceryChecked({ [THIS_WEEK]: ['crème fraîche', 'creme fraiche'] })).toEqual({ [THIS_WEEK]: ['creme fraiche'] });
   });
 });
 

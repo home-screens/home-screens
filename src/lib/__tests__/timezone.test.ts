@@ -163,16 +163,72 @@ describe('formatTimeOfDay', () => {
   // 08:05 in Berlin on a winter morning.
   const morning = new Date('2024-01-15T07:05:00Z');
 
-  it('writes 08:05 in every shipped language in 24-hour mode', () => {
-    for (const locale of LOCALES) {
-      expect(formatTimeOfDay(morning, { timeFormat: '24h', locale, timezone: 'Europe/Berlin' }), locale).toBe('08:05');
-    }
+  // What each shipped language writes, from Intl's data for it (CLDR): the
+  // 24-hour time, the 12-hour time, the padded 12-hour time, the hour alone on
+  // each clock, and the tight forecast label on each clock.
+  const READS: Array<{
+    locale: string; at: string; h24: string; h12: string; pad: string;
+    hour24: string; hour12: string; tight24: string; tight12: string;
+  }> = [
+    { locale: 'en-US', at: '08:05', h24: '08:05', h12: '8:05 AM', pad: '08:05 AM', hour24: '08', hour12: '8 AM', tight24: '08', tight12: '8AM' },
+    { locale: 'en-US', at: '15:30', h24: '15:30', h12: '3:30 PM', pad: '03:30 PM', hour24: '15', hour12: '3 PM', tight24: '15', tight12: '3PM' },
+    { locale: 'en-US', at: '00:05', h24: '00:05', h12: '12:05 AM', pad: '12:05 AM', hour24: '00', hour12: '12 AM', tight24: '00', tight12: '12AM' },
+    { locale: 'de-DE', at: '08:05', h24: '08:05', h12: '8:05 AM', pad: '08:05 AM', hour24: '08 Uhr', hour12: '8 AM', tight24: '08', tight12: '8AM' },
+    { locale: 'de-DE', at: '15:30', h24: '15:30', h12: '3:30 PM', pad: '03:30 PM', hour24: '15 Uhr', hour12: '3 PM', tight24: '15', tight12: '3PM' },
+    { locale: 'fr-FR', at: '08:05', h24: '08:05', h12: '8:05 AM', pad: '08:05 AM', hour24: '08 h', hour12: '8 AM', tight24: '08', tight12: '8AM' },
+    { locale: 'es-ES', at: '08:05', h24: '8:05', h12: '8:05 a. m.', pad: '08:05 a. m.', hour24: '8', hour12: '8 a. m.', tight24: '8', tight12: '8a.m.' },
+    { locale: 'es-ES', at: '15:30', h24: '15:30', h12: '3:30 p. m.', pad: '03:30 p. m.', hour24: '15', hour12: '3 p. m.', tight24: '15', tight12: '3p.m.' },
+    { locale: 'es-ES', at: '00:05', h24: '0:05', h12: '12:05 a. m.', pad: '12:05 a. m.', hour24: '0', hour12: '12 a. m.', tight24: '0', tight12: '12a.m.' },
+    { locale: 'nl-NL', at: '08:05', h24: '08:05', h12: '8:05 a.m.', pad: '08:05 a.m.', hour24: '08', hour12: '8 a.m.', tight24: '08', tight12: '8a.m.' },
+    { locale: 'nl-NL', at: '15:30', h24: '15:30', h12: '3:30 p.m.', pad: '03:30 p.m.', hour24: '15', hour12: '3 p.m.', tight24: '15', tight12: '3p.m.' },
+    { locale: 'pt-BR', at: '08:05', h24: '08:05', h12: '8:05 AM', pad: '08:05 AM', hour24: '08', hour12: '8 AM', tight24: '08', tight12: '8AM' },
+    { locale: 'da-DK', at: '08:05', h24: '08.05', h12: '8.05 AM', pad: '08.05 AM', hour24: '08', hour12: '8 AM', tight24: '08', tight12: '8AM' },
+    { locale: 'da-DK', at: '15:30', h24: '15.30', h12: '3.30 PM', pad: '03.30 PM', hour24: '15', hour12: '3 PM', tight24: '15', tight12: '3PM' },
+  ];
+
+  it.each(READS)('$locale at $at reads $h24 / $h12, hour $hour24 / $hour12', (row) => {
+    const instant = new Date(`2026-06-08T${row.at}:00Z`);
+    const clock = { locale: row.locale, timezone: 'UTC' };
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '24h' })).toBe(row.h24);
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '12h' })).toBe(row.h12);
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '12h', pad: true })).toBe(row.pad);
+    // Padding is a 12-hour option: the 24-hour time is the language's own.
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '24h', pad: true })).toBe(row.h24);
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '24h', hourOnly: true })).toBe(row.hour24);
+    expect(formatTimeOfDay(instant, { ...clock, timeFormat: '12h', hourOnly: true })).toBe(row.hour12);
+    expect(tightHourLabel(instant, { ...clock, timeFormat: '24h' })).toBe(row.tight24);
+    expect(tightHourLabel(instant, { ...clock, timeFormat: '12h' })).toBe(row.tight12);
   });
 
-  it('writes the language day period in 12-hour mode', () => {
-    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'Europe/Berlin' })).toBe('8:05 AM');
-    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-US', timezone: 'Europe/Berlin', pad: true })).toBe('08:05 AM');
-    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'de-DE', timezone: 'Europe/Berlin' })).toBe('8:05 vorm.');
+  it('covers every shipped language in the table', () => {
+    expect(new Set(READS.map((row) => row.locale))).toEqual(new Set(LOCALES));
+  });
+
+  it('keeps the numbers alone with bare, in the language\'s own separator', () => {
+    const at = new Date('2026-06-08T15:30:00Z');
+    const bare = (locale: string, timeFormat: '12h' | '24h', hourOnly = false) =>
+      formatTimeOfDay(at, { timeFormat, locale, timezone: 'UTC', bare: true, hourOnly });
+    expect(bare('en-US', '12h')).toBe('3:30');
+    expect(bare('es-ES', '12h')).toBe('3:30');
+    expect(bare('da-DK', '12h')).toBe('3.30');
+    expect(bare('da-DK', '24h')).toBe('15.30');
+    expect(bare('de-DE', '24h', true)).toBe('15');
+    expect(bare('fr-FR', '24h', true)).toBe('15');
+    expect(bare('nl-NL', '12h', true)).toBe('3');
+  });
+
+  it('closes up only a two-letter day period in a tight label', () => {
+    // A day period longer than two letters keeps its space, since `8vorm.` reads as a typo.
+    const at = new Date('2026-06-08T08:05:00Z');
+    expect(tightHourLabel(at, { timeFormat: '12h', locale: 'en-GB', timezone: 'UTC' })).toBe('8am');
+    expect(tightHourLabel(at, { timeFormat: '12h', locale: 'ja-JP', timezone: 'UTC' })).toBe('午前8時');
+  });
+
+  it('writes plain spaces, never the narrow no-break space some engines put before the day period', () => {
+    for (const locale of LOCALES) {
+      const text = formatTimeOfDay(morning, { timeFormat: '12h', locale, timezone: 'Europe/Berlin' });
+      expect(text, locale).not.toMatch(/[\u00a0\u202f]/);
+    }
   });
 
   it('matches formatEventTime on a shifted Date, in every language and both modes', () => {
@@ -184,50 +240,38 @@ describe('formatTimeOfDay', () => {
     }
   });
 
-  // What each shipped language reads at 08:05 and 15:30, as a time, as a
-  // forecast hour label, and as the label closed up for a tight strip.
-  const READS: Array<[locale: string, clock: '12h' | '24h', at: string, time: string, hour: string, tight: string]> = [
-    ['en-US', '24h', '08:05', '08:05', '08', '08'],
-    ['de-DE', '24h', '08:05', '08:05', '08', '08'],
-    ['fr-FR', '24h', '08:05', '08:05', '08', '08'],
-    ['es-ES', '24h', '08:05', '08:05', '08', '08'],
-    ['nl-NL', '24h', '08:05', '08:05', '08', '08'],
-    ['pt-BR', '24h', '08:05', '08:05', '08', '08'],
-    ['da-DK', '24h', '08:05', '08:05', '08', '08'],
-    ['de-DE', '24h', '00:05', '00:05', '00', '00'],
-    ['da-DK', '24h', '15:30', '15:30', '15', '15'],
-    ['en-US', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
-    ['en-US', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
-    ['en-US', '12h', '00:05', '12:05 AM', '12 AM', '12AM'],
-    ['de-DE', '12h', '08:05', '8:05 vorm.', '8 vorm.', '8 vorm.'],
-    ['de-DE', '12h', '15:30', '3:30 nachm.', '3 nachm.', '3 nachm.'],
-    ['fr-FR', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
-    ['es-ES', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
-    ['nl-NL', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
-    ['pt-BR', '12h', '08:05', '8:05 AM', '8 AM', '8AM'],
-    ['da-DK', '12h', '15:30', '3:30 PM', '3 PM', '3PM'],
-  ];
-
-  it.each(READS)('%s %s at %s reads %s, hour label %s, closed up %s', (locale, timeFormat, at, time, hour, tight) => {
-    const instant = new Date(`2026-06-08T${at}:00Z`);
-    const clock = { timeFormat, locale, timezone: 'UTC' };
-    expect(formatTimeOfDay(instant, clock)).toBe(time);
-    const label = formatTimeOfDay(instant, { ...clock, hourOnly: true });
-    expect(label).toBe(hour);
-    expect(tightHourLabel(label)).toBe(tight);
-  });
-
   it('reads the instant in the zone it is given', () => {
+    // 07:05 UTC is 08:05 in Berlin in winter.
+    expect(formatTimeOfDay(morning, { timeFormat: '24h', locale: 'da-DK', timezone: 'Europe/Berlin' })).toBe('08.05');
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'es-ES', timezone: 'America/Chicago' })).toBe('1:05 a. m.');
     // Sydney is UTC+10 in July, so midnight UTC is 10:00.
     const date = new Date('2024-07-15T00:00:00Z');
     expect(formatTimeOfDay(date, { timeFormat: '24h', locale: 'en-US', timezone: 'Australia/Sydney' })).toBe('10:00');
     expect(formatTimeOfDay(date, { timeFormat: '12h', locale: 'en-US', timezone: 'America/New_York' })).toBe('8:00 PM');
+    expect(formatTimeOfDay(date, { timeFormat: '24h', locale: 'de-DE', timezone: 'Australia/Sydney', hourOnly: true })).toBe('10 Uhr');
+  });
+
+  it('writes a household time that falls in another zone\'s spring-forward gap as itself', () => {
+    // 02:30 in London on 2026-03-08 is an hour Chicago skips that night.
+    const london = new Date('2026-03-08T02:30:00Z');
+    expect(formatTimeOfDay(london, { timeFormat: '24h', locale: 'da-DK', timezone: 'Europe/London' })).toBe('02.30');
   });
 
   it('reads the Date as it is with no zone, and with one this runtime does not know', () => {
     const local = new Date(2024, 0, 15, 20, 5);
-    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK' })).toBe('20:05');
-    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK', timezone: 'Not/A_Zone' })).toBe('20:05');
+    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK' })).toBe('20.05');
+    expect(formatTimeOfDay(local, { timeFormat: '24h', locale: 'da-DK', timezone: 'Not/A_Zone' })).toBe('20.05');
+  });
+
+  it('writes a tag Intl cannot read in US English rather than throwing', () => {
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'not a tag', timezone: 'UTC' })).toBe('7:05 AM');
+    expect(formatTimeOfDay(morning, { timeFormat: '24h', locale: '', timezone: 'UTC' })).toBe('07:05');
+  });
+
+  it('follows a regional tag, not only its language', () => {
+    // formattingLocale can name a region: British English writes 24-hour time and a lower-case day period.
+    expect(formatTimeOfDay(morning, { timeFormat: '12h', locale: 'en-GB', timezone: 'UTC' })).toBe('7:05 am');
+    expect(formatTimeOfDay(morning, { timeFormat: '24h', locale: 'fr-CA', timezone: 'UTC' })).toBe('07 h 05');
   });
 
   it('writes the no-value mark for an invalid Date', () => {
@@ -240,7 +284,7 @@ describe('formatTimeInTZ', () => {
     const date = new Date('2024-01-15T12:30:00Z');
     expect(formatTimeInTZ(date, { timezone: 'America/New_York', locale: 'en-US', hour12: true })).toBe('7:30 AM');
     expect(formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false })).toBe('13:30');
-    expect(formatTimeInTZ(new Date('2024-01-15T07:05:00Z'), { timezone: 'UTC', locale: 'da-DK', hour12: false })).toBe('07:05');
+    expect(formatTimeInTZ(new Date('2024-01-15T07:05:00Z'), { timezone: 'UTC', locale: 'da-DK', hour12: false })).toBe('07.05');
   });
 
   it('writes the no-value mark for an invalid Date', () => {

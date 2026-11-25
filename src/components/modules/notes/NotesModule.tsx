@@ -196,7 +196,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
       const who = authorId ? roster.find((m) => m.id === authorId)?.name : undefined;
       setPosted({
         id: created.id,
-        words: who ? t('notes.draw.posted', { name: who }) : t('notes.draw.postedNobody'),
+        words: who ? t('notes.wallPost.posted', { name: who }) : t('notes.wallPost.postedNobody'),
         // The board was full of drawings: say that one came down, so nobody wonders where it went.
         detail: [
           madeRoom > 0 ? t('notes.draw.madeRoom') : '',
@@ -208,7 +208,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     }
   }, [t, roster, showAnswer]);
   const undoPost = useCallback(async (id: string, sent: KeptNote) => {
-    const { notes } = await sendNotesWrite(displayFetch, deleteNoteRequest(id), t('notes.draw.undoFailed'));
+    const { notes } = await sendNotesWrite(displayFetch, deleteNoteRequest(id), t('notes.wallPost.undoFailed'));
     showAnswer(notes);
     // Off the board, not thrown away: a child who taps Undo wants the page
     // or the words back, the way Undo works while drawing. The button reads

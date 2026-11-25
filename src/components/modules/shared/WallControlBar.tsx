@@ -66,9 +66,11 @@ interface BarContext {
   tone: Tone;
   /** The bar carries a word over its buttons. */
   labelled: boolean;
+  /** The buttons just moved: none takes a tap for a moment. */
+  settling: boolean;
 }
 
-const BarCtx = createContext<BarContext>({ unit: 1, tone: TONES.dark, labelled: false });
+const BarCtx = createContext<BarContext>({ unit: 1, tone: TONES.dark, labelled: false, settling: false });
 
 export interface WallControlBarProps {
   /** Canvas pixels to this screen's pixels. */
@@ -85,6 +87,14 @@ export interface WallControlBarProps {
   maxWidth?: number;
   /** A word over the buttons that says what state things are in ("Paused"). */
   label?: string;
+  /**
+   * The bar's buttons just changed under a finger (one came or went and the
+   * bar re-centred): for that moment no button takes a tap, so a tap aimed at
+   * the one that went does not land on whichever slid into its place. They
+   * keep their look; a flash of dimmed buttons would read as broken. A held
+   * button (Stop) is left alone, since a tap cannot set it off.
+   */
+  settling?: boolean;
   ariaLabel: string;
   testId?: string;
   children: ReactNode;
@@ -106,7 +116,7 @@ export function wallControlBarFit(count: number, unit: number, maxWidth?: number
 }
 
 export function WallControlBar({
-  unit: canvasUnit, tone = 'dark', shade = 'dark', shadeHeight = 760, maxWidth, label, ariaLabel, testId, children,
+  unit: canvasUnit, tone = 'dark', shade = 'dark', shadeHeight = 760, maxWidth, label, settling = false, ariaLabel, testId, children,
 }: WallControlBarProps) {
   const T = TONES[tone];
   // Everything in the bar is drawn at one size, so shrinking the unit shrinks
@@ -148,7 +158,7 @@ export function WallControlBar({
             {label}
           </div>
         )}
-        <BarCtx.Provider value={{ unit, tone: T, labelled: !!label }}>{children}</BarCtx.Provider>
+        <BarCtx.Provider value={{ unit, tone: T, labelled: !!label, settling }}>{children}</BarCtx.Provider>
       </div>
     </>
   );
@@ -202,34 +212,28 @@ export interface WallControlButtonProps {
   onPress: () => void;
   /** The one that carries on (Resume), filled in green. */
   primary?: boolean;
-  /**
-   * Shown, but not pressable: the action exists and simply cannot be taken
-   * yet (a minute cannot come off a step with less than a minute left).
-   * Dropping the button instead would re-centre the bar under a finger
-   * already travelling towards Stop, so it stays and dims.
-   */
-  disabled?: boolean;
   testId?: string;
 }
 
-/** One button of the bar: an icon with its word under it, pressed the moment a finger lands. */
-export function WallControlButton({ icon, label, onPress, primary = false, disabled = false, testId }: WallControlButtonProps) {
-  const { unit, tone } = useContext(BarCtx);
+/**
+ * One button of the bar: an icon with its word under it, pressed the moment
+ * a finger lands. A button the bar has no use for right now is left out
+ * rather than dimmed: from across the room a dimmed one reads as broken.
+ */
+export function WallControlButton({ icon, label, onPress, primary = false, testId }: WallControlButtonProps) {
+  const { unit, tone, settling } = useContext(BarCtx);
   return (
     <button
       type="button"
-      // Disabled drops the press feedback but keeps FACE_CLASS: that class
-      // carries the centring, so spreading nothing left the icon and its
-      // word laid out as a plain button's content instead of stacked and
-      // centred.
-      {...(disabled ? { className: FACE_CLASS } : wallPress(FACE_CLASS))}
+      // While the bar settles there is no press feedback, but FACE_CLASS
+      // stays: that class carries the centring, so spreading nothing left
+      // the icon and its word laid out as a plain button's content instead
+      // of stacked and centred.
+      {...(settling ? { className: FACE_CLASS } : wallPress(FACE_CLASS))}
       data-testid={testId}
-      disabled={disabled}
-      onClick={disabled ? undefined : onPress}
-      style={{
-        ...buttonStyle(unit, tone, primary), gap: 12 * unit,
-        ...(disabled ? { opacity: 0.38, cursor: 'default' } : {}),
-      }}
+      disabled={settling}
+      onClick={settling ? undefined : onPress}
+      style={{ ...buttonStyle(unit, tone, primary), gap: 12 * unit }}
     >
       <ButtonFace icon={icon} label={label} unit={unit} />
     </button>

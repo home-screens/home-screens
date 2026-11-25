@@ -13,6 +13,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { publishRevisions } from '@/lib/display-heartbeat';
 import { TIMES_UP_HOLD_MS, addMinute, advanceStep, cancelSession, materializeSession, pauseSession, pressIsForSession, resumeSession, startSession } from '@/lib/timer-logic';
 import { __resetTimerPresenceForTests, requestTimerRefresh } from '@/lib/timer-presence';
+import { STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 import type { Routine, TimerSession } from '@/types/timers';
 
 vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
@@ -159,6 +160,38 @@ describe('TimerOverlay buttons', () => {
     fireEvent.click(screen.getByTestId('timer-add-minute'));
     await settle();
     expect(posted).toEqual(['add-minute']);
+  });
+
+  it('leaves -1 min out as 2:00 turns to 1:59, and the bar takes no tap for a moment while it closes up', async () => {
+    render(<TimerOverlay />);
+    await showSession(quick(125), 't1');
+    // The bar comes up with the timer, and its buttons answer at once.
+    expect(screen.getByTestId('timer-subtract-minute')).toBeTruthy();
+    expect(screen.getByTestId('timer-add-minute')).not.toHaveProperty('disabled', true);
+
+    for (let i = 0; i < 40 && screen.queryByTestId('timer-subtract-minute'); i++) await settle(250);
+    expect(screen.queryByTestId('timer-subtract-minute')).toBeNull();
+    expect(controls()).not.toBeNull();
+
+    // The finger that was on its way to -1 min lands on +1 min, which slid over.
+    fireEvent.click(screen.getByTestId('timer-add-minute'));
+    await settle();
+    expect(posted).toEqual([]);
+
+    await settle(STEP_SETTLE_MS);
+    fireEvent.click(screen.getByTestId('timer-add-minute'));
+    await settle();
+    expect(posted).toEqual(['add-minute']);
+    // Over two minutes again, so -1 min is back.
+    expect(screen.getByTestId('timer-subtract-minute')).toBeTruthy();
+  });
+
+  it('never offers -1 min on a timer under two minutes', async () => {
+    render(<TimerOverlay />);
+    await showSession(quick(90), 't1');
+    expect(controls()).not.toBeNull();
+    expect(screen.queryByTestId('timer-subtract-minute')).toBeNull();
+    expect(screen.getByTestId('timer-add-minute')).toBeTruthy();
   });
 
   it('Stop does nothing on a short tap and stops the timer after a full hold', async () => {

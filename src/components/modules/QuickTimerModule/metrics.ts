@@ -21,6 +21,12 @@ export interface QuickTimerBox {
   /** A session is running, so the box holds a countdown instead of the grid. */
   running: boolean;
   /**
+   * The box draws its own "Quick timer" heading. False when the Title
+   * setting says "No title" or the card has a title of its own, and the
+   * heading's line goes to the rest of the box. Omitted = drawn.
+   */
+  heading?: boolean;
+  /**
    * The card's Text size as a factor (1 = what the module shows on its own).
    *
    * Applied to every type size, and each stops at the room its own part of
@@ -104,7 +110,7 @@ export function quickTimerMetrics(box: QuickTimerBox): QuickTimerMetrics {
   const innerW = w;
   // The heading is the first thing to go: in a corner tile the presets say
   // what this is better than a word over them would.
-  const head = h >= 110 && innerW >= 120 ? clamp(h * 0.068, MIN_TYPE, 16) * type : 0;
+  const head = box.heading !== false && h >= 110 && innerW >= 120 ? clamp(h * 0.068, MIN_TYPE, 16) * type : 0;
   const innerH = Math.max(0, h - (head ? head * WORD_LINE + gap : 0));
 
   if (box.running) {

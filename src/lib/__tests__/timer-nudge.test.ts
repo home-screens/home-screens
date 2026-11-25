@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   addMinute,
+  canSubtractMinute,
   materializeSession,
   quickTimerLengthSec,
   sessionProgress,
@@ -15,6 +16,27 @@ const T0 = 1_700_000_000_000;
 const quick = (durationSec: number): TimerSession =>
   startSession({ kind: 'quick', durationSec, targets: 'all', view: 'ring' }, T0);
 
+describe('canSubtractMinute', () => {
+  it('offers a minute off while the clock shows 2:00 or more', () => {
+    expect(canSubtractMinute(5 * 60_000)).toBe(true);
+    expect(canSubtractMinute(120_000)).toBe(true);
+    // The clock rounds up, so 1:59.001 left still reads 2:00.
+    expect(canSubtractMinute(119_001)).toBe(true);
+  });
+
+  it('stops offering it as 2:00 turns to 1:59, so a tap always leaves at least 1:00', () => {
+    expect(canSubtractMinute(119_000)).toBe(false);
+    // At 1:03 a tap used to leave 0:03.
+    expect(canSubtractMinute(63_000)).toBe(false);
+    expect(canSubtractMinute(60_000)).toBe(false);
+  });
+
+  it('never offers one on a step with nothing left, such as one waiting for its "Done!"', () => {
+    expect(canSubtractMinute(0)).toBe(false);
+    expect(canSubtractMinute(-5_000)).toBe(false);
+  });
+});
+
 describe('subtractMinute', () => {
   it('shrinks the step by a minute and leaves its start alone', () => {
     const s = subtractMinute(quick(300), T0 + 40_000);
@@ -22,19 +44,29 @@ describe('subtractMinute', () => {
     expect(s.steps[0].durationSec).toBe(240);
   });
 
-  it('does nothing with a minute or less left: a press that arrives late never ends the timer', () => {
-    // Pressed at 1:00.3 on the wall, handled by the hub at 0:59.9.
+  it('takes the minute at 2:00 on the clock and leaves 1:00', () => {
     const s = quick(300);
-    const late = T0 + 300_000 - 59_900;
+    // 1:59.5 left reads 2:00.
+    const at = T0 + 300_000 - 119_500;
+    const after = subtractMinute(s, at);
+    expect(after.steps[0].durationSec).toBe(240);
+    const left = after.steps[0].durationSec * 1000 - (at - after.stepStartedAt);
+    expect(left).toBe(59_500);
+  });
+
+  it('does nothing under two minutes: a press that arrives late never runs the timer down', () => {
+    // Pressed at 2:00.2 on the wall, handled by the hub at 1:59.0.
+    const s = quick(300);
+    const late = T0 + 300_000 - 119_000;
     expect(subtractMinute(s, late)).toBe(s);
+    expect(subtractMinute(s, T0 + 300_000 - 63_000)).toBe(s);
     expect(subtractMinute(s, T0 + 240_000)).toBe(s);
     expect(materializeSession(subtractMinute(s, late), late)!.status).toBe('running');
   });
 
-  it('never leaves a step with no length', () => {
-    // A 61 second step pressed at once keeps a second, not zero.
-    const s = subtractMinute(quick(61), T0);
-    expect(s.steps[0].durationSec).toBe(1);
+  it('does nothing on a timer shorter than two minutes, even at its start', () => {
+    const s = quick(90);
+    expect(subtractMinute(s, T0)).toBe(s);
   });
 
   it('counts from the pause, not the clock, while paused', () => {

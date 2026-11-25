@@ -125,6 +125,48 @@ describe('generateGroceryList', () => {
     expect(items).toEqual([{ name: 'Milk', amount: '2 gal', checked: true }]);
   });
 
+  it('makes one item of an ingredient spelled with and without its accents, as the first meal spells it', () => {
+    const meals = [
+      meal('a', [{ name: 'Crème fraîche', amount: '200 ml', category: 'dairy' }]),
+      meal('b', [{ name: 'creme fraiche', amount: '100 ml' }]),
+    ];
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'dinner', mealId: 'a' },
+      { date: '2026-04-05', slot: 'dinner', mealId: 'b' },
+    ];
+    const items = [...generateGroceryList(plan, meals, ['creme fraiche']).values()].flatMap((g) => g.items);
+    expect(items).toEqual([{ name: 'Crème fraîche', amount: '300 ml', checked: true }]);
+  });
+
+  it('files one item in one aisle, the one a spelling places it in when another does not', () => {
+    // "pao" places nowhere, "Pão" in the bakery: one row, in the bakery, spelled as first typed.
+    const meals = [meal('a', [{ name: 'pao', amount: '1' }]), meal('b', [{ name: 'Pão', amount: '2' }])];
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'breakfast', mealId: 'a' },
+      { date: '2026-04-05', slot: 'breakfast', mealId: 'b' },
+    ];
+    const result = generateGroceryList(plan, meals, []);
+    expect([...result.keys()]).toEqual(['bakery']);
+    expect(result.get('bakery')!.items).toEqual([{ name: 'Pao', amount: '3', checked: false }]);
+  });
+
+  it('keeps an aisle the household picked over one the name places it in', () => {
+    const meals = [meal('a', [{ name: 'Eggs', amount: '6' }]), meal('b', [{ name: 'eggs', amount: '6', category: 'pantry' }])];
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'breakfast', mealId: 'a' },
+      { date: '2026-04-05', slot: 'breakfast', mealId: 'b' },
+    ];
+    const result = generateGroceryList(plan, meals, []);
+    expect([...result.keys()]).toEqual(['pantry']);
+    expect(result.get('pantry')!.items).toEqual([{ name: 'Eggs', amount: '12', checked: false }]);
+  });
+
+  it('keeps Danish words apart that only look alike without å', () => {
+    const meals = [meal('a', [{ name: 'Ål', amount: '1', category: 'meat' }, { name: 'Al', amount: '1', category: 'meat' }])];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
+    expect(generateGroceryList(plan, meals, []).get('meat')!.items.map((i) => i.name)).toEqual(['Al', 'Ål']);
+  });
+
   it('sorts checked items after unchecked, then alphabetically', () => {
     const meals = [
       meal('a', [

@@ -128,7 +128,7 @@ describe('the make-a-new-key warning', () => {
 
     const line = await findByTestId('regenerate-walls-let-in-by-themselves');
     expect(line.textContent?.trim()).toBe(
-      "2 displays were let in by themselves after the update. A new key doesn't remove them. Check they're yours",
+      "2 browsers were let in by themselves after the update. A new key doesn't remove them. Check they're yours",
     );
     // A hub with one display lists its walls on Settings > Displays.
     expect(line.querySelector('a')?.getAttribute('href')).toBe('/editor/settings?section=displays');
@@ -140,7 +140,7 @@ describe('the make-a-new-key warning', () => {
 
     const line = await findByTestId('regenerate-walls-let-in-by-themselves');
     expect(line.textContent?.trim()).toBe(
-      "1 display was let in by itself after the update. A new key doesn't remove it. Check it's yours",
+      "1 browser was let in by itself after the update. A new key doesn't remove it. Check it's yours",
     );
   });
 

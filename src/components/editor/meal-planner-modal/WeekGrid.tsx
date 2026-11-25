@@ -332,9 +332,9 @@ export default function WeekGrid({
                         ) : serving.value ? (
                           <span
                             className="w-fit px-1.5 py-0.5 rounded border border-hs-border-strong/50 text-[10px] font-semibold tabular-nums text-hs-text-muted"
-                            title={serving.own ? undefined : t('mealPlannerModal.popover.usually', { time: formatMealTime(serving.value, timeFormat) })}
+                            title={serving.own ? undefined : t('mealPlannerModal.popover.usually', { time: formatMealTime(serving.value, timeFormat, locale) })}
                           >
-                            {formatMealTime(serving.value, timeFormat)}
+                            {formatMealTime(serving.value, timeFormat, locale)}
                           </span>
                         ) : null}
                         {/* Sits on the card's corner, outside the text, so the

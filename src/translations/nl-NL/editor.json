@@ -226,9 +226,8 @@
     "opensOnlyBadge": "Bij openen",
     "opensOnlyTooltip": "verschijnt alleen wanneer geopend",
     "deleteConfirmOpeners": {
-      "zero": "{names} heeft een knop die dit scherm opent. Die knop verdwijnt ook, en dit scherm is leeg. Je kunt dit ongedaan maken.",
-      "one": "{names} heeft een knop die dit scherm opent. Die knop, de module van dit scherm en de instellingen ervan verdwijnen. Je kunt dit ongedaan maken.",
-      "other": "{names} heeft een knop die dit scherm opent. Die knop, de {count} modules van dit scherm en hun instellingen verdwijnen. Je kunt dit ongedaan maken."
+      "one": "{names} heeft een knop die dit scherm opent. Die knop verdwijnt ook.",
+      "other": "{names} hebben knoppen die dit scherm openen. Die knoppen verdwijnen ook."
     },
     "orphanedBadge": "Niets opent het",
     "orphanedTooltip": "verschijnt alleen wanneer geopend, en niets opent het",
@@ -449,7 +448,7 @@
       "display-control": "Knoppen om met een tik te wekken, te laten slapen of van scherm te wisselen",
       "traffic": "Hoe lang de rit naar werk of school duurt",
       "notes": "Notities die het gezin op de telefoon schrijft, op de muur tot hun tijd om is",
-      "quick-timer": "Tik op een tijd om een timer op het scherm te starten"
+      "quick-timer": "Tik op een tijd om een kookwekker op de muur te starten"
     },
     "keywords": {
       "fullscreen-calendar": "agenda kalender afspraken evenementen week maand gezin",
@@ -498,7 +497,7 @@
       "display-control": "aanraken knoppen slapen wekken helderheid volgend scherm",
       "traffic": "verkeer file reistijd route werk school woon-werk",
       "notes": "notities prikbord briefjes berichten mededelingen gezin koelkast memo",
-      "quick-timer": "timer aftellen minuten keuken koken snel starten"
+      "quick-timer": "timer aftellen minuten keuken koken kookwekker eierwekker snel starten"
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
@@ -783,10 +782,10 @@
       },
       "swatches": {
         "heading": "Kleuren om uit te kiezen",
-        "help": "De kleuren waaruit je kiest als je op de muur de kleur van een agenda verandert. De muur kan zelf geen kleur mengen, kies ze dus hier.",
+        "help": "De kleuren waaruit je kiest als je op de muur de kleur van een agenda verandert. De muur kan zelf geen nieuwe kleur mengen, dus zet hier de kleuren klaar die je echt gebruikt.",
         "slot": "Kleur {number}",
         "reset": "Oorspronkelijke kleuren terugzetten",
-        "wallHint": "Tik op de muur op de kleurlegenda van een agenda om daar een agenda te verbergen of de kleur te veranderen."
+        "wallHint": "Op de muur tik je op de kleurlegenda van een agenda om die daar te verbergen of een andere kleur te geven."
       }
     },
     "dataPage": {
@@ -1440,7 +1439,7 @@
       "maxVisibleLabel": "Max. zichtbare meldingen",
       "defaultDurationLabel": "Standaardduur (seconden)",
       "defaultDurationPerType": "Standaard per type",
-      "defaultDurationHelp": "Info: 10s, Waarschuwing: 30s, Dringend: blijft staan tot weggetikt.",
+      "defaultDurationHelp": "Info: 10 s, Waarschuwing: 30 s, Dringend: blijft staan tot weggetikt.",
       "alertSizeLabel": "Meldingsgrootte",
       "activeAlertsHeading": "Actieve meldingen",
       "clearAllButton": "Alle meldingen wissen",
@@ -1480,9 +1479,8 @@
       "screensaverLabel": "Screensaver",
       "screensaverClock": "Bewegende klok",
       "screensaverBlank": "Leeg (alleen dimmen)",
-      "screensaverOff": "Uit (dimt nog steeds)",
-      "dimmedSectionHelp": "De schermbeveiliging verschijnt zodra het scherm gedimd is, bijvoorbeeld vanaf de telefoon.",
-      "nothingDimsNote": "Dit display dimt op dit moment niet vanzelf. De screensaver verschijnt wel als het via de afstandsbediening wordt gedimd.",
+      "dimmedSectionHelp": "De screensaver verschijnt alleen als het display vanzelf dimt, na een paar rustige minuten of op de tijd die je voor het dimmen hebt ingesteld. Zet je de helderheid lager via de afstandsbediening, dan wordt het beeld alleen donkerder.",
+      "nothingDimsNote": "Dit display dimt op dit moment niet vanzelf, dus de screensaver verschijnt pas als je hierboven dimmen aanzet.",
       "legend": {
         "bright": "Helder",
         "dim": "Gedimd",
@@ -1970,8 +1968,8 @@
           "reachable": "Bereikbaar",
           "reachableWithLatency": "Bereikbaar ({latency})",
           "unreachable": "Niet bereikbaar",
-          "latencyUnderOneMs": "<1ms",
-          "latencyMs": "{ms}ms"
+          "latencyUnderOneMs": "<1 ms",
+          "latencyMs": "{ms} ms"
         },
         "unavailable": "Diagnostiek is niet beschikbaar op dit apparaat.",
         "requestFailed": "Kon de controle niet uitvoeren. Probeer het opnieuw.",
@@ -2386,16 +2384,16 @@
         "hide": "Verbergen",
         "copy": "Kopiëren",
         "regenerateButton": "Nieuwe sleutel maken",
-        "regenerating": "Opnieuw genereren…",
+        "regenerating": "Nieuwe sleutel maken…",
         "regenerateConfirm": "Nieuwe sleutel maken",
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Alles wat de oude sleutel gebruikt, werkt pas weer als je daar de nieuwe invult. Je displays blijven werken.",
         "regenerateWallsLetInByThemselves": {
-          "one": "{count} display is na de update vanzelf binnengelaten. Een nieuwe sleutel haalt het niet weg.",
-          "other": "{count} displays zijn na de update vanzelf binnengelaten. Een nieuwe sleutel haalt ze niet weg."
+          "one": "{count} browser is na de update vanzelf binnengelaten. Een nieuwe sleutel haalt hem niet weg.",
+          "other": "{count} browsers zijn na de update vanzelf binnengelaten. Een nieuwe sleutel haalt ze niet weg."
         },
         "regenerateWallsCheck": {
-          "one": "Controleer of het van jou is",
+          "one": "Controleer of hij van jou is",
           "other": "Controleer of ze van jou zijn"
         },
         "errorRegenerate": "Nieuwe sleutel maken is niet gelukt.",
@@ -2465,10 +2463,10 @@
         "disabling": "Uitschakelen…",
         "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken.",
         "wallsStay": {
-          "one": "Je {count} display blijft binnengelaten.",
+          "one": "Je display blijft binnengelaten.",
           "other": "Je {count} displays blijven binnengelaten."
         },
-        "wallsOff": "Een display dat nu uit staat, vraagt om binnengelaten te worden zodra het terug is."
+        "wallsOff": "Een display dat nu uit staat, vraagt om binnengelaten te worden zodra het weer aangaat."
       },
       "errors": {
         "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
@@ -2528,7 +2526,7 @@
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Kopiëren",
       "sha256CopyAriaLabel": "SHA-256 kopiëren",
-      "connectionRequired": "Deze plug-in vereist dat je na de installatie een account koppelt."
+      "connectionRequired": "Deze plugin vereist dat je na de installatie een account koppelt."
     },
     "pluginSecrets": {
       "loading": "Status van geheimen laden…",
@@ -2645,7 +2643,7 @@
         "tipsHeading": "Tips",
         "tips": {
           "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers.",
-          "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2s gepolld)",
+          "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2 s gepolld)",
           "sourcemapsPart1": "Source maps worden ondersteund; voeg ",
           "sourcemapsPart2": " toe aan je Vite-config",
           "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype."
@@ -2733,7 +2731,7 @@
       "telemetryItem6": "Weerprovider en overgangseffect",
       "telemetryItem7": "Of slaapstand, meldingen en authenticatie zijn ingeschakeld",
       "telemetryItem8": "Of agenda-integraties zijn geconfigureerd",
-      "telemetryItem9": "Geïnstalleerde plug-ins (marketplace-namen en versies; plug-ins van buiten de marketplace worden geteld maar nooit benoemd)",
+      "telemetryItem9": "Geïnstalleerde plugins (marketplace-namen en versies; plugins van buiten de marketplace worden geteld maar nooit benoemd)",
       "telemetryDisclaimer": "We verzamelen nooit: IP-adressen, locatie, agenda-items, API-sleutels, module-inhoud, hostnamen of andere persoonlijk identificeerbare informatie. Alle code is open source en kan worden geverifieerd.",
       "dataDirTitle": "Home Screens-gegevens",
       "totalAppData": "Totale appgegevens",
@@ -2769,30 +2767,30 @@
       "description": "Hoe het nu met je schermen en dit apparaat gaat."
     },
     "displaysIndex": {
-      "breadcrumb": "Schermen",
-      "heroNew": "Home Screens op meerdere schermen draaien",
+      "breadcrumb": "Displays",
+      "heroNew": "Home Screens op meerdere displays draaien",
       "heroExisting": {
-        "one": "{count} scherm in dit huis",
-        "other": "{count} schermen in dit huis"
+        "one": "{count} display in dit huis",
+        "other": "{count} displays in dit huis"
       },
-      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi (een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer), elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub (de Pi waarop Home Screens draait en die alle schermen bedient); extra schermen kunnen goedkope Pi Zeros zijn die ",
+      "emptyDescriptionPrefix": "Stuur meer dan één display aan vanaf deze Pi (een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer), elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub (de Pi waarop Home Screens draait en die alle displays bedient); extra displays kunnen goedkope Pi Zeros zijn die ",
       "emptyDescriptionSuffix": " draaien.",
-      "populatedDescriptionPrefix": "Klik op een scherm om zijn eigen instellingen te bewerken. Al het andere gebruikt de gedeelde ",
+      "populatedDescriptionPrefix": "Klik op een display om zijn eigen instellingen te bewerken. Al het andere gebruikt de gedeelde ",
       "populatedDescriptionSuffix": ".",
       "defaultsLink": "Standaardwaarden",
       "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
-      "addDisplay": "Scherm toevoegen",
-      "emptyTitle": "Deze installatie draait in enkel-scherm-modus",
-      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet toegevoegd; ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
+      "addDisplay": "Display toevoegen",
+      "emptyTitle": "Deze installatie draait met één display",
+      "emptyParagraphPart1": "Je huidige opstelling telt als één display maar is hier nog niet toegevoegd; ondersteuning voor meerdere displays is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede display toevoegt. Op het moment dat je je eerste display toevoegt, wordt de huidige lay-out van deze Pi een display genaamd ",
       "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik hierboven op ",
-      "emptyBullet1Suffix": " om een nieuw scherm toe te voegen. Geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
+      "emptyBullet1Suffix": " om een nieuw display toe te voegen. Geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
       "emptyBullet2": "Of flash een andere Pi met {command}. Zodra hij start, verschijnt hij hieronder als een {label}, en met één klik voeg je hem toe.",
-      "unadoptedLabel": "scherm dat wacht om toegevoegd te worden",
+      "unadoptedLabel": "display dat wacht om toegevoegd te worden",
       "unadoptedWaiting": {
-        "one": "{count} scherm wacht om toegevoegd te worden",
-        "other": "{count} schermen wachten om toegevoegd te worden"
+        "one": "{count} display wacht om toegevoegd te worden",
+        "other": "{count} displays wachten om toegevoegd te worden"
       },
       "unadoptedHintPrefix": "Deze Pis zijn verbonden met de hub maar nog niet toegevoegd. Klik op ",
       "unadoptedHintSuffix": " om schermen aan ze toe te wijzen.",
@@ -2802,7 +2800,7 @@
       "reportedDimensions": "{width}×{height} gerapporteerd",
       "reportedFrom": "vanaf {address}",
       "multipleClientsHeading": "{count} clients melden zich met dit ID",
-      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert; meestal een dubbele ",
+      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit display-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert; meestal een dubbele ",
       "multipleClientsParagraphSuffix": " installatie, een verdwaald browsertabblad, of een display dat naar het verkeerde adres wijst.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inactief · {time}",
@@ -2814,18 +2812,18 @@
         "other": "{count} schermen"
       },
       "currentScreenLabel": "Toont {name}",
-      "multipleClientsCardHeading": "{count} verschillende clients rapporteren voor dit scherm",
+      "multipleClientsCardHeading": "{count} verschillende clients rapporteren voor dit display",
       "tabsSuffix": "×{count} tabs",
-      "formEditTitle": "Scherm bewerken",
+      "formEditTitle": "Display bewerken",
       "formAdoptTitle": "{id} toevoegen",
-      "formAddTitle": "Scherm toevoegen",
+      "formAddTitle": "Display toevoegen",
       "formNameLabel": "Naam",
       "formNamePlaceholder": "Keuken-aanraakscherm",
       "formIdLabel": "ID",
       "formIdHint": "(gebruikt in URL: /display/<id>)",
       "formIdPlaceholder": "keuken",
-      "formIdLocked": "Het ID is vastgezet op dat van het rapporterende scherm.",
-      "formReportedViewport": "(gerapporteerd door scherm: {width} × {height})",
+      "formIdLocked": "Het ID is vastgezet op dat van het rapporterende display.",
+      "formReportedViewport": "(gerapporteerd door display: {width} × {height})",
       "formWidth": "Breedte",
       "formHeight": "Hoogte",
       "formResolutionHint": "Stel dit in op het beeldscherm waarop dit display te zien is. Modules worden binnen dit beeldvlak geplaatst wanneer je de schermen van dit display bewerkt.",
@@ -2833,15 +2831,15 @@
       "formRotation90": "90° met de klok mee (staand)",
       "formRotation180": "180° (omgekeerd)",
       "formRotation270": "270° met de klok mee (staand)",
-      "formRotationHint": "Bepaalt hoe het beeldvlak staat. De breedte en hoogte hierboven wisselen automatisch zodat de langste kant bij de gekozen draaiing past.",
+      "formRotationHint": "Bepaalt hoe het display staat. De breedte en hoogte hierboven wisselen automatisch zodat de langste kant bij de gekozen draaiing past.",
       "formCancel": "Annuleren",
-      "formAddDisplay": "Scherm toevoegen",
+      "formAddDisplay": "Display toevoegen",
       "formErrorName": "Naam is verplicht",
       "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"kitchen\")",
-      "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar schermen. Kies een ander ID, bijv. \"kitchen\" of \"bedroom-tv\"",
-      "formErrorIdTaken": "Er bestaat al een scherm met ID \"{id}\"",
-      "formErrorWidth": "Breedte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste schermen zijn 1080 of 1920 breed.",
-      "formErrorHeight": "Hoogte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste schermen zijn 1080 of 1920 hoog.",
+      "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar displays. Kies een ander ID, bijv. \"kitchen\" of \"bedroom-tv\"",
+      "formErrorIdTaken": "Er bestaat al een display met ID \"{id}\"",
+      "formErrorWidth": "Breedte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste displays zijn 1080 of 1920 breed.",
+      "formErrorHeight": "Hoogte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste displays zijn 1080 of 1920 hoog.",
       "softwareUpdateWaiting": "Update staat klaar",
       "softwareNeedsSetup": "Instellen nodig",
       "mainDisplayName": "Hoofddisplay"
@@ -2966,21 +2964,24 @@
     },
     "walls": {
       "waitingTitle": {
-        "one": "{count} display wacht om binnengelaten te worden",
-        "other": "{count} displays wachten om binnengelaten te worden"
+        "one": "{count} browser wacht om binnengelaten te worden",
+        "other": "{count} browsers wachten om binnengelaten te worden"
       },
-      "waitingHint": "Ze hebben de muur geopend, maar Home Screens kent ze nog niet. Laat de displays binnen die van jou zijn. De rest kun je laten staan: die verdwijnen vanzelf.",
+      "waitingHint": "Ze hebben de muur geopend, maar Home Screens kent ze nog niet. Laat de browsers binnen die van jou zijn. De rest kun je laten staan: die verdwijnen vanzelf.",
       "forDisplay": "voor {name}",
       "askingSince": "gevraagd {time}",
-      "looksFamiliar": "Dit lijkt op een display dat je eerder hebt binnengelaten.",
+      "looksFamiliar": "Dit lijkt op een browser die je eerder hebt binnengelaten.",
       "letIn": "Binnenlaten",
       "letInFailed": "Binnenlaten is niet gelukt. Probeer het opnieuw.",
       "letInByItself": "Vanzelf binnengelaten",
       "windowTitle": {
-        "one": "{count} display is na de update vanzelf binnengelaten",
-        "other": "{count} displays zijn na de update vanzelf binnengelaten"
+        "one": "{count} browser is na de update vanzelf binnengelaten",
+        "other": "{count} browsers zijn na de update vanzelf binnengelaten"
       },
-      "windowBody": "Home Screens onthoudt nu elk display, en die van jou zijn meegekomen. Controleer of de displays met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {days} dagen.",
+      "windowBody": {
+        "one": "Home Screens onthoudt nu elke browser, en die van jou zijn meegenomen. Controleer of de browsers met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {count} dag.",
+        "other": "Home Screens onthoudt nu elke browser, en die van jou zijn meegenomen. Controleer of de browsers met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {count} dagen."
+      },
       "showingIn": {
         "one": "Te zien op {count} plek",
         "other": "Te zien op {count} plekken"
@@ -5753,16 +5754,16 @@
       "presets": "Tijden",
       "presetsHint": "Maximaal {max} knoppen, in deze volgorde.",
       "minutesShort": "{minutes} min",
-      "fullScreen": "Het hele scherm vullen tijdens het lopen",
-      "fullScreenHint": "Uit blijft de timer in dit vak en blijft de rest van het scherm staan.",
+      "fullScreen": "Het hele display vullen zolang de timer loopt",
+      "fullScreenHint": "Staat dit uit, dan blijft de timer in dit vak en blijft de rest van het display gewoon staan.",
       "view": "Timerstijl",
       "view-ring": "Gloeiende ring",
       "view-face": "Wijzerplaat",
       "view-cascade": "Kleurenwaterval",
       "view-path": "Sterrenpad",
-      "target": "Laten zien op",
-      "target-all": "Alle schermen",
-      "target-this": "Dit scherm",
+      "target": "Tonen op",
+      "target-all": "Alle displays",
+      "target-this": "Dit display",
       "sound": "Geluid"
     }
   },
@@ -5873,8 +5874,8 @@
     "modulesHeading": "Modules",
     "searchPlaceholder": "Modules zoeken…",
     "noResults": "Geen modules gevonden",
-    "pluginBadge": "Plug-in",
-    "communityPluginTooltip": "Community-plug-in",
+    "pluginBadge": "Plugin",
+    "communityPluginTooltip": "Community-plugin",
     "howToAdd": "Sleep het naar het scherm",
     "itemTooltip": "Sleep het naar het scherm",
     "collapseTitle": "Modulelijst verbergen",
@@ -6345,7 +6346,7 @@
       },
       "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer.",
       "noMatches": "Er komt geen schilderij overeen. Maak een filter ruimer.",
-      "noArtistMatches": "De collectie bevat beroemde schilderijen, landschappen, zeegezichten, stadsgezichten en stillevens die oud genoeg zijn om vrij te delen. Schilders uit de laatste honderd jaar zitten er meestal niet in, en van schilders die bekend zijn om afbeeldingen van mensen alleen de bekendste werken.",
+      "noArtistMatches": "De collectie bevat beroemde schilderijen, landschappen, zeegezichten, stadsgezichten en stillevens die oud genoeg zijn om vrij te delen. Schilders uit de laatste honderd jaar zitten er meestal niet in, en van schilders die vooral bekend zijn om schilderijen van mensen zitten alleen de bekendste werken erin.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",

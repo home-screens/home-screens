@@ -17,7 +17,7 @@ import {
   type MealieShoppingItem,
   type MealieShoppingListRaw,
 } from './mealie-shopping-map';
-import type { ShoppingList, ShoppingListSummary } from './shopping-list';
+import { shoppingAddPlan, type ShoppingList, type ShoppingListSummary } from './shopping-list';
 
 /**
  * The household's Mealie shopping lists, read and ticked by the hub for the
@@ -245,17 +245,45 @@ export async function setMealieShoppingItemChecked(itemId: string, checked: bool
 }
 
 /**
+ * What a typed add did. `added`: `item` is the new line, for Undo. `merged`:
+ * Mealie folded the words into a line it counts as the same one, so `item`
+ * is null. `already` and `putBack`, decided before Mealie is asked
+ * by the rule every list keeps (`shoppingAddPlan`): the words name a line
+ * still to get, so nothing changed, or one ticked off, now back on the list.
+ */
+export interface MealieShoppingAdd {
+  outcome: 'added' | 'merged' | 'already' | 'putBack';
+  item: string | null;
+}
+
+/**
  * Put a typed item on a list, the way Mealie's own box does: the words as
  * the note with quantity 0, which Mealie shows as just the words. It goes at
- * the end of the list. Answers the new item's id, or null when Mealie merged
- * the words into an item already on the list.
+ * the end of the list. Words already on the list, whatever their capitals and
+ * accents, are not added twice: a line still to get is left as it is, and a
+ * ticked one is put back, keeping its own spelling.
  */
-export async function addMealieShoppingItem(listId: string, text: string): Promise<string | null> {
+export async function addMealieShoppingItem(listId: string, text: string): Promise<MealieShoppingAdd> {
   const cfg = await requireMealieConfig();
-  // Asked first: Mealie answers an item for a list it no longer has with a
-  // bare 500, which reads as Mealie being broken.
-  const list = await findList(cfg, listId);
-  if (!list) throw new MealieShoppingGoneError('list');
+  // Asked of Mealie, not the hub's copy: what is on the list right now
+  // decides whether the words are new, and Mealie answers an item for a list
+  // it no longer has with a bare 500, which reads as Mealie being broken.
+  const list = await readList(cfg, listId);
+  if (!list) {
+    clearMealieShoppingCache();
+    throw new MealieShoppingGoneError('list');
+  }
+  const plan = shoppingAddPlan(mapMealieShoppingList(list), text);
+  if (plan.kind === 'already') return { outcome: 'already', item: plan.item.id };
+  if (plan.kind === 'putBack') {
+    try {
+      const changed = await setMealieShoppingItemChecked(plan.item.id, false, { onList: listId });
+      return { outcome: changed ? 'putBack' : 'already', item: plan.item.id };
+    } catch (err) {
+      // Cleared in Mealie a moment ago: the words go on as new.
+      if (!(err instanceof MealieShoppingGoneError)) throw err;
+    }
+  }
   const position = Math.max(-1, ...(list.listItems ?? []).map((i) => i.position ?? 0)) + 1;
   let answer: { createdItems?: { id?: unknown }[] } | undefined;
   try {
@@ -264,7 +292,7 @@ export async function addMealieShoppingItem(listId: string, text: string): Promi
       json: { shoppingListId: listId, note: text, quantity: 0, checked: false, position },
     }, cfg);
   } catch (err) {
-    // The copy said the list was there; it may be seconds old.
+    // The list was there a moment ago; it may have gone since.
     if (!(await readShopping(cfg, true).then((r) => r.lists.some((l) => l.id === listId), () => true))) {
       clearMealieShoppingCache();
       throw new MealieShoppingGoneError('list');
@@ -273,9 +301,9 @@ export async function addMealieShoppingItem(listId: string, text: string): Promi
   } finally {
     clearMealieShoppingCache();
   }
-  // Mealie merges words already on the list into that item instead of making one.
+  // Mealie folds words it counts as a line already there into that line instead of making one.
   const made = answer?.createdItems?.[0]?.id;
-  return typeof made === 'string' ? made : null;
+  return typeof made === 'string' ? { outcome: 'added', item: made } : { outcome: 'merged', item: null };
 }
 
 /**

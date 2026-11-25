@@ -214,10 +214,10 @@
       "showEveryone": "Alle zeigen"
     },
     "calendarsSheet": {
-      "eyebrow": "An dieser Wand",
+      "eyebrow": "Auf diesem Display",
       "title": "Kalender",
       "show": "Anzeigen",
-      "hidden": "An dieser Wand ausgeblendet",
+      "hidden": "Auf diesem Display ausgeblendet",
       "pickColor": "Farbe wählen",
       "color": "Farbe",
       "allCalendars": "Alle Kalender",
@@ -232,8 +232,6 @@
     "noEventsToday": "Keine Termine heute",
     "noUpcomingEvents": "Keine bevorstehenden Termine",
     "moreCount": "+{count} weitere",
-    "am": "vorm.",
-    "pm": "nachm.",
     "headerUpcoming": "Demnächst",
     "viewLabels": {
       "schedule": "Zeitplan",
@@ -636,7 +634,7 @@
       "undo": "Rückgängig",
       "undone": "Alles wieder wie vorher.",
       "hint": "Tippe auf einen Tag. Ist dort schon etwas geplant, wird erst gefragt, bevor sich etwas ändert.",
-      "hintMine": "Ein Haken zeigt, wo es {meal} schon gibt. Tippe auf diesen Tag, um das Gericht vom Plan zu nehmen, oder auf einen anderen, um es noch einmal zu planen.",
+      "hintMine": "Ein Haken zeigt die Tage, an denen es {meal} schon gibt. Tippe auf einen davon, um das Gericht dort vom Plan zu nehmen, oder auf einen anderen Tag, um es noch einmal zu planen.",
       "when": {
         "breakfast": "Frühstück am {day}",
         "lunch": "Mittagessen am {day}",
@@ -1926,11 +1924,7 @@
       "failed": "Das Aufhängen hat nicht geklappt. Dein Bild ist noch da.",
       "unreachable": "Das Aufhängen hat nicht geklappt. Home Screens antwortet nicht. Dein Bild ist noch da.",
       "off": "Das Malen an der Wand wurde gerade ausgeschaltet. Dein Bild kann nicht aufgehängt werden.",
-      "posted": "Die Notiz von {name} hängt jetzt an der Pinnwand",
-      "postedNobody": "Deine Notiz hängt jetzt an der Pinnwand",
-      "undoFailed": "Die Notiz hängt noch an der Pinnwand. Nimm sie auf dem Handy ab.",
       "pickAgain": "Diese Person gehört nicht mehr zur Familie. Wähle, wer das gemalt hat.",
-      "undoing": "Wird abgenommen…",
       "posting": "Wird aufgehängt…",
       "madeRoom": "Das älteste Bild wurde abgenommen, damit Platz ist."
     },
@@ -1956,6 +1950,13 @@
       "write": "Schreiben",
       "pageWaits": "Dein Bild wartet noch auf dich.",
       "wordsWait": "Was du geschrieben hast, wartet noch auf dich."
+    },
+    "wallPost": {
+      "posted": "Die Notiz von {name} hängt jetzt an der Pinnwand",
+      "postedNobody": "Deine Notiz hängt jetzt an der Pinnwand",
+      "undoFailed": "Die Notiz hängt noch an der Pinnwand. Nimm sie auf dem Handy ab.",
+      "undoing": "Wird abgenommen…",
+      "undo": "Rückgängig"
     }
   },
   "photoControls": {
@@ -1969,7 +1970,10 @@
   "quick-timer": {
     "title": "Schnell-Timer",
     "unit": "Min.",
-    "startAriaLabel": "{minutes}-Minuten-Timer starten",
+    "startAriaLabel": {
+      "one": "Timer für {minutes} Minute starten",
+      "other": "Timer für {minutes} Minuten starten"
+    },
     "busyElsewhere": "Auf einem anderen Display läuft ein Timer"
   }
 }

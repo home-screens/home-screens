@@ -293,7 +293,7 @@ export default function MealPopover({
             {usual && (
               <span className="text-hs-text-faint">
                 {' · '}
-                {t('mealPlannerModal.popover.usually', { time: formatMealTime(usual, timeFormat) })}
+                {t('mealPlannerModal.popover.usually', { time: formatMealTime(usual, timeFormat, locale) })}
               </span>
             )}
           </span>

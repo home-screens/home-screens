@@ -108,7 +108,7 @@ export default function NextMealView({
             fontSize: P(40), fontWeight: 700, color: 'var(--fmp-accent)',
             fontVariantNumeric: 'tabular-nums',
           }}>
-            {formatMealTime(time, timeFormat)}
+            {formatMealTime(time, timeFormat, locale)}
           </span>
         )}
       </div>

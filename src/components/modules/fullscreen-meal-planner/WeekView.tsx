@@ -271,7 +271,7 @@ export default function WeekView({
                       <span style={{ display: 'flex', flexWrap: 'wrap', justifyContent: align, columnGap: P(10), fontSize: P(21), lineHeight: 1.2 }}>
                         {time && (
                           <span style={{ fontWeight: 600, color: 'var(--fmp-accent)', fontVariantNumeric: 'tabular-nums' }}>
-                            {formatMealTime(time, timeFormat)}
+                            {formatMealTime(time, timeFormat, locale)}
                           </span>
                         )}
                         {minutes && <span style={{ color: 'var(--fmp-text-3)' }}>{minutes}</span>}

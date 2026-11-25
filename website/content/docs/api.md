@@ -33,7 +33,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 `GET /api/health` answers from any device on your network, with or without a password, and the [IP allowlist](/docs/networking#restrict-access-by-ip) never blocks it (the only other endpoint it always lets through is `GET /api/auth/status`, which the login page needs). It says which version is running and nothing else:
 
 ```json
-{"ok":true,"version":"1.15.0","build":"Xb2kQ7pL0sR4","schema":21,"uptime":864}
+{"ok":true,"version":"1.15.0","build":"Xb2kQ7pL0sR4","schema":22,"uptime":864}
 ```
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).
@@ -716,7 +716,7 @@ Returns the **resolved** grocery list for the current week, ingredients aggregat
 
 ### POST /api/meals/grocery
 
-Toggles a grocery item's checked state on one week's list. If the item is already checked, it is unchecked; otherwise it is checked. Display access, a display token works, so an automation or voice assistant can check items off. The item name is matched after trimming and lowercasing, so senders can use the display-cased name from `/api/meals/grocery/list`.
+Toggles a grocery item's checked state on one week's list. If the item is already checked, it is unchecked; otherwise it is checked. Display access, a display token works, so an automation or voice assistant can check items off. The item name is matched the way lists match items, ignoring capitals, extra spaces and accents, so senders can use the display-cased name from `/api/meals/grocery/list`.
 
 **Body:**
 ```json
@@ -868,7 +868,7 @@ The list the family shops from, for the phone, the editor and voice alike. Body 
 
 ### POST /api/mealie/shopping/items
 
-Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). The list keeps one of each thing, the way every list does: words already on it (ignoring capitals, extra spaces and accents) add nothing if the item is still to get, and put it back if it was ticked off. Answers like `GET`, with the list read fresh, plus `outcome` (`added`, `merged`, `already` or `putBack`), `item`: the id of the item the add landed on (`null` when Mealie merged the words into an item already on the list), and `added`: the new item's id, or `null` when nothing new was made. `404` with `"reason": "gone"` when Mealie no longer has the list. A session may add to any of the household's lists. A display token may add only to the list the family shops from, only while a Meal Planner in the grocery view has **Add on the wall** on, and at most 80 characters; otherwise `403`.
 
 ### POST /api/mealie/shopping/recipe
 
@@ -922,9 +922,10 @@ Starts a session or controls the running one, selected by `action`:
 - `pause`, `resume`: pause and resume the countdown
 - `skip` and `step-done`: the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
 - `add-minute`: add a minute to the current step
+- `subtract-minute`: take a minute off the current step, only while two minutes or more are left, so it always leaves at least one; with less left it changes nothing
 - `cancel`: stop the session
 
-Every action but `start` may also send `sessionId` (the `id` of the session the button was pressed on) and `stepIndex` (the step it was on). When the running session is a different one by then, or has moved to another step, the hub answers `404` with code `timers.notRunning` and changes nothing. Wall displays send both, so a press never lands on a timer started a moment earlier from somewhere else and two quick Done taps finish one step. Without them the action applies to whatever is running.
+Every action but `start` may also send `sessionId` (the `id` of the session the button was pressed on) and `stepIndex` (the step it was on). When the running session is a different one by then, or has moved to another step, the hub answers `404` with code `timers.notRunning` and changes nothing. Wall displays and the remote's Timers tab send them, so a press never lands on a timer started a moment earlier from somewhere else and two quick Done or Skip taps move on one step. Without them the action applies to whatever is running.
 
 Display access on purpose, touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
 

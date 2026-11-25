@@ -594,42 +594,42 @@ describe('alignToWeekStart', () => {
 
 describe('formatMealTime', () => {
   it('returns empty string for undefined', () => {
-    expect(formatMealTime(undefined, '12h')).toBe('');
+    expect(formatMealTime(undefined, '12h', 'en-US')).toBe('');
   });
 
   it('returns empty string for malformed input', () => {
-    expect(formatMealTime('', '12h')).toBe('');
-    expect(formatMealTime('abc', '12h')).toBe('');
-    expect(formatMealTime('25:00', '12h')).toBe('');
-    expect(formatMealTime('12:60', '12h')).toBe('');
-    expect(formatMealTime('12', '12h')).toBe('');
-    expect(formatMealTime('12:5', '12h')).toBe('');
+    expect(formatMealTime('', '12h', 'en-US')).toBe('');
+    expect(formatMealTime('abc', '12h', 'en-US')).toBe('');
+    expect(formatMealTime('25:00', '12h', 'en-US')).toBe('');
+    expect(formatMealTime('12:60', '12h', 'en-US')).toBe('');
+    expect(formatMealTime('12', '12h', 'en-US')).toBe('');
+    expect(formatMealTime('12:5', '12h', 'en-US')).toBe('');
   });
 
   it('formats AM correctly in 12h mode', () => {
-    expect(formatMealTime('07:30', '12h')).toBe('7:30 AM');
-    expect(formatMealTime('00:00', '12h')).toBe('12:00 AM'); // midnight
-    expect(formatMealTime('00:01', '12h')).toBe('12:01 AM');
-    expect(formatMealTime('11:59', '12h')).toBe('11:59 AM');
+    expect(formatMealTime('07:30', '12h', 'en-US')).toBe('7:30 AM');
+    expect(formatMealTime('00:00', '12h', 'en-US')).toBe('12:00 AM'); // midnight
+    expect(formatMealTime('00:01', '12h', 'en-US')).toBe('12:01 AM');
+    expect(formatMealTime('11:59', '12h', 'en-US')).toBe('11:59 AM');
   });
 
   it('formats PM correctly in 12h mode', () => {
-    expect(formatMealTime('12:00', '12h')).toBe('12:00 PM'); // noon
-    expect(formatMealTime('12:30', '12h')).toBe('12:30 PM');
-    expect(formatMealTime('13:00', '12h')).toBe('1:00 PM');
-    expect(formatMealTime('18:30', '12h')).toBe('6:30 PM');
-    expect(formatMealTime('23:59', '12h')).toBe('11:59 PM');
+    expect(formatMealTime('12:00', '12h', 'en-US')).toBe('12:00 PM'); // noon
+    expect(formatMealTime('12:30', '12h', 'en-US')).toBe('12:30 PM');
+    expect(formatMealTime('13:00', '12h', 'en-US')).toBe('1:00 PM');
+    expect(formatMealTime('18:30', '12h', 'en-US')).toBe('6:30 PM');
+    expect(formatMealTime('23:59', '12h', 'en-US')).toBe('11:59 PM');
   });
 
   it('formats correctly in 24h mode', () => {
-    expect(formatMealTime('07:30', '24h')).toBe('07:30');
-    expect(formatMealTime('00:00', '24h')).toBe('00:00');
-    expect(formatMealTime('18:30', '24h')).toBe('18:30');
-    expect(formatMealTime('23:59', '24h')).toBe('23:59');
+    expect(formatMealTime('07:30', '24h', 'en-US')).toBe('07:30');
+    expect(formatMealTime('00:00', '24h', 'en-US')).toBe('00:00');
+    expect(formatMealTime('18:30', '24h', 'en-US')).toBe('18:30');
+    expect(formatMealTime('23:59', '24h', 'en-US')).toBe('23:59');
   });
 
   it('zero-pads single-digit minutes in 24h mode', () => {
-    expect(formatMealTime('9:00', '24h')).toBe('09:00');
+    expect(formatMealTime('9:00', '24h', 'en-US')).toBe('09:00');
   });
 });
 

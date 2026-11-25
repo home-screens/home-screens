@@ -125,7 +125,7 @@
       "needsVersion": "Dieser Link braucht eine Versionsnummer. Gib ein, welche Version installiert werden soll.",
       "notAPlugin": "Dieser Link führt nicht zu einem Home-Screens-Plugin. Prüf, ob er auf die .tar.gz-Datei des Plugins zeigt.",
       "tooBig": "Diese Datei ist zu groß für ein Plugin. Plugins dürfen höchstens {max} MB groß sein.",
-      "alreadyInstalled": "Dieses Plugin ist schon installiert. Aktualisiere es stattdessen im Plugin-Store."
+      "alreadyInstalled": "Dieses Plugin ist schon aus dem Plugin-Marketplace installiert. Aktualisiere es stattdessen im Tab „Updates“."
     },
     "icloud": {
       "signInRefused": "Die Anmeldung bei iCloud hat nicht geklappt. Prüf die Apple-ID und ob das Passwort ein App-Passwort von account.apple.com ist. Dein normales Apple-Passwort funktioniert hier nicht."
@@ -219,16 +219,16 @@
     "goToDefault": "Jetzt zum Hauptdisplay wechseln"
   },
   "wallGate": {
-    "title": "Diese Wand muss noch hereingelassen werden",
-    "line": "Das kann ein Erwachsener im Editor von Home Screens erledigen. Gehe zu {place} und klicke auf Hereinlassen.",
+    "title": "Dieses Display muss noch hereingelassen werden",
+    "line": "Das kann ein Erwachsener im Editor von Home Screens erledigen. Gehe zu {place} und klicke auf „Hereinlassen“.",
     "waiting": "Wartet darauf, hereingelassen zu werden…",
     "signIn": "Nur kurz schauen? Anmelden",
-    "noCookieTitle": "Dieser Browser merkt sich seinen Platz nicht",
-    "noCookieLine": "Home Screens merkt sich eine Wand mit einem Cookie, und dieser Browser hat es nicht behalten. Erlaube Cookies für diese Adresse und lade die Seite neu.",
+    "noCookieTitle": "Dieser Browser vergisst immer wieder, dass er ein Display ist",
+    "noCookieLine": "Home Screens erkennt ein Display an einem Cookie, und dieser Browser hat das Cookie nicht behalten. Erlaube Cookies für diese Adresse und lade die Seite dann neu.",
     "keepLine": "Du bist angemeldet und schaust nur kurz rein.",
-    "keepButton": "Als Wand behalten",
+    "keepButton": "Als Display behalten",
     "keepClose": "Schließen",
-    "kept": "Dieser Browser ist jetzt eine Wand.",
+    "kept": "Dieser Browser ist jetzt ein Display.",
     "keepFailed": "Das hat nicht geklappt. Versuch es noch einmal."
   },
   "login": {
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Schritt {current} von {total}",
-    "quickName": "{minutes}-Minuten-Timer",
+    "quickName": {
+      "one": "Timer für {minutes} Minute",
+      "other": "Timer für {minutes} Minuten"
+    },
     "almostDone": "Fast geschafft!",
     "done": "Fertig!",
     "paused": "Pausiert",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} Min.",
     "moreSteps": "+{count} weitere",
     "progressWords": "{done} geschafft · {left} übrig",
-    "quickNameSeconds": "{seconds}-Sekunden-Timer",
+    "quickNameSeconds": {
+      "one": "{seconds}-Sekunden-Timer",
+      "other": "{seconds}-Sekunden-Timer"
+    },
     "quickNameClock": "{time}-Timer",
     "pause": "Pause",
     "resume": "Weiter",
@@ -867,7 +873,7 @@
     "undo": "Rückgängig"
   },
   "wallNames": {
-    "hubScreen": "Der eigene Bildschirm von Home Screens",
+    "hubScreen": "Der Browser auf Home Screens selbst",
     "someBrowser": "Ein Browser",
     "browserOn": "{browser} auf {device}",
     "justDevice": "Ein Browser auf {device}",

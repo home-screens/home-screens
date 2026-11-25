@@ -232,8 +232,6 @@
     "noEventsToday": "Geen afspraken vandaag",
     "noUpcomingEvents": "Geen aankomende afspraken",
     "moreCount": "+{count} meer",
-    "am": "AM",
-    "pm": "PM",
     "headerUpcoming": "Binnenkort",
     "viewLabels": {
       "schedule": "Planning",
@@ -1662,7 +1660,7 @@
   },
   "common": {
     "locationNotSet": "Locatie niet ingesteld",
-    "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
+    "pluginNotAvailable": "Plugin niet beschikbaar: {name}",
     "moduleFailed": "Dit onderdeel kon niet worden getoond.",
     "setLocationLink": "Locatie instellen",
     "setLocationInEditor": "Stel in de editor je locatie in",
@@ -1926,11 +1924,7 @@
       "failed": "Ophangen lukte niet. Je tekening is er nog.",
       "unreachable": "Ophangen lukte niet. Home Screens reageert niet. Je tekening is er nog.",
       "off": "Tekenen op de muur is net uitgezet. Je tekening kan niet op het prikbord.",
-      "posted": "Notitie van {name} opgehangen",
-      "postedNobody": "Je notitie hangt op het prikbord",
-      "undoFailed": "Die notitie hangt er nog. Haal hem weg op een telefoon.",
       "pickAgain": "Die persoon hoort niet meer bij het gezin. Kies wie dit heeft getekend.",
-      "undoing": "Weghalen…",
       "posting": "Ophangen…",
       "madeRoom": "De oudste tekening ging eraf om plek te maken."
     },
@@ -1956,6 +1950,13 @@
       "write": "Schrijven",
       "pageWaits": "Je tekening wacht nog op je.",
       "wordsWait": "Wat je schreef wacht nog op je."
+    },
+    "wallPost": {
+      "posted": "De notitie van {name} hangt op het prikbord",
+      "postedNobody": "Je notitie hangt op het prikbord",
+      "undoFailed": "Die notitie hangt er nog. Haal hem weg op een telefoon.",
+      "undoing": "Weghalen…",
+      "undo": "Ongedaan maken"
     }
   },
   "photoControls": {
@@ -1969,7 +1970,10 @@
   "quick-timer": {
     "title": "Snelle timer",
     "unit": "min",
-    "startAriaLabel": "Een timer van {minutes} minuten starten",
+    "startAriaLabel": {
+      "one": "Een timer van {minutes} minuut starten",
+      "other": "Een timer van {minutes} minuten starten"
+    },
     "busyElsewhere": "Er loopt een timer op een andere muur"
   }
 }

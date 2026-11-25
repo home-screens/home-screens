@@ -37,8 +37,8 @@ describe('SleepOverlay', () => {
     expect(dom.queryByTestId('screensaver')).toBeNull();
   });
 
-  it('honours screensaver mode off on the dim paths', () => {
-    render(<SleepOverlay displayState="dimmed" dimOpacity={0.8} brightnessOverride={null} screensaver={{ mode: 'off' }} />);
+  it('honours a blank screensaver on the dim paths', () => {
+    render(<SleepOverlay displayState="dimmed" dimOpacity={0.8} brightnessOverride={null} screensaver={{ mode: 'blank' }} />);
     expect(dom.queryByTestId('screensaver')).toBeNull();
   });
 

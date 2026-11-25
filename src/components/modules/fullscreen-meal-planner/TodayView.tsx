@@ -96,7 +96,7 @@ export default function TodayView({
               fontVariantNumeric: 'tabular-nums', fontWeight: 600,
               textTransform: 'none' as const, letterSpacing: 0, opacity: 0.85,
             }}>
-              {formatMealTime(heroTime, timeFormat)}
+              {formatMealTime(heroTime, timeFormat, locale)}
             </span>
           )}
         </span>
@@ -230,7 +230,7 @@ export default function TodayView({
                             letterSpacing: 0,
                             fontVariantNumeric: 'tabular-nums',
                           }}>
-                            {formatMealTime(slotTime, timeFormat)}
+                            {formatMealTime(slotTime, timeFormat, locale)}
                           </span>
                         )}
                       </div>

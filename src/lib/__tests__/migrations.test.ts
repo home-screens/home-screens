@@ -59,8 +59,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 19', () => {
-    expect(getLatestSchemaVersion()).toBe(21);
+  it('getLatestSchemaVersion returns 22', () => {
+    expect(getLatestSchemaVersion()).toBe(22);
   });
 });
 
@@ -295,9 +295,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(21);
-    // v2 through v21 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(20);
+    expect(result.version).toBe(22);
+    // v2 through v22 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(21);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -307,7 +307,8 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     // accent, v10 only touches news modules (this fixture has none), and v11
     // only touches screens on a `/backgrounds/themes/` wall (this one has
     // none), and v12 only rewrites a `dev` update channel (this one has none
-    // set). v14 writes the 12-hour clock the household was already reading.
+    // set). v14 writes the 12-hour clock the household was already reading,
+    // and v22 only rewrites an Off screensaver (this one has none).
     // No display registry is injected: single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual({ ...config.settings, timeFormat: '12h' });
@@ -325,9 +326,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(21);
-    // Only v4 through v21 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(18);
+    expect(result.version).toBe(22);
+    // Only v4 through v22 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(19);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -797,7 +798,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(21);
+    expect(result.version).toBe(22);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -838,9 +839,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(21);
+    expect(result.version).toBe(22);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v21: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v22: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -854,7 +855,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(21);
+    expect(migrated.version).toBe(22);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1398,7 +1399,7 @@ describe('migration v18: photo modules and background rotation name their source
   it('is part of the full chain from v1', () => {
     const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
     const { config: result, migrationsRun } = migrateUp(config);
-    expect(migrationsRun.at(-1)).toMatch(/^v21: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v22: /);
     expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
   });
 });
@@ -1532,8 +1533,92 @@ describe('migration v21: a full-screen news front page of several feeds keeps it
   it("reaches a display's own screens", () => {
     const config = withNews(makeConfig(20), { feeds: [BBC, NPR] });
     config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) }] as unknown as NonNullable<ScreenConfiguration['displays']>;
-    const { config: result, migrationsRun } = migrateUp(config);
+    const { config: result, migrationsRun } = migrateUp(config, 21);
     expect(migrationsRun).toEqual(['v21: Full-screen news front pages of several feeds keep their heading as a title']);
     expect(result.displays![0].screens[0].modules[0].config).toEqual({ feeds: [BBC, NPR], title: 'BBC News' });
+  });
+});
+
+describe("migration v22: the screensaver's Off choice becomes Blank", () => {
+  const DESCRIPTION = "v22: The screensaver's Off choice becomes Blank";
+  /** A v21 config with `off` saved on the shared settings and on the kitchen display. */
+  function withOff(): ScreenConfiguration {
+    const config = makeConfig(21);
+    (config.settings as unknown as Record<string, unknown>).screensaver = { mode: 'off' };
+    config.displays = [
+      { id: 'main', name: 'Main', screens: [] },
+      { id: 'kitchen', name: 'Kitchen', screens: [], settings: { rotationIntervalMs: 60000, screensaver: { mode: 'off' } } },
+      { id: 'hall', name: 'Hall', screens: [], settings: { screensaver: { mode: 'clock' } } },
+      { id: 'den', name: 'Den', screens: [], settings: { screensaver: { mode: 'blank' } } },
+    ] as unknown as NonNullable<ScreenConfiguration['displays']>;
+    return config;
+  }
+
+  it('writes a shared Off down as Blank', () => {
+    const config = makeConfig(21);
+    (config.settings as unknown as Record<string, unknown>).screensaver = { mode: 'off' };
+    const { config: result, migrationsRun } = migrateUp(config, 22);
+    expect(result.version).toBe(22);
+    expect(migrationsRun).toEqual([DESCRIPTION]);
+    expect(result.settings).toEqual({ ...config.settings, screensaver: { mode: 'blank' } });
+  });
+
+  it("writes a display's own Off down as Blank, keeping the rest of its settings", () => {
+    const { config: result } = migrateUp(withOff(), 22);
+    expect(result.settings.screensaver).toEqual({ mode: 'blank' });
+    expect(result.displays!.map((d) => d.settings)).toEqual([
+      undefined,
+      { rotationIntervalMs: 60000, screensaver: { mode: 'blank' } },
+      { screensaver: { mode: 'clock' } },
+      { screensaver: { mode: 'blank' } },
+    ]);
+  });
+
+  it('leaves Clock, Blank and an unset screensaver alone', () => {
+    for (const mode of ['clock', 'blank'] as const) {
+      const config = makeConfig(21);
+      config.settings.screensaver = { mode };
+      const before = structuredClone(config);
+      expect(migrateUp(config, 22).config).toEqual({ ...before, version: 22 });
+    }
+    const unset = makeConfig(21);
+    const { config: result } = migrateUp(unset, 22);
+    expect(result).toEqual({ ...unset, version: 22 });
+    expect('screensaver' in result.settings).toBe(false);
+  });
+
+  it('passes malformed displays and screensavers through untouched', () => {
+    const config = makeConfig(21);
+    (config.settings as unknown as Record<string, unknown>).screensaver = 'off';
+    config.displays = [
+      null,
+      { id: 'odd', name: 'Odd', settings: 'nope' },
+      { id: 'bare', name: 'Bare', settings: { screensaver: null } },
+    ] as unknown as NonNullable<ScreenConfiguration['displays']>;
+    const before = structuredClone(config);
+    expect(migrateUp(config, 22).config).toEqual({ ...before, version: 22 });
+  });
+
+  it('changes nothing on a second run', () => {
+    const once = migrateUp(withOff(), 22).config;
+    const twice = migrateUp({ ...structuredClone(once), version: 21 }, 22).config;
+    expect(twice).toEqual(once);
+  });
+
+  it('does not mutate its input', () => {
+    const config = withOff();
+    const before = structuredClone(config);
+    migrateUp(config, 22);
+    expect(config).toEqual(before);
+  });
+
+  it('is part of the full chain from v1', () => {
+    const config = withOff();
+    config.version = 1;
+    const { config: result, migrationsRun } = migrateUp(config);
+    expect(result.version).toBe(22);
+    expect(migrationsRun.at(-1)).toBe(DESCRIPTION);
+    expect(result.settings.screensaver).toEqual({ mode: 'blank' });
+    expect(result.displays![1].settings?.screensaver).toEqual({ mode: 'blank' });
   });
 });

@@ -199,7 +199,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
                               fontVariantNumeric: 'tabular-nums',
                             }}
                           >
-                            {formatMealTime(time, timeFormat)}
+                            {formatMealTime(time, timeFormat, formattingLocale)}
                           </span>
                         )}
                         {showPrepTime && mealMinutes(meal) && (

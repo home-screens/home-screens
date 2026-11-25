@@ -140,6 +140,24 @@ describe('/api/timers/session', () => {
     expect(session.steps[0].durationSec).toBe(240);
   });
 
+  it('subtract-minute under two minutes left changes nothing, so a late press cannot run the timer down', async () => {
+    const { session: started } = await (await postSession(
+      req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all' }),
+    )).json();
+    // The wall offered the button at 2:00.2; the press reaches the hub at 1:59.
+    nowSpy.mockReturnValue(T0 + 300_000 - 119_000);
+    const res = await postSession(req({ action: 'subtract-minute', sessionId: started.id }));
+    expect(res.status).toBe(200);
+    const { session } = await res.json();
+    expect(session.status).toBe('running');
+    expect(session.steps[0].durationSec).toBe(300);
+
+    // At 2:00 on the clock it still takes the minute, leaving 1:00.
+    nowSpy.mockReturnValue(T0 + 300_000 - 119_500);
+    const taken = (await (await postSession(req({ action: 'subtract-minute', sessionId: started.id }))).json()).session;
+    expect(taken.steps[0].durationSec).toBe(240);
+  });
+
   it('toggle-sound turns the chimes off and back on', async () => {
     await postSession(req({ action: 'start', kind: 'quick', durationSec: 300, targets: 'all', sound: true }));
     let { session } = await (await postSession(req({ action: 'toggle-sound' }))).json();

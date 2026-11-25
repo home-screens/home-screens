@@ -162,8 +162,14 @@ describe('resolveTemplateVariables', () => {
 
   it('replaces {{time12}} with 12h format', () => {
     vi.setSystemTime(new Date(2026, 2, 12, 14, 30, 0));
-    const result = resolveTemplateVariables('{{time12}}');
-    expect(result).toMatch(/2:30\s*PM/);
+    expect(resolveTemplateVariables('{{time12}}')).toBe('2:30 PM');
+  });
+
+  it('writes {{time}} and {{time12}} the way the language does', () => {
+    vi.setSystemTime(new Date(2026, 2, 12, 8, 5, 0));
+    expect(resolveTemplateVariables('{{time}}', undefined, 'da-DK')).toBe('08.05');
+    expect(resolveTemplateVariables('{{time}}', undefined, 'es-ES')).toBe('8:05');
+    expect(resolveTemplateVariables('{{time12}}', undefined, 'es-ES')).toBe('8:05 a. m.');
   });
 
   it('replaces multiple variables in one string', () => {

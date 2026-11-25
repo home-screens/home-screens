@@ -16,11 +16,11 @@
     },
     "timers": {
       "notRunning": "Es läuft kein Timer.",
-      "routineGone": "Diesen Ablauf gibt es nicht mehr. Wähle einen anderen.",
+      "routineGone": "Diese Routine gibt es nicht mehr. Wähle eine andere.",
       "badRequest": "Das hat nicht geklappt. Lade die Seite neu und versuche es noch einmal.",
-      "invalid": "Dieser Ablauf kann so nicht gespeichert werden. Prüfe seinen Namen und seine Schritte.",
+      "invalid": "Diese Routine kann so nicht gespeichert werden. Prüfe ihren Namen und ihre Schritte.",
       "reload": "Lade die Seite neu und versuche es noch einmal.",
-      "revision": "Jemand anderes hat die Abläufe geändert. Deine letzte Änderung wurde nicht gespeichert. Bitte versuche es noch einmal."
+      "revision": "Jemand anderes hat die Routinen geändert. Deine letzte Änderung wurde nicht gespeichert. Bitte versuche es noch einmal."
     }
   },
   "tabs": {
@@ -573,7 +573,7 @@
     "duration5Min": "5 Min.",
     "durationPersistent": "Dauerhaft",
     "sendButton": "Hinweis senden",
-    "sendingButton": "Sendet …",
+    "sendingButton": "Sendet…",
     "sentButton": "Gesendet!",
     "failedButton": "Nicht gesendet, erneut versuchen",
     "clearOnDisplay": "Hinweise auf dem Display „{name}“ löschen",
@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Timer",
     "quickTimer": "Schnell-Timer",
-    "quickName": "{minutes}-Minuten-Timer",
+    "quickName": {
+      "one": "Timer für {minutes} Minute",
+      "other": "Timer für {minutes} Minuten"
+    },
     "start": "Start",
     "sound": "Ton",
     "routines": "Routinen",
@@ -1059,7 +1062,10 @@
     "minUnit": "Min.",
     "secUnit": "Sek.",
     "stepSeconds": "Sekunden",
-    "quickNameSeconds": "{seconds}-Sekunden-Timer",
+    "quickNameSeconds": {
+      "one": "{seconds}-Sekunden-Timer",
+      "other": "{seconds}-Sekunden-Timer"
+    },
     "quickNameClock": "{time}-Timer",
     "secondsShort": "{seconds} Sek.",
     "showingOn": "Läuft auf: {names}",
@@ -1067,12 +1073,12 @@
     "waitingForDisplay": "Warte, bis ein Display ihn übernimmt…",
     "notShowing": "Noch zeigt ihn kein Display. Prüf, ob das Display eingeschaltet ist.",
     "whyNoSave": {
-      "name": "Gib dem Ablauf einen Namen, um zu speichern.",
+      "name": "Gib der Routine einen Namen, um zu speichern.",
       "stepName": "Gib jedem Schritt einen Namen, um zu speichern.",
       "stepLength": "Jeder Schritt muss mindestens {seconds} Sekunden dauern."
     },
     "quickTooShort": "Ein Timer muss mindestens {seconds} Sekunden dauern.",
-    "stepLimit": "Ein Ablauf kann bis zu {count} Schritte haben.",
+    "stepLimit": "Eine Routine kann bis zu {count} Schritte haben.",
     "deleteConfirm": {
       "description": "Die Routine und ihre Schritte sind dann endgültig weg. Das lässt sich nicht rückgängig machen."
     }
@@ -1548,8 +1554,8 @@
   },
   "wallWaiting": {
     "title": {
-      "one": "Eine Wand wartet darauf, hereingelassen zu werden.",
-      "other": "{count} Wände warten darauf, hereingelassen zu werden."
+      "one": "Ein Display wartet darauf, hereingelassen zu werden.",
+      "other": "{count} Displays warten darauf, hereingelassen zu werden."
     },
     "openEditor": "Öffne den Editor, um sie hereinzulassen"
   }

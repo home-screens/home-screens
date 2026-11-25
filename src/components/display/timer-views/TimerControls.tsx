@@ -2,6 +2,8 @@
 
 import { AlarmClockPlus, Check, Minus, Pause, Play, Square, Volume2, VolumeX } from 'lucide-react';
 import type { TimerView } from '@/types/timers';
+import { useSettling } from '@/hooks/useSheetTapGuard';
+import { STEP_SETTLE_MS } from '@/lib/sheet-tap-guard';
 import {
   WallControlBar,
   WallControlButton,
@@ -38,12 +40,12 @@ export interface TimerControlsProps {
   onAddMinute: () => void;
   onStop: () => void;
   /**
-   * Take a minute back off. Absent, or with under a minute left to take,
-   * the button is not drawn: a disabled button on a wall reads as broken
-   * from across the room, where a missing one reads as "not now".
+   * Take a minute back off. Absent, the button is not drawn: the overlay
+   * leaves it out under two minutes (`canSubtractMinute`), and a dimmed
+   * button on a wall reads as broken from across the room, where a missing
+   * one reads as "not now".
    */
   onSubtractMinute?: () => void;
-  canSubtractMinute?: boolean;
   /** Mute the chime. Absent leaves the bar without a sound button. */
   onToggleSound?: () => void;
   soundOn?: boolean;
@@ -63,10 +65,15 @@ export interface TimerControlsProps {
  */
 export default function TimerControls({
   view, paused, s, maxWidth, t, onPause, onResume, onAddMinute, onStop,
-  onSubtractMinute, canSubtractMinute = false, onToggleSound, soundOn = true, onStepDone,
+  onSubtractMinute, onToggleSound, soundOn = true, onStepDone,
 }: TimerControlsProps) {
   const look = LOOK[view] ?? LOOK.ring;
   const fill = { fill: 'currentColor', strokeWidth: 0 } as const;
+  // The bar is centred, so when "-1 min" goes (or comes back after "+1 min")
+  // every button slides. For a moment none takes a tap, so a finger already
+  // on its way to "-1 min" lands on nothing rather than on its neighbour.
+  // Not on the bar coming up: a tap brings it, and its buttons answer at once.
+  const settling = useSettling(!!onSubtractMinute, STEP_SETTLE_MS, { fromMount: false });
   return (
     <WallControlBar
       unit={s}
@@ -74,6 +81,7 @@ export default function TimerControls({
       shade={look.shade}
       shadeHeight={shadeHeight(view, paused)}
       maxWidth={maxWidth}
+      settling={settling}
       label={paused ? t('timer.paused') : undefined}
       ariaLabel={t('timer.controls')}
       testId="timer-controls"
@@ -87,14 +95,10 @@ export default function TimerControls({
         <WallControlButton icon={<Pause {...fill} />} label={t('timer.pause')} onPress={onPause} testId="timer-pause" />
       )}
       {onSubtractMinute && (
-        // Stays put with less than a minute left, dimmed rather than gone:
-        // the bar is centred, so dropping a button slides Stop sideways
-        // under a finger that is already on its way to it.
         <WallControlButton
           icon={<Minus strokeWidth={2.2} />}
           label={t('timer.subtractMinute')}
           onPress={onSubtractMinute}
-          disabled={!canSubtractMinute}
           testId="timer-subtract-minute"
         />
       )}

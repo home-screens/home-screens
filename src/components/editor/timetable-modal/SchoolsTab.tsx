@@ -97,7 +97,7 @@ export default function SchoolsTab({
   const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings.timeFormat));
   // The household's zone, so this week's letter and number are the wall's.
   const timezone = useEditorHouseholdTimezone();
-  const clock = (time: string) => formatClockTime(time, timeFormat);
+  const clock = (time: string) => formatClockTime(time, timeFormat, locale);
   const [name, setName] = useState('');
   const [template, setTemplate] = useState(SCHOOL_TEMPLATES[0].id);
   /**

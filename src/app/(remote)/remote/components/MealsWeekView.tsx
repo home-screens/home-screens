@@ -183,7 +183,7 @@ export default function MealsWeekView({
                             fontVariantNumeric: 'tabular-nums',
                             lineHeight: '16px',
                           }}>
-                            {formatMealTime(time, effectiveTimeFormat)}
+                            {formatMealTime(time, effectiveTimeFormat, formattingLocale)}
                           </span>
                         )}
                       </div>

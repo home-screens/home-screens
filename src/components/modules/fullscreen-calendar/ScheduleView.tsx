@@ -38,8 +38,6 @@ const dayColumns = (count: number) => `repeat(${count}, minmax(0, 1fr))`;
 export function ScheduleView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const am = t('fullscreen-calendar.am');
-  const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
   const openDay = useDaySheetOpener();
 
@@ -195,7 +193,7 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
               hourStart={hourStart} totalHours={totalHours} hourHeight={hourHeight}
               fontSize={fontSize * 0.75} weight={400} inset={scale.bu * 0.5}
               highlightHour={nowInRange ? Math.floor(nowHour) : null}
-              timeFormat={timeFormat} am={am} pm={pm}
+              timeFormat={timeFormat} locale={locale}
             />
             {/* Now badge in gutter */}
             {config.showNowLine && nowInRange && (
@@ -340,7 +338,7 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
       </div>
 
       {rolling && (
-        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} am={am} pm={pm} t={t} />
+        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} locale={locale} t={t} />
       )}
     </div>
   );

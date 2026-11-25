@@ -62,7 +62,7 @@ With it on, a **List** or **Compact** view that holds more than fits scrolls wit
 
 Tap it and a sheet rises with the wall's own keyboard. Type one thing, tap **Add**, and the box empties for the next one; each thing added shows as a chip with **Undo** until you close the sheet. The first letter is a capital by itself, and **123** has numbers and the marks a list needs, for "Batteries (AA)".
 
-A list keeps one of each thing, on the wall and on the phone alike. Typing something that is already on the list adds nothing and says so; typing something that was ticked off puts it back.
+A list keeps one of each thing, on the wall and on the phone alike. Typing something that is already on the list adds nothing and says so; typing something that was ticked off puts it back. Capitals and accents don't count, so "creme fraiche" finds "Crème fraîche" and the item keeps its own spelling. Danish æ, ø and å are letters of their own, so "Al" is not "Ål".
 
 The wall only adds words. Due days, who it is for, editing and removing stay on the phone. A wall can only add to a list that one of the walls shows with this switched on.
 

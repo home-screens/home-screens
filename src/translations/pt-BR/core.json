@@ -125,7 +125,7 @@
       "needsVersion": "Esse link precisa de um número de versão. Digite qual versão instalar.",
       "notAPlugin": "Esse link não é um plugin do Home Screens. Confira se ele aponta para o arquivo .tar.gz do plugin.",
       "tooBig": "Esse arquivo é grande demais para ser um plugin. Plugins podem ter até {max} MB.",
-      "alreadyInstalled": "Esse plugin já está instalado. Atualize pela loja de plugins."
+      "alreadyInstalled": "Esse plugin já está instalado pelo marketplace de plugins. Atualize na aba Atualizações."
     },
     "icloud": {
       "signInRefused": "Não foi possível entrar no iCloud. Confira o ID Apple e verifique se a senha é uma senha de app criada em account.apple.com; sua senha normal da Apple não funciona aqui."
@@ -179,9 +179,9 @@
     "justNow": "agora mesmo",
     "secondsAgo": "há {n} s",
     "minutesAgo": "há {n} min",
-    "hoursAgo": "há {n}h",
-    "daysAgo": "há {n}d",
-    "weeksAgo": "há {n}sem"
+    "hoursAgo": "há {n} h",
+    "daysAgo": "há {n} d",
+    "weeksAgo": "há {n} sem"
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
@@ -222,14 +222,14 @@
     "title": "Este painel precisa de permissão para entrar",
     "line": "Um adulto pode fazer isso no editor do Home Screens. Vá em {place} e clique em Deixar entrar.",
     "waiting": "Aguardando permissão para entrar…",
-    "signIn": "Só quer dar uma olhada? Entre",
-    "noCookieTitle": "Este navegador não está guardando o lugar dele",
-    "noCookieLine": "O Home Screens lembra de um painel com um cookie, e este navegador não o guardou. Ative os cookies para este endereço e carregue a página de novo.",
+    "signIn": "Só quer dar uma olhada? Entre com a senha",
+    "noCookieTitle": "Este navegador esquece que é um painel",
+    "noCookieLine": "O Home Screens reconhece cada painel por um cookie, e este navegador não guardou esse cookie. Ative os cookies para este endereço e carregue a página de novo.",
     "keepLine": "Você entrou com a senha, então está só olhando.",
     "keepButton": "Manter como painel",
     "keepClose": "Fechar",
     "kept": "Este navegador agora é um painel.",
-    "keepFailed": "Não deu certo. Tente de novo."
+    "keepFailed": "Não deu para manter como painel. Tente de novo."
   },
   "login": {
     "checkingAuth": "Verificando autenticação…",
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Passo {current} de {total}",
-    "quickName": "Timer de {minutes} minutos",
+    "quickName": {
+      "one": "Timer de {minutes} minuto",
+      "other": "Timer de {minutes} minutos"
+    },
     "almostDone": "Quase lá!",
     "done": "Pronto!",
     "paused": "Pausado",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} min",
     "moreSteps": "+{count} mais",
     "progressWords": "{done} feitos · {left} restantes",
-    "quickNameSeconds": "Timer de {seconds} segundos",
+    "quickNameSeconds": {
+      "one": "Timer de {seconds} segundo",
+      "other": "Timer de {seconds} segundos"
+    },
     "quickNameClock": "Timer de {time}",
     "pause": "Pausar",
     "resume": "Continuar",
@@ -869,7 +875,7 @@
     "undo": "Desfazer"
   },
   "wallNames": {
-    "hubScreen": "A tela do próprio Home Screens",
+    "hubScreen": "O navegador do próprio Home Screens",
     "someBrowser": "Um navegador",
     "browserOn": "{browser} em {device}",
     "justDevice": "Um navegador em {device}",

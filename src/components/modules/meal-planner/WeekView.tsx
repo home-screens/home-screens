@@ -187,7 +187,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
               {slots.map((slot) => {
                 const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
                 const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
-                const timeLabel = time ? formatMealTime(time, timeFormat) : '';
+                const timeLabel = time ? formatMealTime(time, timeFormat, formattingLocale) : '';
                 const pictured = showEmoji && mealHasPicture(meal);
                 const courseCount = courses.length;
                 const words = name ? weekCellWords(name) : [];

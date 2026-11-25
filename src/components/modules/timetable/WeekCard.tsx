@@ -146,6 +146,7 @@ export default function WeekCard({
         dayCount: DAY_KEYS.length,
         showStartTimes,
         timeFormat,
+        locale,
         rows: buildRows(timetable, school, detail).rows,
         longestLabelChars: longestSubjectLabel(timetable, subjects),
         courseChars: longestCourseBadge(timetable),
@@ -153,7 +154,7 @@ export default function WeekCard({
         icons: timetable.icons === true,
         hasLegend: detail === 'more' && timetable.weeks.B !== undefined,
       }),
-    [box.width, box.height, agreed, detail, shed, showStartTimes, timeFormat, timetable, school, subjects],
+    [box.width, box.height, agreed, detail, shed, showStartTimes, timeFormat, locale, timetable, school, subjects],
   );
 
   const on = useCallback(
@@ -237,8 +238,8 @@ export default function WeekCard({
 
   const model: TimetableCardModel = useMemo(
     () =>
-      cardModel({ member, timetable, school, subjects, detail, focus, metrics, showStartTimes, timeFormat, words, row, shed }),
-    [member, timetable, school, subjects, detail, focus, metrics, showStartTimes, timeFormat, words, row, shed],
+      cardModel({ member, timetable, school, subjects, detail, focus, metrics, showStartTimes, timeFormat, locale, words, row, shed }),
+    [member, timetable, school, subjects, detail, focus, metrics, showStartTimes, timeFormat, locale, words, row, shed],
   );
 
   // The size the row agreed on, drawn as it is. There used to be a fit under
@@ -259,12 +260,13 @@ export default function WeekCard({
     columnPx: { focus: cellWidthPx(metrics, true), quiet: cellWidthPx(metrics, false) },
     clamp: metrics.labelClamp,
     timeFormat,
+    formattingLocale: locale,
   };
 
-  const clock = (time: string) => formatClockTime(time, timeFormat);
+  const clock = (time: string) => formatClockTime(time, timeFormat, locale);
   /** The gutter's times, which give up their AM or PM on a card too narrow for it. */
   const gutterClock = (time: string) =>
-    metrics.gutterBareTimes ? formatClockTimeBare(time, timeFormat) : clock(time);
+    metrics.gutterBareTimes ? formatClockTimeBare(time, timeFormat, locale) : clock(time);
 
   /** What the gutter's times are drawn at: their floor, or less if it will not fit. */
   const timeSize = `${metrics.gutterTimePx.toFixed(1)}px`;

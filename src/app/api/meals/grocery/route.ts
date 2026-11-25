@@ -35,9 +35,9 @@ export const GET = withDisplayAuth(async (req: NextRequest) => {
  *  voice commands can check items off — a low-risk flip, matching the
  *  sibling chore toggle endpoint's posture.
  *
- *  `item` is normalized to trimmed lowercase — the checked store has always
- *  held lowercase names (every existing client lowercases before posting),
- *  so normalizing here lets callers send the display-cased name instead.
+ *  `item` is keyed the way the checked store holds names (`groceryItemKey`:
+ *  capitals, spacing and accents aside), so callers can send the name as
+ *  the list shows it, or as a voice assistant heard it ("creme fraiche").
  *
  *  `week` (optional, any date in the week) names the list the tick belongs
  *  to. A tick on next week's list must never show on this week's. Omitted,

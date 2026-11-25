@@ -4,6 +4,7 @@ import { FULL_BAR_INTENSITY, isPrecipitating, precipitationOutlook } from '@/lib
 import type { SkyCondition } from './sky-layer';
 import type { SunTimes } from '@/lib/weather/sun-times';
 import type { Orientation } from '@/lib/orientation';
+import { formatClockMinutes } from '@/lib/clock-time';
 
 /**
  * Scale system shared by every view.
@@ -162,9 +163,14 @@ export interface WeatherViewProps {
 export { isNightHour } from '@/lib/weather/sun-times';
 export type { SunTimes } from '@/lib/weather/sun-times';
 
-/** Short hour label: 0 -> "12a", 13 -> "1p"; "00", "13" in 24-hour mode. */
-export function hourLabel(hour: number, timeFormat: '12h' | '24h' = '12h'): string {
-  if (timeFormat === '24h') return `${String(hour).padStart(2, '0')}`;
+/**
+ * Short hour label for a chart axis: 0 -> "12a", 13 -> "1p" in 12-hour mode;
+ * in 24-hour mode the hour number as the language writes it in a time ("00",
+ * "13", Spanish "0"), without the "Uhr" or "h" some languages put after an
+ * hour alone.
+ */
+export function hourLabel(hour: number, timeFormat: '12h' | '24h', locale: string): string {
+  if (timeFormat === '24h') return formatClockMinutes((hour % 24) * 60, '24h', locale, { hourOnly: true, bare: true });
   if (hour === 0) return '12a';
   if (hour === 12) return '12p';
   return hour < 12 ? `${hour}a` : `${hour - 12}p`;

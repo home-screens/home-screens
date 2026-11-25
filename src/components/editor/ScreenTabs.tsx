@@ -25,7 +25,7 @@ import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { buildScreenDeleteConfirm } from '@/lib/delete-confirmations';
 import DeletedScreenToast from './DeletedScreenToast';
-import { openerNames as namesOfOpeners, screenHasOpener } from '@/lib/on-demand-screen';
+import { openerNames as namesOfOpeners, openersOf, screenHasOpener } from '@/lib/on-demand-screen';
 import { resolveModuleLabel } from '@/lib/module-registry';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
@@ -46,7 +46,10 @@ export default function ScreenTabs() {
   const [deleted, setDeleted] = useState<{ name: string; history: readonly unknown[] } | null>(null);
   const clearDeleted = useCallback(() => setDeleted(null), []);
   // The modules elsewhere whose open button opens a screen, for its delete confirm.
-  const openerNames = (screenId: string) => namesOfOpeners(screens, screenId, (type) => resolveModuleLabel(type, t), t);
+  const openers = (screenId: string) => ({
+    names: namesOfOpeners(screens, screenId, (type) => resolveModuleLabel(type, t), t),
+    count: openersOf(screens, screenId).length,
+  });
   // Screen operations target the currently-selected display's screens.
   // In legacy single-display mode this resolves to the global screen pool.
   const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -152,7 +155,7 @@ export default function ScreenTabs() {
                     onDelete={async (e) => {
                       e.stopPropagation();
                       if (await useConfirmStore.getState().confirm(
-                        buildScreenDeleteConfirm(screen, t, tCore, openerNames(screen.id)),
+                        buildScreenDeleteConfirm(screen, t, tCore, openers(screen.id)),
                       )) {
                         removeScreen(screen.id);
                         setDeleted({ name: screen.name, history: useEditorStore.getState()._past });
@@ -345,7 +348,7 @@ export default function ScreenTabs() {
                   setContextMenu(null);
                   if (!screen) return;
                   if (await useConfirmStore.getState().confirm({
-                    ...buildScreenDeleteConfirm(screen, t, tCore, openerNames(screen.id)),
+                    ...buildScreenDeleteConfirm(screen, t, tCore, openers(screen.id)),
                     // The menu item is gone when the dialog closes: back to the selected tab.
                     returnFocus: document.querySelector('[data-active="true"]'),
                   })) {

@@ -3,11 +3,9 @@
  * as text: meal serving times, school bell schedules, and anything else that
  * stores a plain 'HH:MM' string rather than a real instant.
  *
- * Deliberately NOT localized. The day period renders as the English 'AM' /
- * 'PM' in every locale, which is what these surfaces have always shipped and
- * what their layouts are sized for. A surface that formats a real `Date` and
- * wants the locale's own day period should use `formatEventTime` from
- * `@/lib/calendar-utils` instead, which goes through date-fns.
+ * These write the time the way the household's formatting language does,
+ * through `formatTimeOfDay`, so a serving time reads the same as a calendar
+ * event beside it (`18.30` in Danish, `6:30 p. m.` in Spanish 12-hour).
  *
  * This is separate from `@/lib/time-format`, which handles durations and
  * relative ages ("5s ago", "2h 30m") rather than clock times.
@@ -15,6 +13,7 @@
 
 import type { TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { formatTimeOfDay, type TimeOfDayFormat } from './timezone';
 
 /** Minutes in a day. A valid time of day is 0 up to but not including this. */
 const MINUTES_PER_DAY = 24 * 60;
@@ -41,60 +40,67 @@ export function parseTimeToMinutes(time: string | undefined | null): number | nu
 }
 
 /**
- * Format minutes from midnight for display. Returns an empty string for
- * anything outside a single day, so callers can render the result directly.
+ * Format minutes from midnight for display in `locale`. Returns an empty
+ * string for anything outside a single day, so callers can render the result
+ * directly. `shape` asks for the hour alone or the numbers alone (see
+ * `formatTimeOfDay`).
  *
  * Examples:
- *   formatClockMinutes(1110, '12h') -> '6:30 PM'
- *   formatClockMinutes(1110, '24h') -> '18:30'
- *   formatClockMinutes(0, '12h')    -> '12:00 AM'
+ *   formatClockMinutes(1110, '12h', 'en-US') -> '6:30 PM'
+ *   formatClockMinutes(1110, '24h', 'en-US') -> '18:30'
+ *   formatClockMinutes(1110, '24h', 'da-DK') -> '18.30'
+ *   formatClockMinutes(0, '12h', 'en-US')    -> '12:00 AM'
  */
 export function formatClockMinutes(
   minutes: number | undefined | null,
   format: TimeFormat,
+  locale: string,
+  shape: Pick<TimeOfDayFormat, 'hourOnly' | 'bare'> = {},
 ): string {
   if (typeof minutes !== 'number' || !Number.isInteger(minutes)) return '';
   if (minutes < 0 || minutes >= MINUTES_PER_DAY) return '';
-
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  const mm = String(m).padStart(2, '0');
-
-  if (format === '24h') {
-    return `${String(h).padStart(2, '0')}:${mm}`;
-  }
-  const period = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${mm} ${period}`;
+  // The minute as a UTC instant, read in UTC: no zone's clock change can move it.
+  return formatTimeOfDay(new Date(minutes * 60_000), { ...shape, timeFormat: format, locale, timezone: 'UTC' });
 }
 
 /**
- * Format an 'HH:MM' 24-hour string for display, honoring the household's
- * clock preference. Returns an empty string for missing or invalid input.
+ * Format an 'HH:MM' 24-hour string for display in `locale`, honoring the
+ * household's clock preference. Returns an empty string for missing or
+ * invalid input.
  *
  * Examples:
- *   formatClockTime('18:30', '12h') -> '6:30 PM'
- *   formatClockTime('18:30', '24h') -> '18:30'
- *   formatClockTime('07:00', '12h') -> '7:00 AM'
+ *   formatClockTime('18:30', '12h', 'en-US') -> '6:30 PM'
+ *   formatClockTime('18:30', '24h', 'en-US') -> '18:30'
+ *   formatClockTime('07:00', '24h', 'es-ES') -> '7:00'
  */
 export function formatClockTime(
   time: string | undefined | null,
   format: TimeFormat,
+  locale: string,
 ): string {
-  return formatClockMinutes(parseTimeToMinutes(time), format);
+  return formatClockMinutes(parseTimeToMinutes(time), format, locale);
 }
 
 /**
- * The same, with a 12-hour time's AM or PM left off ('13:20' -> '1:20'), for a
+ * The same, with a 12-hour time's day period left off ('13:20' -> '1:20'), for a
  * place too narrow for it where the hour cannot be mistaken, such as the
  * period gutter of a school timetable. A 24-hour time has none to leave off.
  */
 export function formatClockTimeBare(
   time: string | undefined | null,
   format: TimeFormat,
+  locale: string,
 ): string {
-  const full = formatClockTime(time, format);
-  return format === '12h' ? full.replace(/\s*[AP]M$/i, '') : full;
+  return formatClockMinutes(parseTimeToMinutes(time), format, locale, { bare: true });
+}
+
+/**
+ * An hour mark on a ruler or down a time grid: the time in 24-hour mode
+ * (`07:00`, `07.00` in Danish) and the hour alone in 12-hour mode (`7 AM`,
+ * `7 a. m.` in Spanish). `minutes` is minutes from midnight, on the hour.
+ */
+export function formatHourMark(minutes: number, format: TimeFormat, locale: string): string {
+  return formatClockMinutes(minutes, format, locale, { hourOnly: format === '12h' });
 }
 
 const LOCALE_TIME_FORMATS = new Map<string, TimeFormat>();

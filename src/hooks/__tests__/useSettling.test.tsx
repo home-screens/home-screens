@@ -31,6 +31,25 @@ describe('useSettling', () => {
     expect(result.current).toBe(false);
   });
 
+  it('with fromMount off, answers at once on mount and holds only after a change', () => {
+    const { result, rerender } = renderHook(
+      ({ offered }) => useSettling(offered, 300, { fromMount: false }),
+      { initialProps: { offered: true } },
+    );
+    expect(result.current).toBe(false);
+    rerender({ offered: false });
+    expect(result.current).toBe(true);
+    act(() => vi.advanceTimersByTime(299));
+    expect(result.current).toBe(true);
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current).toBe(false);
+    // Back to the first key: it holds again from then.
+    rerender({ offered: true });
+    expect(result.current).toBe(true);
+    act(() => vi.advanceTimersByTime(300));
+    expect(result.current).toBe(false);
+  });
+
   it('holds when a step comes back to one it settled on before', () => {
     const { result, rerender } = renderHook(({ step }) => useSettling(step, 300), { initialProps: { step: 'details' } });
     act(() => vi.advanceTimersByTime(300));

@@ -31,12 +31,26 @@ export const NUDE_TAGS: readonly string[] = [
   'Q2044369', 'Q43801', 'Q327651', 'Q47652', 'Q35500', 'Q284865', 'Q5011', 'Q121973',
 ];
 
-/** Words in a title that mean bare skin or a violent scene. Over-careful on purpose: there are plenty of paintings. */
-export const TITLE_WORDS = new RegExp(`\\b(${[
+/**
+ * Words in a title that mean bare skin or a violent scene. Over-careful on purpose: there are plenty of paintings.
+ * A painting with no English title keeps the one it was named with, so the words are here in French, German,
+ * Dutch, Spanish and Italian too. Each is matched as a whole word with its accents: `\b` would end "Danaë" at the ë.
+ * Left out because they name places: "venere" (Porto Venere), "enfer" (rue d'Enfer), "bad", "baden", "pest".
+ */
+export const TITLE_WORDS = new RegExp(`(?<![\\p{L}\\p{N}_])(${[
   'nudes?', 'naked', 'nudity', 'nu', 'nue', 'nus', 'akt', 'nackt\\w*', 'naakt\\w*', 'desnud[oa]s?', 'nud[oa]',
-  'bath', 'bathers?', 'bathing', 'baigneuses?', 'badende', 'toilette', 'odalisques?', 'harem',
-  'venus', 'aphrodite', 'cupids?', 'eros', 'putti', 'putto', 'nymphs?', 'satyrs?', 'fauns?', 'bacchus', 'bacchan\\w*',
-  'diana', 'leda', 'dana[eë]', 'susanna', 'bathsheba', 'andromeda', 'galatea', 'psyche', 'europa', 'eve', 'paradise', 'temptation',
-  'massacre', 'martyr\\w*', 'crucifi\\w*', 'execution', 'behead\\w*', 'flaying', 'rape', 'abduction', 'slaughter\\w*',
-  'torture', 'corpses?', 'hanged', 'plague', 'hell', 'lamentation', 'piet[aà]', 'dead christ',
-].join('|')})\\b`, 'i');
+  'bath', 'bathers?', 'bathing', 'baigneuses?', 'baigneurs?', 'baignade', 'bains?', 'badend\\w*', 'baders?', 'baadsters?',
+  'bagnanti', 'ba[ñn]istas', 'toilette', 'odalisques?', 'harem',
+  'v[eé]nus', 'aphrodite', 'cupids?', 'amours', 'eros', 'putti', 'putto', 'nymphs?', 'nymph(es|en)', 'ninf[ae]s?', 'nimfen',
+  'satyrs?', 'satyres?', 'satiri?', 'fauns?', 'faunes?', 'bacchus', 'bacchan\\w*',
+  'diana', 'diane', 'l[eé]da', 'dana[eëé]', 'susanna', 'suzanne', 'bathsheba', 'bethsab[eé]e', 'andromeda', 'androm[eè]de',
+  'galatea', 'galat[eé]e', 'psych[eé]', 'europa', '[eè]ve', 'paradise', 'paradis', 'paradies', 'paradijs',
+  'temptation', 'tentation', 'versuchung', 'verleiding',
+  'massacres?', 'gemetzel', 'strage', 'matanza', 'martyr\\w*', 'martirio', 'marter\\w*',
+  'crucifi\\w*', 'crocifiss\\w*', 'kreuzigung', 'kruisiging', 'ex[eé]cution', 'hinrichtung', 'terechtstelling', 'fusilamientos?',
+  'behead\\w*', 'd[eé]capit\\w*', 'enthaupt\\w*', 'onthoofd\\w*', 'flaying', 'rape', 'viol', 'raub', 'abduction',
+  'enl[eè]vement', 'entf[üu]hrung', 'slaughter\\w*',
+  'torture', 'corpses?', 'cadavres?', 'cad[aá]ver(es)?', 'cadaveri', 'leichen?', 'lijken?', 'hanged', 'pendus?',
+  'plague', 'peste', 'hell', 'h[öo]lle', 'inferno', 'infierno',
+  'lamentation', 'd[eé]ploration', 'beweinung', 'bewening', 'compianto', 'piet[aà]', 'dead christ', 'christ mort',
+].join('|')})(?![\\p{L}\\p{N}_])`, 'iu');

@@ -50,7 +50,7 @@ describe('the accent row', () => {
     'fr-FR': ['pâtes', 'gâteau', 'bœuf', 'Œufs', 'crème fraîche', 'août', 'Noël', 'maïs', 'forêt', 'où', 'sûr', 'côte', 'Pâques', 'Été', 'ça'],
     'es-ES': ['jamón', 'atún', 'plátanos', 'azúcar', 'café', 'maíz', 'pingüino', 'niño', 'Árbol'],
     'pt-BR': ['pão', 'feijão', 'açúcar', 'maçã', 'limão', 'café', 'você', 'avô', 'à noite', 'pêssego', 'salsão', 'aniversários', 'baú', 'botões', 'família', 'Água', 'Óleo'],
-    'nl-NL': ['één', 'crème', 'reëel', 'patiënt', 'paté', 'coördinatie', 'ruïne', 'reünie', 'Eén'],
+    'nl-NL': ['één', 'crème', 'reëel', 'patiënt', 'paté', 'coördinatie', 'ruïne', 'reünie', 'Eén', 'crème fraîche', 'crêpes'],
     'da-DK': ['rødkål', 'æg', 'smør', 'Øl', 'Æbler', 'Århus'],
   };
 
@@ -67,6 +67,10 @@ describe('the accent row', () => {
       }
     });
   }
+
+  it('gives a Dutch wall ê and î for the French words on its shopping lists', () => {
+    expect(wallKeyboardAccents(wallKeyboardLayout('nl-NL'), 'text')).toBe('ëéèêïîöü');
+  });
 
   it('holds small letters only, none of them already on the letter rows', () => {
     for (const tag of Object.keys(LOCALES)) {

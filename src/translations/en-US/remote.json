@@ -110,7 +110,7 @@
   },
   "choresTab": {
     "header": "Chores",
-    "headerFor": "{name}’s chores",
+    "headerFor": "{name}'s chores",
     "switchHint": "Not {name}? Tap your name to switch.",
     "subNav": {
       "today": "Today",
@@ -567,8 +567,8 @@
     "messageLabel": "Message",
     "messagePlaceholder": "What should the wall show?",
     "durationLabel": "Duration",
-    "duration10s": "10s",
-    "duration30s": "30s",
+    "duration10s": "10 sec",
+    "duration30s": "30 sec",
     "duration1Min": "1 min",
     "duration5Min": "5 min",
     "durationPersistent": "Persistent",
@@ -768,8 +768,8 @@
     },
     "grownUpLock": {
       "body": {
-        "one": "The walls and the chores page won’t take the grown-up code for {count} more minute.",
-        "other": "The walls and the chores page won’t take the grown-up code for {count} more minutes."
+        "one": "The walls and the chores page won't take the grown-up code for {count} more minute.",
+        "other": "The walls and the chores page won't take the grown-up code for {count} more minutes."
       }
     }
   },
@@ -1016,7 +1016,10 @@
   "timers": {
     "title": "Timers",
     "quickTimer": "Quick timer",
-    "quickName": "{minutes} minute timer",
+    "quickName": {
+      "one": "{minutes} minute timer",
+      "other": "{minutes} minute timer"
+    },
     "start": "Start",
     "sound": "Sound",
     "routines": "Routines",
@@ -1059,7 +1062,10 @@
     "minUnit": "min",
     "secUnit": "sec",
     "stepSeconds": "Seconds",
-    "quickNameSeconds": "{seconds} second timer",
+    "quickNameSeconds": {
+      "one": "{seconds} second timer",
+      "other": "{seconds} second timer"
+    },
     "quickNameClock": "{time} timer",
     "secondsShort": "{seconds} sec",
     "showingOn": "Showing on {names}",

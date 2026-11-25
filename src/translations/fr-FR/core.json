@@ -125,7 +125,7 @@
       "needsVersion": "Ce lien a besoin d'un numéro de version. Indiquez la version à installer.",
       "notAPlugin": "Ce lien ne mène pas à un plugin Home Screens. Vérifiez qu'il pointe vers le fichier .tar.gz du plugin.",
       "tooBig": "Ce fichier est trop gros pour être un plugin. Un plugin peut faire jusqu'à {max} Mo.",
-      "alreadyInstalled": "Ce plugin est déjà installé. Mettez-le plutôt à jour depuis la boutique de plugins."
+      "alreadyInstalled": "Ce plugin est déjà installé depuis la marketplace de plugins. Mettez-le plutôt à jour dans l'onglet « Mises à jour »."
     },
     "icloud": {
       "signInRefused": "Impossible de se connecter à iCloud. Vérifiez l'identifiant Apple, et assurez-vous que le mot de passe est un mot de passe d'application créé sur account.apple.com ; votre mot de passe Apple habituel ne fonctionne pas ici."
@@ -223,13 +223,13 @@
     "line": "Un adulte peut le faire dans l'éditeur Home Screens. Va dans {place} et clique sur Laisser entrer.",
     "waiting": "En attente d'être autorisé à entrer…",
     "signIn": "Juste un coup d'œil ? Connecte-toi",
-    "noCookieTitle": "Ce navigateur ne garde pas sa place",
+    "noCookieTitle": "Ce navigateur oublie sans cesse qu'il est un mur",
     "noCookieLine": "Home Screens reconnaît un mur grâce à un cookie, et ce navigateur ne l'a pas gardé. Active les cookies pour cette adresse, puis recharge la page.",
     "keepLine": "Tu es connecté, donc tu ne fais que regarder.",
     "keepButton": "Garder comme mur",
     "keepClose": "Fermer",
     "kept": "Ce navigateur est maintenant un mur.",
-    "keepFailed": "Ça n'a pas marché. Réessaie."
+    "keepFailed": "Impossible de le garder comme mur. Réessaie."
   },
   "login": {
     "checkingAuth": "Vérification de l'authentification…",
@@ -343,7 +343,10 @@
   },
   "timer": {
     "stepCount": "Étape {current} sur {total}",
-    "quickName": "Minuteur de {minutes} minutes",
+    "quickName": {
+      "one": "Minuteur de {minutes} minute",
+      "other": "Minuteur de {minutes} minutes"
+    },
     "almostDone": "Presque fini !",
     "done": "Terminé !",
     "paused": "En pause",
@@ -356,7 +359,10 @@
     "minutesShort": "{minutes} min",
     "moreSteps": "+{count} de plus",
     "progressWords": "{done} faites · {left} à faire",
-    "quickNameSeconds": "Minuteur de {seconds} secondes",
+    "quickNameSeconds": {
+      "one": "Minuteur de {seconds} seconde",
+      "other": "Minuteur de {seconds} secondes"
+    },
     "quickNameClock": "Minuteur de {time}",
     "pause": "Pause",
     "resume": "Reprendre",
@@ -418,7 +424,7 @@
     "color": "Couleur",
     "emptyTitle": "Personne pour le moment",
     "emptyDescription": "Les personnes du foyer ajoutées ici se retrouvent dans les tâches, les récompenses, les calendriers et les emplois du temps.",
-    "loadFailed": "Impossible de charger la famille. Vérifie que Home Screens est allumé et réessaie.",
+    "loadFailed": "Impossible de charger la famille. Il faut vérifier que Home Screens est allumé, puis réessayer.",
     "retry": "Réessayer",
     "saved": "Famille enregistrée.",
     "removeTitle": "Supprimer {name} ?",
@@ -867,7 +873,7 @@
     "undo": "Annuler"
   },
   "wallNames": {
-    "hubScreen": "L'écran de Home Screens lui-même",
+    "hubScreen": "Le navigateur de Home Screens lui-même",
     "someBrowser": "Un navigateur",
     "browserOn": "{browser} sur {device}",
     "justDevice": "Un navigateur sur {device}",
