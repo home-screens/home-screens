@@ -96,12 +96,14 @@ NEXT_VERSION=$(node -p "require('./package.json').version")
 echo "Preparing release v${NEXT_VERSION}..."
 
 # Generate release notes via Claude CLI
+# gh is allowed for two read-only lookups: the merged pull requests in the
+# range and the GitHub login behind a commit, so contributors get tagged.
 NOTES_FILE="RELEASE_NOTES/v${NEXT_VERSION}.md"
 if command -v claude &>/dev/null; then
   echo "Generating release notes..."
   mkdir -p RELEASE_NOTES
   echo "/release-notes ${NEXT_VERSION}" \
-    | claude -p --allowedTools 'Bash(git:*) Read Write' \
+    | claude -p --allowedTools 'Bash(git:*) Bash(gh pr list:*) Bash(gh api repos/home-screens/home-screens/commits/:*) Read Write' \
     || echo "Warning: release notes generation failed, continuing without them"
 else
   echo "Skipping release notes (claude CLI not installed)"
