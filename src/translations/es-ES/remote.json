@@ -1545,7 +1545,12 @@
       "changedElsewhere": "Alguien acaba de cambiar este evento, así que esta es la versión más reciente. Vuelve a hacer tu cambio y guarda.",
       "repeatsNote": "{title} se repite. Al guardar, eliges si cambia solo este día o todas las veces.",
       "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en {place}."
-    }
+    },
+    "troubleSignInTitle": "Google Calendar necesita un nuevo inicio de sesión",
+    "troubleSignInBody": "Sus eventos han dejado de actualizarse aquí y en el monitor. Vuelve a iniciar sesión en {place} desde un ordenador. Las notas del día funcionan como siempre.",
+    "troubleOneTitle": "{name} no se está actualizando",
+    "troubleSomeTitle": "Algunos calendarios no se están actualizando",
+    "troubleFailingBody": "Puede que falten algunos eventos aquí y en el monitor. Home Screens sigue intentándolo."
   },
   "wallWaiting": {
     "title": {

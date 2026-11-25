@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { CalendarPlus, ChevronRight, Repeat } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { CalendarPlus, ChevronRight, Repeat, TriangleAlert } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { upcomingDays } from '@/lib/day-notes';
 import { capitalize } from '@/lib/meal-constants';
@@ -61,7 +61,7 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
   const timeFormat = useHouseholdClockFormat();
   const [page, setPage] = useState(0);
   const days = upcomingDays(today, page);
-  const { entry, events, loadError, reload, write } = useCalendarTab(days);
+  const { entry, events, loadError, trouble, reload, write } = useCalendarTab(days);
   const [form, setForm] = useState<Form | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [ask, setAsk] = useState<Ask | null>(null);
@@ -251,17 +251,30 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
       : readiness === 'googleUnreachable' ? 'unreachable'
         : readiness === 'noCalendars' ? 'pick'
           : null;
-  const card = cardKind ? (
-    <div data-testid="calendar-adding-card" style={{ background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border-strong)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', gap: 12 }}>
-      <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--hs-accent-soft)', color: 'var(--hs-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-        <CalendarPlus size={20} aria-hidden="true" />
-      </span>
-      <div>
-        <b style={{ display: 'block', fontSize: 15, marginBottom: 3 }}>{t(`calendarTab.${cardKind}Title`)}</b>
-        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{t(`calendarTab.${cardKind}Body`, { place: settingsPlaceText(tCore, 'calendar') })}</p>
-      </div>
-    </div>
+  const place = settingsPlaceText(tCore, 'calendar');
+  // Calendars the hub could not read leave their days looking free: say so
+  // over the days, the way the wall's calendar card does. A Google sign-in
+  // that lapsed is said once, here, rather than again by the adding card.
+  const troubleCard = trouble ? (
+    <TabCard
+      testId="calendar-trouble-card"
+      tone="warning"
+      icon={<TriangleAlert size={20} aria-hidden="true" />}
+      title={trouble.kind === 'signIn' ? t('calendarTab.troubleSignInTitle')
+        : trouble.name ? t('calendarTab.troubleOneTitle', { name: trouble.name })
+          : t('calendarTab.troubleSomeTitle')}
+      body={trouble.kind === 'signIn' ? t('calendarTab.troubleSignInBody', { place }) : t('calendarTab.troubleFailingBody')}
+    />
   ) : null;
+  const addingCard = cardKind && !(cardKind === 'signIn' && trouble?.kind === 'signIn') ? (
+    <TabCard
+      testId="calendar-adding-card"
+      icon={<CalendarPlus size={20} aria-hidden="true" />}
+      title={t(`calendarTab.${cardKind}Title`)}
+      body={t(`calendarTab.${cardKind}Body`, { place })}
+    />
+  ) : null;
+  const card = troubleCard || addingCard ? <>{troubleCard}{addingCard}</> : null;
 
   const editing = form?.mode === 'change' ? form : null;
   const editDay = editing ? daySheetHeading(dateOfIso(editing.editable.draft.date), locale).full : '';
@@ -346,6 +359,28 @@ export default function CalendarTab({ openAdd, onOpenedAdd }: {
           onCancel={() => setAsk(null)}
         />
       ))}
+    </div>
+  );
+}
+
+/** One card over the days: what adding needs, or which calendars stopped updating. */
+function TabCard({ testId, icon, title, body, tone }: { testId: string; icon: ReactNode; title: string; body: string; tone?: 'warning' }) {
+  return (
+    <div data-testid={testId} role={tone === 'warning' ? 'status' : undefined} style={{ background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border-strong)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', gap: 12 }}>
+      <span
+        style={{
+          width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none',
+          ...(tone === 'warning'
+            ? { background: 'color-mix(in srgb, var(--hs-warning) 14%, transparent)', color: 'var(--hs-warning-ink)' }
+            : { background: 'var(--hs-accent-soft)', color: 'var(--hs-accent)' }),
+        }}
+      >
+        {icon}
+      </span>
+      <div>
+        <b style={{ display: 'block', fontSize: 15, marginBottom: 3 }}>{title}</b>
+        <p style={{ fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: 1.45 }}>{body}</p>
+      </div>
     </div>
   );
 }

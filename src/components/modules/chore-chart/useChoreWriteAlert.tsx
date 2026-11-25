@@ -21,9 +21,11 @@ export interface ChoreWriteAlert {
  * charts use it: the screen has already put the tick back, and without words a
  * kid walks away believing it counted.
  *
- * Only a bonus refusal gets bonus words ("Esme got it first"); anything else
- * (a regular chore, a hub out of reach) is a plain "didn't save". The chart
- * cannot tell who tapped, so it names who has the chore.
+ * Only a bonus refusal gets bonus words ("Esme got it first"). A write that
+ * got no answer at all (`error` is what the request threw: no connection, or
+ * its deadline) says Home Screens could not be reached, because trying again
+ * cannot help until it answers. Anything else is a plain "didn't save". The
+ * chart cannot tell who tapped, so it names who has the chore.
  */
 export function useChoreWriteAlert(members: readonly FamilyMember[]) {
   const t = useTranslate('modules');
@@ -44,7 +46,8 @@ export function useChoreWriteAlert(members: readonly FamilyMember[]) {
     // Nobody gave the grown-up code: the tick stays, and nothing failed.
     if (!outcome.refused && isGrownUpCancelled(outcome.error)) return;
     if (!outcome.refusal) {
-      setAlert({ text: tCore('refusals.saveFailed'), bonus: false });
+      const unanswered = !outcome.refused && outcome.error !== undefined;
+      setAlert({ text: unanswered ? t('chore-chart.writeUnreachable') : tCore('refusals.saveFailed'), bonus: false });
       return;
     }
     const name = members.find((m) => m.id === outcome.memberId)?.name;

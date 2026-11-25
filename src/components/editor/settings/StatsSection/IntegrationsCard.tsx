@@ -3,6 +3,7 @@
 import { useTranslate } from '@/i18n';
 import { CONNECTABLE_SERVICES, isServiceConnected } from '@/lib/connectable-services';
 import type { SystemStats } from '@/lib/system-stats-types';
+import ServiceAttentionNotice from '../shared/ServiceAttentionNotice';
 
 /**
  * The connected-services grid on the Status page.
@@ -17,10 +18,15 @@ import type { SystemStats } from '@/lib/system-stats-types';
  * numbers for the same idea on two pages of the same app. This page's job is
  * to show which things are connected, and the ticks do that without asserting
  * a total that only agrees with itself.
+ *
+ * A service that is set up but not working right now (`app.attention`: a
+ * Google sign-in that lapsed, a server that isn't answering) is amber rather
+ * than ticked, and says what to do under the grid.
  */
 export function IntegrationsCard({ stats }: { stats: SystemStats }) {
   const t = useTranslate('editor');
   const configuredKeys = stats.app.configuredSecrets;
+  const attention = stats.app.attention ?? {};
 
   return (
     <div className="mt-4">
@@ -34,18 +40,21 @@ export function IntegrationsCard({ stats }: { stats: SystemStats }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5">
         {CONNECTABLE_SERVICES.map((service) => {
           const connected = isServiceConnected(service, configuredKeys, stats.app.googleApps);
+          const troubled = !!attention[service.id];
           return (
-            <div key={service.id} className="flex items-center gap-2 text-xs min-w-0">
+            <div key={service.id} className="flex items-center gap-2 text-xs min-w-0" data-attention={troubled ? '' : undefined}>
               <span className={`inline-flex items-center justify-center w-[22px] h-[22px] rounded-md text-[10px] font-semibold font-mono border shrink-0 ${
-                connected
-                  ? 'bg-hs-success/20 text-hs-success border-hs-success/35'
-                  : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
+                troubled
+                  ? 'bg-hs-warning/20 text-hs-warning border-hs-warning/35'
+                  : connected
+                    ? 'bg-hs-success/20 text-hs-success border-hs-success/35'
+                    : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
               }`}>
                 {service.initials}
               </span>
               <span
-                title={service.label}
-                className={`truncate ${connected ? 'text-hs-text-secondary' : 'text-hs-text-faint'}`}
+                title={troubled ? `${service.label}: ${t('settings.serviceAttention.needsAttention')}` : service.label}
+                className={`truncate ${connected || troubled ? 'text-hs-text-secondary' : 'text-hs-text-faint'}`}
               >
                 {service.label}
               </span>
@@ -53,6 +62,10 @@ export function IntegrationsCard({ stats }: { stats: SystemStats }) {
           );
         })}
       </div>
+      {CONNECTABLE_SERVICES.map((service) => {
+        const need = attention[service.id];
+        return need ? <ServiceAttentionNotice key={service.id} attention={need} name={service.label} linkToKeys className="mt-3" /> : null;
+      })}
     </div>
   );
 }

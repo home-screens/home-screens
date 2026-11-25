@@ -1168,7 +1168,8 @@
       },
       "addButtonNone": "Elige algunas tareas",
       "weeklyDay": "Qué día"
-    }
+    },
+    "writeUnreachable": "No se pudo conectar con Home Screens, así que no se guardó. Avisa a una persona mayor."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Premios",
@@ -1702,7 +1703,8 @@
         "checkArt": "Prueba a relajar un filtro en el editor",
         "tryLater": "Volverán solas"
       }
-    }
+    },
+    "notUpdatingSince": "Sin actualizar desde {time}"
   },
   "event-detail": {
     "close": "Cerrar",

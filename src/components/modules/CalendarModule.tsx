@@ -43,6 +43,7 @@ import { CARD_VIEW_BUTTONS } from './calendar/view-buttons';
 import { useWallCalendarSwitch } from './shared/useWallCalendarSwitch';
 import { CalendarSwitchBar } from './shared/CalendarSwitchBar';
 import { WallPersonSheet } from './shared/WallPersonSheet';
+import NotUpdatingBadge from './shared/NotUpdatingBadge';
 import {
   CALENDAR_CARD_VIEW_ORDER, CARD_SWITCH_MIN_HEIGHT, livePick, offersPersonPicker, personEventCounts, wallPeopleChoices, wallSwitchedConfig, wallViewChoices,
 } from '@/lib/calendar-wall-switch';
@@ -358,19 +359,7 @@ export default function CalendarModule({ config: savedConfig, style, events, tim
             style={{ inset: -style.padding, borderRadius: style.borderRadius, boxShadow: 'inset 0 0 0 2px rgba(245,185,66,0.55)' }}
           />
         )}
-        {status.kind === 'badge' && (
-          <div
-            className="flex items-center gap-1.5 shrink-0 self-start"
-            role="status"
-            data-loud={status.loud ? '' : undefined}
-            style={status.loud
-              ? { fontSize: '0.7em', marginBottom: 6, padding: '0.3em 0.7em', borderRadius: '0.5em', backgroundColor: 'rgba(245,185,66,0.14)' }
-              : { fontSize: '0.6em', marginBottom: 4 }}
-          >
-            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: status.loud ? '#f5b942' : '#d9a441' }} aria-hidden="true" />
-            <span style={{ color: status.loud ? '#f5b942' : '#d9a441', fontWeight: 600 }}>{status.text}</span>
-          </div>
-        )}
+        {status.kind === 'badge' && <NotUpdatingBadge text={status.text} loud={status.loud} />}
         {legendPlacement === 'header' && (
           <CalendarLegend
             rows={legend}

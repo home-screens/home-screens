@@ -1545,7 +1545,12 @@
       "changedElsewhere": "Someone changed this event a moment ago, so this is the newest version. Make your change again, then save.",
       "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
       "noCalendars": "No calendar takes new events yet. Pick some in {place}."
-    }
+    },
+    "troubleSignInTitle": "Google Calendar needs a new sign-in",
+    "troubleSignInBody": "Its events have stopped updating here and on the wall. Sign in again in {place} on a computer. Day notes work as always.",
+    "troubleOneTitle": "{name} isn't updating",
+    "troubleSomeTitle": "Some calendars aren't updating",
+    "troubleFailingBody": "Some events may be missing here and on the wall. Home Screens keeps trying."
   },
   "wallWaiting": {
     "title": {

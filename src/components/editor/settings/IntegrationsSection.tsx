@@ -16,6 +16,8 @@ import MealieIntegrationCard, { MEALIE_CARD_FIELD_ID } from './MealieIntegration
 import { getStatusInfo } from './shared/integration-status';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useGoogleApps } from '@/hooks/useGoogleApps';
+import { useServiceAttention } from '@/hooks/useServiceAttention';
+import ServiceAttentionNotice from './shared/ServiceAttentionNotice';
 import { useTranslate } from '@/i18n';
 import { isServiceConnected, servicesForPage } from '@/lib/connectable-services';
 import { SettingsSectionHeading } from '@/components/editor/settings/shared/SettingsPanel';
@@ -43,10 +45,18 @@ export default function IntegrationsSection() {
   // Which Google app signs in decides both the Google card and whether
   // Google counts as connected, so it is re-read whenever a key is saved.
   const { apps, loading: appsLoading, refetch: refetchApps } = useGoogleApps();
+  // Services set up but not working right now, asked again after any save:
+  // a corrected address or a new key is the usual fix.
+  const { attention, loading: attentionLoading, refetch: refetchAttention } = useServiceAttention();
   const refetchGoogle = useCallback(() => {
     refetch();
     void refetchApps();
-  }, [refetch, refetchApps]);
+    void refetchAttention();
+  }, [refetch, refetchApps, refetchAttention]);
+  const refetchKeys = useCallback(() => {
+    refetch();
+    void refetchAttention();
+  }, [refetch, refetchAttention]);
   // Memoize visible integrations + per-card status info so the labels follow
   // the active locale while the underlying brand names stay verbatim.
   const { visibleIntegrations, cardStatus } = useMemo(() => {
@@ -63,7 +73,7 @@ export default function IntegrationsSection() {
     };
   }, [status, t]);
 
-  if (loading || appsLoading) {
+  if (loading || appsLoading || attentionLoading) {
     return (
       <section>
         <FieldHint>{t('settings.integrationsPage.loadingStatus')}</FieldHint>
@@ -77,6 +87,7 @@ export default function IntegrationsSection() {
   const configuredCount = visibleIntegrations.filter((service) =>
     isServiceConnected(service, Object.keys(status).filter((k) => status[k as SecretKey]), apps),
   ).length;
+  const attentionCount = visibleIntegrations.filter((service) => attention[service.id]).length;
 
   const { immich, microsoft, unsplash, todoist, tomtom } = cardStatus;
 
@@ -92,6 +103,11 @@ export default function IntegrationsSection() {
           <strong className="text-hs-text-secondary">{visibleIntegrations.length}</strong>
           {t('settings.integrationsPage.summary.configuredCountPart2')}
         </span>
+        {attentionCount > 0 && (
+          <span className="text-[13px] text-hs-warning-ink" data-testid="integrations-attention-count">
+            {t('settings.serviceAttention.summary', { count: attentionCount })}
+          </span>
+        )}
       </div>
 
       {/* Google — full width */}
@@ -99,7 +115,7 @@ export default function IntegrationsSection() {
         <SettingsSectionHeading>
           {t('settings.integrationsPage.groups.googleEcosystem')}
         </SettingsSectionHeading>
-        <GoogleIntegrationCard status={status} onSaved={refetchGoogle} apps={apps} />
+        <GoogleIntegrationCard status={status} onSaved={refetchGoogle} apps={apps} attention={attention.google} />
       </div>
 
       {/* Photos & backgrounds: 2-col masonry */}
@@ -114,17 +130,19 @@ export default function IntegrationsSection() {
             iconBg="#4250af"
             name={t('settings.integrationsPage.immich.name')}
             description={t('settings.integrationsPage.immich.description')}
-            statusLabel={immich.label}
-            statusType={immich.type}
+            statusLabel={attention.immich ? t('settings.serviceAttention.needsAttention') : immich.label}
+            statusType={attention.immich ? 'attention' : immich.type}
+            defaultOpen={attention.immich ? true : undefined}
           >
             <div className="space-y-4">
+              {attention.immich && <ServiceAttentionNotice attention={attention.immich} name={t('settings.integrationsPage.immich.name')} />}
               <SecretField
                 label={t('settings.integrationsPage.immich.urlLabel')}
                 secretKey="immich_url"
                 placeholder={t('settings.integrationsPage.immich.urlPlaceholder')}
                 helpText={t('settings.integrationsPage.immich.urlHelp')}
                 status={!!status.immich_url}
-                onSaved={refetch}
+                onSaved={refetchKeys}
               />
               <SecretField
                 label={t('common.apiKey')}
@@ -132,7 +150,7 @@ export default function IntegrationsSection() {
                 placeholder={t('settings.integrationsPage.immich.apiKeyPlaceholder')}
                 helpText={t('settings.integrationsPage.immich.apiKeyHelp')}
                 status={!!status.immich_api_key}
-                onSaved={refetch}
+                onSaved={refetchKeys}
               />
             </div>
           </IntegrationCard>

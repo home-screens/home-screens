@@ -21,10 +21,17 @@ beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); cleanup(); });
 
 describe('useChoreWriteAlert', () => {
-  it('says a tick did not save when the hub could not be reached', () => {
+  it('says a tick did not save when the hub answered with something it could not use', () => {
     const { result } = renderHook(() => useChoreWriteAlert([esme]), { wrapper });
     act(() => result.current.report(lost));
     expect(result.current.alert).toEqual({ text: "That didn't save. Try again.", bonus: false });
+  });
+
+  it('says Home Screens could not be reached when the write got no answer at all', () => {
+    const { result } = renderHook(() => useChoreWriteAlert([esme]), { wrapper });
+    const unanswered = { ok: false, refused: false, error: new TypeError('Failed to fetch') } as ChoreWriteOutcome;
+    act(() => result.current.report(unanswered));
+    expect(result.current.alert).toEqual({ text: enUSModules['chore-chart'].writeUnreachable, bonus: false });
   });
 
   it('names who has a bonus chore the hub refused', () => {

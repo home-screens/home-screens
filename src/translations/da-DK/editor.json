@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browseroplysninger kommer fra selve displayet. Der er ikke noget display forbundet lige nu.",
       "noBrowserStatsForName": "Browseroplysninger kommer fra selve displayet. {name} er ikke forbundet lige nu.",
-      "description": "Hvordan dine displays og denne enhed har det lige nu."
+      "description": "Hvordan dine displays og denne enhed har det lige nu.",
+      "lastSeenAway": "Sidst set for {age} siden, på {screen}. Tjek, at væggen er tændt og på wifi'en derhjemme."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -2992,6 +2993,18 @@
       "seen": "sidst set {time}",
       "removeConsequence": "Denne browser holder op med at vise væggen og skal lukkes ind igen.",
       "removeFailed": "Den kunne ikke fjernes. Prøv igen."
+    },
+    "serviceAttention": {
+      "needsAttention": "Skal tjekkes",
+      "summary": {
+        "one": "{count} skal tjekkes",
+        "other": "{count} skal tjekkes"
+      },
+      "googleSignInBody": "Kalenderne bliver ikke længere opdateret på væggen.",
+      "googleSignInLink": "Log ind igen under {place}",
+      "unreachableTitle": "Kan ikke få kontakt til {name}",
+      "unreachableBody": "Tjek, at den er tændt, og at adressen under {place} er rigtig.",
+      "openPlace": "Åbn {place}"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Forbundet",
       "connectedWithVersion": "Forbundet (v{version})",
       "apiKeyInvalid": "API-nøglen er ugyldig",
-      "cannotReachServer": "Kan ikke få kontakt til serveren",
+      "cannotReachServer": "Kan ikke få kontakt til Immich. Tjek, at den er tændt, og at adressen under {place} er rigtig.",
       "retry": "Prøv igen",
       "album": "Album",
       "anyAlbum": "Alle album",

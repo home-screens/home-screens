@@ -14,7 +14,7 @@ import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
 import { getShowingTimerSession, subscribeTimerPresence } from '@/lib/timer-presence';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
-import { publishRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
+import { isGatewayFailure, noteBeatOutcome, publishRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import type { ShownPhoto } from '@/stores/photo-show-store';
 import type { AlertType, SavedMeal } from '@/types/config';
 import type { ResolvedProfile } from '@/lib/schedule';
@@ -331,6 +331,7 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
           drain ? withDisplayParam('/api/display/commands', displayId) : '/api/display/revisions',
         );
         if (!mounted) return;
+        noteBeatOutcome(!isGatewayFailure(res.status));
         if (res.status === 401 && drain && reloadForNewKey()) {
           handlersRef.current.reload();
           return;
@@ -360,7 +361,10 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
           await publishBuildIdAlone();
         }
       } catch {
-        // silent, keep polling
+        // No answer at all: no connection, or the request's deadline. The
+        // wall says so once it has lasted a while (NetworkIndicator), and
+        // keeps polling.
+        if (mounted) noteBeatOutcome(false);
       } finally {
         beating = false;
       }

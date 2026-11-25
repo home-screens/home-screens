@@ -11,8 +11,12 @@ interface Props {
   name: string;
   description: string;
   statusLabel: string;
-  /** `own`: working, on something the household set up itself (Google's own-app pill). */
-  statusType: 'connected' | 'partial' | 'none' | 'own';
+  /**
+   * `own`: working, on something the household set up itself (Google's
+   * own-app pill). `attention`: set up, but not working right now (a sign-in
+   * that lapsed, a server that isn't answering).
+   */
+  statusType: 'connected' | 'partial' | 'none' | 'own' | 'attention';
   defaultOpen?: boolean;
   /** Optional settings-search anchor, rendered as `data-field-id` on the card's outer wrapper. */
   fieldId?: string;
@@ -35,7 +39,7 @@ export default function IntegrationCard({
   const tone =
     statusType === 'none'
       ? 'neutral'
-      : statusType === 'partial'
+      : statusType === 'partial' || statusType === 'attention'
         ? 'warning'
         : statusType === 'own'
           ? 'info'

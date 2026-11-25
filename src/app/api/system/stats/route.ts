@@ -10,6 +10,7 @@ import { getGoogleAppsStatus } from '@/lib/google-token-stores';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { readRestartNeeded } from '@/lib/restart-needed-state';
+import { servicesNeedingAttention } from '@/lib/service-attention';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import type { SystemStats } from '@/lib/system-stats-types';
 
@@ -62,6 +63,7 @@ export const GET = withAuth(async () => {
     telemetryData,
     hardware,
     restartNeeded,
+    attention,
   ] = await Promise.all([
     fileSize(path.join(dataDir, 'config.json')),
     dirSize(path.join(dataDir, 'backups')),
@@ -73,6 +75,7 @@ export const GET = withAuth(async () => {
     readTelemetryData().catch(() => null),
     getLocalHardwareStats().catch(() => null),
     readRestartNeeded().catch(() => null),
+    servicesNeedingAttention().catch(() => ({})),
   ]);
 
   // Count modules across all screens on every display. Reading
@@ -127,6 +130,7 @@ export const GET = withAuth(async () => {
       profiles: config ? getAllProfiles(config).length : 0,
       configuredSecrets,
       googleApps,
+      attention,
       configSize,
     },
     telemetry: {

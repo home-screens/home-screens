@@ -4,9 +4,12 @@ import type { WeatherConfig, WeatherView, ModuleStyle, TimeFormat } from '@/type
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { useWallClock } from '@/hooks/useTZClock';
+import { useTZClock, useWallClock } from '@/hooks/useTZClock';
 import { forecastFromToday } from '@/lib/weather/daily';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { startOfDay } from 'date-fns';
+import { formatSince, LOUD_AFTER_MS } from '../shared/useFailingSources';
+import NotUpdatingBadge from '../shared/NotUpdatingBadge';
 import { resolveWeatherLocationLabel } from './location-label';
 import ModuleWrapper from '../ModuleWrapper';
 import { ModuleLoadingState } from '../ModuleStates';
@@ -39,6 +42,8 @@ interface WeatherModuleProps {
   alerts?: WeatherAlert[];
   /** Set by buildModuleProps only while there is no payload and the fetch failed. */
   weatherError?: FetchError;
+  /** Set by buildModuleProps while refreshes fail over a kept reading: when that reading was fetched. */
+  weatherStaleSince?: number;
   units?: 'metric' | 'imperial';
   timezone?: string;
   /** Household 12/24-hour preference (GlobalSettings.timeFormat), supplied by
@@ -56,6 +61,13 @@ interface WeatherModuleProps {
 
 /** How long to promise a forecast before admitting it is not arriving. */
 const WEATHER_STALL_MS = 20_000;
+
+/**
+ * How old a kept reading gets before the card says it is not updating. A
+ * reading is fetched every few minutes and the weather moves slowly, so one
+ * or two failed refreshes pass without a word.
+ */
+export const WEATHER_STALE_AFTER_MS = 60 * 60 * 1000;
 
 const SCALE_FACTORS: Record<WeatherView, number> = {
   current: 0.12,
@@ -115,7 +127,7 @@ const VIEW_COMPONENTS = {
   narrative: WeatherNarrativeView,
 };
 
-export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat: savedTimeFormat, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
+export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat: savedTimeFormat, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError, weatherStaleSince }: WeatherModuleProps) {
   const view = config.view ?? 'hourly';
   const timeFormat = useHouseholdTimeFormat(savedTimeFormat);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
@@ -133,6 +145,15 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
   // Ticks, so yesterday's row leaves at the household's midnight rather than
   // at the next refresh.
   const { isoDate: todayISO } = useWallClock(timezone);
+  const locale = useFormattingLocale();
+  // The household's wall clock, for how old a kept reading is.
+  const now = useTZClock(timezone, 60_000);
+  const stale = weatherStaleSince != null
+    ? formatSince(weatherStaleSince, { timezone, timeFormat, locale, now, today: startOfDay(now), t })
+    : null;
+  const staleBadge = stale && stale.ageMs >= WEATHER_STALE_AFTER_MS
+    ? { text: t('common.notUpdatingSince', { time: stale.text }), loud: stale.ageMs >= LOUD_AFTER_MS }
+    : null;
 
   if (locationMissing) {
     return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} fontSize={scaledFontSize} measureRef={containerRef} />;
@@ -170,6 +191,14 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
           >
             {label}
           </p>
+        )}
+        {/* Readable from across the room on any view, but well under the
+            reading itself: about a third of the card's scaled text, never
+            under 18px. The badge sizes its words at 0.6em of this box. */}
+        {staleBadge && (
+          <div className="flex-none flex" style={{ fontSize: `${Math.max(18, scaledFontSize * 0.35) / 0.6}px` }}>
+            <NotUpdatingBadge text={staleBadge.text} loud={staleBadge.loud} testId="weather-not-updating" />
+          </div>
         )}
         {/* Clipped so a view whose content exceeds its box (the `current` view
             does, at its own default size) can never paint over the header. Same

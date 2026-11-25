@@ -1546,7 +1546,12 @@
       "changedElsewhere": "Alguém mudou este evento agora há pouco, então esta é a versão mais nova. Faça sua mudança de novo e salve.",
       "repeatsNote": "{title} se repete. Ao salvar, você escolhe só este dia ou todas as vezes.",
       "noCalendars": "Nenhum calendário recebe eventos novos ainda. Escolha alguns em {place}."
-    }
+    },
+    "troubleSignInTitle": "O Google Agenda precisa de um novo login",
+    "troubleSignInBody": "Os eventos pararam de atualizar aqui e no painel. Entre de novo em {place} num computador. Os recados do dia funcionam como sempre.",
+    "troubleOneTitle": "{name} não está atualizando",
+    "troubleSomeTitle": "Alguns calendários não estão atualizando",
+    "troubleFailingBody": "Alguns eventos podem estar faltando aqui e no painel. O Home Screens continua tentando."
   },
   "wallWaiting": {
     "title": {

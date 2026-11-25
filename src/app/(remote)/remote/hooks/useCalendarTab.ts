@@ -8,7 +8,8 @@ import { HubUnreachableError, readJson } from '@/lib/hub-request';
 import { addIsoDays } from '@/lib/iso-date';
 import { parseDateInTZ } from '@/lib/timezone';
 import type { CalendarEntryInfo } from '@/lib/calendar-event-writes';
-import type { CalendarEvent } from '@/types/config';
+import type { CalendarEvent, CalendarSourceStatus } from '@/types/config';
+import { calendarTrouble, type CalendarTrouble } from '@/lib/calendar-trouble';
 
 /** What a write to the hub came back with: the JSON either way, or `unreachable` when the hub never answered. */
 export type CalendarWriteResult =
@@ -33,13 +34,16 @@ const CALENDAR_TAB_POLL_MS = 60_000;
  * minute while the tab shows, and when the phone comes back to it.
  * `loadError` says the events for those days could not be read (the hub did
  * not answer, or the calendars could not be reached), so empty days are not
- * taken for free ones.
+ * taken for free ones. `trouble` says the hub answered but some calendars
+ * could not be read (Google wants a new sign-in, a feed is down): the route
+ * leaves their events out, so their days would look free too.
  */
 export function useCalendarTab(days: readonly string[]) {
   const [entry, setEntry] = useState<CalendarEntryInfo | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [trouble, setTrouble] = useState<CalendarTrouble | null>(null);
   const first = days[0];
   const last = days[days.length - 1];
   // A slower read for an earlier week must not land over the newer one.
@@ -64,7 +68,7 @@ export function useCalendarTab(days: readonly string[]) {
       const timeMin = parseDateInTZ(`${first}T00:00:00`, zone).toISOString();
       const timeMax = parseDateInTZ(`${addIsoDays(last, 1)}T00:00:00`, zone).toISOString();
       const res = await editorFetch(`/api/calendar?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`);
-      const body = res.ok ? (await readJson(res)) as { events?: CalendarEvent[] } : null;
+      const body = res.ok ? (await readJson(res)) as { events?: CalendarEvent[]; sourceStatus?: CalendarSourceStatus[] } : null;
       if (mine !== generation.current) return;
       entryRef.current = info;
       setEntry(info);
@@ -75,6 +79,7 @@ export function useCalendarTab(days: readonly string[]) {
       if (body || !quiet) {
         setEvents(body?.events ?? []);
         setLoadError(!body && res.status !== 400);
+        setTrouble(calendarTrouble(body?.sourceStatus));
       }
     } catch {
       if (mine === generation.current && !quiet) setLoadError(true);
@@ -106,5 +111,5 @@ export function useCalendarTab(days: readonly string[]) {
   }, []);
 
   const reload = useCallback(() => load(), [load]);
-  return { entry, events, loaded, loadError, reload, write };
+  return { entry, events, loaded, loadError, trouble, reload, write };
 }

@@ -1165,7 +1165,8 @@
       },
       "addButtonNone": "Pick some chores",
       "weeklyDay": "On which day"
-    }
+    },
+    "writeUnreachable": "Couldn't reach Home Screens, so that didn't save. Ask a grown-up."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Rewards",
@@ -1694,7 +1695,8 @@
         "checkArt": "Try loosening a filter in the editor",
         "tryLater": "They come back on their own"
       }
-    }
+    },
+    "notUpdatingSince": "Not updating since {time}"
   },
   "event-detail": {
     "close": "Close",

@@ -1165,7 +1165,8 @@
       },
       "addButtonNone": "Wähle ein paar Aufgaben aus",
       "weeklyDay": "An welchem Tag"
-    }
+    },
+    "writeUnreachable": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Frag einen Erwachsenen."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belohnungen",
@@ -1694,7 +1695,8 @@
         "checkArt": "Lockere im Editor einen Filter",
         "tryLater": "Die Bilder kommen von selbst wieder"
       }
-    }
+    },
+    "notUpdatingSince": "Seit {time} nicht aktualisiert"
   },
   "event-detail": {
     "close": "Schließen",

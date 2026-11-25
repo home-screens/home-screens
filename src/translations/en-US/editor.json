@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browser info comes from the display itself. No display is connected right now.",
       "noBrowserStatsForName": "Browser info comes from the display itself. {name} isn't connected right now.",
-      "description": "How your displays and this device are doing right now."
+      "description": "How your displays and this device are doing right now.",
+      "lastSeenAway": "Last seen {age} ago, on {screen}. Check that the wall is switched on and on the home Wi-Fi."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -2992,6 +2993,18 @@
       "seen": "seen {time}",
       "removeConsequence": "This browser stops showing the wall and has to be let in again.",
       "removeFailed": "Couldn't remove it. Try again."
+    },
+    "serviceAttention": {
+      "needsAttention": "Needs attention",
+      "summary": {
+        "one": "{count} needs attention",
+        "other": "{count} need attention"
+      },
+      "googleSignInBody": "Its calendars have stopped updating on the wall.",
+      "googleSignInLink": "Sign in again in {place}",
+      "unreachableTitle": "Can't reach {name}",
+      "unreachableBody": "Check that it is switched on and that its address in {place} is right.",
+      "openPlace": "Open {place}"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Connected",
       "connectedWithVersion": "Connected (v{version})",
       "apiKeyInvalid": "API key invalid",
-      "cannotReachServer": "Cannot reach server",
+      "cannotReachServer": "Can't reach Immich. Check that it is switched on and that its address in {place} is right.",
       "retry": "Retry",
       "album": "Album",
       "anyAlbum": "Any album",

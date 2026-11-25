@@ -1026,7 +1026,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
         />
       )}
 
-      <NetworkIndicator displayState={displayState} scale={scale} />
+      <NetworkIndicator displayState={displayState} scale={scale} timezone={settings.timezone} timeFormat={settings.timeFormat} />
       <OverlayBoundary name="alert" onFail={clearAlerts}>
         <AlertOverlay alertSettings={settings.alerts} displayState={displayState} viewport={viewportSize} />
       </OverlayBoundary>

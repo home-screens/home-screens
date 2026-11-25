@@ -93,15 +93,15 @@ export function useSharedDisplayData(
   // One call per source, spelled out so the hook order never depends on a
   // loop. The two records below are typed by the provider table, so a source
   // added there and not here does not compile.
-  const [owmData, owmError] = useFetchData(weatherUrl('openweathermap'), WEATHER_REFRESH_MS);
-  const [wapiData, wapiError] = useFetchData(weatherUrl('weatherapi'), WEATHER_REFRESH_MS);
-  const [pirateData, pirateError] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
-  const [noaaData, noaaError] = useFetchData(weatherUrl('noaa'), WEATHER_REFRESH_MS);
-  const [openMeteoData, openMeteoError] = useFetchData(weatherUrl('open-meteo'), WEATHER_REFRESH_MS);
-  const [yrData, yrError] = useFetchData(weatherUrl('yr'), WEATHER_REFRESH_MS);
-  const [smhiData, smhiError] = useFetchData(weatherUrl('smhi'), WEATHER_REFRESH_MS);
-  const [metofficeData, metofficeError] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
-  const [envcanadaData, envcanadaError] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
+  const [owmData, owmError, owmAt] = useFetchData(weatherUrl('openweathermap'), WEATHER_REFRESH_MS);
+  const [wapiData, wapiError, wapiAt] = useFetchData(weatherUrl('weatherapi'), WEATHER_REFRESH_MS);
+  const [pirateData, pirateError, pirateAt] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
+  const [noaaData, noaaError, noaaAt] = useFetchData(weatherUrl('noaa'), WEATHER_REFRESH_MS);
+  const [openMeteoData, openMeteoError, openMeteoAt] = useFetchData(weatherUrl('open-meteo'), WEATHER_REFRESH_MS);
+  const [yrData, yrError, yrAt] = useFetchData(weatherUrl('yr'), WEATHER_REFRESH_MS);
+  const [smhiData, smhiError, smhiAt] = useFetchData(weatherUrl('smhi'), WEATHER_REFRESH_MS);
+  const [metofficeData, metofficeError, metofficeAt] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
+  const [envcanadaData, envcanadaError, envcanadaAt] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
 
   // Memoized so a render that fetched nothing new hands every consumer the
   // same record (BackgroundProviderLayer is React.memo'd).
@@ -126,6 +126,24 @@ export function useSharedDisplayData(
     }
     return errors;
   }, [owmError, wapiError, pirateError, noaaError, openMeteoError, yrError, smhiError, metofficeError, envcanadaError]);
+
+  // When each failing source last answered, while the reading it gave then is
+  // still on screen: a card keeps that reading through an outage, and says
+  // how old it is. `updatedAt` holds still while a failure lasts (it is the
+  // last fetch that worked), so a healthy display builds an empty object and
+  // an outage builds the same one on every render.
+  const weatherStaleSince = useMemo(() => {
+    const at: Record<WeatherProviderId, number | null> = {
+      openweathermap: owmAt, weatherapi: wapiAt, pirateweather: pirateAt, noaa: noaaAt,
+      'open-meteo': openMeteoAt, yr: yrAt, smhi: smhiAt, metoffice: metofficeAt, envcanada: envcanadaAt,
+    };
+    const since: Partial<Record<string, number>> = {};
+    for (const provider of WEATHER_PROVIDER_IDS) {
+      const fetchedAt = at[provider];
+      if (weatherErrors[provider] && weatherByProvider[provider] && fetchedAt != null) since[provider] = fetchedAt;
+    }
+    return since;
+  }, [weatherErrors, weatherByProvider, owmAt, wapiAt, pirateAt, noaaAt, openMeteoAt, yrAt, smhiAt, metofficeAt, envcanadaAt]);
 
   // The household source's payload feeds the event bus and the shared state.
   // A source this build does not know has no payload, which clears the keys.
@@ -202,7 +220,7 @@ export function useSharedDisplayData(
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.
   return useMemo(
-    () => ({ weatherByProvider, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState }),
-    [weatherByProvider, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState],
+    () => ({ weatherByProvider, weatherErrors, weatherStaleSince, calendarData, calendarStatus, familyMembers, familyGroups, familyState }),
+    [weatherByProvider, weatherErrors, weatherStaleSince, calendarData, calendarStatus, familyMembers, familyGroups, familyState],
   );
 }

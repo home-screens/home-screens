@@ -1545,7 +1545,12 @@
       "changedElsewhere": "En anden har lige ændret denne begivenhed, så her er den nyeste udgave. Lav din ændring igen, og gem så.",
       "repeatsNote": "{title} gentages. Når du gemmer, vælger du, om det gælder denne dag eller alle gange.",
       "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under {place}."
-    }
+    },
+    "troubleSignInTitle": "Google Kalender skal have et nyt login",
+    "troubleSignInBody": "Aftalerne bliver ikke længere opdateret her og på væggen. Log ind igen under {place} på en computer. Dagsnoter virker som altid.",
+    "troubleOneTitle": "{name} bliver ikke opdateret",
+    "troubleSomeTitle": "Nogle kalendere bliver ikke opdateret",
+    "troubleFailingBody": "Nogle aftaler kan mangle her og på væggen. Home Screens bliver ved med at prøve."
   },
   "wallWaiting": {
     "title": {

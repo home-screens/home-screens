@@ -112,6 +112,54 @@ export function followedRevision(url: string): string | undefined {
   return latest.revisions[field];
 }
 
+/**
+ * How long the hub may go without answering a beat before the wall says so.
+ * Twenty missed beats: long enough that a hub restarting for an update, or a
+ * Wi-Fi hop, passes without a word.
+ */
+export const HUB_UNREACHABLE_AFTER_MS = 60_000;
+
+// The page itself came from the hub, so the hub answered when it loaded.
+let lastAnswerAt = Date.now();
+let answering = true;
+const reachListeners = new Set<() => void>();
+
+/**
+ * A gateway error is a proxy in front of the hub saying the hub is gone
+ * (nginx answering 502 while Home Screens restarts), not the hub answering.
+ * Any other status, a refusal included, means the hub is there.
+ */
+export function isGatewayFailure(status: number): boolean {
+  return status === 502 || status === 503 || status === 504;
+}
+
+/**
+ * Record whether a beat reached the hub. `useDisplayCommands` calls it for
+ * every beat: answered for any reply but a gateway error, unanswered for a
+ * beat that threw (no connection, or the request's deadline).
+ */
+export function noteBeatOutcome(answered: boolean, at: number = Date.now()): void {
+  if (answered) lastAnswerAt = at;
+  if (answered === answering) return;
+  answering = answered;
+  for (const listener of reachListeners) listener();
+}
+
+/** When the hub last answered, while the latest beat went unanswered; null while it answers. */
+export function hubSilentSince(): number | null {
+  return answering ? null : lastAnswerAt;
+}
+
+/** Listen for the hub starting or stopping answering. Returns the unsubscribe. */
+export function subscribeHubReach(listener: () => void): () => void {
+  reachListeners.add(listener);
+  return () => {
+    reachListeners.delete(listener);
+  };
+}
+
 export function __resetHeartbeatForTests(): void {
   latest = null;
+  lastAnswerAt = Date.now();
+  answering = true;
 }

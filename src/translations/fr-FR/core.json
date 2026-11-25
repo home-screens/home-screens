@@ -892,5 +892,8 @@
       "chromebook": "un Chromebook",
       "linux": "un ordinateur Linux"
     }
+  },
+  "hubReach": {
+    "lostSince": "Home Screens est injoignable depuis {time}"
   }
 }

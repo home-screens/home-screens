@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browserinformatie komt van het display zelf. Er is nu geen display verbonden.",
       "noBrowserStatsForName": "Browserinformatie komt van het display zelf. {name} is nu niet verbonden.",
-      "description": "Hoe het nu met je schermen en dit apparaat gaat."
+      "description": "Hoe het nu met je schermen en dit apparaat gaat.",
+      "lastSeenAway": "Laatst gezien {age} geleden, op {screen}. Controleer of de muur aanstaat en op de wifi thuis zit."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -2992,6 +2993,18 @@
       "seen": "gezien {time}",
       "removeConsequence": "Deze browser toont de muur niet meer en moet opnieuw worden binnengelaten.",
       "removeFailed": "Weghalen is niet gelukt. Probeer het opnieuw."
+    },
+    "serviceAttention": {
+      "needsAttention": "Vraagt aandacht",
+      "summary": {
+        "one": "{count} vraagt aandacht",
+        "other": "{count} vragen aandacht"
+      },
+      "googleSignInBody": "De agenda's worden op de muur niet meer bijgewerkt.",
+      "googleSignInLink": "Opnieuw inloggen bij {place}",
+      "unreachableTitle": "{name} is niet bereikbaar",
+      "unreachableBody": "Controleer of het aanstaat en of het adres bij {place} klopt.",
+      "openPlace": "{place} openen"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Verbonden",
       "connectedWithVersion": "Verbonden (v{version})",
       "apiKeyInvalid": "API-sleutel ongeldig",
-      "cannotReachServer": "Server niet bereikbaar",
+      "cannotReachServer": "Immich is niet bereikbaar. Controleer of het aanstaat en of het adres bij {place} klopt.",
       "retry": "Opnieuw proberen",
       "album": "Album",
       "anyAlbum": "Elk album",

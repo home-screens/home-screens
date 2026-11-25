@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} Go",
       "noBrowserStats": "Les informations sur le navigateur viennent de l’affichage lui-même. Aucun affichage n’est connecté pour l’instant.",
       "noBrowserStatsForName": "Les informations sur le navigateur viennent de l’affichage lui-même. L’affichage {name} n’est pas connecté pour l’instant.",
-      "description": "L'état de vos affichages et de cet appareil en ce moment."
+      "description": "L'état de vos affichages et de cet appareil en ce moment.",
+      "lastSeenAway": "Vu pour la dernière fois il y a {age}, sur {screen}. Vérifiez que le mur est allumé et connecté au Wi-Fi de la maison."
     },
     "displaysIndex": {
       "breadcrumb": "Affichages",
@@ -2992,6 +2993,18 @@
       "seen": "vu {time}",
       "removeConsequence": "Ce navigateur ne montre plus le mur et devra être autorisé à entrer à nouveau.",
       "removeFailed": "Impossible de le retirer. Réessayez."
+    },
+    "serviceAttention": {
+      "needsAttention": "À vérifier",
+      "summary": {
+        "one": "{count} à vérifier",
+        "other": "{count} à vérifier"
+      },
+      "googleSignInBody": "Ses calendriers ne se mettent plus à jour sur le mur.",
+      "googleSignInLink": "Se reconnecter dans {place}",
+      "unreachableTitle": "Impossible de joindre {name}",
+      "unreachableBody": "Vérifiez qu'il est allumé et que son adresse dans {place} est correcte.",
+      "openPlace": "Ouvrir {place}"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Connecté",
       "connectedWithVersion": "Connecté (v{version})",
       "apiKeyInvalid": "Clé API invalide",
-      "cannotReachServer": "Impossible d'atteindre le serveur",
+      "cannotReachServer": "Impossible de joindre Immich. Vérifiez qu'il est allumé et que son adresse dans {place} est correcte.",
       "retry": "Réessayer",
       "album": "Album",
       "anyAlbum": "N'importe quel album",

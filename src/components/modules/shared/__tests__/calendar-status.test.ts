@@ -3,7 +3,8 @@ import { startOfDay } from 'date-fns';
 import { toTZWallTime } from '@/lib/timezone';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarSourceStatus } from '@/types/config';
-import { calendarStatusView, formatSince, LOUD_AFTER_MS, GOOGLE_NOT_SIGNED_IN_KEY } from '../useFailingSources';
+import { calendarStatusView, formatSince, LOUD_AFTER_MS } from '../useFailingSources';
+import { GOOGLE_NOT_SIGNED_IN_KEY } from '@/lib/calendar-trouble';
 
 const TZ = 'America/Chicago';
 // 2026-09-01 10:30 in Chicago.

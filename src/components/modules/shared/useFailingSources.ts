@@ -6,9 +6,7 @@ import type { TranslateFn } from '@/i18n';
 import type { CalendarFetchStatus, CalendarSourceStatus, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { settingsPlaceText } from '@/lib/settings-route';
-
-/** Per-source `messageKey` the calendar route emits for a missing or expired Google sign-in. */
-export const GOOGLE_NOT_SIGNED_IN_KEY = 'googleNotSignedIn';
+import { needsGoogleSignIn } from '@/lib/calendar-trouble';
 
 /** A refresh that has been failing this long gets the loud badge and the tinted card edge. */
 export const LOUD_AFTER_MS = 24 * 60 * 60 * 1000;
@@ -110,8 +108,7 @@ export function calendarStatusView(opts: {
 
   if (opts.calendarSetup === 'noSources') return setupCard('noSources');
 
-  const needsSignIn = failingSources.length > 0
-    && failingSources.every((s) => s.messageKey === GOOGLE_NOT_SIGNED_IN_KEY);
+  const needsSignIn = needsGoogleSignIn(failingSources);
   if (needsSignIn && !opts.hasLiveSource) return setupCard('signIn');
 
   if (opts.calendarLoading) return { kind: 'loading' };

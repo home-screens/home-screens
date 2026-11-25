@@ -892,5 +892,8 @@
       "chromebook": "un Chromebook",
       "linux": "un ordenador con Linux"
     }
+  },
+  "hubReach": {
+    "lostSince": "No se puede conectar con Home Screens desde las {time}"
   }
 }

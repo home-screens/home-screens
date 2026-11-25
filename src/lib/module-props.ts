@@ -19,6 +19,11 @@ export interface SharedDisplayData {
   weatherByProvider: Record<WeatherProviderId, unknown>;
   /** Providers whose latest fetch failed, keyed by provider id. */
   weatherErrors: Partial<Record<string, FetchError>>;
+  /**
+   * For a failing provider whose last reading is still on screen, when that
+   * reading was fetched. Absent for a provider that is answering.
+   */
+  weatherStaleSince?: Partial<Record<string, number>>;
   calendarData: unknown;
   calendarStatus: CalendarFetchStatus;
   familyMembers?: FamilyMember[];
@@ -106,6 +111,12 @@ export interface ModuleDataSource {
     payloadFor(provider: string): WeatherPayload | null;
     /** Why `payloadFor` is null for this provider, when the surface knows. */
     errorFor(provider: string): FetchError | null;
+    /**
+     * When the reading `payloadFor` holds was fetched, while this provider's
+     * refreshes are failing; null while it answers, or where the surface has
+     * no fetch loop (the editor preview).
+     */
+    staleSinceFor(provider: string): number | null;
   };
   calendarEvents: unknown[] | null;
   /** null = surface has no fetch-health signal (editor preview). */
@@ -268,6 +279,9 @@ export function buildModuleProps(
       const error = source.weather.errorFor(provider);
       if (error) props.weatherError = error;
     }
+    // A kept reading whose refreshes are failing: the card says how old it is.
+    const staleSince = payload ? source.weather.staleSinceFor(provider) : null;
+    if (staleSince != null) props.weatherStaleSince = staleSince;
     props.units = source.weather.units;
     // The "show location" header needs the geocoded name (coordinates as
     // its fallback were injected above).
@@ -363,6 +377,7 @@ export function toDisplaySource(
         ? (sharedData.weatherByProvider[provider] as WeatherPayload | null | undefined) ?? null
         : null),
       errorFor: (provider) => sharedData.weatherErrors[provider] ?? null,
+      staleSinceFor: (provider) => sharedData.weatherStaleSince?.[provider] ?? null,
     },
     calendarEvents: extractCalendarEvents(calendarData),
     calendarStatus: sharedData.calendarStatus,
@@ -406,6 +421,7 @@ export function toEditorSource(
       units: settings?.units ?? 'imperial',
       payloadFor: (provider) => previewData.weatherByProvider[provider] ?? null,
       errorFor: (provider) => previewData.weatherErrors[provider] ?? null,
+      staleSinceFor: () => null,
     },
     calendarEvents: previewData.calendarEvents,
     // The editor preview has no display fetch loop to report on (null reads

@@ -108,6 +108,12 @@ export function DisplayCard({
           <div className="text-hs-text-faint">{t('settings.statsSection.lastSeen')}</div>
           <div className="text-hs-text-secondary">{t('settings.statsSection.timeAgo', { age: formatAge(statusAge!) })}</div>
         </div>
+      ) : displayStatus && statusAge !== null ? (
+        // The hub has heard from this wall, just not lately: when it was last
+        // here and what to check, rather than first-setup advice.
+        <p className="text-xs text-hs-text-muted" data-testid="display-last-seen">
+          {t('settings.statsSection.lastSeenAway', { age: formatAge(statusAge), screen: displayStatus.currentScreen.name })}
+        </p>
       ) : (
         <p className="text-xs text-hs-text-faint">
           {activeDisplay

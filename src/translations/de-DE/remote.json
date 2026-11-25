@@ -1545,7 +1545,12 @@
       "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert, deshalb siehst du jetzt den neuesten Stand. Mach deine Änderung noch einmal und speichere dann.",
       "repeatsNote": "„{title}“ wiederholt sich. Beim Speichern wählst du: nur an diesem Tag oder an allen Tagen.",
       "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus."
-    }
+    },
+    "troubleSignInTitle": "Google Kalender braucht eine neue Anmeldung",
+    "troubleSignInBody": "Die Termine werden hier und auf dem Display nicht mehr aktualisiert. Melde dich am Computer unter {place} neu an. Tagesnotizen funktionieren wie immer.",
+    "troubleOneTitle": "{name} wird nicht aktualisiert",
+    "troubleSomeTitle": "Einige Kalender werden nicht aktualisiert",
+    "troubleFailingBody": "Manche Termine fehlen vielleicht hier und auf dem Display. Home Screens versucht es weiter."
   },
   "wallWaiting": {
     "title": {

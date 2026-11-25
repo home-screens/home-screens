@@ -14,6 +14,8 @@ import { settingsPath } from '@/lib/settings-route';
 import { useEditorStore } from '@/stores/editor-store';
 import FieldHint from '@/components/ui/FieldHint';
 import Notice from '@/components/ui/Notice';
+import ServiceAttentionNotice from './shared/ServiceAttentionNotice';
+import type { ServiceAttention } from '@/lib/service-attention';
 
 function GoogleIcon() {
   return (
@@ -82,6 +84,8 @@ interface Props {
   onSaved: () => void;
   /** What the hub reports; null (loading or failed) shows the card as it always was. */
   apps: GoogleAppsStatus | null;
+  /** Set when Google Calendar has calendars picked and its sign-in no longer works. */
+  attention?: ServiceAttention;
 }
 
 /**
@@ -98,7 +102,7 @@ interface Props {
  * hand sign-ins to Home Screens' app and back without losing the saved
  * details (the rule is in google-app-choice.ts).
  */
-export default function GoogleIntegrationCard({ status, onSaved, apps }: Props) {
+export default function GoogleIntegrationCard({ status, onSaved, apps, attention }: Props) {
   const t = useTranslate('editor');
 
   const validateGoogleClientId = useCallback(
@@ -185,10 +189,11 @@ export default function GoogleIntegrationCard({ status, onSaved, apps }: Props) 
         iconBg="linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%)"
         name={t('settings.integrationsPage.google.name')}
         description={t('settings.integrationsPage.google.description')}
-        statusLabel={google.label}
-        statusType={google.type}
-        defaultOpen={google.type !== 'none'}
+        statusLabel={attention ? t('settings.serviceAttention.needsAttention') : google.label}
+        statusType={attention ? 'attention' : google.type}
+        defaultOpen={google.type !== 'none' || !!attention}
       >
+        {attention && <ServiceAttentionNotice attention={attention} name={t('settings.integrationsPage.google.name')} className="mb-4" />}
         {/* Three labelled bands rather than three anonymous hairline-
             separated rows. The card holds five credentials for three
             unrelated jobs, and nothing used to say which two the calendar
@@ -230,6 +235,7 @@ export default function GoogleIntegrationCard({ status, onSaved, apps }: Props) 
       status={status}
       apps={apps!}
       onSaved={onSaved}
+      attention={attention}
       t={t}
       calendarFields={calendarFields}
       photosFields={photosFields}
@@ -242,6 +248,7 @@ function HostedGoogleCard({
   status,
   apps,
   onSaved,
+  attention,
   t,
   calendarFields,
   photosFields,
@@ -250,6 +257,7 @@ function HostedGoogleCard({
   status: SecretStatus;
   apps: GoogleAppsStatus;
   onSaved: () => void;
+  attention?: ServiceAttention;
   t: TranslateFn;
   calendarFields: React.ReactNode;
   photosFields: React.ReactNode;
@@ -326,11 +334,13 @@ function HostedGoogleCard({
       iconBg="linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%)"
       name={t('settings.integrationsPage.google.name')}
       description={t('settings.integrationsPage.google.description')}
-      statusLabel={ownInUse ? t('settings.integrationsPage.status.ownApp') : t('settings.integrationsPage.status.ready')}
-      statusType={ownInUse ? 'own' : 'connected'}
+      statusLabel={attention ? t('settings.serviceAttention.needsAttention') : ownInUse ? t('settings.integrationsPage.status.ownApp') : t('settings.integrationsPage.status.ready')}
+      statusType={attention ? 'attention' : ownInUse ? 'own' : 'connected'}
       defaultOpen
     >
-      {readyTitle && (
+      {/* A lapsed sign-in replaces "ready to use": the calendars have stopped. */}
+      {attention && <ServiceAttentionNotice attention={attention} name={t('settings.integrationsPage.google.name')} className="mb-4" />}
+      {readyTitle && !attention && (
         <div className="flex gap-3 mb-4 pb-4 border-b border-hs-border-strong/60" data-testid="google-ready">
           <span className="mt-px grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full bg-hs-success/15 text-hs-success">
             <Check className="h-3.5 w-3.5" strokeWidth={2.5} />

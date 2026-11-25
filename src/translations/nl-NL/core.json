@@ -892,5 +892,8 @@
       "chromebook": "een Chromebook",
       "linux": "een Linux-computer"
     }
+  },
+  "hubReach": {
+    "lostSince": "Home Screens is sinds {time} niet bereikbaar"
   }
 }

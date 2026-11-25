@@ -12846,6 +12846,15 @@
       ]
     },
     {
+      "path": "/api/secrets/attention",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/sports",
       "methods": [
         {

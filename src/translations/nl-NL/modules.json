@@ -1165,7 +1165,8 @@
       },
       "addButtonNone": "Kies een paar klusjes",
       "weeklyDay": "Op welke dag"
-    }
+    },
+    "writeUnreachable": "Home Screens was niet bereikbaar, dus dat is niet opgeslagen. Vraag een volwassene."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Beloningen",
@@ -1694,7 +1695,8 @@
         "checkArt": "Maak in de editor een filter ruimer",
         "tryLater": "Ze komen vanzelf terug"
       }
-    }
+    },
+    "notUpdatingSince": "Niet bijgewerkt sinds {time}"
   },
   "event-detail": {
     "close": "Sluiten",

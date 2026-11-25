@@ -221,6 +221,22 @@ describe('toDisplaySource', () => {
   it('returns null for a provider that was never fetched', () => {
     expect(displaySource().weather.payloadFor('pirateweather')).toBeNull();
   });
+
+  it('hands a weather card the time of a reading kept through failed refreshes', () => {
+    const error = { kind: 'transient' as const, message: 'down' };
+    const shared = {
+      ...emptyShared(),
+      weatherByProvider: { ...emptyWeatherPayloads(), weatherapi: WEATHER_PAYLOAD },
+      weatherErrors: { weatherapi: error },
+      weatherStaleSince: { weatherapi: 1_700_000_000_000 },
+    };
+    const props = buildModuleProps(instance('weather'), toDisplaySource(displaySettings, LOCATION, shared));
+    expect(props.weatherStaleSince).toBe(1_700_000_000_000);
+    expect(props.hourly).toEqual(WEATHER_PAYLOAD.hourly);
+    // A provider that answers has no stale time, and the editor preview never does.
+    expect(buildModuleProps(instance('weather'), displaySource()).weatherStaleSince).toBeUndefined();
+    expect(buildModuleProps(instance('weather'), editorSource()).weatherStaleSince).toBeUndefined();
+  });
 });
 
 describe('toEditorSource', () => {

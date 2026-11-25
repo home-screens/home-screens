@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "As informações do navegador vêm do próprio display. Nenhum display está conectado agora.",
       "noBrowserStatsForName": "As informações do navegador vêm do próprio display. O display {name} não está conectado agora.",
-      "description": "Como estão seus displays e este aparelho agora."
+      "description": "Como estão seus displays e este aparelho agora.",
+      "lastSeenAway": "Visto por último há {age}, em {screen}. Confira se o painel está ligado e na rede Wi-Fi de casa."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -2992,6 +2993,18 @@
       "seen": "visto {time}",
       "removeConsequence": "Este navegador para de mostrar o painel e precisará de permissão para entrar de novo.",
       "removeFailed": "Não foi possível remover. Tente de novo."
+    },
+    "serviceAttention": {
+      "needsAttention": "Precisa de atenção",
+      "summary": {
+        "one": "{count} precisa de atenção",
+        "other": "{count} precisam de atenção"
+      },
+      "googleSignInBody": "Os calendários pararam de atualizar no painel.",
+      "googleSignInLink": "Entrar de novo em {place}",
+      "unreachableTitle": "Não foi possível conectar ao {name}",
+      "unreachableBody": "Confira se está ligado e se o endereço em {place} está certo.",
+      "openPlace": "Abrir {place}"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Conectado",
       "connectedWithVersion": "Conectado (v{version})",
       "apiKeyInvalid": "Chave de API inválida",
-      "cannotReachServer": "Não foi possível acessar o servidor",
+      "cannotReachServer": "Não foi possível conectar ao Immich. Confira se está ligado e se o endereço em {place} está certo.",
       "retry": "Tentar de novo",
       "album": "Álbum",
       "anyAlbum": "Qualquer álbum",

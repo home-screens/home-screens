@@ -1168,7 +1168,8 @@
       },
       "addButtonNone": "Choisis des tâches",
       "weeklyDay": "Quel jour"
-    }
+    },
+    "writeUnreachable": "Home Screens était injoignable, donc ça n'a pas été enregistré. Demande à un adulte."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Récompenses",
@@ -1702,7 +1703,8 @@
         "checkArt": "Essaie d'assouplir un filtre dans l'éditeur",
         "tryLater": "Elles reviendront d'elles-mêmes"
       }
-    }
+    },
+    "notUpdatingSince": "Plus de mise à jour depuis {time}"
   },
   "event-detail": {
     "close": "Fermer",

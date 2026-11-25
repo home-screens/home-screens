@@ -7,6 +7,7 @@
 import type { HardwareStats } from '@/lib/hardware-stats';
 import type { GoogleAppsStatus } from '@/lib/google-apps';
 import type { RestartNeeded } from '@/lib/restart-needed-state';
+import type { ServiceAttention } from '@/lib/service-attention';
 
 export interface DiskInfo {
   total: number;
@@ -48,6 +49,8 @@ export interface SystemStats {
     configuredSecrets: string[];
     /** Which Google app Calendar and Photos sign in with; null when it couldn't be read. */
     googleApps: GoogleAppsStatus | null;
+    /** Set-up services that are not working right now, by service id (`service-attention.ts`). */
+    attention?: Partial<Record<string, ServiceAttention>>;
     configSize: number;
   };
   telemetry?: {

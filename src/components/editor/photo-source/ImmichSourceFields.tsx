@@ -6,6 +6,7 @@ import LabeledField from '@/components/ui/LabeledField';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useTranslate } from '@/i18n';
+import { settingsPlaceText } from '@/lib/settings-route';
 import type { ImmichAlbumSummary, ImmichPersonSummary } from '@/lib/immich';
 import { missingImmichPermission } from '@/lib/immich-permissions';
 import ImmichPermissionNote from './ImmichPermissionNote';
@@ -36,6 +37,7 @@ interface Props {
  */
 export function ImmichSourceFields({ source, onChange }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [checking, setChecking] = useState(true);
 
@@ -102,7 +104,7 @@ export function ImmichSourceFields({ source, onChange }: Props) {
         <span className="text-xs text-hs-text-muted">
           {checking ? t('photoSources.immich.connecting') :
            status?.authenticated ? (status.version ? t('photoSources.immich.connectedWithVersion', { version: status.version }) : t('photoSources.immich.connected')) :
-           status?.reachable ? t('photoSources.immich.apiKeyInvalid') : t('photoSources.immich.cannotReachServer')}
+           status?.reachable ? t('photoSources.immich.apiKeyInvalid') : t('photoSources.immich.cannotReachServer', { place: settingsPlaceText(tCore, 'integrations') })}
         </span>
         {!checking && !status?.authenticated && (
           <button

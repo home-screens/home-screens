@@ -1545,7 +1545,12 @@
       "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd, dus je ziet nu de nieuwste versie. Doe je wijziging nog een keer en sla dan op.",
       "repeatsNote": "{title} komt vaker terug. Als je opslaat, kies je: alleen deze dag of elke keer.",
       "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}."
-    }
+    },
+    "troubleSignInTitle": "Google Agenda heeft een nieuwe login nodig",
+    "troubleSignInBody": "De afspraken worden hier en op de muur niet meer bijgewerkt. Log op een computer opnieuw in bij {place}. Dagnotities werken gewoon zoals altijd.",
+    "troubleOneTitle": "{name} wordt niet bijgewerkt",
+    "troubleSomeTitle": "Sommige agenda's worden niet bijgewerkt",
+    "troubleFailingBody": "Sommige afspraken kunnen hier en op de muur ontbreken. Home Screens blijft het proberen."
   },
   "wallWaiting": {
     "title": {

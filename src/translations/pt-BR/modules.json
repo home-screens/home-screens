@@ -1168,7 +1168,8 @@
       },
       "addButtonNone": "Escolha algumas tarefas",
       "weeklyDay": "Em qual dia"
-    }
+    },
+    "writeUnreachable": "Não deu para conectar ao Home Screens, então isso não foi salvo. Chame um adulto."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Recompensas",
@@ -1702,7 +1703,8 @@
         "checkArt": "Tente usar menos filtros no editor",
         "tryLater": "Elas voltam sozinhas"
       }
-    }
+    },
+    "notUpdatingSince": "Sem atualizar desde {time}"
   },
   "event-detail": {
     "close": "Fechar",

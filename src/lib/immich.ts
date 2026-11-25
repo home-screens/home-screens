@@ -1,6 +1,7 @@
 import { getSecret, onSecretChange } from './secrets';
 import { fetchWithTimeout, SetupError, type FetchRetryOptions } from './api-utils';
 import { upstreamError } from './upstream-error';
+import { forgetServiceOutcome, noteServiceOutcome } from './service-outcomes';
 
 // -- Types matching Immich API response shapes --
 
@@ -86,6 +87,8 @@ export function clearedWithImmich<C extends { clear(): void }>(cache: C): C {
 
 export function clearImmichCaches(): void {
   for (const cache of immichCaches) cache.clear();
+  // A new address or key starts with a clean slate: the old one's outage is not this one's.
+  forgetServiceOutcome('immich');
 }
 
 onSecretChange('immich_url', clearImmichCaches);
@@ -111,10 +114,19 @@ export async function immichFetch(
 ): Promise<Response> {
   const cfg = await getImmichConfig();
   if (!cfg) throw new SetupError('Immich not configured', 'connection', 'Immich');
-  const res = await fetchWithTimeout(`${cfg.url}${path}`, {
-    ...init,
-    headers: { 'x-api-key': cfg.apiKey, ...init?.headers },
-  });
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(`${cfg.url}${path}`, {
+      ...init,
+      headers: { 'x-api-key': cfg.apiKey, ...init?.headers },
+    });
+  } catch (err) {
+    // No answer at all: switched off, moved, or the deadline. Settings says
+    // so. A request its own caller gave up on says nothing about Immich.
+    if (!init?.signal?.aborted) noteServiceOutcome('immich', false);
+    throw err;
+  }
+  noteServiceOutcome('immich', !(res.status === 502 || res.status === 503 || res.status === 504));
   if (res.status === 401 || res.status === 403) throw await upstreamError(res, 'Immich');
   return res;
 }
@@ -132,8 +144,10 @@ export async function validateImmichConnection(): Promise<{
   // Step 1: ping (no auth required)
   try {
     const ping = await fetchWithTimeout(`${cfg.url}/api/server/ping`, { timeout: 5000 });
+    noteServiceOutcome('immich', ping.ok);
     if (!ping.ok) return { reachable: false, authenticated: false };
   } catch {
+    noteServiceOutcome('immich', false);
     return { reachable: false, authenticated: false };
   }
 

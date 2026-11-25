@@ -1545,7 +1545,12 @@
       "changedElsewhere": "Quelqu'un vient de modifier cet événement, voici donc la dernière version. Refais ta modification, puis enregistre.",
       "repeatsNote": "{title} se répète. Quand tu enregistres, tu choisis ce jour-là ou toutes les fois.",
       "noCalendars": "Aucun calendrier ne reçoit encore de nouveaux événements. Choisis-en dans {place}."
-    }
+    },
+    "troubleSignInTitle": "Google Agenda a besoin d'une nouvelle connexion",
+    "troubleSignInBody": "Ses événements ne se mettent plus à jour ici ni sur le mur. Reconnecte-toi dans {place} sur un ordinateur. Les notes du jour marchent comme d'habitude.",
+    "troubleOneTitle": "{name} ne se met plus à jour",
+    "troubleSomeTitle": "Certains calendriers ne se mettent plus à jour",
+    "troubleFailingBody": "Certains événements peuvent manquer ici et sur le mur. Home Screens continue d'essayer."
   },
   "wallWaiting": {
     "title": {

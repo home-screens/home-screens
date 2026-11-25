@@ -1165,7 +1165,8 @@
       },
       "addButtonNone": "Vælg nogle pligter",
       "weeklyDay": "Hvilken dag"
-    }
+    },
+    "writeUnreachable": "Kunne ikke nå Home Screens, så det blev ikke gemt. Spørg en voksen."
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belønninger",
@@ -1694,7 +1695,8 @@
         "checkArt": "Prøv et mindre strengt filter i editoren",
         "tryLater": "De kommer selv tilbage"
       }
-    }
+    },
+    "notUpdatingSince": "Ikke opdateret siden {time}"
   },
   "event-detail": {
     "close": "Luk",

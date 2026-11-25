@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { followedRevision, publishRevisions, subscribeRevisions, __resetHeartbeatForTests } from '@/lib/display-heartbeat';
+import {
+  followedRevision, hubSilentSince, isGatewayFailure, noteBeatOutcome, publishRevisions, subscribeHubReach, subscribeRevisions,
+  __resetHeartbeatForTests,
+} from '@/lib/display-heartbeat';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -47,5 +50,48 @@ describe('followedRevision', () => {
     publishRevisions({ chores: '"c2"' });
     unsubscribe();
     expect(seen).toEqual(['"c2"']);
+  });
+});
+
+describe('hub reach', () => {
+  it('reads the hub as answering until a beat goes unanswered', () => {
+    expect(hubSilentSince()).toBeNull();
+    noteBeatOutcome(true, 1_000);
+    expect(hubSilentSince()).toBeNull();
+    noteBeatOutcome(false, 4_000);
+    // Since the last answer, not since the first miss.
+    expect(hubSilentSince()).toBe(1_000);
+    noteBeatOutcome(false, 7_000);
+    expect(hubSilentSince()).toBe(1_000);
+  });
+
+  it('clears on the next answer', () => {
+    noteBeatOutcome(false, 4_000);
+    noteBeatOutcome(true, 9_000);
+    expect(hubSilentSince()).toBeNull();
+  });
+
+  it('tells listeners only when the hub starts or stops answering', () => {
+    const listener = vi.fn();
+    const off = subscribeHubReach(listener);
+    noteBeatOutcome(true);
+    expect(listener).not.toHaveBeenCalled();
+    noteBeatOutcome(false);
+    noteBeatOutcome(false);
+    expect(listener).toHaveBeenCalledTimes(1);
+    noteBeatOutcome(true);
+    expect(listener).toHaveBeenCalledTimes(2);
+    off();
+    noteBeatOutcome(false);
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('counts a proxy saying the hub is gone as no answer, and a refusal as an answer', () => {
+    expect(isGatewayFailure(502)).toBe(true);
+    expect(isGatewayFailure(503)).toBe(true);
+    expect(isGatewayFailure(504)).toBe(true);
+    expect(isGatewayFailure(401)).toBe(false);
+    expect(isGatewayFailure(500)).toBe(false);
+    expect(isGatewayFailure(200)).toBe(false);
   });
 });

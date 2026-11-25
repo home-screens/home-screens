@@ -2766,7 +2766,8 @@
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browser-Informationen kommen direkt vom Display. Gerade ist kein Display verbunden.",
       "noBrowserStatsForName": "Browser-Informationen kommen direkt vom Display. Das Display „{name}“ ist gerade nicht verbunden.",
-      "description": "Wie es deinen Displays und diesem Gerät gerade geht."
+      "description": "Wie es deinen Displays und diesem Gerät gerade geht.",
+      "lastSeenAway": "Zuletzt vor {age} gesehen, auf {screen}. Prüf, ob das Display eingeschaltet und im WLAN zu Hause ist."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -2992,6 +2993,18 @@
       "seen": "gesehen {time}",
       "removeConsequence": "Dieser Browser zeigt das Display nicht mehr an und muss wieder hereingelassen werden.",
       "removeFailed": "Das Entfernen hat nicht geklappt. Versuch es noch einmal."
+    },
+    "serviceAttention": {
+      "needsAttention": "Bitte prüfen",
+      "summary": {
+        "one": "{count} muss geprüft werden",
+        "other": "{count} müssen geprüft werden"
+      },
+      "googleSignInBody": "Die Kalender werden auf dem Display nicht mehr aktualisiert.",
+      "googleSignInLink": "Unter {place} neu anmelden",
+      "unreachableTitle": "{name} ist nicht erreichbar",
+      "unreachableBody": "Prüf, ob es eingeschaltet ist und die Adresse unter {place} stimmt.",
+      "openPlace": "{place} öffnen"
     }
   },
   "backgroundPicker": {
@@ -6129,7 +6142,7 @@
       "connected": "Verbunden",
       "connectedWithVersion": "Verbunden (v{version})",
       "apiKeyInvalid": "API-Schlüssel ungültig",
-      "cannotReachServer": "Server nicht erreichbar",
+      "cannotReachServer": "Immich ist nicht erreichbar. Prüf, ob es eingeschaltet ist und die Adresse unter {place} stimmt.",
       "retry": "Erneut versuchen",
       "album": "Album",
       "anyAlbum": "Beliebiges Album",
