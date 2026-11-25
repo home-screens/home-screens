@@ -5,6 +5,7 @@ import { SetupError } from '@/lib/api-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import { googleAccountName } from '@/lib/calendar-sources';
 import type { CalendarEvent } from '@/types/config';
 import { logger } from '@/lib/logger';
 
@@ -195,7 +196,9 @@ export async function fetchCalendarEvents(
 
       const labelColors = await labelColorsPromise;
       const calColor = calendarColorMap.get(calendarId) ?? DEFAULT_EVENT_COLOR;
-      const calName = calendarNameMap.get(calendarId) ?? calendarId;
+      // A calendar Google's list did not name is called by its owner's
+      // address, or plainly "Google Calendar": never by its id.
+      const calName = calendarNameMap.get(calendarId) ?? googleAccountName(calendarId) ?? 'Google Calendar';
       // Birthdays come from Contacts and can never be changed here.
       const writable = writableCalendars.has(calendarId) && calendarId !== GOOGLE_BIRTHDAYS_CALENDAR_ID;
       const items = hideDeclined
@@ -235,7 +238,7 @@ export async function fetchCalendarEvents(
     },
     (calendarId, reason) => {
       log.warn(`Google calendar fetch failed for ${calendarId}`, reason);
-      const calName = calendarNameMap.get(calendarId) ?? calendarId;
+      const calName = calendarNameMap.get(calendarId) ?? googleAccountName(calendarId);
       return [{ id: calendarId, name: calName, ok: false, error: "Couldn't load this calendar from Google", messageKey: 'googleCalendarFailed' }];
     },
   );

@@ -541,6 +541,13 @@ describe('fetchCalendarEvents', () => {
       vi.useRealTimers();
     });
 
+    it("calls a calendar Google's list does not name by its owner's address or plainly, never by its id", async () => {
+      mockEventsList.mockImplementation(async (params: { calendarId: string }) => ({ data: { items: [{ ...event, id: params.calendarId }] } }));
+      const { events } = await fetchCalendarEvents(['sam.rivera@gmail.com', 'c_abc123@group.calendar.google.com'], '2026-01-01', '2026-01-31');
+
+      expect([...new Set(events.map((event) => event.sourceName))].sort()).toEqual(['Google Calendar', 'sam.rivera']);
+    });
+
     it('reuses the calendar list, palette and label colors within the hour', async () => {
       await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
       const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-02-28');

@@ -12,7 +12,7 @@ import { entryCalendarIds, stampEditable } from '@/lib/calendar-write';
 import { logger } from '@/lib/logger';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { CALENDAR_REVISION_HEADER, calendarRevision } from '@/lib/calendar-revision';
-import { googleCalendarIdList } from '@/lib/calendar-sources';
+import { googleAccountName, googleCalendarIdList } from '@/lib/calendar-sources';
 
 const log = logger('calendar');
 
@@ -176,13 +176,14 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
         // Lazy, like the other families: a household without Google Calendar
         // never loads the Google client library.
         async () => (await import('@/lib/google-calendar')).fetchCalendarEvents(calendarIds, timeMin, timeMax, hideDeclined),
-        // The email local part stands in for the calendar name the API would
-        // have supplied, matching the editor's own fallback. A missing or
+        // A person's own calendar is named by the part of their address
+        // before the @, as the editor does; a calendar whose id is only a
+        // code gets no name here, never the code. A missing or
         // expired sign-in (SetupError) gets its own key so the display can
         // show the sign-in card instead of an outage badge.
         (error) => calendarIds.map((id): SourceFetchResult => ({
           id,
-          name: id.includes('@') ? id.split('@')[0] : undefined,
+          name: googleAccountName(id),
           ok: false,
           ...(error instanceof SetupError
             ? { error: 'Google Calendar needs to sign in again', messageKey: GOOGLE_NOT_SIGNED_IN }

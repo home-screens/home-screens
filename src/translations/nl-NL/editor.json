@@ -336,7 +336,7 @@
       "summaryShows": "Kan geopend worden {when}.",
       "summaryHides": "Kan niet geopend worden {when}. De rest van de tijd wel.",
       "allDayHint": "Laat beide leeg om het de hele dag te laten openen.",
-      "invertLabel": "In plaats daarvan in deze uren niet laten openen",
+      "invertLabel": "Juist niet laten openen tijdens deze uren",
       "neverShows": "Met deze instellingen kan het nooit geopend worden."
     }
   },
@@ -1439,7 +1439,7 @@
       "maxVisibleLabel": "Max. zichtbare meldingen",
       "defaultDurationLabel": "Standaardduur (seconden)",
       "defaultDurationPerType": "Standaard per type",
-      "defaultDurationHelp": "Info: 10 s, Waarschuwing: 30 s, Dringend: blijft staan tot weggetikt.",
+      "defaultDurationHelp": "Info: 10 s, Waarschuwing: 30 s, Dringend: blijft staan tot iemand hem sluit.",
       "alertSizeLabel": "Meldingsgrootte",
       "activeAlertsHeading": "Actieve meldingen",
       "clearAllButton": "Alle meldingen wissen",
@@ -1693,7 +1693,7 @@
           "hintOn": "In gebruik. Je eigen Google-app meldt je aan.",
           "hintOff": "Opgeslagen, niet in gebruik. De app van Home Screens meldt je aan.",
           "warning": "Als je je eigen app opslaat, moet iedereen die al met Google is aangemeld zich opnieuw aanmelden, want een aanmelding werkt alleen met de app waar die vandaan komt.",
-          "switchCallout": "Wisselen van app meldt Google af. Meld je daarna opnieuw aan op de pagina Kalender of in een fotomodule."
+          "switchCallout": "Als je van app wisselt, word je bij Google afgemeld. Meld je daarna opnieuw aan op de pagina Kalender of in een fotomodule."
         }
       },
       "immich": {
@@ -2369,13 +2369,13 @@
         "logOut": "Afmelden"
       },
       "revokeSessions": {
-        "button": "Iedereen uitloggen",
-        "warning": "Iedereen wordt uitgelogd, jij op dit apparaat ook.",
+        "button": "Iedereen afmelden",
+        "warning": "Iedereen die is aangemeld, wordt afgemeld, ook jij op dit apparaat.",
         "confirmButton": "Iedereen afmelden",
-        "revoking": "Uitloggen…",
+        "revoking": "Afmelden…",
         "cancel": "Annuleren",
-        "success": "Iedereen is uitgelogd. Je gaat naar de inlogpagina…",
-        "failed": "Iedereen uitloggen is niet gelukt"
+        "success": "Iedereen is afgemeld. Je gaat naar de inlogpagina…",
+        "failed": "Iedereen afmelden is niet gelukt"
       },
       "displayToken": {
         "heading": "Displaysleutel",
@@ -2449,24 +2449,25 @@
       "modal": {
         "setTitle": "Wachtwoord instellen",
         "changeTitle": "Wachtwoord wijzigen",
-        "disableTitle": "Authenticatie uitschakelen",
+        "disableTitle": "Wachtwoord uitzetten",
         "currentPasswordPlaceholder": "Huidig wachtwoord",
         "newPasswordPlaceholder": "Nieuw wachtwoord (min. 8 tekens)",
         "confirmPasswordPlaceholder": "Nieuw wachtwoord bevestigen",
-        "disableWarning": "Hiermee verwijder je het wachtwoord en kan iedereen op je netwerk de editor gebruiken.",
+        "disableWarning": "Hiermee verwijder je het wachtwoord. Daarna kan iedereen op je wifi thuis de editor en de gezinsafstandsbediening openen.",
         "cancel": "Annuleren",
         "setSubmit": "Aanzetten",
         "setting": "Instellen…",
         "changeSubmit": "Wachtwoord wijzigen",
         "changing": "Wijzigen…",
-        "disableSubmit": "Uitschakelen",
-        "disabling": "Uitschakelen…",
+        "disableSubmit": "Uitzetten",
+        "disabling": "Uitzetten…",
         "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken.",
         "wallsStay": {
           "one": "Je display blijft binnengelaten.",
-          "other": "Je {count} displays blijven binnengelaten."
+          "other": "Je displays blijven binnengelaten."
         },
-        "wallsOff": "Een display dat nu uit staat, vraagt om binnengelaten te worden zodra het weer aangaat."
+        "wallsOff": "Een display dat nu uit staat, vraagt om binnengelaten te worden zodra het weer aangaat.",
+        "wallsSeeList": "Bekijk de lijst"
       },
       "errors": {
         "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
@@ -2476,9 +2477,9 @@
         "passwordTooShort": "Het wachtwoord moet minstens {count} tekens hebben."
       },
       "success": {
-        "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
-        "passwordChanged": "Wachtwoord gewijzigd. Alle andere sessies zijn ongeldig gemaakt.",
-        "authDisabled": "Authenticatie uitgeschakeld."
+        "passwordSet": "Wachtwoord ingesteld. De editor en de gezinsafstandsbediening vragen er nu om.",
+        "passwordChanged": "Wachtwoord gewijzigd. Alle anderen zijn afgemeld.",
+        "authDisabled": "Het wachtwoord staat uit."
       },
       "forgotPasswordHint": "Wachtwoord vergeten? Voer op het apparaat {command} uit. Het bestand {file} in de Home Screens-map verwijderen wist het ook.",
       "description": "Wie dingen mag wijzigen, en van waar.",
@@ -2526,7 +2527,7 @@
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Kopiëren",
       "sha256CopyAriaLabel": "SHA-256 kopiëren",
-      "connectionRequired": "Deze plugin vereist dat je na de installatie een account koppelt."
+      "connectionRequired": "Voor deze plugin moet je na het installeren een account koppelen."
     },
     "pluginSecrets": {
       "loading": "Status van geheimen laden…",
@@ -2643,7 +2644,7 @@
         "tipsHeading": "Tips",
         "tips": {
           "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers.",
-          "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2 s gepolld)",
+          "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2 s gecontroleerd)",
           "sourcemapsPart1": "Source maps worden ondersteund; voeg ",
           "sourcemapsPart2": " toe aan je Vite-config",
           "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype."
@@ -2701,15 +2702,15 @@
       "entries": "Items",
       "fresh": "Vers",
       "stale": "Verouderd",
-      "inflight": "In behandeling",
+      "inflight": "Bezig met laden",
       "entriesFill": "Vulgraad",
       "evictions": {
-        "one": "{count} LRU-verwijdering",
-        "other": "{count} LRU-verwijderingen"
+        "one": "{count} oud item verwijderd om ruimte te maken",
+        "other": "{count} oude items verwijderd om ruimte te maken"
       },
       "cacheUrl": "URL",
       "cacheAge": "Leeftijd",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Bewaartijd",
       "cacheState": "Status",
       "cacheStaleLabel": "verouderd",
       "cacheFreshLabel": "vers",
@@ -2751,6 +2752,7 @@
       "indexOf": "{index} van {total}",
       "profile": "Profiel",
       "viewport": "Weergavevenster",
+      "browser": "Browser",
       "notChromium": "Andere browser",
       "lastSeen": "Laatst gezien",
       "timeAgo": "{age} geleden",
@@ -2762,8 +2764,8 @@
       "cpuCoresLabel": "CPU-kernen",
       "deviceMemoryLabel": "Apparaatgeheugen",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "Browserinformatie wordt gerapporteerd door de schermclient. Geen scherm verbonden.",
-      "noBrowserStatsForName": "Browserinformatie wordt gerapporteerd door de schermclient. Geen scherm verbonden voor {name}.",
+      "noBrowserStats": "Browserinformatie komt van het display zelf. Er is nu geen display verbonden.",
+      "noBrowserStatsForName": "Browserinformatie komt van het display zelf. {name} is nu niet verbonden.",
       "description": "Hoe het nu met je schermen en dit apparaat gaat."
     },
     "displaysIndex": {
@@ -2780,10 +2782,9 @@
       "defaultsLink": "Standaardwaarden",
       "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
       "addDisplay": "Display toevoegen",
-      "emptyTitle": "Deze installatie draait met één display",
-      "emptyParagraphPart1": "Je huidige opstelling telt als één display maar is hier nog niet toegevoegd; ondersteuning voor meerdere displays is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede display toevoegt. Op het moment dat je je eerste display toevoegt, wordt de huidige lay-out van deze Pi een display genaamd ",
+      "emptyTitle": "Deze hub heeft nog maar één display",
+      "emptyParagraphPart1": "Wat je nu hebt, telt als één display, maar het staat hier nog niet in de lijst. Er verandert niets tot je zelf een display toevoegt. Zodra je het eerste display toevoegt, wordt wat deze Pi vandaag laat zien een display met de naam ",
       "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik hierboven op ",
       "emptyBullet1Suffix": " om een nieuw display toe te voegen. Geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
       "emptyBullet2": "Of flash een andere Pi met {command}. Zodra hij start, verschijnt hij hieronder als een {label}, en met één klik voeg je hem toe.",
@@ -2799,9 +2800,9 @@
       "lastSeenLabel": "Laatst gezien {time}",
       "reportedDimensions": "{width}×{height} gerapporteerd",
       "reportedFrom": "vanaf {address}",
-      "multipleClientsHeading": "{count} clients melden zich met dit ID",
-      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit display-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert; meestal een dubbele ",
-      "multipleClientsParagraphSuffix": " installatie, een verdwaald browsertabblad, of een display dat naar het verkeerde adres wijst.",
+      "multipleClientsHeading": "{count} apparaten gebruiken dit display-ID",
+      "multipleClientsParagraphPrefix": "Meer dan één apparaat meldt zich met dit display-ID. De adressen hierboven laten zien welke. Meestal zijn er twee ingesteld met hetzelfde ",
+      "multipleClientsParagraphSuffix": ", is er een browsertabblad open blijven staan, of wijst een display naar het verkeerde adres.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inactief · {time}",
       "statusOffline": "Offline · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} schermen"
       },
       "currentScreenLabel": "Toont {name}",
-      "multipleClientsCardHeading": "{count} verschillende clients rapporteren voor dit display",
+      "multipleClientsCardHeading": "{count} verschillende apparaten tonen dit display",
       "tabsSuffix": "×{count} tabs",
       "formEditTitle": "Display bewerken",
       "formAdoptTitle": "{id} toevoegen",
@@ -2822,7 +2823,7 @@
       "formIdLabel": "ID",
       "formIdHint": "(gebruikt in URL: /display/<id>)",
       "formIdPlaceholder": "keuken",
-      "formIdLocked": "Het ID is vastgezet op dat van het rapporterende display.",
+      "formIdLocked": "Het ID kun je hier niet wijzigen: dit display gebruikt het al.",
       "formReportedViewport": "(gerapporteerd door display: {width} × {height})",
       "formWidth": "Breedte",
       "formHeight": "Hoogte",
@@ -2834,10 +2835,10 @@
       "formRotationHint": "Bepaalt hoe het display staat. De breedte en hoogte hierboven wisselen automatisch zodat de langste kant bij de gekozen draaiing past.",
       "formCancel": "Annuleren",
       "formAddDisplay": "Display toevoegen",
-      "formErrorName": "Naam is verplicht",
-      "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"kitchen\")",
-      "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar displays. Kies een ander ID, bijv. \"kitchen\" of \"bedroom-tv\"",
-      "formErrorIdTaken": "Er bestaat al een display met ID \"{id}\"",
+      "formErrorName": "Naam is verplicht.",
+      "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"keuken\").",
+      "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar displays. Kies een ander ID, zoals \"keuken\" of \"slaapkamer-tv\".",
+      "formErrorIdTaken": "Er bestaat al een display met ID \"{id}\".",
       "formErrorWidth": "Breedte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste displays zijn 1080 of 1920 breed.",
       "formErrorHeight": "Hoogte moet tussen {min} en {max} liggen. Kijk of er een cijfer ontbreekt: de meeste displays zijn 1080 of 1920 hoog.",
       "softwareUpdateWaiting": "Update staat klaar",
@@ -2948,8 +2949,8 @@
         "removeConfirmTitle": "De volwassenencode weghalen?",
         "removeConfirmMessage": "De muur vraagt er dan niet meer om bij de dingen die je hebt aangevinkt. Je kunt altijd een nieuwe code instellen.",
         "lockedBody": {
-          "one": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuut niet aan.",
-          "other": "De muren, de klusjespagina en niet-ingelogde telefoons nemen de volwassenencode nog {count} minuten niet aan."
+          "one": "De volwassenencode werkt nog {count} minuut niet op de muren, de klusjespagina en niet-ingelogde telefoons.",
+          "other": "De volwassenencode werkt nog {count} minuten niet op de muren, de klusjespagina en niet-ingelogde telefoons."
         }
       }
     },
@@ -2982,6 +2983,7 @@
         "one": "Home Screens onthoudt nu elke browser, en die van jou zijn meegenomen. Controleer of de browsers met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {count} dag.",
         "other": "Home Screens onthoudt nu elke browser, en die van jou zijn meegenomen. Controleer of de browsers met het label “{tag}” van jou zijn. Deze melding verdwijnt vanzelf over {count} dagen."
       },
+      "windowWhere": "Je vindt ze bij deze displays:",
       "showingIn": {
         "one": "Te zien op {count} plek",
         "other": "Te zien op {count} plekken"
@@ -3870,7 +3872,7 @@
       "label": "Opent",
       "none": "Niets",
       "andMore": "en {count} meer",
-      "help": "Zet in de onderhoek van de module een knop met de naam van dat scherm. Een tik erop op een aanraakscherm toont het scherm.",
+      "help": "Zet een knop met de naam van dat scherm in de onderhoek van de module. Op een aanraakscherm tik je erop om dat scherm te tonen.",
       "sectionTitle": "Een scherm openen",
       "offBadge": "{name} (uit)",
       "holds": "Toont {what}",

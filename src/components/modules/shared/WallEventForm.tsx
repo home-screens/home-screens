@@ -277,11 +277,17 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
 
   // ── Pieces ──
   const heading = daySheetHeading(dateOf(day), locale);
+  // The hour as the household's language writes it, with what follows the
+  // number set smaller: "08" and ":00" (".00" in Danish), "8" and "AM"
+  // ("a. m." in Spanish).
   const hourLabel = (h: number) => {
-    if (timeFormat === '24h') return <>{String(h).padStart(2, '0')}<small style={{ fontSize: P(20), opacity: 0.7 }}>:00</small></>;
-    const twelve = h % 12 === 0 ? 12 : h % 12;
-    return <>{twelve}<small style={{ fontSize: P(20), opacity: 0.7, marginLeft: P(6) }}>{h < 12 ? 'AM' : 'PM'}</small></>;
+    const text = formatTimeOfDay(new Date(2000, 0, 1, h), timeFormat === '24h' ? { timeFormat, locale, bare: true } : { timeFormat, locale, hourOnly: true });
+    const [, hour, rest] = text.match(/^(\d+)\s*(.*)$/) ?? [];
+    if (!hour) return text;
+    return <>{hour}<small style={{ fontSize: P(20), opacity: 0.7, marginLeft: timeFormat === '24h' ? 0 : P(6) }}>{rest}</small></>;
   };
+  /** The minutes with the mark the language puts before them: ":15", ".15" in Danish. */
+  const minuteLabel = (m: number) => formatTimeOfDay(new Date(2000, 0, 1, 8, m), { timeFormat: '24h', locale, bare: true }).replace(/^\d+\s*/, '');
   const timeWords = (minutes: number) => {
     const d = new Date(2000, 0, 1, Math.floor(minutes / 60) % 24, minutes % 60);
     return formatTimeOfDay(d, { timeFormat, locale });
@@ -360,7 +366,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
       {MINUTES.map((m) => (
         <button key={m} type="button" role="radio" aria-checked={selected % 60 === m} data-minute={m} {...wallPressProps}
           onClick={() => onPick(Math.floor(selected / 60) * 60 + m)} style={cell(selected % 60 === m)}>
-          :{String(m).padStart(2, '0')}
+          {minuteLabel(m)}
         </button>
       ))}
     </div>
@@ -567,6 +573,7 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
 
         <div style={label}>{t('calendar.eventForm.calendar')}</div>
         {mode === 'new' ? (
+          <>
           <WallChoiceChips
             P={P}
             label={t('calendar.eventForm.calendar')}
@@ -575,6 +582,13 @@ export function WallEventForm({ mode, date, event, entry, theme, accent, timeFor
             options={entry.calendars.map((c) => ({ value: c.id, label: c.name, color: c.color }))}
             onChange={setCalendarId}
           />
+          {/* Why a calendar on the wall is not in this choice, as the phone's form says. */}
+          {entry.calendars.length > 0 && entry.readOnlyShown && (
+            <p data-testid="wall-event-read-only" style={{ margin: `${P(14)}px 0 0`, fontSize: P(22), lineHeight: 1.35, color: 'var(--wt-text-3)' }}>
+              {tCore(`calendarChange.onlySome.${entry.readOnlyShown}`)}
+            </p>
+          )}
+          </>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: P(16), padding: `${P(22)}px ${P(26)}px`, borderRadius: P(20), background: 'color-mix(in srgb, var(--wt-text) 4%, var(--wt-surface))', border: '1px solid var(--wt-border)', fontSize: P(30), fontWeight: 600 }}>
             <span aria-hidden="true" style={{ width: P(22), height: P(22), borderRadius: '50%', background: event?.calendarColor ?? calendar?.color }} />

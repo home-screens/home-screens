@@ -131,8 +131,8 @@
     },
     "moduleMenu": {
       "selectBehind": "Seleccionar el módulo de detrás",
-      "hide": "Ocultar en pantalla",
-      "show": "Mostrar en pantalla"
+      "hide": "Ocultar en el display",
+      "show": "Mostrar en el display"
     },
     "emptyDisplay": {
       "title": "El display {name} aún no tiene pantallas",
@@ -146,10 +146,10 @@
   },
   "draggableModule": {
     "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones",
-    "backgroundProviderTitle": "Se ejecuta oculto en segundo plano, nunca se muestra en pantalla",
+    "backgroundProviderTitle": "Se ejecuta oculto en segundo plano, nunca se muestra en el display",
     "everyScreenTitle": "Se muestra en todas las pantallas de este display, encima de los módulos de cada pantalla",
-    "conditionMetTitle": "Condiciones cumplidas, visible en la pantalla ahora",
-    "conditionUnmetTitle": "Condiciones sin cumplir, oculto en la pantalla ahora",
+    "conditionMetTitle": "Condiciones cumplidas, visible en el display ahora",
+    "conditionUnmetTitle": "Condiciones sin cumplir, oculto en el display ahora",
     "conditionMetTitleEditor": "Condiciones cumplidas, se mostraría ahora",
     "conditionUnmetTitleEditor": "Condiciones no cumplidas, se ocultaría ahora",
     "status": {
@@ -189,7 +189,7 @@
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "programada",
     "conditionalTooltip": "se muestra solo si las condiciones coinciden",
-    "disabledTooltip": "apagada, no se muestra en la pantalla",
+    "disabledTooltip": "apagada, no se muestra en el display",
     "disabledIndicatorAriaLabel": "Desactivada",
     "disabledBadge": "Apagada",
     "stickyBadge": "Fija",
@@ -251,7 +251,7 @@
       "move": "mover",
       "go": "ir"
     },
-    "settingsHint": "¿Buscas un ajuste? Elige un módulo para sus ajustes, o haz clic en un hueco de la pantalla para los ajustes de la pantalla. Los ajustes de la casa están en Ajustes."
+    "settingsHint": "¿Buscas un ajuste? Selecciona un módulo para ver los suyos, o haz clic en una zona vacía de la pantalla para ver los de la propia pantalla. Los ajustes de la casa están en Ajustes."
   },
   "screenSettings": {
     "sectionTitle": "Ajustes de la pantalla",
@@ -261,7 +261,7 @@
     "secondsUnit": "segundos",
     "stickyBadge": "Fija",
     "stickyHint": "Ponlo a 0 para quedarte en esta pantalla hasta que alguien la toque o use el mando.",
-    "rotationOffHint": "La rotación automática está desactivada en esta pantalla, así que cada pantalla se queda hasta que alguien pasa a otra.",
+    "rotationOffHint": "La rotación automática está desactivada en este display, así que cada pantalla se queda hasta que alguien pasa a otra.",
     "shortDurationWarning": "Con menos de {seconds} segundos, la pantalla puede cambiar antes de que las noticias y el tiempo terminen de cargar.",
     "inheritsHintBefore": "Se ve durante ",
     "inheritsHintValue": "{seconds} segundos",
@@ -336,7 +336,7 @@
       "summaryShows": "Se puede abrir {when}.",
       "summaryHides": "No se puede abrir {when}. El resto del tiempo sí.",
       "allDayHint": "Deja ambos vacíos para que se pueda abrir todo el día.",
-      "invertLabel": "En su lugar, no dejar que se abra en estas horas",
+      "invertLabel": "Impedir que se abra durante esas horas en vez de permitirlo",
       "neverShows": "Con estos ajustes nunca se puede abrir."
     }
   },
@@ -728,7 +728,7 @@
       },
       "areas": {
         "sources": "De dónde vienen los eventos",
-        "sourcesDescription": "Conecta los calendarios que la pantalla debe leer. Cada uno muestra si se está actualizando.",
+        "sourcesDescription": "Conecta los calendarios que debe leer el display. Cada uno muestra si se está actualizando.",
         "show": "Qué mostrar",
         "showDescription": "Límites de los que parte cada módulo de calendario. Un módulo puede acotar más con sus propios filtros."
       },
@@ -1212,19 +1212,19 @@
         "resolutionWidthPlaceholder": "Anchura",
         "resolutionHeightPlaceholder": "Altura",
         "resolutionHelp": "Haz que coincida con tu monitor. Si cambias la resolución, la zona donde colocas los módulos cambia con ella.",
-        "flipLabel": "Voltear pantalla",
+        "flipLabel": "Voltear el display",
         "flipToggle": "Montaje invertido",
-        "flipHelp": "Actívalo si tu monitor está montado al revés. Gira la pantalla 180° desde su orientación base."
+        "flipHelp": "Actívalo si tu monitor está montado al revés. Gira el display 180° desde su orientación base."
       },
       "fields": {
         "rotateLabel": "Rotación automática",
         "rotateToggle": "Pasar por las pantallas",
-        "rotateHelp": "Desactivada, la pantalla se queda donde está hasta que alguien toca los puntos o un botón del dock, desliza o usa el mando.",
+        "rotateHelp": "Desactivada, el display se queda en la misma pantalla hasta que alguien toca los puntos o un botón del dock, desliza o usa el mando.",
         "rotationIntervalLabel": "Intervalo de rotación de pantallas",
         "rotationIntervalHelp": "Cuánto tiempo se muestra cada pantalla antes de pasar automáticamente a la siguiente. Solo se aplica si tienes varias pantallas configuradas.",
         "paginationDotsLabel": "Puntos de pantalla",
         "paginationDotsToggle": "Activado",
-        "paginationDotsHelp": "La fila de puntos en la parte inferior de la pantalla que muestra qué pantalla se está mostrando y permite tocar para saltar a otra. Al desactivarla también se elimina la pausa con doble toque, ya que ese gesto vive en los puntos.",
+        "paginationDotsHelp": "La fila de puntos en la parte inferior del display que indica qué pantalla se está mostrando y permite tocar para saltar a otra. Al desactivarla también se elimina la pausa con doble toque, ya que ese gesto vive en los puntos.",
         "pauseEnabledLabel": "Permitir pausa táctil",
         "pauseEnabledToggle": "Activado",
         "pauseEnabledHelp": "Toca dos veces el punto de pantalla resaltado para pausar la rotación. Toca dos veces de nuevo para reanudar.",
@@ -1251,7 +1251,7 @@
         "cursorHideHelp": "El cursor del ratón se oculta tras estos segundos sin actividad. Mueve el ratón para mostrarlo de nuevo.",
         "pixelShiftLabel": "Proteger la pantalla contra el quemado",
         "pixelShiftToggle": "Desplazar la imagen ligeramente",
-        "pixelShiftHelp": "Mueve todo lo que hay en la pantalla unos píxeles una vez por minuto, para que nada se quede mucho tiempo en el mismo sitio. Ayuda con las pantallas OLED y otras que pueden quemarse. De lejos no se nota.",
+        "pixelShiftHelp": "Mueve todo lo que hay en el display unos píxeles una vez por minuto, para que nada se quede mucho tiempo en el mismo sitio. Ayuda con las pantallas OLED y otras que pueden quemarse. De lejos no se nota.",
         "fullscreenThemeLabel": "Tema en pantalla completa",
         "fullscreenThemeHelp": "Se aplica a todos los módulos en pantalla completa (Calendario, Tareas, Comidas) para que se vean continuos al rotar. Puedes cambiarlo por módulo en el editor."
       },
@@ -1341,7 +1341,7 @@
       },
       "identity": {
         "displayNameLabel": "Nombre del display",
-        "displayNameHelp": "Se muestra en la barra lateral y en la pantalla. Se guarda al hacer clic fuera.",
+        "displayNameHelp": "Se muestra en la barra lateral y en el display. Se guarda al hacer clic fuera.",
         "displayIdLabel": "ID del display",
         "displayIdHelpPart1": "Se usa en la dirección de este display ",
         "displayIdHelpPart2": ". No se puede cambiar sin reconfigurar el Pi.",
@@ -1414,9 +1414,9 @@
         "updateWaiting": "Actualización pendiente ({version})",
         "updateWaitingHint": "Este display instalará {version} durante la noche o al reiniciarse.",
         "pending": "Preparándose",
-        "pendingHint": "Este display copiará el software del servidor en su próxima comprobación.",
+        "pendingHint": "Este display copiará el software del hub la próxima vez que se conecte.",
         "unreported": "Sin datos",
-        "unreportedHint": "Este display todavía no ha indicado al servidor qué software utiliza.",
+        "unreportedHint": "Este display todavía no le ha dicho al hub qué software tiene.",
         "needsSetupBody": "Este display se configuró antes de que existieran las actualizaciones automáticas. Ejecuta esto en él una vez y a partir de entonces se mantiene al día solo.",
         "copy": "Copiar",
         "needsSetupTitle": "Activar las actualizaciones automáticas",
@@ -1487,7 +1487,7 @@
         "off": "Apagado",
         "idleNote": "También se atenúa tras {minutes} minutos sin uso, a cualquier hora"
       },
-      "disabledHelp": "Actívalo para fijar horarios. Ahora mismo la pantalla se queda encendida día y noche.",
+      "disabledHelp": "Actívalo para fijar horarios. Ahora mismo el display se queda encendido día y noche.",
       "powerSectionTitle": "Mientras está apagado",
       "panelPowerOffLabel": "Cortar también la alimentación de la pantalla",
       "panelPowerOffHelp": "Para displays con Raspberry Pi. La pantalla se queda completamente a oscuras y tarda unos segundos en volver cuando alguien la despierta. Déjalo desactivado si tu pantalla no vuelve a encenderse sola."
@@ -2023,7 +2023,7 @@
       },
       "timeFormat": {
         "heading": "Formato de hora",
-        "description": "Se usa en todos los sitios donde se muestran las comidas, en la pantalla y en el móvil.",
+        "description": "Se usa en todos los sitios donde se muestran las comidas, en el display y en el móvil.",
         "twelveHourLabel": "12 horas",
         "twentyFourHourLabel": "24 horas",
         "followLabel": "Seguir el ajuste global"
@@ -2087,12 +2087,12 @@
         "blockedDowngradeLine": "Volver a v{version} dejaría ajustes que esa versión no puede leer."
       },
       "failedUpdate": {
-        "line": "La actualización a {tag} no arrancó, así que esta pantalla volvió a v{version}.",
+        "line": "La actualización a {tag} no arrancó, así que este display volvió a v{version}.",
         "dismiss": "Entendido"
       },
       "restartNeeded": {
         "title": "Reinicia para terminar la actualización",
-        "line": "Parte de la última actualización no empezará a funcionar hasta que se reinicie el dispositivo. La pantalla se quedará en negro uno o dos minutos.",
+        "line": "Parte de la última actualización no empezará a funcionar hasta que se reinicie el dispositivo. El display se quedará en negro uno o dos minutos.",
         "button": "Reiniciar ahora"
       },
       "channel": {
@@ -2114,7 +2114,7 @@
           "help": "Una compilación nueva del código más reciente casi cada noche. Hay cosas que se rompen y puede que tengas que volver a una versión normal."
         },
         "nightlyWarning": "Las compilaciones de prueba pueden cambiar tus ajustes guardados de forma que la versión normal no pueda leerlos. Se guarda una copia de tus ajustes de antes de tu primera compilación de prueba en la página Copias y datos.",
-        "nightlyAutoUpdateNote": "Si una compilación de prueba no arranca, la pantalla vuelve a la versión anterior y no intenta instalarla otra vez."
+        "nightlyAutoUpdateNote": "Si una compilación de prueba no arranca, el display vuelve a la versión anterior y no intenta instalarla otra vez."
       },
       "autoUpdate": {
         "heading": "Actualizaciones automáticas",
@@ -2136,7 +2136,7 @@
         "status": {
           "installed": "{when}. Se instaló {tag}.",
           "upToDate": "{when}. Ya estaba al día.",
-          "didNotStart": "{when}. {tag} no arrancó, así que esta pantalla volvió a v{version}. No intentará instalar esa versión otra vez.",
+          "didNotStart": "{when}. {tag} no arrancó, así que este display volvió a v{version}. No intentará instalar esa versión otra vez.",
           "failedBefore": "{when}. No se instaló {tag} porque la última vez no arrancó.",
           "needsPassword": "{when}. No se pudo actualizar: hay que escribir una vez la contraseña de este dispositivo. Para hacerlo, instala la actualización desde el recuadro de arriba.",
           "failed": "{when}. No se pudo instalar {tag}. Instálala desde el recuadro de arriba para intentarlo de nuevo y ver qué falló.",
@@ -2259,13 +2259,13 @@
     },
     "rulesPage": {
       "heading": "Reglas",
-      "description": "Las reglas hacen que la pantalla reaccione sola. Cuando se cumple lo que describes, puede cambiar de pantalla o despertarse, por ejemplo mostrar la cámara de la entrada cuando llaman al timbre.",
+      "description": "Las reglas hacen que el display reaccione solo. Cuando se cumple lo que describes, puede cambiar de pantalla o despertarse, por ejemplo mostrar la cámara de la entrada cuando llaman al timbre.",
       "displayPicker": {
         "label": "Editando reglas de",
         "optionLabel": "{name} ({id})",
         "help": "Las reglas son por display porque apuntan a las pantallas propias de cada display. Cambiar aquí también cambia el display que estás editando."
       },
-      "emptyHint": "Aún no hay reglas. Añade una para que la pantalla reaccione cuando algo ocurra.",
+      "emptyHint": "Aún no hay reglas. Añade una para que el display reaccione cuando algo ocurra.",
       "priority": {
         "labelPrefix": "Orden de prioridad:",
         "helpSuffix": " Si varias reglas se activan a la vez, gana la primera de la lista. Arrastra para reordenar."
@@ -2292,7 +2292,7 @@
         "screenMissingWarning": "Elige la pantalla que esta regla debe mostrar.",
         "modeLabel": "Duración",
         "modeWhile": "Mientras las condiciones se cumplan",
-        "modeWhileSleepHint": "Se mantiene mientras las condiciones se cumplan. Si la pantalla se duerme, se apaga igualmente a su hora, pero una regla que acaba de empezar la mantiene encendida hasta 5 minutos.",
+        "modeWhileSleepHint": "Se mantiene mientras las condiciones se cumplan. Si el display entra en reposo, se apaga igualmente a su hora, pero una regla que acaba de empezar lo mantiene encendido hasta 5 minutos más.",
         "modeFor": "Durante un tiempo fijo",
         "secondsLabel": "Segundos",
         "cooldownLabel": "Espera (segundos)",
@@ -2307,7 +2307,7 @@
     },
     "sharedStatePage": {
       "heading": "Estado compartido",
-      "description": "Todos los valores que este display publica para condiciones, reglas y variables de texto, y todo lo referenciado que nunca llega.",
+      "description": "Todos los valores que este display publica para condiciones, reglas y variables de texto, además de los que algo usa pero nunca llegan.",
       "intro": {
         "heading": "Cómo funciona",
         "body1": "Los displays pueden reaccionar a lo que pasa en tu casa. Los complementos (como Home Assistant) comparten aquí pequeños valores con nombre, por ejemplo si una puerta está abierta o quién está en casa.",
@@ -2338,11 +2338,11 @@
       },
       "lastReportLabel": "Último informe del display: {time}",
       "noReportHint": "Este display aún no ha informado de ningún valor. Los valores aparecerán aquí cuando el display esté encendido y algo los publique.",
-      "editorValuesHint": "Valores en vivo de este editor. Enciende el display para ver lo que realmente informa.",
+      "editorValuesHint": "Valores en vivo de este editor. Enciende el display para ver lo que envía de verdad.",
       "offlineSinceHint": "El display no informa desde {time}. Las filas muestran los últimos valores que envió.",
       "emptyHint": "Aún no hay nada aquí. Los valores aparecen solos cuando algo los usa, como una condición en un módulo o un valor en vivo en un módulo de Texto. No hace falta preparar nada de antemano.",
       "neverPublished": "Nunca publicada",
-      "neverPublishedDetail": "Nada en el display publica esta clave, así que todo lo que la usa sigue su ajuste 'Antes de que lleguen los datos'.",
+      "neverPublishedDetail": "Nada en el display publica esta clave, así que todo lo que la usa sigue su ajuste «Antes de que lleguen los datos».",
       "unreferencedLabel": "Nada referencia esta clave.",
       "referencedByLabel": "Usada por",
       "ruleRefLabel": "Regla: {name}",
@@ -2365,7 +2365,7 @@
       },
       "actions": {
         "changePassword": "Cambiar contraseña",
-        "disableAuth": "Quitar la contraseña",
+        "disableAuth": "Desactivar la contraseña",
         "logOut": "Cerrar sesión"
       },
       "revokeSessions": {
@@ -2449,24 +2449,25 @@
       "modal": {
         "setTitle": "Poner una contraseña",
         "changeTitle": "Cambiar contraseña",
-        "disableTitle": "Desactivar autenticación",
+        "disableTitle": "Desactivar la contraseña",
         "currentPasswordPlaceholder": "Contraseña actual",
         "newPasswordPlaceholder": "Nueva contraseña (mín. 8 caracteres)",
         "confirmPasswordPlaceholder": "Confirma la nueva contraseña",
-        "disableWarning": "Esto eliminará la contraseña y permitirá a cualquiera de tu red acceder al editor.",
+        "disableWarning": "Esto quita la contraseña. Después, cualquiera en la Wi-Fi de casa podrá abrir el editor y el mando familiar.",
         "cancel": "Cancelar",
         "setSubmit": "Activarla",
         "setting": "Definiendo…",
         "changeSubmit": "Cambiar contraseña",
         "changing": "Cambiando…",
-        "disableSubmit": "Desactivar",
+        "disableSubmit": "Desactivarla",
         "disabling": "Desactivando…",
         "setExplanation": "Una contraseña para toda la casa. A partir de ahí, el mando familiar y el editor la piden. El monitor y la página de tareas de los niños siguen funcionando sin ella.",
         "wallsStay": {
-          "one": "Tu display sigue teniendo permiso para entrar.",
-          "other": "Tus {count} displays siguen teniendo permiso para entrar."
+          "one": "Tu display no se queda fuera.",
+          "other": "Tus displays no se quedan fuera."
         },
-        "wallsOff": "Un display que esté apagado ahora mismo pedirá entrar cuando vuelva."
+        "wallsOff": "Un display que esté apagado ahora mismo pedirá entrar cuando vuelva.",
+        "wallsSeeList": "Ver la lista"
       },
       "errors": {
         "passwordsDoNotMatch": "Las contraseñas no coinciden",
@@ -2476,9 +2477,9 @@
         "passwordTooShort": "La contraseña necesita al menos {count} caracteres."
       },
       "success": {
-        "passwordSet": "¡Contraseña definida! La autenticación está ahora activada.",
-        "passwordChanged": "Contraseña cambiada. Las demás sesiones han sido invalidadas.",
-        "authDisabled": "Autenticación desactivada."
+        "passwordSet": "Contraseña activada. Ahora el editor y el mando familiar la piden.",
+        "passwordChanged": "Contraseña cambiada. Se ha cerrado la sesión de todos los demás.",
+        "authDisabled": "La contraseña está desactivada."
       },
       "forgotPasswordHint": "¿Has olvidado la contraseña? En el dispositivo, ejecuta {command}. Borrar el archivo {file} de la carpeta de Home Screens también la elimina.",
       "description": "Quién puede cambiar cosas y desde dónde.",
@@ -2683,7 +2684,7 @@
       "temperature": "Temperatura",
       "displayPrograms": "Programas del display",
       "programsChecked": "Programas comprobados",
-      "noHardwareStats": "Aún no se han reportado estadísticas de hardware para este display. Instala home-screens-reporter.timer en su Pi.",
+      "noHardwareStats": "Este display aún no ha enviado estadísticas de hardware. Instala home-screens-reporter.timer en su Pi.",
       "storageTitle": "Almacenamiento",
       "used": "Usado",
       "free": "libre",
@@ -2704,17 +2705,17 @@
       "inflight": "En curso",
       "entriesFill": "Llenado",
       "evictions": {
-        "one": "{count} expulsión LRU",
-        "other": "{count} expulsiones LRU"
+        "one": "{count} entrada antigua eliminada para hacer sitio",
+        "other": "{count} entradas antiguas eliminadas para hacer sitio"
       },
       "cacheUrl": "URL",
       "cacheAge": "Antigüedad",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Se guarda",
       "cacheState": "Estado",
       "cacheStaleLabel": "caducada",
       "cacheFreshLabel": "reciente",
       "cacheNoDisplay": "Estos números vienen de un display. Ahora mismo no hay ninguno conectado.",
-      "cacheNoDisplayForName": "Estos números vienen de un display. {name} no está conectado ahora mismo.",
+      "cacheNoDisplayForName": "Estos números vienen de un display. {name} no tiene conexión ahora mismo.",
       "telemetryTitle": "Telemetría anónima",
       "telemetryDescription": "Home Screens recopila estadísticas de uso anónimas para priorizar funciones y entender cómo se usa la app. Nunca se recopilan datos personales, direcciones IP ni contenido.",
       "telemetryToggle": "Enviar datos de uso anónimos",
@@ -2725,7 +2726,7 @@
       "telemetryDataDaily": "Datos enviados una vez al día:",
       "telemetryItem1": "ID de instalación anónimo (UUID aleatorio)",
       "telemetryItem2": "Versión de la app y plataforma (SO, arquitectura)",
-      "telemetryItem3": "Resolución y orientación de la pantalla",
+      "telemetryItem3": "Resolución y orientación del display",
       "telemetryItem4": "Número de pantallas, módulos y perfiles",
       "telemetryItem5": "Tipos de módulos en uso (p. ej. reloj, clima)",
       "telemetryItem6": "Proveedor de clima y efecto de transición",
@@ -2751,6 +2752,7 @@
       "indexOf": "{index} de {total}",
       "profile": "Perfil",
       "viewport": "Área visible",
+      "browser": "Navegador",
       "notChromium": "Otro navegador",
       "lastSeen": "Visto por última vez",
       "timeAgo": "hace {age}",
@@ -2762,8 +2764,8 @@
       "cpuCoresLabel": "Núcleos de CPU",
       "deviceMemoryLabel": "Memoria del dispositivo",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "La información del navegador la reporta el cliente del display. Ningún display conectado.",
-      "noBrowserStatsForName": "La información del navegador la reporta el cliente del display. Ningún display conectado para {name}.",
+      "noBrowserStats": "La información del navegador viene del propio display. Ahora mismo no hay ningún display conectado.",
+      "noBrowserStatsForName": "La información del navegador viene del propio display. {name} no tiene conexión ahora mismo.",
       "description": "Cómo están tus displays y este dispositivo ahora mismo."
     },
     "displaysIndex": {
@@ -2780,10 +2782,9 @@
       "defaultsLink": "Valores predeterminados",
       "refreshHeartbeatsTitle": "Actualizar latidos",
       "addDisplay": "Añadir display",
-      "emptyTitle": "Esta instalación funciona en modo de un solo display",
-      "emptyParagraphPart1": "Tu configuración actual cuenta como un display pero aún no está añadida aquí; la compatibilidad con varios displays es opcional para que las instalaciones existentes permanezcan iguales hasta que añadas explícitamente un segundo display. En cuanto añadas el primero, la disposición actual de esta Pi se convierte en un display llamado ",
+      "emptyTitle": "De momento, este hub tiene un solo display",
+      "emptyParagraphPart1": "Lo que tienes ahora cuenta como un display, pero aún no aparece aquí. No cambia nada hasta que añadas tú un display. Cuando añadas el primero, lo que muestra esta Pi pasa a ser un display llamado ",
       "emptyParagraphPart2": " y sigue funcionando exactamente igual que hoy.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Haz clic en ",
       "emptyBullet1Suffix": " arriba para añadir un nuevo display. Dale nombre, resolución y rotación, y luego diseña su disposición en el editor.",
       "emptyBullet2": "O graba otra Pi con {command}. Cuando arranque, aparecerá abajo como un {label}, y se añade con un clic.",
@@ -2799,9 +2800,9 @@
       "lastSeenLabel": "Visto por última vez {time}",
       "reportedDimensions": "{width}×{height} informado",
       "reportedFrom": "desde {address}",
-      "multipleClientsHeading": "{count} clientes informan con este ID",
-      "multipleClientsParagraphPrefix": "Dos o más clientes están haciendo POST con este ID de display. Revisa las IP de origen arriba para identificar qué dispositivo está informando; normalmente una instalación con ",
-      "multipleClientsParagraphSuffix": " duplicado, una pestaña del navegador perdida o un display apuntando a la dirección equivocada.",
+      "multipleClientsHeading": "{count} dispositivos usan este ID de display",
+      "multipleClientsParagraphPrefix": "Más de un dispositivo aparece con este ID de display. Las direcciones de arriba te dicen cuáles. Lo más habitual es que dos se hayan configurado con el mismo ",
+      "multipleClientsParagraphSuffix": ", que se haya quedado abierta una pestaña del navegador o que un display apunte a la dirección equivocada.",
       "statusOnline": "En línea · {time}",
       "statusIdle": "Inactivo · {time}",
       "statusOffline": "Sin conexión · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} pantallas"
       },
       "currentScreenLabel": "Mostrando {name}",
-      "multipleClientsCardHeading": "{count} clientes distintos informan para este display",
+      "multipleClientsCardHeading": "{count} dispositivos distintos muestran este display",
       "tabsSuffix": "×{count} pestañas",
       "formEditTitle": "Editar display",
       "formAdoptTitle": "Añadir {id}",
@@ -2822,8 +2823,8 @@
       "formIdLabel": "ID",
       "formIdHint": "(usado en la URL: /display/<id>)",
       "formIdPlaceholder": "cocina",
-      "formIdLocked": "El ID está fijado al del display que informa.",
-      "formReportedViewport": "(informado por el display: {width} × {height})",
+      "formIdLocked": "El ID no se puede cambiar aquí: es el que ya usa este display.",
+      "formReportedViewport": "(según el display: {width} × {height})",
       "formWidth": "Ancho",
       "formHeight": "Alto",
       "formResolutionHint": "Ajusta esto para que coincida con la pantalla física donde se muestra este display. Los módulos se colocan dentro de esa área cuando editas las pantallas de este display.",
@@ -2834,12 +2835,12 @@
       "formRotationHint": "Elige en qué sentido se coloca el display. El ancho y el alto de arriba se intercambian automáticamente para que el lado más largo coincida con la rotación que elijas.",
       "formCancel": "Cancelar",
       "formAddDisplay": "Añadir display",
-      "formErrorName": "El nombre es obligatorio",
-      "formErrorId": "El ID solo puede contener letras minúsculas, dígitos y guiones (p. ej. «kitchen»)",
-      "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a los displays. Elige otro ID, p. ej. «kitchen» o «bedroom-tv»",
-      "formErrorIdTaken": "Ya existe un display con el ID «{id}»",
-      "formErrorWidth": "El ancho tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays miden 1080 o 1920 de ancho.",
-      "formErrorHeight": "El alto tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays miden 1080 o 1920 de alto.",
+      "formErrorName": "El nombre es obligatorio.",
+      "formErrorId": "El ID solo puede contener letras minúsculas, dígitos y guiones (p. ej. «cocina»).",
+      "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a los displays. Elige otro ID, como «cocina» o «tv-dormitorio».",
+      "formErrorIdTaken": "Ya existe un display con el ID «{id}».",
+      "formErrorWidth": "El ancho tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays tienen 1080 o 1920 píxeles de ancho.",
+      "formErrorHeight": "El alto tiene que estar entre {min} y {max}. Mira si falta un dígito: la mayoría de los displays tienen 1080 o 1920 píxeles de alto.",
       "softwareUpdateWaiting": "Actualización pendiente",
       "softwareNeedsSetup": "Requiere configuración",
       "mainDisplayName": "Display principal"
@@ -2861,7 +2862,7 @@
       "alertsHeading": "Avisos"
     },
     "automationPage": {
-      "description": "Perfiles, reglas y valores en vivo para cada pantalla.",
+      "description": "Perfiles, reglas y valores en vivo para cada display.",
       "displayPicker": {
         "label": "Editando automatización para",
         "optionLabel": "{name} ({id})",
@@ -2884,13 +2885,13 @@
       },
       "print": {
         "label": "Imprimir los códigos",
-        "description": "Pégalos en la nevera, junto a la pantalla.",
+        "description": "Pégalos en la nevera, junto al display.",
         "action": "Imprimir",
         "sheetTitle": "Home Screens en tu móvil"
       }
     },
     "familyPage": {
-      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, premios, calendarios y horarios escolares.",
+      "description": "Añade a tu familia una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, premios, calendarios y horarios escolares.",
       "chores": {
         "heading": "Tareas extra",
         "description": "Cómo se piden las tareas extra. Los Ajustes de tareas del teléfono cambian estas mismas dos cosas.",
@@ -2982,6 +2983,7 @@
         "one": "Home Screens ahora recuerda cada navegador, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {count} día.",
         "other": "Home Screens ahora recuerda cada navegador, y los tuyos se han mantenido. Comprueba que los marcados con «{tag}» son tuyos. Este aviso desaparece solo dentro de {count} días."
       },
+      "windowWhere": "Los encontrarás en estos displays:",
       "showingIn": {
         "one": "Se muestra en {count} sitio",
         "other": "Se muestra en {count} sitios"
@@ -3853,7 +3855,7 @@
       "confirmDeleteDetail": "Puedes deshacerlo."
     },
     "visibility": {
-      "enabledLabel": "Mostrar en pantalla",
+      "enabledLabel": "Mostrar en el display",
       "enabledHelp": "Cuando esto está apagado, el módulo nunca aparece en el display. Se queda aquí para que puedas volver a encenderlo.",
       "everyScreenLabel": "Mostrar en todas las pantallas",
       "everyScreenHelp": "Dibuja este módulo en todas las pantallas de este display, encima de lo que haya, y lo mantiene en su sitio mientras cambian las pantallas.",
@@ -4367,7 +4369,7 @@
       "defaultTarget": "Destino predeterminado",
       "targetSelf": "Este display (propio)",
       "targetAll": "Todos los displays",
-      "legacyHint": "Solo hay una pantalla, así que es la que se controla.",
+      "legacyHint": "Solo hay un display, así que es el que se controla.",
       "dockMissingThere": "En {display}, un botón abre la pantalla con el mismo nombre. {display} no tiene ninguna pantalla llamada {names}, así que esos botones se ven apagados y allí no hacen nada.",
       "allowRetargeting": "Permitir al usuario cambiar el destino en tiempo de ejecución",
       "compact": "Solo iconos, sin texto",
@@ -4700,9 +4702,9 @@
       "chooseVideoPlaceholder": "Elegir un vídeo…",
       "noVideosYet": "Aún no hay vídeos en tu biblioteca. Sube uno para empezar.",
       "uploadVideo": "Subir vídeo",
-      "movHint": "Los vídeos de iPhone (.mov) no siempre se reproducen en pantallas Raspberry Pi. Los vídeos MP4 (H.264) funcionan mejor.",
+      "movHint": "Los vídeos de iPhone (.mov) no siempre se reproducen en displays con Raspberry Pi. Los vídeos MP4 (H.264) funcionan mejor.",
       "playSound": "Reproducir sonido",
-      "soundHint": "El sonido requiere una configuración única en la pantalla (consulta la guía de vídeo). Hasta entonces, los vídeos se reproducen en silencio.",
+      "soundHint": "El sonido requiere una configuración única en el display (consulta la guía de vídeo). Hasta entonces, los vídeos se reproducen en silencio.",
       "loop": "Reproducir en bucle",
       "maxDurationSeconds": "Detener tras (segundos, 0 = seguir reproduciendo)",
       "uploading": "Subiendo…",
@@ -4831,12 +4833,12 @@
       "feedMoveUp": "Subir {name}",
       "feedMoveDown": "Bajar {name}",
       "feedRemove": "Quitar {name}",
-      "feedLabel": "Nombre en la pantalla",
+      "feedLabel": "Nombre en el display",
       "feedLabelPlaceholder": "Déjalo vacío para usar el nombre propio de la fuente",
       "feedMaxItems": "Máx. de noticias de esta fuente",
       "feedMaxItemsPlaceholder": "Sin límite",
       "feedHomeNetwork": "Red doméstica",
-      "feedHomeNetworkHint": "Permite que la pantalla lea una fuente desde un dispositivo de tu red doméstica, como un lector alojado en casa.",
+      "feedHomeNetworkHint": "Permite que el display lea una fuente desde un dispositivo de tu red doméstica, como un lector alojado en casa.",
       "feedCheck": "Comprobar",
       "feedChecking": "Comprobando…",
       "feedCheckResult": "{title} · {count} noticias · la más reciente {ago}",
@@ -5241,7 +5243,7 @@
         "down": "Abajo"
       },
       "stateTokensHint": "Inserta {example} para mostrar un valor en vivo publicado por un módulo en segundo plano.",
-      "stateTokenUnknown": "Ningún módulo de esta pantalla publica {keys} todavía. Esos marcadores muestran '–' hasta que un módulo los publique.",
+      "stateTokenUnknown": "Todavía no hay nada en este display que publique {keys}. Esos huecos muestran «–» hasta que un módulo los publique.",
       "stateTokenFiltersHint": "Añade |round:1 para redondear números, o |default:texto para elegir qué se muestra antes de que llegue un valor.",
       "stateTokenPreview": "Vista previa en vivo",
       "removeColor": "Quitar este color"
@@ -5593,7 +5595,7 @@
       "accentAuto": "El color de acento sigue el tiempo",
       "accentColor": "Color de acento",
       "showTime": "Mostrar la hora",
-      "skyLayerHint": "Vivo pinta el cielo según el tiempo y la hora del día, con texto blanco encima. Elige Quieto si la pantalla va a tirones en un equipo antiguo; Quieto y Apagado mantienen los colores del tema.",
+      "skyLayerHint": "Vivo pinta el cielo según el tiempo y la hora del día, con texto blanco encima. Elige Quieto si el display va a tirones en un equipo antiguo; Quieto y Apagado mantienen los colores del tema.",
       "showMap": "Mostrar el mapa de lluvia",
       "mapZoom": "Zoom del mapa (1 a 12)",
       "mapStyle": "Estilo del mapa",
@@ -5674,7 +5676,7 @@
       "hint": "Cambia el color, el icono o las palabras cuando un valor en vivo coincide. La regla de arriba gana cuando dos cambian lo mismo. Si ninguna coincide, el texto conserva su propio estilo.",
       "empty": "Aún no hay aspectos. El texto conserva su propio estilo hasta que añadas uno.",
       "addLook": "Añadir un aspecto",
-      "sourceKeyUnknown": "Ningún módulo de esta pantalla publica esta clave todavía. Hasta entonces, este aspecto no cambia nada.",
+      "sourceKeyUnknown": "Todavía no hay nada en este display que publique esta clave. Hasta que algo la publique, este aspecto no cambia nada.",
       "when": "Cuando",
       "then": "Entonces",
       "noConditionsHint": "Aún no hay condiciones. Este aspecto se aplica todo el tiempo hasta que añadas una.",
@@ -5784,7 +5786,7 @@
       "addAnyway": "Añadir de todos modos",
       "checkUnavailable": "No se ha podido comprobar el enlace ahora mismo",
       "homeNetwork": "Red doméstica",
-      "homeNetworkHint": "Permite que la pantalla lea un calendario desde un dispositivo de tu red doméstica, como un servidor de calendario propio.",
+      "homeNetworkHint": "Permite que el display lea un calendario desde un dispositivo de tu red doméstica, como un servidor de calendario propio.",
       "removeFeed": "Quitar {name}",
       "removeConfirmMessage": "Sus eventos dejan de aparecer. Puedes volver a añadir el enlace cuando quieras.",
       "removeConfirmButton": "Quitar calendario"
@@ -5846,7 +5848,7 @@
       },
       "photo-frame": {
         "name": "Marco de fotos",
-        "description": "Pase de fotos a pantalla completa: convierte tu pantalla en un marco de fotos digital."
+        "description": "Pase de fotos a pantalla completa: convierte tu display en un marco de fotos digital."
       },
       "sports-hub": {
         "name": "Centro deportivo",
@@ -5922,7 +5924,7 @@
     },
     "sourceKeyLabel": "Qué comprobar",
     "sourceKeyHint": "Las claves escritas deben coincidir exactamente, incluido el prefijo plugin:.",
-    "sourceKeyUnknown": "Ningún módulo de esta pantalla publica esta clave todavía. Hasta entonces, esta condición cuenta como desconocida y el módulo sigue el ajuste 'Antes de que lleguen los datos'.",
+    "sourceKeyUnknown": "Todavía no hay nada en este display que publique esta clave. Hasta que algo la publique, esta condición cuenta como desconocida y el módulo sigue el ajuste «Antes de que lleguen los datos».",
     "sourceKeyPlaceholder": "Elige algo o escribe para filtrar",
     "matchLabel": "Coincidencia",
     "matchEquals": "Es",
@@ -5945,25 +5947,25 @@
     "noConditionsHint": "Aún no hay condiciones. El módulo se muestra siempre hasta que añadas una.",
     "sourceKeyInvalid": "Escribe una clave de estado solo con letras minúsculas, números y _ : . -",
     "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados.",
-    "liveValueLabel": "En la pantalla ahora:",
+    "liveValueLabel": "En el display ahora:",
     "liveValueLabelEditor": "Valor ahora mismo:",
     "liveValueStale": "ya no se actualiza",
-    "caseMismatchWarning": "La pantalla publica '{value}'. La comparación distingue mayúsculas y minúsculas: el valor debe coincidir exactamente.",
+    "caseMismatchWarning": "El display publica «{value}». La comparación distingue mayúsculas y minúsculas: el valor debe coincidir exactamente.",
     "verdicts": {
       "met": "Se cumple",
       "unmet": "No se cumple",
       "unknown": "Esperando",
-      "metTitle": "Esta condición coincide en la pantalla ahora mismo.",
-      "unmetTitle": "Esta condición no coincide en la pantalla ahora mismo.",
+      "metTitle": "Esta condición coincide en el display ahora mismo.",
+      "unmetTitle": "Esta condición no coincide en el display ahora mismo.",
       "unknownTitle": "Una clave que usa esta condición aún no se ha publicado.",
       "metTitleEditor": "Esta condición coincide ahora mismo.",
       "unmetTitleEditor": "Esta condición no coincide ahora mismo."
     },
     "outcome": {
-      "noLiveData": "La pantalla no ha informado recientemente, así que no se muestran resultados en vivo.",
-      "offlineSince": "La pantalla no informa desde {time}, así que no se muestran resultados en vivo.",
-      "shownNow": "Visible en la pantalla ahora mismo",
-      "hiddenNow": "Oculto en la pantalla ahora mismo",
+      "noLiveData": "El display no ha informado recientemente, así que no se muestran resultados en vivo.",
+      "offlineSince": "El display no informa desde {time}, así que no se muestran resultados en vivo.",
+      "shownNow": "Visible en el display ahora mismo",
+      "hiddenNow": "Oculto en el display ahora mismo",
       "shownNowEditor": "Se mostraría ahora mismo",
       "hiddenNowEditor": "Se ocultaría ahora mismo",
       "waitingForKeys": "esperando {keys}",
@@ -6064,7 +6066,7 @@
   },
   "firstRun": {
     "heading": "Primeros pasos",
-    "intro": "Cinco pasos rápidos para tener una pantalla funcionando.",
+    "intro": "Cinco pasos rápidos para tener un display funcionando.",
     "dismiss": "Ocultar esta lista",
     "steps": {
       "template": "Elige una plantilla o añade módulos a tu primera pantalla",
@@ -6433,7 +6435,7 @@
       "notSetUp": "Sin configurar todavía",
       "openApiKeys": "Abrir {place}",
       "favorite": "Favorita",
-      "unsupportedFormat": "Esta imagen está en un formato que la pantalla no puede mostrar. Elige otra."
+      "unsupportedFormat": "Esta imagen está en un formato que el display no puede mostrar. Elige otra."
     },
     "builtIn": {
       "themeWalls": "Fondos de tema",

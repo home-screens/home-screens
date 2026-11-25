@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import WallsStayLine from './WallsStayLine';
 
 type RevokeStatusKind = 'success' | 'error';
 interface RevokeStatus {
@@ -63,6 +64,8 @@ export default function SessionRevocation() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-hs-warning-ink">
             {t('settings.securityPage.revokeSessions.warning')}
+            {' '}
+            <WallsStayLine testId="revoke-sessions-walls" />
           </span>
           <Button
             variant="danger"

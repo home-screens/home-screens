@@ -146,10 +146,10 @@
   },
   "draggableModule": {
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
-    "backgroundProviderTitle": "Kører skjult i baggrunden, vises aldrig på skærmen",
+    "backgroundProviderTitle": "Kører skjult i baggrunden, vises aldrig på displayet",
     "everyScreenTitle": "Vises på alle skærme på dette display, oven på skærmens egne moduler",
-    "conditionMetTitle": "Betingelser opfyldt, vises på skærmen nu",
-    "conditionUnmetTitle": "Betingelser ikke opfyldt, skjult på skærmen nu",
+    "conditionMetTitle": "Betingelser opfyldt, vises på displayet nu",
+    "conditionUnmetTitle": "Betingelser ikke opfyldt, skjult på displayet nu",
     "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
     "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu",
     "status": {
@@ -189,7 +189,7 @@
     "secondsSuffix": "{seconds} sek",
     "scheduledTooltip": "planlagt",
     "conditionalTooltip": "vises kun, når betingelserne passer",
-    "disabledTooltip": "slukket, vises ikke på skærmen",
+    "disabledTooltip": "slukket, vises ikke på displayet",
     "disabledIndicatorAriaLabel": "Slået fra",
     "disabledBadge": "Fra",
     "stickyBadge": "Bliver",
@@ -334,9 +334,9 @@
     "opened": {
       "enableLabel": "Lad den kun åbne på bestemte tider",
       "summaryShows": "Kan åbnes {when}.",
-      "summaryHides": "Kan ikke åbnes {when}. Resten af tiden kan den.",
+      "summaryHides": "Kan ikke åbnes {when}. Kan åbnes resten af tiden.",
       "allDayHint": "Lad begge være tomme, så den kan åbnes hele dagen.",
-      "invertLabel": "Lad den i stedet ikke åbne i disse timer",
+      "invertLabel": "Lad den i stedet ikke åbne i dette tidsrum",
       "neverShows": "Med disse indstillinger kan den aldrig åbnes."
     }
   },
@@ -396,7 +396,7 @@
       "iframe": "Webindhold",
       "icon": "Ikon",
       "shape": "Figur og skillelinje",
-      "display-control": "Skærmstyring",
+      "display-control": "Displaystyring",
       "traffic": "Trafik / pendling",
       "notes": "Opslagstavle",
       "quick-timer": "Hurtig timer"
@@ -501,7 +501,7 @@
     },
     "viewDescriptions": {
       "fullscreen-meal-planner": {
-        "recipes": "Familiens opskrifter, der fylder skærmen"
+        "recipes": "Familiens opskrifter, så de fylder skærmen"
       }
     }
   },
@@ -728,7 +728,7 @@
       },
       "areas": {
         "sources": "Hvor begivenhederne kommer fra",
-        "sourcesDescription": "Forbind de kalendere, skærmen skal læse. Hver viser, om den bliver opdateret.",
+        "sourcesDescription": "Forbind de kalendere, displayet skal læse. Hver viser, om den bliver opdateret.",
         "show": "Hvad der vises",
         "showDescription": "Grænser som alle kalendermoduler starter fra. Et modul kan indsnævre yderligere med egne filtre."
       },
@@ -785,7 +785,7 @@
         "help": "De farver, du kan vælge, når du skifter en kalenders farve på væggen. Væggen kan ikke blande en ny farve, så vælg her de farver, du faktisk bruger.",
         "slot": "Farve {number}",
         "reset": "Sæt de oprindelige farver tilbage",
-        "wallHint": "Tryk på farvenøglen i en kalender på væggen for at skjule en kalender dér eller skifte dens farve."
+        "wallHint": "Tryk på en kalender i farvenøglen på væggen for at skjule den dér eller skifte dens farve."
       }
     },
     "dataPage": {
@@ -1224,7 +1224,7 @@
         "rotationIntervalHelp": "Hvor længe hver skærm vises, før der automatisk skiftes til den næste. Gælder kun, når du har flere skærme.",
         "paginationDotsLabel": "Skærmprikker",
         "paginationDotsToggle": "Slået til",
-        "paginationDotsHelp": "Rækken af prikker nederst på skærmen, der viser, hvilken skærm der vises, og som du kan trykke på for at skifte til en anden. Slår du dette fra, forsvinder også dobbelttryk-for-pause, da den gestus sidder på prikkerne.",
+        "paginationDotsHelp": "Rækken af prikker nederst på displayet, der viser, hvilken skærm der vises, og som du kan trykke på for at skifte til en anden. Slår du dette fra, forsvinder også dobbelttryk-for-pause, da den gestus sidder på prikkerne.",
         "pauseEnabledLabel": "Tillad pause på touchskærm",
         "pauseEnabledToggle": "Slået til",
         "pauseEnabledHelp": "Dobbelttryk på den fremhævede skærmprik for at sætte skærmskift på pause. Dobbelttryk igen for at fortsætte.",
@@ -1251,7 +1251,7 @@
         "cursorHideHelp": "Musemarkøren skjules efter så mange sekunder uden aktivitet. Bevæg musen for at få den frem igen.",
         "pixelShiftLabel": "Beskyt skærmen mod indbrænding",
         "pixelShiftToggle": "Flyt billedet en smule",
-        "pixelShiftHelp": "Flytter alt på skærmen et par pixels én gang i minuttet, så intet står samme sted ret længe. Hjælper på OLED-skærme og andre skærme, der kan brænde ind. På afstand lægger man ikke mærke til det.",
+        "pixelShiftHelp": "Flytter alt på displayet et par pixels én gang i minuttet, så intet står samme sted ret længe. Hjælper på OLED-skærme og andre skærme, der kan brænde ind. På afstand lægger man ikke mærke til det.",
         "fullscreenThemeLabel": "Tema for fuld skærm",
         "fullscreenThemeHelp": "Gælder for alle moduler i fuld skærm (Kalender, Pligter, Måltider), så de ser ens ud ved skærmskift. Du kan ændre det for hvert modul i editoren."
       },
@@ -1281,13 +1281,13 @@
         "statusOffline": "Offline",
         "screenCountSingular": "1 skærm",
         "screenCountPlural": "{count} skærme",
-        "notFound": "Der findes ingen skærm, der hedder “{id}”",
+        "notFound": "Der findes intet display, der hedder “{id}”",
         "subtabs": {
           "overview": "oversigt",
           "overrides": "tilsidesættelser"
         },
         "notFoundDesc": "Den er måske fjernet, eller linket er forældet.",
-        "notFoundAction": "Se alle skærme"
+        "notFoundAction": "Se alle displays"
       },
       "overview": {
         "activeProfileLabel": "Aktiv profil",
@@ -1341,7 +1341,7 @@
       },
       "identity": {
         "displayNameLabel": "Navn på display",
-        "displayNameHelp": "Vises i sidepanelet og på skærmen. Gemmes, når du klikker et andet sted.",
+        "displayNameHelp": "Vises i sidepanelet og på displayet. Gemmes, når du klikker et andet sted.",
         "displayIdLabel": "Display-id",
         "displayIdHelpPart1": "Bruges i dette displays adresse ",
         "displayIdHelpPart2": ". Kan ikke ændres, uden at Pi'en sættes op igen.",
@@ -1395,12 +1395,12 @@
       },
       "sleep": {
         "label": "Slumring & dæmpning",
-        "infoPart1": "Slumring og dæmpning tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for denne skærm. Standarden ligger under ",
+        "infoPart1": "Slumring og dæmpning tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for dette display. Standarden ligger under ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Beskeder på skærmen",
-        "infoPart1": "Indstillingerne for beskeder tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for denne skærm. Standarden ligger under ",
+        "infoPart1": "Indstillingerne for beskeder tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for dette display. Standarden ligger under ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1409,20 +1409,20 @@
         "usingDefaultPart2": "."
       },
       "displaySoftware": {
-        "heading": "Skærmsoftware",
+        "heading": "Displaysoftware",
         "upToDate": "Opdateret ({version})",
         "updateWaiting": "Opdatering venter ({version})",
-        "updateWaitingHint": "Skærmen henter {version} i nat eller næste gang den genstarter.",
+        "updateWaitingHint": "Displayet henter {version} i nat eller næste gang det genstarter.",
         "pending": "Gør klar",
-        "pendingHint": "Skærmen kopierer hubbens software næste gang den melder sig.",
+        "pendingHint": "Displayet kopierer hubbens software næste gang det melder sig.",
         "unreported": "Ikke oplyst",
-        "unreportedHint": "Skærmen har endnu ikke fortalt hubben, hvilken software den kører.",
-        "needsSetupBody": "Skærmen blev sat op, før automatiske opdateringer fandtes. Kør dette på den én gang, så holder den sig selv opdateret fremover.",
+        "unreportedHint": "Displayet har endnu ikke fortalt hubben, hvilken software det kører.",
+        "needsSetupBody": "Displayet blev sat op, før automatiske opdateringer fandtes. Kør dette på det én gang, så holder det sig selv opdateret fremover.",
         "copy": "Kopiér",
         "needsSetupTitle": "Slå automatiske opdateringer til",
-        "connectLabel": "Forbind til den",
+        "connectLabel": "Forbind til det",
         "runLabel": "Kør så dette",
-        "connectUnknown": "Forbind til skærmens Pi fra en terminal (brugernavnet er {user}), og kør så:"
+        "connectUnknown": "Forbind til displayets Pi fra en terminal (brugernavnet er {user}), og kør så:"
       },
       "calendar": {
         "wallEntryLabel": "Tilføj, ændr og fjern begivenheder på denne væg",
@@ -1439,7 +1439,7 @@
       "maxVisibleLabel": "Maks. antal synlige beskeder",
       "defaultDurationLabel": "Standardvarighed (sekunder)",
       "defaultDurationPerType": "Standard pr. type",
-      "defaultDurationHelp": "Info: 10 sek, Advarsel: 30 sek, Vigtigt: bliver, indtil den lukkes.",
+      "defaultDurationHelp": "Info: 10 sek, Advarsel: 30 sek, Haster: bliver stående, indtil den lukkes.",
       "alertSizeLabel": "Beskedstørrelse",
       "activeAlertsHeading": "Aktive beskeder",
       "clearAllButton": "Ryd alle beskeder",
@@ -1487,7 +1487,7 @@
         "off": "Slukket",
         "idleNote": "Dæmpes også efter {minutes} stille minutter, når som helst"
       },
-      "disabledHelp": "Slå det til for at vælge tidspunkter. Lige nu er skærmen lys hele døgnet.",
+      "disabledHelp": "Slå det til for at vælge tidspunkter. Lige nu er displayet lyst hele døgnet.",
       "powerSectionTitle": "Når det er slukket",
       "panelPowerOffLabel": "Sluk også for strømmen til skærmen",
       "panelPowerOffHelp": "Til Raspberry Pi-displays. Skærmen bliver helt mørk og bruger et par sekunder på at komme tilbage, når nogen vækker den. Lad dette være slået fra, hvis din skærm ikke tænder igen af sig selv."
@@ -1668,7 +1668,7 @@
         },
         "photosBand": {
           "title": "Til Google Fotos og til at tilføje begivenheder",
-          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind eller tilføje begivenheder i kalenderen. Ellers spring det over.",
+          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind eller tilføje begivenheder i kalenderen. Ellers kan du springe det over.",
           "helpOwnApp": "Et separat login fra kalenderens, af typen “Web application”. Det bruges til import fra Google Fotos og til at tilføje begivenheder i kalenderen."
         },
         "mapsBand": {
@@ -1813,7 +1813,7 @@
       "loading": "Indlæser netværksoplysninger…",
       "unavailable": {
         "heading": "Netværk",
-        "message": "Netværksindstillinger er kun tilgængelige på selve skærmenheden."
+        "message": "Netværksindstillinger er kun tilgængelige på selve displayet."
       },
       "interfaces": {
         "heading": "Netværkskort",
@@ -2023,7 +2023,7 @@
       },
       "timeFormat": {
         "heading": "Tidsformat",
-        "description": "Bruges alle steder, hvor måltider vises, på skærmen og på telefonen.",
+        "description": "Bruges alle steder, hvor måltider vises, på displayet og på telefonen.",
         "twelveHourLabel": "12-timers",
         "twentyFourHourLabel": "24-timers",
         "followLabel": "Følg den globale indstilling"
@@ -2087,12 +2087,12 @@
         "blockedDowngradeLine": "At gå tilbage til v{version} ville efterlade indstillinger, som den version ikke kan læse."
       },
       "failedUpdate": {
-        "line": "Opdateringen til {tag} startede ikke, så denne skærm gik tilbage til v{version}.",
+        "line": "Opdateringen til {tag} startede ikke, så dette display gik tilbage til v{version}.",
         "dismiss": "Forstået"
       },
       "restartNeeded": {
         "title": "Genstart for at afslutte opdateringen",
-        "line": "En del af den seneste opdatering virker først, når enheden er genstartet. Skærmen bliver mørk i et minut eller to.",
+        "line": "En del af den seneste opdatering virker først, når enheden er genstartet. Displayet bliver mørkt i et minut eller to.",
         "button": "Genstart nu"
       },
       "channel": {
@@ -2114,7 +2114,7 @@
           "help": "Et frisk build af den nyeste kode næsten hver nat. Ting går i stykker, og du skal måske tilbage til en normal udgivelse."
         },
         "nightlyWarning": "Test-builds kan ændre dine gemte indstillinger, så den normale version ikke kan læse dem. En kopi af dine indstillinger fra før dit første test-build gemmes på siden Sikkerhedskopier og data.",
-        "nightlyAutoUpdateNote": "Hvis et test-build ikke starter, går skærmen tilbage til den forrige version og prøver ikke det test-build igen."
+        "nightlyAutoUpdateNote": "Hvis et test-build ikke starter, går displayet tilbage til den forrige version og prøver ikke det test-build igen."
       },
       "autoUpdate": {
         "heading": "Automatiske opdateringer",
@@ -2136,7 +2136,7 @@
         "status": {
           "installed": "{when}. {tag} er installeret.",
           "upToDate": "{when}. Du kører allerede den nyeste version.",
-          "didNotStart": "{when}. Opdateringen til {tag} startede ikke, så denne skærm gik tilbage til v{version}. {tag} bliver ikke prøvet igen.",
+          "didNotStart": "{when}. Opdateringen til {tag} startede ikke, så dette display gik tilbage til v{version}. {tag} bliver ikke prøvet igen.",
           "failedBefore": "{when}. {tag} blev sprunget over, fordi den ikke startede sidste gang.",
           "needsPassword": "{when}. Kunne ikke opdatere: Enhedens adgangskode skal indtastes én gang. Installér opdateringen fra boksen ovenfor for at indtaste den.",
           "failed": "{when}. {tag} kunne ikke installeres. Installér den fra boksen ovenfor for at prøve igen og se, hvad der gik galt.",
@@ -2259,7 +2259,7 @@
     },
     "rulesPage": {
       "heading": "Regler",
-      "description": "Regler får skærmen til at reagere af sig selv. Når det, du beskriver, bliver sandt, kan den skifte til en skærm eller vågne, for eksempel vise kameraet ved hoveddøren, når det ringer på.",
+      "description": "Regler får displayet til at reagere af sig selv. Når det, du beskriver, bliver sandt, kan displayet skifte til en skærm eller vågne, for eksempel vise kameraet ved hoveddøren, når det ringer på.",
       "displayPicker": {
         "label": "Redigerer regler for",
         "optionLabel": "{name} ({id})",
@@ -2292,7 +2292,7 @@
         "screenMissingWarning": "Vælg den skærm, reglen skal vise.",
         "modeLabel": "Hvor længe",
         "modeWhile": "Så længe betingelserne er sande",
-        "modeWhileSleepHint": "Bliver vist, så længe betingelserne er sande. Hvis skærmen går i dvale, slukker den stadig til tiden, men en regel, der lige er startet, holder den tændt i op til 5 minutter.",
+        "modeWhileSleepHint": "Bliver vist, så længe betingelserne er sande. Hvis displayet går i dvale, slukker det stadig til tiden, men en regel, der lige er startet, holder det tændt i op til 5 minutter.",
         "modeFor": "I et fast tidsrum",
         "secondsLabel": "Sekunder",
         "cooldownLabel": "Ventetid (sekunder)",
@@ -2307,18 +2307,18 @@
     },
     "sharedStatePage": {
       "heading": "Delte værdier",
-      "description": "Alle værdier denne skærm udgiver til betingelser, regler og tekstpladsholdere, samt alt der refereres, men aldrig ankommer.",
+      "description": "Alle værdier dette display udgiver til betingelser, regler og tekstpladsholdere, samt alt der refereres, men aldrig ankommer.",
       "intro": {
         "heading": "Sådan fungerer det",
-        "body1": "Skærme kan reagere på, hvad der sker i dit hjem. Udvidelser (som Home Assistant) deler små navngivne værdier her, for eksempel om en dør er åben, eller hvem der er hjemme.",
-        "body2": "Fanen »Overvåger« viser, hvad denne skærm faktisk bruger lige nu, så du kan tjekke, at de rigtige oplysninger ankommer. Fanen »Tilgængelig« viser alt, hvad dine udvidelser kan dele, så du kan se, hvad du kan reagere på."
+        "body1": "Displays kan reagere på, hvad der sker i dit hjem. Udvidelser (som Home Assistant) deler små navngivne værdier her, for eksempel om en dør er åben, eller hvem der er hjemme.",
+        "body2": "Fanen »Overvåger« viser, hvad dette display faktisk bruger lige nu, så du kan tjekke, at de rigtige oplysninger ankommer. Fanen »Tilgængelig« viser alt, hvad dine udvidelser kan dele, så du kan se, hvad du kan reagere på."
       },
       "tabs": {
         "watching": "Overvåger",
         "available": "Tilgængelig"
       },
       "available": {
-        "description": "Alt, hvad dine udvidelser kan dele med denne skærm, uanset om det bruges endnu. Gennemse efter udvidelse, eller søg for at indsnævre.",
+        "description": "Alt, hvad dine udvidelser kan dele med dette display, uanset om det bruges endnu. Gennemse efter udvidelse, eller søg for at indsnævre.",
         "searchPlaceholder": "Søg efter tilgængelige værdier…",
         "summary": {
           "one": "{count} værdi tilgængelig fra dine udvidelser",
@@ -2333,16 +2333,16 @@
         "showLess": "Vis mindre"
       },
       "displayPicker": {
-        "label": "Skærm",
+        "label": "Display",
         "optionLabel": "{name} ({id})"
       },
-      "lastReportLabel": "Seneste rapport fra skærmen: {time}",
-      "noReportHint": "Denne skærm har endnu ikke rapporteret nogen værdier. Værdier vises her, når skærmen er tændt, og noget udgiver dem.",
-      "editorValuesHint": "Live-værdier fra denne editor. Tænd skærmen for at se, hvad den faktisk rapporterer.",
-      "offlineSinceHint": "Skærmen har ikke rapporteret siden {time}. Rækkerne viser de senest sendte værdier.",
+      "lastReportLabel": "Seneste rapport fra displayet: {time}",
+      "noReportHint": "Dette display har endnu ikke rapporteret nogen værdier. Værdier vises her, når displayet er tændt, og noget udgiver dem.",
+      "editorValuesHint": "Live-værdier fra denne editor. Tænd displayet for at se, hvad det faktisk rapporterer.",
+      "offlineSinceHint": "Displayet har ikke rapporteret siden {time}. Rækkerne viser de senest sendte værdier.",
       "emptyHint": "Ingenting her endnu. Værdier dukker op af sig selv, når noget bruger dem, for eksempel en betingelse på et modul eller en live-værdi i et Tekst-modul. Der er ikke noget, du skal sætte op på forhånd.",
       "neverPublished": "Aldrig udgivet",
-      "neverPublishedDetail": "Intet på skærmen udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
+      "neverPublishedDetail": "Intet på displayet udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
       "unreferencedLabel": "Intet refererer denne nøgle.",
       "referencedByLabel": "Bruges af",
       "ruleRefLabel": "Regel: {name}",
@@ -2356,11 +2356,11 @@
       "status": {
         "enabled": "Adgangskoden er slået til",
         "disabled": "Ingen adgangskode endnu",
-        "enabledOutcome": "Editoren og familiefjernbetjeningen spørger efter den. Vægskærmen og børnenes pligtside er stadig åbne, så intet på køleskabet holder op med at virke.",
+        "enabledOutcome": "Editoren og familiefjernbetjeningen spørger efter den. Displayet på væggen og børnenes pligtside er stadig åbne, så intet på køleskabet holder op med at virke.",
         "disabledOutcome": "Alle på jeres Wi-Fi derhjemme kan åbne editoren og familiefjernbetjeningen."
       },
       "setup": {
-        "description": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden.",
+        "description": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Displayet på væggen og børnenes pligtside virker stadig uden.",
         "setPasswordButton": "Vælg en adgangskode"
       },
       "actions": {
@@ -2378,8 +2378,8 @@
         "failed": "Kunne ikke logge alle ud"
       },
       "displayToken": {
-        "heading": "Skærmnøgle",
-        "description": "Til Home Assistant, genveje og bogmærker, der styrer en skærm uden adgangskoden. Dine skærme bruger den ikke: Home Screens husker hver skærm, når den er lukket ind.",
+        "heading": "Displaynøgle",
+        "description": "Til Home Assistant, genveje og bogmærker, der styrer et display uden adgangskoden. Dine displays bruger den ikke: Home Screens husker hvert display, når det er lukket ind.",
         "reveal": "Vis",
         "hide": "Skjul",
         "copy": "Kopiér",
@@ -2387,7 +2387,7 @@
         "regenerating": "Laver en ny nøgle…",
         "regenerateConfirm": "Lav en ny nøgle",
         "regenerateCancel": "Annullér",
-        "regenerateWarning": "Alt, der bruger den gamle nøgle, holder op med at virke, indtil du giver det den nye. Dine skærme virker stadig.",
+        "regenerateWarning": "Alt, der bruger den gamle nøgle, holder op med at virke, indtil du giver det den nye. Dine displays virker stadig.",
         "regenerateWallsLetInByThemselves": {
           "one": "{count} browser blev lukket ind af sig selv efter opdateringen. En ny nøgle fjerner den ikke.",
           "other": "{count} browsere blev lukket ind af sig selv efter opdateringen. En ny nøgle fjerner dem ikke."
@@ -2398,14 +2398,14 @@
         },
         "errorRegenerate": "Kunne ikke lave en ny nøgle.",
         "errorCopy": "Kopieringen mislykkedes. Markér nøglen, og kopiér den selv.",
-        "phoneHintIntro": "Vil du styre en skærm fra telefonen, så gem et bogmærke med et link som dette:",
+        "phoneHintIntro": "Vil du styre et display fra telefonen, så gem et bogmærke med et link som dette:",
         "phoneHintOutro": "Vis nøglen ovenfor først, så linket får den med. Byt sleep ud med wake, reload, next-screen eller prev-screen for de andre kommandoer.",
-        "phoneHintDisplayNote": "Dette peger på {name}. Byt {display} ud med en anden skærms id for at ramme den."
+        "phoneHintDisplayNote": "Dette peger på {name}. Byt {display} ud med et andet displays id for at ramme det."
       },
       "ipAllowlist": {
         "heading": "Tilladte netværk",
         "bypassAuth": {
-          "label": "Luk skærme på disse netværk ind uden at spørge",
+          "label": "Luk displays på disse netværk ind uden at spørge",
           "help": "Editoren og familiefjernbetjeningen spørger stadig efter adgangskoden."
         },
         "restrictAccess": {
@@ -2449,11 +2449,11 @@
       "modal": {
         "setTitle": "Vælg en adgangskode",
         "changeTitle": "Skift adgangskode",
-        "disableTitle": "Slå login fra",
+        "disableTitle": "Slå adgangskoden fra",
         "currentPasswordPlaceholder": "Nuværende adgangskode",
         "newPasswordPlaceholder": "Ny adgangskode (mindst 8 tegn)",
         "confirmPasswordPlaceholder": "Bekræft ny adgangskode",
-        "disableWarning": "Det fjerner adgangskoden, så alle på dit netværk kan komme ind i editoren.",
+        "disableWarning": "Det fjerner adgangskoden. Så kan alle på jeres Wi-Fi derhjemme åbne editoren og familiefjernbetjeningen.",
         "cancel": "Annullér",
         "setSubmit": "Slå til",
         "setting": "Gemmer…",
@@ -2461,12 +2461,13 @@
         "changing": "Skifter…",
         "disableSubmit": "Slå fra",
         "disabling": "Slår fra…",
-        "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden.",
+        "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Displayet på væggen og børnenes pligtside virker stadig uden.",
         "wallsStay": {
-          "one": "Din skærm er stadig lukket ind.",
-          "other": "Dine {count} skærme er stadig lukket ind."
+          "one": "Dit display forbliver lukket ind.",
+          "other": "Dine displays forbliver lukket ind."
         },
-        "wallsOff": "En skærm, der er slukket lige nu, beder om at blive lukket ind, når den kommer tilbage."
+        "wallsOff": "Et display, der er slukket lige nu, beder om at blive lukket ind, når det kommer tilbage.",
+        "wallsSeeList": "Se listen"
       },
       "errors": {
         "passwordsDoNotMatch": "Adgangskoderne er ikke ens",
@@ -2476,15 +2477,15 @@
         "passwordTooShort": "Adgangskoden skal have mindst {count} tegn."
       },
       "success": {
-        "passwordSet": "Adgangskoden er gemt! Login er nu slået til.",
+        "passwordSet": "Adgangskoden er gemt. Editoren og familiefjernbetjeningen spørger nu efter den.",
         "passwordChanged": "Adgangskoden er skiftet. Alle andre er logget ud.",
-        "authDisabled": "Login er slået fra."
+        "authDisabled": "Adgangskoden er slået fra."
       },
       "forgotPasswordHint": "Glemt adgangskoden? Kør {command} på enheden. At slette filen {file} i Home Screens-mappen rydder den også.",
       "description": "Hvem der må ændre ting, og hvorfra.",
       "advanced": {
         "heading": "Avanceret netværksadgang",
-        "description": "Skærmnøgle, tilmeldte enheder og begrænsning til bestemte netværk."
+        "description": "Displaynøgle, tilmeldte enheder og begrænsning til bestemte netværk."
       },
       "grownUpPointerPrefix": "Skal væggen spørge, før børnene bruger billetter? Det finder du under ",
       "grownUpPointerSuffix": " på siden Familie."
@@ -2681,7 +2682,7 @@
       "previouslyThrottled": "Har tidligere haft nedsat ydelse",
       "throttleOk": "OK",
       "temperature": "Temperatur",
-      "displayPrograms": "Skærmens programmer",
+      "displayPrograms": "Displayets programmer",
       "programsChecked": "Programmer tjekket",
       "noHardwareStats": "Der er endnu ikke rapporteret hardwaredata for dette display. Installér home-screens-reporter.timer på dets Pi.",
       "storageTitle": "Lagerplads",
@@ -2701,20 +2702,20 @@
       "entries": "Poster",
       "fresh": "Friske",
       "stale": "Forældede",
-      "inflight": "Undervejs",
+      "inflight": "Henter nu",
       "entriesFill": "Fyldningsgrad",
       "evictions": {
-        "one": "{count} LRU-udsmidning",
-        "other": "{count} LRU-udsmidninger"
+        "one": "{count} gammel post fjernet for at gøre plads",
+        "other": "{count} gamle poster fjernet for at gøre plads"
       },
       "cacheUrl": "URL",
       "cacheAge": "Alder",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Holdbarhed",
       "cacheState": "Tilstand",
       "cacheStaleLabel": "forældet",
       "cacheFreshLabel": "frisk",
-      "cacheNoDisplay": "Disse tal kommer fra en skærm. Der er ingen forbundet lige nu.",
-      "cacheNoDisplayForName": "Disse tal kommer fra en skærm. {name} er ikke forbundet lige nu.",
+      "cacheNoDisplay": "Disse tal kommer fra et display. Der er ikke noget forbundet lige nu.",
+      "cacheNoDisplayForName": "Disse tal kommer fra et display. {name} er ikke forbundet lige nu.",
       "telemetryTitle": "Anonym telemetri",
       "telemetryDescription": "Home Screens indsamler anonym brugsstatistik for at kunne prioritere funktioner og forstå, hvordan appen bruges. Der indsamles aldrig personlige data, IP-adresser eller indhold.",
       "telemetryToggle": "Send anonyme brugsdata",
@@ -2725,7 +2726,7 @@
       "telemetryDataDaily": "Data der sendes én gang om dagen:",
       "telemetryItem1": "Anonymt installations-id (tilfældigt UUID)",
       "telemetryItem2": "Appens version og platform (styresystem, arkitektur)",
-      "telemetryItem3": "Skærmens opløsning og retning",
+      "telemetryItem3": "Displayets opløsning og retning",
       "telemetryItem4": "Antal skærme, moduler og profiler",
       "telemetryItem5": "Hvilke modultyper der bruges (fx ur, vejr)",
       "telemetryItem6": "Vejrudbyder og overgangseffekt",
@@ -2739,7 +2740,7 @@
       "dataBackups": "Sikkerhedskopier af opsætningen",
       "dataConfiguration": "Opsætning",
       "noAppData": "Der er ingen appdata endnu.",
-      "displayTitle": "Skærm",
+      "displayTitle": "Display",
       "offline": "Offline",
       "displayStates": {
         "active": "Aktiv",
@@ -2751,24 +2752,25 @@
       "indexOf": "{index} af {total}",
       "profile": "Profil",
       "viewport": "Visningsområde",
+      "browser": "Browser",
       "notChromium": "En anden browser",
       "lastSeen": "Sidst set",
       "timeAgo": "for {age} siden",
-      "noDisplayPrefix": "Ingen skærm er forbundet. Åbn",
-      "noDisplayForNamePrefix": "Ingen skærm er forbundet for {name}. Åbn",
+      "noDisplayPrefix": "Intet display er forbundet. Åbn",
+      "noDisplayForNamePrefix": "Intet display er forbundet for {name}. Åbn",
       "noDisplayOpenSuffix": "for at komme i gang.",
-      "displayHardwareTitle": "Skærmens hardware",
+      "displayHardwareTitle": "Displayets hardware",
       "webglUnavailable": "WebGL er ikke tilgængelig",
       "cpuCoresLabel": "CPU-kerner",
       "deviceMemoryLabel": "Enhedens hukommelse",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "Browseroplysninger rapporteres af skærmen. Ingen skærm er forbundet.",
-      "noBrowserStatsForName": "Browseroplysninger rapporteres af skærmen. Ingen skærm er forbundet for {name}.",
-      "description": "Hvordan dine skærme og denne enhed har det lige nu."
+      "noBrowserStats": "Browseroplysninger kommer fra selve displayet. Der er ikke noget display forbundet lige nu.",
+      "noBrowserStatsForName": "Browseroplysninger kommer fra selve displayet. {name} er ikke forbundet lige nu.",
+      "description": "Hvordan dine displays og denne enhed har det lige nu."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
-      "heroNew": "Kør Home Screens på flere skærme",
+      "heroNew": "Kør Home Screens på flere displays",
       "heroExisting": {
         "one": "{count} display i dette hjem",
         "other": "{count} displays i dette hjem"
@@ -2780,10 +2782,9 @@
       "defaultsLink": "Standarder",
       "refreshHeartbeatsTitle": "Opdatér livstegn",
       "addDisplay": "Tilføj display",
-      "emptyTitle": "Denne installation kører med én skærm",
-      "emptyParagraphPart1": "Din nuværende opsætning tæller som ét display, men er ikke tilføjet her endnu; understøttelse af flere displays skal slås til, så eksisterende installationer er uændrede, indtil du selv tilføjer display nummer to. Så snart du tilføjer dit første display, bliver denne Pi's nuværende layout til et display, der hedder ",
+      "emptyTitle": "Denne hub har indtil videre ét display",
+      "emptyParagraphPart1": "Det, du har nu, tæller som ét display, men det står ikke på listen her endnu. Intet ændrer sig, før du selv tilføjer et display. Når du tilføjer dit første, bliver det, denne Pi viser i dag, til et display, der hedder ",
       "emptyParagraphPart2": ", og det kører præcis som i dag.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik på ",
       "emptyBullet1Suffix": " ovenfor for at tilføje et nyt display. Giv det et navn, en opløsning og en retning, og design så dets eget layout i editoren.",
       "emptyBullet2": "Eller flash en anden Pi med {command}. Når den starter op, dukker den op herunder som et {label}, og ét klik tilføjer den.",
@@ -2799,9 +2800,9 @@
       "lastSeenLabel": "Sidst set {time}",
       "reportedDimensions": "{width}×{height} rapporteret",
       "reportedFrom": "fra {address}",
-      "multipleClientsHeading": "{count} klienter melder sig med dette id",
-      "multipleClientsParagraphPrefix": "To eller flere klienter sender data med dette display-id. Tjek kilde-IP'erne ovenfor for at finde ud af, hvilken enhed der reelt melder sig; oftest er det en dublet af ",
-      "multipleClientsParagraphSuffix": "-installationen, en glemt browserfane eller et display, der peger på den forkerte adresse.",
+      "multipleClientsHeading": "{count} enheder bruger dette display-id",
+      "multipleClientsParagraphPrefix": "Mere end én enhed melder sig med dette display-id. Adresserne ovenfor viser hvilke. Som regel skyldes det, at to er sat op med samme ",
+      "multipleClientsParagraphSuffix": ", at en browserfane er blevet stående åben, eller at et display peger på den forkerte adresse.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} skærme"
       },
       "currentScreenLabel": "Viser {name}",
-      "multipleClientsCardHeading": "{count} forskellige klienter melder sig for dette display",
+      "multipleClientsCardHeading": "{count} forskellige enheder viser dette display",
       "tabsSuffix": "×{count} faner",
       "formEditTitle": "Redigér display",
       "formAdoptTitle": "Tilføj {id}",
@@ -2822,8 +2823,8 @@
       "formIdLabel": "ID",
       "formIdHint": "(bruges i URL'en: /display/<id>)",
       "formIdPlaceholder": "koekken",
-      "formIdLocked": "Id'et er låst, så det passer til det display, der melder sig.",
-      "formReportedViewport": "(rapporteret af skærmen: {width} × {height})",
+      "formIdLocked": "Id'et kan ikke ændres her, fordi dette display allerede bruger det.",
+      "formReportedViewport": "(rapporteret af displayet: {width} × {height})",
       "formWidth": "Bredde",
       "formHeight": "Højde",
       "formResolutionHint": "Sæt den, så den passer til den fysiske skærm, dette display vises på. Modulerne placeres på et skærmområde i denne størrelse, når du redigerer dette displays skærme.",
@@ -2834,10 +2835,10 @@
       "formRotationHint": "Bestemmer, hvordan displayet vender. Bredde og højde ovenfor byttes automatisk, så den lange kant følger den valgte retning.",
       "formCancel": "Annullér",
       "formAddDisplay": "Tilføj display",
-      "formErrorName": "Navnet skal udfyldes",
-      "formErrorId": "Id'et må kun indeholde små bogstaver, tal og bindestreger (fx \"koekken\")",
-      "formErrorIdReserved": "\"{id}\" har allerede en særlig betydning, når der sendes kommandoer til skærme. Vælg et andet ID, f.eks. \"kitchen\" eller \"bedroom-tv\"",
-      "formErrorIdTaken": "Der findes allerede et display med id'et \"{id}\"",
+      "formErrorName": "Navnet skal udfyldes.",
+      "formErrorId": "Id'et må kun indeholde små bogstaver, tal og bindestreger (fx \"koekken\").",
+      "formErrorIdReserved": "\"{id}\" har allerede en særlig betydning, når der sendes kommandoer til displays. Vælg et andet id, fx \"koekken\" eller \"sovevaerelse-tv\".",
+      "formErrorIdTaken": "Der findes allerede et display med id'et \"{id}\".",
       "formErrorWidth": "Bredden skal være mellem {min} og {max}. Se efter et manglende ciffer: de fleste displays er 1080 eller 1920 brede.",
       "formErrorHeight": "Højden skal være mellem {min} og {max}. Se efter et manglende ciffer: de fleste displays er 1080 eller 1920 høje.",
       "softwareUpdateWaiting": "Opdatering venter",
@@ -2884,7 +2885,7 @@
       },
       "print": {
         "label": "Udskriv koderne",
-        "description": "Hæng dem på køleskabet ved siden af skærmen.",
+        "description": "Hæng dem på køleskabet ved siden af displayet.",
         "action": "Udskriv",
         "sheetTitle": "Home Screens på din telefon"
       }
@@ -2982,11 +2983,12 @@
         "one": "Home Screens husker nu hver browser, og dine er fulgt med. Tjek, at dem med mærket “{tag}” er dine. Denne besked forsvinder af sig selv om {count} dag.",
         "other": "Home Screens husker nu hver browser, og dine er fulgt med. Tjek, at dem med mærket “{tag}” er dine. Denne besked forsvinder af sig selv om {count} dage."
       },
+      "windowWhere": "Du finder dem på disse displays:",
       "showingIn": {
         "one": "Vises {count} sted",
         "other": "Vises {count} steder"
       },
-      "showingHint": "Hver browser, der viser denne skærm. Fjerner du en, skal den lukkes ind igen.",
+      "showingHint": "Hver browser, der viser dette display. Fjerner du en, skal den lukkes ind igen.",
       "seen": "sidst set {time}",
       "removeConsequence": "Denne browser holder op med at vise væggen og skal lukkes ind igen.",
       "removeFailed": "Den kunne ikke fjernes. Prøv igen."
@@ -3853,7 +3855,7 @@
       "confirmDeleteDetail": "Du kan fortryde det."
     },
     "visibility": {
-      "enabledLabel": "Vis på skærmen",
+      "enabledLabel": "Vis på displayet",
       "enabledHelp": "Når den er slået fra, vises modulet aldrig på displayet. Det bliver stående her, så du kan slå det til igen.",
       "everyScreenLabel": "Vis på alle skærme",
       "everyScreenHelp": "Tegner dette modul på alle skærme på dette display, oven på det, der allerede er der, og holder det på plads, mens skærmene skifter.",
@@ -4367,7 +4369,7 @@
       "defaultTarget": "Standardmål",
       "targetSelf": "Dette display (sig selv)",
       "targetAll": "Alle displays",
-      "legacyHint": "Der er kun én skærm, så det er den, der styres.",
+      "legacyHint": "Der er kun ét display, så det er det, der styres.",
       "dockMissingThere": "På {display} åbner en knap skærmen med samme navn. {display} har ingen skærm, der hedder {names}, så de knapper er blege og gør ingenting der.",
       "allowRetargeting": "Lad brugeren skifte mål undervejs",
       "compact": "Kun ikoner, ingen ord",
@@ -4516,7 +4518,7 @@
       "viewChoreBoard": "Pligttavle",
       "viewRewardsStore": "Belønningsbutik",
       "showRewardsButton": "Vis belønningsknap",
-      "showRewardsButtonHelp": "Tilføjer en knap på pligttavlen, så børnene kan skifte til belønningsbutikken. Bedst på skærme med touch.",
+      "showRewardsButtonHelp": "Tilføjer en knap på pligttavlen, så børnene kan skifte til belønningsbutikken. Bedst på displays med touchskærm.",
       "themeDefault": "Standard (fra Indstillinger)",
       "typographySize": "Tekststørrelse",
       "accentColor": "Accentfarve",
@@ -4700,9 +4702,9 @@
       "chooseVideoPlaceholder": "Vælg en video…",
       "noVideosYet": "Ingen videoer i dit bibliotek endnu. Upload en for at komme i gang.",
       "uploadVideo": "Upload video",
-      "movHint": "iPhone-videoer (.mov) afspilles ikke altid på Raspberry Pi-skærme. MP4-videoer (H.264) fungerer bedst.",
+      "movHint": "iPhone-videoer (.mov) afspilles ikke altid på Raspberry Pi-displays. MP4-videoer (H.264) fungerer bedst.",
       "playSound": "Afspil lyd",
-      "soundHint": "Lyd kræver en engangsopsætning på skærmen (se videoguiden). Indtil da afspilles videoer uden lyd.",
+      "soundHint": "Lyd kræver en engangsopsætning på displayet (se videoguiden). Indtil da afspilles videoer uden lyd.",
       "loop": "Afspil gentagne gange",
       "maxDurationSeconds": "Stop efter (sekunder, 0 = fortsæt)",
       "uploading": "Uploader…",
@@ -4831,12 +4833,12 @@
       "feedMoveUp": "Flyt {name} op",
       "feedMoveDown": "Flyt {name} ned",
       "feedRemove": "Fjern {name}",
-      "feedLabel": "Navn på skærmen",
+      "feedLabel": "Navn, der vises på displayet",
       "feedLabelPlaceholder": "Lad feltet stå tomt for at bruge kildens eget navn",
       "feedMaxItems": "Maks. nyheder fra denne kilde",
       "feedMaxItemsPlaceholder": "Ingen grænse",
       "feedHomeNetwork": "Hjemmenetværk",
-      "feedHomeNetworkHint": "Lader skærmen læse et feed fra en enhed på dit hjemmenetværk, for eksempel en selvhostet nyhedslæser.",
+      "feedHomeNetworkHint": "Lader displayet læse et feed fra en enhed på dit hjemmenetværk, for eksempel en selvhostet nyhedslæser.",
       "feedCheck": "Tjek",
       "feedChecking": "Tjekker…",
       "feedCheckResult": "{title} · {count} nyheder · nyeste {ago}",
@@ -4870,9 +4872,9 @@
       },
       "timeAgo": {
         "justNow": "lige nu",
-        "minutes": "{count} min siden",
-        "hours": "{count} t siden",
-        "days": "{count} d. siden"
+        "minutes": "for {count} min siden",
+        "hours": "for {count} t siden",
+        "days": "for {count} d. siden"
       },
       "addFeed": "Tilføj en nyhedskilde",
       "addKind": {
@@ -4978,7 +4980,7 @@
         "button": "Vis kun, når regn er sandsynlig",
         "active": "Dette kort vises kun, når regn er sandsynlig i dag.",
         "edit": "Ret det under Betingelser",
-        "needsLocation": "Angiv først din placering under {place}, så skærmen kender vejrudsigten."
+        "needsLocation": "Angiv først din placering under {place}, så displayet kender vejrudsigten."
       },
       "styleDark": "Mørkt",
       "styleStandard": "Standard",
@@ -5241,7 +5243,7 @@
         "down": "Ned"
       },
       "stateTokensHint": "Indsæt {example} for at vise en live-værdi udgivet af et baggrundsmodul.",
-      "stateTokenUnknown": "Intet modul på denne skærm udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem.",
+      "stateTokenUnknown": "Intet på dette display udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem.",
       "stateTokenFiltersHint": "Tilføj |round:1 for at afrunde tal, eller |default:tekst for at vælge, hvad der vises, før en værdi kommer.",
       "stateTokenPreview": "Live-forhåndsvisning",
       "removeColor": "Fjern denne farve"
@@ -5593,7 +5595,7 @@
       "accentAuto": "Accentfarven følger vejret",
       "accentColor": "Accentfarve",
       "showTime": "Vis klokkeslæt",
-      "skyLayerHint": "Levende maler himlen efter vejret og tidspunktet på dagen, med hvid tekst ovenpå. Vælg Stille, hvis skærmen hakker på ældre udstyr; Stille og Fra beholder temaets farver.",
+      "skyLayerHint": "Levende maler himlen efter vejret og tidspunktet på dagen, med hvid tekst ovenpå. Vælg Stille, hvis displayet hakker på ældre udstyr; Stille og Fra beholder temaets farver.",
       "showMap": "Vis regnkortet",
       "mapZoom": "Kortzoom (1 til 12)",
       "mapStyle": "Kortstil",
@@ -5607,7 +5609,7 @@
       "cardsDrag": "Flyt {card}",
       "cardsLeads": "Vises under regnkortet i Udsigt",
       "cardsHintConditions": "Forhold viser hvert kort, der er slået til, i denne rækkefølge. Træk et kort for at flytte det. Et kort skjuler sig også, når din vejrkilde ikke sender det, kortet viser.",
-      "cardsHintForecast": "Udsigt viser de to første kort, der er slået til, under regnkortet. Træk kort op for at vælge hvilke to; på en bred skærm fylder rækkefølgen gitteret. Et kort skjuler sig også, når din vejrkilde ikke sender det, kortet viser.",
+      "cardsHintForecast": "Udsigt viser de to første kort, der er slået til, under regnkortet. Træk kort op for at vælge hvilke to; på et bredt display fylder rækkefølgen gitteret. Et kort skjuler sig også, når din vejrkilde ikke sender det, kortet viser.",
       "cardWind": "Vind",
       "cardSun": "Solopgang og solnedgang",
       "cardMoon": "Måne",
@@ -5674,7 +5676,7 @@
       "hint": "Skift farve, ikon eller ord, når en live-værdi passer. Den øverste regel vinder, når to ændrer det samme. Passer ingen, beholder teksten sin egen stil.",
       "empty": "Intet udseende endnu. Teksten beholder sin egen stil, indtil du tilføjer et.",
       "addLook": "Tilføj et udseende",
-      "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da ændrer dette udseende ikke noget.",
+      "sourceKeyUnknown": "Intet på dette display udgiver denne nøgle endnu. Indtil da ændrer dette udseende ikke noget.",
       "when": "Når",
       "then": "Så",
       "noConditionsHint": "Ingen betingelser endnu. Dette udseende gælder hele tiden, indtil du tilføjer en.",
@@ -5784,7 +5786,7 @@
       "addAnyway": "Tilføj alligevel",
       "checkUnavailable": "Linket kunne ikke tjekkes lige nu",
       "homeNetwork": "Hjemmenetværk",
-      "homeNetworkHint": "Lader skærmen læse en kalender fra en enhed på dit hjemmenetværk, for eksempel en kalenderserver, du selv kører.",
+      "homeNetworkHint": "Lader displayet læse en kalender fra en enhed på dit hjemmenetværk, for eksempel en kalenderserver, du selv kører.",
       "removeFeed": "Fjern {name}",
       "removeConfirmMessage": "Begivenhederne holder op med at blive vist. Du kan tilføje linket igen når som helst.",
       "removeConfirmButton": "Fjern kalender"
@@ -5846,7 +5848,7 @@
       },
       "photo-frame": {
         "name": "Fotoramme",
-        "description": "Fotodiasshow i fuld skærm: gør din skærm til en digital fotoramme."
+        "description": "Fotodiasshow i fuld skærm: gør dit display til en digital fotoramme."
       },
       "sports-hub": {
         "name": "Sportshjørne",
@@ -5861,7 +5863,7 @@
         "description": "Vejr, kalender, trafik og en hilsen til at starte dagen."
       },
       "kitchen-display": {
-        "name": "Køkkenskærm",
+        "name": "Køkkendisplay",
         "description": "Madplan, ur, kalender, affaldsdag og huskesedler til køkkenet."
       },
       "news-finance": {
@@ -5922,7 +5924,7 @@
     },
     "sourceKeyLabel": "Hvad der tjekkes",
     "sourceKeyHint": "Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
-    "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
+    "sourceKeyUnknown": "Intet på dette display udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
     "sourceKeyPlaceholder": "Vælg noget, eller skriv for at filtrere",
     "matchLabel": "Match",
     "matchEquals": "Er",
@@ -5945,31 +5947,31 @@
     "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
-    "liveValueLabel": "På skærmen lige nu:",
+    "liveValueLabel": "På displayet lige nu:",
     "liveValueLabelEditor": "Værdi lige nu:",
     "liveValueStale": "opdateres ikke længere",
-    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver: værdien skal matche præcist.",
+    "caseMismatchWarning": "Displayet udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver: værdien skal matche præcist.",
     "verdicts": {
       "met": "Opfyldt",
       "unmet": "Ikke opfyldt",
       "unknown": "Venter",
-      "metTitle": "Denne betingelse passer på skærmen lige nu.",
-      "unmetTitle": "Denne betingelse passer ikke på skærmen lige nu.",
+      "metTitle": "Denne betingelse passer på displayet lige nu.",
+      "unmetTitle": "Denne betingelse passer ikke på displayet lige nu.",
       "unknownTitle": "En nøgle i denne betingelse er endnu ikke udgivet.",
       "metTitleEditor": "Denne betingelse passer lige nu.",
       "unmetTitleEditor": "Denne betingelse passer ikke lige nu."
     },
     "outcome": {
-      "noLiveData": "Skærmen har ikke rapporteret for nylig, så live-resultater vises ikke.",
-      "offlineSince": "Skærmen har ikke rapporteret siden {time}, så live-resultater vises ikke.",
-      "shownNow": "Vises på skærmen lige nu",
-      "hiddenNow": "Skjult på skærmen lige nu",
+      "noLiveData": "Displayet har ikke rapporteret for nylig, så live-resultater vises ikke.",
+      "offlineSince": "Displayet har ikke rapporteret siden {time}, så live-resultater vises ikke.",
+      "shownNow": "Vises på displayet lige nu",
+      "hiddenNow": "Skjult på displayet lige nu",
       "shownNowEditor": "Ville blive vist lige nu",
       "hiddenNowEditor": "Ville blive skjult lige nu",
       "waitingForKeys": "venter på {keys}",
       "keyNotPicked": "en betingelse mangler stadig en nøgle",
       "conditionsNotMet": "betingelserne passer ikke",
-      "seeLiveValues": "Hver betingelse viser, hvad skærmen ser lige nu, og alle værdier står under {place}."
+      "seeLiveValues": "Hver betingelse viser, hvad displayet ser lige nu, og alle værdier står under {place}."
     },
     "time": {
       "fromLabel": "Fra",
@@ -6064,7 +6066,7 @@
   },
   "firstRun": {
     "heading": "Kom godt i gang",
-    "intro": "Fem hurtige trin til en skærm der virker.",
+    "intro": "Fem hurtige trin til et display, der virker.",
     "dismiss": "Skjul denne tjekliste",
     "steps": {
       "template": "Vælg en skabelon eller tilføj moduler til din første skærm",
@@ -6176,7 +6178,7 @@
       "noItemsFound": "Intet fundet endnu. Tjek linket, og sørg for, at 'Offentligt websted' er slået til for albummet.",
       "photoLinkDetected": "Dette er et fotolink, ikke et link til et delt album. Fotolinks holder op med at virke efter cirka en måned, så vi gemmer kopier i dit bibliotek og viser dem i stedet.",
       "photoLinkAction": "Gem i biblioteket",
-      "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over.",
+      "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre displays. Videoer, der ikke kan afspilles, springes automatisk over.",
       "checking": "Tjekker albummet…",
       "checkingSlow": "Tjekker stadig. Et stort album kan tage et minut.",
       "noAnswer": "iCloud svarede ikke lige nu. Dit link er måske helt fint.",
@@ -6433,7 +6435,7 @@
       "notSetUp": "Ikke sat op endnu",
       "openApiKeys": "Åbn {place}",
       "favorite": "Favorit",
-      "unsupportedFormat": "Billedet er i et format, skærmen ikke kan vise. Vælg et andet."
+      "unsupportedFormat": "Billedet er i et format, displayet ikke kan vise. Vælg et andet."
     },
     "builtIn": {
       "themeWalls": "Temabaggrunde",

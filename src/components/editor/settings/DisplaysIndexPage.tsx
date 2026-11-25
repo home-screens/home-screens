@@ -29,6 +29,7 @@ import type {
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { useWalls } from '@/hooks/useWalls';
 import { WaitingWallsNotice, WallsBlock, WindowWallsNotice, wallsShowing } from '@/components/editor/settings/display/WallsPanels';
+import { wallsLetInByThemselves } from '@/lib/walls-api-types';
 import { resolveDisplaySoftwareState } from '@/lib/display-software-status';
 import { dashSlug } from '@/lib/slug';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -557,7 +558,18 @@ export default function DisplaysIndexPage() {
       </div>
 
       <WaitingWallsNotice walls={waitingForKnown} displayName={displayNameFor} onLetIn={letIn} />
-      {wallsData && <WindowWallsNotice data={wallsData} />}
+      {wallsData && (
+        <WindowWallsNotice
+          data={wallsData}
+          places={displays
+            .filter((display) => wallsShowing(wallsLetInByThemselves(walls), display.id).length > 0)
+            .map((display) => ({
+              id: display.id,
+              name: display.name,
+              href: settingsHref({ kind: 'display', displayId: display.id, subtab: 'overview' }),
+            }))}
+        />
+      )}
       {/* A hub with one display has no card to open, so its walls are listed here. */}
       {displays.length === 0 && <WallsBlock walls={walls} displayId={null} onRemove={removeWall} className="mb-5" />}
 
@@ -588,7 +600,7 @@ export default function DisplaysIndexPage() {
             </div>
             <p className="text-[13px] text-hs-text-muted leading-relaxed mb-3">
               {t('settings.displaysIndex.emptyParagraphPart1')}
-              <span className="text-hs-text-body font-medium">{t('settings.displaysIndex.mainLabel')}</span>
+              <span className="text-hs-text-body font-medium">{t('settings.displaysIndex.mainDisplayName')}</span>
               {t('settings.displaysIndex.emptyParagraphPart2')}
             </p>
             <ul className="text-[13px] text-hs-text-muted space-y-1.5 mb-1">
@@ -710,7 +722,7 @@ export default function DisplaysIndexPage() {
                         </ul>
                         <p className="text-hs-text-faint mt-1">
                           {t('settings.displaysIndex.multipleClientsParagraphPrefix')}
-                          <code className="mx-1">--display-id</code>
+                          <code>--display-id</code>
                           {t('settings.displaysIndex.multipleClientsParagraphSuffix')}
                         </p>
                       </Notice>

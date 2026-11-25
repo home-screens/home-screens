@@ -177,7 +177,7 @@ test.describe('multi-display bootstrap', () => {
 test.describe('reserved display ids', () => {
   const formReservedError = (id: string) =>
     `"${id}" already has a special meaning when sending commands to displays. `
-    + 'Please pick a different ID, like "kitchen" or "bedroom-tv"';
+    + 'Pick a different ID, like "kitchen" or "bedroom-tv".';
   const reservedError = (id: string) =>
     `Display id "${id}" is reserved: it already has a special meaning when sending commands to displays. `
     + 'Please pick a different id, such as "kitchen" or "bedroom-tv"';

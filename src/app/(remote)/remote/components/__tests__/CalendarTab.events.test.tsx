@@ -266,13 +266,13 @@ describe('CalendarTab: what it says it could not load or cannot offer', () => {
   it('says in the Add form why calendar links are not in its calendar choice', () => {
     entry = { ...ENTRY, readOnlyShown: 'links' };
     render(<CalendarTab openAdd={{ date: '2026-11-24' }} />);
-    expect(screen.getByTestId('event-form-read-only').textContent).toBe(remote.calendarTab.form.onlySome.links);
+    expect(screen.getByTestId('event-form-read-only').textContent).toBe(core.calendarChange.onlySome.links);
   });
 
   it('names both reasons when calendar links and other calendars can only be read', () => {
     entry = { ...ENTRY, readOnlyShown: 'both' };
     render(<CalendarTab openAdd={{ date: '2026-11-24' }} />);
-    expect(screen.getByTestId('event-form-read-only').textContent).toBe(remote.calendarTab.form.onlySome.both);
+    expect(screen.getByTestId('event-form-read-only').textContent).toBe(core.calendarChange.onlySome.both);
   });
 
   it('adds no line when every calendar shown can take events', () => {

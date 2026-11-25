@@ -633,7 +633,7 @@
     "rate": "Gerecht beoordelen",
     "dinner": "Avondeten beoordelen",
     "close": "Gereed",
-    "hint": "Iedereen heeft één beoordeling per recept. Beoordeel opnieuw om je stem te wijzigen; het gezinsgemiddelde gebruikt ieders huidige stem.",
+    "hint": "Iedereen heeft één beoordeling per recept. Beoordeel het opnieuw om je stem te wijzigen; voor het gezinsgemiddelde telt ieders huidige stem.",
     "noDinner": "Er is voor deze dag geen avondeten gepland.",
     "typed": {
       "one": "{dishes}: zelf ingetypt, dus geen recept om te beoordelen.",
@@ -831,7 +831,12 @@
     "askBody": "Alleen deze dag wijzigen, of elke keer?",
     "everyTimeFromFirst": "Alle keren, vanaf de eerste",
     "everyTimeMovesTo": "Elke keer schuift evenveel op, naar {time}",
-    "nextDay": "de volgende dag"
+    "nextDay": "de volgende dag",
+    "onlySome": {
+      "links": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agenda's via een link zijn alleen te bekijken.",
+      "readOnly": "Nieuwe afspraken kunnen alleen in sommige agenda's. Sommige zijn alleen te bekijken.",
+      "both": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agenda's via een link en een paar andere zijn alleen te bekijken."
+    }
   },
   "notice": {
     "title": "Melding"

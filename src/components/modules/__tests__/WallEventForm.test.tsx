@@ -210,3 +210,43 @@ describe('WallEventForm: a double tap', () => {
     expect(held()).toBe(true);
   });
 });
+
+describe('WallEventForm: a new event', () => {
+  /** A new event opens on its name; one letter and the action key reach the details. */
+  function renderNew(over: Partial<CalendarEntryInfo> = {}, locale = 'en-US', timeFormat: '12h' | '24h' = '12h') {
+    render(
+      <I18nProvider locale={locale} blob={{ modules: enUSModules, core: enUSCore }}>
+        <WallEventForm mode="new" date="2026-11-27" entry={{ ...entry, ...over }} theme={getThemeTokens('linen')} accent="#10b981" timeFormat={timeFormat} onDone={vi.fn()} onClose={vi.fn()} />
+      </I18nProvider>,
+    );
+    const key = (name: string) => document.querySelector<HTMLElement>(`[data-testid="wall-keyboard"] [data-key="${name}"]`);
+    fireEvent.click(key('A') ?? key('a')!);
+    fireEvent.click(key('action')!);
+  }
+  const cell = (attr: string) => document.querySelector(`[${attr}]`)?.textContent;
+
+  it('says why a calendar on the wall is missing from the choice, as the phone does', () => {
+    renderNew({ readOnlyShown: 'links' });
+    expect(screen.getByTestId('wall-event-read-only').textContent).toBe(enUSCore.calendarChange.onlySome.links);
+  });
+
+  it('says nothing about it when every shown calendar can take events', () => {
+    renderNew();
+    expect(screen.getByTestId('wall-event-calendar')).toBeTruthy();
+    expect(screen.queryByTestId('wall-event-read-only')).toBeNull();
+  });
+
+  it("writes the hours and minutes the household's own way", () => {
+    renderNew({}, 'es-ES');
+    expect(cell('data-hour="8"')).toBe('8a. m.');
+    expect(cell('data-minute="15"')).toBe(':15');
+    cleanup();
+    renderNew({}, 'da-DK', '24h');
+    expect(cell('data-hour="8"')).toBe('08.00');
+    expect(cell('data-minute="15"')).toBe('.15');
+    cleanup();
+    renderNew({}, 'en-US');
+    expect(cell('data-hour="15"')).toBe('3PM');
+    expect(cell('data-minute="15"')).toBe(':15');
+  });
+});

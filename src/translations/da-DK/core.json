@@ -208,15 +208,15 @@
     "heldInPreview": "Rotationen står stille i forhåndsvisningen"
   },
   "displayNotFound": {
-    "notRegistered": "Skærm ikke tilføjet endnu",
-    "adoptionLine1": "Denne skærm er forbundet til Home Screens, men er ikke tilføjet endnu.",
+    "notRegistered": "Display ikke tilføjet endnu",
+    "adoptionLine1": "Dette display er forbundet til Home Screens, men er ikke tilføjet endnu.",
     "adoptionLine2": "Åbn Home Screens-editoren, gå til",
     "andClick": "og klik",
     "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
     "waitingForAdoption": "Venter på at blive tilføjet…",
-    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds} sek.",
-    "goToDefault": "Gå til hovedskærmen nu"
+    "recoveryNotice": "Dette display er ikke sat op endnu, men det er dine andre displays. Skifter til hoveddisplayet om {seconds} sek.",
+    "goToDefault": "Gå til hoveddisplayet nu"
   },
   "wallGate": {
     "title": "Denne væg skal lukkes ind",
@@ -633,7 +633,7 @@
     "rate": "Bedøm retten",
     "dinner": "Bedøm aftensmaden",
     "close": "Færdig",
-    "hint": "Hver person har én bedømmelse pr. opskrift. Bedøm igen for at ændre din stemme; familiens gennemsnit bruger alles aktuelle stemmer.",
+    "hint": "Hver person har én bedømmelse pr. opskrift. Bedøm den igen for at ændre din stemme. Familiens gennemsnit regnes ud fra alles nuværende stemmer.",
     "noDinner": "Der er ikke planlagt aftensmad denne dag.",
     "typed": {
       "one": "{dishes} er bare skrevet ind, så der er ingen opskrift at bedømme.",
@@ -831,7 +831,12 @@
     "askBody": "Skal ændringen kun gælde denne dag eller alle gange?",
     "everyTimeFromFirst": "Alle gange, helt fra den første",
     "everyTimeMovesTo": "Hver gang flyttes lige så meget, til {time}",
-    "nextDay": "næste dag"
+    "nextDay": "næste dag",
+    "onlySome": {
+      "links": "Kun nogle kalendere kan få nye begivenheder. Kalenderlinks kan kun ses, ikke ændres.",
+      "readOnly": "Kun nogle kalendere kan få nye begivenheder. Nogle kan kun ses, ikke ændres.",
+      "both": "Kun nogle kalendere kan få nye begivenheder. Kalenderlinks og nogle andre kan kun ses, ikke ændres."
+    }
   },
   "notice": {
     "title": "Bemærk"

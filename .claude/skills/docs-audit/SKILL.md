@@ -141,7 +141,7 @@ For each commit, do a quick "doc impact" judgment: most refactors and test commi
 
 **Pass E, settings paths:**
 
-Every `Settings > A` and `Settings > A > B` phrase in `website/content/docs` must name a real page and tab. `node website/scripts/check-settings-paths.mjs` compares them against `settings.sidebar.navLabels` (and the tab labels) in `src/translations/en-US/editor.json` and prints the ones that do not match. `npx tsx website/scripts/check-docs-pages.mts` (after `cd website && npm run build`) then checks every page for sideways scroll on a phone, literal backticks, broken links and anchors, and unsized images.
+Every `Settings > A` and `Settings > A > B` phrase in `website/content/docs` must name a real page and tab. `node website/scripts/check-settings-paths.mjs` compares them against `settingsPages` in `src/translations/en-US/core.json` (and the tab labels listed in the script) and prints the ones that do not match. `npx tsx website/scripts/check-docs-pages.mts` (after `cd website && npm run build`) then checks every page for sideways scroll on a phone, literal backticks, broken links and anchors, and unsized images.
 
 **Pass D, tone and audience placement:**
 

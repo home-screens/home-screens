@@ -1544,12 +1544,7 @@
       "fromWall": "Started on the {wall} wall for {day}.",
       "changedElsewhere": "Someone changed this event a moment ago, so this is the newest version. Make your change again, then save.",
       "repeatsNote": "{title} repeats. When you save, you choose this day or every time.",
-      "noCalendars": "No calendar takes new events yet. Pick some in {place}.",
-      "onlySome": {
-        "links": "Only some calendars can take new events. Calendar links can only be read.",
-        "readOnly": "Only some calendars can take new events. Some can only be read.",
-        "both": "Only some calendars can take new events. Calendar links and some others can only be read."
-      }
+      "noCalendars": "No calendar takes new events yet. Pick some in {place}."
     }
   },
   "wallWaiting": {

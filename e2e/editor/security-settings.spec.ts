@@ -139,13 +139,12 @@ test('disabling auth from the Security page removes the login gate', async ({ pa
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
-  // Section trigger says what it does to the password; the modal submit is
-  // still the short "Disable".
+  // The section's button and the window's own both say what happens to the password.
   await page.getByRole('button', { name: 'Turn the password off' }).click();
 
   const modal = passwordModal(page);
   await modal.getByPlaceholder('Current password').fill(NEW_PASSWORD);
-  await modal.getByRole('button', { name: 'Disable', exact: true }).click();
+  await modal.getByRole('button', { name: 'Turn it off', exact: true }).click();
 
   await expect(page.getByText('No password yet')).toBeVisible();
 

@@ -1544,12 +1544,7 @@
       "fromWall": "Startet på væggen {wall} til {day}.",
       "changedElsewhere": "En anden har lige ændret denne begivenhed, så her er den nyeste udgave. Lav din ændring igen, og gem så.",
       "repeatsNote": "{title} gentages. Når du gemmer, vælger du, om det gælder denne dag eller alle gange.",
-      "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under {place}.",
-      "onlySome": {
-        "links": "Kun nogle kalendere kan få nye begivenheder. Kalenderlinks kan kun ses, ikke ændres.",
-        "readOnly": "Kun nogle kalendere kan få nye begivenheder. Nogle kan kun ses, ikke ændres.",
-        "both": "Kun nogle kalendere kan få nye begivenheder. Kalenderlinks og nogle andre kan kun ses, ikke ændres."
-      }
+      "noCalendars": "Ingen kalender kan få nye begivenheder endnu. Vælg nogle under {place}."
     }
   },
   "wallWaiting": {

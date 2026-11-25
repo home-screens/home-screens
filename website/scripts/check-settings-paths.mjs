@@ -5,7 +5,7 @@
  *
  *   node website/scripts/check-settings-paths.mjs
  *
- * Page names come from `settings.sidebar.navLabels` in the app's English
+ * Page names come from `settingsPages` in the app's English `core`
  * dictionary; tab names are listed here because they live in each section's
  * own strings. Prints every unknown path with its file and line, and exits
  * non-zero when there is at least one.
@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..', '..')
 const DOCS = path.join(ROOT, 'website', 'content', 'docs')
-const DICT = path.join(ROOT, 'src', 'translations', 'en-US', 'editor.json')
+const DICT = path.join(ROOT, 'src', 'translations', 'en-US', 'core.json')
 
-const editor = JSON.parse(readFileSync(DICT, 'utf8'))
-const pages = new Set(Object.values(editor.settings.sidebar.navLabels).map((v) => v.toLowerCase()))
+const core = JSON.parse(readFileSync(DICT, 'utf8'))
+const pages = new Set(Object.values(core.settingsPages).map((v) => v.toLowerCase()))
 // Sidebar entries that are not Defaults pages but are real destinations.
 for (const extra of ['displays', 'all displays', 'per display', 'defaults']) pages.add(extra)
 
@@ -28,7 +28,7 @@ for (const extra of ['displays', 'all displays', 'per display', 'defaults']) pag
 const TABS = {
   screen: ['rotation & appearance', 'sleep & dimming', 'alerts'],
   automation: ['profiles', 'rules', 'shared state'],
-  calendar: ['ical / ics feeds', 'ical feeds', 'sign in with google', 'icloud calendar', 'people', 'public holidays', 'source status'],
+  calendar: ['ical / ics feeds', 'ical feeds', 'sign in with google', 'icloud calendar', 'people', 'public holidays', 'source status', 'adding events', 'calendar order', 'colors'],
   security: ['display key', 'allowed networks', 'set a password'],
   'system & updates': ['check for updates', 'if an update caused trouble', 'if something seems stuck', 'restart the whole device', 'show advanced options', 'advanced'],
   // "Save or restore a file" cannot be checked: the pattern ends a path at " or ".
@@ -46,8 +46,8 @@ const TABS = {
 
 const PATTERN = /Settings(?: ?[>→] ?([A-Za-z&/ ]+?))(?: ?[>→] ?([A-Za-z&/ ]+?))?(?=[.,;:)*\]_`\n]| and | or | to | in | so | while | which | where | when | is | shows| lists| has| holds| sets| page)/g
 
-/** Settings pages of other products the docs mention (Home Assistant's). */
-const OTHER_PRODUCTS = new Set(['devices & services'])
+/** Settings pages of other products the docs mention (Home Assistant's, the iPhone's). */
+const OTHER_PRODUCTS = new Set(['devices & services', 'camera'])
 
 let problems = 0
 for (const file of readdirSync(DOCS).filter((f) => f.endsWith('.md')).sort()) {

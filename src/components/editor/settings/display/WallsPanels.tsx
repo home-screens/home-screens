@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Info, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Notice from '@/components/ui/Notice';
@@ -114,7 +115,15 @@ function LetInByItselfTag() {
  * Shown for the 30 days after the update, while any wall was let in with no
  * click: a grown-up should glance at those and see they are theirs.
  */
-export function WindowWallsNotice({ data }: { data: WallsApiResponse }) {
+export function WindowWallsNotice({ data, places }: {
+  data: WallsApiResponse;
+  /**
+   * The displays whose own pages list those walls, on a hub with several
+   * displays: the rows are not on the page this notice sits on, so it links
+   * to each one. Left out where the list is right underneath.
+   */
+  places?: { id: string; name: string; href: string }[];
+}) {
   const t = useTranslate('editor');
   const count = wallsLetInByThemselves(data.walls).length;
   if (!data.windowOpen || count === 0 || data.windowEndsAt === null) return null;
@@ -122,6 +131,17 @@ export function WindowWallsNotice({ data }: { data: WallsApiResponse }) {
   return (
     <Notice tone="info" icon={Info} className="mb-4" testId="window-walls" title={t('settings.walls.windowTitle', { count })}>
       {t('settings.walls.windowBody', { tag: t('settings.walls.letInByItself'), count: days })}
+      {places && places.length > 0 && (
+        <span className="mt-1 block" data-testid="window-walls-places">
+          {t('settings.walls.windowWhere')}{' '}
+          {places.map((place, i) => (
+            <span key={place.id}>
+              {i > 0 && ', '}
+              <Link href={place.href} className="text-hs-accent hover:text-hs-accent-hover underline">{place.name}</Link>
+            </span>
+          ))}
+        </span>
+      )}
     </Notice>
   );
 }

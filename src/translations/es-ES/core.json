@@ -226,10 +226,10 @@
     "noCookieTitle": "Este navegador se olvida de que es un monitor",
     "noCookieLine": "Home Screens recuerda cada monitor con una cookie, y este navegador no la ha guardado. Activa las cookies para esta dirección y vuelve a cargar la página.",
     "keepLine": "Has iniciado sesión, así que solo estás mirando.",
-    "keepButton": "Dejar como monitor",
+    "keepButton": "Usar como monitor",
     "keepClose": "Cerrar",
     "kept": "Este navegador ya es un monitor.",
-    "keepFailed": "No se ha podido dejar como monitor. Inténtalo de nuevo."
+    "keepFailed": "No se ha podido convertir en monitor. Inténtalo de nuevo."
   },
   "login": {
     "checkingAuth": "Comprobando autenticación…",
@@ -428,7 +428,7 @@
     "retry": "Reintentar",
     "saved": "Familia guardada.",
     "removeTitle": "¿Eliminar a {name}?",
-    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de tickets, valoraciones de platos y acceso a premios. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
+    "removeDescription": "Al eliminar a {name}, se le quita de sus tareas y se borran sus horarios, su historial de tareas hechas, su saldo de tickets, sus valoraciones de platos y su acceso a premios. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
     "remove": "Eliminar persona",
     "editName": "Editar a {name}",
     "moveUp": "Subir a {name}",
@@ -466,7 +466,7 @@
       },
       "saved": "Grupos guardados.",
       "limit": "Puedes tener hasta {count} grupos.",
-      "hint": "Los grupos se usan en la leyenda de colores del calendario y en su filtro \"Mostrar solo\". Una tarea también se puede dar a un grupo. Los premios se siguen asignando a personas."
+      "hint": "Los grupos se usan en la leyenda de colores del calendario y en su filtro «Mostrar solo». Una tarea también se puede dar a un grupo. Los premios se siguen asignando a personas."
     }
   },
   "customIcons": {
@@ -831,7 +831,12 @@
     "askBody": "¿Cambiar solo este día o todas las veces que se repite?",
     "everyTimeFromFirst": "Todas las veces, desde la primera",
     "everyTimeMovesTo": "Todas las veces se mueven lo mismo, a las {time}",
-    "nextDay": "al día siguiente"
+    "nextDay": "al día siguiente",
+    "onlySome": {
+      "links": "Solo algunos calendarios aceptan eventos nuevos. Los enlaces de calendario solo se pueden ver.",
+      "readOnly": "Solo algunos calendarios aceptan eventos nuevos. Algunos solo se pueden ver.",
+      "both": "Solo algunos calendarios aceptan eventos nuevos. Los enlaces de calendario y algunos otros solo se pueden ver."
+    }
   },
   "notice": {
     "title": "Aviso"

@@ -7,6 +7,7 @@ import { useTranslate } from '@/i18n';
 import type { AuthStatus } from './types';
 import { SETTINGS_INPUT_CLASS } from '@/components/ui/input-classes';
 import FieldHint from '@/components/ui/FieldHint';
+import WallsStayLine from './WallsStayLine';
 
 // Status discriminants — kind drives styling/role explicitly so we never
 // sniff English prefixes from translated messages.
@@ -251,6 +252,12 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
               <p className="text-xs text-hs-text-muted border-t border-hs-border pt-3" data-testid="first-password-walls">
                 <span className="font-medium text-hs-text-body">{t('settings.securityPage.modal.wallsStay', { count: showingCount })}</span>{' '}
                 {t('settings.securityPage.modal.wallsOff')}
+              </p>
+            )}
+
+            {mode === 'change' && (
+              <p className="text-xs text-hs-text-muted empty:hidden">
+                <WallsStayLine testId="change-password-walls" />
               </p>
             )}
 

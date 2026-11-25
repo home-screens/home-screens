@@ -636,7 +636,7 @@
       "free": "Libre",
       "undo": "Deshacer",
       "undone": "Vuelve a estar como antes.",
-      "hint": "Toca un día. Si ese día ya tiene comida, se te pregunta antes de cambiar nada.",
+      "hint": "Toca un día. Si ese día ya tiene algo en el menú, se te pregunta antes de cambiar nada.",
       "hintMine": "Una marca indica los días que ya tienen {meal}. Toca uno de ellos para quitar la receta, u otro día para repetirla.",
       "when": {
         "breakfast": "el desayuno del {day}",
@@ -674,7 +674,7 @@
         "changed": "Alguien acaba de cambiar el {day}.",
         "changedDetail": "Así está el menú ahora. Toca un día para volver a intentarlo.",
         "full": "En esa comida ya no caben más platos.",
-        "off": "Acaban de desactivar la planificación desde el monitor.",
+        "off": "Acaban de quitar la opción de planificar desde el monitor.",
         "undoLate": "No se pudo deshacer. El día ha vuelto a cambiar.",
         "undoFailed": "No se pudo deshacer.",
         "day": "Ese día no se puede planificar desde el monitor.",

@@ -175,7 +175,10 @@ test('the wall adds an event on an empty day with its own keyboard, then removes
   // The first letter is a capital on its own.
   for (const key of ['S', 'w', 'i', 'm']) await page.locator(`[data-testid="wall-event-form"] [data-key="${key}"]`).click();
   await page.locator('[data-testid="wall-event-form"] [data-key="action"]').click();
+  // The team calendar is on the wall but can only be read, and the form says so.
+  await expect(page.getByTestId('wall-event-read-only')).toHaveText('Only some calendars can take new events. Some can only be read.');
   // Every hour of the day is on the grid, late evening included.
+  await expect(page.locator('[data-testid="wall-event-form"] [data-hour="22"]')).toHaveText('10PM');
   await page.locator('[data-testid="wall-event-form"] [data-hour="22"]').click();
   await page.getByTestId('wall-event-save').click();
   await expect(page.getByTestId('wall-event-form')).toHaveCount(0);

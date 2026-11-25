@@ -1073,7 +1073,7 @@
     "waitingForDisplay": "Warte, bis ein Display ihn übernimmt…",
     "notShowing": "Noch zeigt ihn kein Display. Prüf, ob das Display eingeschaltet ist.",
     "whyNoSave": {
-      "name": "Gib der Routine einen Namen, um zu speichern.",
+      "name": "Gib der Routine einen Namen, dann kannst du sie speichern.",
       "stepName": "Gib jedem Schritt einen Namen, um zu speichern.",
       "stepLength": "Jeder Schritt muss mindestens {seconds} Sekunden dauern."
     },
@@ -1544,12 +1544,7 @@
       "fromWall": "Für {day}, angefangen am Display „{wall}“.",
       "changedElsewhere": "Jemand hat diesen Termin gerade eben geändert, deshalb siehst du jetzt den neuesten Stand. Mach deine Änderung noch einmal und speichere dann.",
       "repeatsNote": "„{title}“ wiederholt sich. Beim Speichern wählst du: nur an diesem Tag oder an allen Tagen.",
-      "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus.",
-      "onlySome": {
-        "links": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks sind nur zum Ansehen.",
-        "readOnly": "Nur manche Kalender nehmen neue Termine an. Manche sind nur zum Ansehen.",
-        "both": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks und einige andere sind nur zum Ansehen."
-      }
+      "noCalendars": "Noch nimmt kein Kalender neue Termine an. Wähle am Computer unter {place} welche aus."
     }
   },
   "wallWaiting": {

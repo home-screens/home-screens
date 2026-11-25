@@ -831,7 +831,12 @@
     "askBody": "Change just this day, or every time it happens?",
     "everyTimeFromFirst": "Every time it happens, from the first one",
     "everyTimeMovesTo": "Every time moves by the same amount, to {time}",
-    "nextDay": "next day"
+    "nextDay": "next day",
+    "onlySome": {
+      "links": "Only some calendars can take new events. Calendar links can only be read.",
+      "readOnly": "Only some calendars can take new events. Some can only be read.",
+      "both": "Only some calendars can take new events. Calendar links and some others can only be read."
+    }
   },
   "notice": {
     "title": "Notice"

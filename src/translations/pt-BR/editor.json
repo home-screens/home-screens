@@ -251,7 +251,7 @@
       "move": "mover",
       "go": "abrir"
     },
-    "settingsHint": "Procurando uma configuração? Escolha um módulo para as configurações dele, ou clique num espaço vazio da tela para as configurações da tela. As da casa ficam em Configurações."
+    "settingsHint": "Procurando uma configuração? Escolha um módulo para ver as configurações dele ou clique num espaço vazio da tela para ver as da própria tela. As da casa ficam em Configurações."
   },
   "screenSettings": {
     "sectionTitle": "Configurações da tela",
@@ -776,7 +776,7 @@
       "ordering": {
         "heading": "Ordem dos calendários",
         "description": "Quais calendários mantêm o lugar num dia cheio.",
-        "help": "Arraste para definir a ordem. Num dia com mais eventos do que cabem, os calendários de cima mantêm as linhas e os de baixo saem primeiro.",
+        "help": "Arraste para definir a ordem. Num dia com mais eventos do que cabem, os calendários de cima continuam aparecendo e os de baixo são os primeiros a sumir.",
         "empty": "Ligue um calendário primeiro.",
         "reset": "Voltar à ordem por horário"
       },
@@ -2364,7 +2364,7 @@
         "setPasswordButton": "Definir uma senha"
       },
       "actions": {
-        "changePassword": "Mudar a senha",
+        "changePassword": "Alterar senha",
         "disableAuth": "Desativar a senha",
         "logOut": "Sair"
       },
@@ -2380,7 +2380,7 @@
       "displayToken": {
         "heading": "Chave do display",
         "description": "Para o Home Assistant, atalhos e favoritos que controlam um display sem a senha. Seus displays não usam esta chave: o Home Screens lembra de cada um depois que ele é autorizado a entrar.",
-        "reveal": "Revelar",
+        "reveal": "Mostrar",
         "hide": "Ocultar",
         "copy": "Copiar",
         "regenerateButton": "Criar uma chave nova",
@@ -2400,7 +2400,7 @@
         "errorCopy": "Não foi possível copiar. Selecione a chave e copie você mesmo.",
         "phoneHintIntro": "Para controlar um display pelo celular, salve nos favoritos um link como este:",
         "phoneHintOutro": "Mostre antes a chave acima para que o link a leve junto. Troque sleep por wake, reload, next-screen ou prev-screen para os outros comandos.",
-        "phoneHintDisplayNote": "Este aponta para {name}. Troque {display} pelo id de outro display para mirar nele."
+        "phoneHintDisplayNote": "Este aponta para {name}. Para controlar outro display, troque {display} pelo ID dele."
       },
       "ipAllowlist": {
         "heading": "Redes permitidas",
@@ -2417,24 +2417,24 @@
         "addPlaceholder": "192.168.1.0/24",
         "addButton": "Adicionar",
         "errors": {
-          "invalidCidr": "Isso não é uma faixa de rede. A maioria das redes domésticas é 192.168.1.0/24.",
+          "invalidCidr": "Isso não é uma faixa de rede. A maioria das redes domésticas usa 192.168.1.0/24.",
           "invalidIp": "Isso não é um endereço IP.",
           "invalidPrefix": "O número depois da barra precisa ficar entre 0 e 32.",
           "alreadyInList": "Já está na lista."
         },
         "callerIpLabel": "Seu IP: ",
         "lockoutWarning": {
-          "title": "Você pode se trancar do lado de fora",
+          "title": "Você pode ficar sem acesso",
           "messagePart1": "Seu IP atual (",
           "messagePart2": ") não está na lista. Se você permitir apenas essas redes, vai perder o acesso a este editor.",
           "saveAnyway": "Salvar mesmo assim",
           "cancel": "Cancelar"
         },
-        "lockedOutHintPart1": "Se você acabar trancado do lado de fora, edite ",
+        "lockedOutHintPart1": "Se você ficar sem acesso, edite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " no aparelho para desativar isto.",
         "ipv4Warning": {
-          "strong": "Endereços com dois-pontos não combinam.",
+          "strong": "Endereços com dois-pontos não são reconhecidos.",
           "part1": " Esta lista só entende endereços como 192.168.1.20. Um aparelho que se identifica como ",
           "loopback": "::1",
           "or": " ou ",
@@ -2443,17 +2443,17 @@
         },
         "trustedNetworksWarning": {
           "strong": "Veja \"Seu IP\" acima.",
-          "part1": " O Home Screens descobre de onde veio um pedido pela própria conexão de rede, não pelo que quem chama envia, então um celular não consegue se enfiar nesta lista. O que esconde o aparelho de verdade é algo que repassa o tráfego no caminho, como um roteador redirecionando uma porta ou um proxy: aí todo pedido chega com aquele único endereço e esta lista serve para todos ou para ninguém. Se \"Seu IP\" no seu celular for igual ao daqui, é isso que está acontecendo."
+          "part1": " O Home Screens descobre de onde veio um pedido pela própria conexão de rede, não pelo que o aparelho diz, então um celular não consegue se enfiar nesta lista. O que esconde o aparelho de verdade é algo que repassa o tráfego no caminho, como um roteador redirecionando uma porta ou um proxy: aí todo pedido chega com aquele único endereço e esta lista vale para todos ou para ninguém. Se \"Seu IP\" no seu celular for igual ao daqui, é isso que está acontecendo."
         }
       },
       "modal": {
         "setTitle": "Definir uma senha",
         "changeTitle": "Alterar senha",
-        "disableTitle": "Desativar autenticação",
+        "disableTitle": "Desativar a senha",
         "currentPasswordPlaceholder": "Senha atual",
         "newPasswordPlaceholder": "Nova senha (mín. 8 caracteres)",
         "confirmPasswordPlaceholder": "Confirmar nova senha",
-        "disableWarning": "Isso vai remover a senha e permitir que qualquer pessoa na sua rede acesse o editor.",
+        "disableWarning": "Isso remove a senha. Depois, qualquer pessoa no Wi-Fi de casa pode abrir o editor e o controle da família.",
         "cancel": "Cancelar",
         "setSubmit": "Ativar",
         "setting": "Definindo…",
@@ -2463,22 +2463,23 @@
         "disabling": "Desativando…",
         "setExplanation": "Uma senha para a casa toda. Depois disso, o controle da família e o editor pedem a senha. O painel e a página de tarefas das crianças continuam funcionando sem ela.",
         "wallsStay": {
-          "one": "Seu display continua com permissão para entrar.",
-          "other": "Seus {count} displays continuam com permissão para entrar."
+          "one": "Seu display continua liberado.",
+          "other": "Seus displays continuam liberados."
         },
-        "wallsOff": "Um display que esteja desligado agora vai pedir para entrar quando voltar."
+        "wallsOff": "Um display que esteja desligado agora vai pedir para entrar quando voltar.",
+        "wallsSeeList": "Ver a lista"
       },
       "errors": {
         "passwordsDoNotMatch": "As senhas não coincidem",
         "setFailed": "Não foi possível definir a senha. Tente de novo.",
-        "changeFailed": "Não foi possível mudar a senha. Tente de novo.",
-        "disableFailed": "Não foi possível desligar a senha. Tente de novo.",
+        "changeFailed": "Não foi possível alterar a senha. Tente de novo.",
+        "disableFailed": "Não foi possível desativar a senha. Tente de novo.",
         "passwordTooShort": "A senha precisa de pelo menos {count} caracteres."
       },
       "success": {
-        "passwordSet": "Senha definida! A autenticação agora está ativada.",
-        "passwordChanged": "Senha alterada. Todas as outras sessões foram invalidadas.",
-        "authDisabled": "Autenticação desativada."
+        "passwordSet": "Senha definida. Agora o editor e o controle da família pedem a senha.",
+        "passwordChanged": "Senha alterada. Todos os outros foram desconectados.",
+        "authDisabled": "A senha está desativada."
       },
       "forgotPasswordHint": "Esqueceu a senha? No aparelho, rode {command}. Apagar o arquivo {file} na pasta do Home Screens também limpa a senha.",
       "description": "Quem pode mudar as coisas, e de onde.",
@@ -2704,12 +2705,12 @@
       "inflight": "Em andamento",
       "entriesFill": "Preenchimento",
       "evictions": {
-        "one": "{count} despejo LRU",
-        "other": "{count} despejos LRU"
+        "one": "{count} entrada antiga removida para abrir espaço",
+        "other": "{count} entradas antigas removidas para abrir espaço"
       },
       "cacheUrl": "URL",
       "cacheAge": "Idade",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Validade",
       "cacheState": "Estado",
       "cacheStaleLabel": "expirada",
       "cacheFreshLabel": "recente",
@@ -2751,6 +2752,7 @@
       "indexOf": "{index} de {total}",
       "profile": "Perfil",
       "viewport": "Área visível",
+      "browser": "Navegador",
       "notChromium": "Outro navegador",
       "lastSeen": "Visto por último",
       "timeAgo": "há {age}",
@@ -2762,8 +2764,8 @@
       "cpuCoresLabel": "Núcleos de CPU",
       "deviceMemoryLabel": "Memória do dispositivo",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "Informações do navegador são relatadas pelo cliente do display. Nenhum display conectado.",
-      "noBrowserStatsForName": "Informações do navegador são relatadas pelo cliente do display. Nenhum display conectado para {name}.",
+      "noBrowserStats": "As informações do navegador vêm do próprio display. Nenhum display está conectado agora.",
+      "noBrowserStatsForName": "As informações do navegador vêm do próprio display. O display {name} não está conectado agora.",
       "description": "Como estão seus displays e este aparelho agora."
     },
     "displaysIndex": {
@@ -2778,15 +2780,14 @@
       "populatedDescriptionPrefix": "Clique em um display para editar suas próprias configurações. Todo o resto usa os ",
       "populatedDescriptionSuffix": " compartilhados.",
       "defaultsLink": "Padrões",
-      "refreshHeartbeatsTitle": "Atualizar heartbeats",
+      "refreshHeartbeatsTitle": "Atualizar o status dos displays",
       "addDisplay": "Adicionar display",
-      "emptyTitle": "Esta instalação está rodando em modo de display único",
-      "emptyParagraphPart1": "Sua configuração atual conta como um display, mas ainda não está adicionada aqui; o suporte a vários displays é opcional para que instalações existentes permaneçam inalteradas até você adicionar explicitamente um segundo display. No momento em que você adicionar o primeiro display, o layout atual deste Pi vira um display chamado ",
+      "emptyTitle": "Por enquanto, este hub tem só um display",
+      "emptyParagraphPart1": "O que você tem agora conta como um display, mas ainda não aparece aqui. Nada muda sozinho até você adicionar um display. Quando você adicionar o primeiro, o que este Pi mostra atualmente vira o ",
       "emptyParagraphPart2": " e continua funcionando exatamente como hoje.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Clique em ",
-      "emptyBullet1Suffix": " acima para adicionar um novo display. Dê um nome, resolução e rotação, e depois desenhe o layout dele no editor.",
-      "emptyBullet2": "Ou grave outro Pi com {command}. Quando ele iniciar, aparecerá abaixo como um {label}, e basta um clique para adicioná-lo.",
+      "emptyBullet1Suffix": " acima para adicionar um novo display. Defina o nome, a resolução e a rotação e depois monte o layout dele no editor.",
+      "emptyBullet2": "Ou prepare outro Pi com {command}. Quando ele iniciar, aparecerá abaixo como um {label}, e basta um clique para adicioná-lo.",
       "unadoptedLabel": "display aguardando ser adicionado",
       "unadoptedWaiting": {
         "one": "{count} display aguardando ser adicionado",
@@ -2797,11 +2798,11 @@
       "adoptStrong": "Adicionar",
       "adoptButton": "Adicionar",
       "lastSeenLabel": "Visto por último {time}",
-      "reportedDimensions": "{width}×{height} relatado",
+      "reportedDimensions": "{width}×{height} informado",
       "reportedFrom": "de {address}",
-      "multipleClientsHeading": "{count} clientes relatando com este ID",
-      "multipleClientsParagraphPrefix": "Dois ou mais clientes estão enviando POSTs com este ID de display. Verifique os IPs de origem acima para descobrir qual dispositivo está realmente relatando; geralmente uma instalação ",
-      "multipleClientsParagraphSuffix": " duplicada, uma aba do navegador esquecida ou um display apontando para o endereço errado.",
+      "multipleClientsHeading": "{count} aparelhos estão usando este ID de display",
+      "multipleClientsParagraphPrefix": "Mais de um aparelho aparece com este ID de display. Os endereços acima mostram quais são. Na maioria das vezes, dois foram configurados com o mesmo ",
+      "multipleClientsParagraphSuffix": ", uma aba do navegador ficou aberta ou um display está apontando para o endereço errado.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inativo · {time}",
       "statusOffline": "Offline · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} telas"
       },
       "currentScreenLabel": "Mostrando {name}",
-      "multipleClientsCardHeading": "{count} clientes distintos relatando para este display",
+      "multipleClientsCardHeading": "{count} aparelhos diferentes estão mostrando este display",
       "tabsSuffix": "×{count} abas",
       "formEditTitle": "Editar display",
       "formAdoptTitle": "Adicionar {id}",
@@ -2822,8 +2823,8 @@
       "formIdLabel": "ID",
       "formIdHint": "(usado na URL: /display/<id>)",
       "formIdPlaceholder": "cozinha",
-      "formIdLocked": "O ID está travado para corresponder ao do display que está relatando.",
-      "formReportedViewport": "(relatado pelo display: {width} × {height})",
+      "formIdLocked": "O ID não pode ser mudado aqui: é o que este display já usa.",
+      "formReportedViewport": "(informado pelo display: {width} × {height})",
       "formWidth": "Largura",
       "formHeight": "Altura",
       "formResolutionHint": "Defina isto para corresponder à tela física em que este display aparece. Os módulos são organizados para caber nesse tamanho quando você edita as telas deste display.",
@@ -2834,10 +2835,10 @@
       "formRotationHint": "Define se o display fica em pé ou deitado. A largura e a altura acima trocam de lugar automaticamente para que o lado mais longo acompanhe a rotação escolhida.",
       "formCancel": "Cancelar",
       "formAddDisplay": "Adicionar display",
-      "formErrorName": "O nome é obrigatório",
-      "formErrorId": "O ID deve conter apenas letras minúsculas, dígitos e hifens (por ex. \"kitchen\")",
-      "formErrorIdReserved": "\"{id}\" já tem um significado especial ao enviar comandos para os displays. Escolha outro ID, por ex. \"kitchen\" ou \"bedroom-tv\"",
-      "formErrorIdTaken": "Já existe um display com ID \"{id}\"",
+      "formErrorName": "O nome é obrigatório.",
+      "formErrorId": "O ID só pode ter letras minúsculas sem acento, números e hifens (por ex. \"cozinha\").",
+      "formErrorIdReserved": "\"{id}\" já tem um significado especial ao enviar comandos para os displays. Escolha outro ID, como \"cozinha\" ou \"tv-quarto\".",
+      "formErrorIdTaken": "Já existe um display com ID \"{id}\".",
       "formErrorWidth": "A largura precisa ficar entre {min} e {max}. Veja se faltou um dígito: a maioria dos displays tem 1080 ou 1920 de largura.",
       "formErrorHeight": "A altura precisa ficar entre {min} e {max}. Veja se faltou um dígito: a maioria dos displays tem 1080 ou 1920 de altura.",
       "softwareUpdateWaiting": "Atualização pendente",
@@ -2982,6 +2983,7 @@
         "one": "O Home Screens agora lembra de cada navegador, e os seus foram mantidos. Confira se os marcados com “{tag}” são seus. Este aviso some sozinho em {count} dia.",
         "other": "O Home Screens agora lembra de cada navegador, e os seus foram mantidos. Confira se os marcados com “{tag}” são seus. Este aviso some sozinho em {count} dias."
       },
+      "windowWhere": "Você os encontra nestes displays:",
       "showingIn": {
         "one": "Aparecendo em {count} lugar",
         "other": "Aparecendo em {count} lugares"
@@ -4781,7 +4783,7 @@
       "wallAddHelpMealie": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista do Mealie que a família usa nas compras.",
       "wallAddHelpLocal": "Qualquer pessoa pode adicionar coisas à lista de compras pelo painel. Elas vão para a lista escolhida abaixo.",
       "wallPlan": "Planejar refeições no painel",
-      "wallPlanHelp": "Qualquer pessoa pode colocar uma receita no cardápio pelo painel, nesta semana e na próxima: um botão “Colocar no cardápio” em cada receita e um sinal de mais nas refeições vazias das visualizações de semana. Refeições digitadas e receitas novas continuam no celular.",
+      "wallPlanHelp": "Qualquer pessoa pode colocar uma receita no cardápio pelo painel, nesta semana e na próxima: um botão “Colocar no cardápio” em cada receita e um sinal de mais nas refeições vazias das visualizações de semana. Para digitar uma refeição ou criar uma receita nova, use o celular.",
       "extrasList": "Outras compras vão para",
       "extrasListNone": "Nenhuma (sem linha para adicionar)",
       "extrasListHelp": "Uma das suas listas. O que ainda está nela aparece no fim da lista de compras, aqui e no celular. Todos os cartões de compras usam a mesma."

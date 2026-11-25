@@ -634,7 +634,7 @@
       "undo": "Fortryd",
       "undone": "Sat tilbage, som det var.",
       "hint": "Tryk på en dag. Hvis dagen allerede har et måltid, bliver du spurgt, før noget ændres.",
-      "hintMine": "Et flueben viser de dage, hvor {meal} allerede står. Tryk på en af dem for at fjerne retten, eller på en anden dag for at få den en gang til.",
+      "hintMine": "Et flueben viser de dage, hvor {meal} allerede er på madplanen. Tryk på en af dem for at fjerne retten, eller på en anden dag for at få den en gang til.",
       "when": {
         "breakfast": "{day} til morgenmad",
         "lunch": "{day} til frokost",

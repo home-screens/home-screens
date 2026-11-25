@@ -7,7 +7,8 @@ import { useRealClock } from '@/hooks/useTZClock';
 import { svgFontSize } from '@/lib/module-style';
 import { NO_VALUE, TEXT_OPACITY } from '@/lib/constants';
 import { CIRCLE, CIRCLE_R, astroDarkWindow, circleAngle, circleArcPath, circleLabelPos, circlePoint, hoursInTZ, polarKind, SKY_THEME_COLORS, skyStarPoint, skyStarScatter, skyThemeAnchors, skyThemeColorAt, type AstroDarkWindow } from '@/lib/sun-astro';
-import { decompose, formatDuration } from '@/lib/duration-format';
+import { decompose } from '@/lib/duration-format';
+import { dayLengthText } from '@/lib/weather/sun-arc';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { SunriseSunsetConfig, SunriseSunsetTheme, ModuleStyle, TimeFormat } from '@/types/config';
@@ -28,16 +29,10 @@ interface SunriseSunsetModuleProps {
   timezone?: string;
 }
 
+/** A span as the weather cards write a day's length, in the household's own unit letters ("9h 42m", "9 t 42 m" in Danish). */
 function formatDurationMs(ms: number, locale: string): string {
   const { days, hours, minutes } = decompose(ms);
-  return formatDuration(
-    [
-      { unit: 'hours', value: days * 24 + hours },
-      { unit: 'minutes', value: minutes },
-    ],
-    'units',
-    locale,
-  );
+  return dayLengthText({ hours: days * 24 + hours, minutes }, locale);
 }
 
 function getDayLength(sunrise: Date, sunset: Date, locale: string): string {

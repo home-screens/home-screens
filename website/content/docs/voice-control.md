@@ -130,6 +130,8 @@ Saying any of these twice is safe: repeats can never un-check a chore or a groce
 
 While your meal plan is in Mealie, the grocery list is your Mealie shopping list, and the answers name it ("12 things to get on Groceries"). Things are found by the words on the list or by their plain name, so "check off the eggs" and "check off the egg" both find "4 eggs". If the answers don't name your list yet, download the package again: older copies leave those parts out.
 
+If an answer still says "points" where this page says tickets, download the package again: older copies use the old word.
+
 ---
 
 ## The package file

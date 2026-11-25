@@ -98,9 +98,9 @@ export function DisplayCard({
                 {displayStatus.browserStats.viewportWidth}×{displayStatus.browserStats.viewportHeight} @ {displayStatus.browserStats.devicePixelRatio}×
               </div>
 
-              <div className="text-hs-text-faint">Chromium</div>
+              <div className="text-hs-text-faint">{t('settings.statsSection.browser')}</div>
               <div className="text-hs-text-secondary font-mono truncate">
-                {displayStatus.browserStats.chromiumVersion ?? t('settings.statsSection.notChromium')}
+                {displayStatus.browserStats.chromiumVersion ? `Chromium ${displayStatus.browserStats.chromiumVersion}` : t('settings.statsSection.notChromium')}
               </div>
             </>
           )}

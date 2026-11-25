@@ -1157,6 +1157,27 @@ describe('Google sign-in classification', () => {
     expect(google).toMatchObject({ ok: false, messageKey: 'googleUnreachable' });
   });
 
+  it("names a failing Google calendar by its owner's address and never by a code", async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
+      googleCalendarIds: ['primary', 'sam.rivera@gmail.com', 'c_abc123@group.calendar.google.com'],
+      icalSources: [
+        { id: 'ics-1', type: 'ical', name: 'ICS', url: 'https://example.com/cal.ics', color: '#ff0000', enabled: true },
+      ],
+    }));
+    mockFetchGoogle.mockRejectedValue(new Error('socket hang up'));
+    mockFetchICal.mockResolvedValue({ events: [makeEvent('i1', '2026-03-13T10:00:00Z')], results: [{ id: 'ics-1', name: 'ICS', ok: true }] });
+
+    const body = await (await GET(makeRequest())).json();
+    const named = Object.fromEntries(body.sourceStatus.map((s: { id: string; name?: string }) => [s.id, s.name]));
+
+    expect(named).toEqual({
+      'ics-1': 'ICS',
+      primary: undefined,
+      'sam.rivera@gmail.com': 'sam.rivera',
+      'c_abc123@group.calendar.google.com': undefined,
+    });
+  });
+
   it('still returns an error when a sign-in problem sits next to another failing source', async () => {
     mockReadConfig.mockResolvedValue(makeConfig({
       googleCalendarIds: ['primary'],

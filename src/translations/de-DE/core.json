@@ -831,7 +831,12 @@
     "askBody": "Nur an diesem Tag ändern oder an allen Tagen?",
     "everyTimeFromFirst": "Alle Tage, vom ersten an",
     "everyTimeMovesTo": "Jeder Termin verschiebt sich um genauso viel, auf {time}",
-    "nextDay": "am nächsten Tag"
+    "nextDay": "am nächsten Tag",
+    "onlySome": {
+      "links": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks sind nur zum Ansehen.",
+      "readOnly": "Nur manche Kalender nehmen neue Termine an. Einige sind nur zum Ansehen.",
+      "both": "Nur manche Kalender nehmen neue Termine an. Kalenderlinks und einige andere sind nur zum Ansehen."
+    }
   },
   "notice": {
     "title": "Hinweis"

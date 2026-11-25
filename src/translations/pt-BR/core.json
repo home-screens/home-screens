@@ -635,7 +635,7 @@
     "rate": "Avaliar prato",
     "dinner": "Avaliar o jantar",
     "close": "Concluído",
-    "hint": "Cada pessoa tem uma avaliação por receita. Avalie novamente para atualizar seu voto; a média familiar usa os votos atuais de todos.",
+    "hint": "Cada pessoa tem uma avaliação por receita. Avalie novamente para atualizar seu voto; a média da família usa os votos atuais de todos.",
     "noDinner": "Não há jantar planejado para este dia.",
     "typed": {
       "one": "{dishes} é um prato digitado, então não tem receita para avaliar.",
@@ -833,7 +833,12 @@
     "askBody": "Mudar só este dia ou todas as vezes que ele acontece?",
     "everyTimeFromFirst": "Todas as vezes que ele acontece, desde a primeira",
     "everyTimeMovesTo": "Todas as vezes mudam na mesma medida, para {time}",
-    "nextDay": "no dia seguinte"
+    "nextDay": "no dia seguinte",
+    "onlySome": {
+      "links": "Só alguns calendários recebem eventos novos. Links de calendário são só para ver.",
+      "readOnly": "Só alguns calendários recebem eventos novos. Alguns são só para ver.",
+      "both": "Só alguns calendários recebem eventos novos. Links de calendário e alguns outros são só para ver."
+    }
   },
   "notice": {
     "title": "Aviso"

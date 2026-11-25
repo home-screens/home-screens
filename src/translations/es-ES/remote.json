@@ -205,7 +205,7 @@
       "moreToGoSingular": "falta {n} ticket",
       "moreToGoPlural": "faltan {n} tickets",
       "ready": "¡Ya hay suficiente!",
-      "ariaLabel": "Ahorrando para {name}. Abrir premios",
+      "ariaLabel": "Ahorrando para {name}. Abrir Premios",
       "label": "Ahorrando para {name}"
     },
     "steps": {
@@ -1544,12 +1544,7 @@
       "fromWall": "Lo empezaste en el monitor {wall}, para el {day}.",
       "changedElsewhere": "Alguien acaba de cambiar este evento, así que esta es la versión más reciente. Vuelve a hacer tu cambio y guarda.",
       "repeatsNote": "{title} se repite. Al guardar, eliges si cambia solo este día o todas las veces.",
-      "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en {place}.",
-      "onlySome": {
-        "links": "Solo algunos calendarios aceptan eventos nuevos. Los enlaces de calendario solo se pueden ver.",
-        "readOnly": "Solo algunos calendarios aceptan eventos nuevos. Algunos solo se pueden ver.",
-        "both": "Solo algunos calendarios aceptan eventos nuevos. Los enlaces de calendario y algunos otros solo se pueden ver."
-      }
+      "noCalendars": "Todavía ningún calendario acepta eventos nuevos. Elige algunos en {place}."
     }
   },
   "wallWaiting": {

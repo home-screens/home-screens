@@ -768,8 +768,8 @@
     },
     "grownUpLock": {
       "body": {
-        "one": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuut niet aan.",
-        "other": "De muren en de klusjespagina nemen de volwassenencode nog {count} minuten niet aan."
+        "one": "De volwassenencode werkt nog {count} minuut niet op de muren en de klusjespagina.",
+        "other": "De volwassenencode werkt nog {count} minuten niet op de muren en de klusjespagina."
       }
     }
   },
@@ -1544,12 +1544,7 @@
       "fromWall": "Begonnen op de muur {wall}, voor {day}.",
       "changedElsewhere": "Iemand heeft deze afspraak net gewijzigd, dus je ziet nu de nieuwste versie. Doe je wijziging nog een keer en sla dan op.",
       "repeatsNote": "{title} komt vaker terug. Als je opslaat, kies je: alleen deze dag of elke keer.",
-      "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}.",
-      "onlySome": {
-        "links": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agendalinks zijn alleen te bekijken.",
-        "readOnly": "Nieuwe afspraken kunnen alleen in sommige agenda's. Sommige zijn alleen te bekijken.",
-        "both": "Nieuwe afspraken kunnen alleen in sommige agenda's. Agendalinks en een paar andere zijn alleen te bekijken."
-      }
+      "noCalendars": "Er is nog geen agenda waar nieuwe afspraken in kunnen. Kies er een paar bij {place}."
     }
   },
   "wallWaiting": {

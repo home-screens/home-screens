@@ -2449,11 +2449,11 @@
       "modal": {
         "setTitle": "Définir un mot de passe",
         "changeTitle": "Changer le mot de passe",
-        "disableTitle": "Désactiver l'authentification",
+        "disableTitle": "Désactiver le mot de passe",
         "currentPasswordPlaceholder": "Mot de passe actuel",
         "newPasswordPlaceholder": "Nouveau mot de passe (min. 8 caractères)",
-        "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
-        "disableWarning": "Cela supprimera le mot de passe et permettra à n'importe qui sur votre réseau d'accéder à l'éditeur.",
+        "confirmPasswordPlaceholder": "Confirmer le nouveau mot de passe",
+        "disableWarning": "Cela supprime le mot de passe. N'importe qui sur votre Wi-Fi pourra alors ouvrir l'éditeur et la télécommande familiale.",
         "cancel": "Annuler",
         "setSubmit": "Activer",
         "setting": "Définition…",
@@ -2464,9 +2464,10 @@
         "setExplanation": "Un seul mot de passe pour toute la maison. Ensuite, la télécommande familiale et l'éditeur le demandent. Le mur et la page des tâches des enfants continuent sans.",
         "wallsStay": {
           "one": "Votre affichage reste autorisé.",
-          "other": "Vos {count} affichages restent autorisés."
+          "other": "Vos affichages restent autorisés."
         },
-        "wallsOff": "Un affichage éteint en ce moment demandera à entrer quand il sera rallumé."
+        "wallsOff": "Un affichage éteint en ce moment demandera à entrer quand il sera rallumé.",
+        "wallsSeeList": "Voir la liste"
       },
       "errors": {
         "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
@@ -2476,9 +2477,9 @@
         "passwordTooShort": "Le mot de passe doit avoir au moins {count} caractères."
       },
       "success": {
-        "passwordSet": "Mot de passe défini ! L'authentification est maintenant activée.",
-        "passwordChanged": "Mot de passe changé. Toutes les autres sessions ont été invalidées.",
-        "authDisabled": "Authentification désactivée."
+        "passwordSet": "Mot de passe défini. L'éditeur et la télécommande familiale le demandent désormais.",
+        "passwordChanged": "Mot de passe changé. Tout le monde a été déconnecté, sauf vous.",
+        "authDisabled": "Le mot de passe est désactivé."
       },
       "forgotPasswordHint": "Mot de passe oublié ? Sur l'appareil, lancez {command}. Supprimer le fichier {file} dans le dossier Home Screens l'efface aussi.",
       "description": "Qui peut modifier les réglages, et depuis où.",
@@ -2704,17 +2705,17 @@
       "inflight": "En cours",
       "entriesFill": "Remplissage",
       "evictions": {
-        "one": "{count} éviction LRU",
-        "other": "{count} évictions LRU"
+        "one": "{count} ancienne entrée supprimée pour faire de la place",
+        "other": "{count} anciennes entrées supprimées pour faire de la place"
       },
       "cacheUrl": "URL",
       "cacheAge": "Âge",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Conservé pendant",
       "cacheState": "État",
       "cacheStaleLabel": "périmé",
       "cacheFreshLabel": "récent",
       "cacheNoDisplay": "Ces chiffres viennent d'un affichage. Aucun n'est connecté pour l'instant.",
-      "cacheNoDisplayForName": "Ces chiffres viennent d'un affichage. {name} n'est pas connecté pour l'instant.",
+      "cacheNoDisplayForName": "Ces chiffres viennent d'un affichage. L'affichage {name} n'est pas connecté pour l'instant.",
       "telemetryTitle": "Télémétrie anonyme",
       "telemetryDescription": "Home Screens collecte des statistiques d’utilisation anonymes pour prioriser les fonctionnalités et comprendre l’usage de l’application. Aucune donnée personnelle, adresse IP ou contenu n’est jamais collecté.",
       "telemetryToggle": "Envoyer des données d’utilisation anonymes",
@@ -2731,7 +2732,7 @@
       "telemetryItem6": "Fournisseur météo et effet de transition",
       "telemetryItem7": "Si la mise en veille, les alertes et l’authentification sont activées",
       "telemetryItem8": "Si les intégrations de calendrier sont configurées",
-      "telemetryItem9": "Plugins installés (noms et versions du marketplace ; les plugins hors marketplace sont comptés mais jamais nommés)",
+      "telemetryItem9": "Plugins installés (noms et versions de la marketplace ; les plugins hors marketplace sont comptés mais jamais nommés)",
       "telemetryDisclaimer": "Nous ne collectons jamais : adresses IP, localisation, événements de calendrier, clés d’API, contenu de modules, noms d’hôte ni aucune information personnellement identifiable. Tout le code est Open Source et peut être vérifié.",
       "dataDirTitle": "Données Home Screens",
       "totalAppData": "Données totales de l’application",
@@ -2751,6 +2752,7 @@
       "indexOf": "{index} sur {total}",
       "profile": "Profil",
       "viewport": "Zone d’affichage",
+      "browser": "Navigateur",
       "notChromium": "Autre navigateur",
       "lastSeen": "Vu pour la dernière fois",
       "timeAgo": "il y a {age}",
@@ -2762,8 +2764,8 @@
       "cpuCoresLabel": "Cœurs CPU",
       "deviceMemoryLabel": "Mémoire de l’appareil",
       "deviceMemoryGb": "{gb} Go",
-      "noBrowserStats": "Les informations du navigateur sont rapportées par le client d’affichage. Aucun affichage connecté.",
-      "noBrowserStatsForName": "Les informations du navigateur sont rapportées par le client d’affichage. Aucun affichage connecté pour {name}.",
+      "noBrowserStats": "Les informations sur le navigateur viennent de l’affichage lui-même. Aucun affichage n’est connecté pour l’instant.",
+      "noBrowserStatsForName": "Les informations sur le navigateur viennent de l’affichage lui-même. L’affichage {name} n’est pas connecté pour l’instant.",
       "description": "L'état de vos affichages et de cet appareil en ce moment."
     },
     "displaysIndex": {
@@ -2780,10 +2782,9 @@
       "defaultsLink": "Valeurs par défaut",
       "refreshHeartbeatsTitle": "Actualiser les battements",
       "addDisplay": "Ajouter un affichage",
-      "emptyTitle": "Cette installation fonctionne en mode affichage unique",
-      "emptyParagraphPart1": "Votre configuration actuelle compte comme un affichage mais n’est pas encore ajoutée ici ; la prise en charge de plusieurs affichages est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second affichage. Dès que vous ajoutez votre premier affichage, la disposition actuelle de ce Pi devient un affichage appelé ",
+      "emptyTitle": "Pour l’instant, ce hub n’a qu’un seul affichage",
+      "emptyParagraphPart1": "Votre installation actuelle compte déjà comme un affichage, même si elle n’apparaît pas encore ici. Rien ne change tant que vous n’ajoutez pas vous-même un affichage. Dès que vous ajoutez le premier, ce que montre ce Pi en ce moment devient un affichage appelé ",
       "emptyParagraphPart2": " et continue de fonctionner exactement comme aujourd’hui.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Cliquez sur ",
       "emptyBullet1Suffix": " ci-dessus pour ajouter un nouvel affichage. Donnez-lui un nom, une résolution et une rotation, puis concevez sa propre disposition dans l’éditeur.",
       "emptyBullet2": "Ou flashez un autre Pi avec {command}. Une fois démarré, il apparaîtra ci-dessous comme un {label}, et un clic l’ajoute.",
@@ -2799,9 +2800,9 @@
       "lastSeenLabel": "Vu pour la dernière fois {time}",
       "reportedDimensions": "{width}×{height} signalé",
       "reportedFrom": "depuis {address}",
-      "multipleClientsHeading": "{count} clients utilisent cet ID",
-      "multipleClientsParagraphPrefix": "Deux clients ou plus envoient des POST avec cet ID d’affichage. Vérifiez les IP sources ci-dessus pour identifier l’appareil concerné ; souvent une installation ",
-      "multipleClientsParagraphSuffix": " dupliquée, un onglet de navigateur oublié, ou un affichage pointant vers la mauvaise adresse.",
+      "multipleClientsHeading": "{count} appareils utilisent cet ID d’affichage",
+      "multipleClientsParagraphPrefix": "Plusieurs appareils se présentent avec cet ID d’affichage. Les adresses ci-dessus indiquent lesquels. Le plus souvent, deux d’entre eux ont été installés avec le même ",
+      "multipleClientsParagraphSuffix": ", un onglet de navigateur est resté ouvert ou un affichage pointe vers la mauvaise adresse.",
       "statusOnline": "En ligne · {time}",
       "statusIdle": "Inactif · {time}",
       "statusOffline": "Hors ligne · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} écrans"
       },
       "currentScreenLabel": "Affiche {name}",
-      "multipleClientsCardHeading": "{count} clients distincts signalent cet affichage",
+      "multipleClientsCardHeading": "Cet affichage est ouvert sur {count} appareils différents",
       "tabsSuffix": "×{count} onglets",
       "formEditTitle": "Modifier l’affichage",
       "formAdoptTitle": "Ajouter {id}",
@@ -2822,7 +2823,7 @@
       "formIdLabel": "ID",
       "formIdHint": "(utilisé dans l’URL : /display/<id>)",
       "formIdPlaceholder": "cuisine",
-      "formIdLocked": "L’ID est verrouillé sur celui de l’affichage qui signale.",
+      "formIdLocked": "L’ID ne peut pas être modifié ici : c’est celui que cet affichage utilise déjà.",
       "formReportedViewport": "(signalé par l’affichage : {width} × {height})",
       "formWidth": "Largeur",
       "formHeight": "Hauteur",
@@ -2834,10 +2835,10 @@
       "formRotationHint": "Définit le sens de l'affichage. La largeur et la hauteur ci-dessus sont permutées automatiquement pour que le côté le plus long aille dans le sens choisi.",
       "formCancel": "Annuler",
       "formAddDisplay": "Ajouter l’affichage",
-      "formErrorName": "Le nom est requis",
-      "formErrorId": "L’ID ne doit contenir que des lettres minuscules, des chiffres et des tirets (par ex. « kitchen »)",
-      "formErrorIdReserved": "« {id} » a déjà une signification particulière lors de l’envoi de commandes aux affichages. Veuillez choisir un autre ID, par ex. « kitchen » ou « bedroom-tv »",
-      "formErrorIdTaken": "Un affichage avec l’ID « {id} » existe déjà",
+      "formErrorName": "Le nom est requis.",
+      "formErrorId": "L’ID ne doit contenir que des lettres minuscules sans accent, des chiffres et des tirets (par ex. « cuisine »).",
+      "formErrorIdReserved": "« {id} » a déjà un sens particulier pour l’envoi de commandes aux affichages. Choisissez un autre ID, par exemple « cuisine » ou « tv-chambre ».",
+      "formErrorIdTaken": "Un affichage avec l’ID « {id} » existe déjà.",
       "formErrorWidth": "La largeur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des affichages font 1080 ou 1920 de large.",
       "formErrorHeight": "La hauteur doit être comprise entre {min} et {max}. Vérifiez qu'il ne manque pas un chiffre : la plupart des affichages font 1080 ou 1920 de haut.",
       "softwareUpdateWaiting": "Mise à jour en attente",
@@ -2982,6 +2983,7 @@
         "one": "Home Screens se souvient maintenant de chaque navigateur, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {count} jour.",
         "other": "Home Screens se souvient maintenant de chaque navigateur, et les vôtres ont été conservés. Vérifiez que ceux marqués « {tag} » sont bien à vous. Ce message disparaît tout seul dans {count} jours."
       },
+      "windowWhere": "Vous les trouverez sur ces affichages :",
       "showingIn": {
         "one": "Affiché à {count} endroit",
         "other": "Affiché à {count} endroits"

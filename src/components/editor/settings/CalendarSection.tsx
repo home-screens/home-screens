@@ -17,6 +17,7 @@ import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
 import CalendarAddingArea from './CalendarAddingArea';
 import CalendarPeopleManager from './CalendarPeopleManager';
+import { useCalendarSources } from '@/components/editor/config-sections/CalendarSourceFilter';
 import { CalendarLookButton, CalendarLookStrip } from './CalendarLookEditor';
 import CalendarSwatchesManager from './CalendarSwatchesManager';
 import CalendarOrderManager from './CalendarOrderManager';
@@ -140,6 +141,10 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
   // cached status is the only health signal the user gets for them.
   // A list Google could not give says nothing about which calendars are gone.
   const missingGoogleIds = googleLoading || calendarsUnreadable ? [] : selectedCalendarIds.filter((id) => !googleCalendars.some((c) => c.id === id));
+  // The names the pickers and People use, so a calendar is called the same
+  // thing here as there ("Google Calendar 2" is the same one in both).
+  const { availableSources } = useCalendarSources('configSections.fullscreen-calendar', googleCalendars);
+  const sourceNames = new Map(availableSources.map((source) => [source.id, source.name]));
 
   // Fetch available countries for holiday picker
   useEffect(() => {
@@ -410,16 +415,17 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
               </FieldHint>
               <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
                 {missingGoogleIds.map((id) => {
-                  const status = health.get(id);
+                  // The household's own name, then the last one Google gave,
+                  // then the name every picker falls back to. Never the id:
+                  // that sits underneath, for telling two calendars apart.
+                  const name = storedOverride(calendarOverrides, id)?.name?.trim() || health.get(id)?.name || sourceNames.get(id) || '';
                   return (
-                    <div key={id} className="flex items-center gap-3 px-3 py-2">
+                    <div key={id} className="flex items-center gap-3 px-3 py-2" data-testid="calendar-missing-google-row">
                       <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                        <span className="block truncate">{status?.name ?? id}</span>
-                        {status?.name && (
-                          <code className="mt-0.5 block truncate font-mono text-[10px] text-hs-text-faint">
-                            {id}
-                          </code>
-                        )}
+                        <span className="block truncate">{name}</span>
+                        <code className="mt-0.5 block truncate font-mono text-[10px] text-hs-text-faint">
+                          {id}
+                        </code>
                       </span>
                       <StatusPill tone="warning">
                         {t(googleConnected ? 'settings.calendarPage.google.goneBadge' : 'settings.calendarPage.google.pausedBadge')}
@@ -427,8 +433,8 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
                       <button
                         type="button"
                         onClick={() => toggleCalendar(id)}
-                        title={t('settings.calendarPage.google.removeTitle', { name: status?.name ?? id })}
-                        aria-label={t('settings.calendarPage.google.removeTitle', { name: status?.name ?? id })}
+                        title={t('settings.calendarPage.google.removeTitle', { name })}
+                        aria-label={t('settings.calendarPage.google.removeTitle', { name })}
                         className="shrink-0 text-hs-text-faint transition-colors hover:text-hs-danger"
                       >
                         <X className="h-3.5 w-3.5" />

@@ -2449,24 +2449,25 @@
       "modal": {
         "setTitle": "Set a password",
         "changeTitle": "Change password",
-        "disableTitle": "Disable authentication",
+        "disableTitle": "Turn the password off",
         "currentPasswordPlaceholder": "Current password",
         "newPasswordPlaceholder": "New password (min 8 characters)",
         "confirmPasswordPlaceholder": "Confirm new password",
-        "disableWarning": "This will remove the password and allow anyone on your network to access the editor.",
+        "disableWarning": "This removes the password. Anyone on your home Wi-Fi can then open the editor and the family remote.",
         "cancel": "Cancel",
         "setSubmit": "Turn it on",
         "setting": "Setting…",
         "changeSubmit": "Change password",
         "changing": "Changing…",
-        "disableSubmit": "Disable",
-        "disabling": "Disabling…",
+        "disableSubmit": "Turn it off",
+        "disabling": "Turning off…",
         "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
         "wallsStay": {
           "one": "Your display stays let in.",
-          "other": "Your {count} displays stay let in."
+          "other": "Your displays stay let in."
         },
-        "wallsOff": "A display that is switched off right now will ask to be let in when it comes back."
+        "wallsOff": "A display that is switched off right now will ask to be let in when it comes back.",
+        "wallsSeeList": "See the list"
       },
       "errors": {
         "passwordsDoNotMatch": "Passwords do not match",
@@ -2476,9 +2477,9 @@
         "passwordTooShort": "The password needs at least {count} characters."
       },
       "success": {
-        "passwordSet": "Password set! Authentication is now enabled.",
-        "passwordChanged": "Password changed. All other sessions have been invalidated.",
-        "authDisabled": "Authentication disabled."
+        "passwordSet": "Password set. The editor and the family remote now ask for it.",
+        "passwordChanged": "Password changed. Everyone else is signed out.",
+        "authDisabled": "The password is off."
       },
       "forgotPasswordHint": "Forgot the password? On the device, run {command}. Deleting the file {file} in the Home Screens folder clears it too.",
       "description": "Who can change things, and from where.",
@@ -2701,15 +2702,15 @@
       "entries": "Entries",
       "fresh": "Fresh",
       "stale": "Stale",
-      "inflight": "Inflight",
+      "inflight": "Loading now",
       "entriesFill": "Entries fill",
       "evictions": {
-        "one": "{count} LRU eviction",
-        "other": "{count} LRU evictions"
+        "one": "{count} old item removed to make room",
+        "other": "{count} old items removed to make room"
       },
       "cacheUrl": "URL",
       "cacheAge": "Age",
-      "cacheTtl": "TTL",
+      "cacheTtl": "Kept for",
       "cacheState": "State",
       "cacheStaleLabel": "stale",
       "cacheFreshLabel": "fresh",
@@ -2751,6 +2752,7 @@
       "indexOf": "{index} of {total}",
       "profile": "Profile",
       "viewport": "Viewport",
+      "browser": "Browser",
       "notChromium": "Another browser",
       "lastSeen": "Last seen",
       "timeAgo": "{age} ago",
@@ -2762,8 +2764,8 @@
       "cpuCoresLabel": "CPU cores",
       "deviceMemoryLabel": "Device memory",
       "deviceMemoryGb": "{gb} GB",
-      "noBrowserStats": "Browser info is reported by the display client. No display connected.",
-      "noBrowserStatsForName": "Browser info is reported by the display client. No display connected for {name}.",
+      "noBrowserStats": "Browser info comes from the display itself. No display is connected right now.",
+      "noBrowserStatsForName": "Browser info comes from the display itself. {name} isn't connected right now.",
       "description": "How your displays and this device are doing right now."
     },
     "displaysIndex": {
@@ -2780,10 +2782,9 @@
       "defaultsLink": "Defaults",
       "refreshHeartbeatsTitle": "Refresh heartbeats",
       "addDisplay": "Add display",
-      "emptyTitle": "This install is running in single-display mode",
-      "emptyParagraphPart1": "Your current setup counts as one display but isn't added here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second display. The moment you add your first display, this Pi's current layout becomes a display called ",
+      "emptyTitle": "This hub has one display so far",
+      "emptyParagraphPart1": "What you have now counts as one display, but it isn't listed here yet. Nothing changes until you add a display yourself. When you add your first one, what this Pi shows today becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
-      "mainLabel": "Main",
       "emptyBullet1Prefix": "Click ",
       "emptyBullet1Suffix": " above to add a new display. Give it a name, resolution, and rotation, then design its own layout in the editor.",
       "emptyBullet2": "Or flash another Pi with {command}. Once it boots it will appear below as a {label}, and one click adds it.",
@@ -2799,9 +2800,9 @@
       "lastSeenLabel": "Last seen {time}",
       "reportedDimensions": "{width}×{height} reported",
       "reportedFrom": "from {address}",
-      "multipleClientsHeading": "{count} clients reporting with this ID",
-      "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting; most often a duplicate ",
-      "multipleClientsParagraphSuffix": " install, a stray browser tab, or a display pointed at the wrong address.",
+      "multipleClientsHeading": "{count} devices are using this display ID",
+      "multipleClientsParagraphPrefix": "More than one device is showing up with this display ID. The addresses above tell you which ones. Most often two were set up with the same ",
+      "multipleClientsParagraphSuffix": ", a browser tab was left open, or a display is pointed at the wrong address.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Idle · {time}",
       "statusOffline": "Offline · {time}",
@@ -2812,7 +2813,7 @@
         "other": "{count} screens"
       },
       "currentScreenLabel": "Showing {name}",
-      "multipleClientsCardHeading": "{count} distinct clients reporting for this display",
+      "multipleClientsCardHeading": "{count} different devices are showing this display",
       "tabsSuffix": "×{count} tabs",
       "formEditTitle": "Edit display",
       "formAdoptTitle": "Add {id}",
@@ -2822,7 +2823,7 @@
       "formIdLabel": "ID",
       "formIdHint": "(used in URL: /display/<id>)",
       "formIdPlaceholder": "kitchen",
-      "formIdLocked": "ID is locked to match the polling display.",
+      "formIdLocked": "The ID can't be changed here: it is the one this display already uses.",
       "formReportedViewport": "(reported by display: {width} × {height})",
       "formWidth": "Width",
       "formHeight": "Height",
@@ -2834,10 +2835,10 @@
       "formRotationHint": "Picks which way round the display sits. The width and height above swap automatically so the longer edge matches the rotation you picked.",
       "formCancel": "Cancel",
       "formAddDisplay": "Add display",
-      "formErrorName": "Name is required",
-      "formErrorId": "ID must be lowercase letters, digits, and hyphens (e.g. \"kitchen\")",
-      "formErrorIdReserved": "\"{id}\" already has a special meaning when sending commands to displays. Please pick a different ID, like \"kitchen\" or \"bedroom-tv\"",
-      "formErrorIdTaken": "A display with ID \"{id}\" already exists",
+      "formErrorName": "Name is required.",
+      "formErrorId": "ID must be lowercase letters, digits, and hyphens (e.g. \"kitchen\").",
+      "formErrorIdReserved": "\"{id}\" already has a special meaning when sending commands to displays. Pick a different ID, like \"kitchen\" or \"bedroom-tv\".",
+      "formErrorIdTaken": "A display with ID \"{id}\" already exists.",
       "formErrorWidth": "Width must be between {min} and {max}. Check for a missing digit: most displays are 1080 or 1920 across.",
       "formErrorHeight": "Height must be between {min} and {max}. Check for a missing digit: most displays are 1080 or 1920 tall.",
       "softwareUpdateWaiting": "Update waiting",
@@ -2982,6 +2983,7 @@
         "one": "Home Screens now remembers each browser, and yours carried over. Check that the ones marked “{tag}” are yours. This message goes away by itself in {count} day.",
         "other": "Home Screens now remembers each browser, and yours carried over. Check that the ones marked “{tag}” are yours. This message goes away by itself in {count} days."
       },
+      "windowWhere": "You'll find them on these displays:",
       "showingIn": {
         "one": "Showing in {count} place",
         "other": "Showing in {count} places"

@@ -143,7 +143,7 @@ describe('switched off with HS_GOOGLE_HOSTED=0', () => {
   });
 });
 
-describe("the household's own Google app always wins", () => {
+describe("the household's own Google app is used unless the switch picks Home Screens' app", () => {
   it('Photos signs in with the saved app and writes the same tokens file as before', async () => {
     enableHosted();
     saveOwnPhotosApp();

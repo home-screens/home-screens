@@ -1545,12 +1545,7 @@
       "fromWall": "Veio do painel {wall}, para {day}.",
       "changedElsewhere": "Alguém mudou este evento agora há pouco, então esta é a versão mais nova. Faça sua mudança de novo e salve.",
       "repeatsNote": "{title} se repete. Ao salvar, você escolhe só este dia ou todas as vezes.",
-      "noCalendars": "Nenhum calendário recebe eventos novos ainda. Escolha alguns em {place}.",
-      "onlySome": {
-        "links": "Só alguns calendários recebem eventos novos. Links de calendário são só para ver.",
-        "readOnly": "Só alguns calendários recebem eventos novos. Alguns são só para ver.",
-        "both": "Só alguns calendários recebem eventos novos. Links de calendário e alguns outros são só para ver."
-      }
+      "noCalendars": "Nenhum calendário recebe eventos novos ainda. Escolha alguns em {place}."
     }
   },
   "wallWaiting": {

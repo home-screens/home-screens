@@ -346,7 +346,7 @@ export default function EventFormOverlay({ mode, entry, date, initial, repeat, c
               {/* Why a calendar on the wall is not in this choice, so nobody hunts for it. */}
               {entry.calendars.length > 0 && entry.readOnlyShown && (
                 <p data-testid="event-form-read-only" style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 8 }}>
-                  {t(`calendarTab.form.onlySome.${entry.readOnlyShown}`)}
+                  {tCore(`calendarChange.onlySome.${entry.readOnlyShown}`)}
                 </p>
               )}
             </>

@@ -193,7 +193,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.defaultDisplayPage.transitionOptions.zoom',
   'editor|settings.displaysIndex.breadcrumb',
   'editor|settings.displaysIndex.formIdLabel',
-  'editor|settings.displaysIndex.mainLabel',
   'editor|settings.displaysIndex.rotationDegrees',
   'editor|settings.displaysIndex.rotationNormal',
   'editor|settings.displaysIndex.statusOffline',
@@ -238,6 +237,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.sidebar.displays',
   'core|settingsPages.displays',
   'core|settingsPages.stats',
+  'editor|settings.statsSection.browser',
   'editor|settings.statsSection.cacheTtl',
   'editor|settings.statsSection.cacheUrl',
   'editor|settings.statsSection.deviceMemoryGb',
@@ -350,6 +350,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // Danish calls the device "display" in the editor; "skærm" is a rotating screen.
+    'editor|settings.sharedStatePage.displayPicker.label',
+    'editor|settings.statsSection.displayTitle',
     // "min" is the Danish minute abbreviation too (the timer's buttons and lengths).
     'core|timer.minutesShort',
     'core|timer.addMinute',
