@@ -17,6 +17,7 @@ import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateConfigForWrite } from '@/lib/config-validation';
 import { repairConfigShape } from '@/lib/config-repair';
+import { getLatestSchemaVersion, migrateUp } from '@/lib/migrations';
 import type { ScreenConfiguration } from '@/types/config';
 import { logger } from '@/lib/logger';
 
@@ -123,6 +124,12 @@ async function saveConfig(request: NextRequest, config: ScreenConfiguration): Pr
     } else {
       const references = await validateMemberReferences(Object.keys(config.settings.calendar?.personSources ?? {}));
       if (references) return references;
+      // An editor left open across an update still holds the older schema.
+      // Stored as sent, the next read would bring it up to date and change
+      // its revision, so every later save from that editor was refused as
+      // "changed somewhere else". Bring it up to date here; the editor takes
+      // the answer in place of its own copy.
+      if ((config.version ?? 0) < getLatestSchemaVersion()) saved = migrateUp(config).config;
       await updateConfigAtomic((latest) => {
         seen.prev = latest;
         // The editor was handed the file as `readConfig` draws it, with what a

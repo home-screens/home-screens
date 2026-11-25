@@ -49,8 +49,10 @@ import { withDataTransaction } from '@/lib/data-transaction';
 import { applyDisplaySettings, applyLabwcRc, syncKioskConf } from '@/lib/kiosk';
 import { INVALID_CONFIGS } from '@/lib/__tests__/invalid-config-matrix';
 import { repairConfigShape } from '@/lib/config-repair';
+import { getLatestSchemaVersion } from '@/lib/migrations';
 
 const dummyConfig = {
+  version: getLatestSchemaVersion(),
   screens: [{ id: 's1', name: 'Main', modules: [] }],
   settings: { displayWidth: 1080, displayHeight: 1920 },
 };
@@ -354,6 +356,22 @@ describe('PUT /api/config', () => {
     const res = await PUT(makePutRequest(edited, configRevision(drawn)));
     expect(res.status).toBe(200);
     expect(writeConfig).toHaveBeenCalledWith(edited);
+  });
+
+  it('brings a save from an editor on an older schema up to date, so its next save is not refused', async () => {
+    // An editor left open across an update: it holds the schema before the
+    // screensaver's Off choice became Blank.
+    const held = { ...dummyConfig, version: 21, settings: { ...dummyConfig.settings, screensaver: { mode: 'off' } } };
+    const res = await PUT(makePutRequest(held, configRevision(dummyConfig as never)));
+
+    expect(res.status).toBe(200);
+    const stored = vi.mocked(writeConfig).mock.calls[0]![0] as unknown as { version: number; settings: { screensaver: { mode: string } } };
+    expect(stored.version).toBe(getLatestSchemaVersion());
+    expect(stored.settings.screensaver.mode).toBe('blank');
+    // The answer and its revision are the stored config, which is what the
+    // next read hands back and the next save is compared against.
+    expect(await res.json()).toEqual(stored);
+    expect(res.headers.get(CONFIG_REVISION_HEADER)).toBe(configRevision(stored as never));
   });
 
   it('returns 409 with the newer config when the sent revision is stale', async () => {
