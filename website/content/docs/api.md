@@ -40,7 +40,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 
 ### Using the display token
 
-`GET /api/auth/display-token` returns the token (session required): 64 hexadecimal characters with no prefix, the same display key **Settings > Security** shows. Send it as a header:
+`GET /api/auth/display-token` returns the token (session required): 64 hexadecimal characters with no prefix, the same display key **Settings > Security** shows. It is made the first time it is asked for, whether or not a password is set, and setting, changing or turning off the password keeps it; `POST` to the same route makes a new one. Both answer `{ "displayToken": "...", "lastRefused": { "at": <ms>, "address": "192.168.1.40" } }`, where `lastRefused` is the last request turned away with a key that doesn't match since the hub started (`null` when there was none, `address` `null` when unknown). Send it as a header:
 
 ```
 Authorization: Bearer <your display key>

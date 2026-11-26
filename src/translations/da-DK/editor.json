@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Displaynøgle",
         "description": "Til Home Assistant, genveje og bogmærker, der styrer et display uden adgangskoden. Dine displays bruger den ikke: Home Screens husker hvert display, når det er lukket ind.",
+        "notNeededYet": "Ikke nødvendig endnu. Sæt den i Home Assistant nu, så bliver det ved med at virke, når du vælger en adgangskode.",
+        "refusedFrom": "Noget på {address} prøvede en nøgle, der ikke passer, {when}. Giv det nøglen ovenfor.",
+        "refused": "Noget prøvede en nøgle, der ikke passer, {when}. Giv det nøglen ovenfor.",
         "reveal": "Vis",
         "hide": "Skjul",
         "copy": "Kopiér",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Gem alligevel",
           "cancel": "Annullér"
         },
+        "hubScreen": {
+          "title": "Det blokerer også skærmen, der er sluttet til Home Screens",
+          "body": "Den skærm åbner displayet på væggen fra {address}, som ikke står på listen. Tilføj {address}, så den bliver ved med at virke?",
+          "addAndSave": "Tilføj og gem",
+          "saveWithout": "Gem uden",
+          "leftOutTitle": "Skærmen ved Home Screens kan ikke åbne displayet på væggen",
+          "leftOutBody": "Tillad kun disse netværk afviser den, fordi {address} ikke står på listen. Tilføj {address}, så viser den displayet igen."
+        },
         "lockedOutHintPart1": "Låser du dig selv ude, så redigér ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " på enheden for at slå det fra.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Slå fra",
         "disabling": "Slår fra…",
         "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Displayet på væggen og børnenes pligtside virker stadig uden.",
+        "setDisplayKey": "Home Assistant, genveje og bogmærker skal bruge displaynøglen efter dette. Den ligger under Avanceret netværksadgang.",
         "wallsStay": {
           "one": "Dit display forbliver lukket ind.",
           "other": "Dine displays forbliver lukket ind."
@@ -2485,7 +2497,8 @@
       "description": "Hvem der må ændre ting, og hvorfra.",
       "advanced": {
         "heading": "Avanceret netværksadgang",
-        "description": "Displaynøgle, tilmeldte enheder og begrænsning til bestemte netværk."
+        "description": "Displaynøgle, tilmeldte enheder og begrænsning til bestemte netværk.",
+        "descriptionNoPassword": "Displaynøglen, til Home Assistant, genveje og bogmærker."
       },
       "grownUpPointerPrefix": "Skal væggen spørge, før børnene bruger billetter? Det finder du under ",
       "grownUpPointerSuffix": " på siden Familie."

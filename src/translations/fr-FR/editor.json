@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Clé d'affichage",
         "description": "Pour Home Assistant, les raccourcis et les favoris qui commandent un affichage sans le mot de passe. Vos affichages ne s'en servent pas : Home Screens se souvient de chacun dès qu'on l'a laissé entrer.",
+        "notNeededYet": "Pas encore nécessaire. Mettez-la dès maintenant dans Home Assistant : elle continuera de fonctionner quand vous choisirez un mot de passe.",
+        "refusedFrom": "Quelque chose à l'adresse {address} a essayé une clé qui ne correspond pas, {when}. Donnez-lui la clé ci-dessus.",
+        "refused": "Quelque chose a essayé une clé qui ne correspond pas, {when}. Donnez-lui la clé ci-dessus.",
         "reveal": "Afficher",
         "hide": "Masquer",
         "copy": "Copier",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Enregistrer quand même",
           "cancel": "Annuler"
         },
+        "hubScreen": {
+          "title": "Cela bloque aussi l'écran branché sur Home Screens",
+          "body": "Cet écran ouvre le mur depuis {address}, qui n'est pas dans la liste. Ajouter {address} pour qu'il continue de fonctionner ?",
+          "addAndSave": "Ajouter et enregistrer",
+          "saveWithout": "Enregistrer sans",
+          "leftOutTitle": "L'écran branché sur Home Screens ne peut pas ouvrir le mur",
+          "leftOutBody": "N'autoriser que ces réseaux le bloque, car {address} n'est pas dans la liste. Ajoutez {address} pour qu'il affiche de nouveau le mur."
+        },
         "lockedOutHintPart1": "Si vous vous retrouvez bloqué, modifiez ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " sur l’appareil pour désactiver.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Désactiver",
         "disabling": "Désactivation…",
         "setExplanation": "Un seul mot de passe pour toute la maison. Ensuite, la télécommande familiale et l'éditeur le demandent. Le mur et la page des tâches des enfants continuent sans.",
+        "setDisplayKey": "Après cela, Home Assistant, les raccourcis et les favoris ont besoin de la clé d'affichage. Elle se trouve dans Accès réseau avancé.",
         "wallsStay": {
           "one": "Votre affichage reste autorisé.",
           "other": "Vos affichages restent autorisés."
@@ -2485,7 +2497,8 @@
       "description": "Qui peut modifier les réglages, et depuis où.",
       "advanced": {
         "heading": "Accès réseau avancé",
-        "description": "Clé d'affichage, appareils connectés et limitation à certains réseaux."
+        "description": "Clé d'affichage, appareils connectés et limitation à certains réseaux.",
+        "descriptionNoPassword": "La clé d'affichage, pour Home Assistant, les raccourcis et les favoris."
       },
       "grownUpPointerPrefix": "Vous voulez que le mur demande un code avant que les enfants dépensent des tickets ? C'est la section « ",
       "grownUpPointerSuffix": " » de la page Famille."

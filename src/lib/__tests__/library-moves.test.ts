@@ -10,6 +10,7 @@ import os from 'os';
 const configState = vi.hoisted(() => ({ config: {} as Record<string, unknown>, failWrite: false }));
 vi.mock('@/lib/config', () => ({
   configRevision: (c: unknown) => `rev-${JSON.stringify(c).length}`,
+  readConfig: vi.fn(async () => configState.config),
   updateConfigAtomic: vi.fn(async (mutator: (c: unknown) => unknown) => {
     const next = await mutator(configState.config);
     if (configState.failWrite && next !== configState.config) throw new Error('disk full');
@@ -215,6 +216,21 @@ describe('moveLibraryFiles', () => {
     await expect(moveLibraryFiles(['a.jpg'], '../etc')).rejects.toBeInstanceOf(LibraryMoveError);
     await seed('trips/rotation-mine.jpg');
     await expect(moveLibraryFiles(['trips/rotation-mine.jpg'], '')).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('makes a folder a slideshow plays but nobody has made yet, and no other', async () => {
+    // The Photo Frame template's folder, before anything was put in it.
+    configState.config = { screens: [{ id: 's1', name: 'Photo Frame', modules: [
+      { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'photos' } } },
+    ] }] };
+    await seed('a.jpg');
+    const result = await moveLibraryFiles(['a.jpg'], 'photos');
+    expect(result.moved).toEqual([{ from: 'a.jpg', to: 'photos/a.jpg' }]);
+    expect(await exists('photos/a.jpg')).toBe(true);
+
+    await seed('b.jpg');
+    await expect(moveLibraryFiles(['b.jpg'], 'elsewhere')).rejects.toMatchObject({ status: 404, code: 'library.folderGone' });
+    expect(await exists('elsewhere')).toBe(false);
   });
 });
 

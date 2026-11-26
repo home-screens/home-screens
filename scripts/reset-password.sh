@@ -76,7 +76,7 @@ const next = {
   cookieSecret: null,
   displayToken: null,
 };
-for (const key of ['ipAllowlist', 'ipBypassAuth', 'ipRestrictAccess']) {
+for (const key of ['displayToken', 'ipAllowlist', 'ipBypassAuth', 'ipRestrictAccess']) {
   if (state[key] !== undefined) next[key] = state[key];
 }
 

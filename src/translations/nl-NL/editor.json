@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Displaysleutel",
         "description": "Voor Home Assistant, snelkoppelingen en bladwijzers die een display bedienen zonder het wachtwoord. Je displays gebruiken hem niet: Home Screens onthoudt elk display zodra het is binnengelaten.",
+        "notNeededYet": "Nog niet nodig. Zet hem nu al in Home Assistant, dan blijft het werken als je een wachtwoord instelt.",
+        "refusedFrom": "Iets op {address} probeerde {when} een sleutel die niet klopt. Geef het de sleutel hierboven.",
+        "refused": "Iets probeerde {when} een sleutel die niet klopt. Geef het de sleutel hierboven.",
         "reveal": "Tonen",
         "hide": "Verbergen",
         "copy": "Kopiëren",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Toch opslaan",
           "cancel": "Annuleren"
         },
+        "hubScreen": {
+          "title": "Dit blokkeert ook het scherm dat op Home Screens is aangesloten",
+          "body": "Dat scherm opent de muur vanaf {address}, en dat staat niet op de lijst. {address} toevoegen zodat het blijft werken?",
+          "addAndSave": "Toevoegen en opslaan",
+          "saveWithout": "Zonder opslaan",
+          "leftOutTitle": "Het scherm aan Home Screens kan de muur niet openen",
+          "leftOutBody": "Alleen deze netwerken toestaan houdt het tegen, omdat {address} niet op de lijst staat. Voeg {address} toe, dan toont het de muur weer."
+        },
         "lockedOutHintPart1": "Als je jezelf buitensluit, bewerk ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " op het apparaat om dit uit te zetten.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Uitzetten",
         "disabling": "Uitzetten…",
         "setExplanation": "Eén wachtwoord voor het hele huis. Daarna vragen de gezinsafstandsbediening en de editor erom. De muur en de klusjespagina van de kinderen blijven zonder wachtwoord werken.",
+        "setDisplayKey": "Home Assistant, snelkoppelingen en bladwijzers hebben hierna de displaysleutel nodig. Die staat onder Geavanceerde netwerktoegang.",
         "wallsStay": {
           "one": "Je display blijft binnengelaten.",
           "other": "Je displays blijven binnengelaten."
@@ -2485,7 +2497,8 @@
       "description": "Wie dingen mag wijzigen, en van waar.",
       "advanced": {
         "heading": "Geavanceerde netwerktoegang",
-        "description": "Displaysleutel, aangemelde apparaten en toegang beperken tot bepaalde netwerken."
+        "description": "Displaysleutel, aangemelde apparaten en toegang beperken tot bepaalde netwerken.",
+        "descriptionNoPassword": "De displaysleutel, voor Home Assistant, snelkoppelingen en bladwijzers."
       },
       "grownUpPointerPrefix": "Wil je dat de muur om een code vraagt voordat kinderen tickets uitgeven? Dat stel je in bij ",
       "grownUpPointerSuffix": " op de pagina Gezin."

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, getClientIP, parseJsonBody } from '@/lib/api-utils';
-import { getIpAllowlistConfig, setIpAllowlistConfig } from '@/lib/auth';
+import { getIpAllowlistConfig, isAuthEnabled, setIpAllowlistConfig } from '@/lib/auth';
 import { isIpAllowed, normalizeIp } from '@/lib/ip-allowlist';
+import { readWalls } from '@/lib/display-walls';
+import { HUB_SCREEN_ADDRESS, hasHubScreen, leavesOutHubScreen } from '@/lib/hub-screen-allowlist';
 import { cidrFault, type CidrFault } from '@/lib/cidr';
 import { audit } from '@/lib/audit';
 
@@ -14,6 +16,11 @@ const FAULT_WORDS: Record<CidrFault, string> = {
   prefix: 'Prefix length must be 0-32',
 };
 
+/** Whether a wall opens from the hub itself, the screen plugged into it. */
+async function hubHasScreen(): Promise<boolean> {
+  return hasHubScreen((await readWalls(await isAuthEnabled())).walls);
+}
+
 export const GET = withAuth(async (request: NextRequest) => {
   const config = await getIpAllowlistConfig();
   // Normalize before returning so the UI shows what the matcher actually uses
@@ -25,6 +32,10 @@ export const GET = withAuth(async (request: NextRequest) => {
     bypassAuth: config.bypassAuth,
     restrictAccess: config.restrictAccess,
     callerIp,
+    // A list saved before the save asked about it can already be blanking
+    // the hub's own screen; the Security page says so.
+    hubScreenLeftOut: leavesOutHubScreen(config, await hubHasScreen()),
+    hubScreenAddress: HUB_SCREEN_ADDRESS,
   });
 }, 'Failed to read IP allowlist');
 
@@ -34,9 +45,10 @@ export const PUT = withAuth(async (request: NextRequest) => {
     bypassAuth?: unknown;
     restrictAccess?: unknown;
     force?: unknown;
+    forceHubScreen?: unknown;
   }>(request);
   if (body instanceof NextResponse) return body;
-  const { allowlist, bypassAuth, restrictAccess, force } = body;
+  const { allowlist, bypassAuth, restrictAccess, force, forceHubScreen } = body;
 
   // Validate types
   if (!Array.isArray(allowlist) || typeof bypassAuth !== 'boolean' || typeof restrictAccess !== 'boolean') {
@@ -65,6 +77,20 @@ export const PUT = withAuth(async (request: NextRequest) => {
         error: 'Lockout warning',
         reason: 'your_ip_not_in_allowlist',
         callerIp,
+      },
+      { status: 409 },
+    );
+  }
+
+  // The same for the screen plugged into the hub, which opens the wall from
+  // 127.0.0.1. It is never let through on its own (a reverse proxy on the
+  // same box makes every visitor 127.0.0.1), so the editor offers to add it.
+  if (forceHubScreen !== true && leavesOutHubScreen({ allowlist, restrictAccess }, await hubHasScreen())) {
+    return NextResponse.json(
+      {
+        error: 'This list turns away the screen plugged into the hub',
+        reason: 'hub_screen_not_in_allowlist',
+        hubScreenAddress: HUB_SCREEN_ADDRESS,
       },
       { status: 409 },
     );

@@ -842,8 +842,9 @@ describe('POST /api/auth/logout', () => {
 /* ─── /api/auth/display-token ─────────────────── */
 
 describe('GET /api/auth/display-token', () => {
-  it('returns null when auth is disabled', async () => {
+  it('returns the key with no password too, so Home Assistant can hold it before one is set', async () => {
     vi.mocked(isAuthEnabled).mockResolvedValue(false);
+    vi.mocked(getDisplayToken).mockResolvedValue('ready-before-password');
 
     const res = await displayTokenRoute.GET(
       makeGetRequest('/api/auth/display-token'),
@@ -851,7 +852,7 @@ describe('GET /api/auth/display-token', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.displayToken).toBeNull();
+    expect(json).toEqual({ displayToken: 'ready-before-password', lastRefused: null });
   });
 
   it('returns display token when auth is enabled', async () => {
@@ -869,16 +870,17 @@ describe('GET /api/auth/display-token', () => {
 });
 
 describe('POST /api/auth/display-token', () => {
-  it('returns error when auth is disabled', async () => {
+  it('makes a new key with no password too', async () => {
     vi.mocked(isAuthEnabled).mockResolvedValue(false);
+    vi.mocked(regenerateDisplayToken).mockResolvedValue('fresh-key');
 
     const res = await displayTokenRoute.POST(
       makePostRequest('/api/auth/display-token'),
     );
     const json = await res.json();
 
-    expect(res.status).toBe(400);
-    expect(json.error).toBeTruthy();
+    expect(res.status).toBe(200);
+    expect(json.displayToken).toBe('fresh-key');
   });
 
   it('regenerates and returns new token when auth is enabled', async () => {

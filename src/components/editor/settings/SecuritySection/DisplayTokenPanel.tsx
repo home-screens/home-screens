@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import { useTranslate } from '@/i18n';
+import { formatRelativeTime, useFormattingLocale, useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 import { useCopyFlash } from '@/hooks/useCopyFlash';
 import { useEditorStore } from '@/stores/editor-store';
@@ -14,6 +14,8 @@ import { wallsLetInByThemselves } from '@/lib/walls-api-types';
 import { useWalls } from '@/hooks/useWalls';
 import type { DisplayNode } from '@/types/config';
 import FieldHint from '@/components/ui/FieldHint';
+import Notice from '@/components/ui/Notice';
+import type { RefusedKey } from '@/lib/display-key-refusals';
 import { SettingsSubHeading } from '@/components/editor/settings/shared/SettingsPanel';
 import { wallsShowing } from '@/components/editor/settings/display/WallsPanels';
 
@@ -50,12 +52,17 @@ interface DisplayTokenPanelProps {
   token: string;
   /** New token after a regenerate. */
   onTokenChange: (token: string) => void;
+  /** A password is set, so the key is checked. Without one it is kept ready. */
+  passwordOn: boolean;
+  /** The last request turned away with a key that doesn't match. */
+  lastRefused: RefusedKey | null;
 }
 
 /** Reveal/copy/regenerate panel for the display auth token. */
-export default function DisplayTokenPanel({ token, onTokenChange }: DisplayTokenPanelProps) {
+export default function DisplayTokenPanel({ token, onTokenChange, passwordOn, lastRefused }: DisplayTokenPanelProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
   const origin = useOrigin();
   const displays = useEditorStore((s) => s.config?.displays);
   const exampleTarget = findMainDisplay(displays);
@@ -109,6 +116,25 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
       <FieldHint className="mb-2">
         {t('settings.securityPage.displayToken.description')}
       </FieldHint>
+      {/* Made before any password, so Home Assistant can hold it from the
+          start and keep working the day a password goes on. */}
+      {!passwordOn && (
+        <FieldHint className="mb-2" data-testid="display-key-not-needed">
+          {t('settings.securityPage.displayToken.notNeededYet')}
+        </FieldHint>
+      )}
+      {/* An old key fails with nothing on screen; say where it came from. */}
+      {passwordOn && lastRefused && (
+        <Notice tone="warning" className="mb-2" testId="display-key-refused">
+          {t(lastRefused.address ? 'settings.securityPage.displayToken.refusedFrom' : 'settings.securityPage.displayToken.refused', {
+            address: lastRefused.address ?? '',
+            // "now" from the formatter reads oddly in a sentence; under a minute is "just now".
+            when: Date.now() - lastRefused.at < 60_000
+              ? tCore('relativeTime.justNow')
+              : formatRelativeTime(Date.now(), lastRefused.at, { locale }),
+          })}
+        </Notice>
+      )}
       <div className="flex items-center gap-2">
         {/* Addressed by test id, not by its classes: this panel holds more
             than one <code>, and styling is not an address. */}

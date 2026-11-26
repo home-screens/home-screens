@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Display-Schlüssel",
         "description": "Für Home Assistant, Kurzbefehle und Lesezeichen, die ein Display ohne Passwort steuern. Deine Displays brauchen ihn nicht: Home Screens merkt sich jedes Display, sobald es hereingelassen wurde.",
+        "notNeededYet": "Noch nicht nötig. Trag ihn jetzt in Home Assistant ein, dann funktioniert alles weiter, sobald du ein Passwort festlegst.",
+        "refusedFrom": "Etwas unter {address} hat {when} einen Schlüssel benutzt, der nicht passt. Gib ihm den Schlüssel oben.",
+        "refused": "Etwas hat {when} einen Schlüssel benutzt, der nicht passt. Gib ihm den Schlüssel oben.",
         "reveal": "Anzeigen",
         "hide": "Verbergen",
         "copy": "Kopieren",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Trotzdem speichern",
           "cancel": "Abbrechen"
         },
+        "hubScreen": {
+          "title": "Das sperrt auch den Bildschirm, der an Home Screens angeschlossen ist",
+          "body": "Dieser Bildschirm öffnet das Wanddisplay von {address} aus, und das steht nicht auf der Liste. {address} hinzufügen, damit er weiter funktioniert?",
+          "addAndSave": "Hinzufügen und speichern",
+          "saveWithout": "Ohne speichern",
+          "leftOutTitle": "Der Bildschirm an Home Screens kann das Wanddisplay nicht öffnen",
+          "leftOutBody": "Nur diese Netzwerke zulassen sperrt ihn aus, weil {address} nicht auf der Liste steht. Füge {address} hinzu, dann zeigt er das Wanddisplay wieder."
+        },
         "lockedOutHintPart1": "Falls du dich aussperrst, bearbeite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " auf dem Gerät, um das abzuschalten.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Ausschalten",
         "disabling": "Wird ausgeschaltet…",
         "setExplanation": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne.",
+        "setDisplayKey": "Home Assistant, Kurzbefehle und Lesezeichen brauchen danach den Display-Schlüssel. Du findest ihn unter Erweiterter Netzwerkzugriff.",
         "wallsStay": {
           "one": "Dein Display muss nicht noch einmal hereingelassen werden.",
           "other": "Deine Displays müssen nicht noch einmal hereingelassen werden."
@@ -2485,7 +2497,8 @@
       "description": "Wer etwas ändern darf und von wo aus.",
       "advanced": {
         "heading": "Erweiterter Netzwerkzugriff",
-        "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke."
+        "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke.",
+        "descriptionNoPassword": "Der Display-Schlüssel für Home Assistant, Kurzbefehle und Lesezeichen."
       },
       "grownUpPointerPrefix": "Soll das Display fragen, bevor Kinder Tickets ausgeben? Dafür gibt es den ",
       "grownUpPointerSuffix": " auf der Seite Familie."

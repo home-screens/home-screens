@@ -7,6 +7,14 @@ vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
   getIpAllowlistConfig: vi.fn(),
   setIpAllowlistConfig: vi.fn(),
+  isAuthEnabled: vi.fn(async () => true),
+}));
+
+/* ─── Mock the walls registry ───────────────── */
+
+const walls = vi.hoisted(() => ({ list: [] as { status: 'in' | 'waiting'; address: string }[] }));
+vi.mock('@/lib/display-walls', () => ({
+  readWalls: vi.fn(async () => ({ windowStartedAt: null, windowAdmissions: {}, walls: walls.list })),
 }));
 
 /* ─── Mock @/lib/audit ──────────────────────── */
@@ -44,6 +52,7 @@ function makePutRequest(body: unknown, ip = '192.168.1.50'): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  walls.list = [];
   // Default: auth is not required (withAuth's requireSession is a no-op)
   vi.mocked(requireSession).mockResolvedValue(undefined);
 });
@@ -69,7 +78,26 @@ describe('GET /api/auth/ip-allowlist', () => {
       bypassAuth: true,
       restrictAccess: false,
       callerIp: '192.168.1.42',
+      hubScreenLeftOut: false,
+      hubScreenAddress: '127.0.0.1',
     });
+  });
+
+  it('says when the saved list already turns away the screen plugged into the hub', async () => {
+    walls.list = [{ status: 'in', address: '127.0.0.1' }];
+    vi.mocked(getIpAllowlistConfig).mockResolvedValue({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: false,
+      restrictAccess: true,
+    });
+    expect((await (await ipAllowlistRoute.GET(makeGetRequest())).json()).hubScreenLeftOut).toBe(true);
+
+    vi.mocked(getIpAllowlistConfig).mockResolvedValue({
+      allowlist: ['192.168.1.0/24', '127.0.0.1'],
+      bypassAuth: false,
+      restrictAccess: true,
+    });
+    expect((await (await ipAllowlistRoute.GET(makeGetRequest())).json()).hubScreenLeftOut).toBe(false);
   });
 
   it('returns empty defaults when no config exists', async () => {
@@ -287,6 +315,58 @@ describe('PUT /api/auth/ip-allowlist — lockout pre-check', () => {
       bypassAuth: false,
       restrictAccess: true,
     });
+  });
+});
+
+// ═══════════════════════════════════════════════
+// PUT /api/auth/ip-allowlist — the screen plugged into the hub
+// ═══════════════════════════════════════════════
+
+describe('PUT /api/auth/ip-allowlist — the hub\'s own screen', () => {
+  const restrict = (allowlist: string[], extra: Record<string, unknown> = {}) =>
+    ipAllowlistRoute.PUT(makePutRequest({ allowlist, bypassAuth: false, restrictAccess: true, ...extra }, '192.168.1.42'));
+
+  it('returns 409 without saving when the list leaves out 127.0.0.1 and the hub has its own screen', async () => {
+    walls.list = [{ status: 'in', address: '127.0.0.1' }];
+    const res = await restrict(['192.168.1.0/24']);
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ reason: 'hub_screen_not_in_allowlist', hubScreenAddress: '127.0.0.1' });
+    expect(setIpAllowlistConfig).not.toHaveBeenCalled();
+  });
+
+  it('counts a screen that opened the wall over ::1, and only one that was let in', async () => {
+    walls.list = [{ status: 'waiting', address: '127.0.0.1' }];
+    expect((await restrict(['192.168.1.0/24'])).status).toBe(200);
+    vi.mocked(setIpAllowlistConfig).mockClear();
+
+    walls.list = [{ status: 'in', address: '::1' }];
+    expect((await restrict(['192.168.1.0/24'])).status).toBe(409);
+    expect(setIpAllowlistConfig).not.toHaveBeenCalled();
+  });
+
+  it('saves when 127.0.0.1 is on the list, or nothing opens the wall from the hub', async () => {
+    walls.list = [{ status: 'in', address: '127.0.0.1' }];
+    expect((await restrict(['192.168.1.0/24', '127.0.0.1'])).status).toBe(200);
+    walls.list = [{ status: 'in', address: '192.168.1.60' }];
+    expect((await restrict(['192.168.1.0/24'])).status).toBe(200);
+  });
+
+  it('does not ask when the list only lets displays in without asking', async () => {
+    walls.list = [{ status: 'in', address: '127.0.0.1' }];
+    const res = await ipAllowlistRoute.PUT(makePutRequest({ allowlist: ['192.168.1.0/24'], bypassAuth: true, restrictAccess: false }, '192.168.1.42'));
+    expect(res.status).toBe(200);
+  });
+
+  it('saves without it when told to, and asks about the caller first', async () => {
+    walls.list = [{ status: 'in', address: '127.0.0.1' }];
+    expect((await restrict(['192.168.1.0/24'], { forceHubScreen: true })).status).toBe(200);
+    expect(setIpAllowlistConfig).toHaveBeenCalledWith({ allowlist: ['192.168.1.0/24'], bypassAuth: false, restrictAccess: true });
+
+    // A list that leaves out both: the caller's own lockout is the first question.
+    const both = await restrict(['10.0.0.0/8']);
+    expect((await both.json()).reason).toBe('your_ip_not_in_allowlist');
+    const next = await restrict(['10.0.0.0/8'], { force: true });
+    expect((await next.json()).reason).toBe('hub_screen_not_in_allowlist');
   });
 });
 

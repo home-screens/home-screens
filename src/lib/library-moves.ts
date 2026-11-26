@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { configRevision, updateConfigAtomic } from '@/lib/config';
-import { blockedRemovals, rewriteMediaRefs, scanMediaUsage, type MediaUse } from '@/lib/media-usage';
+import { configRevision, readConfig, updateConfigAtomic } from '@/lib/config';
+import { blockedRemovals, rewriteMediaRefs, scanMediaUsage, slideshowFolders, type MediaUse } from '@/lib/media-usage';
 import { libraryRoot, listLibraryFolder, safeLibraryPath } from '@/lib/library-files';
 import { bumpLibraryRevision } from '@/lib/library-revision';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
@@ -77,6 +77,20 @@ async function requireFolder(folder: string): Promise<string> {
 }
 
 /**
+ * The folder a move goes into. One a slideshow plays but nobody has made yet
+ * (the Photo Frame template's) is made here, as the first upload into it
+ * would be; any other missing folder is gone.
+ */
+async function requireTargetFolder(folder: string): Promise<string> {
+  const abs = folder === '' ? null : safeLibraryPath(folder);
+  if (abs && slideshowFolders(await readConfig()).some((s) => s.folder === folder)) {
+    // A file already in its place is reported as a missing folder below.
+    await fs.mkdir(abs, { recursive: true }).catch(() => { /* requireFolder says why */ });
+  }
+  return requireFolder(folder);
+}
+
+/**
  * Move a file without ever overwriting: a hard link refuses with EEXIST when
  * the target already exists (atomically, unlike a check followed by a
  * rename), then the source is unlinked. On a filesystem that cannot link,
@@ -132,7 +146,7 @@ interface PlannedMove {
 export async function moveLibraryFiles(files: string[], directory: string): Promise<MoveResult> {
   const folder = cleanFolderPath(directory);
   if (folder == null) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid folder');
-  const targetDir = await requireFolder(folder);
+  const targetDir = await requireTargetFolder(folder);
 
   const plan: PlannedMove[] = [];
   const seenSources = new Set<string>();

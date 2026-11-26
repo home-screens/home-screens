@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Display key",
         "description": "For Home Assistant, shortcuts and bookmark links that control a display without the password. Your displays don't use it: each one is remembered by Home Screens once it has been let in.",
+        "notNeededYet": "Not needed yet. Put it in Home Assistant now and it keeps working when you set a password.",
+        "refusedFrom": "Something at {address} tried a key that doesn't match {when}. Give it the key above.",
+        "refused": "Something tried a key that doesn't match {when}. Give it the key above.",
         "reveal": "Reveal",
         "hide": "Hide",
         "copy": "Copy",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Save anyway",
           "cancel": "Cancel"
         },
+        "hubScreen": {
+          "title": "This also blocks the screen plugged into Home Screens",
+          "body": "That screen opens the wall from {address}, which isn't on the list. Add {address} so it keeps working?",
+          "addAndSave": "Add it and save",
+          "saveWithout": "Save without it",
+          "leftOutTitle": "The screen plugged into Home Screens can't open the wall",
+          "leftOutBody": "Only allow these networks turns it away, because {address} isn't on the list. Add {address} so it shows the wall again."
+        },
         "lockedOutHintPart1": "If you do get locked out, edit ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " on the device to turn this off.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Turn it off",
         "disabling": "Turning off…",
         "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
+        "setDisplayKey": "Home Assistant, shortcuts and bookmarks need the display key after this. It's under Advanced network access.",
         "wallsStay": {
           "one": "Your display stays let in.",
           "other": "Your displays stay let in."
@@ -2485,7 +2497,8 @@
       "description": "Who can change things, and from where.",
       "advanced": {
         "heading": "Advanced network access",
-        "description": "Display key, signed-in devices, and limiting access to certain networks."
+        "description": "Display key, signed-in devices, and limiting access to certain networks.",
+        "descriptionNoPassword": "The display key, for Home Assistant, shortcuts and bookmark links."
       },
       "grownUpPointerPrefix": "Want the wall to ask before kids spend tickets? That is the ",
       "grownUpPointerSuffix": " on the Family page."

@@ -28,7 +28,7 @@ The editor has five areas, and you will use all of them today:
 
 ## 2. Pick a template
 
-Click **Choose a template** on the empty screen. A template is a finished screen: modules already placed, sized, and styled for a portrait wall. Pick **Family Dashboard** for a family (clock, greeting, weather, calendar, today's chores, countdown), **Weather Station** for a weather wall, or **Minimal Clock** for a photo frame. Each one has a landscape twin for a screen on its side.
+Click **Choose a template** on the empty screen. A template is a finished screen: modules already placed, sized, and styled for a portrait wall. Pick **Family Dashboard** for a family (clock, greeting, weather, calendar, today's chores, countdown), **Weather Station** for a weather wall, or **Photo Frame** for your own pictures (add them from a phone on the family remote's **Photos** tab). Each one has a landscape twin for a screen on its side.
 
 {% screenshot name="editor-template-picker" caption="Templates replace the empty screen. You can change anything afterwards." /%}
 

@@ -11,4 +11,8 @@ export interface IpAllowlistData {
   bypassAuth: boolean;
   restrictAccess: boolean;
   callerIp: string;
+  /** The saved list already turns away the screen plugged into the hub. */
+  hubScreenLeftOut: boolean;
+  /** The address that screen opens the wall from. */
+  hubScreenAddress: string;
 }

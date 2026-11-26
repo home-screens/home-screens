@@ -22,8 +22,8 @@ interface PasswordModalProps {
   onClose: () => void;
   /** Auth status changed as a result of set/disable. */
   onStatusChange: (status: AuthStatus) => void;
-  /** Display token fetched after set, or cleared (null) after disable. */
-  onDisplayTokenChange: (token: string | null) => void;
+  /** Display token read again after a password is set. */
+  onDisplayTokenChange: (token: string) => void;
 }
 
 /**
@@ -160,11 +160,9 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
         });
         return;
       }
+      // The display key stays (Home Assistant holds it), so the panel keeps
+      // showing it, now as the key that is ready for a password.
       onStatusChange({ authEnabled: false, authenticated: false, hasDisplayToken: false });
-      // Clear stale token state so re-enabling doesn't show the old token.
-      // The token panel unmounts when the token goes null, resetting its
-      // reveal/copy/regenerate sub-state with it.
-      onDisplayTokenChange(null);
       setModalStatus({
         message: t('settings.securityPage.success.authDisabled'),
         kind: 'success',
@@ -205,9 +203,16 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
               answer the question that row raised; Security's own page never
               mentioned the remote at all. */}
           {mode === 'set' && (
-            <FieldHint className="mb-4">
-              {t('settings.securityPage.modal.setExplanation')}
-            </FieldHint>
+            <>
+              <FieldHint className="mb-2">
+                {t('settings.securityPage.modal.setExplanation')}
+              </FieldHint>
+              {/* The one thing a password breaks: anything calling the hub
+                  without signing in. The key is already made and stays. */}
+              <FieldHint className="mb-4" data-testid="set-password-display-key">
+                {t('settings.securityPage.modal.setDisplayKey')}
+              </FieldHint>
+            </>
           )}
 
           <div className="space-y-3">

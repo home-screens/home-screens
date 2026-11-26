@@ -46,7 +46,7 @@ test('setting a password from the Security page enables auth and shows a display
   // The display token, signed-in devices and the IP allowlist live under one
   // "Advanced network access" disclosure: the page leads with what the
   // password covers, not with network administration.
-  await page.getByText('Advanced network access').click();
+  await page.getByText('Advanced network access', { exact: true }).click();
   await expect(page.getByRole('button', { name: 'Reveal' })).toBeVisible();
 });
 
@@ -70,7 +70,7 @@ test('the display token can be revealed and regenerated', async ({ page }) => {
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
-  await page.getByText('Advanced network access').click();
+  await page.getByText('Advanced network access', { exact: true }).click();
   // The panel shows two code blocks, the key and the example bookmark link,
   // so each carries its own test id. Styling classes are not an address.
   const tokenCode = page.getByTestId('display-key-value');
@@ -97,7 +97,7 @@ test('the IP allowlist rejects a malformed entry with an inline error', async ({
   await page.goto(SECURITY_URL);
 
   // The allowlist sits under the "Advanced network access" disclosure.
-  await page.getByText('Advanced network access').click();
+  await page.getByText('Advanced network access', { exact: true }).click();
   const entryInput = page.getByPlaceholder('192.168.1.0/24');
   await expect(entryInput).toBeVisible();
 
@@ -118,7 +118,7 @@ test('the IP allowlist accepts an entry and saves', async ({ page }) => {
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
-  await page.getByText('Advanced network access').click();
+  await page.getByText('Advanced network access', { exact: true }).click();
 
   const entryInput = page.getByPlaceholder('192.168.1.0/24');
   await expect(entryInput).toBeVisible();

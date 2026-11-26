@@ -38,6 +38,8 @@ import DisplayTokenPanel from '../SecuritySection/DisplayTokenPanel';
 import { I18nProvider } from '@/i18n/provider';
 import { __resetOriginForTests } from '@/hooks/useOrigin';
 import enUSEditor from '@/translations/en-US/editor.json';
+import enUSCore from '@/translations/en-US/core.json';
+import type { RefusedKey } from '@/lib/display-key-refusals';
 
 beforeEach(() => {
   cleanup();
@@ -52,10 +54,10 @@ beforeEach(() => {
   });
 });
 
-function renderPanel() {
+function renderPanel({ passwordOn = true, lastRefused = null }: { passwordOn?: boolean; lastRefused?: RefusedKey | null } = {}) {
   return render(
-    <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>
-      <DisplayTokenPanel token="secret-display-key" onTokenChange={() => {}} />
+    <I18nProvider locale="en-US" blob={{ editor: enUSEditor, core: enUSCore }}>
+      <DisplayTokenPanel token="secret-display-key" onTokenChange={() => {}} passwordOn={passwordOn} lastRefused={lastRefused} />
     </I18nProvider>,
   );
 }
@@ -100,6 +102,35 @@ describe('the display key panel', () => {
     );
     // With more than one display to aim at, the link says which one it hits.
     getByText("This one points at Kitchen. Swap main for another display's id to aim at that one.");
+  });
+
+  it('with no password, says the key is ready for Home Assistant before one is set', async () => {
+    const { findByTestId, getByTestId } = renderPanel({ passwordOn: false });
+    expect((await findByTestId('display-key-not-needed')).textContent).toBe(
+      'Not needed yet. Put it in Home Assistant now and it keeps working when you set a password.',
+    );
+    expect(getByTestId('display-key-value').textContent).toContain('secret-d');
+  });
+
+  it('says where and when a key that does not match was tried, only while a password is on', async () => {
+    const lastRefused = { at: Date.now() - 3 * 60_000, address: '192.168.1.40' };
+    const { findByTestId, queryByTestId } = renderPanel({ lastRefused });
+    expect((await findByTestId('display-key-refused')).textContent).toBe(
+      "Something at 192.168.1.40 tried a key that doesn't match 3 minutes ago. Give it the key above.",
+    );
+    expect(queryByTestId('display-key-not-needed')).toBeNull();
+    cleanup();
+
+    const fresh = renderPanel({ lastRefused: { at: Date.now() - 5_000, address: null } });
+    expect((await fresh.findByTestId('display-key-refused')).textContent).toBe(
+      "Something tried a key that doesn't match just now. Give it the key above.",
+    );
+    cleanup();
+
+    // With no password nothing is turned away, so a stale record says nothing.
+    const off = renderPanel({ passwordOn: false, lastRefused });
+    await off.findByTestId('display-key-not-needed');
+    expect(off.queryByTestId('display-key-refused')).toBeNull();
   });
 
   it('says nothing about aiming when there is only one display', async () => {

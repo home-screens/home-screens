@@ -73,13 +73,31 @@ describe('photoFolders', () => {
     expect(byPath.get('Aquarium')).toMatchObject({ images: 0, videos: 0 });
   });
 
-  it('marks only folders that exist and that a slideshow shows as on a wall', () => {
-    const folders = photoFolders(items, directories, [slideshow('Favorites', 'Hall'), slideshow('Old-trips', 'Den')]);
+  it('marks the folders a slideshow shows as on a wall', () => {
+    const folders = photoFolders(items, directories, [slideshow('Favorites', 'Hall')]);
     expect(folders.filter((f) => f.onWall).map((f) => f.path)).toEqual(['Favorites']);
+    expect(folders.every((f) => f.exists)).toBe(true);
   });
 
-  it('adds nothing for a slideshow pointed at a folder that is gone', () => {
-    expect(photoFolders(items, directories, [slideshow('Old-trips', 'Den')])).toEqual(photoFolders(items, directories, []));
+  it('lists a folder a slideshow plays before anyone has made it, first, so a picture can go there', () => {
+    // The Photo Frame template names "photos", which no library has until something is put in it.
+    const folders = photoFolders(items, directories, [slideshow('photos', 'Photo Frame')]);
+    expect(folders[0]).toEqual({
+      path: 'photos',
+      name: 'photos',
+      parent: '',
+      onWall: true,
+      exists: false,
+      images: 0,
+      videos: 0,
+      hasSubfolders: false,
+    });
+    expect(folders.slice(1)).toEqual(photoFolders(items, directories, []));
+  });
+
+  it('lists a not-yet-made folder inside another not-yet-made one under its whole path', () => {
+    const folders = photoFolders([], [], [slideshow('Family/Frame', 'Hall')]);
+    expect(folders.map((f) => [f.path, f.parent, f.exists])).toEqual([['Family/Frame', 'Family', false], ['', '', true]]);
   });
 
   it('splits a nested path into the folder it sits in and its own name', () => {
@@ -89,6 +107,7 @@ describe('photoFolders', () => {
       name: 'Colorado-2025',
       parent: 'Trips',
       onWall: false,
+      exists: true,
       images: 1,
       videos: 1,
       hasSubfolders: false,
@@ -113,7 +132,7 @@ describe('photoFolders', () => {
 
   it('always lists the top level', () => {
     expect(photoFolders([], [], [])).toEqual([
-      { path: '', name: '', parent: '', onWall: false, images: 0, videos: 0, hasSubfolders: false },
+      { path: '', name: '', parent: '', onWall: false, exists: true, images: 0, videos: 0, hasSubfolders: false },
     ]);
     // Even when it holds nothing but folders.
     expect(paths([], undefined, items.filter((i) => i.path !== 'top.jpg'))[0]).toBe('');

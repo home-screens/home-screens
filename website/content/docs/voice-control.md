@@ -54,7 +54,7 @@ The package below gives you both, and they're good at different things:
    homescreens_auth: "Bearer your-display-token-here"
    ```
 
-   The key is in the Home Screens editor under **Settings > Security**: open **Advanced network access**, then **Reveal** and **Copy** it under **Display key**. If you haven't set a Home Screens password, put any placeholder text there: the hub ignores the header until a password exists. When you set one, replace the placeholder with the display key it creates and reload (step 6). Turning the password off and on again makes a new key, so copy it again then.
+   The key is in the Home Screens editor under **Settings > Security**: open **Advanced network access**, then **Reveal** and **Copy** it under **Display key**. The key is there even if you haven't set a Home Screens password yet: the hub ignores the header until a password exists, and the same key keeps working the day you add one. Changing the password or turning it off and on again keeps it; only **Make a new key** makes a new one.
 
 6. Reload: **Developer Tools > YAML > All**. (Later edits to the sentences file are picked up by running the `conversation.reload` action, no restart needed.)
 

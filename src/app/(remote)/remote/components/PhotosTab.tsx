@@ -710,7 +710,9 @@ export default function PhotosTab({ directory }: { directory: string }) {
                   : count > 0 ? t('photosTab.notOnWallHint', { contents }) : contents}
             </span>
           </span>
-          {!selecting && current.path !== '' && (
+          {/* A folder a slideshow names but nobody has made yet has nothing to
+              rename or delete; the first picture added makes it. */}
+          {!selecting && current.path !== '' && current.exists && (
             <button
               type="button"
               onClick={() => setSheet({ kind: 'folderMenu' })}

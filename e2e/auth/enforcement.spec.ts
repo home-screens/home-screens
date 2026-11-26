@@ -287,10 +287,13 @@ test('IP allowlist: a lockout is warned, can be forced, and is then enforced', a
   expect((await warned.json()).reason).toBe('your_ip_not_in_allowlist');
   expect((await admin.get('/api/displays')).status()).not.toBe(403);
 
-  // `force: true` overrides the warning and persists the lockout.
+  // `force: true` overrides the warning and persists the lockout. The list
+  // also leaves out 127.0.0.1, the screen plugged into the hub, which is
+  // asked about separately when a wall on this worker's server opened from
+  // there; `forceHubScreen` answers that one too.
   expect(
     (await admin.put('/api/auth/ip-allowlist', {
-      data: { allowlist: ['10.0.0.0/24'], bypassAuth: false, restrictAccess: true, force: true },
+      data: { allowlist: ['10.0.0.0/24'], bypassAuth: false, restrictAccess: true, force: true, forceHubScreen: true },
     })).ok(),
   ).toBe(true);
 

@@ -53,6 +53,9 @@ function safeReturnPath(raw: string | null): string {
   }
 }
 
+/** How often a turned-away browser asks whether it is allowed again. */
+const RESTRICTED_RECHECK_MS = 30_000;
+
 function LoginForm() {
   const t = useTranslate('core');
   const searchParams = useSearchParams();
@@ -89,6 +92,22 @@ function LoginForm() {
     }
     checkStatus();
   }, [from]);
+
+  // While this address is turned away, keep asking: once a grown-up adds it
+  // (the screen plugged into the hub, after "Add it and save"), go back to
+  // the page it was sent here from. Nobody is at that screen's keyboard.
+  useEffect(() => {
+    if (!ipRestricted) return;
+    const timer = setInterval(async () => {
+      try {
+        const data = await (await fetch('/api/auth/status')).json();
+        if (!data.ipRestricted) window.location.href = from;
+      } catch {
+        // The hub is restarting or unreachable; ask again next time.
+      }
+    }, RESTRICTED_RECHECK_MS);
+    return () => clearInterval(timer);
+  }, [ipRestricted, from]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

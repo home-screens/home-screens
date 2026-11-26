@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Clave del display",
         "description": "Para Home Assistant, atajos y marcadores que controlan un display sin la contraseña. Tus displays no la usan: Home Screens recuerda cada uno en cuanto lo dejas entrar.",
+        "notNeededYet": "Todavía no hace falta. Ponla ya en Home Assistant y seguirá funcionando cuando pongas una contraseña.",
+        "refusedFrom": "Algo en {address} probó una clave que no coincide, {when}. Dale la clave de arriba.",
+        "refused": "Algo probó una clave que no coincide, {when}. Dale la clave de arriba.",
         "reveal": "Mostrar",
         "hide": "Ocultar",
         "copy": "Copiar",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Guardar de todos modos",
           "cancel": "Cancelar"
         },
+        "hubScreen": {
+          "title": "Esto también bloquea la pantalla conectada a Home Screens",
+          "body": "Esa pantalla abre el monitor desde {address}, que no está en la lista. ¿Añadir {address} para que siga funcionando?",
+          "addAndSave": "Añadir y guardar",
+          "saveWithout": "Guardar sin ella",
+          "leftOutTitle": "La pantalla conectada a Home Screens no puede abrir el monitor",
+          "leftOutBody": "Permitir solo estas redes la bloquea, porque {address} no está en la lista. Añade {address} para que vuelva a mostrar el monitor."
+        },
         "lockedOutHintPart1": "Si te quedas fuera, edita ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " en el dispositivo para desactivarlo.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Desactivarla",
         "disabling": "Desactivando…",
         "setExplanation": "Una contraseña para toda la casa. A partir de ahí, el mando familiar y el editor la piden. El monitor y la página de tareas de los niños siguen funcionando sin ella.",
+        "setDisplayKey": "A partir de ahí, Home Assistant, los atajos y los marcadores necesitan la clave del display. Está en Acceso de red avanzado.",
         "wallsStay": {
           "one": "Tu display no se queda fuera.",
           "other": "Tus displays no se quedan fuera."
@@ -2485,7 +2497,8 @@
       "description": "Quién puede cambiar cosas y desde dónde.",
       "advanced": {
         "heading": "Acceso de red avanzado",
-        "description": "Clave del display, dispositivos con sesión iniciada y limitar el acceso a ciertas redes."
+        "description": "Clave del display, dispositivos con sesión iniciada y limitar el acceso a ciertas redes.",
+        "descriptionNoPassword": "La clave del display, para Home Assistant, atajos y marcadores."
       },
       "grownUpPointerPrefix": "¿Quieres que el monitor pida un código antes de que los peques gasten tickets? Mira el apartado ",
       "grownUpPointerSuffix": " en la página Familia."

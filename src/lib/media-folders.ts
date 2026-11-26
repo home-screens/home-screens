@@ -19,6 +19,10 @@ export interface PhotoFolder {
   parent: string;
   /** A slideshow on some wall plays this folder. */
   onWall: boolean;
+  /** The folder is in the library. One a slideshow names but nobody has made
+   *  yet (the Photo Frame template's) is listed so a picture can go there,
+   *  and the first one added makes it. */
+  exists: boolean;
   images: number;
   videos: number;
   /** It has folders inside it, which also stop it being deleted. */
@@ -28,7 +32,8 @@ export interface PhotoFolder {
 /**
  * Every folder the phone offers, in chip order: the ones a wall shows first
  * (in the order the walls list them), then the top level, then the rest by
- * path. A slideshow pointed at a folder that no longer exists adds nothing.
+ * path. A folder a slideshow plays is listed even when it does not exist yet,
+ * since adding a picture there is how it starts showing anything.
  *
  * A folder holding nothing but other folders (Trips, around Trips/2025) is
  * left out: each folder inside it already shows its whole path, so its chip
@@ -49,9 +54,9 @@ export function photoFolders(
     else count.videos += 1;
     counts.set(folder, count);
   }
-  const paths = ['', ...directories.map((d) => d.path)];
-  const exists = new Set(paths);
-  const onWall = new Set(slideshows.map((s) => s.folder).filter((f) => exists.has(f)));
+  const exists = new Set(['', ...directories.map((d) => d.path)]);
+  const onWall = new Set(slideshows.map((s) => s.folder));
+  const paths = [...new Set([...exists, ...onWall])];
   const withSubfolders = new Set(directories.map((d) => folderOf(d.path)));
 
   const build = (path: string): PhotoFolder => {
@@ -61,6 +66,7 @@ export function photoFolders(
       name: path.slice(path.lastIndexOf('/') + 1),
       parent: folderOf(path),
       onWall: onWall.has(path),
+      exists: exists.has(path),
       images: count.images,
       videos: count.videos,
       hasSubfolders: withSubfolders.has(path),

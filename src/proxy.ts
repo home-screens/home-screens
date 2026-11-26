@@ -244,8 +244,12 @@ export function proxy(request: NextRequest) {
             { status: 403 },
           );
         }
-        // Page routes → redirect to /login (where the note explains the situation)
+        // Page routes → redirect to /login (where the note explains the
+        // situation), remembering the page so it can go back by itself once
+        // this address is allowed again: the screen plugged into the hub has
+        // nobody at a keyboard to find its way back to /display.
         const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('from', pathname + request.nextUrl.search);
         return NextResponse.redirect(loginUrl);
       }
     }

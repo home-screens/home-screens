@@ -2380,6 +2380,9 @@
       "displayToken": {
         "heading": "Chave do display",
         "description": "Para o Home Assistant, atalhos e favoritos que controlam um display sem a senha. Seus displays não usam esta chave: o Home Screens lembra de cada um depois que ele é autorizado a entrar.",
+        "notNeededYet": "Ainda não é necessária. Coloque no Home Assistant agora e tudo continua funcionando quando você definir uma senha.",
+        "refusedFrom": "Algo em {address} tentou uma chave que não confere, {when}. Dê a ele a chave acima.",
+        "refused": "Algo tentou uma chave que não confere, {when}. Dê a ele a chave acima.",
         "reveal": "Mostrar",
         "hide": "Ocultar",
         "copy": "Copiar",
@@ -2430,6 +2433,14 @@
           "saveAnyway": "Salvar mesmo assim",
           "cancel": "Cancelar"
         },
+        "hubScreen": {
+          "title": "Isso também bloqueia a tela ligada ao Home Screens",
+          "body": "Essa tela abre o painel a partir de {address}, que não está na lista. Adicionar {address} para ela continuar funcionando?",
+          "addAndSave": "Adicionar e salvar",
+          "saveWithout": "Salvar sem",
+          "leftOutTitle": "A tela ligada ao Home Screens não consegue abrir o painel",
+          "leftOutBody": "Permitir apenas essas redes bloqueia a tela, porque {address} não está na lista. Adicione {address} para ela mostrar o painel de novo."
+        },
         "lockedOutHintPart1": "Se você ficar sem acesso, edite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " no aparelho para desativar isto.",
@@ -2462,6 +2473,7 @@
         "disableSubmit": "Desativar",
         "disabling": "Desativando…",
         "setExplanation": "Uma senha para a casa toda. Depois disso, o controle da família e o editor pedem a senha. O painel e a página de tarefas das crianças continuam funcionando sem ela.",
+        "setDisplayKey": "Depois disso, o Home Assistant, atalhos e favoritos precisam da chave do display. Ela fica em Acesso de rede avançado.",
         "wallsStay": {
           "one": "Seu display continua liberado.",
           "other": "Seus displays continuam liberados."
@@ -2485,7 +2497,8 @@
       "description": "Quem pode mudar as coisas, e de onde.",
       "advanced": {
         "heading": "Acesso de rede avançado",
-        "description": "Chave do display, aparelhos conectados e limitar o acesso a certas redes."
+        "description": "Chave do display, aparelhos conectados e limitar o acesso a certas redes.",
+        "descriptionNoPassword": "A chave do display, para o Home Assistant, atalhos e favoritos."
       },
       "grownUpPointerPrefix": "Quer que o painel peça um código antes que as crianças gastem tickets? É o ",
       "grownUpPointerSuffix": " na página Família."

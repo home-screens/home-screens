@@ -990,6 +990,13 @@ describe('proxy — IP access restriction (blocked IPs)', () => {
     expect(redirect?.pathname).toBe('/login');
   });
 
+  it('remembers the page a turned-away browser asked for, so it can go back once allowed', () => {
+    // The screen plugged into the hub has nobody at a keyboard to find /display again.
+    const redirect = isRedirect(proxy(makeRequest('/display', { search: '?screen=s1', clientIp: '10.0.0.99' })));
+    expect(redirect?.pathname).toBe('/login');
+    expect(redirect?.from).toBe('/display?screen=s1');
+  });
+
   it('IPv6 loopback ::1 is blocked (IPv4-only enforcement)', async () => {
     // The IPv6 warning in the UI documents this limitation.
     const result = proxy(makeRequest('/api/weather', { clientIp: '::1' }));

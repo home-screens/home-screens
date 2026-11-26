@@ -85,7 +85,7 @@ beforeEach(() => {
 function renderPanel() {
   return render(
     <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>
-      <DisplayTokenPanel token="secret-display-key" onTokenChange={() => {}} />
+      <DisplayTokenPanel token="secret-display-key" onTokenChange={() => {}} passwordOn lastRefused={null} />
     </I18nProvider>,
   );
 }

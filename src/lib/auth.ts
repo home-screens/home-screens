@@ -7,6 +7,7 @@ import { authPosture, hasPassword } from './auth-posture';
 import { statSignature } from './stat-signature';
 import { safeEqual, signPayload, verifySignedPayload } from './signed-payload';
 import { findWall, touchWall, type WallEntry } from './display-walls';
+import { noteRefusedKey } from './display-key-refusals';
 
 /* ─── Types ──────────────────────────────────── */
 
@@ -201,11 +202,13 @@ export async function setPassword(newPassword: string): Promise<string> {
 }
 
 export async function clearPassword(): Promise<void> {
-  // Preserve IP allowlist config across password-disable, consistent with
-  // setPassword. A user may want "no password, but LAN-only" as a valid mode.
+  // Keep the IP allowlist ("no password, but LAN-only" is a valid mode) and
+  // the display key: Home Assistant and phone bookmarks hold it, and turning
+  // the password off for a guest must not break them the day it goes back on.
   const existing = await readAuthState();
   await writeAuthState({
     ...DISABLED_STATE,
+    displayToken: existing.displayToken ?? null,
     ipAllowlist: existing.ipAllowlist,
     ipBypassAuth: existing.ipBypassAuth,
     ipRestrictAccess: existing.ipRestrictAccess,
@@ -218,11 +221,14 @@ function generateDisplayToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-export async function getDisplayToken(): Promise<string | null> {
+/**
+ * The display key, made on first ask whether or not a password is set. With
+ * no password nothing checks it, but it can go into Home Assistant now and
+ * keeps working once a password is set, since `setPassword` keeps it.
+ */
+export async function getDisplayToken(): Promise<string> {
   const state = await readAuthState();
-  if (!hasPassword(state)) return null; // auth disabled
   if (state.displayToken) return state.displayToken;
-  // Auto-generate for installations that enabled auth before the display token feature
   return regenerateDisplayToken();
 }
 
@@ -367,6 +373,7 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
   if (bearerMatch && tokenMatches(bearerMatch[1])) {
     return; // valid display token
   }
+  let carriedKey = !!bearerMatch;
 
   // Try query param token — restricted to /api/display/* for phone bookmarks only.
   // Bearer header is the primary auth method; query tokens are a convenience for
@@ -378,6 +385,7 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
     if (queryToken && tokenMatches(queryToken)) {
       return; // valid display token via query param
     }
+    if (queryToken) carriedKey = true;
   }
 
   // A wall that has been let in proves itself with its own cookie.
@@ -402,6 +410,10 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
   if (sessionToken && verifySession(sessionToken, state.cookieSecret, state.sessionEpoch)) {
     return; // valid session
   }
+
+  // An old key in Home Assistant or a bookmark fails with nothing on screen;
+  // Settings > Security says where it came from.
+  if (carriedKey) noteRefusedKey(clientIp);
 
   throw new Response(JSON.stringify({ error: 'Authentication required' }), {
     status: 401,

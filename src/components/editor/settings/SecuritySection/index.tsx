@@ -6,6 +6,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import type { AuthStatus, IpAllowlistData } from './types';
+import type { RefusedKey } from '@/lib/display-key-refusals';
 import PasswordModal from './PasswordModal';
 import SessionRevocation from './SessionRevocation';
 import DisplayTokenPanel from './DisplayTokenPanel';
@@ -34,6 +35,7 @@ export default function SecuritySection() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'set' | 'change' | 'disable' | null>(null);
   const [displayToken, setDisplayToken] = useState<string | null>(null);
+  const [lastRefused, setLastRefused] = useState<RefusedKey | null>(null);
   const [ipInitial, setIpInitial] = useState<IpAllowlistData | null>(null);
 
   useEffect(() => {
@@ -43,13 +45,17 @@ export default function SecuritySection() {
         if (res.ok) {
           const data = await res.json();
           setStatus(data);
-          // Fetch display token if auth is enabled and user is authenticated
-          if (data.authEnabled && data.authenticated) {
+          // The display key is made before any password, so Home Assistant
+          // can hold it from the start; with one, only a signed-in editor reads it.
+          if (!data.authEnabled || data.authenticated) {
             const tokenRes = await editorFetch('/api/auth/display-token');
             if (tokenRes.ok) {
-              const { displayToken: token } = await tokenRes.json();
+              const { displayToken: token, lastRefused: refused } = await tokenRes.json();
               setDisplayToken(token);
+              setLastRefused(refused ?? null);
             }
+          }
+          if (data.authEnabled && data.authenticated) {
             // Fetch IP allowlist state if authenticated
             try {
               const ipRes = await editorFetch('/api/auth/ip-allowlist');
@@ -157,10 +163,15 @@ export default function SecuritySection() {
             device, which is a lot of network administration to scroll past
             on the way to "change my password". The warnings stay, next to
             the toggles they describe. */}
-        {status?.authEnabled && (
+        {/* With no password only the display key is in here: sign-outs and
+            networks mean nothing until there is a password to skip. */}
+        {(status?.authEnabled || displayToken) && (
           <details
             className="group rounded-lg border border-hs-border-strong bg-hs-card/40 px-3 py-2.5 transition-colors hover:border-hs-text-faint"
             data-field-id="security.advancedNetwork"
+            // Opens by itself when the saved networks turn away the screen on
+            // this box, so the notice saying so is not hidden behind a click.
+            open={ipInitial?.hubScreenLeftOut || undefined}
           >
             {/* `list-none` drops the native disclosure marker, so the chevron
                 is what says this opens. Without one the block reads as a
@@ -173,16 +184,23 @@ export default function SecuritySection() {
               <span className="min-w-0">
                 <span className="font-medium">{t('settings.securityPage.advanced.heading')}</span>
                 <span className="mt-0.5 block text-xs text-hs-text-faint">
-                  {t('settings.securityPage.advanced.description')}
+                  {status?.authEnabled
+                    ? t('settings.securityPage.advanced.description')
+                    : t('settings.securityPage.advanced.descriptionNoPassword')}
                 </span>
               </span>
             </summary>
             <div className="mt-3 space-y-3">
-              <SessionRevocation />
+              {status?.authEnabled && <SessionRevocation />}
               {displayToken && (
-                <DisplayTokenPanel token={displayToken} onTokenChange={setDisplayToken} />
+                <DisplayTokenPanel
+                  token={displayToken}
+                  onTokenChange={setDisplayToken}
+                  passwordOn={!!status?.authEnabled}
+                  lastRefused={lastRefused}
+                />
               )}
-              <IpAllowlistPanel initial={ipInitial} />
+              {status?.authEnabled && <IpAllowlistPanel initial={ipInitial} />}
             </div>
           </details>
         )}

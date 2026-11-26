@@ -27,6 +27,7 @@ import {
   wallFromCookies,
 } from '../auth';
 import { __resetWallsForTests, createWall, letWallIn, removeWall } from '../display-walls';
+import { __resetRefusedKeyForTests, lastRefusedKey } from '../display-key-refusals';
 
 // Per-test filesystem isolation: each test gets its own tmp cwd so writes to
 // data/auth.json never touch the real project directory. This is safe under
@@ -174,14 +175,27 @@ describe('setPassword / clearPassword', () => {
     expect(result).not.toBeNull();
   });
 
-  it('clearPassword wipes all auth state including display token', async () => {
+  it('clearPassword clears the password but keeps the display key', async () => {
     await setPassword('mypassword8');
+    const key = (await readAuthState()).displayToken;
     await clearPassword();
     const state = await readAuthState();
     expect(state.passwordHash).toBeNull();
     expect(state.salt).toBeNull();
     expect(state.cookieSecret).toBeNull();
-    expect(state.displayToken).toBeNull();
+    // Home Assistant holds it; turning the password off for a guest must not break it.
+    expect(state.displayToken).toBe(key);
+  });
+
+  it('turning the password off and on again keeps the same display key', async () => {
+    await setPassword('first-password');
+    const key = await getDisplayToken();
+    await clearPassword();
+    await setPassword('second-password');
+    clearAuthCache();
+    expect(await getDisplayToken()).toBe(key);
+    const request = new Request('http://localhost/api/test', { headers: { authorization: `Bearer ${key}` } });
+    await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
   });
 
   it('changing password invalidates old sessions', async () => {
@@ -303,9 +317,14 @@ describe('display token', () => {
     expect(token!.length).toBe(64);
   });
 
-  it('getDisplayToken returns null when auth is disabled', async () => {
+  it('getDisplayToken makes a key with no password, and setting one keeps it', async () => {
     const token = await getDisplayToken();
-    expect(token).toBeNull();
+    expect(token).toHaveLength(64);
+    expect(await isAuthEnabled()).toBe(false);
+    expect(await getDisplayToken()).toBe(token);
+
+    await setPassword('testpassword123');
+    expect((await readAuthState()).displayToken).toBe(token);
   });
 
   it('regenerateDisplayToken creates a new token', async () => {
@@ -358,6 +377,44 @@ describe('display token', () => {
 });
 
 describe('requireDisplayAuth', () => {
+  describe('remembers a refused key for Settings > Security', () => {
+    beforeEach(() => __resetRefusedKeyForTests());
+
+    it('records the time and address of a key that does not match', async () => {
+      await setPassword('testpassword123');
+      clearAuthCache();
+      const request = new Request('http://localhost/api/test', { headers: { authorization: 'Bearer old-key' } });
+      await expect(requireDisplayAuth(request, '192.168.1.40')).rejects.toMatchObject({ status: 401 });
+      expect(lastRefusedKey()).toMatchObject({ address: '192.168.1.40', at: expect.any(Number) });
+    });
+
+    it('records a bookmark link carrying an old key', async () => {
+      await setPassword('testpassword123');
+      clearAuthCache();
+      await expect(requireDisplayAuth(new Request('http://localhost/api/display/wake?token=old-key'))).rejects.toMatchObject({ status: 401 });
+      expect(lastRefusedKey()).toMatchObject({ address: null });
+    });
+
+    it('records nothing for a request with no key, a right key, or no password', async () => {
+      await expect(requireDisplayAuth(new Request('http://localhost/api/test', { headers: { authorization: 'Bearer old-key' } }))).resolves.toBeUndefined();
+      await setPassword('testpassword123');
+      clearAuthCache();
+      await expect(requireDisplayAuth(new Request('http://localhost/api/test'), '192.168.1.40')).rejects.toMatchObject({ status: 401 });
+      const key = await getDisplayToken();
+      await requireDisplayAuth(new Request('http://localhost/api/test', { headers: { authorization: `Bearer ${key}` } }), '192.168.1.40');
+      expect(lastRefusedKey()).toBeNull();
+    });
+
+    it('records nothing when a signed-in session lets the request in anyway', async () => {
+      const session = await setPassword('testpassword123');
+      clearAuthCache();
+      await requireDisplayAuth(new Request('http://localhost/api/test', {
+        headers: { authorization: 'Bearer old-key', cookie: `hs-session=${session}` },
+      }), '192.168.1.40');
+      expect(lastRefusedKey()).toBeNull();
+    });
+  });
+
   it('is a no-op when auth is disabled', async () => {
     const request = new Request('http://localhost/api/test');
     await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
@@ -835,7 +892,10 @@ describe('the password rule shared with the request gate', () => {
     expect(await isAuthEnabled()).toBe(false);
     await expect(requireSession(request())).resolves.toBeUndefined();
     await expect(requireDisplayAuth(request())).resolves.toBeUndefined();
-    expect(await getDisplayToken()).toBeNull();
+    // A key is still made, ready for the day a password is set; nothing checks it yet.
+    expect(await carriesDisplayKey(new Request('http://localhost/api/test', {
+      headers: { authorization: `Bearer ${await getDisplayToken()}` },
+    }))).toBe(false);
   });
 
   it('a hash that is not text is locked: the guards ask for a session and no password opens it', async () => {
