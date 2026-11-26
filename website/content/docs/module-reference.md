@@ -776,7 +776,7 @@ Every module supports these style properties, configurable in the Property Panel
 
 The **Sticky Note** paints its own paper and ink: its background is the module's `noteColor` setting and its text is always dark, so the editor does not offer `backgroundColor` or `textColor` for it.
 
-These are the values a newly added module starts with. A few modules override some of them on add: the six full-screen modules and **Shape & Divider** start transparent with no padding, blur, border, or shadow; **Icon** does the same but starts with 12 px of padding; **Video** and **Web Embed** start with no padding or blur; **Image**, **Photo Slideshow** and **Rain Map** start with no blur; and **Multi-Month Calendar** and **Chore Chart** start at a larger base font size.
+These are the values a newly added module starts with. A few modules override some of them on add: the six full-screen modules and **Shape & Divider** start transparent with no padding, blur, border, or shadow; **Icon** does the same but starts with 12 px of padding; **Video** and **Web Embed** start with no padding or blur and with square corners; **Image**, **Photo Slideshow** and **Rain Map** start with no blur and with square corners (a moving picture under a blur or a rounded edge is heavy work for a Raspberry Pi); and **Multi-Month Calendar** and **Chore Chart** start at a larger base font size.
 
 ## Settings every module shares
 

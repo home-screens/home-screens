@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildModuleShadow, cardIsDark, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
+import { getModuleDefinition } from '../module-registry';
 
 describe('buildModuleShadow', () => {
   it('returns "none" when shadowSize is 0', () => {
@@ -158,5 +159,18 @@ describe('cardIsDark', () => {
     expect(cardIsDark({ textColor: '#ffffff' })).toBe(true);
     expect(cardIsDark({ textColor: '#1c1917' })).toBe(false);
     expect(cardIsDark({ textColor: 'not a colour' })).toBe(true);
+  });
+});
+
+describe('a picture card as it is first added', () => {
+  it('has no frosted blur and square corners, which a moving picture pays for on every frame', () => {
+    for (const type of ['image', 'video', 'photo-slideshow', 'iframe', 'rain-map'] as const) {
+      expect(getModuleDefinition(type)?.defaultStyle, type).toMatchObject({ backdropBlur: 0, borderRadius: 0 });
+    }
+  });
+
+  it('leaves every other card with the usual rounded, frosted look', () => {
+    expect(getModuleDefinition('clock')?.defaultStyle?.borderRadius).toBeUndefined();
+    expect(DEFAULT_MODULE_STYLE.borderRadius).toBe(12);
   });
 });

@@ -499,12 +499,15 @@ const FULLSCREEN_STYLE: Partial<import('@/types/config').ModuleStyle> = {
 
 /**
  * Picture cards (image, video, slideshow, web embed, rain map) start without
- * the frosted card blur. Their picture covers the card, so the blur only
- * shows around the edges (a title strip, the bars beside a `contain` picture,
- * the rain map's frame), yet the GPU redoes it on every video, crossfade and
- * radar frame. Existing cards keep whatever they saved.
+ * the frosted card blur and with square corners. Their picture covers the
+ * card, so the blur only shows around the edges (a title strip, the bars
+ * beside a `contain` picture, the rain map's frame), yet the GPU redoes it on
+ * every video, crossfade and radar frame. Rounded corners cost the same: a
+ * moving picture under a rounded edge is redrawn through a mask on every
+ * frame, which took a full-screen Ken Burns slideshow on a Pi 4 from 60
+ * frames a second to 22. Existing cards keep whatever they saved.
  */
-const MEDIA_CARD_BLUR = { backdropBlur: 0 } as const;
+const MEDIA_CARD_STYLE = { backdropBlur: 0, borderRadius: 0 } as const;
 
 const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Full Screen --
@@ -983,7 +986,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       animate: true,
     },
     defaultSize: { w: 500, h: 500 },
-    defaultStyle: MEDIA_CARD_BLUR,
+    defaultStyle: MEDIA_CARD_STYLE,
     dataRequirements: ['location'],
   },
 
@@ -1401,7 +1404,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       alt: '',
     },
     defaultSize: { w: 540, h: 360 },
-    defaultStyle: MEDIA_CARD_BLUR,
+    defaultStyle: MEDIA_CARD_STYLE,
   },
   {
     type: 'video',
@@ -1418,7 +1421,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       loop: true,
     },
     defaultSize: { w: 540, h: 360 },
-    defaultStyle: { padding: 0, ...MEDIA_CARD_BLUR },
+    defaultStyle: { padding: 0, ...MEDIA_CARD_STYLE },
   },
   {
     type: 'photo-slideshow',
@@ -1441,7 +1444,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       interactive: true,
     },
     defaultSize: { w: 500, h: 400 },
-    defaultStyle: MEDIA_CARD_BLUR,
+    defaultStyle: MEDIA_CARD_STYLE,
   },
   {
     type: 'qr-code',
@@ -1478,7 +1481,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       title: '',
     },
     defaultSize: { w: 540, h: 360 },
-    defaultStyle: { padding: 0, ...MEDIA_CARD_BLUR },
+    defaultStyle: { padding: 0, ...MEDIA_CARD_STYLE },
   },
   {
     type: 'icon',
