@@ -1,13 +1,14 @@
 import { test, expect } from '../fixtures';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedHouseholdChores, seedRedemptions, seedRewards } from '../helpers/api';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 
 /**
- * The rewards store on the regular chore chart card. Two kids: Sol has tickets,
- * Rio has none. Balances are read as deltas because the sandbox keeps its data
- * between tests and a retry credits again.
+ * The rewards store on the regular chore chart card. Two kids, both with a
+ * chore so the store lists them: Sol has tickets, Rio has none. With more than
+ * one person the store opens on "Tap your name". Balances are read as deltas
+ * because the sandbox keeps its data between tests and a retry credits again.
  */
 const SOL = 'crs-sol';
 const RIO = 'crs-rio';
@@ -15,7 +16,7 @@ const RIO = 'crs-rio';
 interface SetUpOptions {
   type?: 'chore-chart' | 'fullscreen-chore-chart';
   size?: { w: number; h: number };
-  /** Extra people with no tickets, for the big-family cases. */
+  /** Extra people with a chore and no tickets, for the big-family cases. */
   extraMembers?: number;
   rewards?: number;
 }
@@ -31,7 +32,7 @@ async function setUp(request: APIRequestContext, sandboxDir: string, config: Rec
     chores: [{
       id: 'crs-c', name: 'Make the bed', emoji: '', points: 1,
       frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
-      assigneeIds: [SOL], rotation: 'fixed',
+      assigneeIds: [SOL, RIO, ...extras.map((m) => m.id)], rotation: 'fixed',
     }],
   });
   seedRedemptions(sandboxDir, []);
@@ -49,6 +50,9 @@ async function setUp(request: APIRequestContext, sandboxDir: string, config: Rec
 const balanceOf = async (request: APIRequestContext, id: string) =>
   (((await (await request.get('/api/rewards')).json()).balances as Record<string, number>)[id] ?? 0);
 
+/** Tap a name on the card store's picker. Exact, so "Sol spent..." does not match. */
+const pick = (mod: Locator, name: string) => mod.getByRole('button', { name, exact: true }).click();
+
 async function confirmRedeem(page: Page) {
   const posted = page.waitForResponse((r) => r.url().includes('/api/rewards') && r.request().method() === 'POST' && r.ok());
   await page.getByTestId('store-confirm').click();
@@ -62,7 +66,13 @@ test.describe('chore-chart rewards store', () => {
     await page.goto('/display');
     const mod = page.locator('[data-module-id="store"]');
 
-    // Sol is picked first: Candy can be redeemed, the Zoo Trip cannot.
+    // Nobody is picked yet, so nothing is on offer to tap.
+    await expect(mod.getByTestId('store-tap-name')).toBeVisible();
+    await expect(mod.getByTestId('store-reward')).toHaveCount(2);
+    await expect(mod.getByTestId('store-redeem')).toHaveCount(0);
+
+    // Sol taps their name: Candy can be redeemed, the Zoo Trip cannot.
+    await pick(mod, 'Sol');
     await expect(mod.getByTestId('store-balance')).toContainText(String(before));
     await expect(mod.getByTestId('store-redeem')).toHaveCount(1);
     await expect(mod).toContainText(`${500 - before} more tickets to go`);
@@ -73,11 +83,14 @@ test.describe('chore-chart rewards store', () => {
     await confirmRedeem(page);
 
     await expect(mod.getByTestId('store-redeemed')).toContainText('Sol spent 2 tickets on Candy');
-    await expect(mod.getByTestId('store-balance')).toContainText(String(before - 2));
+    // The pick goes with the redeem, so the next child starts at their own name.
+    await expect(mod.getByTestId('store-tap-name')).toBeVisible();
     await expect.poll(() => balanceOf(request, SOL)).toBe(before - 2);
+    await pick(mod, 'Sol');
+    await expect(mod.getByTestId('store-balance')).toContainText(String(before - 2));
 
     // Rio has nothing, so nothing is on offer to tap.
-    await mod.getByRole('button', { name: 'Rio' }).click();
+    await pick(mod, 'Rio');
     await expect(mod.getByTestId('store-redeem')).toHaveCount(0);
   });
 
@@ -87,6 +100,7 @@ test.describe('chore-chart rewards store', () => {
     await page.goto('/display');
     const mod = page.locator('[data-module-id="store"]');
 
+    await pick(mod, 'Sol');
     await mod.getByTestId('store-redeem').click();
     await mod.getByTestId('store-cancel').click();
     await expect(mod.getByTestId('store-confirm-sheet')).toHaveCount(0);
@@ -121,6 +135,9 @@ test.describe('chore-chart rewards store', () => {
     const mod = page.locator('[data-module-id="store"]');
 
     await expect(mod.getByTestId('store-reward')).toHaveCount(2);
+    // Even with Sol picked: a name still shows tickets, but nothing spends them.
+    await pick(mod, 'Sol');
+    await expect(mod.getByTestId('store-balance')).toContainText('Sol');
     await expect(mod.getByTestId('store-redeem')).toHaveCount(0);
     await expect(mod).not.toContainText('more tickets to go');
   });
@@ -134,6 +151,7 @@ test.describe('chore-chart rewards store', () => {
     await expect(mod.getByTestId('store-reward')).toHaveCount(2);
     await expect(mod.getByTestId('store-history')).toHaveCount(0);
 
+    await pick(mod, 'Sol');
     await mod.getByTestId('store-redeem').click();
     await confirmRedeem(page);
     await mod.getByTestId('store-history').click();
@@ -158,6 +176,9 @@ test.describe('chore-chart rewards store', () => {
       await page.goto('/display');
       const mod = page.locator('[data-module-id="store"]');
       const redeemButton = type === 'chore-chart' ? mod.getByTestId('store-redeem') : mod.getByTestId('fcc-redeem-pill');
+      const pickSol = () => (type === 'chore-chart' ? pick(mod, 'Sol') : mod.getByTestId('fcc-store-chip').filter({ hasText: 'Sol' }).click());
+      const solBalance = mod.getByTestId(type === 'chore-chart' ? 'store-balance' : 'fcc-store-balance');
+      await pickSol();
       await expect(redeemButton).toHaveCount(1);
 
       await page.route('**/api/rewards', (route) => (route.request().method() === 'GET' ? new Promise<void>(() => {}) : route.continue()));
@@ -165,7 +186,9 @@ test.describe('chore-chart rewards store', () => {
       const posted = page.waitForResponse((r) => r.url().includes('/api/rewards') && r.request().method() === 'POST' && r.ok());
       await mod.getByRole('button', { name: 'Yes!' }).click();
       await posted;
-      await expect(mod).toContainText(String(before - 2));
+      // The redeem forgets the pick; Sol picks again to see what is left.
+      await pickSol();
+      await expect(solBalance).toContainText(String(before - 2));
 
       // Two more chores reads land; the balance they rebuild must be the spent
       // one. A wall reads the chores when they change, so change them twice
@@ -176,7 +199,7 @@ test.describe('chore-chart rewards store', () => {
         await read;
       }
       await expect(mod.getByText(String(before), { exact: true })).toHaveCount(0);
-      await expect(mod).toContainText(String(before - 2));
+      await expect(solBalance).toContainText(String(before - 2));
     });
   }
 
@@ -202,9 +225,11 @@ test.describe('chore-chart rewards store', () => {
     await page.goto('/display');
     const mod = page.locator('[data-module-id="store"]');
     await expect(mod.getByTestId('store-rail')).toBeVisible();
+    await expect(mod.getByTestId('store-tap-name')).toBeVisible();
 
     const card = (await mod.boundingBox())!;
     const bottom = card.y + card.height;
+    await pick(mod, 'Sol');
     const balance = (await mod.getByTestId('store-balance').boundingBox())!;
     expect(balance.y + balance.height).toBeLessThanOrEqual(bottom);
 
