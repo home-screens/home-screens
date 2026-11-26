@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       if (wall) {
         if (await letWallIn(wall.id, via, { displayId: asked })) return answer('in');
       } else {
-        const made = await createWall({ status: 'in', admittedBy: via, displayId: asked, address, userAgent, viewport, passwordSet: true });
+        const made = await createWall({ status: 'in', admittedBy: via, displayId: asked, address, userAgent, viewport, hubScreen: facts.hubOwnScreen, passwordSet: true });
         if (made) return answer('in', buildWallCookie(made.cookieValue, request));
       }
     }
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     let waitingId: string;
     let cookie: string | null = null;
     if (wall) {
-      await touchWall(wall, { address, userAgent, viewport });
+      await touchWall(wall, { address, userAgent, viewport, hubScreen: facts.hubOwnScreen });
       waitingId = wall.id;
     } else {
       const made = await createWall({
@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
         address,
         userAgent,
         viewport,
+        hubScreen: facts.hubOwnScreen,
         passwordSet: true,
       });
       if (!made) return answer('waiting');

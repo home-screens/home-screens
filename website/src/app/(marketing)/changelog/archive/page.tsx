@@ -7,11 +7,11 @@ import { getChangelog, RECENT_ENTRY_LIMIT } from '@/lib/changelog';
 import { buildArticleSchema } from '@/lib/structured-data';
 
 const DESCRIPTION =
-  'Older stable releases of Home Screens, kept in full — the features they shipped, what improved, and what was fixed.';
+  'Older stable releases of Home Screens, kept in full: the features they shipped, what improved, and what was fixed.';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Older releases — Home Screens',
+    absolute: 'Older releases · Home Screens',
   },
   description: DESCRIPTION,
   alternates: {

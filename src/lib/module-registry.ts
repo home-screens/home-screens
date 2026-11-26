@@ -1174,6 +1174,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'notes',
+    takesTaps: true,
     autoSizesText: true,
     // The "Draw a note" button and a tap on a drawing only work on a real wall.
     needsInstanceAddress: true,
@@ -1583,6 +1584,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
 
   {
     type: 'quick-timer',
+    takesTaps: true,
     // "Show it on this display" has to resolve to a real id, and the legacy
     // route renders main inline, so the URL alone cannot say which.
     rendersAsDisplay: true,

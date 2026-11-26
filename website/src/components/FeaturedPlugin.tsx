@@ -21,13 +21,13 @@ const callouts = [
     icon: Layers,
     title: '15+ entity domains',
     description:
-      'Lights, climate, media, covers, locks, sensors, switches — each rendered as a type-aware card, not a row in a table.',
+      'Lights, climate, media, covers, locks, sensors, switches: each rendered as a type-aware card, not a row in a table.',
   },
   {
     icon: ToggleRight,
     title: 'Tap to toggle',
     description:
-      'Lights, switches, scenes, media play/pause, covers — one-tap controls live on the wall display, no app needed.',
+      'Lights, switches, scenes, media play/pause, covers: one-tap controls live on the wall display, no app needed.',
   },
   {
     icon: MousePointerClick,
@@ -63,7 +63,7 @@ export function FeaturedPlugin() {
               description={
                 <>
                   Beautiful entity cards, area grouping, and tap-to-toggle
-                  controls for your Home Assistant instance — installable from
+                  controls for your Home Assistant instance, installable from
                   the plugin browser. The most-requested feature, finally
                   shipped.
                 </>

@@ -13,7 +13,7 @@
     "languageHelp": "Choisissez la langue utilisée dans l'éditeur, sur tous les affichages et sur /remote.",
     "moreOptions": "Plus d'options",
     "formattingLocaleLabel": "Locale de formatage",
-    "formattingLocaleHelp": "Remplace uniquement le formatage des dates et des nombres. La langue de l'interface reste inchangée.",
+    "formattingLocaleHelp": "Change seulement la façon d'écrire les dates, les heures et les nombres. Tout le reste s'affiche dans votre langue.",
     "formattingLocaleSameAsLanguage": "Identique à la langue",
     "timeFormatLabel": "Format de l'heure",
     "timeFormat12h": "12 heures · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Affiché à {count} endroit",
         "other": "Affiché à {count} endroits"
       },
-      "showingHint": "Chaque navigateur qui montre cet affichage. Si vous en retirez un, il faudra le laisser entrer à nouveau.",
+      "showingHint": "Chaque navigateur qui montre cet affichage. Retirez ceux que vous n'utilisez plus ou que vous ne reconnaissez pas.",
       "seen": "vu {time}",
       "removeConsequence": "Ce navigateur ne montre plus le mur et devra être autorisé à entrer à nouveau.",
+      "removeComesBack": "Ce navigateur revient tout seul la prochaine fois qu'il ouvre le mur.",
       "removeFailed": "Impossible de le retirer. Réessayez."
     },
     "serviceAttention": {

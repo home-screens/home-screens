@@ -248,12 +248,17 @@ function authStateIsCoherent(auth: AuthState): boolean {
  * guard: restoring `ipRestrictAccess` from a device that isn't on the restored
  * allowlist would make this hub unreachable, and on a headless Pi the only
  * way back is SSH.
+ *
+ * `bringsFirstPassword` is true when the restore gives a hub with no password
+ * one: the backup route then starts the walls changeover window once the
+ * restore has landed.
  */
 export async function planCredentialRestore(
   payload: CredentialPayload,
   clientIp: string,
-): Promise<{ changes: TransactionChange[]; result: CredentialApplyResult }> {
+): Promise<{ changes: TransactionChange[]; result: CredentialApplyResult; bringsFirstPassword: boolean }> {
   const changes: TransactionChange[] = [];
+  let bringsFirstPassword = false;
   const applied: CredentialSection[] = [];
   const skipped: string[] = [];
   const plan = async (file: string, value: unknown, dirMode?: number) => {
@@ -317,6 +322,7 @@ export async function planCredentialRestore(
         next = { ...next, ipRestrictAccess: false };
         skipped.push('auth.ipRestrictAccess');
       }
+      bringsFirstPassword = hasPassword(next) && !hasPassword(await readAuthState());
       await plan('data/auth.json', next);
       applied.push('auth');
     }
@@ -338,5 +344,5 @@ export async function planCredentialRestore(
     applied.push('autoBackup');
   }
 
-  return { changes, result: { applied, skipped } };
+  return { changes, result: { applied, skipped }, bringsFirstPassword };
 }

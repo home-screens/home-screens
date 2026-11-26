@@ -85,6 +85,8 @@ describe('pruneCalendarSourceRefs', () => {
             mod('only-gone', 'fullscreen-calendar', { view: 'agenda', sourceFilter: ['gone'] }),
             mod('rules', 'calendar', { eventRules: [{ id: 'r', match: { sourceIds: ['gone'] }, hide: true }] }),
             mod('plugin', 'plugin:agenda', { sourceFilter: ['gone'] }),
+            mod('months', 'multi-month', { showEventMarks: true, sourceFilter: ['keep', 'gone'] }),
+            mod('months-gone', 'multi-month', { showEventMarks: true, sourceFilter: ['gone'] }),
           ],
         }],
       }],
@@ -115,6 +117,13 @@ describe('pruneCalendarSourceRefs', () => {
     // A list that named only the removed calendar goes back to every
     // calendar, as unticking its last box in the editor does.
     expect(next.displays![0].screens[0].modules[0].config).toEqual({ view: 'agenda' });
+  });
+
+  it('takes it out of a Multi-Month Calendar\'s own list too', () => {
+    const next = pruneCalendarSourceRefs(config(), linkBefore());
+    expect(next.displays![0].screens[0].modules[3].config.sourceFilter).toEqual(['keep']);
+    // Naming only the removed calendar would mark nothing; it goes back to all.
+    expect(next.displays![0].screens[0].modules[4].config).toEqual({ showEventMarks: true });
   });
 
   it('leaves event rules and other modules alone', () => {

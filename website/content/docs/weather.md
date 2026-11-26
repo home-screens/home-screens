@@ -34,7 +34,7 @@ Open **Settings > Weather**. Each service has its own card with a status pill: *
 | Pirate Weather | Worldwide | Free account key |
 | UK Met Office | United Kingdom | Free account key from datahub.metoffice.gov.uk (subscribe to the Site-Specific API) |
 
-**Which one?** The regional services (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate inside the area they cover. Open-Meteo is the easy worldwide choice. Pirate Weather adds minute-by-minute rain for the next hour, and Pirate Weather and NOAA are the two that send weather warnings.
+**Which one?** The regional services (NOAA, Yr.no, SMHI, UK Met Office, Environment Canada) are usually the most accurate inside the area they cover. Open-Meteo is the easy worldwide choice. Pirate Weather adds minute-by-minute rain for the next hour, and Pirate Weather and NOAA are the two that send weather warnings.
 
 To switch, open the card, paste the key if it asks for one, click **Test** to check it, then **Set as default**. Weather keys live on the card, not on the API keys page.
 

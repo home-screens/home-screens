@@ -22,6 +22,7 @@ import {
   letWallIn,
   readWalls,
   removeWall,
+  startWindowAfterRestoredPassword,
   touchWall,
   type NewWall,
 } from '../display-walls';
@@ -301,6 +302,25 @@ describe('many walls arriving at once', () => {
   });
 });
 
+describe('the hub\'s own screen', () => {
+  it('is remembered from what the wall was last seen as', async () => {
+    const made = (await createWall(wall({ admittedBy: 'no-password', passwordSet: false, address: '127.0.0.1' })))!;
+    expect(made.entry.hubScreen).toBeUndefined();
+    await touchWall(made.entry, { hubScreen: true });
+    expect((await fileOnDisk()).walls[0].hubScreen).toBe(true);
+    // A sighting that cannot tell leaves it as it was.
+    await touchWall(made.entry, { address: '127.0.0.1' });
+    expect((await readWalls(true)).walls[0].hubScreen).toBe(true);
+    await touchWall(made.entry, { hubScreen: false });
+    expect((await fileOnDisk()).walls[0].hubScreen).toBeUndefined();
+  });
+
+  it('is recorded when a wall is made from the hub\'s own screen', async () => {
+    const made = (await createWall(wall({ admittedBy: 'hub-screen', address: '127.0.0.1', hubScreen: true })))!;
+    expect((await readWalls(true)).walls.find((w) => w.id === made.entry.id)?.hubScreen).toBe(true);
+  });
+});
+
 describe('the changeover window', () => {
   it('starts the first time a hub that already has a password loads its walls, and never moves', async () => {
     vi.useFakeTimers({ now: Date.UTC(2026, 10, 1) });
@@ -321,6 +341,37 @@ describe('the changeover window', () => {
   it('starts none at boot on a hub with no password', async () => {
     await initWalls(false);
     expect((await readWalls(true)).windowStartedAt).toBeNull();
+  });
+
+  it('starts when a restore gives a rebuilt hub its first password, keeping the walls still showing', async () => {
+    // A rebuilt hub boots with no password: the walls on then show through
+    // the open door, the ones still off have no entry at all.
+    vi.useFakeTimers({ now: Date.UTC(2026, 10, 1) });
+    await initWalls(false);
+    const stale = (await createWall(wall({ admittedBy: 'no-password', passwordSet: false, address: '192.168.1.77' })))!;
+    vi.advanceTimersByTime(OPEN_DOOR_FORGET_MS + 60_000);
+    const kitchen = (await createWall(wall({ admittedBy: 'no-password', passwordSet: false })))!;
+
+    expect(await startWindowAfterRestoredPassword()).toBe(true);
+    const after = await readWalls(true);
+    expect(after.windowStartedAt).toBe(Date.now());
+    expect(after.walls.map((w) => w.id)).toEqual([kitchen.entry.id]);
+    expect(await findWall(cookie(stale.cookieValue), true)).toBeNull();
+    expect((await fileOnDisk()).windowStartedAt).toBe(Date.now());
+  });
+
+  it('never starts a second window, on a restore or after one', async () => {
+    vi.useFakeTimers({ now: Date.UTC(2026, 10, 1) });
+    await initWalls(true);
+    vi.advanceTimersByTime(40 * 24 * 60 * 60 * 1000);
+    expect(await startWindowAfterRestoredPassword()).toBe(false);
+    expect((await readWalls(true)).windowStartedAt).toBe(Date.UTC(2026, 10, 1));
+  });
+
+  it('leaves a walls file it cannot read alone', async () => {
+    await fs.writeFile(path.join(tmpCwd, 'data', 'display-walls.json'), '{ not json');
+    expect(await startWindowAfterRestoredPassword()).toBe(false);
+    expect(await fs.readFile(path.join(tmpCwd, 'data', 'display-walls.json'), 'utf8')).toBe('{ not json');
   });
 
   it('counts window walls per display, and removing one does not hand its place back', async () => {

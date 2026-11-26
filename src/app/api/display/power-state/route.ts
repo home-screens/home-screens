@@ -8,11 +8,10 @@
  * power control is actually working on a display.
  *
  * Auth: the same adoption gate as /api/display/hw-stats. The agent is a bash
- * loop on a display-only Pi with no display bearer token; the LAN is the
- * trust boundary. Every failure (bad id, unadopted display, unreadable
- * config) is answered so the agent reads it as `on` — the agent's own
- * error-streak rule does the same, so a panel is never left dark on
- * ambiguity.
+ * loop with no display bearer token; the LAN is the trust boundary. Every
+ * failure (bad id, unadopted display, unreadable config) is answered so the
+ * agent reads it as `on`. The agent's own error-streak rule does the same,
+ * so a panel is never left dark on ambiguity.
  */
 
 import { NextResponse } from 'next/server';

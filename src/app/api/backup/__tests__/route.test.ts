@@ -31,6 +31,7 @@ import type { ChoreData } from '@/lib/chore-data';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { INVALID_CONFIGS } from '@/lib/__tests__/invalid-config-matrix';
 import { seedDataFile } from '@/test-utils';
+import { __resetWallsForTests, readWalls } from '@/lib/display-walls';
 
 const cleanConfig = {
   version: getLatestSchemaVersion(),
@@ -483,6 +484,33 @@ describe('POST /api/backup — credential section', () => {
     // A generic consumer prints `error`, so it must be a sentence.
     expect(body.error).toMatch(/ /);
     expect(await readSecrets()).toEqual({});
+  });
+
+  describe('the displays a rebuilt hub had', () => {
+    const withPassword = () => bundleWith({ encrypted: false, data: { auth: { passwordHash: 'h', salt: 's', cookieSecret: 'c' } } });
+
+    beforeEach(async () => {
+      await fs.rm(path.join(process.cwd(), 'data', 'display-walls.json'), { force: true });
+      __resetWallsForTests();
+    });
+
+    it('come back by themselves for 30 days once a restore brings the first password', async () => {
+      // The rebuilt hub booted with no password, so it has no window yet.
+      expect((await readWalls(false)).windowStartedAt).toBeNull();
+      const before = Date.now();
+      const res = await POST(postReq(withPassword()));
+      expect(res.status).toBe(200);
+      expect((await readAuthState()).passwordHash).toBe('h');
+      expect((await readWalls(true)).windowStartedAt).toBeGreaterThanOrEqual(before);
+    });
+
+    it('get no new window when the hub already had a password', async () => {
+      await seedDataFile('data/auth.json', { passwordHash: 'existing', salt: 'existing', cookieSecret: 'c' });
+      expect((await readWalls(false)).windowStartedAt).toBeNull();
+      const res = await POST(postReq(withPassword()));
+      expect(res.status).toBe(200);
+      expect((await readWalls(true)).windowStartedAt).toBeNull();
+    });
   });
 
   it('applies an encrypted section given the right password', async () => {

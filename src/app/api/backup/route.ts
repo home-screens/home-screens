@@ -7,6 +7,7 @@ import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
 import { RefusalError, refusalBody } from '@/lib/refusal';
 import { newerSchemaProblem, validateConfigForWrite } from '@/lib/config-validation';
 import { planCredentialRestore } from '@/lib/backup-credentials';
+import { startWindowAfterRestoredPassword } from '@/lib/display-walls';
 import { planFamilyRestore } from '@/lib/family-import';
 import { BACKUP_SECTIONS, type BackupContent } from '@/lib/backup-sections';
 import { commitDataTransaction, withDataTransaction } from '@/lib/data-transaction';
@@ -404,6 +405,7 @@ async function restore(
 
     const clientIp = getClientIP(request);
     let credentialResult: CredentialApplyResult | null;
+    let bringsFirstPassword = false;
     try {
       credentialResult = await withDataTransaction(async () => {
         const planned = await planFamilyRestore(body);
@@ -412,6 +414,7 @@ async function restore(
           const credentials = await planCredentialRestore(credentialPayload, clientIp);
           planned.changes.push(...credentials.changes);
           result = credentials.result;
+          bringsFirstPassword = credentials.bringsFirstPassword;
         }
         if (icons) {
           const change = await planCustomIconRestore(icons);
@@ -426,6 +429,12 @@ async function restore(
     }
     if (staged) await placePictures(staged);
     if (credentialResult) audit({ action: 'credential_backup_restore', sections: credentialResult.applied.length, skipped: credentialResult.skipped });
+    // A rebuilt hub getting its password back lets its displays back in by
+    // themselves for 30 days, as the update did; the walls file is the hub's
+    // own and never in a backup.
+    if (bringsFirstPassword) {
+      await startWindowAfterRestoredPassword().catch((err) => log.warn('Restored the backup but could not start the walls window', err));
+    }
     if (icons) await sweepCustomIconFiles().catch(() => {});
     // Restored meals, chores and screens that point at icons this device does
     // not have show a standard picture; the family is told why. Only a backup

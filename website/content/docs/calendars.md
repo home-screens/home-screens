@@ -88,7 +88,7 @@ The order matters wherever a day can run out of room: the month, rolling weeks a
 
 Add your household under **Settings > Family** (see [Family](/docs/family)), then return to **Settings > Calendar > Whose calendars?** and pick which calendars are theirs. The Full-Screen Calendar's **family grid** and **free time** views draw one row per person from this list. A calendar you do not give to anyone counts as shared by the whole house.
 
-Removing a calendar link also takes it off whoever it belonged to. Unticking a Google or iCloud calendar, or signing out, keeps who it belongs to, so ticking it again puts it back with its owner, just as it keeps its name and colour. Either way the calendar comes out of the Calendar and Full-Screen Calendar modules' own lists, and a module that showed only that calendar goes back to showing them all. Switching a calendar link off with its tick box keeps its owner and its place in those lists.
+Removing a calendar link also takes it off whoever it belonged to. Unticking a Google or iCloud calendar, or signing out, keeps who it belongs to, so ticking it again puts it back with its owner, just as it keeps its name and colour. Either way the calendar comes out of the Calendar, Full-Screen Calendar and Multi-Month Calendar modules' own lists, and a module that showed only that calendar goes back to showing them all. Switching a calendar link off with its tick box keeps its owner and its place in those lists.
 
 The same list drives three options on both calendar modules, under **What shows** in the module's settings:
 

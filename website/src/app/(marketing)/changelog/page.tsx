@@ -8,24 +8,24 @@ import { buildArticleSchema } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Changelog — Home Screens',
+    absolute: 'Changelog · Home Screens',
   },
   description:
-    'Recent release history for Home Screens — the features each stable version shipped, what improved, and what was fixed.',
+    'Recent release history for Home Screens: the features each stable version shipped, what improved, and what was fixed.',
   alternates: {
     canonical: 'https://homescreens.dev/changelog',
   },
   openGraph: {
     title: 'Home Screens Changelog',
     description:
-      'Recent stable releases of Home Screens — the features, improvements, and fixes that shipped.',
+      'Recent stable releases of Home Screens: the features, improvements, and fixes that shipped.',
     url: 'https://homescreens.dev/changelog',
     type: 'article',
   },
   twitter: {
     title: 'Home Screens Changelog',
     description:
-      'Recent stable releases of Home Screens — the features, improvements, and fixes that shipped.',
+      'Recent stable releases of Home Screens: the features, improvements, and fixes that shipped.',
   },
 };
 
@@ -39,7 +39,7 @@ export default function ChangelogPage() {
   const jsonLd = buildArticleSchema({
     title: 'Home Screens Changelog',
     description:
-      'Recent release history for Home Screens — the features each stable version shipped, what improved, and what was fixed.',
+      'Recent release history for Home Screens: the features each stable version shipped, what improved, and what was fixed.',
     path: '/changelog',
     datePublished: earliest?.date ?? undefined,
     dateModified: latest?.date ?? undefined,

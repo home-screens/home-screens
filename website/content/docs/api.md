@@ -19,12 +19,12 @@ There are three levels of protection:
 | Level | What it accepts | Used by |
 |---|---|---|
 | Session | The `hs-session` cookie set by `POST /api/auth/login` | Endpoints that change settings or read credentials |
-| Display | The session cookie, a display token, **or** the `hs-display` cookie of a display that has been let in | Everything a screen polls: config, weather, calendar, commands, chore data |
+| Display | The session cookie, the display key as a bearer token, **or** the `hs-display` cookie of a display that has been let in | Everything a screen polls: config, weather, calendar, commands, chore data |
 | Media | Display access **or** a signed `mt` token bound to one file | The routes that serve photos and videos into `<img>` and `<video>` tags |
 
 Endpoints below that say "requires a valid session" are the first level. Endpoints that say "display access" are the second, and a browser session works for those too.
 
-A display's own browser never holds the display token. Once it has been [let in](/docs/networking#which-displays-are-let-in) the hub gives it an `hs-display` cookie that page code cannot read, and that cookie is what its requests carry. It opens the display level only: a display can never read the token, the secrets or the editor's routes. The token is for your own scripts.
+A display's own browser never holds the display key. Once it has been [let in](/docs/networking#which-displays-are-let-in) the hub gives it an `hs-display` cookie that page code cannot read, and that cookie is what its requests carry. It opens the display level only: a display can never read the key, the secrets or the editor's routes. The key is for your own scripts.
 
 A few endpoints are open at every level on purpose, and each one says so where it appears: `POST /api/display/claim` (a wall page with no cookie asking to be let in; see below), `GET`/`POST /api/chores`, `POST /api/chores/grab`, `GET`/`POST /api/rewards`, `POST /api/rewards/goal`, `GET /api/rewards/ledger`, `GET /api/grown-up-code` and `POST /api/grown-up-code/unlock` (so the kid-facing `/chores` page keeps working when a password is set), `POST /api/auth/login`, `POST /api/auth/logout` and `GET /api/auth/status` (so anyone can sign in), `GET /api/plugins/registry`, `GET /api/system/build-id`, `GET /api/health`, `GET /api/i18n/<locale>` (the UI's words, needed before anyone signs in), and `GET /api/plugins/auth/callback`.
 
@@ -38,9 +38,9 @@ A few endpoints are open at every level on purpose, and each one says so where i
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).
 
-### Using the display token
+### Using the display key
 
-`GET /api/auth/display-token` returns the token (session required): 64 hexadecimal characters with no prefix, the same display key **Settings > Security** shows. It is made the first time it is asked for, whether or not a password is set, and setting, changing or turning off the password keeps it; `POST` to the same route makes a new one. Both answer `{ "displayToken": "...", "lastRefused": { "at": <ms>, "address": "192.168.1.40" } }`, where `lastRefused` is the last request turned away with a key that doesn't match since the hub started (`null` when there was none, `address` `null` when unknown). Send it as a header:
+`GET /api/auth/display-token` returns the key (session required): 64 hexadecimal characters with no prefix, the same display key **Settings > Security** shows. It is made the first time it is asked for, whether or not a password is set, and setting, changing or turning off the password keeps it; `POST` to the same route makes a new one. Both answer `{ "displayToken": "...", "lastRefused": { "at": <ms>, "address": "192.168.1.40" } }`, where `lastRefused` is the last request turned away with a key that doesn't match since the hub started (`null` when there was none, `address` `null` when unknown). Send it as a header:
 
 ```
 Authorization: Bearer <your display key>
@@ -75,13 +75,13 @@ Use the reserved word `all` as the display target to broadcast to every display 
 
 A command or a status read with no display target goes to the main display (the display with ID `main`, or the first one listed if none has that ID). On a single-display install, with no displays registered, it goes to that one display, so bookmarks and scripts written before you added a second display keep reaching the first one. The display's own calls (its command poll and its status report) are the exception: a display always names itself. See the [Multi-display guide](/docs/multi-display) for the full multi-display setup.
 
-**Bookmarks need a token once you set a password.** Every endpoint in this section is protected at the display level, and a link you tap from your phone can't send an `Authorization` header. Add the display token to the link instead:
+**Bookmarks need a token once you set a password.** Every endpoint in this section is protected at the display level, and a link you tap from your phone can't send an `Authorization` header. Add the display key to the link instead:
 
 ```
 /api/display/wake?display=kitchen&token=<your display key>
 ```
 
-Get the token from `GET /api/auth/display-token`. This `?token=` shortcut works on `/api/display/*` and nowhere else; anything outside that path needs the header or a signed-in browser session. With no password set, none of this is needed and the plain URL works.
+Get the key from `GET /api/auth/display-token`. This `?token=` shortcut works on `/api/display/*` and nowhere else; anything outside that path needs the header or a signed-in browser session. With no password set, none of this is needed and the plain URL works.
 
 ### GET /api/displays
 
@@ -143,7 +143,7 @@ What a wall page calls when its browser has not been let in. Open with no sessio
 
 ### GET /api/display/walls
 
-The displays that have been let in and the ones waiting, for the editor. Requires a valid session. **Response:** `{ "passwordSet": true, "windowOpen": false, "windowEndsAt": null, "showingCount": 2, "walls": [{ "id", "status": "in" | "waiting", "displayId", "address", "userAgent", "viewport", "lastSeenAt", "createdAt", "letInByItself", "hubScreen", "looksFamiliar" }] }`. `windowEndsAt` is when the 30 days after the update end, while they are running, else `null`. `letInByItself` marks a browser those 30 days let in on its first visit. `looksFamiliar` marks a waiting browser with the same address and the same browser description as one already let in: most likely that wall after its browser lost its cookie. With no password set every browser is let in, `walls` is empty, and `showingCount` counts the browsers seen in the last 10 minutes; with a password it counts the ones let in.
+The displays that have been let in and the ones waiting, for the editor. Requires a valid session. **Response:** `{ "passwordSet": true, "windowOpen": false, "windowEndsAt": null, "showingCount": 2, "walls": [{ "id", "status": "in" | "waiting", "displayId", "address", "userAgent", "viewport", "lastSeenAt", "createdAt", "letInByItself", "hubScreen", "comesBack", "looksFamiliar" }] }`. `windowEndsAt` is when the 30 days end (after the update, or after a restore that brought the hub its first password), while they are running, else `null`. `letInByItself` marks a browser those 30 days let in on its first visit. `hubScreen` marks the hub's own screen: let in as it, or seen as it since. `comesBack` is `true` when **Remove** cannot keep the browser out: it is the hub's own screen, or it is on an allowed network while **Let displays on these networks in without asking** is on. Such a browser is let straight back in the next time it opens the wall, so Remove only clears its entry. `looksFamiliar` marks a waiting browser with the same address and the same browser description as one already let in: most likely that wall after its browser lost its cookie. With no password set every browser is let in, `walls` is empty, and `showingCount` counts the browsers seen in the last 10 minutes; with a password it counts the ones let in.
 
 ### POST /api/display/walls
 
@@ -159,7 +159,7 @@ Keeps the browser that sends it as a wall, so it goes on showing after you sign 
 
 ### GET /api/display/commands
 
-**Client protocol.** Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds as its heartbeat. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
+**Client protocol.** Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds as its heartbeat. When its beats go unanswered for a minute (no reply at all, or a `502`, `503` or `504` from a proxy in front of the hub), the wall says **Can't reach Home Screens since** the last answer; any other reply, a refusal included, counts as the hub being there. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
 
 **Response:**
 ```json
@@ -177,15 +177,22 @@ Keeps the browser that sends it as a wall, so it goes on showing after you sign 
     "chores": "\"b1e7d05c9a3f28e64d0c7a19\"",
     "rewards": "\"7f20c4a9e15d3b86c0f94e2a\"",
     "notes": "\"5a0e93c1d7b2f468e1c09b3d\"",
+    "dayNotes": "\"e4c1a07b93d25f86a0b7c3e1\"",
+    "meals": "\"9d3b6e0a2c8f41d7b5e0a93c\"",
     "library": "mfh3k2a1.4",
-    "calendar": "mfh3k2a1.0"
+    "calendar": "mfh3k2a1.0",
+    "rotation": "mfh3k2a1.7"
   }
 }
 ```
 
 `revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with), the notes board (`notes` is the `ETag` of `GET /api/notes`), and the day notes (`dayNotes` is the `ETag` of `GET /api/day-notes`). The display fetches each of those only when its value differs from the one it last applied.
 
-`library` and `calendar` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in (on a TV-style code or the web sign-in for adding events) or disconnect changes what the hub can read; when the household switches between its own Google app and Home Screens' app on the API keys page; on every event added, changed or removed through [Calendar events](#calendar-events); on a config write that changes `settings.calendar.eventEntry`, `calendarOverrides`, `icalSources` or `icloudSources` (so a renamed or recoloured calendar shows in seconds); and on a restore (any journaled write of `config.json`). Once a new value has held for a whole beat, the display re-reads its slideshow lists or its calendar at once instead of waiting for their next 10-minute or 5-minute poll, so a burst of uploads from a phone causes one re-read. Both are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
+`library`, `calendar` and `meals` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in (on a TV-style code or the web sign-in for adding events) or disconnect changes what the hub can read; when the household switches between its own Google app and Home Screens' app on the API keys page; on every event added, changed or removed through [Calendar events](#calendar-events); on a config write that changes `settings.calendar.eventEntry`, `calendarOverrides`, `icalSources` or `icloudSources` (so a renamed or recoloured calendar shows in seconds); and on a restore (any journaled write of `config.json`). `meals` is the `X-Meals-Revision` header [`GET /api/meals/data`](#get-api-meals-data) answers with: it moves when `meals.json` changes (a meal saved, planned, rated, hearted or ticked) and when a save through Home Screens changes a plan kept in Mealie, but not for a change made in Mealie's own pages, which the meal cards' one-minute poll still picks up. Once a new value has held for a whole beat, the display re-reads its slideshow lists, its calendar or its meals at once instead of waiting for their next 10-minute, 5-minute or 1-minute poll, so a burst of uploads from a phone causes one re-read.
+
+`rotation` moves whenever `GET /api/backgrounds/rotate` gives a screen a new rotating background (its interval passed, or **Refresh now** in the editor), and the display re-asks for its rotating backgrounds on the next beat instead of on its one-minute poll.
+
+`library`, `calendar` and `rotation`, and the Mealie part of `meals`, are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
 
 `sharedStateWatched` tells the screen whether anyone is currently watching its shared values in the editor. While it is `true`, the screen reports changes as they happen instead of waiting for its next 30-second heartbeat, so the editor sees live values; while it is `false`, it stays on the slower schedule. A display client that ignores this flag still works, it just never speeds up.
 
@@ -323,7 +330,7 @@ Wakes the display and holds off the automatic sleep machinery, the sleep schedul
 
 ### POST /api/display/profile
 
-Switches the active profile. Persists the selection to the config file. A scheduled profile still wins while its time is on, and the profile picked here takes over when it ends. Display access, a display token is enough, same as the other command verbs, so a Home Assistant automation can switch profiles; the write only touches the active-profile pointer, the same value the display's own rules engine flips. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
+Switches the active profile. Persists the selection to the config file. A scheduled profile still wins while its time is on, and the profile picked here takes over when it ends. Display access, so the display key is enough, same as the other command verbs, and a Home Assistant automation can switch profiles; the write only touches the active-profile pointer, the same value the display's own rules engine flips. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
 
 **Body:** `{ "profile": "profile-id", "displayId": "kitchen" }` (`displayId` optional)
 
@@ -333,7 +340,7 @@ An unknown display returns `404 { "error": "Unknown display: <id>" }`, and a pro
 
 ### POST /api/display/module-enabled
 
-Shows or hides one module, the same switch as **Hide** and **Show** on a module in the editor. The change is saved to the config file, so a hidden module stays hidden until something shows it again, and displays pick it up within a few seconds. Display access, a display token is enough, so a Home Assistant automation can hide a module without the editor password; the display token cannot save the whole layout with `PUT /api/config`, so this is the way to do it. Does **not** accept `all` as a target.
+Shows or hides one module, the same switch as **Hide** and **Show** on a module in the editor. The change is saved to the config file, so a hidden module stays hidden until something shows it again, and displays pick it up within a few seconds. Display access, so the display key is enough and a Home Assistant automation can hide a module without the editor password; the display key cannot save the whole layout with `PUT /api/config`, so this is the way to do it. Does **not** accept `all` as a target.
 
 **Body:** `{ "moduleId": "clock-1", "enabled": false, "displayId": "kitchen" }` (`enabled` optional, leave it out to toggle; `displayId` optional)
 
@@ -734,7 +741,7 @@ Removes one item. Requires a valid session, except that display access may remov
 
 ### GET /api/meals/data
 
-Returns saved meals, weekly plan, grocery checked state, and shared meal-planner settings from `data/meals.json`. Accessible by the display (display token auth).
+Returns saved meals, weekly plan, grocery checked state, and shared meal-planner settings from `data/meals.json`. Display access.
 
 **Response:**
 ```json
@@ -830,11 +837,11 @@ Returns the **resolved** grocery list for the current week, ingredients aggregat
 }
 ```
 
-When the household has picked a list for the other things to buy (`settings.groceryExtrasListId`, while the plan is kept in Home Screens), that to-do list comes last as one more category named after the list, holding what is still on it and what was ticked this week (`amount` is always `""`). Its items count in `total` and `checked`. They are to-do items: tick them through [`PATCH /api/todo/lists/:listId/items/:itemId`](#patch-api-todo-lists-list-id-items-item-id), not `POST /api/meals/grocery`.
+When the household has picked a list for the other things to buy (`settings.groceryExtrasListId`, while the plan is kept in Home Screens), that to-do list comes last as one more category named after the list, holding what is still on it and what was ticked this week (`amount` is always `""`). Its items count in `total` and `checked`. They are to-do items. [`POST /api/meals/grocery`](#post-api-meals-grocery) ticks one by its name, or tick it by id through [`PATCH /api/todo/lists/:listId/items/:itemId`](#patch-api-todo-lists-list-id-items-item-id).
 
 ### POST /api/meals/grocery
 
-Toggles a grocery item's checked state on one week's list. If the item is already checked, it is unchecked; otherwise it is checked. Display access, a display token works, so an automation or voice assistant can check items off. The item name is matched the way lists match items, ignoring capitals, extra spaces and accents, so senders can use the display-cased name from `/api/meals/grocery/list`.
+Toggles a grocery item's checked state on one week's list. If the item is already checked, it is unchecked; otherwise it is checked. Display access, the display key works, so an automation or voice assistant can check items off. The item name is matched the way lists match items, ignoring capitals, extra spaces and accents, so senders can use the display-cased name from `/api/meals/grocery/list`.
 
 **Body:**
 ```json
@@ -851,11 +858,13 @@ Toggles a grocery item's checked state on one week's list. If the item is alread
 
 **Response:** `{ "week": "2026-08-02", "groceryChecked": [...], "changed": true }`: that week's ticks after the call. `changed` reports whether this call actually flipped anything.
 
+On this week's list, a name on the list picked for the other things to buy ticks (or puts back) that to-do item instead, and is not added to `groceryChecked`. A name that is both a meal ingredient and on that list is ticked on both. `changed` counts either.
+
 While the meal plan lives in Mealie, the tick goes to the Mealie shopping list the family shops from instead, on every item with that `name` or `alsoCalled` (salt from two recipes is two items), and `week` is not used. **Response:** `{ "changed": true, "matched": 2, "source": "mealie" }`: `matched` is how many items carry the name, so `0` means it is not on the list.
 
 ### POST /api/meals/favorite
 
-Puts the heart on a recipe or takes it off. Display access, a display token works, so a touch wall's Recipe book can heart recipes.
+Puts the heart on a recipe or takes it off. Display access, so a touch wall's Recipe book can heart recipes.
 
 **Body:**
 ```json
@@ -871,7 +880,7 @@ A Mealie recipe (`mealie:<recipe id>`) is hearted in Mealie, among the favorites
 
 ### POST /api/meals/plan/wall
 
-One change to the menu, made at a wall. Display access, a display token works, held back to the least a wall needs: only while some Meal Planner module has **Plan meals on the wall** on (`403` with `"code": "meals.wallPlanOff"` otherwise), only a recipe (a saved meal with ingredients or notes, or a Mealie recipe while the plan lives in Mealie), only today to the end of next week, and only a meal of the day the household plans. When the household ticked **Changing the menu** for the grown-up code, a caller without a session or an unlock gets `403` with `"needsGrownUpCode": true`.
+One change to the menu, made at a wall. Display access, held back to the least a wall needs: only while some Meal Planner module has **Plan meals on the wall** on (`403` with `"code": "meals.wallPlanOff"` otherwise), only a recipe (a saved meal with ingredients or notes, or a Mealie recipe while the plan lives in Mealie), only today to the end of next week, and only a meal of the day the household plans. When the household ticked **Changing the menu** for the grown-up code, a caller without a session or an unlock gets `403` with `"needsGrownUpCode": true`.
 
 **Body:**
 ```json
@@ -890,7 +899,7 @@ One change to the menu, made at a wall. Display access, a display token works, h
 
 ### POST /api/meals/ratings
 
-Saves one person's stars for one recipe, or takes them back. Display access, a display token works, so a touch wall can rate dinner.
+Saves one person's stars for one recipe, or takes them back. Display access, so a touch wall can rate dinner.
 
 **Body:**
 ```json
@@ -946,7 +955,7 @@ If any meal's entries in Mealie are no longer the ones in `before`, nothing is w
 
 ### GET /api/mealie/recipes
 
-One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (one or two letters match the start of a word in a recipe's name; longer searches use Mealie's own search, and recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Display access, a display token works. `isFavorite` says whether each recipe is one of the favorites of the Mealie user whose token is saved.
+One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (one or two letters match the start of a word in a recipe's name; longer searches use Mealie's own search, and recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Display access. `isFavorite` says whether each recipe is one of the favorites of the Mealie user whose token is saved.
 
 **Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "...", "isFavorite": true }], "page": 1, "totalPages": 29, "total": 848 }`
 
@@ -990,7 +999,7 @@ Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id
 
 ### POST /api/mealie/shopping/recipe
 
-Puts a Mealie recipe's ingredients on the list the family shops from, the way Mealie's own "Add to list" does. Body `{ "mealId": "mealie:<recipe id>" }`. Answers like `GET`, with the list read fresh. Only while the plan lives in Mealie. A display token works while some Meal Planner module has **Plan meals on the wall** on; `403` with `"code": "meals.wallPlanOff"` otherwise.
+Puts a Mealie recipe's ingredients on the list the family shops from, the way Mealie's own "Add to list" does. Body `{ "mealId": "mealie:<recipe id>" }`. Answers like `GET`, with the list read fresh. Only while the plan lives in Mealie. Display access without a session (a display that has been let in, or the display key) works while some Meal Planner module has **Plan meals on the wall** on; `403` with `"code": "meals.wallPlanOff"` otherwise.
 
 ### PATCH /api/mealie/shopping/items/:itemId
 
@@ -1168,7 +1177,7 @@ Returns `{ "notes": [{ "id": "…", "date": "2026-11-04", "text": "Picture day" 
 
 ### POST /api/day-notes
 
-Adds a note to a day. Requires a valid session; a display token is not enough, because the wall only reads day notes.
+Adds a note to a day. Requires a valid session; display access is not enough, because the wall only reads day notes.
 
 **Body:** `{ "date": "2026-11-04", "text": "Picture day" }`. A day before today, a day more than a year out, a date that is not a real day, empty text or text over 60 characters is answered with `400`; a day that already has 3 notes with `409`. **Response:** `{ "notes": [ ... ], "created": { "id", "date", "text" } }`, every kept note plus the new one with its id, so a phone can reconcile in one step.
 
@@ -1343,6 +1352,16 @@ Restores a configuration backup. Requires a valid session.
 **Body:** `{ "name": "config-v0.9.0-20260308-120000.json" }`
 
 **Response:** `{ "ok": true }`
+
+---
+
+## Service health
+
+### GET /api/secrets/attention
+
+The services that are set up but not working right now, which **Settings > API keys** marks **Needs attention**. Session required.
+
+**Response:** `{ "attention": { "google": "signIn", "immich": "unreachable" } }`, keyed by service id, and `{ "attention": {} }` when all is well. `signIn`: Google Calendar has calendars picked (`settings.calendar.googleCalendarIds`) and no Google sign-in that works. `unreachable`: the hub's last request to that server got no answer at all, or a `502`, `503` or `504` (Immich only, so far); any other answer, a refusal included, counts as reached, except that `GET /api/immich/validate` counts any ping that is not `ok`. The outcome is kept in the hub's memory, so a restart forgets an outage until the next request finds it again, and saving a new `immich_url` or `immich_api_key` clears it. The same object is `app.attention` in `GET /api/system/stats`, which **Settings > Status** reads.
 
 ---
 

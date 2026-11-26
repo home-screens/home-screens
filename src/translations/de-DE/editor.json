@@ -13,7 +13,7 @@
     "languageHelp": "Wähle die Sprache, die im Editor, auf allen Displays und unter /remote verwendet wird.",
     "moreOptions": "Weitere Optionen",
     "formattingLocaleLabel": "Formatierungs-Gebietsschema",
-    "formattingLocaleHelp": "Nur die Datums- und Zahlenformatierung überschreiben. Die Sprache der Oberfläche bleibt unverändert.",
+    "formattingLocaleHelp": "Ändert nur, wie Datum, Uhrzeit und Zahlen geschrieben werden. Alles andere bleibt in deiner Sprache.",
     "formattingLocaleSameAsLanguage": "Wie Sprache",
     "timeFormatLabel": "Zeitformat",
     "timeFormat12h": "12-Stunden · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Wird an {count} Ort gezeigt",
         "other": "Wird an {count} Orten gezeigt"
       },
-      "showingHint": "Jeder Browser, der dieses Display zeigt. Entfernst du einen, muss er wieder hereingelassen werden.",
+      "showingHint": "Jeder Browser, der dieses Display zeigt. Entferne die, die du nicht mehr nutzt oder nicht kennst.",
       "seen": "gesehen {time}",
       "removeConsequence": "Dieser Browser zeigt das Display nicht mehr an und muss wieder hereingelassen werden.",
+      "removeComesBack": "Dieser Browser ist von selbst wieder da, wenn er das Display das nächste Mal öffnet.",
       "removeFailed": "Das Entfernen hat nicht geklappt. Versuch es noch einmal."
     },
     "serviceAttention": {

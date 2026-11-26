@@ -8,14 +8,13 @@ import { getAdoptedDisplayIds } from '@/lib/adopted-display-cache';
  * `/api/display/kiosk-bootstrap`).
  *
  * These callers are bash scripts running on a different Pi, so they cannot
- * reasonably carry a display bearer token the way the browser heartbeat does.
- * Instead the displayId must appear in `config.displays` — or be the literal
- * `main` in legacy single-display mode. The LAN is the trust boundary, the
- * same implicit posture the display-page SSR already relies on.
+ * reasonably carry a display bearer token. Instead the displayId must appear
+ * in `config.displays`, or be the literal `main` in legacy single-display
+ * mode. The LAN is the trust boundary.
  *
  * Returns a 403 `NextResponse` to return directly, or `null` when the caller
  * may proceed. Callers should validate the id's shape with `isValidDisplayId`
- * before calling this — that check is about input hygiene, this one is about
+ * before calling this: that check is about input hygiene, this one is about
  * authorization.
  */
 export async function requireAdoptedDisplay(displayId: string): Promise<NextResponse | null> {

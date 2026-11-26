@@ -8,9 +8,9 @@ import { pictureBackupSummary } from '@/lib/backup-pictures';
 export const dynamic = 'force-dynamic';
 
 /**
- * Counts and sizes for the Pictures choice under Save a copy: how many files
- * the screens use and how many the whole library holds, and how many
- * references already point at nothing. Only `?summary=1` is answered; the
+ * Counts and sizes for the Pictures choice under Save a backup (in Save or
+ * restore a file): how many files the screens use and how many the whole
+ * library holds, and how many references already point at nothing. Only `?summary=1` is answered; the
  * pictures themselves travel inside the archive `POST /api/backup/archive`
  * streams, never as a listing here.
  */

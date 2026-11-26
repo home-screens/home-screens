@@ -12,7 +12,7 @@ const features = [
     icon: SlidersHorizontal,
     title: 'Display control',
     description:
-      'Navigate screens, adjust brightness, sleep/wake the display, switch profiles — all from your phone.',
+      'Navigate screens, adjust brightness, sleep/wake the display, and switch profiles, all from your phone.',
   },
   {
     icon: ClipboardCheck,

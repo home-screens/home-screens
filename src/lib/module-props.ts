@@ -182,7 +182,7 @@ export function resolveProvider(
  * events, weather data, display registry).
  *
  * Used by the display renderer, the background-provider layer, and the editor
- * canvas preview — all three go through this one function so a module sees the
+ * canvas preview. All three go through this one function so a module sees the
  * same props wherever it renders.
  */
 export function buildModuleProps(
@@ -222,7 +222,7 @@ export function buildModuleProps(
   if (needsCalendar && !source.calendarConfigured) {
     props.calendarSetup = 'noSources';
   }
-  // Attached only while the fetch is actually failing — that IS the
+  // Attached only while the fetch is actually failing, and that IS the
   // semantic: a healthy display and the editor preview (which has no fetch
   // loop) both mean "nothing to report", so they build identical props and
   // modules read the prop's mere presence as the failure signal.

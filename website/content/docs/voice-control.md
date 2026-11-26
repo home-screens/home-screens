@@ -123,7 +123,7 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 | Say | What happens |
 |---|---|
 | "Alice finished the dishes" / "mark the dishes done for Alice" | Checks it off for today and adds its tickets, the answer confirms them ("Nice! Dishes is done. That's 2 tickets for Alice.") |
-| "check off the tortillas" / "we got milk" | Checks it off the grocery list |
+| "check off the tortillas" / "we got milk" | Checks it off the grocery list, including the list you picked for other things to buy |
 | "put milk back on the list" / "we still need milk" | Puts it back on the list |
 
 Saying any of these twice is safe: repeats can never un-check a chore or a grocery item, the second time you just get told it's already done.

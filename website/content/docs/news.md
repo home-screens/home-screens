@@ -72,7 +72,7 @@ One broken feed never blanks the module: its stories are simply missing and a sm
 
 - **That link doesn't look like a news feed.** The link is a normal web page. Look for an RSS or Atom link on the site, often in the footer.
 - **That link can't be used.** Most often the link points at a private or local address. Turn on **Home network** for that feed if it really is on your network.
-- **Set your location first.** The *Local news* feed needs a location under **Settings > Location & language**.
+- **Set your location in Settings > Location & language first.** The *Local news* feed shows stories about the place you set there, so it needs one first.
 - **Couldn't reach that feed.** The site is down, or the link has a typo in it. Check the link; the module will try again on its next refresh.
 - **That feed took too long to answer.** The site is slow right now; the module will try again on its next refresh.
 

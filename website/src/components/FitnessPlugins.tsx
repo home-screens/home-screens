@@ -64,7 +64,7 @@ export function FitnessPlugins() {
               description={
                 <>
                   Two new plugins put your runs, rides, sleep, and recovery on
-                  the wall. Sign in once from the editor — tokens stay on your
+                  the wall. Sign in once from the editor. Tokens stay on your
                   hub, and the display never sees your password.
                 </>
               }
@@ -85,7 +85,7 @@ export function FitnessPlugins() {
                   icon: Map,
                   title: 'Route art',
                   description:
-                    'Recent routes drawn as line art, or a year of them overlaid on one canvas — the places you actually go.',
+                    'Recent routes drawn as line art, or a year of them overlaid on one canvas: the places you actually go.',
                 },
                 {
                   icon: Target,
@@ -97,7 +97,7 @@ export function FitnessPlugins() {
                   icon: Trophy,
                   title: 'The deep cuts',
                   description:
-                    'Fitness trend, segment PRs, gear mileage, milestones — even your Eddington number.',
+                    'Fitness trend, segment PRs, gear mileage, milestones, and even your Eddington number.',
                 },
               ]}
               href="/plugins/strava"
@@ -115,7 +115,7 @@ export function FitnessPlugins() {
                   icon: BatteryCharging,
                   title: 'Wellness at a glance',
                   description:
-                    'Body Battery, stress, sleep stages, HRV, and resting heart rate — straight from Garmin Connect.',
+                    'Body Battery, stress, sleep stages, HRV, and resting heart rate, straight from Garmin Connect.',
                 },
                 {
                   icon: TrendingUp,
@@ -127,7 +127,7 @@ export function FitnessPlugins() {
                   icon: Workflow,
                   title: 'Talks to other modules',
                   description:
-                    'Publishes steps, sleep, and Body Battery as shared state — show a wind-down note when your battery runs low.',
+                    'Publishes steps, sleep, and Body Battery as shared state, so you can show a wind-down note when your battery runs low.',
                 },
               ]}
               href="/plugins/garmin"
@@ -240,7 +240,7 @@ function ShotCarousel({
           <img
             key={shot.src}
             src={shot.src}
-            alt={`${plugin} plugin — ${shot.label} view`}
+            alt={`${plugin} plugin: ${shot.label} view`}
             width={SCREENSHOT_WIDTH}
             height={SCREENSHOT_HEIGHT}
             loading={i === 0 ? 'eager' : 'lazy'}

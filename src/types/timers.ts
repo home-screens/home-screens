@@ -66,7 +66,10 @@ export interface TimerSession {
   targets: TimerTargets;
   startedAt: number;
   status: TimerSessionStatus;
-  /** Set when status leaves 'running'; expiry lingers ~15s for the celebration. */
+  /**
+   * Set when status leaves 'running'. A finished session lingers 10 minutes
+   * for Time's up!, a stopped one 15s so every reader sees it end.
+   */
   completedAt?: number;
   /** Soft chimes on nudge / step change / completion. */
   sound: boolean;

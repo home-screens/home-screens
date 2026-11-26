@@ -22,6 +22,15 @@ export async function isDisplayAdopted(displayId: string | undefined): Promise<b
   return displayId === undefined || displayId === MAIN_DISPLAY_ID;
 }
 
+/**
+ * Whether a caller at `address` is on an Allowed network while that switch
+ * lets displays in without asking. Also read by `GET /api/display/walls`,
+ * which tells a grown-up which walls come straight back after Remove.
+ */
+export function onAllowedNetwork(address: string, allow: { allowlist: string[]; bypassAuth: boolean }): boolean {
+  return allow.bypassAuth && allow.allowlist.length > 0 && isIpAllowed(address, allow.allowlist);
+}
+
 export async function admissionFacts(request: NextRequest, displayId: string | undefined): Promise<AdmissionFacts> {
   const passwordSet = await isAuthEnabled();
   if (!passwordSet) {
@@ -45,7 +54,7 @@ export async function admissionFacts(request: NextRequest, displayId: string | u
     passwordSet,
     holdsKey,
     hubOwnScreen: isHubOwnScreen(request),
-    allowedNetwork: allow.bypassAuth && allow.allowlist.length > 0 && isIpAllowed(getClientIP(request), allow.allowlist),
+    allowedNetwork: onAllowedNetwork(getClientIP(request), allow),
     windowOpen: isWindowOpen(walls.windowStartedAt, Date.now()),
     displayAdopted,
     windowAdmissions: walls.windowAdmissions[displayId ?? SINGLE_DISPLAY_KEY] ?? 0,

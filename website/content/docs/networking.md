@@ -217,7 +217,7 @@ The GET endpoints are bookmarkable, so you can save them as shortcuts on your ph
 
 **Every** `/api/display/*` endpoint on this page needs a credential once you set a password under **Settings > Security**, including the simple GET commands above. Without one they return `401`. This catches people out: the commands work fine, then stop working the day a password is set, and nothing on the phone or in Home Assistant explains why.
 
-Home Screens generates a **display token** for exactly this purpose. Find it under **Settings > Security > Display key**, where you can reveal, copy, and make a new one. There are two ways to send it:
+Home Screens makes a **display key** for exactly this purpose. Find it under **Settings > Security > Display key**, where you can reveal, copy, and make a new one. There are two ways to send it:
 
 ```bash
 # Header form, best for scripts and automations
@@ -227,9 +227,9 @@ curl -H 'Authorization: Bearer <token>' http://<ip>:3000/api/display/wake
 http://<ip>:3000/api/display/wake?token=<token>
 ```
 
-The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the token is.
+The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the key is.
 
-The display token covers every command on this page. Only two of them save anything: switching profiles, and showing or hiding a module. The token cannot change the rest of your layout or your settings.
+The display key covers every command on this page. Only two of them save anything: switching profiles, and showing or hiding a module. The key cannot change the rest of your layout or your settings.
 
 ### Commands with payloads
 
@@ -365,7 +365,7 @@ rest_command:
 Add the header value to Home Assistant's `secrets.yaml`, including the word `Bearer`, since `!secret` substitutes the whole value:
 
 ```yaml
-homescreens_auth: "Bearer your-display-token-here"
+homescreens_auth: "Bearer your-display-key-here"
 ```
 
 If you have not set a Home Screens password the `headers` blocks are simply ignored, so it is safe to include them from the start. The display key exists before any password does, under **Settings > Security > Advanced network access**, so copy the real key into `secrets.yaml` now and it keeps working the day you set a password. Changing the password, turning it off and on again, or resetting it (`scripts/reset-password.sh`) all keep the key; only **Make a new key** makes a new one. If something is still sending an old key, the Display key panel says which address tried it and when.
@@ -468,9 +468,9 @@ A display is let in without anyone clicking anything when it is:
 - **A new display-only Pi you add.** It waits under its new name, and clicking **Add** in **Settings > Displays** lets it in.
 - **On a network you listed** under Allowed networks with **Let displays on these networks in without asking** turned on.
 - **Already showing when you first set a password.** Displays that are switched off at that moment ask to be let in when they come back.
-- **One of your displays in the 30 days after updating** to the version that introduced this. The 30 days start the first time the hub runs that version with a password already set; a hub that had no password then has no such window. Displays that were on during the update carry over by themselves. Any other browser asking for one of your displays, such as one that was off, is let in on its first visit, up to four per display that way, counted for good (removing one does not free its place); a fifth waits for **Let in**. The editor marks those first-visit ones **Let in by itself** so you can check each is yours.
+- **One of your displays in the 30 days after updating** to the version that introduced this. The 30 days start the first time the hub runs that version with a password already set; a hub that had no password then has no such window. A restore that brings back the password on a rebuilt hub starts the same 30 days, from the restore. Displays that were on during the update carry over by themselves. Any other browser asking for one of your displays, such as one that was off, is let in on its first visit, up to four per display that way, counted for good (removing one does not free its place); a fifth waits for **Let in**. The editor marks those first-visit ones **Let in by itself** so you can check each is yours.
 
-Anything else waits until you click **Let in** next to it in **Settings > Displays**. To look at the wall from your own laptop, sign in; that shows it for as long as you stay signed in and does not add a display. If you do want that browser to be a display (an old tablet on a shelf, say), tap **Keep as a wall** on the line that appears at the bottom for the first twenty seconds, and it goes on showing after you sign out. Each display's own page lists where it is showing, with **Remove** next to each one; with only one display, that list is on **Settings > Displays** itself.
+Anything else waits until you click **Let in** next to it in **Settings > Displays**. To look at the wall from your own laptop, sign in; that shows it for as long as you stay signed in and does not add a display. If you do want that browser to be a display (an old tablet on a shelf, say), tap **Keep as a wall** on the line that appears at the bottom for the first twenty seconds, and it goes on showing after you sign out. Each display's own page lists where it is showing, with **Remove** next to each one; with only one display, that list is on **Settings > Displays** itself. A removed browser stops showing the wall and has to be let in again (the 30 days never take it back), except the screen plugged into the hub and a display on an allowed network with **Let displays on these networks in without asking** on: those come back the next time that browser opens the wall.
 
 A display is remembered by a cookie in its browser, so one whose browser data is wiped (a re-flashed SD card, a browser reset) asks to be let in again. If a display's browser forgets its cookies every time it restarts, list its network under Allowed networks instead.
 

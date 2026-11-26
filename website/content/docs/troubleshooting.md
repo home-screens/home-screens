@@ -18,12 +18,14 @@ Every answer here starts with what to check in the editor or on the phone, then 
 - [The display is blank or shows a faint address](#display-is-blank)
 - [The display says This wall needs to be let in](#the-display-says-this-wall-needs-to-be-let-in)
 - [A module says Needs setup or Location not set](#a-module-says-needs-setup)
-- [Modules are not updating](#modules-not-updating)
+- [Modules are not updating, or a card says Not updating since](#modules-not-updating)
 - [Weather is not loading](#weather-not-loading)
 - [The calendar is not syncing](#calendar-not-syncing)
+- [Settings says Needs attention](#settings-says-needs-attention)
 - [The picture is sideways or upside down](#the-picture-is-sideways-or-upside-down)
 - [The family remote says Waiting for display](#the-remote-says-waiting-for-display)
 - [The display shows a Wi-Fi icon](#display-shows-a-wi-fi-icon-at-the-bottom)
+- [The wall says Can't reach Home Screens](#the-wall-says-cant-reach-home-screens)
 - [The mouse cursor is showing on a touchscreen](#cursor-visible-on-touchscreen)
 - [Taps land in the wrong place on a touchscreen](#taps-land-in-the-wrong-place)
 - [A button is missing on a touchscreen](#a-button-is-missing-on-a-touchscreen)
@@ -127,26 +129,35 @@ Some modules cannot show anything until they have one thing from you, and say so
 
 ## Modules not updating
 
+A card that can't get fresh data keeps showing what it last had, so nothing goes blank during an outage, and it says how old that is:
+
+- A weather card that has not updated for an hour says **Not updating since** and the time it last did.
+- A calendar card says **Not updating since** and a time, or names the calendar that stopped, such as "Soccer not updating since 9:14 AM". **Calendar needs to sign in again** means Google wants a new sign-in; see [Google sign-in](#google-sign-in).
+- After a day, the line turns into a brighter tag, so an old outage is hard to miss.
+
+The line goes away by itself as soon as fresh data arrives. If the whole wall says **Can't reach Home Screens**, the hub is the problem, not the card: see [The wall says Can't reach Home Screens](#the-wall-says-cant-reach-home-screens).
+
 **Check in the editor first**
 
 1. **The key.** Modules that pull from a service with a key (Immich, OneDrive, Todoist, traffic) show whether the key is set on **Settings > API keys**. Weather keys are on the provider's card under **Settings > Weather**. Stocks and news need no key.
 2. **The refresh interval.** Every module that fetches data has one in its settings. A long interval means slow updates; that is not a fault.
-3. **Is the Pi online?** **Settings > Status** shows the display's last check-in, and the wall shows a Wi-Fi icon in the corner when it has lost the network.
+3. **Is the Pi online?** **Settings > Status** shows the display's last check-in, and the wall shows a Wi-Fi icon in the corner when it has lost the network. A display the hub has not heard from lately shows **Offline**, with how long ago it was last seen and which screen it was on.
+4. **Needs attention.** **Settings > Status** and **Settings > API keys** mark a service that is set up but not working right now. See [Settings says Needs attention](#settings-says-needs-attention).
 
 **If you are comfortable with a terminal**
 
-4. Test the internet from the Pi (the quotes matter):
+5. Test the internet from the Pi (the quotes matter):
    ```bash
    curl -s "https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0" | head -c 200
    ```
-5. Open the module's own address in a browser where you are signed in to the editor, for example `http://home-screens.local:3000/api/weather`, to see the data or the error. From a shell with a password set, add your display key from **Settings > Security**: `curl -H "Authorization: Bearer <token>" http://localhost:3000/api/weather`.
+6. Open the module's own address in a browser where you are signed in to the editor, for example `http://home-screens.local:3000/api/weather`, to see the data or the error. From a shell with a password set, add your display key from **Settings > Security**: `curl -H "Authorization: Bearer <token>" http://localhost:3000/api/weather`.
 
 ---
 
 ## Weather not loading
 
 1. **Location first.** A new install has no location, and the weather module says **Location not set** until you add one under **Settings > Location & language**. If a module has its own coordinates in its settings, check those too.
-2. **The key.** On **Settings > Weather**, open the card for the provider you use. OpenWeatherMap, WeatherAPI, Pirate Weather and Met Office need a key, pasted on the card; the other five do not. Click **Test** on the card.
+2. **The key.** On **Settings > Weather**, open the card for the provider you use. OpenWeatherMap, WeatherAPI, Pirate Weather and UK Met Office need a key, pasted on the card; the other five do not. Click **Test** on the card.
 3. **Try another provider.** Set Open-Meteo as the default for a moment; it needs no key. If that works, the problem is the other provider's key or an outage on their side.
 4. **The module's source.** Each weather module has a **Weather source** setting; make sure it is **Same as Settings** or a provider that is ready.
 5. **No weather data** (or **No forecast data** on the forecast views) means the service answered but sent nothing for your location. Click **Test** on that provider's card, or set the module's **Weather source** to Open-Meteo to see whether it has data there.
@@ -160,6 +171,8 @@ See the [Weather](/docs/weather) page for how the providers compare.
 **Check in the editor first**
 
 Open **Settings > Calendar**. Every connected calendar shows when it last brought in events, and a calendar that is failing says so in plain words. That tells you which one to look at.
+
+The family remote's **Calendar** tab warns too, above the days: **Google Calendar needs a new sign-in**, or that one calendar (or some calendars) isn't updating, so a stopped calendar is not mistaken for a free week. Day notes keep working either way.
 
 ### A pasted calendar link
 
@@ -185,6 +198,15 @@ The [Calendars](/docs/calendars) page walks through all three ways of connecting
 ### One calendar is missing on one wall only
 
 Someone may have hidden it there. On that wall, tap the **Calendars** key (a hidden calendar is crossed out in it) and switch **Show** back on. Hiding a calendar only changes the wall it was done on. See [Hide a calendar](/docs/calendars#calendars-sheet).
+
+---
+
+## Settings says Needs attention
+
+**Settings > API keys**, and the **Integrations** list on **Settings > Status**, mark a service with **Needs attention** when it is set up but not working right now, and say what to do:
+
+- **Google Calendar needs to sign in again**: the Google sign-in has lapsed, so its calendars have stopped updating on the wall. Follow the link to **Settings > Calendar** and click **Sign in with Google** again. See [Google sign-in](#google-sign-in).
+- **Can't reach Immich**: the last time the hub asked your Immich server for photos, it got no answer. Check that the server is switched on and that its address on **Settings > API keys** is right. The warning goes away once the hub reaches it again, or when you save a new address or key.
 
 ---
 
@@ -225,6 +247,20 @@ A Wi-Fi-off icon in the lower corner means the display has lost its network. It 
 3. A cable is the most reliable fix for a display that keeps dropping.
 
 **If you are comfortable with a terminal**, see [Wi-Fi keeps disconnecting](#wi-fi-keeps-disconnecting) below.
+
+If the icon comes with the words **Can't reach Home Screens**, the display's network is fine and the hub is the one not answering; see the next section.
+
+---
+
+## The wall says Can't reach Home Screens
+
+**Can't reach Home Screens since** and a time, in the lower corner of the wall, means the display still has its network but the hub has not answered for a minute or more. The time is when it last answered. Until the hub is back the wall keeps what it was showing and nothing on it changes, and a chore tapped meanwhile says **Couldn't reach Home Screens, so that didn't save. Ask a grown-up.** The line goes away by itself as soon as the hub answers again.
+
+1. **Did the hub just update or restart?** That takes a minute or two. Give it a little longer.
+2. **Is the hub running?** Open the editor from a phone or computer. If it does not open either, the hub is switched off, off the network, or stuck: check its power and its network, then unplug it and plug it back in. It comes back by itself within a couple of minutes.
+3. **Is this a separate display Pi?** It looks for the hub at the address it was set up with. If your router has given the hub a new address, set the router to always give the hub the address it had before.
+
+**If you are comfortable with a terminal**, [Is the hub running?](#is-the-hub-running) asks the hub directly.
 
 ---
 

@@ -13,7 +13,7 @@
     "languageHelp": "Pick the language used across the editor, every display, and /remote.",
     "moreOptions": "More options",
     "formattingLocaleLabel": "Formatting locale",
-    "formattingLocaleHelp": "Override only the date and number formatting. Keeps the interface language unchanged.",
+    "formattingLocaleHelp": "Changes only how dates, times and numbers are written. Everything else stays in your language.",
     "formattingLocaleSameAsLanguage": "Same as language",
     "timeFormatLabel": "Time format",
     "timeFormat12h": "12-hour · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Showing in {count} place",
         "other": "Showing in {count} places"
       },
-      "showingHint": "Each browser that shows this display. Remove one and it has to be let in again.",
+      "showingHint": "Each browser that shows this display. Remove any you no longer use or don't recognize.",
       "seen": "seen {time}",
       "removeConsequence": "This browser stops showing the wall and has to be let in again.",
+      "removeComesBack": "This browser comes back by itself the next time it opens the wall.",
       "removeFailed": "Couldn't remove it. Try again."
     },
     "serviceAttention": {
@@ -4840,7 +4841,7 @@
       "accentColor": "Accent color",
       "events": "Events",
       "showEventMarks": "Mark days with events",
-      "showEventMarksHint": "Up to three dots under each day that has something on it, in the colour of its calendar.",
+      "showEventMarksHint": "Up to three dots under each day that has something on it, in the color of its calendar.",
       "showDayNotesHint": "A day with only a note gets a mark too, and its notes show when the day is tapped.",
       "eventTapDetails": "Tap a day to see its events",
       "eventTapDetailsHint": "On a touch display, opens that day's list, the same one the Calendar card shows."

@@ -295,6 +295,26 @@ describe('planCredentialRestore', () => {
     expect((await readAuthState()).passwordHash).toBe('existing');
   });
 
+  describe('a restore that brings the first password', () => {
+    const plan = (payload: CredentialPayload) => withDataTransaction(() => planCredentialRestore(payload, '127.0.0.1'));
+    const withPassword: CredentialPayload = { auth: { passwordHash: 'h', salt: 's', cookieSecret: 'c' } };
+
+    it('says so for a hub with no password', async () => {
+      expect((await plan(withPassword)).bringsFirstPassword).toBe(true);
+    });
+
+    it('does not for a hub that already has one', async () => {
+      await seedDataFile('data/auth.json', { passwordHash: 'existing', salt: 'existing', cookieSecret: 'c' });
+      expect((await plan(withPassword)).bringsFirstPassword).toBe(false);
+    });
+
+    it('does not for a backup with no password, or none that is usable', async () => {
+      expect((await plan({ auth: { passwordHash: null, salt: null, cookieSecret: null, ipAllowlist: ['10.0.0.0/24'] } })).bringsFirstPassword).toBe(false);
+      expect((await plan({ auth: { passwordHash: 'orphan', salt: null, cookieSecret: 'c' } })).bringsFirstPassword).toBe(false);
+      expect((await plan({ secrets: {} })).bringsFirstPassword).toBe(false);
+    });
+  });
+
   describe('IP lockout guard', () => {
     const restrictedAuth: CredentialPayload = {
       auth: {

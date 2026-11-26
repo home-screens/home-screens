@@ -13,8 +13,8 @@ import { googleProjectOf } from './google-grant-project';
  * - Google Calendar: device-code flow, `google_client_id/secret` (a "TVs and
  *   Limited Input devices" client), tokens in data/google-tokens.json.
  * - Google Photos import: auth-code flow, `google_web_client_id/secret` (a
- *   "Web application" client — the picker scope is banned from the device
- *   flow), tokens in data/google-picker-tokens.json.
+ *   "Web application" client, since the picker scope is banned from the
+ *   device flow), tokens in data/google-picker-tokens.json.
  *
  * Either grant can come from the household's own Google app (the secrets
  * saved in Settings) or from Home Screens' own app (google-hosted.ts), as
@@ -24,7 +24,7 @@ import { googleProjectOf } from './google-grant-project';
  * is available.
  *
  * The flows differ per integration and stay in their own modules; everything
- * about holding a grant — persistence, proactive refresh, revocation — lives
+ * about holding a grant (persistence, proactive refresh, revocation) lives
  * in the provider-neutral oauth-token-store exactly once.
  */
 

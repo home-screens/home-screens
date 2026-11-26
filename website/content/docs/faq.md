@@ -194,7 +194,7 @@ Some modules also have a refresh interval, and their data won't update more ofte
 
 ### Which weather provider should I choose?
 
-Regional providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate option within the area they cover. Of those, only Met Office asks you to sign up for a key. For global coverage with no signup at all, use **Open-Meteo**, which is what a fresh install starts on. For the most features (minute-by-minute rain, weather warnings, UV index, visibility), go with **Pirate Weather**. Air quality needs an OpenWeatherMap key whichever provider you pick.
+Regional providers (NOAA, Yr.no, SMHI, UK Met Office, Environment Canada) are usually the most accurate option within the area they cover. Of those, only the UK Met Office asks you to sign up for a key. For global coverage with no signup at all, use **Open-Meteo**, which is what a fresh install starts on. For the most features (minute-by-minute rain, weather warnings, UV index, visibility), go with **Pirate Weather**. Air quality needs an OpenWeatherMap key whichever provider you pick.
 
 All {% $stats.weatherProviderCount %} providers, their coverage, and which ones need a key are listed on the [Weather](/docs/weather) page.
 

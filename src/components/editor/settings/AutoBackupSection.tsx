@@ -42,7 +42,7 @@ export interface AutoCopyRestore {
 }
 
 interface Props {
-  /** Counts and sizes for the Pictures choice; shared with Save a copy. */
+  /** Counts and sizes for the Pictures choice; shared with Save a backup. */
   pictureSummary: PictureBackupSummary | null;
   /** A restore is running anywhere on the page. */
   restoreBusy: boolean;
@@ -216,7 +216,7 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
               </label>
             </div>
 
-            {/* Like Save a copy: no choice to make while the library is empty,
+            {/* Like Save a backup: no choice to make while the library is empty,
                 unless one was made before it emptied and has to be undone. */}
             {pictureSummary && (pictureSummary.all.count > 0 || settings.pictures !== 'off') && (
             <fieldset className="space-y-1.5" data-field-id="data.autoBackupPictures">

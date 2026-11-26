@@ -8201,7 +8201,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets date and number formatting unless `formattingLocale` overrides it",
+          "description": "Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets how dates, times and numbers are written unless `formattingLocale` overrides it",
           "defaultText": "\"en-US\""
         },
         {
@@ -8211,7 +8211,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "A BCP-47 tag that changes only date and number formatting, leaving the language alone. Unset follows `locale`"
+          "description": "A BCP-47 tag that changes only how dates, times and numbers are written, leaving the language alone. Unset follows `locale`"
         },
         {
           "name": "timeFormat",
@@ -8512,7 +8512,7 @@
             "kind": "array",
             "text": "string[]"
           },
-          "description": "The order calendars are shown in within a day, most wanted first"
+          "description": "Which calendars keep their rows on a day with more events than fit, most wanted first"
         },
         {
           "name": "swatches",
@@ -8521,7 +8521,7 @@
             "kind": "array",
             "text": "string[]"
           },
-          "description": "The colours offered when a calendar is recoloured by tapping its dot on the wall"
+          "description": "The colours offered when a calendar is recoloured with the Color button in the wall's Calendars sheet"
         },
         {
           "name": "calendarOverrides",

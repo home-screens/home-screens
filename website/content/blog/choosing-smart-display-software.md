@@ -1,6 +1,6 @@
 ---
 title: How to Choose Smart Display Software for Your Raspberry Pi (2026)
-description: A plainspoken decision guide for picking between MagicMirror, Dakboard, and Home Screens — based on time, budget, and how much DIY you actually want.
+description: A plainspoken decision guide for picking between MagicMirror, Dakboard, and Home Screens, based on time, budget, and how much DIY you actually want.
 date: '2026-04-29'
 category: Guides
 author: Bryan
@@ -10,14 +10,14 @@ layout: blog
 nextjs:
   metadata:
     title: How to Choose Smart Display Software for Raspberry Pi (2026)
-    description: A decision guide for MagicMirror vs Dakboard vs Home Screens — pick the right smart display software based on cost, setup time, and self-hosting.
+    description: A decision guide for MagicMirror vs Dakboard vs Home Screens. Pick the right smart display software based on cost, setup time, and self-hosting.
     alternates:
       canonical: /blog/choosing-smart-display-software
 ---
 
 ## Quick answer
 
-**Home Screens is the right choice for most households** — a polished visual editor, no monthly subscription, multi-display support built in, and your data stays on your Pi. Pick **MagicMirror** instead if you genuinely enjoy editing config files and want the largest community widget library. Pick **Dakboard** if you want managed cloud hosting and don't mind paying $6/month for two screens.
+**Home Screens is the right choice for most households**: a polished visual editor, no monthly subscription, multi-display support built in, and your data stays on your Pi. Pick **MagicMirror** instead if you genuinely enjoy editing config files and want the largest community widget library. Pick **Dakboard** if you want managed cloud hosting and don't mind paying $6/month for two screens.
 
 ## Which question are you actually asking?
 
@@ -49,17 +49,17 @@ This is the second-biggest filter and the one most people underestimate.
 
 **MagicMirror:** Typically 2–6 hours of first-time setup. You install the software, then configure widgets by editing a config file. Each widget has its own instructions and quirks. Expect to spend an evening getting the layout right, and another evening tweaking widgets that don't behave like you expected. Long-term maintenance means editing config files from a terminal.
 
-**Dakboard:** Typically 15–30 minutes. You sign up, drag widgets onto a canvas in their web editor, and load the URL on your Pi's display. The UI is polished and the experience is smooth — this is what you're paying for.
+**Dakboard:** Typically 15–30 minutes. You sign up, drag widgets onto a canvas in their web editor, and load the URL on your Pi's display. The UI is polished and the experience is smooth. This is what you're paying for.
 
-**Home Screens:** Typically 10–20 minutes of hands-on work — the fastest of the three, though the download, SD card flash, and first boot add to that. A one-line install script does everything: sets up the app and configures your Pi to display it full-screen. The visual editor runs in any browser on your home network. Drag modules onto the canvas like Dakboard, but everything stays on your Pi. [See the installation guide](/docs/getting-started) for the full one-liner.
+**Home Screens:** Typically 10–20 minutes of hands-on work (the fastest of the three), though the download, SD card flash, and first boot add to that. A one-line install script does everything: sets up the app and configures your Pi to display it full-screen. The visual editor runs in any browser on your home network. Drag modules onto the canvas like Dakboard, but everything stays on your Pi. [See the installation guide](/docs/getting-started) for the full one-liner.
 
 ## Where does my data actually go?
 
 This matters more than people realize, especially for family calendars and photos.
 
-- **MagicMirror** stores everything on your Pi. Calendar logins, account keys, and photos all stay in local files. Nothing leaves your home network unless a widget needs to fetch outside data — like a weather forecast or a sports score.
+- **MagicMirror** stores everything on your Pi. Calendar logins, account keys, and photos all stay in local files. Nothing leaves your home network unless a widget needs to fetch outside data, like a weather forecast or a sports score.
 - **Dakboard** stores your screen layout, widget configuration, and (depending on tier) media in their cloud. Your displays talk to Dakboard's servers, which talk to your Google Calendar, weather provider, and so on. If Dakboard goes down or you stop paying, your displays stop working.
-- **Home Screens** stores everything locally on your Pi. Your displays talk to the Pi directly over your home network — no internet required for normal use. Anonymous usage data is collected by default and can be turned off in settings.
+- **Home Screens** stores everything locally on your Pi. Your displays talk to the Pi directly over your home network. No internet is required for normal use. Anonymous usage data is collected by default and can be turned off in settings.
 
 If you care about privacy, vendor lock-in, or keeping your displays working without an internet connection, self-hosted (MagicMirror or Home Screens) is the right answer.
 
@@ -74,7 +74,7 @@ This is where the pricing math diverges sharply.
 | 3 displays           | $0          | $10/mo (Plus covers 3) or $11/mo (Essential + 1 add-on) | $0           |
 | 5 displays           | $0          | ~$20–$25/mo depending on tier and add-ons    | $0           |
 
-For a single display, the choice mostly comes down to setup style. For multi-display households — a kitchen hub, a hallway display, a kid-facing chore screen — Home Screens has a structural advantage: every additional display is free, and the multi-display hub is built in, not a paid upgrade.
+For a single display, the choice mostly comes down to setup style. For multi-display households (a kitchen hub, a hallway display, a kid-facing chore screen), Home Screens has a structural advantage: every additional display is free, and the multi-display hub is built in, not a paid upgrade.
 
 ## Can I extend it later?
 
@@ -86,7 +86,7 @@ All three are extensible, but the bar to do so is different.
 | Dakboard   | Custom styling, embedded web pages, Zapier integrations | A little CSS for visual tweaks |
 | Home Screens | Drop in a custom plugin                      | Basic JavaScript; a [starter template](https://github.com/home-screens/home-screens-plugin-template) is provided |
 
-MagicMirror has the largest community module library — hundreds of third-party modules, though quality varies. Home Screens ships with [{% $stats.moduleCount %} built-in modules](/docs/modules) covering most common needs (weather, calendars, news, sports, meal planning, chore charts) and a plugin system for the rest.
+MagicMirror has the largest community module library: hundreds of third-party modules, though quality varies. Home Screens ships with [{% $stats.moduleCount %} built-in modules](/docs/modules) covering most common needs (weather, calendars, news, sports, meal planning, chore charts) and a plugin system for the rest.
 
 ## What does each one do best?
 
@@ -114,11 +114,11 @@ Both have visual drag-and-drop editors and similar widget catalogs. The main dif
 
 ### Can I switch between them later?
 
-Yes, but not painlessly. None of these tools share a config format, so switching means rebuilding your screen layout. The hardware (Raspberry Pi + monitor) is universal — the software is what locks you in.
+Yes, but not painlessly. None of these tools share a config format, so switching means rebuilding your screen layout. The hardware (Raspberry Pi + monitor) is universal; the software is what locks you in.
 
 ### Do I need a Raspberry Pi specifically?
 
-No, but it's the easiest option. The Raspberry Pi is the most common choice because it's cheap (~$50), low-power, silent, and stays on 24/7 without complaint. All three options also work on any always-on computer — a mini PC, an old laptop you're not using, or even a Mac or Windows desktop you leave running. Dakboard only needs a browser on the display side, so anything that opens a web page works.
+No, but it's the easiest option. The Raspberry Pi is the most common choice because it's cheap (~$50), low-power, silent, and stays on 24/7 without complaint. All three options also work on any always-on computer: a mini PC, an old laptop you're not using, or even a Mac or Windows desktop you leave running. Dakboard only needs a browser on the display side, so anything that opens a web page works.
 
 ## What to do next
 

@@ -1,13 +1,12 @@
 /**
- * POST /api/display/hw-stats — accept a hardware-stats snapshot from a
+ * POST /api/display/hw-stats: accept a hardware-stats snapshot from a
  * display-only Pi's bash reporter.
  *
  * Trust model: adoption IS authorization. The endpoint is not wrapped in
  * `withDisplayAuth` because the reporter runs on a different Pi and cannot
  * reasonably carry a display bearer token. Instead, the displayId must
  * appear in `config.displays` (or be the literal `main` in legacy single-
- * display mode). The LAN is the trust boundary, same as the implicit
- * posture the display-page SSR already relies on.
+ * display mode). The LAN is the trust boundary.
  *
  * Body shape: { displayId: string, hwStats: HardwareStats }
  *

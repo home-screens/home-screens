@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isAuthEnabled } from '@/lib/auth';
+import { getIpAllowlistConfig, isAuthEnabled } from '@/lib/auth';
 import { parseJsonBody, withAuth } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { getClientIP } from '@/lib/api-utils';
 import { CHANGEOVER_WINDOW_MS, isWindowOpen } from '@/lib/display-admission';
 import { OPEN_DOOR_FORGET_MS, WallRemovalNotSavedError, letWallIn, readWalls, removeWall, type WallEntry } from '@/lib/display-walls';
+import { onAllowedNetwork } from '@/lib/wall-admission-facts';
+import type { WallApiEntry } from '@/lib/walls-api-types';
 
 export const dynamic = 'force-dynamic';
 
 /** A wall as the editor lists it. The secret's hash never leaves the hub. */
-function describe(wall: WallEntry, all: WallEntry[]) {
+function describe(wall: WallEntry, all: WallEntry[], allow: { allowlist: string[]; bypassAuth: boolean }): WallApiEntry {
+  // Let in as the hub's own screen, or seen as it since (a screen that was
+  // showing when the first password was set is let in as `no-password`).
+  const hubScreen = wall.admittedBy === 'hub-screen' || wall.hubScreen === true;
   return {
     id: wall.id,
     status: wall.status,
@@ -22,7 +27,14 @@ function describe(wall: WallEntry, all: WallEntry[]) {
     createdAt: wall.createdAt,
     /** Let in by itself in the days after the update, which is worth a grown-up's glance. */
     letInByItself: wall.admittedBy === 'window',
-    hubScreen: wall.admittedBy === 'hub-screen',
+    hubScreen,
+    /**
+     * Removed, it is let straight back in the next time it asks, by the same
+     * two rules `POST /api/display/claim` applies to a removed browser: the
+     * hub's own screen, or an allowed network that lets displays in without
+     * asking. The changeover window never takes a removed browser back.
+     */
+    comesBack: hubScreen || onAllowedNetwork(wall.address, allow),
     /**
      * A waiting browser at the same address, describing itself the same way,
      * as a wall that is already let in: most likely that wall after its
@@ -49,12 +61,13 @@ export const GET = withAuth(async () => {
     return NextResponse.json({ passwordSet, windowOpen: false, windowEndsAt: null, showingCount, walls: [] });
   }
   const windowOpen = isWindowOpen(snapshot.windowStartedAt, now);
+  const allow = await getIpAllowlistConfig();
   return NextResponse.json({
     passwordSet,
     windowOpen,
     windowEndsAt: windowOpen && snapshot.windowStartedAt !== null ? snapshot.windowStartedAt + CHANGEOVER_WINDOW_MS : null,
     showingCount: snapshot.walls.filter((w) => w.status === 'in').length,
-    walls: snapshot.walls.map((w) => describe(w, snapshot.walls)),
+    walls: snapshot.walls.map((w) => describe(w, snapshot.walls, allow)),
   });
 }, 'Failed to read the walls');
 

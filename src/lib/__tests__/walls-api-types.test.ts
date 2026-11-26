@@ -13,6 +13,7 @@ function wall(over: Partial<WallApiEntry>): WallApiEntry {
     createdAt: 0,
     letInByItself: false,
     hubScreen: false,
+    comesBack: false,
     looksFamiliar: false,
     ...over,
   };

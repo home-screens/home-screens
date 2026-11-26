@@ -13,7 +13,7 @@
     "languageHelp": "Kies de taal voor de editor, alle displays en /remote.",
     "moreOptions": "Meer opties",
     "formattingLocaleLabel": "Opmaaklocale",
-    "formattingLocaleHelp": "Overschrijf alleen de datum- en getalopmaak. De interfacetaal blijft hetzelfde.",
+    "formattingLocaleHelp": "Verandert alleen hoe datums, tijden en getallen worden geschreven. Al het andere blijft in je eigen taal.",
     "formattingLocaleSameAsLanguage": "Zelfde als taal",
     "timeFormatLabel": "Tijdnotatie",
     "timeFormat12h": "12-uurs · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Te zien op {count} plek",
         "other": "Te zien op {count} plekken"
       },
-      "showingHint": "Elke browser die dit display toont. Haal je er een weg, dan moet die opnieuw worden binnengelaten.",
+      "showingHint": "Elke browser die dit display toont. Haal de browsers weg die je niet meer gebruikt of niet herkent.",
       "seen": "gezien {time}",
       "removeConsequence": "Deze browser toont de muur niet meer en moet opnieuw worden binnengelaten.",
+      "removeComesBack": "Deze browser komt vanzelf terug zodra hij de muur weer opent.",
       "removeFailed": "Weghalen is niet gelukt. Probeer het opnieuw."
     },
     "serviceAttention": {

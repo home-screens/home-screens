@@ -24,7 +24,7 @@ const featuresLeft: Feature[] = [
   {
     icon: Monitor,
     title: 'Remote Control',
-    description: 'Wake, sleep, adjust brightness, switch profiles — all from your phone.',
+    description: 'Wake, sleep, adjust brightness, and switch profiles, all from your phone.',
   },
   {
     icon: CalendarClock,
@@ -110,7 +110,7 @@ export function FeaturesBento() {
             description={
               <>
                 A full platform for wall-mounted displays. Scheduling, remote control,
-                plugins, OTA updates — not just widgets on a screen.
+                plugins, and OTA updates. Not just widgets on a screen.
               </>
             }
           />

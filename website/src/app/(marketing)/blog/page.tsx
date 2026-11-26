@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'News, guides, and updates from the Home Screens project.',
   openGraph: {
-    title: 'Blog — Home Screens',
+    title: 'Blog · Home Screens',
     description: 'News, guides, and updates from the Home Screens project.',
     url: 'https://homescreens.dev/blog',
   },

@@ -7,12 +7,13 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async () => {}),
   isAuthEnabled: vi.fn(async () => true),
+  getIpAllowlistConfig: vi.fn(async () => ({ allowlist: [] as string[], bypassAuth: false, restrictAccess: false })),
 }));
 
 import { GET } from '../route';
-import { requireSession } from '@/lib/auth';
+import { getIpAllowlistConfig, requireSession } from '@/lib/auth';
 import type { WallAdmission } from '@/lib/display-admission';
-import { __resetWallsForTests, createWall } from '@/lib/display-walls';
+import { __resetWallsForTests, createWall, touchWall } from '@/lib/display-walls';
 import { wallsLetInByThemselves, type WallsApiResponse } from '@/lib/walls-api-types';
 
 /**
@@ -30,6 +31,7 @@ beforeEach(async () => {
   process.chdir(tmpCwd);
   __resetWallsForTests();
   vi.mocked(requireSession).mockImplementation(async () => {});
+  vi.mocked(getIpAllowlistConfig).mockImplementation(async () => ({ allowlist: [], bypassAuth: false, restrictAccess: false }));
 });
 
 afterEach(async () => {
@@ -61,6 +63,44 @@ describe('GET /api/display/walls', () => {
     expect(walls).toHaveLength(9);
     expect(walls.filter((w) => w.letInByItself).map((w) => w.id).sort()).toEqual([...byWindow].sort());
     expect(wallsLetInByThemselves(walls)).toHaveLength(2);
+  });
+
+  it('says which walls Remove cannot keep out: the hub\'s own screen and an allowed network', async () => {
+    vi.mocked(getIpAllowlistConfig).mockImplementation(async () => ({ allowlist: ['192.168.1.0/24'], bypassAuth: true, restrictAccess: false }));
+    const hub = await letIn('hub-screen', '127.0.0.1');
+    const onNetwork = await letIn('let-in', '192.168.1.60');
+    const fromWindow = await letIn('window', '192.168.1.61');
+    const elsewhere = await letIn('let-in', '10.0.0.5');
+
+    const byId = new Map((await readList()).walls.map((w) => [w.id, w.comesBack]));
+    expect(byId.get(hub)).toBe(true);
+    expect(byId.get(onNetwork)).toBe(true);
+    // However it first came in, it is the address that brings it back.
+    expect(byId.get(fromWindow)).toBe(true);
+    expect(byId.get(elsewhere)).toBe(false);
+  });
+
+  it('counts a screen kept from before the password as the hub\'s own once it is seen as one', async () => {
+    // The hub's screen was showing when the first password was set, so it was
+    // let in as `no-password`; it comes back from the hub itself all the same.
+    const made = (await createWall({ status: 'in', admittedBy: 'no-password', displayId: 'kitchen', address: '127.0.0.1', userAgent: 'Chromium on a Pi', passwordSet: false }))!;
+    await touchWall(made.entry, { hubScreen: true });
+    const other = await letIn('let-in', '192.168.1.60');
+
+    const byId = new Map((await readList()).walls.map((w) => [w.id, w]));
+    expect(byId.get(made.entry.id)).toMatchObject({ hubScreen: true, comesBack: true });
+    expect(byId.get(other)).toMatchObject({ hubScreen: false, comesBack: false });
+  });
+
+  it('keeps an allowed network\'s walls out once that switch is off', async () => {
+    // The networks are listed, but they no longer let displays in without asking.
+    vi.mocked(getIpAllowlistConfig).mockImplementation(async () => ({ allowlist: ['192.168.1.0/24'], bypassAuth: false, restrictAccess: true }));
+    const hub = await letIn('hub-screen', '127.0.0.1');
+    const onNetwork = await letIn('allowed-network', '192.168.1.60');
+
+    const byId = new Map((await readList()).walls.map((w) => [w.id, w.comesBack]));
+    expect(byId.get(hub)).toBe(true);
+    expect(byId.get(onNetwork)).toBe(false);
   });
 
   it('is for a signed-in grown-up only', async () => {

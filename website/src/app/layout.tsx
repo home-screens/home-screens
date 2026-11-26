@@ -39,8 +39,8 @@ const lexend = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL('https://homescreens.dev'),
   title: {
-    template: '%s — Home Screens',
-    default: 'Home Screens — Smart Display for Your Home',
+    template: '%s · Home Screens',
+    default: 'Home Screens · Smart Display for Your Home',
   },
   description:
     `An open-source smart display system for Raspberry Pi. ${MODULE_COUNT} built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.`,
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
         url: '/images/og-home.jpg',
         width: 1200,
         height: 630,
-        alt: 'Home Screens — open-source smart display with drag-and-drop editor',
+        alt: 'Home Screens, an open-source smart display with a drag-and-drop editor',
       },
     ],
   },
@@ -119,7 +119,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             // /connect/* pages carry single-use OAuth codes in the query
-            // string — never let those reach Analytics as page_location.
+            // string; never let those reach Analytics as page_location.
             // (The connect page also replaceState-strips its query on load;
             // this guard covers the window before that effect runs.)
             var gtagConfig = {};

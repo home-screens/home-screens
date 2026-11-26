@@ -19,7 +19,7 @@ import { getClientIP } from './api-utils';
 import { admitWithoutAsking } from './display-admission';
 import { WALL_COOKIE_REFRESH_MS, buildWallCookie, createWall, letWallIn, noteCookieRefreshed, touchWall, wallCookieValue } from './display-walls';
 import { admissionFacts } from './wall-admission-facts';
-import { isWallPageRequest } from './wall-request';
+import { isHubOwnScreen, isWallPageRequest } from './wall-request';
 
 /** The `Set-Cookie` value to send with this heartbeat's answer, or null for none. */
 export async function wallCookieForHeartbeat(request: NextRequest, displayId: string | undefined): Promise<string | null> {
@@ -28,7 +28,7 @@ export async function wallCookieForHeartbeat(request: NextRequest, displayId: st
   const wall = await wallFromCookies(cookieHeader);
 
   if (wall?.status === 'in') {
-    await touchWall(wall, { displayId: displayId ?? null, address, userAgent: request.headers.get('user-agent') ?? '' });
+    await touchWall(wall, { displayId: displayId ?? null, address, userAgent: request.headers.get('user-agent') ?? '', hubScreen: isHubOwnScreen(request) });
     if (Date.now() - wall.cookieIssuedAt < WALL_COOKIE_REFRESH_MS) return null;
     const value = wallCookieValue(cookieHeader);
     if (!value) return null;
@@ -56,6 +56,7 @@ export async function wallCookieForHeartbeat(request: NextRequest, displayId: st
     displayId: displayId ?? null,
     address,
     userAgent: request.headers.get('user-agent') ?? '',
+    hubScreen: facts.hubOwnScreen,
     passwordSet: await isAuthEnabled(),
   });
   return made ? buildWallCookie(made.cookieValue, request) : null;

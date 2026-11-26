@@ -32,6 +32,11 @@ vi.mock('@/lib/mealie-shopping', async (importOriginal) => ({
   setMealieShoppingItemChecked: vi.fn(),
 }));
 
+vi.mock('@/lib/todo-data', () => ({
+  readTodoData: vi.fn(),
+  updateTodoData: vi.fn(),
+}));
+
 // Wednesday of the Sunday-start week Sep 27 - Oct 3.
 vi.mock('@/lib/household-day', () => ({
   householdToday: vi.fn(async () => '2026-09-30'),
@@ -42,6 +47,8 @@ import { GET, POST } from '../route';
 import { readMealData, updateMealData } from '@/lib/meal-data';
 import { MealieShoppingGoneError, readMealieShopping, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
 import { MealieError } from '@/lib/mealie';
+import { readTodoData, updateTodoData } from '@/lib/todo-data';
+import type { TodoData } from '@/types/todos';
 
 const mockRead = vi.mocked(readMealData);
 const mockUpdate = vi.mocked(updateMealData);
@@ -239,6 +246,111 @@ describe('POST /api/meals/grocery', () => {
       groceryChecked: ['milk', 'bread', 'eggs'],
       changed: true,
     });
+  });
+});
+
+describe('POST /api/meals/grocery with a list picked for the other things to buy', () => {
+  const AT = '2026-09-25T09:00:00.000Z';
+  const THIS_WEEK_TICK = '2026-09-28T18:00:00.000Z';
+
+  let todos: TodoData;
+  let todoWrites: TodoData[];
+
+  function setExtras(): void {
+    const base = mealData({});
+    current = {
+      ...base,
+      savedMeals: [{
+        id: 'tacos',
+        name: 'Tacos',
+        ingredients: [
+          { name: 'tortillas', amount: '12', category: 'bakery' },
+          { name: 'milk', amount: '1 cup', category: 'dairy' },
+        ],
+      }],
+      settings: { ...base.settings, groceryExtrasListId: 'shop' },
+    };
+    mockRead.mockResolvedValue(current);
+    todos = {
+      lists: [{
+        id: 'shop', name: 'Shopping', slug: 'shopping', repeat: 'never', createdAt: AT, updatedAt: AT,
+        items: [
+          { id: 'batteries', text: 'Batteries', completed: false, createdAt: AT },
+          { id: 'food', text: 'Dog food', completed: true, createdAt: AT, completedAt: THIS_WEEK_TICK },
+          { id: 'milk', text: 'Milk', completed: false, createdAt: AT },
+        ],
+      }],
+    };
+  }
+
+  const item = (id: string) => todos.lists[0].items.find((it) => it.id === id)!;
+
+  beforeEach(() => {
+    setExtras();
+    todoWrites = [];
+    vi.mocked(readTodoData).mockImplementation(async () => todos);
+    vi.mocked(updateTodoData).mockImplementation(async (mutator) => {
+      const next = await mutator(todos);
+      if (next !== todos) {
+        todos = next;
+        todoWrites.push(next);
+      }
+      return todos;
+    });
+  });
+
+  it('ticks the to-do item for a name on that list, and leaves the meal ticks alone', async () => {
+    const res = await POST(postRequest({ item: 'batteries', direction: 'check' }));
+    expect(await res.json()).toEqual({ week: THIS_WEEK, groceryChecked: [], changed: true });
+    expect(item('batteries')).toMatchObject({ completed: true, completedAt: expect.any(String) });
+    expect(todoWrites).toHaveLength(1);
+    expect(persisted).toEqual([]);
+  });
+
+  it('puts a to-do item back, and does nothing on a repeat', async () => {
+    const back = await POST(postRequest({ item: 'Dog Food', direction: 'uncheck' }));
+    expect(await back.json()).toEqual({ week: THIS_WEEK, groceryChecked: [], changed: true });
+    expect(item('food')).toMatchObject({ completed: false, completedAt: undefined });
+
+    todoWrites = [];
+    const again = await POST(postRequest({ item: 'dog food', direction: 'uncheck' }));
+    expect(await again.json()).toEqual({ week: THIS_WEEK, groceryChecked: [], changed: false });
+    expect(todoWrites).toEqual([]);
+    expect(persisted).toEqual([]);
+  });
+
+  it('toggles a meal ingredient as before, without touching the to-do list', async () => {
+    const res = await POST(postRequest({ item: 'Tortillas' }));
+    expect(await res.json()).toEqual({ week: THIS_WEEK, groceryChecked: ['tortillas'], changed: true });
+    const back = await POST(postRequest({ item: 'tortillas' }));
+    expect(await back.json()).toEqual({ week: THIS_WEEK, groceryChecked: [], changed: true });
+    expect(updateTodoData).not.toHaveBeenCalled();
+  });
+
+  it('answers a name on neither list as it always has', async () => {
+    const res = await POST(postRequest({ item: 'saffron', direction: 'check' }));
+    expect(await res.json()).toEqual({ week: THIS_WEEK, groceryChecked: ['saffron'], changed: true });
+    expect(updateTodoData).not.toHaveBeenCalled();
+  });
+
+  it('ticks a name on both lists on both', async () => {
+    const res = await POST(postRequest({ item: 'milk', direction: 'check' }));
+    expect(await res.json()).toEqual({ week: THIS_WEEK, groceryChecked: ['milk'], changed: true });
+    expect(item('milk').completed).toBe(true);
+  });
+
+  it("leaves the to-do list alone for a tick on another week's list", async () => {
+    const res = await POST(postRequest({ item: 'batteries', direction: 'check', week: NEXT_WEEK }));
+    expect(await res.json()).toEqual({ week: NEXT_WEEK, groceryChecked: ['batteries'], changed: true });
+    expect(item('batteries').completed).toBe(false);
+    expect(updateTodoData).not.toHaveBeenCalled();
+  });
+
+  it('reads no to-do list when none is picked', async () => {
+    setStore({});
+    const res = await POST(postRequest({ item: 'batteries', direction: 'check' }));
+    expect(await res.json()).toEqual({ week: THIS_WEEK, groceryChecked: ['batteries'], changed: true });
+    expect(readTodoData).not.toHaveBeenCalled();
   });
 });
 

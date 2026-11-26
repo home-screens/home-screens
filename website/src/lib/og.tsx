@@ -36,7 +36,7 @@ function findPageInfo(slug: string): { title: string; section: string } {
 
 export function docsOgAlt(slug: string): string {
   const { title } = findPageInfo(slug)
-  return `Home Screens Documentation — ${title}`
+  return `Home Screens Documentation · ${title}`
 }
 
 export function createDocsOgImage(slug: string) {

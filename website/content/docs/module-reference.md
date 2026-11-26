@@ -49,7 +49,7 @@ The up next view is a fixed box, so when descriptions would push its last row of
 - **free-time**: One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
 - **rolling**: The next few weeks as a grid whose top-left cell is always today. Weekday columns shift one left each midnight, weekends are shaded, and each new month is marked on its first day. `rollingWeeksToShow` sets the week count (1–8, default 6).
 
-**Looking ahead:** with `eventTapDetails` on, every view but **up-next** and **free-time** has arrows on the right of its header that step it a week (a month on **month-grid**, a day on **day-timeline**, its columns on **schedule**) forward or back, up to eight weeks either way (two months back and six ahead on a month); a sideways swipe on it does the same instead of changing screens. While away the title names the period, a tag says which (Next week, In 3 weeks), past days are not faded or collapsed, and **Back to this week** goes straight back; a minute after the last touch on the screen it slides back by itself.
+**Looking ahead:** with `eventTapDetails` on, every view but **up-next** and **free-time** has arrows on the right of its header that step it a week (a month on **month-grid**, a day on **day-timeline**, its columns on **schedule**) forward or back, up to eight weeks either way (two months back and six ahead on a month); a sideways swipe on it does the same instead of changing screens. While away the title names the period, a tag says which (Next week, In 3 weeks), past days are not faded or collapsed, and **Back to this week** (**Back to this month** on **month-grid**, **Back to today** on **day-timeline** and on a **schedule** showing fewer than seven days) goes straight back; a minute after the last touch on the screen it slides back by itself.
 
 **People:** the family grid and free time views read the household list under **Settings > Family**. Choose each person’s calendars under **Settings > Calendar > Whose calendars?** A calendar picked for nobody is shared.
 
@@ -123,9 +123,9 @@ Some panels depend on what your weather source provides, and hide themselves whe
 - **Weather warnings** need alerts, available from Pirate Weather and NOAA.
 - **Feels like** comes from every source except Yr.no, SMHI and Environment Canada.
 - **Pressure** comes from every source except WeatherAPI and Environment Canada.
-- **Dew point** comes from Pirate Weather, NOAA, Open-Meteo, and the Met Office.
-- **UV index** comes from Pirate Weather, the Met Office, WeatherAPI, and Open-Meteo.
-- **Visibility** comes from Pirate Weather, NOAA, and the Met Office.
+- **Dew point** comes from Pirate Weather, NOAA, Open-Meteo, and the UK Met Office.
+- **UV index** comes from Pirate Weather, the UK Met Office, WeatherAPI, and Open-Meteo.
+- **Visibility** comes from Pirate Weather, NOAA, and the UK Met Office.
 
 The temperature curve draws however many hours your source returns, and its heading says how many. Most sources give 48 hours; OpenWeatherMap gives 5 days in 3-hour steps; NOAA gives about 6 days hourly.
 {% /module %}
@@ -213,7 +213,7 @@ Unified weather module with {% $stats.weatherViewCount %} views and {% $stats.we
 {% callout type="note" title="Set your location first" %}
 Every weather view needs a location. Set it once in **Settings > Location & language**. Without one the module says **Location not set** instead of showing a forecast.
 
-Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), **Yr.no**, **SMHI**, and **Environment Canada**. Four need a free key added on the provider's own card under **Settings > Weather**: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather**, and **Met Office**.
+Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), **Yr.no**, **SMHI**, and **Environment Canada**. Four need a free key added on the provider's own card under **Settings > Weather**: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather**, and **UK Met Office**.
 {% /callout %}
 
 {% fields /%}

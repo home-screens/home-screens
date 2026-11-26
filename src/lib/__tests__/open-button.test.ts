@@ -10,7 +10,7 @@ describe('canOpenWithCard', () => {
   });
 
   it('refuses every type that takes taps of its own', () => {
-    for (const type of ['calendar', 'todo', 'chore-chart', 'meal-planner', 'news', 'multi-month', 'photo-slideshow', 'fullscreen-photo', 'iframe', 'display-control'] as const) {
+    for (const type of ['calendar', 'todo', 'chore-chart', 'meal-planner', 'news', 'multi-month', 'photo-slideshow', 'fullscreen-photo', 'iframe', 'display-control', 'notes', 'quick-timer'] as const) {
       expect(canOpenWithCard(type)).toBe(false);
     }
   });

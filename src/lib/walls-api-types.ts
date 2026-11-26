@@ -11,6 +11,12 @@ export interface WallApiEntry {
   createdAt: number;
   letInByItself: boolean;
   hubScreen: boolean;
+  /**
+   * Removed, it is let straight back in the next time it opens the wall: the
+   * hub's own screen, or a browser on an allowed network while that lets
+   * displays in without asking. Remove then only clears its entry.
+   */
+  comesBack: boolean;
   looksFamiliar: boolean;
 }
 

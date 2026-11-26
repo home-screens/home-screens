@@ -113,7 +113,7 @@ const groups: Group[] = [
       },
       {
         feature: 'No PII telemetry',
-        note: 'Home Screens collects anonymous usage metrics only — no personally identifiable information, and you can disable it entirely in settings',
+        note: 'Home Screens collects anonymous usage metrics only, never personally identifiable information, and you can disable it entirely in settings',
         magicMirror: { kind: 'yes' },
         dakboard: { kind: 'no' },
         homeScreens: { kind: 'yes' },
@@ -134,7 +134,7 @@ const groups: Group[] = [
         feature: 'Community modules',
         note: 'MagicMirror has by far the largest ecosystem of any option here',
         magicMirror: { kind: 'text', label: 'Hundreds' },
-        dakboard: { kind: 'text', label: '—' },
+        dakboard: { kind: 'no', label: 'None' },
         homeScreens: { kind: 'text', label: 'Plugin SDK' },
       },
       {
@@ -224,7 +224,7 @@ const positioning = [
   {
     name: 'Home Screens',
     tagline: 'The middle path',
-    copy: `Open source + visual editor. Runs entirely on your Pi — no account, no cloud. ${MODULE_COUNT} built-in modules, a plugin SDK, and remote control from your phone.`,
+    copy: `Open source + visual editor. Runs entirely on your Pi, with no account and no cloud. ${MODULE_COUNT} built-in modules, a plugin SDK, and remote control from your phone.`,
     accent: 'cyan' as const,
   },
 ];
@@ -254,7 +254,7 @@ const tradeoffs = [
     items: [
       'You want Dakboard-style editing without the cloud.',
       `You want ${MODULE_COUNT} built-in modules out of the box.`,
-      'You want dedicated fullscreen calendar, chore, meal, and photo-frame modes — not just shrunk-down widgets.',
+      'You want dedicated fullscreen calendar, chore, meal, and photo-frame modes, not just shrunk-down widgets.',
       'Portrait or landscape, you want something the family will use daily.',
       'You want a plugin SDK and multi-display from one hub.',
     ],
@@ -425,7 +425,7 @@ export function VsComparison() {
             </h2>
             <p className="mt-3 text-neutral-400">
               Every claim here maps to something you can see in the docs or in
-              the source. Corrections welcome — open an issue on GitHub.
+              the source. Corrections welcome: open an issue on GitHub.
             </p>
           </div>
 
@@ -466,8 +466,8 @@ export function VsComparison() {
           </div>
 
           <p className="mt-4 text-xs text-neutral-600">
-            Last reviewed September 2026. Competitor pricing and features change —
-            check their sites for the current state.
+            Last reviewed September 2026. Competitor pricing and features change,
+            so check their sites for the current state.
           </p>
         </Container>
       </section>

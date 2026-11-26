@@ -170,8 +170,11 @@ export function WallsBlock({
   if (showing.length === 0) return null;
 
   const remove = async (wall: WallApiEntry) => {
+    // The hub's own screen and an allowed network's walls are let straight
+    // back in, so for them Remove only clears the entry.
+    const consequence = t(wall.comesBack ? 'settings.walls.removeComesBack' : 'settings.walls.removeConsequence');
     const ok = await useConfirmStore.getState().confirm(
-      buildDeleteConfirm({ verb: 'remove', name: wallBrowserName(tCore, wall), consequence: t('settings.walls.removeConsequence') }, tCore),
+      buildDeleteConfirm({ verb: 'remove', name: wallBrowserName(tCore, wall), consequence }, tCore),
     );
     if (!ok) return;
     setFailed(!(await onRemove(wall.id)));

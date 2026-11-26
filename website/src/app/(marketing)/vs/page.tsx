@@ -16,14 +16,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'MagicMirror vs Dakboard (2026): Honest Comparison',
     description:
-      'MagicMirror is free but DIY. Dakboard is polished but cloud + subscription. Home Screens is the middle path — open source, visual editor, self-hosted on your Pi.',
+      'MagicMirror is free but DIY. Dakboard is polished but cloud + subscription. Home Screens is the middle path: open source, visual editor, self-hosted on your Pi.',
     url: 'https://homescreens.dev/vs',
     type: 'article',
   },
   twitter: {
     title: 'MagicMirror vs Dakboard (2026): Honest Comparison',
     description:
-      'Free DIY vs $6/mo cloud (2 screens) — full side-by-side on price, features, and setup, plus a self-hosted alternative with a visual editor.',
+      'Free DIY vs $6/mo cloud (2 screens). A full side-by-side on price, features, and setup, plus a self-hosted alternative with a visual editor.',
   },
 };
 

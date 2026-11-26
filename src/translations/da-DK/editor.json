@@ -13,7 +13,7 @@
     "languageHelp": "Vælg det sprog, der bruges i editoren, på alle displays og på /remote.",
     "moreOptions": "Flere valgmuligheder",
     "formattingLocaleLabel": "Format for dato og tal",
-    "formattingLocaleHelp": "Tilsidesæt kun formatet for dato og tal. Sproget i brugerfladen ændres ikke.",
+    "formattingLocaleHelp": "Ændrer kun, hvordan datoer, klokkeslæt og tal skrives. Alt andet bliver på dit sprog.",
     "formattingLocaleSameAsLanguage": "Samme som sproget",
     "timeFormatLabel": "Tidsformat",
     "timeFormat12h": "12-timers · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Vises {count} sted",
         "other": "Vises {count} steder"
       },
-      "showingHint": "Hver browser, der viser dette display. Fjerner du en, skal den lukkes ind igen.",
+      "showingHint": "Hver browser, der viser dette display. Fjern dem, du ikke bruger længere eller ikke kender.",
       "seen": "sidst set {time}",
       "removeConsequence": "Denne browser holder op med at vise væggen og skal lukkes ind igen.",
+      "removeComesBack": "Denne browser kommer selv tilbage, næste gang den åbner væggen.",
       "removeFailed": "Den kunne ikke fjernes. Prøv igen."
     },
     "serviceAttention": {

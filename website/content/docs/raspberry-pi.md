@@ -133,7 +133,7 @@ curl -X POST http://localhost:3000/api/system/rollback \
 
 Three things to know about these:
 
-- If you have set a password, both need a logged-in editor session. The display token used for `/api/display/*` commands is not accepted here.
+- If you have set a password, both need a logged-in editor session. The display key used for `/api/display/*` commands is not accepted here.
 - A success response means the job **started**, not that it finished. Watch progress with `journalctl -u home-screens -f`, or poll `/api/system/status`.
 - Calling either one while an upgrade is already running returns `409` and does nothing.
 

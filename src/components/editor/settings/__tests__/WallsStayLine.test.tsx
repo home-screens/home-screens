@@ -50,6 +50,7 @@ function wall(over: Partial<WallApiEntry> = {}): WallApiEntry {
     createdAt: Date.now(),
     letInByItself: false,
     hubScreen: false,
+    comesBack: false,
     looksFamiliar: false,
     ...over,
   };

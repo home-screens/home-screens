@@ -19,7 +19,7 @@ type SourceSettings = Partial<Pick<
 >>;
 
 /** Modules whose `sourceFilter` lists the calendar sources they show. */
-const SOURCE_FILTER_MODULE_TYPES = new Set(['calendar', 'fullscreen-calendar']);
+const SOURCE_FILTER_MODULE_TYPES = new Set(['calendar', 'fullscreen-calendar', 'multi-month']);
 
 /**
  * Every calendar source id the settings still have: the picked Google

@@ -1,3 +1,5 @@
+import { readdirSync } from 'fs';
+import path from 'path';
 import { describe, it, expect } from 'vitest';
 import { applyAllowances, codeMatches, describeHits, readSource, sourceFiles, textPieces, type GuardAllowance, type GuardHit } from './source-guards';
 
@@ -46,8 +48,45 @@ export function emDashHits(file: string, source: string): GuardHit[] {
     .map(({ line, text }) => ({ file, line, text: text.trim().slice(0, 100) }));
 }
 
-function scan(find: (file: string, source: string) => GuardHit[]): GuardHit[] {
-  return UI_FILES.flatMap((file) => find(file, readSource(file)));
+/**
+ * An em-dash in a Markdown or HTML page, frontmatter included, outside its
+ * `<!-- -->` comments. A code sample is read too, so it counts.
+ */
+export function pageEmDashHits(file: string, source: string): GuardHit[] {
+  const uncommented = source.replace(/<!--[\s\S]*?-->/g, (comment) => comment.replace(/[^\n]/g, ' '));
+  return uncommented.split('\n').flatMap((text, i) =>
+    /—|&mdash;|&#8212;|&#x2014;/i.test(text) ? [{ file, line: i + 1, text: text.trim().slice(0, 100) }] : []);
+}
+
+/** Repo-relative paths of the files under `root` whose names match `include`, skipping the `skip` folders. */
+function filesUnder(root: string, include: RegExp, skip: string[] = []): string[] {
+  const walk = (dir: string): string[] =>
+    readdirSync(path.join(process.cwd(), dir), { withFileTypes: true }).flatMap((entry) => {
+      const rel = path.join(dir, entry.name);
+      if (entry.isDirectory()) return entry.name === 'node_modules' || entry.name === '__tests__' || skip.includes(rel) ? [] : walk(rel);
+      return include.test(entry.name) && !/\.test\./.test(entry.name) ? [rel] : [];
+    });
+  return walk(root).sort();
+}
+
+/**
+ * The marketing site. Its code is read like the app's, comments left out;
+ * the Markdoc helpers are plain JS with JSX in them, so they are parsed as
+ * TSX. Its pages are the Markdown under website/content apart from the
+ * generated schema, and the social card. Release notes are not here: the
+ * changelog renders them from RELEASE_NOTES/, which is history and stays
+ * as written.
+ */
+const WEBSITE_CODE = [...sourceFiles(['website/src']), ...filesUnder('website/src', /\.m?js$/)].sort();
+const WEBSITE_PAGES = [...filesUnder('website/content', /\.md$/, ['website/content/generated']), 'website/og-image.html'];
+
+function websiteCodeEmDashHits(file: string, source: string): GuardHit[] {
+  const parseAs = /\.m?js$/.test(file) ? `${file}.tsx` : file;
+  return emDashHits(parseAs, source).map((hit) => ({ ...hit, file }));
+}
+
+function scan(find: (file: string, source: string) => GuardHit[], files: string[] = UI_FILES): GuardHit[] {
+  return files.flatMap((file) => find(file, readSource(file)));
 }
 
 describe('shared guard detectors', () => {
@@ -92,6 +131,26 @@ describe('shared guard detectors', () => {
       'const d = <p>{/* one — two */}</p>;',
     ].join('\n');
     expect(emDashHits('x.tsx', source).map((h) => h.line)).toEqual([1, 2, 3]);
+  });
+
+  it('finds an em-dash anywhere in a page, frontmatter and entities included, but not in an HTML comment', () => {
+    const source = [
+      '---',
+      'description: one — two',
+      '---',
+      '<!-- one — two -->',
+      '<!--',
+      '  one — two',
+      '-->',
+      'One &mdash; two.',
+      'One, two: three.',
+      '`one — two`',
+    ].join('\n');
+    expect(pageEmDashHits('x.md', source)).toEqual([
+      { file: 'x.md', line: 2, text: 'description: one — two' },
+      { file: 'x.md', line: 8, text: 'One &mdash; two.' },
+      { file: 'x.md', line: 10, text: '`one — two`' },
+    ]);
   });
 });
 
@@ -138,5 +197,12 @@ describe('em-dashes', () => {
   it('nothing a person reads has an em-dash', () => {
     const hits = scan(emDashHits);
     expect(hits, `Use a colon, a comma, a full stop or " · " instead of an em-dash:\n${describeHits(hits)}`).toEqual([]);
+  });
+
+  it('nothing on the website has an em-dash', () => {
+    expect(WEBSITE_CODE.some((file) => file.endsWith('.js'))).toBe(true);
+    expect(WEBSITE_PAGES).toEqual(expect.arrayContaining(['website/content/docs/index.md', 'website/content/blog/introducing-home-screens.md', 'website/content/legal/privacy.md']));
+    const hits = [...scan(websiteCodeEmDashHits, WEBSITE_CODE), ...scan(pageEmDashHits, WEBSITE_PAGES)];
+    expect(hits, `Instead of an em-dash, use " · " in a title and a colon, a comma, parentheses or a full stop elsewhere:\n${describeHits(hits)}`).toEqual([]);
   });
 });

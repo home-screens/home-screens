@@ -75,6 +75,11 @@ export interface WallEntry {
   address: string;
   userAgent: string;
   viewport?: { width: number; height: number };
+  /**
+   * Last seen as the hub's own screen, however it was first let in. Such a
+   * browser comes straight back after a Remove, so the editor says so.
+   */
+  hubScreen?: boolean;
   createdAt: number;
   lastSeenAt: number;
   cookieIssuedAt: number;
@@ -84,8 +89,9 @@ export interface WallsFile {
   version: 1;
   /**
    * When the changeover window began: the first time a hub that already had
-   * a password ran a version with walls. Written once and never moved. Null
-   * on a hub that had nothing to move over.
+   * a password ran a version with walls, or a restore that gave a hub with
+   * none its first password. Written once and never moved. Null on a hub
+   * that had nothing to move over.
    */
   windowStartedAt: number | null;
   /**
@@ -282,6 +288,8 @@ export interface WallSighting {
   address?: string;
   userAgent?: string;
   viewport?: { width: number; height: number };
+  /** Whether this request came from the hub's own screen; omitted when the caller cannot tell. */
+  hubScreen?: boolean;
 }
 
 /**
@@ -310,6 +318,11 @@ export function touchWall(entry: WallEntry, seen: WallSighting = {}): Promise<vo
       changed = true;
     }
     if (seen.viewport) entry.viewport = seen.viewport;
+    if (seen.hubScreen !== undefined && seen.hubScreen !== (entry.hubScreen === true)) {
+      if (seen.hubScreen) entry.hubScreen = true;
+      else delete entry.hubScreen;
+      changed = true;
+    }
     entry.lastSeenAt = now;
     if (changed || now - lastFlushAt > LAST_SEEN_FLUSH_MS) await persist();
   });
@@ -349,6 +362,7 @@ export interface NewWall {
   address: string;
   userAgent: string;
   viewport?: { width: number; height: number };
+  hubScreen?: boolean;
   passwordSet: boolean;
 }
 
@@ -431,6 +445,7 @@ export function createWall(input: NewWall): Promise<{ entry: WallEntry; cookieVa
       address: input.address,
       userAgent,
       ...(input.viewport ? { viewport: input.viewport } : {}),
+      ...(input.hubScreen ? { hubScreen: true } : {}),
       createdAt: now,
       lastSeenAt: now,
       cookieIssuedAt: now,
@@ -528,6 +543,26 @@ export function keepShowingWallsOnFirstPassword(): Promise<WallEntry[]> {
     forgetIdleOpenDoorWalls(file, Date.now());
     await persist();
     return structuredClone(file.walls.filter((w) => w.status === 'in'));
+  });
+}
+
+/**
+ * A restore just gave this hub its first password: a rebuilt hub getting its
+ * backup back. The walls showing right now stay let in, as when a password
+ * is set by hand, and the changeover window starts here, as it did on the
+ * update's first boot, so the household's displays that were off come back
+ * by themselves. A window that ever started is never started again, and an
+ * unreadable file is left alone. True when the window started.
+ */
+export function startWindowAfterRestoredPassword(): Promise<boolean> {
+  return locked(async () => {
+    const file = await load(false);
+    if (unreadable) return false;
+    forgetIdleOpenDoorWalls(file, Date.now());
+    const starts = file.windowStartedAt === null;
+    if (starts) file.windowStartedAt = Date.now();
+    await persist();
+    return starts;
   });
 }
 

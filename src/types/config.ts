@@ -888,22 +888,24 @@ export interface CalendarSettings {
   /** Google calendars to show */
   googleCalendarIds: string[];
   /**
-   * The order calendars are shown in within a day, most wanted first
+   * Which calendars keep their rows on a day with more events than fit, most
+   * wanted first
    *
-   * A day on the wall is a fixed number of rows, so whatever order events are
-   * in decides which ones survive the cap. In time order that decision is
-   * arbitrary: a 7am bin collection pushes a birthday off the bottom. Listing
-   * the calendars that matter first means those are the ones that stay.
+   * A day on the wall is a fixed number of rows, so something decides which
+   * events survive the cap. Going by time alone that decision is arbitrary: a
+   * 7am bin collection pushes a birthday off the bottom. Listing the calendars
+   * that matter first means those are the ones that stay. The rows that are
+   * kept still read in time order.
    *
-   * Holds source ids. A calendar missing from the list is shown after every
-   * listed one, in its usual place in time, so putting one calendar at the top
-   * is a complete instruction rather than the start of ranking them all.
+   * Holds source ids. A calendar missing from the list comes after every
+   * listed one, so putting one calendar at the top is a complete instruction
+   * rather than the start of ranking them all.
    */
   calendarOrder?: string[];
 
   /**
-   * The colours offered when a calendar is recoloured by tapping its dot on
-   * the wall
+   * The colours offered when a calendar is recoloured with the Color button
+   * in the wall's Calendars sheet
    *
    * Eight colours, in the order the sheet lays them out, the same ones
    * Settings offers each calendar. Absent means those defaults. A household
@@ -1355,8 +1357,8 @@ export interface GlobalSettings {
   /** Save backups on the hub by itself on a schedule (see AutoBackupSettings). Hub only */
   autoBackup?: AutoBackupSettings;
   /**
-   * Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets date and number
-   * formatting unless `formattingLocale` overrides it
+   * Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets how dates, times
+   * and numbers are written unless `formattingLocale` overrides it
    *
    * BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US".
    *
@@ -1364,10 +1366,10 @@ export interface GlobalSettings {
    */
   locale?: string;
   /**
-   * A BCP-47 tag that changes only date and number formatting, leaving the language alone. Unset
-   * follows `locale`
+   * A BCP-47 tag that changes only how dates, times and numbers are written, leaving the language
+   * alone. Unset follows `locale`
    *
-   * Optional override for date/number formatting only. Falls back to `locale`.
+   * Optional override for date, time and number formatting only. Falls back to `locale`.
    */
   formattingLocale?: string;
   /**

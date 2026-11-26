@@ -13,7 +13,7 @@
     "languageHelp": "Escolha o idioma usado no editor, em todos os displays e no /remote.",
     "moreOptions": "Mais opções",
     "formattingLocaleLabel": "Localidade de formatação",
-    "formattingLocaleHelp": "Substitui apenas a formatação de datas e números. Mantém o idioma da interface inalterado.",
+    "formattingLocaleHelp": "Muda só o jeito de escrever datas, horas e números. Todo o resto continua no seu idioma.",
     "formattingLocaleSameAsLanguage": "Mesma do idioma",
     "timeFormatLabel": "Formato da hora",
     "timeFormat12h": "12 horas · 8:00 AM",
@@ -3002,9 +3002,10 @@
         "one": "Aparecendo em {count} lugar",
         "other": "Aparecendo em {count} lugares"
       },
-      "showingHint": "Cada navegador que mostra este display. Se você remover um, ele precisará de permissão para entrar de novo.",
+      "showingHint": "Cada navegador que mostra este display. Remova os que você não usa mais ou não reconhece.",
       "seen": "visto {time}",
       "removeConsequence": "Este navegador para de mostrar o painel e precisará de permissão para entrar de novo.",
+      "removeComesBack": "Este navegador volta sozinho na próxima vez que abrir o painel.",
       "removeFailed": "Não foi possível remover. Tente de novo."
     },
     "serviceAttention": {

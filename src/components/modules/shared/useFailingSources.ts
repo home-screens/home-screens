@@ -145,7 +145,7 @@ export function calendarStatusView(opts: {
 /**
  * Shared derivation of the per-source failure presentation both calendar
  * modules render: which sources are failing (honoring the module's source
- * filter — a filtered-out source's outage is not this module's problem),
+ * filter: a filtered-out source's outage is not this module's problem),
  * whether any source it uses is still updating, and the id set for legend
  * rings and row "saved" suffixes.
  */
