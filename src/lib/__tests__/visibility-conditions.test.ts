@@ -217,15 +217,24 @@ describe('evaluateVisibility', () => {
       expect(evaluateVisibility(v, states({ known: 'yes' }))).toBe(false);
     });
 
-    it('an incomplete condition (empty sourceKey) gates on whenUnknown', () => {
-      // The editor saves new conditions blank while the user picks a key —
-      // an empty key can never be published, so it is permanently unknown.
-      const v = vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }] });
-      expect(evaluateVisibility(v, states({ door: 'open' }))).toBe(false);
-      expect(evaluateVisibility(
-        vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }], whenUnknown: 'show' }),
-        states({}),
-      )).toBe(true);
+    it('skips a condition with no key picked, so starting one never hides the card', () => {
+      // The editor saves a new condition blank while the key is being picked.
+      expect(evaluateVisibility(vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }] }), states({}))).toBe(true);
+      expect(evaluateVisibility(vis({ conditions: [{ kind: 'numeric', sourceKey: '', above: 3 }] }), states({}))).toBe(true);
+      // The finished conditions beside it still decide.
+      const mixed = vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }, { kind: 'state', sourceKey: 'door', equals: 'open' }] });
+      expect(evaluateVisibility(mixed, states({ door: 'open' }))).toBe(true);
+      expect(evaluateVisibility(mixed, states({ door: 'shut' }))).toBe(false);
+      expect(evaluateVisibility(mixed, states({}))).toBe(false);
+    });
+
+    it('skips a group holding only unpicked conditions, whatever its kind', () => {
+      for (const kind of ['and', 'or', 'not'] as const) {
+        const v = vis({ conditions: [{ kind, conditions: [{ kind: 'state', sourceKey: '', equals: '' }] }] });
+        expect(evaluateVisibility(v, states({}))).toBe(true);
+      }
+      // An empty "any of" group used to hide the card for good.
+      expect(evaluateVisibility(vis({ conditions: [{ kind: 'or', conditions: [] }] }), states({}))).toBe(true);
     });
   });
 

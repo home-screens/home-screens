@@ -225,3 +225,34 @@ export async function requestRedemption(
   const carriesNumbers = outcome === 'redeemed' || (res.status === 409 && body?.reason === MOVED_REASON);
   return { outcome, numbers: carriesNumbers && body ? { balances: body.balances, redemptions: body.redemptions, goals: body.goals } : null };
 }
+
+/** What a rewards store needs to know about a person to decide whether to list them. */
+export interface ShopperFacts {
+  /** Chore assignments across the week; zero means no chores at all this week. */
+  weekAssigned: number;
+  rewardBalance: number;
+}
+
+/**
+ * Who a rewards store on the wall lists, and in what order: the people with
+ * chores this week first, then anyone else who holds tickets or has a reward
+ * on record. A grown-up with none of those is left off, so a store never opens
+ * on someone with nothing to spend. Order within each group is family order.
+ * When nobody qualifies (a household just starting), everyone is listed.
+ */
+export function storeMembers<M extends { id: string }>(
+  members: readonly M[],
+  facts: ReadonlyMap<string, ShopperFacts>,
+  redemptions: readonly Pick<RewardRedemption, 'memberId'>[],
+): M[] {
+  const redeemed = new Set(redemptions.map((r) => r.memberId));
+  const doers: M[] = [];
+  const holders: M[] = [];
+  for (const member of members) {
+    const f = facts.get(member.id);
+    if (f && f.weekAssigned > 0) doers.push(member);
+    else if ((f && f.rewardBalance !== 0) || redeemed.has(member.id)) holders.push(member);
+  }
+  const listed = [...doers, ...holders];
+  return listed.length > 0 ? listed : [...members];
+}

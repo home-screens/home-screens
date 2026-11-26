@@ -771,6 +771,10 @@
         "one": "Væggene og pligtsiden tager ikke imod voksenkoden i {count} minut mere.",
         "other": "Væggene og pligtsiden tager ikke imod voksenkoden i {count} minutter mere."
       }
+    },
+    "grownUpCode": {
+      "on": "Til. Væggen spørger efter den, før der bruges billetter.",
+      "off": "Fra. Vælg en, så væggen spørger, før der bruges billetter."
     }
   },
   "photosTab": {
@@ -1558,5 +1562,20 @@
       "other": "{count} vægge venter på at blive lukket ind."
     },
     "openEditor": "Åbn editoren for at lukke dem ind"
+  },
+  "grownUpCode": {
+    "setTitle": "Vælg en voksenkode",
+    "changeTitle": "Skift voksenkoden",
+    "explain": "Fire tal, som væggen spørger efter, før der bruges billetter, så et barn ikke kan bruge dem alene. Hvad koden ellers beskytter, kan vælges på en computer.",
+    "codeLabel": "Fire tal",
+    "againLabel": "Samme tal igen",
+    "save": "Gem kode",
+    "problem": {
+      "format": "Brug fire tal.",
+      "mismatch": "Koderne er ikke ens."
+    },
+    "saved": "Voksenkoden er gemt",
+    "nudge": "Børn kan bruge billetter på væggen uden at spørge. En voksenkode forhindrer det.",
+    "dismiss": "Vis ikke igen"
   }
 }

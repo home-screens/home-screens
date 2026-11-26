@@ -89,10 +89,12 @@ describe('explainVisibility', () => {
     expect(explainVisibility({ conditions: [stateCondition('plugin:ha:door')] }, s)).toEqual({
       visible: true,
       unknownKeys: [],
+      unpicked: false,
     });
     expect(explainVisibility({ conditions: [stateCondition('plugin:ha:door', 'off')] }, s)).toEqual({
       visible: false,
       unknownKeys: [],
+      unpicked: false,
     });
   });
 
@@ -110,17 +112,21 @@ describe('explainVisibility', () => {
     expect(explainVisibility(visibility, s)).toEqual({
       visible: false,
       unknownKeys: ['plugin:ha:aaa', 'plugin:ha:zzz'],
+      unpicked: false,
     });
     expect(explainVisibility({ ...visibility, whenUnknown: 'show' as const }, s)).toEqual({
       visible: true,
       unknownKeys: ['plugin:ha:aaa', 'plugin:ha:zzz'],
+      unpicked: false,
     });
   });
 
-  it('includes the empty authoring key among unknown keys', () => {
+  it('says a condition has no key picked, and that it is skipped rather than hiding the card', () => {
     const explained = explainVisibility({ conditions: [stateCondition('')] }, states({}));
-    expect(explained.unknownKeys).toEqual(['']);
-    expect(explained.visible).toBe(false);
+    expect(explained).toEqual({ visible: true, unknownKeys: [], unpicked: true });
+    // A finished condition beside it still decides, and its missing key is still named.
+    expect(explainVisibility({ conditions: [stateCondition(''), stateCondition('plugin:ha:door')] }, states({})))
+      .toEqual({ visible: false, unknownKeys: ['plugin:ha:door'], unpicked: true });
   });
 });
 

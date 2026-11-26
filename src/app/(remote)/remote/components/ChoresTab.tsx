@@ -12,7 +12,7 @@ import type {
 } from '@/types/config';
 import { loadChoreSnapshot, type ChoreSnapshot } from '@/lib/chore-client';
 import { useChoreAutosave } from '@/components/chores/useChoreAutosave';
-import { buildCompletionSet, choresAssignedTo, choresOwedBy, isAssignedOn, isChoreComplete, isChoreSkipped } from '@/lib/chore-assignments';
+import { buildCompletionSet, choreDoersFirst, choresAssignedTo, choresOwedBy, isAssignedOn, isChoreComplete, isChoreSkipped } from '@/lib/chore-assignments';
 import { TIME_OF_DAY_META, computeStreak, countWeekAssignments, getCurrentTimeOfDay, getWeekDatesFor, isDayFullyComplete } from '@/components/modules/chore-chart/types';
 import { atGrabLimit, readChoreSettings, resolveBonusFor, type BonusRefusal } from '@/lib/chore-bonus';
 import { choreDayMenu, choreDayMenuKey, type ChoreDayMenuAction } from '@/lib/chore-day-menu';
@@ -400,6 +400,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // day on screen (`choreDayMenu`); null when there is nothing to offer, and
   // then the row has no ••• and no hold.
   const memberIds = useMemo(() => members.map((m) => m.id), [members]);
+  // The kids' page lists the people with chores first, so a child finds their
+  // name before the grown-ups'. The phone keeps the family's own order.
+  const pickOrder = useMemo(() => (isAdmin ? members : choreDoersFirst(members, chores, groups)), [isAdmin, members, chores, groups]);
   const menuFor = (choreId: string): ChoreDayMenuAction[] | null => {
     const chore = chores.find((c) => c.id === choreId);
     if (!chore || !selectedMember) return null;
@@ -530,7 +533,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
 
       {subView === 'rewards' ? (
         <RewardsView
-          members={members}
+          members={pickOrder}
           accentColor={accentColor}
           isAdmin={isAdmin}
           selectedMemberId={selectedMemberId}
@@ -581,7 +584,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           weekLine={weekLine}
           showBalances={showBalances}
           balances={balances}
-          members={members}
+          members={pickOrder}
           groups={groups}
           chores={chores}
           completionSet={completionSet}

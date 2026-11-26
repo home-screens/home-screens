@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { choreAppliesToday, choreAssigneeIds, choreGroupIdsOn, choresAssignedTo, resolveAssignee, resolveAssignmentsFor, type ChoreGroup } from '@/lib/chore-assignments';
+import { choreAppliesToday, choreAssigneeIds, choreDoersFirst, choreGroupIdsOn, choresAssignedTo, resolveAssignee, resolveAssignmentsFor, type ChoreGroup } from '@/lib/chore-assignments';
 import type { ChoreDefinition } from '@/types/config';
 import type { FamilyMember } from '@/types/family';
 
@@ -133,5 +133,22 @@ describe('week boundaries', () => {
     expect(new Set(on).size).toBe(1);
     const next = choreAppliesToday({ ...pair, frequency: 'biweekly' }, 1, '2026-09-21');
     expect(next).toBe(!on[0]);
+  });
+});
+
+describe('choreDoersFirst', () => {
+  const people = ['dana', 'alex', 'noah', 'mia'].map((id) => ({ id }));
+
+  it('puts everyone with a chore, by name or through a group, ahead of the rest', () => {
+    const groups: ChoreGroup[] = [{ id: 'kids', name: 'Kids', memberIds: ['mia'] } as ChoreGroup];
+    const chores = [
+      { assigneeIds: ['noah'], assigneeGroupIds: [] },
+      { assigneeIds: [], assigneeGroupIds: ['kids'] },
+    ];
+    expect(choreDoersFirst(people, chores, groups).map((m) => m.id)).toEqual(['noah', 'mia', 'dana', 'alex']);
+  });
+
+  it('keeps family order when nobody has a chore', () => {
+    expect(choreDoersFirst(people, [], [])).toEqual(people);
   });
 });

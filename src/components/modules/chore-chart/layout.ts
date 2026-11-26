@@ -243,6 +243,8 @@ interface ChoreFitInput {
    */
   extra?: { rows: number; sections: number };
   view: string;
+  /** The card takes taps: its dots keep the touch floor (`choreDotSize`). */
+  touch?: boolean;
 }
 
 /** Below this the chart is unreadable from anywhere, so it stops shrinking.
@@ -330,7 +332,7 @@ export const MORE_PILL_FLOOR_PX = CHORE_FONT_FLOOR;
  * The module font size is a ceiling, not a target, so a chart that already
  * fits is left exactly as it was and only an overfull one shrinks.
  */
-export function fitChoreFontSize({ width, height, requested, rows, sections, blocks = sections, extra, view }: ChoreFitInput): number {
+export function fitChoreFontSize({ width, height, requested, rows, sections, blocks = sections, extra, view, touch = false }: ChoreFitInput): number {
   if (height <= 0 || width <= 0) return requested;
   if (view === 'star-chart') {
     // A table: a header row, one row per charted member, then the legend.
@@ -367,7 +369,7 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, blo
   // and the dot is what sets its height.
   const rowTall = (f: number) => {
     if (view in PLAIN_ROW_EM) return PLAIN_ROW_EM[view] * f + PLAIN_ROW_RULE_PX;
-    const target = view === 'today' ? choreDotSize(f) : choreTapSize(f);
+    const target = view === 'today' ? choreDotSize(f, touch) : choreTapSize(f);
     return target + ROW_PADDING_EM[view] * f;
   };
   const tall = (f: number, more = 0, bands = 0) =>
@@ -583,17 +585,25 @@ export function choreIconSize(fontSize: number): number {
 }
 
 /**
+ * The smallest a dot gets on a card children tick on: a 24px dot 4px from the
+ * next one put a sibling's chore under a small finger.
+ */
+export const CHORE_TOUCH_DOT_PX = 40;
+
+/**
  * An assignee dot on a `today` row. Every person on a shared chore gets one,
  * and each is its own tap target, so it keeps a fingertip floor of its own and
  * stops growing before a row of five dots takes the width the chore name needs.
+ * On a card that takes taps (`touch`) the floor is `CHORE_TOUCH_DOT_PX`, and a
+ * long day scrolls rather than shrinking the dots.
  */
-export function choreDotSize(fontSize: number): number {
-  return Math.round(Math.max(24, Math.min(40, fontSize * 1.5)));
+export function choreDotSize(fontSize: number, touch = false): number {
+  return Math.round(Math.max(touch ? CHORE_TOUCH_DOT_PX : 24, Math.min(40, fontSize * 1.5)));
 }
 
-/** The gap between dots in a run, in px. */
-export function choreDotGap(dotSize: number): number {
-  return Math.max(3, Math.round(dotSize * 0.16));
+/** The gap between dots in a run, in px: never under 10px where children tap. */
+export function choreDotGap(dotSize: number, touch = false): number {
+  return Math.max(touch ? 10 : 3, Math.round(dotSize * 0.16));
 }
 
 /**

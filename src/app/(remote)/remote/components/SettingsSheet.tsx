@@ -11,11 +11,12 @@ import type { SystemStats } from '@/lib/system-stats-types';
 import ConfirmSheet from './ConfirmSheet';
 import FormOverlay from './FormOverlay';
 import PhoneFamilyManager from '@/components/family/PhoneFamilyManager';
-import { ChevronRight, ImagePlus, Users } from 'lucide-react';
+import { ChevronRight, ImagePlus, Lock, Users } from 'lucide-react';
 import CustomIconsOverlay from './CustomIconsOverlay';
 import SlideUpSheet from './SlideUpSheet';
 import PhoneSwitch from './PhoneSwitch';
 import PrimaryButton from './PrimaryButton';
+import GrownUpCodeSetSheet from './GrownUpCodeSetSheet';
 import { segmentStyle } from './remote-styles';
 import { fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
 import { formatIconBytes } from '@/lib/custom-icons';
@@ -168,10 +169,16 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   // signed-in phone may end: whole minutes left when the sheet opened.
   const [lockedMinutes, setLockedMinutes] = useState(0);
   const [lockState, setLockState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  // Whether a grown-up code is set, for its row; null until the hub answers.
+  const [codeSet, setCodeSet] = useState<boolean | null>(null);
+  const [codeSheetOpen, setCodeSheetOpen] = useState(false);
   const readCodeLock = useCallback(() => {
     editorFetch('/api/grown-up-code')
       .then((res) => (res.ok ? res.json() : null))
-      .then((status: { lockedSeconds?: number } | null) => setLockedMinutes(status?.lockedSeconds ? Math.ceil(status.lockedSeconds / 60) : 0))
+      .then((status: { set?: boolean; lockedSeconds?: number } | null) => {
+        setLockedMinutes(status?.lockedSeconds ? Math.ceil(status.lockedSeconds / 60) : 0);
+        setCodeSet(status ? status.set === true : null);
+      })
       .catch(() => setLockedMinutes(0));
   }, []);
   const clearCodeLock = async () => {
@@ -407,6 +414,16 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
             iconColor="text-hs-accent"
             icon={<Users size={18} />}
           />
+          {codeSet !== null && (
+            <PowerRow
+              label={tCore('grownUp.title')}
+              description={t(codeSet ? 'settingsSheet.grownUpCode.on' : 'settingsSheet.grownUpCode.off')}
+              onClick={() => setCodeSheetOpen(true)}
+              iconBg="bg-hs-warning/[0.12]"
+              iconColor="text-hs-warning-ink"
+              icon={<Lock size={18} />}
+            />
+          )}
           <PowerRow
             label={tCore('customIcons.yourIcons')}
             description={tCore('customIcons.settingsRow.description', { count: icons.length })}
@@ -587,6 +604,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       </SlideUpSheet>
 
       {open && familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
+      {open && codeSheetOpen && (
+        <GrownUpCodeSetSheet changing={codeSet === true} layer="sheetOverSheet" onClose={() => setCodeSheetOpen(false)} onSaved={readCodeLock} />
+      )}
       {open && iconsOpen && <CustomIconsOverlay onBack={() => setIconsOpen(false)} />}
 
       {restoreState === 'confirming' && (

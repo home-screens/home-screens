@@ -771,6 +771,10 @@
         "one": "De volwassenencode werkt nog {count} minuut niet op de muren en de klusjespagina.",
         "other": "De volwassenencode werkt nog {count} minuten niet op de muren en de klusjespagina."
       }
+    },
+    "grownUpCode": {
+      "on": "Aan. De muur vraagt erom voordat er tickets worden uitgegeven.",
+      "off": "Uit. Stel er een in, zodat de muur vraagt voordat er tickets worden uitgegeven."
     }
   },
   "photosTab": {
@@ -1558,5 +1562,20 @@
       "other": "{count} muren wachten om binnengelaten te worden."
     },
     "openEditor": "Open de editor om ze binnen te laten"
+  },
+  "grownUpCode": {
+    "setTitle": "Volwassenencode instellen",
+    "changeTitle": "Volwassenencode wijzigen",
+    "explain": "Vier cijfers waar de muur om vraagt voordat er tickets worden uitgegeven, zodat een kind ze niet zelf kan uitgeven. Wat de code verder beschermt, kies je op een computer.",
+    "codeLabel": "Vier cijfers",
+    "againLabel": "Nog een keer",
+    "save": "Code opslaan",
+    "problem": {
+      "format": "Gebruik vier cijfers.",
+      "mismatch": "De codes zijn niet gelijk."
+    },
+    "saved": "Volwassenencode opgeslagen",
+    "nudge": "Kinderen kunnen op de muur tickets uitgeven zonder te vragen. Een volwassenencode voorkomt dat.",
+    "dismiss": "Niet meer tonen"
   }
 }

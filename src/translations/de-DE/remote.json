@@ -771,6 +771,10 @@
         "one": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minute lang nicht an.",
         "other": "Die Displays und die Aufgabenseite nehmen den Erwachsenen-Code noch {count} Minuten lang nicht an."
       }
+    },
+    "grownUpCode": {
+      "on": "An. Das Display fragt danach, bevor Tickets ausgegeben werden.",
+      "off": "Aus. Leg einen fest, damit das Display vor dem Ausgeben von Tickets fragt."
     }
   },
   "photosTab": {
@@ -1558,5 +1562,20 @@
       "other": "{count} Displays warten darauf, hereingelassen zu werden."
     },
     "openEditor": "Öffne den Editor, um sie hereinzulassen"
+  },
+  "grownUpCode": {
+    "setTitle": "Erwachsenen-Code festlegen",
+    "changeTitle": "Erwachsenen-Code ändern",
+    "explain": "Vier Ziffern, nach denen das Display fragt, bevor Tickets ausgegeben werden, damit ein Kind sie nicht allein ausgeben kann. Was er sonst noch schützt, lässt sich am Computer auswählen.",
+    "codeLabel": "Vier Ziffern",
+    "againLabel": "Code wiederholen",
+    "save": "Code speichern",
+    "problem": {
+      "format": "Gib vier Ziffern ein.",
+      "mismatch": "Die Codes sind nicht gleich."
+    },
+    "saved": "Erwachsenen-Code gespeichert",
+    "nudge": "Kinder können am Display Tickets ausgeben, ohne zu fragen. Ein Erwachsenen-Code verhindert das.",
+    "dismiss": "Nicht mehr anzeigen"
   }
 }

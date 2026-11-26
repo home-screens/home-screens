@@ -1064,7 +1064,8 @@
         "one": "{count} ticket. {member} will have {left} left.",
         "other": "{count} tickets. {member} will have {left} left."
       },
-      "notNow": "Not now"
+      "notNow": "Not now",
+      "tapYourName": "Tap your name"
     },
     "ariaLabels": {
       "completeChore": "Complete {chore} for {member}",
@@ -1314,6 +1315,10 @@
         "one": "{count} ticket today",
         "other": "{count} tickets today"
       }
+    },
+    "undone": {
+      "notDone": "{chore} is not done for {member}",
+      "doneAgain": "{chore} is done again for {member}"
     }
   },
   "sports": {

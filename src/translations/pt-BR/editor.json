@@ -5982,7 +5982,7 @@
       "shownNowEditor": "Seria exibido agora mesmo",
       "hiddenNowEditor": "Seria ocultado agora mesmo",
       "waitingForKeys": "aguardando {keys}",
-      "keyNotPicked": "uma condição ainda não tem chave escolhida",
+      "keyNotPicked": "uma condição ainda não tem chave escolhida, então é ignorada",
       "conditionsNotMet": "as condições não correspondem",
       "seeLiveValues": "Cada condição mostra o que o display vê agora, e todos os valores aparecem em {place}."
     },

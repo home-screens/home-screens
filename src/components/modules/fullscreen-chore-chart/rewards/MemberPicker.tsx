@@ -4,8 +4,9 @@ import type { FamilyMember } from '@/types/family';
 
 import React from 'react';
 import { Ticket } from 'lucide-react';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInk } from '@/lib/family-avatar';
 import { WallButton } from '@/components/modules/shared/WallButton';
+import { MemberGlyph } from '../../shared/MemberBadge';
 
 
 interface MemberPickerProps {
@@ -87,7 +88,7 @@ export default function MemberPicker({ members, balances, selectedId, onSelect, 
                 color: memberInk(member.color),
               }}
             >
-              {memberInitials(member.name)}
+              <MemberGlyph member={member} size={Math.round(avatar * 0.57)} />
             </span>
 
             <span style={{ fontSize: nameSize, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap' }}>

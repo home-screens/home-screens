@@ -2,11 +2,11 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ArrowLeft, History, Ticket, Users } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
-import { formatTimeAgoLocalized } from '@/lib/chore-constants';
+import { CHORE_STORE_IDLE_MS, formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { getDensityMultiplier, resolveFullscreenOnAccent, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
@@ -73,9 +73,11 @@ export function RewardsStoreView({
 }: RewardsStoreViewProps) {
   // Ink that reads on top of the accent (Redeem, Yes!, the redeemed bar).
   const onAccent = useMemo(() => resolveFullscreenOnAccent(accentColor, theme, DEFAULT_ACCENT_COLOR), [accentColor, theme]);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
-    members.length > 0 ? members[0].id : null,
-  );
+  // Nobody is picked until someone taps their name: a store that opened on
+  // whoever used it last let the next child spend that child's tickets. One
+  // person needs no picking.
+  const [pickedId, setSelectedMemberId] = useState<string | null>(null);
+  const selectedMemberId = members.some((m) => m.id === pickedId) ? pickedId : members.length === 1 ? members[0].id : null;
   // Both come straight from the shared chore data, which a redeem publishes
   // into; a copy kept here was overwritten by the next poll of anything else.
   const localBalances = balances;
@@ -86,18 +88,9 @@ export function RewardsStoreView({
 
   const [scrollerRef, scrollerSize] = useElementBox();
 
-  // When the rewards store is the configured boot view, `members` is empty
-  // at mount (useChoreData hasn't resolved yet), so the useState initializer
-  // above selects nothing. Select the first member once data arrives.
-  useEffect(() => {
-    if (selectedMemberId === null && members.length > 0) {
-      setSelectedMemberId(members[0].id);
-    }
-  }, [members, selectedMemberId]);
-
   // Opened from the chart: go back by itself once nobody is touching it. Every
   // touch starts the wait again; the chart re-drawing behind it does not.
-  const handlePointerDown = useAutoClose(onBack ?? NO_BACK, idleTimeoutMs ?? 0, { paused: !onBack || !idleTimeoutMs });
+  const restartBack = useAutoClose(onBack ?? NO_BACK, idleTimeoutMs ?? 0, { paused: !onBack || !idleTimeoutMs });
 
   const visibleRewards = useMemo(
     () => rewards.filter((r) => isRewardOfferedTo(r, selectedMemberId)),
@@ -115,7 +108,23 @@ export function RewardsStoreView({
     [localRedemptions, selectedMemberId],
   );
 
-  const redeem = useRedeemReward({ enabled: allowTouch, onRedeemed });
+  const redeem = useRedeemReward({
+    enabled: allowTouch,
+    // "You got it!" names who it was for, so the pick can go at once.
+    onRedeemed: (result) => {
+      onRedeemed(result);
+      setSelectedMemberId(null);
+    },
+  });
+  // The pick goes a minute after the last touch, so the next child starts at
+  // "Tap your name". It waits while the confirm sheet is open.
+  const restartPick = useAutoClose(() => setSelectedMemberId(null), CHORE_STORE_IDLE_MS, {
+    paused: pickedId === null || !!redeem.pending,
+  });
+  const handlePointerDown = useCallback(() => {
+    restartBack();
+    restartPick();
+  }, [restartBack, restartPick]);
   const { redeemed } = redeem;
   const askForSelected = redeem.ask;
   const handleOpenConfirm = useCallback((reward: RewardDefinition) => {
@@ -207,8 +216,12 @@ export function RewardsStoreView({
     />
   );
 
-  const banner = selectedMember && (
+  const banner = selectedMember ? (
     <BalanceBanner balance={currentBalance} memberName={selectedMember.name} k={k} t={tc} d={d} />
+  ) : showPicker && (
+    <div data-testid="fcc-store-tap-name" style={{ fontSize: 34 * tc, fontWeight: 800, lineHeight: 1.2, color: 'var(--fcc-accent)' }}>
+      {t('chore-chart.store.tapYourName')}
+    </div>
   );
 
   let body: React.ReactNode;
@@ -257,6 +270,7 @@ export function RewardsStoreView({
               onRedeem={handleOpenConfirm}
               metrics={fit.metrics}
               onAccent={onAccent}
+              undecided={!selectedMember}
             />
           ))}
         </div>

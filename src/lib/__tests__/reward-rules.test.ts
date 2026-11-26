@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { RewardDefinition, RewardRedemption } from '../reward-data';
 import {
+  storeMembers,
   isRewardEligibleFor,
   isRewardOfferedTo,
   canAffordReward,
@@ -269,5 +270,29 @@ describe('requestRedemption', () => {
     }
     const dropped = async () => { throw new TypeError('Load failed'); };
     await expect(requestRedemption(dropped, { rewardId: 'r-1', memberId: 'kid-1', now: NOW })).rejects.toThrow('Load failed');
+  });
+});
+
+describe('storeMembers', () => {
+  const people = ['dana', 'alex', 'noah', 'mia', 'theo'].map((id) => ({ id }));
+  const facts = new Map([
+    ['dana', { weekAssigned: 0, rewardBalance: 0 }],
+    ['alex', { weekAssigned: 0, rewardBalance: 3 }],
+    ['noah', { weekAssigned: 6, rewardBalance: 34 }],
+    ['mia', { weekAssigned: 4, rewardBalance: 0 }],
+    ['theo', { weekAssigned: 0, rewardBalance: 0 }],
+  ]);
+
+  it('lists the people with chores first, then anyone else with tickets or a reward, in family order', () => {
+    const ids = storeMembers(people, facts, [{ memberId: 'theo' }]).map((m) => m.id);
+    expect(ids).toEqual(['noah', 'mia', 'alex', 'theo']);
+  });
+
+  it('leaves off a grown-up with no chores, no tickets and nothing redeemed', () => {
+    expect(storeMembers(people, facts, []).map((m) => m.id)).not.toContain('dana');
+  });
+
+  it('lists everyone while nobody has anything yet', () => {
+    expect(storeMembers(people, new Map(), [])).toEqual(people);
   });
 });

@@ -518,7 +518,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 22,
+  "version": 23,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

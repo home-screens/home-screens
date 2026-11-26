@@ -17,6 +17,7 @@ import { v18ToV19 } from './v18-to-v19';
 import { v19ToV20 } from './v19-to-v20';
 import { v20ToV21 } from './v20-to-v21';
 import { v21ToV22 } from './v21-to-v22';
+import { v22ToV23 } from './v22-to-v23';
 
 interface Migration {
   version: number;
@@ -126,6 +127,9 @@ const migrations: Migration[] = [
   // Migration 022: the screensaver's Off choice, which looked and behaved
   // exactly like Blank, is written down as Blank.
   v21ToV22,
+  // Migration 023: card and screen conditions with no key picked, which hid
+  // the card or screen until a key was chosen, are removed.
+  v22ToV23,
 ];
 
 /** @internal Get all migrations sorted by version */

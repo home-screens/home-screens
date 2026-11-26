@@ -16,6 +16,11 @@ export interface ToastItem {
   wasCompleted: boolean;
   /** Override the default "completed"/"uncompleted" verb (e.g. "redeemed"). */
   verb?: string;
+  /**
+   * A whole sentence shown in place of name, verb and chore, with no Undo:
+   * what an Undo just did ("Make your bed is not done for Mia").
+   */
+  message?: string;
 }
 
 interface ChoreToastProps {
@@ -38,9 +43,10 @@ interface ChoreToastProps {
   alert?: { text: string; bonus: boolean } | null;
   /** Text scale: 1 draws 24px text, sized for a 1080-wide wall panel. */
   scale?: number;
-  /** Distance from the bottom edge, so the toast clears the footer. */
-  bottom?: number;
-  /** Set to draw at the top instead (while a sheet covers the bottom). */
+  /**
+   * Distance from the top edge. The strip sits over the header, never over
+   * the chore rows, which are what a child is tapping in the evening rush.
+   */
   top?: number;
 }
 
@@ -86,20 +92,26 @@ function ToastEntry({
         lineHeight: 1.25,
       }}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ fontWeight: 700, color: 'var(--fcc-text)' }}>{toast.memberName}</span>
-        <span style={{ color: 'var(--fcc-text-2)', marginLeft: fontSize * 0.25 }}>
-          {toast.verb ?? t(toast.wasCompleted ? 'fullscreen-chore-chart.verbs.completed' : 'fullscreen-chore-chart.verbs.uncompleted')}
-        </span>
-        <span style={{ fontWeight: 700, color: 'var(--fcc-text)', marginLeft: fontSize * 0.25 }}>{toast.choreName}</span>
-      </div>
+      {toast.message ? (
+        <div data-testid="chore-undone-toast" style={{ flex: 1, minWidth: 0, color: 'var(--fcc-text)' }}>{toast.message}</div>
+      ) : (
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontWeight: 700, color: 'var(--fcc-text)' }}>{toast.memberName}</span>
+          <span style={{ color: 'var(--fcc-text-2)', marginLeft: fontSize * 0.25 }}>
+            {toast.verb ?? t(toast.wasCompleted ? 'fullscreen-chore-chart.verbs.completed' : 'fullscreen-chore-chart.verbs.uncompleted')}
+          </span>
+          <span style={{ fontWeight: 700, color: 'var(--fcc-text)', marginLeft: fontSize * 0.25 }}>{toast.choreName}</span>
+        </div>
+      )}
 
-      {/* Undo: hidden for non-chore toasts (e.g. redemptions) */}
-      {toast.choreId && onUndo && <button
+      {/* Undo: hidden for non-chore toasts (e.g. redemptions). The one part of
+          a toast that takes a tap: the rest lets a tap through to the chart. */}
+      {toast.choreId && !toast.message && onUndo && <button
         type="button"
         onClick={() => onUndo(toast.id)}
         {...wallPressProps}
         style={{
+          pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -138,7 +150,6 @@ function NoticeEntry({ notice, scale, testId = 'chore-overspent-toast', mark = '
     <div
       data-testid={testId}
       style={{
-        pointerEvents: 'auto',
         padding: `${fontSize * 0.55}px ${fontSize * 0.8}px`,
         // Laid over the theme's solid background, as the sheets are: a
         // frosted theme's surface alone let the chart show through.
@@ -160,7 +171,7 @@ function NoticeEntry({ notice, scale, testId = 'chore-overspent-toast', mark = '
   );
 }
 
-export default function ChoreToast({ toasts, onDismiss, onUndo, notice, alert, scale = 1, bottom = 16, top }: ChoreToastProps) {
+export default function ChoreToast({ toasts, onDismiss, onUndo, notice, alert, scale = 1, top = 16 }: ChoreToastProps) {
   // Show at most 3 toasts
   const visible = toasts.slice(-3);
 
@@ -179,7 +190,7 @@ export default function ChoreToast({ toasts, onDismiss, onUndo, notice, alert, s
         aria-live="polite"
         style={{
           position: 'absolute',
-          ...(top !== undefined ? { top } : { bottom }),
+          top,
           left: 0,
           right: 0,
           display: 'flex',
@@ -191,8 +202,10 @@ export default function ChoreToast({ toasts, onDismiss, onUndo, notice, alert, s
           zIndex: 50,
         }}
       >
+        {/* Nothing in the strip takes a tap but an Undo button: a toast laid
+            over a chore row must not swallow a child's tap on that row. */}
         {visible.map((toast) => (
-          <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+          <div key={toast.id} data-testid="chore-toast" style={{ pointerEvents: 'none' }}>
             <ToastEntry toast={toast} scale={scale} onDismiss={onDismiss} onUndo={onUndo} />
           </div>
         ))}

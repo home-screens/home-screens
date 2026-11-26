@@ -85,10 +85,7 @@ export function VisibilityOutcomeLine({
       </FieldHint>
     );
   }
-  const { visible, unknownKeys } = explainVisibility(visibility, judged, now ?? new Date());
-  // '' is a condition still being authored (no key picked yet) — call that
-  // out as its own cause instead of rendering an empty key name.
-  const missing = unknownKeys.filter((k) => k !== '');
+  const { visible, unknownKeys: missing, unpicked } = explainVisibility(visibility, judged, now ?? new Date());
   const outcome = verdictSource === 'editor'
     ? t(visible
         ? 'visibilityConditions.outcome.shownNowEditor'
@@ -97,9 +94,10 @@ export function VisibilityOutcomeLine({
         ? 'visibilityConditions.outcome.shownNow'
         : 'visibilityConditions.outcome.hiddenNow');
   let cause: string | null = null;
-  if (unknownKeys.length > 0) {
+  if (missing.length > 0 || unpicked) {
     // A missing key can coexist with an unpicked one; the named keys are the
-    // actionable half, so they win the single-cause slot.
+    // actionable half, so they win the single-cause slot. An unpicked one is
+    // skipped by the display, so it only says so.
     if (missing.length > 0) {
       cause = t('visibilityConditions.outcome.waitingForKeys', { keys: missing.join(', ') });
       // If a missing key's plugin is down, that's the real reason it's waiting;

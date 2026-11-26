@@ -5982,7 +5982,7 @@
       "shownNowEditor": "Would be shown right now",
       "hiddenNowEditor": "Would be hidden right now",
       "waitingForKeys": "waiting for {keys}",
-      "keyNotPicked": "a condition doesn't have a key picked yet",
+      "keyNotPicked": "a condition has no key picked yet, so it is skipped",
       "conditionsNotMet": "the conditions don't match",
       "seeLiveValues": "Each condition shows what the display sees now, and every key is listed in {place}."
     },

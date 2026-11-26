@@ -771,6 +771,10 @@
         "one": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minuto más.",
         "other": "Los monitores y la página de tareas no aceptarán el código de los mayores durante {count} minutos más."
       }
+    },
+    "grownUpCode": {
+      "on": "Activado. El monitor lo pide antes de gastar tickets.",
+      "off": "Desactivado. Pon uno para que el monitor pregunte antes de gastar tickets."
     }
   },
   "photosTab": {
@@ -1558,5 +1562,20 @@
       "other": "{count} monitores esperan a que los dejen entrar."
     },
     "openEditor": "Abre el editor para dejarlos entrar"
+  },
+  "grownUpCode": {
+    "setTitle": "Poner un código de los mayores",
+    "changeTitle": "Cambiar el código de los mayores",
+    "explain": "Cuatro números que el monitor pide antes de gastar tickets, para que un peque no los gaste por su cuenta. Lo demás que protege se elige desde un ordenador.",
+    "codeLabel": "Cuatro números",
+    "againLabel": "Los mismos otra vez",
+    "save": "Guardar código",
+    "problem": {
+      "format": "Usa cuatro números.",
+      "mismatch": "Los códigos no coinciden."
+    },
+    "saved": "Código de los mayores guardado",
+    "nudge": "Los peques pueden gastar tickets en el monitor sin preguntar. Un código de los mayores lo evita.",
+    "dismiss": "No volver a mostrar"
   }
 }

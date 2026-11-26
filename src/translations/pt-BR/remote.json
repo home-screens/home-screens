@@ -771,6 +771,10 @@
         "one": "Os painéis e a página de tarefas não vão aceitar o código dos adultos por mais {count} minuto.",
         "other": "Os painéis e a página de tarefas não vão aceitar o código dos adultos por mais {count} minutos."
       }
+    },
+    "grownUpCode": {
+      "on": "Ligado. O painel pede antes de gastar tickets.",
+      "off": "Desligado. Defina um para o painel perguntar antes de gastar tickets."
     }
   },
   "photosTab": {
@@ -1559,5 +1563,20 @@
       "other": "{count} painéis estão esperando para entrar."
     },
     "openEditor": "Abra o editor para deixá-los entrar"
+  },
+  "grownUpCode": {
+    "setTitle": "Definir um código dos adultos",
+    "changeTitle": "Mudar o código dos adultos",
+    "explain": "Quatro números que o painel pede antes de gastar tickets, para que uma criança não gaste sozinha. O que mais ele protege dá para escolher num computador.",
+    "codeLabel": "Quatro números",
+    "againLabel": "Os mesmos de novo",
+    "save": "Salvar código",
+    "problem": {
+      "format": "Use quatro números.",
+      "mismatch": "Os códigos não são iguais."
+    },
+    "saved": "Código dos adultos salvo",
+    "nudge": "As crianças podem gastar tickets no painel sem perguntar. Um código dos adultos impede isso.",
+    "dismiss": "Não mostrar de novo"
   }
 }

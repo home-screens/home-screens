@@ -5982,7 +5982,7 @@
       "shownNowEditor": "Ville blive vist lige nu",
       "hiddenNowEditor": "Ville blive skjult lige nu",
       "waitingForKeys": "venter på {keys}",
-      "keyNotPicked": "en betingelse mangler stadig en nøgle",
+      "keyNotPicked": "en betingelse mangler stadig en nøgle, så den springes over",
       "conditionsNotMet": "betingelserne passer ikke",
       "seeLiveValues": "Hver betingelse viser, hvad displayet ser lige nu, og alle værdier står under {place}."
     },

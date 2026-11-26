@@ -8,7 +8,7 @@
 
 import type { ModuleVisibility, VisibilityCondition } from '@/types/config';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
-import { collectSourceKeys, evaluateConditionsTri, evaluateVisibility, type ScheduleClock } from '@/lib/schedule';
+import { collectSourceKeys, completeConditions, evaluateConditionsTri, evaluateVisibility, hasUnpickedConditions, type ScheduleClock } from '@/lib/schedule';
 
 /**
  * How old a display's shared-state report may be before verdicts go neutral.
@@ -105,10 +105,12 @@ export interface VisibilityExplanation {
    * Keys referenced anywhere in the tree but absent from the snapshot,
    * sorted. Non-empty means the whenUnknown gate decided `visible`, not the
    * condition tree — the least intuitive behavior in the system, so the UI
-   * must call it out explicitly. May contain '' for a condition still being
-   * authored (no key picked yet).
+   * must call it out explicitly. A condition with no key picked yet is not
+   * one of them: it is skipped (see `unpicked`).
    */
   unknownKeys: string[];
+  /** The tree holds a condition with no key picked yet, which the display skips. */
+  unpicked: boolean;
 }
 
 /**
@@ -121,7 +123,7 @@ export function explainVisibility(
   now: ScheduleClock = new Date(),
 ): VisibilityExplanation {
   const referenced = new Set<string>();
-  collectSourceKeys(visibility.conditions, referenced);
+  collectSourceKeys(completeConditions(visibility.conditions), referenced);
   const unknownKeys = Array.from(referenced).filter((key) => !states.has(key)).sort();
-  return { visible: evaluateVisibility(visibility, states, now), unknownKeys };
+  return { visible: evaluateVisibility(visibility, states, now), unknownKeys, unpicked: hasUnpickedConditions(visibility.conditions) };
 }

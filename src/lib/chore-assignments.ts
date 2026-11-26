@@ -70,6 +70,20 @@ export function choreAssigneeIds(
 }
 
 /**
+ * `members` with everyone who has a chore first, then the rest, each in family
+ * order. For a name list a child picks from (the kids' chores page): the
+ * grown-ups with no chores go last rather than first.
+ */
+export function choreDoersFirst<M extends { id: string }>(
+  members: readonly M[],
+  chores: readonly Pick<ChoreDefinition, 'assigneeIds' | 'assigneeGroupIds'>[],
+  groups: readonly ChoreGroup[],
+): M[] {
+  const doers = new Set(chores.flatMap((chore) => choreAssigneeIds(chore, groups)));
+  return [...members.filter((m) => doers.has(m.id)), ...members.filter((m) => !doers.has(m.id))];
+}
+
+/**
  * The groups a chore goes to on `date`. On a schedule that is only the groups
  * whose row has that day; otherwise it is every group the chore names.
  */

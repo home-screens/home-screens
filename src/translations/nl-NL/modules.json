@@ -1064,7 +1064,8 @@
         "one": "{count} ticket. {member} houdt er {left} over.",
         "other": "{count} tickets. {member} houdt er {left} over."
       },
-      "notNow": "Nu niet"
+      "notNow": "Nu niet",
+      "tapYourName": "Tik op je naam"
     },
     "ariaLabels": {
       "completeChore": "{chore} afvinken voor {member}",
@@ -1314,6 +1315,10 @@
         "one": "{count} ticket vandaag",
         "other": "{count} tickets vandaag"
       }
+    },
+    "undone": {
+      "notDone": "{chore} is niet meer gedaan voor {member}",
+      "doneAgain": "{chore} is weer gedaan voor {member}"
     }
   },
   "sports": {

@@ -533,3 +533,24 @@ describe('room for bonus chores', () => {
     expect(fitChoreFontSize(list)).toBe(fitChoreFontSize({ ...list, blocks: 1 }));
   });
 });
+
+describe('assignee dots on a card children tick on', () => {
+  it('never go under 40px, with at least 10px between them', () => {
+    expect(choreDotSize(11, true)).toBe(40);
+    expect(choreDotSize(24, true)).toBe(40);
+    expect(choreDotGap(choreDotSize(11, true), true)).toBeGreaterThanOrEqual(10);
+    // A look-only card keeps the old floor.
+    expect(choreDotSize(11)).toBe(24);
+    expect(choreDotGap(24)).toBe(4);
+  });
+
+  it('fits a touch card with rows sized for the bigger dots', () => {
+    const box = { width: 1040, height: 470, requested: 24, view: 'today' as const, rows: 9, sections: 3 };
+    const plain = fitChoreFontSize(box);
+    const touch = fitChoreFontSize({ ...box, touch: true });
+    // Taller rows leave less room, so the type is never bigger on the touch card.
+    expect(touch).toBeLessThanOrEqual(plain);
+    const rowPx = choreDotSize(touch, true) + 0.7 * touch;
+    expect(rowPx).toBeGreaterThanOrEqual(40);
+  });
+});

@@ -175,6 +175,9 @@ export function scheduleShape(schedule: ModuleSchedule | undefined): 'repeat' | 
  *
  * Semantics (see the ModuleVisibility type for rationale):
  * - No visibility / empty conditions → visible.
+ * - A condition with no key picked yet, and a group left with nothing else,
+ *   is skipped (`completeConditions`): pressing "Add condition" must not take
+ *   a card or a screen off the wall while the key is still being chosen.
  * - If ANY sourceKey referenced anywhere in the tree is unpublished, return
  *   the `whenUnknown` outcome (default hide) WITHOUT evaluating. Leaves are
  *   therefore always plain true/false over known values, so `not`/`or` never
@@ -186,13 +189,52 @@ export function evaluateVisibility(
   states: ReadonlyMap<string, SharedStateEntry>,
   now: ScheduleClock = new Date(),
 ): boolean {
-  if (!visibility || visibility.conditions.length === 0) return true;
+  if (!visibility) return true;
+  const conditions = completeConditions(visibility.conditions);
+  if (conditions.length === 0) return true;
 
-  if (hasUnknownKey(visibility.conditions, states)) {
+  if (hasUnknownKey(conditions, states)) {
     return (visibility.whenUnknown ?? 'hide') === 'show';
   }
 
-  return visibility.conditions.every((c) => evaluateCondition(c, states, now));
+  return conditions.every((c) => evaluateCondition(c, states, now));
+}
+
+/** A state or number condition with no key picked yet: a row still being filled in. */
+function isUnpicked(c: VisibilityCondition): boolean {
+  return (c.kind === 'state' || c.kind === 'numeric') && c.sourceKey === '';
+}
+
+/**
+ * The visibility tree without the rows still being filled in: conditions with
+ * no key picked, and any group left holding nothing else. `evaluateVisibility`
+ * judges only what is left. Display rules and text looks keep such a row as
+ * undecided instead, so a half-made rule never fires.
+ */
+export function completeConditions(conditions: VisibilityCondition[]): VisibilityCondition[] {
+  let changed = false;
+  const out: VisibilityCondition[] = [];
+  for (const c of conditions) {
+    if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') {
+      const inner = completeConditions(c.conditions);
+      if (inner.length === 0) {
+        changed = true;
+        continue;
+      }
+      if (inner !== c.conditions) changed = true;
+      out.push(inner === c.conditions ? c : { ...c, conditions: inner });
+    } else if (isUnpicked(c)) {
+      changed = true;
+    } else {
+      out.push(c);
+    }
+  }
+  return changed ? out : conditions;
+}
+
+/** True when the tree holds a row still being filled in (see `completeConditions`). */
+export function hasUnpickedConditions(conditions: VisibilityCondition[]): boolean {
+  return completeConditions(conditions) !== conditions;
 }
 
 function hasUnknownKey(

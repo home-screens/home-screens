@@ -77,3 +77,17 @@ describe('a look-only wall', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
+
+describe('a toast over the chart', () => {
+  it('lets a tap through everywhere but its Undo button', () => {
+    renderStrip({ toasts: [toast] });
+    expect(screen.getByTestId('chore-toast').style.pointerEvents).toBe('none');
+    expect(screen.getByRole('button').style.pointerEvents).toBe('auto');
+  });
+
+  it('says what an Undo did in a whole sentence, with no Undo of its own', () => {
+    renderStrip({ toasts: [{ ...toast, choreId: '', message: 'Load the dishwasher is not done for Noah' }] });
+    expect(screen.getByTestId('chore-undone-toast').textContent).toBe('Load the dishwasher is not done for Noah');
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});

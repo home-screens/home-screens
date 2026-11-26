@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { ArrowLeft, ArrowRight, Check, Pencil, Trash2, Type, Undo2, X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInk } from '@/lib/family-avatar';
 import { RefusalError } from '@/lib/refusal';
 import { HubUnreachableError } from '@/lib/hub-request';
 import { NOTE_PAGE_LOOKS, WALL_DRAWING_LIVES, pageInkColor, type NoteSurface } from '@/lib/note-drawing';
@@ -24,6 +24,7 @@ import { wallTypingVars } from '../shared/wallTypingVars';
 import { useSettling, useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { DrawPage } from './DrawPage';
 import { hasKeptContent, type KeptNote } from './keptNote';
+import { MemberGlyph } from '../shared/MemberBadge';
 
 /** The sheet's own colours: the charcoal every card's sheet on the wall uses. */
 const SHEET_THEME = getThemeTokens('charcoal');
@@ -598,7 +599,7 @@ export function NoteDrawSheet({ surface, accent, members, door, startWith, onPos
                 background: member.color, color: memberInk(member.color), fontSize: Q(26), fontWeight: 800, lineHeight: 1,
               }}
             >
-              {memberInitials(member.name)}
+              <MemberGlyph member={member} size={Math.round(faceSize * 0.57)} />
             </span>
             <span style={name}>{member.name}</span>
           </SheetButton>

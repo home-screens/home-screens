@@ -20,6 +20,8 @@ interface RewardCardProps {
   onRedeem: (reward: RewardDefinition) => void;
   metrics: CardMetrics;
   onAccent: string;
+  /** Nobody has tapped their name yet: no pill and no "more to go", only the price. */
+  undecided?: boolean;
 }
 
 /** A reward's name can be one long word with no place to break. */
@@ -34,16 +36,18 @@ const clampDesc = clampAnywhere(DESC_MAX_LINES);
  * more tickets it takes, in the same slot the pill would fill, so nothing
  * reflows when they switch members.
  */
-export default function RewardCard({ reward, balance, isGoal = false, allowTouch, onRedeem, metrics: m, onAccent }: RewardCardProps) {
+export default function RewardCard({ reward, balance, isGoal = false, allowTouch, onRedeem, metrics: m, onAccent, undecided = false }: RewardCardProps) {
   const tr = useTranslate('modules');
   const canAfford = canAffordReward(balance, reward);
-  const tappable = allowTouch && canAfford;
+  const tappable = allowTouch && canAfford && !undecided;
   const Tag: 'button' | 'div' = tappable ? 'button' : 'div';
   // The pill's own height plus a little air, so the glyph under it never touches it.
   const tagHeight = m.pillText * 0.62 * 1.2 + m.pillText * 0.44 + m.pillText * 0.3;
 
   let slot: React.ReactNode;
-  if (!canAfford) {
+  if (undecided) {
+    slot = null;
+  } else if (!canAfford) {
     slot = (
       <span style={{ fontSize: m.cost * 0.92, fontWeight: 600, color: 'var(--fcc-text-3)', lineHeight: 1.2 }}>
         {tr('fullscreen-chore-chart.rewardsStore.moreTickets', { count: ticketsStillNeeded(balance, reward) })}

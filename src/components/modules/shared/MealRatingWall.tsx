@@ -7,16 +7,15 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
 import { fromISODate, minutesOfDay, toISODate } from '@/lib/meal-constants';
 import { dinnerRatingDate, dinnerRatingMeals } from '@/lib/meal-ratings';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInitials } from '@/lib/family-avatar';
 import { useDinnerRatingNote, useFamilyMealAverage, useMealVoting } from '@/components/meals/meal-votes';
-import ChoreIcon from '../chore-chart/ChoreIcon';
 import { BookIcon, type Px } from './recipe-book/RecipeBookParts';
 import { useMealOverlayTheme, useMealRecipeContext } from './MealRecipeContext';
 import { useHiddenRowCount } from './useHiddenRowCount';
 import { useWallOverlayScale } from './useWallOverlayScale';
 import { WallOverlay } from './WallOverlay';
 import { wallPressProps } from './wallPress';
-import { MemberBadge } from './MemberBadge';
+import { MemberBadge, MemberGlyph } from './MemberBadge';
 import { settingsPlaceText } from '@/lib/settings-route';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
@@ -237,9 +236,7 @@ function WallRatingDialog({ title, subtitle, meals, note, named = false, onClose
                 }}
               >
                 <MemberBadge aria-hidden="true" initials={memberInitials(member.name)} color={member.color} size={P(88)} fontSize={P(40)} style={{ overflow: 'hidden' }}>
-                  {member.emoji
-                    ? <ChoreIcon value={member.emoji} size={P(50)} color={memberInk(member.color)} bare fallback={memberInitials(member.name)} />
-                    : undefined}
+                  {member.emoji ? <MemberGlyph member={member} size={P(50)} /> : undefined}
                 </MemberBadge>
                 <span style={{ fontSize: P(28), fontWeight: 600, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</span>
               </button>

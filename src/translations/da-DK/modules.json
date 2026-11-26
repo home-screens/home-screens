@@ -1064,7 +1064,8 @@
         "one": "{count} billet. {member} har {left} tilbage.",
         "other": "{count} billetter. {member} har {left} tilbage."
       },
-      "notNow": "Ikke nu"
+      "notNow": "Ikke nu",
+      "tapYourName": "Tryk på dit navn"
     },
     "ariaLabels": {
       "completeChore": "Markér {chore} som klaret for {member}",
@@ -1314,6 +1315,10 @@
         "one": "{count} billet i dag",
         "other": "{count} billetter i dag"
       }
+    },
+    "undone": {
+      "notDone": "{chore} er ikke klaret for {member}",
+      "doneAgain": "{chore} er klaret igen for {member}"
     }
   },
   "sports": {

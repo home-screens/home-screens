@@ -1067,7 +1067,8 @@
         "one": "{count} ticket. {member} ficará com {left}.",
         "other": "{count} tickets. {member} ficará com {left}."
       },
-      "notNow": "Agora não"
+      "notNow": "Agora não",
+      "tapYourName": "Toque no seu nome"
     },
     "ariaLabels": {
       "completeChore": "Concluir {chore} para {member}",
@@ -1317,6 +1318,10 @@
         "one": "{count} ticket hoje",
         "other": "{count} tickets hoje"
       }
+    },
+    "undone": {
+      "notDone": "{chore} não está mais feito para {member}",
+      "doneAgain": "{chore} está feito de novo para {member}"
     }
   },
   "sports": {

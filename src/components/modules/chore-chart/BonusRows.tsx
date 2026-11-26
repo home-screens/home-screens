@@ -55,8 +55,8 @@ export function BonusRows({ config, items, members, today, fontSize, toggleCompl
   if (ordered.length === 0) return null;
 
   const plain = variant === 'plain';
-  const dotSize = choreDotSize(fontSize);
-  const gap = choreDotGap(dotSize);
+  const dotSize = choreDotSize(fontSize, !!allowTouch);
+  const gap = choreDotGap(dotSize, !!allowTouch);
   const initialOf = (member: FamilyMember) => initials.get(member.id) ?? memberInitials(member.name);
   const didItOn = (name: string, date: string) => {
     const { form, day } = bonusDoneDay(date, today, locale);

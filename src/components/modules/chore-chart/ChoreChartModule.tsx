@@ -161,6 +161,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     })
     : fitChoreFontSize({
       width: box.width, height: box.height, requested: style.fontSize, rows, sections, blocks, extra, view,
+      touch: !!config.allowDisplayComplete,
     });
   const viewProps = { config, data, width: box.width, fontSize };
 

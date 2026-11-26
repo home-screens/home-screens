@@ -5982,7 +5982,7 @@
       "shownNowEditor": "Würde gerade angezeigt",
       "hiddenNowEditor": "Würde gerade ausgeblendet",
       "waitingForKeys": "wartet auf {keys}",
-      "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
+      "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt, sie wird übersprungen",
       "conditionsNotMet": "die Bedingungen treffen nicht zu",
       "seeLiveValues": "Jede Bedingung zeigt, was das Display gerade sieht, und alle Werte stehen unter {place}."
     },

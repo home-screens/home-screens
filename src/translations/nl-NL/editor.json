@@ -5982,7 +5982,7 @@
       "shownNowEditor": "Zou nu zichtbaar zijn",
       "hiddenNowEditor": "Zou nu verborgen zijn",
       "waitingForKeys": "wacht op {keys}",
-      "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
+      "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen, dus die wordt overgeslagen",
       "conditionsNotMet": "de voorwaarden kloppen niet",
       "seeLiveValues": "Elke voorwaarde laat zien wat het display nu ziet, en alle waarden staan bij {place}."
     },

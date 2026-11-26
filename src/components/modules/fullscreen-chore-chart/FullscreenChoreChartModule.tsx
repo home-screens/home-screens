@@ -34,7 +34,7 @@ import { RewardsStoreView } from './RewardsStoreView';
 import DayCompleteOverlay, { type DayCompleteEvent } from './DayCompleteOverlay';
 import { detectDayComplete } from '@/lib/chore-celebration';
 import { rememberCelebrated, wasCelebratedToday } from '@/lib/celebrated-today';
-import { resolveSavingsGoal } from '@/lib/reward-rules';
+import { resolveSavingsGoal, storeMembers } from '@/lib/reward-rules';
 import { WallButton } from '@/components/modules/shared/WallButton';
 import { ModuleLoadingState, ModuleNotUpdatingState } from '../ModuleStates';
 import { fullscreenStateStyle } from '../shared/FullscreenStateShell';
@@ -192,6 +192,10 @@ export default function FullscreenChoreChartModule({
   // an empty star row said nothing).
   const { active: activeMembers, dayOff: dayOffMembers } = useMemo(() => partitionMembers(members, memberStats), [members, memberStats]);
   const chartedMembers = useMemo(() => weekMembers(members, memberStats), [members, memberStats]);
+  // Who the rewards store lists: the chart's people first, then anyone else
+  // holding tickets or with a reward on record; a grown-up with nothing to
+  // spend is left off (`storeMembers`).
+  const storeShoppers = useMemo(() => storeMembers(members, memberStats, allRedemptions), [members, memberStats, allRedemptions]);
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
   // configured IANA timezone — used by `getCurrentTimeOfDay` which reads
   // `.getHours()`. `formatDateInTZ` further down takes a real UTC instant
@@ -299,11 +303,17 @@ export default function FullscreenChoreChartModule({
     if (!toast) return;
     const outcome = await toggleComplete(toast.choreId, toast.memberId);
     reportWrite(outcome);
-    if (outcome.ok) return;
+    if (outcome.ok) {
+      // Say what the Undo did, in a whole sentence and with no Undo of its own,
+      // so a child who tapped it by mistake can see whose chore it was.
+      const message = t(toast.wasCompleted ? 'fullscreen-chore-chart.undone.notDone' : 'fullscreen-chore-chart.undone.doneAgain', { chore: toast.choreName, member: toast.memberName });
+      setToasts((prev) => [...prev.slice(-2), { ...toast, id: String(++toastIdRef.current), choreId: '', message }]);
+      return;
+    }
     // The toast comes back with its Undo, so "try again" has something to tap:
     // a finished bonus tile cannot be tapped to undo.
     if (!outcome.refusal) setToasts((prev) => [...prev.slice(-2), { ...toast, id: String(++toastIdRef.current) }]);
-  }, [toggleComplete, reportWrite]);
+  }, [toggleComplete, reportWrite, t]);
 
   // Build chore rows grouped by time-of-day; dots keep household order.
   const memberOrder = useMemo(() => new Map(members.map((m, i) => [m.id, i])), [members]);
@@ -891,7 +901,7 @@ export default function FullscreenChoreChartModule({
         // The store is drawn from the family and the rewards: before either has
         // arrived it would say "no family members yet" or "no rewards".
         rewardsPending ? rewardsPendingState : <RewardsStoreView
-          members={members}
+          members={storeShoppers}
           rewards={rewards}
           balances={rewardBalances}
           // The store opened from the chart follows the chart's Show tickets
@@ -1029,8 +1039,9 @@ export default function FullscreenChoreChartModule({
 
       {/* Always drawn: a look-only wall still says who redeemed what on a phone.
           Only a tick made here has an Undo, and only a touch wall makes one. */}
-      {/* With a sheet open the toasts go to the top, clear of its Cancel. */}
-      <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={allowTouch ? (id) => void handleUndo(id) : undefined} notice={overspentMessage} alert={bonusAlert} scale={tc} bottom={footer ? 96 * k : 20 * k} top={bonusSheet ? 20 * k : undefined} />
+      {/* At the top, over the header: the bottom holds the evening's chore
+          rows (and a sheet's Cancel), which a toast must never cover. */}
+      <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={allowTouch ? (id) => void handleUndo(id) : undefined} notice={overspentMessage} alert={bonusAlert} scale={tc} top={20 * k} />
     </div>
   );
 }

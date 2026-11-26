@@ -85,8 +85,8 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
     [todayAssignments, memberOrder, data.groups],
   );
 
-  const dotSize = choreDotSize(fontSize);
-  const gap = choreDotGap(dotSize);
+  const dotSize = choreDotSize(fontSize, !!allowTouch);
+  const gap = choreDotGap(dotSize, !!allowTouch);
 
   function renderDot(row: ChoreRow, assignee: ChoreRow['assignees'][number]) {
     const touch = allowTouch;

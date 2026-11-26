@@ -5,7 +5,7 @@ import { ChevronRight, History, Lock, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
-import { canAffordReward, isRewardOfferedTo, resolveSavingsGoal, ticketsAfterRedeeming, ticketsStillNeeded } from '@/lib/reward-rules';
+import { canAffordReward, isRewardOfferedTo, resolveSavingsGoal, storeMembers, ticketsAfterRedeeming, ticketsStillNeeded } from '@/lib/reward-rules';
 import { onAccentFor } from '@/lib/fullscreen-themes';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
@@ -33,7 +33,8 @@ import {
   type StoreLayout,
 } from '../layout';
 import { RewardHistoryView } from './RewardHistoryView';
-import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { memberInk } from '@/lib/family-avatar';
+import { MemberGlyph } from '../../shared/MemberBadge';
 
 interface StoreViewProps {
   config: ChoreChartConfig;
@@ -70,7 +71,13 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   const allowTouch = config.allowDisplayComplete !== false;
   const accent = config.accentColor || '#f59e0b';
   const onAccent = onAccentFor(accent);
-  const { members } = data;
+  // The people the store offers to pick: those with chores this week first,
+  // then anyone holding tickets or with a reward on record (`storeMembers`).
+  // The history still names everyone.
+  const members = useMemo(
+    () => storeMembers(data.members, data.memberStats, data.allRedemptions),
+    [data.members, data.memberStats, data.allRedemptions],
+  );
 
   // Straight from the shared chore data, which a redeem publishes into. A copy
   // kept here was overwritten with the old balance by the next chores poll.
@@ -81,13 +88,30 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   }, [data.memberStats]);
   const redemptions = data.allRedemptions;
 
-  const [selectedId, setSelectedId] = useState<string | null>(members[0]?.id ?? null);
-  const selected = members.find((m) => m.id === selectedId) ?? members[0] ?? null;
+  // Nobody is picked until someone taps their name: a store that opened on
+  // whoever used it last let the next child spend that child's tickets. One
+  // person needs no picking.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = members.find((m) => m.id === selectedId) ?? (members.length === 1 ? members[0] : null);
   const selectedBalance = selected ? balances[selected.id] ?? 0 : 0;
+  /** Waiting for a name: rewards show their price, nothing is lit or dimmed. */
+  const picking = layout !== 'price-list' && !selected;
 
-  const redeem = useRedeemReward({ enabled: allowTouch, onRedeemed: data.applyRedemption });
+  const redeem = useRedeemReward({
+    enabled: allowTouch,
+    // "You got it!" names who it was for, so the pick can go at once.
+    onRedeemed: (result) => {
+      data.applyRedemption(result);
+      setSelectedId(null);
+    },
+  });
   /** Price list only: the reward somebody tapped, waiting to hear who it is for. */
   const [choosingFor, setChoosingFor] = useState<RewardDefinition | null>(null);
+  // The pick goes a minute after the last touch, so the next child starts at
+  // "Tap your name". It waits while a sheet is open over the store.
+  const armPick = useAutoClose(() => setSelectedId(null), CHORE_STORE_IDLE_MS, {
+    paused: selectedId === null || !!redeem.pending || !!choosingFor,
+  });
 
   // ── History, opened in place ──
   const [showHistory, setShowHistory] = useState(false);
@@ -117,7 +141,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   );
 
   if (showHistory) {
-    const historyData = { members, allRedemptions: redemptions };
+    const historyData = { members: data.members, allRedemptions: redemptions };
     const rows = Math.min(redemptions.length, resolveHistoryLimit(config.historyLimit));
     return (
       <div className="h-full" {...BROWSE_HOLD_ATTR} onPointerDown={armIdle}>
@@ -153,7 +177,8 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
       className="inline-flex shrink-0 items-center justify-center rounded-full"
       style={{ width: size, height: size, fontSize: '0.8em', fontWeight: 800, lineHeight: 1, background: member.color, color: memberInk(member.color) }}
     >
-      {memberInitials(member.name)}
+      {/* The avatar is 1.7em of a 0.8em font: an icon at 0.57 of that. */}
+      <MemberGlyph member={member} size={Math.round(fontSize * 0.8 * 1.7 * 0.57)} />
     </span>
   );
 
@@ -192,6 +217,12 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   const picker = showPicker && (
     <div data-testid="store-picker" className="flex shrink-0" style={{ gap: '0.45em', flexWrap: rail ? 'wrap' : 'nowrap', marginTop: rail ? 0 : '0.6em' }}>
       {members.map((m) => chip(m, { selected: m.id === selected?.id, onPick: () => setSelectedId(m.id), testId: 'store-member' }))}
+    </div>
+  );
+
+  const tapYourName = picking && showPicker && (
+    <div data-testid="store-tap-name" className="shrink-0" style={{ margin: '0.55em 0 0.35em', fontSize: '0.9em', fontWeight: 700, color: accent }}>
+      {t('chore-chart.store.tapYourName')}
     </div>
   );
 
@@ -262,7 +293,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
               {...{ [CHORE_ROW_ATTR]: '' }}
               data-testid="store-reward"
               className="relative flex flex-col items-center text-center"
-              style={{ gap: '0.18em', padding: '0.5em 0.4em 0.45em', borderRadius: '0.7em', background: ink(0.06), border: `1px solid ${reward.id === goalId ? accent : ink(0.1)}`, opacity: ok || reward.id === goalId ? 1 : 0.55 }}
+              style={{ gap: '0.18em', padding: '0.5em 0.4em 0.45em', borderRadius: '0.7em', background: ink(0.06), border: `1px solid ${reward.id === goalId ? accent : ink(0.1)}`, opacity: ok || picking || reward.id === goalId ? 1 : 0.55 }}
             >
               {/* A tab hanging from the tile's top edge, inside its own padding: out
                   of the flow, so a marked tile is no taller than the fit
@@ -271,7 +302,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
               {icon(reward, 1.6)}
               <span className="flex items-center" style={{ fontSize: '0.78em', fontWeight: 600, lineHeight: 1.15, minHeight: '2.3em', overflow: 'hidden' }}>{reward.name}</span>
               {tickets(reward.cost, '0.62em', true)}
-              {allowTouch && (ok
+              {allowTouch && !picking && (ok
                 ? pill(reward, STORE_TILE_PILL_PX)
                 : stillNeeded(reward, { minHeight: STORE_TILE_PILL_PX, display: 'flex', alignItems: 'center' }))}
             </div>
@@ -331,14 +362,14 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
             const ok = canAffordReward(selectedBalance, reward);
             return (
               <div key={reward.id} {...{ [CHORE_ROW_ATTR]: '' }} data-testid="store-reward" className="flex items-center" style={rowStyle(i)}>
-                <span className="flex min-w-0 flex-1 items-center" style={{ gap: '0.55em', opacity: ok || !allowTouch ? 1 : 0.5 }}>
+                <span className="flex min-w-0 flex-1 items-center" style={{ gap: '0.55em', opacity: ok || picking || !allowTouch ? 1 : 0.5 }}>
                   {icon(reward, 1.2)}
                   <span className="min-w-0 flex-1 truncate" style={{ fontWeight: 500 }}>{reward.name}</span>
                 </span>
                 {/* Outside the dimmed name: the goal reads at full strength before it can be afforded. */}
                 {reward.id === goalId && goalTag()}
                 {tickets(reward.cost, '0.72em')}
-                {allowTouch && (ok ? pill(reward, STORE_TAP_PX) : stillNeeded(reward, { minWidth: '5.2em', textAlign: 'right' }))}
+                {allowTouch && !picking && (ok ? pill(reward, STORE_TAP_PX) : stillNeeded(reward, { minWidth: '5.2em', textAlign: 'right' }))}
               </div>
             );
           })}
@@ -372,7 +403,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   const pending = redeem.pending;
   const closeConfirm = () => { redeem.cancel(); setChoosingFor(null); };
   return (
-    <div data-testid="store-view" data-layout={layout} {...BROWSE_HOLD_ATTR} className="relative flex h-full min-h-0 flex-col" style={{ fontSize: `${fontSize}px` }}>
+    <div data-testid="store-view" data-layout={layout} {...BROWSE_HOLD_ATTR} onPointerDown={armPick} className="relative flex h-full min-h-0 flex-col" style={{ fontSize: `${fontSize}px` }}>
       {config.showTitle !== false && (
         <div className="flex shrink-0 items-center justify-between" style={{ fontSize: '0.8em', fontWeight: 600, lineHeight: 1.5 }}>
           <span style={{ opacity: TEXT_OPACITY.secondary }}>{t('fullscreen-chore-chart.rewardsStore.title')}</span>
@@ -396,6 +427,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
               very short card, the rail scrolls and the number stays in view. */}
           <div data-testid="store-rail" className="flex shrink-0 flex-col" style={{ width: `${STORE_RAIL_EM}em`, overflowY: 'auto', scrollbarWidth: 'none', touchAction: 'pan-y' }}>
             {railBalanceLine}
+            {tapYourName}
             {picker}
           </div>
           <div className="flex min-w-0 flex-1 flex-col">{body}</div>
@@ -403,6 +435,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
       ) : (
         <>
           {picker}
+          {tapYourName}
           {balanceLine}
           {layout === 'price-list' && <div className="shrink-0" style={{ height: '0.6em' }} />}
           {body}

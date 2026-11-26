@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { ink } from '@/lib/constants';
-import { memberInk } from '@/lib/family-avatar';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
+import ChoreIcon from '../chore-chart/ChoreIcon';
 
 /** Letters past one shrink a step inside the circle, which keeps its size. */
 const LONGER_LETTERS: Record<number, string | undefined> = { 1: undefined, 2: '0.85em' };
@@ -58,4 +59,17 @@ export function MemberBadge({
       {children ?? (shrink ? <span style={{ fontSize: shrink }}>{initials}</span> : initials)}
     </span>
   );
+}
+
+/**
+ * What goes inside a person's circle where a child picks themselves: their
+ * own icon when the family gave them one (a train, a unicorn), else their
+ * letters. A child who cannot read finds the picture; the small dots that
+ * only say whose chore it is keep to letters. `size` is the icon's px.
+ */
+export function MemberGlyph({ member, size }: { member: { name: string; color: string; emoji?: string }; size: number }) {
+  const initials = memberInitials(member.name);
+  return member.emoji
+    ? <ChoreIcon value={member.emoji} size={size} color={memberInk(member.color)} bare fallback={initials} />
+    : <>{initials}</>;
 }

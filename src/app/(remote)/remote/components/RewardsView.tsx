@@ -28,6 +28,7 @@ import IconButton from './IconButton';
 import { asksForCode } from '@/lib/grown-up-code';
 import { grownUpFetch, isGrownUpCancelled } from '@/lib/grown-up-client';
 import { useGrownUpStatus, useGrownUpUnlock } from '@/hooks/useGrownUp';
+import GrownUpCodeNudge from './GrownUpCodeNudge';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -682,6 +683,7 @@ function RewardsManageSection({
 
   return (
     <>
+      <GrownUpCodeNudge rewardCount={rewards.length} />
       <div style={{ ...GROUP_HEADING, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="currentColor" />
         {t('rewardsView.manage.heading')}

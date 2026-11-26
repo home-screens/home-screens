@@ -771,6 +771,10 @@
         "one": "The walls and the chores page won't take the grown-up code for {count} more minute.",
         "other": "The walls and the chores page won't take the grown-up code for {count} more minutes."
       }
+    },
+    "grownUpCode": {
+      "on": "On. The wall asks for it before tickets are spent.",
+      "off": "Off. Set one so the wall asks before tickets are spent."
     }
   },
   "photosTab": {
@@ -1558,5 +1562,20 @@
       "other": "{count} walls are waiting to be let in."
     },
     "openEditor": "Open the editor to let them in"
+  },
+  "grownUpCode": {
+    "setTitle": "Set a grown-up code",
+    "changeTitle": "Change the grown-up code",
+    "explain": "Four numbers the wall asks for before tickets are spent, so a child can't spend them alone. What else it guards can be picked on a computer.",
+    "codeLabel": "Four numbers",
+    "againLabel": "The same again",
+    "save": "Save code",
+    "problem": {
+      "format": "Use four numbers.",
+      "mismatch": "The codes don't match."
+    },
+    "saved": "Grown-up code saved",
+    "nudge": "Kids can spend tickets on the wall without asking. A grown-up code stops that.",
+    "dismiss": "Don't show this again"
   }
 }
