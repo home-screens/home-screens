@@ -143,8 +143,6 @@ Under **Touch** in the calendar's settings, with **Tap an event to see details**
 
 Your family can add, change and remove events from a phone and from the wall, on Google and iCloud calendars. It is off until you turn it on.
 
-With Home Screens' own Google app, adding to Google calendars comes later, once Google has reviewed the wider sign-in. iCloud calendars, and Google calendars on your own Google app, can add events now. Until then, a home with only Google calendars on Home Screens' app does not see **Adding events** in Settings.
-
 1. In the editor, open **Settings > Calendar** and turn on **Let Home Screens add and change events** under **Adding events**.
 2. For Google calendars, sign in once more: click **Sign in with Google**, and Google asks to let Home Screens "View and edit events on all your calendars". Showing your calendars works the same either way. iCloud calendars need nothing more, since the app-specific password you saved already allows it.
 3. Tick the calendars events can go on. Only calendars the screens show are listed, and one you can only read, such as a shared calendar or Birthdays, can't be ticked.

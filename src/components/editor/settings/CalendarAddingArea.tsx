@@ -88,8 +88,8 @@ export default function CalendarAddingArea({ eventEntry, wallEntry, googleCalend
   const google = googleIfOn === null ? null : googleEntryStateWithSetting(googleIfOn, enabled);
   const icloudCalendars = icloudSources.filter((s) => s.enabled);
   const googleOffered = google !== null && google !== 'notOffered' && shownGoogleIds.length > 0;
-  // Nothing to add events to yet: Home Screens' own Google app before
-  // Google's review, and no iCloud calendar (decision A8).
+  // Nothing to add events to: Home Screens' own Google app with adding
+  // switched off (HS_GOOGLE_HOSTED_EVENTS=0), and no iCloud calendar.
   if (google === 'notOffered' && icloudCalendars.length === 0) return null;
   if (google === null && shownGoogleIds.length === 0 && icloudCalendars.length === 0) return null;
 

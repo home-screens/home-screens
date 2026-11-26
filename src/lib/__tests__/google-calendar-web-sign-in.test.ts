@@ -147,13 +147,13 @@ describe('own Google app', () => {
 });
 
 describe("Home Screens' own Google app", () => {
-  it('offers nothing while its events switch is off', async () => {
+  it('offers nothing with HS_GOOGLE_HOSTED_EVENTS=0', async () => {
+    vi.stubEnv('HS_GOOGLE_HOSTED_EVENTS', '0');
     expect(await getGoogleEntryState(true)).toBe('notOffered');
     expect(await getGoogleEntryState(false)).toBe('notOffered');
   });
 
-  it('with HS_GOOGLE_HOSTED_EVENTS=1, signs in through its web app and the helper', async () => {
-    vi.stubEnv('HS_GOOGLE_HOSTED_EVENTS', '1');
+  it('signs in through its web app and the helper with nothing set', async () => {
     expect(await getGoogleEntryState(false)).toBe('off');
     expect(await getGoogleEntryState(true)).toBe('needsSignIn');
 
@@ -169,7 +169,6 @@ describe("Home Screens' own Google app", () => {
   });
 
   it('renews its web grant through the web helper, not the calendar one', async () => {
-    vi.stubEnv('HS_GOOGLE_HOSTED_EVENTS', '1');
     files.set(CALENDAR_TOKENS, JSON.stringify({ ...expired, client_mode: 'hosted', client_kind: 'web' }));
     const calls = answerWith({ access_token: 'ya29.renewed', expires_in: 3600 });
     expect(await googleCalendarTokenStore.getAccessToken()).toBe('ya29.renewed');
@@ -179,7 +178,6 @@ describe("Home Screens' own Google app", () => {
   });
 
   it('counts a short-code grant as not yet able to add', async () => {
-    vi.stubEnv('HS_GOOGLE_HOSTED_EVENTS', '1');
     files.set(CALENDAR_TOKENS, JSON.stringify({ access_token: 'a', refresh_token: 'r', expiry_date: Date.now() + 3_600_000, client_mode: 'hosted' }));
     expect(await getGoogleEntryState(true)).toBe('needsSignIn');
   });

@@ -90,6 +90,7 @@ A few behaviors are set in the Home Screens service's environment rather than in
 |---|---|
 | `PORT` | The port the server listens on. Set it in `data/port.conf`, not with an override: `setup-system` writes it into the service file from there and the kiosk browser reads the same file, so an override alone leaves the screen on the old port. See [Networking](/docs/networking#custom-port-configuration) |
 | `HS_GOOGLE_HOSTED=0` | Turns off Home Screens' own Google apps, so Google Calendar and Google Photos only sign in with a Google app you saved under **Settings > API keys** |
+| `HS_GOOGLE_HOSTED_EVENTS=0` | Keeps Home Screens' own Google app to showing calendars: adding and changing Google events then needs a Google app you saved under **Settings > API keys**. iCloud calendars are not affected |
 | `HS_DISABLE_AUTO_UPDATE=1` | Never installs updates on a schedule, whatever **Install updates automatically** says |
 | `HS_DISABLE_TELEMETRY=1` | Never sends the anonymous usage report, whatever the setting says |
 | `HS_TRUSTED_PROXIES` | Comma-separated proxy addresses whose forwarded client address is believed; see [Restrict access by IP](/docs/networking#restrict-access-by-ip) |

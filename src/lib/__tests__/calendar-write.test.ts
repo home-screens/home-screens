@@ -309,7 +309,7 @@ describe('googleEntryState', () => {
     expect(googleEntryState(ready)).toBe('ready');
   });
 
-  it('says nothing on Home Screens\' app until its events switch is on', () => {
+  it('says nothing on Home Screens\' app while its events switch is off', () => {
     expect(googleEntryState({ ...ready, clientMode: 'hosted' })).toBe('notOffered');
     expect(googleEntryState({ ...ready, clientMode: 'hosted', settingOn: false })).toBe('notOffered');
     expect(googleEntryState({ ...ready, clientMode: 'hosted', hostedEventsEnabled: true })).toBe('ready');

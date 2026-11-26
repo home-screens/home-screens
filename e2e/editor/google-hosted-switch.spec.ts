@@ -39,6 +39,22 @@ base.describe('on by default', () => {
     await expect(page.getByText('needs a Google sign-in you create yourself')).toHaveCount(0);
   });
 
+  base('the Calendar page offers adding events, and switching it on asks for one more Google sign-in', async ({ page, request }) => {
+    const cfg = baseConfig();
+    cfg.settings.calendar = { ...cfg.settings.calendar, googleCalendarIds: ['family@group.calendar.google.com'] };
+    await putConfig(request, cfg);
+    // Home Screens' app, no sign-in yet and nothing set in the environment.
+    expect((await (await request.get('/api/calendar/entry')).json()).googleIfOn).toBe('needsSignIn');
+
+    await page.goto(CALENDAR);
+    const adding = page.getByTestId('calendar-area-adding');
+    await expect(adding).toBeVisible();
+    await expect(adding.getByTestId('calendar-adding-sign-in')).toHaveCount(0);
+    await adding.getByRole('switch', { name: 'Let Home Screens add and change events' }).click();
+    await expect(adding.getByTestId('calendar-adding-sign-in').getByRole('button', { name: 'Sign in with Google' })).toBeVisible();
+    await expect(adding.getByTestId('calendar-adding-web-client')).toHaveCount(0);
+  });
+
   base('a photo module offers the Google Photos sign-in in place', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('photo-slideshow'));
     const panel = page.getByTestId('google-photos-hosted');
