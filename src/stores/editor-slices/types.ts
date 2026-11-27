@@ -17,6 +17,7 @@ import type {
   DisplayRule,
 } from '@/types/config';
 import type { LayoutExport } from '@/types/layout-export';
+import type { TouchChange } from '@/lib/touch-all';
 import type { CoalesceKey, EditorSelection, HistoryEntry, PendingResave } from '@/stores/editor-save';
 
 /**
@@ -214,6 +215,8 @@ export interface ScreenActions {
 export interface SettingsActions {
   updateSettings: (settings: Partial<GlobalSettings>) => void;
   updateDisplaySettings: (displayId: string, partial: Partial<DisplayNodeSettings>) => void;
+  /** Make the changes of an All on / All off press (`src/lib/touch-all.ts`), or with `back` take them out again. One undo step. */
+  applyTouchChanges: (changes: readonly TouchChange[], direction?: 'forward' | 'back') => void;
 }
 
 export interface ProfileActions {

@@ -14,6 +14,7 @@ import {
 import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
 import { useDefaultsPageHeader } from '@/components/editor/settings/useDefaultsPageHeader';
 import CanvasCard from '@/components/editor/settings/screen/CanvasCard';
+import TouchAllCard from '@/components/editor/settings/shared/TouchAllCard';
 import AppearanceCard from '@/components/editor/settings/screen/AppearanceCard';
 import { paginationDotDefaultsInUse } from '@/lib/pagination-dots';
 import SleepFormFields, {
@@ -87,6 +88,8 @@ interface ScreenSectionProps {
   onDisplayChange: (updates: Partial<DisplayState>) => void;
   onSleepChange: (updates: Partial<SleepFormValues>) => void;
   onAlertsChange: (updates: Partial<AlertFormValues>) => void;
+  /** The Touch box changed saved settings in the store; the page's own copy of them must be read again. */
+  onTouchApplied: () => void;
 }
 
 /**
@@ -119,6 +122,7 @@ export default function ScreenSection({
   onDisplayChange,
   onSleepChange,
   onAlertsChange,
+  onTouchApplied,
 }: ScreenSectionProps) {
   const t = useTranslate('editor');
   const searchParams = useSearchParams();
@@ -195,6 +199,8 @@ export default function ScreenSection({
           mode the global dims are vestigial (every DisplayNode owns its
           own resolution/rotation), so we hide them rather than letting
           the user edit values nothing reads. */}
+      {panel === 'appearance' && <TouchAllCard config={config} onApplied={onTouchApplied} />}
+
       {panel === 'appearance' && !isMultiDisplay && (
         <CanvasCard
           values={displayValues}

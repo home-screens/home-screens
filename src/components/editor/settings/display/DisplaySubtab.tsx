@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import DisplayCanvasCard from './DisplayCanvasCard';
+import TouchAllCard from '@/components/editor/settings/shared/TouchAllCard';
 import DisplayOverrideFields from './DisplayOverrideFields';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { defaultsPlaceText } from '@/components/editor/settings/useDefaultsPageHeader';
@@ -60,6 +61,8 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
           {t('settings.perDisplayPage.display.bannerPart4', { name: display.name })}
         </div>
       </div>
+
+      <TouchAllCard config={config} displayId={display.id} />
 
       <DisplayCanvasCard config={config} display={display} />
 

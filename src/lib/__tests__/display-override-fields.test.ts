@@ -48,6 +48,7 @@ function declaredFields(interfaceName: string): string[] {
  */
 const GLOBAL_ONLY: Record<string, string> = {
   artHidden: "the household's own list of paintings not to show, read by the hub when it picks one for any wall",
+  newCardsTouchOff: "the last press of the Touch box; a display keeps its own on the node itself (`DisplayNode.newCardsTouchOff`), read by the editor when a module is added and never by a wall",
   latitude: 'server routes read location via readConfig, not filterConfigForDisplay (see the note on DisplayNodeSettings)',
   longitude: 'see latitude',
   locationName: 'see latitude',

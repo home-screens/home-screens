@@ -1348,6 +1348,14 @@ export interface GlobalSettings {
    * @default true
    */
   calendarWallEntry?: boolean;
+  /**
+   * Modules added from now on start with their touch switches off. Set by "All off" under
+   * Settings > Screen > Touch and cleared by "All on"; never edit it by hand
+   *
+   * The last press of the Touch box (`src/lib/touch-all.ts`). The switches themselves are the
+   * truth; this only decides how a new module starts. Absent means new modules start as the registry says.
+   */
+  newCardsTouchOff?: boolean;
   /** Backup reminder (see BackupReminderSettings) */
   backupReminder?: BackupReminderSettings;
   /** New-release banner (see UpdateNotificationSettings) */
@@ -1624,6 +1632,13 @@ export interface DisplayNode {
    * Per-display setting overrides (rotation interval, sleep, etc.)
    */
   settings?: DisplayNodeSettings;
+  /**
+   * Whether modules added to this display start with their touch switches off, instead of following the shared `newCardsTouchOff`
+   *
+   * Set by the Touch box on this display's own page. On the node, not in
+   * `settings`: it is read by the editor when a module is added, never by a wall.
+   */
+  newCardsTouchOff?: boolean;
   /**
    * This display's own rules (see DisplayRule). There is no shared set in multi-display mode
    *

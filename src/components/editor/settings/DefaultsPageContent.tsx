@@ -121,6 +121,7 @@ export default function DefaultsPageContent({
         onDisplayChange={onDisplayChange}
         onSleepChange={(updates) => updateGroup('sleep', updates)}
         onAlertsChange={(updates) => updateGroup('alerts', updates)}
+        onTouchApplied={() => setState(toFormState(useEditorStore.getState().config?.settings))}
       />
     ) : null,
 

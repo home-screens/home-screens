@@ -10,6 +10,7 @@ import {
   updateScreenModulesInConfig,
 } from '@/lib/editor-multi-display';
 import { scaleModulesToFit, reorderModuleZ, appendOnTop, stackOrder, modulesOverlap, clampToCanvas } from '@/lib/module-utils';
+import { newCardsStartTouchOff, withTouchOff } from '@/lib/touch-all';
 import { findFreePosition } from '@/lib/free-position';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import type { EditorGet, ModuleActions, MutateConfig } from './types';
@@ -67,9 +68,13 @@ export function createModuleSlice(
           );
       // zIndex is assigned by appendOnTop against the target screen's modules
       // inside the mutation, so it is computed from the same list it lands in.
+      const built = buildDefaultModule(def, type, { dims, locale: cfg?.settings?.locale, position: resolvedPosition });
+      // After "All off" in Settings > Screen > Touch, a new card starts with touch off too.
+      const startsTouchOff = !!cfg && newCardsStartTouchOff(cfg, state.selectedDisplayId);
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
         id: uuid(),
-        ...buildDefaultModule(def, type, { dims, locale: cfg?.settings?.locale, position: resolvedPosition }),
+        ...built,
+        ...(startsTouchOff ? { config: withTouchOff(type, built.config) } : {}),
       };
       mutateConfig((config) => ({
         config: updateScreenModulesInConfig(config, get().selectedDisplayId, screenId, (modules) =>

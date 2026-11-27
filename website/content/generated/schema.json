@@ -8159,6 +8159,15 @@
           "defaultText": "true"
         },
         {
+          "name": "newCardsTouchOff",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Modules added from now on start with their touch switches off. Set by \"All off\" under Settings > Screen > Touch and cleared by \"All on\"; never edit it by hand"
+        },
+        {
           "name": "backupReminder",
           "optional": true,
           "type": {
@@ -10056,6 +10065,15 @@
             "text": "DisplayNodeSettings"
           },
           "description": "Settings this display overrides (see DisplayNodeSettings)"
+        },
+        {
+          "name": "newCardsTouchOff",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Whether modules added to this display start with their touch switches off, instead of following the shared `newCardsTouchOff`"
         },
         {
           "name": "rules",

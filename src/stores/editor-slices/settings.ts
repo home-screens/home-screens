@@ -1,6 +1,7 @@
 import type { DisplayNodeSettings } from '@/types/config';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { pruneCalendarSourceRefs } from '@/lib/calendar-source-refs';
+import { applyTouchChanges, type TouchChange } from '@/lib/touch-all';
 import type { MutateConfig, SettingsActions } from './types';
 
 /**
@@ -55,6 +56,13 @@ export function createSettingsSlice(mutateConfig: MutateConfig): SettingsActions
 
         return { config: { ...config, displays: nextDisplays } };
       }, { coalesce: COALESCE_KEYS.settings });
+    },
+
+    applyTouchChanges: (changes: readonly TouchChange[], direction = 'forward') => {
+      mutateConfig((config) => {
+        const next = applyTouchChanges(config, changes, direction);
+        return next === config ? {} : { config: next };
+      });
     },
   };
 }
