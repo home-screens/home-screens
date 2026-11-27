@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Undo2 } from 'lucide-react';
+import TouchScreenList from './TouchScreenList';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ScreenConfiguration } from '@/types/config';
@@ -9,6 +10,7 @@ import {
   listTouchSwitches,
   newCardsStartTouchOff,
   planTouchAll,
+  planTouchSwitches,
   touchAreaCounts,
   touchState,
   type TouchChange,
@@ -30,35 +32,6 @@ function countText(t: TranslateFn, key: string, count: number): string {
   return t(`${K}.${key}${count === 1 ? 'One' : 'Other'}`, { count });
 }
 
-function whereText(item: TouchSwitch, t: TranslateFn): string | null {
-  if (item.module) {
-    const values = { module: resolveModuleLabel(item.module.type, t), screen: item.module.screenName, display: item.displayName ?? '' };
-    return t(item.displayName ? `${K}.whereModuleDisplay` : `${K}.whereModule`, values);
-  }
-  return item.displayName ?? null;
-}
-
-function SwitchRows({ items, t }: { items: readonly TouchSwitch[]; t: TranslateFn }) {
-  return (
-    <ul>
-      {items.map((item) => {
-        const where = whereText(item, t);
-        return (
-          <li key={item.key} className="flex items-baseline justify-between gap-3 py-1 text-xs">
-            <span className="min-w-0 text-hs-text-secondary">
-              {t(item.labelKey)}
-              {where && <span className="ml-2 text-[11px] text-hs-text-faint">{where}</span>}
-            </span>
-            <span className={item.on ? 'shrink-0 text-hs-text-muted' : 'shrink-0 text-hs-text-faint'}>
-              {t(item.on ? `${K}.valueOn` : `${K}.valueOff`)}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 interface TouchAllCardProps {
   config: ScreenConfiguration;
   /** The one display this box switches; leave out for every display. */
@@ -67,10 +40,17 @@ interface TouchAllCardProps {
   onApplied?: () => void;
 }
 
+/** A press waiting on its question: everything in the box, or one display picked from the list. */
+interface Asking {
+  on: boolean;
+  displayId?: string;
+}
+
 /**
  * Settings > Screen > Touch: All on and All off for every touch switch, on
- * every display or on one. The rules are in `src/lib/touch-all.ts`; this
- * shows where things stand, asks before a press and offers Undo after it.
+ * every display or on one, and under them a list that flips one screen or one
+ * switch at a time. The rules are in `src/lib/touch-all.ts`; this shows where
+ * things stand, asks before a big press and offers Undo after it.
  */
 export default function TouchAllCard({ config, displayId, onApplied }: TouchAllCardProps) {
   const t = useTranslate('editor');
@@ -83,12 +63,10 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
   const switches = useMemo(() => listTouchSwitches(config, scope), [config, scope]);
   const state = touchState(switches);
   const onCount = switches.filter((s) => s.on).length;
-  const display = displayId ? config.displays?.find((d) => d.id === displayId) : undefined;
-  const displays = !displayId ? config.displays ?? [] : [];
+  const severalDisplays = !displayId && (config.displays?.length ?? 0) > 1;
 
-  const [asking, setAsking] = useState<'on' | 'off' | null>(null);
-  const [showOther, setShowOther] = useState(false);
-  const [done, setDone] = useState<{ on: boolean; flipped: number; changes: TouchChange[] } | null>(null);
+  const [asking, setAsking] = useState<Asking | null>(null);
+  const [done, setDone] = useState<{ message: string; changes: TouchChange[] } | null>(null);
 
   useEffect(() => {
     if (!done) return;
@@ -105,29 +83,49 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
     [applyTouchChanges, onApplied, saveConfig],
   );
 
-  const press = (on: boolean) => {
-    const changes = planTouchAll(config, scope, on);
+  // What the question on screen is about: the whole box, or the one display
+  // whose On / Off was pressed in the list.
+  const askedDisplayId = asking?.displayId ?? displayId;
+  const askedSwitches = asking?.displayId ? switches.filter((s) => s.displayId === asking.displayId) : switches;
+  const askedName = askedDisplayId ? config.displays?.find((d) => d.id === askedDisplayId)?.name ?? '' : '';
+
+  const press = () => {
+    if (!asking) return;
+    const { on } = asking;
+    const changes = planTouchAll(config, { displayId: askedDisplayId }, on);
+    const flipped = askedSwitches.filter((s) => s.on !== on).length;
     setAsking(null);
     if (changes.length === 0) return;
-    const flipped = switches.filter((s) => s.on !== on).length;
     // Nothing to see flipped (only how new modules start): no toast to undo.
-    setDone(flipped > 0 ? { on, flipped, changes } : null);
+    setDone(
+      flipped > 0
+        ? {
+            message: `${t(`${K}.toast${on ? 'On' : 'Off'}${askedDisplayId ? 'Display' : ''}`, { name: askedName })} ${countText(t, 'changed', flipped)}`,
+            changes,
+          }
+        : null,
+    );
     void commit(changes, 'forward');
   };
 
-  // In a mix, the shorter list is the one worth reading: the few things that
-  // differ from the rest. The other is one click away.
-  const offItems = switches.filter((s) => !s.on);
-  const onItems = switches.filter((s) => s.on);
-  const fewer = offItems.length <= onItems.length ? offItems : onItems;
-  const more = fewer === offItems ? onItems : offItems;
+  const flip = (items: readonly TouchSwitch[], on: boolean, undoName?: string) => {
+    const changes = planTouchSwitches(config, items, on);
+    if (changes.length === 0) return;
+    const flipped = items.filter((s) => s.on !== on).length;
+    setDone(
+      undoName
+        ? { message: `${t(`${K}.toast${on ? 'On' : 'Off'}Display`, { name: undoName })} ${countText(t, 'changed', flipped)}`, changes }
+        : null,
+    );
+    void commit(changes, 'forward');
+  };
 
-  const askingOn = asking === 'on';
-  const areaRows = asking ? touchAreaCounts(switches, askingOn) : [];
-  const changing = asking ? switches.filter((s) => s.on !== askingOn).length : 0;
+  const askingOn = asking?.on ?? false;
+  const areaRows = asking ? touchAreaCounts(askedSwitches, askingOn) : [];
+  const changing = asking ? askedSwitches.filter((s) => s.on !== askingOn).length : 0;
   const addingNeedsSetup =
-    askingOn && !config.settings.calendar?.eventEntry?.enabled && switches.some((s) => s.area === 'calendar');
-  const name = display?.name ?? '';
+    askingOn && !config.settings.calendar?.eventEntry?.enabled && askedSwitches.some((s) => s.area === 'calendar');
+  const askWord = askingOn ? 'on' : 'off';
 
   const stateText =
     state === 'none'
@@ -146,7 +144,7 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
             label={t(`${K}.title`)}
             value={state === 'on' ? 'on' : state === 'off' ? 'off' : ''}
             disabled={state === 'none'}
-            onChange={(v) => setAsking(v === 'on' ? 'on' : 'off')}
+            onChange={(v) => setAsking({ on: v === 'on' })}
             options={[
               { value: 'on', label: t(`${K}.allOn`), testId: 'touch-all-on' },
               { value: 'off', label: t(`${K}.allOff`), testId: 'touch-all-off' },
@@ -166,49 +164,23 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
           </div>
         </div>
 
-        {state === 'some' && displays.length > 1 && (
-          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-hs-text-muted" data-testid="touch-all-displays">
-            {displays.map((d) => {
-              const own = switches.filter((s) => s.displayId === d.id);
-              if (own.length === 0) return null;
-              const on = own.filter((s) => s.on).length;
-              return (
-                <li key={d.id}>
-                  {on === own.length
-                    ? t(`${K}.displayAllOn`, { name: d.name })
-                    : on === 0
-                      ? t(`${K}.displayAllOff`, { name: d.name })
-                      : t(`${K}.displaySome`, { name: d.name, on, total: own.length })}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-        {state === 'some' && (
-          <div className="mt-3 border-t border-hs-border pt-2" data-testid="touch-all-list">
-            <SwitchRows items={fewer} t={t} />
-            {showOther && <SwitchRows items={more} t={t} />}
-            <button
-              type="button"
-              className="mt-1.5 text-[11px] text-hs-accent hover:text-hs-accent-hover"
-              onClick={() => setShowOther((v) => !v)}
-            >
-              {showOther
-                ? t(`${K}.showFewer`)
-                : countText(t, more === onItems ? 'showOn' : 'showOff', more.length)}
-            </button>
-          </div>
+        {state !== 'none' && (
+          <TouchScreenList
+            switches={switches}
+            showDisplays={severalDisplays}
+            onFlip={flip}
+            onAskDisplay={(id, on) => setAsking({ on, displayId: id })}
+          />
         )}
       </div>
 
       {asking && (
         <ModalFrame labelledBy={titleId} onClose={() => setAsking(null)} className="max-w-md">
           <ModalPanel>
-            <ModalHeader titleId={titleId} title={t(`${K}.${asking}Title`)} onClose={() => setAsking(null)} />
+            <ModalHeader titleId={titleId} title={t(`${K}.${askWord}Title`)} onClose={() => setAsking(null)} />
             <ModalBody>
               <p className="text-sm leading-relaxed text-hs-text-secondary">
-                {t(`${K}.${asking}Body${displayId ? 'Display' : ''}`, { name })}
+                {t(`${K}.${askWord}Body${askedDisplayId ? 'Display' : ''}`, { name: askedName })}
               </p>
               <ul className="mt-3 divide-y divide-hs-border rounded-lg border border-hs-border bg-hs-input" data-testid="touch-all-areas">
                 {areaRows.map((row) => (
@@ -241,7 +213,7 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
               onCancel={() => setAsking(null)}
               primary={{
                 label: t(askingOn ? `${K}.confirmOn` : `${K}.confirmOff`),
-                onClick: () => press(askingOn),
+                onClick: press,
                 testId: 'touch-all-confirm',
               }}
             />
@@ -252,7 +224,7 @@ export default function TouchAllCard({ config, displayId, onApplied }: TouchAllC
       {done && (
         <Toast
           testId="touch-all-toast"
-          message={`${t(`${K}.toast${done.on ? 'On' : 'Off'}${displayId ? 'Display' : ''}`, { name })} ${countText(t, 'changed', done.flipped)}`}
+          message={done.message}
           action={{
             label: t(`${K}.undo`),
             icon: Undo2,

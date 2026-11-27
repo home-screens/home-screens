@@ -5,6 +5,8 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import {
   MODULE_TOUCH_SWITCHES,
   applyTouchChanges,
+  groupTouchSwitches,
+  planTouchSwitches,
   listTouchSwitches,
   newCardsStartTouchOff,
   planTouchAll,
@@ -50,6 +52,14 @@ describe('touch switch table', () => {
   it('names a real label for every switch', () => {
     for (const rules of Object.values(MODULE_TOUCH_SWITCHES)) {
       for (const rule of rules ?? []) expect(typeof lookup(rule.labelKey), rule.labelKey).toBe('string');
+    }
+  });
+
+  it('makes a switch depend only on another switch of the same module', () => {
+    for (const [type, rules] of Object.entries(MODULE_TOUCH_SWITCHES)) {
+      for (const rule of rules ?? []) {
+        if (rule.needs) expect((rules ?? []).some((other) => other.field === rule.needs && !other.needs), `${type}.${rule.field}`).toBe(true);
+      }
     }
   });
 
@@ -196,5 +206,77 @@ describe('more than one display', () => {
     expect(off.screens).toBe(config.screens);
     const on = press(off, true);
     expect(touchState(listTouchSwitches(on))).toBe('on');
+  });
+});
+
+describe('one screen or one switch at a time', () => {
+  const config = multi(
+    [
+      {
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [
+          screen('k1', 'Home', [
+            mod('a', 'todo', { interactive: true, wallAdd: false }),
+            { ...mod('b', 'todo', {}), style: { title: 'Weekend jobs' } } as ModuleInstance,
+            mod('c', 'todo', {}),
+            mod('n', 'notes', { wallDraw: true }),
+          ]),
+          screen('k2', 'Meals', [mod('m', 'meal-planner', {})]),
+        ],
+      },
+      { id: 'tv', name: 'TV', screens: [screen('t1', 'Pictures', [mod('a', 'todo', { interactive: true })])] },
+    ],
+    { swipeEnabled: true },
+  );
+  const all = () => listTouchSwitches(config);
+  const flip = (c: ScreenConfiguration, pick: (s: ReturnType<typeof listTouchSwitches>[number]) => boolean, on: boolean) =>
+    applyTouchChanges(c, planTouchSwitches(c, listTouchSwitches(c).filter(pick), on));
+
+  it('groups by display, then screen, then module, and tells same-kind modules apart', () => {
+    const groups = groupTouchSwitches(all());
+    expect(groups.map((g) => g.displayName)).toEqual(['Kitchen', 'TV']);
+    const [own, home, meals] = groups[0].rows;
+    expect(own.kind).toBe('display');
+    expect([home.screenName, meals.screenName]).toEqual(['Home', 'Meals']);
+    expect(home.modules.map((m) => [m.type, m.title, m.number])).toEqual([
+      ['todo', undefined, 1],
+      ['todo', 'Weekend jobs', undefined],
+      ['todo', undefined, 3],
+      ['notes', undefined, undefined],
+    ]);
+    const add = home.switches.find((s) => s.key === 'module:kitchen:a:wallAdd')!;
+    expect(add.needsKey).toBe('module:kitchen:a:interactive');
+  });
+
+  it('a screen off changes that screen only, and not how new modules start', () => {
+    const off = flip(config, (s) => s.module?.screenId === 'k1' && s.displayId === 'kitchen', false);
+    const home = groupTouchSwitches(listTouchSwitches(off))[0].rows[1];
+    expect(home.switches.every((s) => !s.on)).toBe(true);
+    expect(off.displays![0].screens[1]).toBe(config.displays![0].screens[1]);
+    // The TV has a module with the same id; it is another display's.
+    expect(off.displays![1]).toBe(config.displays![1]);
+    expect(off.settings).toBe(config.settings);
+    expect(off.displays![0].newCardsTouchOff).toBeUndefined();
+  });
+
+  it('one switch flips alone, and a choice fills in what a new module gets', () => {
+    const on = flip(config, (s) => s.key === 'module:kitchen:m:tapRecipeAction', true);
+    expect(on.displays![0].screens[1].modules[0].config).toEqual({ tapRecipeAction: 'card' });
+  });
+
+  it("a display's own swipe goes into that display, and back to following the shared value", () => {
+    const off = flip(config, (s) => s.key === 'setting:tv:swipeEnabled', false);
+    expect(off.displays![1].settings).toEqual({ swipeEnabled: false });
+    expect(off.settings).toBe(config.settings);
+    const on = flip(off, (s) => s.key === 'setting:tv:swipeEnabled', true);
+    expect(on.displays![1].settings).toBeUndefined();
+  });
+
+  it('with a single display the shared setting itself is flipped', () => {
+    const one = single([mod('t', 'todo')]);
+    const off = flip(one, (s) => s.key === 'setting::swipeEnabled', false);
+    expect(off.settings.swipeEnabled).toBe(false);
+    expect(planTouchSwitches(off, listTouchSwitches(off).filter((s) => !s.on), false)).toEqual([]);
   });
 });

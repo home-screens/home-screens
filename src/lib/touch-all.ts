@@ -44,8 +44,12 @@ export interface TouchSwitch {
   /** The display it belongs to; absent with a single display. */
   displayId?: string;
   displayName?: string;
-  /** Set for a card's switch. */
-  module?: { id: string; type: ModuleInstance['type']; screenName: string };
+  /** The saved field behind it. */
+  field: string;
+  /** The switch that has to be on before this one does anything (`key` of a switch on the same module). */
+  needsKey?: string;
+  /** Set for a module's switch. */
+  module?: { id: string; type: ModuleInstance['type']; title?: string; screenId: string; screenName: string };
 }
 
 /** One saved value a press changes, with what it was, so Undo can put it back. */
@@ -62,6 +66,13 @@ interface ModuleSwitchRule {
   /** What All on writes into a switch that is off. */
   onValue: (type: ModuleInstance['type']) => unknown;
   offValue: unknown;
+  /** The field on the same module that has to be on before this one does anything. */
+  needs?: string;
+}
+
+/** `rule`, doing nothing on the wall until the module's `field` is on. */
+function needing(field: string, rule: ModuleSwitchRule): ModuleSwitchRule {
+  return { ...rule, needs: field };
 }
 
 /** A plain switch. `absentOn` says what the wall does with a card saved before the switch existed. */
@@ -106,10 +117,11 @@ const wallViews: ModuleSwitchRule = {
 };
 
 const TAP_ON_WALL = 'configSections.tapOnWall';
-const ADD_EVENTS = toggle('addEvents', 'calendar', 'configSections.calendarGroups.addEvents', true);
-const SHOW_ONE_PERSON = toggle('showOnePerson', 'calendar', 'configSections.calendarPeople.showOnePerson');
-const WALL_ADD_MEALS = toggle('wallAdd', 'meals', 'configSections.meal-planner.wallAdd');
-const WALL_PLAN = toggle('wallPlan', 'meals', 'configSections.meal-planner.wallPlan');
+const ADD_EVENTS = needing('eventTapDetails', toggle('addEvents', 'calendar', 'configSections.calendarGroups.addEvents', true));
+const SHOW_ONE_PERSON = needing('eventTapDetails', toggle('showOnePerson', 'calendar', 'configSections.calendarPeople.showOnePerson'));
+const WALL_VIEWS = needing('eventTapDetails', wallViews);
+const WALL_ADD_MEALS = needing('interactive', toggle('wallAdd', 'meals', 'configSections.meal-planner.wallAdd'));
+const WALL_PLAN = needing('interactive', toggle('wallPlan', 'meals', 'configSections.meal-planner.wallPlan'));
 const NEWS_TAP = choice('tapAction', 'news', 'configSections.news.tapAction', 'none', 'qr', 'qr');
 
 /**
@@ -117,15 +129,15 @@ const NEWS_TAP = choice('tapAction', 'news', 'configSections.news.tapAction', 'n
  * type. A new touch switch on a card is added here, or All off leaves it on.
  */
 export const MODULE_TOUCH_SWITCHES: Partial<Record<ModuleInstance['type'], readonly ModuleSwitchRule[]>> = {
-  calendar: [toggle('eventTapDetails', 'calendar', 'configSections.calendar.eventTapDetails'), ADD_EVENTS, wallViews, SHOW_ONE_PERSON],
+  calendar: [toggle('eventTapDetails', 'calendar', 'configSections.calendar.eventTapDetails'), ADD_EVENTS, WALL_VIEWS, SHOW_ONE_PERSON],
   'fullscreen-calendar': [
     toggle('eventTapDetails', 'calendar', 'configSections.fullscreen-calendar.eventTapDetails'),
     ADD_EVENTS,
-    wallViews,
+    WALL_VIEWS,
     SHOW_ONE_PERSON,
   ],
   'multi-month': [toggle('eventTapDetails', 'calendar', 'configSections.multi-month.eventTapDetails'), ADD_EVENTS],
-  todo: [toggle('interactive', 'tap', TAP_ON_WALL), toggle('wallAdd', 'tap', 'configSections.todo.wallAdd')],
+  todo: [toggle('interactive', 'tap', TAP_ON_WALL), needing('interactive', toggle('wallAdd', 'tap', 'configSections.todo.wallAdd'))],
   todoist: [toggle('allowComplete', 'tap', TAP_ON_WALL)],
   notes: [toggle('wallDraw', 'notes', 'configSections.notes.wallDraw'), toggle('wallWrite', 'notes', 'configSections.notes.wallWrite')],
   news: [NEWS_TAP],
@@ -134,13 +146,13 @@ export const MODULE_TOUCH_SWITCHES: Partial<Record<ModuleInstance['type'], reado
   'fullscreen-photo': [toggle('interactive', 'tap', TAP_ON_WALL, true)],
   'meal-planner': [
     toggle('interactive', 'meals', TAP_ON_WALL, true),
-    choice('tapRecipeAction', 'meals', 'configSections.meal-planner.tapRecipeAction', 'off', 'off', 'card'),
+    needing('interactive', choice('tapRecipeAction', 'meals', 'configSections.meal-planner.tapRecipeAction', 'off', 'off', 'card')),
     WALL_ADD_MEALS,
     WALL_PLAN,
   ],
   'fullscreen-meal-planner': [
     toggle('interactive', 'meals', TAP_ON_WALL, true),
-    choice('tapRecipeAction', 'meals', 'configSections.fullscreen-meal-planner.tapRecipeAction', 'off', 'off', 'card'),
+    needing('interactive', choice('tapRecipeAction', 'meals', 'configSections.fullscreen-meal-planner.tapRecipeAction', 'off', 'off', 'card')),
     WALL_ADD_MEALS,
     WALL_PLAN,
   ],
@@ -196,12 +208,12 @@ function scopedDisplays(config: ScreenConfiguration, scope: TouchScope): (Displa
 function eachScopedModule(
   config: ScreenConfiguration,
   scope: TouchScope,
-  visit: (mod: ModuleInstance, display: DisplayNode | undefined, screenName: string) => void,
+  visit: (mod: ModuleInstance, display: DisplayNode | undefined, screen: { id: string; name: string }) => void,
 ): void {
-  const screenNames = new Map<ModuleInstance, string>();
+  const screenOf = new Map<ModuleInstance, { id: string; name: string }>();
   const note = (screens: ScreenConfiguration['screens'] | undefined) => {
     for (const screen of Array.isArray(screens) ? screens : []) {
-      for (const mod of Array.isArray(screen?.modules) ? screen.modules : []) screenNames.set(mod, screen.name);
+      for (const mod of Array.isArray(screen?.modules) ? screen.modules : []) screenOf.set(mod, { id: screen.id, name: screen.name });
     }
   };
   note(config.screens);
@@ -209,7 +221,7 @@ function eachScopedModule(
   forEachConfigModule(config, (mod, site) => {
     if (!site.live) return;
     if (scope.displayId && site.display?.id !== scope.displayId) return;
-    visit(mod, site.display, screenNames.get(mod) ?? '');
+    visit(mod, site.display, screenOf.get(mod) ?? { id: '', name: '' });
   });
 }
 
@@ -223,21 +235,25 @@ export function listTouchSwitches(config: ScreenConfiguration, scope: TouchScope
         area: SETTING_AREAS[field],
         labelKey: SETTING_LABELS[field],
         on: effectiveValue(config.settings, display, field),
+        field,
         displayId: display?.id,
         displayName: display?.name,
       });
     }
   }
-  eachScopedModule(config, scope, (mod, display, screenName) => {
+  eachScopedModule(config, scope, (mod, display, screen) => {
+    const keyOf = (field: string) => `module:${display?.id ?? ''}:${mod.id}:${field}`;
     for (const rule of MODULE_TOUCH_SWITCHES[mod.type] ?? []) {
       out.push({
-        key: `module:${display?.id ?? ''}:${mod.id}:${rule.field}`,
+        key: keyOf(rule.field),
+        field: rule.field,
+        ...(rule.needs ? { needsKey: keyOf(rule.needs) } : {}),
         area: rule.area,
         labelKey: rule.labelKey,
         on: rule.isOn(mod.config?.[rule.field]),
         displayId: display?.id,
         displayName: display?.name,
-        module: { id: mod.id, type: mod.type, screenName },
+        module: { id: mod.id, type: mod.type, title: mod.style?.title?.trim() || undefined, screenId: screen.id, screenName: screen.name },
       });
     }
   });
@@ -405,4 +421,117 @@ export function touchAreaCounts(switches: readonly TouchSwitch[], on: boolean): 
     const inArea = switches.filter((s) => s.area === area);
     return { area, total: inArea.length, changing: inArea.filter((s) => s.on !== on).length };
   }).filter((row) => row.total > 0);
+}
+
+/**
+ * Every saved value that turning just `switches` on or off has to change: one
+ * switch, one screen's, or one display's own settings. Unlike `planTouchAll`
+ * it leaves alone how new modules start, which only the big buttons decide.
+ */
+export function planTouchSwitches(config: ScreenConfiguration, switches: readonly TouchSwitch[], on: boolean): TouchChange[] {
+  const changes: TouchChange[] = [];
+  const wanted = new Set(switches.filter((s) => s.on !== on).map((s) => s.key));
+  if (wanted.size === 0) return changes;
+  const { settings } = config;
+
+  for (const item of switches) {
+    if (item.module || !wanted.has(item.key)) continue;
+    const field = item.field as SettingField;
+    const display = item.displayId ? liveDisplays(config).find((d) => d.id === item.displayId) : undefined;
+    if (display) {
+      const to = sharedValue(settings, field) === on ? undefined : on;
+      if (display.settings?.[field] !== to) changes.push({ kind: 'setting', displayId: display.id, field, from: display.settings?.[field], to });
+    } else {
+      const to = field === 'calendarWallEntry' ? (on ? undefined : false) : on;
+      changes.push({ kind: 'setting', field, from: settings[field], to });
+    }
+  }
+
+  eachScopedModule(config, {}, (mod, display) => {
+    for (const rule of MODULE_TOUCH_SWITCHES[mod.type] ?? []) {
+      if (!wanted.has(`module:${display?.id ?? ''}:${mod.id}:${rule.field}`)) continue;
+      changes.push({
+        kind: 'module',
+        displayId: display?.id,
+        moduleId: mod.id,
+        field: rule.field,
+        from: mod.config?.[rule.field],
+        to: on ? rule.onValue(mod.type) : rule.offValue,
+      });
+    }
+  });
+  return changes;
+}
+
+/** One module's switches inside a screen's row. */
+export interface TouchModuleGroup {
+  id: string;
+  type: ModuleInstance['type'];
+  /** The module's own title, when it has one. */
+  title?: string;
+  /** Its place among modules of the same kind on the screen (1 first), when there are several and it has no title. */
+  number?: number;
+  switches: TouchSwitch[];
+}
+
+/** One row of the Touch box's list: a screen, or a display's own swipe, pause and adding switches. */
+export interface TouchRow {
+  key: string;
+  kind: 'display' | 'screen';
+  screenId?: string;
+  screenName?: string;
+  switches: TouchSwitch[];
+  /** Filled for a screen. */
+  modules: TouchModuleGroup[];
+}
+
+export interface TouchDisplayGroup {
+  displayId?: string;
+  displayName?: string;
+  switches: TouchSwitch[];
+  rows: TouchRow[];
+}
+
+/** `switches` arranged the way the list draws them: by display, then one row per screen, then by module. */
+export function groupTouchSwitches(switches: readonly TouchSwitch[]): TouchDisplayGroup[] {
+  const groups = new Map<string, TouchDisplayGroup>();
+  const rows = new Map<string, TouchRow>();
+  for (const item of switches) {
+    const at = item.displayId ?? '';
+    let group = groups.get(at);
+    if (!group) groups.set(at, (group = { displayId: item.displayId, displayName: item.displayName, switches: [], rows: [] }));
+    group.switches.push(item);
+    const rowKey = item.module ? `screen:${at}:${item.module.screenId}` : `display:${at}`;
+    let row = rows.get(rowKey);
+    if (!row) {
+      row = item.module
+        ? { key: rowKey, kind: 'screen', screenId: item.module.screenId, screenName: item.module.screenName, switches: [], modules: [] }
+        : { key: rowKey, kind: 'display', switches: [], modules: [] };
+      rows.set(rowKey, row);
+      group.rows.push(row);
+    }
+    row.switches.push(item);
+    if (item.module) {
+      let mod = row.modules.find((m) => m.id === item.module!.id);
+      if (!mod) row.modules.push((mod = { id: item.module.id, type: item.module.type, title: item.module.title, switches: [] }));
+      mod.switches.push(item);
+    }
+  }
+  for (const row of rows.values()) {
+    const perType = new Map<string, TouchModuleGroup[]>();
+    for (const mod of row.modules) perType.set(mod.type, [...(perType.get(mod.type) ?? []), mod]);
+    for (const same of perType.values()) {
+      if (same.length < 2) continue;
+      same.forEach((mod, index) => {
+        if (!mod.title) mod.number = index + 1;
+      });
+    }
+  }
+  return [...groups.values()];
+}
+
+/** How a row or a display stands, for its filter chip and its On / Off pair. */
+export function touchRowState(switches: readonly TouchSwitch[]): 'on' | 'off' | 'some' {
+  const state = touchState(switches);
+  return state === 'none' ? 'off' : state;
 }
