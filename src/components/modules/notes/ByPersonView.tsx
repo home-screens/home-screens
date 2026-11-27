@@ -94,7 +94,7 @@ export function ByPersonView({ ctx, all, roster }: { ctx: NotesContext; all: Not
           );
         })}
       </ul>
-      <MoreLine n={rows.length - drawn.length} t={ctx.t} />
+      <MoreLine n={rows.length - drawn.length} ctx={ctx} />
     </>
   );
 }

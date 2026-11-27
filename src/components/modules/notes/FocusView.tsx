@@ -60,7 +60,7 @@ export function FocusView({ ctx, all, shown }: { ctx: NotesContext; all: Note[];
           </ul>
         )}
       </div>
-      <MoreLine n={all.length - 1 - rest.length} t={ctx.t} />
+      <MoreLine n={all.length - 1 - rest.length} ctx={ctx} />
     </>
   );
 }

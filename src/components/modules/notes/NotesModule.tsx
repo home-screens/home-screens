@@ -21,6 +21,7 @@ import { TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
 import { NoteDrawDoor } from './NoteDrawDoor';
 import { NoteDrawSheet, type NoteDrawPost } from './NoteDrawSheet';
 import { NoteDrawingOverlay, NotePostedNotice } from './NoteDrawingOverlay';
+import { NotesAllSheet } from './NotesAllSheet';
 import { currentKeptNote, forgetKeptNote, keepNote, useKeptNote, type KeptNote } from './keptNote';
 import { ageOf, authorOf } from './shared';
 import { clampSetting, type NotesContext } from './shared';
@@ -178,6 +179,9 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
   // `sent`: what went up, so Undo can hand it back to be finished.
   const [posted, setPosted] = useState<{ id: string; words: string; detail?: string; sent: KeptNote } | null>(null);
   const openDrawing = useCallback((note: Note) => setOpened(note.id), []);
+  // Every note in one sheet: what "and N more" opens.
+  const [seeingAll, setSeeingAll] = useState(false);
+  const seeAll = useCallback(() => setSeeingAll(true), []);
 
   // What the hub answered is every note, gone ones too; the wall's read holds only the live ones.
   const showAnswer = useCallback((notes: Note[]) => {
@@ -299,6 +303,7 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
     t,
     fontPx: scaledFontSize,
     onOpenDrawing: onWall ? openDrawing : undefined,
+    onSeeAll: onWall ? seeAll : undefined,
   };
   const stepSeconds = clampSetting(config.stepSeconds, STEP_SECONDS.min, STEP_SECONDS.max, STEP_SECONDS.fallback);
   const { all, shown, hidden } = arranged;
@@ -383,6 +388,19 @@ export default function NotesModule({ config, style, timezone, timeFormat: saved
         {door && !isMaterialView(view) && <NoteDrawDoor label={door.label} accent={TAP_CHECKBOX_ACCENT} onPress={door.onPress} />}
       </div>
       {overlays}
+      {seeingAll && (
+        <NotesAllSheet
+          notes={all}
+          ctx={ctx}
+          title={title}
+          count={t('notes.count', { count })}
+          surface={surface}
+          accent={TAP_CHECKBOX_ACCENT}
+          paused={!!openedNote}
+          onOpen={openDrawing}
+          onClose={() => setSeeingAll(false)}
+        />
+      )}
       {openedNote && (
         <NoteDrawingOverlay
           note={openedNote}

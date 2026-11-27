@@ -112,7 +112,7 @@ export function StickyView({ ctx, shown, hidden, width }: { ctx: NotesContext; s
           );
         })}
       </div>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </>
   );
 }

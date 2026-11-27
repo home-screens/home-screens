@@ -6,7 +6,7 @@ import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFitCount } from '../../shared/useFitCount';
-import { ageOf, authorOf, fitKeyOf, type NotesContext, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, fitKeyOf, type NotesContext, MaterialMore, NoteDrawingBody } from '../shared';
 
 const PAPER = '#fbf8ee';
 const RULE = 'rgba(110, 150, 210, 0.45)';
@@ -205,11 +205,7 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
             );
           })}
         </ul>
-        {more > 0 && (
-          <div data-testid="notes-more" data-fit="more" style={{ height: rule, lineHeight, fontSize: '1em', fontWeight: 600, color: PENCIL_GREY }}>
-            {ctx.t('notes.andMore', { n: more })}
-          </div>
-        )}
+        <MaterialMore n={more} ctx={ctx} data-fit="more" style={{ height: rule, lineHeight, fontSize: '1em', fontWeight: 600, color: PENCIL_GREY }} />
       </div>
       {door && (
         <MaterialDrawDoor

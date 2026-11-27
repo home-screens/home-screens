@@ -18,7 +18,7 @@ export function BoardView({ ctx, shown, hidden }: { ctx: NotesContext; shown: No
           <NoteRow key={note.id} note={note} ctx={ctx} last={i === drawn.length - 1} />
         ))}
       </ul>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </>
   );
 }

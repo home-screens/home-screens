@@ -4,7 +4,7 @@ import type { Note } from '@/types/notes';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { tiltFor } from '@/lib/notes-rules';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf, type NoteAuthor, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, type NoteAuthor, MaterialMore, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 
@@ -95,15 +95,12 @@ export function FridgeView({ ctx, shown, hidden, padding, width, height, door }:
           <FridgePaper key={note.id} note={note} ctx={ctx} />
         ))}
       </div>
-      {more > 0 && (
-        <div
-          data-testid="notes-more"
-          className="shrink-0 self-end whitespace-nowrap"
-          style={{ fontFamily: UI_SANS_STACK, fontSize: '0.7em', fontWeight: 600, lineHeight: 1.4, paddingTop: '0.4em', color: '#2b2f33' }}
-        >
-          {ctx.t('notes.andMore', { n: more })}
-        </div>
-      )}
+      <MaterialMore
+        n={more}
+        ctx={ctx}
+        className="shrink-0 self-end whitespace-nowrap"
+        style={{ fontFamily: UI_SANS_STACK, fontSize: '0.7em', fontWeight: 600, lineHeight: 1.4, paddingTop: '0.4em', color: '#2b2f33', width: 'auto' }}
+      />
       {door && (
         <MaterialDrawDoor
           label={door.label}

@@ -5,7 +5,7 @@ import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf, type NoteAuthor, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, type NoteAuthor, MaterialMore, NoteDrawingBody } from '../shared';
 
 /** The board: a glare from the top left over a white that greys a touch to the bottom right. */
 const BOARD = [
@@ -162,15 +162,12 @@ export function WhiteboardView({ ctx, all, shown, hidden, title, showTitle, padd
             );
           })}
         </ul>
-        {more > 0 && (
-          <div
-            data-testid="notes-more"
-            className="shrink-0"
-            style={{ fontFamily: UI_SANS_STACK, fontSize: '0.78em', lineHeight: 1.4, paddingTop: '0.3em', color: GREY }}
-          >
-            {ctx.t('notes.andMore', { n: more })}
-          </div>
-        )}
+        <MaterialMore
+          n={more}
+          ctx={ctx}
+          className="shrink-0"
+          style={{ fontFamily: UI_SANS_STACK, fontSize: '0.78em', lineHeight: 1.4, paddingTop: '0.3em', color: GREY }}
+        />
         {door && (
           // Above the tray at the right, the same place and shape as the
           // chalkboard's, in the heading's blue marker. Never on the tray: it

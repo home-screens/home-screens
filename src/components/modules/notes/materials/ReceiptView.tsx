@@ -5,7 +5,7 @@ import { formatTimeOfDay } from '@/lib/timezone';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFitCount } from '../../shared/useFitCount';
-import { ageOf, authorOf, fitKeyOf, type NotesContext, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, fitKeyOf, type NotesContext, MaterialMore, NoteDrawingBody } from '../shared';
 
 const PAPER = '#f7f4ea';
 const RULE = '#777777';
@@ -147,11 +147,7 @@ export function ReceiptView({ ctx, all, shown, hidden, title, showTitle, padding
               )}
             </div>
           ))}
-          {more > 0 && (
-            <div data-testid="notes-more" data-fit="more" className="shrink-0 truncate">
-              {ctx.t('notes.andMore', { n: more })}
-            </div>
-          )}
+          <MaterialMore n={more} ctx={ctx} data-fit="more" className="shrink-0 truncate" />
         </div>
         <Dash />
         <div className="flex justify-between shrink-0" style={{ gap: '0.67em', fontWeight: 700, fontSize: '1.15em' }}>

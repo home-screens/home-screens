@@ -1855,6 +1855,7 @@
     "emptyImportant": "Ingen vigtige noter lige nu.",
     "someone": "Nogen",
     "andMore": "og {n} mere",
+    "tapToRead": "Tryk på en note for at læse det hele",
     "count": {
       "one": "{count} note",
       "other": "{count} noter"

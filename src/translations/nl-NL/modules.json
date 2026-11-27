@@ -1855,6 +1855,7 @@
     "emptyImportant": "Op dit moment geen belangrijke notities.",
     "someone": "Iemand",
     "andMore": "en nog {n}",
+    "tapToRead": "Tik op een notitie om alles te lezen",
     "count": {
       "one": "{count} notitie",
       "other": "{count} notities"

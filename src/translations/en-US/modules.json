@@ -1855,6 +1855,7 @@
     "emptyImportant": "No important notes right now.",
     "someone": "Someone",
     "andMore": "and {n} more",
+    "tapToRead": "Tap a note to read it all",
     "count": {
       "one": "{count} note",
       "other": "{count} notes"

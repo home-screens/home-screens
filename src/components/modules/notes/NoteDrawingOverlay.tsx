@@ -20,7 +20,27 @@ import { wallTypingVars } from '../shared/wallTypingVars';
 import { AuthorBubble } from './AuthorBubble';
 import type { NoteAuthor } from './shared';
 
-const SHEET_THEME = getThemeTokens('charcoal');
+export const SHEET_THEME = getThemeTokens('charcoal');
+
+/** Close, the same pill on a note opened large and on the sheet of every note. */
+export function SheetCloseButton({ testId, onClose }: { testId: string; onClose: () => void }) {
+  const t = useTranslate('modules');
+  const { P } = useWallOverlayScale();
+  return (
+    <WallButton
+      data-testid={testId}
+      onClick={onClose}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: P(10), height: P(66), padding: `0 ${P(28)}px`, borderRadius: P(33),
+        border: `${P(2)}px solid var(--wt-border)`, background: 'transparent', color: 'var(--wt-text)', font: 'inherit',
+        fontSize: P(25), fontWeight: 600, cursor: 'pointer', flexShrink: 0,
+      }}
+    >
+      <X size={P(26)} strokeWidth={2.6} aria-hidden="true" />
+      {t('wallKeyboard.close')}
+    </WallButton>
+  );
+}
 
 /** The type a note's words are read at when opened large, in authored pixels: the longer the note, the smaller. */
 function wordsSize(text: string): number {
@@ -67,18 +87,7 @@ export function NoteDrawingOverlay({ note, author, age, surface, accent, onClose
           <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{author.name}</span>
           {age && <span style={{ color: 'var(--wt-text-3)', fontWeight: 400, whiteSpace: 'nowrap' }}>{age}</span>}
           <span style={{ flex: 1 }} />
-          <WallButton
-            data-testid="note-drawing-overlay-close"
-            onClick={onClose}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: P(10), height: P(66), padding: `0 ${P(28)}px`, borderRadius: P(33),
-              border: `${P(2)}px solid var(--wt-border)`, background: 'transparent', color: 'var(--wt-text)', font: 'inherit',
-              fontSize: P(25), fontWeight: 600, cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            <X size={P(26)} strokeWidth={2.6} aria-hidden="true" />
-            {t('wallKeyboard.close')}
-          </WallButton>
+          <SheetCloseButton testId="note-drawing-overlay-close" onClose={onClose} />
         </div>
         {note.drawing ? (
           <div

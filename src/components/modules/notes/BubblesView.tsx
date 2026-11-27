@@ -68,7 +68,7 @@ export function BubblesView({ ctx, shown, hidden }: { ctx: NotesContext; shown: 
           );
         })}
       </div>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </>
   );
 }

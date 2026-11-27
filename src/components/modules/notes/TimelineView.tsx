@@ -94,7 +94,7 @@ export function TimelineView({ ctx, all, max }: { ctx: NotesContext; all: Note[]
           </Fragment>
         ))}
       </ul>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </>
   );
 }

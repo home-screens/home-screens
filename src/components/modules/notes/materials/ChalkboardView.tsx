@@ -4,7 +4,7 @@ import { Star } from 'lucide-react';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 import { useFittedNotes } from '../useFittedNotes';
-import { ageOf, authorOf, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, MaterialMore, NoteDrawingBody } from '../shared';
 
 /** The slate: two soft smudges of old chalk, a fine dust grain, and the green-black board. */
 const SLATE = [
@@ -152,15 +152,12 @@ export function ChalkboardView({ ctx, all, shown, hidden, title, showTitle, padd
             );
           })}
         </ul>
-        {more > 0 && (
-          <div
-            data-testid="notes-more"
-            className="shrink-0"
-            style={{ fontSize: '0.8em', lineHeight: 1.4, paddingTop: '0.3em', fontWeight: 600, opacity: 0.65 }}
-          >
-            {ctx.t('notes.andMore', { n: more })}
-          </div>
-        )}
+        <MaterialMore
+          n={more}
+          ctx={ctx}
+          className="shrink-0"
+          style={{ fontSize: '0.8em', lineHeight: 1.4, paddingTop: '0.3em', fontWeight: 600, opacity: 0.65 }}
+        />
         {door && (
           // By the chalk, in chalk: the board is full to its tray, so the button sits just above it.
           <MaterialDrawDoor

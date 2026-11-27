@@ -1855,6 +1855,7 @@
     "emptyImportant": "Gerade keine wichtigen Notizen.",
     "someone": "Jemand",
     "andMore": "und {n} weitere",
+    "tapToRead": "Tippe auf eine Notiz, um sie ganz zu lesen",
     "count": {
       "one": "{count} Notiz",
       "other": "{count} Notizen"

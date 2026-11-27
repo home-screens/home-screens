@@ -1863,6 +1863,7 @@
     "emptyImportant": "Ahora mismo no hay notas importantes.",
     "someone": "Alguien",
     "andMore": "y {n} más",
+    "tapToRead": "Toca una nota para leerla entera",
     "count": {
       "one": "{count} nota",
       "other": "{count} notas"

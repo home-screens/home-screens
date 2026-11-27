@@ -66,7 +66,7 @@ export function CardsView({ ctx, shown, hidden, width }: { ctx: NotesContext; sh
           );
         })}
       </div>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </>
   );
 }

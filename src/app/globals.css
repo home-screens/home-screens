@@ -276,6 +276,17 @@ body {
   background-color: color-mix(in srgb, var(--module-ink, currentcolor) 6%, transparent);
 }
 
+/* A Notes material's "and N more" line is a line of its own handwriting;
+   its tap target reaches past the letters so a finger need not land on them. */
+.notes-more-tap {
+  position: relative;
+}
+.notes-more-tap::after {
+  content: '';
+  position: absolute;
+  inset: -0.7em -0.5em;
+}
+
 /* Sheets and cards over the wall (`WallOverlay`): the scrim fades in, a
    sheet rises from the bottom, a card grows into place. */
 /* A painting that fills the screen grows a little and slides, too slowly to catch, then holds. */

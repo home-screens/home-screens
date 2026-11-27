@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import type { Note } from '@/types/notes';
-import { ageOf, authorOf, fitKeyOf, NoteDrawingBody } from '../shared';
+import { ageOf, authorOf, fitKeyOf, MaterialMore, NoteDrawingBody } from '../shared';
 import type { MaterialViewProps } from './types';
 import { MaterialDrawDoor } from '../NoteDrawDoor';
 
@@ -192,15 +192,13 @@ export function HeadlineView({ ctx, all, shown, hidden, heading, showTitle, padd
             {drawn.map((note) => (
               <Story key={note.id} note={note} ctx={ctx} />
             ))}
-            {more > 0 && (
-              <p
-                data-testid="notes-more"
-                data-fit="more"
-                style={{ margin: 0, fontStyle: 'italic', fontSize: '0.85em', color: BYLINE_INK, breakInside: 'avoid' }}
-              >
-                {ctx.t('notes.andMore', { n: more })}
-              </p>
-            )}
+            <MaterialMore
+              n={more}
+              ctx={ctx}
+              as="p"
+              data-fit="more"
+              style={{ margin: 0, fontStyle: 'italic', fontSize: '0.85em', color: BYLINE_INK, breakInside: 'avoid' }}
+            />
           </div>
         </div>
       )}

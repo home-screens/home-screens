@@ -34,7 +34,7 @@ function Column({ ctx, heading, notes, hidden, emptyText, pinnedColumn, style }:
           <NoteRow key={note.id} note={note} ctx={ctx} last={i === drawn.length - 1} showPin={!pinnedColumn} />
         ))}
       </ul>
-      <MoreLine n={more} t={ctx.t} />
+      <MoreLine n={more} ctx={ctx} />
     </div>
   );
 }

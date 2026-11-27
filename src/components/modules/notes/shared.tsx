@@ -1,5 +1,5 @@
-import type { CSSProperties } from 'react';
-import { Pencil, Pin, TriangleAlert } from 'lucide-react';
+import type { CSSProperties, ReactNode } from 'react';
+import { ChevronRight, Pencil, Pin, TriangleAlert } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { Note } from '@/types/notes';
 import type { TimeFormat } from '@/types/config';
@@ -7,7 +7,6 @@ import type { TranslateFn } from '@/i18n';
 import { INK, ink } from '@/lib/constants';
 import { formatNoteAge } from '@/lib/notes-rules';
 import { getUniqueInitials, memberInitials } from '@/lib/family-avatar';
-import { MoreLine as SharedMoreLine } from '../shared/MoreLine';
 import { WallButton } from '../shared/WallButton';
 import { NoteDrawingArt } from '@/components/notes/NoteDrawingArt';
 import type { NoteSurface } from '@/lib/note-drawing';
@@ -53,6 +52,12 @@ export interface NotesContext {
    * A tap anywhere else on a note's row opens it too, typed notes included (`openFromTap` in `NotesModule`).
    */
   onOpenDrawing?: (note: Note) => void;
+  /**
+   * On a wall that takes touch: "and N more" is a button that opens every
+   * note in one sheet (`NotesAllSheet`). Unset in the editor's canvas, where
+   * the line is drawn the same and takes no tap.
+   */
+  onSeeAll?: () => void;
 }
 
 /**
@@ -223,18 +228,75 @@ export function NoteMarks({ note, t, showPin = true, flag = true }: {
   );
 }
 
-/** Height kept for the "and N more" line when a fitted list first has to drop a row, in base ems. */
-export const MORE_LINE_EM = 1.45;
+/** The pill's type as a share of the card's, its height and the gap above it, in its own ems. */
+const MORE_PILL = { font: 0.66, height: 2.6, gap: 0.5 } as const;
 
-/** "and N more" under a list that was capped or did not fit. */
-export function MoreLine({ n, t }: { n: number; t: TranslateFn }) {
+/** Height kept for the "and N more" pill when a fitted list first has to drop a row, in base ems. */
+export const MORE_LINE_EM = MORE_PILL.font * (MORE_PILL.height + MORE_PILL.gap);
+
+const MORE_CHEVRON = <ChevronRight size="1em" strokeWidth={2.6} className="shrink-0" aria-hidden="true" />;
+
+/**
+ * "and N more" under a list that was capped or did not fit: a pill that
+ * opens every note on a wall that takes touch. The editor's canvas draws the
+ * same pill as a picture, so a card fits the same notes there as on the wall.
+ */
+export function MoreLine({ n, ctx }: { n: number; ctx: NotesContext }) {
+  if (n <= 0) return null;
+  const style: CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: '0.35em', minHeight: `${MORE_PILL.height}em`, padding: '0 1em 0 1.1em', border: 0,
+    borderRadius: 999, background: ink(0.14), color: ink(0.92), font: 'inherit', fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap',
+  };
+  const words = ctx.t('notes.andMore', { n });
   return (
-    <SharedMoreLine
-      n={n}
-      label={t('notes.andMore', { n })}
-      testId="notes-more"
-      className="shrink-0"
-      style={{ fontSize: '0.66em', lineHeight: 1.4, paddingTop: '0.6em' }}
-    />
+    <div className="shrink-0 flex" style={{ fontSize: `${MORE_PILL.font}em`, paddingTop: `${MORE_PILL.gap}em` }}>
+      {ctx.onSeeAll ? (
+        <WallButton data-testid="notes-more" onClick={ctx.onSeeAll} style={{ ...style, cursor: 'pointer', touchAction: 'manipulation' }}>
+          {words}{MORE_CHEVRON}
+        </WallButton>
+      ) : (
+        <span data-testid="notes-more" style={style}>{words}{MORE_CHEVRON}</span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A material's own "and N more" line, in its hand and ink and exactly the
+ * box it has always had (some are measured as part of the fit): a button
+ * that opens every note on a wall that takes touch, the same line as a
+ * picture in the editor's canvas.
+ */
+export function MaterialMore({ n, ctx, as: Tag = 'div', className, style, ...attrs }: {
+  n: number;
+  ctx: NotesContext;
+  /** The plain line's element where no tap is taken: a newspaper's is a paragraph. */
+  as?: 'div' | 'p';
+  className?: string;
+  style?: CSSProperties;
+  [attr: `data-${string}`]: string | undefined;
+}) {
+  if (n <= 0) return null;
+  const words: ReactNode = (
+    <>
+      {ctx.t('notes.andMore', { n })}
+      <ChevronRight size="0.95em" strokeWidth={2.6} aria-hidden="true" style={{ display: 'inline', verticalAlign: '-0.12em', marginLeft: '0.2em' }} />
+    </>
+  );
+  if (!ctx.onSeeAll) return <Tag data-testid="notes-more" {...attrs} className={className} style={style}>{words}</Tag>;
+  return (
+    <WallButton
+      data-testid="notes-more"
+      {...attrs}
+      onClick={ctx.onSeeAll}
+      // `notes-more-tap` reaches past the line, so a finger does not have to land on the letters.
+      className={className ? `notes-more-tap ${className}` : 'notes-more-tap'}
+      style={{
+        font: 'inherit', display: 'block', width: '100%', padding: 0, margin: 0, border: 0, background: 'none', color: 'inherit',
+        textAlign: 'inherit', textTransform: 'inherit', letterSpacing: 'inherit', cursor: 'pointer', touchAction: 'manipulation', ...style,
+      }}
+    >
+      {words}
+    </WallButton>
   );
 }
