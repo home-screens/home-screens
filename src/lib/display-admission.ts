@@ -37,7 +37,7 @@ export const CHANGEOVER_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
  * a Pi and a tablet on one display moves over with no click; it is not a
  * door left open for every phone in the house.
  */
-export const WINDOW_WALLS_PER_DISPLAY = 4;
+export const WINDOW_WALLS_PER_DISPLAY = 6;
 
 export interface AdmissionFacts {
   /** A password is set. Without one every browser is let in. */
