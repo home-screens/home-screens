@@ -189,7 +189,8 @@ test('small List card: "Plan a meal" on a day with nothing asks which meal, then
 });
 
 test('taking a meal off from its own card keeps the card, the sheet and its Undo', async ({ page, request }) => {
-  await seedMeals(request, MEALS);
+  // The week on screen always holds today but, on its last day, not tomorrow, so the meal sits on today.
+  await seedMeals(request, { ...MEALS, plan: [{ slot: 'dinner', mealId: 'meal-tacos', date: TODAY, time: '18:30' }] });
   const week = buildModuleInstance('fullscreen-meal-planner', { view: 'week', interactive: true, wallPlan: true, tapRecipeAction: 'card' });
   await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'S1', [week])] }));
   await page.getByRole('button', { name: 'Open recipe for Chicken tacos' }).click();
@@ -200,12 +201,12 @@ test('taking a meal off from its own card keeps the card, the sheet and its Undo
   const sheet = page.getByTestId('wall-menu');
   await expect(sheet.getByTestId('wall-menu-title')).toHaveText('Change the menu');
   await settle(page);
-  await day(page, TOMORROW).click();
+  await day(page, TODAY).click();
   await settle(page);
   const off = changed(page);
   await sheet.getByTestId('wall-menu-ask').locator('[data-choice="off"]').click();
   expect((await off).ok()).toBe(true);
-  expect(await dinnerOn(request, TOMORROW)).toBeUndefined();
+  expect(await dinnerOn(request, TODAY)).toBeUndefined();
   // The row that was tapped is gone from the week, and everything opened from it is still here.
   await expect(sheet.getByTestId('wall-menu-status')).toContainText('Chicken tacos came off');
   await expect(sheet.getByTestId('wall-menu-title')).toHaveText('Change the menu');
@@ -214,7 +215,7 @@ test('taking a meal off from its own card keeps the card, the sheet and its Undo
   const undone = changed(page);
   await sheet.getByTestId('wall-menu-undo').click();
   expect((await undone).ok()).toBe(true);
-  expect(await dinnerOn(request, TOMORROW)).toMatchObject({ mealId: 'meal-tacos', time: '18:30' });
+  expect(await dinnerOn(request, TODAY)).toMatchObject({ mealId: 'meal-tacos', time: '18:30' });
 });
 
 test('the second tap of a double tap never plans, picks or answers anything', async ({ page, request }) => {

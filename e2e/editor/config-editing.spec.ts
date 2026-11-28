@@ -1978,9 +1978,15 @@ test('text: adding a look through the panel persists its conditions and colors',
   await autosaved(page, async () => {
     await card.getByRole('button', { name: 'Add condition' }).click();
   });
-  await card.getByLabel('Condition type').selectOption('numeric');
   await autosaved(page, async () => {
-    await card.getByLabel('What to check').fill('plugin:foo:temp');
+    await card.getByLabel('Condition type').selectOption('numeric');
+  });
+  // The key is kept in the field until it loses focus, so typing alone saves nothing.
+  await autosaved(page, async () => {
+    // By role: once the field has focus its list of suggestions carries the same label.
+    const key = card.getByRole('combobox', { name: 'What to check' });
+    await key.fill('plugin:foo:temp');
+    await key.blur();
   });
   await autosaved(page, async () => {
     await card.getByLabel('Above').fill('24');
